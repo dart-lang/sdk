@@ -10,7 +10,7 @@ import '../compiler.dart';
 import '../deferred_load.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
-import '../elements/entities.dart' show Entity, Local;
+import '../elements/entities.dart' show Entity, Local, MemberEntity;
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/backend.dart';
@@ -282,7 +282,7 @@ abstract class GraphBuilder {
       HInstruction typeInfo, HInstruction newObject);
 
   /// The element for which this SSA builder is being used.
-  Element get targetElement;
+  MemberEntity get targetElement;
   TypeBuilder get typeBuilder;
 
   /// Helper to implement JS_GET_FLAG.

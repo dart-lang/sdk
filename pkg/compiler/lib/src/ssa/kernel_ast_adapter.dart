@@ -91,12 +91,12 @@ class KernelAstAdapter extends KernelToElementMapMixin {
 
   /// Called to find the corresponding Kernel element for a particular Element
   /// before traversing over it with a Kernel visitor.
-  ir.Node getInitialKernelNode(Element originTarget) {
+  ir.Node getInitialKernelNode(MemberElement originTarget) {
     ir.Node target;
     if (originTarget.isPatch) {
       originTarget = originTarget.origin;
     }
-    if (originTarget is FunctionElement) {
+    if (originTarget is MethodElement) {
       if (originTarget is ConstructorBodyElement) {
         ConstructorBodyElement body = originTarget;
         originTarget = body.constructor;
@@ -104,7 +104,7 @@ class KernelAstAdapter extends KernelToElementMapMixin {
       target = kernel.functions[originTarget];
       // Closures require a lookup one level deeper in the closure class mapper.
       if (target == null) {
-        FunctionElement originTargetFunction = originTarget;
+        MethodElement originTargetFunction = originTarget;
         ClosureClassMap classMap = _compiler.closureToClassMapper
             .getClosureToClassMapping(originTargetFunction.resolvedAst);
         if (classMap.closureElement != null) {
@@ -225,7 +225,7 @@ class KernelAstAdapter extends KernelToElementMapMixin {
     // If this is a synthetic local, return the synthetic local
     if (variable.name == null) {
       return _syntheticLocals.putIfAbsent(
-          variable, () => new SyntheticLocal("x", null));
+          variable, () => new SyntheticLocal("x", null, null));
     }
     return getElement(variable) as LocalElement;
   }
@@ -267,8 +267,8 @@ class KernelAstAdapter extends KernelToElementMapMixin {
     return _resultOf(_target).typeOfSend(getNode(send));
   }
 
-  TypeMask typeOfListLiteral(
-      Element owner, ir.ListLiteral listLiteral, ClosedWorld closedWorld) {
+  TypeMask typeOfListLiteral(MemberElement owner, ir.ListLiteral listLiteral,
+      ClosedWorld closedWorld) {
     ast.Node node = getNodeOrNull(listLiteral);
     if (node == null) {
       assertNodeIsSynthetic(listLiteral);

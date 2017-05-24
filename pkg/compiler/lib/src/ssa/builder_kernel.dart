@@ -47,7 +47,7 @@ import 'types.dart' show TypeMaskFactory;
 class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   ir.Node target;
   bool _targetIsConstructorBody = false;
-  final MemberElement targetElement;
+  final MemberEntity targetElement;
 
   /// The root node of [targetElement]. This is used as the key into the
   /// [startFunction] of the locals handler.
@@ -108,8 +108,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     graph.element = targetElement;
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
-    this.localsHandler = new LocalsHandler(
-        this, targetElement, null, nativeData, interceptorData);
+    this.localsHandler = new LocalsHandler(this, targetElement, targetElement,
+        targetElement.enclosingClass, null, nativeData, interceptorData);
     target = astAdapter.getInitialKernelNode(targetElement);
     if (targetElement is ConstructorBodyElement) {
       _targetIsConstructorBody = true;
@@ -909,7 +909,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   ///      <body>
   ///    }
   _buildForInIndexable(ir.ForInStatement forInStatement) {
-    SyntheticLocal indexVariable = new SyntheticLocal('_i', targetElement);
+    SyntheticLocal indexVariable = localsHandler.createLocal('_i');
 
     // These variables are shared by initializer, condition, body and update.
     HInstruction array; // Set in buildInitializer.
@@ -3289,8 +3289,7 @@ class TryCatchFinallyBuilder {
     startCatchBlock = kernelBuilder.graph.addNewBlock();
     kernelBuilder.open(startCatchBlock);
     // Note that the name of this local is irrelevant.
-    SyntheticLocal local = new SyntheticLocal(
-        'exception', kernelBuilder.localsHandler.executableContext);
+    SyntheticLocal local = kernelBuilder.localsHandler.createLocal('exception');
     exception = new HLocalValue(local, kernelBuilder.commonMasks.nonNullType);
     kernelBuilder.add(exception);
     HInstruction oldRethrowableException = kernelBuilder.rethrowableException;

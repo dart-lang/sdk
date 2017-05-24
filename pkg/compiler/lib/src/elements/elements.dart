@@ -1512,7 +1512,7 @@ abstract class ConstructorElement extends MethodElement
 /// JavaScript backend specific element for the body of constructor.
 // TODO(johnniwinther): Remove this class from the element model.
 abstract class ConstructorBodyElement extends MethodElement {
-  FunctionElement get constructor;
+  ConstructorElement get constructor;
 }
 
 /// [GenericElement] defines the common interface for generic functions and

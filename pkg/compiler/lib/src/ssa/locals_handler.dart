@@ -36,11 +36,12 @@ class LocalsHandler {
   ClosureClassMap closureData;
   Map<ResolutionTypeVariableType, TypeVariableLocal> typeVariableLocals =
       new Map<ResolutionTypeVariableType, TypeVariableLocal>();
-  final ExecutableElement executableContext;
+  final Entity executableContext;
+  final MemberEntity memberContext;
 
   /// The class that defines the current type environment or null if no type
   /// variables are in scope.
-  ClassElement get contextClass => executableContext.contextClass;
+  final ClassElement contextClass;
 
   /// The type of the current instance, if concrete.
   ///
@@ -67,6 +68,8 @@ class LocalsHandler {
   LocalsHandler(
       this.builder,
       this.executableContext,
+      this.memberContext,
+      this.contextClass,
       ResolutionInterfaceType instanceType,
       this._nativeData,
       this._interceptorData)
@@ -106,6 +109,8 @@ class LocalsHandler {
       : directLocals = new Map<Local, HInstruction>.from(other.directLocals),
         redirectionMapping = other.redirectionMapping,
         executableContext = other.executableContext,
+        memberContext = other.memberContext,
+        contextClass = other.contextClass,
         instanceType = other.instanceType,
         builder = other.builder,
         closureData = other.closureData,
@@ -259,7 +264,7 @@ class LocalsHandler {
       bool isInterceptedClass =
           _interceptorData.isInterceptedClass(cls.declaration);
       String name = isInterceptedClass ? 'receiver' : '_';
-      SyntheticLocal parameter = new SyntheticLocal(name, executableContext);
+      SyntheticLocal parameter = createLocal(name);
       HParameterValue value = new HParameterValue(parameter, getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAfter(directLocals[closureData.thisLocal], value);
@@ -272,8 +277,7 @@ class LocalsHandler {
         directLocals[closureData.thisLocal] = value;
       }
     } else if (isNativeUpgradeFactory) {
-      SyntheticLocal parameter =
-          new SyntheticLocal('receiver', executableContext);
+      SyntheticLocal parameter = createLocal('receiver');
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
       HParameterValue value =
@@ -658,6 +662,10 @@ class LocalsHandler {
   /// being updated in try/catch blocks, and should be
   /// accessed indirectly through [HLocalGet] and [HLocalSet].
   Map<Local, HLocalValue> activationVariables = <Local, HLocalValue>{};
+
+  SyntheticLocal createLocal(String name) {
+    return new SyntheticLocal(name, executableContext, memberContext);
+  }
 }
 
 /// A synthetic local variable only used with the SSA graph.
@@ -666,16 +674,14 @@ class LocalsHandler {
 /// try-catch statement.
 class SyntheticLocal extends Local {
   final String name;
-  final ExecutableElement executableContext;
+  final Entity executableContext;
+  final MemberEntity memberContext;
 
   // Avoid slow Object.hashCode.
   final int hashCode = _nextHashCode = (_nextHashCode + 1).toUnsigned(30);
   static int _nextHashCode = 0;
 
-  SyntheticLocal(this.name, this.executableContext);
-
-  @override
-  MemberElement get memberContext => executableContext.memberContext;
+  SyntheticLocal(this.name, this.executableContext, this.memberContext);
 
   toString() => 'SyntheticLocal($name)';
 }
