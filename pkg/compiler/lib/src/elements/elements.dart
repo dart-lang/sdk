@@ -826,7 +826,7 @@ class Elements {
       FunctionElement element,
       T compileArgument(Node argument),
       T compileDefaultValue(ParameterElement element)) {
-    assert(invariant(element, element.isImplementation));
+    assert(element.isImplementation, failedAt(element));
     List<T> result = <T>[];
 
     FunctionSignature parameters = element.functionSignature;

@@ -1789,8 +1789,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else {
         // The element is mixed in so a non-null subtype mask is the most
         // precise we have.
-        assert(invariant(node, _closedWorld.isUsedAsMixin(enclosing),
-            message: "Element ${node.element} from $enclosing expected "
+        assert(
+            _closedWorld.isUsedAsMixin(enclosing),
+            failedAt(
+                node,
+                "Element ${node.element} from $enclosing expected "
                 "to be mixed in."));
         return _closedWorld.commonMasks.createNonNullSubtype(enclosing);
       }
@@ -1819,8 +1822,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // target but for some reason haven't inlined. We are _still_ accessing
       // the target dynamically but we don't need to enqueue more than target
       // for this to work.
-      assert(invariant(node, selector.applies(target),
-          message: '$selector does not apply to $target'));
+      assert(selector.applies(target),
+          failedAt(node, '$selector does not apply to $target'));
       _registry.registerStaticUse(
           new StaticUse.directInvoke(target, selector.callStructure));
     } else {

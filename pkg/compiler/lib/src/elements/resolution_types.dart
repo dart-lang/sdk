@@ -378,9 +378,11 @@ abstract class GenericType<T extends GenericType> extends ResolutionDartType {
         this.typeArguments = typeArguments,
         this.containsMethodTypeVariableType =
             typeArguments.any(_typeContainsMethodTypeVariableType) {
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE, element != null,
-        message: "Missing element for generic type."));
-    assert(invariant(element, () {
+    assert(
+        element != null,
+        failedAt(
+            CURRENT_ELEMENT_SPANNABLE, "Missing element for generic type."));
+    assert(() {
       if (!checkTypeArgumentCount) return true;
       if (element is TypeDeclarationElementX) {
         return element.thisTypeCache == null ||
@@ -388,7 +390,9 @@ abstract class GenericType<T extends GenericType> extends ResolutionDartType {
       }
       return true;
     },
-        message: () => 'Invalid type argument count on ${element.thisType}. '
+        failedAt(
+            element,
+            'Invalid type argument count on ${element.thisType}. '
             'Provided type arguments: $typeArguments.'));
   }
 
@@ -491,7 +495,7 @@ class ResolutionInterfaceType extends GenericType<ResolutionInterfaceType>
   ResolutionInterfaceType(ClassElement element,
       [List<ResolutionDartType> typeArguments = const <ResolutionDartType>[]])
       : super(element, typeArguments) {
-    assert(invariant(element, element.isDeclaration));
+    assert(element.isDeclaration, failedAt(element));
   }
 
   ResolutionInterfaceType.forUserProvidedBadType(ClassElement element,
@@ -621,8 +625,8 @@ class ResolutionFunctionType extends ResolutionDartType
       List<String> namedParameters = const <String>[],
       List<ResolutionDartType> namedParameterTypes =
           const <ResolutionDartType>[]]) {
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE, element != null));
-    assert(invariant(element, element.isDeclaration));
+    assert(element != null, failedAt(CURRENT_ELEMENT_SPANNABLE));
+    assert(element.isDeclaration, failedAt(element));
     return new ResolutionFunctionType.internal(
         element,
         returnType,
@@ -672,8 +676,8 @@ class ResolutionFunctionType extends ResolutionDartType
             parameterTypes.any(_typeContainsMethodTypeVariableType) ||
             optionalParameterTypes.any(_typeContainsMethodTypeVariableType) ||
             namedParameterTypes.any(_typeContainsMethodTypeVariableType) {
-    assert(invariant(
-        CURRENT_ELEMENT_SPANNABLE, element == null || element.isDeclaration));
+    assert(element == null || element.isDeclaration,
+        failedAt(CURRENT_ELEMENT_SPANNABLE));
     // Assert that optional and named parameters are not used at the same time.
     assert(optionalParameterTypes.isEmpty || namedParameterTypes.isEmpty);
     assert(namedParameters.length == namedParameterTypes.length);
@@ -1106,8 +1110,8 @@ class Types implements DartTypes {
 
   @override
   Iterable<InterfaceType> getSupertypes(ClassElement cls) {
-    assert(invariant(cls, cls.allSupertypes != null,
-        message: 'Supertypes have not been computed for $cls.'));
+    assert(cls.allSupertypes != null,
+        failedAt(cls, 'Supertypes have not been computed for $cls.'));
     return cls.allSupertypes;
   }
 
@@ -1616,8 +1620,8 @@ class Types implements DartTypes {
           resolution.commonElements.functionType;
       type = functionType;
     }
-    assert(invariant(NO_LOCATION_SPANNABLE, type.isInterfaceType,
-        message: "unexpected type kind ${type.kind}."));
+    assert(type.isInterfaceType,
+        failedAt(NO_LOCATION_SPANNABLE, "unexpected type kind ${type.kind}."));
     return type;
   }
 }
