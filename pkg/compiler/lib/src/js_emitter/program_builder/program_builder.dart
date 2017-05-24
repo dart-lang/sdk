@@ -227,8 +227,11 @@ class ProgramBuilder {
       ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
       if (superclass != null) {
         c.setSuperclass(_classes[superclass]);
-        assert(invariant(cls, c.superclass != null,
-            message: "No Class for has been created for superclass "
+        assert(
+            c.superclass != null,
+            failedAt(
+                cls,
+                "No Class for has been created for superclass "
                 "${superclass} of $c."));
       }
       if (c is MixinApplication) {
@@ -693,8 +696,8 @@ class ProgramBuilder {
         _jsInteropAnalysis);
 
     void visitMember(ClassElement enclosing, MemberElement member) {
-      assert(invariant(element, member.isDeclaration));
-      assert(invariant(element, element == enclosing));
+      assert(member.isDeclaration, failedAt(element));
+      assert(element == enclosing, failedAt(element));
 
       if (Elements.isNonAbstractInstanceMember(member)) {
         // TODO(herhut): Remove once _buildMethod can no longer return null.
@@ -904,9 +907,9 @@ class ProgramBuilder {
     }
 
     if (canTearOff) {
-      assert(invariant(element, !element.isGenerativeConstructor));
-      assert(invariant(element, !element.isGenerativeConstructorBody));
-      assert(invariant(element, !element.isConstructor));
+      assert(!element.isGenerativeConstructor, failedAt(element));
+      assert(!element.isGenerativeConstructorBody, failedAt(element));
+      assert(!element.isConstructor, failedAt(element));
     }
 
     js.Name callName = null;
@@ -1045,7 +1048,7 @@ class ProgramBuilder {
             bool needsGetter,
             bool needsSetter,
             bool needsCheckedSetter) {
-      assert(invariant(field, field.isDeclaration));
+      assert(field.isDeclaration, failedAt(field));
 
       int getterFlags = 0;
       if (needsGetter) {

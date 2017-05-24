@@ -280,7 +280,7 @@ class Collector {
           !classesOnlyNeededForRti.contains(cls)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClassesAndSubclasses.add(cls);
-        assert(invariant(cls, !_deferredLoadTask.isDeferredClass(cls)));
+        assert(!_deferredLoadTask.isDeferredClass(cls), failedAt(cls));
         outputClassLists
             .putIfAbsent(_deferredLoadTask.mainOutputUnit,
                 () => new List<ClassElement>())

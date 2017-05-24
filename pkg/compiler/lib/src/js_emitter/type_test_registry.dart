@@ -69,14 +69,18 @@ class TypeTestRegistry {
       this._codegenWorldBuilder, this._closedWorld, this._elementEnvironment);
 
   RuntimeTypesChecks get rtiChecks {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiChecks != null,
-        message: "RuntimeTypesChecks has not been computed yet."));
+    assert(
+        _rtiChecks != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "RuntimeTypesChecks has not been computed yet."));
     return _rtiChecks;
   }
 
   Iterable<ClassEntity> get rtiNeededClasses {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiNeededClasses != null,
-        message: "rtiNeededClasses has not been computed yet."));
+    assert(
+        _rtiNeededClasses != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "rtiNeededClasses has not been computed yet."));
     return _rtiNeededClasses;
   }
 

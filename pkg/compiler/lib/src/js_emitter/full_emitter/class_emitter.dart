@@ -36,7 +36,7 @@ class ClassEmitter extends CodeEmitterHelper {
   void emitClass(Class cls, ClassBuilder enclosingBuilder, Fragment fragment) {
     ClassElement classElement = cls.element;
 
-    assert(invariant(classElement, classElement.isDeclaration));
+    assert(classElement.isDeclaration, failedAt(classElement));
 
     emitter.needsClassSupport = true;
 
@@ -258,7 +258,7 @@ class ClassEmitter extends CodeEmitterHelper {
    */
   void emitInstanceMembers(Class cls, ClassBuilder builder) {
     ClassElement classElement = cls.element;
-    assert(invariant(classElement, classElement.isDeclaration));
+    assert(classElement.isDeclaration, failedAt(classElement));
 
     if (cls.onlyForRti || cls.isMixinApplication) return;
 
@@ -268,7 +268,7 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     for (Method method in cls.methods) {
-      assert(invariant(classElement, method.element.isInstanceMember));
+      assert(method.element.isInstanceMember, failedAt(classElement));
       emitter.containerBuilder.addMemberMethod(method, builder);
     }
 
@@ -388,8 +388,8 @@ class ClassEmitter extends CodeEmitterHelper {
       previousName = emitter.mangledGlobalFieldNames
           .putIfAbsent(accessorName, () => memberName);
     }
-    assert(invariant(member, previousName == memberName,
-        message: '$previousName != ${memberName}'));
+    assert(previousName == memberName,
+        failedAt(member, '$previousName != ${memberName}'));
   }
 
   void emitGetterForCSP(FieldElement member, jsAst.Name fieldName,

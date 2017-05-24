@@ -311,7 +311,7 @@ class NativeEmitter {
     jsAst.Expression receiver;
     List<jsAst.Expression> arguments;
 
-    assert(invariant(member, nativeMethods.contains(member)));
+    assert(nativeMethods.contains(member), failedAt(member));
     // When calling a JS method, we call it with the native name, and only the
     // arguments up until the last one provided.
     target = _nativeData.getFixedBackendName(member);
@@ -322,7 +322,7 @@ class NativeEmitter {
           1, indexOfLastOptionalArgumentInParameters + 1);
     } else {
       // Native methods that are not intercepted must be static.
-      assert(invariant(member, member.isStatic));
+      assert(member.isStatic, failedAt(member));
       arguments = argumentsBuffer.sublist(
           0, indexOfLastOptionalArgumentInParameters + 1);
       if (_nativeData.isJsInteropMember(member)) {

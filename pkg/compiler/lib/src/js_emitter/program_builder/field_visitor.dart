@@ -53,7 +53,7 @@ class FieldVisitor {
    * Invariant: [element] must be a declaration element.
    */
   void visitFields(Element element, bool visitStatics, AcceptField f) {
-    assert(invariant(element, element.isDeclaration));
+    assert(element.isDeclaration, failedAt(element));
 
     ClassElement cls;
     bool isNativeClass = false;
@@ -69,14 +69,14 @@ class FieldVisitor {
           _codegenWorldBuilder.directlyInstantiatedClasses.contains(cls);
     } else if (element.isLibrary) {
       isLibrary = true;
-      assert(invariant(element, visitStatics));
+      assert(visitStatics, failedAt(element));
     } else {
       throw new SpannableAssertionFailure(
           element, 'Expected a ClassElement or a LibraryElement.');
     }
 
     void visitField(Element holder, FieldElement field) {
-      assert(invariant(element, field.isDeclaration));
+      assert(field.isDeclaration, failedAt(element));
 
       bool isMixinNativeField = isNativeClass && holder.isMixinApplication;
 
