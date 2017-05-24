@@ -31,7 +31,7 @@ DECLARE_FLAG(bool, trace_thread_interrupter);
 // When MG-430 is resolved, the code below should be rewritten to use whatever
 // feature is added for it.
 
-// TODO(zra): The profiler is currently off by default on Fuchsia because
+// TODO(MG-795): The profiler is currently off by default on Fuchsia because
 // suspending a thread that is in a call to pthread_cond_wait() causes
 // pthread_cond_wait() to return ETIMEDOUT.
 
@@ -58,8 +58,8 @@ class ThreadInterrupterFuchsia : public AllStatic {
       state->csp = static_cast<uintptr_t>(regs->rsp);
       state->dsp = static_cast<uintptr_t>(regs->rsp);
 #elif defined(TARGET_ARCH_ARM64)
-      mx_aarch64_general_regs_t* regs =
-          reinterpret_cast<mx_aarch64_general_regs_t*>(&buf[0]);
+      mx_arm64_general_regs_t* regs =
+          reinterpret_cast<mx_arm64_general_regs_t*>(&buf[0]);
       state->pc = static_cast<uintptr_t>(regs->pc);
       state->fp = static_cast<uintptr_t>(regs->r[FPREG]);
       state->csp = static_cast<uintptr_t>(regs->sp);
