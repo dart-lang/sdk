@@ -170,8 +170,7 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
 
   intptr_t block_id = builder.AllocateBlockId();
   TargetEntryInstr* normal_entry =
-      new TargetEntryInstr(block_id, CatchClauseNode::kInvalidTryIndex,
-                           Thread::Current()->GetNextDeoptId());
+      new TargetEntryInstr(block_id, CatchClauseNode::kInvalidTryIndex);
   GraphEntryInstr* graph_entry = new GraphEntryInstr(
       parsed_function, normal_entry, Compiler::kNoOSRDeoptId);
   FlowGraph* graph = new FlowGraph(parsed_function, graph_entry, block_id);
@@ -319,8 +318,7 @@ class BlockBuilder : public ValueObject {
   }
 
   void AddIntrinsicReturn(Value* value) {
-    ReturnInstr* instr =
-        new ReturnInstr(TokenPos(), value, Thread::Current()->GetNextDeoptId());
+    ReturnInstr* instr = new ReturnInstr(TokenPos(), value);
     AddInstruction(instr);
     entry_->set_last_instruction(instr);
   }

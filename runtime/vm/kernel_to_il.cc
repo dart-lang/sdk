@@ -2017,7 +2017,6 @@ FlowGraphBuilder::FlowGraphBuilder(
     intptr_t osr_id,
     intptr_t first_block_id)
     : translation_helper_(Thread::Current()),
-      thread_(translation_helper_.thread()),
       zone_(translation_helper_.zone()),
       node_(node),
       parsed_function_(parsed_function),
@@ -2249,9 +2248,9 @@ Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
 Fragment FlowGraphBuilder::InstantiateType(const AbstractType& type) {
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
-  InstantiateTypeInstr* instr = new (Z) InstantiateTypeInstr(
-      TokenPosition::kNoSource, type, instantiator_type_args,
-      function_type_args, GetNextDeoptId());
+  InstantiateTypeInstr* instr =
+      new (Z) InstantiateTypeInstr(TokenPosition::kNoSource, type,
+                                   instantiator_type_args, function_type_args);
   Push(instr);
   return Fragment(instr);
 }
@@ -2263,7 +2262,7 @@ Fragment FlowGraphBuilder::InstantiateTypeArguments(
   Value* instantiator_type_args = Pop();
   InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
       TokenPosition::kNoSource, type_arguments, *active_class_.klass,
-      instantiator_type_args, function_type_args, GetNextDeoptId());
+      instantiator_type_args, function_type_args);
   Push(instr);
   return Fragment(instr);
 }
@@ -2353,9 +2352,8 @@ Fragment FlowGraphBuilder::StrictCompare(Token::Kind kind,
                                          bool number_check /* = false */) {
   Value* right = Pop();
   Value* left = Pop();
-  StrictCompareInstr* compare =
-      new (Z) StrictCompareInstr(TokenPosition::kNoSource, kind, left, right,
-                                 number_check, GetNextDeoptId());
+  StrictCompareInstr* compare = new (Z) StrictCompareInstr(
+      TokenPosition::kNoSource, kind, left, right, number_check);
   Push(compare);
   return Fragment(compare);
 }
@@ -2383,8 +2381,8 @@ Fragment FlowGraphBuilder::BranchIfEqual(TargetEntryInstr** then_entry,
   Value* left_value = Pop();
   StrictCompareInstr* compare = new (Z) StrictCompareInstr(
       TokenPosition::kNoSource, negate ? Token::kNE_STRICT : Token::kEQ_STRICT,
-      left_value, right_value, false, GetNextDeoptId());
-  BranchInstr* branch = new (Z) BranchInstr(compare, GetNextDeoptId());
+      left_value, right_value, false);
+  BranchInstr* branch = new (Z) BranchInstr(compare);
   *then_entry = *branch->true_successor_address() = BuildTargetEntry();
   *otherwise_entry = *branch->false_successor_address() = BuildTargetEntry();
   return Fragment(branch).closed();
@@ -2396,10 +2394,9 @@ Fragment FlowGraphBuilder::BranchIfStrictEqual(
     TargetEntryInstr** otherwise_entry) {
   Value* rhs = Pop();
   Value* lhs = Pop();
-  StrictCompareInstr* compare =
-      new (Z) StrictCompareInstr(TokenPosition::kNoSource, Token::kEQ_STRICT,
-                                 lhs, rhs, false, GetNextDeoptId());
-  BranchInstr* branch = new (Z) BranchInstr(compare, GetNextDeoptId());
+  StrictCompareInstr* compare = new (Z) StrictCompareInstr(
+      TokenPosition::kNoSource, Token::kEQ_STRICT, lhs, rhs, false);
+  BranchInstr* branch = new (Z) BranchInstr(compare);
   *then_entry = *branch->true_successor_address() = BuildTargetEntry();
   *otherwise_entry = *branch->false_successor_address() = BuildTargetEntry();
   return Fragment(branch).closed();
@@ -2449,8 +2446,8 @@ Fragment FlowGraphBuilder::TryCatch(int try_handler_index) {
   // => We therefore create a block for the body (fresh try index) and another
   //    join block (with current try index).
   Fragment body;
-  JoinEntryInstr* entry = new (Z)
-      JoinEntryInstr(AllocateBlockId(), try_handler_index, GetNextDeoptId());
+  JoinEntryInstr* entry =
+      new (Z) JoinEntryInstr(AllocateBlockId(), try_handler_index);
   body += LoadLocal(parsed_function_->current_context_var());
   body += StoreLocal(TokenPosition::kNoSource, CurrentCatchContext());
   body += Drop();
@@ -2471,8 +2468,8 @@ Fragment FlowGraphBuilder::CheckStackOverflowInPrologue() {
 
 
 Fragment FlowGraphBuilder::CheckStackOverflow() {
-  return Fragment(new (Z) CheckStackOverflowInstr(
-      TokenPosition::kNoSource, loop_depth_, GetNextDeoptId()));
+  return Fragment(
+      new (Z) CheckStackOverflowInstr(TokenPosition::kNoSource, loop_depth_));
 }
 
 
@@ -2481,8 +2478,8 @@ Fragment FlowGraphBuilder::CloneContext() {
 
   Fragment instructions = LoadLocal(context_variable);
 
-  CloneContextInstr* clone_instruction = new (Z)
-      CloneContextInstr(TokenPosition::kNoSource, Pop(), GetNextDeoptId());
+  CloneContextInstr* clone_instruction =
+      new (Z) CloneContextInstr(TokenPosition::kNoSource, Pop());
   instructions <<= clone_instruction;
   Push(clone_instruction);
 
@@ -2502,17 +2499,16 @@ Fragment FlowGraphBuilder::Constant(const Object& value) {
 
 Fragment FlowGraphBuilder::CreateArray() {
   Value* element_count = Pop();
-  CreateArrayInstr* array =
-      new (Z) CreateArrayInstr(TokenPosition::kNoSource,
-                               Pop(),  // Element type.
-                               element_count, GetNextDeoptId());
+  CreateArrayInstr* array = new (Z) CreateArrayInstr(TokenPosition::kNoSource,
+                                                     Pop(),  // Element type.
+                                                     element_count);
   Push(array);
   return Fragment(array);
 }
 
 
 Fragment FlowGraphBuilder::Goto(JoinEntryInstr* destination) {
-  return Fragment(new (Z) GotoInstr(destination, GetNextDeoptId())).closed();
+  return Fragment(new (Z) GotoInstr(destination)).closed();
 }
 
 
@@ -2540,9 +2536,9 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         intptr_t num_args_checked) {
   ArgumentArray arguments = GetArguments(argument_count);
   const intptr_t kTypeArgsLen = 0;  // Generic instance calls not yet supported.
-  InstanceCallInstr* call = new (Z) InstanceCallInstr(
-      position, name, kind, arguments, kTypeArgsLen, argument_names,
-      num_args_checked, ic_data_array_, GetNextDeoptId());
+  InstanceCallInstr* call = new (Z)
+      InstanceCallInstr(position, name, kind, arguments, kTypeArgsLen,
+                        argument_names, num_args_checked, ic_data_array_);
   Push(call);
   return Fragment(call);
 }
@@ -2553,9 +2549,9 @@ Fragment FlowGraphBuilder::ClosureCall(int argument_count,
   Value* function = Pop();
   ArgumentArray arguments = GetArguments(argument_count);
   const intptr_t kTypeArgsLen = 0;  // Generic closures not yet supported.
-  ClosureCallInstr* call = new (Z)
-      ClosureCallInstr(function, arguments, kTypeArgsLen, argument_names,
-                       TokenPosition::kNoSource, GetNextDeoptId());
+  ClosureCallInstr* call =
+      new (Z) ClosureCallInstr(function, arguments, kTypeArgsLen,
+                               argument_names, TokenPosition::kNoSource);
   Push(call);
   return Fragment(call);
 }
@@ -2564,8 +2560,7 @@ Fragment FlowGraphBuilder::ClosureCall(int argument_count,
 Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
   Fragment instructions;
   instructions += Drop();
-  instructions +=
-      Fragment(new (Z) ThrowInstr(position, GetNextDeoptId())).closed();
+  instructions += Fragment(new (Z) ThrowInstr(position)).closed();
   // Use it's side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
@@ -2581,9 +2576,8 @@ Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
   Fragment instructions;
   instructions += Drop();
   instructions += Drop();
-  instructions += Fragment(new (Z) ReThrowInstr(position, catch_try_index,
-                                                GetNextDeoptId()))
-                      .closed();
+  instructions +=
+      Fragment(new (Z) ReThrowInstr(position, catch_try_index)).closed();
   // Use it's side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
@@ -2663,8 +2657,8 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
 
 
 Fragment FlowGraphBuilder::InitStaticField(const dart::Field& field) {
-  InitStaticFieldInstr* init = new (Z)
-      InitStaticFieldInstr(Pop(), MayCloneField(Z, field), GetNextDeoptId());
+  InitStaticFieldInstr* init =
+      new (Z) InitStaticFieldInstr(Pop(), MayCloneField(Z, field));
   return Fragment(init);
 }
 
@@ -2727,8 +2721,7 @@ Fragment FlowGraphBuilder::Return(TokenPosition position) {
     instructions += Drop();
   }
 
-  ReturnInstr* return_instr =
-      new (Z) ReturnInstr(position, value, GetNextDeoptId());
+  ReturnInstr* return_instr = new (Z) ReturnInstr(position, value);
   if (exit_collector_ != NULL) exit_collector_->AddExit(return_instr);
 
   instructions <<= return_instr;
@@ -2774,7 +2767,7 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
   const intptr_t kTypeArgsLen = 0;  // Generic static calls not yet supported.
   StaticCallInstr* call =
       new (Z) StaticCallInstr(position, target, kTypeArgsLen, argument_names,
-                              arguments, ic_data_array_, GetNextDeoptId());
+                              arguments, ic_data_array_);
   const intptr_t list_cid =
       GetResultCidOfListFactory(Z, target, argument_count);
   if (list_cid != kDynamicCid) {
@@ -2888,7 +2881,7 @@ Fragment FlowGraphBuilder::StoreStaticField(TokenPosition position,
 Fragment FlowGraphBuilder::StringInterpolate(TokenPosition position) {
   Value* array = Pop();
   StringInterpolateInstr* interpolate =
-      new (Z) StringInterpolateInstr(array, position, GetNextDeoptId());
+      new (Z) StringInterpolateInstr(array, position);
   Push(interpolate);
   return Fragment(interpolate);
 }
@@ -3938,8 +3931,8 @@ Fragment FlowGraphBuilder::CheckAssignableInCheckedMode(
 
 Fragment FlowGraphBuilder::AssertBool() {
   Value* value = Pop();
-  AssertBooleanInstr* instr = new (Z)
-      AssertBooleanInstr(TokenPosition::kNoSource, value, GetNextDeoptId());
+  AssertBooleanInstr* instr =
+      new (Z) AssertBooleanInstr(TokenPosition::kNoSource, value);
   Push(instr);
   return Fragment(instr);
 }
@@ -4278,19 +4271,17 @@ void FlowGraphBuilder::SetupDefaultParameterValues(FunctionNode* function) {
 
 
 TargetEntryInstr* FlowGraphBuilder::BuildTargetEntry() {
-  return new (Z)
-      TargetEntryInstr(AllocateBlockId(), CurrentTryIndex(), GetNextDeoptId());
+  return new (Z) TargetEntryInstr(AllocateBlockId(), CurrentTryIndex());
 }
 
 
 JoinEntryInstr* FlowGraphBuilder::BuildJoinEntry(intptr_t try_index) {
-  return new (Z) JoinEntryInstr(AllocateBlockId(), try_index, GetNextDeoptId());
+  return new (Z) JoinEntryInstr(AllocateBlockId(), try_index);
 }
 
 
 JoinEntryInstr* FlowGraphBuilder::BuildJoinEntry() {
-  return new (Z)
-      JoinEntryInstr(AllocateBlockId(), CurrentTryIndex(), GetNextDeoptId());
+  return new (Z) JoinEntryInstr(AllocateBlockId(), CurrentTryIndex());
 }
 
 
@@ -5878,7 +5869,7 @@ void FlowGraphBuilder::VisitWhileStatement(WhileStatement* node) {
     Fragment loop(join);
     loop += CheckStackOverflow();
     loop += condition;
-    entry = new (Z) GotoInstr(join, GetNextDeoptId());
+    entry = new (Z) GotoInstr(join);
   } else {
     entry = condition.entry;
   }
@@ -5914,7 +5905,7 @@ void FlowGraphBuilder::VisitDoStatement(DoStatement* node) {
   Fragment repeat(loop_repeat);
   repeat += Goto(join);
 
-  fragment_ = Fragment(new (Z) GotoInstr(join, GetNextDeoptId()), loop_exit);
+  fragment_ = Fragment(new (Z) GotoInstr(join), loop_exit);
   --loop_depth_;
 }
 

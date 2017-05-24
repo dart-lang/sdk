@@ -1480,10 +1480,10 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
           new_join->AddDominatedBlock(block);
         }
         // Create a new target with the join as unconditional successor.
-        TargetEntryInstr* new_target = new TargetEntryInstr(
-            AllocateBlockId(), old_target->try_index(), Thread::kNoDeoptId);
+        TargetEntryInstr* new_target =
+            new TargetEntryInstr(AllocateBlockId(), old_target->try_index());
         new_target->InheritDeoptTarget(zone(), new_join);
-        GotoInstr* new_goto = new (Z) GotoInstr(new_join, Thread::kNoDeoptId);
+        GotoInstr* new_goto = new (Z) GotoInstr(new_join);
         new_goto->InheritDeoptTarget(zone(), new_join);
         new_target->LinkTo(new_goto);
         new_target->set_last_instruction(new_goto);
@@ -1622,9 +1622,8 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
     InlineExitCollector* exit_collector =
         new (Z) InlineExitCollector(owner_->caller_graph(), call_);
 
-    ReturnInstr* result =
-        new (Z) ReturnInstr(call_->instance_call()->token_pos(),
-                            new (Z) Value(last), Thread::kNoDeoptId);
+    ReturnInstr* result = new (Z)
+        ReturnInstr(call_->instance_call()->token_pos(), new (Z) Value(last));
     owner_->caller_graph()->AppendTo(
         last, result,
         call_->env(),  // Return can become deoptimization target.
@@ -1654,8 +1653,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
   const intptr_t try_idx = call_->GetBlock()->try_index();
 
   // Start with a fresh target entry.
-  TargetEntryInstr* entry = new (Z) TargetEntryInstr(
-      AllocateBlockId(), try_idx, Thread::Current()->GetNextDeoptId());
+  TargetEntryInstr* entry =
+      new (Z) TargetEntryInstr(AllocateBlockId(), try_idx);
   entry->InheritDeoptTarget(zone(), call_);
 
   // This function uses a cursor (a pointer to the 'current' instruction) to
@@ -1720,7 +1719,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         // the join.
         JoinEntryInstr* join = callee_entry->AsJoinEntry();
         ASSERT(join->dominator() != NULL);
-        GotoInstr* goto_join = new GotoInstr(join, Thread::kNoDeoptId);
+        GotoInstr* goto_join = new GotoInstr(join);
         goto_join->InheritDeoptTarget(zone(), join);
         cursor->LinkTo(goto_join);
         current_block->set_last_instruction(goto_join);
@@ -1750,13 +1749,13 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
             new Value(load_cid), new Value(cid_constant_end), kSmiCid,
             call_->deopt_id());
         BranchInstr* branch_top = upper_limit_branch =
-            new BranchInstr(compare_top, Thread::kNoDeoptId);
+            new BranchInstr(compare_top);
         branch_top->InheritDeoptTarget(zone(), call_);
         cursor = AppendInstruction(cursor, branch_top);
         current_block->set_last_instruction(branch_top);
 
-        TargetEntryInstr* below_target = new TargetEntryInstr(
-            AllocateBlockId(), try_idx, Thread::kNoDeoptId);
+        TargetEntryInstr* below_target =
+            new TargetEntryInstr(AllocateBlockId(), try_idx);
         below_target->InheritDeoptTarget(zone(), call_);
         current_block->AddDominatedBlock(below_target);
         cursor = current_block = below_target;
@@ -1766,13 +1765,13 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
             call_->instance_call()->token_pos(), Token::kGTE,
             new Value(load_cid), new Value(cid_constant), kSmiCid,
             call_->deopt_id());
-        branch = new BranchInstr(compare_bottom, Thread::kNoDeoptId);
+        branch = new BranchInstr(compare_bottom);
       } else {
         StrictCompareInstr* compare = new StrictCompareInstr(
             call_->instance_call()->token_pos(), Token::kEQ_STRICT,
             new Value(load_cid), new Value(cid_constant),
-            /* number_check = */ false, Thread::kNoDeoptId);
-        branch = new BranchInstr(compare, Thread::kNoDeoptId);
+            false);  // No number check.
+        branch = new BranchInstr(compare);
       }
 
       branch->InheritDeoptTarget(zone(), call_);
@@ -1803,10 +1802,9 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         JoinEntryInstr* join = callee_entry->AsJoinEntry();
         ASSERT(join != NULL);
         ASSERT(join->dominator() != NULL);
-        true_target = new TargetEntryInstr(AllocateBlockId(), try_idx,
-                                           Thread::kNoDeoptId);
+        true_target = new TargetEntryInstr(AllocateBlockId(), try_idx);
         true_target->InheritDeoptTarget(zone(), join);
-        GotoInstr* goto_join = new GotoInstr(join, Thread::kNoDeoptId);
+        GotoInstr* goto_join = new GotoInstr(join);
         goto_join->InheritDeoptTarget(zone(), join);
         true_target->LinkTo(goto_join);
         true_target->set_last_instruction(goto_join);
@@ -1818,7 +1816,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       // fall-through code below for non-inlined variants.
 
       TargetEntryInstr* false_target =
-          new TargetEntryInstr(AllocateBlockId(), try_idx, Thread::kNoDeoptId);
+          new TargetEntryInstr(AllocateBlockId(), try_idx);
       false_target->InheritDeoptTarget(zone(), call_);
       *branch->false_successor_address() = false_target;
       cid_test_entry_block->AddDominatedBlock(false_target);
@@ -1828,15 +1826,14 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       if (test_is_range) {
         // If we tested against a range of Cids there are two different tests
         // that can go to the no-cid-match target.
-        JoinEntryInstr* join =
-            new JoinEntryInstr(AllocateBlockId(), try_idx, Thread::kNoDeoptId);
-        TargetEntryInstr* false_target2 = new TargetEntryInstr(
-            AllocateBlockId(), try_idx, Thread::kNoDeoptId);
+        JoinEntryInstr* join = new JoinEntryInstr(AllocateBlockId(), try_idx);
+        TargetEntryInstr* false_target2 =
+            new TargetEntryInstr(AllocateBlockId(), try_idx);
         *upper_limit_branch->false_successor_address() = false_target2;
         cid_test_entry_block->AddDominatedBlock(false_target2);
         cid_test_entry_block->AddDominatedBlock(join);
-        GotoInstr* goto_1 = new GotoInstr(join, Thread::kNoDeoptId);
-        GotoInstr* goto_2 = new GotoInstr(join, Thread::kNoDeoptId);
+        GotoInstr* goto_1 = new GotoInstr(join);
+        GotoInstr* goto_2 = new GotoInstr(join);
         false_target->LinkTo(goto_1);
         false_target2->LinkTo(goto_2);
         false_target->set_last_instruction(goto_1);
@@ -1869,9 +1866,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         owner_->caller_graph()->alloc_ssa_temp_index());
     fallback_call->InheritDeoptTarget(zone(), call_);
     fallback_call->set_total_call_count(call_->CallCount());
-    ReturnInstr* fallback_return =
-        new ReturnInstr(call_->instance_call()->token_pos(),
-                        new Value(fallback_call), Thread::kNoDeoptId);
+    ReturnInstr* fallback_return = new ReturnInstr(
+        call_->instance_call()->token_pos(), new Value(fallback_call));
     fallback_return->InheritDeoptTargetAfter(owner_->caller_graph(), call_,
                                              fallback_call);
     AppendInstruction(AppendInstruction(cursor, fallback_call),
@@ -2247,9 +2243,8 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
 
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
@@ -2297,9 +2292,8 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   Definition* index = call->ArgumentAt(1);
   Definition* stored_value = call->ArgumentAt(2);
 
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   if (flow_graph->isolate()->type_checks()) {
@@ -2435,9 +2429,8 @@ static bool InlineDoubleOp(FlowGraph* flow_graph,
   Definition* left = receiver;
   Definition* right = call->ArgumentAt(1);
 
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   // Arguments are checked. No need for class check.
   BinaryDoubleOpInstr* double_bin_op = new (Z)
@@ -2460,9 +2453,8 @@ static bool InlineDoubleTestOp(FlowGraph* flow_graph,
     return false;
   }
 
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   // Arguments are checked. No need for class check.
 
@@ -2483,9 +2475,8 @@ static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
   Definition* left = receiver;
   Definition* right = call->ArgumentAt(1);
 
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   // Right arguments is known to be smi: other._bitAndFromSmi(this);
   BinarySmiOpInstr* smi_op =
@@ -2508,9 +2499,8 @@ static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
   Definition* array = receiver;
   Definition* value = call->ArgumentAt(1);
 
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
 
   // This is an internal method, no need to check argument types.
@@ -2595,9 +2585,8 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   ASSERT(array_cid != kIllegalCid);
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
@@ -2639,9 +2628,8 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   ASSERT(array_cid != kIllegalCid);
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
@@ -2806,9 +2794,8 @@ static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
   Definition* str = receiver;
   Definition* index = call->ArgumentAt(1);
 
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
 
   *last = PrepareInlineStringIndexOp(flow_graph, call, cid, str, index, *entry);
@@ -2835,9 +2822,8 @@ static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
   Definition* str = receiver;
   Definition* index = call->ArgumentAt(1);
 
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
 
   *last = PrepareInlineStringIndexOp(flow_graph, call, cid, str, index, *entry);
@@ -2949,9 +2935,8 @@ static bool InlineFloat32x4Method(FlowGraph* flow_graph,
     return false;
   }
 
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   switch (kind) {
@@ -3068,9 +3053,8 @@ static bool InlineSimdShuffleMethod(FlowGraph* flow_graph,
   if (!ShouldInlineSimd()) {
     return false;
   }
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   Definition* mask_definition = call->ArgumentAt(1);
@@ -3097,9 +3081,8 @@ static bool InlineSimdShuffleMixMethod(FlowGraph* flow_graph,
   if (!ShouldInlineSimd()) {
     return false;
   }
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   Definition* mask_definition = call->ArgumentAt(2);
@@ -3127,9 +3110,8 @@ static bool InlineInt32x4Method(FlowGraph* flow_graph,
   if (!ShouldInlineSimd()) {
     return false;
   }
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   switch (kind) {
@@ -3184,9 +3166,8 @@ static bool InlineFloat64x2Method(FlowGraph* flow_graph,
   if (!ShouldInlineSimd()) {
     return false;
   }
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   switch (kind) {
@@ -3236,9 +3217,8 @@ static bool InlineSimdConstructor(FlowGraph* flow_graph,
   if (!ShouldInlineSimd()) {
     return false;
   }
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   switch (kind) {
@@ -3318,9 +3298,8 @@ static bool InlineMathCFunction(FlowGraph* flow_graph,
   if (!CanUnboxDouble()) {
     return false;
   }
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
+  *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
@@ -3681,9 +3660,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
       return InlineMathCFunction(flow_graph, call, kind, entry, last);
 
     case MethodRecognizer::kObjectConstructor: {
-      *entry = new (Z)
-          TargetEntryInstr(flow_graph->allocate_block_id(),
-                           call->GetBlock()->try_index(), Thread::kNoDeoptId);
+      *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                        call->GetBlock()->try_index());
       (*entry)->InheritDeoptTarget(Z, call);
       ASSERT(!call->HasUses());
       *last = NULL;  // Empty body.
@@ -3698,11 +3676,10 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
         if (length >= 0 && length <= Array::kMaxElements) {
           Value* type = new (Z) Value(call->ArgumentAt(0));
           *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                            call->GetBlock()->try_index(),
-                                            Thread::kNoDeoptId);
+                                            call->GetBlock()->try_index());
           (*entry)->InheritDeoptTarget(Z, call);
-          *last = new (Z) CreateArrayInstr(call->token_pos(), type,
-                                           num_elements, Thread::kNoDeoptId);
+          *last =
+              new (Z) CreateArrayInstr(call->token_pos(), type, num_elements);
           flow_graph->AppendTo(
               *entry, *last,
               call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
@@ -3730,9 +3707,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
       }
 
       if (!type.IsNull()) {
-        *entry = new (Z)
-            TargetEntryInstr(flow_graph->allocate_block_id(),
-                             call->GetBlock()->try_index(), Thread::kNoDeoptId);
+        *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                          call->GetBlock()->try_index());
         (*entry)->InheritDeoptTarget(Z, call);
         *last = new (Z) ConstantInstr(type);
         flow_graph->AppendTo(
@@ -3747,9 +3723,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     case MethodRecognizer::kOneByteStringSetAt: {
       // This is an internal method, no need to check argument types nor
       // range.
-      *entry = new (Z)
-          TargetEntryInstr(flow_graph->allocate_block_id(),
-                           call->GetBlock()->try_index(), Thread::kNoDeoptId);
+      *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                        call->GetBlock()->try_index());
       (*entry)->InheritDeoptTarget(Z, call);
       Definition* str = call->ArgumentAt(0);
       Definition* index = call->ArgumentAt(1);

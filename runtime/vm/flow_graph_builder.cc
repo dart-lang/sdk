@@ -173,8 +173,8 @@ intptr_t FlowGraphBuilder::context_level() const {
 JoinEntryInstr* NestedStatement::BreakTargetFor(SourceLabel* label) {
   if (label != label_) return NULL;
   if (break_target_ == NULL) {
-    break_target_ = new (owner()->zone()) JoinEntryInstr(
-        owner()->AllocateBlockId(), try_index(), owner()->GetNextDeoptId());
+    break_target_ = new (owner()->zone())
+        JoinEntryInstr(owner()->AllocateBlockId(), try_index());
   }
   return break_target_;
 }
@@ -246,8 +246,8 @@ class NestedLoop : public NestedStatement {
 JoinEntryInstr* NestedLoop::ContinueTargetFor(SourceLabel* label) {
   if (label != this->label()) return NULL;
   if (continue_target_ == NULL) {
-    continue_target_ = new (owner()->zone()) JoinEntryInstr(
-        owner()->AllocateBlockId(), try_index(), owner()->GetNextDeoptId());
+    continue_target_ = new (owner()->zone())
+        JoinEntryInstr(owner()->AllocateBlockId(), try_index());
   }
   return continue_target_;
 }
@@ -289,8 +289,8 @@ JoinEntryInstr* NestedSwitch::ContinueTargetFor(SourceLabel* label) {
   for (intptr_t i = 0; i < case_labels_.length(); ++i) {
     if (label != case_labels_[i]) continue;
     if (case_targets_[i] == NULL) {
-      case_targets_[i] = new (owner()->zone()) JoinEntryInstr(
-          owner()->AllocateBlockId(), try_index(), owner()->GetNextDeoptId());
+      case_targets_[i] = new (owner()->zone())
+          JoinEntryInstr(owner()->AllocateBlockId(), try_index());
     }
     return case_targets_[i];
   }
@@ -442,8 +442,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     // Create a join of the returns.
     intptr_t join_id = caller_graph_->max_block_id() + 1;
     caller_graph_->set_max_block_id(join_id);
-    JoinEntryInstr* join = new (Z)
-        JoinEntryInstr(join_id, try_index, Thread::Current()->GetNextDeoptId());
+    JoinEntryInstr* join = new (Z) JoinEntryInstr(join_id, try_index);
 
     // The dominator set of the join is the intersection of the dominator
     // sets of all the predecessors.  If we keep the dominator sets ordered
@@ -461,8 +460,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     GrowableArray<BlockEntryInstr*> join_dominators;
     for (intptr_t i = 0; i < num_exits; ++i) {
       // Add the control-flow edge.
-      GotoInstr* goto_instr =
-          new (Z) GotoInstr(join, Thread::Current()->GetNextDeoptId());
+      GotoInstr* goto_instr = new (Z) GotoInstr(join);
       goto_instr->InheritDeoptTarget(zone(), ReturnAt(i));
       LastInstructionAt(i)->LinkTo(goto_instr);
       ExitBlockAt(i)->set_last_instruction(LastInstructionAt(i)->next());
@@ -548,19 +546,16 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
     // goes to the rest of the caller graph. It is removed as unreachable code
     // by the constant propagation.
     TargetEntryInstr* false_block = new (Z) TargetEntryInstr(
-        caller_graph_->allocate_block_id(), call_block->try_index(),
-        Thread::Current()->GetNextDeoptId());
+        caller_graph_->allocate_block_id(), call_block->try_index());
     false_block->InheritDeoptTargetAfter(caller_graph_, call_, NULL);
     false_block->LinkTo(call_->next());
     call_block->ReplaceAsPredecessorWith(false_block);
 
     ConstantInstr* true_const = caller_graph_->GetConstant(Bool::True());
-    BranchInstr* branch = new (Z)
-        BranchInstr(new (Z) StrictCompareInstr(
-                        TokenPosition::kNoSource, Token::kEQ_STRICT,
-                        new (Z) Value(true_const), new (Z) Value(true_const),
-                        false, Thread::Current()->GetNextDeoptId()),
-                    Thread::Current()->GetNextDeoptId());  // No number check.
+    BranchInstr* branch = new (Z) BranchInstr(new (Z) StrictCompareInstr(
+        TokenPosition::kNoSource, Token::kEQ_STRICT, new (Z) Value(true_const),
+        new (Z) Value(true_const),
+        false));  // No number check.
     branch->InheritDeoptTarget(zone(), call_);
     *branch->true_successor_address() = callee_entry;
     *branch->false_successor_address() = false_block;
@@ -704,8 +699,7 @@ void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
 
 void EffectGraphVisitor::AddReturnExit(TokenPosition token_pos, Value* value) {
   ASSERT(is_open());
-  ReturnInstr* return_instr =
-      new (Z) ReturnInstr(token_pos, value, owner()->GetNextDeoptId());
+  ReturnInstr* return_instr = new (Z) ReturnInstr(token_pos, value);
   AddInstruction(return_instr);
   InlineExitCollector* exit_collector = owner()->exit_collector();
   if (exit_collector != NULL) {
@@ -718,7 +712,7 @@ void EffectGraphVisitor::AddReturnExit(TokenPosition token_pos, Value* value) {
 void EffectGraphVisitor::Goto(JoinEntryInstr* join) {
   ASSERT(is_open());
   if (is_empty()) {
-    entry_ = new (Z) GotoInstr(join, owner()->GetNextDeoptId());
+    entry_ = new (Z) GotoInstr(join);
   } else {
     exit()->Goto(join);
   }
@@ -767,9 +761,8 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
   } else if (false_exit == NULL) {
     exit_ = true_exit;
   } else {
-    JoinEntryInstr* join =
-        new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                               owner()->GetNextDeoptId());
+    JoinEntryInstr* join = new (Z)
+        JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
     true_exit->Goto(join);
     false_exit->Goto(join);
     exit_ = join;
@@ -799,11 +792,10 @@ void EffectGraphVisitor::TieLoop(
     Append(test_preamble_fragment);
     Append(test_fragment);
   } else {
-    JoinEntryInstr* join =
-        new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                               owner()->GetNextDeoptId());
-    CheckStackOverflowInstr* check = new (Z) CheckStackOverflowInstr(
-        token_pos, owner()->loop_depth(), owner()->GetNextDeoptId());
+    JoinEntryInstr* join = new (Z)
+        JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+    CheckStackOverflowInstr* check =
+        new (Z) CheckStackOverflowInstr(token_pos, owner()->loop_depth());
     join->LinkTo(check);
     if (!test_preamble_fragment.is_empty()) {
       check->LinkTo(test_preamble_fragment.entry());
@@ -937,8 +929,7 @@ void TestGraphVisitor::ConnectBranchesTo(
   ASSERT(!branches.is_empty());
   for (intptr_t i = 0; i < branches.length(); i++) {
     TargetEntryInstr* target = new (Z)
-        TargetEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                         owner()->GetNextDeoptId());
+        TargetEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
     *(branches[i]) = target;
     target->Goto(join);
   }
@@ -961,15 +952,13 @@ BlockEntryInstr* TestGraphVisitor::CreateSuccessorFor(
 
   if (branches.length() == 1) {
     TargetEntryInstr* target = new (Z)
-        TargetEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                         owner()->GetNextDeoptId());
+        TargetEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
     *(branches[0]) = target;
     return target;
   }
 
   JoinEntryInstr* join =
-      new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                             owner()->GetNextDeoptId());
+      new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
   ConnectBranchesTo(branches, join);
   return join;
 }
@@ -988,14 +977,13 @@ BlockEntryInstr* TestGraphVisitor::CreateFalseSuccessor() const {
 void TestGraphVisitor::ReturnValue(Value* value) {
   Isolate* isolate = Isolate::Current();
   if (isolate->type_checks() || isolate->asserts()) {
-    value = Bind(new (Z) AssertBooleanInstr(condition_token_pos(), value,
-                                            owner()->GetNextDeoptId()));
+    value = Bind(new (Z) AssertBooleanInstr(condition_token_pos(), value));
   }
   Value* constant_true = Bind(new (Z) ConstantInstr(Bool::True()));
   StrictCompareInstr* comp = new (Z) StrictCompareInstr(
-      condition_token_pos(), Token::kEQ_STRICT, value, constant_true, false,
-      owner()->GetNextDeoptId());  // No number check.
-  BranchInstr* branch = new (Z) BranchInstr(comp, owner()->GetNextDeoptId());
+      condition_token_pos(), Token::kEQ_STRICT, value, constant_true,
+      false);  // No number check.
+  BranchInstr* branch = new (Z) BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
 
@@ -1005,7 +993,7 @@ void TestGraphVisitor::ReturnValue(Value* value) {
 
 
 void TestGraphVisitor::MergeBranchWithStrictCompare(StrictCompareInstr* comp) {
-  BranchInstr* branch = new (Z) BranchInstr(comp, owner()->GetNextDeoptId());
+  BranchInstr* branch = new (Z) BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
   true_successor_addresses_.Add(branch->true_successor_address());
@@ -1018,8 +1006,8 @@ void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
   Value* constant_true = Bind(new (Z) ConstantInstr(Bool::True()));
   StrictCompareInstr* comp = new (Z) StrictCompareInstr(
       condition_token_pos(), Token::kNE_STRICT, neg->value(), constant_true,
-      false, owner()->GetNextDeoptId());  // No number check.
-  BranchInstr* branch = new (Z) BranchInstr(comp, owner()->GetNextDeoptId());
+      false);  // No number check.
+  BranchInstr* branch = new (Z) BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
   true_successor_addresses_.Add(branch->true_successor_address());
@@ -1153,11 +1141,11 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     ZoneGrowableArray<PushArgumentInstr*>* no_arguments =
         new (Z) ZoneGrowableArray<PushArgumentInstr*>(0);
     const int kTypeArgsLen = 0;
-    StaticCallInstr* call_async_clear_thread_stack_trace = new (Z)
-        StaticCallInstr(node->token_pos().ToSynthetic(),
-                        async_clear_thread_stack_trace, kTypeArgsLen,
-                        Object::null_array(), no_arguments,
-                        owner()->ic_data_array(), owner()->GetNextDeoptId());
+    StaticCallInstr* call_async_clear_thread_stack_trace =
+        new (Z) StaticCallInstr(node->token_pos().ToSynthetic(),
+                                async_clear_thread_stack_trace, kTypeArgsLen,
+                                Object::null_array(), no_arguments,
+                                owner()->ic_data_array());
     Do(call_async_clear_thread_stack_trace);
   }
 
@@ -1192,8 +1180,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     const int kTypeArgsLen = 0;
     StaticCallInstr* call = new (Z) StaticCallInstr(
         node->token_pos().ToSynthetic(), complete_on_async_return, kTypeArgsLen,
-        Object::null_array(), arguments, owner()->ic_data_array(),
-        owner()->GetNextDeoptId());
+        Object::null_array(), arguments, owner()->ic_data_array());
     Do(call);
 
     // Rebind the return value for the actual return call to be null.
@@ -1211,9 +1198,8 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   if ((function.IsAsyncClosure() || function.IsSyncGenClosure() ||
        function.IsAsyncGenClosure()) &&
       (node->return_type() == ReturnNode::kContinuationTarget)) {
-    JoinEntryInstr* const join =
-        new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                               owner()->GetNextDeoptId());
+    JoinEntryInstr* const join = new (Z)
+        JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
     owner()->await_joins()->Add(join);
     exit_ = join;
   }
@@ -1256,8 +1242,7 @@ void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
     function_type_arguments = BuildFunctionTypeArguments(token_pos);
   }
   ReturnDefinition(new (Z) InstantiateTypeInstr(
-      token_pos, type, instantiator_type_arguments, function_type_arguments,
-      owner()->GetNextDeoptId()));
+      token_pos, type, instantiator_type_arguments, function_type_arguments));
 }
 
 
@@ -1347,8 +1332,8 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
       ValueGraphVisitor for_right(owner());
       node->right()->Visit(&for_right);
       Value* right_value = for_right.value();
-      for_right.Do(new (Z) AssertBooleanInstr(
-          node->right()->token_pos(), right_value, owner()->GetNextDeoptId()));
+      for_right.Do(
+          new (Z) AssertBooleanInstr(node->right()->token_pos(), right_value));
       if (node->kind() == Token::kAND) {
         Join(for_left, for_right, empty);
       } else {
@@ -1383,10 +1368,9 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   const String& name = Symbols::Token(node->kind());
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgsChecked = 2;
-  InstanceCallInstr* call = new (Z)
-      InstanceCallInstr(node->token_pos(), name, node->kind(), arguments,
-                        kTypeArgsLen, Object::null_array(), kNumArgsChecked,
-                        owner()->ic_data_array(), owner()->GetNextDeoptId());
+  InstanceCallInstr* call = new (Z) InstanceCallInstr(
+      node->token_pos(), name, node->kind(), arguments, kTypeArgsLen,
+      Object::null_array(), kNumArgsChecked, owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -1409,13 +1393,13 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     Value* right_value = for_right.value();
     Isolate* isolate = Isolate::Current();
     if (isolate->type_checks() || isolate->asserts()) {
-      right_value = for_right.Bind(new (Z) AssertBooleanInstr(
-          node->right()->token_pos(), right_value, owner()->GetNextDeoptId()));
+      right_value = for_right.Bind(
+          new (Z) AssertBooleanInstr(node->right()->token_pos(), right_value));
     }
     Value* constant_true = for_right.Bind(new (Z) ConstantInstr(Bool::True()));
     Value* compare = for_right.Bind(new (Z) StrictCompareInstr(
-        node->token_pos(), Token::kEQ_STRICT, right_value, constant_true, false,
-        owner()->GetNextDeoptId()));  // No number check.
+        node->token_pos(), Token::kEQ_STRICT, right_value, constant_true,
+        false));  // No number check.
     for_right.Do(BuildStoreExprTemp(compare, node->token_pos()));
 
     if (node->kind() == Token::kAND) {
@@ -1551,7 +1535,7 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
         Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()), node->kind(),
         arguments, kTypeArgsLen,
         Object::null_array(),  // No argument names.
-        kNumArgsChecked, owner()->ic_data_array(), owner()->GetNextDeoptId());
+        kNumArgsChecked, owner()->ic_data_array());
     if (negate_result) {
       result = new (Z) BooleanNegateInstr(Bind(result));
     }
@@ -1576,7 +1560,7 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       node->token_pos(), Library::PrivateCoreLibName(Symbols::_instanceOf()),
       node->kind(), arguments, kTypeArgsLen,
       Object::null_array(),  // No argument names.
-      kNumArgsChecked, owner()->ic_data_array(), owner()->GetNextDeoptId());
+      kNumArgsChecked, owner()->ic_data_array());
   if (negate_result) {
     result = new (Z) BooleanNegateInstr(Bind(result));
   }
@@ -1615,7 +1599,7 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
       node->token_pos(), Library::PrivateCoreLibName(Symbols::_as()),
       node->kind(), arguments, kTypeArgsLen,
       Object::null_array(),  // No argument names.
-      kNumArgsChecked, owner()->ic_data_array(), owner()->GetNextDeoptId());
+      kNumArgsChecked, owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -1632,8 +1616,8 @@ StrictCompareInstr* EffectGraphVisitor::BuildStrictCompare(
   right->Visit(&for_right_value);
   Append(for_right_value);
   StrictCompareInstr* comp = new (Z) StrictCompareInstr(
-      token_pos, kind, for_left_value.value(), for_right_value.value(), true,
-      owner()->GetNextDeoptId());  // Number check.
+      token_pos, kind, for_left_value.value(), for_right_value.value(),
+      true);  // Number check.
   return comp;
 }
 
@@ -1689,17 +1673,16 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
 
     const intptr_t kTypeArgsLen = 0;
     const intptr_t kNumArgsChecked = 2;
-    Definition* result = new (Z) InstanceCallInstr(
-        node->token_pos(), Symbols::EqualOperator(),
-        Token::kEQ,  // Result is negated later for kNE.
-        arguments, kTypeArgsLen, Object::null_array(), kNumArgsChecked,
-        owner()->ic_data_array(), owner()->GetNextDeoptId());
+    Definition* result = new (Z)
+        InstanceCallInstr(node->token_pos(), Symbols::EqualOperator(),
+                          Token::kEQ,  // Result is negated later for kNE.
+                          arguments, kTypeArgsLen, Object::null_array(),
+                          kNumArgsChecked, owner()->ic_data_array());
     if (node->kind() == Token::kNE) {
       Isolate* isolate = Isolate::Current();
       if (isolate->type_checks() || isolate->asserts()) {
         Value* value = Bind(result);
-        result = new (Z) AssertBooleanInstr(node->token_pos(), value,
-                                            owner()->GetNextDeoptId());
+        result = new (Z) AssertBooleanInstr(node->token_pos(), value);
       }
       Value* value = Bind(result);
       result = new (Z) BooleanNegateInstr(value);
@@ -1727,8 +1710,7 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   const intptr_t kTypeArgsLen = 0;
   InstanceCallInstr* comp = new (Z) InstanceCallInstr(
       node->token_pos(), Symbols::Token(node->kind()), node->kind(), arguments,
-      kTypeArgsLen, Object::null_array(), 2, owner()->ic_data_array(),
-      owner()->GetNextDeoptId());
+      kTypeArgsLen, Object::null_array(), 2, owner()->ic_data_array());
   ReturnDefinition(comp);
 }
 
@@ -1742,8 +1724,8 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     Value* value = for_value.value();
     Isolate* isolate = Isolate::Current();
     if (isolate->type_checks() || isolate->asserts()) {
-      value = Bind(new (Z) AssertBooleanInstr(
-          node->operand()->token_pos(), value, owner()->GetNextDeoptId()));
+      value =
+          Bind(new (Z) AssertBooleanInstr(node->operand()->token_pos(), value));
     }
     BooleanNegateInstr* negate = new (Z) BooleanNegateInstr(value);
     ReturnDefinition(negate);
@@ -1760,8 +1742,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   const intptr_t kTypeArgsLen = 0;
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       node->token_pos(), Symbols::Token(node->kind()), node->kind(), arguments,
-      kTypeArgsLen, Object::null_array(), 1, owner()->ic_data_array(),
-      owner()->GetNextDeoptId());
+      kTypeArgsLen, Object::null_array(), 1, owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -1859,9 +1840,8 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
   // Compute the start of the statements fragment.
   JoinEntryInstr* statement_start = NULL;
   if (node->label() == NULL) {
-    statement_start =
-        new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                               owner()->GetNextDeoptId());
+    statement_start = new (Z)
+        JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
   } else {
     // The case nodes are nested inside a SequenceNode that is the body of a
     // SwitchNode.  The SwitchNode on the nesting stack contains the
@@ -1913,8 +1893,7 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
     } else {
       if (statement_exit != NULL) {
         JoinEntryInstr* join = new (Z)
-            JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                           owner()->GetNextDeoptId());
+            JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
         statement_exit->Goto(join);
         next_target->Goto(join);
         exit_instruction = join;
@@ -1997,8 +1976,7 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
 
   // Tie do-while loop (test is after the body).
   JoinEntryInstr* body_entry_join =
-      new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                             owner()->GetNextDeoptId());
+      new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
   Goto(body_entry_join);
   Instruction* body_exit = AppendFragment(body_entry_join, for_body);
 
@@ -2006,11 +1984,10 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   if ((body_exit != NULL) || (join != NULL)) {
     if (join == NULL) {
       join = new (Z)
-          JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                         owner()->GetNextDeoptId());
+          JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
     }
-    CheckStackOverflowInstr* check = new (Z) CheckStackOverflowInstr(
-        node->token_pos(), owner()->loop_depth(), owner()->GetNextDeoptId());
+    CheckStackOverflowInstr* check = new (Z)
+        CheckStackOverflowInstr(node->token_pos(), owner()->loop_depth());
     join->LinkTo(check);
     check->LinkTo(for_test.entry());
     if (body_exit != NULL) {
@@ -2058,9 +2035,8 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   // Join the loop body and increment and then tie the loop.
   JoinEntryInstr* continue_join = nested_loop.continue_target();
   if ((continue_join != NULL) || for_body.is_open()) {
-    JoinEntryInstr* loop_entry =
-        new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                               owner()->GetNextDeoptId());
+    JoinEntryInstr* loop_entry = new (Z)
+        JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
     if (continue_join != NULL) {
       if (for_body.is_open()) for_body.Goto(continue_join);
       Instruction* current = AppendFragment(continue_join, for_increment);
@@ -2077,8 +2053,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     // the context level (if any) matches the that of the increment
     // expression.
     AddInstruction(new (Z) CheckStackOverflowInstr(
-        node->increment()->token_pos(), owner()->loop_depth(),
-        owner()->GetNextDeoptId()));
+        node->increment()->token_pos(), owner()->loop_depth()));
   }
 
   if (node->condition() == NULL) {
@@ -2273,8 +2248,8 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
       BuildInstantiatedTypeArguments(node->token_pos(), type_args);
   Value* num_elements =
       Bind(new (Z) ConstantInstr(Smi::ZoneHandle(Z, Smi::New(node->length()))));
-  CreateArrayInstr* create = new (Z) CreateArrayInstr(
-      node->token_pos(), element_type, num_elements, owner()->GetNextDeoptId());
+  CreateArrayInstr* create =
+      new (Z) CreateArrayInstr(node->token_pos(), element_type, num_elements);
   Value* array_val = Bind(create);
 
   {
@@ -2324,16 +2299,16 @@ void EffectGraphVisitor::VisitStringInterpolateNode(
         Z, Resolver::ResolveStatic(
                cls, Library::PrivateCoreLibName(Symbols::InterpolateSingle()),
                kTypeArgsLen, kNumberOfArguments, kNoArgumentNames));
-    StaticCallInstr* call = new (Z) StaticCallInstr(
-        node->token_pos(), function, kTypeArgsLen, kNoArgumentNames, values,
-        owner()->ic_data_array(), owner()->GetNextDeoptId());
+    StaticCallInstr* call = new (Z)
+        StaticCallInstr(node->token_pos(), function, kTypeArgsLen,
+                        kNoArgumentNames, values, owner()->ic_data_array());
     ReturnDefinition(call);
     return;
   }
   arguments->Visit(&for_argument);
   Append(for_argument);
-  StringInterpolateInstr* instr = new (Z) StringInterpolateInstr(
-      for_argument.value(), node->token_pos(), owner()->GetNextDeoptId());
+  StringInterpolateInstr* instr =
+      new (Z) StringInterpolateInstr(for_argument.value(), node->token_pos());
   ReturnDefinition(instr);
 }
 
@@ -2555,7 +2530,7 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
     InstanceCallInstr* call = new (Z) InstanceCallInstr(
         node->token_pos(), node->function_name(), Token::kILLEGAL, arguments,
         node->arguments()->type_args_len(), node->arguments()->names(), 1,
-        owner()->ic_data_array(), owner()->GetNextDeoptId());
+        owner()->ic_data_array());
     ReturnDefinition(call);
   }
 }
@@ -2571,8 +2546,7 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
   BuildPushArguments(*node->arguments(), arguments);
   StaticCallInstr* call = new (Z) StaticCallInstr(
       node->token_pos(), node->function(), node->arguments()->type_args_len(),
-      node->arguments()->names(), arguments, owner()->ic_data_array(),
-      owner()->GetNextDeoptId());
+      node->arguments()->names(), arguments, owner()->ic_data_array());
   if (node->function().recognized_kind() != MethodRecognizer::kUnknown) {
     call->set_result_cid(MethodRecognizer::ResultCid(node->function()));
   }
@@ -2606,8 +2580,8 @@ void EffectGraphVisitor::BuildClosureCall(ClosureCallNode* node,
   function_load->set_is_immutable(true);
   Value* function_val = Bind(function_load);
 
-  Definition* closure_call = new (Z) ClosureCallInstr(
-      function_val, node, arguments, owner()->GetNextDeoptId());
+  Definition* closure_call =
+      new (Z) ClosureCallInstr(function_val, node, arguments);
   if (result_needed) {
     Value* result = Bind(closure_call);
     Do(new (Z) StoreLocalInstr(*tmp_var, result, ST(node->token_pos())));
@@ -2631,15 +2605,13 @@ void ValueGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
 void EffectGraphVisitor::VisitInitStaticFieldNode(InitStaticFieldNode* node) {
   Value* field = Bind(
       new (Z) ConstantInstr(Field::ZoneHandle(Z, node->field().Original())));
-  AddInstruction(new (Z) InitStaticFieldInstr(field, node->field(),
-                                              owner()->GetNextDeoptId()));
+  AddInstruction(new (Z) InitStaticFieldInstr(field, node->field()));
 }
 
 
 void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
   Value* context = Bind(BuildCurrentContext(node->token_pos()));
-  Value* clone = Bind(new (Z) CloneContextInstr(node->token_pos(), context,
-                                                owner()->GetNextDeoptId()));
+  Value* clone = Bind(new (Z) CloneContextInstr(node->token_pos(), context));
   Do(BuildStoreContext(clone, node->token_pos()));
 }
 
@@ -2673,10 +2645,9 @@ void EffectGraphVisitor::BuildConstructorCall(
 
   BuildPushArguments(*node->arguments(), arguments);
   const intptr_t kTypeArgsLen = 0;
-  Do(new (Z)
-         StaticCallInstr(node->token_pos(), node->constructor(), kTypeArgsLen,
-                         node->arguments()->names(), arguments,
-                         owner()->ic_data_array(), owner()->GetNextDeoptId()));
+  Do(new (Z) StaticCallInstr(node->token_pos(), node->constructor(),
+                             kTypeArgsLen, node->arguments()->names(),
+                             arguments, owner()->ic_data_array()));
 }
 
 
@@ -2715,10 +2686,9 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
     ASSERT(arguments->length() == 1);
     BuildPushArguments(*node->arguments(), arguments);
     const int kTypeArgsLen = 0;
-    StaticCallInstr* call = new (Z)
-        StaticCallInstr(node->token_pos(), node->constructor(), kTypeArgsLen,
-                        node->arguments()->names(), arguments,
-                        owner()->ic_data_array(), owner()->GetNextDeoptId());
+    StaticCallInstr* call = new (Z) StaticCallInstr(
+        node->token_pos(), node->constructor(), kTypeArgsLen,
+        node->arguments()->names(), arguments, owner()->ic_data_array());
     const intptr_t result_cid = GetResultCidOfListFactory(node);
     if (result_cid != kDynamicCid) {
       call->set_result_cid(result_cid);
@@ -2860,7 +2830,7 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
   }
   return Bind(new (Z) InstantiateTypeArgumentsInstr(
       token_pos, type_arguments, instantiator_class, instantiator_type_args,
-      function_type_args, owner()->GetNextDeoptId()));
+      function_type_args));
 }
 
 
@@ -2949,10 +2919,9 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
     const String& name =
         String::ZoneHandle(Z, Field::GetterSymbol(node->field_name()));
     const intptr_t kTypeArgsLen = 0;
-    InstanceCallInstr* call = new (Z)
-        InstanceCallInstr(node->token_pos(), name, Token::kGET, arguments,
-                          kTypeArgsLen, Object::null_array(), 1,
-                          owner()->ic_data_array(), owner()->GetNextDeoptId());
+    InstanceCallInstr* call = new (Z) InstanceCallInstr(
+        node->token_pos(), name, Token::kGET, arguments, kTypeArgsLen,
+        Object::null_array(), 1, owner()->ic_data_array());
     ReturnDefinition(call);
   }
 }
@@ -3014,10 +2983,9 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
       String::ZoneHandle(Z, Field::SetterSymbol(node->field_name()));
   const int kTypeArgsLen = 0;
   const intptr_t kNumArgsChecked = 1;  // Do not check value type.
-  InstanceCallInstr* call = new (Z)
-      InstanceCallInstr(token_pos, name, Token::kSET, arguments, kTypeArgsLen,
-                        Object::null_array(), kNumArgsChecked,
-                        owner()->ic_data_array(), owner()->GetNextDeoptId());
+  InstanceCallInstr* call = new (Z) InstanceCallInstr(
+      token_pos, name, Token::kSET, arguments, kTypeArgsLen,
+      Object::null_array(), kNumArgsChecked, owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -3062,8 +3030,7 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
   const intptr_t kNumArgsChecked = 1;  // Do not check value type.
   Do(new (Z) InstanceCallInstr(token_pos, name, Token::kSET, arguments,
                                kTypeArgsLen, Object::null_array(),
-                               kNumArgsChecked, owner()->ic_data_array(),
-                               owner()->GetNextDeoptId()));
+                               kNumArgsChecked, owner()->ic_data_array()));
   ReturnDefinition(BuildLoadExprTemp(token_pos));
 }
 
@@ -3126,10 +3093,10 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
   }
   ASSERT(!getter_function.IsNull());
   const intptr_t kTypeArgsLen = 0;
-  StaticCallInstr* call = new (Z) StaticCallInstr(
-      node->token_pos(), getter_function, kTypeArgsLen,
-      Object::null_array(),  // No names
-      arguments, owner()->ic_data_array(), owner()->GetNextDeoptId());
+  StaticCallInstr* call =
+      new (Z) StaticCallInstr(node->token_pos(), getter_function, kTypeArgsLen,
+                              Object::null_array(),  // No names
+                              arguments, owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -3191,8 +3158,7 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
     const intptr_t kTypeArgsLen = 0;
     call = new (Z) StaticCallInstr(token_pos, setter_function, kTypeArgsLen,
                                    Object::null_array(),  // No names.
-                                   arguments, owner()->ic_data_array(),
-                                   owner()->GetNextDeoptId());
+                                   arguments, owner()->ic_data_array());
   }
   if (result_is_needed) {
     Do(call);
@@ -3284,9 +3250,8 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         Value* other = Bind(new (Z) LoadLocalInstr(*other_var, token_pos));
         // Receiver is not a number because numbers override equality.
         const bool kNoNumberCheck = false;
-        StrictCompareInstr* compare = new (Z)
-            StrictCompareInstr(token_pos, Token::kEQ_STRICT, receiver, other,
-                               kNoNumberCheck, owner()->GetNextDeoptId());
+        StrictCompareInstr* compare = new (Z) StrictCompareInstr(
+            token_pos, Token::kEQ_STRICT, receiver, other, kNoNumberCheck);
         return ReturnDefinition(compare);
       }
       case MethodRecognizer::kStringBaseLength:
@@ -3306,9 +3271,9 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         Value* zero_val =
             Bind(new (Z) ConstantInstr(Smi::ZoneHandle(Z, Smi::New(0))));
         Value* load_val = Bind(load);
-        StrictCompareInstr* compare = new (Z) StrictCompareInstr(
-            token_pos, Token::kEQ_STRICT, load_val, zero_val, false,
-            owner()->GetNextDeoptId());  // No number check.
+        StrictCompareInstr* compare = new (Z)
+            StrictCompareInstr(token_pos, Token::kEQ_STRICT, load_val, zero_val,
+                               false);  // No number check.
         return ReturnDefinition(compare);
       }
       case MethodRecognizer::kGrowableArrayLength:
@@ -3351,8 +3316,8 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
             node->scope()->LookupVariable(Symbols::Length(), true);
         Value* length =
             Bind(new (Z) LoadLocalInstr(*length_parameter, token_pos));
-        CreateArrayInstr* create_array = new CreateArrayInstr(
-            token_pos, element_type, length, owner()->GetNextDeoptId());
+        CreateArrayInstr* create_array =
+            new CreateArrayInstr(token_pos, element_type, length);
         return ReturnDefinition(create_array);
       }
       case MethodRecognizer::kBigint_getDigits: {
@@ -3642,7 +3607,7 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
     // Generate static call to super operator.
     StaticCallInstr* load = new (Z) StaticCallInstr(
         node->token_pos(), *super_function, kTypeArgsLen, Object::null_array(),
-        arguments, owner()->ic_data_array(), owner()->GetNextDeoptId());
+        arguments, owner()->ic_data_array());
     ReturnDefinition(load);
   } else {
     // Generate dynamic call to index operator.
@@ -3650,7 +3615,7 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
     InstanceCallInstr* load = new (Z) InstanceCallInstr(
         node->token_pos(), Symbols::IndexToken(), Token::kINDEX, arguments,
         kTypeArgsLen, Object::null_array(), checked_argument_count,
-        owner()->ic_data_array(), owner()->GetNextDeoptId());
+        owner()->ic_data_array());
     ReturnDefinition(load);
   }
 }
@@ -3716,7 +3681,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(StoreIndexedNode* node,
 
     StaticCallInstr* store = new (Z) StaticCallInstr(
         token_pos, *super_function, kTypeArgsLen, Object::null_array(),
-        arguments, owner()->ic_data_array(), owner()->GetNextDeoptId());
+        arguments, owner()->ic_data_array());
     if (result_is_needed) {
       Do(store);
       return BuildLoadExprTemp(token_pos);
@@ -3729,7 +3694,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(StoreIndexedNode* node,
     InstanceCallInstr* store = new (Z) InstanceCallInstr(
         token_pos, Symbols::AssignIndexToken(), Token::kASSIGN_INDEX, arguments,
         kTypeArgsLen, Object::null_array(), checked_argument_count,
-        owner()->ic_data_array(), owner()->GetNextDeoptId());
+        owner()->ic_data_array());
     if (result_is_needed) {
       Do(store);
       return BuildLoadExprTemp(token_pos);
@@ -3900,11 +3865,11 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     ASSERT(!async_set_thread_stack_trace.IsNull());
     // Call _asyncSetThreadStackTrace
     const intptr_t kTypeArgsLen = 0;
-    StaticCallInstr* call_async_set_thread_stack_trace = new (Z)
-        StaticCallInstr(node->token_pos().ToSynthetic(),
-                        async_set_thread_stack_trace, kTypeArgsLen,
-                        Object::null_array(), arguments,
-                        owner()->ic_data_array(), owner()->GetNextDeoptId());
+    StaticCallInstr* call_async_set_thread_stack_trace =
+        new (Z) StaticCallInstr(node->token_pos().ToSynthetic(),
+                                async_set_thread_stack_trace, kTypeArgsLen,
+                                Object::null_array(), arguments,
+                                owner()->ic_data_array());
     Do(call_async_set_thread_stack_trace);
   }
 
@@ -3938,8 +3903,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // if we inline or not.
     if (!function.IsImplicitGetterFunction() &&
         !function.IsImplicitSetterFunction()) {
-      CheckStackOverflowInstr* check = new (Z) CheckStackOverflowInstr(
-          node->token_pos(), 0, owner()->GetNextDeoptId());
+      CheckStackOverflowInstr* check =
+          new (Z) CheckStackOverflowInstr(node->token_pos(), 0);
       // If we are inlining don't actually attach the stack check. We must still
       // create the stack check in order to allocate a deopt id.
       if (!owner()->IsInlining()) {
@@ -3979,9 +3944,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   if (is_top_level_sequence &&
       (function.IsAsyncClosure() || function.IsSyncGenClosure() ||
        function.IsAsyncGenClosure())) {
-    JoinEntryInstr* preamble_end =
-        new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                               owner()->GetNextDeoptId());
+    JoinEntryInstr* preamble_end = new (Z)
+        JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
     ASSERT(exit() != NULL);
     exit()->Goto(preamble_end);
     ASSERT(exit()->next()->IsGoto());
@@ -4123,14 +4087,13 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
 
   if (for_try.is_open()) {
     JoinEntryInstr* after_try = new (Z)
-        JoinEntryInstr(owner()->AllocateBlockId(), original_handler_index,
-                       owner()->GetNextDeoptId());
+        JoinEntryInstr(owner()->AllocateBlockId(), original_handler_index);
     for_try.Goto(after_try);
     for_try.exit_ = after_try;
   }
 
-  JoinEntryInstr* try_entry = new (Z) JoinEntryInstr(
-      owner()->AllocateBlockId(), try_handler_index, owner()->GetNextDeoptId());
+  JoinEntryInstr* try_entry =
+      new (Z) JoinEntryInstr(owner()->AllocateBlockId(), try_handler_index);
 
   Goto(try_entry);
   AppendFragment(try_entry, for_try);
@@ -4170,8 +4133,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
 
   if (for_catch.is_open()) {
     JoinEntryInstr* join = new (Z)
-        JoinEntryInstr(owner()->AllocateBlockId(), original_handler_index,
-                       owner()->GetNextDeoptId());
+        JoinEntryInstr(owner()->AllocateBlockId(), original_handler_index);
     for_catch.Goto(join);
     if (is_open()) Goto(join);
     exit_ = join;
@@ -4196,8 +4158,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
           catch_block->rethrow_stacktrace_var(), finally_block->token_pos()));
       for_finally.PushArgument(stacktrace);
       for_finally.AddInstruction(
-          new (Z) ReThrowInstr(catch_block->token_pos(), catch_handler_index,
-                               owner()->GetNextDeoptId()));
+          new (Z) ReThrowInstr(catch_block->token_pos(), catch_handler_index));
       for_finally.CloseFragment();
     }
     ASSERT(!for_finally.is_open());
@@ -4260,9 +4221,9 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   ZoneGrowableArray<PushArgumentInstr*>* push_arguments =
       new (Z) ZoneGrowableArray<PushArgumentInstr*>(2);
   BuildPushArguments(*args, push_arguments);
-  return new (Z) StaticCallInstr(
-      args_pos, no_such_method_func, kTypeArgsLen, Object::null_array(),
-      push_arguments, owner()->ic_data_array(), owner()->GetNextDeoptId());
+  return new (Z) StaticCallInstr(args_pos, no_such_method_func, kTypeArgsLen,
+                                 Object::null_array(), push_arguments,
+                                 owner()->ic_data_array());
 }
 
 
@@ -4328,8 +4289,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   ASSERT(!func.IsNull());
   return new (Z) StaticCallInstr(token_pos, func, kTypeArgsLen,
                                  Object::null_array(),  // No names.
-                                 arguments, owner()->ic_data_array(),
-                                 owner()->GetNextDeoptId());
+                                 arguments, owner()->ic_data_array());
 }
 
 
@@ -4349,14 +4309,13 @@ void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
   PushArgument(for_exception.value());
   Instruction* instr = NULL;
   if (node->stacktrace() == NULL) {
-    instr = new (Z) ThrowInstr(node->token_pos(), owner()->GetNextDeoptId());
+    instr = new (Z) ThrowInstr(node->token_pos());
   } else {
     ValueGraphVisitor for_stack_trace(owner());
     node->stacktrace()->Visit(&for_stack_trace);
     Append(for_stack_trace);
     PushArgument(for_stack_trace.value());
-    instr = new (Z) ReThrowInstr(node->token_pos(), owner()->catch_try_index(),
-                                 owner()->GetNextDeoptId());
+    instr = new (Z) ReThrowInstr(node->token_pos(), owner()->catch_try_index());
   }
   AddInstruction(instr);
 }
@@ -4396,8 +4355,7 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
   // context variable.
 
   JoinEntryInstr* finally_entry =
-      new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                             owner()->GetNextDeoptId());
+      new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
   EffectGraphVisitor for_finally_block(owner());
   for_finally_block.AdjustContextLevel(node->finally_block()->scope());
   node->finally_block()->Visit(&for_finally_block);
@@ -4407,9 +4365,8 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
   }
 
   if (for_finally_block.is_open()) {
-    JoinEntryInstr* after_finally =
-        new (Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index(),
-                               owner()->GetNextDeoptId());
+    JoinEntryInstr* after_finally = new (Z)
+        JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
     for_finally_block.Goto(after_finally);
     for_finally_block.exit_ = after_finally;
   }
@@ -4439,8 +4396,8 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
     AstPrinter ast_printer;
     ast_printer.PrintFunctionScope(parsed_function());
   }
-  TargetEntryInstr* normal_entry = new (Z) TargetEntryInstr(
-      AllocateBlockId(), CatchClauseNode::kInvalidTryIndex, GetNextDeoptId());
+  TargetEntryInstr* normal_entry = new (Z)
+      TargetEntryInstr(AllocateBlockId(), CatchClauseNode::kInvalidTryIndex);
   graph_entry_ =
       new (Z) GraphEntryInstr(parsed_function(), normal_entry, osr_id_);
   EffectGraphVisitor for_effect(this);
