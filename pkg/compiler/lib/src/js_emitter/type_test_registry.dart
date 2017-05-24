@@ -101,7 +101,7 @@ class TypeTestRegistry {
   }
 
   void computeRtiNeededClasses(RuntimeTypesSubstitutions rtiSubstitutions,
-      MirrorsData mirrorsData, Iterable<MemberElement> liveMembers) {
+      MirrorsData mirrorsData, Iterable<MemberEntity> liveMembers) {
     _rtiNeededClasses = new Set<ClassEntity>();
 
     void addClassWithSuperclasses(ClassElement cls) {

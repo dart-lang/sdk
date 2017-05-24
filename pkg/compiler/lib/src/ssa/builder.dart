@@ -48,26 +48,84 @@ import 'locals_handler.dart';
 import 'loop_handler.dart';
 import 'nodes.dart';
 import 'optimize.dart';
+import 'ssa.dart';
 import 'ssa_branch_builder.dart';
 import 'type_builder.dart';
 import 'types.dart';
 
-class SsaBuilderTask extends CompilerTask {
-  final CodeEmitterTask emitter;
+abstract class SsaAstBuilderBase extends CompilerTask
+    implements SsaBuilderTask {
   final JavaScriptBackend backend;
+
+  SsaAstBuilderBase(this.backend) : super(backend.compiler.measurer);
+
+  /// Handle field initializer of `work.element`. Returns `true` if no code
+  /// is needed for the field.
+  ///
+  /// If `work.element` is a field with a constant initializer, the value is
+  /// registered with the world impact. Otherwise the cyclic-throw helper is
+  /// registered for the lazy value computation.
+  ///
+  /// If the field is constant, no code is needed for the field and the method
+  /// return `true`.
+  bool handleConstantField(ElementCodegenWorkItem work) {
+    MemberElement element = work.element;
+    if (element.isField) {
+      FieldElement field = element;
+      ConstantExpression constant = field.constant;
+      if (constant != null) {
+        ConstantValue initialValue =
+            backend.constants.getConstantValue(constant);
+        if (initialValue != null) {
+          work.registry.worldImpact
+              .registerConstantUse(new ConstantUse.init(initialValue));
+          // We don't need to generate code for static or top-level
+          // variables. For instance variables, we may need to generate
+          // the checked setter.
+          if (field.isStatic || field.isTopLevel) {
+            /// No code is created for this field.
+            return true;
+          }
+        } else {
+          assert(invariant(
+              field,
+              field.isInstanceMember ||
+                  constant.isImplicit ||
+                  constant.isPotential,
+              message: "Constant expression without value: "
+                  "${constant.toStructuredText()}."));
+        }
+      } else {
+        // If the constant-handler was not able to produce a result we have to
+        // go through the builder (below) to generate the lazy initializer for
+        // the static variable.
+        // We also need to register the use of the cyclic-error helper.
+        work.registry.worldImpact.registerStaticUse(new StaticUse.staticInvoke(
+            backend.commonElements.cyclicThrowHelper, CallStructure.ONE_ARG));
+      }
+    }
+    return false;
+  }
+}
+
+class SsaAstBuilderTask extends SsaAstBuilderBase {
+  final CodeEmitterTask emitter;
   final SourceInformationStrategy sourceInformationFactory;
 
   String get name => 'SSA builder';
 
-  SsaBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
+  SsaAstBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
       : emitter = backend.emitter,
-        backend = backend,
-        super(backend.compiler.measurer);
+        super(backend);
 
   DiagnosticReporter get reporter => backend.reporter;
 
   HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
+      if (handleConstantField(work)) {
+        // No code is generated for `work.element`.
+        return null;
+      }
       MemberElement element = work.element.implementation;
       return reporter.withCurrentElement(element, () {
         SsaBuilder builder = new SsaBuilder(

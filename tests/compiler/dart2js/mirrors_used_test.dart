@@ -53,7 +53,8 @@ void main() {
     CompilerImpl compiler = result.compiler;
     JavaScriptBackend backend = compiler.backend;
     print('');
-    List generatedCode = Elements.sortedByPosition(backend.generatedCode.keys);
+    List generatedCode =
+        Elements.sortedByPosition(new List.from(backend.generatedCode.keys));
     for (var element in generatedCode) {
       print(element);
     }

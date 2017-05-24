@@ -7,7 +7,7 @@ library js_backend.backend;
 import '../common.dart';
 import '../common/backend_api.dart'
     show ForeignResolver, NativeRegistry, ImpactTransformer;
-import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/names.dart' show Uris;
 import '../common/resolution.dart' show Resolution, Target;
 import '../common/tasks.dart' show CompilerTask;
@@ -51,7 +51,6 @@ import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart';
-import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart';
@@ -338,8 +337,8 @@ class JavaScriptBackend {
   /**
    * The generated code as a js AST for compiled methods.
    */
-  final Map<MemberElement, jsAst.Expression> generatedCode =
-      <MemberElement, jsAst.Expression>{};
+  final Map<MemberEntity, jsAst.Expression> generatedCode =
+      <MemberEntity, jsAst.Expression>{};
 
   FunctionInlineCache inlineCache = new FunctionInlineCache();
 
@@ -910,7 +909,7 @@ class JavaScriptBackend {
   }
 
   WorldImpact codegen(CodegenWorkItem work, ClosedWorld closedWorld) {
-    MemberElement element = work.element;
+    MemberEntity element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
       DiagnosticMessage message =
           // If there's more than one error, the first is probably most
@@ -922,57 +921,22 @@ class JavaScriptBackend {
           js.escapedString("Compile time error in $element: $messageText");
       generatedCode[element] =
           js("function () { throw new Error(#); }", [messageLiteral]);
-      return const CodegenImpact();
-    }
-    var kind = element.kind;
-    if (kind == ElementKind.TYPEDEF) {
       return const WorldImpact();
     }
     if (element.isConstructor &&
         element.enclosingClass == commonElements.jsNullClass) {
       // Work around a problem compiling JSNull's constructor.
-      return const CodegenImpact();
-    }
-    if (kind.category == ElementCategory.VARIABLE) {
-      FieldElement variableElement = element;
-      ConstantExpression constant = variableElement.constant;
-      if (constant != null) {
-        ConstantValue initialValue = constants.getConstantValue(constant);
-        if (initialValue != null) {
-          work.registry.worldImpact
-              .registerConstantUse(new ConstantUse.init(initialValue));
-          // We don't need to generate code for static or top-level
-          // variables. For instance variables, we may need to generate
-          // the checked setter.
-          if (Elements.isStaticOrTopLevel(element)) {
-            return _codegenImpactTransformer
-                .transformCodegenImpact(work.registry.worldImpact);
-          }
-        } else {
-          assert(invariant(
-              variableElement,
-              variableElement.isInstanceMember ||
-                  constant.isImplicit ||
-                  constant.isPotential,
-              message: "Constant expression without value: "
-                  "${constant.toStructuredText()}."));
-        }
-      } else {
-        // If the constant-handler was not able to produce a result we have to
-        // go through the builder (below) to generate the lazy initializer for
-        // the static variable.
-        // We also need to register the use of the cyclic-error helper.
-        work.registry.worldImpact.registerStaticUse(new StaticUse.staticInvoke(
-            commonElements.cyclicThrowHelper, CallStructure.ONE_ARG));
-      }
+      return const WorldImpact();
     }
 
     jsAst.Fun function = functionCompiler.compile(work, closedWorld);
-    if (function.sourceInformation == null) {
-      function = function.withSourceInformation(
-          sourceInformationStrategy.buildSourceMappedMarker());
+    if (function != null) {
+      if (function.sourceInformation == null) {
+        function = function.withSourceInformation(
+            sourceInformationStrategy.buildSourceMappedMarker());
+      }
+      generatedCode[element] = function;
     }
-    generatedCode[element] = function;
     WorldImpact worldImpact = _codegenImpactTransformer
         .transformCodegenImpact(work.registry.worldImpact);
     compiler.dumpInfoTask.registerImpact(element, worldImpact);

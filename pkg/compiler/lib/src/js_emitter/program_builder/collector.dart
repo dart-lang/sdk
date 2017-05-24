@@ -25,7 +25,7 @@ class Collector {
   final MirrorsData _mirrorsData;
   final ClosedWorld _closedWorld;
   final Set<ClassEntity> _rtiNeededClasses;
-  final Map<MemberElement, js.Expression> _generatedCode;
+  final Map<MemberEntity, js.Expression> _generatedCode;
   final Sorter _sorter;
 
   final Set<ClassEntity> neededClasses = new Set<ClassEntity>();

@@ -8,7 +8,6 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common/names.dart';
-import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart';
 import '../constants/values.dart'
     show
@@ -32,6 +31,7 @@ import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show DynamicUse;
 import '../world.dart';
+import 'builder.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
 import 'kernel_ast_adapter.dart';
@@ -44,18 +44,20 @@ import 'switch_continue_analysis.dart';
 import 'type_builder.dart';
 import 'types.dart' show TypeMaskFactory;
 
-class SsaKernelBuilderTask extends CompilerTask {
-  final JavaScriptBackend backend;
+class SsaKernelBuilderTask extends SsaAstBuilderBase {
   final SourceInformationStrategy sourceInformationFactory;
 
   String get name => 'SSA kernel builder';
 
   SsaKernelBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
-      : backend = backend,
-        super(backend.compiler.measurer);
+      : super(backend);
 
   HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
+      if (handleConstantField(work)) {
+        // No code is generated for `work.element`.
+        return null;
+      }
       MemberElement element = work.element.implementation;
       Kernel kernel = backend.kernelTask.kernel;
       KernelSsaBuilder builder = new KernelSsaBuilder(

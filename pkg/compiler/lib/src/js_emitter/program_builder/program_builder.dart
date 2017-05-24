@@ -99,7 +99,7 @@ class ProgramBuilder {
   final JsInteropAnalysis _jsInteropAnalysis;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
-  final Map<MemberElement, js.Expression> _generatedCode;
+  final Map<MemberEntity, js.Expression> _generatedCode;
   final Namer _namer;
   final CodeEmitterTask _task;
   final ClosedWorld _closedWorld;
