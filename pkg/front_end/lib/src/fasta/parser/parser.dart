@@ -3722,7 +3722,9 @@ class Parser {
           labelCount++;
         }
         Token caseKeyword = token;
+        listener.beginCaseExpression(token);
         token = parseExpression(token.next);
+        listener.endCaseExpression(token);
         Token colonToken = token;
         token = expect(':', token);
         listener.handleCaseMatch(caseKeyword, colonToken);

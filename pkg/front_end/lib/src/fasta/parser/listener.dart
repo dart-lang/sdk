@@ -65,6 +65,12 @@ class Listener {
     logEvent("Cascade");
   }
 
+  void beginCaseExpression(Token caseKeyword) {}
+
+  void endCaseExpression(Token colon) {
+    logEvent("CaseExpression");
+  }
+
   void beginClassBody(Token token) {}
 
   /// Handle the end of the body of a class declaration.  The only substructures
