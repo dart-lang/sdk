@@ -5,8 +5,11 @@
 library dart2js.backend_strategy;
 
 import 'enqueue.dart';
+import 'io/source_information.dart';
+import 'js_backend/js_backend.dart';
 import 'js_backend/native_data.dart';
 import 'js_emitter/sorter.dart';
+import 'ssa/ssa.dart';
 import 'universe/world_builder.dart';
 import 'world.dart';
 
@@ -30,4 +33,8 @@ abstract class BackendStrategy {
 
   /// Creates the [WorkItemBuilder] used by the codegen enqueuer.
   WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld);
+
+  /// Creates the [SsaBuilderTask] used for the element model.
+  SsaBuilderTask createSsaBuilderTask(JavaScriptBackend backend,
+      SourceInformationStrategy sourceInformationStrategy);
 }

@@ -198,7 +198,7 @@ abstract class Compiler {
         ? new KernelFrontEndStrategy(reporter, environment)
         : new ResolutionFrontEndStrategy(this);
     backendStrategy = options.loadFromDill
-        ? new KernelBackendStrategy()
+        ? new KernelBackendStrategy(this)
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
     _elementEnvironment = frontEndStrategy.elementEnvironment;
@@ -261,8 +261,7 @@ abstract class Compiler {
         generateSourceMap: options.generateSourceMap,
         useStartupEmitter: options.useStartupEmitter,
         useMultiSourceInfo: options.useMultiSourceInfo,
-        useNewSourceInfo: options.useNewSourceInfo,
-        useKernel: options.useKernel);
+        useNewSourceInfo: options.useNewSourceInfo);
   }
 
   /// Creates the scanner task.

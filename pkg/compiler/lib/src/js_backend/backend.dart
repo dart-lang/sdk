@@ -516,8 +516,8 @@ class JavaScriptBackend {
         commonElements, compiler.frontEndStrategy.createNoSuchMethodResolver());
     kernelTask = new KernelTask(compiler);
     patchResolverTask = new PatchResolverTask(compiler);
-    functionCompiler =
-        new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
+    functionCompiler = new SsaFunctionCompiler(
+        this, compiler.measurer, sourceInformationStrategy);
     serialization = new JavaScriptBackendSerialization(this);
   }
 

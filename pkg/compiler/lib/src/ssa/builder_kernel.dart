@@ -6,8 +6,9 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
-import '../common/codegen.dart' show CodegenRegistry;
+import '../common/codegen.dart' show CodegenWorkItem, CodegenRegistry;
 import '../common/names.dart';
+import '../common/tasks.dart';
 import '../compiler.dart';
 import '../constants/values.dart'
     show
@@ -39,17 +40,19 @@ import 'kernel_string_builder.dart';
 import 'locals_handler.dart';
 import 'loop_handler.dart';
 import 'nodes.dart';
+import 'ssa.dart';
 import 'ssa_branch_builder.dart';
 import 'switch_continue_analysis.dart';
 import 'type_builder.dart';
 import 'types.dart' show TypeMaskFactory;
 
-class SsaKernelBuilderTask extends SsaAstBuilderBase {
+class SsaAstKernelBuilderTask extends SsaAstBuilderBase {
   final SourceInformationStrategy sourceInformationFactory;
 
   String get name => 'SSA kernel builder';
 
-  SsaKernelBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
+  SsaAstKernelBuilderTask(
+      JavaScriptBackend backend, this.sourceInformationFactory)
       : super(backend);
 
   HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
@@ -88,6 +91,15 @@ class SsaKernelBuilderTask extends SsaAstBuilderBase {
 
       return graph;
     });
+  }
+}
+
+class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
+  KernelSsaBuilderTask(Measurer measurer) : super(measurer);
+
+  @override
+  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
+    throw new UnimplementedError("KernelSsaBuilderTask.build");
   }
 }
 

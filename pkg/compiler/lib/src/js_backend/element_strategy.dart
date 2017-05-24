@@ -11,9 +11,13 @@ import '../common/work.dart';
 import '../compiler.dart';
 import '../elements/elements.dart';
 import '../enqueue.dart';
+import '../io/source_information.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/sorter.dart';
+import '../ssa/builder.dart';
+import '../ssa/builder_kernel.dart';
+import '../ssa/ssa.dart';
 import '../options.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
@@ -52,6 +56,14 @@ class ElementBackendStrategy implements BackendStrategy {
   WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
     return new ElementCodegenWorkItemBuilder(
         _compiler.backend, closedWorld, _compiler.options);
+  }
+
+  @override
+  SsaBuilderTask createSsaBuilderTask(JavaScriptBackend backend,
+      SourceInformationStrategy sourceInformationStrategy) {
+    return _compiler.options.useKernel
+        ? new SsaAstKernelBuilderTask(backend, sourceInformationStrategy)
+        : new SsaAstBuilderTask(backend, sourceInformationStrategy);
   }
 }
 
