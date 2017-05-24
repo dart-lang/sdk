@@ -15,29 +15,24 @@ typedef unsigned __int8 uint8_t;
 #endif
 #include <stddef.h>
 
-namespace dart {
-namespace bin {
+extern "C" {
 
 // The string on the next line will be filled in with the contents of the
 // generated snapshot binary file for the vm isolate.
 // This string forms the content of a vm isolate snapshot which is loaded
 // into the vm isolate.
-static const uint8_t vm_snapshot_data_[] = {
+uint8_t kDartVmSnapshotData[] = {
   %s
 };
-const uint8_t* vm_snapshot_data = vm_snapshot_data_;
-const uint8_t* vm_snapshot_instructions = NULL;
-
+uint8_t kDartVmSnapshotInstructions[] = {};
 
 // The string on the next line will be filled in with the contents of the
 // generated snapshot binary file for a regular dart isolate.
 // This string forms the content of a regular dart isolate snapshot which is
 // loaded into an isolate when it is created.
-static const uint8_t core_isolate_snapshot_data_[] = {
+uint8_t kDartCoreIsolateSnapshotData[] = {
   %s
 };
-const uint8_t* core_isolate_snapshot_data = core_isolate_snapshot_data_;
-const uint8_t* core_isolate_snapshot_instructions = NULL;
+uint8_t kDartCoreIsolateSnapshotInstructions[] = {};
 
-}  // namespace bin
-}  // namespace dart
+}

@@ -4958,8 +4958,7 @@ Deserializer::Deserializer(Thread* thread,
       clusters_(NULL) {
   if (Snapshot::IncludesCode(kind)) {
     ASSERT(instructions_buffer != NULL);
-  }
-  if (instructions_buffer != NULL) {
+    ASSERT(data_buffer != NULL);
     image_reader_ = new (zone_) ImageReader(instructions_buffer, data_buffer);
   }
 }

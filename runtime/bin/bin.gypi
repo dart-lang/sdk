@@ -1328,6 +1328,8 @@
       ],
       'sources': [
         'run_vm_tests.cc',
+        'error_exit.cc',
+        'error_exit.h',
         'builtin_common.cc',
         'builtin_natives.cc',
         'builtin_nolib.cc',
@@ -1335,6 +1337,8 @@
         'io_natives.h',
         'loader.cc',
         'loader.h',
+        'snapshot_utils.cc',
+        'snapshot_utils.h',
         # Include generated source files.
         '<(snapshot_cc_file)',
         '<(builtin_cc_file)',
@@ -1353,8 +1357,10 @@
       'sources/': [
         ['exclude', '\\.(cc|h)$'],
         ['include', 'run_vm_tests.cc'],
+        ['include', 'error_exit.cc'],
         ['include', 'builtin_nolib.cc'],
         ['include', 'builtin_natives.cc'],
+        ['include', 'snapshot_utils.cc'],
         ['include', '_gen\\.cc$'],
         ['include', '_test\\.(cc|h)$'],
       ],

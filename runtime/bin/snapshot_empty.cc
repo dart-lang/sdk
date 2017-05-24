@@ -13,13 +13,9 @@ typedef unsigned __int8 uint8_t;
 #endif
 #include <stddef.h>
 
-namespace dart {
-namespace bin {
-
-const uint8_t* vm_snapshot_data = NULL;
-const uint8_t* vm_snapshot_instructions = NULL;
-const uint8_t* core_isolate_snapshot_data = NULL;
-const uint8_t* core_isolate_snapshot_instructions = NULL;
-
-}  // namespace bin
-}  // namespace dart
+extern "C" {
+const uint8_t* kDartVmSnapshotData = NULL;
+const uint8_t* kDartVmSnapshotInstructions = NULL;
+const uint8_t* kDartCoreIsolateSnapshotData = NULL;
+const uint8_t* kDartCoreIsolateSnapshotInstructions = NULL;
+}

@@ -14,7 +14,6 @@
           '_FORTIFY_SOURCE=2',
         ],
         'cflags': [
-          '-Werror',
           '<@(common_gcc_warning_flags)',
           '-Wnon-virtual-dtor',
           '-Wvla',

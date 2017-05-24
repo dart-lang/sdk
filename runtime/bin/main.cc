@@ -36,14 +36,28 @@
 
 #include "vm/kernel.h"
 
+extern "C" {
+extern const uint8_t kDartVmSnapshotData[];
+extern const uint8_t kDartVmSnapshotInstructions[];
+extern const uint8_t kDartCoreIsolateSnapshotData[];
+extern const uint8_t kDartCoreIsolateSnapshotInstructions[];
+}
+
 namespace dart {
 namespace bin {
 
 // Snapshot pieces if we link in a snapshot, otherwise initialized to NULL.
-extern const uint8_t* vm_snapshot_data;
-extern const uint8_t* vm_snapshot_instructions;
-extern const uint8_t* core_isolate_snapshot_data;
-extern const uint8_t* core_isolate_snapshot_instructions;
+#if defined(DART_NO_SNAPSHOT)
+const uint8_t* vm_snapshot_data = NULL;
+const uint8_t* vm_snapshot_instructions = NULL;
+const uint8_t* core_isolate_snapshot_data = NULL;
+const uint8_t* core_isolate_snapshot_instructions = NULL;
+#else
+const uint8_t* vm_snapshot_data = kDartVmSnapshotData;
+const uint8_t* vm_snapshot_instructions = kDartVmSnapshotInstructions;
+const uint8_t* core_isolate_snapshot_data = kDartCoreIsolateSnapshotData;
+const uint8_t* core_isolate_snapshot_instructions = kDartVmSnapshotInstructions;
+#endif
 
 /**
  * Global state used to control and store generation of application snapshots
