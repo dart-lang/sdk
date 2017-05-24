@@ -11,7 +11,7 @@ import 'package:kernel/core_types.dart';
 
 import '../errors.dart' show internalError;
 
-/// Removes from [program] unnecessary libraries, classes, and members.
+/// Removes unnecessary libraries, classes, and members from [program].
 ///
 /// This applies a simple "tree-shaking" technique: the full body of libraries
 /// whose URI match [isIncluded] is preserved, and so is the outline of the
