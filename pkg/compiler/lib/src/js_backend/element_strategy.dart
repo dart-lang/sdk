@@ -16,7 +16,7 @@ import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/sorter.dart';
 import '../ssa/builder.dart';
-import '../ssa/builder_kernel.dart';
+import '../ssa/rasta_ssa_builder_task.dart';
 import '../ssa/ssa.dart';
 import '../options.dart';
 import '../universe/world_builder.dart';
@@ -62,7 +62,7 @@ class ElementBackendStrategy implements BackendStrategy {
   SsaBuilderTask createSsaBuilderTask(JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
     return _compiler.options.useKernel
-        ? new SsaAstKernelBuilderTask(backend, sourceInformationStrategy)
+        ? new RastaSsaBuilderTask(backend, sourceInformationStrategy)
         : new SsaAstBuilderTask(backend, sourceInformationStrategy);
   }
 }

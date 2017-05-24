@@ -6,9 +6,8 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
-import '../common/codegen.dart' show CodegenWorkItem, CodegenRegistry;
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/names.dart';
-import '../common/tasks.dart';
 import '../compiler.dart';
 import '../constants/values.dart'
     show
@@ -22,8 +21,6 @@ import '../elements/resolution_types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
-import '../js_backend/element_strategy.dart' show ElementCodegenWorkItem;
-import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
 import '../tree/nodes.dart' show Node;
@@ -32,7 +29,6 @@ import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show DynamicUse;
 import '../world.dart';
-import 'builder.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
 import 'kernel_ast_adapter.dart';
@@ -40,74 +36,21 @@ import 'kernel_string_builder.dart';
 import 'locals_handler.dart';
 import 'loop_handler.dart';
 import 'nodes.dart';
-import 'ssa.dart';
 import 'ssa_branch_builder.dart';
 import 'switch_continue_analysis.dart';
 import 'type_builder.dart';
 import 'types.dart' show TypeMaskFactory;
 
-class SsaAstKernelBuilderTask extends SsaAstBuilderBase {
-  final SourceInformationStrategy sourceInformationFactory;
-
-  String get name => 'SSA kernel builder';
-
-  SsaAstKernelBuilderTask(
-      JavaScriptBackend backend, this.sourceInformationFactory)
-      : super(backend);
-
-  HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
-    return measure(() {
-      if (handleConstantField(work)) {
-        // No code is generated for `work.element`.
-        return null;
-      }
-      MemberElement element = work.element.implementation;
-      Kernel kernel = backend.kernelTask.kernel;
-      KernelSsaBuilder builder = new KernelSsaBuilder(
-          element,
-          work.resolvedAst,
-          backend.compiler,
-          closedWorld,
-          work.registry,
-          sourceInformationFactory,
-          kernel);
-      HGraph graph = builder.build();
-
-      if (backend.tracer.isEnabled) {
-        String name;
-        if (element.isClassMember) {
-          String className = element.enclosingClass.name;
-          String memberName = element.name;
-          name = "$className.$memberName";
-          if (element.isGenerativeConstructorBody) {
-            name = "$name (body)";
-          }
-        } else {
-          name = "${element.name}";
-        }
-        backend.tracer.traceCompilation(name);
-        backend.tracer.traceGraph('builder', graph);
-      }
-
-      return graph;
-    });
-  }
-}
-
-class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
-  KernelSsaBuilderTask(Measurer measurer) : super(measurer);
-
-  @override
-  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
-    throw new UnimplementedError("KernelSsaBuilderTask.build");
-  }
-}
-
 class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   ir.Node target;
   bool _targetIsConstructorBody = false;
   final MemberElement targetElement;
-  final ResolvedAst resolvedAst;
+
+  /// The root node of [targetElement]. This is used as the key into the
+  /// [startFunction] of the locals handler.
+  // TODO(johnniwinther,efortuna): Avoid the need for AST nodes in the locals
+  // handler.
+  final Node functionNode;
   final ClosedWorld closedWorld;
   final CodegenRegistry registry;
 
@@ -150,24 +93,20 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   KernelSsaBuilder(
       this.targetElement,
-      this.resolvedAst,
       this.compiler,
+      this.astAdapter,
       this.closedWorld,
       this.registry,
-      SourceInformationStrategy sourceInformationFactory,
-      Kernel kernel) {
+      // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
+      this.sourceInformationBuilder,
+      this.functionNode) {
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new TypeBuilder(this);
     graph.element = targetElement;
-    // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
-    this.sourceInformationBuilder =
-        sourceInformationFactory.createBuilderForContext(resolvedAst);
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler = new LocalsHandler(
         this, targetElement, null, nativeData, interceptorData);
-    this.astAdapter = new KernelAstAdapter(kernel, compiler.backend,
-        resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
     target = astAdapter.getInitialKernelNode(targetElement);
     if (targetElement is ConstructorBodyElement) {
       _targetIsConstructorBody = true;
@@ -421,7 +360,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   withCurrentIrNode(ir.Node node, f()) {
-    compiler.reporter.withCurrentElement(astAdapter.getElement(node), f);
+    astAdapter.reporter.withCurrentElement(astAdapter.getElement(node), f);
   }
 
   /// Sets context for generating code that is the result of inlining
@@ -713,11 +652,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
 
-    Node function;
-    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      function = resolvedAst.node;
-    }
-    localsHandler.startFunction(targetElement, function);
+    localsHandler.startFunction(targetElement, functionNode);
     close(new HGoto()).addSuccessor(block);
 
     open(block);

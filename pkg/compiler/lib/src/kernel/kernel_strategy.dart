@@ -31,10 +31,12 @@ import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/sorter.dart';
+import '../kernel/element_map.dart';
 import '../library_loader.dart';
 import '../native/resolver.dart';
 import '../serialization/task.dart';
 import '../ssa/builder_kernel.dart';
+import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
@@ -283,7 +285,7 @@ class KernelBackendStrategy implements BackendStrategy {
   @override
   SsaBuilderTask createSsaBuilderTask(JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
-    return new KernelSsaBuilderTask(backend.compiler.measurer);
+    return new KernelSsaBuilderTask(backend.compiler);
   }
 }
 
@@ -324,5 +326,30 @@ class KernelCodegenWorkItem extends CodegenWorkItem {
   @override
   WorldImpact run() {
     return _backend.codegen(this, _closedWorld);
+  }
+}
+
+/// Task for building SSA from kernel IR loaded from .dill.
+class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
+  final Compiler _compiler;
+
+  KernelSsaBuilderTask(this._compiler) : super(_compiler.measurer);
+
+  KernelToElementMap get _elementMap {
+    KernelFrontEndStrategy frontEndStrategy = _compiler.frontEndStrategy;
+    return frontEndStrategy.elementMap;
+  }
+
+  @override
+  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
+    KernelSsaBuilder builder = new KernelSsaBuilder(
+        work.element,
+        _compiler,
+        _elementMap,
+        closedWorld,
+        work.registry,
+        const SourceInformationBuilder(),
+        null);
+    return builder.build();
   }
 }
