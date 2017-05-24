@@ -229,7 +229,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
   void test_parseListLiteral_empty_oneToken_withComment() {
     super.test_parseListLiteral_empty_oneToken_withComment();
   }
@@ -273,6 +272,7 @@ class FastaParserTestCase extends Object
     with ParserTestHelpers
     implements AbstractParserTestCase {
   ParserProxy _parserProxy;
+  analyzer.Token _fastaTokens;
 
   /**
    * Whether generic method comments should be enabled for the test.
@@ -332,7 +332,8 @@ class FastaParserTestCase extends Object
   void createParser(String content) {
     var scanner = new StringScanner(content, includeComments: true);
     scanner.scanGenericMethodComments = enableGenericMethodComments;
-    _parserProxy = new ParserProxy(scanner.tokenize(),
+    _fastaTokens = scanner.tokenize();
+    _parserProxy = new ParserProxy(_fastaTokens,
         enableGenericMethodComments: enableGenericMethodComments);
   }
 
@@ -476,14 +477,12 @@ class FastaParserTestCase extends Object
 
   @override
   CompilationUnitMember parseFullCompilationUnitMember() {
-    return _parserProxy._run((parser) => parser.parseTopLevelDeclaration)
-        as CompilationUnitMember;
+    return _parserProxy._run((parser) => parser.parseTopLevelDeclaration);
   }
 
   @override
   Directive parseFullDirective() {
-    return _parserProxy._run((parser) => parser.parseTopLevelDeclaration)
-        as Directive;
+    return _parserProxy._run((parser) => parser.parseTopLevelDeclaration);
   }
 
   @override
