@@ -5,7 +5,7 @@
 
 set -e
 
-REPO_DIR="$(git rev-parse --show-toplevel)"
+REPO_DIR="$(cd ${BASH_SOURCE%/*} && git rev-parse --show-toplevel)"
 
 # TODO(ahe): We currently rely on the Dart VM wrapper script to define
 # DART_CONFIGURATION for locating platform.dill.
