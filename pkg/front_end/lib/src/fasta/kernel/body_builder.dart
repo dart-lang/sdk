@@ -49,7 +49,7 @@ import '../../scanner/token.dart' show Token;
 import '../scanner/token.dart'
     show BeginGroupToken, isBinaryOperator, isMinusOperator;
 
-import '../errors.dart' show formatUnexpected, internalError;
+import '../errors.dart' show InputError, formatUnexpected, internalError;
 
 import '../source/scope_listener.dart'
     show JumpTargetKind, NullValue, ScopeListener;
@@ -303,6 +303,23 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       });
     }
     switchScope = outerSwitchScope;
+  }
+
+  void declareVariable(VariableDeclaration variable) {
+    InputError error = scope.declare(
+        variable.name,
+        new KernelVariableBuilder(
+            variable, member ?? classBuilder ?? library, uri),
+        variable.fileOffset,
+        uri);
+    if (error != null) {
+      addCompileTimeError(
+          variable.fileOffset,
+          "Can't declare '${variable.name}' because it was already used in "
+          "this scope.");
+      library.addCompileTimeError(error.charOffset, error.error,
+          fileUri: error.uri);
+    }
   }
 
   @override
@@ -1143,8 +1160,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     VariableDeclaration variable = pop();
     variable.fileOffset = nameToken.charOffset;
     push(variable);
-    scope[variable.name] = new KernelVariableBuilder(
-        variable, member ?? classBuilder ?? library, uri);
+    declareVariable(variable);
   }
 
   @override
@@ -2062,8 +2078,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new KernelFunctionDeclaration(
         variable, new FunctionNode(new InvalidStatement()))
       ..fileOffset = beginToken.charOffset);
-    scope[variable.name] = new KernelVariableBuilder(
-        variable, member ?? classBuilder ?? library, uri);
+    declareVariable(variable);
     enterLocalScope();
   }
 
@@ -2665,6 +2680,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           expression);
     }
     return expression;
+  }
+
+  @override
+  void addCompileTimeErrorFromMessage(FastaMessage message) {
+    library.addCompileTimeError(message.charOffset, message.message,
+        fileUri: message.uri);
   }
 
   @override

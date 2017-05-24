@@ -246,7 +246,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         FileState file = uriToFile[library.uri];
         for (NamespaceExport export in file.exports) {
           DillLibraryBuilder exportedLibrary =
-              dillTarget.loader.read(export.library.uri);
+              dillTarget.loader.read(export.library.uri, -1, accessor: library);
           if (exportedLibrary != null) {
             exportedLibrary.exports.forEach((name, member) {
               if (export.isExposed(name) &&

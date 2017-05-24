@@ -830,8 +830,9 @@ class ScopeProxy implements Scope {
   final _locals = <String, Builder>{};
 
   @override
-  void operator []=(String name, Builder member) {
-    _locals[name] = member;
+  declare(String name, Builder builder, int charOffset, Uri fileUri) {
+    _locals[name] = builder;
+    return null;
   }
 
   @override

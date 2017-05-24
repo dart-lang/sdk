@@ -788,6 +788,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void addCompileTimeErrorFromMessage(FastaMessage message) {
+    library.addCompileTimeError(message.charOffset, message.message,
+        fileUri: message.uri);
+  }
+
+  @override
   Link<Token> handleMemberName(Link<Token> identifiers) {
     if (!isDartLibrary || identifiers.isEmpty) return identifiers;
     return removeNativeClause(identifiers);

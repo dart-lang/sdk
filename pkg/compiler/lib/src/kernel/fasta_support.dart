@@ -134,7 +134,7 @@ Token _skipNative(Token token) {
 
 void _loadExtras(Loader loader) {
   for (String uri in _extraDart2jsLibraries) {
-    loader.read(Uri.parse(uri));
+    loader.read(Uri.parse(uri), -1);
   }
 }
 

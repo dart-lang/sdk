@@ -78,13 +78,13 @@ abstract class TargetImplementation extends Target {
   /// type String, which is the name of the native method.
   Builder getNativeAnnotation(Loader loader) {
     if (cachedNativeAnnotation != null) return cachedNativeAnnotation;
-    LibraryBuilder internal = loader.read(Uri.parse("dart:_internal"));
+    LibraryBuilder internal = loader.read(Uri.parse("dart:_internal"), -1);
     return cachedNativeAnnotation = internal.getConstructor("ExternalName");
   }
 
   void loadExtraRequiredLibraries(Loader loader) {
     for (String uri in backendTarget.extraRequiredLibraries) {
-      loader.read(Uri.parse(uri));
+      loader.read(Uri.parse(uri), -1);
     }
   }
 

@@ -122,7 +122,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void addExport(List<MetadataBuilder> metadata, String uri,
       Unhandled conditionalUris, List<Combinator> combinators, int charOffset) {
-    loader.read(resolve(uri)).addExporter(this, combinators, charOffset);
+    loader
+        .read(resolve(uri), charOffset, accessor: this)
+        .addExporter(this, combinators, charOffset);
   }
 
   void addImport(
@@ -134,8 +136,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       bool deferred,
       int charOffset,
       int prefixCharOffset) {
-    imports.add(new Import(this, loader.read(resolve(uri)), deferred, prefix,
-        combinators, charOffset, prefixCharOffset));
+    imports.add(new Import(
+        this,
+        loader.read(resolve(uri), charOffset, accessor: this),
+        deferred,
+        prefix,
+        combinators,
+        charOffset,
+        prefixCharOffset));
   }
 
   void addPart(List<MetadataBuilder> metadata, String path) {
@@ -146,9 +154,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       newFileUri = fileUri.resolve(path);
     } else {
       resolvedUri = uri.resolve(path);
+
+      // TODO(ahe): This is wrong for package URIs.
       newFileUri = fileUri.resolve(path);
     }
-    parts.add(loader.read(resolvedUri, newFileUri));
+    parts
+        .add(loader.read(resolvedUri, -1, fileUri: newFileUri, accessor: this));
   }
 
   void addPartOf(List<MetadataBuilder> metadata, String name, String uri) {

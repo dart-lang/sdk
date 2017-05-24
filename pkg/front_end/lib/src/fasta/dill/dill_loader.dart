@@ -26,15 +26,13 @@ class DillLoader extends Loader<Library> {
     for (Library library in program.libraries) {
       if (filter == null || filter(library.importUri)) {
         libraries.add(library);
-        DillLibraryBuilder builder = read(library.importUri);
+        DillLibraryBuilder builder = read(library.importUri, -1);
         builder.library = library;
         builders.add(builder);
       }
     }
     return builders;
   }
-
-  DillLibraryBuilder read(Uri uri, [Uri fileUri]) => super.read(uri, fileUri);
 
   Future<Null> buildOutline(DillLibraryBuilder builder) async {
     builder.library.classes.forEach(builder.addClass);

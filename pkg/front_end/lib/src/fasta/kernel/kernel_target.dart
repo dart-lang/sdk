@@ -133,7 +133,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   void read(Uri uri) {
-    loader.read(uri);
+    loader.read(uri, -1);
   }
 
   LibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri) {

@@ -416,10 +416,6 @@ class AstBuilder extends ScopeListener {
         elsePart));
   }
 
-  void prepareInitializers() {
-    debugEvent("prepareInitializers");
-  }
-
   void handleNoInitializers() {
     debugEvent("NoInitializers");
     push(NullValue.ConstructorInitializerSeparator);
@@ -541,8 +537,12 @@ class AstBuilder extends ScopeListener {
       internalError("unhandled identifier: ${node.runtimeType}");
     }
     push(variable);
-    scope[variable.name.name] = variable.name.staticElement =
-        new AnalyzerLocalVariableElemment(variable);
+    scope.declare(
+        variable.name.name,
+        variable.name.staticElement =
+            new AnalyzerLocalVariableElemment(variable),
+        nameToken.charOffset,
+        uri);
   }
 
   void endVariablesDeclaration(int count, Token endToken) {
@@ -901,8 +901,11 @@ class AstBuilder extends ScopeListener {
     }
 
     if (name != null) {
-      scope[name.name] =
-          name.staticElement = new AnalyzerParameterElement(node);
+      scope.declare(
+          name.name,
+          name.staticElement = new AnalyzerParameterElement(node),
+          name.offset,
+          uri);
     }
     push(node);
   }
@@ -948,7 +951,11 @@ class AstBuilder extends ScopeListener {
           parameters: formalParameters);
     }
 
-    scope[name.name] = name.staticElement = new AnalyzerParameterElement(node);
+    scope.declare(
+        name.name,
+        name.staticElement = new AnalyzerParameterElement(node),
+        name.offset,
+        uri);
     push(node);
   }
 
@@ -1986,6 +1993,12 @@ class AstBuilder extends ScopeListener {
       return null;
     }
     return firstToken;
+  }
+
+  @override
+  void addCompileTimeErrorFromMessage(FastaMessage message) {
+    library.addCompileTimeError(message.charOffset, message.message,
+        fileUri: message.uri);
   }
 }
 

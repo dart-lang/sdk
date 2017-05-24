@@ -585,6 +585,14 @@ class DietListener extends StackListener {
   }
 
   @override
+  void addCompileTimeErrorFromMessage(FastaMessage message) {
+    library.addCompileTimeError(message.charOffset, message.message,
+        fileUri: message.uri,
+        // We assume this error has already been reported by OutlineBuilder.
+        silent: true);
+  }
+
+  @override
   void debugEvent(String name) {
     // printEvent(name);
   }

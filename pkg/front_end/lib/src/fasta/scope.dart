@@ -6,7 +6,7 @@ library fasta.scope;
 
 import 'builder/builder.dart' show Builder, TypeVariableBuilder;
 
-import 'errors.dart' show internalError;
+import 'errors.dart' show InputError, internalError;
 
 class MutableScope {
   /// Names declared in this scope.
@@ -167,13 +167,20 @@ class Scope extends MutableScope {
     return (labels == null ? null : labels[name]) ?? parent?.lookupLabel(name);
   }
 
-  // TODO(ahe): Rename to extend or something.
-  void operator []=(String name, Builder member) {
+  /// Declares that the meaning of [name] in this scope is [builder].
+  ///
+  /// If name was used previously in this scope, this method returns an error
+  /// that should be reported as a compile-time error. The position of this
+  /// error is given by [charOffset] and [fileUri].
+  InputError declare(
+      String name, Builder builder, int charOffset, Uri fileUri) {
     if (isModifiable) {
-      local[name] = member;
+      local[name] = builder;
     } else {
       internalError("Can't extend an unmodifiable scope.");
     }
+    // TODO(ahe): Return an error if [name] was already used in this scope.
+    return null;
   }
 
   void merge(Scope scope,

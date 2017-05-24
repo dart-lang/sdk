@@ -43,7 +43,13 @@ abstract class Loader<L> {
   ///
   /// Canonical URIs have schemes like "dart", or "package", and the actual
   /// location is often a file URI.
-  LibraryBuilder read(Uri uri, [Uri fileUri]) {
+  ///
+  /// The [accessor] is the library that's trying to import, export, or include
+  /// as part [uri], and [charOffset] is the location of the corresponding
+  /// directive. If [accessor] isn't allowed to access [uri], it's a
+  /// compile-time error.
+  LibraryBuilder read(Uri uri, int charOffset,
+      {Uri fileUri, LibraryBuilder accessor}) {
     firstSourceUri ??= uri;
     LibraryBuilder builder = builders.putIfAbsent(uri, () {
       if (fileUri == null) {
@@ -69,12 +75,13 @@ abstract class Loader<L> {
       }
       return library;
     });
+    // TODO(ahe): Check that [accessor] is allowed to access [builder].
     return builder;
   }
 
   void ensureCoreLibrary() {
     if (coreLibrary == null) {
-      read(Uri.parse("dart:core"));
+      read(Uri.parse("dart:core"), -1);
       assert(coreLibrary != null);
     }
   }
