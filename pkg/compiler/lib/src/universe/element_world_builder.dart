@@ -108,8 +108,8 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     Element element = staticUse.element;
-    assert(invariant(element, element.isDeclaration,
-        message: "Element ${element} is not the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element ${element} is not the declaration."));
     super.registerStaticUse(staticUse, memberUsed);
   }
 
@@ -134,7 +134,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
 
   void _processInstantiatedClassMember(
       ClassEntity cls, MemberElement member, MemberUsedCallback memberUsed) {
-    assert(invariant(member, member.isDeclaration));
+    assert(member.isDeclaration, failedAt(member));
     member.computeType(_resolution);
     super._processInstantiatedClassMember(cls, member, memberUsed);
   }

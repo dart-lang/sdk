@@ -67,30 +67,27 @@ class Selector {
 
   Selector.internal(
       this.kind, this.memberName, this.callStructure, this.hashCode) {
-    assert(invariant(
-        NO_LOCATION_SPANNABLE,
+    assert(
         kind == SelectorKind.INDEX ||
             (memberName != Names.INDEX_NAME &&
                 memberName != Names.INDEX_SET_NAME),
-        message: "kind=$kind,memberName=$memberName,"
-            "callStructure:$callStructure"));
-    assert(invariant(
-        NO_LOCATION_SPANNABLE,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "kind=$kind,memberName=$memberName,callStructure:$callStructure"));
+    assert(
         kind == SelectorKind.OPERATOR ||
             kind == SelectorKind.INDEX ||
             !isOperatorName(memberName.text) ||
             memberName.text == '??',
-        message: "kind=$kind,memberName=$memberName,"
-            "callStructure:$callStructure"));
-    assert(invariant(
-        NO_LOCATION_SPANNABLE,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "kind=$kind,memberName=$memberName,callStructure:$callStructure"));
+    assert(
         kind == SelectorKind.CALL ||
             kind == SelectorKind.GETTER ||
             kind == SelectorKind.SETTER ||
             isOperatorName(memberName.text) ||
             memberName.text == '??',
-        message: "kind=$kind,memberName=$memberName,"
-            "callStructure:$callStructure"));
+        failedAt(NO_LOCATION_SPANNABLE,
+            "kind=$kind,memberName=$memberName,callStructure:$callStructure"));
   }
 
   // TODO(johnniwinther): Extract caching.

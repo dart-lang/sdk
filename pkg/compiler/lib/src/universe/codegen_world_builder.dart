@@ -514,7 +514,7 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
   @override
   void _processInstantiatedClassMember(
       ClassEntity cls, MemberElement member, MemberUsedCallback memberUsed) {
-    assert(invariant(member, member.isDeclaration));
+    assert(member.isDeclaration, failedAt(member));
     if (member.isMalformed) return;
     super._processInstantiatedClassMember(cls, member, memberUsed);
   }
@@ -522,14 +522,14 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
   @override
   _MemberUsage _getMemberUsage(
       MemberElement member, MemberUsedCallback memberUsed) {
-    assert(invariant(member, member.isDeclaration));
+    assert(member.isDeclaration, failedAt(member));
     return super._getMemberUsage(member, memberUsed);
   }
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     Element element = staticUse.element;
-    assert(invariant(element, element.isDeclaration,
-        message: "Element ${element} is not the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element ${element} is not the declaration."));
     super.registerStaticUse(staticUse, memberUsed);
   }
 
