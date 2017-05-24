@@ -6033,7 +6033,8 @@ String jsLibraryName(String libraryRoot, LibraryElement library) {
     // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
     qualifiedPath = uri.pathSegments.skip(1).join(encodedSeparator);
   } else if (isWithin(libraryRoot, uri.toFilePath())) {
-    qualifiedPath = uri.path
+    qualifiedPath = uri
+        .toFilePath()
         .substring(libraryRoot.length)
         .replaceAll(separator, encodedSeparator);
   } else {
