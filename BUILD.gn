@@ -118,9 +118,8 @@ group("samples") {
   ]
 }
 
-# The rules below build a qemu Fuchsia OS image that includes the Dart tree
-# under /system/test/dart. Building this image is gated by the GN argument
-# 'dart_build_fuchsia_test_image' because building the image is slow.
+# The rules below build a Fuchsia OS image that includes the Dart tree
+# under /system/test/dart.
 if (is_fuchsia) {
   declare_args() {
     dart_build_fuchsia_test_image = false
@@ -144,14 +143,14 @@ if (is_fuchsia) {
     }
 
     mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
-    user_manifest = "$mkbootfs_gen/user.bootfs.manifest"
+    system_manifest = "$mkbootfs_gen/system.bootfs.manifest"
 
     script = "tools/gen_fuchsia_test_manifest.py"
     args = [
       "-m",
       mode,
       "-u",
-      rebase_path(user_manifest),
+      rebase_path(system_manifest),
       "-o",
       rebase_path(output_prefix),
     ]
@@ -165,6 +164,9 @@ if (is_fuchsia) {
       "runtime/bin:process_test",
       "runtime/bin:run_vm_tests",
     ]
+
+    mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
+    boot_manifest = "$mkbootfs_gen/boot.bootfs.manifest"
 
     # Compute path to magenta bootdata.bin
     if (current_cpu == "arm64") {
@@ -190,7 +192,9 @@ if (is_fuchsia) {
 
     script = "//packages/gn/make_bootfs.py"
     args = [
-      "--manifest",
+      "--boot-manifest",
+      rebase_path(boot_manifest),
+      "--system-manifest",
       rebase_path(input),
       "--output-file",
       rebase_path(output),
