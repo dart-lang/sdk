@@ -8,8 +8,12 @@ import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/incremental_kernel_generator_impl.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/text/ast_to_text.dart';
+import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -314,6 +318,104 @@ import "dart:core" as core;
 
 static field (core::String) → core::int f;
 ''');
+  }
+
+  test_limited_ast_to_binary() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    writeFile(
+        aPath,
+        r'''
+int topField = 0;
+int get topGetter => 0;
+int topFunction({p}) => 0;
+        
+class A {
+  static int staticField;
+  static int get staticGetter => 0;
+  static int staticMethod() => 0;
+
+  int instanceField;
+  int get instanceGetter => 0;
+  int instanceMethod() => 0;
+  
+  A();
+  A.named();
+}
+''');
+    Uri bUri = writeFile(
+        bPath,
+        r'''
+import 'a.dart';
+
+class B extends A {
+  B() : super();
+  B.named() : super.named();
+  
+  void foo() {
+    super.instanceMethod();
+    instanceMethod();
+  }
+  
+  int instanceMethod() => 0;
+}
+
+main() {
+  topField;
+  topField = 0;
+  var v1 = topGetter;
+  var v2 = topFunction(p: 0);
+
+  A.staticField;
+  A.staticField = 0;
+  var v3 = A.staticGetter;
+  var v4 = A.staticMethod();
+
+  var a = new A();
+  a.instanceField;
+  a.instanceField = 0;
+  var v5 = a.instanceGetter;
+  var v6 = a.instanceMethod();
+}
+''');
+
+    Program program = await getInitialState(bUri);
+
+    String initialKernelText;
+    List<int> bytes;
+    {
+      Library initialLibrary = _getLibrary(program, bUri);
+      initialKernelText = _getLibraryText(initialLibrary);
+
+      var byteSink = new ByteSink();
+      var printer = new LimitedBinaryPrinter(
+          byteSink, (library) => library.importUri == bUri);
+      printer.writeProgramFile(program);
+      bytes = byteSink.builder.takeBytes();
+
+      // Remove b.dart from the program.
+      // So, the program is now ready for re-adding the library.
+      program.libraries.remove(initialLibrary);
+      program.root.removeChild(initialLibrary.importUri.toString());
+    }
+
+    // Load b.dart from bytes using the initial name root, so that
+    // serialized canonical names can be linked to corresponding nodes.
+    Library loadedLibrary;
+    {
+      var programForLoading = new Program(nameRoot: program.root);
+      var reader = new BinaryBuilder(bytes);
+      reader.readProgram(programForLoading);
+      loadedLibrary = _getLibrary(programForLoading, bUri);
+    }
+
+    // Add the library into the program.
+    program.libraries.add(loadedLibrary);
+    loadedLibrary.parent = program;
+
+    expect(_getLibraryText(loadedLibrary), initialKernelText);
+    verifyProgram(program);
   }
 
   test_updateEntryPoint() async {

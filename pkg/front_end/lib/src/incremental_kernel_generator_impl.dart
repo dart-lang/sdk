@@ -18,7 +18,7 @@ import 'package:front_end/src/fasta/translate_uri.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
-import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart' hide Source;
 
 dynamic unimplemented() {
@@ -121,6 +121,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           if (_latestSignature[uri] != result.signature) {
             _latestSignature[uri] = result.signature;
             program.libraries.add(library);
+            library.parent = program;
           }
         }
       }
@@ -225,6 +226,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
       _logger.run('Serialize ${kernelLibraries.length} libraries', () {
         program.unbindCanonicalNames();
+        program.uriToSource.clear();
         List<int> bytes = _writeProgramBytes(program, kernelLibraries.contains);
         _byteStore.put(kernelKey, bytes);
         _logger.writeln('Stored ${bytes.length} bytes.');
@@ -284,8 +286,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
   List<int> _writeProgramBytes(Program program, bool filter(Library library)) {
     ByteSink byteSink = new ByteSink();
-    new LibraryFilteringBinaryPrinter(byteSink, filter)
-        .writeProgramFile(program);
+    new LimitedBinaryPrinter(byteSink, filter).writeProgramFile(program);
     return byteSink.builder.takeBytes();
   }
 }

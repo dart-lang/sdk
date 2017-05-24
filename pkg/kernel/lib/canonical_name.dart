@@ -108,6 +108,10 @@ class CanonicalName {
     return getChild('@typedefs').getChild(typedef_.name);
   }
 
+  void removeChild(String name) {
+    _children?.remove(name);
+  }
+
   void bindTo(Reference target) {
     if (reference == target) return;
     if (reference != null) {
