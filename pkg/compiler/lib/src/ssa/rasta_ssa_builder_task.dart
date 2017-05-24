@@ -34,6 +34,7 @@ class RastaSsaBuilderTask extends SsaAstBuilderBase {
           work.resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
       KernelSsaBuilder builder = new KernelSsaBuilder(
           element,
+          element.contextClass,
           backend.compiler,
           astAdapter,
           closedWorld,

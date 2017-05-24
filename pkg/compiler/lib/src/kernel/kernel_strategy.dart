@@ -344,6 +344,7 @@ class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
   HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
     KernelSsaBuilder builder = new KernelSsaBuilder(
         work.element,
+        work.element.enclosingClass,
         _compiler,
         _elementMap,
         closedWorld,

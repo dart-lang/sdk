@@ -96,6 +96,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   KernelSsaBuilder(
       this.targetElement,
+      ClassEntity contextClass,
       this.compiler,
       this._elementMap,
       this.closedWorld,
@@ -109,7 +110,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler = new LocalsHandler(this, targetElement, targetElement,
-        targetElement.enclosingClass, null, nativeData, interceptorData);
+        contextClass, null, nativeData, interceptorData);
     target = astAdapter.getInitialKernelNode(targetElement);
     if (targetElement is ConstructorBodyElement) {
       _targetIsConstructorBody = true;
