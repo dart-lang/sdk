@@ -972,8 +972,8 @@ class ImportLink {
    */
   void importLibrary(
       DiagnosticReporter reporter, LibraryElementX importingLibrary) {
-    assert(invariant(importingLibrary, importedLibrary.exportsHandled,
-        message: 'Exports not handled on $importedLibrary'));
+    assert(importedLibrary.exportsHandled,
+        failedAt(importedLibrary, 'Exports not handled on $importedLibrary'));
     Import tag = import.node;
     CombinatorFilter combinatorFilter = new CombinatorFilter.fromTag(tag);
     if (tag != null && tag.prefix != null) {
@@ -1131,7 +1131,7 @@ class LibraryDependencyNode {
       LibraryElement exportedLibraryElement,
       ExportElementX export,
       CombinatorFilter filter) {
-    assert(invariant(library, exportedLibraryElement.exportsHandled));
+    assert(exportedLibraryElement.exportsHandled, failedAt(library));
     exportedLibraryElement.forEachExport((Element exportedElement) {
       if (!filter.exclude(exportedElement)) {
         Link<ExportElement> exports = pendingExportMap.putIfAbsent(
@@ -1184,8 +1184,11 @@ class LibraryDependencyNode {
 
     void createDuplicateExportMessage(
         Element duplicate, Link<ExportElement> duplicateExports) {
-      assert(invariant(library, !duplicateExports.isEmpty,
-          message: "No export for $duplicate from ${duplicate.library} "
+      assert(
+          !duplicateExports.isEmpty,
+          failedAt(
+              library,
+              "No export for $duplicate from ${duplicate.library} "
               "in $library."));
       reporter.withCurrentElement(library, () {
         for (ExportElement export in duplicateExports) {
@@ -1202,8 +1205,11 @@ class LibraryDependencyNode {
 
     void createDuplicateExportDeclMessage(
         Element duplicate, Link<ExportElement> duplicateExports) {
-      assert(invariant(library, !duplicateExports.isEmpty,
-          message: "No export for $duplicate from ${duplicate.library} "
+      assert(
+          !duplicateExports.isEmpty,
+          failedAt(
+              library,
+              "No export for $duplicate from ${duplicate.library} "
               "in $library."));
       infos.add(reporter.createMessage(
           duplicate,
@@ -1422,16 +1428,16 @@ class LibraryDependencyHandler implements LibraryLoader {
         return;
       }
       LibraryDependencyNode exportedNode = nodeMap[loadedLibrary];
-      assert(invariant(loadedLibrary, exportedNode != null,
-          message: "$loadedLibrary has not been registered"));
-      assert(invariant(library, exportingNode != null,
-          message: "$library has not been registered"));
+      assert(exportedNode != null,
+          failedAt(loadedLibrary, "$loadedLibrary has not been registered"));
+      assert(exportingNode != null,
+          failedAt(library, "$library has not been registered"));
       exportedNode.registerExportDependency(libraryDependency, exportingNode);
     } else if (libraryDependency == null || libraryDependency.isImport) {
       // [loadedLibrary] is imported by [library].
       LibraryDependencyNode importingNode = nodeMap[library];
-      assert(invariant(library, importingNode != null,
-          message: "$library has not been registered"));
+      assert(importingNode != null,
+          failedAt(library, "$library has not been registered"));
       importingNode.registerImportDependency(libraryDependency, loadedLibrary);
     }
   }

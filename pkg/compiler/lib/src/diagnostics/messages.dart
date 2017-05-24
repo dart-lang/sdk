@@ -16,7 +16,7 @@ library dart2js.messages;
 
 import 'package:front_end/src/fasta/scanner.dart' show ErrorToken, Token;
 import 'generated/shared_messages.dart' as shared_messages;
-import 'invariant.dart' show invariant;
+import 'invariant.dart' show failedAt;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
@@ -3762,11 +3762,11 @@ class Message {
       arguments.forEach((key, value) {
         message = message.replaceAll('#{${key}}', convertToString(value));
       });
-      assert(invariant(
-          CURRENT_ELEMENT_SPANNABLE,
+      assert(
           kind == MessageKind.GENERIC ||
               !message.contains(new RegExp(r'#\{.+\}')),
-          message: 'Missing arguments in error message: "$message"'));
+          failedAt(CURRENT_ELEMENT_SPANNABLE,
+              'Missing arguments in error message: "$message"'));
       if (!terse && template.hasHowToFix) {
         String howToFix = template.howToFix;
         arguments.forEach((key, value) {

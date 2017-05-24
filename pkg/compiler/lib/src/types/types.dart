@@ -5,7 +5,7 @@
 library types;
 
 import '../closure.dart' show SynthesizedCallMethodElementX;
-import '../common.dart' show invariant;
+import '../common.dart' show failedAt;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
@@ -210,8 +210,11 @@ class GlobalTypeInferenceResults {
   // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
   // error to query for results that don't exist.
   GlobalTypeInferenceElementResult _resultOf(AstElement element) {
-    assert(invariant(element, !element.isGenerativeConstructorBody,
-        message: "unexpected input: ConstructorBodyElements are created"
+    assert(
+        !element.isGenerativeConstructorBody,
+        failedAt(
+            element,
+            "unexpected input: ConstructorBodyElements are created"
             " after global type inference, no data is avaiable for them."));
 
     // TODO(sigmund): store closure data directly in the closure element and
