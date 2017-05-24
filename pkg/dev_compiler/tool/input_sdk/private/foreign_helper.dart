@@ -118,7 +118,15 @@ JS(String typeDescription, String codeTemplate,
     arg8,
     arg9,
     arg10,
-    arg11]) {}
+    arg11,
+    arg12,
+    arg13,
+    arg14,
+    arg15,
+    arg16,
+    arg17,
+    arg18,
+    arg19]) {}
 
 /// Annotates the compiled Js name for fields and methods.
 /// Similar behaviour to `JS` from `package:js/js.dart` (but usable from runtime
