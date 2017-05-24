@@ -7,8 +7,6 @@ set -e
 
 REPO_DIR="$(cd ${BASH_SOURCE%/*} && git rev-parse --show-toplevel)"
 
-# TODO(ahe): We currently rely on the Dart VM wrapper script to define
-# DART_CONFIGURATION for locating platform.dill.
 DART_VM="${REPO_DIR}/sdk/bin/dart"
 
 TOOL_DIR="${REPO_DIR}/pkg/front_end/tool/_fasta"
@@ -20,7 +18,7 @@ function stop {
   exit 1
 }
 
-DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
+export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 
 case "${1//_/-}" in
   abcompile) SCRIPT="${TOOL_DIR}/abcompile.dart";;
@@ -54,7 +52,7 @@ case "${1//_/-}" in
     PATCHED_SDK_DIR=$(
       ls -d {xcodebuild,out}/${DART_CONFIGURATION}/patched_sdk 2>/dev/null \
         | head -1)
-    exec "${DART_VM}" -c -DDFE_VERBOSE=true \
+    exec "${DART_VM}" -DDFE_VERBOSE=true \
          --platform=${PATCHED_SDK_DIR}/platform.dill \
          --dfe="${REPO_DIR}/utils/kernel-service/kernel-service.dart" "$@"
     ;;
