@@ -34,14 +34,6 @@ abstract class AbstractScanner implements Scanner {
   bool scanGenericMethodComments = false;
 
   /**
-   * A flag indicating whether the lazy compound assignment operators '&&=' and
-   * '||=' are enabled.
-   */
-  // TODO(paulberry): once lazyAssignmentOperators are fully supported by
-  // Dart, remove this flag.
-  bool scanLazyAssignmentOperators = false;
-
-  /**
    * The string offset for the next token that will be created.
    *
    * Note that in the [Utf8BytesScanner], [stringOffset] and [scanOffset] values
@@ -79,7 +71,6 @@ abstract class AbstractScanner implements Scanner {
   final List<int> lineStarts;
 
   AbstractScanner(this.includeComments, this.scanGenericMethodComments,
-      this.scanLazyAssignmentOperators,
       {int numberOfBytesHint})
       : lineStarts = new LineStarts(numberOfBytesHint) {
     this.tail = this.tokens;
@@ -499,7 +490,7 @@ abstract class AbstractScanner implements Scanner {
     next = advance();
     if (identical(next, $BAR)) {
       next = advance();
-      if (scanLazyAssignmentOperators && identical(next, $EQ)) {
+      if (identical(next, $EQ)) {
         appendPrecedenceToken(TokenType.BAR_BAR_EQ);
         return advance();
       }
@@ -519,7 +510,7 @@ abstract class AbstractScanner implements Scanner {
     next = advance();
     if (identical(next, $AMPERSAND)) {
       next = advance();
-      if (scanLazyAssignmentOperators && identical(next, $EQ)) {
+      if (identical(next, $EQ)) {
         appendPrecedenceToken(TokenType.AMPERSAND_AMPERSAND_EQ);
         return advance();
       }

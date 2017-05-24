@@ -29,9 +29,8 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   bool hasErrors = false;
 
   ArrayBasedScanner(bool includeComments, bool scanGenericMethodComments,
-      bool scanLazyAssignmentOperators, {int numberOfBytesHint})
+      {int numberOfBytesHint})
       : super(includeComments, scanGenericMethodComments,
-            scanLazyAssignmentOperators,
             numberOfBytesHint: numberOfBytesHint);
 
   /**

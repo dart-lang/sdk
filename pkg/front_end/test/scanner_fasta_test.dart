@@ -30,8 +30,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
       bool lazyAssignmentOperators: false}) {
     var scanner = new fasta.StringScanner(source,
         includeComments: true,
-        scanGenericMethodComments: genericMethodComments,
-        scanLazyAssignmentOperators: lazyAssignmentOperators);
+        scanGenericMethodComments: genericMethodComments);
     var token = scanner.tokenize();
     return new ToAnalyzerTokenStreamConverter_WithListener(listener)
         .convertTokens(token);

@@ -1109,8 +1109,12 @@ class TokenType {
       isOperator: true);
 
   // This is not yet part of the language and not supported by fasta
-  static const TokenType AMPERSAND_AMPERSAND_EQ =
-      const TokenType('&&=', 'AMPERSAND_AMPERSAND_EQ', 1, -1);
+  static const TokenType AMPERSAND_AMPERSAND_EQ = const TokenType(
+      '&&=',
+      'AMPERSAND_AMPERSAND_EQ',
+      ASSIGNMENT_PRECEDENCE,
+      AMPERSAND_AMPERSAND_EQ_TOKEN,
+      isOperator: true);
 
   static const TokenType AMPERSAND_EQ = const TokenType(
       '&=', 'AMPERSAND_EQ', ASSIGNMENT_PRECEDENCE, AMPERSAND_EQ_TOKEN,
@@ -1139,8 +1143,9 @@ class TokenType {
       isOperator: true);
 
   // This is not yet part of the language and not supported by fasta
-  static const TokenType BAR_BAR_EQ =
-      const TokenType('||=', 'BAR_BAR_EQ', 1, -1);
+  static const TokenType BAR_BAR_EQ = const TokenType(
+      '||=', 'BAR_BAR_EQ', ASSIGNMENT_PRECEDENCE, BAR_BAR_EQ_TOKEN,
+      isOperator: true);
 
   static const TokenType BAR_EQ = const TokenType(
       '|=', 'BAR_EQ', ASSIGNMENT_PRECEDENCE, BAR_EQ_TOKEN,

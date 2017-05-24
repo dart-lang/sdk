@@ -80,11 +80,8 @@ class Utf8BytesScanner extends ArrayBasedScanner {
    * is not the case, the entire array is copied before scanning.
    */
   Utf8BytesScanner(this.bytes,
-      {bool includeComments: false,
-      bool scanGenericMethodComments: false,
-      bool scanLazyAssignmentOperators: false})
+      {bool includeComments: false, bool scanGenericMethodComments: false})
       : super(includeComments, scanGenericMethodComments,
-            scanLazyAssignmentOperators,
             numberOfBytesHint: bytes.length) {
     assert(bytes.last == 0);
     // Skip a leading BOM.

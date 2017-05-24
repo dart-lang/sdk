@@ -17,8 +17,7 @@ main() {
 /// Assert that fasta PrecedenceInfo implements analyzer TokenType.
 @reflectiveTest
 class PrecedenceInfoTest {
-  void assertInfo(check(String source, Token token),
-      {bool includeLazyAssignmentOperators: true}) {
+  void assertInfo(check(String source, Token token)) {
     void assertLexeme(String source) {
       if (source == null || source.isEmpty) return;
       var scanner = new StringScanner(source, includeComments: true);
@@ -36,10 +35,8 @@ class PrecedenceInfoTest {
     assertLexeme('#!/'); // SCRIPT_TAG
     assertLexeme('"foo"'); // STRING
     assertLexeme('bar'); // IDENTIFIER
-    if (includeLazyAssignmentOperators) {
-      assertLexeme('&&=');
-      assertLexeme('||=');
-    }
+    assertLexeme('&&=');
+    assertLexeme('||=');
   }
 
   void test_isOperator() {
@@ -112,7 +109,9 @@ class PrecedenceInfoTest {
   void test_isAssignmentOperator() {
     const assignmentLexemes = const [
       '&=',
+      '&&=',
       '|=',
+      '||=',
       '^=',
       '=',
       '>>=',
@@ -146,7 +145,7 @@ class PrecedenceInfoTest {
       expect(
           token.type.isAssociativeOperator, associativeLexemes.contains(source),
           reason: source);
-    }, includeLazyAssignmentOperators: false);
+    });
   }
 
   void test_isEqualityOperator() {

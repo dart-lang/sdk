@@ -26,8 +26,7 @@ class StringScanner extends ArrayBasedScanner {
       bool scanGenericMethodComments: false,
       bool scanLazyAssignmentOperators: false})
       : string = ensureZeroTermination(string),
-        super(includeComments, scanGenericMethodComments,
-            scanLazyAssignmentOperators);
+        super(includeComments, scanGenericMethodComments);
 
   static String ensureZeroTermination(String string) {
     return (string.isEmpty || string.codeUnitAt(string.length - 1) != 0)
