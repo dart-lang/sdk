@@ -142,6 +142,10 @@ abstract class KernelToElementMap {
 
   /// Computes the [ConstantValue] for the constant [expression].
   ConstantValue getConstantValue(ir.Expression expression);
+
+  /// Returns the `noSuchMethod` [FunctionEntity] call from a
+  /// `super.noSuchMethod` invocation within [cls].
+  FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
 }
 
 /// Kinds of foreign functions.
@@ -471,6 +475,31 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
     return nativeBehaviorBuilder.buildMethodBehavior(
         type, metadata, typeLookup(resolveAsRaw: false),
         isJsInterop: isJsInterop);
+  }
+
+  @override
+  FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
+    while (cls != null) {
+      cls = elementEnvironment.getSuperClass(cls);
+      MemberEntity member =
+          elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
+      if (member != null) {
+        if (member.isFunction) {
+          FunctionEntity function = member;
+          if (function.parameterStructure.positionalParameters >= 1) {
+            return function;
+          }
+        }
+        // If [member] is not a valid `noSuchMethod` the target is
+        // `Object.superNoSuchMethod`.
+        break;
+      }
+    }
+    FunctionEntity function = elementEnvironment.lookupClassMember(
+        commonElements.objectClass, Identifiers.noSuchMethod_);
+    assert(invariant(cls, function != null,
+        message: "No super noSuchMethod found for class $cls."));
+    return function;
   }
 }
 
