@@ -20,7 +20,10 @@ declare_args() {
   dart_platform_sdk = false
 }
 
-if (is_fuchsia || is_fuchsia_host) {
+if (is_fuchsia ||
+    is_fuchsia_host ||
+    current_cpu == "arm64" ||
+    current_cpu == "arm") {
   dart_platform_sdk = true
 }
 
@@ -460,6 +463,7 @@ copy_tree("copy_dev_compiler_js") {
   visibility = [
     ":copy_dev_compiler_sdk",
     ":copy_dev_compiler_require_js",
+    ":copy_dev_compiler_tools",
   ]
   source = "../pkg/dev_compiler/lib/js"
   dest = "$root_out_dir/dart-sdk/lib/dev_compiler"
@@ -479,6 +483,24 @@ copy("copy_dev_compiler_require_js") {
   ]
 }
 
+# This rule copies tools to go along with ddc.
+copy("copy_dev_compiler_tools") {
+  visibility = [ ":copy_dev_compiler_sdk" ]
+  deps = [
+    ":copy_dev_compiler_js",
+    "../utils/dartdevc:dartdevc_web",
+    "../utils/dartdevc:stack_trace_mapper",
+  ]
+  dart_out = get_label_info("../utils/dartdevc:dartdevc_web", "root_out_dir")
+  sources = [
+    "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js",
+    "$dart_out/dev_compiler/build/web/ddc_web_compiler.js",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/dev_compiler/web/{{source_file_part}}",
+  ]
+}
+
 # This is the main rule for copying ddc's dependencies to lib/
 group("copy_dev_compiler_sdk") {
   visibility = [ ":create_full_sdk" ]
@@ -486,6 +508,7 @@ group("copy_dev_compiler_sdk") {
     ":copy_dev_compiler_js",
     ":copy_dev_compiler_require_js",
     ":copy_dev_compiler_summary",
+    ":copy_dev_compiler_tools",
   ]
 }
 
@@ -711,9 +734,9 @@ group("create_platform_sdk") {
 # Parts specific to the full SDK.
 group("create_full_sdk") {
   visibility = [
-    ":copy_dev_compiler_tools",
     ":create_sdk",
   ]
+
   deps = [
     ":copy_dev_compiler_sdk",
     ":copy_full_sdk_libraries",
@@ -732,21 +755,4 @@ group("create_sdk") {
   } else {
     deps += [ ":create_full_sdk" ]
   }
-}
-
-# This rule copies tools to go along with ddc.
-copy("copy_dev_compiler_tools") {
-  deps = [
-    ":create_full_sdk",
-    "../utils/dartdevc:dartdevc_web",
-    "../utils/dartdevc:stack_trace_mapper",
-  ]
-  dart_out = get_label_info("../utils/dartdevc:dartdevc_web", "root_out_dir")
-  sources = [
-    "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js",
-    "$dart_out/dev_compiler/build/web/ddc_web_compiler.js",
-  ]
-  outputs = [
-    "$root_out_dir/dart-sdk/lib/dev_compiler/web/{{source_file_part}}",
-  ]
 }
