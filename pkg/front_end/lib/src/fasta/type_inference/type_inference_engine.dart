@@ -174,7 +174,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     this.coreTypes = coreTypes;
     this.classHierarchy = hierarchy;
     this.typeSchemaEnvironment =
-        new TypeSchemaEnvironment(coreTypes, hierarchy);
+        new TypeSchemaEnvironment(coreTypes, hierarchy, strongMode);
   }
 
   @override
