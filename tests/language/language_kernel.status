@@ -135,6 +135,7 @@ named_constructor_test/01: MissingRuntimeError
 named_parameters_aggregated_test/01: MissingCompileTimeError
 named_parameters_aggregated_test/03: MissingCompileTimeError
 named_parameters_aggregated_test/04: MissingCompileTimeError
+named_parameters_aggregated_test/06: MissingCompileTimeError
 named_parameters_default_eq_test/01: MissingCompileTimeError
 on_catch_malformed_type_test: RuntimeError
 parameter_initializer6_negative_test: Fail
@@ -154,6 +155,7 @@ scope_variable_test/01: MissingCompileTimeError
 static_field3_test/03: CompileTimeError
 static_field3_test/04: CompileTimeError
 static_parameter_test/05: MissingCompileTimeError
+static_parameter_test/06: MissingCompileTimeError
 static_parameter_test/07: MissingCompileTimeError
 static_parameter_test/08: MissingCompileTimeError
 super_conditional_operator_test/01: MissingCompileTimeError
