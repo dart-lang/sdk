@@ -41,22 +41,6 @@ class ScannerTest_RoundTrip extends ScannerTest {
     return new ToAnalyzerTokenStreamConverter_NoErrors()
         .convertTokens(fastaToken);
   }
-
-  @override
-  @failingTest
-  void test_comment_generic_method_type_assign() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support generic comment
-    // syntax.
-    super.test_comment_generic_method_type_assign();
-  }
-
-  @override
-  @failingTest
-  void test_comment_generic_method_type_list() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support generic comment
-    // syntax.
-    super.test_comment_generic_method_type_list();
-  }
 }
 
 class TestScanner extends analyzer.Scanner {

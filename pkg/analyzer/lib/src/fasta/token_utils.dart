@@ -441,8 +441,16 @@ Token fromAnalyzerToken(analyzer.Token token) {
       return symbol(TokenType.BACKSLASH);
     case TokenType.PERIOD_PERIOD_PERIOD:
       return symbol(TokenType.PERIOD_PERIOD_PERIOD);
-    // case TokenType.GENERIC_METHOD_TYPE_ASSIGN
-    // case TokenType.GENERIC_METHOD_TYPE_LIST
+    case TokenType.GENERIC_METHOD_TYPE_ASSIGN:
+      return new CommentToken.fromSubstring(
+          TokenType.GENERIC_METHOD_TYPE_ASSIGN,
+          token.lexeme,
+          0,
+          token.lexeme.length,
+          0);
+    case TokenType.GENERIC_METHOD_TYPE_LIST:
+      return new CommentToken.fromSubstring(TokenType.GENERIC_METHOD_TYPE_LIST,
+          token.lexeme, 0, token.lexeme.length, 0);
     default:
       return internalError('Unhandled token type ${token.type}');
   }
