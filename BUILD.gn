@@ -121,10 +121,6 @@ group("samples") {
 # The rules below build a Fuchsia OS image that includes the Dart tree
 # under /system/test/dart.
 if (is_fuchsia) {
-  declare_args() {
-    dart_build_fuchsia_test_image = false
-  }
-
   action("generate_dart_test_manifest") {
     testonly = true
 
