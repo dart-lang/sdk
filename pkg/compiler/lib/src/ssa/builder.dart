@@ -5517,7 +5517,7 @@ class SsaBuilder extends ast.Visitor
     //     }
     ExecutableElement loopVariable = elements.getForInVariable(node);
     SyntheticLocal indexVariable =
-        new SyntheticLocal('_i', loopVariable, loopVariable.memberContext);
+        new SyntheticLocal('_i', loopVariable, target);
     TypeMask boolType = commonMasks.boolType;
 
     // These variables are shared by initializer, condition, body and update.
