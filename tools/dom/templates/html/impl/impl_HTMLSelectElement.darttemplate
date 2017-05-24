@@ -10,8 +10,8 @@ $!MEMBERS
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    var options = new List<OptionElement>.from(this.querySelectorAll('option'));
-    return new UnmodifiableListView(options);
+    var options = this.querySelectorAll<OptionElement>('option');
+    return new UnmodifiableListView(options.toList());
   }
 
   List<OptionElement> get selectedOptions {

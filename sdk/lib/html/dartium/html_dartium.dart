@@ -17859,7 +17859,7 @@ class Events {
 
   Events(this._ptr);
 
-  Stream operator [](String type) {
+  Stream<Event> operator [](String type) {
     return new _EventStream(_ptr, type, false);
   }
 }
@@ -17884,7 +17884,7 @@ class ElementEvents extends Events {
 
   ElementEvents(Element ptr) : super(ptr);
 
-  Stream operator [](String type) {
+  Stream<Event> operator [](String type) {
     if (webkitEvents.keys.contains(type.toLowerCase())) {
       if (Device.isWebKit) {
         return new _ElementEventStreamImpl(
@@ -17949,8 +17949,7 @@ class EventTarget extends DartHtmlDomObject {
 
   @DomName('EventTarget.addEventListener')
   @DocsEditable()
-  void _addEventListener(String type, EventListener listener,
-          [Object options]) =>
+  void _addEventListener(String type, EventListener listener, [bool options]) =>
       _blink.BlinkEventTarget.instance
           .addEventListener_Callback_3_(this, type, listener, options);
 
@@ -17962,7 +17961,7 @@ class EventTarget extends DartHtmlDomObject {
   @DomName('EventTarget.removeEventListener')
   @DocsEditable()
   void _removeEventListener(String type, EventListener listener,
-          [Object options]) =>
+          [bool options]) =>
       _blink.BlinkEventTarget.instance
           .removeEventListener_Callback_3_(this, type, listener, options);
 }
@@ -35792,8 +35791,8 @@ class SelectElement extends HtmlElement {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    var options = new List<OptionElement>.from(this.querySelectorAll('option'));
-    return new UnmodifiableListView(options);
+    var options = this.querySelectorAll<OptionElement>('option');
+    return new UnmodifiableListView(options.toList());
   }
 
   List<OptionElement> get selectedOptions {
@@ -49143,7 +49142,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
       this._target, this._eventType, void onData(T event), this._useCapture)
       : _onData = onData == null
             ? null
-            : _wrapZone/*<Event, dynamic>*/((e) => (onData as dynamic)(e)) {
+            : _wrapZone<Event, dynamic>((e) => (onData as dynamic)(e)) {
     _tryResume();
   }
 

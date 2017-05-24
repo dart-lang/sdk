@@ -5187,7 +5187,7 @@ class AttributeClassSet extends CssClassSetImpl {
   Set<String> readClasses() {
     var classname = _element.attributes['class'];
     if (classname is AnimatedString) {
-      classname = classname.baseVal;
+      classname = (classname as AnimatedString).baseVal;
     }
 
     Set<String> s = new LinkedHashSet<String>();

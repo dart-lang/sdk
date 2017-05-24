@@ -473,3 +473,12 @@ Element implements GlobalEventHandlers;
 interface CSSCharsetRule : CSSRule {
     [MeasureAs=CSSCharsetRuleEncoding] attribute DOMString encoding;
 };
+
+
+[DartSupplemental]
+interface EventTarget {
+    [DartSuppress] void addEventListener(DOMString type, EventListener? listener, optional (EventListenerOptions or boolean) options);
+    [DartSuppress] void removeEventListener(DOMString type, EventListener? listener, optional (EventListenerOptions or boolean) options);
+    [Custom] void addEventListener(DOMString type, EventListener? listener, optional boolean options);
+    [Custom] void removeEventListener(DOMString type, EventListener? listener, optional boolean options);
+};
