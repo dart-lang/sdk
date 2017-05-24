@@ -40,6 +40,7 @@ import 'package:kernel/ast.dart'
         VariableGet,
         VoidType;
 
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/transformations/erasure.dart' show Erasure;
 
 import 'package:kernel/transformations/continuation.dart' as transformAsync;
@@ -671,8 +672,9 @@ class KernelTarget extends TargetImplementation {
       _program.accept(new Erasure());
       ticker.logMs("Erased type variables in generic methods");
     }
+    var coreTypes = new CoreTypes(_program);
     // TODO(kmillikin): Make this run on a per-method basis.
-    transformAsync.transformProgram(_program);
+    transformAsync.transformLibraries(coreTypes, loader.libraries);
     ticker.logMs("Transformed async methods");
   }
 
