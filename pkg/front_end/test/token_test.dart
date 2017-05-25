@@ -5,10 +5,11 @@
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/scanner/token.dart';
+import 'package:front_end/src/scanner/errors.dart' as analyzer;
 import 'package:front_end/src/scanner/reader.dart' as analyzer;
+import 'package:front_end/src/scanner/scanner.dart' as analyzer;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'scanner_roundtrip_test.dart' show TestScanner;
 
 main() {
   defineReflectiveSuite(() {
@@ -206,5 +207,16 @@ class Foo {
     token = token.next;
     expect(token.lexeme, '"home"');
     expect(token.value(), '"home"');
+  }
+}
+
+class TestScanner extends analyzer.Scanner {
+  TestScanner(analyzer.CharacterReader reader) : super.create(reader);
+
+  @override
+  void reportError(
+      analyzer.ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+    fail('Unexpected error $errorCode while scanning offset $offset\n'
+        '   arguments: $arguments');
   }
 }
