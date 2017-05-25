@@ -279,6 +279,8 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeo
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
+
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) && $compiler != dartk && $compiler != dartkp ]
 mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
@@ -519,8 +521,6 @@ mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
 mirrors/inherited_metadata_test: RuntimeError
 mirrors/inherit_field_test: RuntimeError
-mirrors/initializing_formals_test/03: RuntimeError
-mirrors/initializing_formals_test/none: RuntimeError
 mirrors/instance_members_easier_test: RuntimeError
 mirrors/instance_members_test: RuntimeError
 mirrors/instance_members_with_override_test: RuntimeError
