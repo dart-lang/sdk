@@ -982,15 +982,6 @@ class DomTokenListImpl extends DomTokenList implements js_library.JSObjectInterf
   get runtimeType => DomTokenList;
   toString() => super.toString();
 }
-@patch class DragEvent {
-  static Type get instanceRuntimeType => DragEventImpl;
-
-}
-class DragEventImpl extends DragEvent implements js_library.JSObjectInterfacesDom {
-  DragEventImpl.internal_() : super.internal_();
-  get runtimeType => DragEvent;
-  toString() => super.toString();
-}
 @patch class EffectModel {
   static Type get instanceRuntimeType => EffectModelImpl;
 
