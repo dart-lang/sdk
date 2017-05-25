@@ -6916,6 +6916,30 @@ Value:
         },
         [
             "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "dataTransfer: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "null"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
