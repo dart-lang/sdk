@@ -98,7 +98,7 @@ Future<Map<String, Uri>> computeLibraries(
       .decode(await fileSystem.entityForUri(uri).readAsString())["libraries"];
   Map<String, Uri> result = <String, Uri>{};
   libraries.forEach((String name, String path) {
-    result[name] = uri.resolve(path);
+    result[name] = uri.resolveUri(new Uri.file(path));
   });
   return result;
 }
