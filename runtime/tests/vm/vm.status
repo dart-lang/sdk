@@ -500,6 +500,15 @@ cc/UnhandledExceptions : Fail
 cc/UseDartApi : Fail
 cc/ValidateNoSuchMethodStackFrameIteration : Fail
 cc/ValidateStackFrameIteration : Fail
+dart/data_uri_import_test/base64 : CompileTimeError
+dart/data_uri_import_test/nocharset : CompileTimeError
+dart/data_uri_import_test/nomime : CompileTimeError
+dart/data_uri_import_test/percentencoded : Fail
+dart/data_uri_import_test/wrongmime : CompileTimeError
+dart/data_uri_spawn_test : RuntimeError
+dart/redirection_type_shuffling_test/00 : Crash
+dart/redirection_type_shuffling_test/none : Crash
+dart/spawn_shutdown_test : Timeout
 
 [ ($compiler == dartk) && ($runtime == vm) && ($mode == release) ]
 cc/Debug_BreakpointStubPatching : Fail
