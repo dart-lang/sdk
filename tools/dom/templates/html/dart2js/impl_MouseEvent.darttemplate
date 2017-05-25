@@ -68,4 +68,8 @@ $!MEMBERS
   @DomName('MouseEvent.pageX')
   @DomName('MouseEvent.pageY')
   Point get page => new Point/*<num>*/(_pageX, _pageY);
+
+  @DomName('MouseEvent.dataTransfer')
+  DataTransfer get dataTransfer => JS('DataTransfer', "#['dataTransfer']", this);
+
 }
