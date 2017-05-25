@@ -468,13 +468,25 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("Initializers");
   }
 
+  DartType _computeReturnTypeContext(MemberBuilder member) {
+    if (member is KernelProcedureBuilder) {
+      if (member.target.kind == ProcedureKind.Factory) {
+        return computeFactoryConstructorReturnType(member.target);
+      }
+      return member.target.function.returnType;
+    } else {
+      assert(member is KernelConstructorBuilder);
+      return null;
+    }
+  }
+
   @override
   void finishFunction(
       FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
     typePromoter.finished();
     _typeInferrer.inferFunctionBody(
-        member.target.function.returnType, asyncModifier, body);
+        _computeReturnTypeContext(member), asyncModifier, body);
     KernelFunctionBuilder builder = member;
     builder.body = body;
     if (formals?.optional != null) {

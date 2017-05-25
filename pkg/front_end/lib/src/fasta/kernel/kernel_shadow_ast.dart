@@ -28,6 +28,27 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/type_algebra.dart';
 
+/// Computes the return type of a factory constructor.
+///
+/// Note that we can't just use `constructor.function.functionType.returnType`,
+/// because that's `dynamic` for factory constructors.  TODO(paulberry):
+/// investigate whether this can be changed.
+InterfaceType computeFactoryConstructorReturnType(Procedure constructor) {
+  var returnType = constructor.enclosingClass.thisType;
+  if (constructor.enclosingClass.typeParameters.isNotEmpty) {
+    // target.enclosingClass.typeParameters is not the same as
+    // target.function.functionType.typeParameters, so we have to substitute.
+    returnType = Substitution
+        .fromPairs(
+            constructor.enclosingClass.typeParameters,
+            constructor.function.functionType.typeParameters
+                .map((p) => new TypeParameterType(p))
+                .toList())
+        .substituteType(returnType);
+  }
+  return returnType;
+}
+
 List<DartType> getExplicitTypeArguments(Arguments arguments) {
   if (arguments is KernelArguments) {
     return arguments._hasExplicitTypeArguments ? arguments.types : null;
@@ -356,21 +377,7 @@ class KernelFactoryConstructorInvocation extends StaticInvocation
     typeNeeded =
         inferrer.listener.constructorInvocationEnter(this, typeContext) ||
             typeNeeded;
-    var returnType = target.enclosingClass.thisType;
-    if (target.enclosingClass.typeParameters.isNotEmpty) {
-      // target.enclosingClass.typeParameters is not the same as
-      // target.function.functionType.typeParameters, so we have to substitute.
-      // TODO(paulberrry): it would be easier if we could just use
-      // target.function.functionType.returnType, but that's `dynamic` for
-      // factory constructors.  Investigate whether this can be changed.
-      returnType = Substitution
-          .fromPairs(
-              target.enclosingClass.typeParameters,
-              target.function.functionType.typeParameters
-                  .map((p) => new TypeParameterType(p))
-                  .toList())
-          .substituteType(returnType);
-    }
+    InterfaceType returnType = computeFactoryConstructorReturnType(target);
     var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
         fileOffset, target.function.functionType, returnType, arguments);
     inferrer.listener.constructorInvocationExit(this, inferredType);

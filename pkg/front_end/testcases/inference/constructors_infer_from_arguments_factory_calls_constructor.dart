@@ -11,3 +11,5 @@ class A<T> {
   factory A.factory() => new /*@typeArgs=A::factory::T*/ A();
   A<T> m() => new /*@typeArgs=A::T*/ A();
 }
+
+main() {}

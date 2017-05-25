@@ -56,7 +56,6 @@ uninitialized_fields: Fail
 unused_methods: Fail
 void-methods: Fail
 
-inference/constructors_infer_from_arguments_factory_calls_constructor: Fail
 inference/constructors_infer_from_arguments_redirecting: Fail
 inference/constructors_infer_from_arguments_redirecting_factory: Fail
 inference/constructors_too_many_positional_arguments: Fail
