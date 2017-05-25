@@ -516,7 +516,6 @@ final htmlBlinkMap = {
   'ResourceProgressEvent': () => _ResourceProgressEvent.instanceRuntimeType,
   'Response': () => _Response.instanceRuntimeType,
   'Rotation': () => Rotation.instanceRuntimeType,
-  'Scale': () => Scale.instanceRuntimeType,
   'Screen': () => Screen.instanceRuntimeType,
   'ScreenOrientation': () => ScreenOrientation.instanceRuntimeType,
   'ScrollState': () => ScrollState.instanceRuntimeType,
@@ -35057,54 +35056,6 @@ class RtcStatsResponse extends DartHtmlDomObject {
   List<RtcStatsReport> result() =>
       _blink.BlinkRTCStatsResponse.instance.result_Callback_0_(this);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('Scale')
-@Experimental() // untriaged
-class Scale extends TransformComponent {
-  // To suppress missing implicit constructor warnings.
-  factory Scale._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('Scale.Scale')
-  @DocsEditable()
-  factory Scale(num x, num y, [num z]) {
-    if ((y is num) && (x is num) && z == null) {
-      return _blink.BlinkScale.instance.constructorCallback_2_(x, y);
-    }
-    if ((z is num) && (y is num) && (x is num)) {
-      return _blink.BlinkScale.instance.constructorCallback_3_(x, y, z);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  Scale.internal_() : super.internal_();
-
-  @DomName('Scale.x')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num get x => _blink.BlinkScale.instance.x_Getter_(this);
-
-  @DomName('Scale.y')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num get y => _blink.BlinkScale.instance.y_Getter_(this);
-
-  @DomName('Scale.z')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num get z => _blink.BlinkScale.instance.z_Getter_(this);
-}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -41326,11 +41277,11 @@ class Url extends DartHtmlDomObject implements UrlUtils {
       return _blink.BlinkURL.instance
           .createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance
           .createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance
           .createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }

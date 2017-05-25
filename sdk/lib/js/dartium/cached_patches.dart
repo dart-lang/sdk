@@ -2827,15 +2827,6 @@ class RtcStatsResponseImpl extends RtcStatsResponse implements js_library.JSObje
   get runtimeType => RtcStatsResponse;
   toString() => super.toString();
 }
-@patch class Scale {
-  static Type get instanceRuntimeType => ScaleImpl;
-
-}
-class ScaleImpl extends Scale implements js_library.JSObjectInterfacesDom {
-  ScaleImpl.internal_() : super.internal_();
-  get runtimeType => Scale;
-  toString() => super.toString();
-}
 @patch class Screen {
   static Type get instanceRuntimeType => ScreenImpl;
 

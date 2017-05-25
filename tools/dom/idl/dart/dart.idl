@@ -468,6 +468,9 @@ interface DragEvent {};
 [DartSuppress]
 interface InputEvent {};
 
+[DartSuppress]
+interface Scale {};
+
 Element implements GlobalEventHandlers;
 
 
