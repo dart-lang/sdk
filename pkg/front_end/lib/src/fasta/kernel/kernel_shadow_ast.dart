@@ -25,6 +25,7 @@ import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/type_algebra.dart';
 
 List<DartType> getExplicitTypeArguments(Arguments arguments) {
@@ -110,6 +111,80 @@ class KernelBoolLiteral extends BoolLiteral implements KernelExpression {
     var inferredType = typeNeeded ? inferrer.coreTypes.boolClass.rawType : null;
     inferrer.listener.boolLiteralExit(this, inferredType);
     return inferredType;
+  }
+}
+
+/// Concrete shadow object representing a cascade expression.
+///
+/// A cascade expression of the form `a..b()..c()` is represented as the kernel
+/// expression:
+///
+///     let v = a in
+///         let _ = v.b() in
+///             let _ = v.c() in
+///                 v
+///
+/// In the documentation that follows, `v` is referred to as the "cascade
+/// variable"--this is the variable that remembers the value of the expression
+/// preceding the first `..` while the cascades are being evaluated.
+///
+/// After constructing a [KernelCascadeExpression], the caller should
+/// call [finalize] with an expression representing the expression after the
+/// `..`.  If a further `..` follows that expression, the caller should call
+/// [extend] followed by [finalize] for each subsequent cascade.
+class KernelCascadeExpression extends Let implements KernelExpression {
+  /// Pointer to the last "let" expression in the cascade.
+  Let nextCascade;
+
+  /// Creates a [KernelCascadeExpression] using [variable] as the cascade
+  /// variable.  Caller is responsible for ensuring that [variable]'s
+  /// initializer is the expression preceding the first `..` of the cascade
+  /// expression.
+  KernelCascadeExpression(KernelVariableDeclaration variable)
+      : super(
+            variable,
+            makeLet(new VariableDeclaration.forValue(new InvalidExpression()),
+                new VariableGet(variable))) {
+    nextCascade = body;
+  }
+
+  /// Adds a new unfinalized section to the end of the cascade.  Should be
+  /// called after the previous cascade section has been finalized.
+  void extend() {
+    assert(nextCascade.variable.initializer is! InvalidExpression);
+    Let newCascade = makeLet(
+        new VariableDeclaration.forValue(new InvalidExpression()),
+        nextCascade.body);
+    nextCascade.body = newCascade;
+    newCascade.parent = nextCascade;
+    nextCascade = newCascade;
+  }
+
+  /// Finalizes the last cascade section with the given [expression].
+  void finalize(Expression expression) {
+    assert(nextCascade.variable.initializer is InvalidExpression);
+    nextCascade.variable.initializer = expression;
+    expression.parent = nextCascade.variable;
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    typeNeeded = inferrer.listener.cascadeExpressionEnter(this, typeContext) ||
+        typeNeeded;
+    var lhsType = inferrer.inferExpression(
+        variable.initializer, typeContext, typeNeeded || inferrer.strongMode);
+    if (inferrer.strongMode) {
+      variable.type = lhsType;
+    }
+    Let section = body;
+    while (true) {
+      inferrer.inferExpression(section.variable.initializer, null, false);
+      if (section.body is! Let) break;
+      section = section.body;
+    }
+    inferrer.listener.cascadeExpressionExit(this, lhsType);
+    return lhsType;
   }
 }
 
@@ -1229,6 +1304,12 @@ class KernelVariableDeclaration extends VariableDeclaration
             type: type ?? const DynamicType(),
             isFinal: isFinal,
             isConst: isConst);
+
+  KernelVariableDeclaration.forValue(
+      Expression initializer, this._functionNestingLevel)
+      : _implicitlyTyped = true,
+        _isLocalFunction = false,
+        super.forValue(initializer);
 
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {

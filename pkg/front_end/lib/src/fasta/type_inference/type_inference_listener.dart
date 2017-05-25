@@ -78,6 +78,12 @@ class TypeInferenceListener
   void boolLiteralExit(BoolLiteral expression, DartType inferredType) =>
       debugExpressionExit("boolLiteral", expression, inferredType);
 
+  bool cascadeExpressionEnter(Let expression, DartType typeContext) =>
+      debugExpressionEnter("cascade", expression, typeContext);
+
+  void cascadeExpressionExit(Let expression, DartType inferredType) =>
+      debugExpressionExit("cascade", expression, inferredType);
+
   bool conditionalExpressionEnter(
           ConditionalExpression expression, DartType typeContext) =>
       debugExpressionEnter("conditionalExpression", expression, typeContext);

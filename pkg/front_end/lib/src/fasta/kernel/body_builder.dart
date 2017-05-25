@@ -638,14 +638,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void beginCascade(Token token) {
     debugEvent("beginCascade");
     Expression expression = popForValue();
-    if (expression is CascadeReceiver) {
+    if (expression is KernelCascadeExpression) {
       push(expression);
       push(new VariableAccessor(this, token, expression.variable));
       expression.extend();
     } else {
-      VariableDeclaration variable =
-          new VariableDeclaration.forValue(expression);
-      push(new CascadeReceiver(variable));
+      VariableDeclaration variable = new KernelVariableDeclaration.forValue(
+          expression, functionNestingLevel);
+      push(new KernelCascadeExpression(variable));
       push(new VariableAccessor(this, token, variable));
     }
   }
@@ -654,7 +654,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endCascade() {
     debugEvent("endCascade");
     Expression expression = popForEffect();
-    CascadeReceiver cascadeReceiver = pop();
+    KernelCascadeExpression cascadeReceiver = pop();
     cascadeReceiver.finalize(expression);
     push(cascadeReceiver);
   }
@@ -2760,34 +2760,6 @@ class Label extends InvalidExpression {
   Label(this.name);
 
   String toString() => "label($name)";
-}
-
-class CascadeReceiver extends Let {
-  Let nextCascade;
-
-  CascadeReceiver(VariableDeclaration variable)
-      : super(
-            variable,
-            makeLet(new VariableDeclaration.forValue(new InvalidExpression()),
-                new VariableGet(variable))) {
-    nextCascade = body;
-  }
-
-  void extend() {
-    assert(nextCascade.variable.initializer is! InvalidExpression);
-    Let newCascade = makeLet(
-        new VariableDeclaration.forValue(new InvalidExpression()),
-        nextCascade.body);
-    nextCascade.body = newCascade;
-    newCascade.parent = nextCascade;
-    nextCascade = newCascade;
-  }
-
-  void finalize(Expression expression) {
-    assert(nextCascade.variable.initializer is InvalidExpression);
-    nextCascade.variable.initializer = expression;
-    expression.parent = nextCascade.variable;
-  }
 }
 
 abstract class ContextAccessor extends FastaAccessor {
