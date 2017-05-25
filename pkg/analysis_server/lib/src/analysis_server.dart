@@ -686,8 +686,12 @@ class AnalysisServer {
    * one exists, otherwise the first driver, otherwise `null`.
    */
   nd.AnalysisDriver getAnalysisDriver(String path) {
-    Iterable<nd.AnalysisDriver> drivers = driverMap.values;
+    List<nd.AnalysisDriver> drivers = driverMap.values.toList();
     if (drivers.isNotEmpty) {
+      // Sort the drivers so that more deeply nested contexts will be checked
+      // before enclosing contexts.
+      drivers.sort((first, second) =>
+          second.contextRoot.root.length - first.contextRoot.root.length);
       nd.AnalysisDriver driver = drivers.firstWhere(
           (driver) => driver.contextRoot.containsFile(path),
           orElse: () => null);
