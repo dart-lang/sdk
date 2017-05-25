@@ -28995,6 +28995,10 @@ class MouseEvent extends UIEvent {
   @DomName('MouseEvent.pageX')
   @DomName('MouseEvent.pageY')
   Point get page => new Point/*<num>*/(_pageX, _pageY);
+
+  @DomName('MouseEvent.dataTransfer')
+  DataTransfer get dataTransfer =>
+      js.JsNative.getProperty(js.context, 'dataTransfer');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
