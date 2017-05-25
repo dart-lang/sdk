@@ -12,6 +12,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/domain_execution.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/get_handler.dart';
@@ -19,6 +20,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -518,14 +520,16 @@ class GetHandler2 implements AbstractGetHandler {
                 buffer.write(')');
               } else if (sdk is EmbedderSdk) {
                 buffer.write(' (map = ');
-                _writeMapOfStringToString(buffer, sdk.urlMappings);
+                _writeMap(buffer, sdk.urlMappings);
                 buffer.write(')');
               }
               buffer.write(')');
             } else if (resolver is SdkExtUriResolver) {
               buffer.write(' (map = ');
-              _writeMapOfStringToString(buffer, resolver.urlMappings);
+              _writeMap(buffer, resolver.urlMappings);
               buffer.write(')');
+            } else if (resolver is PackageMapUriResolver) {
+              _writeMap(buffer, resolver.packageMap, valueWriter: _writeList);
             }
             buffer.write('</p>');
           }
@@ -893,10 +897,29 @@ class GetHandler2 implements AbstractGetHandler {
   }
 
   /**
-   * Write to the given [buffer] a representation of the given [map] of strings
-   * to strings.
+   * Write to the given [buffer] a representation of the given [list].
    */
-  void _writeMapOfStringToString(StringBuffer buffer, Map<String, String> map) {
+  void _writeList<E>(StringBuffer buffer, List<E> list,
+      {void elementWriter(StringBuffer buffer, E element)}) {
+    buffer.write('[');
+    for (int i = 0; i < list.length; i++) {
+      if (i > 0) {
+        buffer.write(', ');
+      }
+      if (elementWriter == null) {
+        buffer.write(list[i]);
+      } else {
+        elementWriter(buffer, list[i]);
+      }
+    }
+    buffer.write(']');
+  }
+
+  /**
+   * Write to the given [buffer] a representation of the given [map].
+   */
+  void _writeMap<V>(StringBuffer buffer, Map<String, V> map,
+      {void valueWriter(StringBuffer buffer, V value)}) {
     List<String> keys = map.keys.toList();
     keys.sort();
     int length = keys.length;
@@ -904,12 +927,17 @@ class GetHandler2 implements AbstractGetHandler {
     for (int i = 0; i < length; i++) {
       buffer.write('<br>');
       String key = keys[i];
+      V value = map[key];
       if (i > 0) {
         buffer.write(', ');
       }
       buffer.write(key);
       buffer.write(' = ');
-      buffer.write(map[key]);
+      if (valueWriter == null) {
+        buffer.write(value);
+      } else {
+        valueWriter(buffer, value);
+      }
     }
     buffer.write('<br>}');
   }
@@ -1142,6 +1170,22 @@ class GetHandler2 implements AbstractGetHandler {
       buffer.write('<p><b>Versions</b></p>');
       buffer.write('Dart SDK: ${Platform.version}<br>');
       buffer.write('Analysis server version: ${AnalysisServer.VERSION}<br>');
+      buffer.write('<p><b>Plugins</b></p>');
+      List<PluginInfo> plugins = analysisServer.pluginManager.plugins;
+      if (plugins.isEmpty) {
+        buffer.write('none<br>');
+      } else {
+        plugins.sort(
+            (first, second) => first.data.name.compareTo(second.data.name));
+        for (PluginInfo plugin in plugins) {
+          buffer.write(plugin.data.name);
+          buffer.write(' (');
+          buffer.write(plugin.data.pluginId);
+          buffer.write(', ');
+          buffer.write(plugin.data.version);
+          buffer.write(')<br>');
+        }
+      }
     });
     return analysisServer != null;
   }
