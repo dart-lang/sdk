@@ -109,7 +109,7 @@ vars = {
   "source_map_stack_trace_tag": "@1.1.4",
   "source_maps-0.9.4_rev": "@38524",
   "source_maps_tag": "@0.10.4",
-  "source_span_tag": "@1.3.1",
+  "source_span_tag": "@1.4.0",
   "stack_trace_tag": "@1.7.2",
   "stream_channel_tag": "@1.6.1",
   "string_scanner_tag": "@1.0.1",
