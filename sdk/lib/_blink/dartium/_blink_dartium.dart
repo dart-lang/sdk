@@ -661,7 +661,6 @@ dynamic resolver(String s) {
   if (s == "SVGViewSpec") return BlinkSVGViewSpec.instance;
   if (s == "SVGZoomAndPan") return BlinkSVGZoomAndPan.instance;
   if (s == "SVGZoomEvent") return BlinkSVGZoomEvent.instance;
-  if (s == "Scale") return BlinkScale.instance;
   if (s == "Screen") return BlinkScreen.instance;
   if (s == "ScreenOrientation") return BlinkScreenOrientation.instance;
   if (s == "ScriptProcessorNode") return BlinkScriptProcessorNode.instance;
@@ -22813,32 +22812,6 @@ class BlinkSVGZoomEvent extends BlinkUIEvent {
 
   zoomRectScreen_Getter_(mthis) => Blink_JsNative_DomException.getProperty(
       mthis /* SVGZoomEvent */, "zoomRectScreen");
-}
-
-class BlinkScale extends BlinkTransformComponent {
-  static final instance = new BlinkScale();
-
-  constructorCallback_0_() =>
-      Blink_JsNative_DomException.callConstructor0("Scale");
-
-  constructorCallback_1_(__arg_0) =>
-      Blink_JsNative_DomException.callConstructor("Scale", [__arg_0]);
-
-  constructorCallback_2_(__arg_0, __arg_1) =>
-      Blink_JsNative_DomException.callConstructor("Scale", [__arg_0, __arg_1]);
-
-  constructorCallback_3_(__arg_0, __arg_1, __arg_2) =>
-      Blink_JsNative_DomException
-          .callConstructor("Scale", [__arg_0, __arg_1, __arg_2]);
-
-  x_Getter_(mthis) =>
-      Blink_JsNative_DomException.getProperty(mthis /* Scale */, "x");
-
-  y_Getter_(mthis) =>
-      Blink_JsNative_DomException.getProperty(mthis /* Scale */, "y");
-
-  z_Getter_(mthis) =>
-      Blink_JsNative_DomException.getProperty(mthis /* Scale */, "z");
 }
 
 class BlinkScreen {

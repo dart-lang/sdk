@@ -30507,49 +30507,6 @@ class RtcStatsResponse extends Interceptor {
   @DocsEditable()
   List<RtcStatsReport> result() native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('Scale')
-@Experimental() // untriaged
-@Native("Scale")
-class Scale extends TransformComponent {
-  // To suppress missing implicit constructor warnings.
-  factory Scale._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('Scale.Scale')
-  @DocsEditable()
-  factory Scale(num x, num y, [num z]) {
-    if ((y is num) && (x is num) && z == null) {
-      return Scale._create_1(x, y);
-    }
-    if ((z is num) && (y is num) && (x is num)) {
-      return Scale._create_2(x, y, z);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  static Scale _create_1(x, y) => JS('Scale', 'new Scale(#,#)', x, y);
-  static Scale _create_2(x, y, z) => JS('Scale', 'new Scale(#,#,#)', x, y, z);
-
-  @DomName('Scale.x')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double x;
-
-  @DomName('Scale.y')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double y;
-
-  @DomName('Scale.z')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double z;
-}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
