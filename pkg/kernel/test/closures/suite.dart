@@ -6,9 +6,13 @@ library test.kernel.closures.suite;
 
 import 'dart:async' show Future;
 
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
+
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
+
+import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
+    show computePatchedSdk;
 
 import 'package:kernel/ast.dart' show Program;
 
@@ -65,11 +69,12 @@ class ClosureConversionContext extends ChainContext {
 
   static Future<ClosureConversionContext> create(
       Chain suite, Map<String, String> environment) async {
+    Uri sdk = await computePatchedSdk();
     Uri packages = Uri.base.resolve(".packages");
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
-    TranslateUri uriTranslator =
-        await TranslateUri.parse(PhysicalFileSystem.instance, packages);
+    TranslateUri uriTranslator = await TranslateUri
+        .parse(PhysicalFileSystem.instance, sdk, packages: packages);
     return new ClosureConversionContext(
         strongMode, updateExpectations, uriTranslator);
   }

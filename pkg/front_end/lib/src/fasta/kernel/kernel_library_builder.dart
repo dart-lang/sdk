@@ -61,6 +61,8 @@ class KernelLibraryBuilder
     extends SourceLibraryBuilder<KernelTypeBuilder, Library> {
   final Library library;
 
+  final bool isPatch;
+
   final Map<String, SourceClassBuilder> mixinApplicationClasses =
       <String, SourceClassBuilder>{};
 
@@ -71,7 +73,7 @@ class KernelLibraryBuilder
   final List<KernelTypeVariableBuilder> boundlessTypeVariables =
       <KernelTypeVariableBuilder>[];
 
-  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader)
+  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.isPatch)
       : library = new Library(uri, fileUri: relativizeUri(fileUri)),
         super(loader, fileUri);
 

@@ -48,13 +48,13 @@ enum MethodBody {
 class OutlineBuilder extends UnhandledListener {
   final SourceLibraryBuilder library;
 
-  final bool isDartLibrary;
+  final bool enableNative;
 
   String nativeMethodName;
 
   OutlineBuilder(SourceLibraryBuilder library)
       : library = library,
-        isDartLibrary = library.uri.scheme == "dart";
+        enableNative = (library.uri.scheme == "dart" || library.isPatch);
 
   @override
   Uri get uri => library.fileUri;
@@ -776,7 +776,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
-    if (isDartLibrary && message.code == codeExpectedBlockToSkip) {
+    if (enableNative && message.code == codeExpectedBlockToSkip) {
       var target = library.loader.target;
       Token recover = target.skipNativeClause(token);
       if (recover != null) {
@@ -795,7 +795,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   Link<Token> handleMemberName(Link<Token> identifiers) {
-    if (!isDartLibrary || identifiers.isEmpty) return identifiers;
+    if (!enableNative || identifiers.isEmpty) return identifiers;
     return removeNativeClause(identifiers);
   }
 

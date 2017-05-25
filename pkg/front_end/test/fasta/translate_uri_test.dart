@@ -18,7 +18,7 @@ class TranslateUriTest {
     var translator = new TranslateUri({}, {
       'core': Uri.parse('file:///sdk/core/core.dart'),
       'math': Uri.parse('file:///sdk/math/math.dart')
-    });
+    }, {});
 
     expect(translator.translate(Uri.parse('dart:core')),
         Uri.parse('file:///sdk/core/core.dart'));
@@ -29,5 +29,17 @@ class TranslateUriTest {
         Uri.parse('file:///sdk/math/math.dart'));
 
     expect(translator.translate(Uri.parse('dart:unknown')), isNull);
+
+    expect(
+        translator.isPlatformImplementation(Uri.parse('dart:core/string.dart')),
+        isTrue);
+    expect(
+        translator.isPlatformImplementation(Uri.parse('dart:core')), isFalse);
+    expect(translator.isPlatformImplementation(Uri.parse('dart:_builtin')),
+        isTrue);
+    expect(
+        translator
+            .isPlatformImplementation(Uri.parse('file:///sdk/math/math.dart')),
+        isFalse);
   }
 }

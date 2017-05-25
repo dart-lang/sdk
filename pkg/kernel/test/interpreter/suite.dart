@@ -8,9 +8,13 @@ import 'dart:async' show Future;
 
 import 'dart:io' show File;
 
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
+
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
+
+import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
+    show computePatchedSdk;
 
 import 'package:kernel/ast.dart' show Program, Library;
 
@@ -58,10 +62,11 @@ class InterpreterContext extends ChainContext {
 
   static Future<InterpreterContext> create(
       Chain suite, Map<String, String> environment) async {
+    Uri sdk = await computePatchedSdk();
     Uri packages = Uri.base.resolve(".packages");
     bool strongMode = environment.containsKey(STRONG_MODE);
-    TranslateUri uriTranslator =
-        await TranslateUri.parse(PhysicalFileSystem.instance, packages);
+    TranslateUri uriTranslator = await TranslateUri
+        .parse(PhysicalFileSystem.instance, sdk, packages: packages);
     return new InterpreterContext(strongMode, uriTranslator);
   }
 }

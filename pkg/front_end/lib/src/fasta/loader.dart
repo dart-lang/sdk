@@ -49,7 +49,7 @@ abstract class Loader<L> {
   /// directive. If [accessor] isn't allowed to access [uri], it's a
   /// compile-time error.
   LibraryBuilder read(Uri uri, int charOffset,
-      {Uri fileUri, LibraryBuilder accessor}) {
+      {Uri fileUri, LibraryBuilder accessor, bool isPatch: false}) {
     firstSourceUri ??= uri;
     LibraryBuilder builder = builders.putIfAbsent(uri, () {
       if (fileUri == null) {
@@ -64,10 +64,14 @@ abstract class Loader<L> {
             break;
         }
       }
-      LibraryBuilder library = target.createLibraryBuilder(uri, fileUri);
+      LibraryBuilder library =
+          target.createLibraryBuilder(uri, fileUri, isPatch);
       if (uri.scheme == "dart" && uri.path == "core") {
         coreLibrary = library;
         target.loadExtraRequiredLibraries(this);
+      }
+      if (uri.scheme == "dart") {
+        target.readPatchFiles(library);
       }
       first ??= library;
       if (library.loader == this) {

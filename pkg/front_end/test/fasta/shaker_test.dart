@@ -75,8 +75,8 @@ class TreeShakerContext extends ChainContext {
     Uri sdk = await computePatchedSdk();
     Uri outlineUri = sdk.resolve('outline.dill');
     Uri packages = Uri.base.resolve(".packages");
-    TranslateUri uriTranslator =
-        await TranslateUri.parse(PhysicalFileSystem.instance, packages);
+    TranslateUri uriTranslator = await TranslateUri
+        .parse(PhysicalFileSystem.instance, sdk, packages: packages);
     List<int> outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
     return new TreeShakerContext(
         outlineUri, uriTranslator, outlineBytes, updateExpectations);

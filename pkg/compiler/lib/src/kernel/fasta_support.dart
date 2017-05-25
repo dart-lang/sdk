@@ -38,8 +38,8 @@ import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 Future compilePlatform(Uri patchedSdk, Uri fullOutput,
     {Uri outlineOutput, Uri packages}) async {
   Uri deps = Uri.base.resolveUri(new Uri.file("${fullOutput.toFilePath()}.d"));
-  TranslateUri uriTranslator = await TranslateUri.parse(
-      PhysicalFileSystem.instance, patchedSdk, packages);
+  TranslateUri uriTranslator = await TranslateUri
+      .parse(PhysicalFileSystem.instance, patchedSdk, packages: packages);
   var ticker = new Ticker(isVerbose: false);
   var dillTarget = new DillTargetForDart2js(ticker, uriTranslator);
   var kernelTarget =

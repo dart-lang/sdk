@@ -84,7 +84,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   final Scope enclosingScope;
 
-  final bool isDartLibrary;
+  final bool enableNative;
 
   @override
   final Uri uri;
@@ -151,7 +151,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       {this.fieldDependencies})
       : enclosingScope = scope,
         library = library,
-        isDartLibrary = library.uri.scheme == "dart",
+        enableNative = (library.uri.scheme == "dart" || library.isPatch),
         needsImplicitSuperInitializer =
             coreTypes.objectClass != classBuilder?.cls,
         typePromoter = _typeInferrer.typePromoter,
@@ -874,10 +874,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           return new UnresolvedAccessor(this, n, token);
         }
         return new ThisPropertyAccessor(this, token, n, null, null);
-      } else if (isDartLibrary &&
-          name == "main" &&
-          library.uri.path == "_builtin" &&
-          member?.name == "_getMainClosure") {
+      } else if (
+          // Optimization, if [enableNative] is false, this can't be
+          // dart:_builtin.
+          enableNative &&
+              name == "main" &&
+              library.uri.scheme == "dart" &&
+              library.uri.path == "_builtin" &&
+              member?.name == "_getMainClosure") {
         // TODO(ahe): https://github.com/dart-lang/sdk/issues/28989
         return new KernelNullLiteral()..fileOffset = offsetForToken(token);
       } else {
@@ -2566,7 +2570,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
-    if (isDartLibrary && message.code == codeExpectedFunctionBody) {
+    if (enableNative && message.code == codeExpectedFunctionBody) {
       Token recover = library.loader.target.skipNativeClause(token);
       if (recover != null) return recover;
     } else if (message.code == codeExpectedButGot) {

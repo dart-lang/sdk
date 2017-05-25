@@ -124,8 +124,8 @@ class CompileTask {
   }
 
   Future<KernelTarget> buildOutline([Uri output]) async {
-    TranslateUri uriTranslator = await TranslateUri.parse(
-        c.fileSystem, c.options.sdk, c.options.packages);
+    TranslateUri uriTranslator = await TranslateUri
+        .parse(c.fileSystem, c.options.sdk, packages: c.options.packages);
     ticker.logMs("Read packages file");
     DillTarget dillTarget = createDillTarget(uriTranslator);
     KernelTarget kernelTarget =
@@ -196,7 +196,7 @@ Future<CompilationResult> parseScriptInFileSystem(
     Program program;
     try {
       TranslateUri uriTranslator =
-          await TranslateUri.parse(fileSystem, null, packages);
+          await TranslateUri.parse(fileSystem, patchedSdk, packages: packages);
       final Ticker ticker = new Ticker(isVerbose: verbose);
       final DillTarget dillTarget =
           new DillTarget(ticker, uriTranslator, backendTarget);
@@ -254,7 +254,8 @@ Future compilePlatform(Uri patchedSdk, Uri fullOutput,
 }
 
 Future writeDepsFile(Uri script, Uri depsFile, Uri output,
-    {Uri packages,
+    {Uri sdk,
+    Uri packages,
     Uri platform,
     Iterable<Uri> extraDependencies,
     bool verbose: false,
@@ -267,9 +268,10 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
     if (verbose) {
       c.options.options["--verbose"] = true;
     }
+    sdk ??= c.options.sdk;
 
-    TranslateUri uriTranslator = await TranslateUri.parse(
-        c.fileSystem, c.options.sdk, c.options.packages);
+    TranslateUri uriTranslator = await TranslateUri.parse(c.fileSystem, sdk,
+        packages: c.options.packages);
     ticker.logMs("Read packages file");
     DillTarget dillTarget =
         new DillTarget(ticker, uriTranslator, backendTarget);

@@ -67,8 +67,8 @@ Future compilePlatformInternal(CompilerContext c, Ticker ticker, Uri patchedSdk,
     print("Compiling $patchedSdk to $fullOutput");
   }
 
-  TranslateUri uriTranslator =
-      await TranslateUri.parse(c.fileSystem, patchedSdk, c.options.packages);
+  TranslateUri uriTranslator = await TranslateUri
+      .parse(c.fileSystem, patchedSdk, packages: c.options.packages);
   ticker.logMs("Read packages file");
 
   DillTarget dillTarget =

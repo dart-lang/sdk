@@ -43,7 +43,7 @@ class DietListener extends StackListener {
 
   final CoreTypes coreTypes;
 
-  final bool isDartLibrary;
+  final bool enableNative;
 
   final TypeInferenceEngine typeInferenceEngine;
 
@@ -61,7 +61,7 @@ class DietListener extends StackListener {
       : library = library,
         uri = library.fileUri,
         memberScope = library.scope,
-        isDartLibrary = library.uri.scheme == "dart";
+        enableNative = (library.uri.scheme == "dart" || library.isPatch);
 
   void discard(int n) {
     for (int i = 0; i < n; i++) {
@@ -485,7 +485,7 @@ class DietListener extends StackListener {
 
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
-    if (isDartLibrary && message.code == codeExpectedBlockToSkip) {
+    if (enableNative && message.code == codeExpectedBlockToSkip) {
       Token recover = library.loader.target.skipNativeClause(token);
       if (recover != null) return recover;
     }
@@ -494,7 +494,7 @@ class DietListener extends StackListener {
 
   @override
   Link<Token> handleMemberName(Link<Token> identifiers) {
-    if (!isDartLibrary || identifiers.isEmpty) return identifiers;
+    if (!enableNative || identifiers.isEmpty) return identifiers;
     return removeNativeClause(identifiers);
   }
 

@@ -8,6 +8,8 @@ import 'package:front_end/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart' show ProcedureKind;
 
+import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
+
 import '../combinator.dart' show Combinator;
 
 import '../errors.dart' show inputError, internalError;
@@ -85,6 +87,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool get isPart => partOfName != null || partOfUri != null;
 
+  bool get isPatch;
+
   List<T> get types => libraryDeclaration.types;
 
   T addNamedType(String name, List<T> arguments, int charOffset);
@@ -148,13 +152,13 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     Uri resolvedUri;
     Uri newFileUri;
     if (uri.scheme == "dart") {
-      resolvedUri = new Uri(scheme: "dart", path: "${uri.path}/$path");
+      resolvedUri = resolveRelativeUri(uri, Uri.parse(path));
       newFileUri = fileUri.resolve(path);
     } else {
       resolvedUri = uri.resolve(path);
-
-      // TODO(ahe): This is wrong for package URIs.
-      newFileUri = fileUri.resolve(path);
+      if (uri.scheme != "package") {
+        newFileUri = fileUri.resolve(path);
+      }
     }
     parts
         .add(loader.read(resolvedUri, -1, fileUri: newFileUri, accessor: this));

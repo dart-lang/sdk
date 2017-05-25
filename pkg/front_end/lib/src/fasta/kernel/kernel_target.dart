@@ -137,14 +137,14 @@ class KernelTarget extends TargetImplementation {
     loader.read(uri, -1);
   }
 
-  LibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri) {
+  LibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, bool isPatch) {
     if (dillTarget.isLoaded) {
       var builder = dillTarget.loader.builders[uri];
       if (builder != null) {
         return builder;
       }
     }
-    return new KernelLibraryBuilder(uri, fileUri, loader);
+    return new KernelLibraryBuilder(uri, fileUri, loader, isPatch);
   }
 
   void forEachDirectSupertype(ClassBuilder cls, void f(NamedTypeBuilder type)) {
@@ -355,7 +355,7 @@ class KernelTarget extends TargetImplementation {
     Uri uri = loader.first?.uri ?? Uri.parse("error:error");
     Uri fileUri = loader.first?.fileUri ?? uri;
     KernelLibraryBuilder library =
-        new KernelLibraryBuilder(uri, fileUri, loader);
+        new KernelLibraryBuilder(uri, fileUri, loader, false);
     loader.first = library;
     if (isFullProgram) {
       // If this is an outline, we shouldn't add an executable main

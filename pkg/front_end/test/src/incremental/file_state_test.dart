@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class FileSystemStateTest {
   final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
-  final TranslateUri uriTranslator = new TranslateUri({}, {});
+  final TranslateUri uriTranslator = new TranslateUri({}, {}, {});
   FileSystemState fsState;
 
   Uri _coreUri;

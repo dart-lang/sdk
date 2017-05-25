@@ -37,7 +37,7 @@ abstract class TargetImplementation extends Target {
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
   /// already.
-  LibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri);
+  LibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, bool isPatch);
 
   /// Add the classes extended or implemented directly by [cls] to [set].
   void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set);
@@ -95,4 +95,14 @@ abstract class TargetImplementation extends Target {
 
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode);
+
+  void readPatchFiles(LibraryBuilder library) {
+    assert(library.uri.scheme == "dart");
+    List<Uri> patches = uriTranslator.patches[library.uri.path];
+    if (patches != null) {
+      for (Uri patch in patches) {
+        library.loader.read(patch, -1, fileUri: patch, isPatch: true);
+      }
+    }
+  }
 }
