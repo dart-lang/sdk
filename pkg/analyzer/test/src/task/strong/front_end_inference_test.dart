@@ -36,31 +36,6 @@ main() {
 /// Set this to `true` to cause expectation comments to be updated.
 const bool fixProblems = false;
 
-void _appendElementName(StringBuffer buffer, Element element) {
-  // Synthetic FunctionElement(s) don't have a name or enclosing library.
-  if (element.isSynthetic && element is FunctionElement) {
-    return;
-  }
-
-  LibraryElement library = element.library;
-  if (library == null) {
-    throw new StateError('Unexpected element without library: $element');
-  }
-  String libraryName = library.name;
-
-  String name = element.name ?? '';
-  if (libraryName != 'dart.core' &&
-      libraryName != 'dart.async' &&
-      libraryName != 'test') {
-    buffer.write('$libraryName::');
-  }
-  var enclosing = element.enclosingElement;
-  if (enclosing is ClassElement) {
-    buffer.write('${enclosing.name}::');
-  }
-  buffer.write('$name');
-}
-
 @reflectiveTest
 class RunFrontEndInferenceTest {
   test_run() async {
@@ -109,6 +84,45 @@ class RunFrontEndInferenceTest {
   }
 }
 
+class _ElementNamer {
+  final ConstructorElement currentFactoryConstructor;
+
+  _ElementNamer(this.currentFactoryConstructor);
+
+  void appendElementName(StringBuffer buffer, Element element) {
+    // Synthetic FunctionElement(s) don't have a name or enclosing library.
+    if (element.isSynthetic && element is FunctionElement) {
+      return;
+    }
+
+    LibraryElement library = element.library;
+    if (library == null) {
+      throw new StateError('Unexpected element without library: $element');
+    }
+    String libraryName = library.name;
+
+    String name = element.name ?? '';
+    if (libraryName != 'dart.core' &&
+        libraryName != 'dart.async' &&
+        libraryName != 'test') {
+      buffer.write('$libraryName::');
+    }
+    var enclosing = element.enclosingElement;
+    if (enclosing is ClassElement) {
+      buffer.write('${enclosing.name}::');
+      if (currentFactoryConstructor != null &&
+          identical(enclosing, currentFactoryConstructor.enclosingElement)) {
+        String factoryConstructorName = currentFactoryConstructor.name;
+        if (factoryConstructorName == '') {
+          factoryConstructorName = '•';
+        }
+        buffer.write('$factoryConstructorName::');
+      }
+    }
+    buffer.write('$name');
+  }
+}
+
 class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
   Future<String> runTest(String path, String code) async {
     Uri uri = provider.pathContext.toUri(path);
@@ -143,13 +157,14 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
 /// Instance of [InstrumentationValue] describing a [MethodElement].
 class _InstrumentationValueForMethodElement extends fasta.InstrumentationValue {
   final MethodElement element;
+  final _ElementNamer elementNamer;
 
-  _InstrumentationValueForMethodElement(this.element);
+  _InstrumentationValueForMethodElement(this.element, this.elementNamer);
 
   @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
-    _appendElementName(buffer, element);
+    elementNamer.appendElementName(buffer, element);
     return buffer.toString();
   }
 }
@@ -159,8 +174,9 @@ class _InstrumentationValueForMethodElement extends fasta.InstrumentationValue {
  */
 class _InstrumentationValueForType extends fasta.InstrumentationValue {
   final DartType type;
+  final _ElementNamer elementNamer;
 
-  _InstrumentationValueForType(this.type);
+  _InstrumentationValueForType(this.type, this.elementNamer);
 
   @override
   String toString() {
@@ -203,10 +219,12 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
       _appendType(buffer, type.returnType);
     } else if (type is InterfaceType) {
       ClassElement element = type.element;
-      _appendElementName(buffer, element);
+      elementNamer.appendElementName(buffer, element);
       _appendTypeArguments(buffer, type.typeArguments);
     } else if (type.isBottom) {
       buffer.write('<BottomType>');
+    } else if (type is TypeParameterType) {
+      elementNamer.appendElementName(buffer, type.element);
     } else {
       buffer.write(type.toString());
     }
@@ -223,12 +241,14 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
  */
 class _InstrumentationValueForTypeArgs extends fasta.InstrumentationValue {
   final List<DartType> types;
+  final _ElementNamer elementNamer;
 
-  const _InstrumentationValueForTypeArgs(this.types);
+  const _InstrumentationValueForTypeArgs(this.types, this.elementNamer);
 
   @override
   String toString() => types
-      .map((type) => new _InstrumentationValueForType(type).toString())
+      .map((type) =>
+          new _InstrumentationValueForType(type, elementNamer).toString())
       .join(', ');
 }
 
@@ -238,6 +258,7 @@ class _InstrumentationValueForTypeArgs extends fasta.InstrumentationValue {
 class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   final fasta.Instrumentation _instrumentation;
   final Uri uri;
+  _ElementNamer elementNamer = new _ElementNamer(null);
 
   _InstrumentationVisitor(this._instrumentation, this.uri);
 
@@ -246,13 +267,40 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     _recordMethodTarget(node.operator.charOffset, node.staticElement);
   }
 
+  @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    _ElementNamer oldElementNamer = elementNamer;
+    if (node.factoryKeyword != null) {
+      // Factory constructors are represented in kernel as static methods, so
+      // their type parameters get replicated, e.g.:
+      //     class C<T> {
+      //       factory C.ctor() {
+      //         T t; // Refers to C::T
+      //         ...
+      //       }
+      //     }
+      // gets converted to:
+      //     class C<T> {
+      //       static C<T> C.ctor<T>() {
+      //         T t; // Refers to C::ctor::T
+      //         ...
+      //       }
+      //     }
+      // So to match kernel behavior, we have to arrange for this renaming to
+      // happen during output.
+      elementNamer = new _ElementNamer(node.element);
+    }
+    super.visitConstructorDeclaration(node);
+    elementNamer = oldElementNamer;
+  }
+
   visitFunctionExpression(FunctionExpression node) {
     super.visitFunctionExpression(node);
     if (node.parent is! FunctionDeclaration) {
       DartType type = node.staticType;
       if (type is FunctionType) {
         _instrumentation.record(uri, node.offset, 'returnType',
-            new _InstrumentationValueForType(type.returnType));
+            new _InstrumentationValueForType(type.returnType, elementNamer));
         List<FormalParameter> parameters = node.parameters.parameters;
         for (int i = 0; i < parameters.length; i++) {
           FormalParameter parameter = parameters[i];
@@ -329,7 +377,7 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
         DartType type = node.staticType;
         if (!identical(type, elementType)) {
           _instrumentation.record(uri, offset, 'promotedType',
-              new _InstrumentationValueForType(type));
+              new _InstrumentationValueForType(type, elementNamer));
         }
       }
     }
@@ -371,23 +419,23 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   void _recordMethodTarget(int offset, Element element) {
     if (element is MethodElement) {
       _instrumentation.record(uri, offset, 'target',
-          new _InstrumentationValueForMethodElement(element));
+          new _InstrumentationValueForMethodElement(element, elementNamer));
     }
   }
 
   void _recordTopType(int offset, DartType type) {
-    _instrumentation.record(
-        uri, offset, 'topType', new _InstrumentationValueForType(type));
+    _instrumentation.record(uri, offset, 'topType',
+        new _InstrumentationValueForType(type, elementNamer));
   }
 
   void _recordType(int offset, DartType type) {
-    _instrumentation.record(
-        uri, offset, 'type', new _InstrumentationValueForType(type));
+    _instrumentation.record(uri, offset, 'type',
+        new _InstrumentationValueForType(type, elementNamer));
   }
 
   void _recordTypeArguments(int offset, List<DartType> typeArguments) {
     _instrumentation.record(uri, offset, 'typeArgs',
-        new _InstrumentationValueForTypeArgs(typeArguments));
+        new _InstrumentationValueForTypeArgs(typeArguments, elementNamer));
   }
 
   /// Based on DDC code generator's `_recoverTypeArguments`

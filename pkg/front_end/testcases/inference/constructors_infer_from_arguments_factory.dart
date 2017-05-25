@@ -11,7 +11,7 @@ class C<T> {
   C._();
 
   factory C(T t) {
-    var /*@type=C<T>*/ x = new C<T>._();
+    var /*@type=C<C::•::T>*/ x = new C<T>._();
     x.t = t;
     return x;
   }
