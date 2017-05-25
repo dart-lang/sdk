@@ -224,7 +224,6 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @failingTest
   test_html() {
     //
     // We no longer support the analysis of non-dart files.

@@ -61,7 +61,7 @@ class CompletionRequestImpl implements CompletionRequest {
         replacementLength = 0;
 
   @override
-  String get sourceContents => result.content;
+  String get sourceContents => result?.content;
 
   /**
    * Abort the current completion request.
