@@ -2649,23 +2649,38 @@ static void SelectBestFit(Function* best_fit, Function* func) {
 }
 
 
+static bool IsTokenPosWithinFunction(const Function& func, TokenPosition pos) {
+  return (func.token_pos() <= pos && pos <= func.end_token_pos());
+}
+
+
 RawFunction* Debugger::FindBestFit(const Script& script,
                                    TokenPosition token_pos) {
   Zone* zone = Thread::Current()->zone();
   Class& cls = Class::Handle(zone);
   Array& functions = Array::Handle(zone);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
+  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
+      zone, isolate_->object_store()->closure_functions());
   Function& function = Function::Handle(zone);
   Function& best_fit = Function::Handle(zone);
   Error& error = Error::Handle(zone);
 
-  closures = isolate_->object_store()->closure_functions();
   const intptr_t num_closures = closures.Length();
   for (intptr_t i = 0; i < num_closures; i++) {
     function ^= closures.At(i);
-    if (FunctionContains(function, script, token_pos)) {
+    if (function.script() != script.raw()) {
+      continue;
+    }
+    if (IsTokenPosWithinFunction(function, token_pos)) {
+      // Select the inner most closure.
       SelectBestFit(&best_fit, &function);
     }
+  }
+  if (!best_fit.IsNull()) {
+    // The inner most closure found will be the best fit. Going
+    // over class functions below will not help in any further
+    // narrowing.
+    return best_fit.raw();
   }
 
   const ClassTable& class_table = *isolate_->class_table();
@@ -2673,13 +2688,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
   for (intptr_t i = 1; i < num_classes; i++) {
     if (class_table.HasValidClassAt(i)) {
       cls = class_table.At(i);
-      // Note: if this class has been parsed and finalized already,
-      // we need to check the functions of this class even if
-      // it is defined in a different 'script'. There could
-      // be mixin functions from the given script in this class.
-      // However, if this class is not parsed yet (not finalized),
-      // we can ignore it and avoid the side effect of parsing it.
-      if ((cls.script() != script.raw()) && !cls.is_finalized()) {
+      if (cls.script() != script.raw()) {
         continue;
       }
       // Parse class definition if not done yet.
@@ -2697,14 +2706,18 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         for (intptr_t pos = 0; pos < num_functions; pos++) {
           function ^= functions.At(pos);
           ASSERT(!function.IsNull());
-          if (FunctionContains(function, script, token_pos)) {
-            SelectBestFit(&best_fit, &function);
+          if (IsTokenPosWithinFunction(function, token_pos)) {
+            // Closures and inner functions within a class method are not
+            // present in the functions of a class. Hence, we can return
+            // right away as looking through other functions of a class
+            // will not narrow down to any inner function/closure.
+            return function.raw();
           }
         }
       }
     }
   }
-  return best_fit.raw();
+  return Function::null();
 }
 
 
