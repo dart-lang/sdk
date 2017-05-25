@@ -21,6 +21,7 @@ import 'package:kernel/ast.dart'
         Expression,
         Field,
         FunctionType,
+        Initializer,
         InterfaceType,
         Member,
         Name,
@@ -155,6 +156,9 @@ abstract class TypeInferrer {
   /// Performs type inference on the given function body.
   void inferFunctionBody(
       DartType returnType, AsyncMarker asyncMarker, Statement body);
+
+  /// Performs type inference on the given constructor initializer.
+  void inferInitializer(Initializer initializer);
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -330,10 +334,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// invocations (constructors, instance methods, and static methods).
   DartType inferInvocation(DartType typeContext, bool typeNeeded, int offset,
       FunctionType calleeType, DartType returnType, Arguments arguments,
-      {bool isOverloadedArithmeticOperator: false, DartType receiverType}) {
+      {bool isOverloadedArithmeticOperator: false,
+      DartType receiverType,
+      bool skipTypeArgumentInference: false}) {
     var calleeTypeParameters = calleeType.typeParameters;
     List<DartType> explicitTypeArguments = getExplicitTypeArguments(arguments);
-    bool inferenceNeeded = explicitTypeArguments == null &&
+    bool inferenceNeeded = !skipTypeArgumentInference &&
+        explicitTypeArguments == null &&
         strongMode &&
         calleeTypeParameters.isNotEmpty;
     List<DartType> inferredTypes;

@@ -450,6 +450,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       initializer = buildInvalidIntializer(node, token.charOffset);
     }
+    _typeInferrer.inferInitializer(initializer);
     if (member is KernelConstructorBuilder) {
       member.addInitializer(initializer);
     } else {
@@ -2647,7 +2648,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]) {
     needsImplicitSuperInitializer = false;
-    return new RedirectingInitializer(constructor, arguments)
+    return new KernelRedirectingInitializer(constructor, arguments)
       ..fileOffset = charOffset;
   }
 

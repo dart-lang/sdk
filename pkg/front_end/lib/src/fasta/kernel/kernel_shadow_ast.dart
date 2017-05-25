@@ -584,6 +584,14 @@ class KernelIfStatement extends IfStatement implements KernelStatement {
   }
 }
 
+/// Common base class for shadow objects representing initializers in kernel
+/// form.
+abstract class KernelInitializer implements Initializer {
+  /// Performs type inference for whatever concrete type of [KernelInitializer]
+  /// this is.
+  void _inferInitializer(KernelTypeInferrer inferrer);
+}
+
 /// Concrete shadow object representing an integer literal in kernel form.
 class KernelIntLiteral extends IntLiteral implements KernelExpression {
   KernelIntLiteral(int value) : super(value);
@@ -831,6 +839,23 @@ class KernelPropertySet extends PropertySet implements KernelExpression {
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(scheglov): implement.
     return typeNeeded ? const DynamicType() : null;
+  }
+}
+
+/// Concrete shadow object representing a redirecting initializer in kernel
+/// form.
+class KernelRedirectingInitializer extends RedirectingInitializer
+    implements KernelInitializer {
+  KernelRedirectingInitializer(Constructor target, Arguments arguments)
+      : super(target, arguments);
+
+  @override
+  _inferInitializer(KernelTypeInferrer inferrer) {
+    inferrer.listener.redirectingInitializerEnter(this);
+    inferrer.inferInvocation(null, false, fileOffset,
+        target.function.functionType, target.enclosingClass.thisType, arguments,
+        skipTypeArgumentInference: true);
+    inferrer.listener.redirectingInitializerExit(this);
   }
 }
 
@@ -1175,6 +1200,23 @@ class KernelTypeInferrer extends TypeInferrerImpl {
   DartType inferFieldTopLevel(
       KernelField field, DartType type, bool typeNeeded) {
     return inferExpression(field.initializer, type, typeNeeded);
+  }
+
+  @override
+  void inferInitializer(Initializer initializer) {
+    if (initializer is KernelInitializer) {
+      // Use polymorphic dispatch on [KernelInitializer] to perform whatever
+      // kind of type inference is correct for this kind of initializer.
+      // TODO(paulberry): experiment to see if dynamic dispatch would be better,
+      // so that the type hierarchy will be simpler (which may speed up "is"
+      // checks).
+      return initializer._inferInitializer(this);
+    } else {
+      // Encountered an initializer type for which type inference is not yet
+      // implemented, so just skip it for now.
+      // TODO(paulberry): once the BodyBuilder uses shadow classes for
+      // everything, this case should no longer be needed.
+    }
   }
 
   @override

@@ -17,6 +17,10 @@ class TypeInferenceBase {
   void debugExpressionExit(
       String expressionType, Expression expression, DartType inferredType) {}
 
+  void debugInitializerEnter(String initializerType, Initializer initializer) {}
+
+  void debugInitializerExit(String initializerType, Initializer initializer) {}
+
   void debugStatementEnter(String statementType, Statement statement) {}
 
   void debugStatementExit(String statementType, Statement statement) {}
@@ -34,6 +38,14 @@ class TypeInferenceDebugging implements TypeInferenceBase {
   void debugExpressionExit(
       String expressionType, Expression expression, DartType inferredType) {
     print('Exit $expressionType($expression) (type=$inferredType)');
+  }
+
+  void debugInitializerEnter(String initializerType, Initializer initializer) {
+    print('Enter $initializerType($initializer)');
+  }
+
+  void debugInitializerExit(String initializerType, Initializer initializer) {
+    print('Exit $initializerType($initializer)');
   }
 
   void debugStatementEnter(String statementType, Statement statement) {
@@ -169,6 +181,12 @@ class TypeInferenceListener
 
   void nullLiteralExit(NullLiteral expression, DartType inferredType) =>
       debugExpressionExit("nullLiteral", expression, inferredType);
+
+  void redirectingInitializerEnter(RedirectingInitializer initializer) =>
+      debugInitializerEnter("redirectingInitializer", initializer);
+
+  void redirectingInitializerExit(RedirectingInitializer initializer) =>
+      debugInitializerExit("redirectingInitializer", initializer);
 
   void returnStatementEnter(ReturnStatement statement) =>
       debugStatementEnter('returnStatement', statement);
