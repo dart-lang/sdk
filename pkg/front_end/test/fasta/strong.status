@@ -57,8 +57,6 @@ unused_methods: Fail
 void-methods: Fail
 
 inference/constructors_infer_from_arguments: Fail
-inference/constructors_infer_from_arguments_const: Fail
-inference/constructors_infer_from_arguments_const_with_upper_bound: Fail
 inference/constructors_infer_from_arguments_factory: Fail
 inference/constructors_infer_from_arguments_factory_calls_constructor: Fail
 inference/constructors_infer_from_arguments_named_factory: Fail
@@ -153,7 +151,6 @@ inference/inferred_type_uses_synthetic_function_type_positional_param: Fail
 inference/inferred_type_via_closure_multiple_levels_of_nesting: Fail
 inference/lambda_does_not_have_propagated_type_hint: Fail
 inference/list_literals_can_infer_null_top_level: Fail
-inference/local_constructor_from_arguments: Fail
 inference/map_literals: Fail
 inference/map_literals_can_infer_null: Fail
 inference/map_literals_can_infer_null_top_level: Fail

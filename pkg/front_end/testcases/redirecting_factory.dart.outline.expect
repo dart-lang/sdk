@@ -15,7 +15,7 @@ abstract class Foo<T extends core::Object> extends core::Object implements self:
 }
 class Bar<Sb extends core::Object, Tb extends core::Object> extends core::Object implements self::Foo<self::Bar::Tb> {
   field core::int x;
-  constructor •(dynamic x) → void
+  constructor •(core::int x) → void
     ;
 }
 class Builder<X extends core::Object> extends core::Object {

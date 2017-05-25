@@ -12,8 +12,10 @@ import 'kernel_builder.dart'
         FormalParameterBuilder,
         KernelLibraryBuilder,
         KernelTypeBuilder,
-        LibraryBuilder,
         MetadataBuilder;
+
+import 'package:front_end/src/fasta/source/source_library_builder.dart'
+    show SourceLibraryBuilder;
 
 class KernelFormalParameterBuilder
     extends FormalParameterBuilder<KernelTypeBuilder> {
@@ -33,9 +35,16 @@ class KernelFormalParameterBuilder
 
   KernelVariableDeclaration get target => declaration;
 
-  KernelVariableDeclaration build(LibraryBuilder library) {
-    return declaration ??= new KernelVariableDeclaration(name, 0,
-        type: type?.build(library), isFinal: isFinal, isConst: isConst)
-      ..fileOffset = charOffset;
+  KernelVariableDeclaration build(SourceLibraryBuilder library) {
+    if (declaration == null) {
+      declaration = new KernelVariableDeclaration(name, 0,
+          type: type?.build(library), isFinal: isFinal, isConst: isConst)
+        ..fileOffset = charOffset;
+      if (type == null && hasThis) {
+        library.loader.typeInferenceEngine
+            .recordInitializingFormal(declaration);
+      }
+    }
+    return declaration;
   }
 }

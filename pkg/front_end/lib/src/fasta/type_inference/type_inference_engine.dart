@@ -8,7 +8,7 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:kernel/ast.dart' show DartType, DynamicType;
+import 'package:kernel/ast.dart' show Class, DartType, DynamicType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 
@@ -71,6 +71,10 @@ abstract class TypeInferenceEngine {
 
   /// Records that the given [field] will need top level type inference.
   void recordField(KernelField field);
+
+  /// Records that the given initializing [formal] will need top level type
+  /// inference.
+  void recordInitializingFormal(KernelVariableDeclaration formal);
 }
 
 /// Derived class containing generic implementations of
@@ -85,6 +89,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   final bool strongMode;
 
   final fieldNodes = <FieldNode>[];
+
+  final initializingFormals = <KernelVariableDeclaration>[];
 
   @override
   CoreTypes coreTypes;
@@ -105,11 +111,26 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// Queries whether the given [field] has an initializer.
   bool fieldHasInitializer(KernelField field);
 
+  DartType _inferInitializingFormalType(KernelVariableDeclaration formal) {
+    assert(KernelVariableDeclaration.isImplicitlyTyped(formal));
+    Class enclosingClass = formal.parent.parent.parent;
+    for (var field in enclosingClass.fields) {
+      if (field.name.name == formal.name) {
+        return field.type;
+      }
+    }
+    // No matching field.  The error should be reported elsewhere.
+    return const DynamicType();
+  }
+
   @override
   void finishTopLevel() {
     for (var fieldNode in fieldNodes) {
       if (fieldNode.isEvaluated) continue;
       new _FieldWalker().walk(fieldNode);
+    }
+    for (var formal in initializingFormals) {
+      formal.type = _inferInitializingFormalType(formal);
     }
   }
 
@@ -180,6 +201,11 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   @override
   void recordField(KernelField field) {
     fieldNodes.add(createFieldNode(field));
+  }
+
+  @override
+  void recordInitializingFormal(KernelVariableDeclaration formal) {
+    initializingFormals.add(formal);
   }
 
   /// Stores [inferredType] as the inferred type of [field].
