@@ -2166,8 +2166,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         typeParameters: typeParameters, asyncMarker: asyncModifier)
       ..fileOffset = beginToken.charOffset
       ..fileEndOffset = token.charOffset);
-    push(new KernelFunctionExpression(function)
-      ..fileOffset = offsetForToken(beginToken));
+    if (constantExpressionRequired) {
+      push(buildCompileTimeError(
+          "Not a constant expression.", formals.charOffset));
+    } else {
+      push(new KernelFunctionExpression(function)
+        ..fileOffset = offsetForToken(beginToken));
+    }
   }
 
   @override
