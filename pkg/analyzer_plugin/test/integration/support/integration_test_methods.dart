@@ -129,6 +129,63 @@ abstract class IntegrationTestMixin {
   StreamController<PluginErrorParams> _onPluginError;
 
   /**
+   * Return the navigation information associated with the given region of the
+   * given file. If the navigation information for the given file has not yet
+   * been computed, or the most recently computed navigation information for
+   * the given file is out of date, then the response for this request will be
+   * delayed until it has been computed. If the content of the file changes
+   * after this request was received but before a response could be sent, then
+   * an error of type CONTENT_MODIFIED will be generated.
+   *
+   * If a navigation region overlaps (but extends either before or after) the
+   * given region of the file it will be included in the result. This means
+   * that it is theoretically possible to get the same navigation region in
+   * response to multiple requests. Clients can avoid this by always choosing a
+   * region that starts at the beginning of a line and ends at the end of a
+   * (possibly different) line in the file.
+   *
+   * Parameters
+   *
+   * file (FilePath)
+   *
+   *   The file in which navigation information is being requested.
+   *
+   * offset (int)
+   *
+   *   The offset of the region for which navigation information is being
+   *   requested.
+   *
+   * length (int)
+   *
+   *   The length of the region for which navigation information is being
+   *   requested.
+   *
+   * Returns
+   *
+   * files (List<FilePath>)
+   *
+   *   A list of the paths of files that are referenced by the navigation
+   *   targets.
+   *
+   * targets (List<NavigationTarget>)
+   *
+   *   A list of the navigation targets that are referenced by the navigation
+   *   regions.
+   *
+   * regions (List<NavigationRegion>)
+   *
+   *   A list of the navigation regions within the requested region of the
+   *   file.
+   */
+  Future<AnalysisGetNavigationResult> sendAnalysisGetNavigation(
+      String file, int offset, int length) async {
+    var params = new AnalysisGetNavigationParams(file, offset, length).toJson();
+    var result = await server.send("analysis.getNavigation", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new AnalysisGetNavigationResult.fromJson(decoder, 'result', result);
+  }
+
+  /**
    * Used to inform the plugin of changes to files in the file system. Only
    * events associated with files that match the interestingFiles glob patterns
    * will be forwarded to the plugin.

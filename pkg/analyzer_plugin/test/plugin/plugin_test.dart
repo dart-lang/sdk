@@ -93,6 +93,12 @@ class ServerPluginTest {
     expect(plugin.contextRootContaining(filePath2), isNull);
   }
 
+  test_handleAnalysisGetNavigation() async {
+    var result = await plugin
+        .handleAnalysisGetNavigation(new AnalysisGetNavigationParams('', 1, 2));
+    expect(result, isNotNull);
+  }
+
   test_handleAnalysisHandleWatchEvents() async {
     var result = await plugin.handleAnalysisHandleWatchEvents(
         new AnalysisHandleWatchEventsParams([]));

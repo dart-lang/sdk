@@ -149,6 +149,77 @@
   <p>
     The analysis domain contains API’s related to the analysis of files.
   </p>
+  <request method="getNavigation">
+    <p>
+      Return the navigation information associated with the given region of
+      the given file. If the navigation information for the given file has
+      not yet been computed, or the most recently computed navigation
+      information for the given file is out of date, then the response for
+      this request will be delayed until it has been computed. If the
+      content of the file changes after this request was received but before
+      a response could be sent, then an error of type
+      <tt>CONTENT_MODIFIED</tt> will be generated.
+    </p>
+    <p>
+      If a navigation region overlaps (but extends either before or after)
+      the given region of the file it will be included in the result. This
+      means that it is theoretically possible to get the same navigation
+      region in response to multiple requests. Clients can avoid this by
+      always choosing a region that starts at the beginning of a line and
+      ends at the end of a (possibly different) line in the file.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file in which navigation information is being requested.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the region for which navigation information is being
+          requested.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the region for which navigation information is being
+          requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="files">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          A list of the paths of files that are referenced by the navigation
+          targets.
+        </p>
+      </field>
+      <field name="targets">
+        <list>
+          <ref>NavigationTarget</ref>
+        </list>
+        <p>
+          A list of the navigation targets that are referenced by the
+          navigation regions.
+        </p>
+      </field>
+      <field name="regions">
+        <list>
+          <ref>NavigationRegion</ref>
+        </list>
+        <p>
+          A list of the navigation regions within the requested region of
+          the file.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="handleWatchEvents">
     <p>
       Used to inform the plugin of changes to files in the file system. Only
