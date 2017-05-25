@@ -4244,44 +4244,44 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DomName('SVGElement.dragEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dragEvent =
-      const EventStreamProvider<DragEvent>('drag');
+  static const EventStreamProvider<MouseEvent> dragEvent =
+      const EventStreamProvider<MouseEvent>('drag');
 
   @DomName('SVGElement.dragendEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dragEndEvent =
-      const EventStreamProvider<DragEvent>('dragend');
+  static const EventStreamProvider<MouseEvent> dragEndEvent =
+      const EventStreamProvider<MouseEvent>('dragend');
 
   @DomName('SVGElement.dragenterEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dragEnterEvent =
-      const EventStreamProvider<DragEvent>('dragenter');
+  static const EventStreamProvider<MouseEvent> dragEnterEvent =
+      const EventStreamProvider<MouseEvent>('dragenter');
 
   @DomName('SVGElement.dragleaveEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dragLeaveEvent =
-      const EventStreamProvider<DragEvent>('dragleave');
+  static const EventStreamProvider<MouseEvent> dragLeaveEvent =
+      const EventStreamProvider<MouseEvent>('dragleave');
 
   @DomName('SVGElement.dragoverEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dragOverEvent =
-      const EventStreamProvider<DragEvent>('dragover');
+  static const EventStreamProvider<MouseEvent> dragOverEvent =
+      const EventStreamProvider<MouseEvent>('dragover');
 
   @DomName('SVGElement.dragstartEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dragStartEvent =
-      const EventStreamProvider<DragEvent>('dragstart');
+  static const EventStreamProvider<MouseEvent> dragStartEvent =
+      const EventStreamProvider<MouseEvent>('dragstart');
 
   @DomName('SVGElement.dropEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dropEvent =
-      const EventStreamProvider<DragEvent>('drop');
+  static const EventStreamProvider<MouseEvent> dropEvent =
+      const EventStreamProvider<MouseEvent>('drop');
 
   @DomName('SVGElement.durationchangeEvent')
   @DocsEditable()
@@ -4608,37 +4608,37 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DomName('SVGElement.ondrag')
   @DocsEditable()
   @Experimental() // untriaged
-  ElementStream<DragEvent> get onDrag => dragEvent.forElement(this);
+  ElementStream<MouseEvent> get onDrag => dragEvent.forElement(this);
 
   @DomName('SVGElement.ondragend')
   @DocsEditable()
   @Experimental() // untriaged
-  ElementStream<DragEvent> get onDragEnd => dragEndEvent.forElement(this);
+  ElementStream<MouseEvent> get onDragEnd => dragEndEvent.forElement(this);
 
   @DomName('SVGElement.ondragenter')
   @DocsEditable()
   @Experimental() // untriaged
-  ElementStream<DragEvent> get onDragEnter => dragEnterEvent.forElement(this);
+  ElementStream<MouseEvent> get onDragEnter => dragEnterEvent.forElement(this);
 
   @DomName('SVGElement.ondragleave')
   @DocsEditable()
   @Experimental() // untriaged
-  ElementStream<DragEvent> get onDragLeave => dragLeaveEvent.forElement(this);
+  ElementStream<MouseEvent> get onDragLeave => dragLeaveEvent.forElement(this);
 
   @DomName('SVGElement.ondragover')
   @DocsEditable()
   @Experimental() // untriaged
-  ElementStream<DragEvent> get onDragOver => dragOverEvent.forElement(this);
+  ElementStream<MouseEvent> get onDragOver => dragOverEvent.forElement(this);
 
   @DomName('SVGElement.ondragstart')
   @DocsEditable()
   @Experimental() // untriaged
-  ElementStream<DragEvent> get onDragStart => dragStartEvent.forElement(this);
+  ElementStream<MouseEvent> get onDragStart => dragStartEvent.forElement(this);
 
   @DomName('SVGElement.ondrop')
   @DocsEditable()
   @Experimental() // untriaged
-  ElementStream<DragEvent> get onDrop => dropEvent.forElement(this);
+  ElementStream<MouseEvent> get onDrop => dropEvent.forElement(this);
 
   @DomName('SVGElement.ondurationchange')
   @DocsEditable()
