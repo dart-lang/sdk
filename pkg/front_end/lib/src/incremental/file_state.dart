@@ -262,6 +262,10 @@ class FileSystemState {
     }
     return file;
   }
+
+  /// Return the [FileState] for the given [fileUri], or `null` if the
+  /// [fileUri] does not yet correspond to any referenced [FileState].
+  FileState getFileByFileUri(Uri fileUri) => _fileUriToFile[fileUri];
 }
 
 /// List of libraries that reference each other, so form a cycle.

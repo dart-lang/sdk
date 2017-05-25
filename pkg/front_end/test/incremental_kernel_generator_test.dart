@@ -482,6 +482,55 @@ static method main() → dynamic {
     }
   }
 
+  test_updatePackageSourceUsingFileUri() async {
+    writeFile('/test/.packages', 'test:lib/');
+    Uri aFileUri = writeFile(
+        '/test/bin/a.dart',
+        r'''
+import 'package:test/b.dart';
+var a = b;
+''');
+    Uri bFileUri = writeFile('/test/lib/b.dart', 'var b = 1;');
+    Uri bPackageUri = Uri.parse('package:test/b.dart');
+
+    // Compute the initial state.
+    {
+      Program program = await getInitialState(aFileUri);
+      Library library = _getLibrary(program, aFileUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "package:test/b.dart" as b;
+
+static field core::int a = b::b;
+''');
+    }
+
+    // Update b.dart and use file URI to invalidate it.
+    // The delta is recomputed even though b.dart is used with the package URI.
+    writeFile('/test/lib/b.dart', 'var b = 1.2;');
+    incrementalKernelGenerator.invalidate(bFileUri);
+    {
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aFileUri, bPackageUri]);
+      Library library = _getLibrary(program, aFileUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "package:test/b.dart" as b;
+
+static field core::double a = b::b;
+''');
+    }
+  }
+
   test_updatePart() async {
     writeFile('/test/.packages', 'test:lib/');
     String libPath = '/test/lib/test.dart';
