@@ -21,7 +21,7 @@
 library runtime.tools.kernel_service;
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' hide FileSystemEntity;
 import 'dart:isolate';
 
 import 'package:front_end/file_system.dart';
@@ -69,7 +69,7 @@ Future _processLoadRequest(request) async {
   final SendPort port = request[1];
   final String inputFileUrl = request[2];
   FileSystem fileSystem = request.length > 3
-      ? _buildMemoryFileSystem(request[3])
+      ? _buildFileSystem(request[3])
       : PhysicalFileSystem.instance;
 
   CompilationResult result;
@@ -97,18 +97,63 @@ Future _processLoadRequest(request) async {
   }
 }
 
-// Given namedSources list of interleaved file name string and
-// raw file content Uint8List this function builds up and returns
-// MemoryFileSystem instance that can be used instead of
-// PhysicalFileSystem.instance by the frontend.
-MemoryFileSystem _buildMemoryFileSystem(List namedSources) {
+/// Creates a file system containing the files specified in [namedSources] and
+/// that delegates to the underlying file system for any other file request.
+/// The [namedSources] list interleaves file name string and
+/// raw file content Uint8List.
+///
+/// The result can be used instead of PhysicalFileSystem.instance by the
+/// frontend.
+FileSystem _buildFileSystem(List namedSources) {
   MemoryFileSystem fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
   for (int i = 0; i < namedSources.length ~/ 2; i++) {
     fileSystem
         .entityForUri(Uri.parse(namedSources[i * 2]))
         .writeAsBytesSync(namedSources[i * 2 + 1]);
   }
-  return fileSystem;
+  return new HybridFileSystem(fileSystem);
+}
+
+/// A file system that mixes files from memory and a physical file system. All
+/// memory entities take priotity over file system entities.
+class HybridFileSystem implements FileSystem {
+  final MemoryFileSystem memory;
+  final PhysicalFileSystem physical = PhysicalFileSystem.instance;
+
+  HybridFileSystem(this.memory);
+
+  @override
+  FileSystemEntity entityForUri(Uri uri) => new HybridFileSystemEntity(
+      memory.entityForUri(uri), physical.entityForUri(uri));
+}
+
+/// Entity that delegates to an underlying memory or phisical file system
+/// entity.
+class HybridFileSystemEntity implements FileSystemEntity {
+  final FileSystemEntity memory;
+  final FileSystemEntity physical;
+
+  HybridFileSystemEntity(this.memory, this.physical);
+
+  FileSystemEntity _delegate;
+  Future<FileSystemEntity> get delegate async {
+    return _delegate ??= (await memory.exists()) ? memory : physical;
+  }
+
+  @override
+  Uri get uri => memory.uri;
+
+  @override
+  Future<bool> exists() async => (await delegate).exists();
+
+  @override
+  Future<DateTime> lastModified() async => (await delegate).lastModified();
+
+  @override
+  Future<List<int>> readAsBytes() async => (await delegate).readAsBytes();
+
+  @override
+  Future<String> readAsString() async => (await delegate).readAsString();
 }
 
 train(String scriptUri) {
