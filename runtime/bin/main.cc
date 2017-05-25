@@ -11,6 +11,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/dfe.h"
 #include "bin/directory.h"
 #include "bin/embedded_dart_io.h"
 #include "bin/error_exit.h"
@@ -78,15 +79,9 @@ enum SnapshotKind {
 };
 static SnapshotKind gen_snapshot_kind = kNone;
 static const char* snapshot_deps_filename = NULL;
-
-static bool use_dart_frontend = false;
-
-static const char* frontend_filename = NULL;
-
-// True if the VM should boostrap the SDK from a binary (.dill) file.  The
-// filename points into an argv buffer and does not need to be freed.
-static bool use_platform_binary = false;
-static const char* platform_binary_filename = NULL;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+DFE dfe;
+#endif
 
 // Value of the --save-feedback flag.
 // (This pointer points into an argv buffer and does not need to be
@@ -340,14 +335,14 @@ static bool ProcessParseAllOption(const char* arg,
 }
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static bool ProcessFrontendOption(const char* filename,
                                   CommandLineOptions* vm_options) {
   ASSERT(filename != NULL);
   if (filename[0] == '\0') {
     return false;
   }
-  use_dart_frontend = true;
-  frontend_filename = filename;
+  dfe.set_frontend_filename(filename);
   vm_options->AddArgument("--use-dart-frontend");
   return true;
 }
@@ -359,10 +354,10 @@ static bool ProcessPlatformOption(const char* filename,
   if (filename[0] == '\0') {
     return false;
   }
-  use_platform_binary = true;
-  platform_binary_filename = filename;
+  dfe.set_platform_binary_filename(filename);
   return true;
 }
+#endif
 
 
 static bool ProcessUseBlobsOption(const char* arg,
@@ -588,8 +583,10 @@ static struct {
     // VM specific options to the standalone dart program.
     {"--compile_all", ProcessCompileAllOption},
     {"--parse_all", ProcessParseAllOption},
+#if !defined(DART_PRECOMPILED_RUNTIME)
     {"--dfe=", ProcessFrontendOption},
     {"--platform=", ProcessPlatformOption},
+#endif
     {"--enable-vm-service", ProcessEnableVmServiceOption},
     {"--disable-service-origin-check", ProcessDisableServiceOriginCheckOption},
     {"--observe", ProcessObserveOption},
@@ -837,19 +834,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
                                                 char** error,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
-  const bool is_kernel_isolate =
-      strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0;
-  if (is_kernel_isolate) {
-    if (!use_dart_frontend) {
-      *error = strdup("Kernel isolate not supported.");
-      return NULL;
-    }
-    script_uri = frontend_filename;
-    if (packages_config == NULL) {
-      packages_config = commandline_packages_file;
-    }
-  }
-
   void* kernel_platform = NULL;
   void* kernel_program = NULL;
   AppSnapshot* app_snapshot = NULL;
@@ -867,6 +851,18 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       core_isolate_snapshot_instructions;
+  const bool is_kernel_isolate =
+      strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0;
+  if (is_kernel_isolate) {
+    if (!dfe.UseDartFrontend()) {
+      *error = strdup("Kernel isolate not supported.");
+      return NULL;
+    }
+    script_uri = dfe.frontend_filename();
+    if (packages_config == NULL) {
+      packages_config = commandline_packages_file;
+    }
+  }
   if ((app_isolate_snapshot_data != NULL) &&
       (is_main_isolate || ((app_script_uri != NULL) &&
                            (strcmp(script_uri, app_script_uri) == 0)))) {
@@ -888,10 +884,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
       strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0;
   if (!is_kernel_isolate && !is_service_isolate) {
     const uint8_t* platform_file = NULL;
-    if (use_platform_binary) {
+    if (dfe.UsePlatformBinary()) {
       intptr_t platform_length = -1;
-      bool success = TryReadKernel(platform_binary_filename, &platform_file,
-                                   &platform_length);
+      bool success = dfe.TryReadKernelFile(dfe.platform_binary_filename(),
+                                           &platform_file, &platform_length);
       if (!success) {
         *error = strdup("The platform binary is not a valid Dart Kernel file.");
         *exit_code = kErrorExitCode;
@@ -903,7 +899,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     bool is_kernel = false;
     const uint8_t* kernel_file = NULL;
     intptr_t kernel_length = -1;
-    if (use_dart_frontend) {
+    if (dfe.UseDartFrontend()) {
       Dart_KernelCompilationResult result = Dart_CompileToKernel(script_uri);
       *error = result.error;  // Copy error message (if any).
       switch (result.status) {
@@ -928,7 +924,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
         return NULL;
       }
     } else if (!isolate_run_app_snapshot) {
-      is_kernel = TryReadKernel(script_uri, &kernel_file, &kernel_length);
+      is_kernel =
+          dfe.TryReadKernelFile(script_uri, &kernel_file, &kernel_length);
     }
 
     if (is_kernel) {

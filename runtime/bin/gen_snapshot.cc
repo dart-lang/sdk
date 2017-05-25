@@ -13,6 +13,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/dfe.h"
 #include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/loader.h"
@@ -30,6 +31,8 @@
 
 namespace dart {
 namespace bin {
+
+DFE dfe;
 
 // Exit code indicating an API error.
 static const int kApiErrorExitCode = 253;
@@ -1570,7 +1573,7 @@ int main(int argc, char** argv) {
     const uint8_t* kernel = NULL;
     intptr_t kernel_length = 0;
     const bool is_kernel_file =
-        TryReadKernel(app_script_name, &kernel, &kernel_length);
+        dfe.TryReadKernelFile(app_script_name, &kernel, &kernel_length);
 
     if ((dependencies_filename != NULL) || print_dependencies) {
       isolate_data->set_dependencies(new MallocGrowableArray<char*>());

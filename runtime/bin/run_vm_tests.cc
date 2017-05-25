@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "bin/dartutils.h"
+#include "bin/dfe.h"
 #include "bin/file.h"
 #include "bin/loader.h"
 #include "bin/platform.h"
@@ -23,6 +24,10 @@ extern const uint8_t kDartCoreIsolateSnapshotInstructions[];
 
 // TODO(iposva, asiva): This is a placeholder for the real unittest framework.
 namespace dart {
+
+namespace bin {
+DFE dfe;
+}
 
 // Defined in vm/os_thread_win.cc
 extern bool private_flag_windows_run_tls_destructors;

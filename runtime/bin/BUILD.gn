@@ -293,6 +293,8 @@ executable("gen_snapshot") {
     # Very limited native resolver provided.
     "builtin_common.cc",
     "builtin_gen_snapshot.cc",
+    "dfe.cc",
+    "dfe.h",
     "gen_snapshot.cc",
     "vmservice_impl.cc",
     "vmservice_impl.h",
@@ -669,6 +671,8 @@ dart_executable("dart") {
   ]
   extra_sources = [
     "builtin_nolib.cc",
+    "dfe.cc",
+    "dfe.h",
     "loader.cc",
     "loader.h",
   ]
@@ -715,6 +719,8 @@ dart_executable("dart_bootstrap") {
   extra_sources = [
     "builtin.cc",
     "builtin.h",
+    "dfe.cc",
+    "dfe.h",
     "loader.cc",
     "loader.h",
     "observatory_assets_empty.cc",
@@ -857,6 +863,8 @@ executable("run_vm_tests") {
               "snapshot_utils.h",
               "builtin_nolib.cc",
               "run_vm_tests.cc",
+              "dfe.cc",
+              "dfe.h",
             ] + builtin_impl_tests_list + vm_tests
 
   if (!is_win) {
