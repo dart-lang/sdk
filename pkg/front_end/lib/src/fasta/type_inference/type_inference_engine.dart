@@ -156,7 +156,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
       var typeInferrer = getFieldTypeInferrer(field);
       var type = getFieldDeclaredType(field);
       var inferredType = typeInferrer.inferDeclarationType(
-          typeInferrer.inferFieldInitializer(field, type, type == null));
+          typeInferrer.inferFieldTopLevel(field, type, type == null));
       if (type == null && strongMode && updateType) {
         instrumentation?.record(
             Uri.parse(typeInferrer.uri),

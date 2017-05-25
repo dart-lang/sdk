@@ -14,7 +14,7 @@ abstract class C extends core::Object implements self::I {
     : super core::Object::•()
     ;
 }
-static field core::bool x = self::f().g();
+static field core::bool x = self::f().{self::I::g}();
 static method f() → self::C
   return null;
 static method main() → dynamic {}

@@ -149,6 +149,9 @@ abstract class TypeInferrer {
   /// Gets the [FieldNode] corresponding to the given [readTarget], if any.
   FieldNode getFieldNodeForReadTarget(Member readTarget);
 
+  /// Performs full type inference on the given field initializer.
+  void inferFieldInitializer(DartType declaredType, Expression initializer);
+
   /// Performs type inference on the given function body.
   void inferFunctionBody(
       DartType returnType, AsyncMarker asyncMarker, Statement body);
@@ -187,11 +190,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// inside a closure.
   ClosureContext closureContext;
 
-  TypeInferrerImpl(TypeInferenceEngineImpl engine, this.uri, this.listener)
+  TypeInferrerImpl(
+      TypeInferenceEngineImpl engine, this.uri, this.listener, bool topLevel)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
-        instrumentation = engine.instrumentation,
+        instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment;
 
   /// Gets the type promoter that should be used to promote types during
@@ -300,11 +304,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   DartType inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded);
 
+  @override
+  void inferFieldInitializer(DartType declaredType, Expression initializer) {
+    assert(closureContext == null);
+    inferExpression(initializer, declaredType, false);
+  }
+
   /// Performs type inference on the given [field]'s initializer expression.
   ///
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
-  DartType inferFieldInitializer(
+  DartType inferFieldTopLevel(
       KernelField field, DartType type, bool typeNeeded);
 
   @override

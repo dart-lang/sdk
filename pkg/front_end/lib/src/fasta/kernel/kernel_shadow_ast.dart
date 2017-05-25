@@ -1070,14 +1070,14 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
   @override
   KernelTypeInferrer createLocalTypeInferrer(
       Uri uri, TypeInferenceListener listener) {
-    return new KernelTypeInferrer._(this, uri.toString(), listener);
+    return new KernelTypeInferrer._(this, uri.toString(), listener, false);
   }
 
   @override
   KernelTypeInferrer createTopLevelTypeInferrer(
       KernelField field, TypeInferenceListener listener) {
     return field._typeInferrer =
-        new KernelTypeInferrer._(this, getFieldUri(field), listener);
+        new KernelTypeInferrer._(this, getFieldUri(field), listener, true);
   }
 
   @override
@@ -1128,8 +1128,8 @@ class KernelTypeInferrer extends TypeInferrerImpl {
   final typePromoter = new KernelTypePromoter();
 
   KernelTypeInferrer._(KernelTypeInferenceEngine engine, String uri,
-      TypeInferenceListener listener)
-      : super(engine, uri, listener);
+      TypeInferenceListener listener, bool topLevel)
+      : super(engine, uri, listener, topLevel);
 
   @override
   Expression getFieldInitializer(KernelField field) {
@@ -1165,7 +1165,7 @@ class KernelTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  DartType inferFieldInitializer(
+  DartType inferFieldTopLevel(
       KernelField field, DartType type, bool typeNeeded) {
     return inferExpression(field.initializer, type, typeNeeded);
   }

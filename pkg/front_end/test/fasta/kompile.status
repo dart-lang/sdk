@@ -300,6 +300,7 @@ inference/simple_literal_int: Crash
 inference/simple_literal_null: Crash
 inference/static_method_tear_off: Crash
 inference/string_literal: Crash
+inference/subexpressions_of_explicitly_typed_fields: Crash
 inference/top_level_return_and_yield: Crash
 inference/toplevel_inference_toplevel_var: Crash
 inference/type_cast: Crash

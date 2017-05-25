@@ -9,7 +9,7 @@ class C extends core::Object {
   method g() → core::bool
     return true;
 }
-static field core::bool x = self::f().g();
+static field core::bool x = self::f().{self::C::g}();
 static method f() → self::C
   return null;
 static method main() → dynamic {}

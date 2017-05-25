@@ -15,7 +15,7 @@ abstract class C extends core::Object implements self::I {
     ;
 }
 static field self::C c;
-static field core::bool x = self::c.*(self::c);
+static field core::bool x = self::c.{self::I::*}(self::c);
 static method main() → dynamic {
   self::c;
 }

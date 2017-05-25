@@ -2,8 +2,8 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static field core::num a = 1.==(2) ? 1 : 2.0;
-static field core::num b = 1.==(2) ? 1.0 : 2;
+static field core::num a = 1.{core::num::==}(2) ? 1 : 2.0;
+static field core::num b = 1.{core::num::==}(2) ? 1.0 : 2;
 static method main() → dynamic {
   self::a;
   self::b;

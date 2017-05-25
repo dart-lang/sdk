@@ -22,7 +22,7 @@ import 'package:front_end/src/fasta/source/source_library_builder.dart'
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
     show TypeInferenceListener;
 
-import 'package:kernel/ast.dart' show Expression, Field, Name;
+import 'package:kernel/ast.dart' show DartType, Expression, Field, Name;
 
 import 'kernel_builder.dart'
     show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
@@ -94,4 +94,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       initializer = expression;
     }
   }
+
+  @override
+  DartType get builtType => field.type;
 }

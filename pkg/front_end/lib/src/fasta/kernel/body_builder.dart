@@ -366,6 +366,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               "Unhandled: '${field.name}' has more than one declaration.");
         }
         field.initializer = initializer;
+        _typeInferrer.inferFieldInitializer(field.builtType, initializer);
       }
     }
     pop(); // Type.
