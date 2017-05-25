@@ -49,7 +49,7 @@ class AstBuilder {
   }
 
   Token symbolToken(TokenType type) {
-    return new SymbolToken(type, charOffset);
+    return new Token(type, charOffset);
   }
 
   Identifier identifier(String text) {

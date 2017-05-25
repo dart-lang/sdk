@@ -56,7 +56,7 @@ class ScannerTest_Replacement extends ScannerTest {
   }
 
   void _assertOpenClosePair(String source) {
-    fasta.BeginGroupToken open = _scan(source);
+    analyzer.BeginToken open = _scan(source);
     fasta.Token close = open.next;
     expect(close.next.isEof, isTrue);
     expect(open.endGroup, close);
@@ -65,7 +65,7 @@ class ScannerTest_Replacement extends ScannerTest {
   }
 
   void _assertOpenOnly(String source) {
-    fasta.BeginGroupToken open = _scan(source);
+    analyzer.BeginToken open = _scan(source);
     fasta.Token close = open.next;
     expect(close.next.isEof, isTrue);
     expect(open.endGroup, close);
@@ -76,7 +76,7 @@ class ScannerTest_Replacement extends ScannerTest {
   void test_lt() {
     // fasta does not automatically insert a closer for '<'
     // because it could be part of an expression rather than an opener
-    fasta.BeginGroupToken lt = _scan('<');
+    analyzer.BeginToken lt = _scan('<');
     expect(lt.next.isEof, isTrue);
     expect(lt.isSynthetic, isFalse);
   }
@@ -117,7 +117,7 @@ class ScannerTest_Replacement extends ScannerTest {
     // and inserts synthetic closers as needed.
     // `(])` is parsed as `()])` where the first `)` is synthetic
     // and the trailing `])` are unmatched.
-    fasta.BeginGroupToken openParen = _scan('(])');
+    analyzer.BeginToken openParen = _scan('(])');
     fasta.Token closeParen = openParen.next;
     fasta.Token closeBracket = closeParen.next;
     fasta.Token closeParen2 = closeBracket.next;
@@ -134,8 +134,8 @@ class ScannerTest_Replacement extends ScannerTest {
     // fasta favors considering the opener to be mismatched
     // and inserts synthetic closers as needed.
     // `([)` is parsed as `([])` where `]` is synthetic.
-    fasta.BeginGroupToken openParen = _scan('([)');
-    fasta.BeginGroupToken openBracket = openParen.next;
+    analyzer.BeginToken openParen = _scan('([)');
+    analyzer.BeginToken openBracket = openParen.next;
     fasta.Token closeBracket = openBracket.next; // <-- synthetic
     fasta.Token closeParen = closeBracket.next;
     fasta.Token eof = closeParen.next;
@@ -155,10 +155,10 @@ class ScannerTest_Replacement extends ScannerTest {
     // r'"${({(}}"' is parsed as r'"${({()})}"'
     // where both ')' are synthetic
     var stringStart = _scan(r'"${({(}}"');
-    var interpolationStart = stringStart.next as fasta.BeginGroupToken;
-    var openParen1 = interpolationStart.next as fasta.BeginGroupToken;
-    var openBrace = openParen1.next as fasta.BeginGroupToken;
-    var openParen2 = openBrace.next as fasta.BeginGroupToken;
+    var interpolationStart = stringStart.next as analyzer.BeginToken;
+    var openParen1 = interpolationStart.next as analyzer.BeginToken;
+    var openBrace = openParen1.next as analyzer.BeginToken;
+    var openParen2 = openBrace.next as analyzer.BeginToken;
     var closeParen2 = openParen2.next;
     var closeBrace = closeParen2.next;
     var closeParen1 = closeBrace.next;
@@ -264,10 +264,10 @@ class ScannerTest_Replacement extends ScannerTest {
   @override
   void test_unmatched_openers() {
     // fasta inserts missing closers except for '<'
-    var openBrace = _scan('{[(<') as fasta.BeginGroupToken;
-    var openBracket = openBrace.next as fasta.BeginGroupToken;
-    var openParen = openBracket.next as fasta.BeginGroupToken;
-    var openLT = openParen.next as fasta.BeginGroupToken;
+    var openBrace = _scan('{[(<') as analyzer.BeginToken;
+    var openBracket = openBrace.next as analyzer.BeginToken;
+    var openParen = openBracket.next as analyzer.BeginToken;
+    var openLT = openParen.next as analyzer.BeginToken;
     var closeParen = openLT.next;
     var closeBracket = closeParen.next;
     var closeBrace = closeBracket.next;
@@ -302,7 +302,7 @@ class ScannerTest_Replacement extends ScannerTest {
       token = token.next;
     }
     if (!token.previous.isEof) {
-      var head = new fasta.SymbolToken(analyzer.TokenType.EOF, -1);
+      var head = new analyzer.Token.eof(-1);
       token.previous = head;
       head.next = token;
     }
@@ -333,21 +333,22 @@ class ScannerTest_Replacement extends ScannerTest {
     expect(token.next, token, reason: 'Invalid trailing EOF');
   }
 
-  /// Assert that all [fasta.BeginGroupToken] has a valid `endGroup`
+  /// Assert that all [analyzer.BeginToken] has a valid `endGroup`
   /// that is in the stream.
   void assertValidBeginTokens(fasta.Token firstToken) {
-    var openerStack = <fasta.BeginGroupToken>[];
-    fasta.BeginGroupToken lastClosedGroup;
+    var openerStack = <analyzer.BeginToken>[];
+    analyzer.BeginToken lastClosedGroup;
     fasta.Token token = firstToken;
     while (!token.isEof) {
-      if (token is fasta.BeginGroupToken) {
+      if (token is analyzer.BeginToken) {
         if (token.lexeme != '<')
           expect(token.endGroup, isNotNull, reason: token.lexeme);
         if (token.endGroup != null) openerStack.add(token);
       } else if (openerStack.isNotEmpty && openerStack.last.endGroup == token) {
         lastClosedGroup = openerStack.removeLast();
         expect(token.isSynthetic, token.next is fasta.UnmatchedToken,
-            reason: 'Expect synthetic closer then error token');
+            reason: 'Expect synthetic closer then error token, '
+                'but found "$token" followed by "${token.next}"');
       } else if (token is fasta.UnmatchedToken) {
         expect(lastClosedGroup?.endGroup?.next, same(token),
             reason: 'Unexpected error token for group: $lastClosedGroup');

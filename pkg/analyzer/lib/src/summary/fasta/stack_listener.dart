@@ -9,7 +9,9 @@ import 'dart:collection' show Queue;
 import 'package:front_end/src/fasta/parser.dart'
     show IdentifierContext, Listener, MemberKind;
 
-import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
+
+import 'package:front_end/src/scanner/token.dart' show BeginToken;
 
 enum NullValue {
   Arguments,
@@ -96,7 +98,7 @@ abstract class StackListener extends Listener {
     push(NullValue.TypeVariables);
   }
 
-  void handleParenthesizedExpression(BeginGroupToken token) {
+  void handleParenthesizedExpression(BeginToken token) {
     debugEvent("ParenthesizedExpression");
   }
 

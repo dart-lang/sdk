@@ -6,9 +6,7 @@ library fasta.parser.listener;
 
 import '../fasta_codes.dart' show FastaMessage;
 
-import '../../scanner/token.dart' show Token, TokenType;
-
-import '../scanner/token.dart' show BeginGroupToken, SymbolToken;
+import '../../scanner/token.dart' show BeginToken, Token, TokenType;
 
 import '../util/link.dart' show Link;
 
@@ -943,7 +941,7 @@ class Listener {
     logEvent("OperatorName");
   }
 
-  void handleParenthesizedExpression(BeginGroupToken token) {
+  void handleParenthesizedExpression(BeginToken token) {
     logEvent("ParenthesizedExpression");
   }
 
@@ -1067,7 +1065,7 @@ class Listener {
   /// If [next] is `null`, `null` is returned.
   Token newSyntheticToken(Token next) {
     if (next == null) return null;
-    return new SymbolToken(TokenType.RECOVERY, next.charOffset)..next = next;
+    return new Token(TokenType.RECOVERY, next.charOffset)..next = next;
   }
 }
 

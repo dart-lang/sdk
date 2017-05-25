@@ -1838,7 +1838,7 @@ class Parser {
               nameToken = new SyntheticStringToken(
                   TokenType.IDENTIFIER, '', nameOffset);
             }
-            nameToken.setNext(new SimpleToken(TokenType.EOF, nameToken.end));
+            nameToken.setNext(new Token.eof(nameToken.end));
             references.add(astFactory.commentReference(
                 null, astFactory.simpleIdentifier(nameToken)));
             token.references.add(nameToken);
@@ -1971,9 +1971,7 @@ class Parser {
           member = parseCompilationUnitMember(commentAndMetadata);
         } on _TooDeepTreeError {
           _reportErrorForToken(ParserErrorCode.STACK_OVERFLOW, _currentToken);
-          Token eof = new Token(TokenType.EOF, 0);
-          eof.previous = eof;
-          eof.setNext(eof);
+          Token eof = new Token.eof(0);
           return astFactory.compilationUnit(eof, null, null, null, eof);
         }
         if (member != null) {
@@ -5818,8 +5816,7 @@ class Parser {
       return null;
     }
     token = token is CommentToken ? token.parent : token;
-    Token head = new Token(TokenType.EOF, -1);
-    head.setNext(head);
+    Token head = new Token.eof(-1);
     Token current = head;
     while (token.type != TokenType.EOF) {
       Token clone = token.copy();
@@ -5827,8 +5824,7 @@ class Parser {
       current = clone;
       token = token.next;
     }
-    Token tail = new Token(TokenType.EOF, 0);
-    tail.setNext(tail);
+    Token tail = new Token.eof(0);
     current.setNext(tail);
     return head.next;
   }

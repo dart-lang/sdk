@@ -45,7 +45,8 @@ class BeginToken extends SimpleToken {
    * [offset].
    */
   BeginToken(TokenType type, int offset) : super(type, offset) {
-    assert(type == TokenType.OPEN_CURLY_BRACKET ||
+    assert(type == TokenType.LT ||
+        type == TokenType.OPEN_CURLY_BRACKET ||
         type == TokenType.OPEN_PAREN ||
         type == TokenType.OPEN_SQUARE_BRACKET ||
         type == TokenType.STRING_INTERPOLATION_EXPRESSION);
@@ -53,6 +54,18 @@ class BeginToken extends SimpleToken {
 
   @override
   Token copy() => new BeginToken(type, offset);
+
+  /**
+   * The token that corresponds to this token.
+   */
+  Token get endGroup => endToken;
+
+  /**
+   * Set the token that corresponds to this token.
+   */
+  set endGroup(Token token) {
+    endToken = token;
+  }
 }
 
 /**
@@ -712,6 +725,22 @@ class SyntheticStringToken extends StringToken {
 
   @override
   bool get isSynthetic => true;
+
+  @override
+  Token copy() => new SyntheticStringToken(type, _value, offset);
+}
+
+/**
+ * A synthetic token.
+ */
+class SyntheticToken extends SimpleToken {
+  SyntheticToken(TokenType type, int offset) : super(type, offset);
+
+  @override
+  int get length => 0;
+
+  @override
+  Token copy() => new SyntheticToken(type, offset);
 }
 
 /**
@@ -725,6 +754,19 @@ abstract class Token implements SyntacticEntity {
    * Initialize a newly created token to have the given [type] and [offset].
    */
   factory Token(TokenType type, int offset) = SimpleToken;
+
+  /**
+   * Initialize a newly created end-of-file token to have the given [offset].
+   */
+  factory Token.eof(int offset, [CommentToken precedingComments]) {
+    Token eof = precedingComments == null
+        ? new SimpleToken(TokenType.EOF, offset)
+        : new TokenWithComment(TokenType.EOF, offset, precedingComments);
+    // EOF points to itself so there's always infinite look-ahead.
+    eof.previous = eof;
+    eof.next = eof;
+    return eof;
+  }
 
   /**
    * The number of characters parsed by this token.

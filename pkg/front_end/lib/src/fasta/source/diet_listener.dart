@@ -20,9 +20,7 @@ import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
 
 import '../parser/parser.dart' show MemberKind, Parser, optional;
 
-import '../scanner/token.dart' show BeginGroupToken;
-
-import '../../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show BeginToken, Token;
 
 import '../parser/dart_vm_native.dart' show removeNativeClause;
 
@@ -367,7 +365,7 @@ class DietListener extends StackListener {
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     debugEvent("FactoryMethod");
-    BeginGroupToken bodyToken = pop();
+    BeginToken bodyToken = pop();
     String name = pop();
     checkEmpty(beginToken.charOffset);
     if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {

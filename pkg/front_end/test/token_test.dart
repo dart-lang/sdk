@@ -104,8 +104,8 @@ class Foo {
     while (!token1.isEof) {
       if (token1 is fasta.StringToken) stringTokenFound = true;
       if (token1 is KeywordToken) keywordTokenFound = true;
-      if (token1 is fasta.SymbolToken) symbolTokenFound = true;
-      if (token1 is fasta.BeginGroupToken) beginGroupTokenFound = true;
+      if (token1.type == TokenType.OPEN_PAREN) symbolTokenFound = true;
+      if (token1 is BeginToken) beginGroupTokenFound = true;
 
       var copy1 = token1.copy();
       expect(copy1, isNotNull);

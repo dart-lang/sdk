@@ -22,7 +22,7 @@ import '../fasta_codes.dart'
 
 import '../../scanner/token.dart' show Token;
 
-import 'token.dart' show StringToken, SymbolToken;
+import 'token.dart' show StringToken;
 
 import 'error_token.dart' show NonAsciiIdentifierToken, ErrorToken;
 
@@ -216,7 +216,7 @@ Token defaultRecoveryStrategy(
     goodTail = current;
   }
 
-  error.previous = new SymbolToken.eof(-1)..next = error;
+  error.previous = new Token.eof(-1)..next = error;
   Token tail;
   if (good != null) {
     errorTail.next = good;
@@ -225,7 +225,7 @@ Token defaultRecoveryStrategy(
   } else {
     tail = errorTail;
   }
-  if (!tail.isEof) tail.next = new SymbolToken.eof(tail.end)..previous = tail;
+  if (!tail.isEof) tail.next = new Token.eof(tail.end)..previous = tail;
   return error;
 }
 

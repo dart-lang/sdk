@@ -13,8 +13,7 @@ import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:front_end/src/fasta/parser/parser.dart'
     show FormalParameterType, MemberKind, Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
-import 'package:front_end/src/fasta/scanner/token.dart'
-    show BeginGroupToken, CommentToken;
+import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
 import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 import 'package:front_end/src/fasta/errors.dart' show internalError;
@@ -124,7 +123,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleParenthesizedExpression(BeginGroupToken token) {
+  void handleParenthesizedExpression(analyzer.BeginToken token) {
     debugEvent("ParenthesizedExpression");
     Expression expression = pop();
     push(ast.parenthesizedExpression(token, expression, token.endGroup));
@@ -397,7 +396,7 @@ class AstBuilder extends ScopeListener {
     Statement elsePart = popIfNotNull(elseToken);
     Statement thenPart = pop();
     Expression condition = pop();
-    BeginGroupToken leftParenthesis = ifToken.next;
+    analyzer.BeginToken leftParenthesis = ifToken.next;
     push(ast.ifStatement(ifToken, ifToken.next, condition,
         leftParenthesis.endGroup, thenPart, elseToken, elsePart));
   }
@@ -563,7 +562,7 @@ class AstBuilder extends ScopeListener {
     exitLocalScope();
     exitContinueTarget();
     exitBreakTarget();
-    BeginGroupToken leftParenthesis = forKeyword.next;
+    analyzer.BeginToken leftParenthesis = forKeyword.next;
 
     VariableDeclarationList variableList;
     Expression initializer;
@@ -1739,7 +1738,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("Enum");
     List<EnumConstantDeclaration> constants = popList(count);
     // TODO(paulberry,ahe): the parser should pass in the openBrace token.
-    var openBrace = enumKeyword.next.next as BeginGroupToken;
+    var openBrace = enumKeyword.next.next as analyzer.BeginToken;
     // TODO(paulberry): what if the '}' is missing and the parser has performed
     // error recovery?
     Token closeBrace = openBrace.endGroup;

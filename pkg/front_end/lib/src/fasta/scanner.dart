@@ -16,9 +16,7 @@ import 'scanner/recover.dart' show defaultRecoveryStrategy;
 
 export 'scanner/token.dart'
     show
-        BeginGroupToken,
         StringToken,
-        SymbolToken,
         isBinaryOperator,
         isMinusOperator,
         isTernaryOperator,

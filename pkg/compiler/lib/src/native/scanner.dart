@@ -4,9 +4,10 @@
 
 import '../common.dart';
 import '../parser/element_listener.dart' show ElementListener;
-import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'package:front_end/src/fasta/scanner/token_constants.dart' as Tokens
     show STRING_TOKEN;
+import 'package:front_end/src/scanner/token.dart' show BeginToken;
 
 void checkAllowedLibrary(ElementListener listener, Token token) {
   if (listener.scannerOptions.canUseNative) return;
@@ -20,7 +21,7 @@ Token handleNativeBlockToSkip(ElementListener listener, Token token) {
     token = token.next;
   }
   if (identical(token.stringValue, '{')) {
-    BeginGroupToken beginGroupToken = token;
+    BeginToken beginGroupToken = token;
     token = beginGroupToken.endGroup;
   }
   return token;

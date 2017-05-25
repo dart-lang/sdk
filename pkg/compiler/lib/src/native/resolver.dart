@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/scanner.dart'
-    show BeginGroupToken, StringToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
+import 'package:front_end/src/scanner/token.dart' show BeginToken;
 
 import '../common.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
@@ -565,7 +565,7 @@ class ResolutionNativeClassFinder extends BaseNativeClassFinder {
     //  [abstract] class X extends [id.]* id
 
     Token skipTypeParameters(Token token) {
-      BeginGroupToken beginGroupToken = token;
+      BeginToken beginGroupToken = token;
       Token endToken = beginGroupToken.endGroup;
       return endToken.next;
       //for (;;) {

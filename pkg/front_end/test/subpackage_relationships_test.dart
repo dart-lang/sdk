@@ -102,7 +102,6 @@ final subpackageRules = {
     'lib/src/fasta/dill',
     'lib/src/fasta/kernel',
     'lib/src/fasta/parser',
-    'lib/src/fasta/scanner',
     'lib/src/fasta/type_inference',
     'lib/src/fasta/util',
     'lib/src/scanner',

@@ -7,10 +7,17 @@ library fasta.scanner.array_based_scanner;
 import 'error_token.dart' show ErrorToken, UnmatchedToken;
 
 import '../../scanner/token.dart'
-    show Keyword, KeywordTokenWithComment, Token, TokenType;
+    show
+        BeginToken,
+        BeginTokenWithComment,
+        Keyword,
+        KeywordTokenWithComment,
+        SyntheticToken,
+        Token,
+        TokenType,
+        TokenWithComment;
 
-import 'token.dart'
-    show BeginGroupToken, StringToken, SymbolToken, SyntheticSymbolToken;
+import 'token.dart' show StringToken;
 
 import 'token_constants.dart'
     show
@@ -35,10 +42,10 @@ abstract class ArrayBasedScanner extends AbstractScanner {
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]
-   * Each BeginGroupToken has a pointer to the token where the group
+   * Each BeginToken has a pointer to the token where the group
    * ends. This field is set when scanning the end group token.
    */
-  Link<BeginGroupToken> groupingStack = const Link<BeginGroupToken>();
+  Link<BeginToken> groupingStack = const Link<BeginToken>();
 
   /**
    * Appends a fixed token whose kind and content is determined by [type].
@@ -48,7 +55,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * '=>', etc.
    */
   void appendPrecedenceToken(TokenType type) {
-    appendToken(new SymbolToken(type, tokenStart, comments));
+    appendToken(new TokenWithComment(type, tokenStart, comments));
   }
 
   /**
@@ -87,7 +94,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
       unmatchedBeginGroup(groupingStack.head);
       groupingStack = groupingStack.tail;
     }
-    appendToken(new SymbolToken.eof(tokenStart, comments));
+    appendToken(new Token.eof(tokenStart, comments));
   }
 
   /**
@@ -118,7 +125,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * Group begin tokens are '{', '(', '[' and '${'.
    */
   void appendBeginGroup(TokenType type) {
-    Token token = new BeginGroupToken(type, tokenStart, comments);
+    Token token = new BeginTokenWithComment(type, tokenStart, comments);
     appendToken(token);
 
     // { [ ${ cannot appear inside a type parameters / arguments.
@@ -142,7 +149,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     if (groupingStack.isEmpty) {
       return advance();
     }
-    BeginGroupToken begin = groupingStack.head;
+    BeginToken begin = groupingStack.head;
     if (!identical(begin.kind, openKind)) {
       assert(begin.kind == STRING_INTERPOLATION_TOKEN &&
           openKind == OPEN_CURLY_BRACKET_TOKEN);
@@ -167,7 +174,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
       // Don't report unmatched errors for <; it is also the less-than operator.
       discardOpenLt();
       if (groupingStack.isEmpty) return;
-      BeginGroupToken begin = groupingStack.head;
+      BeginToken begin = groupingStack.head;
       if (openKind == begin.kind) return;
       if (openKind == OPEN_CURLY_BRACKET_TOKEN &&
           begin.kind == STRING_INTERPOLATION_TOKEN) return;
@@ -250,8 +257,8 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     }
   }
 
-  void unmatchedBeginGroup(BeginGroupToken begin) {
-    // We want to ensure that unmatched BeginGroupTokens are reported as
+  void unmatchedBeginGroup(BeginToken begin) {
+    // We want to ensure that unmatched BeginTokens are reported as
     // errors.  However, the diet parser assumes that groups are well-balanced
     // and will never look at the endGroup token.  This is a nice property that
     // allows us to skip quickly over correct code. By inserting an additional
@@ -296,7 +303,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     //      v
     //     EOF
     TokenType type = closeBraceInfoFor(begin);
-    appendToken(new SyntheticSymbolToken(type, tokenStart, comments));
+    appendToken(new SyntheticToken(type, tokenStart));
     begin.endGroup = tail;
     appendErrorToken(new UnmatchedToken(begin));
   }

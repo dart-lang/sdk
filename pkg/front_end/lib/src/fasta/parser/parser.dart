@@ -61,14 +61,14 @@ import '../scanner/recover.dart' show closeBraceFor, skipToEof;
 import '../../scanner/token.dart'
     show
         ASSIGNMENT_PRECEDENCE,
+        BeginToken,
         CASCADE_PRECEDENCE,
         EQUALITY_PRECEDENCE,
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
         TokenType;
 
-import '../scanner/token.dart'
-    show BeginGroupToken, SymbolToken, isUserDefinableOperator;
+import '../scanner/token.dart' show isUserDefinableOperator;
 
 import '../scanner/token_constants.dart'
     show
@@ -650,7 +650,7 @@ class Parser {
               token, codeExpectedButGot, "(")
           .next;
     }
-    BeginGroupToken beginGroupToken = token;
+    BeginToken beginGroupToken = token;
     Token endToken = beginGroupToken.endGroup;
     listener.endFormalParameters(0, token, endToken, kind);
     return endToken.next;
@@ -842,7 +842,7 @@ class Parser {
   /// [isValidMethodTypeArguments].
   Token tryParseMethodTypeArguments(Token token) {
     if (!identical(token.kind, LT_TOKEN)) return null;
-    BeginGroupToken beginToken = token;
+    BeginToken beginToken = token;
     Token endToken = beginToken.endGroup;
     if (endToken == null || !identical(endToken.next.kind, OPEN_PAREN_TOKEN)) {
       return null;
@@ -897,7 +897,7 @@ class Parser {
     // [token] is '>>' of which the final '>' that we are parsing is the first
     // character. In order to keep the parsing process on track we must return
     // a synthetic '>' corresponding to the second character of that '>>'.
-    Token syntheticToken = new SymbolToken(TokenType.GT, token.charOffset + 1);
+    Token syntheticToken = new Token(TokenType.GT, token.charOffset + 1);
     syntheticToken.next = token.next;
     return syntheticToken;
   }
@@ -932,7 +932,7 @@ class Parser {
     if (!optional('{', token)) {
       return reportUnrecoverableErrorCode(token, codeExpectedBlockToSkip).next;
     }
-    BeginGroupToken beginGroupToken = token;
+    BeginToken beginGroupToken = token;
     Token endGroup = beginGroupToken.endGroup;
     if (endGroup == null || !identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
       return reportUnmatchedToken(beginGroupToken).next;
@@ -1219,8 +1219,8 @@ class Parser {
       } while (optional(',', token));
       Token next = token.next;
       if (identical(token.stringValue, '>>')) {
-        token = new SymbolToken(TokenType.GT, token.charOffset);
-        token.next = new SymbolToken(TokenType.GT, token.charOffset + 1);
+        token = new Token(TokenType.GT, token.charOffset);
+        token.next = new Token(TokenType.GT, token.charOffset + 1);
         token.next.next = next;
       }
       endStuff(count, begin, token);
@@ -1465,8 +1465,8 @@ class Parser {
             }
           }
           if (optional('<', token.next)) {
-            if (token.next is BeginGroupToken) {
-              BeginGroupToken beginGroup = token.next;
+            if (token.next is BeginToken) {
+              BeginToken beginGroup = token.next;
               if (beginGroup.endGroup == null) {
                 token = reportUnmatchedToken(beginGroup).next;
               } else {
@@ -1492,8 +1492,8 @@ class Parser {
       while (isGeneralizedFunctionType(token)) {
         token = token.next;
         if (optional('<', token)) {
-          if (token is BeginGroupToken) {
-            BeginGroupToken beginGroup = token;
+          if (token is BeginToken) {
+            BeginToken beginGroup = token;
             if (beginGroup.endGroup == null) {
               token = reportUnmatchedToken(beginGroup).next;
             } else {
@@ -1507,8 +1507,8 @@ class Parser {
           }
           token = expect("(", token);
         }
-        if (token is BeginGroupToken) {
-          BeginGroupToken beginGroup = token;
+        if (token is BeginToken) {
+          BeginToken beginGroup = token;
           if (beginGroup.endGroup == null) {
             token = reportUnmatchedToken(beginGroup).next;
           } else {
@@ -1772,7 +1772,7 @@ class Parser {
     if (identical(peek.kind, LT_TOKEN)) {
       // Possibly generic type.
       // We are looking at "qualified '<'".
-      BeginGroupToken beginGroupToken = peek;
+      BeginToken beginGroupToken = peek;
       Token gtToken = beginGroupToken.endGroup;
       if (gtToken != null) {
         // We are looking at "qualified '<' ... '>' ...".
@@ -1807,7 +1807,7 @@ class Parser {
     Token peek = token;
     // If there is a generic argument to the function, skip over that one first.
     if (identical(peek.kind, LT_TOKEN)) {
-      BeginGroupToken beginGroupToken = peek;
+      BeginToken beginGroupToken = peek;
       Token closeToken = beginGroupToken.endGroup;
       if (closeToken != null) {
         peek = closeToken.next;
@@ -1817,7 +1817,7 @@ class Parser {
     // Now we just need to skip over the formals.
     expect('(', peek);
 
-    BeginGroupToken beginGroupToken = peek;
+    BeginToken beginGroupToken = peek;
     Token closeToken = beginGroupToken.endGroup;
     if (closeToken != null) {
       peek = closeToken.next;
@@ -1841,7 +1841,7 @@ class Parser {
               token, codeExpectedClassBodyToSkip)
           .next;
     }
-    BeginGroupToken beginGroupToken = token;
+    BeginToken beginGroupToken = token;
     Token endGroup = beginGroupToken.endGroup;
     if (endGroup == null || !identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
       return reportUnmatchedToken(beginGroupToken).next;
@@ -2500,7 +2500,7 @@ class Parser {
         return parseVariablesDeclaration(token);
       } else if (identical(afterIdKind, OPEN_PAREN_TOKEN)) {
         // We are looking at "type identifier '('".
-        BeginGroupToken beginParen = afterId;
+        BeginToken beginParen = afterId;
         Token endParen = beginParen.endGroup;
         // TODO(eernst): Check for NPE as described in issue 26252.
         Token afterParens = endParen.next;
@@ -2514,11 +2514,11 @@ class Parser {
         }
       } else if (identical(afterIdKind, LT_TOKEN)) {
         // We are looking at "type identifier '<'".
-        BeginGroupToken beginAngle = afterId;
+        BeginToken beginAngle = afterId;
         Token endAngle = beginAngle.endGroup;
         if (endAngle != null &&
             identical(endAngle.next.kind, OPEN_PAREN_TOKEN)) {
-          BeginGroupToken beginParen = endAngle.next;
+          BeginToken beginParen = endAngle.next;
           Token endParen = beginParen.endGroup;
           if (endParen != null) {
             Token afterParens = endParen.next;
@@ -2538,7 +2538,7 @@ class Parser {
       if (optional(':', token.next)) {
         return parseLabeledStatement(token);
       } else if (optional('(', token.next)) {
-        BeginGroupToken begin = token.next;
+        BeginToken begin = token.next;
         // TODO(eernst): Check for NPE as described in issue 26252.
         String afterParens = begin.endGroup.next.stringValue;
         if (identical(afterParens, '{') ||
@@ -2548,11 +2548,11 @@ class Parser {
           return parseFunctionDeclaration(token);
         }
       } else if (optional('<', token.next)) {
-        BeginGroupToken beginAngle = token.next;
+        BeginToken beginAngle = token.next;
         Token endAngle = beginAngle.endGroup;
         if (endAngle != null &&
             identical(endAngle.next.kind, OPEN_PAREN_TOKEN)) {
-          BeginGroupToken beginParen = endAngle.next;
+          BeginToken beginParen = endAngle.next;
           Token endParen = beginParen.endGroup;
           if (endParen != null) {
             String afterParens = endParen.next.stringValue;
@@ -2649,7 +2649,7 @@ class Parser {
           //   Foo() : map = {};
           //   Foo.x() : map = true ? {} : {};
           // }
-          BeginGroupToken begin = token.next;
+          BeginToken begin = token.next;
           token = (begin.endGroup != null) ? begin.endGroup : token;
           token = token.next;
           continue;
@@ -2661,7 +2661,7 @@ class Parser {
           //   Foo() : map = <String, Foo>{};
           //   Foo.x() : map = true ? <String, Foo>{} : <String, Foo>{};
           // }
-          BeginGroupToken begin = token.next;
+          BeginToken begin = token.next;
           token = (begin.endGroup != null) ? begin.endGroup : token;
           token = token.next;
           if (identical(token.stringValue, '{')) {
@@ -2675,8 +2675,8 @@ class Parser {
       if (!mayParseFunctionExpressions && identical(value, '{')) {
         break;
       }
-      if (token is BeginGroupToken) {
-        BeginGroupToken begin = token;
+      if (token is BeginToken) {
+        BeginToken begin = token;
         token = (begin.endGroup != null) ? begin.endGroup : token;
       } else if (token is ErrorToken) {
         reportErrorToken(token, false).next;
@@ -2943,7 +2943,7 @@ class Parser {
   }
 
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
-    BeginGroupToken beginGroup = token;
+    BeginToken beginGroup = token;
     // TODO(eernst): Check for NPE as described in issue 26252.
     Token nextToken = beginGroup.endGroup.next;
     int kind = nextToken.kind;
@@ -2965,11 +2965,11 @@ class Parser {
   }
 
   Token parseParenthesizedExpression(Token token) {
-    // We expect [begin] to be of type [BeginGroupToken], but we don't know for
+    // We expect [begin] to be of type [BeginToken], but we don't know for
     // sure until after calling expect.
     dynamic begin = token;
     token = expect('(', token);
-    // [begin] is now known to have type [BeginGroupToken].
+    // [begin] is now known to have type [BeginToken].
     token = parseExpression(token);
     if (!identical(begin.endGroup, token)) {
       reportUnexpectedToken(token).next;
@@ -3064,7 +3064,7 @@ class Parser {
   /// been parsed, or `listener.handleNoTypeArguments(..)` has been executed.
   Token parseLiteralFunctionSuffix(Token token) {
     assert(optional('(', token));
-    BeginGroupToken beginGroup = token;
+    BeginToken beginGroup = token;
     if (beginGroup.endGroup != null) {
       Token nextToken = beginGroup.endGroup.next;
       int kind = nextToken.kind;
@@ -3090,7 +3090,7 @@ class Parser {
   /// Provide token for [constKeyword] if preceded by 'const', null if not.
   Token parseLiteralListOrMapOrFunction(Token token, Token constKeyword) {
     assert(optional('<', token));
-    BeginGroupToken begin = token;
+    BeginToken begin = token;
     if (constKeyword == null &&
         begin.endGroup != null &&
         identical(begin.endGroup.next.kind, OPEN_PAREN_TOKEN)) {
@@ -3136,12 +3136,12 @@ class Parser {
 
   bool isFunctionDeclaration(Token token) {
     if (optional('<', token)) {
-      BeginGroupToken begin = token;
+      BeginToken begin = token;
       if (begin.endGroup == null) return false;
       token = begin.endGroup.next;
     }
     if (optional('(', token)) {
-      BeginGroupToken begin = token;
+      BeginToken begin = token;
       // TODO(eernst): Check for NPE as described in issue 26252.
       String afterParens = begin.endGroup.next.stringValue;
       if (identical(afterParens, '{') ||
@@ -3314,7 +3314,7 @@ class Parser {
   Token skipArgumentsOpt(Token token) {
     listener.handleNoArguments(token);
     if (optional('(', token)) {
-      BeginGroupToken begin = token;
+      BeginToken begin = token;
       return begin.endGroup.next;
     } else {
       return token;
@@ -3869,7 +3869,7 @@ class Parser {
     }
   }
 
-  Token reportUnmatchedToken(BeginGroupToken token) {
+  Token reportUnmatchedToken(BeginToken token) {
     return reportUnrecoverableError(
         token,
         () => codeUnmatchedToken.format(

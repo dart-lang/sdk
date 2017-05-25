@@ -6,8 +6,6 @@ library fasta.source_library_builder;
 
 import 'package:front_end/src/scanner/token.dart' show Token;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show SymbolToken;
-
 import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../combinator.dart' show Combinator;
@@ -200,7 +198,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         // TODO(paulberry): figure out a way to do this without using
         // Token.previous.
         afterInitializer?.previous
-            ?.setNext(new SymbolToken.eof(afterInitializer.offset));
+            ?.setNext(new Token.eof(afterInitializer.offset));
       }
       addField(metadata, modifiers, type, name, charOffset, initializer);
     }

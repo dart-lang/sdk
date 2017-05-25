@@ -6,8 +6,6 @@ library fasta.analyzer.token_utils;
 
 import 'package:front_end/src/scanner/token.dart' show Token;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show SymbolToken;
-
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
@@ -26,7 +24,7 @@ class ToAnalyzerTokenStreamConverter {
   /// to be an analyzer token stream by removing error tokens and reporting
   /// those errors to the associated error listener.
   Token convertTokens(Token firstToken) {
-    Token previous = new SymbolToken.eof(-1);
+    Token previous = new Token.eof(-1);
     Token token = firstToken;
     token.previous = previous;
     previous.next = token;

@@ -10,7 +10,9 @@ import '../parser.dart' show Listener, MemberKind;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
-import '../scanner.dart' show BeginGroupToken, Token;
+import '../scanner.dart' show Token;
+
+import '../../scanner/token.dart' show BeginToken;
 
 import 'package:kernel/ast.dart' show AsyncMarker;
 
@@ -204,7 +206,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleParenthesizedExpression(BeginGroupToken token) {
+  void handleParenthesizedExpression(BeginToken token) {
     debugEvent("ParenthesizedExpression");
   }
 

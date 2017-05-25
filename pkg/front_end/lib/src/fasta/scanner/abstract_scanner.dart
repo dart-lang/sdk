@@ -8,7 +8,7 @@ import 'dart:collection' show ListMixin;
 
 import 'dart:typed_data' show Uint16List, Uint32List;
 
-import '../../scanner/token.dart' show Token, TokenType;
+import '../../scanner/token.dart' show BeginToken, Token, TokenType;
 
 import '../scanner.dart'
     show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
@@ -17,8 +17,7 @@ import 'error_token.dart' show UnterminatedToken;
 
 import 'keyword_state.dart' show KeywordState;
 
-import 'token.dart'
-    show BeginGroupToken, CommentToken, DartDocToken, SymbolToken;
+import 'token.dart' show CommentToken, DartDocToken;
 
 import 'token_constants.dart';
 
@@ -49,7 +48,7 @@ abstract class AbstractScanner implements Scanner {
    * is not exposed to clients of the scanner, which are expected to invoke
    * [firstToken] to access the token stream.
    */
-  final Token tokens = new SymbolToken.eof(-1);
+  final Token tokens = new Token.eof(-1);
 
   /**
    * A pointer to the last scanned token.
@@ -879,12 +878,13 @@ abstract class AbstractScanner implements Scanner {
     tail.next = token;
     tail.next.previous = tail;
     tail = tail.next;
-    if (comments != null) {
-      // It is the responsibility of the caller to construct the token
-      // being appended with preceeding comments if any
-      assert(identical(token.precedingComments, comments));
+    if (comments != null && comments == token.precedingComments) {
       comments = null;
       commentsTail = null;
+    } else {
+      // It is the responsibility of the caller to construct the token
+      // being appended with preceeding comments if any
+      assert(comments == null || token.isSynthetic);
     }
   }
 
@@ -1219,7 +1219,7 @@ abstract class AbstractScanner implements Scanner {
   }
 }
 
-TokenType closeBraceInfoFor(BeginGroupToken begin) {
+TokenType closeBraceInfoFor(BeginToken begin) {
   return const {
     '(': TokenType.CLOSE_PAREN,
     '[': TokenType.CLOSE_SQUARE_BRACKET,

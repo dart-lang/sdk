@@ -36,10 +36,9 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'frontend_accessors.dart' show buildIsNull, makeBinary, makeLet;
 
-import '../../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show BeginToken, Token;
 
-import '../scanner/token.dart'
-    show BeginGroupToken, isBinaryOperator, isMinusOperator;
+import '../scanner/token.dart' show isBinaryOperator, isMinusOperator;
 
 import '../errors.dart' show InputError, formatUnexpected, internalError;
 
@@ -584,7 +583,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleParenthesizedExpression(BeginGroupToken token) {
+  void handleParenthesizedExpression(BeginToken token) {
     debugEvent("ParenthesizedExpression");
     push(new ParenthesizedExpression(this, popForValue(), token.endGroup));
   }
