@@ -10385,37 +10385,37 @@ class Document extends Node {
   /// Stream of `drag` events handled by this [Document].
   @DomName('Document.ondrag')
   @DocsEditable()
-  Stream<DragEvent> get onDrag => Element.dragEvent.forTarget(this);
+  Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
   /// Stream of `dragend` events handled by this [Document].
   @DomName('Document.ondragend')
   @DocsEditable()
-  Stream<DragEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
   /// Stream of `dragenter` events handled by this [Document].
   @DomName('Document.ondragenter')
   @DocsEditable()
-  Stream<DragEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
   /// Stream of `dragleave` events handled by this [Document].
   @DomName('Document.ondragleave')
   @DocsEditable()
-  Stream<DragEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
+  Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
   /// Stream of `dragover` events handled by this [Document].
   @DomName('Document.ondragover')
   @DocsEditable()
-  Stream<DragEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
+  Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
   /// Stream of `dragstart` events handled by this [Document].
   @DomName('Document.ondragstart')
   @DocsEditable()
-  Stream<DragEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
+  Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
   /// Stream of `drop` events handled by this [Document].
   @DomName('Document.ondrop')
   @DocsEditable()
-  Stream<DragEvent> get onDrop => Element.dropEvent.forTarget(this);
+  Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
   @DomName('Document.ondurationchange')
   @DocsEditable()
@@ -11857,38 +11857,6 @@ class DomTokenList extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @DocsEditable()
-@DomName('DragEvent')
-@Experimental() // untriaged
-@Native("DragEvent")
-class DragEvent extends MouseEvent {
-  // To suppress missing implicit constructor warnings.
-  factory DragEvent._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('DragEvent.DragEvent')
-  @DocsEditable()
-  factory DragEvent(String type, [Map eventInitDict]) {
-    if (eventInitDict != null) {
-      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
-      return DragEvent._create_1(type, eventInitDict_1);
-    }
-    return DragEvent._create_2(type);
-  }
-  static DragEvent _create_1(type, eventInitDict) =>
-      JS('DragEvent', 'new DragEvent(#,#)', type, eventInitDict);
-  static DragEvent _create_2(type) => JS('DragEvent', 'new DragEvent(#)', type);
-
-  @DomName('DragEvent.dataTransfer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final DataTransfer dataTransfer;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
 @DomName('EffectModel')
 @Experimental() // untriaged
 @Native("EffectModel")
@@ -12231,7 +12199,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    */
   @DomName('Element.ondrag')
   @DocsEditable()
-  ElementStream<DragEvent> get onDrag;
+  ElementStream<MouseEvent> get onDrag;
 
   /**
    * A stream of `dragend` events fired when this element completes a drag
@@ -12249,7 +12217,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    */
   @DomName('Element.ondragend')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragEnd;
+  ElementStream<MouseEvent> get onDragEnd;
 
   /**
    * A stream of `dragenter` events fired when a dragged object is first dragged
@@ -12267,7 +12235,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    */
   @DomName('Element.ondragenter')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragEnter;
+  ElementStream<MouseEvent> get onDragEnter;
 
   /**
    * A stream of `dragleave` events fired when an object being dragged over this
@@ -12285,7 +12253,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    */
   @DomName('Element.ondragleave')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragLeave;
+  ElementStream<MouseEvent> get onDragLeave;
 
   /**
    * A stream of `dragover` events fired when a dragged object is currently
@@ -12303,7 +12271,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    */
   @DomName('Element.ondragover')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragOver;
+  ElementStream<MouseEvent> get onDragOver;
 
   /**
    * A stream of `dragstart` events fired when this element starts being
@@ -12321,7 +12289,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    */
   @DomName('Element.ondragstart')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragStart;
+  ElementStream<MouseEvent> get onDragStart;
 
   /**
    * A stream of `drop` events fired when a dragged object is dropped on this
@@ -12339,7 +12307,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    */
   @DomName('Element.ondrop')
   @DocsEditable()
-  ElementStream<DragEvent> get onDrop;
+  ElementStream<MouseEvent> get onDrop;
 
   @DomName('Element.ondurationchange')
   @DocsEditable()
@@ -12771,7 +12739,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
    */
   @DomName('Element.ondrag')
   @DocsEditable()
-  ElementStream<DragEvent> get onDrag =>
+  ElementStream<MouseEvent> get onDrag =>
       Element.dragEvent._forElementList(this);
 
   /**
@@ -12790,7 +12758,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
    */
   @DomName('Element.ondragend')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragEnd =>
+  ElementStream<MouseEvent> get onDragEnd =>
       Element.dragEndEvent._forElementList(this);
 
   /**
@@ -12809,7 +12777,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
    */
   @DomName('Element.ondragenter')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragEnter =>
+  ElementStream<MouseEvent> get onDragEnter =>
       Element.dragEnterEvent._forElementList(this);
 
   /**
@@ -12828,7 +12796,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
    */
   @DomName('Element.ondragleave')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragLeave =>
+  ElementStream<MouseEvent> get onDragLeave =>
       Element.dragLeaveEvent._forElementList(this);
 
   /**
@@ -12847,7 +12815,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
    */
   @DomName('Element.ondragover')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragOver =>
+  ElementStream<MouseEvent> get onDragOver =>
       Element.dragOverEvent._forElementList(this);
 
   /**
@@ -12866,7 +12834,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
    */
   @DomName('Element.ondragstart')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragStart =>
+  ElementStream<MouseEvent> get onDragStart =>
       Element.dragStartEvent._forElementList(this);
 
   /**
@@ -12885,7 +12853,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
    */
   @DomName('Element.ondrop')
   @DocsEditable()
-  ElementStream<DragEvent> get onDrop =>
+  ElementStream<MouseEvent> get onDrop =>
       Element.dropEvent._forElementList(this);
 
   @DomName('Element.ondurationchange')
@@ -14581,8 +14549,8 @@ class Element extends Node
    */
   @DomName('Element.dragEvent')
   @DocsEditable()
-  static const EventStreamProvider<DragEvent> dragEvent =
-      const EventStreamProvider<DragEvent>('drag');
+  static const EventStreamProvider<MouseEvent> dragEvent =
+      const EventStreamProvider<MouseEvent>('drag');
 
   /**
    * A stream of `dragend` events fired when an element completes a drag
@@ -14600,8 +14568,8 @@ class Element extends Node
    */
   @DomName('Element.dragendEvent')
   @DocsEditable()
-  static const EventStreamProvider<DragEvent> dragEndEvent =
-      const EventStreamProvider<DragEvent>('dragend');
+  static const EventStreamProvider<MouseEvent> dragEndEvent =
+      const EventStreamProvider<MouseEvent>('dragend');
 
   /**
    * A stream of `dragenter` events fired when a dragged object is first dragged
@@ -14619,8 +14587,8 @@ class Element extends Node
    */
   @DomName('Element.dragenterEvent')
   @DocsEditable()
-  static const EventStreamProvider<DragEvent> dragEnterEvent =
-      const EventStreamProvider<DragEvent>('dragenter');
+  static const EventStreamProvider<MouseEvent> dragEnterEvent =
+      const EventStreamProvider<MouseEvent>('dragenter');
 
   /**
    * A stream of `dragleave` events fired when an object being dragged over an
@@ -14638,8 +14606,8 @@ class Element extends Node
    */
   @DomName('Element.dragleaveEvent')
   @DocsEditable()
-  static const EventStreamProvider<DragEvent> dragLeaveEvent =
-      const EventStreamProvider<DragEvent>('dragleave');
+  static const EventStreamProvider<MouseEvent> dragLeaveEvent =
+      const EventStreamProvider<MouseEvent>('dragleave');
 
   /**
    * A stream of `dragover` events fired when a dragged object is currently
@@ -14657,8 +14625,8 @@ class Element extends Node
    */
   @DomName('Element.dragoverEvent')
   @DocsEditable()
-  static const EventStreamProvider<DragEvent> dragOverEvent =
-      const EventStreamProvider<DragEvent>('dragover');
+  static const EventStreamProvider<MouseEvent> dragOverEvent =
+      const EventStreamProvider<MouseEvent>('dragover');
 
   /**
    * A stream of `dragstart` events for a dragged element whose drag has begun.
@@ -14675,8 +14643,8 @@ class Element extends Node
    */
   @DomName('Element.dragstartEvent')
   @DocsEditable()
-  static const EventStreamProvider<DragEvent> dragStartEvent =
-      const EventStreamProvider<DragEvent>('dragstart');
+  static const EventStreamProvider<MouseEvent> dragStartEvent =
+      const EventStreamProvider<MouseEvent>('dragstart');
 
   /**
    * A stream of `drop` events fired when a dragged object is dropped on an
@@ -14694,8 +14662,8 @@ class Element extends Node
    */
   @DomName('Element.dropEvent')
   @DocsEditable()
-  static const EventStreamProvider<DragEvent> dropEvent =
-      const EventStreamProvider<DragEvent>('drop');
+  static const EventStreamProvider<MouseEvent> dropEvent =
+      const EventStreamProvider<MouseEvent>('drop');
 
   @DomName('Element.durationchangeEvent')
   @DocsEditable()
@@ -15795,7 +15763,7 @@ class Element extends Node
    */
   @DomName('Element.ondrag')
   @DocsEditable()
-  ElementStream<DragEvent> get onDrag => dragEvent.forElement(this);
+  ElementStream<MouseEvent> get onDrag => dragEvent.forElement(this);
 
   /**
    * A stream of `dragend` events fired when this element completes a drag
@@ -15813,7 +15781,7 @@ class Element extends Node
    */
   @DomName('Element.ondragend')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragEnd => dragEndEvent.forElement(this);
+  ElementStream<MouseEvent> get onDragEnd => dragEndEvent.forElement(this);
 
   /**
    * A stream of `dragenter` events fired when a dragged object is first dragged
@@ -15831,7 +15799,7 @@ class Element extends Node
    */
   @DomName('Element.ondragenter')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragEnter => dragEnterEvent.forElement(this);
+  ElementStream<MouseEvent> get onDragEnter => dragEnterEvent.forElement(this);
 
   /**
    * A stream of `dragleave` events fired when an object being dragged over this
@@ -15849,7 +15817,7 @@ class Element extends Node
    */
   @DomName('Element.ondragleave')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragLeave => dragLeaveEvent.forElement(this);
+  ElementStream<MouseEvent> get onDragLeave => dragLeaveEvent.forElement(this);
 
   /**
    * A stream of `dragover` events fired when a dragged object is currently
@@ -15867,7 +15835,7 @@ class Element extends Node
    */
   @DomName('Element.ondragover')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragOver => dragOverEvent.forElement(this);
+  ElementStream<MouseEvent> get onDragOver => dragOverEvent.forElement(this);
 
   /**
    * A stream of `dragstart` events fired when this element starts being
@@ -15885,7 +15853,7 @@ class Element extends Node
    */
   @DomName('Element.ondragstart')
   @DocsEditable()
-  ElementStream<DragEvent> get onDragStart => dragStartEvent.forElement(this);
+  ElementStream<MouseEvent> get onDragStart => dragStartEvent.forElement(this);
 
   /**
    * A stream of `drop` events fired when a dragged object is dropped on this
@@ -15903,7 +15871,7 @@ class Element extends Node
    */
   @DomName('Element.ondrop')
   @DocsEditable()
-  ElementStream<DragEvent> get onDrop => dropEvent.forElement(this);
+  ElementStream<MouseEvent> get onDrop => dropEvent.forElement(this);
 
   @DomName('Element.ondurationchange')
   @DocsEditable()
@@ -18619,44 +18587,44 @@ abstract class GlobalEventHandlers implements EventTarget {
   @DomName('GlobalEventHandlers.dragEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dragEvent =
-      const EventStreamProvider<DragEvent>('drag');
+  static const EventStreamProvider<MouseEvent> dragEvent =
+      const EventStreamProvider<MouseEvent>('drag');
 
   @DomName('GlobalEventHandlers.dragendEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dragEndEvent =
-      const EventStreamProvider<DragEvent>('dragend');
+  static const EventStreamProvider<MouseEvent> dragEndEvent =
+      const EventStreamProvider<MouseEvent>('dragend');
 
   @DomName('GlobalEventHandlers.dragenterEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dragEnterEvent =
-      const EventStreamProvider<DragEvent>('dragenter');
+  static const EventStreamProvider<MouseEvent> dragEnterEvent =
+      const EventStreamProvider<MouseEvent>('dragenter');
 
   @DomName('GlobalEventHandlers.dragleaveEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dragLeaveEvent =
-      const EventStreamProvider<DragEvent>('dragleave');
+  static const EventStreamProvider<MouseEvent> dragLeaveEvent =
+      const EventStreamProvider<MouseEvent>('dragleave');
 
   @DomName('GlobalEventHandlers.dragoverEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dragOverEvent =
-      const EventStreamProvider<DragEvent>('dragover');
+  static const EventStreamProvider<MouseEvent> dragOverEvent =
+      const EventStreamProvider<MouseEvent>('dragover');
 
   @DomName('GlobalEventHandlers.dragstartEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dragStartEvent =
-      const EventStreamProvider<DragEvent>('dragstart');
+  static const EventStreamProvider<MouseEvent> dragStartEvent =
+      const EventStreamProvider<MouseEvent>('dragstart');
 
   @DomName('GlobalEventHandlers.dropEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<DragEvent> dropEvent =
-      const EventStreamProvider<DragEvent>('drop');
+  static const EventStreamProvider<MouseEvent> dropEvent =
+      const EventStreamProvider<MouseEvent>('drop');
 
   @DomName('GlobalEventHandlers.durationchangeEvent')
   @DocsEditable()
@@ -18947,37 +18915,37 @@ abstract class GlobalEventHandlers implements EventTarget {
   @DomName('GlobalEventHandlers.ondrag')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<DragEvent> get onDrag => dragEvent.forTarget(this);
+  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
 
   @DomName('GlobalEventHandlers.ondragend')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<DragEvent> get onDragEnd => dragEndEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
 
   @DomName('GlobalEventHandlers.ondragenter')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<DragEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
 
   @DomName('GlobalEventHandlers.ondragleave')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<DragEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
 
   @DomName('GlobalEventHandlers.ondragover')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<DragEvent> get onDragOver => dragOverEvent.forTarget(this);
+  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
 
   @DomName('GlobalEventHandlers.ondragstart')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<DragEvent> get onDragStart => dragStartEvent.forTarget(this);
+  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
 
   @DomName('GlobalEventHandlers.ondrop')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<DragEvent> get onDrop => dropEvent.forTarget(this);
+  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
 
   @DomName('GlobalEventHandlers.ondurationchange')
   @DocsEditable()
@@ -25127,7 +25095,7 @@ class ModElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @DomName('MouseEvent')
-@Native("MouseEvent")
+@Native("MouseEvent,DragEvent")
 class MouseEvent extends UIEvent {
   factory MouseEvent(String type,
       {Window view,
@@ -38625,37 +38593,37 @@ class Window extends EventTarget
   /// Stream of `drag` events handled by this [Window].
   @DomName('Window.ondrag')
   @DocsEditable()
-  Stream<DragEvent> get onDrag => Element.dragEvent.forTarget(this);
+  Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
   /// Stream of `dragend` events handled by this [Window].
   @DomName('Window.ondragend')
   @DocsEditable()
-  Stream<DragEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
   /// Stream of `dragenter` events handled by this [Window].
   @DomName('Window.ondragenter')
   @DocsEditable()
-  Stream<DragEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
   /// Stream of `dragleave` events handled by this [Window].
   @DomName('Window.ondragleave')
   @DocsEditable()
-  Stream<DragEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
+  Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
   /// Stream of `dragover` events handled by this [Window].
   @DomName('Window.ondragover')
   @DocsEditable()
-  Stream<DragEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
+  Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
   /// Stream of `dragstart` events handled by this [Window].
   @DomName('Window.ondragstart')
   @DocsEditable()
-  Stream<DragEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
+  Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
   /// Stream of `drop` events handled by this [Window].
   @DomName('Window.ondrop')
   @DocsEditable()
-  Stream<DragEvent> get onDrop => Element.dropEvent.forTarget(this);
+  Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
   @DomName('Window.ondurationchange')
   @DocsEditable()

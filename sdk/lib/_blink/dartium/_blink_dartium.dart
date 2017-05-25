@@ -170,7 +170,6 @@ dynamic resolver(String s) {
   if (s == "Document") return BlinkDocument.instance;
   if (s == "DocumentFragment") return BlinkDocumentFragment.instance;
   if (s == "DocumentType") return BlinkDocumentType.instance;
-  if (s == "DragEvent") return BlinkDragEvent.instance;
   if (s == "DynamicsCompressorNode")
     return BlinkDynamicsCompressorNode.instance;
   if (s == "EXTBlendMinMax") return BlinkEXTBlendMinMax.instance;
@@ -7097,22 +7096,6 @@ class BlinkDocumentType extends BlinkNode {
       mthis /* DocumentType */, "systemId");
 
   remove_Callback_0_(mthis) native "Blink_Operation_0_ChildNode_remove";
-}
-
-class BlinkDragEvent extends BlinkMouseEvent {
-  static final instance = new BlinkDragEvent();
-
-  constructorCallback_0_() =>
-      Blink_JsNative_DomException.callConstructor0("DragEvent");
-
-  constructorCallback_1_(__arg_0) =>
-      Blink_JsNative_DomException.callConstructor("DragEvent", [__arg_0]);
-
-  constructorCallback_2_(__arg_0, __arg_1) => Blink_JsNative_DomException
-      .callConstructor("DragEvent", [__arg_0, __arg_1]);
-
-  dataTransfer_Getter_(mthis) => Blink_JsNative_DomException.getProperty(
-      mthis /* DragEvent */, "dataTransfer");
 }
 
 class BlinkDynamicsCompressorNode extends BlinkAudioNode {
