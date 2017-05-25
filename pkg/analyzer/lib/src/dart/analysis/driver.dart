@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/results.dart' as results;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
@@ -1058,7 +1059,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       CompilationUnitElement element =
           libraryContext.computeUnitElement(library.source, file.source);
       String signature = library.transitiveSignature;
-      return new UnitElementResult(path, signature, element);
+      return new UnitElementResult(path, file.uri, signature, element);
     } finally {
       libraryContext.dispose();
     }
@@ -1590,7 +1591,7 @@ class AnalysisDriverTestView {
  * Every result is independent, and is not guaranteed to be consistent with
  * any previously returned result, even inside of the same library.
  */
-class AnalysisResult {
+class AnalysisResult implements results.ResolveResult {
   static final _UNCHANGED = new AnalysisResult(
       null, null, null, null, null, null, null, null, null, null, null);
 
@@ -1604,16 +1605,10 @@ class AnalysisResult {
    */
   final SourceFactory sourceFactory;
 
-  /**
-   * The path of the analysed file, absolute and normalized.
-   */
+  @override
   final String path;
 
-  /**
-   * The URI of the file that corresponded to the [path] in the used
-   * [SourceFactory] at some point. Is it not guaranteed to be still consistent
-   * to the [path], and provided as FYI.
-   */
+  @override
   final Uri uri;
 
   /**
@@ -1621,14 +1616,10 @@ class AnalysisResult {
    */
   final bool exists;
 
-  /**
-   * The content of the file that was scanned, parsed and resolved.
-   */
+  @override
   final String content;
 
-  /**
-   * Information about lines in the [content].
-   */
+  @override
   final LineInfo lineInfo;
 
   /**
@@ -1638,14 +1629,10 @@ class AnalysisResult {
    */
   final String _signature;
 
-  /**
-   * The fully resolved compilation unit for the [content].
-   */
+  @override
   final CompilationUnit unit;
 
-  /**
-   * The full list of computed analysis errors, both syntactic and semantic.
-   */
+  @override
   final List<AnalysisError> errors;
 
   /**
@@ -1665,6 +1652,10 @@ class AnalysisResult {
       this.unit,
       this.errors,
       this._index);
+
+  @override
+  results.ResultState get state =>
+      exists ? results.ResultState.VALID : results.ResultState.NOT_A_FILE;
 }
 
 /**
@@ -1692,28 +1683,23 @@ abstract class DriverWatcher {
  * correspond to each other. But none of the results is guaranteed to be
  * consistent with the state of the files.
  */
-class ErrorsResult {
-  /**
-   * The path of the parsed file, absolute and normalized.
-   */
+class ErrorsResult implements results.ErrorsResult {
+  @override
   final String path;
 
-  /**
-   * The URI of the file that corresponded to the [path].
-   */
+  @override
   final Uri uri;
 
-  /**
-   * Information about lines in the [content].
-   */
+  @override
   final LineInfo lineInfo;
 
-  /**
-   * The full list of computed analysis errors, both syntactic and semantic.
-   */
+  @override
   final List<AnalysisError> errors;
 
   ErrorsResult(this.path, this.uri, this.lineInfo, this.errors);
+
+  @override
+  results.ResultState get state => results.ResultState.VALID;
 }
 
 /**
@@ -1750,39 +1736,30 @@ class ExceptionResult {
  * resolved [unit] correspond to each other. But none of the results is
  * guaranteed to be consistent with the state of the files.
  */
-class ParseResult {
-  /**
-   * The path of the parsed file, absolute and normalized.
-   */
+class ParseResult implements results.ParseResult {
+  @override
   final String path;
 
-  /**
-   * The URI of the file that corresponded to the [path].
-   */
+  @override
   final Uri uri;
 
-  /**
-   * The content of the file that was scanned and parsed.
-   */
+  @override
   final String content;
 
-  /**
-   * Information about lines in the [content].
-   */
+  @override
   final LineInfo lineInfo;
 
-  /**
-   * The parsed, unresolved compilation unit for the [content].
-   */
+  @override
   final CompilationUnit unit;
 
-  /**
-   * The scanning and parsing errors.
-   */
+  @override
   final List<AnalysisError> errors;
 
   ParseResult(
       this.path, this.uri, this.content, this.lineInfo, this.unit, this.errors);
+
+  @override
+  results.ResultState get state => results.ResultState.VALID;
 }
 
 /**
@@ -1796,11 +1773,12 @@ class ParseResult {
  * Every result is independent, and is not guaranteed to be consistent with
  * any previously returned result, even inside of the same library.
  */
-class UnitElementResult {
-  /**
-   * The path of the file, absolute and normalized.
-   */
+class UnitElementResult implements results.UnitElementResult {
+  @override
   final String path;
+
+  @override
+  final Uri uri;
 
   /**
    * The signature of the [element] is based the APIs of the files of the
@@ -1814,7 +1792,10 @@ class UnitElementResult {
    */
   final CompilationUnitElement element;
 
-  UnitElementResult(this.path, this.signature, this.element);
+  UnitElementResult(this.path, this.uri, this.signature, this.element);
+
+  @override
+  results.ResultState get state => results.ResultState.VALID;
 }
 
 /**
