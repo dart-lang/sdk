@@ -441,6 +441,8 @@ class GetHandler2 implements AbstractGetHandler {
       buffer.write('<p>');
       _writeOption(
           buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
+      _writeOption(buffer, 'Enable asserts in initializer lists',
+          options.enableAssertInitializer);
       _writeOption(
           buffer, 'Enable strict call checks', options.enableStrictCallChecks);
       _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
