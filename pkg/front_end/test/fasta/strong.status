@@ -57,7 +57,6 @@ unused_methods: Fail
 void-methods: Fail
 
 inference/constructors_too_many_positional_arguments: Fail
-inference/downward_inference_fixes_no_upwards_errors: Fail
 inference/downward_inference_miscellaneous: Fail
 inference/downwards_inference_annotations: Fail
 inference/downwards_inference_async_await: Fail

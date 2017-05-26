@@ -226,6 +226,13 @@ class TypeSchemaEnvironment extends TypeEnvironment {
       List<DartType> actualTypes,
       DartType returnContextType,
       List<DartType> inferredTypes) {
+    if (returnContextType is DynamicType) {
+      // Analyzer treats a type context of `dynamic` as equivalent to an empty
+      // context.  TODO(paulberry): this is not spec'ed anywhere; do we still
+      // want to do this?
+      returnContextType = null;
+    }
+
     if (typeParametersToInfer.isEmpty) {
       return;
     }
