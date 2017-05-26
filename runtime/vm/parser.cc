@@ -983,6 +983,43 @@ void Parser::ParseClass(const Class& cls) {
 }
 
 
+bool Parser::FieldHasFunctionLiteralInitializer(const Field& field,
+                                                TokenPosition* start,
+                                                TokenPosition* end) {
+  if (!field.has_initializer()) {
+    return false;
+  }
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Class& cls = Class::Handle(zone, field.Owner());
+  const Script& script = Script::Handle(zone, cls.script());
+  const Library& lib = Library::Handle(zone, cls.library());
+  Parser parser(script, lib, field.token_pos());
+  return parser.GetFunctionLiteralInitializerRange(field, start, end);
+}
+
+bool Parser::GetFunctionLiteralInitializerRange(const Field& field,
+                                                TokenPosition* start,
+                                                TokenPosition* end) {
+  ASSERT(field.has_initializer());
+  // Since |field| has an initializer, skip until '='.
+  while (CurrentToken() != Token::kASSIGN) {
+    ConsumeToken();
+  }
+  // Skip past the '=' as well.
+  ConsumeToken();
+
+  *start = TokenPos();
+  if (IsFunctionLiteral()) {
+    SkipExpr();
+    *end = PrevTokenPos();
+    return true;
+  }
+
+  return false;
+}
+
+
 RawObject* Parser::ParseFunctionParameters(const Function& func) {
   ASSERT(!func.IsNull());
   LongJumpScope jump;
@@ -8197,7 +8234,6 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 
   ASSERT(innermost_function_.raw() == function.raw());
   innermost_function_ = function.parent_function();
-
   return is_literal ? closure : new (Z) StoreLocalNode(
                                     function_pos, function_variable, closure);
 }
@@ -15258,6 +15294,14 @@ ArgumentListNode* Parser::BuildNoSuchMethodArguments(
   UNREACHABLE();
   return NULL;
 }
+
+bool Parser::FieldHasFunctionLiteralInitializer(const Field& field,
+                                                TokenPosition* start,
+                                                TokenPosition* end) {
+  UNREACHABLE();
+  return false;
+}
+
 
 }  // namespace dart
 

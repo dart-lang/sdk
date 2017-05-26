@@ -71,6 +71,82 @@ TEST_CASE(Debugger_GetBreakpointsById) {
   EXPECT(debugger->GetBreakpointById(bp_id2) != NULL);
 }
 
+static int closure_hit_count = 0;
+int64_t closure_bp_id[4];
+static void PausedInClosuresHandler(Dart_IsolateId isolate_id,
+                                    intptr_t bp_id,
+                                    const Dart_CodeLocation& location) {
+  EXPECT(bp_id == closure_bp_id[closure_hit_count]);
+  closure_hit_count++;
+}
+
+TEST_CASE(Debugger_SetBreakpointInFunctionLiteralFieldInitializers) {
+  const char* kScriptChars =
+      "main() {\n"
+      "  var c = new MyClass();\n"
+      "  c.closure(1, 2);\n"
+      "  MyClass.staticClosure(7, 8);\n"
+      "  closure(3, 4);\n"
+      "  closureSingleLine(5, 6);\n"
+      "}\n"
+      "class MyClass {\n"
+      "  var closure = (int a, int b) {\n"
+      "    return a + b;\n"
+      "  };\n"
+      "  static var staticClosure = (int a, int b) {\n"
+      "    return a * b;\n"
+      "  };\n"
+      "}\n"
+      "var closure = (int a, int b) {\n"
+      "  return a + b;\n"
+      "};\n"
+      "var closureSingleLine = (int a, int b) => a * b;\n"
+      "int v = 10;\n";
+  SetFlagScope<bool> sfs(&FLAG_remove_script_timestamps_for_test, true);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  Isolate* isolate = Isolate::Current();
+  Debugger* debugger = isolate->debugger();
+
+  Dart_Handle url = NewString(TestCase::url());
+  Dart_Handle result = Dart_SetBreakpoint(url, 10);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &closure_bp_id[0]));
+
+  result = Dart_SetBreakpoint(url, 13);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &closure_bp_id[1]));
+
+  result = Dart_SetBreakpoint(url, 17);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &closure_bp_id[2]));
+
+  result = Dart_SetBreakpoint(url, 19);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &closure_bp_id[3]));
+
+  result = Dart_SetBreakpoint(url, 20);
+  EXPECT_ERROR(result, "could not set breakpoint at line 20");
+
+  EXPECT(debugger->GetBreakpointById(closure_bp_id[0]) != NULL);
+  EXPECT(debugger->GetBreakpointById(closure_bp_id[1]) != NULL);
+  EXPECT(debugger->GetBreakpointById(closure_bp_id[2]) != NULL);
+  EXPECT(debugger->GetBreakpointById(closure_bp_id[3]) != NULL);
+
+  Dart_SetPausedEventHandler(PausedInClosuresHandler);
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  // TODO(sivachandra): Understand why a breakpoint on a single line
+  // functional literal is not being hit. When that issue is resolved,
+  // adjust this test to check hitting the breakpoint at line 19 also.
+  EXPECT(closure_hit_count == 3);
+}
+
 TEST_CASE(Debugger_RemoveBreakpoint) {
   const char* kScriptChars =
       "main() {\n"
