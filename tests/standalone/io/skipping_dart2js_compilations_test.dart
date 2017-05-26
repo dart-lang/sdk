@@ -20,10 +20,10 @@ import 'package:expect/expect.dart';
 import 'package:path/path.dart';
 import 'dart:async';
 import 'dart:io';
+import '../../../tools/testing/dart/options.dart' as options;
 import '../../../tools/testing/dart/path.dart';
 import '../../../tools/testing/dart/test_suite.dart' as suite;
 import '../../../tools/testing/dart/test_runner.dart' as runner;
-import '../../../tools/testing/dart/test_options.dart' as options;
 import '../../../tools/testing/dart/utils.dart';
 
 /**
@@ -151,7 +151,7 @@ class CommandCompletedHandler {
 }
 
 runner.Command makeCompilationCommand(String testName, FileUtils fileUtils) {
-  var config = new options.TestOptionsParser().parse(['--timeout', '2'])[0];
+  var config = new options.OptionsParser().parse(['--timeout', '2'])[0];
   var createFileScript = Platform.script
       .resolve('skipping_dart2js_compilations_helper.dart')
       .toFilePath();
