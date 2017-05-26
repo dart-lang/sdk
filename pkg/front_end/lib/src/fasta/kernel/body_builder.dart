@@ -1898,7 +1898,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Expression buildStaticInvocation(Member target, Arguments arguments,
-      {bool isConst: false, int charOffset: -1}) {
+      {bool isConst: false, int charOffset: -1, Member initialTarget}) {
     List<TypeParameter> typeParameters = target.function.typeParameters;
     if (target is Constructor) {
       assert(!target.enclosingClass.isAbstract);
@@ -1908,11 +1908,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return throwNoSuchMethodError(target.name.name, arguments, charOffset);
     }
     if (target is Constructor) {
-      return new KernelConstructorInvocation(target, arguments,
+      return new KernelConstructorInvocation(target, initialTarget, arguments,
           isConst: isConst)
         ..fileOffset = charOffset;
     } else if (target is Procedure && target.kind == ProcedureKind.Factory) {
-      return new KernelFactoryConstructorInvocation(target, arguments,
+      return new KernelFactoryConstructorInvocation(
+          target, initialTarget, arguments,
           isConst: isConst)
         ..fileOffset = charOffset;
     } else {
@@ -2010,9 +2011,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (type is ClassBuilder) {
         Builder b = type.findConstructorOrFactory(name, token.charOffset, uri);
         Member target;
+        Member initialTarget;
         if (b == null) {
           // Not found. Reported below.
         } else if (b.isConstructor) {
+          initialTarget = b.target;
           if (type.isAbstract) {
             push(evaluateArgumentsBefore(
                 arguments,
@@ -2020,10 +2023,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
                     type.name, nameToken.charOffset)));
             return;
           } else {
-            target = b.target;
+            target = initialTarget;
           }
         } else if (b.isFactory) {
-          target = getRedirectionTarget(b.target);
+          initialTarget = b.target;
+          target = getRedirectionTarget(initialTarget);
           if (target == null) {
             push(buildCompileTimeError(
                 "Cyclic definition of factory '${name}'.",
@@ -2035,7 +2039,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             (target is Procedure && target.kind == ProcedureKind.Factory)) {
           push(buildStaticInvocation(target, arguments,
               isConst: optional("const", token),
-              charOffset: nameToken.charOffset));
+              charOffset: nameToken.charOffset,
+              initialTarget: initialTarget));
           return;
         } else {
           errorName = debugName(type.name, name);

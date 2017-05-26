@@ -28,6 +28,15 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/type_algebra.dart';
 
+/// Computes the return type of a (possibly factory) constructor.
+InterfaceType computeConstructorReturnType(Member constructor) {
+  if (constructor is Constructor) {
+    return constructor.enclosingClass.thisType;
+  } else {
+    return computeFactoryConstructorReturnType(constructor);
+  }
+}
+
 /// Computes the return type of a factory constructor.
 ///
 /// Note that we can't just use `constructor.function.functionType.returnType`,
@@ -244,13 +253,12 @@ class KernelConditionalExpression extends ConditionalExpression
 /// Shadow object for [ConstructorInvocation].
 class KernelConstructorInvocation extends ConstructorInvocation
     implements KernelExpression {
-  KernelConstructorInvocation(Constructor target, Arguments arguments,
+  final Member _initialTarget;
+
+  KernelConstructorInvocation(
+      Constructor target, this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
-
-  KernelConstructorInvocation.byReference(
-      Reference targetReference, Arguments arguments)
-      : super.byReference(targetReference, arguments);
 
   @override
   DartType _inferExpression(
@@ -262,8 +270,8 @@ class KernelConstructorInvocation extends ConstructorInvocation
         typeContext,
         typeNeeded,
         fileOffset,
-        target.function.functionType,
-        target.enclosingClass.thisType,
+        _initialTarget.function.functionType,
+        computeConstructorReturnType(_initialTarget),
         arguments);
     inferrer.listener.constructorInvocationExit(this, inferredType);
     return inferredType;
@@ -367,7 +375,10 @@ class KernelExpressionStatement extends ExpressionStatement
 /// factory constructor.
 class KernelFactoryConstructorInvocation extends StaticInvocation
     implements KernelExpression {
-  KernelFactoryConstructorInvocation(Procedure target, Arguments arguments,
+  final Member _initialTarget;
+
+  KernelFactoryConstructorInvocation(
+      Procedure target, this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
@@ -377,9 +388,13 @@ class KernelFactoryConstructorInvocation extends StaticInvocation
     typeNeeded =
         inferrer.listener.constructorInvocationEnter(this, typeContext) ||
             typeNeeded;
-    InterfaceType returnType = computeFactoryConstructorReturnType(target);
-    var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
-        fileOffset, target.function.functionType, returnType, arguments);
+    var inferredType = inferrer.inferInvocation(
+        typeContext,
+        typeNeeded,
+        fileOffset,
+        _initialTarget.function.functionType,
+        computeConstructorReturnType(_initialTarget),
+        arguments);
     inferrer.listener.constructorInvocationExit(this, inferredType);
     return inferredType;
   }
