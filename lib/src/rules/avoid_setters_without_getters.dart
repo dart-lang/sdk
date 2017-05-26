@@ -8,7 +8,7 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const _desc = r' ';
+const _desc = r'Avoid setters without getters.';
 
 const _details = r'''
 
