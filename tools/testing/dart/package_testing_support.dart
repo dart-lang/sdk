@@ -4,17 +4,15 @@
 
 library package_testing_support;
 
-import 'test_configurations.dart' show testConfigurations;
-
-import 'test_options.dart' show TestOptionsParser;
-
-import 'test_suite.dart' show TestUtils;
+import 'options.dart';
+import 'test_configurations.dart';
+import 'test_suite.dart';
 
 void main(List<String> arguments) {
   TestUtils.setDartDirUri(Uri.base);
   var configurations = <Map>[];
   for (var argument in arguments) {
-    configurations.addAll(new TestOptionsParser().parse(argument.split(" ")));
+    configurations.addAll(new OptionsParser().parse(argument.split(" ")));
   }
   testConfigurations(configurations);
 }
