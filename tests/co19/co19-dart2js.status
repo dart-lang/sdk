@@ -1437,6 +1437,7 @@ LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Issue 25155
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Issue 16574
 LibTest/html/Element/mouseWheelEvent_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/onMouseWheel_A01_t01: Skip # Times out. Please triage this failure
+LibTest/html/Element/onMouseOver_A01_t01: Pass, RuntimeError # Issue 29738
 LibTest/html/Element/onTransitionEnd_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/paddingEdge_A01_t01: RuntimeError # Issue 16574
 LibTest/html/Element/querySelectorAll_A01_t02: RuntimeError # Please triage this failure
