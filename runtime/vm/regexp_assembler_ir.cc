@@ -80,7 +80,6 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     Zone* zone)
     : RegExpMacroAssembler(zone),
-      thread_(Thread::Current()),
       specialization_cid_(specialization_cid),
       parsed_function_(parsed_function),
       ic_data_array_(ic_data_array),
@@ -123,17 +122,14 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
   // Create and generate all preset blocks.
   entry_block_ = new (zone) GraphEntryInstr(
       *parsed_function_,
-      new (zone) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex,
-                                  GetNextDeoptId()),
+      new (zone) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex),
       Compiler::kNoOSRDeoptId);
-  start_block_ = new (zone)
-      JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex, GetNextDeoptId());
-  success_block_ = new (zone)
-      JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex, GetNextDeoptId());
-  backtrack_block_ = new (zone)
-      JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex, GetNextDeoptId());
-  exit_block_ = new (zone)
-      JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex, GetNextDeoptId());
+  start_block_ = new (zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
+  success_block_ =
+      new (zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
+  backtrack_block_ =
+      new (zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
+  exit_block_ = new (zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
 
   GenerateEntryBlock();
   GenerateSuccessBlock();
@@ -256,8 +252,8 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   Value* type = Bind(new (Z) ConstantInstr(
       TypeArguments::ZoneHandle(Z, TypeArguments::null())));
   Value* length = Bind(Uint64Constant(saved_registers_count_));
-  Value* array = Bind(new (Z) CreateArrayInstr(TokenPosition::kNoSource, type,
-                                               length, GetNextDeoptId()));
+  Value* array =
+      Bind(new (Z) CreateArrayInstr(TokenPosition::kNoSource, type, length));
   StoreLocal(result_, array);
 
   // Store captured offsets in the `matches` parameter.
@@ -280,8 +276,8 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   PRINT(PushLocal(result_));
 
   // Return true on success.
-  AppendInstruction(new (Z) ReturnInstr(
-      TokenPosition::kNoSource, Bind(LoadLocal(result_)), GetNextDeoptId()));
+  AppendInstruction(
+      new (Z) ReturnInstr(TokenPosition::kNoSource, Bind(LoadLocal(result_))));
 }
 
 
@@ -290,8 +286,8 @@ void IRRegExpMacroAssembler::GenerateExitBlock() {
   TAG();
 
   // Return false on failure.
-  AppendInstruction(new (Z) ReturnInstr(
-      TokenPosition::kNoSource, Bind(LoadLocal(result_)), GetNextDeoptId()));
+  AppendInstruction(
+      new (Z) ReturnInstr(TokenPosition::kNoSource, Bind(LoadLocal(result_))));
 }
 
 
@@ -493,9 +489,8 @@ ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,
       InstanceCallDescriptor::FromToken(intermediate_operator), lhs, rhs));
   Value* rhs_value = Bind(BoolConstant(true));
 
-  return new (Z)
-      StrictCompareInstr(TokenPosition::kNoSource, strict_comparison, lhs_value,
-                         rhs_value, true, GetNextDeoptId());
+  return new (Z) StrictCompareInstr(TokenPosition::kNoSource, strict_comparison,
+                                    lhs_value, rhs_value, true);
 }
 
 ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,
@@ -543,9 +538,9 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
     ZoneGrowableArray<PushArgumentInstr*>* arguments) const {
   const intptr_t kTypeArgsLen = 0;
-  return new (Z) StaticCallInstr(TokenPosition::kNoSource, function,
-                                 kTypeArgsLen, Object::null_array(), arguments,
-                                 ic_data_array_, GetNextDeoptId());
+  return new (Z)
+      StaticCallInstr(TokenPosition::kNoSource, function, kTypeArgsLen,
+                      Object::null_array(), arguments, ic_data_array_);
 }
 
 
@@ -592,10 +587,10 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
     ZoneGrowableArray<PushArgumentInstr*>* arguments) const {
   const intptr_t kTypeArgsLen = 0;
-  return new (Z) InstanceCallInstr(
-      TokenPosition::kNoSource, desc.name, desc.token_kind, arguments,
-      kTypeArgsLen, Object::null_array(), desc.checked_argument_count,
-      ic_data_array_, GetNextDeoptId());
+  return new (Z)
+      InstanceCallInstr(TokenPosition::kNoSource, desc.name, desc.token_kind,
+                        arguments, kTypeArgsLen, Object::null_array(),
+                        desc.checked_argument_count, ic_data_array_);
 }
 
 
@@ -1576,8 +1571,8 @@ void IRRegExpMacroAssembler::CheckStackLimit() {
   PushArgumentInstr* capacity_push = PushArgument(Bind(Sub(
       length_push, PushArgument(Bind(Uint64Constant(stack_limit_slack()))))));
   PushArgumentInstr* stack_pointer_push = PushLocal(stack_pointer_);
-  BranchInstr* branch = new (Z) BranchInstr(
-      Comparison(kGT, capacity_push, stack_pointer_push), GetNextDeoptId());
+  BranchInstr* branch =
+      new (Z) BranchInstr(Comparison(kGT, capacity_push, stack_pointer_push));
   CloseBlockWith(branch);
 
   BlockLabel grow_stack;
@@ -1733,7 +1728,7 @@ void IRRegExpMacroAssembler::BranchOrBacktrack(ComparisonInstr* comparison,
   // If the condition is not true, fall through to a new block.
   BlockLabel fallthrough;
 
-  BranchInstr* branch = new (Z) BranchInstr(comparison, GetNextDeoptId());
+  BranchInstr* branch = new (Z) BranchInstr(comparison);
   *branch->true_successor_address() = TargetWithJoinGoto(true_successor_block);
   *branch->false_successor_address() = TargetWithJoinGoto(fallthrough.block());
 
@@ -1744,11 +1739,11 @@ void IRRegExpMacroAssembler::BranchOrBacktrack(ComparisonInstr* comparison,
 
 TargetEntryInstr* IRRegExpMacroAssembler::TargetWithJoinGoto(
     JoinEntryInstr* dst) {
-  TargetEntryInstr* target = new (Z)
-      TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex, GetNextDeoptId());
+  TargetEntryInstr* target =
+      new (Z) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
   blocks_.Add(target);
 
-  target->AppendInstruction(new (Z) GotoInstr(dst, GetNextDeoptId()));
+  target->AppendInstruction(new (Z) GotoInstr(dst));
 
   return target;
 }
@@ -1756,12 +1751,11 @@ TargetEntryInstr* IRRegExpMacroAssembler::TargetWithJoinGoto(
 
 IndirectEntryInstr* IRRegExpMacroAssembler::IndirectWithJoinGoto(
     JoinEntryInstr* dst) {
-  IndirectEntryInstr* target =
-      new (Z) IndirectEntryInstr(block_id_.Alloc(), indirect_id_.Alloc(),
-                                 kInvalidTryIndex, GetNextDeoptId());
+  IndirectEntryInstr* target = new (Z) IndirectEntryInstr(
+      block_id_.Alloc(), indirect_id_.Alloc(), kInvalidTryIndex);
   blocks_.Add(target);
 
-  target->AppendInstruction(new (Z) GotoInstr(dst, GetNextDeoptId()));
+  target->AppendInstruction(new (Z) GotoInstr(dst));
 
   return target;
 }
@@ -1769,8 +1763,8 @@ IndirectEntryInstr* IRRegExpMacroAssembler::IndirectWithJoinGoto(
 
 void IRRegExpMacroAssembler::CheckPreemption() {
   TAG();
-  AppendInstruction(new (Z) CheckStackOverflowInstr(TokenPosition::kNoSource, 0,
-                                                    GetNextDeoptId()));
+  AppendInstruction(new (Z)
+                        CheckStackOverflowInstr(TokenPosition::kNoSource, 0));
 }
 
 
