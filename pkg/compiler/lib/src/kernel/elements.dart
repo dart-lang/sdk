@@ -120,6 +120,9 @@ abstract class KConstructor extends KFunction implements ConstructorEntity {
   @override
   bool get isTopLevel => false;
 
+  @override
+  bool get isFromEnvironmentConstructor => false;
+
   String get _kind => 'constructor';
 }
 
@@ -137,8 +140,12 @@ class KGenerativeConstructor extends KConstructor {
 }
 
 class KFactoryConstructor extends KConstructor {
+  @override
+  final bool isFromEnvironmentConstructor;
+
   KFactoryConstructor(int memberIndex, KClass enclosingClass, Name name,
-      ParameterStructure parameterStructure, {bool isExternal, bool isConst})
+      ParameterStructure parameterStructure,
+      {bool isExternal, bool isConst, this.isFromEnvironmentConstructor})
       : super(memberIndex, enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
 

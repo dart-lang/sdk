@@ -3851,6 +3851,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       argumentsResult =
           inConstantContext(() => resolveArguments(node.send.argumentsNode));
     } else {
+      if (!node.isConst && constructor.isFromEnvironmentConstructor) {
+        // TODO(sigmund): consider turning this into a compile-time-error.
+        reporter.reportHintMessage(
+            node,
+            MessageKind.FROM_ENVIRONMENT_MUST_BE_CONST,
+            {'className': constructor.enclosingClass.name});
+        registry.registerFeature(Feature.THROW_UNSUPPORTED_ERROR);
+      }
       argumentsResult = resolveArguments(node.send.argumentsNode);
     }
     // TODO(johnniwinther): Avoid the need for a [Selector].

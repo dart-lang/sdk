@@ -99,6 +99,7 @@ deferred_custom_loader_test: SkipByDesign # Issue 25683
 invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
 lookup_map/dead_entry_through_mirrors_test: SkipByDesign # Test for tree-shaking, vm never tree-shakes
 unconditional_dartio_import_test: SkipByDesign # dart2js only test
+new_from_env_test: SkipByDesign # dart2js only test
 
 [ $compiler == dart2js && $runtime == chrome && $system == windows ]
 class_test: Pass, Slow # Issue 25940

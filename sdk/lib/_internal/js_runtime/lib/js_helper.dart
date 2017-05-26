@@ -1811,6 +1811,10 @@ throwRuntimeError(message) {
   throw new RuntimeError(message);
 }
 
+throwUnsupportedError(message) {
+  throw new UnsupportedError(message);
+}
+
 throwAbstractClassInstantiationError(className) {
   throw new AbstractClassInstantiationError(className);
 }

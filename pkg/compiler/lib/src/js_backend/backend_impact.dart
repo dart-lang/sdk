@@ -303,6 +303,17 @@ class BackendImpacts {
         ]);
   }
 
+  BackendImpact _throwUnsupportedError;
+
+  BackendImpact get throwUnsupportedError {
+    return _throwUnsupportedError ??= new BackendImpact(staticUses: [
+      _commonElements.throwUnsupportedError
+    ], otherImpacts: [
+      // Also register the types of the arguments passed to this method.
+      stringValues
+    ]);
+  }
+
   BackendImpact _superNoSuchMethod;
 
   BackendImpact get superNoSuchMethod {

@@ -314,6 +314,8 @@ async_star_take_reyield_test: RuntimeError # Issue 27394
 async_star_test: RuntimeError # Issue 27394
 await_for_test: RuntimeError # Issue 27394
 await_for_use_local_test: RuntimeError # Issue 27394
+black_listed_test/13c: Crash # Issue 27394
+black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
 call_nonexistent_static_test/10: Crash # Issue 27394
 closure_in_constructor_test: RuntimeError # Issue 27394
@@ -398,10 +400,6 @@ issue21079_test: Crash # Issue 27394
 issue9602_test: Crash # Issue 27394
 issue_25671a_test/01: Crash # Issue 27394
 issue_25671b_test/01: Crash # Issue 27394
-library_env_test/has_html_support: RuntimeError # Issue 27394
-library_env_test/has_io_support: RuntimeError # Issue 27394
-library_env_test/has_mirror_support: RuntimeError # Issue 27394
-library_env_test/none: RuntimeError # Issue 27394
 list_is_test: RuntimeError # Issue 27394
 list_test: RuntimeError # Issue 27394
 main_not_a_function_test/01: Crash # Issue 27394

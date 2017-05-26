@@ -310,6 +310,7 @@ class MirrorsHandler {
     assert(constructor.isDeclaration);
     if (_shouldIncludeElementDueToMirrors(constructor,
         includedEnclosing: enclosingWasIncluded)) {
+      if (constructor.isFromEnvironmentConstructor) return;
       _logEnqueueReflectiveAction(constructor);
       ClassElement cls = constructor.enclosingClass;
       impactBuilder

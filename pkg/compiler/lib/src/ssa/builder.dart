@@ -3497,6 +3497,12 @@ class SsaBuilder extends ast.Visitor
     } else if (isGrowableListConstructorCall) {
       push(buildLiteralList(<HInstruction>[]));
       stack.last.instructionType = elementType;
+    } else if (constructor.isExternal &&
+        constructor.isFromEnvironmentConstructor) {
+      generateUnsupportedError(
+          node,
+          '${cls.name}.${constructor.name} '
+          'can only be used as a const constructor');
     } else {
       SourceInformation sourceInformation =
           sourceInformationBuilder.buildNew(send);
@@ -3859,6 +3865,11 @@ class SsaBuilder extends ast.Visitor
 
   void generateRuntimeError(ast.Node node, String message) {
     MethodElement helper = commonElements.throwRuntimeError;
+    generateError(node, message, helper);
+  }
+
+  void generateUnsupportedError(ast.Node node, String message) {
+    MethodElement helper = commonElements.throwUnsupportedError;
     generateError(node, message, helper);
   }
 

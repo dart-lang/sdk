@@ -1240,7 +1240,7 @@ class KernelVisitor extends Object
   @override
   ir.InvocationExpression visitBoolFromEnvironmentConstructorInvoke(
       NewExpression node, BoolFromEnvironmentConstantExpression constant, _) {
-    return buildConstructorInvoke(node, isConst: true);
+    return associateNode(buildConstructorInvoke(node, isConst: true), node);
   }
 
   ir.TypeLiteral buildTypeLiteral(TypeConstantExpression constant) {
@@ -1737,7 +1737,7 @@ class KernelVisitor extends Object
   @override
   ir.InvocationExpression visitIntFromEnvironmentConstructorInvoke(
       NewExpression node, IntFromEnvironmentConstantExpression constant, _) {
-    return buildConstructorInvoke(node, isConst: true);
+    return associateNode(buildConstructorInvoke(node, isConst: true), node);
   }
 
   ir.IsExpression buildIs(Node expression, ResolutionDartType type) {
@@ -2352,7 +2352,7 @@ class KernelVisitor extends Object
   @override
   ir.InvocationExpression visitStringFromEnvironmentConstructorInvoke(
       NewExpression node, StringFromEnvironmentConstantExpression constant, _) {
-    return buildConstructorInvoke(node, isConst: true);
+    return associateNode(buildConstructorInvoke(node, isConst: true), node);
   }
 
   @override

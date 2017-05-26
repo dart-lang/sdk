@@ -931,6 +931,9 @@ class CommonElements {
   FunctionEntity get throwRuntimeError =>
       _findHelperFunction('throwRuntimeError');
 
+  FunctionEntity get throwUnsupportedError =>
+      _findHelperFunction('throwUnsupportedError');
+
   FunctionEntity get throwTypeError => _findHelperFunction('throwTypeError');
 
   FunctionEntity get throwAbstractClassInstantiationError =>

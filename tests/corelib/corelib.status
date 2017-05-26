@@ -223,13 +223,10 @@ big_integer_huge_mul_vm_test: Pass, Slow # Slow
 [ $compiler == dart2js && $dart2js_with_kernel ]
 error_stack_trace1_test: Pass # Issue 27394
 symbol_reserved_word_test/03: Pass # Issue 27394
-bool_from_environment_test: RuntimeError # Issue 27394
 data_uri_test: RuntimeError # Issue 27394
 date_time7_test: RuntimeError # Issue 27394
 date_time_test: RuntimeError # Issue 27394
 growable_list_test: RuntimeError # Issue 27394
-int_from_environment2_test: RuntimeError # Issue 27394
-int_from_environment_test: RuntimeError # Issue 27394
 iterable_empty_test: RuntimeError # Issue 27394
 iterable_return_type_test/none: RuntimeError # Issue 27394
 iterable_to_list_test/none: RuntimeError # Issue 27394
@@ -248,8 +245,6 @@ regexp/parentheses_test: RuntimeError # Issue 27394
 regexp/pcre-test-4_test: RuntimeError # Issue 27394
 regexp/pcre_test: RuntimeError # Issue 27394
 set_test: RuntimeError # Issue 27394
-string_from_environment2_test: RuntimeError # Issue 27394
-string_from_environment_test: RuntimeError # Issue 27394
 symbol_operator_test/03: RuntimeError # Issue 27394
 symbol_reserved_word_test/06: RuntimeError # Issue 27394
 symbol_reserved_word_test/09: RuntimeError # Issue 27394

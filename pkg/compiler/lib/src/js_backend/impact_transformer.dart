@@ -139,6 +139,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case Feature.THROW_RUNTIME_ERROR:
           registerImpact(_impacts.throwRuntimeError);
           break;
+        case Feature.THROW_UNSUPPORTED_ERROR:
+          registerImpact(_impacts.throwUnsupportedError);
+          break;
         case Feature.TYPE_VARIABLE_BOUNDS_CHECK:
           registerImpact(_impacts.typeVariableBoundCheck);
           break;

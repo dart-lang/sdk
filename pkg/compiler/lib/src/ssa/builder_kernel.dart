@@ -1337,6 +1337,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         astAdapter.getReturnTypeOf(_commonElements.throwTypeError));
   }
 
+  void generateUnsupportedError(ir.Node node, String message) {
+    generateError(node, _commonElements.throwUnsupportedError, message,
+        astAdapter.getReturnTypeOf(_commonElements.throwUnsupportedError));
+  }
+
   @override
   void visitAssertStatement(ir.AssertStatement assertStatement) {
     if (!options.enableUserAssertions) return;
@@ -2250,9 +2255,23 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     List<HInstruction> arguments =
         _visitArgumentsForStaticTarget(target.function, invocation.arguments);
 
-    // Factory constructors take type parameters; other static methods ignore
-    // them.
     if (function is ConstructorEntity && function.isFactoryConstructor) {
+      if (function.isExternal && function.isFromEnvironmentConstructor) {
+        if (invocation.isConst) {
+          // Just like all const constructors (see visitConstructorInvocation).
+          stack.add(graph.addConstant(
+              astAdapter.getConstantFor(invocation), closedWorld));
+        } else {
+          generateUnsupportedError(
+              invocation,
+              '${function.enclosingClass.name}.${function.name} '
+              'can only be used as a const constructor');
+        }
+        return;
+      }
+
+      // Factory constructors take type parameters; other static methods ignore
+      // them.
       if (backend.rtiNeed.classNeedsRti(function.enclosingClass)) {
         _addTypeArguments(arguments, invocation.arguments);
       }

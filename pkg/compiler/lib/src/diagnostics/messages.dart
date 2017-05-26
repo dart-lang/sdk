@@ -155,6 +155,7 @@ enum MessageKind {
   FORIN_NOT_ASSIGNABLE,
   FORMAL_DECLARED_CONST,
   FORMAL_DECLARED_STATIC,
+  FROM_ENVIRONMENT_MUST_BE_CONST,
   FUNCTION_TYPE_FORMAL_WITH_DEFAULT,
   FUNCTION_WITH_INITIALIZER,
   GENERIC,
@@ -1077,6 +1078,13 @@ main() => new C(0);"""
               MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
               "This const constructor is not allowed due to "
               "non-final fields."),
+
+      MessageKind.FROM_ENVIRONMENT_MUST_BE_CONST: const MessageTemplate(
+          MessageKind.FROM_ENVIRONMENT_MUST_BE_CONST,
+          "#{className}.fromEnvironment can only be used as a "
+          "const constructor.",
+          howToFix: "Try replacing `new` with `const`.",
+          examples: const ["main() { new bool.fromEnvironment('X'); }"]),
 
       MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED: const MessageTemplate(
           MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED,

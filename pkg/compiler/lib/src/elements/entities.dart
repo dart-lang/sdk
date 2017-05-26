@@ -137,6 +137,10 @@ abstract class ConstructorEntity extends FunctionEntity {
 
   /// Whether this is a factory constructor, possibly redirecting.
   bool get isFactoryConstructor;
+
+  /// Whether this is a `fromEnvironment` const constructor in `int`, `bool` or
+  /// `String`.
+  bool get isFromEnvironmentConstructor;
 }
 
 /// An entity that defines a local entity (memory slot) in generated code.

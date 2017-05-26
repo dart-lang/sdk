@@ -270,9 +270,14 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
             isExternal: isExternal, isConst: node.isConst);
       } else if (node is ir.Procedure) {
         functionNode = node.function;
+        bool isFromEnvironment = isExternal &&
+            name.text == 'fromEnvironment' &&
+            const ['int', 'bool', 'String'].contains(enclosingClass.name);
         constructor = new KFactoryConstructor(memberIndex, enclosingClass, name,
             _getParameterStructure(functionNode),
-            isExternal: isExternal, isConst: node.isConst);
+            isExternal: isExternal,
+            isConst: node.isConst,
+            isFromEnvironmentConstructor: isFromEnvironment);
       } else {
         // TODO(johnniwinther): Convert `node.location` to a [SourceSpan].
         throw new SpannableAssertionFailure(
