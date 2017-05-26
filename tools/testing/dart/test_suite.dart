@@ -474,7 +474,7 @@ class CCTestSuite extends TestSuite {
 
     var args = TestUtils.standardOptions(configuration);
     var compilerConfiguration = new CompilerConfiguration(configuration);
-    if (compilerConfiguration.useDFE) {
+    if (compilerConfiguration.useDfe) {
       args.add('--use-dart-frontend');
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       args.insert(0, '--dfe=$buildDir/gen/kernel-service.dart.snapshot');
@@ -2027,9 +2027,6 @@ class TestUtils {
     }
     if (compiler == "dart2js" && configuration["csp"]) {
       args.add("--csp");
-    }
-    if (compiler == "dart2js" && configuration["cps_ir"]) {
-      args.add("--use-cps-ir");
     }
     if (compiler == "dart2js" && configuration["fast_startup"]) {
       args.add("--fast-startup");

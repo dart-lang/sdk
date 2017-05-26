@@ -18,7 +18,7 @@ library co19_test;
 
 import "dart:io";
 
-import "test_options.dart";
+import "options.dart";
 import "test_suite.dart";
 import "test_configurations.dart";
 
@@ -59,7 +59,7 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
 
 void main(List<String> args) {
   TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
-  var optionsParser = new TestOptionsParser();
+  var optionsParser = new OptionsParser();
   var configurations = <Map>[];
   for (var commandLine in COMMAND_LINES) {
     var arguments = <String>[];
