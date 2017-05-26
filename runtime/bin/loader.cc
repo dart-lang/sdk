@@ -643,25 +643,23 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
 Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle library,
                                       Dart_Handle url) {
-  if (dfe.UseDartFrontend()) {
-    Dart_Isolate current = Dart_CurrentIsolate();
-    if (!Dart_IsServiceIsolate(current) && !Dart_IsKernelIsolate(current)) {
-      // When using DFE the library tag handler should be called only when we
-      // are reloading scripts.
-      // TODO(asiva) We need to ensure that the kernel and service isolates
-      // and the spawnURI paths are always loaded from a kernel IR and do
-      // not use this path.
-      if (tag == Dart_kScriptTag) {
-        return dfe.ReloadScript(current, url);
-      }
-    }
-  }
   if (tag == Dart_kCanonicalizeUrl) {
     Dart_Handle library_url = Dart_LibraryUrl(library);
     if (Dart_IsError(library_url)) {
       return library_url;
     }
     return Dart_DefaultCanonicalizeUrl(library_url, url);
+  }
+  if (dfe.UseDartFrontend()) {
+    Dart_Isolate current = Dart_CurrentIsolate();
+    if (!Dart_IsServiceIsolate(current) && !Dart_IsKernelIsolate(current)) {
+      // When using DFE the library tag handler should be called only when we
+      // are reloading scripts.
+      ASSERT(tag == Dart_kScriptTag);
+      return dfe.ReloadScript(current, url);
+    }
+    // TODO(asiva) We need to ensure that the kernel and service isolates
+    // are always loaded from a kernel IR and do not use this path.
   }
   const char* url_string = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_string);
