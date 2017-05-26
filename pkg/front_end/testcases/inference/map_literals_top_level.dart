@@ -31,3 +31,5 @@ test2() {
   x2 /*@target=Map::[]=*/ [2] = p;
   Map<int, String> y = /*info:ASSIGNMENT_CAST*/ x2;
 }
+
+main() {}

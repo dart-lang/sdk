@@ -737,18 +737,79 @@ class KernelLogicalExpression extends LogicalExpression
 
 /// Shadow object for [MapLiteral].
 class KernelMapLiteral extends MapLiteral implements KernelExpression {
+  final DartType _declaredKeyType;
+  final DartType _declaredValueType;
+
   KernelMapLiteral(List<MapEntry> entries,
-      {DartType keyType: const DynamicType(),
-      DartType valueType: const DynamicType(),
-      bool isConst: false})
-      : super(entries,
-            keyType: keyType, valueType: valueType, isConst: isConst);
+      {DartType keyType, DartType valueType, bool isConst: false})
+      : _declaredKeyType = keyType,
+        _declaredValueType = valueType,
+        super(entries,
+            keyType: keyType ?? const DynamicType(),
+            valueType: valueType ?? const DynamicType(),
+            isConst: isConst);
 
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    typeNeeded =
+        inferrer.listener.mapLiteralEnter(this, typeContext) || typeNeeded;
+    var mapClass = inferrer.coreTypes.mapClass;
+    var mapType = mapClass.thisType;
+    List<DartType> inferredTypes;
+    DartType inferredKeyType;
+    DartType inferredValueType;
+    List<DartType> formalTypes;
+    List<DartType> actualTypes;
+    assert((_declaredKeyType == null) == (_declaredValueType == null));
+    bool inferenceNeeded = _declaredKeyType == null && inferrer.strongMode;
+    if (inferenceNeeded) {
+      inferredTypes = [const UnknownType(), const UnknownType()];
+      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(mapType,
+          mapClass.typeParameters, null, null, typeContext, inferredTypes);
+      inferredKeyType = inferredTypes[0];
+      inferredValueType = inferredTypes[1];
+      formalTypes = [];
+      actualTypes = [];
+    } else {
+      inferredKeyType = _declaredKeyType ?? const DynamicType();
+      inferredValueType = _declaredValueType ?? const DynamicType();
+    }
+    for (var entry in entries) {
+      var keyType =
+          inferrer.inferExpression(entry.key, inferredKeyType, inferenceNeeded);
+      var valueType = inferrer.inferExpression(
+          entry.value, inferredValueType, inferenceNeeded);
+      if (inferenceNeeded) {
+        formalTypes.addAll(mapType.typeArguments);
+        actualTypes.add(keyType);
+        actualTypes.add(valueType);
+      }
+    }
+    if (inferenceNeeded) {
+      inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
+          mapType,
+          mapClass.typeParameters,
+          formalTypes,
+          actualTypes,
+          typeContext,
+          inferredTypes);
+      inferredKeyType = inferredTypes[0];
+      inferredValueType = inferredTypes[1];
+      inferrer.instrumentation?.record(
+          Uri.parse(inferrer.uri),
+          fileOffset,
+          'typeArgs',
+          new InstrumentationValueForTypeArgs(
+              [inferredKeyType, inferredValueType]));
+      keyType = inferredKeyType;
+      valueType = inferredValueType;
+    }
+    var inferredType = typeNeeded
+        ? new InterfaceType(mapClass, [inferredKeyType, inferredValueType])
+        : null;
+    inferrer.listener.mapLiteralExit(this, inferredType);
+    return inferredType;
   }
 }
 

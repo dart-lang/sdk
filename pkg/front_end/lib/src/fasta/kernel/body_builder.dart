@@ -1355,12 +1355,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralMap");
     List<MapEntry> entries = popList(count) ?? <MapEntry>[];
     List<DartType> typeArguments = pop();
-    DartType keyType = const DynamicType();
-    DartType valueType = const DynamicType();
+    DartType keyType;
+    DartType valueType;
     if (typeArguments != null) {
       if (typeArguments.length != 2) {
-        keyType = const DynamicType();
-        valueType = const DynamicType();
+        keyType = null;
+        valueType = null;
         warningNotError(
             "Map literal requires two type arguments.", beginToken.charOffset);
       } else {

@@ -7,3 +7,7 @@ library test;
 
 typedef void F();
 final /*@topType=Map<String, () -> void>*/ x = <String, F>{};
+
+main() {
+  x;
+}

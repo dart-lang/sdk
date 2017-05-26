@@ -168,6 +168,12 @@ class TypeInferenceListener
   void listLiteralExit(ListLiteral expression, DartType inferredType) =>
       debugExpressionExit("listLiteral", expression, inferredType);
 
+  bool mapLiteralEnter(MapLiteral expression, DartType typeContext) =>
+      debugExpressionEnter("mapLiteral", expression, typeContext);
+
+  void mapLiteralExit(MapLiteral expression, DartType typeContext) =>
+      debugExpressionExit("mapLiteral", expression, typeContext);
+
   bool methodInvocationEnter(
           MethodInvocation expression, DartType typeContext) =>
       debugExpressionEnter("methodInvocation", expression, typeContext);

@@ -57,7 +57,6 @@ unused_methods: Fail
 void-methods: Fail
 
 inference/constructors_too_many_positional_arguments: Fail
-inference/downward_inference_miscellaneous: Fail
 inference/downwards_inference_annotations: Fail
 inference/downwards_inference_async_await: Fail
 inference/downwards_inference_for_each: Fail
@@ -69,7 +68,6 @@ inference/downwards_inference_on_generic_function_expressions: Fail
 inference/downwards_inference_on_list_literals_infer_downwards: Fail
 inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: Fail
 inference/downwards_inference_on_map_literals: Fail
-inference/downwards_inference_yield_yield_star: Fail
 inference/future_or_subtyping: Fail
 inference/future_then: Fail
 inference/future_then_2: Fail
@@ -120,32 +118,24 @@ inference/infer_from_variables_in_cycle_libs_when_flag_is_on: Fail
 inference/infer_from_variables_in_cycle_libs_when_flag_is_on2: Fail
 inference/infer_from_variables_in_non_cycle_imports_with_flag: Fail
 inference/infer_from_variables_in_non_cycle_imports_with_flag2: Fail
-inference/infer_list_literal_nested_in_map_literal: Fail
 inference/infer_prefix_expression: Fail
 inference/infer_statics_transitively: Fail
 inference/infer_statics_transitively3: Fail
 inference/infer_statics_transitively_a: Fail
 inference/infer_statics_with_method_invocations: Fail
 inference/infer_type_on_var_from_field: Fail
-inference/infer_typed_map_literal: Fail
 inference/infer_types_on_generic_instantiations_in_library_cycle: Fail
 inference/infer_types_on_loop_indices_for_each_loop: Fail
 inference/infer_types_on_loop_indices_for_loop_with_inference: Fail
-inference/inferred_nonstatic_field_depends_on_static_field_complex: Fail
 inference/inferred_type_cascade: Fail
 inference/inferred_type_extract_method_tear_off: Fail
 inference/inferred_type_extract_method_tear_off_via_interface: Fail
-inference/inferred_type_is_typedef: Fail
 inference/inferred_type_is_typedef_parameterized: Fail
 inference/inferred_type_uses_synthetic_function_type_named_param: Fail
 inference/inferred_type_uses_synthetic_function_type_positional_param: Fail
-inference/inferred_type_via_closure_multiple_levels_of_nesting: Fail
 inference/lambda_does_not_have_propagated_type_hint: Fail
 inference/list_literals_can_infer_null_top_level: Fail
-inference/map_literals: Fail
-inference/map_literals_can_infer_null: Fail
 inference/map_literals_can_infer_null_top_level: Fail
-inference/map_literals_top_level: Fail
 inference/method_call_with_type_arguments_static_method: Fail
 inference/null_coalescing_operator: Fail
 inference/null_coalescing_operator_2: Fail
@@ -160,9 +150,6 @@ inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_vi
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail
 inference/unsafe_block_closure_inference_function_call_implicit_type_param_via_expr: Fail
 inference/unsafe_block_closure_inference_function_call_no_type_param_via_expr: Fail
-inference/unsafe_block_closure_inference_in_map_dynamic: Fail
-inference/unsafe_block_closure_inference_in_map_typed: Fail
-inference/unsafe_block_closure_inference_in_map_untyped: Fail
 inference/void_return_type_subtypes_dynamic: Fail
 
 rasta/abstract_constructor: Fail

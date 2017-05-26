@@ -12,3 +12,5 @@ class C {
     'd': /*@typeArgs=String, String*/ {'e': x}
   };
 }
+
+main() {}
