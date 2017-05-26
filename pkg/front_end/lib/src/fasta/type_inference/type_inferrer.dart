@@ -234,9 +234,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     } else if (receiverType is DynamicType) {
       return _functionReturningDynamic;
     } else if (receiverType is FunctionType) {
-      // TODO(paulberry): handle the case of invoking .call() or .toString() on
-      // a function type.
-      return _functionReturningDynamic;
+      if (methodName.name == 'call') {
+        return receiverType;
+      } else {
+        // TODO(paulberry): handle the case of invoking .toString() on a
+        // function type.
+        return _functionReturningDynamic;
+      }
     } else if (receiverType is TypeParameterType) {
       // TODO(paulberry): use the bound
       return _functionReturningDynamic;

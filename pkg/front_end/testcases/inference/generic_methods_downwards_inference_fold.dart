@@ -22,12 +22,12 @@ void main() {
 
 void functionExpressionInvocation() {
   List<int> o;
-  int y = (o.fold)(
+  int y = (o.fold) /*@typeArgs=int*/ (
       0,
       /*@returnType=int*/ (/*@type=int*/ x,
               /*@type=int*/ y) =>
           x /*@target=num::+*/ + y);
-  var /*@type=dynamic*/ z = (o.fold)(
+  var /*@type=dynamic*/ z = (o.fold) /*@typeArgs=dynamic*/ (
       0,
       /*@returnType=dynamic*/ (/*@type=dynamic*/ x,
           /*@type=int*/ y) => /*info:DYNAMIC_INVOKE*/ x + y);

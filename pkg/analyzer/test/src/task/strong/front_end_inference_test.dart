@@ -312,6 +312,21 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
+  @override
+  visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    super.visitFunctionExpressionInvocation(node);
+    if (node.typeArguments == null) {
+      var inferredTypeArguments = _getInferredFunctionTypeArguments(
+              node.function.staticType,
+              node.staticInvokeType,
+              node.typeArguments)
+          .toList();
+      if (inferredTypeArguments.isNotEmpty) {
+        _recordTypeArguments(node.argumentList.offset, inferredTypeArguments);
+      }
+    }
+  }
+
   visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
     _recordMethodTarget(node.leftBracket.charOffset, node.staticElement);
