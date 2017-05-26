@@ -156,6 +156,9 @@ dart/optimized_stacktrace_line_and_column_test: RuntimeError
 # minifying they can be renamed, which is issue 7953.
 dart/inline_stack_frame_test: RuntimeError, Pass # Issue 7953
 
+[ $compiler == dart2js && $cps_ir && $checked ]
+dart/*: Skip # checked mode + cpsir not supported yet. Issue 25761
+
 [ $compiler == dart2js || $compiler == dart2analyzer ]
 # Data uri's not supported by dart2js or the analyzer.
 dart/data_uri*test: Skip
