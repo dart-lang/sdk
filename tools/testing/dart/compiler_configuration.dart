@@ -47,12 +47,6 @@ abstract class CompilerConfiguration {
   final bool isHostChecked;
   final bool useSdk;
 
-  /// Only some subclasses support this check, but we statically allow calling
-  /// it on [CompilerConfiguration].
-  bool get useDfe {
-    throw new UnsupportedError("This compiler does not support DFE.");
-  }
-
   // TODO(ahe): Remove this constructor and move the switch to
   // test_options.dart.  We probably want to store an instance of
   // [CompilerConfiguration] in [configuration] there.
@@ -68,6 +62,7 @@ abstract class CompilerConfiguration {
     bool isHostChecked = configuration['host_checked'];
     bool useSdk = configuration['use_sdk'];
     bool isCsp = configuration['csp'];
+    bool useCps = configuration['cps_ir'];
     bool useBlobs = configuration['use_blobs'];
     bool hotReload = configuration['hot_reload'];
     bool hotReloadRollback = configuration['hot_reload_rollback'];
@@ -87,6 +82,7 @@ abstract class CompilerConfiguration {
             isDebug: isDebug,
             isChecked: isChecked,
             isHostChecked: isHostChecked,
+            useCps: useCps,
             useSdk: useSdk,
             isCsp: isCsp,
             useFastStartup: useFastStartup,
@@ -111,7 +107,7 @@ abstract class CompilerConfiguration {
             useSdk: useSdk,
             hotReload: hotReload,
             hotReloadRollback: hotReloadRollback,
-            useDfe: true);
+            useDFE: true);
       case 'dartkp':
         return new PrecompilerCompilerConfiguration(
             isDebug: isDebug,
@@ -119,7 +115,7 @@ abstract class CompilerConfiguration {
             arch: configuration['arch'],
             useBlobs: useBlobs,
             isAndroid: configuration['system'] == 'android',
-            useDfe: true);
+            useDFE: true);
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug,
@@ -191,7 +187,7 @@ abstract class CompilerConfiguration {
 class NoneCompilerConfiguration extends CompilerConfiguration {
   final bool hotReload;
   final bool hotReloadRollback;
-  final bool useDfe;
+  final bool useDFE;
 
   NoneCompilerConfiguration(
       {bool isDebug,
@@ -200,7 +196,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       bool useSdk,
       bool this.hotReload,
       bool this.hotReloadRollback,
-      this.useDfe: false})
+      this.useDFE: false})
       : super._subclass(
             isDebug: isDebug,
             isChecked: isChecked,
@@ -218,7 +214,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     List<String> args = [];
-    if (useDfe) {
+    if (useDFE) {
       args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
       args.add('--platform=${buildDir}/patched_sdk/platform.dill');
     }
@@ -541,15 +537,20 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
 /// Configuration for dart2js compiler.
 class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   final bool isCsp;
+  final bool useCps;
   final bool useFastStartup;
   final bool useKernel;
   final List<String> extraDart2jsOptions;
+  // We cache the extended environment to save memory.
+  static Map<String, String> cpsFlagCache;
+  static Map<String, String> environmentOverridesCacheObject;
 
   Dart2jsCompilerConfiguration(
       {bool isDebug,
       bool isChecked,
       bool isHostChecked,
       bool useSdk,
+      bool this.useCps,
       bool this.isCsp,
       bool this.useFastStartup,
       this.useKernel,
@@ -603,7 +604,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   final String arch;
   final bool useBlobs;
   final bool isAndroid;
-  final bool useDfe;
+  final bool useDFE;
 
   PrecompilerCompilerConfiguration(
       {bool isDebug,
@@ -611,7 +612,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       this.arch,
       this.useBlobs,
       this.isAndroid,
-      this.useDfe: false})
+      this.useDFE: false})
       : super._subclass(isDebug: isDebug, isChecked: isChecked);
 
   int computeTimeoutMultiplier() {
@@ -657,7 +658,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       exec = "$buildDir/dart_bootstrap";
     }
     var args = <String>[];
-    if (useDfe) {
+    if (useDFE) {
       args.add('--dfe=utils/kernel-service/kernel-service.dart');
       args.add('--platform=${buildDir}/patched_sdk/platform.dill');
     }
