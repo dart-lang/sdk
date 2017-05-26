@@ -159,9 +159,11 @@ class _Scanner2 implements Scanner {
         includeComments: _preserveComments,
         scanGenericMethodComments: scanGenericMethodComments,
         scanLazyAssignmentOperators: scanLazyAssignmentOperators);
+
     // fasta pretends there is an additional line at EOF
-    lineStarts
-        .addAll(result.lineStarts.sublist(1, result.lineStarts.length - 1));
+    result.lineStarts.removeLast();
+
+    lineStarts.addAll(result.lineStarts);
     fasta.Token token = result.tokens;
     // The default recovery strategy used by scanString
     // places all error tokens at the head of the stream.

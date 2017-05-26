@@ -136,15 +136,11 @@ class ScannerTest extends ScannerTestBase {
     scanner.scanLazyAssignmentOperators = lazyAssignmentOperators;
     return scanner.tokenize();
   }
-
-  @override
-  @failingTest
-  void test_incomplete_string_interpolation() {
-    super.test_incomplete_string_interpolation();
-  }
 }
 
 abstract class ScannerTestBase {
+  bool usingFasta = false;
+
   Token scanWithListener(String source, ErrorListener listener,
       {bool genericMethodComments: false, bool lazyAssignmentOperators: false});
 
@@ -434,12 +430,23 @@ abstract class ScannerTestBase {
 
   void test_incomplete_string_interpolation() {
     // https://code.google.com/p/dart/issues/detail?id=18073
-    _assertErrorAndTokens(
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, "\"foo \${bar", [
+    List<Token> expectedTokens = [
       new StringToken(TokenType.STRING, "\"foo ", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 5),
-      new StringToken(TokenType.IDENTIFIER, "bar", 7)
-    ]);
+      new StringToken(TokenType.IDENTIFIER, "bar", 7),
+    ];
+    if (usingFasta) {
+      // fasta inserts synthetic closers
+      expectedTokens.addAll([
+        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 10),
+      ]);
+    } else {
+      expectedTokens.addAll([
+        new StringToken(TokenType.STRING, "", 10),
+      ]);
+    }
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9,
+        "\"foo \${bar", expectedTokens);
   }
 
   void test_index() {

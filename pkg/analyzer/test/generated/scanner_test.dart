@@ -79,10 +79,10 @@ class CharacterRangeReaderTest extends EngineTestCase {
 @reflectiveTest
 class LineInfoTest extends EngineTestCase {
   void test_lineInfo_multilineComment() {
-    String source = "/*\r *\r */";
+    String source = "/*\r\n *\r\n */";
     _assertLineInfo(source, [
       new ScannerTest_ExpectedLocation(0, 1, 1),
-      new ScannerTest_ExpectedLocation(4, 2, 2),
+      new ScannerTest_ExpectedLocation(5, 2, 2),
       new ScannerTest_ExpectedLocation(source.length - 1, 3, 3)
     ]);
   }

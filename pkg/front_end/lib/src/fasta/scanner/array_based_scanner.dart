@@ -122,7 +122,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
 
   /**
    * Appends a token that begins a new group, represented by [type].
-   * Group begin tokens are '{', '(', '[' and '${'.
+   * Group begin tokens are '{', '(', '[', '<' and '${'.
    */
   void appendBeginGroup(TokenType type) {
     Token token = new BeginTokenWithComment(type, tokenStart, comments);
@@ -255,6 +255,20 @@ abstract class ArrayBasedScanner extends AbstractScanner {
         identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }
+  }
+
+  /**
+   * This method is called to discard '${' from the "grouping" stack.
+   *
+   * This method is called when the scanner finds the end of a string
+   * or an unterminated string.
+   */
+  void discardInterpolation() {
+    if (groupingStack.isEmpty) return;
+    BeginToken begin = groupingStack.head;
+    if (begin.kind != STRING_INTERPOLATION_TOKEN) return;
+    unmatchedBeginGroup(begin);
+    groupingStack = groupingStack.tail;
   }
 
   void unmatchedBeginGroup(BeginToken begin) {

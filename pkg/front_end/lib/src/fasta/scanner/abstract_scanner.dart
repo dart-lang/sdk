@@ -222,6 +222,9 @@ abstract class AbstractScanner implements Scanner {
   /** Documentation in subclass [ArrayBasedScanner]. */
   void discardOpenLt();
 
+  /** Documentation in subclass [ArrayBasedScanner]. */
+  void discardInterpolation();
+
   /// Return true when at EOF.
   bool atEndOfFile();
 
@@ -1051,7 +1054,11 @@ abstract class AbstractScanner implements Scanner {
     while (!identical(next, $EOF) && !identical(next, $STX)) {
       next = bigSwitch(next);
     }
-    if (identical(next, $EOF)) return next;
+    if (identical(next, $EOF)) {
+      beginToken();
+      discardInterpolation();
+      return next;
+    }
     next = advance(); // Move past the $STX.
     beginToken(); // The string interpolation suffix starts here.
     return next;

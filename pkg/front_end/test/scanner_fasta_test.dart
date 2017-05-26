@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/fasta/token_utils.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/scanner/error_token.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
@@ -23,6 +24,10 @@ main() {
 
 @reflectiveTest
 class ScannerTest_Fasta extends ScannerTestBase {
+  ScannerTest_Fasta() {
+    usingFasta = true;
+  }
+
   @override
   Token scanWithListener(String source, ErrorListener listener,
       {bool genericMethodComments: false,
@@ -175,14 +180,6 @@ main() {}
       expect(c1.next, c2);
       expect(c2.next, isNull);
     }
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_string_interpolation() {
-    // TODO(danrubel): fix ToAnalyzerTokenStreamConverter_WithListener
-    // to handle synthetic closers in token stream
-    super.test_incomplete_string_interpolation();
   }
 
   @override
@@ -502,6 +499,32 @@ class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
   Token scan(String source) {
     var scanner = new fasta.StringScanner(source, includeComments: true);
     return scanner.tokenize();
+  }
+
+  test_unterminated_string_with_unterminated_interpolation() {
+    Token token = scan(r'"foo ${bar');
+    BeginToken interpolationStart = token.next;
+
+    Token previous;
+    while (token.kind != fasta.BAD_INPUT_TOKEN) {
+      expect(token.isEof, isFalse);
+      previous = token;
+      token = token.next;
+    }
+
+    // Expect interpolation to be terminated before string is closed
+
+    token = previous;
+    expect(token.isSynthetic, isTrue);
+    expect(token.length, 0);
+    expect(token.stringValue, '}');
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
+    expect((token as fasta.UnmatchedToken).begin, same(interpolationStart));
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
   }
 }
 

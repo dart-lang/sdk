@@ -30,11 +30,19 @@ main() {
 /// These tests help to validate the correctness of the analyzer->Fasta token
 /// stream conversion.
 @reflectiveTest
-class ScannerTest_Replacement extends ScannerTest {
+class ScannerTest_Replacement extends ScannerTestBase {
+  ScannerTest_Replacement() {
+    usingFasta = true;
+  }
+
   @override
   analyzer.Token scanWithListener(String source, ErrorListener listener,
       {bool genericMethodComments: false,
       bool lazyAssignmentOperators: false}) {
+    // Process the source similar to
+    // pkg/analyzer/lib/src/dart/scanner/scanner.dart
+    // to simulate replacing the analyzer scanner
+
     fasta.ScannerResult result = fasta.scanString(source,
         includeComments: true,
         scanGenericMethodComments: genericMethodComments,
@@ -44,6 +52,7 @@ class ScannerTest_Replacement extends ScannerTest {
       // so that the token stream can be validated before and after recovery
       return tokens;
     }));
+
     fasta.Token tokens = result.tokens;
     assertValidTokenStream(tokens);
     assertValidBeginTokens(tokens);
@@ -52,6 +61,10 @@ class ScannerTest_Replacement extends ScannerTest {
       tokens = defaultRecoveryStrategy(bytes, tokens, result.lineStarts);
       assertValidTokenStream(tokens, errorsFirst: true);
     }
+
+    // fasta pretends there is an additional line at EOF
+    result.lineStarts.removeLast();
+
     return extractErrors(tokens, listener);
   }
 

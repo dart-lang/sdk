@@ -159,10 +159,9 @@ Token defaultRecoveryStrategy(
   }
 
   for (Token current = tokens; !current.isEof; current = current.next) {
-    if (current is ErrorToken) {
+    while (current is ErrorToken) {
       ErrorToken first = current;
       Token next = current;
-      bool treatAsWhitespace = false;
       do {
         current = next;
         if (errorTail == null) {
@@ -179,7 +178,7 @@ Token defaultRecoveryStrategy(
       if (code == codeEncoding ||
           code == codeNonAsciiWhitespace ||
           code == codeAsciiControlCharacter) {
-        treatAsWhitespace = true;
+        current = errorTail.next;
       } else if (code == codeNonAsciiIdentifier) {
         current = recoverIdentifier(first);
         assert(current.next != null);
@@ -202,9 +201,8 @@ Token defaultRecoveryStrategy(
         current = recoverUnmatched();
         assert(current.next != null);
       } else {
-        treatAsWhitespace = true;
+        current = errorTail.next;
       }
-      if (treatAsWhitespace) continue;
     }
     if (goodTail == null) {
       good = current;

@@ -94,7 +94,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
     case "UNTERMINATED_STRING_LITERAL":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
-      charOffset = endOffset;
+      charOffset = endOffset - 1;
       return _makeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null);
 
     case "UNTERMINATED_MULTI_LINE_COMMENT":
