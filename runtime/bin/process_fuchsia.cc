@@ -441,7 +441,7 @@ int64_t Process::CurrentRSS() {
     errno = status;
     return -1;
   }
-  return task_stats.mem_committed_bytes;
+  return task_stats.mem_private_bytes + task_stats.mem_shared_bytes;
 }
 
 
