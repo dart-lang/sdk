@@ -561,3 +561,44 @@ cc/Profiler_StringAllocation : Crash
 cc/Profiler_StringInterpolation : Crash
 cc/Profiler_TypedArrayAllocation : Crash
 cc/Service_TokenStream : Crash
+
+[ ($compiler == dartk) && ($runtime == vm) && ($system == macos) ]
+cc/DeepStackTraceInfo : Crash
+cc/Invoke_FunnyArgs : Fail
+cc/Invoke_PrivateStatic : Crash
+cc/IsolateREload_RunNewFieldInitialiazersSuperClass : Crash
+cc/IsolateReload_ComplexInheritanceChange : Crash
+cc/IsolateReload_DanglingGetter_Class : Crash
+cc/IsolateReload_DanglingGetter_Instance : Crash
+cc/IsolateReload_DanglingGetter_Library : Crash
+cc/IsolateReload_DanglingSetter_Class : Crash
+cc/IsolateReload_DanglingSetter_Instance : Crash
+cc/IsolateReload_DanglingSetter_Library : Crash
+cc/IsolateReload_EnumDelete : Crash
+cc/IsolateReload_EnumIdentityReload : Crash
+cc/IsolateReload_LibraryLookup : Crash
+cc/IsolateReload_RunNewFieldInitializersThrows : Crash
+cc/IsolateReload_SavedClosure : Crash
+cc/IsolateReload_TearOff_AddArguments : Crash
+cc/IsolateReload_TearOff_AddArguments2 : Crash
+cc/IsolateReload_TearOff_Class_Identity : Crash
+cc/IsolateReload_TearOff_Instance_Equality : Crash
+cc/IsolateReload_TearOff_Library_Identity : Crash
+cc/IsolateReload_TearOff_List_Set : Crash
+cc/IsolateReload_TypeIdentity : Crash
+cc/IsolateReload_TypeIdentityGeneric : Crash
+cc/IsolateReload_TypeIdentityParameter : Crash
+cc/Parser_AllocateVariables_CaptureLoopVar : Crash
+cc/Parser_AllocateVariables_Issue7681 : Crash
+cc/Parser_AllocateVariables_MiddleChain : Crash
+cc/Parser_AllocateVariables_NestedCapturedVar : Crash
+cc/Parser_AllocateVariables_TwoChains : Crash
+cc/Profiler_BasicSourcePosition : Crash
+cc/Profiler_BasicSourcePositionOptimized : Crash
+cc/Profiler_BinaryOperatorSourcePosition : Crash
+cc/Profiler_BinaryOperatorSourcePositionOptimized : Crash
+cc/Profiler_SourcePosition : Crash
+cc/Profiler_SourcePositionOptimized : Crash
+
+[ ($compiler == dartk) && ($runtime == vm) && ($system == macos) && ($mode == debug)]
+cc/FindCodeObject : Timeout
