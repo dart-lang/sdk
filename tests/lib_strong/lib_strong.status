@@ -161,4 +161,3 @@ html/custom/element_upgrade_test: CompileTimeError # Issue 28969
 html/debugger_test: CompileTimeError # Issue 28969
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
 mirrors/deferred_mirrors_metadata_test: StaticWarning # Issue 28969
-html/svgelement_test: CompileTimeError # Issue 29594

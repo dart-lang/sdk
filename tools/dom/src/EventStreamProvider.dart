@@ -236,7 +236,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
       this._target, this._eventType, void onData(T event), this._useCapture)
       : _onData = onData == null
             ? null
-            : _wrapZone/*<Event, dynamic>*/((e) => (onData as dynamic)(e)) {
+            : _wrapZone<Event, dynamic>((e) => (onData as dynamic)(e)) {
     _tryResume();
   }
 

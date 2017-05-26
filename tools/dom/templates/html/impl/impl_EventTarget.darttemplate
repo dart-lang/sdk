@@ -46,7 +46,7 @@ class Events {
 
   Events(this._ptr);
 
-  Stream operator [](String type) {
+  Stream<Event> operator [](String type) {
     return new _EventStream(_ptr, type, false);
   }
 }
@@ -71,7 +71,7 @@ class ElementEvents extends Events {
 
   ElementEvents(Element ptr) : super(ptr);
 
-  Stream operator [](String type) {
+  Stream<Event> operator [](String type) {
     if (webkitEvents.keys.contains(type.toLowerCase())) {
       if (Device.isWebKit) {
         return new _ElementEventStreamImpl(

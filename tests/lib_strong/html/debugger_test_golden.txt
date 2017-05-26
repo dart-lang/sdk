@@ -7500,54 +7500,6 @@ Value:
         },
         [
             "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_webkitMovementX: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "null"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_webkitMovementY: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "null"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
             {
                 "style": "color: rgb(136, 19, 145); margin-right: -13px"
             },
@@ -7675,6 +7627,34 @@ Value:
                     "style": ""
                 },
                 "[[Instance Methods]]"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "getModifierState: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
             ]
         ]
     ],

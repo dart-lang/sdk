@@ -114,7 +114,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'const_switch_test_02_multi': fail,
       'const_switch_test_04_multi': fail,
       'constructor12_test': fail,
-      'covariant_subtyping_tearoff2_test': fail,     
+      'covariant_subtyping_tearoff2_test': fail,
       'covariant_subtyping_tearoff3_test': fail,
       'covariant_subtyping_unsafe_call2_test': fail,
       'covariant_subtyping_unsafe_call3_test': fail,
@@ -496,7 +496,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
       // was https://github.com/dart-lang/sdk/issues/27578, needs triage
       'speechrecognition_test': firefox_fail,
-      'svgelement_test': chrome_fail,
       'text_event_test': firefox_fail,
 
       // was https://github.com/dart-lang/sdk/issues/27578, needs triage

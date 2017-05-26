@@ -982,15 +982,6 @@ class DomTokenListImpl extends DomTokenList implements js_library.JSObjectInterf
   get runtimeType => DomTokenList;
   toString() => super.toString();
 }
-@patch class DragEvent {
-  static Type get instanceRuntimeType => DragEventImpl;
-
-}
-class DragEventImpl extends DragEvent implements js_library.JSObjectInterfacesDom {
-  DragEventImpl.internal_() : super.internal_();
-  get runtimeType => DragEvent;
-  toString() => super.toString();
-}
 @patch class EffectModel {
   static Type get instanceRuntimeType => EffectModelImpl;
 
@@ -2834,15 +2825,6 @@ class RtcStatsReportImpl extends RtcStatsReport implements js_library.JSObjectIn
 class RtcStatsResponseImpl extends RtcStatsResponse implements js_library.JSObjectInterfacesDom {
   RtcStatsResponseImpl.internal_() : super.internal_();
   get runtimeType => RtcStatsResponse;
-  toString() => super.toString();
-}
-@patch class Scale {
-  static Type get instanceRuntimeType => ScaleImpl;
-
-}
-class ScaleImpl extends Scale implements js_library.JSObjectInterfacesDom {
-  ScaleImpl.internal_() : super.internal_();
-  get runtimeType => Scale;
   toString() => super.toString();
 }
 @patch class Screen {
