@@ -328,6 +328,7 @@ cc/Debug_ScriptGetTokenInfo_Basic : Fail
 cc/Debug_ScriptGetTokenInfo_MultiLineInterpolation : Fail
 cc/Debugger_PrintBreakpointsToJSONArray : Fail
 cc/Debugger_Rewind_Optimized : Timeout
+cc/Debugger_SetBreakpointInFunctionLiteralFieldInitializers : Crash
 cc/ErrorHandleBasics : Fail
 cc/EvalExpression : Crash
 cc/ExternalByteDataAccess : Fail
