@@ -353,6 +353,8 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   void generateTableOfContents() {
     for (var domain in api.domains.where((domain) => !domain.experimental)) {
+      if (domain.experimental) continue;
+
       writeln();
 
       p(() {
@@ -363,6 +365,8 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
       ul(() {
         for (Request request in domain.requests) {
+          if (request.experimental) continue;
+
           li(() {
             link('request_${request.longMethod}', () {
               write(request.longMethod);
