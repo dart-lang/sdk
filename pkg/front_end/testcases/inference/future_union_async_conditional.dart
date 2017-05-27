@@ -25,6 +25,8 @@ Future<int> g2(bool x) async =>
         ? 42
         : new /*@typeArgs=int*/ Future.value(42);
 Future<int> g3(bool x) async {
-  var /*@type=Object*/ y = x ? 42 : new /*@typeArgs=dynamic*/ Future.value(42);
+  var /*@type=Object*/ y = x ? 42 : new /*@typeArgs=int*/ Future.value(42);
   return /*info:DOWN_CAST_COMPOSITE*/ y;
 }
+
+main() {}

@@ -110,8 +110,16 @@ class KernelAwaitExpression extends AwaitExpression
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    typeNeeded =
+        inferrer.listener.awaitExpressionEnter(this, typeContext) || typeNeeded;
+    if (!inferrer.typeSchemaEnvironment.isEmptyContext(typeContext)) {
+      typeContext = inferrer.wrapFutureOrType(typeContext);
+    }
+    var inferredType =
+        inferrer.inferExpression(operand, typeContext, typeNeeded);
+    inferredType = inferrer.typeSchemaEnvironment.flattenFutures(inferredType);
+    inferrer.listener.awaitExpressionExit(this, inferredType);
+    return inferredType;
   }
 }
 

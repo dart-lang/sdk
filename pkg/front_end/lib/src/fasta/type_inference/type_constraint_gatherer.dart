@@ -232,27 +232,48 @@ class TypeConstraintGatherer {
     // `Null` is a subtype match for any type `Q` under no constraints.
     // Note that nullable types will change this.
     if (_isNull(subtype)) return true;
-    // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to `L`
-    // under constraints `C`:
-    // - If `P` is a subtype match for `Q` with respect to `L` under constraints
-    //   `C`.
-    // TODO(paulberry): implement this case.
-    // `FutureOr<P>` is a subtype match for `Q` with respect to `L` under
-    // constraints `C0 + C1`:
-    // - If `Future<P>` is a subtype match for `Q` with respect to `L` under
-    //   constraints `C0`.
-    // - And `P` is a subtype match for `Q` with respect to `L` under
-    //   constraints `C1`.
-    // TODO(paulberry): implement this case.
-    // `P` is a subtype match for `FutureOr<Q>` with respect to `L` under
-    // constraints `C`:
-    // - If `P` is a subtype match for `Future<Q>` with respect to `L` under
-    //   constraints `C`.
-    // - Or `P` is not a subtype match for `Future<Q>` with respect to `L` under
-    //   constraints `C`
-    //   - And `P` is a subtype match for `Q` with respect to `L` under
-    //     constraints `C`
-    // TODO(paulberry): implement this case.
+
+    // Handle FutureOr<T> union type.
+    if (subtype is InterfaceType &&
+        identical(subtype.classNode, environment.futureOrClass)) {
+      var subtypeArg = subtype.typeArguments[0];
+      if (supertype is InterfaceType &&
+          identical(supertype.classNode, environment.futureOrClass)) {
+        // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to `L`
+        // under constraints `C`:
+        // - If `P` is a subtype match for `Q` with respect to `L` under constraints
+        //   `C`.
+        var supertypeArg = supertype.typeArguments[0];
+        return _isSubtypeMatch(subtypeArg, supertypeArg);
+      }
+
+      // `FutureOr<P>` is a subtype match for `Q` with respect to `L` under
+      // constraints `C0 + C1`:
+      // - If `Future<P>` is a subtype match for `Q` with respect to `L` under
+      //   constraints `C0`.
+      // - And `P` is a subtype match for `Q` with respect to `L` under
+      //   constraints `C1`.
+      var subtypeFuture = environment.futureType(subtypeArg);
+      return _isSubtypeMatch(subtypeFuture, supertype) &&
+          _isSubtypeMatch(subtypeArg, supertype);
+    }
+
+    if (supertype is InterfaceType &&
+        identical(supertype.classNode, environment.futureOrClass)) {
+      // `P` is a subtype match for `FutureOr<Q>` with respect to `L` under
+      // constraints `C`:
+      // - If `P` is a subtype match for `Future<Q>` with respect to `L` under
+      //   constraints `C`.
+      // - Or `P` is not a subtype match for `Future<Q>` with respect to `L` under
+      //   constraints `C`
+      //   - And `P` is a subtype match for `Q` with respect to `L` under
+      //     constraints `C`
+      var supertypeArg = supertype.typeArguments[0];
+      var supertypeFuture = environment.futureType(supertypeArg);
+      return trySubtypeMatch(subtype, supertypeFuture) ||
+          _isSubtypeMatch(subtype, supertypeArg);
+    }
+
     // A type variable `T` not in `L` with bound `P` is a subtype match for the
     // same type variable `T` with bound `Q` with respect to `L` under
     // constraints `C`:

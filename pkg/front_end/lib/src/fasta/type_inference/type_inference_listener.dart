@@ -80,6 +80,12 @@ class TypeInferenceListener
   void asExpressionExit(AsExpression expression, DartType inferredType) =>
       debugExpressionExit("asExpression", expression, inferredType);
 
+  bool awaitExpressionEnter(AwaitExpression expression, DartType typeContext) =>
+      debugExpressionEnter("awaitExpression", expression, typeContext);
+
+  void awaitExpressionExit(AwaitExpression expression, DartType inferredType) =>
+      debugExpressionExit("awaitExpression", expression, inferredType);
+
   void blockEnter(Block statement) => debugStatementEnter('block', statement);
 
   void blockExit(Block statement) => debugStatementExit('block', statement);

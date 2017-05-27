@@ -7,9 +7,9 @@ library test;
 
 import 'dart:async';
 
-Future test() async {
+Future main() async {
   dynamic d;
   List<int> l0 = await /*@typeArgs=int*/ [/*info:DYNAMIC_CAST*/ d];
   List<int> l1 = await new /*@typeArgs=List<int>*/ Future.value(
-      /*@typeArgs=dynamic*/ [d]);
+      /*@typeArgs=int*/ [d]);
 }

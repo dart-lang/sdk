@@ -16,3 +16,5 @@ foo() async {
 }
 
 class A {}
+
+main() {}

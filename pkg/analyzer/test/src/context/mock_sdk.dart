@@ -43,7 +43,7 @@ part 'stream.dart';
 class Future<T> {
   factory Future(computation()) => null;
   factory Future.delayed(Duration duration, [T computation()]) => null;
-  factory Future.value([value]) => null;
+  factory Future.value([FutureOr<T> result]) => null;
 
   static Future<List/*<T>*/> wait/*<T>*/(
       Iterable<Future/*<T>*/> futures) => null;

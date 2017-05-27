@@ -436,6 +436,16 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// the statement type and calls the appropriate specialized "infer" method.
   void inferStatement(Statement statement);
 
+  DartType wrapFutureOrType(DartType type) {
+    if (type is InterfaceType &&
+        identical(type.classNode, coreTypes.futureOrClass)) {
+      return type;
+    }
+    // TODO(paulberry): If [type] is a subtype of `Future`, should we just
+    // return it unmodified?
+    return new InterfaceType(coreTypes.futureOrClass, <DartType>[type]);
+  }
+
   DartType wrapFutureType(DartType type) {
     var typeWithoutFutureOr = type ?? const DynamicType();
     if (type is InterfaceType &&
