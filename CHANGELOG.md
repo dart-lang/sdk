@@ -76,6 +76,51 @@ entirely to allow inference to fill in the type.
 ### Tool Changes
 
 * Pub
+    * Added support for the Dart Development Compiler in `build` and `serve`.
+
+      Unlike dart2js, this new compiler is modular, which allows pub to do
+      incremental re-builds for `pub serve`, and potentially `pub build` in the
+      future.
+
+      In practice what that means is you can edit your Dart files, refresh in
+      Chrome (or other supported browsers), and see your edits almost
+      immediately. This is because pub is only recompiling your package, not all
+      packages that you depend on.
+
+      There is one caveat with the new compiler, which is that your package and
+      your dependencies must all be strong mode clean. If you are getting an
+      error compiling one of your dependencies, you will need to file bugs or
+      send pull requests to get them strong mode clean.
+
+      There are two ways of opting into the new compiler:
+
+        * Use the new `--web-compiler` flag, which supports `dartdevc`,
+          `dart2js` or `none` as options. This is the easiest way to try things
+          out without changing the default.
+
+        * Add config to your pubspec. There is a new `web` key which supports a
+          single key called `compiler`. This is a map from mode names to
+          compiler to use. For example, to default to dartdevc in debug mode you
+          can add the following to your pubspec:
+
+          ```yaml
+          web:
+            compiler:
+              debug: dartdevc
+          ```
+
+      You can also use the new compiler to run your tests in Chrome much more
+      quickly than you can with dart2js. In order to do that, run
+      `pub serve test --web-compiler=dartdevc`, and then run
+      `pub run test -p chrome --pub-serve=8080`.
+
+    * The `--no-dart2js` flag has been deprecated in favor of
+      `--web-compiler=none`.
+    * Added support for the UNLICENSE file when validating licenses on
+      `pub lish`.
+    * Better handling for network errors when fetching packages. These are no
+      longer unhandled errors and won't print a stack trace unless you are
+      running in verbose mode.
     * `pub build` will use a failing exit code if there are errors in any
       transformer.
     * Allow publishing packages that depend on the Flutter SDK.
