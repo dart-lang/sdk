@@ -3422,7 +3422,7 @@ class LibraryDependencyWalker extends DependencyWalker<LibraryNode> {
   void evaluateScc(List<LibraryNode> scc) {
     Set<LibraryCycleForLink> dependentCycles = new Set<LibraryCycleForLink>();
     for (LibraryNode node in scc) {
-      for (LibraryNode dependency in node.dependencies) {
+      for (LibraryNode dependency in Node.getDependencies(node)) {
         if (dependency.isEvaluated) {
           dependentCycles.add(dependency._libraryCycle);
         }
