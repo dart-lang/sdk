@@ -9,6 +9,7 @@ library dart2js.dual_source_information;
 
 import '../common.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js/js_source_mapping.dart';
 import '../js/js.dart' as js;
 import '../tree/nodes.dart';
@@ -22,9 +23,9 @@ class MultiSourceInformationStrategy
   const MultiSourceInformationStrategy(this.strategies);
 
   @override
-  SourceInformationBuilder createBuilderForContext(ResolvedAst resolvedAst) {
+  SourceInformationBuilder createBuilderForContext(MemberEntity member) {
     return new MultiSourceInformationBuilder(
-        strategies.map((s) => s.createBuilderForContext(resolvedAst)).toList());
+        strategies.map((s) => s.createBuilderForContext(member)).toList());
   }
 
   @override
@@ -80,9 +81,9 @@ class MultiSourceInformationBuilder implements SourceInformationBuilder {
   MultiSourceInformationBuilder(this.builders);
 
   @override
-  SourceInformationBuilder forContext(ResolvedAst resolvedAst) {
+  SourceInformationBuilder forContext(MemberEntity member) {
     return new MultiSourceInformationBuilder(
-        builders.map((b) => b.forContext(resolvedAst)).toList());
+        builders.map((b) => b.forContext(member)).toList());
   }
 
   @override
@@ -242,9 +243,9 @@ class MultiSourceInformationBuilder implements SourceInformationBuilder {
   }
 
   @override
-  SourceInformation buildDeclaration(ResolvedAst resolvedAst) {
+  SourceInformation buildDeclaration(MemberEntity member) {
     return new MultiSourceInformation(
-        builders.map((b) => b.buildDeclaration(resolvedAst)).toList());
+        builders.map((b) => b.buildDeclaration(member)).toList());
   }
 }
 

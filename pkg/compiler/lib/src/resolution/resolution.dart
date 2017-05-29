@@ -22,6 +22,7 @@ import '../constants/values.dart' show ConstantValue;
 import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart' show AsyncMarker;
 import '../elements/modelx.dart'
     show
         BaseClassElementX,

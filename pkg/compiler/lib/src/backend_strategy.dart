@@ -37,4 +37,7 @@ abstract class BackendStrategy {
   /// Creates the [SsaBuilderTask] used for the element model.
   SsaBuilderTask createSsaBuilderTask(JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy);
+
+  /// Returns the [SourceInformationStrategy] use for the element model.
+  SourceInformationStrategy get sourceInformationStrategy;
 }

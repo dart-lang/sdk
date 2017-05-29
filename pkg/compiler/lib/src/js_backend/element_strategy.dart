@@ -11,7 +11,12 @@ import '../common/work.dart';
 import '../compiler.dart';
 import '../elements/elements.dart';
 import '../enqueue.dart';
+import '../io/multi_information.dart' show MultiSourceInformationStrategy;
+import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart';
+import '../io/start_end_information.dart'
+    show StartEndSourceInformationStrategy;
+import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
 import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/sorter.dart';
@@ -27,6 +32,7 @@ import '../world.dart';
 /// model.
 class ElementBackendStrategy implements BackendStrategy {
   final Compiler _compiler;
+  SourceInformationStrategy _sourceInformationStrategy;
 
   ElementBackendStrategy(this._compiler);
 
@@ -64,6 +70,37 @@ class ElementBackendStrategy implements BackendStrategy {
     return _compiler.options.useKernel
         ? new RastaSsaBuilderTask(backend, sourceInformationStrategy)
         : new SsaAstBuilderTask(backend, sourceInformationStrategy);
+  }
+
+  SourceInformationStrategy get sourceInformationStrategy {
+    return _sourceInformationStrategy ??= createSourceInformationStrategy(
+        generateSourceMap: _compiler.options.generateSourceMap,
+        useMultiSourceInfo: _compiler.options.useMultiSourceInfo,
+        useNewSourceInfo: _compiler.options.useNewSourceInfo);
+  }
+
+  static SourceInformationStrategy createSourceInformationStrategy(
+      {bool generateSourceMap: false,
+      bool useMultiSourceInfo: false,
+      bool useNewSourceInfo: false}) {
+    if (!generateSourceMap) return const JavaScriptSourceInformationStrategy();
+    if (useMultiSourceInfo) {
+      if (useNewSourceInfo) {
+        return const MultiSourceInformationStrategy(const [
+          const PositionSourceInformationStrategy(),
+          const StartEndSourceInformationStrategy()
+        ]);
+      } else {
+        return const MultiSourceInformationStrategy(const [
+          const StartEndSourceInformationStrategy(),
+          const PositionSourceInformationStrategy()
+        ]);
+      }
+    } else if (useNewSourceInfo) {
+      return const PositionSourceInformationStrategy();
+    } else {
+      return const StartEndSourceInformationStrategy();
+    }
   }
 }
 

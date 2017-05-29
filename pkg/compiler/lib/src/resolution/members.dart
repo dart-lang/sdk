@@ -16,6 +16,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart' show AsyncMarker;
 import '../elements/modelx.dart'
     show
         ConstructorElementX,

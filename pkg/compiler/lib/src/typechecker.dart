@@ -17,7 +17,6 @@ import 'elements/elements.dart'
     show
         AbstractFieldElement,
         AstElement,
-        AsyncMarker,
         ClassElement,
         ConstructorElement,
         Element,
@@ -37,6 +36,7 @@ import 'elements/elements.dart'
         TypeDeclarationElement,
         TypedElement,
         VariableElement;
+import 'elements/entities.dart' show AsyncMarker;
 import 'elements/names.dart';
 import 'enqueue.dart' show DeferredAction;
 import 'resolution/class_members.dart' show MembersCreator, ErroneousMember;

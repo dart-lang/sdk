@@ -271,7 +271,7 @@ class SsaBuilder extends ast.Visitor
     graph.element = target;
     sourceElementStack.add(target);
     sourceInformationBuilder =
-        sourceInformationFactory.createBuilderForContext(resolvedAst);
+        sourceInformationFactory.createBuilderForContext(target);
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
     localsHandler = new LocalsHandler(
@@ -665,8 +665,7 @@ class SsaBuilder extends ast.Visitor
       // The [sourceElementStack] contains declaration elements.
       SourceInformationBuilder oldSourceInformationBuilder =
           sourceInformationBuilder;
-      sourceInformationBuilder =
-          sourceInformationBuilder.forContext(resolvedAst);
+      sourceInformationBuilder = sourceInformationBuilder.forContext(element);
       sourceElementStack.add(element.declaration);
       var result = f();
       sourceInformationBuilder = oldSourceInformationBuilder;

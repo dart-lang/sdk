@@ -11,7 +11,8 @@ import 'package:front_end/src/fasta/scanner.dart' show Token;
 
 import '../common.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
-import '../elements/elements.dart' show ResolvedAst, ResolvedAstKind;
+import '../elements/elements.dart'
+    show MemberElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
 import '../tree/tree.dart' show Node;
@@ -112,8 +113,8 @@ class StartEndSourceInformationStrategy
   const StartEndSourceInformationStrategy();
 
   @override
-  SourceInformationBuilder createBuilderForContext(ResolvedAst resolvedAst) {
-    return new StartEndSourceInformationBuilder(resolvedAst);
+  SourceInformationBuilder createBuilderForContext(MemberElement member) {
+    return new StartEndSourceInformationBuilder(member);
   }
 
   @override
@@ -192,12 +193,13 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder {
   final SourceFile sourceFile;
   final String name;
 
-  StartEndSourceInformationBuilder(ResolvedAst resolvedAst)
-      : sourceFile = computeSourceFile(resolvedAst),
-        name = computeElementNameForSourceMaps(resolvedAst.element);
+  StartEndSourceInformationBuilder(MemberElement member)
+      : sourceFile = computeSourceFile(member.resolvedAst),
+        name = computeElementNameForSourceMaps(member.resolvedAst.element);
 
-  SourceInformation buildDeclaration(ResolvedAst resolvedAst) {
-    return StartEndSourceInformation._computeSourceInformation(resolvedAst);
+  SourceInformation buildDeclaration(MemberElement member) {
+    return StartEndSourceInformation
+        ._computeSourceInformation(member.resolvedAst);
   }
 
   SourceLocation sourceFileLocationForToken(Token token) {
@@ -253,8 +255,8 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder {
   SourceInformation buildIf(Node node) => buildGeneric(node);
 
   @override
-  SourceInformationBuilder forContext(ResolvedAst resolvedAst,
+  SourceInformationBuilder forContext(MemberElement member,
       {SourceInformation sourceInformation}) {
-    return new StartEndSourceInformationBuilder(resolvedAst);
+    return new StartEndSourceInformationBuilder(member);
   }
 }

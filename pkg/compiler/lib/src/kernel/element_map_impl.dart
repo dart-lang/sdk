@@ -304,11 +304,30 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
       bool isExternal = node.isExternal;
       bool isAbstract = node.isAbstract;
       KFunction function;
+      AsyncMarker asyncMarker;
+      switch (node.function.asyncMarker) {
+        case ir.AsyncMarker.Async:
+          asyncMarker = AsyncMarker.ASYNC;
+          break;
+        case ir.AsyncMarker.AsyncStar:
+          asyncMarker = AsyncMarker.ASYNC_STAR;
+          break;
+        case ir.AsyncMarker.Sync:
+          asyncMarker = AsyncMarker.SYNC;
+          break;
+        case ir.AsyncMarker.SyncStar:
+          asyncMarker = AsyncMarker.SYNC_STAR;
+          break;
+        case ir.AsyncMarker.SyncYielding:
+          throw new UnsupportedError(
+              "Async marker ${node.function.asyncMarker} is not supported.");
+      }
       switch (node.kind) {
         case ir.ProcedureKind.Factory:
           throw new UnsupportedError("Cannot create method from factory.");
         case ir.ProcedureKind.Getter:
-          function = new KGetter(memberIndex, library, enclosingClass, name,
+          function = new KGetter(
+              memberIndex, library, enclosingClass, name, asyncMarker,
               isStatic: isStatic,
               isExternal: isExternal,
               isAbstract: isAbstract);
@@ -316,12 +335,13 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
         case ir.ProcedureKind.Method:
         case ir.ProcedureKind.Operator:
           function = new KMethod(memberIndex, library, enclosingClass, name,
-              _getParameterStructure(node.function),
+              _getParameterStructure(node.function), asyncMarker,
               isStatic: isStatic,
               isExternal: isExternal,
               isAbstract: isAbstract);
           break;
         case ir.ProcedureKind.Setter:
+          assert(asyncMarker == AsyncMarker.SYNC);
           function = new KSetter(
               memberIndex, library, enclosingClass, getName(node.name).setter,
               isStatic: isStatic,

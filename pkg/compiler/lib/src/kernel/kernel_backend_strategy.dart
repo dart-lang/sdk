@@ -73,6 +73,10 @@ class KernelBackendStrategy implements BackendStrategy {
       SourceInformationStrategy sourceInformationStrategy) {
     return new KernelSsaBuilderTask(backend.compiler);
   }
+
+  @override
+  SourceInformationStrategy get sourceInformationStrategy =>
+      const SourceInformationStrategy();
 }
 
 class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
@@ -124,9 +128,9 @@ class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
         new KernelToTypeInferenceMapImpl(closedWorld),
         closedWorld,
         work.registry,
+        // TODO(johnniwinther): Support these:
         const KernelClosureClassMaps(),
         const SourceInformationBuilder(),
-        // TODO(johnniwinther): Support these:
         null, // Function node used as capture scope id.
         targetIsConstructorBody: false);
     return builder.build();

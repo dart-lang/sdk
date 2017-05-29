@@ -44,7 +44,7 @@ class RastaSsaBuilderTask extends SsaAstBuilderBase {
           closedWorld,
           work.registry,
           backend.compiler.closureToClassMapper,
-          sourceInformationFactory.createBuilderForContext(resolvedAst),
+          sourceInformationFactory.createBuilderForContext(work.element),
           resolvedAst.kind == ResolvedAstKind.PARSED ? resolvedAst.node : null,
           targetIsConstructorBody: element is ConstructorBodyElement);
       HGraph graph = builder.build();

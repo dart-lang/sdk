@@ -4,8 +4,7 @@
 
 library dart2js.common.codegen;
 
-import '../elements/elements.dart'
-    show AsyncMarker, ClassElement, LocalFunctionElement;
+import '../elements/elements.dart' show ClassElement, LocalFunctionElement;
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;

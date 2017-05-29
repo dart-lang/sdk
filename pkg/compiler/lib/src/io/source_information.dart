@@ -13,6 +13,7 @@ import '../elements/elements.dart'
         LocalElement,
         ResolvedAst,
         ResolvedAstKind;
+import '../elements/entities.dart';
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
 import '../script.dart';
 import '../tree/tree.dart' show Node;
@@ -45,8 +46,8 @@ abstract class SourceInformation extends JavaScriptNodeSourceInformation {
 class SourceInformationStrategy {
   const SourceInformationStrategy();
 
-  /// Create a [SourceInformationBuilder] for [resolvedAst].
-  SourceInformationBuilder createBuilderForContext(ResolvedAst resolvedAst) {
+  /// Create a [SourceInformationBuilder] for [member].
+  SourceInformationBuilder createBuilderForContext(MemberEntity member) {
     return const SourceInformationBuilder();
   }
 
@@ -61,12 +62,11 @@ class SourceInformationStrategy {
 class SourceInformationBuilder {
   const SourceInformationBuilder();
 
-  /// Create a [SourceInformationBuilder] for [resolvedAst].
-  SourceInformationBuilder forContext(ResolvedAst resolvedAst) => this;
+  /// Create a [SourceInformationBuilder] for [member].
+  SourceInformationBuilder forContext(MemberEntity member) => this;
 
-  /// Generate [SourceInformation] the declaration of the element in
-  /// [resolvedAst].
-  SourceInformation buildDeclaration(ResolvedAst resolvedAst) => null;
+  /// Generate [SourceInformation] the declaration of the [member].
+  SourceInformation buildDeclaration(MemberEntity member) => null;
 
   /// Generate [SourceInformation] for the generic [node].
   @deprecated

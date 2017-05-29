@@ -35,7 +35,6 @@ import '../diagnostics/spannable.dart' show Spannable;
 import '../elements/elements.dart'
     show
         AstElement,
-        AsyncMarker,
         ClassElement,
         ConstructorElement,
         Element,
@@ -53,6 +52,7 @@ import '../elements/elements.dart'
         ParameterElement,
         PrefixElement,
         TypeVariableElement;
+import '../elements/entities.dart' show AsyncMarker;
 import '../elements/names.dart' show Name;
 import '../elements/operators.dart'
     show AssignmentOperator, BinaryOperator, IncDecOperator, UnaryOperator;

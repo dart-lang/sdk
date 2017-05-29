@@ -11,7 +11,6 @@ import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;
 import '../constants/expressions.dart';
 import '../common_elements.dart' show ElementEnvironment;
-import '../elements/elements.dart' show AsyncMarker;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart' show Types;
 import '../elements/types.dart';

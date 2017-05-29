@@ -30,14 +30,9 @@ import '../enqueue.dart'
         ResolutionEnqueuer,
         TreeShakingEnqueuerStrategy;
 import '../frontend_strategy.dart';
-import '../io/multi_information.dart' show MultiSourceInformationStrategy;
-import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart' show SourceInformationStrategy;
-import '../io/start_end_information.dart'
-    show StartEndSourceInformationStrategy;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../kernel/task.dart';
@@ -454,30 +449,6 @@ class JavaScriptBackend {
 
   Tracer tracer;
 
-  static SourceInformationStrategy createSourceInformationStrategy(
-      {bool generateSourceMap: false,
-      bool useMultiSourceInfo: false,
-      bool useNewSourceInfo: false}) {
-    if (!generateSourceMap) return const JavaScriptSourceInformationStrategy();
-    if (useMultiSourceInfo) {
-      if (useNewSourceInfo) {
-        return const MultiSourceInformationStrategy(const [
-          const PositionSourceInformationStrategy(),
-          const StartEndSourceInformationStrategy()
-        ]);
-      } else {
-        return const MultiSourceInformationStrategy(const [
-          const StartEndSourceInformationStrategy(),
-          const PositionSourceInformationStrategy()
-        ]);
-      }
-    } else if (useNewSourceInfo) {
-      return const PositionSourceInformationStrategy();
-    } else {
-      return const StartEndSourceInformationStrategy();
-    }
-  }
-
   JavaScriptBackend(this.compiler,
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
@@ -488,10 +459,8 @@ class JavaScriptBackend {
             compiler.elementEnvironment, compiler.frontEndStrategy.dartTypes),
         optimizerHints = new OptimizerHintsForTests(
             compiler.elementEnvironment, compiler.commonElements),
-        this.sourceInformationStrategy = createSourceInformationStrategy(
-            generateSourceMap: generateSourceMap,
-            useMultiSourceInfo: useMultiSourceInfo,
-            useNewSourceInfo: useNewSourceInfo),
+        this.sourceInformationStrategy =
+            compiler.backendStrategy.sourceInformationStrategy,
         constantCompilerTask = new JavaScriptConstantTask(compiler),
         _nativeDataResolver = new NativeDataResolverImpl(compiler),
         _rtiNeedBuilder =
