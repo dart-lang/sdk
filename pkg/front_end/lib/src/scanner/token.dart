@@ -716,15 +716,21 @@ class SyntheticKeywordToken extends KeywordToken {
  * A token whose value is independent of it's type.
  */
 class SyntheticStringToken extends StringToken {
+  final int _length;
+
   /**
    * Initialize a newly created token to represent a token of the given [type]
-   * with the given [value] at the given [offset].
+   * with the given [value] at the given [offset]. If the [length] is
+   * not specified, then it defaults to the length of [value].
    */
-  SyntheticStringToken(TokenType type, String value, int offset)
+  SyntheticStringToken(TokenType type, String value, int offset, [this._length])
       : super(type, value, offset);
 
   @override
   bool get isSynthetic => true;
+
+  @override
+  int get length => _length ?? super.length;
 
   @override
   Token copy() => new SyntheticStringToken(type, _value, offset);
