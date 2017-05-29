@@ -1351,6 +1351,8 @@ class SsaBuilder extends ast.Visitor
     HInstruction interceptor = null;
     for (int index = constructorResolvedAsts.length - 1; index >= 0; index--) {
       ResolvedAst constructorResolvedAst = constructorResolvedAsts[index];
+      ConstructorElement constructor =
+          constructorResolvedAst.element.implementation;
       ConstructorBodyElement body =
           ConstructorBodyElementX.createFromResolvedAst(constructorResolvedAst);
       if (body == null) continue;
@@ -1366,7 +1368,7 @@ class SsaBuilder extends ast.Visitor
       bodyCallInputs.add(newObject);
       ast.Node node = constructorResolvedAst.node;
       ClosureClassMap parameterClosureData =
-          closureToClassMapper.getMemberMap(functionElement);
+          closureToClassMapper.getMemberMap(constructor);
 
       FunctionSignature functionSignature = body.functionSignature;
       // Provide the parameters to the generative constructor body.
@@ -1387,8 +1389,6 @@ class SsaBuilder extends ast.Visitor
       }
 
       // Type variables arguments must come after the box (if there is one).
-      ConstructorElement constructor =
-          constructorResolvedAst.element.implementation;
       ClassElement currentClass = constructor.enclosingClass;
       if (rtiNeed.classNeedsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
