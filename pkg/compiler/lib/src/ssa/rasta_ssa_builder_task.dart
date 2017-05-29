@@ -37,13 +37,16 @@ class RastaSsaBuilderTask extends SsaAstBuilderBase {
       KernelSsaBuilder builder = new KernelSsaBuilder(
           element,
           element.contextClass,
+          astAdapter.getInitialKernelNode(element),
           backend.compiler,
           astAdapter,
           typeInferenceMap,
           closedWorld,
           work.registry,
+          backend.compiler.closureToClassMapper,
           sourceInformationFactory.createBuilderForContext(resolvedAst),
-          resolvedAst.kind == ResolvedAstKind.PARSED ? resolvedAst.node : null);
+          resolvedAst.kind == ResolvedAstKind.PARSED ? resolvedAst.node : null,
+          targetIsConstructorBody: element is ConstructorBodyElement);
       HGraph graph = builder.build();
 
       if (backend.tracer.isEnabled) {

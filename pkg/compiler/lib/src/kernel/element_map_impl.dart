@@ -690,6 +690,11 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   Spannable getSpannable(MemberEntity member, ir.Node node) {
     return member;
   }
+
+  /// Returns the kernel IR node that defines the [member].
+  ir.Member getMemberNode(KMember member) {
+    return _memberList[member.memberIndex].node;
+  }
 }
 
 /// Environment for fast lookup of program libraries.

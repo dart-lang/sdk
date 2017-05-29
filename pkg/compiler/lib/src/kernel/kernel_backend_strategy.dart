@@ -7,6 +7,7 @@ library dart2js.kernel.backend_strategy;
 import 'package:kernel/ast.dart' as ir;
 
 import '../backend_strategy.dart';
+import '../closure.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart';
 import '../compiler.dart';
@@ -17,6 +18,7 @@ import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/sorter.dart';
 import '../kernel/element_map.dart';
+import '../kernel/element_map_impl.dart';
 import '../native/behavior.dart';
 import '../ssa/builder_kernel.dart';
 import '../ssa/nodes.dart';
@@ -106,7 +108,7 @@ class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
 
   KernelSsaBuilderTask(this._compiler) : super(_compiler.measurer);
 
-  KernelToElementMap get _elementMap {
+  KernelToElementMapImpl get _elementMap {
     KernelFrontEndStrategy frontEndStrategy = _compiler.frontEndStrategy;
     return frontEndStrategy.elementMap;
   }
@@ -116,13 +118,17 @@ class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
     KernelSsaBuilder builder = new KernelSsaBuilder(
         work.element,
         work.element.enclosingClass,
+        _elementMap.getMemberNode(work.element),
         _compiler,
         _elementMap,
         new KernelToTypeInferenceMapImpl(closedWorld),
         closedWorld,
         work.registry,
+        const KernelClosureClassMaps(),
         const SourceInformationBuilder(),
-        null);
+        // TODO(johnniwinther): Support these:
+        null, // Function node used as capture scope id.
+        targetIsConstructorBody: false);
     return builder.build();
   }
 }
@@ -199,5 +205,20 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   @override
   TypeMask getReturnTypeOf(FunctionEntity function) {
     return _closedWorld.commonMasks.dynamicType;
+  }
+}
+
+/// TODO(johnniwinther,efortuna): Implement this.
+class KernelClosureClassMaps implements ClosureClassMaps {
+  const KernelClosureClassMaps();
+
+  @override
+  ClosureClassMap getLocalFunctionMap(Local localFunction) {
+    return new ClosureClassMap(null, null, null, null);
+  }
+
+  @override
+  ClosureClassMap getMemberMap(MemberEntity member) {
+    return new ClosureClassMap(null, null, null, null);
   }
 }

@@ -856,14 +856,13 @@ class SsaBuilder extends ast.Visitor
    * stores it in the [returnLocal] field.
    */
   void setupStateForInlining(
-      FunctionElement function, List<HInstruction> compiledArguments,
+      MethodElement function, List<HInstruction> compiledArguments,
       {ResolutionInterfaceType instanceType}) {
     ResolvedAst resolvedAst = function.resolvedAst;
     assert(resolvedAst != null);
     localsHandler = new LocalsHandler(this, function, function.memberContext,
         function.contextClass, instanceType, nativeData, interceptorData);
-    localsHandler.closureData =
-        closureToClassMapper.getClosureToClassMapping(resolvedAst);
+    localsHandler.closureData = closureToClassMapper.getMemberMap(function);
     returnLocal =
         new SyntheticLocal("result", function, function.memberContext);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(closedWorld));
@@ -1031,10 +1030,11 @@ class SsaBuilder extends ast.Visitor
       elementInferenceResults = globalInferenceResults.resultOfMember(callee);
       ClosureClassMap oldClosureData = localsHandler.closureData;
       ClosureClassMap newClosureData =
-          closureToClassMapper.getClosureToClassMapping(resolvedAst);
+          closureToClassMapper.getMemberMap(callee);
       localsHandler.closureData = newClosureData;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        localsHandler.enterScope(resolvedAst.node, callee);
+        localsHandler.enterScope(resolvedAst.node,
+            forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
       localsHandler.closureData = oldClosureData;
@@ -1205,9 +1205,6 @@ class SsaBuilder extends ast.Visitor
           final oldElementInferenceResults = elementInferenceResults;
           elementInferenceResults =
               globalInferenceResults.resultOfMember(member);
-          // In case the field initializer uses closures, run the
-          // closure to class mapper.
-          closureToClassMapper.getClosureToClassMapping(resolvedAst);
           inlinedFrom(fieldResolvedAst, () => right.accept(this));
           resolvedAst = savedResolvedAst;
           elementInferenceResults = oldElementInferenceResults;
@@ -1370,7 +1367,7 @@ class SsaBuilder extends ast.Visitor
       bodyCallInputs.add(newObject);
       ast.Node node = constructorResolvedAst.node;
       ClosureClassMap parameterClosureData =
-          closureToClassMapper.getClosureToClassMapping(constructorResolvedAst);
+          closureToClassMapper.getMemberMap(functionElement);
 
       FunctionSignature functionSignature = body.functionSignature;
       // Provide the parameters to the generative constructor body.
@@ -1436,7 +1433,8 @@ class SsaBuilder extends ast.Visitor
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
 
-    localsHandler.startFunction(element, node);
+    localsHandler.startFunction(element, node,
+        isGenerativeConstructorBody: element.isGenerativeConstructorBody);
     close(new HGoto()).addSuccessor(block);
 
     open(block);
@@ -1864,8 +1862,8 @@ class SsaBuilder extends ast.Visitor
 
   visitFunctionExpression(ast.FunctionExpression node) {
     LocalFunctionElement methodElement = elements[node];
-    ClosureClassMap nestedClosureData = closureToClassMapper
-        .getClosureToClassMapping(methodElement.resolvedAst);
+    ClosureClassMap nestedClosureData =
+        closureToClassMapper.getLocalFunctionMap(methodElement);
     assert(nestedClosureData != null);
     assert(nestedClosureData.closureClassElement != null);
     ClosureClassElement closureClassElement =

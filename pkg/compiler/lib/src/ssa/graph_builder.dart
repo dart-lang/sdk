@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../closure.dart';
+import '../closure.dart' show ClosureClassMaps;
 import '../constants/constant_system.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common_elements.dart';
@@ -72,7 +72,7 @@ abstract class GraphBuilder {
   GlobalTypeInferenceResults get globalInferenceResults =>
       compiler.globalInference.results;
 
-  ClosureTask get closureToClassMapper => compiler.closureToClassMapper;
+  ClosureClassMaps get closureToClassMapper => compiler.closureToClassMapper;
 
   NativeData get nativeData => closedWorld.nativeData;
 

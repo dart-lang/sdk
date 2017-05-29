@@ -45,8 +45,8 @@ import 'type_builder.dart';
 import 'types.dart' show TypeMaskFactory;
 
 class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
-  ir.Node target;
-  bool _targetIsConstructorBody = false;
+  final ir.Node target;
+  final bool _targetIsConstructorBody;
   final MemberEntity targetElement;
 
   /// The root node of [targetElement]. This is used as the key into the
@@ -56,6 +56,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   final Node functionNode;
   final ClosedWorld closedWorld;
   final CodegenRegistry registry;
+  final ClosureClassMaps closureToClassMapper;
 
   /// Helper accessor for all kernel function-like targets (Procedure,
   /// FunctionExpression, FunctionDeclaration) of the inner FunctionNode itself.
@@ -98,14 +99,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   KernelSsaBuilder(
       this.targetElement,
       ClassEntity contextClass,
+      this.target,
       this.compiler,
       this._elementMap,
       this._typeInferenceMap,
       this.closedWorld,
       this.registry,
+      this.closureToClassMapper,
       // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
       this.sourceInformationBuilder,
-      this.functionNode) {
+      this.functionNode,
+      {bool targetIsConstructorBody: false})
+      : this._targetIsConstructorBody = targetIsConstructorBody {
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new TypeBuilder(this);
     graph.element = targetElement;
@@ -113,10 +118,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler = new LocalsHandler(this, targetElement, targetElement,
         contextClass, null, nativeData, interceptorData);
-    target = astAdapter.getInitialKernelNode(targetElement);
-    if (targetElement is ConstructorBodyElement) {
-      _targetIsConstructorBody = true;
-    }
     _targetStack.add(target);
   }
 
@@ -315,8 +316,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // arguments.
 
       ConstructorElement constructorElement = astAdapter.getElement(body);
-      ClosureClassMap parameterClosureData = closureToClassMapper
-          .getClosureToClassMapping(constructorElement.resolvedAst);
+      ClosureClassMap parameterClosureData =
+          closureToClassMapper.getMemberMap(constructorElement);
 
       var functionSignature = astAdapter.getFunctionSignature(body.function);
       // Provide the parameters to the generative constructor body.
@@ -584,15 +585,15 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     // Set the locals handler state as if we were inlining the constructor.
     astAdapter.pushResolvedAst(constructor);
-    AstElement astElement = astAdapter.getElement(constructor);
+    ConstructorElement astElement = astAdapter.getElement(constructor);
     ResolvedAst resolvedAst = astElement.resolvedAst;
     ClosureClassMap oldClosureData = localsHandler.closureData;
     ClosureClassMap newClosureData =
-        compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
+        closureToClassMapper.getMemberMap(astElement);
     localsHandler.closureData = newClosureData;
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      localsHandler.enterScope(
-          resolvedAst.node, astAdapter.getElement(constructor));
+      localsHandler.enterScope(resolvedAst.node,
+          forGenerativeConstructorBody: astElement.isGenerativeConstructorBody);
     }
     inlinedFrom(constructor, () {
       _buildInitializers(constructor, constructorChain, fieldValues);
@@ -664,7 +665,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
 
-    localsHandler.startFunction(targetElement, functionNode);
+    localsHandler.startFunction(targetElement, functionNode,
+        isGenerativeConstructorBody: _targetIsConstructorBody);
     close(new HGoto()).addSuccessor(block);
 
     open(block);
@@ -721,7 +723,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     Element callMethodOfClosureClass() {
       LocalFunctionElement element = astAdapter.getElement(target);
       ClosureClassMap classMap =
-          closureToClassMapper.getClosureToClassMapping(element.resolvedAst);
+          closureToClassMapper.getLocalFunctionMap(element);
       return classMap.callElement;
     }
 
@@ -2253,7 +2255,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   void visitStaticInvocation(ir.StaticInvocation invocation) {
     ir.Procedure target = invocation.target;
-    if (astAdapter.isForeignLibrary(target.enclosingLibrary)) {
+    if (_elementMap.isForeignLibrary(target.enclosingLibrary)) {
       handleInvokeStaticForeign(invocation, target);
       return;
     }
@@ -2779,8 +2781,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   visitFunctionNode(ir.FunctionNode node) {
     LocalFunctionElement methodElement = astAdapter.getElement(node);
-    ClosureClassMap nestedClosureData = closureToClassMapper
-        .getClosureToClassMapping(methodElement.resolvedAst);
+    ClosureClassMap nestedClosureData =
+        closureToClassMapper.getLocalFunctionMap(methodElement);
     assert(nestedClosureData != null);
     assert(nestedClosureData.closureClassElement != null);
     ClosureClassElement closureClassElement =

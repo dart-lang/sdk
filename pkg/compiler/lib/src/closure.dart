@@ -23,7 +23,12 @@ import 'tree/tree.dart';
 import 'util/util.dart';
 import 'world.dart' show ClosedWorldRefiner;
 
-class ClosureTask extends CompilerTask {
+abstract class ClosureClassMaps {
+  ClosureClassMap getMemberMap(MemberEntity member);
+  ClosureClassMap getLocalFunctionMap(Local localFunction);
+}
+
+class ClosureTask extends CompilerTask implements ClosureClassMaps {
   Map<Element, ClosureClassMap> _closureMappingCache =
       <Element, ClosureClassMap>{};
   Compiler compiler;
@@ -34,6 +39,14 @@ class ClosureTask extends CompilerTask {
   String get name => "Closure Simplifier";
 
   DiagnosticReporter get reporter => compiler.reporter;
+
+  ClosureClassMap getMemberMap(MemberElement member) {
+    return getClosureToClassMapping(member.resolvedAst);
+  }
+
+  ClosureClassMap getLocalFunctionMap(LocalFunctionElement localFunction) {
+    return getClosureToClassMapping(localFunction.resolvedAst);
+  }
 
   /// Returns the [ClosureClassMap] computed for [resolvedAst].
   ClosureClassMap getClosureToClassMapping(ResolvedAst resolvedAst) {

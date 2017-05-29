@@ -85,7 +85,7 @@ class LocalsHandler {
   GlobalTypeInferenceResults get _globalInferenceResults =>
       builder.globalInferenceResults;
 
-  ClosureTask get _closureToClassMapper => builder.closureToClassMapper;
+  ClosureClassMaps get _closureToClassMapper => builder.closureToClassMapper;
 
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
@@ -136,14 +136,14 @@ class LocalsHandler {
 
   /// If the scope (function or loop) [node] has captured variables then this
   /// method creates a box and sets up the redirections.
-  void enterScope(ast.Node node, Element element) {
+  void enterScope(ast.Node node, {bool forGenerativeConstructorBody: false}) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData == null) return;
     HInstruction box;
     // The scope has captured variables.
-    if (element != null && element.isGenerativeConstructorBody) {
+    if (forGenerativeConstructorBody) {
       // The box is passed as a parameter to a generative
       // constructor body.
       box = builder.addParameter(scopeData.boxElement, commonMasks.nonNullType);
@@ -158,7 +158,7 @@ class LocalsHandler {
         (LocalVariableElement from, BoxFieldElement to) {
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
-      if (from.isRegularParameter && !element.isGenerativeConstructorBody) {
+      if (from.isRegularParameter && !forGenerativeConstructorBody) {
         // Now that the redirection is set up, the update to the local will
         // write the parameter value into the box.
         // Store the captured parameter in the box. Get the current value
@@ -197,10 +197,11 @@ class LocalsHandler {
   /// Documentation wanted -- johnniwinther
   ///
   /// Invariant: [function] must be an implementation element.
-  void startFunction(MemberElement element, ast.Node node) {
-    assert(invariant(element, element.isImplementation));
-    closureData =
-        _closureToClassMapper.getClosureToClassMapping(element.resolvedAst);
+  void startFunction(MemberEntity element, ast.Node node,
+      {bool isGenerativeConstructorBody}) {
+    assert(invariant(
+        element, !(element is MemberElement && !element.isImplementation)));
+    closureData = _closureToClassMapper.getMemberMap(element);
 
     if (element is MethodElement) {
       MethodElement functionElement = element;
@@ -224,7 +225,7 @@ class LocalsHandler {
       });
     }
 
-    enterScope(node, element);
+    enterScope(node, forGenerativeConstructorBody: isGenerativeConstructorBody);
 
     // If the freeVariableMapping is not empty, then this function was a
     // nested closure that captures variables. Redirect the captured
@@ -258,11 +259,11 @@ class LocalsHandler {
     // and passed to the generative constructor factory function as a parameter.
     // Instead of allocating and initializing the object, the constructor
     // 'upgrades' the native subclass object by initializing the Dart fields.
-    bool isNativeUpgradeFactory = element.isGenerativeConstructor &&
+    bool isNativeUpgradeFactory = element is ConstructorEntity &&
+        element.isGenerativeConstructor &&
         _nativeData.isNativeOrExtendsNative(cls);
     if (_interceptorData.isInterceptedMethod(element)) {
-      bool isInterceptedClass =
-          _interceptorData.isInterceptedClass(cls.declaration);
+      bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
       String name = isInterceptedClass ? 'receiver' : '_';
       SyntheticLocal parameter = createLocal(name);
       HParameterValue value = new HParameterValue(parameter, getTypeOfThis());
@@ -483,7 +484,7 @@ class LocalsHandler {
       // redirections already now. This way the initializer can write its
       // values into the box.
       // For other loops the box will be created when entering the body.
-      enterScope(node, null);
+      enterScope(node);
     }
   }
 
@@ -516,7 +517,7 @@ class LocalsHandler {
     // If there are no declared boxed loop variables then we did not create the
     // box before the initializer and we have to create the box now.
     if (!scopeData.hasBoxedLoopVariables()) {
-      enterScope(node, null);
+      enterScope(node);
     }
   }
 
