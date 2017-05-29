@@ -347,6 +347,8 @@
     'object_store_test.cc',
     'object_test.cc',
     'object_x64_test.cc',
+    'optimizer.cc',
+    'optimizer.h',
     'os.h',
     'os_android.cc',
     'os_fuchsia.cc',
