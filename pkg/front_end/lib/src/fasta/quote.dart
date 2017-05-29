@@ -130,12 +130,10 @@ String unescapeLastStringPart(String last, Quote quote) {
 
 String unescapeString(String string) {
   Quote quote = analyzeQuote(string);
-  int startIndex = firstQuoteLength(string, quote);
-  if (startIndex == string.length) {
-    return '';
-  }
-  int endIndex = string.length - lastQuoteLength(quote);
-  return unescape(string.substring(startIndex, endIndex), quote);
+  return unescape(
+      string.substring(firstQuoteLength(string, quote),
+          string.length - lastQuoteLength(quote)),
+      quote);
 }
 
 String unescape(String string, Quote quote) {

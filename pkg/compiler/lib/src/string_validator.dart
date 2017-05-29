@@ -25,13 +25,7 @@ class StringValidator {
     int leftQuote = 0;
     int rightQuote = 0;
     if (isFirst) leftQuote = quoting.leftQuoteLength;
-    if (isLast) {
-      // Check for unterminated string
-      if (leftQuote < source.length &&
-          source[source.length - 1] == quoting.quoteChar) {
-        rightQuote = quoting.rightQuoteLength;
-      }
-    }
+    if (isLast) rightQuote = quoting.rightQuoteLength;
     String content = copyWithoutQuotes(source, leftQuote, rightQuote);
     return validateString(
         token, token.charOffset + leftQuote, content, quoting);
