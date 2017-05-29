@@ -959,6 +959,10 @@ class Parser : public ValueObject {
   Thread* thread_;    // Cached current thread.
   Isolate* isolate_;  // Cached current isolate.
 
+  // It is Heap::kNew for mutator thread and Heap::kOld for other threads (e.g.
+  // background compiler).
+  Heap::Space allocation_space_;
+
   Script& script_;
   TokenStream::Iterator tokens_iterator_;
   Token::Kind token_kind_;  // Cached token kind for current token.
