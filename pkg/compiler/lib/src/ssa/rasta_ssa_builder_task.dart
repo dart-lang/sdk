@@ -32,11 +32,14 @@ class RastaSsaBuilderTask extends SsaAstBuilderBase {
       Kernel kernel = backend.kernelTask.kernel;
       KernelAstAdapter astAdapter = new KernelAstAdapter(kernel, backend,
           work.resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
+      KernelAstTypeInferenceMap typeInferenceMap =
+          new KernelAstTypeInferenceMap(astAdapter);
       KernelSsaBuilder builder = new KernelSsaBuilder(
           element,
           element.contextClass,
           backend.compiler,
           astAdapter,
+          typeInferenceMap,
           closedWorld,
           work.registry,
           sourceInformationFactory.createBuilderForContext(resolvedAst),

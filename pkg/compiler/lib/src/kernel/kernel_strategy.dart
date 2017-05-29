@@ -5,22 +5,18 @@
 library dart2js.kernel.frontend_strategy;
 
 import '../closure.dart';
-import '../backend_strategy.dart';
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart';
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
-import '../compiler.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../environment.dart' as env;
 import '../enqueue.dart';
 import '../frontend_strategy.dart';
-import '../io/source_information.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/custom_elements_analysis.dart';
@@ -30,14 +26,9 @@ import '../js_backend/mirrors_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
-import '../js_emitter/sorter.dart';
-import '../kernel/element_map.dart';
 import '../library_loader.dart';
 import '../native/resolver.dart';
 import '../serialization/task.dart';
-import '../ssa/builder_kernel.dart';
-import '../ssa/nodes.dart';
-import '../ssa/ssa.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
 import '../universe/world_builder.dart';
@@ -245,50 +236,6 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
   void onResolutionComplete() {}
 }
 
-/// Backend strategy that uses the kernel elements as the backend model.
-// TODO(johnniwinther): Replace this with a strategy based on the J-element
-// model.
-class KernelBackendStrategy implements BackendStrategy {
-  final Compiler _compiler;
-
-  KernelBackendStrategy(this._compiler);
-
-  @override
-  ClosedWorldRefiner createClosedWorldRefiner(KernelClosedWorld closedWorld) {
-    return closedWorld;
-  }
-
-  @override
-  Sorter get sorter =>
-      throw new UnimplementedError('KernelBackendStrategy.sorter');
-
-  @override
-  void convertClosures(ClosedWorldRefiner closedWorldRefiner) {
-    // TODO(johnniwinther,efortuna): Compute closure classes for kernel based
-    // elements.
-  }
-
-  @override
-  WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
-    return new KernelCodegenWorkItemBuilder(_compiler.backend, closedWorld);
-  }
-
-  @override
-  CodegenWorldBuilder createCodegenWorldBuilder(
-      NativeBasicData nativeBasicData,
-      ClosedWorld closedWorld,
-      SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new KernelCodegenWorldBuilder(_compiler.elementEnvironment,
-        nativeBasicData, closedWorld, selectorConstraintsStrategy);
-  }
-
-  @override
-  SsaBuilderTask createSsaBuilderTask(JavaScriptBackend backend,
-      SourceInformationStrategy sourceInformationStrategy) {
-    return new KernelSsaBuilderTask(backend.compiler);
-  }
-}
-
 class MirrorsCodegenAnalysisImpl implements MirrorsCodegenAnalysis {
   @override
   int get preMirrorsMethodCount {
@@ -299,58 +246,5 @@ class MirrorsCodegenAnalysisImpl implements MirrorsCodegenAnalysis {
   @override
   void onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
     throw new UnimplementedError('MirrorsCodegenAnalysisImpl.onQueueEmpty');
-  }
-}
-
-class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
-  final JavaScriptBackend _backend;
-  final ClosedWorld _closedWorld;
-
-  KernelCodegenWorkItemBuilder(this._backend, this._closedWorld);
-
-  @override
-  CodegenWorkItem createWorkItem(MemberEntity entity) {
-    return new KernelCodegenWorkItem(_backend, _closedWorld, entity);
-  }
-}
-
-class KernelCodegenWorkItem extends CodegenWorkItem {
-  final JavaScriptBackend _backend;
-  final ClosedWorld _closedWorld;
-  final MemberEntity element;
-  final CodegenRegistry registry;
-
-  KernelCodegenWorkItem(this._backend, this._closedWorld, this.element)
-      : registry = new CodegenRegistry(element);
-
-  @override
-  WorldImpact run() {
-    return _backend.codegen(this, _closedWorld);
-  }
-}
-
-/// Task for building SSA from kernel IR loaded from .dill.
-class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
-  final Compiler _compiler;
-
-  KernelSsaBuilderTask(this._compiler) : super(_compiler.measurer);
-
-  KernelToElementMap get _elementMap {
-    KernelFrontEndStrategy frontEndStrategy = _compiler.frontEndStrategy;
-    return frontEndStrategy.elementMap;
-  }
-
-  @override
-  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
-    KernelSsaBuilder builder = new KernelSsaBuilder(
-        work.element,
-        work.element.enclosingClass,
-        _compiler,
-        _elementMap,
-        closedWorld,
-        work.registry,
-        const SourceInformationBuilder(),
-        null);
-    return builder.build();
   }
 }

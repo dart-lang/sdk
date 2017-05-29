@@ -145,14 +145,6 @@ class KernelAstAdapter extends KernelToElementMapMixin {
   Compiler get _compiler => _backend.compiler;
   TreeElements get elements => _resolvedAst.elements;
   DiagnosticReporter get reporter => _compiler.reporter;
-  MemberElement get _target => _resolvedAst.element;
-
-  GlobalTypeInferenceResults get _globalInferenceResults =>
-      _compiler.globalInference.results;
-
-  GlobalTypeInferenceElementResult _resultOf(MemberElement e) =>
-      _globalInferenceResults
-          .resultOfMember(e is ConstructorBodyElementX ? e.constructor : e);
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     if (kernel.syntheticNodes.contains(node)) {
@@ -230,74 +222,12 @@ class KernelAstAdapter extends KernelToElementMapMixin {
     return getElement(variable) as LocalElement;
   }
 
-  TypeMask getReturnTypeOf(FunctionEntity function) {
-    return TypeMaskFactory.inferredReturnTypeForElement(
-        function, _globalInferenceResults);
-  }
-
   FunctionSignature getFunctionSignature(ir.FunctionNode function) {
     return getElement(function).asFunctionElement().functionSignature;
   }
 
   ir.Field getFieldFromElement(FieldElement field) {
     return kernel.fields[field];
-  }
-
-  TypeMask typeOfInvocation(ir.MethodInvocation send, ClosedWorld closedWorld) {
-    ast.Node operatorNode = kernel.nodeToAstOperator[send];
-    if (operatorNode != null) {
-      return _resultOf(_target).typeOfOperator(operatorNode);
-    }
-    if (send.name.name == '[]=') {
-      return closedWorld.commonMasks.dynamicType;
-    }
-    return _resultOf(_target).typeOfSend(getNode(send));
-  }
-
-  TypeMask typeOfGet(ir.PropertyGet getter) {
-    return _resultOf(_target).typeOfSend(getNode(getter));
-  }
-
-  TypeMask typeOfSet(ir.PropertySet setter, ClosedWorld closedWorld) {
-    return closedWorld.commonMasks.dynamicType;
-  }
-
-  TypeMask typeOfSend(ir.Expression send) {
-    assert(send is ir.InvocationExpression || send is ir.PropertyGet);
-    return _resultOf(_target).typeOfSend(getNode(send));
-  }
-
-  TypeMask typeOfListLiteral(MemberElement owner, ir.ListLiteral listLiteral,
-      ClosedWorld closedWorld) {
-    ast.Node node = getNodeOrNull(listLiteral);
-    if (node == null) {
-      assertNodeIsSynthetic(listLiteral);
-      return closedWorld.commonMasks.growableListType;
-    }
-    return _resultOf(owner).typeOfListLiteral(getNode(listLiteral)) ??
-        closedWorld.commonMasks.dynamicType;
-  }
-
-  TypeMask typeOfIterator(ir.ForInStatement forInStatement) {
-    return _resultOf(_target).typeOfIterator(getNode(forInStatement));
-  }
-
-  TypeMask typeOfIteratorCurrent(ir.ForInStatement forInStatement) {
-    return _resultOf(_target).typeOfIteratorCurrent(getNode(forInStatement));
-  }
-
-  TypeMask typeOfIteratorMoveNext(ir.ForInStatement forInStatement) {
-    return _resultOf(_target).typeOfIteratorMoveNext(getNode(forInStatement));
-  }
-
-  bool isJsIndexableIterator(
-      ir.ForInStatement forInStatement, ClosedWorld closedWorld) {
-    TypeMask mask = typeOfIterator(forInStatement);
-    return mask != null &&
-        mask.satisfies(
-            _compiler.commonElements.jsIndexableClass, closedWorld) &&
-        // String is indexable but not iterable.
-        !mask.satisfies(_compiler.commonElements.jsStringClass, closedWorld);
   }
 
   bool isFixedLength(TypeMask mask, ClosedWorld closedWorld) {
@@ -314,26 +244,6 @@ class KernelAstAdapter extends KernelToElementMapMixin {
       return true;
     }
     return false;
-  }
-
-  TypeMask inferredIndexType(ir.ForInStatement forInStatement) {
-    return TypeMaskFactory.inferredTypeForSelector(new Selector.index(),
-        typeOfIterator(forInStatement), _globalInferenceResults);
-  }
-
-  TypeMask getInferredTypeOf(MemberEntity member) {
-    return TypeMaskFactory.inferredTypeForMember(
-        member, _globalInferenceResults);
-  }
-
-  TypeMask selectorTypeOf(Selector selector, TypeMask mask) {
-    return TypeMaskFactory.inferredTypeForSelector(
-        selector, mask, _globalInferenceResults);
-  }
-
-  TypeMask typeFromNativeBehavior(
-      native.NativeBehavior nativeBehavior, ClosedWorld closedWorld) {
-    return TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
   }
 
   ConstantValue getConstantFor(ir.Node node) {
@@ -703,5 +613,101 @@ class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
       builder.jumpTargets[continueTarget] = this;
       switchIndex++;
     }
+  }
+}
+
+class KernelAstTypeInferenceMap implements KernelToTypeInferenceMap {
+  final KernelAstAdapter _astAdapter;
+
+  KernelAstTypeInferenceMap(this._astAdapter);
+
+  MemberElement get _target => _astAdapter._resolvedAst.element;
+
+  GlobalTypeInferenceResults get _globalInferenceResults =>
+      _astAdapter._compiler.globalInference.results;
+
+  GlobalTypeInferenceElementResult _resultOf(MemberElement e) =>
+      _globalInferenceResults
+          .resultOfMember(e is ConstructorBodyElementX ? e.constructor : e);
+
+  TypeMask getReturnTypeOf(FunctionEntity function) {
+    return TypeMaskFactory.inferredReturnTypeForElement(
+        function, _globalInferenceResults);
+  }
+
+  TypeMask typeOfInvocation(ir.MethodInvocation send, ClosedWorld closedWorld) {
+    ast.Node operatorNode = _astAdapter.kernel.nodeToAstOperator[send];
+    if (operatorNode != null) {
+      return _resultOf(_target).typeOfOperator(operatorNode);
+    }
+    if (send.name.name == '[]=') {
+      return closedWorld.commonMasks.dynamicType;
+    }
+    return _resultOf(_target).typeOfSend(_astAdapter.getNode(send));
+  }
+
+  TypeMask typeOfGet(ir.PropertyGet getter) {
+    return _resultOf(_target).typeOfSend(_astAdapter.getNode(getter));
+  }
+
+  TypeMask typeOfSet(ir.PropertySet setter, ClosedWorld closedWorld) {
+    return closedWorld.commonMasks.dynamicType;
+  }
+
+  TypeMask typeOfListLiteral(MemberElement owner, ir.ListLiteral listLiteral,
+      ClosedWorld closedWorld) {
+    ast.Node node = _astAdapter.getNodeOrNull(listLiteral);
+    if (node == null) {
+      _astAdapter.assertNodeIsSynthetic(listLiteral);
+      return closedWorld.commonMasks.growableListType;
+    }
+    return _resultOf(owner)
+            .typeOfListLiteral(_astAdapter.getNode(listLiteral)) ??
+        closedWorld.commonMasks.dynamicType;
+  }
+
+  TypeMask typeOfIterator(ir.ForInStatement forInStatement) {
+    return _resultOf(_target)
+        .typeOfIterator(_astAdapter.getNode(forInStatement));
+  }
+
+  TypeMask typeOfIteratorCurrent(ir.ForInStatement forInStatement) {
+    return _resultOf(_target)
+        .typeOfIteratorCurrent(_astAdapter.getNode(forInStatement));
+  }
+
+  TypeMask typeOfIteratorMoveNext(ir.ForInStatement forInStatement) {
+    return _resultOf(_target)
+        .typeOfIteratorMoveNext(_astAdapter.getNode(forInStatement));
+  }
+
+  bool isJsIndexableIterator(
+      ir.ForInStatement forInStatement, ClosedWorld closedWorld) {
+    TypeMask mask = typeOfIterator(forInStatement);
+    return mask != null &&
+        mask.satisfies(
+            closedWorld.commonElements.jsIndexableClass, closedWorld) &&
+        // String is indexable but not iterable.
+        !mask.satisfies(closedWorld.commonElements.jsStringClass, closedWorld);
+  }
+
+  TypeMask inferredIndexType(ir.ForInStatement forInStatement) {
+    return TypeMaskFactory.inferredTypeForSelector(new Selector.index(),
+        typeOfIterator(forInStatement), _globalInferenceResults);
+  }
+
+  TypeMask getInferredTypeOf(MemberEntity member) {
+    return TypeMaskFactory.inferredTypeForMember(
+        member, _globalInferenceResults);
+  }
+
+  TypeMask selectorTypeOf(Selector selector, TypeMask mask) {
+    return TypeMaskFactory.inferredTypeForSelector(
+        selector, mask, _globalInferenceResults);
+  }
+
+  TypeMask typeFromNativeBehavior(
+      native.NativeBehavior nativeBehavior, ClosedWorld closedWorld) {
+    return TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
   }
 }

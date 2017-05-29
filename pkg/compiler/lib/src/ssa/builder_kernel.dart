@@ -83,7 +83,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   TreeElements get elements => astAdapter.elements;
 
   SourceInformationBuilder sourceInformationBuilder;
-  KernelToElementMap _elementMap;
+  final KernelToElementMap _elementMap;
+  final KernelToTypeInferenceMap _typeInferenceMap;
   LoopHandler<ir.Node> loopHandler;
   TypeBuilder typeBuilder;
 
@@ -99,6 +100,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       ClassEntity contextClass,
       this.compiler,
       this._elementMap,
+      this._typeInferenceMap,
       this.closedWorld,
       this.registry,
       // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
@@ -743,7 +745,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     _pushStaticInvocation(
         _commonElements.checkDeferredIsLoaded,
         [prefixConstant, uriConstant],
-        astAdapter.getReturnTypeOf(_commonElements.checkDeferredIsLoaded));
+        _typeInferenceMap
+            .getReturnTypeOf(_commonElements.checkDeferredIsLoaded));
   }
 
   @override
@@ -891,7 +894,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
     // If the expression being iterated over is a JS indexable type, we can
     // generate an optimized version of for-in that uses indexing.
-    if (astAdapter.isJsIndexableIterator(forInStatement, closedWorld)) {
+    if (_typeInferenceMap.isJsIndexableIterator(forInStatement, closedWorld)) {
       _buildForInIndexable(forInStatement);
     } else {
       _buildForInIterator(forInStatement);
@@ -936,7 +939,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       _pushStaticInvocation(
           _commonElements.checkConcurrentModificationError,
           [pop(), array],
-          astAdapter.getReturnTypeOf(
+          _typeInferenceMap.getReturnTypeOf(
               _commonElements.checkConcurrentModificationError));
       pop();
     }
@@ -970,7 +973,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // array, as this is stronger than the iterator's `get current` type, for
       // example, `get current` includes null.
       // TODO(sra): The element type of a container type mask might be better.
-      TypeMask type = astAdapter.inferredIndexType(forInStatement);
+      TypeMask type = _typeInferenceMap.inferredIndexType(forInStatement);
 
       HInstruction index = localsHandler.readLocal(indexVariable);
       HInstruction value = new HIndex(array, index, null, type);
@@ -1018,7 +1021,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction iterator;
 
     void buildInitializer() {
-      TypeMask mask = astAdapter.typeOfIterator(forInStatement);
+      TypeMask mask = _typeInferenceMap.typeOfIterator(forInStatement);
       forInStatement.iterable.accept(this);
       HInstruction receiver = pop();
       _pushDynamicInvocation(forInStatement, mask, <HInstruction>[receiver],
@@ -1027,14 +1030,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     HInstruction buildCondition() {
-      TypeMask mask = astAdapter.typeOfIteratorMoveNext(forInStatement);
+      TypeMask mask = _typeInferenceMap.typeOfIteratorMoveNext(forInStatement);
       _pushDynamicInvocation(forInStatement, mask, <HInstruction>[iterator],
           selector: Selectors.moveNext);
       return popBoolified();
     }
 
     void buildBody() {
-      TypeMask mask = astAdapter.typeOfIteratorCurrent(forInStatement);
+      TypeMask mask = _typeInferenceMap.typeOfIteratorCurrent(forInStatement);
       _pushDynamicInvocation(forInStatement, mask, [iterator],
           selector: Selectors.current);
       Local loopVariableLocal = astAdapter.getLocal(forInStatement.variable);
@@ -1059,13 +1062,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     _pushStaticInvocation(
         _commonElements.streamIteratorConstructor,
         [pop(), graph.addConstantNull(closedWorld)],
-        astAdapter.getReturnTypeOf(_commonElements.streamIteratorConstructor));
+        _typeInferenceMap
+            .getReturnTypeOf(_commonElements.streamIteratorConstructor));
     streamIterator = pop();
 
     void buildInitializer() {}
 
     HInstruction buildCondition() {
-      TypeMask mask = astAdapter.typeOfIteratorMoveNext(forInStatement);
+      TypeMask mask = _typeInferenceMap.typeOfIteratorMoveNext(forInStatement);
       _pushDynamicInvocation(forInStatement, mask, [streamIterator],
           selector: Selectors.moveNext);
       HInstruction future = pop();
@@ -1074,7 +1078,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     void buildBody() {
-      TypeMask mask = astAdapter.typeOfIteratorCurrent(forInStatement);
+      TypeMask mask = _typeInferenceMap.typeOfIteratorCurrent(forInStatement);
       _pushDynamicInvocation(forInStatement, mask, [streamIterator],
           selector: Selectors.current);
       localsHandler.updateLocal(
@@ -1334,12 +1338,16 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void generateTypeError(ir.Node node, String message) {
     generateError(node, _commonElements.throwTypeError, message,
-        astAdapter.getReturnTypeOf(_commonElements.throwTypeError));
+        _typeInferenceMap.getReturnTypeOf(_commonElements.throwTypeError));
   }
 
   void generateUnsupportedError(ir.Node node, String message) {
-    generateError(node, _commonElements.throwUnsupportedError, message,
-        astAdapter.getReturnTypeOf(_commonElements.throwUnsupportedError));
+    generateError(
+        node,
+        _commonElements.throwUnsupportedError,
+        message,
+        _typeInferenceMap
+            .getReturnTypeOf(_commonElements.throwUnsupportedError));
   }
 
   @override
@@ -1348,7 +1356,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (assertStatement.message == null) {
       assertStatement.condition.accept(this);
       _pushStaticInvocation(_commonElements.assertHelper, <HInstruction>[pop()],
-          astAdapter.getReturnTypeOf(_commonElements.assertHelper));
+          _typeInferenceMap.getReturnTypeOf(_commonElements.assertHelper));
       pop();
       return;
     }
@@ -1357,13 +1365,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     void buildCondition() {
       assertStatement.condition.accept(this);
       _pushStaticInvocation(_commonElements.assertTest, <HInstruction>[pop()],
-          astAdapter.getReturnTypeOf(_commonElements.assertTest));
+          _typeInferenceMap.getReturnTypeOf(_commonElements.assertTest));
     }
 
     void fail() {
       assertStatement.message.accept(this);
       _pushStaticInvocation(_commonElements.assertThrow, <HInstruction>[pop()],
-          astAdapter.getReturnTypeOf(_commonElements.assertThrow));
+          _typeInferenceMap.getReturnTypeOf(_commonElements.assertThrow));
       pop();
     }
 
@@ -1872,8 +1880,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           setListRuntimeTypeInfoIfNeeded(listInstruction, listLiteral);
     }
 
-    TypeMask type =
-        astAdapter.typeOfListLiteral(targetElement, listLiteral, closedWorld);
+    TypeMask type = _typeInferenceMap.typeOfListLiteral(
+        targetElement, listLiteral, closedWorld);
     if (!type.containsAll(closedWorld)) {
       listInstruction.instructionType = type;
     }
@@ -1988,7 +1996,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     _pushStaticInvocation(
         _commonElements.createRuntimeType,
         <HInstruction>[pop()],
-        astAdapter.getReturnTypeOf(_commonElements.createRuntimeType));
+        _typeInferenceMap.getReturnTypeOf(_commonElements.createRuntimeType));
   }
 
   @override
@@ -1998,8 +2006,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         staticTarget.kind == ir.ProcedureKind.Getter) {
       FunctionEntity getter = _elementMap.getMember(staticTarget);
       // Invoke the getter
-      _pushStaticInvocation(
-          getter, const <HInstruction>[], astAdapter.getReturnTypeOf(getter));
+      _pushStaticInvocation(getter, const <HInstruction>[],
+          _typeInferenceMap.getReturnTypeOf(getter));
     } else if (staticTarget is ir.Field &&
         (staticTarget.isConst ||
             staticTarget.isFinal && !_isLazyStatic(staticTarget))) {
@@ -2008,10 +2016,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     } else {
       if (_isLazyStatic(staticTarget)) {
         FieldEntity field = _elementMap.getField(staticTarget);
-        push(new HLazyStatic(field, astAdapter.getInferredTypeOf(field)));
+        push(
+            new HLazyStatic(field, _typeInferenceMap.getInferredTypeOf(field)));
       } else {
         MemberEntity member = _elementMap.getMember(staticTarget);
-        push(new HStatic(member, astAdapter.getInferredTypeOf(member)));
+        push(new HStatic(member, _typeInferenceMap.getInferredTypeOf(member)));
       }
     }
   }
@@ -2029,8 +2038,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (staticTarget is ir.Procedure) {
       FunctionEntity setter = _elementMap.getMember(staticTarget);
       // Invoke the setter
-      _pushStaticInvocation(
-          setter, <HInstruction>[value], astAdapter.getReturnTypeOf(setter));
+      _pushStaticInvocation(setter, <HInstruction>[value],
+          _typeInferenceMap.getReturnTypeOf(setter));
       pop();
     } else {
       add(new HStaticStore(
@@ -2046,8 +2055,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     propertyGet.receiver.accept(this);
     HInstruction receiver = pop();
 
-    _pushDynamicInvocation(propertyGet, astAdapter.typeOfGet(propertyGet),
-        <HInstruction>[receiver]);
+    _pushDynamicInvocation(propertyGet,
+        _typeInferenceMap.typeOfGet(propertyGet), <HInstruction>[receiver]);
   }
 
   @override
@@ -2072,7 +2081,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     _pushDynamicInvocation(
         propertySet,
-        astAdapter.typeOfSet(propertySet, closedWorld),
+        _typeInferenceMap.typeOfSet(propertySet, closedWorld),
         <HInstruction>[receiver, value]);
 
     pop();
@@ -2248,7 +2257,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return;
     }
     FunctionEntity function = _elementMap.getMember(target);
-    TypeMask typeMask = astAdapter.getReturnTypeOf(function);
+    TypeMask typeMask = _typeInferenceMap.getReturnTypeOf(function);
 
     // TODO(sra): For JS interop external functions, use a different function to
     // build arguments.
@@ -2561,7 +2570,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         message: "No NativeBehavior for $invocation"));
 
     TypeMask ssaType =
-        astAdapter.typeFromNativeBehavior(nativeBehavior, closedWorld);
+        _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
     push(new HForeignCode(expr, ssaType, const <HInstruction>[],
         nativeBehavior: nativeBehavior));
   }
@@ -2605,7 +2614,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         message: "No NativeBehavior for $invocation"));
 
     TypeMask ssaType =
-        astAdapter.typeFromNativeBehavior(nativeBehavior, closedWorld);
+        _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
     push(new HForeignCode(template, ssaType, inputs,
         nativeBehavior: nativeBehavior));
   }
@@ -2693,7 +2702,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     TypeMask ssaType =
-        astAdapter.typeFromNativeBehavior(nativeBehavior, closedWorld);
+        _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
 
     SourceInformation sourceInformation = null;
     push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
@@ -2743,7 +2752,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
     inputs.addAll(arguments);
 
-    TypeMask type = astAdapter.selectorTypeOf(selector, mask);
+    TypeMask type = _typeInferenceMap.selectorTypeOf(selector, mask);
     if (selector.isGetter) {
       push(new HInvokeDynamicGetter(selector, mask, null, inputs, type));
     } else if (selector.isSetter) {
@@ -2804,7 +2813,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     Selector selector = _elementMap.getSelector(invocation);
     _pushDynamicInvocation(
         invocation,
-        astAdapter.typeOfInvocation(invocation, closedWorld),
+        _typeInferenceMap.typeOfInvocation(invocation, closedWorld),
         <HInstruction>[receiver]..addAll(
             _visitArgumentsForDynamicTarget(selector, invocation.arguments)));
   }
@@ -2913,7 +2922,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     TypeMask typeMask;
     if (target is FunctionEntity) {
-      typeMask = astAdapter.getReturnTypeOf(target);
+      typeMask = _typeInferenceMap.getReturnTypeOf(target);
     } else {
       typeMask = closedWorld.commonMasks.dynamicType;
     }
@@ -3318,7 +3327,7 @@ class TryCatchFinallyBuilder {
     kernelBuilder._pushStaticInvocation(
         kernelBuilder._commonElements.exceptionUnwrapper,
         [exception],
-        kernelBuilder.astAdapter
+        kernelBuilder._typeInferenceMap
             .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper));
     HInvokeStatic unwrappedException = kernelBuilder.pop();
     tryInstruction.exception = exception;
@@ -3343,7 +3352,7 @@ class TryCatchFinallyBuilder {
         kernelBuilder._pushStaticInvocation(
             kernelBuilder._commonElements.traceFromException,
             [exception],
-            kernelBuilder.astAdapter.getReturnTypeOf(
+            kernelBuilder._typeInferenceMap.getReturnTypeOf(
                 kernelBuilder._commonElements.traceFromException));
         HInstruction traceInstruction = kernelBuilder.pop();
         LocalVariableElement traceVariable =

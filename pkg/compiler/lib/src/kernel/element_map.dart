@@ -16,8 +16,10 @@ import '../elements/operators.dart';
 import '../elements/types.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../native/native.dart' as native;
+import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
+import '../world.dart';
 import 'kernel_debug.dart';
 
 /// Interface that translates between Kernel IR nodes and entities.
@@ -877,4 +879,52 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
           type, defaultValues, fieldMap, superConstructorInvocation);
     }
   }
+}
+
+/// Interface for type inference results for kernel IR nodes.
+abstract class KernelToTypeInferenceMap {
+  /// Returns the inferred return type of [function].
+  TypeMask getReturnTypeOf(FunctionEntity function);
+
+  /// Returns the inferred receiver type of the dynamic [invocation].
+  TypeMask typeOfInvocation(
+      ir.MethodInvocation invocation, ClosedWorld closedWorld);
+
+  /// Returns the inferred receiver type of the dynamic [read].
+  TypeMask typeOfGet(ir.PropertyGet read);
+
+  /// Returns the inferred receiver type of the dynamic [write].
+  TypeMask typeOfSet(ir.PropertySet write, ClosedWorld closedWorld);
+
+  /// Returns the inferred type of [listLiteral].
+  TypeMask typeOfListLiteral(
+      MemberEntity owner, ir.ListLiteral listLiteral, ClosedWorld closedWorld);
+
+  /// Returns the inferred type of iterator in [forInStatement].
+  TypeMask typeOfIterator(ir.ForInStatement forInStatement);
+
+  /// Returns the inferred type of `current` in [forInStatement].
+  TypeMask typeOfIteratorCurrent(ir.ForInStatement forInStatement);
+
+  /// Returns the inferred type of `moveNext` in [forInStatement].
+  TypeMask typeOfIteratorMoveNext(ir.ForInStatement forInStatement);
+
+  /// Returns `true` if [forInStatement] is inferred to be a JavaScript
+  /// indexable iterator.
+  bool isJsIndexableIterator(
+      ir.ForInStatement forInStatement, ClosedWorld closedWorld);
+
+  /// Returns the inferred index type of [forInStatement].
+  TypeMask inferredIndexType(ir.ForInStatement forInStatement);
+
+  /// Returns the inferred type of [member].
+  TypeMask getInferredTypeOf(MemberEntity member);
+
+  /// Returns the inferred type of a dynamic [selector] access on a receiver of
+  /// type [mask].
+  TypeMask selectorTypeOf(Selector selector, TypeMask mask);
+
+  /// Returns the returned type annotation in the [nativeBehavior].
+  TypeMask typeFromNativeBehavior(
+      native.NativeBehavior nativeBehavior, ClosedWorld closedWorld);
 }

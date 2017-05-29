@@ -42,6 +42,7 @@ import 'io/source_information.dart' show SourceInformation;
 import 'io/source_file.dart' show Binary;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/element_strategy.dart' show ElementBackendStrategy;
+import 'kernel/kernel_backend_strategy.dart';
 import 'kernel/kernel_strategy.dart';
 import 'library_loader.dart'
     show
