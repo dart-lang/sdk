@@ -3411,7 +3411,8 @@ class SsaBuilder extends ast.Visitor
         constructorDeclaration.computeEffectiveTargetType(type);
     expectedType = localsHandler.substInContext(expectedType);
 
-    if (compiler.elementHasCompileTimeError(constructor)) {
+    if (compiler.elementHasCompileTimeError(constructor) ||
+        compiler.elementHasCompileTimeError(constructor.enclosingClass)) {
       // TODO(ahe): Do something like [generateWrongArgumentCountError].
       stack.add(graph.addConstantNull(closedWorld));
       return;
