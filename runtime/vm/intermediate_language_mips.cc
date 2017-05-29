@@ -894,11 +894,8 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     __ BranchEqual(cid_reg, Immediate(test_cid),
                    result ? labels.true_label : labels.false_label);
   }
-  // No match found, deoptimize or default action.
+  // No match found, deoptimize or false.
   if (deopt == NULL) {
-    // If the cid is not in the list, jump to the opposite label from the cids
-    // that are in the list.  These must be all the same (see asserts in the
-    // constructor).
     Label* target = result ? labels.false_label : labels.true_label;
     if (target != labels.fall_through) {
       __ b(target);

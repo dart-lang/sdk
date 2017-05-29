@@ -3104,19 +3104,21 @@ class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
 
 
 // Checks the input value cid against cids stored in a table and returns either
-// a result or deoptimizes.  If the cid is not in the list and there is a deopt
-// id, then the instruction deoptimizes.  If there is no deopt id, all the
-// results must be the same (all true or all false) and the instruction returns
-// the opposite for cids not on the list.  The first element in the table must
-// always be the result for the Smi class-id and is allowed to differ from the
-// other results even in the no-deopt case.
+// a result or deoptimizes.
 class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
  public:
   TestCidsInstr(TokenPosition token_pos,
                 Token::Kind kind,
                 Value* value,
                 const ZoneGrowableArray<intptr_t>& cid_results,
-                intptr_t deopt_id);
+                intptr_t deopt_id)
+      : TemplateComparison(token_pos, kind, deopt_id),
+        cid_results_(cid_results),
+        licm_hoisted_(false) {
+    ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
+    SetInputAt(0, value);
+    set_operation_cid(kObjectCid);
+  }
 
   const ZoneGrowableArray<intptr_t>& cid_results() const {
     return cid_results_;

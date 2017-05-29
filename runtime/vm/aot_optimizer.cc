@@ -17,11 +17,10 @@
 #include "vm/flow_graph_range_analysis.h"
 #include "vm/hash_map.h"
 #include "vm/il_printer.h"
-#include "vm/intermediate_language.h"
 #include "vm/jit_optimizer.h"
+#include "vm/intermediate_language.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
-#include "vm/optimizer.h"
 #include "vm/parser.h"
 #include "vm/precompiler.h"
 #include "vm/resolver.h"
@@ -1349,6 +1348,73 @@ bool AotOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
 }
 
 
+static bool CidTestResultsContains(const ZoneGrowableArray<intptr_t>& results,
+                                   intptr_t test_cid) {
+  for (intptr_t i = 0; i < results.length(); i += 2) {
+    if (results[i] == test_cid) return true;
+  }
+  return false;
+}
+
+
+static void TryAddTest(ZoneGrowableArray<intptr_t>* results,
+                       intptr_t test_cid,
+                       bool result) {
+  if (!CidTestResultsContains(*results, test_cid)) {
+    results->Add(test_cid);
+    results->Add(result);
+  }
+}
+
+
+// Tries to add cid tests to 'results' so that no deoptimization is
+// necessary.
+// TODO(srdjan): Do also for other than 'int' type.
+static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
+                                    const AbstractType& type) {
+  ASSERT(results->length() >= 2);  // At least on entry.
+  const ClassTable& class_table = *Isolate::Current()->class_table();
+  if ((*results)[0] != kSmiCid) {
+    const Class& cls = Class::Handle(class_table.At(kSmiCid));
+    const Class& type_class = Class::Handle(type.type_class());
+    const bool smi_is_subtype =
+        cls.IsSubtypeOf(Object::null_type_arguments(), type_class,
+                        Object::null_type_arguments(), NULL, NULL, Heap::kOld);
+    results->Add((*results)[results->length() - 2]);
+    results->Add((*results)[results->length() - 2]);
+    for (intptr_t i = results->length() - 3; i > 1; --i) {
+      (*results)[i] = (*results)[i - 2];
+    }
+    (*results)[0] = kSmiCid;
+    (*results)[1] = smi_is_subtype;
+  }
+
+  ASSERT(type.IsInstantiated() && !type.IsMalformedOrMalbounded());
+  ASSERT(results->length() >= 2);
+  if (type.IsSmiType()) {
+    ASSERT((*results)[0] == kSmiCid);
+    return false;
+  } else if (type.IsIntType()) {
+    ASSERT((*results)[0] == kSmiCid);
+    TryAddTest(results, kMintCid, true);
+    TryAddTest(results, kBigintCid, true);
+    // Cannot deoptimize since all tests returning true have been added.
+    return false;
+  } else if (type.IsNumberType()) {
+    ASSERT((*results)[0] == kSmiCid);
+    TryAddTest(results, kMintCid, true);
+    TryAddTest(results, kBigintCid, true);
+    TryAddTest(results, kDoubleCid, true);
+    return false;
+  } else if (type.IsDoubleType()) {
+    ASSERT((*results)[0] == kSmiCid);
+    TryAddTest(results, kDoubleCid, true);
+    return false;
+  }
+  return true;  // May deoptimize since we have not identified all 'true' tests.
+}
+
+
 // TODO(srdjan): Use ICData to check if always true or false.
 void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
@@ -1444,8 +1510,7 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
         new (Z) ZoneGrowableArray<intptr_t>(number_of_checks * 2);
     InstanceOfAsBool(unary_checks, type, results);
     if (results->length() == number_of_checks * 2) {
-      const bool can_deopt =
-          Optimizer::SpecializeTestCidsForNumericTypes(results, type);
+      const bool can_deopt = TryExpandTestCidsResult(results, type);
       if (can_deopt && !IsAllowedForInlining(call->deopt_id())) {
         // Guard against repeated speculative inlining.
         return;
