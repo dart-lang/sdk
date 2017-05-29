@@ -404,6 +404,14 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
+  @override
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    super.visitDeclaredIdentifier(node);
+    if (node.type == null) {
+      _recordType(node.identifier.offset, node.element.type);
+    }
+  }
+
   visitVariableDeclarationList(VariableDeclarationList node) {
     super.visitVariableDeclarationList(node);
     if (node.type == null) {

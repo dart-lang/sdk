@@ -58,7 +58,6 @@ void-methods: Fail
 
 inference/constructors_too_many_positional_arguments: Fail
 inference/downwards_inference_annotations: Fail
-inference/downwards_inference_for_each: Fail
 inference/downwards_inference_initializing_formal_default_formal: Fail
 inference/downwards_inference_inside_top_level: Fail
 inference/downwards_inference_on_function_expressions: Fail

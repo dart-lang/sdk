@@ -2272,7 +2272,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       continueTarget.resolveContinues(body);
     }
     VariableDeclaration variable;
+    bool declaresVariable = false;
     if (lvalue is VariableDeclaration) {
+      declaresVariable = true;
       variable = lvalue;
     } else if (lvalue is FastaAccessor) {
       /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
@@ -2294,7 +2296,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       variable = new VariableDeclaration.forValue(buildCompileTimeError(
           "Expected lvalue, but got ${lvalue}", forToken.next.next.charOffset));
     }
-    Statement result = new ForInStatement(variable, expression, body,
+    Statement result = new KernelForInStatement(
+        variable, expression, body, declaresVariable,
         isAsync: awaitToken != null)
       ..fileOffset = body.fileOffset;
     if (breakTarget.hasUsers) {

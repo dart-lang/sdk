@@ -130,6 +130,12 @@ class TypeInferenceListener
   void expressionStatementExit(ExpressionStatement statement) =>
       debugStatementExit('expressionStatement', statement);
 
+  void forInStatementEnter(ForInStatement statement) =>
+      debugStatementEnter('forInStatement', statement);
+
+  void forInStatementExit(ForInStatement statement) =>
+      debugStatementExit('forInStatement', statement);
+
   void functionDeclarationEnter(FunctionDeclaration statement) =>
       debugStatementEnter('functionDeclaration', statement);
 

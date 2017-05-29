@@ -440,6 +440,64 @@ class KernelField extends Field {
   }
 }
 
+/// Concrete shadow object representing a for-in loop in kernel form.
+class KernelForInStatement extends ForInStatement implements KernelStatement {
+  final bool _declaresVariable;
+
+  KernelForInStatement(VariableDeclaration variable, Expression iterable,
+      Statement body, this._declaresVariable,
+      {bool isAsync: false})
+      : super(variable, iterable, body, isAsync: isAsync);
+
+  @override
+  void _inferStatement(KernelTypeInferrer inferrer) {
+    inferrer.listener.forInStatementEnter(this);
+    var iterableClass = isAsync
+        ? inferrer.coreTypes.streamClass
+        : inferrer.coreTypes.iterableClass;
+    DartType context;
+    bool typeNeeded = false;
+    KernelVariableDeclaration variable;
+    if (_declaresVariable) {
+      variable = this.variable;
+      if (variable._implicitlyTyped) {
+        typeNeeded = true;
+        // TODO(paulberry): In this case, should the context be `Iterable<?>`?
+      } else {
+        context = inferrer.wrapType(variable.type, iterableClass);
+      }
+    } else {
+      // TODO(paulberry): In this case, should the context be based on the
+      // declared type of the loop variable?
+      // TODO(paulberry): Note that when [_declaresVariable] is `false`, the
+      // body starts with an assignment from the synthetic loop variable to
+      // another variable.  We need to make sure any type inference diagnostics
+      // that occur related to this assignment are reported at the correct
+      // locations.
+    }
+    var inferredExpressionType =
+        inferrer.inferExpression(iterable, context, typeNeeded);
+    if (typeNeeded) {
+      var inferredType = const DynamicType();
+      if (inferredExpressionType is InterfaceType) {
+        InterfaceType supertype = inferrer.classHierarchy
+            .getTypeAsInstanceOf(inferredExpressionType, iterableClass);
+        if (supertype != null) {
+          inferredType = supertype.typeArguments[0];
+        }
+      }
+      inferrer.instrumentation?.record(
+          Uri.parse(inferrer.uri),
+          variable.fileOffset,
+          'type',
+          new InstrumentationValueForType(inferredType));
+      variable.type = inferredType;
+    }
+    inferrer.inferStatement(body);
+    inferrer.listener.forInStatementExit(this);
+  }
+}
+
 /// Concrete shadow object representing a local function declaration in kernel
 /// form.
 class KernelFunctionDeclaration extends FunctionDeclaration

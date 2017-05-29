@@ -107,7 +107,7 @@ inference/downward_inference_fixes_no_upwards_errors: Crash
 inference/downward_inference_miscellaneous: Crash
 inference/downwards_inference_annotations: Crash
 inference/downwards_inference_async_await: Crash
-inference/downwards_inference_for_each: Fail
+inference/downwards_inference_for_each: Crash
 inference/downwards_inference_initializing_formal_default_formal: Crash
 inference/downwards_inference_inside_top_level: Crash
 inference/downwards_inference_on_constructor_arguments_infer_downwards: Crash
