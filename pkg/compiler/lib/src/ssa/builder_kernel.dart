@@ -1291,8 +1291,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       void visitThen(),
       void visitElse(),
       SourceInformation sourceInformation}) {
-    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(
-        this, node == null ? node : astAdapter.getNode(node));
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this,
+        node == null ? node : _elementMap.getSpannable(targetElement, node));
     branchBuilder.handleIf(visitCondition, visitThen, visitElse,
         sourceInformation: sourceInformation);
   }
@@ -1750,7 +1750,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       caseHandlers.add(locals);
     });
     jumpHandler.forEachContinue((HContinue instruction, LocalsHandler locals) {
-      assert(invariant(astAdapter.getNode(switchStatement), false,
+      assert(invariant(
+          _elementMap.getSpannable(targetElement, switchStatement), false,
           message: 'Continue cannot target a switch.'));
     });
     if (!isAborted()) {
@@ -2322,7 +2323,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       handleJsStringConcat(invocation);
     } else {
       reporter.internalError(
-          astAdapter.getNode(invocation), "Unknown foreign: ${name}");
+          _elementMap.getSpannable(targetElement, invocation),
+          "Unknown foreign: ${name}");
     }
   }
 
@@ -2342,7 +2344,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     bool bad = false;
     if (arguments.types.isNotEmpty) {
       reporter.reportErrorMessage(
-          astAdapter.getNode(invocation),
+          _elementMap.getSpannable(targetElement, invocation),
           MessageKind.GENERIC,
           {'text': "Error: '${name()}' does not take type arguments."});
       bad = true;
@@ -2351,7 +2353,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       String phrase = pluralizeArguments(minPositional);
       if (maxPositional != minPositional) phrase = 'at least $phrase';
       reporter.reportErrorMessage(
-          astAdapter.getNode(invocation),
+          _elementMap.getSpannable(targetElement, invocation),
           MessageKind.GENERIC,
           {'text': "Error: Too few arguments. '${name()}' takes $phrase."});
       bad = true;
@@ -2360,14 +2362,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       String phrase = pluralizeArguments(maxPositional);
       if (maxPositional != minPositional) phrase = 'at most $phrase';
       reporter.reportErrorMessage(
-          astAdapter.getNode(invocation),
+          _elementMap.getSpannable(targetElement, invocation),
           MessageKind.GENERIC,
           {'text': "Error: Too many arguments. '${name()}' takes $phrase."});
       bad = true;
     }
     if (arguments.named.isNotEmpty) {
       reporter.reportErrorMessage(
-          astAdapter.getNode(invocation),
+          _elementMap.getSpannable(targetElement, invocation),
           MessageKind.GENERIC,
           {'text': "Error: '${name()}' does not take named arguments."});
       bad = true;
@@ -2387,7 +2389,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     if (!instruction.isConstantString()) {
       reporter.reportErrorMessage(
-          astAdapter.getNode(argument), MessageKind.GENERIC, {
+          _elementMap.getSpannable(targetElement, argument),
+          MessageKind.GENERIC, {
         'text': "Error: Expected String constant as ${adjective}argument "
             "to '$methodName'."
       });
@@ -2419,7 +2422,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // for binding to methods.
       FunctionEntity target = _commonElements.currentIsolate;
       if (target == null) {
-        reporter.internalError(astAdapter.getNode(invocation),
+        reporter.internalError(
+            _elementMap.getSpannable(targetElement, invocation),
             'Isolate library and compiler mismatch.');
       }
       _pushStaticInvocation(target, <HInstruction>[], commonMasks.dynamicType);
@@ -2444,7 +2448,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // Call a helper method from the isolate library.
       FunctionEntity callInIsolate = _commonElements.callInIsolate;
       if (callInIsolate == null) {
-        reporter.internalError(astAdapter.getNode(invocation),
+        reporter.internalError(
+            _elementMap.getSpannable(targetElement, invocation),
             'Isolate library and compiler mismatch.');
       }
       _pushStaticInvocation(callInIsolate, inputs, commonMasks.dynamicType);
@@ -2491,8 +2496,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       }
     }
 
-    reporter.reportErrorMessage(astAdapter.getNode(invocation),
-        MessageKind.GENERIC, {'text': "'$name' $problem."});
+    reporter.reportErrorMessage(
+        _elementMap.getSpannable(targetElement, invocation),
+        MessageKind.GENERIC,
+        {'text': "'$name' $problem."});
     stack.add(graph.addConstantNull(closedWorld)); // Result expected on stack.
     return;
   }
@@ -2546,7 +2553,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     reporter.reportErrorMessage(
-        astAdapter.getNode(argument),
+        _elementMap.getSpannable(targetElement, argument),
         MessageKind.GENERIC,
         {'text': 'Error: Expected a JsGetName enum value.'});
     // Result expected on stack.
@@ -2566,7 +2573,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     native.NativeBehavior nativeBehavior =
         astAdapter.getNativeBehavior(invocation);
-    assert(invariant(astAdapter.getNode(invocation), nativeBehavior != null,
+    assert(invariant(_elementMap.getSpannable(targetElement, invocation),
+        nativeBehavior != null,
         message: "No NativeBehavior for $invocation"));
 
     TypeMask ssaType =
@@ -2594,7 +2602,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
     if (template == null) {
       reporter.reportErrorMessage(
-          astAdapter.getNode(nameArgument),
+          _elementMap.getSpannable(targetElement, nameArgument),
           MessageKind.GENERIC,
           {'text': 'Error: Expected a JsBuiltin enum value.'});
       // Result expected on stack.
@@ -2610,7 +2618,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     native.NativeBehavior nativeBehavior =
         astAdapter.getNativeBehavior(invocation);
-    assert(invariant(astAdapter.getNode(invocation), nativeBehavior != null,
+    assert(invariant(_elementMap.getSpannable(targetElement, invocation),
+        nativeBehavior != null,
         message: "No NativeBehavior for $invocation"));
 
     TypeMask ssaType =
@@ -2630,7 +2639,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     bool value = getFlagValue(name);
     if (value == null) {
       reporter.reportErrorMessage(
-          astAdapter.getNode(invocation),
+          _elementMap.getSpannable(targetElement, invocation),
           MessageKind.GENERIC,
           {'text': 'Error: Unknown internal flag "$name".'});
     } else {
@@ -2662,7 +2671,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       }
     }
 
-    reporter.reportErrorMessage(astAdapter.getNode(invocation),
+    reporter.reportErrorMessage(
+        _elementMap.getSpannable(targetElement, invocation),
         MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
     stack.add(graph.addConstantNull(closedWorld));
   }
@@ -2676,7 +2686,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     native.NativeBehavior nativeBehavior =
         astAdapter.getNativeBehaviorForJsCall(invocation);
-    assert(invariant(astAdapter.getNode(invocation), nativeBehavior != null,
+    assert(invariant(_elementMap.getSpannable(targetElement, invocation),
+        nativeBehavior != null,
         message: "No NativeBehavior for $invocation"));
 
     List<HInstruction> inputs = <HInstruction>[];
@@ -2687,7 +2698,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     if (nativeBehavior.codeTemplate.positionalArgumentCount != inputs.length) {
       reporter.reportErrorMessage(
-          astAdapter.getNode(invocation), MessageKind.GENERIC, {
+          _elementMap.getSpannable(targetElement, invocation),
+          MessageKind.GENERIC, {
         'text': 'Mismatch between number of placeholders'
             ' and number of arguments.'
       });
@@ -2698,7 +2710,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     if (native.HasCapturedPlaceholders.check(nativeBehavior.codeTemplate.ast)) {
       reporter.reportErrorMessage(
-          astAdapter.getNode(invocation), MessageKind.JS_PLACEHOLDER_CAPTURE);
+          _elementMap.getSpannable(targetElement, invocation),
+          MessageKind.JS_PLACEHOLDER_CAPTURE);
     }
 
     TypeMask ssaType =
@@ -3120,7 +3133,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction exception = rethrowableException;
     if (exception == null) {
       exception = graph.addConstantNull(closedWorld);
-      reporter.internalError(astAdapter.getNode(rethrowNode),
+      reporter.internalError(
+          _elementMap.getSpannable(targetElement, rethrowNode),
           'rethrowableException should not be null.');
     }
     handleInTryStatement();

@@ -4,7 +4,6 @@
 
 import '../common.dart';
 import '../io/source_information.dart';
-import '../tree/tree.dart' as ast;
 
 import 'graph_builder.dart';
 import 'locals_handler.dart';
@@ -22,7 +21,7 @@ class SsaBranch {
 
 class SsaBranchBuilder {
   final GraphBuilder builder;
-  final ast.Node diagnosticNode;
+  final Spannable diagnosticNode;
 
   SsaBranchBuilder(this.builder, [this.diagnosticNode]);
 

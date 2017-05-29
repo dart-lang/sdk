@@ -409,6 +409,11 @@ class KernelAstAdapter extends KernelToElementMapMixin {
     assert(constructorBody != null);
     return constructorBody;
   }
+
+  @override
+  Spannable getSpannable(MemberEntity member, ir.Node node) {
+    return getNode(node);
+  }
 }
 
 /// Visitor that converts kernel dart types into [ResolutionDartType].

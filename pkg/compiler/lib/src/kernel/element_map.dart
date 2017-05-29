@@ -148,6 +148,10 @@ abstract class KernelToElementMap {
   /// Returns the `noSuchMethod` [FunctionEntity] call from a
   /// `super.noSuchMethod` invocation within [cls].
   FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
+
+  /// Returns a [Spannable] for a message pointing to the IR [node] in the
+  /// context of [member].
+  Spannable getSpannable(MemberEntity member, ir.Node node);
 }
 
 /// Kinds of foreign functions.

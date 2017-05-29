@@ -685,6 +685,11 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   ResolutionImpact computeWorldImpact(KMember member) {
     return _memberList[member.memberIndex].getWorldImpact(this);
   }
+
+  @override
+  Spannable getSpannable(MemberEntity member, ir.Node node) {
+    return member;
+  }
 }
 
 /// Environment for fast lookup of program libraries.
