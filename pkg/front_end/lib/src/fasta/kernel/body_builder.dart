@@ -294,6 +294,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   void declareVariable(VariableDeclaration variable) {
+    // ignore: UNUSED_LOCAL_VARIABLE
+    Statement discardedStatement;
+    String name = variable.name;
+    int offset = variable.fileOffset;
+    if (scope.local[name] != null) {
+      // This reports an error for duplicated declarations in the same scope:
+      // `{ var x; var x; }`
+      discardedStatement = pop(); // TODO(ahe): Issue 29717.
+      push(buildCompileTimeErrorStatement(
+          "'$name' already declared in this scope.", offset));
+      return;
+    }
     InputError error = scope.declare(
         variable.name,
         new KernelVariableBuilder(
@@ -301,10 +313,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         variable.fileOffset,
         uri);
     if (error != null) {
-      addCompileTimeError(
-          variable.fileOffset,
-          "Can't declare '${variable.name}' because it was already used in "
-          "this scope.");
+      // This case is different from the above error. In this case, the problem
+      // is using `x` before it's declared: `{ var x; { print(x); var x;
+      // }}`. In this case, we want two errors, the `x` in `print(x)` and the
+      // second (or innermost declaration) of `x`.
+      discardedStatement = pop(); // TODO(ahe): Issue 29717.
+
+      // Reports the error on the last declaration of `x`.
+      push(buildCompileTimeErrorStatement(
+          "Can't declare '$name' because it was already used in this scope.",
+          offset));
+
+      // Reports the error on `print(x)`.
       library.addCompileTimeError(error.charOffset, error.error,
           fileUri: error.uri);
     }
@@ -1698,7 +1718,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if ((inCatchClause || functionNestingLevel != 0) &&
         kind != MemberKind.GeneralizedFunctionType) {
       enterLocalScope(formals.computeFormalParameterScope(
-          scope, member ?? classBuilder ?? library));
+          scope, member ?? classBuilder ?? library, this));
     }
   }
 
@@ -2162,13 +2182,23 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("FunctionDeclaration");
     FunctionNode function = pop();
     exitLocalScope();
-    FunctionDeclaration declaration = pop();
-    function.returnType = pop() ?? const DynamicType();
-    declaration.variable.type = function.functionType;
+    var declaration = pop();
+    var returnType = pop() ?? const DynamicType();
     pop(); // Modifiers.
     exitFunction();
-    declaration.function = function;
-    function.parent = declaration;
+    if (declaration is FunctionDeclaration) {
+      function.returnType = returnType;
+      declaration.variable.type = function.functionType;
+      declaration.function = function;
+      function.parent = declaration;
+    } else {
+      // If [declaration] isn't a [FunctionDeclaration], it must be because
+      // there was a compile-time error.
+
+      // TODO(paulberry): ensure that when integrating with analyzer, type
+      // inference is still performed for the dropped declaration.
+      assert(library.compileTimeErrors.isNotEmpty);
+    }
     push(declaration);
   }
 
@@ -2610,6 +2640,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Expression buildCompileTimeError(error, [int charOffset = -1]) {
+    // TODO(ahe): This method should be passed the erroneous expression, wrap
+    // it in a class (TBD) from which the erroneous expression can be easily
+    // extracted. Similar for statements and initializers. See also [issue
+    // 29717](https://github.com/dart-lang/sdk/issues/29717)
     addCompileTimeError(charOffset, error);
     String message = formatUnexpected(uri, charOffset, error);
     Builder constructor = library.loader.getCompileTimeError();
@@ -2674,6 +2708,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new Identifier(token));
   }
 
+  @override
   dynamic addCompileTimeError(int charOffset, String message,
       {bool silent: false}) {
     // TODO(ahe): If constantExpressionRequired is set, set it to false to
@@ -3129,15 +3164,23 @@ class FormalParameters {
         requiredParameterCount: requiredParameterCount);
   }
 
-  Scope computeFormalParameterScope(Scope parent, Builder builder) {
+  Scope computeFormalParameterScope(
+      Scope parent, Builder builder, BuilderHelper helper) {
     if (required.length == 0 && optional == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
+
     for (VariableDeclaration parameter in required) {
+      if (local[parameter.name] != null) {
+        helper.addCompileTimeError(parameter.fileOffset, "Duplicated name.");
+      }
       local[parameter.name] =
           new KernelVariableBuilder(parameter, builder, builder.fileUri);
     }
     if (optional != null) {
       for (VariableDeclaration parameter in optional.formals) {
+        if (local[parameter.name] != null) {
+          helper.addCompileTimeError(parameter.fileOffset, "Duplicated name.");
+        }
         local[parameter.name] =
             new KernelVariableBuilder(parameter, builder, builder.fileUri);
       }

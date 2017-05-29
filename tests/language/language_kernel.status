@@ -186,7 +186,6 @@ syntax_test/02: MissingCompileTimeError
 syntax_test/03: MissingCompileTimeError
 syntax_test/27: MissingCompileTimeError
 this_conditional_operator_test/01: MissingCompileTimeError
-try_catch_syntax_test/05: MissingCompileTimeError
 try_catch_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/09: MissingCompileTimeError
 try_catch_syntax_test/10: MissingCompileTimeError
@@ -387,7 +386,6 @@ ref_before_declaration_test/04: Crash
 ref_before_declaration_test/05: Crash
 ref_before_declaration_test/06: Crash
 ref_before_declaration_test/07: Crash
-try_catch_syntax_test/05: Crash
 vm/lazy_deopt_vm_test: Crash
 
 # dartk: precompilation failures
@@ -408,7 +406,6 @@ ref_before_declaration_test/07: Crash
 ref_before_declaration_test/none: Crash
 setter_declaration2_negative_test: Crash
 setter_declaration_negative_test: Crash
-try_catch_syntax_test/05: Crash
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]

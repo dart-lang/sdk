@@ -86,6 +86,9 @@ abstract class BuilderHelper {
       List<TypeParameter> typeParameters);
 
   StaticGet makeStaticGet(Member readTarget, Token token);
+
+  dynamic addCompileTimeError(int charOffset, String message,
+      {bool silent: false});
 }
 
 abstract class FastaAccessor implements Accessor {
