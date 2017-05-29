@@ -12,7 +12,6 @@ main() {
 
 // Prime the IC with things that are and are not ints.
 void train() {
-  int sum = 0;
   for (int i = 0; i < 10000; i++) {
     IsAnInt(42); // Smi - always goes first in the generated code.
     IsAnInt(1 << 62); // Mint on 64 bit platforms.
@@ -25,4 +24,4 @@ void train() {
   }
 }
 
-int IsAnInt(Foo f) => f is int;
+bool IsAnInt(f) => f is int;
