@@ -5542,6 +5542,15 @@ void Parser::SkipTypeArguments() {
 }
 
 
+void Parser::SkipTypeParameters() {
+  // Function already parsed, no need to check FLAG_generic_method_syntax.
+  if (IsTypeParameters()) {
+    const bool skipped = TryParseTypeParameters();
+    ASSERT(skipped);
+  }
+}
+
+
 void Parser::SkipType(bool allow_void) {
   if (CurrentToken() == Token::kVOID) {
     if (!allow_void) {
@@ -14857,17 +14866,23 @@ void Parser::SkipFunctionLiteral() {
 // previously parsed the function.
 void Parser::SkipFunctionPreamble() {
   while (true) {
-    const Token::Kind token = CurrentToken();
     if (IsFunctionTypeSymbol()) {
       ConsumeToken();
-      SkipTypeArguments();
+      SkipTypeParameters();
       SkipToMatchingParenthesis();
       continue;
     }
+    const Token::Kind token = CurrentToken();
     if (token == Token::kLPAREN) {
       return;
     }
     if (token == Token::kGET) {
+      if (LookaheadToken(1) == Token::kLT) {
+        // Case: Generic Function/method named get.
+        ConsumeToken();  // Parse away 'get' (the function's name).
+        SkipTypeParameters();
+        continue;
+      }
       if (LookaheadToken(1) == Token::kLPAREN) {
         // Case: Function/method named get.
         ConsumeToken();  // Parse away 'get' (the function's name).
@@ -14878,7 +14893,7 @@ void Parser::SkipFunctionPreamble() {
       ConsumeToken();  // Parse away the getter name.
       return;
     }
-    ConsumeToken();
+    ConsumeToken();  // Can be static, factory, operator, void, ident, etc...
   }
 }
 

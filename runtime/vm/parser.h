@@ -427,6 +427,7 @@ class Parser : public ValueObject {
   TokenPosition SkipMetadata();
   bool IsPatchAnnotation(TokenPosition pos);
   void SkipTypeArguments();
+  void SkipTypeParameters();
   void SkipType(bool allow_void);
   void SkipTypeOrFunctionType(bool allow_void);
   void SkipInitializers();
