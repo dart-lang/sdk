@@ -512,7 +512,7 @@ template("bin_to_assembly") {
       "--symbol_name",
       invoker.symbol,
       "--target_os",
-      target_os,
+      current_os,
     ]
     if (invoker.executable) {
       args += [ "--executable" ]
