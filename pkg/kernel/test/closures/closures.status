@@ -2,3 +2,21 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+capture_closure: Crash
+capture_closure_parameter: Crash
+capture_this: Crash
+catch: Crash
+closure_in_constructor: Crash
+closure_in_initializer: Crash
+closure_in_initializer_closure: Crash
+closures: Crash
+field: Crash
+for_in_closure: Crash
+for_loop: Crash
+for_variable_capture_test: Crash
+instance_tear_off: Crash
+named_closure: Crash
+non_void_context: Crash
+static_tear_off: Crash
+type_variables: Crash
+uncaptured_for_in_loop: Crash
