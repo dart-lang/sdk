@@ -83,7 +83,6 @@ Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Constants/equals_expression_t03: MissingCompileTimeError
 Language/Expressions/Constants/exception_t04: MissingCompileTimeError
 Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError
-Language/Expressions/Constants/literal_string_t04: Crash
 Language/Expressions/Constants/literal_string_t05: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t02: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
@@ -92,9 +91,6 @@ Language/Expressions/Constants/math_operators_t04: Crash
 Language/Expressions/Constants/math_operators_t05: Crash
 Language/Expressions/Constants/no_other_constant_expressions_t10: MissingCompileTimeError
 Language/Expressions/Constants/no_other_constant_expressions_t11: Crash
-Language/Expressions/Constants/no_other_constant_expressions_t14: Crash
-Language/Expressions/Constants/no_other_constant_expressions_t15: Crash
-Language/Expressions/Constants/no_other_constant_expressions_t17: Crash
 Language/Expressions/Constants/string_length_t03: MissingCompileTimeError
 Language/Expressions/Constants/ternary_operator_t02: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Binding_Actuals_to_Formals/same_name_arguments_t01: MissingCompileTimeError

@@ -49,6 +49,8 @@ abstract class BuilderHelper {
 
   int get functionNestingLevel;
 
+  bool get constantExpressionRequired;
+
   Constructor lookupConstructor(Name name, {bool isSuper});
 
   Expression toSuperMethodInvocation(MethodInvocation node);

@@ -1546,8 +1546,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("AsOperator");
     DartType type = pop();
     Expression expression = popForValue();
-    push(new KernelAsExpression(expression, type)
-      ..fileOffset = offsetForToken(operator));
+    if (constantExpressionRequired) {
+      push(buildCompileTimeError(
+          "Not a constant expression.", operator.charOffset));
+    } else {
+      push(new KernelAsExpression(expression, type)
+        ..fileOffset = offsetForToken(operator));
+    }
   }
 
   @override
@@ -1565,7 +1570,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
           type, functionNestingLevel);
     }
-    push(isExpression);
+    if (constantExpressionRequired) {
+      push(buildCompileTimeError(
+          "Not a constant expression.", operator.charOffset));
+    } else {
+      push(isExpression);
+    }
   }
 
   @override
@@ -2911,6 +2921,10 @@ class DelayedAssignment extends ContextAccessor {
   }
 
   Expression handleAssignment(bool voidContext) {
+    if (helper.constantExpressionRequired) {
+      return helper.buildCompileTimeError(
+          "Not a constant expression.", offsetForToken(token));
+    }
     if (identical("=", assignmentOperator)) {
       return accessor.buildAssignment(value, voidContext: voidContext);
     } else if (identical("+=", assignmentOperator)) {
