@@ -1270,7 +1270,7 @@ class A {}
 class Test {
 }
 ''');
-    expect(change.linkedEditGroups, isEmpty);
+    expect(change.linkedEditGroups, hasLength(1));
   }
 
   test_createClass_innerLocalFunction() async {

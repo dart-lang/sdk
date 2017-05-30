@@ -1031,7 +1031,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         type is InterfaceType && type.element == futureType.element) {
       return;
     }
-    futureType = futureType.instantiate(<DartType>[type]);
+    // TODO(brianwilkerson) Unconditionally execute the body of the 'if' when
+    // Future<void> is fully supported.
+    if (!type.isVoid) {
+      futureType = futureType.instantiate(<DartType>[type]);
+    }
     // prepare code for the types
     addReplacement(range.node(typeAnnotation), (EditBuilder builder) {
       if (!(builder as DartEditBuilder).writeType(futureType)) {
@@ -1142,8 +1146,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   /**
-   * Returns a [InsertDesc] describing where to insert a new directive or a
-   * top-level declaration at the top of the file.
+   * Returns an insertion description describing where to insert a new directive
+   * or a top-level declaration at the top of the file.
    */
   _InsertionDescription _getInsertDescTop() {
     // skip leading line comments
@@ -1187,7 +1191,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
     // determine if empty line is required after
     int currentLine = lineInfo.getLocation(offset).lineNumber;
-    if (currentLine < lineInfo.lineCount) {
+    if (currentLine + 1 < lineInfo.lineCount) {
       int nextLineOffset = lineInfo.getOffsetOfLine(currentLine + 1);
       String insertLine = source.substring(offset, nextLineOffset);
       if (!insertLine.trim().isEmpty) {
