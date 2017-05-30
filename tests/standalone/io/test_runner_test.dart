@@ -69,7 +69,7 @@ class TestController {
 class CustomTestSuite extends TestSuite {
   CustomTestSuite(Map configuration) : super(configuration, "CustomTestSuite");
 
-  void forEachTest(TestCaseEvent onTest, Map testCache, [onDone]) {
+  Future forEachTest(TestCaseEvent onTest, Map testCache, [onDone]) {
     void enqueueTestCase(testCase) {
       TestController.numTests++;
       onTest(testCase);
@@ -91,6 +91,8 @@ class CustomTestSuite extends TestSuite {
     if (onDone != null) {
       onDone();
     }
+
+    return null;
   }
 
   TestCase _makeNormalTestCase(name, expectations) {
