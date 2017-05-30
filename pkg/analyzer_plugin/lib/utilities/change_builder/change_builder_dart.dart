@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -21,6 +23,10 @@ abstract class DartChangeBuilder extends ChangeBuilder {
    * Initialize a newly created change builder.
    */
   factory DartChangeBuilder(AnalysisDriver driver) = DartChangeBuilderImpl;
+
+  @override
+  Future<Null> addFileEdit(String path, int fileStamp,
+      void buildFileEdit(DartFileEditBuilder builder));
 }
 
 /**
@@ -29,6 +35,10 @@ abstract class DartChangeBuilder extends ChangeBuilder {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class DartEditBuilder extends EditBuilder {
+  @override
+  void addLinkedEdit(
+      String groupName, void buildLinkedEdit(DartLinkedEditBuilder builder));
+
   /**
    * Write the code for a declaration of a class with the given [name]. If a
    * list of [interfaces] is provided, then the class will implement those
@@ -227,6 +237,13 @@ abstract class DartEditBuilder extends EditBuilder {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class DartFileEditBuilder extends FileEditBuilder {
+  @override
+  void addInsertion(int offset, void buildEdit(DartEditBuilder builder));
+
+  @override
+  void addReplacement(
+      SourceRange range, void buildEdit(DartEditBuilder builder));
+
   /**
    * Create one or more edits that will convert the given function [body] from
    * being synchronous to be asynchronous. This includes adding the `async`

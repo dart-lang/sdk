@@ -39,6 +39,11 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
   DartChangeBuilderImpl(this.driver);
 
   @override
+  Future<Null> addFileEdit(String path, int fileStamp,
+          void buildFileEdit(DartFileEditBuilder builder)) =>
+      super.addFileEdit(path, fileStamp, buildFileEdit);
+
+  @override
   Future<DartFileEditBuilderImpl> createFileEditBuilder(
       String path, int fileStamp) async {
     AnalysisResult result = await driver.getResult(path);
@@ -60,6 +65,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       : super(sourceFileEditBuilder, offset, length);
 
   DartFileEditBuilderImpl get dartFileEditBuilder => fileEditBuilder;
+
+  @override
+  void addLinkedEdit(String groupName,
+          void buildLinkedEdit(DartLinkedEditBuilder builder)) =>
+      super.addLinkedEdit(groupName, buildLinkedEdit);
 
   @override
   LinkedEditBuilderImpl createLinkedEditBuilder() {
@@ -969,6 +979,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder, String path,
       int timeStamp, this.unit)
       : super(changeBuilder, path, timeStamp);
+
+  @override
+  void addInsertion(int offset, void buildEdit(DartEditBuilder builder)) =>
+      super.addInsertion(offset, buildEdit);
+
+  @override
+  void addReplacement(
+          SourceRange range, void buildEdit(DartEditBuilder builder)) =>
+      super.addReplacement(range, buildEdit);
 
   @override
   void convertFunctionFromSyncToAsync(
