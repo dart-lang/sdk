@@ -43,13 +43,6 @@ abstract class Accessor {
   final BuilderHelper helper;
   final Token token;
 
-  // [builtBinary] and [builtGetter] capture the inner nodes. Used by
-  // dart2js+rasta for determining how subexpressions map to legacy dart2js Ast
-  // nodes. This will be removed once dart2js type analysis (aka inference) is
-  // reimplemented on kernel.
-  Expression builtBinary;
-  Expression builtGetter;
-
   Accessor(this.helper, this.token);
 
   /// Builds an [Expression] representing a read from the accessor.
@@ -93,8 +86,7 @@ abstract class Accessor {
       bool voidContext: false,
       Procedure interfaceTarget}) {
     return _finish(_makeWrite(
-        builtBinary = makeBinary(
-            _makeRead(), binaryOperator, interfaceTarget, value,
+        makeBinary(_makeRead(), binaryOperator, interfaceTarget, value,
             offset: offset),
         voidContext));
   }
@@ -124,7 +116,7 @@ abstract class Accessor {
     var value = new VariableDeclaration.forValue(_makeRead());
     valueAccess() => new VariableGet(value);
     var dummy = new VariableDeclaration.forValue(_makeWrite(
-        builtBinary = makeBinary(
+        makeBinary(
             valueAccess(), binaryOperator, interfaceTarget, new IntLiteral(1),
             offset: offset),
         true));
@@ -216,7 +208,7 @@ class PropertyAccessor extends Accessor {
   }
 
   Expression _makeRead() =>
-      builtGetter = new KernelPropertyGet(receiverAccess(), name, getter)
+      new KernelPropertyGet(receiverAccess(), name, getter)
         ..fileOffset = offsetForToken(token);
 
   Expression _makeWrite(Expression value, bool voidContext) {
@@ -238,7 +230,7 @@ class ThisPropertyAccessor extends Accessor {
       : super(helper, token);
 
   Expression _makeRead() =>
-      builtGetter = new KernelPropertyGet(new ThisExpression(), name, getter)
+      new KernelPropertyGet(new ThisExpression(), name, getter)
         ..fileOffset = offsetForToken(token);
 
   Expression _makeWrite(Expression value, bool voidContext) {
@@ -261,7 +253,7 @@ class NullAwarePropertyAccessor extends Accessor {
   receiverAccess() => new VariableGet(receiver);
 
   Expression _makeRead() =>
-      builtGetter = new KernelPropertyGet(receiverAccess(), name, getter);
+      new KernelPropertyGet(receiverAccess(), name, getter);
 
   Expression _makeWrite(Expression value, bool voidContext) {
     return new KernelPropertySet(receiverAccess(), name, value, setter);
@@ -284,7 +276,7 @@ class SuperPropertyAccessor extends Accessor {
   Expression _makeRead() {
     if (getter == null) return makeInvalidRead();
     // TODO(ahe): Use [DirectPropertyGet] when possible.
-    return builtGetter = new SuperPropertyGet(name, getter)
+    return new SuperPropertyGet(name, getter)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -343,8 +335,8 @@ class IndexAccessor extends Accessor {
   }
 
   Expression _makeRead() {
-    return builtGetter = new KernelMethodInvocation(receiverAccess(),
-        indexGetName, new KernelArguments(<Expression>[indexAccess()]), getter)
+    return new KernelMethodInvocation(receiverAccess(), indexGetName,
+        new KernelArguments(<Expression>[indexAccess()]), getter)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -404,11 +396,8 @@ class ThisIndexAccessor extends Accessor {
     return new VariableGet(indexVariable);
   }
 
-  Expression _makeRead() => builtGetter = new KernelMethodInvocation(
-      new ThisExpression(),
-      indexGetName,
-      new KernelArguments(<Expression>[indexAccess()]),
-      getter);
+  Expression _makeRead() => new KernelMethodInvocation(new ThisExpression(),
+      indexGetName, new KernelArguments(<Expression>[indexAccess()]), getter);
 
   Expression _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
@@ -455,7 +444,7 @@ class SuperIndexAccessor extends Accessor {
   }
 
   Expression _makeRead() {
-    return builtGetter = new SuperMethodInvocation(
+    return new SuperMethodInvocation(
         indexGetName, new KernelArguments(<Expression>[indexAccess()]), getter);
   }
 
@@ -489,7 +478,7 @@ class StaticAccessor extends Accessor {
       BuilderHelper helper, this.readTarget, this.writeTarget, Token token)
       : super(helper, token);
 
-  Expression _makeRead() => builtGetter = readTarget == null
+  Expression _makeRead() => readTarget == null
       ? makeInvalidRead()
       : helper.makeStaticGet(readTarget, token);
 

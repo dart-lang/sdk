@@ -157,22 +157,6 @@ abstract class FastaAccessor implements Accessor {
 }
 
 abstract class ErrorAccessor implements FastaAccessor {
-  @override
-  Expression get builtBinary => internalError("Unsupported operation.");
-
-  @override
-  void set builtBinary(Expression expression) {
-    internalError("Unsupported operation.");
-  }
-
-  @override
-  Expression get builtGetter => internalError("Unsupported operation.");
-
-  @override
-  void set builtGetter(Expression expression) {
-    internalError("Unsupported operation.");
-  }
-
   /// Pass [arguments] that must be evaluated before throwing an error.  At
   /// most one of [isGetter] and [isSetter] should be true and they're passed
   /// to [BuilderHelper.buildThrowNoSuchMethodError] if it is used.
@@ -273,22 +257,6 @@ class ThisAccessor extends FastaAccessor {
 
   ThisAccessor(this.helper, this.token, this.isInitializer,
       {this.isSuper: false});
-
-  @override
-  Expression get builtBinary => internalError("Unsupported operation.");
-
-  @override
-  void set builtBinary(Expression expression) {
-    internalError("Unsupported operation.");
-  }
-
-  @override
-  Expression get builtGetter => internalError("Unsupported operation.");
-
-  @override
-  void set builtGetter(Expression expression) {
-    internalError("Unsupported operation.");
-  }
 
   String get plainNameForRead => internalError(isSuper ? "super" : "this");
 
@@ -412,22 +380,6 @@ abstract class IncompleteSend extends FastaAccessor {
   final Name name;
 
   IncompleteSend(this.helper, this.token, this.name);
-
-  @override
-  Expression get builtBinary => internalError("Unsupported operation.");
-
-  @override
-  void set builtBinary(Expression expression) {
-    internalError("Unsupported operation.");
-  }
-
-  @override
-  Expression get builtGetter => internalError("Unsupported operation.");
-
-  @override
-  void set builtGetter(Expression expression) {
-    internalError("Unsupported operation.");
-  }
 
   withReceiver(Object receiver, {bool isNullAware});
 }

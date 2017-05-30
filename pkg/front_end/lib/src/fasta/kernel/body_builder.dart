@@ -2838,22 +2838,6 @@ abstract class ContextAccessor extends FastaAccessor {
 
   ContextAccessor(this.helper, this.token, this.accessor);
 
-  @override
-  Expression get builtBinary => internalError("Unsupported operation.");
-
-  @override
-  void set builtBinary(Expression expression) {
-    internalError("Unsupported operation.");
-  }
-
-  @override
-  Expression get builtGetter => internalError("Unsupported operation.");
-
-  @override
-  void set builtGetter(Expression expression) {
-    internalError("Unsupported operation.");
-  }
-
   String get plainNameForRead => internalError("Unsupported operation.");
 
   Expression doInvocation(int charOffset, Arguments arguments) {
