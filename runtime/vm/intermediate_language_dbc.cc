@@ -646,11 +646,14 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     __ Nop(result ? 1 : 0, compiler->ToEmbeddableCid(test_cid, this));
   }
 
-  // No match found, deoptimize or false.
+  // No match found, deoptimize or default action.
   if (CanDeoptimize()) {
     compiler->EmitDeopt(deopt_id(), ICData::kDeoptTestCids,
                         licm_hoisted_ ? ICData::kHoisted : 0);
   } else {
+    // If the cid is not in the list, jump to the opposite label from the cids
+    // that are in the list.  These must be all the same (see asserts in the
+    // constructor).
     Label* target = result ? labels.false_label : labels.true_label;
     __ Jump(target);
   }

@@ -2736,6 +2736,30 @@ Instruction* CheckClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+TestCidsInstr::TestCidsInstr(TokenPosition token_pos,
+                             Token::Kind kind,
+                             Value* value,
+                             const ZoneGrowableArray<intptr_t>& cid_results,
+                             intptr_t deopt_id)
+    : TemplateComparison(token_pos, kind, deopt_id),
+      cid_results_(cid_results),
+      licm_hoisted_(false) {
+  ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
+  SetInputAt(0, value);
+  set_operation_cid(kObjectCid);
+#ifdef DEBUG
+  ASSERT(cid_results[0] == kSmiCid);
+  if (deopt_id == Thread::kNoDeoptId) {
+    // The entry for Smi can be special, but all other entries have
+    // to match in the no-deopt case.
+    for (intptr_t i = 4; i < cid_results.length(); i += 2) {
+      ASSERT(cid_results[i + 1] == cid_results[3]);
+    }
+  }
+#endif
+}
+
+
 Definition* TestCidsInstr::Canonicalize(FlowGraph* flow_graph) {
   CompileType* in_type = left()->Type();
   intptr_t cid = in_type->ToCid();
@@ -2751,7 +2775,13 @@ Definition* TestCidsInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
-  // TODO(sra): Handle misses if the instruction is not deoptimizing.
+  if (!CanDeoptimize()) {
+    ASSERT(deopt_id() == Thread::kNoDeoptId);
+    return (data[data.length() - 1] == true_result)
+               ? flow_graph->GetConstant(Bool::False())
+               : flow_graph->GetConstant(Bool::True());
+  }
+
   // TODO(sra): Handle nullable input, possibly canonicalizing to a compare
   // against `null`.
   return this;
