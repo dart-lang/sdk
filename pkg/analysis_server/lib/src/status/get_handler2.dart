@@ -7,7 +7,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/protocol/protocol.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart'
+    hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_diagnostic.dart';
@@ -470,10 +471,12 @@ class GetHandler2 implements AbstractGetHandler {
           (StringBuffer buffer) {
         buffer.write('<h3>Configuration</h3>');
 
+        AnalysisOptions analysisOptions = driver.analysisOptions;
+
         _writeColumns(buffer, <HtmlGenerator>[
           (StringBuffer buffer) {
             buffer.write('<p><b>Context Options</b></p>');
-            writeOptions(buffer, driver.analysisOptions);
+            writeOptions(buffer, analysisOptions);
           },
           (StringBuffer buffer) {
             buffer.write('<p><b>SDK Context Options</b></p>');
@@ -486,7 +489,7 @@ class GetHandler2 implements AbstractGetHandler {
             });
           },
           (StringBuffer buffer) {
-            List<Linter> lints = driver.analysisOptions.lintRules;
+            List<Linter> lints = analysisOptions.lintRules;
             buffer.write('<p><b>Lints</b></p>');
             if (lints.isEmpty) {
               buffer.write('<p>none</p>');
@@ -499,10 +502,23 @@ class GetHandler2 implements AbstractGetHandler {
             }
 
             List<ErrorProcessor> errorProcessors =
-                driver.analysisOptions.errorProcessors;
+                analysisOptions.errorProcessors;
             int processorCount = errorProcessors?.length ?? 0;
             buffer
                 .write('<p><b>Error Processor count</b>: $processorCount</p>');
+          }
+        ]);
+
+        _writeColumns(buffer, <HtmlGenerator>[
+          (StringBuffer buffer) {
+            buffer.write('<p><b>analysis_options path</b></p>');
+
+            if (driver.contextRoot.optionsFilePath != null) {
+              buffer.write(
+                  '<p>${HTML_ESCAPE.convert(driver.contextRoot.optionsFilePath)}</p>');
+            } else {
+              buffer.write('<p>none</p>');
+            }
           }
         ]);
 

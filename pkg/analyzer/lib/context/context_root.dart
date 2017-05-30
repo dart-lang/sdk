@@ -24,6 +24,13 @@ class ContextRoot {
   final List<String> exclude;
 
   /**
+   * An informative value for the file path that the analysis options were read
+   * from. This value can be `null` if there is no analysis options file or if
+   * the location of the file has not yet been discovered.
+   */
+  String optionsFilePath;
+
+  /**
    * Initialize a newly created context root.
    */
   ContextRoot(this.root, this.exclude);
