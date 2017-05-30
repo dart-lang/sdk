@@ -15,9 +15,6 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
 
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
-    show FieldNode;
-
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
     show TypeInferrer;
 
@@ -94,11 +91,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   final TypePromoter<Expression, VariableDeclaration> typePromoter;
 
-  /// If not `null`, dependencies on fields are accumulated into this list.
-  ///
-  /// If `null`, no dependency information is recorded.
-  final List<FieldNode> fieldDependencies;
-
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.
   ///
@@ -147,8 +139,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       this.classBuilder,
       this.isInstanceMember,
       this.uri,
-      this._typeInferrer,
-      {this.fieldDependencies})
+      this._typeInferrer)
       : enclosingScope = scope,
         library = library,
         enableNative = (library.uri.scheme == "dart" || library.isPatch),
@@ -2780,14 +2771,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   StaticGet makeStaticGet(Member readTarget, Token token) {
-    // TODO(paulberry): only record the dependencies mandated by the top level
-    // type inference spec.
-    if (fieldDependencies != null && readTarget is KernelField) {
-      var fieldNode = _typeInferrer.getFieldNodeForReadTarget(readTarget);
-      if (fieldNode != null) {
-        fieldDependencies.add(fieldNode);
-      }
-    }
     return new KernelStaticGet(readTarget)..fileOffset = offsetForToken(token);
   }
 }

@@ -18,6 +18,7 @@
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/type_inference/dependency_collector.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
@@ -91,6 +92,11 @@ class KernelAsExpression extends AsExpression implements KernelExpression {
   KernelAsExpression(Expression operand, DartType type) : super(operand, type);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
@@ -106,6 +112,12 @@ class KernelAsExpression extends AsExpression implements KernelExpression {
 class KernelAwaitExpression extends AwaitExpression
     implements KernelExpression {
   KernelAwaitExpression(Expression operand) : super(operand);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Inference dependencies are the dependencies of the awaited expression.
+    collector.collectDependencies(operand);
+  }
 
   @override
   DartType _inferExpression(
@@ -140,6 +152,11 @@ class KernelBlock extends Block implements KernelStatement {
 /// Concrete shadow object representing a boolean literal in kernel form.
 class KernelBoolLiteral extends BoolLiteral implements KernelExpression {
   KernelBoolLiteral(bool value) : super(value);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
 
   @override
   DartType _inferExpression(
@@ -206,6 +223,13 @@ class KernelCascadeExpression extends Let implements KernelExpression {
   }
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // The inference dependencies are the inference dependencies of the cascade
+    // target.
+    collector.collectDependencies(variable.initializer);
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.cascadeExpressionEnter(this, typeContext) ||
@@ -235,13 +259,23 @@ class KernelConditionalExpression extends ConditionalExpression
       : super(condition, then, otherwise, const DynamicType());
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Inference dependencies are the union of the inference dependencies of the
+    // two returned sub-expressions.
+    collector.collectDependencies(then);
+    collector.collectDependencies(otherwise);
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.conditionalExpressionEnter(this, typeContext) ||
             typeNeeded;
-    inferrer.inferExpression(
-        condition, inferrer.coreTypes.boolClass.rawType, false);
+    if (!inferrer.isTopLevel) {
+      inferrer.inferExpression(
+          condition, inferrer.coreTypes.boolClass.rawType, false);
+    }
     // TODO(paulberry): is it correct to pass the context down?
     DartType thenType = inferrer.inferExpression(then, typeContext, true);
     DartType otherwiseType =
@@ -269,6 +303,11 @@ class KernelConstructorInvocation extends ConstructorInvocation
       : super(target, arguments, isConst: isConst);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
@@ -286,6 +325,29 @@ class KernelConstructorInvocation extends ConstructorInvocation
   }
 }
 
+/// Concrete implementation of [DependencyCollector] specialized to work with
+/// kernel objects.
+class KernelDependencyCollector extends DependencyCollectorImpl {
+  @override
+  void collectDependencies(Expression expression) {
+    if (expression is KernelExpression) {
+      // Use polymorphic dispatch on [KernelExpression] to perform whatever kind
+      // of type inference is correct for this kind of statement.
+      // TODO(paulberry): experiment to see if dynamic dispatch would be better,
+      // so that the type hierarchy will be simpler (which may speed up "is"
+      // checks).
+      expression._collectDependencies(this);
+    } else {
+      // Encountered an expression type for which type inference is not yet
+      // implemented, so just assume the expression does not have an immediately
+      // evident type for now.
+      // TODO(paulberry): once the BodyBuilder uses shadow classes for
+      // everything, this case should no longer be needed.
+      recordNotImmediatelyEvident(expression.fileOffset);
+    }
+  }
+}
+
 /// Shadow object for [DirectMethodInvocation].
 class KernelDirectMethodInvocation extends DirectMethodInvocation
     implements KernelExpression {
@@ -296,6 +358,12 @@ class KernelDirectMethodInvocation extends DirectMethodInvocation
   KernelDirectMethodInvocation.byReference(
       Expression receiver, Reference targetReference, Arguments arguments)
       : super.byReference(receiver, targetReference, arguments);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // TODO(paulberry): Determine the right thing to do here.
+    throw 'TODO(paulberry)';
+  }
 
   @override
   DartType _inferExpression(
@@ -316,6 +384,12 @@ class KernelDirectPropertyGet extends DirectPropertyGet
       : super.byReference(receiver, targetReference);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // TODO(paulberry): Determine the right thing to do here.
+    throw 'TODO(paulberry)';
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(scheglov): implement.
@@ -334,6 +408,12 @@ class KernelDirectPropertySet extends DirectPropertySet
       : super.byReference(receiver, targetReference, value);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Assignment expressions are not immediately evident expressions.
+    collector.recordNotImmediatelyEvident(fileOffset);
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(scheglov): implement.
@@ -344,6 +424,11 @@ class KernelDirectPropertySet extends DirectPropertySet
 /// Concrete shadow object representing a double literal in kernel form.
 class KernelDoubleLiteral extends DoubleLiteral implements KernelExpression {
   KernelDoubleLiteral(double value) : super(value);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
 
   @override
   DartType _inferExpression(
@@ -360,6 +445,10 @@ class KernelDoubleLiteral extends DoubleLiteral implements KernelExpression {
 /// Common base class for shadow objects representing expressions in kernel
 /// form.
 abstract class KernelExpression implements Expression {
+  /// Collects any dependencies of [expression], and reports errors if the
+  /// expression does not have an immediately evident type.
+  void _collectDependencies(KernelDependencyCollector collector);
+
   /// Calls back to [inferrer] to perform type inference for whatever concrete
   /// type of [KernelExpression] this is.
   DartType _inferExpression(
@@ -389,6 +478,11 @@ class KernelFactoryConstructorInvocation extends StaticInvocation
       Procedure target, this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
 
   @override
   DartType _inferExpression(
@@ -521,6 +615,28 @@ class KernelFunctionDeclaration extends FunctionDeclaration
 class KernelFunctionExpression extends FunctionExpression
     implements KernelExpression {
   KernelFunctionExpression(FunctionNode function) : super(function);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    for (KernelVariableDeclaration parameter in function.positionalParameters) {
+      if (parameter._implicitlyTyped) {
+        collector.recordNotImmediatelyEvident(parameter.fileOffset);
+      }
+    }
+    for (KernelVariableDeclaration parameter in function.namedParameters) {
+      if (parameter._implicitlyTyped) {
+        collector.recordNotImmediatelyEvident(parameter.fileOffset);
+      }
+    }
+    var body = function.body;
+    if (body is ReturnStatement) {
+      // The inference dependencies are the inference dependencies of the return
+      // expression.
+      collector.collectDependencies(body.expression);
+    } else {
+      collector.recordNotImmediatelyEvident(fileOffset);
+    }
+  }
 
   @override
   DartType _inferExpression(
@@ -678,6 +794,11 @@ class KernelIntLiteral extends IntLiteral implements KernelExpression {
   KernelIntLiteral(int value) : super(value);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
@@ -691,6 +812,11 @@ class KernelIntLiteral extends IntLiteral implements KernelExpression {
 /// Concrete shadow object representing a non-inverted "is" test in kernel form.
 class KernelIsExpression extends IsExpression implements KernelExpression {
   KernelIsExpression(Expression operand, DartType type) : super(operand, type);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
 
   @override
   DartType _inferExpression(
@@ -708,6 +834,11 @@ class KernelIsExpression extends IsExpression implements KernelExpression {
 class KernelIsNotExpression extends Not implements KernelExpression {
   KernelIsNotExpression(Expression operand, DartType type, int charOffset)
       : super(new IsExpression(operand, type)..fileOffset = charOffset);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
 
   @override
   DartType _inferExpression(
@@ -734,6 +865,13 @@ class KernelListLiteral extends ListLiteral implements KernelExpression {
             isConst: isConst);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    if (_declaredTypeArgument == null) {
+      expressions.forEach(collector.collectDependencies);
+    }
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
@@ -755,12 +893,14 @@ class KernelListLiteral extends ListLiteral implements KernelExpression {
     } else {
       inferredTypeArgument = _declaredTypeArgument ?? const DynamicType();
     }
-    for (var expression in expressions) {
-      var expressionType = inferrer.inferExpression(
-          expression, inferredTypeArgument, inferenceNeeded);
-      if (inferenceNeeded) {
-        formalTypes.add(listType.typeArguments[0]);
-        actualTypes.add(expressionType);
+    if (inferenceNeeded || !inferrer.isTopLevel) {
+      for (var expression in expressions) {
+        var expressionType = inferrer.inferExpression(
+            expression, inferredTypeArgument, inferenceNeeded);
+        if (inferenceNeeded) {
+          formalTypes.add(listType.typeArguments[0]);
+          actualTypes.add(expressionType);
+        }
       }
     }
     if (inferenceNeeded) {
@@ -794,6 +934,11 @@ class KernelLogicalExpression extends LogicalExpression
       : super(left, operator, right);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(scheglov): implement.
@@ -814,6 +959,17 @@ class KernelMapLiteral extends MapLiteral implements KernelExpression {
             keyType: keyType ?? const DynamicType(),
             valueType: valueType ?? const DynamicType(),
             isConst: isConst);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    assert((_declaredKeyType == null) == (_declaredValueType == null));
+    if (_declaredKeyType == null) {
+      for (var entry in entries) {
+        collector.collectDependencies(entry.key);
+        collector.collectDependencies(entry.value);
+      }
+    }
+  }
 
   @override
   DartType _inferExpression(
@@ -841,15 +997,17 @@ class KernelMapLiteral extends MapLiteral implements KernelExpression {
       inferredKeyType = _declaredKeyType ?? const DynamicType();
       inferredValueType = _declaredValueType ?? const DynamicType();
     }
-    for (var entry in entries) {
-      var keyType =
-          inferrer.inferExpression(entry.key, inferredKeyType, inferenceNeeded);
-      var valueType = inferrer.inferExpression(
-          entry.value, inferredValueType, inferenceNeeded);
-      if (inferenceNeeded) {
-        formalTypes.addAll(mapType.typeArguments);
-        actualTypes.add(keyType);
-        actualTypes.add(valueType);
+    if (inferenceNeeded || !inferrer.isTopLevel) {
+      for (var entry in entries) {
+        var keyType = inferrer.inferExpression(
+            entry.key, inferredKeyType, inferenceNeeded);
+        var valueType = inferrer.inferExpression(
+            entry.value, inferredValueType, inferenceNeeded);
+        if (inferenceNeeded) {
+          formalTypes.addAll(mapType.typeArguments);
+          actualTypes.add(keyType);
+          actualTypes.add(valueType);
+        }
       }
     }
     if (inferenceNeeded) {
@@ -891,6 +1049,13 @@ class KernelMethodInvocation extends MethodInvocation
       : super.byReference(receiver, name, arguments, interfaceTargetReference);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // The inference dependencies are the inference dependencies of the
+    // receiver.
+    collector.collectDependencies(receiver);
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.methodInvocationEnter(this, typeContext) ||
@@ -929,6 +1094,11 @@ class KernelNot extends Not implements KernelExpression {
   KernelNot(Expression operand) : super(operand);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(scheglov): implement.
@@ -938,6 +1108,11 @@ class KernelNot extends Not implements KernelExpression {
 
 /// Concrete shadow object representing a null literal in kernel form.
 class KernelNullLiteral extends NullLiteral implements KernelExpression {
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
@@ -959,6 +1134,21 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
       : super.byReference(receiver, name, interfaceTargetReference);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // A simple or qualified identifier referring to a top level function,
+    // static variable, field, getter; or a static class variable, static getter
+    // or method; or an instance method; has the inferred type of the referent.
+    // - Otherwise, if the identifier has no inferred or annotated type then it
+    //   is an error.
+    // - Note: specifically, references to instance fields and instance getters
+    //   are disallowed here.
+    // - The inference dependency of the identifier is the referent if the
+    //   referent is a candidate for inference.  Otherwise there are no
+    //   inference dependencies.
+    // TODO(paulberry): implement the proper logic here.
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(scheglov): implement.
@@ -975,6 +1165,12 @@ class KernelPropertySet extends PropertySet implements KernelExpression {
   KernelPropertySet.byReference(Expression receiver, Name name,
       Expression value, Reference interfaceTargetReference)
       : super.byReference(receiver, name, value, interfaceTargetReference);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Assignment expressions are not immediately evident expressions.
+    collector.recordNotImmediatelyEvident(fileOffset);
+  }
 
   @override
   DartType _inferExpression(
@@ -1003,6 +1199,11 @@ class KernelRedirectingInitializer extends RedirectingInitializer
 
 /// Shadow object for [Rethrow].
 class KernelRethrow extends Rethrow implements KernelExpression {
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
@@ -1048,6 +1249,25 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
   KernelStaticGet(Member target) : super(target);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // A simple or qualified identifier referring to a top level function,
+    // static variable, field, getter; or a static class variable, static getter
+    // or method; or an instance method; has the inferred type of the referent.
+    // - Otherwise, if the identifier has no inferred or annotated type then it
+    //   is an error.
+    // - Note: specifically, references to instance fields and instance getters
+    //   are disallowed here.
+    // - The inference dependency of the identifier is the referent if the
+    //   referent is a candidate for inference.  Otherwise there are no
+    //   inference dependencies.
+    // TODO(paulberry): implement the proper error checking logic.
+    var target = this.target;
+    if (target is KernelField && target._fieldNode != null) {
+      collector.recordDependency(target._fieldNode);
+    }
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
@@ -1070,6 +1290,11 @@ class KernelStaticInvocation extends StaticInvocation
       : super.byReference(targetReference, arguments);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.staticInvocationEnter(this, typeContext) ||
@@ -1090,6 +1315,12 @@ class KernelStaticSet extends StaticSet implements KernelExpression {
       : super.byReference(targetReference, value);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Assignment expressions are not immediately evident expressions.
+    collector.recordNotImmediatelyEvident(fileOffset);
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(scheglov): implement.
@@ -1103,13 +1334,20 @@ class KernelStringConcatenation extends StringConcatenation
   KernelStringConcatenation(List<Expression> expressions) : super(expressions);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.stringConcatenationEnter(this, typeContext) ||
             typeNeeded;
-    for (Expression expression in expressions) {
-      inferrer.inferExpression(expression, null, false);
+    if (!inferrer.isTopLevel) {
+      for (Expression expression in expressions) {
+        inferrer.inferExpression(expression, null, false);
+      }
     }
     var inferredType =
         typeNeeded ? inferrer.coreTypes.stringClass.rawType : null;
@@ -1121,6 +1359,11 @@ class KernelStringConcatenation extends StringConcatenation
 /// Concrete shadow object representing a string literal in kernel form.
 class KernelStringLiteral extends StringLiteral implements KernelExpression {
   KernelStringLiteral(String value) : super(value);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
 
   @override
   DartType _inferExpression(
@@ -1146,6 +1389,13 @@ class KernelSuperMethodInvocation extends SuperMethodInvocation
       : super.byReference(name, arguments, interfaceTargetReference);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Super expressions should never occur in top level type inference.
+    // TODO(paulberry): but could they occur due to invalid code?
+    assert(false);
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(scheglov): implement.
@@ -1162,6 +1412,13 @@ class KernelSuperPropertyGet extends SuperPropertyGet
   KernelSuperPropertyGet.byReference(
       Name name, Reference interfaceTargetReference)
       : super.byReference(name, interfaceTargetReference);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Super expressions should never occur in top level type inference.
+    // TODO(paulberry): but could they occur due to invalid code?
+    assert(false);
+  }
 
   @override
   DartType _inferExpression(
@@ -1182,6 +1439,12 @@ class KernelSuperPropertySet extends SuperPropertySet
       : super.byReference(name, value, interfaceTargetReference);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Assignment expressions are not immediately evident expressions.
+    collector.recordNotImmediatelyEvident(fileOffset);
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(scheglov): implement.
@@ -1194,6 +1457,11 @@ class KernelSymbolLiteral extends SymbolLiteral implements KernelExpression {
   KernelSymbolLiteral(String value) : super(value);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     // TODO(scheglov): implement.
@@ -1203,6 +1471,12 @@ class KernelSymbolLiteral extends SymbolLiteral implements KernelExpression {
 
 /// Shadow object for [ThisExpression].
 class KernelThisExpression extends ThisExpression implements KernelExpression {
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // TODO(paulberry): figure out the right thing to do here.
+    throw 'TODO(paulberry)';
+  }
+
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
@@ -1214,6 +1488,11 @@ class KernelThisExpression extends ThisExpression implements KernelExpression {
 /// Shadow object for [Throw].
 class KernelThrow extends Throw implements KernelExpression {
   KernelThrow(Expression expression) : super(expression);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
 
   @override
   DartType _inferExpression(
@@ -1265,11 +1544,6 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
   }
 
   @override
-  List<FieldNode> getFieldDependencies(KernelField field) {
-    return field._fieldNode?.dependencies;
-  }
-
-  @override
   int getFieldOffset(KernelField field) {
     return field.fileOffset;
   }
@@ -1308,15 +1582,6 @@ class KernelTypeInferrer extends TypeInferrerImpl {
   @override
   Expression getFieldInitializer(KernelField field) {
     return field.initializer;
-  }
-
-  @override
-  FieldNode getFieldNodeForReadTarget(Member readTarget) {
-    if (readTarget is KernelField) {
-      return readTarget._fieldNode;
-    } else {
-      return null;
-    }
   }
 
   @override
@@ -1382,6 +1647,11 @@ class KernelTypeInferrer extends TypeInferrerImpl {
 /// Shadow object for [TypeLiteral].
 class KernelTypeLiteral extends TypeLiteral implements KernelExpression {
   KernelTypeLiteral(DartType type) : super(type);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
 
   @override
   DartType _inferExpression(
@@ -1537,6 +1807,11 @@ class KernelVariableGet extends VariableGet implements KernelExpression {
       : super(variable);
 
   @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // No inference dependencies.
+  }
+
+  @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     var variable = this.variable as KernelVariableDeclaration;
@@ -1562,6 +1837,12 @@ class KernelVariableGet extends VariableGet implements KernelExpression {
 class KernelVariableSet extends VariableSet implements KernelExpression {
   KernelVariableSet(VariableDeclaration variable, Expression value)
       : super(variable, value);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Assignment expressions are not immediately evident expressions.
+    collector.recordNotImmediatelyEvident(fileOffset);
+  }
 
   @override
   DartType _inferExpression(

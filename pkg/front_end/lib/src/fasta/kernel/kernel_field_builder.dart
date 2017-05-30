@@ -85,8 +85,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
           currentClass,
           isInstanceMember,
           library.uri,
-          typeInferrer,
-          fieldDependencies: typeInferenceEngine.getFieldDependencies(field));
+          typeInferrer);
       Parser parser = new Parser(bodyBuilder);
       Token token = parser.parseExpression(initializerToken);
       Expression expression = bodyBuilder.popForValue();

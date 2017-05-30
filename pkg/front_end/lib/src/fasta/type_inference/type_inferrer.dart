@@ -147,9 +147,6 @@ abstract class TypeInferrer {
   /// performed--this is used for testing.
   String get uri;
 
-  /// Gets the [FieldNode] corresponding to the given [readTarget], if any.
-  FieldNode getFieldNodeForReadTarget(Member readTarget);
-
   /// Performs full type inference on the given field initializer.
   void inferFieldInitializer(DartType declaredType, Expression initializer);
 
@@ -176,7 +173,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Indicates whether the construct we are currently performing inference for
   /// is outside of a method body, and hence top level type inference rules
   /// should apply.
-  final bool isTopLevel = false;
+  final bool isTopLevel;
 
   final CoreTypes coreTypes;
 
@@ -200,7 +197,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
-        typeSchemaEnvironment = engine.typeSchemaEnvironment;
+        typeSchemaEnvironment = engine.typeSchemaEnvironment,
+        isTopLevel = topLevel;
 
   /// Gets the type promoter that should be used to promote types during
   /// inference.
@@ -370,25 +368,29 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           new List<DartType>.filled(
               calleeTypeParameters.length, const DynamicType()));
     }
-    int i = 0;
-    _forEachArgument(arguments, (name, expression) {
-      DartType formalType = name != null
-          ? getNamedParameterType(calleeType, name)
-          : getPositionalParameterType(calleeType, i++);
-      DartType inferredFormalType = substitution != null
-          ? substitution.substituteType(formalType)
-          : formalType;
-      var expressionType = inferExpression(expression, inferredFormalType,
-          inferenceNeeded || isOverloadedArithmeticOperator);
-      if (inferenceNeeded) {
-        formalTypes.add(formalType);
-        actualTypes.add(expressionType);
-      }
-      if (isOverloadedArithmeticOperator) {
-        returnType = typeSchemaEnvironment.getTypeOfOverloadedArithmetic(
-            receiverType, expressionType);
-      }
-    });
+    // TODO(paulberry): if we are doing top level inference and type arguments
+    // were omitted, report an error.
+    if (inferenceNeeded || !isTopLevel) {
+      int i = 0;
+      _forEachArgument(arguments, (name, expression) {
+        DartType formalType = name != null
+            ? getNamedParameterType(calleeType, name)
+            : getPositionalParameterType(calleeType, i++);
+        DartType inferredFormalType = substitution != null
+            ? substitution.substituteType(formalType)
+            : formalType;
+        var expressionType = inferExpression(expression, inferredFormalType,
+            inferenceNeeded || isOverloadedArithmeticOperator);
+        if (inferenceNeeded) {
+          formalTypes.add(formalType);
+          actualTypes.add(expressionType);
+        }
+        if (isOverloadedArithmeticOperator) {
+          returnType = typeSchemaEnvironment.getTypeOfOverloadedArithmetic(
+              receiverType, expressionType);
+        }
+      });
+    }
     if (inferenceNeeded) {
       typeSchemaEnvironment.inferGenericFunctionOrType(
           returnType,

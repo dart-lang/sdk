@@ -23,7 +23,7 @@ class FieldNode extends dependencyWalker.Node<FieldNode> {
 
   final KernelField _field;
 
-  final dependencies = <FieldNode>[];
+  bool isImmediatelyEvident = false;
 
   FieldNode(this._typeInferenceEngine, this._field);
 
@@ -32,7 +32,7 @@ class FieldNode extends dependencyWalker.Node<FieldNode> {
 
   @override
   List<FieldNode> computeDependencies() {
-    return dependencies;
+    return _typeInferenceEngine.computeFieldDependencies(this);
   }
 }
 
@@ -60,10 +60,6 @@ abstract class TypeInferenceEngine {
   /// visit all fields and top level variables that were passed to [recordField]
   /// in topologically-sorted order and assign their types.
   void finishTopLevel();
-
-  /// Gets the list of top level type inference dependencies of the given
-  /// [field].
-  List<FieldNode> getFieldDependencies(KernelField field);
 
   /// Gets ready to do top level type inference for the program having the given
   /// [hierarchy], using the given [coreTypes].
@@ -105,23 +101,24 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// Clears the initializer of [field].
   void clearFieldInitializer(KernelField field);
 
+  /// Computes type inference dependencies for the given [field].
+  List<FieldNode> computeFieldDependencies(FieldNode fieldNode) {
+    // TODO(paulberry): add logic to infer field types by inheritance.
+    if (fieldHasInitializer(fieldNode._field)) {
+      var collector = new KernelDependencyCollector();
+      collector.collectDependencies(fieldNode._field.initializer);
+      fieldNode.isImmediatelyEvident = collector.isImmediatelyEvident;
+      return collector.dependencies;
+    } else {
+      return const [];
+    }
+  }
+
   /// Creates a [FieldNode] to track dependencies of the given [field].
   FieldNode createFieldNode(KernelField field);
 
   /// Queries whether the given [field] has an initializer.
   bool fieldHasInitializer(KernelField field);
-
-  DartType _inferInitializingFormalType(KernelVariableDeclaration formal) {
-    assert(KernelVariableDeclaration.isImplicitlyTyped(formal));
-    Class enclosingClass = formal.parent.parent.parent;
-    for (var field in enclosingClass.fields) {
-      if (field.name.name == formal.name) {
-        return field.type;
-      }
-    }
-    // No matching field.  The error should be reported elsewhere.
-    return const DynamicType();
-  }
 
   @override
   void finishTopLevel() {
@@ -151,13 +148,16 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   String getFieldUri(KernelField field);
 
   /// Performs type inference on the given [field].
-  void inferField(KernelField field, bool updateType) {
+  void inferField(FieldNode fieldNode) {
+    var field = fieldNode._field;
     if (fieldHasInitializer(field)) {
       var typeInferrer = getFieldTypeInferrer(field);
       var type = getFieldDeclaredType(field);
-      var inferredType = typeInferrer.inferDeclarationType(
-          typeInferrer.inferFieldTopLevel(field, type, type == null));
-      if (type == null && strongMode && updateType) {
+      if (type == null && strongMode) {
+        var inferredType = fieldNode.isImmediatelyEvident
+            ? typeInferrer.inferDeclarationType(
+                typeInferrer.inferFieldTopLevel(field, type, true))
+            : const DynamicType();
         instrumentation?.record(
             Uri.parse(typeInferrer.uri),
             getFieldOffset(field),
@@ -210,6 +210,18 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   /// Stores [inferredType] as the inferred type of [field].
   void setFieldInferredType(KernelField field, DartType inferredType);
+
+  DartType _inferInitializingFormalType(KernelVariableDeclaration formal) {
+    assert(KernelVariableDeclaration.isImplicitlyTyped(formal));
+    Class enclosingClass = formal.parent.parent.parent;
+    for (var field in enclosingClass.fields) {
+      if (field.name.name == formal.name) {
+        return field.type;
+      }
+    }
+    // No matching field.  The error should be reported elsewhere.
+    return const DynamicType();
+  }
 }
 
 /// Subtype of [dependencyWalker.DependencyWalker] which is specialized to
@@ -219,7 +231,7 @@ class _FieldWalker extends dependencyWalker.DependencyWalker<FieldNode> {
 
   @override
   void evaluate(FieldNode f) {
-    f._typeInferenceEngine.inferField(f._field, true);
+    f._typeInferenceEngine.inferField(f);
   }
 
   @override
@@ -227,11 +239,6 @@ class _FieldWalker extends dependencyWalker.DependencyWalker<FieldNode> {
     // Mark every field as part of a circularity.
     for (var f in scc) {
       f._typeInferenceEngine.inferFieldCircular(f._field);
-    }
-    // Perform type inference on the initializers of every field, but don't
-    // update the inferred types.
-    for (var f in scc) {
-      f._typeInferenceEngine.inferField(f._field, false);
     }
   }
 }
