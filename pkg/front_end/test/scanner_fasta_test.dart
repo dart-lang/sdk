@@ -501,6 +501,14 @@ class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
     return scanner.tokenize();
   }
 
+  void test_linestarts() {
+    var scanner = new fasta.StringScanner("var\r\ni\n=\n1;\n");
+    var token = scanner.tokenize();
+    expect(token.lexeme, 'var');
+    var lineStarts = scanner.lineStarts;
+    expect(lineStarts, orderedEquals([0, 5, 7, 9, 12, 13]));
+  }
+
   test_unterminated_string_with_unterminated_interpolation() {
     Token token = scan(r'"foo ${bar');
     BeginToken interpolationStart = token.next;

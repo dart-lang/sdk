@@ -123,6 +123,17 @@ class LineInfoTest extends EngineTestCase {
     ]);
   }
 
+  void test_linestarts() {
+    String source = "var\r\ni\n=\n1;\n";
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner =
+        new Scanner(null, new CharSequenceReader(source), listener);
+    var token = scanner.tokenize();
+    expect(token.lexeme, 'var');
+    var lineStarts = scanner.lineStarts;
+    expect(lineStarts, orderedEquals([0, 5, 7, 9, 12]));
+  }
+
   void _assertLineInfo(
       String source, List<ScannerTest_ExpectedLocation> expectedLocations) {
     GatheringErrorListener listener = new GatheringErrorListener();

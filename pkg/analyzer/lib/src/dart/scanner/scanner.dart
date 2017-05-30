@@ -163,6 +163,9 @@ class _Scanner2 implements Scanner {
     // fasta pretends there is an additional line at EOF
     result.lineStarts.removeLast();
 
+    // for compatibility, there is already a first entry in lineStarts
+    result.lineStarts.removeAt(0);
+
     lineStarts.addAll(result.lineStarts);
     fasta.Token token = result.tokens;
     // The default recovery strategy used by scanString
