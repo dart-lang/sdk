@@ -131,7 +131,7 @@ class LineInfoTest extends EngineTestCase {
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
-    expect(lineStarts, orderedEquals([0, 5, 7, 9, 12]));
+    expect(lineStarts, orderedEquals([0, 5, 7, 9, 11]));
   }
 
   void _assertLineInfo(
