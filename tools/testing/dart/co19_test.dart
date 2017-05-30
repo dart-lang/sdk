@@ -60,7 +60,7 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
 void main(List<String> args) {
   TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   var optionsParser = new OptionsParser();
-  var configurations = <Map>[];
+  var configurations = <Map<String, dynamic>>[];
   for (var commandLine in COMMAND_LINES) {
     var arguments = <String>[];
     arguments.addAll(COMMON_ARGUMENTS);

@@ -91,12 +91,12 @@ class TestCaseOutputArchive {
 
   void loadFromPath(Path recordingPath) {
     var file = new File(recordingPath.toNativePath());
-    var commandRecordings = JSON.decode(file.readAsStringSync());
+    var commandRecordings = JSON.decode(file.readAsStringSync()) as List;
     _commandOutputRecordings = {};
     for (var commandRecording in commandRecordings) {
-      var key = _indexKey(commandRecording['command']['executable'],
-          commandRecording['command']['arguments'].join(' '));
-      _commandOutputRecordings[key] = commandRecording['command_output'];
+      var key = _indexKey(commandRecording['command']['executable'] as String,
+          (commandRecording['command']['arguments'] as List).join(' '));
+      _commandOutputRecordings[key] = commandRecording['command_output'] as Map;
     }
   }
 
@@ -115,15 +115,15 @@ class TestCaseOutputArchive {
       exit(42);
     }
 
-    double seconds = command_output['duration'];
+    double seconds = command_output['duration'] as double;
     var duration = new Duration(
         seconds: seconds.round(), milliseconds: (seconds / 1000).round());
     var commandOutput = createCommandOutput(
         command,
-        command_output['exit_code'],
-        command_output['did_timeout'],
-        UTF8.encode(command_output['stdout']),
-        UTF8.encode(command_output['stderr']),
+        command_output['exit_code'] as int,
+        command_output['did_timeout'] as bool,
+        UTF8.encode(command_output['stdout'] as String),
+        UTF8.encode(command_output['stderr'] as String),
         duration,
         false);
     return commandOutput;

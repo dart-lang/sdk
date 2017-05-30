@@ -26,8 +26,8 @@ class RuntimeConfiguration {
   // test_options.dart.  We probably want to store an instance of
   // [RuntimeConfiguration] in [configuration] there.
   factory RuntimeConfiguration(Map<String, dynamic> configuration) {
-    String runtime = configuration['runtime'];
-    bool useBlobs = configuration['use_blobs'];
+    var runtime = configuration['runtime'] as String;
+    var useBlobs = configuration['use_blobs'] as bool;
 
     switch (runtime) {
       case 'ContentShellOnAndroid':
@@ -343,7 +343,7 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
     return selfCheckers
         .map((String tester) => commandBuilder.getVmBatchCommand(
             executable, tester, arguments, environmentOverrides,
-            checked: suite.configuration['checked']))
+            checked: suite.configuration['checked'] as bool))
         .toList();
   }
 

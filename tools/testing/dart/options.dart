@@ -397,7 +397,7 @@ compiler.''')
   /// Configurations are maps mapping from option keys to values. When
   /// encountering the first non-option string, the rest of the arguments are
   /// stored in the returned Map under the 'rest' key.
-  List<Map> parse(List<String> arguments) {
+  List<Map<String, dynamic>> parse(List<String> arguments) {
     // TODO(rnystrom): The builders on the buildbots still pass this even
     // though it does nothing. Until those can be fixed, silently ignore the
     // option. Remove this once the buildbot scripts are fixed.
@@ -406,7 +406,7 @@ compiler.''')
       print('Note: Ignoring unsupported "--failure-summary" option.');
     }
 
-    var configuration = {};
+    var configuration = <String, dynamic>{};
 
     // Fill in configuration with arguments passed to the test script.
     for (var i = 0; i < arguments.length; i++) {
@@ -565,7 +565,7 @@ compiler.''')
   bool _isValidConfig(Map config) {
     var isValid = true;
     List<String> validRuntimes;
-    switch (config['compiler']) {
+    switch (config['compiler'] as String) {
       case 'dart2js':
         // Note: by adding 'none' as a configuration, if the user
         // runs test.py -c dart2js -r drt,none the dart2js_none and
@@ -618,13 +618,14 @@ compiler.''')
           "Skipping this combination.");
     }
 
-    if (config['ie'] && Platform.operatingSystem != 'windows') {
+    if ((config['ie'] as bool) && Platform.operatingSystem != 'windows') {
       isValid = false;
       print("Warning: cannot run Internet Explorer on non-Windows operating"
           " system.");
     }
 
-    if (config['shard'] < 1 || config['shard'] > config['shards']) {
+    if ((config['shard'] as int) < 1 ||
+        (config['shard'] as int) > (config['shards'] as int)) {
       isValid = false;
       print("Error: shard index is ${config['shard']} out of "
           "${config['shards']} shards");
@@ -646,7 +647,8 @@ compiler.''')
 
   /// Recursively expands a configuration with multiple values per key into a
   /// list of configurations with exactly one value per key.
-  List<Map> _expandConfigurations(Map configuration) {
+  List<Map<String, dynamic>> _expandConfigurations(
+      Map<String, dynamic> configuration) {
     // Expand the pseudo-values such as 'all'.
     if (configuration['arch'] == 'all') {
       configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips,simdbc64';
@@ -656,30 +658,31 @@ compiler.''')
       configuration['mode'] = 'debug,release,product';
     }
 
-    if (configuration['report_in_json']) {
+    if (configuration['report_in_json'] as bool) {
       configuration['list'] = true;
       configuration['report'] = true;
     }
 
     // Use verbose progress indication for verbose output unless buildbot
     // progress indication is requested.
-    if (configuration['verbose'] && configuration['progress'] != 'buildbot') {
+    if ((configuration['verbose'] as bool) &&
+        (configuration['progress'] as String) != 'buildbot') {
       configuration['progress'] = 'verbose';
     }
 
     // Create the artificial negative options that test status files
     // expect.
-    configuration['unchecked'] = !configuration['checked'];
-    configuration['host_unchecked'] = !configuration['host_checked'];
-    configuration['unminified'] = !configuration['minified'];
-    configuration['nocsp'] = !configuration['csp'];
+    configuration['unchecked'] = !(configuration['checked'] as bool);
+    configuration['host_unchecked'] = !(configuration['host_checked'] as bool);
+    configuration['unminified'] = !(configuration['minified'] as bool);
+    configuration['nocsp'] = !(configuration['csp'] as bool);
 
-    String runtime = configuration['runtime'];
+    var runtime = configuration['runtime'] as String;
     if (runtime == 'firefox') {
       configuration['runtime'] == 'ff';
     }
 
-    String compiler = configuration['compiler'];
+    var compiler = configuration['compiler'] as String;
     configuration['browser'] = TestUtils.isBrowserRuntime(runtime);
     configuration['analyzer'] = TestUtils.isCommandLineAnalyzer(compiler);
 
@@ -697,7 +700,7 @@ compiler.''')
     if (selectors is! Map) {
       if (selectors == null) {
         if (configuration['suite_dir'] != null) {
-          var suite_path = new Path(configuration['suite_dir']);
+          var suite_path = new Path(configuration['suite_dir'] as String);
           selectors = [suite_path.filename];
         } else {
           selectors = _defaultTestSelectors.toList();
@@ -707,7 +710,7 @@ compiler.''')
             ? configuration['exclude_suite'].split(',')
             : [];
         for (var exclude in excludeSuites) {
-          if (selectors.contains(exclude)) {
+          if ((selectors as List).contains(exclude)) {
             selectors.remove(exclude);
           } else {
             print("Warning: default selectors does not contain $exclude");
@@ -715,8 +718,8 @@ compiler.''')
         }
       }
       var selectorMap = <String, RegExp>{};
-      for (var i = 0; i < selectors.length; i++) {
-        var pattern = selectors[i];
+      for (var i = 0; i < (selectors as List).length; i++) {
+        var pattern = selectors[i] as String;
         var suite = pattern;
         var slashLocation = pattern.indexOf('/');
         if (slashLocation != -1) {
@@ -739,7 +742,7 @@ compiler.''')
     // Put observatory_ui in a configuration with its own packages override.
     // Only one value in the configuration map is mutable:
     selectors = configuration['selectors'];
-    if (selectors.containsKey('observatory_ui')) {
+    if ((selectors as Map<String, dynamic>).containsKey('observatory_ui')) {
       if (selectors.length == 1) {
         configuration['packages'] = TestUtils.dartDirUri
             .resolve('runtime/observatory/.packages')
@@ -749,7 +752,8 @@ compiler.''')
         // observatory_ui, and remove the key from the original selectors.
         // The only mutable value in the map is the selectors, so a
         // shallow copy is safe.
-        var observatoryConfiguration = new Map.from(configuration);
+        var observatoryConfiguration =
+            new Map<String, dynamic>.from(configuration);
         observatoryConfiguration['selectors'] = {
           'observatory_ui': selectors['observatory_ui']
         };
@@ -775,22 +779,22 @@ compiler.''')
     }
 
     // Expand the architectures.
-    if (configuration['arch'].contains(',')) {
+    if ((configuration['arch'] as String).contains(',')) {
       return _expandHelper('arch', configuration);
     }
 
     // Expand modes.
-    if (configuration['mode'].contains(',')) {
+    if ((configuration['mode'] as String).contains(',')) {
       return _expandHelper('mode', configuration);
     }
 
     // Expand compilers.
-    if (configuration['compiler'].contains(',')) {
+    if ((configuration['compiler'] as String).contains(',')) {
       return _expandHelper('compiler', configuration);
     }
 
     // Expand runtimes.
-    var runtimes = configuration['runtime'];
+    var runtimes = configuration['runtime'] as String;
     if (runtimes.contains(',')) {
       return _expandHelper('runtime', configuration);
     } else {
@@ -803,16 +807,16 @@ compiler.''')
 
     // Adjust default timeout based on mode, compiler, and sometimes runtime.
     if (configuration['timeout'] == -1) {
-      var isReload =
-          configuration['hot_reload'] || configuration['hot_reload_rollback'];
+      var isReload = (configuration['hot_reload'] as bool) ||
+          (configuration['hot_reload_rollback'] as bool);
       int compilerMulitiplier =
           new CompilerConfiguration(configuration).computeTimeoutMultiplier();
       int runtimeMultiplier = new RuntimeConfiguration(configuration)
           .computeTimeoutMultiplier(
-              mode: configuration['mode'],
-              isChecked: configuration['checked'],
+              mode: configuration['mode'] as String,
+              isChecked: configuration['checked'] as bool,
               isReload: isReload,
-              arch: configuration['arch']);
+              arch: configuration['arch'] as String);
       configuration['timeout'] = 60 * compilerMulitiplier * runtimeMultiplier;
     }
 
@@ -826,11 +830,12 @@ compiler.''')
   /// option: The particular test option we are expanding.
   /// configuration: The map containing all test configuration information
   /// specified.
-  List<Map> _expandHelper(String option, Map configuration) {
-    var result = <Map>[];
+  List<Map<String, dynamic>> _expandHelper(
+      String option, Map<String, dynamic> configuration) {
+    var result = <Map<String, dynamic>>[];
     var configs = configuration[option];
     for (var config in configs.split(',')) {
-      var newConfiguration = new Map.from(configuration);
+      var newConfiguration = new Map<String, dynamic>.from(configuration);
       newConfiguration[option] = config;
       result.addAll(_expandConfigurations(newConfiguration));
     }

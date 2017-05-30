@@ -58,23 +58,24 @@ final TEST_SUITE_DIRECTORIES = [
 // This file is created by gclient runhooks.
 final VS_TOOLCHAIN_FILE = new Path("build/win_toolchain.json");
 
-Future testConfigurations(List<Map> configurations) async {
+Future testConfigurations(List<Map<String, dynamic>> configurations) async {
   var startTime = new DateTime.now();
   // Extract global options from first configuration.
   var firstConf = configurations[0];
   var maxProcesses = firstConf['tasks'] as int;
-  var progressIndicator = firstConf['progress'];
-  BuildbotProgressIndicator.stepName = firstConf['step_name'];
-  var verbose = firstConf['verbose'];
-  var printTiming = firstConf['time'];
-  var listTests = firstConf['list'];
+  var progressIndicator = firstConf['progress'] as String;
+  BuildbotProgressIndicator.stepName = firstConf['step_name'] as String;
+  var verbose = firstConf['verbose'] as bool;
+  var printTiming = firstConf['time'] as bool;
+  var listTests = firstConf['list'] as bool;
 
-  var reportInJson = firstConf['report_in_json'];
+  var reportInJson = firstConf['report_in_json'] as bool;
 
-  var recordingPath = firstConf['record_to_file'];
-  var recordingOutputPath = firstConf['replay_from_file'];
+  var recordingPath = firstConf['record_to_file'] as String;
+  var recordingOutputPath = firstConf['replay_from_file'] as String;
 
-  Browser.resetBrowserConfiguration = firstConf['reset_browser_configuration'];
+  Browser.resetBrowserConfiguration =
+      firstConf['reset_browser_configuration'] as bool;
 
   if (recordingPath != null && recordingOutputPath != null) {
     print("Fatal: Can't have the '--record_to_file' and '--replay_from_file'"
@@ -82,7 +83,7 @@ Future testConfigurations(List<Map> configurations) async {
     exit(1);
   }
 
-  if (!firstConf['append_logs']) {
+  if (!(firstConf['append_logs'] as bool)) {
     var files = [
       new File(TestUtils.flakyFileName),
       new File(TestUtils.testOutcomeFileName)
@@ -95,8 +96,8 @@ Future testConfigurations(List<Map> configurations) async {
   }
 
   DebugLogger.init(
-      firstConf['write_debug_log'] ? TestUtils.debugLogFilePath : null,
-      append: firstConf['append_logs']);
+      firstConf['write_debug_log'] as bool ? TestUtils.debugLogFilePath : null,
+      append: firstConf['append_logs'] as bool);
 
   // Print the configurations being run by this execution of
   // test.dart. However, don't do it if the silent progress indicator
@@ -109,15 +110,15 @@ Future testConfigurations(List<Map> configurations) async {
       List settings = ['compiler', 'runtime', 'mode', 'arch']
           .map((name) => conf[name])
           .toList();
-      if (conf['checked']) settings.add('checked');
-      if (conf['strong']) settings.add('strong');
+      if (conf['checked'] as bool) settings.add('checked');
+      if (conf['strong'] as bool) settings.add('strong');
       outputWords.add(settings.join('_'));
     }
     print(outputWords.join(' '));
   }
 
   var runningBrowserTests = configurations.any((config) {
-    return TestUtils.isBrowserRuntime(config['runtime']);
+    return TestUtils.isBrowserRuntime(config['runtime'] as String);
   });
 
   List<Future> serverFutures = [];
@@ -131,8 +132,8 @@ Future testConfigurations(List<Map> configurations) async {
     exit(1);
   }
   for (var conf in configurations) {
-    Map<String, RegExp> selectors = conf['selectors'];
-    var useContentSecurityPolicy = conf['csp'];
+    var selectors = conf['selectors'] as Map<String, RegExp>;
+    var useContentSecurityPolicy = conf['csp'] as bool;
     if (!listTests && runningBrowserTests) {
       // Start global http servers that serve the entire dart repo.
       // The http server is available on window.location.port, and a second
@@ -141,13 +142,13 @@ Future testConfigurations(List<Map> configurations) async {
       var servers = new TestingServers(
           TestUtils.buildDir(conf),
           useContentSecurityPolicy,
-          conf['runtime'],
+          conf['runtime'] as String,
           null,
-          conf['package_root'],
-          conf['packages']);
-      serverFutures.add(servers.startServers(conf['local_ip'],
-          port: conf['test_server_port'],
-          crossOriginPort: conf['test_server_cross_origin_port']));
+          conf['package_root'] as String,
+          conf['packages'] as String);
+      serverFutures.add(servers.startServers(conf['local_ip'] as String,
+          port: conf['test_server_port'] as int,
+          crossOriginPort: conf['test_server_cross_origin_port'] as int));
       conf['_servers_'] = servers;
       if (verbose) {
         serverFutures.last.then((_) {
@@ -157,7 +158,7 @@ Future testConfigurations(List<Map> configurations) async {
       }
     }
 
-    if (conf['runtime'].startsWith('ie')) {
+    if ((conf['runtime'] as String).startsWith('ie')) {
       // NOTE: We've experienced random timeouts of tests on ie9/ie10. The
       // underlying issue has not been determined yet. Our current hypothesis
       // is that windows does not handle the IE processes independently.
@@ -165,18 +166,18 @@ Future testConfigurations(List<Map> configurations) async {
       // issues with starting up a new browser just after killing the hanging
       // browser.
       maxBrowserProcesses = 1;
-    } else if (conf['runtime'].startsWith('safari')) {
+    } else if ((conf['runtime'] as String).startsWith('safari')) {
       // Safari does not allow us to run from a fresh profile, so we can only
       // use one browser. Additionally, you can not start two simulators
       // for mobile safari simultainiously.
       maxBrowserProcesses = 1;
-    } else if (conf['runtime'] == 'chrome' &&
+    } else if ((conf['runtime'] as String) == 'chrome' &&
         Platform.operatingSystem == 'macos') {
       // Chrome on mac results in random timeouts.
       // Issue: https://github.com/dart-lang/sdk/issues/23891
       // This change does not fix the problem.
       maxBrowserProcesses = math.max(1, maxBrowserProcesses ~/ 2);
-    } else if (conf['runtime'] != 'drt') {
+    } else if ((conf['runtime'] as String) != 'drt') {
       // Even on machines with more than 16 processors, don't open more
       // than 15 browser instances, to avoid overloading the machine.
       // This is especially important when running locally on powerful
@@ -186,7 +187,7 @@ Future testConfigurations(List<Map> configurations) async {
 
     // If we specifically pass in a suite only run that.
     if (conf['suite_dir'] != null) {
-      var suite_path = new Path(conf['suite_dir']);
+      var suite_path = new Path(conf['suite_dir'] as String);
       testSuites.add(new PKGTestSuite(conf, suite_path));
     } else {
       for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
@@ -206,7 +207,7 @@ Future testConfigurations(List<Map> configurations) async {
           // vm tests contain both cc tests (added here) and dart tests (added
           // in [TEST_SUITE_DIRECTORIES]).
           testSuites.add(new VMTestSuite(conf));
-        } else if (conf['analyzer']) {
+        } else if (conf['analyzer'] as bool) {
           if (key == 'analyze_library') {
             testSuites.add(new AnalyzeLibraryTestSuite(conf));
           }
@@ -256,10 +257,10 @@ Future testConfigurations(List<Map> configurations) async {
     }
     eventListener.add(new SkippedCompilationsPrinter());
   }
-  if (firstConf['write_test_outcome_log']) {
+  if (firstConf['write_test_outcome_log'] as bool) {
     eventListener.add(new TestOutcomeLogWriter());
   }
-  if (firstConf['copy_coredumps']) {
+  if (firstConf['copy_coredumps'] as bool) {
     eventListener.add(new UnexpectedCrashLogger());
   }
 
@@ -275,7 +276,7 @@ Future testConfigurations(List<Map> configurations) async {
   // If any of the configurations need to access android devices we'll first
   // make a pool of all available adb devices.
   AdbDevicePool adbDevicePool;
-  bool needsAdbDevicePool = configurations.any((Map conf) {
+  var needsAdbDevicePool = configurations.any((Map conf) {
     return conf['runtime'] == 'dart_precompiled' && conf['system'] == 'android';
   });
   if (needsAdbDevicePool) {

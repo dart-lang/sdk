@@ -76,8 +76,8 @@ Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
     if (timer != null) timer.cancel();
 
     String command = "$executable ${args.join(' ')}";
-    return new AdbCommandResult(
-        command, results[0], results[1], results[2], timedOut);
+    return new AdbCommandResult(command, results[0] as String,
+        results[1] as String, results[2] as int, timedOut);
   });
 }
 
@@ -251,7 +251,7 @@ class AdbDevice {
    * Upload data to the device, unless [local] is the same as the most recently
    * used source for [remote].
    */
-  Future pushCachedData(String local, String remote) {
+  Future<AdbCommandResult> pushCachedData(String local, String remote) {
     if (_cachedData[remote] == local) {
       return new Future.value(
           new AdbCommandResult("Skipped cached push", "", "", 0, false));
@@ -390,7 +390,7 @@ class AdbHelper {
             "stderr: ${result.stderr}]");
       }
       return _deviceLineRegexp
-          .allMatches(result.stdout)
+          .allMatches(result.stdout as String)
           .map((Match m) => m.group(1))
           .toList();
     });

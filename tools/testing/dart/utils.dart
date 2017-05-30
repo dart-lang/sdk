@@ -180,8 +180,8 @@ String decodeUtf8(List<int> bytes) {
 
 class Locations {
   static String getBrowserLocation(
-      String browserName, Map<String, String> globalConfiguration) {
-    var location = globalConfiguration[browserName];
+      String browserName, Map<String, dynamic> globalConfiguration) {
+    var location = globalConfiguration[browserName] as String;
     if (location != null && location != '') {
       return location;
     }

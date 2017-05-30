@@ -149,8 +149,8 @@ void main(List<String> args) {
     modes = ['release'].toSet();
   } else {
     for (var combo in combinations) {
-      arches.addAll(combo['archs']);
-      modes.addAll(combo['modes']);
+      arches.addAll(combo['archs'] as List<String>);
+      modes.addAll(combo['modes'] as List<String>);
     }
   }
 
@@ -169,7 +169,7 @@ void main(List<String> args) {
         }
 
         for (var runtime in combination['runtimes']) {
-          var compiler = combination['compiler'];
+          var compiler = combination['compiler'] as String;
 
           var args = [
             'tools/test.py',
@@ -190,8 +190,8 @@ void main(List<String> args) {
           // Find "JSON:"
           // Everything after will the JSON-formatted output
           // per --report-in-json flag above
-          var totalIndex = result.stdout.indexOf('JSON:');
-          var report = result.stdout.substring(totalIndex + 5);
+          var totalIndex = (result.stdout as String).indexOf('JSON:');
+          var report = (result.stdout as String).substring(totalIndex + 5);
 
           var map = JSON.decode(report) as Map<String, int>;
 

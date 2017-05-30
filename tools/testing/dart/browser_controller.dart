@@ -468,7 +468,7 @@ class Chrome extends Browser {
         _logEvent("Make sure $_binary is a valid program for running chrome");
         return false;
       }
-      _version = versionResult.stdout;
+      _version = versionResult.stdout as String;
       return true;
     });
   }
@@ -476,7 +476,7 @@ class Chrome extends Browser {
   Future<bool> start(String url) {
     _logEvent("Starting chrome browser on: $url");
     // Get the version and log that.
-    return _getVersion().then((success) {
+    return _getVersion().then<bool>((success) {
       if (!success) return false;
       _logEvent("Got version: $_version");
 
@@ -615,9 +615,11 @@ class IE extends Browser {
         // HKEY_LOCAL_MACHINE\Software\Microsoft\Internet Explorer
         //    version    REG_SZ    9.0.8112.16421
         var findString = "REG_SZ";
-        var index = result.stdout.indexOf(findString);
+        var index = (result.stdout as String).indexOf(findString);
         if (index > 0) {
-          return result.stdout.substring(index + findString.length).trim();
+          return (result.stdout as String)
+              .substring(index + findString.length)
+              .trim();
         }
       }
       return "Could not get the version of internet explorer";
@@ -817,7 +819,7 @@ class Firefox extends Browser {
         _logEvent("Make sure $_binary is a valid program for running firefox");
         return new Future.value(false);
       }
-      version = versionResult.stdout;
+      version = versionResult.stdout as String;
       _logEvent("Got version: $version");
 
       return Directory.systemTemp.createTemp().then((userDir) {
@@ -943,7 +945,7 @@ class BrowserTestRunner {
   /// If the queue was recently empty, don't start another browser.
   static const Duration MIN_NONEMPTY_QUEUE_TIME = const Duration(seconds: 1);
 
-  final Map<String, String> configuration;
+  final Map<String, dynamic> configuration;
   final BrowserTestingServer testingServer;
 
   final String localIp;
@@ -996,12 +998,12 @@ class BrowserTestRunner {
     if (_currentStartingBrowserId == id) _currentStartingBrowserId = null;
   }
 
-  BrowserTestRunner(Map configuration, String localIp, String browserName,
-      this.maxNumBrowsers)
+  BrowserTestRunner(Map<String, dynamic> configuration, String localIp,
+      String browserName, this.maxNumBrowsers)
       : configuration = configuration,
         localIp = localIp,
         browserName = (browserName == 'ff') ? 'firefox' : browserName,
-        checkedMode = configuration['checked'],
+        checkedMode = configuration['checked'] as bool,
         testingServer = new BrowserTestingServer(
             configuration,
             localIp,
@@ -1380,7 +1382,7 @@ class BrowserTestingServer {
       this.configuration, this.localIp, this.useIframe, this.requiresFocus);
 
   Future start() {
-    var testDriverErrorPort = configuration['test_driver_error_port'];
+    var testDriverErrorPort = configuration['test_driver_error_port'] as int;
     return HttpServer
         .bind(localIp, testDriverErrorPort)
         .then(setupErrorServer)
@@ -1416,7 +1418,7 @@ class BrowserTestingServer {
   }
 
   void setupDispatchingServer(_) {
-    DispatchingServer server = configuration['_servers_'].server;
+    var server = (configuration['_servers_'] as TestingServers).server;
     void noCache(HttpRequest request) {
       request.response.headers
           .set("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -1532,7 +1534,7 @@ class BrowserTestingServer {
       exit(1);
       // This should never happen - exit immediately;
     }
-    var port = configuration['_servers_'].port;
+    var port = (configuration['_servers_'] as TestingServers).port;
     return "http://$localIp:$port/driver/$browserId";
   }
 

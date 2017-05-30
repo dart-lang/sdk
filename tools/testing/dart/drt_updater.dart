@@ -71,7 +71,7 @@ _DartiumUpdater _contentShellUpdater;
 _DartiumUpdater _dartiumUpdater;
 
 _DartiumUpdater runtimeUpdater(Map configuration) {
-  String runtime = configuration['runtime'];
+  var runtime = configuration['runtime'] as String;
   if (runtime == 'drt' && configuration['drt'] == '') {
     // Download the default content shell from Google Storage.
     if (_contentShellUpdater == null) {

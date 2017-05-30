@@ -56,23 +56,23 @@ abstract class CompilerConfiguration {
   // TODO(ahe): Remove this constructor and move the switch to
   // test_options.dart.  We probably want to store an instance of
   // [CompilerConfiguration] in [configuration] there.
-  factory CompilerConfiguration(Map configuration) {
-    String compiler = configuration['compiler'];
+  factory CompilerConfiguration(Map<String, dynamic> configuration) {
+    var compiler = configuration['compiler'] as String;
 
     // TODO(ahe): Move these booleans into a struction configuration object
     // which can eventually completely replace the Map-based configuration
     // object.
-    bool isDebug = configuration['mode'] == 'debug';
-    bool isChecked = configuration['checked'];
-    bool isStrong = configuration['strong'];
-    bool isHostChecked = configuration['host_checked'];
-    bool useSdk = configuration['use_sdk'];
-    bool isCsp = configuration['csp'];
-    bool useBlobs = configuration['use_blobs'];
-    bool hotReload = configuration['hot_reload'];
-    bool hotReloadRollback = configuration['hot_reload_rollback'];
-    bool useFastStartup = configuration['fast_startup'];
-    bool useKernelInDart2js = configuration['dart2js_with_kernel'];
+    var isDebug = (configuration['mode'] as String) == 'debug';
+    var isChecked = configuration['checked'] as bool;
+    var isStrong = configuration['strong'] as bool;
+    var isHostChecked = configuration['host_checked'] as bool;
+    var useSdk = configuration['use_sdk'] as bool;
+    var isCsp = configuration['csp'] as bool;
+    var useBlobs = configuration['use_blobs'] as bool;
+    var hotReload = configuration['hot_reload'] as bool;
+    var hotReloadRollback = configuration['hot_reload_rollback'] as bool;
+    var useFastStartup = configuration['fast_startup'] as bool;
+    var useKernelInDart2js = configuration['dart2js_with_kernel'] as bool;
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -100,7 +100,7 @@ abstract class CompilerConfiguration {
         return new PrecompilerCompilerConfiguration(
             isDebug: isDebug,
             isChecked: isChecked,
-            arch: configuration['arch'],
+            arch: configuration['arch'] as String,
             useBlobs: useBlobs,
             isAndroid: configuration['system'] == 'android');
       case 'dartk':
@@ -116,7 +116,7 @@ abstract class CompilerConfiguration {
         return new PrecompilerCompilerConfiguration(
             isDebug: isDebug,
             isChecked: isChecked,
-            arch: configuration['arch'],
+            arch: configuration['arch'] as String,
             useBlobs: useBlobs,
             isAndroid: configuration['system'] == 'android',
             useDfe: true);

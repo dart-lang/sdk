@@ -8,6 +8,7 @@ import "dart:convert" show JSON;
 import "dart:io";
 
 import "expectation.dart";
+import "http_server.dart";
 import "path.dart";
 import "summary_report.dart";
 import "test_runner.dart";
@@ -209,8 +210,8 @@ class UnexpectedCrashLogger extends EventListener {
     if (test.unexpectedOutput &&
         test.result == Expectation.crash &&
         test.lastCommandExecuted is ProcessCommand) {
-      final pid = "${test.lastCommandOutput.pid}";
-      final lastCommand = test.lastCommandExecuted as ProcessCommand;
+      var pid = "${test.lastCommandOutput.pid}";
+      var lastCommand = test.lastCommandExecuted as ProcessCommand;
 
       // We might have a coredump for the process. This coredump will be
       // archived by CoreDumpArchiver (see tools/utils.py).
@@ -220,13 +221,13 @@ class UnexpectedCrashLogger extends EventListener {
       // To simplify the archiving code we simply copy binaries into current
       // folder next to core dumps and name them
       // `binary.${mode}_${arch}_${binary_name}`.
-      final binName = lastCommand.executable;
-      final binFile = new File(binName);
-      final binBaseName = new Path(binName).filename;
+      var binName = lastCommand.executable;
+      var binFile = new File(binName);
+      var binBaseName = new Path(binName).filename;
       if (!archivedBinaries.containsKey(binName) && binFile.existsSync()) {
-        final mode = test.configuration['mode'];
-        final arch = test.configuration['arch'];
-        final archived = "binary.${mode}_${arch}_${binBaseName}";
+        var mode = test.configuration['mode'] as String;
+        var arch = test.configuration['arch'] as String;
+        var archived = "binary.${mode}_${arch}_${binBaseName}";
         TestUtils.copyFile(new Path(binName), new Path(archived));
         archivedBinaries[binName] = archived;
       }
@@ -611,7 +612,7 @@ List<String> _buildFailureOutput(TestCase test,
       if (test.hasRuntimeError) {
         output.add('Runtime error expected.');
       }
-      if (test.configuration['checked'] && test.isNegativeIfChecked) {
+      if ((test.configuration['checked'] as bool) && test.isNegativeIfChecked) {
         output.add('Dynamic type error expected.');
       }
     }
@@ -644,7 +645,8 @@ List<String> _buildFailureOutput(TestCase test,
 
   if (test is BrowserTestCase) {
     // Additional command for rerunning the steps locally after the fact.
-    var command = test.configuration["_servers_"].httpServerCommandLine();
+    var command = (test.configuration["_servers_"] as TestingServers)
+        .httpServerCommandLine();
     output.add('');
     output.add('To retest, run:  $command');
   }
@@ -662,7 +664,8 @@ List<String> _buildFailureOutput(TestCase test,
   }
 
   var arguments = ['python', 'tools/test.py'];
-  arguments.addAll(test.configuration['_reproducing_arguments_']);
+  arguments
+      .addAll(test.configuration['_reproducing_arguments_'] as List<String>);
   arguments.add(test.displayName);
   var testPyCommandline = arguments.map(escapeCommandLineArgument).join(' ');
 

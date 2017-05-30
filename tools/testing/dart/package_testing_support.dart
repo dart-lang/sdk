@@ -10,7 +10,7 @@ import 'test_suite.dart';
 
 void main(List<String> arguments) {
   TestUtils.setDartDirUri(Uri.base);
-  var configurations = <Map>[];
+  var configurations = <Map<String, dynamic>>[];
   for (var argument in arguments) {
     configurations.addAll(new OptionsParser().parse(argument.split(" ")));
   }

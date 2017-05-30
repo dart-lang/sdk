@@ -88,15 +88,20 @@ void main(List<String> arguments) {
       help: 'The runtime we are using (for csp flags).', defaultsTo: 'none');
 
   var args = parser.parse(arguments);
-  if (args['help']) {
+  if (args['help'] as bool) {
     print(parser.getUsage());
   } else {
-    var servers = new TestingServers(args['build-directory'], args['csp'],
-        args['runtime'], null, args['package-root'], args['packages']);
-    var port = int.parse(args['port']);
-    var crossOriginPort = int.parse(args['crossOriginPort']);
+    var servers = new TestingServers(
+        args['build-directory'] as String,
+        args['csp'] as bool,
+        args['runtime'] as String,
+        null,
+        args['package-root'] as String,
+        args['packages'] as String);
+    var port = int.parse(args['port'] as String);
+    var crossOriginPort = int.parse(args['crossOriginPort'] as String);
     servers
-        .startServers(args['network'],
+        .startServers(args['network'] as String,
             port: port, crossOriginPort: crossOriginPort)
         .then((_) {
       DebugLogger.info('Server listening on port ${servers.port}');
@@ -212,7 +217,8 @@ class TestingServers {
     DebugLogger.error('HttpServer: an error occured', e);
   }
 
-  Future _startHttpServer(String host, {int port: 0, int allowedPort: -1}) {
+  Future<DispatchingServer> _startHttpServer(String host,
+      {int port: 0, int allowedPort: -1}) {
     return HttpServer.bind(host, port).then((HttpServer httpServer) {
       var server = new DispatchingServer(httpServer, _onError, _sendNotFound);
       server.addHandler('/echo', _handleEchoRequest);
