@@ -330,8 +330,14 @@ static field (core::String) → core::int f;
 int topField = 0;
 int get topGetter => 0;
 int topFunction({p}) => 0;
+
+abstract class I {
+  int interfaceField;
+  int get interfaceGetter;
+  int interfaceMethod();
+}
         
-class A {
+class A implements I {
   static int staticField;
   static int get staticGetter => 0;
   static int staticMethod() => 0;
@@ -339,6 +345,10 @@ class A {
   int instanceField;
   int get instanceGetter => 0;
   int instanceMethod() => 0;
+
+  int interfaceField;
+  int get interfaceGetter => 0;
+  int interfaceMethod() => 0;
   
   A();
   A.named();
@@ -356,9 +366,18 @@ class B extends A {
   void foo() {
     super.instanceMethod();
     instanceMethod();
+    
+    super.interfaceField;
+    super.interfaceField = 0;
+    super.interfaceGetter;
+    super.interfaceMethod();
   }
   
   int instanceMethod() => 0;
+  
+  int interfaceField;
+  int get interfaceGetter => 0;
+  int interfaceMethod() => 0;
 }
 
 main() {
@@ -373,10 +392,16 @@ main() {
   var v4 = A.staticMethod();
 
   var a = new A();
+
   a.instanceField;
   a.instanceField = 0;
   var v5 = a.instanceGetter;
   var v6 = a.instanceMethod();
+
+  a.interfaceField;
+  a.interfaceField = 0;
+  var v7 = a.interfaceGetter;
+  var v8 = a.interfaceMethod();
 }
 ''');
 

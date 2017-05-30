@@ -57,12 +57,50 @@ class LimitedBinaryPrinter extends BinaryPrinter {
 class ReferencesStringIndexer extends StringIndexer {
   final List<CanonicalName> referencedNames = <CanonicalName>[];
 
+  @override
   defaultMemberReference(Member node) {
     _handleReferencedName(node.canonicalName);
   }
 
+  @override
   visitClassReference(Class node) {
     _handleReferencedName(node.canonicalName);
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    _handleReferencedName(node.interfaceTargetReference?.canonicalName);
+    return super.visitMethodInvocation(node);
+  }
+
+  @override
+  visitPropertyGet(PropertyGet node) {
+    _handleReferencedName(node.interfaceTargetReference?.canonicalName);
+    return super.visitPropertyGet(node);
+  }
+
+  @override
+  visitPropertySet(PropertySet node) {
+    _handleReferencedName(node.interfaceTargetReference?.canonicalName);
+    return super.visitPropertySet(node);
+  }
+
+  @override
+  visitSuperMethodInvocation(SuperMethodInvocation node) {
+    _handleReferencedName(node.interfaceTargetReference?.canonicalName);
+    return super.visitSuperMethodInvocation(node);
+  }
+
+  @override
+  visitSuperPropertyGet(SuperPropertyGet node) {
+    _handleReferencedName(node.interfaceTargetReference?.canonicalName);
+    return super.visitSuperPropertyGet(node);
+  }
+
+  @override
+  visitSuperPropertySet(SuperPropertySet node) {
+    _handleReferencedName(node.interfaceTargetReference?.canonicalName);
+    return super.visitSuperPropertySet(node);
   }
 
   void _handleReferencedName(CanonicalName name) {
