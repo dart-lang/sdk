@@ -473,7 +473,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       } else if (o is BooleanLiteral && r is BooleanLiteral) {
         expect(r.value, o.value, reason: desc);
       } else if (o is IntegerLiteral && r is IntegerLiteral) {
-        expect(r.value, o.value, reason: desc);
+        expect(r.value ?? 0, o.value ?? 0, reason: desc);
       } else if (o is DoubleLiteral && r is DoubleLiteral) {
         if (r.value != null &&
             r.value.isNaN &&
@@ -3291,6 +3291,19 @@ class C {
 int foo() {}
 ''');
     }
+  }
+
+  test_const_invalid_intLiteral() {
+    var library = checkLibrary(
+        r'''
+const int x = 0x;
+''',
+        allowErrors: true);
+    checkElementText(
+        library,
+        r'''
+const int x = 0;
+''');
   }
 
   test_const_invalid_topLevel() {
