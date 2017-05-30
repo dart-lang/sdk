@@ -121,7 +121,19 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       for (plugin.Response response in responses) {
         plugin.CompletionGetSuggestionsResult result =
             new plugin.CompletionGetSuggestionsResult.fromResponse(response);
-        suggestions.addAll(result.results);
+        if (result.results != null && result.results.isNotEmpty) {
+          if (suggestions.isEmpty) {
+            request.replacementOffset = result.replacementOffset;
+            request.replacementLength = result.replacementLength;
+          } else if (request.replacementOffset != result.replacementOffset &&
+              request.replacementLength != result.replacementLength) {
+            server.instrumentationService
+                .logError('Plugin completion-results dropped due to conflicting'
+                    ' replacement offset/length: ${result.toJson()}');
+            continue;
+          }
+          suggestions.addAll(result.results);
+        }
       }
     }
     //
