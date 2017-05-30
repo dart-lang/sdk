@@ -17,6 +17,8 @@
 #include <magenta/status.h>
 #include <magenta/syscalls.h>
 #include <magenta/syscalls/object.h>
+#include <magenta/types.h>
+#include <mxio/private.h>
 #include <mxio/util.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -454,16 +456,54 @@ int64_t Process::MaxRSS() {
 
 static bool ProcessWaitCleanup(intptr_t out,
                                intptr_t err,
-                               intptr_t exit_event,
-                               intptr_t epoll_fd) {
+                               intptr_t exit_event) {
   int e = errno;
   VOID_NO_RETRY_EXPECTED(close(out));
   VOID_NO_RETRY_EXPECTED(close(err));
   VOID_NO_RETRY_EXPECTED(close(exit_event));
-  VOID_NO_RETRY_EXPECTED(close(epoll_fd));
   errno = e;
   return false;
 }
+
+
+class MxioWaitEntry {
+ public:
+  MxioWaitEntry() {}
+  ~MxioWaitEntry() { Cancel(); }
+
+  void Init(int fd) { mxio_ = __mxio_fd_to_io(fd); }
+
+  void WaitBegin(mx_wait_item_t* wait_item) {
+    if (mxio_ == NULL) {
+      *wait_item = {};
+      return;
+    }
+
+    __mxio_wait_begin(mxio_, EPOLLRDHUP | EPOLLIN, &wait_item->handle,
+                      &wait_item->waitfor);
+    wait_item->pending = 0;
+  }
+
+  void WaitEnd(mx_wait_item_t* wait_item, uint32_t* event) {
+    if (mxio_ == NULL) {
+      *event = 0;
+      return;
+    }
+    __mxio_wait_end(mxio_, wait_item->pending, event);
+  }
+
+  void Cancel() {
+    if (mxio_ != NULL) {
+      __mxio_release(mxio_);
+    }
+    mxio_ = NULL;
+  }
+
+ private:
+  mxio_t* mxio_ = NULL;
+
+  DISALLOW_COPY_AND_ASSIGN(MxioWaitEntry);
+};
 
 
 bool Process::Wait(intptr_t pid,
@@ -484,83 +524,55 @@ bool Process::Wait(intptr_t pid,
     int32_t ints[2];
   } exit_code_data;
 
-  // The initial size passed to epoll_create is ignore on newer (>=
-  // 2.6.8) Linux versions
-  static const int kEpollInitialSize = 64;
-  int epoll_fd = NO_RETRY_EXPECTED(epoll_create(kEpollInitialSize));
-  if (epoll_fd == -1) {
-    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
-  }
-  if (!FDUtils::SetCloseOnExec(epoll_fd)) {
-    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
-  }
+  constexpr size_t kWaitItemsCount = 3;
+  uint32_t events[kWaitItemsCount];
+  mx_wait_item_t wait_items[kWaitItemsCount];
+  size_t active = kWaitItemsCount;
 
-  struct epoll_event event;
-  event.events = EPOLLRDHUP | EPOLLIN;
-  event.data.fd = out;
-  int status = NO_RETRY_EXPECTED(
-      epoll_ctl(epoll_fd, EPOLL_CTL_ADD, out, &event));
-  if (status == -1) {
-    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
-  }
-  event.data.fd = err;
-  status = NO_RETRY_EXPECTED(
-      epoll_ctl(epoll_fd, EPOLL_CTL_ADD, err, &event));
-  if (status == -1) {
-    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
-  }
-  event.data.fd = exit_event;
-  status = NO_RETRY_EXPECTED(
-      epoll_ctl(epoll_fd, EPOLL_CTL_ADD, exit_event, &event));
-  if (status == -1) {
-    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
-  }
-  intptr_t active = 3;
+  MxioWaitEntry entries[kWaitItemsCount];
+  entries[0].Init(out);
+  entries[1].Init(err);
+  entries[2].Init(exit_event);
 
-  static const intptr_t kMaxEvents = 16;
-  struct epoll_event events[kMaxEvents];
   while (active > 0) {
-    // TODO(US-109): When the epoll implementation is properly edge-triggered,
-    // remove this sleep, which prevents the message queue from being
-    // overwhelmed and leading to memory exhaustion.
-    usleep(5000);
-    intptr_t result = NO_RETRY_EXPECTED(
-        epoll_wait(epoll_fd, events, kMaxEvents, -1));
-    if ((result < 0) && (errno != EWOULDBLOCK)) {
-      return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+    for (size_t i = 0; i < kWaitItemsCount; ++i) {
+      entries[i].WaitBegin(&wait_items[i]);
     }
-    for (intptr_t i = 0; i < result; i++) {
-      if ((events[i].events & EPOLLIN) != 0) {
-        const intptr_t avail = FDUtils::AvailableBytes(events[i].data.fd);
-        if (events[i].data.fd == out) {
-          if (!out_data.Read(out, avail)) {
-            return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
-          }
-        } else if (events[i].data.fd == err) {
-          if (!err_data.Read(err, avail)) {
-            return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
-          }
-        } else if (events[i].data.fd == exit_event) {
-          if (avail == 8) {
-            intptr_t b =
-                NO_RETRY_EXPECTED(read(exit_event, exit_code_data.bytes, 8));
-            if (b != 8) {
-              return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
-            }
-          }
-        } else {
-          UNREACHABLE();
+    mx_object_wait_many(wait_items, kWaitItemsCount, MX_TIME_INFINITE);
+
+    for (size_t i = 0; i < kWaitItemsCount; ++i) {
+      entries[i].WaitEnd(&wait_items[i], &events[i]);
+    }
+
+    if ((events[0] & EPOLLIN) != 0) {
+      const intptr_t avail = FDUtils::AvailableBytes(out);
+      if (!out_data.Read(out, avail)) {
+        return ProcessWaitCleanup(out, err, exit_event);
+      }
+    }
+    if ((events[1] & EPOLLIN) != 0) {
+      const intptr_t avail = FDUtils::AvailableBytes(err);
+      if (!err_data.Read(err, avail)) {
+        return ProcessWaitCleanup(out, err, exit_event);
+      }
+    }
+    if ((events[2] & EPOLLIN) != 0) {
+      const intptr_t avail = FDUtils::AvailableBytes(exit_event);
+      if (avail == 8) {
+        intptr_t b =
+            NO_RETRY_EXPECTED(read(exit_event, exit_code_data.bytes, 8));
+        if (b != 8) {
+          return ProcessWaitCleanup(out, err, exit_event);
         }
       }
-      if ((events[i].events & (EPOLLHUP | EPOLLRDHUP)) != 0) {
-        NO_RETRY_EXPECTED(close(events[i].data.fd));
+    }
+    for (size_t i = 0; i < kWaitItemsCount; ++i) {
+      if ((events[i] & EPOLLRDHUP) != 0) {
         active--;
-        VOID_NO_RETRY_EXPECTED(
-            epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, NULL));
+        entries[i].Cancel();
       }
     }
   }
-  VOID_NO_RETRY_EXPECTED(close(epoll_fd));
 
   // All handles closed and all data read.
   result->set_stdout_data(out_data.GetData());
@@ -827,15 +839,12 @@ int Process::Start(const char* path,
   return starter.Start();
 }
 
-
 intptr_t Process::SetSignalHandler(intptr_t signal) {
   errno = ENOSYS;
   return -1;
 }
 
-
-void Process::ClearSignalHandler(intptr_t signal) {
-}
+void Process::ClearSignalHandler(intptr_t signal) {}
 
 }  // namespace bin
 }  // namespace dart
