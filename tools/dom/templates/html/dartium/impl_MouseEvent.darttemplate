@@ -74,6 +74,6 @@ $!MEMBERS
   Point get page => new Point/*<num>*/(_pageX, _pageY);
 
   @DomName('MouseEvent.dataTransfer')
-  DataTransfer get dataTransfer => js.JsNative.getProperty(js.context, 'dataTransfer');
+  DataTransfer get dataTransfer => js.JsNative.getProperty(this, 'dataTransfer');
 
 }
