@@ -50,7 +50,7 @@ class FlutterTarget extends Target {
       ];
 
   void performModularTransformations(Program program) {
-    new mix.MixinFullResolution(this).transform(program);
+    mix.transformLibraries(this, program.libraries);
   }
 
   void performGlobalTransformations(Program program) {

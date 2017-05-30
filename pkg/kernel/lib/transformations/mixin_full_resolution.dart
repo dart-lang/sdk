@@ -7,12 +7,11 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../clone.dart';
 import '../core_types.dart';
-import '../target/targets.dart' show NoneTarget, Target;
+import '../target/targets.dart' show Target;
 import '../type_algebra.dart';
 
-Program transformProgram(Program program) {
-  new MixinFullResolution(new NoneTarget(null)).transform(program);
-  return program;
+void transformLibraries(Target targetInfo, List<Library> libraries) {
+  new MixinFullResolution(targetInfo).transform(libraries);
 }
 
 /// Replaces all mixin applications with regular classes, cloning all fields
@@ -29,25 +28,32 @@ class MixinFullResolution {
 
   MixinFullResolution(this.targetInfo);
 
-  void transform(Program program) {
+  /// Transform the given new [libraries].  It is expected that all other
+  /// libraries have already been transformed.
+  void transform(List<Library> libraries) {
+    if (libraries.isEmpty) return;
+
     var transformedClasses = new Set<Class>();
 
     // Desugar all mixin application classes by copying in fields/methods from
     // the mixin and constructors from the base class.
     var processedClasses = new Set<Class>();
-    for (var library in program.libraries) {
+    for (var library in libraries) {
       if (library.isExternal) continue;
 
       for (var class_ in library.classes) {
-        transformClass(processedClasses, transformedClasses, class_);
+        transformClass(libraries, processedClasses, transformedClasses, class_);
       }
     }
 
+    // TODO(scheglov) Remove "program" once we switch to creating "hierarchy"
+    // and "coreTypes" outside and passing into the transformers.
+    var program = libraries.first.enclosingProgram;
     hierarchy = new ClassHierarchy(program);
     coreTypes = new CoreTypes(program);
 
     // Resolve all super call expressions and super initializers.
-    for (var library in program.libraries) {
+    for (var library in libraries) {
       if (library.isExternal) continue;
 
       for (var class_ in library.classes) {
@@ -76,7 +82,10 @@ class MixinFullResolution {
     }
   }
 
-  transformClass(Set<Class> processedClasses, Set<Class> transformedClasses,
+  transformClass(
+      List<Library> librariesToBeTransformed,
+      Set<Class> processedClasses,
+      Set<Class> transformedClasses,
       Class class_) {
     // If this class was already handled then so were all classes up to the
     // [Object] class.
@@ -85,12 +94,14 @@ class MixinFullResolution {
     // Ensure super classes have been transformed before this class.
     if (class_.superclass != null &&
         class_.superclass.level.index >= ClassLevel.Mixin.index) {
-      transformClass(processedClasses, transformedClasses, class_.superclass);
+      transformClass(librariesToBeTransformed, processedClasses,
+          transformedClasses, class_.superclass);
     }
 
     // If this is not a mixin application we don't need to make forwarding
     // constructors in this class.
     if (!class_.isMixinApplication) return;
+    assert(librariesToBeTransformed.contains(class_.enclosingLibrary));
 
     if (class_.mixedInClass.level.index < ClassLevel.Mixin.index) {
       throw new Exception(

@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/closure_conversion.dart' as closures;
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
@@ -79,7 +80,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       program = cont.transformProgram(program);
       break;
     case 'resolve-mixins':
-      program = mix.transformProgram(program);
+      mix.transformLibraries(new NoneTarget(null), program.libraries);
       break;
     case 'closures':
       program = closures.transformProgram(program);

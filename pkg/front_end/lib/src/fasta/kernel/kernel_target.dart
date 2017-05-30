@@ -45,8 +45,7 @@ import 'package:kernel/transformations/erasure.dart' show Erasure;
 
 import 'package:kernel/transformations/continuation.dart' as transformAsync;
 
-import 'package:kernel/transformations/mixin_full_resolution.dart'
-    show MixinFullResolution;
+import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
@@ -662,7 +661,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   void transformMixinApplications() {
-    new MixinFullResolution(backendTarget).transform(_program);
+    mix.transformLibraries(backendTarget, loader.libraries);
     ticker.logMs("Transformed mixin applications");
   }
 

@@ -57,7 +57,8 @@ class VmTarget extends Target {
   ClassHierarchy _hierarchy;
 
   void performModularTransformations(Program program) {
-    var mixins = new mix.MixinFullResolution(this)..transform(program);
+    var mixins = new mix.MixinFullResolution(this)
+      ..transform(program.libraries);
 
     _hierarchy = mixins.hierarchy;
   }
