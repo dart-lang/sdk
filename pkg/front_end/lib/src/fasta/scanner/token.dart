@@ -102,7 +102,7 @@ class StringToken extends analyzer.TokenWithComment
   bool get isIdentifier => identical(kind, IDENTIFIER_TOKEN);
 
   @override
-  String toString() => "StringToken($lexeme)";
+  String toString() => lexeme;
 
   static final StringCanonicalizer canonicalizer = new StringCanonicalizer();
 
