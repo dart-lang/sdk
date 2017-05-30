@@ -89,7 +89,7 @@ class ProgramRoot {
 // TODO(asgerf): Tree shake unused instance fields.
 class TreeShaker {
   final Program program;
-  final ClassHierarchy hierarchy;
+  final ClosedWorldClassHierarchy hierarchy;
   final CoreTypes coreTypes;
   final bool strongMode;
   final List<ProgramRoot> programRoots;
@@ -208,8 +208,8 @@ class TreeShaker {
     new _TreeShakingTransformer(this).transform(program);
   }
 
-  TreeShaker._internal(this.program, ClassHierarchy hierarchy, this.coreTypes,
-      this.strongMode, this.programRoots)
+  TreeShaker._internal(this.program, ClosedWorldClassHierarchy hierarchy,
+      this.coreTypes, this.strongMode, this.programRoots)
       : this.hierarchy = hierarchy,
         this._dispatchedNames = new List<Set<Name>>(hierarchy.classes.length),
         this._usedMembersWithHost =

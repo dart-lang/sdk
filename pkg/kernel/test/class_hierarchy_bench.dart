@@ -55,13 +55,13 @@ main(List<String> args) {
   int hotBuildTime = watch.elapsedMilliseconds ~/ numBuildTrials;
 
   int hierarchyCount = int.parse(options['cycle']);
-  var hierarchies = <ClassHierarchy>[];
+  var hierarchies = <ClosedWorldClassHierarchy>[];
   for (int i = 0; i < hierarchyCount; i++) {
     hierarchies.add(buildHierarchy());
   }
 
   int currentHierarchy = 0;
-  ClassHierarchy getClassHierarchy() {
+  ClosedWorldClassHierarchy getClassHierarchy() {
     currentHierarchy = (currentHierarchy + 1) % hierarchies.length;
     return hierarchies[currentHierarchy];
   }

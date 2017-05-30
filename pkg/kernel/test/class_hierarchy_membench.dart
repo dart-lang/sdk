@@ -43,10 +43,10 @@ main(List<String> args) {
   ClassHierarchy buildHierarchy() {
     return options['basic']
         ? new BasicClassHierarchy(program)
-        : new ClassHierarchy(program);
+        : new ClosedWorldClassHierarchy(program);
   }
 
-  List<ClassHierarchy> keepAlive = <ClassHierarchy>[];
+  List<ClosedWorldClassHierarchy> keepAlive = <ClosedWorldClassHierarchy>[];
   for (int i = 0; i < copyCount; ++i) {
     keepAlive.add(buildHierarchy());
   }
