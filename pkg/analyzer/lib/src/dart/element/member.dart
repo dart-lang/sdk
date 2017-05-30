@@ -581,13 +581,46 @@ class MethodMember extends ExecutableMember implements MethodElement {
     buffer.write(baseElement.enclosingElement.displayName);
     buffer.write(".");
     buffer.write(baseElement.displayName);
+    int typeParameterCount = typeParameters.length;
+    if (typeParameterCount > 0) {
+      buffer.write('<');
+      for (int i = 0; i < typeParameterCount; i++) {
+        if (i > 0) {
+          buffer.write(", ");
+        }
+        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+      }
+      buffer.write('>');
+    }
     buffer.write("(");
+    String closing = null;
+    ParameterKind kind = ParameterKind.REQUIRED;
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
         buffer.write(", ");
       }
-      buffer.write(parameters[i]);
+      ParameterElement parameter = parameters[i];
+      ParameterKind parameterKind = parameter.parameterKind;
+      if (parameterKind != kind) {
+        if (closing != null) {
+          buffer.write(closing);
+        }
+        if (parameterKind == ParameterKind.POSITIONAL) {
+          buffer.write("[");
+          closing = "]";
+        } else if (parameterKind == ParameterKind.NAMED) {
+          buffer.write("{");
+          closing = "}";
+        } else {
+          closing = null;
+        }
+      }
+      kind = parameterKind;
+      parameter.appendToWithoutDelimiters(buffer);
+    }
+    if (closing != null) {
+      buffer.write(closing);
     }
     buffer.write(")");
     if (type != null) {
