@@ -154,10 +154,14 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
       var typeInferrer = getFieldTypeInferrer(field);
       var type = getFieldDeclaredType(field);
       if (type == null && strongMode) {
+        typeInferrer.isImmediatelyEvident = true;
         var inferredType = fieldNode.isImmediatelyEvident
             ? typeInferrer.inferDeclarationType(
                 typeInferrer.inferFieldTopLevel(field, type, true))
             : const DynamicType();
+        if (!typeInferrer.isImmediatelyEvident) {
+          inferredType = const DynamicType();
+        }
         instrumentation?.record(
             Uri.parse(typeInferrer.uri),
             getFieldOffset(field),

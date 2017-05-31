@@ -1,0 +1,22 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int field = 0;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get getter() → core::int
+    return 0;
+  method function() → core::int
+    return 0;
+}
+static field self::C c = new self::C::•();
+static field dynamic field_ref = self::c.field;
+static field dynamic getter_ref = self::c.getter;
+static field dynamic function_ref = self::c.function;
+static field dynamic field_ref_list = <dynamic>[self::c.field];
+static field dynamic getter_ref_list = <dynamic>[self::c.getter];
+static field dynamic function_ref_list = <dynamic>[self::c.function];
+static method main() → dynamic {}

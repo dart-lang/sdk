@@ -1160,6 +1160,14 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
     if (receiverType is InterfaceType) {
       interfaceMember = inferrer.classHierarchy
           .getInterfaceMember(receiverType.classNode, name);
+      if (inferrer.isTopLevel &&
+          ((interfaceMember is Procedure &&
+                  interfaceMember.kind == ProcedureKind.Getter) ||
+              interfaceMember is Field)) {
+        // References to fields and getters can't be relied upon for top level
+        // inference.
+        inferrer.recordNotImmediatelyEvident(fileOffset);
+      }
       // Our non-strong golden files currently don't include interface targets,
       // so we can't store the interface target without causing tests to fail.
       // TODO(paulberry): fix this.

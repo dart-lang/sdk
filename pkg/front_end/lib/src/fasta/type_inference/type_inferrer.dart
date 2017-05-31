@@ -192,6 +192,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// inside a closure.
   ClosureContext closureContext;
 
+  /// When performing top level inference, this boolean is set to `false` if we
+  /// discover that the type of the object is not immediately evident.
+  ///
+  /// Not used when performing local inference.
+  bool isImmediatelyEvident = true;
+
   TypeInferrerImpl(
       TypeInferenceEngineImpl engine, this.uri, this.listener, bool topLevel)
       : coreTypes = engine.coreTypes,
@@ -485,6 +491,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Derived classes should override this method with logic that dispatches on
   /// the statement type and calls the appropriate specialized "infer" method.
   void inferStatement(Statement statement);
+
+  void recordNotImmediatelyEvident(int fileOffset) {
+    assert(isTopLevel);
+    isImmediatelyEvident = false;
+    // TODO(paulberry): report an error.
+  }
 
   DartType wrapFutureOrType(DartType type) {
     if (type is InterfaceType &&
