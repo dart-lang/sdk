@@ -1539,6 +1539,7 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
 
   @override
   bool isNativeMethod(KFunction function) {
+    if (!native.maybeEnableNative(function.library.canonicalUri)) return false;
     ir.Member node = elementMap._memberList[function.memberIndex].node;
     return node.isExternal &&
         !elementMap.isForeignLibrary(node.enclosingLibrary);

@@ -125,6 +125,3 @@ analyze_dart2js_test: Pass, Slow # DON'T CHANGE THIS LINE -- SEE ABOVE.
 
 [ $system == linux ]
 dart2js_batch2_test: Pass, RuntimeError # Issue 29021
-
-[ $use_sdk ]
-kernel/closed_world_from_dill_test: Fail # Issue 29626

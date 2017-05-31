@@ -1072,7 +1072,8 @@ class JavaScriptBackend {
 
   /// Returns `true` if the `native` pseudo keyword is supported for [library].
   bool canLibraryUseNative(LibraryEntity library) {
-    return native.maybeEnableNative(compiler, library);
+    return native.maybeEnableNative(library.canonicalUri,
+        allowNativeExtensions: compiler.options.allowNativeExtensions);
   }
 
   bool isTargetSpecificLibrary(LibraryElement library) {
