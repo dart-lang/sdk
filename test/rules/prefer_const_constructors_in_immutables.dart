@@ -63,3 +63,12 @@ class F {
   factory F.fc3() => null; // OK
   const F.c1();
 }
+
+@immutable
+class G {
+  G.a(); // LINT
+  G.b() : this.a(); // OK
+  const G.c();  // OK
+  G.d() : this.c(); // LINT
+  const G.e() : this.c(); // OK
+}

@@ -70,7 +70,7 @@ class Visitor extends SimpleAstVisitor {
         !node.element.isConst &&
         !_hasMixin(node.element.enclosingElement) &&
         _hasImmutableAnnotation(node.element.enclosingElement) &&
-        _hasConstSuperConstructor(node) &&
+        _hasConstConstructorInvocation(node) &&
         _hasOnlyConstExpressionsInIntializerList(node)) {
       rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
     }
@@ -87,15 +87,23 @@ class Visitor extends SimpleAstVisitor {
     return inheritedAndSelfAnnotations.any(_isImmutable);
   }
 
-  bool _hasConstSuperConstructor(ConstructorDeclaration node) {
+  bool _hasConstConstructorInvocation(ConstructorDeclaration node) {
     final clazz = node.element.enclosingElement;
+    // construct with super
     final SuperConstructorInvocation superInvocation = node.initializers
         .firstWhere((e) => e is SuperConstructorInvocation, orElse: () => null);
-    return superInvocation == null &&
-            clazz.supertype.constructors
-                .firstWhere((e) => e.name.isEmpty)
-                .isConst ||
-        superInvocation != null && superInvocation.staticElement.isConst;
+    if (superInvocation != null) return superInvocation.staticElement.isConst;
+    // construct with this
+    final RedirectingConstructorInvocation redirectInvocation = node
+        .initializers
+        .firstWhere((e) => e is RedirectingConstructorInvocation,
+            orElse: () => null);
+    if (redirectInvocation != null)
+      return redirectInvocation.staticElement.isConst;
+    // construct with implicit super()
+    return clazz.supertype.constructors
+        .firstWhere((e) => e.name.isEmpty)
+        .isConst;
   }
 
   bool _hasOnlyConstExpressionsInIntializerList(ConstructorDeclaration node) {
