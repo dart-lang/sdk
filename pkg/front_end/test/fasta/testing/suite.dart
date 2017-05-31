@@ -30,6 +30,8 @@ import 'package:testing/testing.dart'
         TestDescription,
         StdioProcess;
 
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+
 import 'package:front_end/src/fasta/errors.dart' show InputError;
 
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
@@ -209,15 +211,24 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   Future<Result<Program>> run(
       TestDescription description, FastaContext context) async {
+    // Disable colors to ensure that expectation files are the same across
+    // platforms and independent of stdin/stderr.
+    CompilerContext.current.disableColors();
     Program platformOutline = await context.loadPlatformOutline();
     Ticker ticker = new Ticker();
     DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator, "vm");
     platformOutline.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platformOutline);
+    // We create a new URI translator to avoid reading plaform libraries from
+    // file system.
+    TranslateUri uriTranslator = new TranslateUri(
+        context.uriTranslator.packages,
+        const <String, Uri>{},
+        const <String, List<Uri>>{});
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
-        ? new AnalyzerTarget(dillTarget, context.uriTranslator, strongMode)
-        : new KernelTarget(PhysicalFileSystem.instance, dillTarget,
-            context.uriTranslator, strongMode);
+        ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
+        : new KernelTarget(
+            PhysicalFileSystem.instance, dillTarget, uriTranslator, strongMode);
 
     Program p;
     try {

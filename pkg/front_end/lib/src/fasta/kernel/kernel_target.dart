@@ -279,7 +279,6 @@ class KernelTarget extends TargetImplementation {
     if (errors.isNotEmpty) {
       handleInputError(null,
           isFullProgram: true, trimDependencies: trimDependencies);
-      if (trimDependencies) trimDependenciesInProgram();
       return _program;
     }
 

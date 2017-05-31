@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+rasta/unsupported_platform_library: RuntimeError # OK, this must report an error at runtime.
+
 # Status file for the kompile_test.dart (notice k, not c) test suite. This is
 # testing generating Analyzer ASTs, that is, code in
 # pkg/fasta/lib/src/analyzer/. Currently, this is behind direct-to-kernel, so
@@ -412,4 +414,3 @@ rasta/unresolved: Fail
 rasta/unresolved_constructor: Crash
 rasta/unresolved_for_in: Crash
 rasta/unresolved_recovery: Fail
-rasta/unsupported_platform_library: Fail

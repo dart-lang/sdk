@@ -29,6 +29,10 @@ class CompilerContext {
 
   CompilerContext(this.options);
 
+  void disableColors() {
+    enableColorsCached = false;
+  }
+
   static CompilerContext get current {
     return Zone.current[compilerContextKey] ?? rootContext;
   }
