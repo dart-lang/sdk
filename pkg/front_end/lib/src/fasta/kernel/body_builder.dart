@@ -84,6 +84,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   final bool enableNative;
 
+  final bool isPlatformLibrary;
+
   @override
   final Uri uri;
 
@@ -143,7 +145,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       this._typeInferrer)
       : enclosingScope = scope,
         library = library,
-        enableNative = (library.uri.scheme == "dart" || library.isPatch),
+        enableNative = library.loader.target.enableNative(library),
+        isPlatformLibrary = library.uri.scheme == 'dart',
         needsImplicitSuperInitializer =
             coreTypes.objectClass != classBuilder?.cls,
         typePromoter = _typeInferrer.typePromoter,
@@ -905,11 +908,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         }
         return new ThisPropertyAccessor(this, token, n, null, null);
       } else if (
-          // Optimization, if [enableNative] is false, this can't be
+          // Optimization, if [isPlatformLibrary] is false, this can't be
           // dart:_builtin.
-          enableNative &&
+          isPlatformLibrary &&
               name == "main" &&
-              library.uri.scheme == "dart" &&
               library.uri.path == "_builtin" &&
               member?.name == "_getMainClosure") {
         // TODO(ahe): https://github.com/dart-lang/sdk/issues/28989

@@ -22,6 +22,8 @@ import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' show Source;
 
+import 'package:front_end/src/fasta/builder/library_builder.dart'
+    show LibraryBuilder;
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/fasta.dart' show CompileTask;
@@ -32,6 +34,8 @@ import 'package:front_end/src/fasta/parser/parser.dart' show optional;
 import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
+
+import 'package:compiler/src/native/native.dart' show maybeEnableNative;
 
 /// Generates a platform.dill file containing the compiled Kernel IR of the
 /// dart2js SDK.
@@ -85,6 +89,9 @@ class KernelTargetForDart2js extends KernelTarget {
       [Map<String, Source> uriToSource])
       : super(PhysicalFileSystem.instance, target, uriTranslator, strongMode,
             uriToSource);
+
+  @override
+  bool enableNative(LibraryBuilder library) => maybeEnableNative(library.uri);
 
   @override
   Token skipNativeClause(Token token) => _skipNative(token);

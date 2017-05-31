@@ -54,7 +54,7 @@ class OutlineBuilder extends UnhandledListener {
 
   OutlineBuilder(SourceLibraryBuilder library)
       : library = library,
-        enableNative = (library.uri.scheme == "dart" || library.isPatch);
+        enableNative = library.loader.target.enableNative(library);
 
   @override
   Uri get uri => library.fileUri;

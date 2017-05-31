@@ -61,7 +61,7 @@ class DietListener extends StackListener {
       : library = library,
         uri = library.fileUri,
         memberScope = library.scope,
-        enableNative = (library.uri.scheme == "dart" || library.isPatch);
+        enableNative = library.loader.target.enableNative(library);
 
   void discard(int n) {
     for (int i = 0; i < n; i++) {
