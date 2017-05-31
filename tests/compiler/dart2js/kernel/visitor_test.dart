@@ -69,7 +69,7 @@ scheduleTest(String name, {bool selected}) async {
     JavaScriptBackend backend = compiler.backend;
     StringBuffer buffer = new StringBuffer();
     Program program = backend.kernelTask.buildProgram(library);
-    new MixinFullResolution(new NoneTarget(null)).transform(program);
+    new MixinFullResolution(new NoneTarget(null)).transform(program.libraries);
     new Printer(buffer).writeLibraryFile(program.mainMethod.enclosingLibrary);
     String actual = buffer.toString();
     String expected =
