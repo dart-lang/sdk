@@ -246,7 +246,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   } else {
     // Should not allocate executable pages when running from a precompiled
     // snapshot.
-    ASSERT(Dart::vm_snapshot_kind() != Snapshot::kAppAOT);
+    ASSERT(Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
 
     if (exec_pages_ == NULL) {
       exec_pages_ = page;

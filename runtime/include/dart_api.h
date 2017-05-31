@@ -3293,13 +3293,14 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
                                  uint8_t** isolate_snapshot_instructions_buffer,
                                  intptr_t* isolate_snapshot_instructions_size);
 
-
 /**
  * Sorts the class-ids in depth first traversal order of the inheritance
- * tree.  This is a costly operation, but it can make method dispatch
+ * tree. This is a costly operation, but it can make method dispatch
  * more efficient and is done before writing snapshots.
+ *
+ * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT void Dart_SortClasses();
+DART_EXPORT Dart_Handle Dart_SortClasses();
 
 
 /**
@@ -3329,6 +3330,20 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
                                  intptr_t* isolate_snapshot_instructions_size);
+
+
+/**
+ * Like Dart_CreateAppJITSnapshotAsBlobs, but also creates a new VM snapshot.
+ */
+DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
+    uint8_t** vm_snapshot_data_buffer,
+    intptr_t* vm_snapshot_data_size,
+    uint8_t** vm_snapshot_instructions_buffer,
+    intptr_t* vm_snapshot_instructions_size,
+    uint8_t** isolate_snapshot_data_buffer,
+    intptr_t* isolate_snapshot_data_size,
+    uint8_t** isolate_snapshot_instructions_buffer,
+    intptr_t* isolate_snapshot_instructions_size);
 
 
 /**

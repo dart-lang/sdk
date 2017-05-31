@@ -1194,7 +1194,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     // Write snapshot with object content.
     {
       FullSnapshotWriter writer(
-          Snapshot::kCore, NULL, &isolate_snapshot_data_buffer,
+          Snapshot::kFull, NULL, &isolate_snapshot_data_buffer,
           &malloc_allocator, NULL, NULL /* image_writer */);
       writer.WriteFullSnapshot();
     }
@@ -1251,7 +1251,7 @@ VM_UNIT_TEST_CASE(FullSnapshot1) {
     // Write snapshot with object content.
     {
       FullSnapshotWriter writer(
-          Snapshot::kCore, NULL, &isolate_snapshot_data_buffer,
+          Snapshot::kFull, NULL, &isolate_snapshot_data_buffer,
           &malloc_allocator, NULL, NULL /* image_writer */);
       writer.WriteFullSnapshot();
     }
@@ -1675,7 +1675,7 @@ VM_UNIT_TEST_CASE(MismatchedSnapshotKinds) {
     EXPECT(error != NULL);
     EXPECT_SUBSTRING(
         "Incompatible snapshot kinds:"
-        " vm 'core', isolate 'script'",
+        " vm 'full', isolate 'script'",
         error);
     free(error);
   }

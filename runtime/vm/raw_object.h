@@ -720,10 +720,10 @@ class RawClass : public RawObject {
   }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kCore:
+      case Snapshot::kFull:
       case Snapshot::kScript:
-      case Snapshot::kAppJIT:
-      case Snapshot::kAppAOT:
+      case Snapshot::kFullJIT:
+      case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->direct_subclasses_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
@@ -979,12 +979,12 @@ class RawField : public RawObject {
   }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kCore:
+      case Snapshot::kFull:
       case Snapshot::kScript:
         return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
-      case Snapshot::kAppJIT:
+      case Snapshot::kFullJIT:
         return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
-      case Snapshot::kAppAOT:
+      case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->initializer_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
@@ -1068,10 +1068,10 @@ class RawScript : public RawObject {
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kAppAOT:
+      case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->url_);
-      case Snapshot::kCore:
-      case Snapshot::kAppJIT:
+      case Snapshot::kFull:
+      case Snapshot::kFullJIT:
       case Snapshot::kScript:
         return reinterpret_cast<RawObject**>(&ptr()->tokens_);
       case Snapshot::kMessage:
@@ -1561,11 +1561,11 @@ class RawICData : public RawObject {
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->owner_); }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kAppAOT:
+      case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
-      case Snapshot::kCore:
+      case Snapshot::kFull:
       case Snapshot::kScript:
-      case Snapshot::kAppJIT:
+      case Snapshot::kFullJIT:
         return to();
       case Snapshot::kMessage:
       case Snapshot::kNone:
@@ -1682,11 +1682,11 @@ class RawLibraryPrefix : public RawInstance {
   }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kCore:
+      case Snapshot::kFull:
       case Snapshot::kScript:
-      case Snapshot::kAppJIT:
+      case Snapshot::kFullJIT:
         return reinterpret_cast<RawObject**>(&ptr()->imports_);
-      case Snapshot::kAppAOT:
+      case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->importer_);
       case Snapshot::kMessage:
       case Snapshot::kNone:

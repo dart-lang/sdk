@@ -25,12 +25,6 @@
 #define USING_MULTICORE false
 #endif
 
-#if defined(DART_PRECOMPILER)
-#define USING_PRECOMPILER true
-#else
-#define USING_PRECOMPILER false
-#endif
-
 // List of all flags in the VM.
 // Flags can be one of three categories:
 // * P roduct flags: Can be set in any of the deployment modes, including in
@@ -176,7 +170,7 @@
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
   P(use_field_guards, bool, !USING_DBC,                                        \
     "Use field guards and track field types")                                  \
-  C(use_osr, false, !USING_PRECOMPILER, bool, !USING_PRECOMPILER, "Use OSR")   \
+  C(use_osr, false, true, bool, true, "Use OSR")                               \
   P(verbose_gc, bool, false, "Enables verbose GC.")                            \
   P(verbose_gc_hdr, int, 40, "Print verbose GC header interval.")              \
   R(verify_after_gc, false, bool, false,                                       \

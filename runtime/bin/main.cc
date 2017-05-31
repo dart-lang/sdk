@@ -57,7 +57,8 @@ const uint8_t* core_isolate_snapshot_instructions = NULL;
 const uint8_t* vm_snapshot_data = kDartVmSnapshotData;
 const uint8_t* vm_snapshot_instructions = kDartVmSnapshotInstructions;
 const uint8_t* core_isolate_snapshot_data = kDartCoreIsolateSnapshotData;
-const uint8_t* core_isolate_snapshot_instructions = kDartVmSnapshotInstructions;
+const uint8_t* core_isolate_snapshot_instructions =
+    kDartCoreIsolateSnapshotInstructions;
 #endif
 
 /**

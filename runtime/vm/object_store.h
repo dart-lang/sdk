@@ -604,10 +604,10 @@ class ObjectStore {
   }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kCore:
+      case Snapshot::kFull:
         return reinterpret_cast<RawObject**>(&library_load_error_table_);
-      case Snapshot::kAppJIT:
-      case Snapshot::kAppAOT:
+      case Snapshot::kFullJIT:
+      case Snapshot::kFullAOT:
         return to();
       case Snapshot::kScript:
       case Snapshot::kMessage:

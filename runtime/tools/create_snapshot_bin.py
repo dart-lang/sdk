@@ -14,11 +14,6 @@ import sys
 import utils
 
 
-HOST_OS = utils.GuessOS()
-HOST_CPUS = utils.GuessCpus()
-DEBUG = False
-VERBOSE = False
-
 def BuildOptions():
   result = optparse.OptionParser()
   result.add_option("--executable",
@@ -32,7 +27,15 @@ def BuildOptions():
       action="store", type="string",
       help="output file name into which vm isolate snapshot in binary form " +
            "is generated")
+  result.add_option("--vm_instructions_output_bin",
+      action="store", type="string",
+      help="output file name into which vm isolate snapshot in binary form " +
+           "is generated")
   result.add_option("--isolate_output_bin",
+      action="store", type="string",
+      help="output file name into which isolate snapshot in binary form " +
+           "is generated")
+  result.add_option("--isolate_instructions_output_bin",
       action="store", type="string",
       help="output file name into which isolate snapshot in binary form " +
            "is generated")
@@ -56,12 +59,6 @@ def BuildOptions():
   result.add_option("-v", "--verbose",
       help='Verbose output.',
       default=False, action="store_true")
-  result.add_option("--target_os",
-      action="store", type="string",
-      help="Which os to run the executable on. Current choice is android")
-  result.add_option("--abi",
-      action="store", type="string",
-      help="Desired ABI for android target OS. armeabi-v7a or x86")
   result.add_option("--timestamp_file",
       action="store", type="string",
       help="Path to timestamp file that will be written",
@@ -82,8 +79,13 @@ def ProcessOptions(options):
   if not options.isolate_output_bin:
     sys.stderr.write('--isolate_output_bin not specified\n')
     return False
-  if options.abi and not options.target_os == 'android':
-    sys.stderr.write('--abi requires --target_os android\n')
+  if (options.snapshot_kind == 'core-jit'
+      and not options.vm_instructions_output_bin):
+    sys.stderr.write('--vm_instructions_output_bin not specified\n')
+    return False
+  if (options.snapshot_kind == 'core-jit'
+      and not options.isolate_instructions_output_bin):
+    sys.stderr.write('--isolate_instructions_output_bin not specified\n')
     return False
   return True
 
@@ -110,9 +112,7 @@ def Main():
     return 1
 
   # Setup arguments to the snapshot generator binary.
-  script_args = ["--ignore_unrecognized_flags",
-                 "--error_on_bad_type",
-                 "--error_on_bad_override"]
+  script_args = ["--ignore_unrecognized_flags" ]
 
   # Pass along the package_root if there is one.
   if options.package_root:
@@ -126,6 +126,13 @@ def Main():
   script_args.append(''.join([ "--snapshot_kind=", options.snapshot_kind ]))
   script_args.append(''.join([ "--vm_snapshot_data=", options.vm_output_bin ]))
   script_args.append(''.join([ "--isolate_snapshot_data=", options.isolate_output_bin ]))
+
+  if options.vm_instructions_output_bin != None:
+    script_args.append(''.join([ "--vm_snapshot_instructions=",
+                                 options.vm_instructions_output_bin ]))
+  if options.isolate_instructions_output_bin != None:
+    script_args.append(''.join([ "--isolate_snapshot_instructions=",
+                                 options.isolate_instructions_output_bin ]))
 
   # Specify the embedder entry points snapshot
   if options.embedder_entry_points_manifest:
