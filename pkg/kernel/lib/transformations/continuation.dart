@@ -20,8 +20,8 @@ void transformLibraries(CoreTypes coreTypes, List<Library> libraries) {
   }
 }
 
-Program transformProgram(Program program) {
-  var helper = new HelperNodes.fromProgram(program);
+Program transformProgram(CoreTypes coreTypes, Program program) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes);
   var rewriter = new RecursiveContinuationRewriter(helper);
   return rewriter.rewriteProgram(program);
 }
@@ -942,10 +942,5 @@ class HelperNodes {
         coreTypes.asyncErrorWrapperHelperProcedure,
         coreTypes.awaitHelperProcedure,
         coreTypes);
-  }
-
-  factory HelperNodes.fromProgram(Program program) {
-    var coreTypes = new CoreTypes(program);
-    return new HelperNodes.fromCoreTypes(coreTypes);
   }
 }

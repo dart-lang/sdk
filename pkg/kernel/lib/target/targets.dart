@@ -71,14 +71,14 @@ abstract class Target {
   ///
   /// These transformations should not be whole-program transformations.  They
   /// should expect that the program will contain external libraries.
-  void performModularTransformations(Program program);
+  void performModularTransformations(CoreTypes coreTypes, Program program);
 
   /// Perform target-specific whole-program transformations.
   ///
   /// These transformations should be optimizations and not required for
   /// correctness.  Everything should work if a simple and fast linker chooses
   /// not to apply these transformations.
-  void performGlobalTransformations(Program program);
+  void performGlobalTransformations(CoreTypes coreTypes, Program program);
 
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
@@ -96,8 +96,8 @@ class NoneTarget extends Target {
   bool get strongMode => flags.strongMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
-  void performModularTransformations(Program program) {}
-  void performGlobalTransformations(Program program) {}
+  void performModularTransformations(CoreTypes coreTypes, Program program) {}
+  void performGlobalTransformations(CoreTypes coreTypes, Program program) {}
 
   @override
   Expression instantiateInvocation(Member target, Expression receiver,

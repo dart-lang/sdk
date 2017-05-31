@@ -53,8 +53,8 @@ DartType substituteBounds(DartType type, Map<TypeParameter, DartType> upper,
 /// Currently, we only deduce that the type arguments are exact when the
 /// receiver is `this`.
 class InsertCovarianceChecks {
+  final CoreTypes coreTypes;
   ClassHierarchy hierarchy;
-  CoreTypes coreTypes;
   TypeEnvironment types;
 
   /// Maps unsafe members to their checked entry point, to be used at call sites
@@ -70,11 +70,10 @@ class InsertCovarianceChecks {
   /// in [unsafeMemberEntryPoint].
   final Set<Member> membersWithCheckedEntryPoint = new Set<Member>();
 
-  InsertCovarianceChecks({this.hierarchy, this.coreTypes});
+  InsertCovarianceChecks(this.coreTypes, {this.hierarchy});
 
   void transformProgram(Program program) {
     hierarchy ??= new ClassHierarchy(program);
-    coreTypes ??= new CoreTypes(program);
     types = new TypeEnvironment(coreTypes, hierarchy);
     // We transform every class before their subtypes.
     // This ensures that transitive overrides are taken into account.

@@ -56,28 +56,26 @@ class VmTarget extends Target {
 
   ClassHierarchy _hierarchy;
 
-  void performModularTransformations(Program program) {
-    var mixins = new mix.MixinFullResolution(this)
+  void performModularTransformations(CoreTypes coreTypes, Program program) {
+    var mixins = new mix.MixinFullResolution(this, coreTypes)
       ..transform(program.libraries);
 
     _hierarchy = mixins.hierarchy;
   }
 
-  void performGlobalTransformations(Program program) {
-    var coreTypes = new CoreTypes(program);
-
+  void performGlobalTransformations(CoreTypes coreTypes, Program program) {
     if (strongMode) {
-      new InsertTypeChecks(hierarchy: _hierarchy, coreTypes: coreTypes)
+      new InsertTypeChecks(coreTypes, hierarchy: _hierarchy)
           .transformProgram(program);
-      new InsertCovarianceChecks(hierarchy: _hierarchy, coreTypes: coreTypes)
+      new InsertCovarianceChecks(coreTypes, hierarchy: _hierarchy)
           .transformProgram(program);
     }
 
     if (flags.treeShake) {
-      performTreeShaking(program);
+      performTreeShaking(coreTypes, program);
     }
 
-    cont.transformProgram(program);
+    cont.transformProgram(coreTypes, program);
 
     if (strongMode) {
       performErasure(program);
@@ -86,11 +84,9 @@ class VmTarget extends Target {
     new SanitizeForVM().transform(program);
   }
 
-  void performTreeShaking(Program program) {
-    var coreTypes = new CoreTypes(program);
-    new TreeShaker(program,
+  void performTreeShaking(CoreTypes coreTypes, Program program) {
+    new TreeShaker(coreTypes, program,
             hierarchy: _hierarchy,
-            coreTypes: coreTypes,
             strongMode: strongMode,
             programRoots: flags.programRoots)
         .transform(program);

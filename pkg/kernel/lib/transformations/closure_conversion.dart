@@ -15,11 +15,10 @@ import 'closure/info.dart' show ClosureInfo;
 import 'closure/invalidate_closures.dart';
 import 'closure/mock.dart' show mockUpContext;
 
-Program transformProgram(Program program) {
+Program transformProgram(CoreTypes coreTypes, Program program) {
   var info = new ClosureInfo();
   info.visitProgram(program);
 
-  CoreTypes coreTypes = new CoreTypes(program);
   Class contextClass = mockUpContext(coreTypes, program);
   var convert = new ClosureConverter(coreTypes, info, contextClass);
   program = convert.visitProgram(program);

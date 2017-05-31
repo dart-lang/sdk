@@ -16,6 +16,8 @@ import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/binary/ast_to_binary.dart'
     show LibraryFilteringBinaryPrinter;
 
+import 'package:kernel/core_types.dart' show CoreTypes;
+
 import 'package:kernel/kernel.dart' show Library, Program, loadProgramFromBytes;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
@@ -193,6 +195,7 @@ Future<CompilationResult> parseScriptInFileSystem(
           formatUnexpected(patchedSdk, -1, "Patched sdk directory not found."));
     }
 
+    CoreTypes coreTypes;
     Program program;
     try {
       TranslateUri uriTranslator =
@@ -206,6 +209,7 @@ Future<CompilationResult> parseScriptInFileSystem(
       kernelTarget.read(fileName);
       await dillTarget.buildOutlines();
       await kernelTarget.buildOutlines();
+      coreTypes = kernelTarget.loader.coreTypes;
       program = await kernelTarget.buildProgram();
       if (kernelTarget.errors.isNotEmpty) {
         return new CompilationResult.errors(kernelTarget.errors);
@@ -220,8 +224,8 @@ Future<CompilationResult> parseScriptInFileSystem(
 
     // Perform target-specific transformations.
     Target target = getTarget("vm", new TargetFlags(strongMode: false));
-    target.performModularTransformations(program);
-    target.performGlobalTransformations(program);
+    target.performModularTransformations(coreTypes, program);
+    target.performGlobalTransformations(coreTypes, program);
 
     // Write the program to a list of bytes and return it.  Do not include
     // libraries that have a dart: import URI.

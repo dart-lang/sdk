@@ -10,8 +10,10 @@ import '../core_types.dart';
 import '../type_environment.dart';
 import '../library_index.dart';
 
-Program transformProgram(Program program, {List<ProgramRoot> programRoots}) {
-  new TreeShaker(program, programRoots: programRoots).transform(program);
+Program transformProgram(CoreTypes coreTypes, Program program,
+    {List<ProgramRoot> programRoots}) {
+  new TreeShaker(coreTypes, program, programRoots: programRoots)
+      .transform(program);
   return program;
 }
 
@@ -167,13 +169,12 @@ class TreeShaker {
   /// the mirrors library.
   bool get forceShaking => programRoots != null && programRoots.isNotEmpty;
 
-  TreeShaker(Program program,
+  TreeShaker(CoreTypes coreTypes, Program program,
       {ClassHierarchy hierarchy,
-      CoreTypes coreTypes,
       bool strongMode: false,
       List<ProgramRoot> programRoots})
       : this._internal(program, hierarchy ?? new ClassHierarchy(program),
-            coreTypes ?? new CoreTypes(program), strongMode, programRoots);
+            coreTypes, strongMode, programRoots);
 
   bool isMemberBodyUsed(Member member) {
     return _usedMembers.containsKey(member);

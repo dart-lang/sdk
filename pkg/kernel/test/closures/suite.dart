@@ -8,6 +8,8 @@ import 'dart:async' show Future;
 
 import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
 
+import 'package:kernel/core_types.dart' show CoreTypes;
+
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
@@ -125,7 +127,8 @@ class ClosureConversion
   Future<Result<Program>> run(
       Program program, ClosureConversionContext testContext) async {
     try {
-      program = closure_conversion.transformProgram(program);
+      CoreTypes coreTypes = new CoreTypes(program);
+      program = closure_conversion.transformProgram(coreTypes, program);
       return pass(program);
     } catch (e, s) {
       return crash(e, s);

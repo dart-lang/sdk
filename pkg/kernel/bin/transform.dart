@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/closure_conversion.dart' as closures;
@@ -75,22 +76,24 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       parseProgramRoots(embedderEntryPointManifests);
 
   var program = loadProgramFromBinary(input);
+  var coreTypes = new CoreTypes(program);
   switch (options['transformation']) {
     case 'continuation':
-      program = cont.transformProgram(program);
+      program = cont.transformProgram(coreTypes, program);
       break;
     case 'resolve-mixins':
-      mix.transformLibraries(new NoneTarget(null), program.libraries);
+      mix.transformLibraries(
+          new NoneTarget(null), coreTypes, program.libraries);
       break;
     case 'closures':
-      program = closures.transformProgram(program);
+      program = closures.transformProgram(coreTypes, program);
       break;
     case 'treeshake':
-      program =
-          treeshaker.transformProgram(program, programRoots: programRoots);
+      program = treeshaker.transformProgram(coreTypes, program,
+          programRoots: programRoots);
       break;
     case 'methodcall':
-      program = method_call.transformProgram(program);
+      program = method_call.transformProgram(coreTypes, program);
       break;
     case 'empty':
       program = empty.transformProgram(program);

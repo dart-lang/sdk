@@ -4,10 +4,11 @@
 library kernel.target.flutter;
 
 import '../ast.dart';
+import '../core_types.dart';
 import '../transformations/continuation.dart' as cont;
 import '../transformations/erasure.dart';
-import '../transformations/sanitize_for_vm.dart';
 import '../transformations/mixin_full_resolution.dart' as mix;
+import '../transformations/sanitize_for_vm.dart';
 import '../transformations/setup_builtin_library.dart' as setup_builtin_library;
 import 'targets.dart';
 
@@ -49,12 +50,12 @@ class FlutterTarget extends Target {
         'dart:vmservice_sky',
       ];
 
-  void performModularTransformations(Program program) {
-    mix.transformLibraries(this, program.libraries);
+  void performModularTransformations(CoreTypes coreTypes, Program program) {
+    mix.transformLibraries(this, coreTypes, program.libraries);
   }
 
-  void performGlobalTransformations(Program program) {
-    cont.transformProgram(program);
+  void performGlobalTransformations(CoreTypes coreTypes, Program program) {
+    cont.transformProgram(coreTypes, program);
 
     // Repair `_getMainClosure()` function in dart:{_builtin,ui} libraries.
     setup_builtin_library.transformProgram(program);

@@ -13,6 +13,8 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/kernel/loader.dart'
     show DartLoader, DartOptions, createDartSdk;
 
+import 'package:kernel/core_types.dart' show CoreTypes;
+
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
 import 'package:kernel/target/vmcc.dart' show VmClosureConvertedTarget;
@@ -152,7 +154,7 @@ class NotReifiedTarget extends VmClosureConvertedTarget {
   // it just deletes everything from those libraries, because they aren't
   // used in the program being transform prior to the transformation.
   @override
-  void performTreeShaking(Program program) {}
+  void performTreeShaking(CoreTypes coreTypes, Program program) {}
 
   // Erasure needs to be disabled, because it removes the necessary information
   // about type arguments for generic methods.
@@ -191,9 +193,10 @@ class NotReifiedKernel extends Step<TestDescription, Program, TestContext> {
       for (var error in loader.errors) {
         return fail(program, "$error");
       }
+      var coreTypes = new CoreTypes(program);
       target
-        ..performModularTransformations(program)
-        ..performGlobalTransformations(program);
+        ..performModularTransformations(coreTypes, program)
+        ..performGlobalTransformations(coreTypes, program);
       return pass(program);
     } catch (e, s) {
       return crash(e, s);
@@ -208,7 +211,8 @@ class GenericTypesReification extends Step<Program, Program, TestContext> {
 
   Future<Result<Program>> run(Program program, TestContext testContext) async {
     try {
-      program = generic_types_reification.transformProgram(program);
+      CoreTypes coreTypes = new CoreTypes(program);
+      program = generic_types_reification.transformProgram(coreTypes, program);
       return pass(program);
     } catch (e, s) {
       return crash(e, s);

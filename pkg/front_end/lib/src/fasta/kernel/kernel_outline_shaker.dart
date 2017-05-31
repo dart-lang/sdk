@@ -162,8 +162,10 @@ class TypeMarker extends DartTypeVisitor {
 // TODO(sigmund): delete. We should collect this information while
 // building kernel without having to run a visitor afterwards.
 class RootsMarker extends RecursiveVisitor {
+  final CoreTypes coreTypes;
   final RetainedDataBuilder data;
-  RootsMarker(this.data);
+
+  RootsMarker(this.coreTypes, this.data);
 
   void run(Program program, bool isIncluded(Uri uri)) {
     markRequired(program);
@@ -180,7 +182,6 @@ class RootsMarker extends RecursiveVisitor {
   // TODO(sigmund): consider being more fine-grained and only marking what is
   // seen and used.
   void markRequired(Program program) {
-    var coreTypes = new CoreTypes(program);
     coreTypes.objectClass.members.forEach(data.markMember);
 
     // These are assumed to be available by fasta:

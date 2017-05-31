@@ -4,6 +4,7 @@
 library kernel.treeshaker_dump;
 
 import 'dart:io';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/transformations/treeshaker.dart';
 import 'package:args/args.dart';
@@ -64,7 +65,8 @@ main(List<String> args) {
   bool strong = options['strong'];
 
   Program program = loadProgramFromBinary(filename);
-  TreeShaker shaker = new TreeShaker(program, strongMode: strong);
+  CoreTypes coreTypes = new CoreTypes(program);
+  TreeShaker shaker = new TreeShaker(coreTypes, program, strongMode: strong);
   int totalClasses = 0;
   int totalInstantiationCandidates = 0;
   int totalMembers = 0;
@@ -127,7 +129,7 @@ main(List<String> args) {
     StringBuffer before = new StringBuffer();
     new Printer(before, syntheticNames: names).writeProgramFile(program);
     new File(beforeFile).writeAsStringSync('$before');
-    new TreeShaker(program, strongMode: strong).transform(program);
+    new TreeShaker(coreTypes, program, strongMode: strong).transform(program);
     StringBuffer after = new StringBuffer();
     new Printer(after, syntheticNames: names).writeProgramFile(program);
     new File(afterFile).writeAsStringSync('$after');

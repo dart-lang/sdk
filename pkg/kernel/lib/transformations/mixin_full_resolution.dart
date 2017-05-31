@@ -10,8 +10,9 @@ import '../core_types.dart';
 import '../target/targets.dart' show Target;
 import '../type_algebra.dart';
 
-void transformLibraries(Target targetInfo, List<Library> libraries) {
-  new MixinFullResolution(targetInfo).transform(libraries);
+void transformLibraries(
+    Target targetInfo, CoreTypes coreTypes, List<Library> libraries) {
+  new MixinFullResolution(targetInfo, coreTypes).transform(libraries);
 }
 
 /// Replaces all mixin applications with regular classes, cloning all fields
@@ -23,10 +24,10 @@ void transformLibraries(Target targetInfo, List<Library> libraries) {
 class MixinFullResolution {
   final Target targetInfo;
 
+  final CoreTypes coreTypes;
   ClassHierarchy hierarchy;
-  CoreTypes coreTypes;
 
-  MixinFullResolution(this.targetInfo);
+  MixinFullResolution(this.targetInfo, this.coreTypes);
 
   /// Transform the given new [libraries].  It is expected that all other
   /// libraries have already been transformed.
@@ -50,7 +51,6 @@ class MixinFullResolution {
     // and "coreTypes" outside and passing into the transformers.
     var program = libraries.first.enclosingProgram;
     hierarchy = new ClassHierarchy(program);
-    coreTypes = new CoreTypes(program);
 
     // Resolve all super call expressions and super initializers.
     for (var library in libraries) {
