@@ -445,6 +445,32 @@ defineTests() {
       });
     });
 
+    group('prefer_const_constructors_in_immutables', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('only throw errors', () {
+        dartlint.runLinter([
+          'test/_data/prefer_const_constructors_in_immutables',
+          '--rules=prefer_const_constructors_in_immutables'
+        ], new LinterOptions()..enableAssertInitializer = true);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder(
+                ['D.c2(a)', '1 file analyzed, 1 issue found, in']));
+      });
+    });
+
     group('examples', () {
       test('all.yaml', () {
         String src = readFile('example/all.yaml');
