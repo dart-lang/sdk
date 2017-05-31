@@ -84,6 +84,7 @@ inference/bottom_in_closure: Crash
 inference/circular_reference_via_closures: Crash
 inference/circular_reference_via_closures_initializer_types: Crash
 inference/conditional_lub: Crash
+inference/conditional_upwards_inference: Crash
 inference/conflicts_can_happen2: Crash
 inference/conflicts_can_happen: Crash
 inference/constructors_downwards_with_constraint: Fail

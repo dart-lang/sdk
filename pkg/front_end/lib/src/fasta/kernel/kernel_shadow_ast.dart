@@ -279,13 +279,9 @@ class KernelConditionalExpression extends ConditionalExpression
       inferrer.inferExpression(
           condition, inferrer.coreTypes.boolClass.rawType, false);
     }
-    // TODO(paulberry): is it correct to pass the context down?
     DartType thenType = inferrer.inferExpression(then, typeContext, true);
     DartType otherwiseType =
         inferrer.inferExpression(otherwise, typeContext, true);
-    // TODO(paulberry): the spec proposal says we should only use LUB if the
-    // typeContext is `null`.  If typeContext is non-null, we should use the
-    // greatest closure of the context with respect to `?`
     DartType type = inferrer.typeSchemaEnvironment
         .getLeastUpperBound(thenType, otherwiseType);
     staticType = type;
