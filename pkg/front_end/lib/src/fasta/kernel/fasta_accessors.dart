@@ -39,7 +39,7 @@ import 'frontend_accessors.dart' as kernel
 import 'kernel_builder.dart'
     show Builder, KernelClassBuilder, PrefixBuilder, TypeDeclarationBuilder;
 
-import '../names.dart' show callName;
+import '../names.dart' show callName, lengthName;
 
 abstract class BuilderHelper {
   Uri get uri;
@@ -90,6 +90,8 @@ abstract class BuilderHelper {
 
   dynamic addCompileTimeError(int charOffset, String message, {bool silent});
 
+  bool isIdentical(Member member);
+
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
       {bool isConstantExpression, bool isNullAware});
@@ -138,6 +140,10 @@ abstract class FastaAccessor implements Accessor {
           send.arguments, offsetForToken(send.token),
           isNullAware: isNullAware);
     } else {
+      if (helper.constantExpressionRequired && send.name != lengthName) {
+        helper.addCompileTimeError(
+            offsetForToken(token), "Not a constant expression.");
+      }
       return PropertyAccessor.make(helper, send.token, buildSimpleRead(),
           send.name, null, null, isNullAware);
     }
@@ -692,9 +698,15 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
   String get plainNameForRead => (readTarget ?? writeTarget).name.name;
 
   Expression doInvocation(int offset, Arguments arguments) {
+    if (helper.constantExpressionRequired && !helper.isIdentical(readTarget)) {
+      helper.addCompileTimeError(offset, "Not a constant expression.");
+    }
     if (readTarget == null || isFieldOrGetter(readTarget)) {
       return helper.buildMethodInvocation(buildSimpleRead(), callName,
-          arguments, offset + (readTarget?.name?.name?.length ?? 0));
+          arguments, offset + (readTarget?.name?.name?.length ?? 0),
+          // This isn't a constant expression, but we have checked if a
+          // constant expression error should be emitted already.
+          isConstantExpression: true);
     } else {
       return helper.buildStaticInvocation(readTarget, arguments)
         ..fileOffset = offset;
@@ -713,9 +725,15 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
   String get plainNameForRead => name.name;
 
   Expression doInvocation(int offset, Arguments arguments) {
+    if (helper.constantExpressionRequired) {
+      helper.addCompileTimeError(offset, "Not a constant expression.");
+    }
     if (getter == null || isFieldOrGetter(getter)) {
       return helper.buildMethodInvocation(
-          buildSimpleRead(), callName, arguments, offset);
+          buildSimpleRead(), callName, arguments, offset,
+          // This isn't a constant expression, but we have checked if a
+          // constant expression error should be emitted already.
+          isConstantExpression: true);
     } else {
       return new DirectMethodInvocation(new ThisExpression(), getter, arguments)
         ..fileOffset = offset;

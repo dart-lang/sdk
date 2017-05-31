@@ -641,17 +641,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   finishSend(Object receiver, Arguments arguments, int charOffset) {
-    bool isIdentical(Object receiver) {
-      return receiver is StaticAccessor &&
-          receiver.readTarget == coreTypes.identicalProcedure;
-    }
-
     if (receiver is FastaAccessor) {
-      if (constantExpressionRequired &&
-          !isIdentical(receiver) &&
-          !receiver.isInitializer) {
-        addCompileTimeError(charOffset, "Not a constant expression.");
-      }
       return receiver.doInvocation(charOffset, arguments);
     } else {
       return buildMethodInvocation(
@@ -682,6 +672,21 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     KernelCascadeExpression cascadeReceiver = pop();
     cascadeReceiver.finalize(expression);
     push(cascadeReceiver);
+  }
+
+  @override
+  void beginCaseExpression(Token caseKeyword) {
+    debugEvent("beginCaseExpression");
+    super.push(constantExpressionRequired);
+    constantExpressionRequired = true;
+  }
+
+  @override
+  void endCaseExpression(Token colon) {
+    debugEvent("endCaseExpression");
+    Expression expression = popForValue();
+    constantExpressionRequired = pop();
+    super.push(expression);
   }
 
   @override
@@ -1700,6 +1705,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void beginFormalParameters(Token token, MemberKind kind) {
+    super.push(constantExpressionRequired);
+    constantExpressionRequired = false;
+  }
+
+  @override
   void endFormalParameters(
       int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
@@ -1712,6 +1723,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         popList(count) ?? <VariableDeclaration>[],
         optional,
         beginToken.charOffset);
+    constantExpressionRequired = pop();
     push(formals);
     if ((inCatchClause || functionNestingLevel != 0) &&
         kind != MemberKind.GeneralizedFunctionType) {
@@ -1825,7 +1837,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             token.charOffset)));
       } else {
         push(buildMethodInvocation(toValue(receiver), new Name(operator),
-            new Arguments.empty(), token.charOffset));
+            new Arguments.empty(), token.charOffset,
+            // This *could* be a constant expression, we can't know without
+            // evaluating [receiver].
+            isConstantExpression: true));
       }
     }
   }
@@ -2770,9 +2785,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  bool isIdentical(Member member) => member == coreTypes.identicalProcedure;
+
+  @override
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
       {bool isConstantExpression: false, bool isNullAware: false}) {
+    if (constantExpressionRequired && !isConstantExpression) {
+      return buildCompileTimeError("Not a constant expression.", offset);
+    }
     if (isNullAware) {
       VariableDeclaration variable = new VariableDeclaration.forValue(receiver);
       return makeLet(

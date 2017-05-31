@@ -5,7 +5,6 @@
 [ $compiler == dartk || $compiler == dartkp ]
 call_nonexistent_static_test/01: CompileTimeError
 call_nonexistent_static_test/04: CompileTimeError
-compile_time_constant_c_test/03: MissingCompileTimeError
 compile_time_constant_test/01: MissingCompileTimeError
 conditional_method_invocation_test/11: MissingCompileTimeError
 conditional_property_access_test/09: MissingCompileTimeError
@@ -543,4 +542,3 @@ issue_1751477_test: CompileTimeError # Deferred loading kernel issue 28335.
 regress_22443_test: CompileTimeError # Deferred loading kernel issue 28335.
 regress_23408_test: CompileTimeError # Deferred loading kernel issue 28335.
 regress_28278_test: CompileTimeError # Deferred loading kernel issue 28335.
-case_expression_with_assignment_test/01: Crash # Issue 29379
