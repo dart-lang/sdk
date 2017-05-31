@@ -7,6 +7,7 @@ library linter.src.rules.prefer_const_constructors_in_immutables;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart' show AstVisitor;
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
 const desc = 'Prefer put asserts in initializer list.';
@@ -52,10 +53,51 @@ class Visitor extends SimpleAstVisitor {
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
     final body = node.body;
-    if (body is BlockFunctionBody &&
-        body.block.statements.isNotEmpty &&
-        body.block.statements.every((s) => s is AssertStatement)) {
-      rule.reportLintForToken(body.beginToken);
+    if (body is BlockFunctionBody) {
+      for (final statement in body.block.statements) {
+        if (statement is! AssertStatement) break;
+
+        final assertVisitor = new _AssertVisitor(node.element.enclosingElement);
+        statement.visitChildren(assertVisitor);
+        if (!assertVisitor.needInstance) {
+          rule.reportLintForToken(statement.beginToken);
+        }
+      }
     }
+  }
+}
+
+class _AssertVisitor extends RecursiveAstVisitor {
+  _AssertVisitor(this.classElement);
+  final ClassElement classElement;
+  bool needInstance = false;
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    needInstance = true;
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  visitPropertyAccess(PropertyAccess node) {
+    needInstance = true;
+    super.visitPropertyAccess(node);
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    final element = node.staticElement;
+    if ((element is PropertyAccessorElement || element is MethodElement) &&
+        element.enclosingElement == classElement) {
+      needInstance = true;
+    }
+
+    super.visitSimpleIdentifier(node);
+  }
+
+  @override
+  visitThisExpression(ThisExpression node) {
+    needInstance = true;
+    super.visitThisExpression(node);
   }
 }
