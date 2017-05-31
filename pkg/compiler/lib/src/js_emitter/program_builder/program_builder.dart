@@ -442,7 +442,7 @@ class ProgramBuilder {
     _registry.registerHolder(_namer.globalObjectForConstant(initialValue),
         isConstantsHolder: true);
     js.Expression code = _task.emitter.constantReference(initialValue);
-    js.Name name = _namer.globalPropertyName(element);
+    js.Name name = _namer.globalPropertyNameForMember(element);
     bool isFinal = false;
     bool isLazy = false;
 
@@ -475,7 +475,7 @@ class ProgramBuilder {
     // before code generation.
     if (code == null) return null;
 
-    js.Name name = _namer.globalPropertyName(element);
+    js.Name name = _namer.globalPropertyNameForMember(element);
     bool isFinal = element.isFinal;
     bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
@@ -787,7 +787,7 @@ class ProgramBuilder {
     }
 
     js.Name name = _namer.className(element);
-    String holderName = _namer.globalObjectFor(element);
+    String holderName = _namer.globalObjectForClass(element);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a class.
     Holder holder = _registry.registerHolder(holderName);
@@ -1114,7 +1114,7 @@ class ProgramBuilder {
 
   StaticDartMethod _buildStaticMethod(MethodElement element) {
     js.Name name = _namer.methodPropertyName(element);
-    String holder = _namer.globalObjectFor(element);
+    String holder = _namer.globalObjectForMember(element);
     js.Expression code = _generatedCode[element];
 
     bool isApplyTarget = !element.isConstructor && !element.isAccessor;

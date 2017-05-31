@@ -288,3 +288,53 @@ abstract class Emitter {
   /// Returns the size of the code generated for a given output [unit].
   int generatedSize(OutputUnit unit);
 }
+
+abstract class EmitterBase implements Emitter {
+  Namer get namer;
+
+  jsAst.PropertyAccess globalPropertyAccessForMember(MemberEntity element) {
+    jsAst.Name name = namer.globalPropertyNameForMember(element);
+    jsAst.PropertyAccess pa = new jsAst.PropertyAccess(
+        new jsAst.VariableUse(namer.globalObjectForMember(element)), name);
+    return pa;
+  }
+
+  jsAst.PropertyAccess globalPropertyAccessForClass(ClassEntity element) {
+    jsAst.Name name = namer.globalPropertyNameForClass(element);
+    jsAst.PropertyAccess pa = new jsAst.PropertyAccess(
+        new jsAst.VariableUse(namer.globalObjectForClass(element)), name);
+    return pa;
+  }
+
+  jsAst.PropertyAccess globalPropertyAccessForType(Entity element) {
+    jsAst.Name name = namer.globalPropertyNameForType(element);
+    jsAst.PropertyAccess pa = new jsAst.PropertyAccess(
+        new jsAst.VariableUse(namer.globalObjectForType(element)), name);
+    return pa;
+  }
+
+  @override
+  jsAst.PropertyAccess staticFieldAccess(FieldEntity element) {
+    return globalPropertyAccessForMember(element);
+  }
+
+  @override
+  jsAst.PropertyAccess staticFunctionAccess(FunctionEntity element) {
+    return globalPropertyAccessForMember(element);
+  }
+
+  @override
+  jsAst.PropertyAccess constructorAccess(ClassEntity element) {
+    return globalPropertyAccessForClass(element);
+  }
+
+  @override
+  jsAst.PropertyAccess interceptorClassAccess(ClassEntity element) {
+    return globalPropertyAccessForClass(element);
+  }
+
+  @override
+  jsAst.PropertyAccess typeAccess(Entity element) {
+    return globalPropertyAccessForType(element);
+  }
+}

@@ -53,7 +53,7 @@ import '../../world.dart' show ClosedWorld;
 import '../constant_ordering.dart' show deepCompareConstants;
 import '../headers.dart';
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
-import '../js_emitter.dart' as js_emitter show Emitter, EmitterFactory;
+import '../js_emitter.dart' as js_emitter show EmitterBase, EmitterFactory;
 import '../model.dart';
 import '../program_builder/program_builder.dart';
 import '../sorter.dart';
@@ -91,7 +91,7 @@ class EmitterFactory implements js_emitter.EmitterFactory {
   }
 }
 
-class Emitter implements js_emitter.Emitter {
+class Emitter extends js_emitter.EmitterBase {
   final Compiler compiler;
   final CodeEmitterTask task;
   final ClosedWorld _closedWorld;
@@ -299,54 +299,26 @@ class Emitter implements js_emitter.Emitter {
     return '$initName.$global';
   }
 
-  jsAst.PropertyAccess globalPropertyAccess(Element element) {
-    jsAst.Name name = namer.globalPropertyName(element);
-    jsAst.PropertyAccess pa = new jsAst.PropertyAccess(
-        new jsAst.VariableUse(namer.globalObjectFor(element)), name);
-    return pa;
-  }
-
   @override
   jsAst.Expression isolateLazyInitializerAccess(FieldElement element) {
-    return jsAst.js('#.#',
-        [namer.globalObjectFor(element), namer.lazyInitializerName(element)]);
+    return jsAst.js('#.#', [
+      namer.globalObjectForMember(element),
+      namer.lazyInitializerName(element)
+    ]);
   }
 
   @override
   jsAst.Expression isolateStaticClosureAccess(MethodElement element) {
-    return jsAst.js('#.#()',
-        [namer.globalObjectFor(element), namer.staticClosureName(element)]);
-  }
-
-  @override
-  jsAst.PropertyAccess staticFieldAccess(FieldElement element) {
-    return globalPropertyAccess(element);
-  }
-
-  @override
-  jsAst.PropertyAccess staticFunctionAccess(MethodElement element) {
-    return globalPropertyAccess(element);
-  }
-
-  @override
-  jsAst.PropertyAccess constructorAccess(ClassElement element) {
-    return globalPropertyAccess(element);
+    return jsAst.js('#.#()', [
+      namer.globalObjectForMember(element),
+      namer.staticClosureName(element)
+    ]);
   }
 
   @override
   jsAst.PropertyAccess prototypeAccess(
       ClassElement element, bool hasBeenInstantiated) {
     return jsAst.js('#.prototype', constructorAccess(element));
-  }
-
-  @override
-  jsAst.PropertyAccess interceptorClassAccess(ClassElement element) {
-    return globalPropertyAccess(element);
-  }
-
-  @override
-  jsAst.PropertyAccess typeAccess(Entity element) {
-    return globalPropertyAccess(element);
   }
 
   @override
@@ -609,7 +581,7 @@ class Emitter implements js_emitter.Emitter {
     jsAst.Statement buildInitialization(
         FieldElement element, jsAst.Expression initialValue) {
       return js.statement('${namer.staticStateHolder}.# = #',
-          [namer.globalPropertyName(element), initialValue]);
+          [namer.globalPropertyNameForMember(element), initialValue]);
     }
 
     bool inMainUnit = (outputUnit == compiler.deferredLoadTask.mainOutputUnit);
@@ -1078,7 +1050,7 @@ class Emitter implements js_emitter.Emitter {
       ..add(js.string(libraryName))
       ..add(js.string(uri.toString()))
       ..add(metadata == null ? new jsAst.ArrayHole() : metadata)
-      ..add(js('#', namer.globalObjectFor(library)))
+      ..add(js('#', namer.globalObjectForLibrary(library)))
       ..add(initializer);
     if (library == compiler.mainApp) {
       parts.add(js.number(1));
@@ -1157,7 +1129,7 @@ class Emitter implements js_emitter.Emitter {
       assert(commonElements.objectClass != null);
       builder.superName = namer.className(commonElements.objectClass);
       jsAst.Node declaration = builder.toObjectInitializer();
-      jsAst.Name mangledName = namer.globalPropertyName(typedef);
+      jsAst.Name mangledName = namer.globalPropertyNameForType(typedef);
       String reflectionName = getReflectionName(typedef, mangledName);
       getLibraryDescriptor(library, mainFragment)
         ..addProperty(mangledName, declaration)
