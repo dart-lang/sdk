@@ -2770,6 +2770,26 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  Expression buildMethodInvocation(
+      Expression receiver, Name name, Arguments arguments, int offset,
+      {bool isConstantExpression: false, bool isNullAware: false}) {
+    if (isNullAware) {
+      VariableDeclaration variable = new VariableDeclaration.forValue(receiver);
+      return makeLet(
+          variable,
+          new ConditionalExpression(
+              buildIsNull(new VariableGet(variable)),
+              new NullLiteral(),
+              new MethodInvocation(new VariableGet(variable), name, arguments)
+                ..fileOffset = offset,
+              const DynamicType()));
+    } else {
+      return new KernelMethodInvocation(receiver, name, arguments)
+        ..fileOffset = offset;
+    }
+  }
+
+  @override
   void addCompileTimeErrorFromMessage(FastaMessage message) {
     library.addCompileTimeError(message.charOffset, message.message,
         fileUri: message.uri);
