@@ -28998,7 +28998,7 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.dataTransfer')
   DataTransfer get dataTransfer =>
-      js.JsNative.getProperty(js.context, 'dataTransfer');
+      js.JsNative.getProperty(this, 'dataTransfer');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -41281,11 +41281,11 @@ class Url extends DartHtmlDomObject implements UrlUtils {
       return _blink.BlinkURL.instance
           .createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance
           .createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance
           .createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
