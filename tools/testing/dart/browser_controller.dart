@@ -1,18 +1,20 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+library browser;
 
-import 'dart:async';
-import 'dart:convert';
-import 'dart:core';
-import 'dart:io';
-import 'dart:math';
+import "dart:async";
+import "dart:convert" show UTF8, JSON;
+import "dart:core";
+import "dart:io";
+import "dart:math" show min;
 
 import 'android.dart';
-import 'configuration.dart';
+import 'http_server.dart';
 import 'path.dart';
-import 'reset_safari.dart';
 import 'utils.dart';
+
+import 'reset_safari.dart' show killAndResetSafari;
 
 typedef void BrowserDoneCallback(BrowserTestOutput output);
 typedef void TestChangedCallback(String browserId, String output, int testId);
@@ -71,34 +73,24 @@ abstract class Browser {
 
   Browser();
 
-  factory Browser.byRuntime(Runtime runtime, String executablePath,
+  factory Browser.byName(String name, String executablePath,
       [bool checkedMode = false]) {
     Browser browser;
-    switch (runtime) {
-      case Runtime.firefox:
-        browser = new Firefox();
-        break;
-      case Runtime.chrome:
-        browser = new Chrome();
-        break;
-      case Runtime.dartium:
-        browser = new Dartium(checkedMode);
-        break;
-      case Runtime.safari:
-        browser = new Safari();
-        break;
-      case Runtime.safariMobileSim:
-        browser = new SafariMobileSimulator();
-        break;
-      case Runtime.ie9:
-      case Runtime.ie10:
-      case Runtime.ie11:
-        browser = new IE();
-        break;
-      default:
-        throw "unreachable";
+    if (name == 'firefox') {
+      browser = new Firefox();
+    } else if (name == 'chrome') {
+      browser = new Chrome();
+    } else if (name == 'dartium') {
+      browser = new Dartium(checkedMode);
+    } else if (name == 'safari') {
+      browser = new Safari();
+    } else if (name == 'safarimobilesim') {
+      browser = new SafariMobileSimulator();
+    } else if (name.startsWith('ie')) {
+      browser = new IE();
+    } else {
+      throw "Non supported browser";
     }
-
     browser._binary = executablePath;
     return browser;
   }
@@ -113,6 +105,16 @@ abstract class Browser {
     'ie11',
     'dartium'
   ];
+
+  static const List<String> BROWSERS_WITH_WINDOW_SUPPORT = const [
+    'ie11',
+    'ie10'
+  ];
+
+  /// If [browserName] doesn't support Window.open, we use iframes instead.
+  static bool requiresIframe(String browserName) {
+    return !BROWSERS_WITH_WINDOW_SUPPORT.contains(browserName);
+  }
 
   static bool requiresFocus(String browserName) {
     return browserName == "safari";
@@ -943,11 +945,13 @@ class BrowserTestRunner {
   /// If the queue was recently empty, don't start another browser.
   static const Duration MIN_NONEMPTY_QUEUE_TIME = const Duration(seconds: 1);
 
-  final Configuration configuration;
+  final Map<String, dynamic> configuration;
   final BrowserTestingServer testingServer;
 
   final String localIp;
+  final String browserName;
   int maxNumBrowsers;
+  final bool checkedMode;
   int numBrowsers = 0;
   // Used to send back logs from the browser (start, stop etc)
   Function logger;
@@ -959,18 +963,18 @@ class BrowserTestRunner {
   int numBrowserGetTestTimeouts = 0;
   DateTime lastEmptyTestQueueTime = new DateTime.now();
   String _currentStartingBrowserId;
-  List<BrowserTest> testQueue = [];
-  Map<String, BrowserStatus> browserStatus = {};
+  List<BrowserTest> testQueue = new List<BrowserTest>();
+  Map<String, BrowserStatus> browserStatus = new Map<String, BrowserStatus>();
 
-  Map<String, AdbDevice> adbDeviceMapping = {};
+  var adbDeviceMapping = new Map<String, AdbDevice>();
   List<AdbDevice> idleAdbDevices;
 
   // This cache is used to guarantee that we never see double reporting.
   // If we do we need to provide developers with this information.
   // We don't add urls to the cache until we have run it.
-  Map<int, String> testCache = {};
+  Map<int, String> testCache = new Map<int, String>();
 
-  Map<int, String> doubleReportingOutputs = {};
+  Map<int, String> doubleReportingOutputs = new Map<int, String>();
   List<String> timedOut = [];
 
   // We will start a new browser when the test queue hasn't been empty
@@ -994,12 +998,17 @@ class BrowserTestRunner {
     if (_currentStartingBrowserId == id) _currentStartingBrowserId = null;
   }
 
-  BrowserTestRunner(
-      Configuration configuration, String localIp, this.maxNumBrowsers)
+  BrowserTestRunner(Map<String, dynamic> configuration, String localIp,
+      String browserName, this.maxNumBrowsers)
       : configuration = configuration,
         localIp = localIp,
-        testingServer = new BrowserTestingServer(configuration, localIp,
-            Browser.requiresFocus(configuration.runtime.name)) {
+        browserName = (browserName == 'ff') ? 'firefox' : browserName,
+        checkedMode = configuration['checked'] as bool,
+        testingServer = new BrowserTestingServer(
+            configuration,
+            localIp,
+            Browser.requiresIframe(browserName),
+            Browser.requiresFocus(browserName)) {
     testingServer.testRunner = this;
   }
 
@@ -1010,7 +1019,7 @@ class BrowserTestRunner {
       ..testStatusUpdateCallBack = handleStatusUpdate
       ..testStartedCallBack = handleStarted
       ..nextTestCallBack = getNextTest;
-    if (configuration.runtime == Runtime.chromeOnAndroid) {
+    if (browserName == 'chromeOnAndroid') {
       var idbNames = await AdbHelper.listDevices();
       idleAdbDevices = new List.from(idbNames.map((id) => new AdbDevice(id)));
       maxNumBrowsers = min(maxNumBrowsers, idleAdbDevices.length);
@@ -1038,24 +1047,21 @@ class BrowserTestRunner {
   String getNextBrowserId() => "BROWSER${browserIdCounter++}";
 
   void createBrowser() {
-    var id = getNextBrowserId();
-    var url = testingServer.getDriverUrl(id);
-
+    final String id = getNextBrowserId();
+    final String url = testingServer.getDriverUrl(id);
     Browser browser;
-    if (configuration.runtime == Runtime.chromeOnAndroid) {
+    if (browserName == 'chromeOnAndroid') {
       AdbDevice device = idleAdbDevices.removeLast();
       adbDeviceMapping[id] = device;
       browser = new AndroidChrome(device);
     } else {
-      var path = configuration.browserLocation;
-      browser = new Browser.byRuntime(
-          configuration.runtime, path, configuration.isChecked);
+      String path = Locations.getBrowserLocation(browserName, configuration);
+      browser = new Browser.byName(browserName, path, checkedMode);
       browser.logger = logger;
     }
-
     browser.id = id;
     markCurrentlyStarting(id);
-    var status = new BrowserStatus(browser);
+    final status = new BrowserStatus(browser);
     browserStatus[id] = status;
     numBrowsers++;
     status.nextTestTimeout = createNextTestTimer(status);
@@ -1182,7 +1188,7 @@ class BrowserTestRunner {
   /// Remove a browser that has closed from our data structures that track
   /// open browsers. Check if we want to replace it with a new browser.
   void removeBrowser(String id) {
-    if (configuration.runtime == Runtime.chromeOnAndroid) {
+    if (browserName == 'chromeOnAndroid') {
       idleAdbDevices.add(adbDeviceMapping.remove(id));
     }
     markNotCurrentlyStarting(id);
@@ -1206,8 +1212,7 @@ class BrowserTestRunner {
     // Restart Internet Explorer if it has been
     // running for longer than RESTART_BROWSER_INTERVAL. The tests have
     // had flaky timeouts, and this may help.
-    if ((configuration.runtime == Runtime.ie10 ||
-            configuration.runtime == Runtime.ie11) &&
+    if ((browserName == 'ie10' || browserName == 'ie11') &&
         status.timeSinceRestart.elapsed > RESTART_BROWSER_INTERVAL) {
       var id = status.browser.id;
       // Reset stopwatch so we don't trigger again before restarting.
@@ -1337,7 +1342,7 @@ class BrowserTestRunner {
 }
 
 class BrowserTestingServer {
-  final Configuration configuration;
+  final Map configuration;
 
   /// Interface of the testing server:
   ///
@@ -1352,6 +1357,7 @@ class BrowserTestingServer {
   ///                                   test
 
   final String localIp;
+  final bool useIframe;
   final bool requiresFocus;
   BrowserTestRunner testRunner;
 
@@ -1372,11 +1378,13 @@ class BrowserTestingServer {
   TestChangedCallback testStartedCallBack;
   NextTestCallback nextTestCallBack;
 
-  BrowserTestingServer(this.configuration, this.localIp, this.requiresFocus);
+  BrowserTestingServer(
+      this.configuration, this.localIp, this.useIframe, this.requiresFocus);
 
   Future start() {
+    var testDriverErrorPort = configuration['test_driver_error_port'] as int;
     return HttpServer
-        .bind(localIp, configuration.testDriverErrorPort)
+        .bind(localIp, testDriverErrorPort)
         .then(setupErrorServer)
         .then(setupDispatchingServer);
   }
@@ -1410,7 +1418,7 @@ class BrowserTestingServer {
   }
 
   void setupDispatchingServer(_) {
-    var server = configuration.servers.server;
+    var server = (configuration['_servers_'] as TestingServers).server;
     void noCache(HttpRequest request) {
       request.response.headers
           .set("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -1526,8 +1534,8 @@ class BrowserTestingServer {
       exit(1);
       // This should never happen - exit immediately;
     }
-
-    return "http://$localIp:${configuration.servers.port}/driver/$browserId";
+    var port = (configuration['_servers_'] as TestingServers).port;
+    return "http://$localIp:$port/driver/$browserId";
   }
 
   Future<String> getDriverPage(String browserId) async {
@@ -1577,7 +1585,7 @@ body div {
       var number_div = document.getElementById('number');
       var executing_div = document.getElementById('currently_executing');
       var error_div = document.getElementById('unhandled_error');
-      var use_iframe = ${configuration.runtime.requiresIFrame};
+      var use_iframe = ${useIframe};
       var start = new Date();
 
       // Object that holds the state of an HTML test

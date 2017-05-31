@@ -2,16 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show JSON;
-import 'dart:io';
+library test_progress;
 
-import 'configuration.dart';
-import 'expectation.dart';
-import 'path.dart';
-import 'summary_report.dart';
-import 'test_runner.dart';
-import 'test_suite.dart';
-import 'utils.dart';
+import "dart:convert" show JSON;
+import "dart:io";
+
+import "expectation.dart";
+import "http_server.dart";
+import "path.dart";
+import "summary_report.dart";
+import "test_runner.dart";
+import "test_suite.dart";
+import "utils.dart";
 
 /// Controls how message strings are processed before being displayed.
 class Formatter {
@@ -134,26 +136,31 @@ class TestOutcomeLogWriter extends EventListener {
    *     }
    *  },
    */
+
+  static final INTERESTED_CONFIGURATION_PARAMETERS = [
+    'mode',
+    'arch',
+    'compiler',
+    'runtime',
+    'checked',
+    'strong',
+    'host_checked',
+    'minified',
+    'csp',
+    'system',
+    'vm_options',
+    'use_sdk',
+    'builder_tag'
+  ];
+
   IOSink _sink;
 
   void done(TestCase test) {
     var name = test.displayName;
-    var configuration = {
-      'mode': test.configuration.mode.name,
-      'arch': test.configuration.architecture.name,
-      'compiler': test.configuration.compiler.name,
-      'runtime': test.configuration.runtime.name,
-      'checked': test.configuration.isChecked,
-      'strong': test.configuration.isStrong,
-      'host_checked': test.configuration.isHostChecked,
-      'minified': test.configuration.isMinified,
-      'csp': test.configuration.isCsp,
-      'system': test.configuration.system.name,
-      'vm_options': test.configuration.vmOptions,
-      'use_sdk': test.configuration.useSdk,
-      'builder_tag': test.configuration.builderTag
-    };
-
+    var configuration = {};
+    for (var key in INTERESTED_CONFIGURATION_PARAMETERS) {
+      configuration[key] = test.configuration[key];
+    }
     var outcome = '${test.lastCommandOutput.result(test)}';
     var expectations =
         test.expectedOutcomes.map((expectation) => "$expectation").toList();
@@ -218,8 +225,8 @@ class UnexpectedCrashLogger extends EventListener {
       var binFile = new File(binName);
       var binBaseName = new Path(binName).filename;
       if (!archivedBinaries.containsKey(binName) && binFile.existsSync()) {
-        var mode = test.configuration.mode.name;
-        var arch = test.configuration.architecture.name;
+        var mode = test.configuration['mode'] as String;
+        var arch = test.configuration['arch'] as String;
         var archived = "binary.${mode}_${arch}_${binBaseName}";
         TestUtils.copyFile(new Path(binName), new Path(archived));
         archivedBinaries[binName] = archived;
@@ -434,22 +441,22 @@ class TestFailurePrinter extends EventListener {
 class ProgressIndicator extends EventListener {
   ProgressIndicator(this._startTime);
 
-  static EventListener fromProgress(
-      Progress progress, DateTime startTime, Formatter formatter) {
-    switch (progress) {
-      case Progress.compact:
+  static EventListener fromName(
+      String name, DateTime startTime, Formatter formatter) {
+    switch (name) {
+      case 'compact':
         return new CompactProgressIndicator(startTime, formatter);
-      case Progress.line:
+      case 'line':
         return new LineProgressIndicator();
-      case Progress.verbose:
+      case 'verbose':
         return new VerboseProgressIndicator(startTime);
-      case Progress.status:
+      case 'status':
         return new ProgressIndicator(startTime);
-      case Progress.buildbot:
+      case 'buildbot':
         return new BuildbotProgressIndicator(startTime);
+      default:
+        throw new ArgumentError('Unknown progress indicator "$name".');
     }
-
-    throw "unreachable";
   }
 
   void testAdded() {
@@ -605,7 +612,7 @@ List<String> _buildFailureOutput(TestCase test,
       if (test.hasRuntimeError) {
         output.add('Runtime error expected.');
       }
-      if (test.configuration.isChecked && test.isNegativeIfChecked) {
+      if ((test.configuration['checked'] as bool) && test.isNegativeIfChecked) {
         output.add('Dynamic type error expected.');
       }
     }
@@ -638,7 +645,8 @@ List<String> _buildFailureOutput(TestCase test,
 
   if (test is BrowserTestCase) {
     // Additional command for rerunning the steps locally after the fact.
-    var command = test.configuration.servers.httpServerCommandLine();
+    var command = (test.configuration["_servers_"] as TestingServers)
+        .httpServerCommandLine();
     output.add('');
     output.add('To retest, run:  $command');
   }
@@ -656,7 +664,8 @@ List<String> _buildFailureOutput(TestCase test,
   }
 
   var arguments = ['python', 'tools/test.py'];
-  arguments.addAll(test.configuration.reproducingArguments);
+  arguments
+      .addAll(test.configuration['_reproducing_arguments_'] as List<String>);
   arguments.add(test.displayName);
   var testPyCommandline = arguments.map(escapeCommandLineArgument).join(' ');
 

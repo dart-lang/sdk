@@ -9,25 +9,26 @@
  * - Managing parallel execution of tests, including timeout checks.
  * - Evaluating the output of each test as pass/fail/crash/timeout.
  */
-import 'dart:async';
-import 'dart:collection';
-import 'dart:convert';
+library test_runner;
+
+import "dart:async";
+import "dart:collection" show Queue;
+import "dart:convert" show LineSplitter, UTF8, JSON;
 // We need to use the 'io' prefix here, otherwise io.exitCode will shadow
 // CommandOutput.exitCode in subclasses of CommandOutput.
-import 'dart:io' as io;
-import 'dart:math' as math;
+import "dart:io" as io;
+import "dart:math" as math;
 
 import 'android.dart';
-import 'browser_controller.dart';
-import 'configuration.dart';
+import "browser_controller.dart";
 import 'dependency_graph.dart' as dgraph;
-import 'expectation.dart';
-import 'path.dart';
+import "expectation.dart";
+import "path.dart";
 import 'record_and_replay.dart';
-import 'runtime_configuration.dart';
-import 'test_progress.dart';
-import 'test_suite.dart';
-import 'utils.dart';
+import "runtime_configuration.dart";
+import "test_progress.dart";
+import "test_suite.dart";
+import "utils.dart";
 
 const int CRASHING_BROWSER_EXITCODE = -10;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
@@ -294,17 +295,19 @@ class ContentShellCommand extends ProcessCommand {
 }
 
 class BrowserTestCommand extends Command {
-  Runtime get browser => configuration.runtime;
+  final String browser;
   final String url;
-  final Configuration configuration;
+  final Map<String, dynamic> configuration;
   final bool retry;
 
-  BrowserTestCommand._(this.url, this.configuration, this.retry)
-      : super._(configuration.runtime.name);
+  BrowserTestCommand._(
+      String _browser, this.url, this.configuration, this.retry)
+      : browser = _browser,
+        super._(_browser);
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
-    builder.addJson(browser.name);
+    builder.addJson(browser);
     builder.addJson(url);
     builder.add(configuration);
     builder.add(retry);
@@ -321,7 +324,7 @@ class BrowserTestCommand extends Command {
     var parts = [
       io.Platform.resolvedExecutable,
       'tools/testing/dart/launch_browser.dart',
-      browser.name,
+      browser,
       url
     ];
     return parts.map(escapeCommandLineArgument).join(' ');
@@ -332,9 +335,9 @@ class BrowserTestCommand extends Command {
 
 class BrowserHtmlTestCommand extends BrowserTestCommand {
   List<String> expectedMessages;
-  BrowserHtmlTestCommand._(String url, Configuration configuration,
-      this.expectedMessages, bool retry)
-      : super._(url, configuration, retry);
+  BrowserHtmlTestCommand._(String browser, String url,
+      Map<String, dynamic> configuration, this.expectedMessages, bool retry)
+      : super._(browser, url, configuration, retry);
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
@@ -580,16 +583,20 @@ class CommandBuilder {
     return _getUniqueCommand(command);
   }
 
-  BrowserTestCommand getBrowserTestCommand(
-      String url, Configuration configuration, bool retry) {
-    var command = new BrowserTestCommand._(url, configuration, retry);
+  BrowserTestCommand getBrowserTestCommand(String browser, String url,
+      Map<String, dynamic> configuration, bool retry) {
+    var command = new BrowserTestCommand._(browser, url, configuration, retry);
     return _getUniqueCommand(command);
   }
 
-  BrowserHtmlTestCommand getBrowserHtmlTestCommand(String url,
-      Configuration configuration, List<String> expectedMessages, bool retry) {
+  BrowserHtmlTestCommand getBrowserHtmlTestCommand(
+      String browser,
+      String url,
+      Map<String, dynamic> configuration,
+      List<String> expectedMessages,
+      bool retry) {
     var command = new BrowserHtmlTestCommand._(
-        url, configuration, expectedMessages, retry);
+        browser, url, configuration, expectedMessages, retry);
     return _getUniqueCommand(command);
   }
 
@@ -753,7 +760,7 @@ class TestCase extends UniqueObject {
   Map<Command, CommandOutput> commandOutputs =
       new Map<Command, CommandOutput>();
 
-  Configuration configuration;
+  Map configuration;
   String displayName;
   int _expectations = 0;
   int hash = 0;
@@ -783,7 +790,7 @@ class TestCase extends UniqueObject {
       _expectations |= HAS_COMPILE_ERROR_IF_CHECKED;
     }
     if (info.hasCompileError ||
-        (configuration.isChecked && info.hasCompileErrorIfChecked)) {
+        ((configuration['checked'] as bool) && info.hasCompileErrorIfChecked)) {
       _expectations |= EXPECT_COMPILE_ERROR;
     }
   }
@@ -825,19 +832,19 @@ class TestCase extends UniqueObject {
   }
 
   int get timeout {
-    var result = configuration.timeout;
     if (expectedOutcomes.contains(Expectation.slow)) {
-      result *= SLOW_TIMEOUT_MULTIPLIER;
+      return (configuration['timeout'] as int) * SLOW_TIMEOUT_MULTIPLIER;
+    } else {
+      return configuration['timeout'] as int;
     }
-    return result;
   }
 
   String get configurationString {
-    var compiler = configuration.compiler.name;
-    var runtime = configuration.runtime.name;
-    var mode = configuration.mode.name;
-    var arch = configuration.architecture.name;
-    var checked = configuration.isChecked ? '-checked' : '';
+    var compiler = configuration['compiler'] as String;
+    var runtime = configuration['runtime'] as String;
+    var mode = configuration['mode'] as String;
+    var arch = configuration['arch'] as String;
+    var checked = configuration['checked'] as bool ? '-checked' : '';
     return "$compiler-$runtime$checked ${mode}_$arch";
   }
 
@@ -874,7 +881,7 @@ class BrowserTestCase extends TestCase {
   BrowserTestCase(
       String displayName,
       List<Command> commands,
-      Configuration configuration,
+      Map<String, dynamic> configuration,
       Set<Expectation> expectedOutcomes,
       TestInformation info,
       bool isNegative,
@@ -1078,7 +1085,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     // TODO(28955): See http://dartbug.com/28955
     if (timedOut &&
         command is BrowserTestCommand &&
-        command.browser == Runtime.ie11) {
+        command.browser == "ie11") {
       DebugLogger.warning("Timeout of ie11 on test page ${command.url}");
       return true;
     }
@@ -1933,7 +1940,7 @@ class RunningProcess {
   List<String> diagnostics = <String>[];
   bool compilationSkipped = false;
   Completer<CommandOutput> completer;
-  Configuration configuration;
+  Map configuration;
 
   RunningProcess(this.command, this.timeout, {this.configuration});
 
@@ -2011,12 +2018,15 @@ class RunningProcess {
               } else if (io.Platform.isWindows) {
                 var isX64 = command.executable.contains("X64") ||
                     command.executable.contains("SIMARM64");
-                if (configuration.windowsSdkPath != null) {
-                  executable = configuration.windowsSdkPath +
-                      "\\Debuggers\\${isX64 ? 'x64' : 'x86'}\\cdb.exe";
+                var winSdkPath = configuration['win_sdk_path'] as String;
+                if (winSdkPath != null) {
+                  executable = winSdkPath +
+                      "\\Debuggers\\" +
+                      (isX64 ? "x64" : "x86") +
+                      "\\cdb.exe";
                   diagnostics.add("Using $executable to print stack traces");
                 } else {
-                  diagnostics.add("win_sdk_path not found");
+                  diagnostics.add("win_sdk path not found");
                 }
               } else {
                 diagnostics.add("Capturing stack traces on"
@@ -2664,7 +2674,7 @@ abstract class CommandExecutor {
 }
 
 class CommandExecutorImpl implements CommandExecutor {
-  final Configuration globalConfiguration;
+  final Map globalConfiguration;
   final int maxProcesses;
   final int maxBrowserProcesses;
   AdbDevicePool adbDevicePool;
@@ -2673,7 +2683,7 @@ class CommandExecutorImpl implements CommandExecutor {
   // we keep a list of batch processes.
   final _batchProcesses = new Map<String, List<BatchRunnerProcess>>();
   // We keep a BrowserTestRunner for every configuration.
-  final _browserTestRunners = new Map<Configuration, BrowserTestRunner>();
+  final _browserTestRunners = new Map<Map, BrowserTestRunner>();
 
   bool _finishing = false;
 
@@ -2724,6 +2734,9 @@ class CommandExecutorImpl implements CommandExecutor {
   }
 
   Future<CommandOutput> _runCommand(Command command, int timeout) {
+    var batchMode = !(globalConfiguration['noBatch'] as bool);
+    var dart2jsBatchMode = globalConfiguration['dart2js_batch'] as bool;
+
     if (command is BrowserTestCommand) {
       return _startBrowserControllerTest(command, timeout);
     } else if (command is KernelCompilationCommand) {
@@ -2732,11 +2745,10 @@ class CommandExecutorImpl implements CommandExecutor {
       assert(name == 'dartk');
       return _getBatchRunner(name)
           .runCommand(name, command, timeout, command.arguments);
-    } else if (command is CompilationCommand &&
-        globalConfiguration.batchDart2JS) {
+    } else if (command is CompilationCommand && dart2jsBatchMode) {
       return _getBatchRunner("dart2js")
           .runCommand("dart2js", command, timeout, command.arguments);
-    } else if (command is AnalysisCommand && globalConfiguration.batch) {
+    } else if (command is AnalysisCommand && batchMode) {
       return _getBatchRunner(command.flavor)
           .runCommand(command.flavor, command, timeout, command.arguments);
     } else if (command is ScriptCommand) {
@@ -2870,7 +2882,8 @@ class CommandExecutorImpl implements CommandExecutor {
     } else {
       browserTest = new BrowserTest(browserCommand.url, callback, timeout);
     }
-    _getBrowserTestRunner(browserCommand.configuration).then((testRunner) {
+    _getBrowserTestRunner(browserCommand.browser, browserCommand.configuration)
+        .then((testRunner) {
       testRunner.enqueueTest(browserTest);
     });
 
@@ -2878,11 +2891,12 @@ class CommandExecutorImpl implements CommandExecutor {
   }
 
   Future<BrowserTestRunner> _getBrowserTestRunner(
-      Configuration configuration) async {
+      String browser, Map<String, dynamic> configuration) async {
+    var localIp = globalConfiguration['local_ip'] as String;
     if (_browserTestRunners[configuration] == null) {
       var testRunner = new BrowserTestRunner(
-          configuration, globalConfiguration.localIP, maxBrowserProcesses);
-      if (globalConfiguration.isVerbose) {
+          configuration, localIp, browser, maxBrowserProcesses);
+      if (globalConfiguration['verbose'] as bool) {
         testRunner.logger = DebugLogger.info;
       }
       _browserTestRunners[configuration] = testRunner;
@@ -2968,7 +2982,7 @@ bool shouldRetryCommand(CommandOutput output) {
     // We currently rerun dartium tests, see issue 14074.
     if (command is BrowserTestCommand &&
         command.retry &&
-        command.browser == Runtime.dartium) {
+        command.browser == 'dartium') {
       return true;
     }
 
@@ -3101,7 +3115,7 @@ class TestCaseCompleter {
 }
 
 class ProcessQueue {
-  Configuration _globalConfiguration;
+  Map _globalConfiguration;
 
   Function _allDone;
   final dgraph.Graph _graph = new dgraph.Graph();
@@ -3256,7 +3270,7 @@ class ProcessQueue {
     });
 
     // Either list or run the tests
-    if (_globalConfiguration.listTests) {
+    if (_globalConfiguration['list'] as bool) {
       setupForListing(testCaseEnqueuer);
     } else {
       setupForRunning(testCaseEnqueuer);

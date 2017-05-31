@@ -2,80 +2,86 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+library runtime_configuration;
 
-import 'compiler_configuration.dart';
-import 'configuration.dart';
+import 'dart:io' show Directory, File;
+
+import 'compiler_configuration.dart' show CommandArtifact;
+
 // TODO(ahe): Remove this import, we can precompute all the values required
 // from TestSuite once the refactoring is complete.
-import 'test_suite.dart';
-import 'test_runner.dart';
+import 'test_suite.dart' show TestSuite, TestUtils;
+
+import 'test_runner.dart' show Command, CommandBuilder;
 
 /// Describes the commands to run a given test case or its compiled output.
 ///
 /// A single runtime configuration object exists per test suite, and is thus
 /// shared between multiple test cases, it should not be mutated after
 /// construction.
-abstract class RuntimeConfiguration {
-  factory RuntimeConfiguration(Configuration configuration) {
-    switch (configuration.runtime) {
-      case Runtime.contentShellOnAndroid:
-      case Runtime.dartiumOnAndroid:
-      case Runtime.chrome:
-      case Runtime.chromeOnAndroid:
-      case Runtime.dartium:
-      case Runtime.firefox:
-      case Runtime.ie11:
-      case Runtime.ie10:
-      case Runtime.ie9:
-      case Runtime.opera:
-      case Runtime.safari:
-      case Runtime.safariMobileSim:
+//
+// TODO(ahe): I expect this class will become abstract very soon.
+class RuntimeConfiguration {
+  // TODO(ahe): Remove this constructor and move the switch to
+  // test_options.dart.  We probably want to store an instance of
+  // [RuntimeConfiguration] in [configuration] there.
+  factory RuntimeConfiguration(Map<String, dynamic> configuration) {
+    var runtime = configuration['runtime'] as String;
+    var useBlobs = configuration['use_blobs'] as bool;
+
+    switch (runtime) {
+      case 'ContentShellOnAndroid':
+      case 'DartiumOnAndroid':
+      case 'chrome':
+      case 'chromeOnAndroid':
+      case 'dartium':
+      case 'ff':
+      case 'firefox':
+      case 'ie11':
+      case 'ie10':
+      case 'ie9':
+      case 'opera':
+      case 'safari':
+      case 'safarimobilesim':
         // TODO(ahe): Replace this with one or more browser runtimes.
         return new DummyRuntimeConfiguration();
 
-      case Runtime.jsshell:
+      case 'jsshell':
         return new JsshellRuntimeConfiguration();
 
-      case Runtime.d8:
+      case 'd8':
         return new D8RuntimeConfiguration();
 
-      case Runtime.none:
+      case 'none':
         return new NoneRuntimeConfiguration();
 
-      case Runtime.vm:
+      case 'vm':
         return new StandaloneDartRuntimeConfiguration();
 
-      case Runtime.flutter:
+      case 'flutter':
         return new StandaloneFlutterEngineConfiguration();
 
-      case Runtime.dartPrecompiled:
-        if (configuration.system == System.android) {
-          return new DartPrecompiledAdbRuntimeConfiguration(
-              useBlobs: configuration.useBlobs);
-        } else {
-          return new DartPrecompiledRuntimeConfiguration(
-              useBlobs: configuration.useBlobs);
+      case 'dart_precompiled':
+        if (configuration['system'] == 'android') {
+          return new DartPrecompiledAdbRuntimeConfiguration(useBlobs: useBlobs);
         }
-        break;
+        return new DartPrecompiledRuntimeConfiguration(useBlobs: useBlobs);
 
-      case Runtime.drt:
+      case 'drt':
         return new DrtRuntimeConfiguration();
 
-      case Runtime.selfCheck:
+      case 'self_check':
         return new SelfCheckRuntimeConfiguration();
-    }
 
-    throw "unreachable";
+      default:
+        throw "Unknown runtime '$runtime'";
+    }
   }
 
   RuntimeConfiguration._subclass();
 
-  int timeoutMultiplier(
-      {Mode mode,
-      bool isChecked: false,
-      bool isReload: false,
-      Architecture arch}) {
+  int computeTimeoutMultiplier(
+      {String mode, bool isChecked: false, bool isReload: false, String arch}) {
     return 1;
   }
 
@@ -170,30 +176,25 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 class DartVmRuntimeConfiguration extends RuntimeConfiguration {
   DartVmRuntimeConfiguration() : super._subclass();
 
-  int timeoutMultiplier(
-      {Mode mode,
-      bool isChecked: false,
-      bool isReload: false,
-      Architecture arch}) {
-    var multiplier = 1;
-
+  int computeTimeoutMultiplier(
+      {String mode, bool isChecked: false, bool isReload: false, String arch}) {
+    int multiplier = 1;
     switch (arch) {
-      case Architecture.simarm:
-      case Architecture.arm:
-      case Architecture.simarmv6:
-      case Architecture.armv6:
-      case Architecture.simarmv5te:
-      case Architecture.armv5te:
-      case Architecture.simmips:
-      case Architecture.mips:
-      case Architecture.simarm64:
-      case Architecture.simdbc:
-      case Architecture.simdbc64:
+      case 'simarm':
+      case 'arm':
+      case 'simarmv6':
+      case 'armv6':
+      case ' simarmv5te':
+      case 'armv5te':
+      case 'simmips':
+      case 'mips':
+      case 'simarm64':
+      case 'simdbc':
+      case 'simdbc64':
         multiplier *= 4;
         break;
     }
-
-    if (mode.isDebug) {
+    if (mode == 'debug') {
       multiplier *= 2;
       if (isReload) {
         multiplier *= 2;
@@ -206,17 +207,14 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 /// Runtime configuration for Content Shell.  We previously used a similar
 /// program named Dump Render Tree, hence the name.
 class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
-  int timeoutMultiplier(
-      {Mode mode,
-      bool isChecked: false,
-      bool isReload: false,
-      Architecture arch}) {
+  int computeTimeoutMultiplier(
+      {String mode, bool isChecked: false, bool isReload: false, String arch}) {
     return 4 // Allow additional time for browser testing to run.
         // TODO(ahe): We might need to distinguish between DRT for running
         // JavaScript and Dart code.  I'm not convinced the inherited timeout
         // multiplier is relevant for JavaScript.
         *
-        super.timeoutMultiplier(
+        super.computeTimeoutMultiplier(
             mode: mode, isChecked: isChecked, isReload: isReload);
   }
 }
@@ -345,7 +343,7 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
     return selfCheckers
         .map((String tester) => commandBuilder.getVmBatchCommand(
             executable, tester, arguments, environmentOverrides,
-            checked: suite.configuration.isChecked))
+            checked: suite.configuration['checked'] as bool))
         .toList();
   }
 

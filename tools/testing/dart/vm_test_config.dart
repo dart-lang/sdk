@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'configuration.dart';
+library vm_test_config;
+
 import 'test_suite.dart';
 
 class VMTestSuite extends CCTestSuite {
-  VMTestSuite(Configuration configuration)
+  VMTestSuite(Map<String, dynamic> configuration)
       : super(
             configuration, "vm", "run_vm_tests", ["runtime/tests/vm/vm.status"],
             testPrefix: 'cc/');

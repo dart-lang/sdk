@@ -10,8 +10,8 @@
  * DARTBIN should be the checked in stable binary.
  */
 
-import 'browser_controller.dart';
-import 'configuration.dart';
+import "browser_controller.dart";
+import "utils.dart";
 
 void printHelp() {
   print("Usage pattern:");
@@ -33,9 +33,7 @@ void main(List<String> arguments) {
     return;
   }
 
-  var runtime = Runtime.find(name);
-  var configuration = new Configuration(runtime: runtime);
-  var executable = configuration.browserLocation;
-  var browser = new Browser.byRuntime(runtime, executable);
+  var executable = Locations.getBrowserLocation(name, {});
+  var browser = new Browser.byName(name, executable);
   browser.start(arguments[1]);
 }

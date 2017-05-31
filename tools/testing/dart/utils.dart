@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library utils;
+
 import 'dart:io';
 import 'dart:convert';
 
@@ -174,6 +176,60 @@ List<int> encodeUtf8(String string) {
 // Currently invalid bytes will be replaced by a replacement character.
 String decodeUtf8(List<int> bytes) {
   return UTF8.decode(bytes, allowMalformed: true);
+}
+
+class Locations {
+  static String getBrowserLocation(
+      String browserName, Map<String, dynamic> globalConfiguration) {
+    var location = globalConfiguration[browserName] as String;
+    if (location != null && location != '') {
+      return location;
+    }
+    var browserLocations = {
+      'firefox': const {
+        'windows': 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
+        'linux': 'firefox',
+        'macos': '/Applications/Firefox.app/Contents/MacOS/firefox'
+      },
+      'chrome': const {
+        'windows':
+            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        'macos': '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        'linux': 'google-chrome'
+      },
+      'dartium': const {
+        'windows': 'client\\tests\\dartium\\chrome.exe',
+        'macos': 'client/tests/dartium/Chromium.app/Contents/MacOS/Chromium',
+        'linux': 'client/tests/dartium/chrome'
+      },
+      'safari': const {
+        'macos': '/Applications/Safari.app/Contents/MacOS/Safari'
+      },
+      'safarimobilesim': const {
+        'macos': '/Applications/Xcode.app/Contents/Developer/Platforms/'
+            'iPhoneSimulator.platform/Developer/Applications/'
+            'iPhone Simulator.app/Contents/MacOS/iPhone Simulator'
+      },
+      'ie9': const {
+        'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+      },
+      'ie10': const {
+        'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+      },
+      'ie11': const {
+        'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+      }
+    };
+    browserLocations['ff'] = browserLocations['firefox'];
+
+    assert(browserLocations[browserName] != null);
+    location = browserLocations[browserName][Platform.operatingSystem];
+    if (location != null) {
+      return location;
+    } else {
+      throw '$browserName not supported on ${Platform.operatingSystem}';
+    }
+  }
 }
 
 // This function is pretty stupid and only puts quotes around an argument if

@@ -14,12 +14,13 @@
  * [: dart tools/testing/dart/co19_test.dart :]
  */
 
-import 'dart:io';
+library co19_test;
 
-import 'configuration.dart';
-import 'options.dart';
-import 'test_suite.dart';
-import 'test_configurations.dart';
+import "dart:io";
+
+import "options.dart";
+import "test_suite.dart";
+import "test_configurations.dart";
 
 const List<String> COMMON_ARGUMENTS = const <String>[
   '--report',
@@ -59,7 +60,7 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
 void main(List<String> args) {
   TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   var optionsParser = new OptionsParser();
-  var configurations = <Configuration>[];
+  var configurations = <Map<String, dynamic>>[];
   for (var commandLine in COMMAND_LINES) {
     var arguments = <String>[];
     arguments.addAll(COMMON_ARGUMENTS);
