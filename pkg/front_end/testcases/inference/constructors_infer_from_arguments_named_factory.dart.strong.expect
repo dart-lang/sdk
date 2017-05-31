@@ -9,7 +9,7 @@ class C<T extends core::Object> extends core::Object {
     ;
   static factory named<T extends core::Object>(self::C::named::T t) → dynamic {
     self::C<self::C::named::T> x = new self::C::•<self::C::named::T>();
-    x.t = t;
+    x.{self::C::t} = t;
     return x;
   }
 }

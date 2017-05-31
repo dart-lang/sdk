@@ -295,6 +295,8 @@ inference/propagate_inference_to_field_in_class: Crash
 inference/propagate_inference_to_field_in_class_dynamic_warnings: Crash
 inference/propagate_inference_transitively2: Crash
 inference/propagate_inference_transitively: Crash
+inference/property_set: Crash
+inference/property_set_bad_setter: Crash
 inference/reference_to_typedef: Crash
 inference/refine_binary_expression_type_type_parameter_t_double: Crash
 inference/refine_binary_expression_type_type_parameter_t_int: Crash

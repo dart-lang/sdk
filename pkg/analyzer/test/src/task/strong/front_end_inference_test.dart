@@ -102,6 +102,11 @@ class _ElementNamer {
     String libraryName = library.name;
 
     String name = element.name ?? '';
+    if (name.endsWith('=') &&
+        element is PropertyAccessorElement &&
+        element.isSetter) {
+      name = name.substring(0, name.length - 1);
+    }
     if (libraryName != 'dart.core' &&
         libraryName != 'dart.async' &&
         libraryName != 'test') {
@@ -111,7 +116,8 @@ class _ElementNamer {
     if (enclosing is ClassElement) {
       buffer.write('${enclosing.name}::');
       if (currentFactoryConstructor != null &&
-          identical(enclosing, currentFactoryConstructor.enclosingElement)) {
+          identical(enclosing, currentFactoryConstructor.enclosingElement) &&
+          element is TypeParameterElement) {
         String factoryConstructorName = currentFactoryConstructor.name;
         if (factoryConstructorName == '') {
           factoryConstructorName = '•';
@@ -143,7 +149,7 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
 
     if (validation.hasProblems) {
       if (fixProblems) {
-        validation.fixSource(uri);
+        validation.fixSource(uri, true);
         return null;
       } else {
         return validation.problemsAsString;
@@ -394,7 +400,8 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     super.visitPrefixedIdentifier(node);
     if (node.prefix.staticElement is! PrefixElement &&
         node.prefix.staticElement is! ClassElement) {
-      if (node.identifier.inGetterContext()) {
+      if (node.identifier.inGetterContext() ||
+          node.identifier.inSetterContext()) {
         _recordTarget(node.identifier.offset, node.identifier.staticElement);
       }
     }
@@ -408,7 +415,8 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   @override
   visitPropertyAccess(PropertyAccess node) {
     super.visitPropertyAccess(node);
-    if (node.propertyName.inGetterContext()) {
+    if (node.propertyName.inGetterContext() ||
+        node.propertyName.inSetterContext()) {
       _recordTarget(node.propertyName.offset, node.propertyName.staticElement);
     }
   }

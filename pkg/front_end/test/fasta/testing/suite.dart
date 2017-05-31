@@ -246,7 +246,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
         instrumentation?.finish();
         if (instrumentation != null && instrumentation.hasProblems) {
           if (updateComments) {
-            await instrumentation.fixSource(description.uri);
+            await instrumentation.fixSource(description.uri, false);
           } else {
             return fail(null, instrumentation.problemsAsString);
           }

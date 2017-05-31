@@ -3,15 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field core::int x = 2;
   constructor •() → void
     : super core::Object::•()
     ;
+  set x() → void {}
 }
-static method test5() → dynamic {
-  self::A a1 = new self::A::•();
-  a1.{self::A::x} = "hi";
-  self::A a2 = new self::A::•();
-  a2.{self::A::x} = "hi";
+static method f(self::A a) → void {
+  core::int x = a.{self::A::x} = 0;
 }
 static method main() → dynamic {}

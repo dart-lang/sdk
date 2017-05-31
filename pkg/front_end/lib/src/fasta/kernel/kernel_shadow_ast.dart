@@ -1196,8 +1196,28 @@ class KernelPropertySet extends PropertySet implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    typeNeeded =
+        inferrer.listener.propertySetEnter(this, typeContext) || typeNeeded;
+    // First infer the receiver so we can look up the setter that was invoked.
+    var receiverType = inferrer.inferExpression(receiver, null, true);
+    Member interfaceMember;
+    if (receiverType is InterfaceType) {
+      interfaceMember = inferrer.classHierarchy
+          .getInterfaceMember(receiverType.classNode, name, setter: true);
+      // Our non-strong golden files currently don't include interface targets,
+      // so we can't store the interface target without causing tests to fail.
+      // TODO(paulberry): fix this.
+      if (inferrer.strongMode) {
+        inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+            'target', new InstrumentationValueForMember(interfaceMember));
+        interfaceTarget = interfaceMember;
+      }
+    }
+    var setterType =
+        inferrer.getSetterType(interfaceMember, receiverType, name);
+    var inferredType = inferrer.inferExpression(value, setterType, typeNeeded);
+    inferrer.listener.propertySetExit(this, inferredType);
+    return typeNeeded ? inferredType : null;
   }
 }
 

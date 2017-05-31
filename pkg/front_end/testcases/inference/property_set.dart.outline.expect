@@ -1,0 +1,13 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object> extends core::Object {
+  field core::List<self::A::T> x;
+  constructor •() → void
+    ;
+  set y(core::List<self::A::T> value) → void
+    ;
+}
+static method main() → dynamic
+  ;

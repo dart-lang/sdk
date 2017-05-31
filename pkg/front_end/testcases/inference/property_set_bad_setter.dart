@@ -6,15 +6,11 @@
 library test;
 
 class A {
-  int x = 2;
+  void set x() {}
 }
 
-test5() {
-  var /*@type=A*/ a1 = new A();
-  a1. /*@target=A::x*/ x = /*error:INVALID_ASSIGNMENT*/ "hi";
-
-  A a2 = new A();
-  a2. /*@target=A::x*/ x = /*error:INVALID_ASSIGNMENT*/ "hi";
+void f(A a) {
+  var /*@type=int*/ x = a. /*@target=A::x*/ x = 0;
 }
 
 main() {}

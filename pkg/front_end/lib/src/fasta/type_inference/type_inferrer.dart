@@ -289,6 +289,41 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
   }
 
+  DartType getSetterType(
+      Member interfaceMember, DartType receiverType, Name methodName) {
+    if (receiverType is InterfaceType) {
+      if (interfaceMember == null) return const DynamicType();
+      var memberClass = interfaceMember.enclosingClass;
+      DartType setterType;
+      if (interfaceMember is Procedure) {
+        assert(interfaceMember.kind == ProcedureKind.Setter);
+        var setterParameters = interfaceMember.function.positionalParameters;
+        setterType = setterParameters.length > 0
+            ? setterParameters[0].type
+            : const DynamicType();
+      } else if (interfaceMember is Field) {
+        setterType = interfaceMember.type;
+      } else {
+        setterType = const DynamicType();
+      }
+      if (memberClass.typeParameters.isNotEmpty) {
+        var castedType = classHierarchy.getClassAsInstanceOf(
+            receiverType.classNode, memberClass);
+        setterType = Substitution
+            .fromInterfaceType(Substitution
+                .fromInterfaceType(receiverType)
+                .substituteType(castedType.asInterfaceType))
+            .substituteType(setterType);
+      }
+      return setterType;
+    } else if (receiverType is TypeParameterType) {
+      // TODO(paulberry): use the bound
+      return const DynamicType();
+    } else {
+      return const DynamicType();
+    }
+  }
+
   DartType getTypeArgumentOf(DartType type, Class class_) {
     if (type is InterfaceType && identical(type.classNode, class_)) {
       return type.typeArguments[0];

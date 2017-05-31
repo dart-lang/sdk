@@ -77,17 +77,25 @@ class ValidatingInstrumentation implements Instrumentation {
 
   /// Updates the source file at [uri] based on the actual property/value
   /// pairs that were observed.
-  Future<Null> fixSource(Uri uri) async {
+  Future<Null> fixSource(Uri uri, bool offsetsCountCharacters) async {
     var fixes = _fixes[uri];
     if (fixes == null) return;
     File file = new File.fromUri(uri);
     var bytes = (await file.readAsBytes()).toList();
+    int convertOffset(int offset) {
+      if (offsetsCountCharacters) {
+        return UTF8.encode(UTF8.decode(bytes).substring(0, offset)).length;
+      } else {
+        return offset;
+      }
+    }
+
     // Apply the fixes in reverse order so that offsets don't need to be
     // adjusted after each fix.
     fixes.sort((a, b) => b.offset.compareTo(a.offset));
     for (var fix in fixes) {
-      bytes.replaceRange(
-          fix.offset, fix.offset + fix.length, UTF8.encode(fix.replacement));
+      bytes.replaceRange(convertOffset(fix.offset),
+          convertOffset(fix.offset + fix.length), UTF8.encode(fix.replacement));
     }
     await file.writeAsBytes(bytes);
   }
