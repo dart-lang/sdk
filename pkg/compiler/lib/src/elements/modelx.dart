@@ -1574,8 +1574,9 @@ abstract class VariableElementX extends ElementX
         definitionCache = initializedIdentifier;
       }
     }
-    invariant(definitions, definitionCache != null,
-        message: "Could not find '$name'.");
+    if (definitionCache == null) {
+      failedAt(definitionCache, "Could not find '$name'.");
+    }
     definitionsCache = definitions;
   }
 

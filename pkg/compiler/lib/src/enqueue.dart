@@ -46,8 +46,10 @@ class EnqueueTask extends CompilerTask {
 
   // TODO(johnniwinther): Remove the need for this.
   ResolutionEnqueuer get resolution {
-    assert(invariant(NO_LOCATION_SPANNABLE, _resolution != null,
-        message: "ResolutionEnqueuer has not been created yet."));
+    assert(
+        _resolution != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "ResolutionEnqueuer has not been created yet."));
     return _resolution;
   }
 

@@ -560,7 +560,7 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
       if (isClassReferencedFromMirrorSystem(cls)) {
         Set<Name> memberNames = new Set<Name>();
         // 1) the class (should be resolved)
-        assert(invariant(cls, cls.isResolved));
+        assert(cls.isResolved, failedAt(cls));
         _classesNeededForReflection.add(cls);
         // 2) its constructors (if resolved)
         cls.constructors.forEach((ConstructorElement constructor) {
@@ -587,8 +587,8 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
             subcls.forEachClassMember((Member member) {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.
-                // assert(invariant(member.element,
-                //    worldBuilder.isMemberUsed(member.element)));
+                // assert(worldBuilder.isMemberUsed(member.element),
+                //     failedAt(member.element));
                 if (worldBuilder.isMemberUsed(member.element)) {
                   _membersNeededForReflection.add(member.element);
                 }

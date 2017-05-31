@@ -732,13 +732,14 @@ class Serializer {
           ObjectEncoder encoder = new ObjectEncoder(this, dataObject.map);
           encoder.setUri(Key.URI, library.canonicalUri, library.canonicalUri);
         } else if (element.isConstructor) {
-          assert(invariant(
-              element,
+          assert(
               verifyElement(
                   element.enclosingClass.implementation
                       .lookupConstructor(element.name),
                   element),
-              message: "Element $element is not found as a "
+              failedAt(
+                  element,
+                  "Element $element is not found as a "
                   "constructor of ${element.enclosingClass.implementation}."));
           Value classId = _getElementId(element.enclosingClass);
           _elementMap[element] = dataObject = new DataObject(
@@ -748,12 +749,13 @@ class Serializer {
           encoder.setValue(Key.CLASS, classId);
           encoder.setString(Key.NAME, element.name);
         } else if (element.isClassMember) {
-          assert(invariant(
-              element,
+          assert(
               verifyElement(
                   element.enclosingClass.lookupLocalMember(element.name),
                   element),
-              message: "Element $element is not found as a "
+              failedAt(
+                  element,
+                  "Element $element is not found as a "
                   "class member of ${element.enclosingClass}."));
           Value classId = _getElementId(element.enclosingClass);
           _elementMap[element] = dataObject = new DataObject(
@@ -766,11 +768,12 @@ class Serializer {
             encoder.setBool(Key.GETTER, element.isGetter);
           }
         } else {
-          assert(invariant(
-              element,
+          assert(
               verifyElement(
                   element.library.implementation.find(element.name), element),
-              message: "Element $element is not found as a "
+              failedAt(
+                  element,
+                  "Element $element is not found as a "
                   "library member of ${element.library.implementation}."));
           Value libraryId = _getElementId(element.library);
           _elementMap[element] = dataObject = new DataObject(

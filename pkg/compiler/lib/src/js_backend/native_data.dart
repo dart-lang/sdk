@@ -173,11 +173,12 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
     // compiler copies pre-processed elements into a new compiler through
     // [Compiler.onLibraryScanned] and thereby causes multiple calls to this
     // method.
-    assert(invariant(
-        cls,
+    assert(
         nativeClassTagInfo[cls] == null ||
             nativeClassTagInfo[cls].text == tagText,
-        message: "Native tag info set inconsistently on $cls: "
+        failedAt(
+            cls,
+            "Native tag info set inconsistently on $cls: "
             "Existing tag info '${nativeClassTagInfo[cls]}', "
             "new tag info '$tagText'."));
     nativeClassTagInfo[cls] = new NativeClassTag(tagText);
@@ -295,9 +296,11 @@ class NativeDataBuilderImpl implements NativeDataBuilder {
     // TODO(johnniwinther): Avoid setting this more than once. The enqueuer
     // might enqueue [element] several times (before processing it) and computes
     // name on each call to `internalAddToWorkList`.
-    assert(invariant(element,
+    assert(
         nativeMemberName[element] == null || nativeMemberName[element] == name,
-        message: "Native member name set inconsistently on $element: "
+        failedAt(
+            element,
+            "Native member name set inconsistently on $element: "
             "Existing name '${nativeMemberName[element]}', "
             "new name '$name'."));
     nativeMemberName[element] = name;
@@ -320,8 +323,9 @@ class NativeDataBuilderImpl implements NativeDataBuilder {
 
   /// Sets the explicit js interop [name] for the library [element].
   void setJsInteropLibraryName(LibraryEntity element, String name) {
-    assert(invariant(element, _nativeBasicData.isJsInteropLibrary(element),
-        message:
+    assert(
+        _nativeBasicData.isJsInteropLibrary(element),
+        failedAt(element,
             'Library $element is not js interop but given a js interop name.'));
     jsInteropLibraryNames[element] = name;
   }
@@ -333,8 +337,9 @@ class NativeDataBuilderImpl implements NativeDataBuilder {
 
   /// Sets the explicit js interop [name] for the class [element].
   void setJsInteropClassName(ClassEntity element, String name) {
-    assert(invariant(element, _nativeBasicData.isJsInteropClass(element),
-        message:
+    assert(
+        _nativeBasicData.isJsInteropClass(element),
+        failedAt(element,
             'Class $element is not js interop but given a js interop name.'));
     jsInteropClassNames[element] = name;
   }
@@ -346,8 +351,9 @@ class NativeDataBuilderImpl implements NativeDataBuilder {
 
   /// Sets the explicit js interop [name] for the member [element].
   void setJsInteropMemberName(MemberEntity element, String name) {
-    assert(invariant(element, jsInteropMemberNames.containsKey(element),
-        message:
+    assert(
+        jsInteropMemberNames.containsKey(element),
+        failedAt(element,
             'Member $element is not js interop but given a js interop name.'));
     jsInteropMemberNames[element] = name;
   }
@@ -518,9 +524,10 @@ class NativeDataImpl implements NativeData {
 
   String _jsMemberNameHelper(MemberEntity element) {
     String jsInteropName = jsInteropMemberNames[element];
-    assert(invariant(element,
+    assert(
         !(jsInteropMemberNames.containsKey(element) && jsInteropName == null),
-        message:
+        failedAt(
+            element,
             'Member $element is js interop but js interop name has not yet '
             'been computed.'));
     if (jsInteropName != null && jsInteropName.isNotEmpty) {
@@ -562,24 +569,30 @@ class NativeDataImpl implements NativeData {
 
   /// Returns the [NativeBehavior] for calling the native [method].
   NativeBehavior getNativeMethodBehavior(FunctionEntity method) {
-    assert(invariant(method, nativeMethodBehavior.containsKey(method),
-        message: "No native method behavior has been computed for $method."));
+    assert(
+        nativeMethodBehavior.containsKey(method),
+        failedAt(method,
+            "No native method behavior has been computed for $method."));
     return nativeMethodBehavior[method];
   }
 
   /// Returns the [NativeBehavior] for reading from the native [field].
   NativeBehavior getNativeFieldLoadBehavior(FieldEntity field) {
-    assert(invariant(field, nativeFieldLoadBehavior.containsKey(field),
-        message: "No native field load behavior has been "
+    assert(
+        nativeFieldLoadBehavior.containsKey(field),
+        failedAt(
+            field,
+            "No native field load behavior has been "
             "computed for $field."));
     return nativeFieldLoadBehavior[field];
   }
 
   /// Returns the [NativeBehavior] for writing to the native [field].
   NativeBehavior getNativeFieldStoreBehavior(FieldEntity field) {
-    assert(invariant(field, nativeFieldStoreBehavior.containsKey(field),
-        message: "No native field store behavior has been "
-            "computed for $field."));
+    assert(
+        nativeFieldStoreBehavior.containsKey(field),
+        failedAt(field,
+            "No native field store behavior has been computed for $field."));
     return nativeFieldStoreBehavior[field];
   }
 

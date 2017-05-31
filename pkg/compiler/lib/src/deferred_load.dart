@@ -408,15 +408,20 @@ class DeferredLoadTask extends CompilerTask {
           if (backend.constants.hasConstantValue(expression)) {
             ConstantValue value =
                 backend.constants.getConstantValue(expression);
-            assert(invariant(node, value != null,
-                message: "Constant expression without value: "
+            assert(
+                value != null,
+                failedAt(
+                    node,
+                    "Constant expression without value: "
                     "${expression.toStructuredText()}."));
             constants.add(value);
           } else {
             assert(
-                invariant(node, expression.isImplicit || expression.isPotential,
-                    message: "Unexpected unevaluated constant expression: "
-                        "${expression.toStructuredText()}."));
+                expression.isImplicit || expression.isPotential,
+                failedAt(
+                    node,
+                    "Unexpected unevaluated constant expression: "
+                    "${expression.toStructuredText()}."));
           }
         });
       }

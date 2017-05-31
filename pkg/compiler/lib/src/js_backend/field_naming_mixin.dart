@@ -176,7 +176,7 @@ class _FieldNamingScope {
     if (names.containsKey(field)) return;
 
     jsAst.Name value = _nextName();
-    assert(invariant(field, _isNameUnused(value)));
+    assert(_isNameUnused(value), failedAt(field));
     names[field] = value;
   }
 

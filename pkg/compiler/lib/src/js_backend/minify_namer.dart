@@ -352,7 +352,7 @@ class _ConstructorBodyNamingScope {
 
   String constructorBodyKeyFor(ConstructorBodyElement body) {
     int position = _constructors.indexOf(body.constructor);
-    assert(invariant(body, position >= 0, message: "constructor body missing"));
+    assert(position >= 0, failedAt(body, "constructor body missing"));
     return "@constructorBody@${_startIndex + position}";
   }
 }

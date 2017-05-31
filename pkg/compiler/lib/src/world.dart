@@ -1232,8 +1232,8 @@ class ClosedWorldImpl extends ClosedWorldBase {
   /// will hit a method at runtime, and not go through [noSuchMethod].
   bool hasConcreteMatch(ClassElement cls, Selector selector,
       {ClassElement stopAtSuperclass}) {
-    assert(invariant(cls, isInstantiated(cls),
-        message: '$cls has not been instantiated.'));
+    assert(
+        isInstantiated(cls), failedAt(cls, '$cls has not been instantiated.'));
     MemberElement element = findMatchIn(cls, selector);
     if (element == null) return false;
 

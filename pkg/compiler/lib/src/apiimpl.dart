@@ -377,9 +377,8 @@ class _Environment implements Environment {
   _Environment(this.definitions);
 
   String valueOf(String name) {
-    assert(invariant(
-        NO_LOCATION_SPANNABLE, compiler.resolvedUriTranslator != null,
-        message: "setupSdk() has not been run"));
+    assert(compiler.resolvedUriTranslator != null,
+        failedAt(NO_LOCATION_SPANNABLE, "setupSdk() has not been run"));
 
     var result = definitions[name];
     if (result != null || definitions.containsKey(name)) return result;

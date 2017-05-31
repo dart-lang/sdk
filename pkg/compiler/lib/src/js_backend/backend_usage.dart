@@ -122,23 +122,23 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   @override
   void registerBackendFunctionUse(FunctionEntity element) {
-    assert(invariant(element, _isValidBackendUse(element),
-        message: "Backend use of $element is not allowed."));
+    assert(_isValidBackendUse(element),
+        failedAt(element, "Backend use of $element is not allowed."));
     _helperFunctionsUsed.add(element);
   }
 
   @override
   void registerBackendClassUse(ClassEntity element) {
-    assert(invariant(element, _isValidBackendUse(element),
-        message: "Backend use of $element is not allowed."));
+    assert(_isValidBackendUse(element),
+        failedAt(element, "Backend use of $element is not allowed."));
     _helperClassesUsed.add(element);
   }
 
   bool _isValidBackendUse(Entity element) {
     if (_isValidEntity(element)) return true;
     if (element is Element) {
-      assert(invariant(element, element.isDeclaration,
-          message: "Backend use $element must be the declaration."));
+      assert(element.isDeclaration,
+          failedAt(element, "Backend use $element must be the declaration."));
       if (element.implementationLibrary.isPatch ||
           // Needed to detect deserialized injected elements, that is
           // element declared in patch files.

@@ -654,8 +654,12 @@ class CallPosition {
       return new CallPosition(
           node.target, CodePositionKind.END, SourcePositionKind.INNER);
     } else {
-      assert(invariant(NO_LOCATION_SPANNABLE, false,
-          message: "Unexpected property access ${nodeToString(node)}:\n"
+      // TODO(johnniwinther): Maybe remove this assertion.
+      assert(
+          false,
+          failedAt(
+              NO_LOCATION_SPANNABLE,
+              "Unexpected property access ${nodeToString(node)}:\n"
               "${DebugPrinter.prettyPrint(node)}"));
       // Don't know....
       return new CallPosition(

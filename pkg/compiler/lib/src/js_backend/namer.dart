@@ -496,14 +496,16 @@ class Namer {
 
   RuntimeTypesEncoder _rtiEncoder;
   RuntimeTypesEncoder get rtiEncoder {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiEncoder != null,
-        message: "Namer.rtiEncoder has not been set."));
+    assert(_rtiEncoder != null,
+        failedAt(NO_LOCATION_SPANNABLE, "Namer.rtiEncoder has not been set."));
     return _rtiEncoder;
   }
 
   void set rtiEncoder(RuntimeTypesEncoder value) {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiEncoder == null,
-        message: "Namer.rtiEncoder has already been set."));
+    assert(
+        _rtiEncoder == null,
+        failedAt(
+            NO_LOCATION_SPANNABLE, "Namer.rtiEncoder has already been set."));
     _rtiEncoder = value;
   }
 

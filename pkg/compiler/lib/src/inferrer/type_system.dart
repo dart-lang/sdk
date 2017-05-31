@@ -68,8 +68,8 @@ class TypeSystem {
   MemberTypeInformation get currentMember => _currentMember;
 
   void withMember(MemberElement element, action) {
-    assert(invariant(element, _currentMember == null,
-        message: "Already constructing graph for $_currentMember."));
+    assert(_currentMember == null,
+        failedAt(element, "Already constructing graph for $_currentMember."));
     _currentMember = getInferredTypeOf(element);
     action();
     _currentMember = null;

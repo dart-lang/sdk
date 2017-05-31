@@ -55,8 +55,8 @@ class _ResolutionWorkItem extends WorkItem implements ResolutionWorkItem {
   _ResolutionWorkItem(this.resolution, this.element);
 
   WorldImpact run() {
-    assert(invariant(element, !_isAnalyzed,
-        message: 'Element ${element} has already been analyzed'));
+    assert(!_isAnalyzed,
+        failedAt(element, 'Element ${element} has already been analyzed'));
     WorldImpact impact = resolution.computeWorldImpact(element);
     _isAnalyzed = true;
     return impact;

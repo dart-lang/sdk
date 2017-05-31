@@ -57,8 +57,10 @@ class ClosureTask extends CompilerTask implements ClosureClassMaps {
         element = constructorBody.constructor;
       }
       ClosureClassMap closureClassMap = _closureMappingCache[element];
-      assert(invariant(resolvedAst.element, closureClassMap != null,
-          message: "No ClosureClassMap computed for ${element}."));
+      assert(
+          closureClassMap != null,
+          failedAt(resolvedAst.element,
+              "No ClosureClassMap computed for ${element}."));
       return closureClassMap;
     });
   }
@@ -106,22 +108,25 @@ class ClosureTask extends CompilerTask implements ClosureClassMaps {
           _closureMappingCache[element] =
               new ClosureClassMap(null, null, null, new ThisLocal(element));
         } else {
-          assert(invariant(element, element.isField,
-              message: "Expected $element to be a field."));
+          assert(element.isField,
+              failedAt(element, "Expected $element to be a field."));
           Node initializer = resolvedAst.body;
           if (initializer != null) {
             // The lazy initializer of a static.
             translator.translateLazyInitializer(element, node, initializer);
           } else {
-            assert(invariant(element, element.isInstanceMember,
-                message: "Expected $element (${element
-                    .runtimeType}) to be an instance field."));
+            assert(
+                element.isInstanceMember,
+                failedAt(
+                    element,
+                    "Expected $element (${element.runtimeType}) "
+                    "to be an instance field."));
             _closureMappingCache[element] =
                 new ClosureClassMap(null, null, null, new ThisLocal(element));
           }
         }
-        assert(invariant(element, _closureMappingCache[element] != null,
-            message: "No ClosureClassMap computed for ${element}."));
+        assert(_closureMappingCache[element] != null,
+            failedAt(element, "No ClosureClassMap computed for ${element}."));
         return _closureMappingCache[element];
       });
     });

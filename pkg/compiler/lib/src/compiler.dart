@@ -287,8 +287,10 @@ abstract class Compiler {
   ResolutionWorldBuilder get resolutionWorldBuilder =>
       enqueuer.resolution.worldBuilder;
   CodegenWorldBuilder get codegenWorldBuilder {
-    assert(invariant(NO_LOCATION_SPANNABLE, _codegenWorldBuilder != null,
-        message: "CodegenWorldBuilder has not been created yet."));
+    assert(
+        _codegenWorldBuilder != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "CodegenWorldBuilder has not been created yet."));
     return _codegenWorldBuilder;
   }
 
@@ -1378,8 +1380,8 @@ class CompilerResolution implements Resolution {
 
   @override
   bool hasResolvedAst(ExecutableElement element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element $element must be the declaration."));
     if (_compiler.serialization.isDeserialized(element)) {
       return _compiler.serialization.hasResolvedAst(element);
     }
@@ -1389,10 +1391,10 @@ class CompilerResolution implements Resolution {
 
   @override
   ResolvedAst getResolvedAst(ExecutableElement element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
-    assert(invariant(element, hasResolvedAst(element),
-        message: "ResolvedAst not available for $element."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element $element must be the declaration."));
+    assert(hasResolvedAst(element),
+        failedAt(element, "ResolvedAst not available for $element."));
     if (_compiler.serialization.isDeserialized(element)) {
       return _compiler.serialization.getResolvedAst(element);
     }
@@ -1407,8 +1409,8 @@ class CompilerResolution implements Resolution {
 
   @override
   bool hasResolutionImpact(Element element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element $element must be the declaration."));
     if (_compiler.serialization.isDeserialized(element)) {
       return _compiler.serialization.hasResolutionImpact(element);
     }
@@ -1417,26 +1419,26 @@ class CompilerResolution implements Resolution {
 
   @override
   ResolutionImpact getResolutionImpact(Element element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element $element must be the declaration."));
     ResolutionImpact resolutionImpact;
     if (_compiler.serialization.isDeserialized(element)) {
       resolutionImpact = _compiler.serialization.getResolutionImpact(element);
     } else {
       resolutionImpact = _resolutionImpactCache[element];
     }
-    assert(invariant(element, resolutionImpact != null,
-        message: "ResolutionImpact not available for $element."));
+    assert(resolutionImpact != null,
+        failedAt(element, "ResolutionImpact not available for $element."));
     return resolutionImpact;
   }
 
   @override
   WorldImpact getWorldImpact(Element element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element $element must be the declaration."));
     WorldImpact worldImpact = _worldImpactCache[element];
-    assert(invariant(element, worldImpact != null,
-        message: "WorldImpact not computed for $element."));
+    assert(worldImpact != null,
+        failedAt(element, "WorldImpact not computed for $element."));
     return worldImpact;
   }
 
@@ -1444,23 +1446,26 @@ class CompilerResolution implements Resolution {
   WorldImpact computeWorldImpact(Element element) {
     return _compiler.selfTask.measureSubtask("Resolution.computeWorldImpact",
         () {
-      assert(invariant(
-          element,
+      assert(
           element.impliesType ||
               element.isField ||
               element.isFunction ||
               element.isConstructor ||
               element.isGetter ||
               element.isSetter,
-          message: 'Unexpected element kind: ${element.kind}'));
-      assert(invariant(element, element is AnalyzableElement,
-          message: 'Element $element is not analyzable.'));
-      assert(invariant(element, element.isDeclaration,
-          message: "Element $element must be the declaration."));
+          failedAt(element, 'Unexpected element kind: ${element.kind}'));
+      // `true ==` prevents analyzer type inference from strengthening element
+      // to AnalyzableElement which incompatible with some down-cast to ElementX
+      // uses.
+      // TODO(29712): Can this be made to work as we expect?
+      assert(true == element is AnalyzableElement,
+          failedAt(element, 'Element $element is not analyzable.'));
+      assert(element.isDeclaration,
+          failedAt(element, "Element $element must be the declaration."));
       return _worldImpactCache.putIfAbsent(element, () {
         assert(_compiler.parser != null);
         Node tree = _compiler.parser.parse(element);
-        assert(invariant(element, !element.isSynthesized || tree == null));
+        assert(!element.isSynthesized || tree == null, failedAt(element));
         ResolutionImpact resolutionImpact = _compiler.resolver.resolve(element);
 
         if (_compiler.serialization.supportSerialization ||
@@ -1494,12 +1499,12 @@ class CompilerResolution implements Resolution {
 
   @override
   void uncacheWorldImpact(Element element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element $element must be the declaration."));
     if (retainCachesForTesting) return;
     if (_compiler.serialization.isDeserialized(element)) return;
-    assert(invariant(element, _worldImpactCache[element] != null,
-        message: "WorldImpact not computed for $element."));
+    assert(_worldImpactCache[element] != null,
+        failedAt(element, "WorldImpact not computed for $element."));
     _worldImpactCache[element] = const WorldImpact();
     _resolutionImpactCache.remove(element);
   }

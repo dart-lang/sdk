@@ -265,8 +265,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           registerImpact(_impacts.stringLiteral);
           break;
         default:
-          assert(invariant(NO_LOCATION_SPANNABLE, false,
-              message: "Unexpected constant literal: ${constant.kind}."));
+          assert(
+              false,
+              failedAt(NO_LOCATION_SPANNABLE,
+                  "Unexpected constant literal: ${constant.kind}."));
       }
     }
 

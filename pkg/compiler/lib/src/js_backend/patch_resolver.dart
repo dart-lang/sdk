@@ -62,8 +62,8 @@ class PatchResolverTask extends CompilerTask {
       if (!originParameter.isPatched) {
         originParameter.applyPatch(patchParameter);
       } else {
-        assert(invariant(origin, originParameter.patch == patchParameter,
-            message: "Inconsistent repatch of $originParameter."));
+        assert(originParameter.patch == patchParameter,
+            failedAt(origin, "Inconsistent repatch of $originParameter."));
       }
       ResolutionDartType originParameterType =
           originParameter.computeType(resolution);

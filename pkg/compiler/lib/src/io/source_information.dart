@@ -200,8 +200,11 @@ abstract class AbstractSourceLocation extends SourceLocation {
   Location _location;
 
   AbstractSourceLocation(this._sourceFile) {
-    assert(invariant(new SourceSpan(sourceUri, 0, 0), isValid,
-        message: "Invalid source location in ${sourceUri}: "
+    assert(
+        isValid,
+        failedAt(
+            new SourceSpan(sourceUri, 0, 0),
+            "Invalid source location in ${sourceUri}: "
             "offset=$offset, length=${_sourceFile.length}."));
   }
 

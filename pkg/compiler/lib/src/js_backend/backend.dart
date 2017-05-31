@@ -348,8 +348,8 @@ class JavaScriptBackend {
   Namer _namer;
 
   Namer get namer {
-    assert(invariant(NO_LOCATION_SPANNABLE, _namer != null,
-        message: "Namer has not been created yet."));
+    assert(_namer != null,
+        failedAt(NO_LOCATION_SPANNABLE, "Namer has not been created yet."));
     return _namer;
   }
 
@@ -505,24 +505,28 @@ class JavaScriptBackend {
   /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
   CustomElementsResolutionAnalysis get customElementsResolutionAnalysis {
-    assert(invariant(
-        NO_LOCATION_SPANNABLE, _customElementsResolutionAnalysis != null,
-        message: "CustomElementsResolutionAnalysis has not been created yet."));
+    assert(
+        _customElementsResolutionAnalysis != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "CustomElementsResolutionAnalysis has not been created yet."));
     return _customElementsResolutionAnalysis;
   }
 
   /// Codegen support for generating table of interceptors and
   /// constructors for custom elements.
   CustomElementsCodegenAnalysis get customElementsCodegenAnalysis {
-    assert(invariant(
-        NO_LOCATION_SPANNABLE, _customElementsCodegenAnalysis != null,
-        message: "CustomElementsCodegenAnalysis has not been created yet."));
+    assert(
+        _customElementsCodegenAnalysis != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "CustomElementsCodegenAnalysis has not been created yet."));
     return _customElementsCodegenAnalysis;
   }
 
   NativeBasicData get nativeBasicData {
-    assert(invariant(NO_LOCATION_SPANNABLE, _nativeBasicData != null,
-        message: "NativeBasicData has not been computed yet."));
+    assert(
+        _nativeBasicData != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "NativeBasicData has not been computed yet."));
     return _nativeBasicData;
   }
 
@@ -530,17 +534,19 @@ class JavaScriptBackend {
 
   /// Resolution analysis for tracking reflective access to type variables.
   TypeVariableResolutionAnalysis get typeVariableResolutionAnalysis {
-    assert(invariant(
-        NO_LOCATION_SPANNABLE, _typeVariableCodegenAnalysis == null,
-        message: "TypeVariableHandler has already been created."));
+    assert(
+        _typeVariableCodegenAnalysis == null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "TypeVariableHandler has already been created."));
     return _typeVariableResolutionAnalysis;
   }
 
   /// Codegen handler for reflective access to type variables.
   TypeVariableCodegenAnalysis get typeVariableCodegenAnalysis {
-    assert(invariant(
-        NO_LOCATION_SPANNABLE, _typeVariableCodegenAnalysis != null,
-        message: "TypeVariableHandler has not been created yet."));
+    assert(
+        _typeVariableCodegenAnalysis != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "TypeVariableHandler has not been created yet."));
     return _typeVariableCodegenAnalysis;
   }
 
@@ -554,47 +560,61 @@ class JavaScriptBackend {
 
   /// Codegen support for computing reflectable elements.
   MirrorsCodegenAnalysis get mirrorsCodegenAnalysis {
-    assert(invariant(NO_LOCATION_SPANNABLE, _mirrorsCodegenAnalysis != null,
-        message: "MirrorsCodegenAnalysis has not been created yet."));
+    assert(
+        _mirrorsCodegenAnalysis != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "MirrorsCodegenAnalysis has not been created yet."));
     return _mirrorsCodegenAnalysis;
   }
 
   /// Codegen support for tree-shaking entries of `LookupMap`.
   LookupMapAnalysis get lookupMapAnalysis {
-    assert(invariant(NO_LOCATION_SPANNABLE, _lookupMapAnalysis != null,
-        message: "LookupMapAnalysis has not been created yet."));
+    assert(
+        _lookupMapAnalysis != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "LookupMapAnalysis has not been created yet."));
     return _lookupMapAnalysis;
   }
 
   OneShotInterceptorData get oneShotInterceptorData {
-    assert(invariant(NO_LOCATION_SPANNABLE, _oneShotInterceptorData != null,
-        message: "OneShotInterceptorData has not been prepared yet."));
+    assert(
+        _oneShotInterceptorData != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "OneShotInterceptorData has not been prepared yet."));
     return _oneShotInterceptorData;
   }
 
   RuntimeTypesNeed get rtiNeed {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiNeed != null,
-        message: "RuntimeTypesNeed has not been computed yet."));
+    assert(
+        _rtiNeed != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "RuntimeTypesNeed has not been computed yet."));
     return _rtiNeed;
   }
 
   RuntimeTypesNeedBuilder get rtiNeedBuilder {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiNeed == null,
-        message: "RuntimeTypesNeed has already been computed."));
+    assert(
+        _rtiNeed == null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "RuntimeTypesNeed has already been computed."));
     return _rtiNeedBuilder;
   }
 
   RuntimeTypesChecksBuilder get rtiChecksBuilder {
-    assert(invariant(NO_LOCATION_SPANNABLE, !_rti.rtiChecksBuilderClosed,
-        message: "RuntimeTypesChecks has already been computed."));
+    assert(
+        !_rti.rtiChecksBuilderClosed,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "RuntimeTypesChecks has already been computed."));
     return _rti;
   }
 
   RuntimeTypesSubstitutions get rtiSubstitutions => _rti;
 
   RuntimeTypesEncoder get rtiEncoder {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiEncoder != null,
-        message: "RuntimeTypesEncoder has not been created."));
+    assert(
+        _rtiEncoder != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "RuntimeTypesEncoder has not been created."));
     return _rtiEncoder;
   }
 
@@ -689,9 +709,10 @@ class JavaScriptBackend {
           .lookupClassMember(interceptorClass, member.name);
       // Interceptors must override all Object methods due to calling convention
       // differences.
-      assert(invariant(interceptorMember,
+      assert(
           interceptorMember.enclosingClass == interceptorClass,
-          message:
+          failedAt(
+              interceptorMember,
               "Member ${member.name} not overridden in ${interceptorClass}. "
               "Found $interceptorMember from "
               "${interceptorMember.enclosingClass}."));
@@ -933,7 +954,7 @@ class JavaScriptBackend {
    * Invariant: [element] must be a declaration element.
    */
   String getGeneratedCode(Element element) {
-    assert(invariant(element, element.isDeclaration));
+    assert(element.isDeclaration, failedAt(element));
     return jsAst.prettyPrint(generatedCode[element], compiler.options);
   }
 

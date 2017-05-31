@@ -397,7 +397,7 @@ class InferrerEngine {
           assert(info.calledElement.isGenerativeConstructor);
           ClassElement cls = info.calledElement.enclosingClass;
           FunctionElement callMethod = cls.lookupMember(Identifiers.call);
-          assert(invariant(cls, callMethod != null));
+          assert(callMethod != null, failedAt(cls));
           Iterable<FunctionElement> elements = [callMethod];
           trace(elements, new ClosureTracerVisitor(elements, info, this));
         } else {
@@ -526,12 +526,13 @@ class InferrerEngine {
                   types.allocatedTypes.add(type);
                 }
               } else {
-                assert(invariant(
-                    fieldElement,
+                assert(
                     fieldElement.isInstanceMember ||
                         constant.isImplicit ||
                         constant.isPotential,
-                    message: "Constant expression without value: "
+                    failedAt(
+                        fieldElement,
+                        "Constant expression without value: "
                         "${constant.toStructuredText()}."));
               }
             }
@@ -985,14 +986,13 @@ class InferrerEngine {
       ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;
-      assert(invariant(
-          element,
+      assert(
           element.isField ||
               element.isFunction ||
               element.isConstructor ||
               element.isGetter ||
               element.isSetter,
-          message: 'Unexpected element kind: ${element.kind}'));
+          failedAt(element, 'Unexpected element kind: ${element.kind}'));
       if (element.isAbstract) return;
       // Put the other operators in buckets by length, later to be added in
       // length order.

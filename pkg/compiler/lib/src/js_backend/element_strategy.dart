@@ -116,7 +116,7 @@ class ElementCodegenWorkItemBuilder extends WorkItemBuilder {
 
   @override
   WorkItem createWorkItem(MemberElement element) {
-    assert(invariant(element, element.isDeclaration));
+    assert(element.isDeclaration, failedAt(element));
     // Don't generate code for foreign elements.
     if (_backend.isForeign(element)) return null;
     if (element.isAbstract) return null;
@@ -145,8 +145,8 @@ class ElementCodegenWorkItem extends CodegenWorkItem {
     // missing call of form registry.registerXXX. Alternatively, the code
     // generation could spuriously be adding dependencies on things we know we
     // don't need.
-    assert(invariant(element, element.hasResolvedAst,
-        message: "$element has no resolved ast."));
+    assert(element.hasResolvedAst,
+        failedAt(element, "$element has no resolved ast."));
     ResolvedAst resolvedAst = element.resolvedAst;
     return new ElementCodegenWorkItem.internal(
         resolvedAst, backend, closedWorld);
