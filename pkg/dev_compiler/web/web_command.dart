@@ -85,7 +85,6 @@ class WebCompileCommand extends Command {
       Function onCompileReady, Function onError, Function onProgress) async {
     var sdkRequest;
     var progress = 0;
-    int lastReported = 0;
     // Add 1 to the count for the SDK summary.
     var total = summaryMap.size + 1;
     // No need to report after every  summary is loaded. Posting about 100
