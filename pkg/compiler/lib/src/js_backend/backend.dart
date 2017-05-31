@@ -942,7 +942,9 @@ class JavaScriptBackend {
     int programSize = emitter.assembleProgram(namer, closedWorld);
     noSuchMethodRegistry.emitDiagnostic(reporter);
     int totalMethodCount = generatedCode.length;
-    if (totalMethodCount != mirrorsCodegenAnalysis.preMirrorsMethodCount) {
+    // TODO(johnniwinther): Support `preMirrorsMethodCount` for entities.
+    if (mirrorsCodegenAnalysis.preMirrorsMethodCount != null &&
+        totalMethodCount != mirrorsCodegenAnalysis.preMirrorsMethodCount) {
       int mirrorCount =
           totalMethodCount - mirrorsCodegenAnalysis.preMirrorsMethodCount;
       double percentage = (mirrorCount / totalMethodCount) * 100;
@@ -1187,8 +1189,7 @@ class JavaScriptBackend {
   /// supported by the backend.
   bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
 
-  jsAst.Expression rewriteAsync(
-      FunctionElement element, jsAst.Expression code) {
+  jsAst.Expression rewriteAsync(MethodElement element, jsAst.Expression code) {
     AsyncRewriterBase rewriter = null;
     jsAst.Name name = namer.methodPropertyName(element);
     switch (element.asyncMarker) {

@@ -407,6 +407,11 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  bool isUnnamedMixinApplication(ClassElement cls) {
+    return cls.isUnnamedMixinApplication;
+  }
+
+  @override
   ResolutionDartType getTypeVariableBound(TypeVariableElement typeVariable) {
     return typeVariable.bound;
   }

@@ -6,12 +6,9 @@ library dart2js.js_emitter.full_emitter.container_builder;
 
 import '../../constants/values.dart';
 import '../../elements/elements.dart'
-    show
-        Element,
-        Elements,
-        FunctionSignature,
-        MetadataAnnotation,
-        MethodElement;
+    show Element, Elements, MetadataAnnotation, MethodElement;
+import '../../elements/entities.dart';
+import '../../elements/names.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
@@ -24,9 +21,9 @@ import 'emitter.dart';
 /// [CodeEmitterTask].
 class ContainerBuilder extends CodeEmitterHelper {
   void addMemberMethod(DartMethod method, ClassBuilder builder) {
-    MethodElement member = method.element;
+    FunctionEntity member = method.element;
     jsAst.Name name = method.name;
-    FunctionSignature parameters = member.functionSignature;
+    ParameterStructure parameters = member.parameterStructure;
     jsAst.Expression code = method.code;
     bool needsStubs = method.parameterStubs.isNotEmpty;
     bool canBeApplied = method.canBeApplied;
@@ -115,11 +112,11 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     // On [requiredParameterCount], the lower bit is set if this method can be
     // called reflectively.
-    int requiredParameterCount = parameters.requiredParameterCount << 1;
-    if (member.isAccessor) requiredParameterCount++;
+    int requiredParameterCount = parameters.requiredParameters << 1;
+    if (member.isGetter || member.isSetter) requiredParameterCount++;
 
-    int optionalParameterCount = parameters.optionalParameterCount << 1;
-    if (parameters.optionalParametersAreNamed) optionalParameterCount++;
+    int optionalParameterCount = parameters.optionalParameters << 1;
+    if (parameters.namedParameters.isNotEmpty) optionalParameterCount++;
 
     List tearOffInfo = [callSelectorString];
 
@@ -140,7 +137,7 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     expressions
       ..addAll(tearOffInfo)
-      ..add((tearOffName == null || member.isAccessor)
+      ..add((tearOffName == null || member.isGetter || member.isSetter)
           ? js("null")
           : js.quoteName(tearOffName))
       ..add(js.number(requiredParameterCount))
@@ -149,7 +146,9 @@ class ContainerBuilder extends CodeEmitterHelper {
       ..addAll(task.metadataCollector.reifyDefaultArguments(member));
 
     if (canBeReflected || canBeApplied) {
-      parameters.forEachParameter((Element parameter) {
+      // TODO(johnniwinther): Support entities.
+      MethodElement method = member;
+      method.functionSignature.forEachParameter((Element parameter) {
         expressions.add(task.metadataCollector.reifyName(parameter.name));
         if (backend.mirrorsData.mustRetainMetadata) {
           Iterable<jsAst.Expression> metadataIndices =
@@ -163,6 +162,7 @@ class ContainerBuilder extends CodeEmitterHelper {
         }
       });
     }
+    Name memberName = new Name(member.name, member.library);
     if (canBeReflected) {
       jsAst.LiteralString reflectionName;
       if (member.isConstructor) {
@@ -172,13 +172,13 @@ class ContainerBuilder extends CodeEmitterHelper {
         reflectionName = new jsAst.LiteralString(
             '"new ${Elements.reconstructConstructorName(member)}"');
       } else {
-        reflectionName = js.string(namer.privateName(member.memberName));
+        reflectionName = js.string(namer.privateName(memberName));
       }
       expressions
         ..add(reflectionName)
         ..addAll(task.metadataCollector.computeMetadata(member));
     } else if (isClosure && canBeApplied) {
-      expressions.add(js.string(namer.privateName(member.memberName)));
+      expressions.add(js.string(namer.privateName(memberName)));
     }
 
     jsAst.ArrayInitializer arrayInit =

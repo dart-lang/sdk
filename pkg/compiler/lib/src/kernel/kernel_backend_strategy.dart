@@ -14,6 +14,7 @@ import '../compiler.dart';
 import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../io/source_information.dart';
+import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/sorter.dart';
@@ -76,7 +77,7 @@ class KernelBackendStrategy implements BackendStrategy {
 
   @override
   SourceInformationStrategy get sourceInformationStrategy =>
-      const SourceInformationStrategy();
+      const JavaScriptSourceInformationStrategy();
 }
 
 class KernelCodegenWorkItemBuilder implements WorkItemBuilder {

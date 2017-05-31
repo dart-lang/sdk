@@ -40,7 +40,8 @@ testClass(String code, MockCompiler compiler) {
   cls.forEachLocalMember((Element e) {
     String name = e.name;
     if (e.isConstructor) {
-      name = Elements.reconstructConstructorName(e).replaceFirst(r'$', '.');
+      ConstructorElement c = e;
+      name = Elements.reconstructConstructorName(c).replaceFirst(r'$', '.');
     }
     Expect.equals(code.indexOf(name, skip), e.position.charOffset);
   });

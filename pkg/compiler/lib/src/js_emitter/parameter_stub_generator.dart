@@ -15,6 +15,8 @@ import '../elements/elements.dart'
         FunctionSignature,
         MethodElement,
         ParameterElement;
+import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/constant_handler_javascript.dart'
@@ -223,10 +225,10 @@ class ParameterStubGenerator {
   // (1) foo$2(a, b) => MyClass.foo$4$c$d.call(this, a, b, null, null)
   // (2) foo$3$c(a, b, c) => MyClass.foo$4$c$d(this, a, b, c, null);
   // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
-  List<ParameterStubMethod> generateParameterStubs(MethodElement member,
+  List<ParameterStubMethod> generateParameterStubs(FunctionEntity member,
       {bool canTearOff: true}) {
-    if (member.enclosingElement.isClosure) {
-      ClosureClassElement cls = member.enclosingElement;
+    if (member.enclosingClass != null && member.enclosingClass.isClosure) {
+      ClosureClassElement cls = member.enclosingClass;
       if (cls.supertype.element == _commonElements.boundClosureClass) {
         throw new SpannableAssertionFailure(
             cls.methodElement, 'Bound closure1.');
@@ -283,8 +285,8 @@ class ParameterStubGenerator {
     // Start with the callSelectors since they imply the generation of the
     // non-call version.
     for (Selector selector in callSelectors.keys) {
-      Selector renamedSelector =
-          new Selector.call(member.memberName, selector.callStructure);
+      Selector renamedSelector = new Selector.call(
+          new Name(member.name, member.library), selector.callStructure);
       renamedCallSelectors.add(renamedSelector);
 
       if (!renamedSelector.appliesUnnamed(member)) {

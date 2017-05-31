@@ -1110,6 +1110,11 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  bool isUnnamedMixinApplication(KClass cls) {
+    return elementMap._isUnnamedMixinApplication(cls);
+  }
+
+  @override
   DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
     throw new UnimplementedError(
         'KernelElementEnvironment.getTypeVariableBound');

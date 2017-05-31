@@ -13,6 +13,7 @@ part of dart2js.js_emitter.program_builder;
 class Collector {
   final CompilerOptions _options;
   final CommonElements _commonElements;
+  final ElementEnvironment _elementEnvironment;
   final DeferredLoadTask _deferredLoadTask;
   final CodegenWorldBuilder _worldBuilder;
   // TODO(floitsch): the code-emitter task should not need a namer.
@@ -54,6 +55,7 @@ class Collector {
   Collector(
       this._options,
       this._commonElements,
+      this._elementEnvironment,
       this._deferredLoadTask,
       this._worldBuilder,
       this._namer,
@@ -153,9 +155,9 @@ class Collector {
         final onlyForRti = classesOnlyNeededForRti.contains(cls);
         if (!onlyForRti) {
           _mirrorsData.retainMetadataOfClass(cls);
-          new FieldVisitor(_options, _worldBuilder, _nativeData, _mirrorsData,
-                  _namer, _closedWorld)
-              .visitFields(cls, false, (FieldElement member,
+          new FieldVisitor(_options, _elementEnvironment, _worldBuilder,
+                  _nativeData, _mirrorsData, _namer, _closedWorld)
+              .visitFields((FieldElement member,
                   js.Name name,
                   js.Name accessorName,
                   bool needsGetter,
@@ -166,7 +168,7 @@ class Collector {
                 _mirrorsData.isMemberAccessibleByReflection(member)) {
               _mirrorsData.retainMetadataOfMember(member);
             }
-          });
+          }, cls: cls);
         }
       }
       typedefsNeededForReflection.forEach(_mirrorsData.retainMetadataOfTypedef);

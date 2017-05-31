@@ -538,7 +538,7 @@ class Elements {
     return isLocal(element);
   }
 
-  static String reconstructConstructorNameSourceString(Element element) {
+  static String reconstructConstructorNameSourceString(FunctionEntity element) {
     if (element.name == '') {
       return element.enclosingClass.name;
     } else {
@@ -546,8 +546,8 @@ class Elements {
     }
   }
 
-  // TODO(johnniwinther): Remove this method.
-  static String reconstructConstructorName(Element element) {
+  // TODO(johnniwinther): Move this (other similar) to an entity_utils library.
+  static String reconstructConstructorName(FunctionEntity element) {
     String className = element.enclosingClass.name;
     if (element.name == '') {
       return className;

@@ -339,7 +339,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     // TODO(herhut): Do not grab statics out of the properties.
     ClassBuilder classProperties =
-        emitter.elementDescriptors[fragment].remove(classElement);
+        emitter.classDescriptors[fragment]?.remove(classElement);
     if (classProperties != null) {
       statics.addAll(classProperties.properties);
     }

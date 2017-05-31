@@ -6,8 +6,7 @@ library dart2js.js_emitter.type_test_registry;
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart'
-    show ClassElement, ElementKind, MemberElement, MethodElement;
+import '../elements/elements.dart' show ClassElement, MethodElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart'
     show
@@ -142,10 +141,11 @@ class TypeTestRegistry {
       }
     }
 
-    bool canTearOff(MemberElement function) {
+    bool canTearOff(MemberEntity function) {
       if (!function.isFunction ||
           function.isConstructor ||
-          function.isAccessor) {
+          function.isGetter ||
+          function.isSetter) {
         return false;
       } else if (function.isInstanceMember) {
         if (!function.enclosingClass.isClosure) {
@@ -155,21 +155,18 @@ class TypeTestRegistry {
       return false;
     }
 
-    bool canBeReflectedAsFunction(MemberElement element) {
-      return element.kind == ElementKind.FUNCTION ||
-          element.kind == ElementKind.GETTER ||
-          element.kind == ElementKind.SETTER ||
-          element.kind == ElementKind.GENERATIVE_CONSTRUCTOR;
+    bool canBeReflectedAsFunction(MemberEntity element) {
+      return !element.isField;
     }
 
-    bool canBeReified(MemberElement element) {
+    bool canBeReified(MemberEntity element) {
       return (canTearOff(element) ||
           mirrorsData.isMemberAccessibleByReflection(element));
     }
 
     // Find all types referenced from the types of elements that can be
     // reflected on 'as functions'.
-    liveMembers.where((MemberElement element) {
+    liveMembers.where((MemberEntity element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);
     }).forEach((MethodElement function) {
       FunctionType type = function.type;

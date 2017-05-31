@@ -16,7 +16,8 @@ import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import 'package:compiler/src/constants/values.dart'
     show ConstantValue, TypeConstantValue;
 
-import 'package:compiler/src/elements/elements.dart' show Element, Elements;
+import 'package:compiler/src/elements/elements.dart'
+    show ClassElement, Elements;
 
 import 'package:compiler/src/js_backend/js_backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/js_backend/mirrors_analysis.dart';
@@ -85,7 +86,7 @@ void main() {
     ]; // The name of Foo.instanceMethod.
 
     // We always include the names of some native classes.
-    List<Element> nativeClasses = [
+    List<ClassElement> nativeClasses = [
       compiler.commonElements.intClass,
       compiler.commonElements.doubleClass,
       compiler.commonElements.numClass,

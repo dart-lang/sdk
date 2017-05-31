@@ -244,9 +244,9 @@ List<jsAst.Statement> buildTearOffCode(CompilerOptions options, Emitter emitter,
   if (closureFromTearOff != null) {
     tearOffAccessExpression = emitter.staticFunctionAccess(closureFromTearOff);
     tearOffGlobalObject =
-        js.stringPart(namer.globalObjectForMethod(closureFromTearOff));
+        js.stringPart(namer.globalObjectForMember(closureFromTearOff));
     tearOffGlobalObjectString =
-        js.string(namer.globalObjectForMethod(closureFromTearOff));
+        js.string(namer.globalObjectForMember(closureFromTearOff));
   } else {
     // Default values for mocked-up test libraries.
     tearOffAccessExpression =

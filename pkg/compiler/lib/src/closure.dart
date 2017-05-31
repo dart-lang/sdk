@@ -1064,8 +1064,8 @@ class ClosureTranslator extends Visitor {
       if (enclosingElement.isGenerativeConstructor ||
           enclosingElement.isGenerativeConstructorBody ||
           enclosingElement.isFactoryConstructor) {
-        parts = parts
-            .prepend(Elements.reconstructConstructorName(enclosingElement));
+        ConstructorElement constructor = enclosingElement;
+        parts = parts.prepend(Elements.reconstructConstructorName(constructor));
       } else {
         String surroundingName =
             Elements.operatorNameToIdentifier(enclosingElement.name);

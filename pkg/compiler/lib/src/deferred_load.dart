@@ -164,9 +164,11 @@ class DeferredLoadTask extends CompilerTask {
   DiagnosticReporter get reporter => compiler.reporter;
 
   /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForElement(Element element) {
+  OutputUnit outputUnitForElement(Entity entity) {
+    // TODO(johnniwinther): Support use of entities by splitting maps by
+    // entity kind.
     if (!isProgramSplit) return mainOutputUnit;
-
+    Element element = entity;
     element = element.implementation;
     while (!_elementToOutputUnit.containsKey(element)) {
       // TODO(21051): workaround: it looks like we output annotation constants
@@ -184,12 +186,12 @@ class DeferredLoadTask extends CompilerTask {
   }
 
   /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForClass(ClassElement element) {
+  OutputUnit outputUnitForClass(ClassEntity element) {
     return outputUnitForElement(element);
   }
 
   /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForMember(MemberElement element) {
+  OutputUnit outputUnitForMember(MemberEntity element) {
     return outputUnitForElement(element);
   }
 

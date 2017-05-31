@@ -24,7 +24,9 @@ class ClassBuilder {
   final Namer namer;
   final bool isForActualClass;
 
-  ClassBuilder(this.element, this.namer, this.isForActualClass);
+  ClassBuilder.forLibrary(LibraryEntity library, this.namer)
+      : isForActualClass = false,
+        element = library;
 
   ClassBuilder.forClass(ClassEntity cls, this.namer)
       : isForActualClass = true,

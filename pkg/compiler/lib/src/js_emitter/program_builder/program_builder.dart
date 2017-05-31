@@ -153,6 +153,7 @@ class ProgramBuilder {
         this.collector = new Collector(
             _options,
             _commonElements,
+            _elementEnvironment,
             _deferredLoadTask,
             _worldBuilder,
             _namer,
@@ -635,12 +636,12 @@ class ProgramBuilder {
 
   // Note that a library-element may have multiple [Library]s, if it is split
   // into multiple output units.
-  Library _buildLibrary(LibraryElement library, List<ClassEntity> classElements,
+  Library _buildLibrary(LibraryEntity library, List<ClassEntity> classElements,
       List<MemberEntity> memberElements) {
     String uri = library.canonicalUri.toString();
 
     List<StaticMethod> statics = memberElements
-        .where((e) => e is MethodElement)
+        .where((e) => !e.isField)
         .map(_buildStaticMethod)
         .toList();
 
@@ -650,14 +651,14 @@ class ProgramBuilder {
     }
 
     List<Class> classes = classElements
-        .map((ClassElement classElement) => _classes[classElement])
+        .map((ClassEntity classElement) => _classes[classElement])
         .where((Class cls) =>
             !cls.isNative || !_unneededNativeClasses.contains(cls))
         .toList(growable: false);
 
     bool visitStatics = true;
     List<Field> staticFieldsForReflection =
-        _buildFields(library, visitStatics: visitStatics);
+        _buildFields(library: library, visitStatics: visitStatics);
 
     return new Library(
         library, uri, statics, classes, staticFieldsForReflection);
@@ -751,12 +752,16 @@ class ProgramBuilder {
     bool isInterceptedClass = _interceptorData.isInterceptedClass(element);
     List<Field> instanceFields = onlyForRti
         ? const <Field>[]
-        : _buildFields(element,
-            visitStatics: false, isHolderInterceptedClass: isInterceptedClass);
+        : _buildFields(
+            cls: element,
+            visitStatics: false,
+            isHolderInterceptedClass: isInterceptedClass);
     List<Field> staticFieldsForReflection = onlyForRti
         ? const <Field>[]
-        : _buildFields(element,
-            visitStatics: true, isHolderInterceptedClass: isInterceptedClass);
+        : _buildFields(
+            cls: element,
+            visitStatics: true,
+            isHolderInterceptedClass: isInterceptedClass);
 
     TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(element,
         storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
@@ -837,15 +842,15 @@ class ProgramBuilder {
     return result;
   }
 
-  bool _methodNeedsStubs(FunctionElement method) {
-    return !method.functionSignature.optionalParameters.isEmpty;
+  bool _methodNeedsStubs(FunctionEntity method) {
+    return method.parameterStructure.optionalParameters != 0;
   }
 
-  bool _methodCanBeReflected(MethodElement method) {
+  bool _methodCanBeReflected(FunctionEntity method) {
     return _mirrorsData.isMemberAccessibleByReflection(method);
   }
 
-  bool _methodCanBeApplied(FunctionElement method) {
+  bool _methodCanBeApplied(FunctionEntity method) {
     return _backendUsage.isFunctionApplyUsed &&
         _closedWorld.getMightBePassedToApply(method);
   }
@@ -959,7 +964,7 @@ class ProgramBuilder {
   }
 
   js.Expression _generateFunctionType(
-      ResolutionDartType type, OutputUnit outputUnit) {
+      ResolutionFunctionType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
       js.Expression thisAccess = js.js(r'this.$receiver');
       return _rtiEncoder.getSignatureEncoding(_task.emitter, type, thisAccess);
@@ -969,7 +974,7 @@ class ProgramBuilder {
   }
 
   List<ParameterStubMethod> _generateParameterStubs(
-      MethodElement element, bool canTearOff) {
+      FunctionEntity element, bool canTearOff) {
     if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
 
     ParameterStubGenerator generator = new ParameterStubGenerator(
@@ -1037,17 +1042,15 @@ class ProgramBuilder {
     });
   }
 
-  List<Field> _buildFields(Element holder,
-      {bool visitStatics, bool isHolderInterceptedClass: false}) {
+  List<Field> _buildFields(
+      {bool visitStatics: false,
+      bool isHolderInterceptedClass: false,
+      LibraryEntity library,
+      ClassEntity cls}) {
     List<Field> fields = <Field>[];
-    new FieldVisitor(_options, _worldBuilder, _nativeData, _mirrorsData, _namer,
-            _closedWorld)
-        .visitFields(holder, visitStatics, (FieldElement field,
-            js.Name name,
-            js.Name accessorName,
-            bool needsGetter,
-            bool needsSetter,
-            bool needsCheckedSetter) {
+
+    void visitField(FieldElement field, js.Name name, js.Name accessorName,
+        bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
       assert(field.isDeclaration, failedAt(field));
 
       int getterFlags = 0;
@@ -1081,7 +1084,12 @@ class ProgramBuilder {
 
       fields.add(new Field(field, name, accessorName, getterFlags, setterFlags,
           needsCheckedSetter));
-    });
+    }
+
+    FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,
+        _worldBuilder, _nativeData, _mirrorsData, _namer, _closedWorld);
+    visitor.visitFields(visitField,
+        visitStatics: visitStatics, library: library, cls: cls);
 
     return fields;
   }
@@ -1112,12 +1120,13 @@ class ProgramBuilder {
     });
   }
 
-  StaticDartMethod _buildStaticMethod(MethodElement element) {
+  StaticDartMethod _buildStaticMethod(FunctionEntity element) {
     js.Name name = _namer.methodPropertyName(element);
     String holder = _namer.globalObjectForMember(element);
     js.Expression code = _generatedCode[element];
 
-    bool isApplyTarget = !element.isConstructor && !element.isAccessor;
+    bool isApplyTarget =
+        !element.isConstructor && !element.isGetter && !element.isSetter;
     bool canBeApplied = _methodCanBeApplied(element);
     bool canBeReflected = _methodCanBeReflected(element);
 
@@ -1135,16 +1144,18 @@ class ProgramBuilder {
       callName = _namer.invocationName(callSelector);
     }
     js.Expression functionType;
-    ResolutionDartType type = element.type;
+    DartType type = _elementEnvironment.getFunctionType(element);
     if (needsTearOff || canBeReflected) {
-      OutputUnit outputUnit = _deferredLoadTask.outputUnitForElement(element);
+      OutputUnit outputUnit = _deferredLoadTask.outputUnitForMember(element);
       functionType = _generateFunctionType(type, outputUnit);
     }
 
     int requiredParameterCount;
     var /* List | Map */ optionalParameterDefaultValues;
     if (canBeApplied || canBeReflected) {
-      FunctionSignature signature = element.functionSignature;
+      // TODO(johnniwinther): Support entities;
+      MethodElement method = element;
+      FunctionSignature signature = method.functionSignature;
       requiredParameterCount = signature.requiredParameterCount;
       optionalParameterDefaultValues =
           _computeParameterDefaultValues(signature);

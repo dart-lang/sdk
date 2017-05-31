@@ -1153,8 +1153,11 @@ class CommonElements {
 
 /// Interface for accessing libraries, classes and members.
 ///
-/// The _env makes private and injected members directly available and
-/// should therefore not be used to determine scopes.
+/// The element environment makes private and injected members directly
+/// available and should therefore not be used to determine scopes.
+///
+/// The properties exposed are Dart-centric and should therefore, long-term, not
+/// be used during codegen, expect for mirrors.
 // TODO(johnniwinther): Split this into an element environment and a type query
 // interface, the first should only be used during resolution and the latter in
 // both resolution and codegen.
@@ -1252,6 +1255,9 @@ abstract class ElementEnvironment {
 
   /// Returns `true` if [cls] is generic.
   bool isGenericClass(ClassEntity cls);
+
+  /// Returns `true` if [cls] is an unnamed mixin application.
+  bool isUnnamedMixinApplication(ClassEntity cls);
 
   /// The upper bound on the [typeVariable]. If not explicitly declared, this is
   /// `Object`.

@@ -17,13 +17,13 @@ import '../elements/elements.dart'
         ConstructorElement,
         Element,
         FieldElement,
-        FunctionElement,
         FunctionSignature,
         LibraryElement,
         MemberElement,
         MethodElement,
         MetadataAnnotation,
         ParameterElement;
+import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/constant_handler_javascript.dart';
@@ -181,12 +181,12 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     _globalMetadataMap = new Map<String, _BoundMetadataEntry>();
   }
 
-  jsAst.Fun buildLibraryMetadataFunction(LibraryElement element) {
+  jsAst.Fun buildLibraryMetadataFunction(LibraryEntity element) {
     if (!_mirrorsData.mustRetainMetadata ||
         !_mirrorsData.isLibraryReferencedFromMirrorSystem(element)) {
       return null;
     }
-    return _buildMetadataFunction(element);
+    return _buildMetadataFunction(element as LibraryElement);
   }
 
   jsAst.Fun buildClassMetadataFunction(ClassElement element) {
@@ -231,7 +231,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     });
   }
 
-  List<jsAst.DeferredNumber> reifyDefaultArguments(FunctionElement function) {
+  List<jsAst.DeferredNumber> reifyDefaultArguments(MethodElement function) {
     function = function.implementation;
     FunctionSignature signature = function.functionSignature;
     if (signature.optionalParameterCount == 0) return const [];

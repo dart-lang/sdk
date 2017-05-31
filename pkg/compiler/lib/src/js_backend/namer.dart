@@ -772,8 +772,10 @@ class Namer {
   }
 
   /// Annotated name for [method] encoding arity and named parameters.
-  jsAst.Name instanceMethodName(MethodElement method) {
-    if (method.isGenerativeConstructorBody) {
+  jsAst.Name instanceMethodName(FunctionEntity method) {
+    // TODO(johnniwinther): Avoid the use of [ConstructorBodyElement]. The
+    // codegen model should be explicit about its constructor body elements.
+    if (method is ConstructorBodyElement) {
       return constructorBodyName(method);
     }
     return invocationName(new Selector.fromElement(method));
@@ -1299,13 +1301,7 @@ class Namer {
     } else {
       // TODO(johnniwinther): Change factory name encoding as to not include
       // the class-name twice.
-      String constructorName;
-      if (element.name == '') {
-        constructorName = className;
-      } else {
-        constructorName = '${className}\$${element.name}';
-      }
-      return '${className}_${constructorName}';
+      return '${className}_${Elements.reconstructConstructorName(element)}';
     }
   }
 
@@ -1427,7 +1423,7 @@ class Namer {
   /// [operatorIsPrefix] or [operatorAsPrefix]. If this is a function type,
   /// then by convention, an underscore must also separate [operatorIsPrefix]
   /// from the type name.
-  jsAst.Name runtimeTypeName(TypeDeclarationElement element) {
+  jsAst.Name runtimeTypeName(Entity element) {
     if (element == null) return _literalDynamic;
     // The returned name affects both the global and instance member namespaces:
     //
@@ -1447,7 +1443,7 @@ class Namer {
   ///
   /// This is both the *runtime type* of the class (see [runtimeTypeName])
   /// and a global property name in which to store its JS constructor.
-  jsAst.Name className(ClassElement class_) => _disambiguateGlobalType(class_);
+  jsAst.Name className(ClassEntity class_) => _disambiguateGlobalType(class_);
 
   /// Property name on which [member] can be accessed directly,
   /// without clashing with another JS property name.
@@ -1483,7 +1479,7 @@ class Namer {
   ///
   /// The name is not necessarily unique to [method], since a static method
   /// may share its name with an instance method.
-  jsAst.Name methodPropertyName(MethodElement method) {
+  jsAst.Name methodPropertyName(FunctionEntity method) {
     return method.isInstanceMember
         ? instanceMethodName(method)
         : globalPropertyNameForMember(method);
@@ -1514,12 +1510,6 @@ class Namer {
     }
     return element.isField;
   }
-
-  /// Returns [staticStateHolder] or one of [reservedGlobalObjectNames].
-  // TODO(johnniwinther): Verify that the implementation can be changed to
-  // `globalObjectForLibrary(element.library)`.
-  String globalObjectForMethod(MethodElement element) =>
-      globalObjectForMember(element);
 
   /// Returns [staticStateHolder] or one of [reservedGlobalObjectNames].
   String globalObjectForMember(MemberEntity element) {
@@ -1562,8 +1552,8 @@ class Namer {
     return deriveLazyInitializerName(name);
   }
 
-  jsAst.Name staticClosureName(Element element) {
-    assert(Elements.isStaticOrTopLevelFunction(element));
+  jsAst.Name staticClosureName(FunctionEntity element) {
+    assert(element.isTopLevel || element.isStatic);
     String enclosing =
         element.enclosingClass == null ? "" : element.enclosingClass.name;
     String library = _proposeNameForLibrary(element.library);
@@ -1628,7 +1618,7 @@ class Namer {
     return operatorIs(interfaceType.element);
   }
 
-  jsAst.Name operatorIs(ClassElement element) {
+  jsAst.Name operatorIs(ClassEntity element) {
     // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
     return new CompoundName(
         [new StringBackedName(operatorIsPrefix), runtimeTypeName(element)]);
@@ -1643,7 +1633,7 @@ class Namer {
     return name;
   }
 
-  jsAst.Name substitutionName(ClassElement element) {
+  jsAst.Name substitutionName(ClassEntity element) {
     return new CompoundName(
         [new StringBackedName(operatorAsPrefix), runtimeTypeName(element)]);
   }

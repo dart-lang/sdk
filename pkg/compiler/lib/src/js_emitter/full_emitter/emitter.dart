@@ -24,7 +24,6 @@ import '../../elements/elements.dart'
         Element,
         Elements,
         FieldElement,
-        FunctionElement,
         FunctionSignature,
         LibraryElement,
         MethodElement,
@@ -168,8 +167,11 @@ class Emitter extends js_emitter.EmitterBase {
    */
   // TODO(ahe): Generate statics with their class, and store only libraries in
   // this map.
-  final Map<Fragment, Map<Element, ClassBuilder>> elementDescriptors =
-      new Map<Fragment, Map<Element, ClassBuilder>>();
+  final Map<Fragment, Map<LibraryEntity, ClassBuilder>> libraryDescriptors =
+      new Map<Fragment, Map<LibraryEntity, ClassBuilder>>();
+
+  final Map<Fragment, Map<ClassEntity, ClassBuilder>> classDescriptors =
+      new Map<Fragment, Map<ClassEntity, ClassBuilder>>();
 
   final bool generateSourceMap;
 
@@ -476,7 +478,7 @@ class Emitter extends js_emitter.EmitterBase {
         positionalParameterCount = callStructure.positionalArgumentCount;
         namedArguments = namedParametersAsReflectionNames(callStructure);
       } else {
-        FunctionElement function = elementOrSelector;
+        MethodElement function = elementOrSelector;
         if (function.isConstructor) {
           isConstructor = true;
           name = Elements.reconstructConstructorName(function);
@@ -564,7 +566,7 @@ class Emitter extends js_emitter.EmitterBase {
     if (staticFunctions == null) return;
 
     for (Method method in staticFunctions) {
-      MethodElement element = method.element;
+      FunctionEntity element = method.element;
       // We need to filter out null-elements for the interceptors.
       // TODO(floitsch): use the precomputed interceptors here.
       if (element == null) continue;
@@ -1010,7 +1012,7 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   jsAst.Expression generateLibraryDescriptor(
-      LibraryElement library, Fragment fragment) {
+      LibraryEntity library, Fragment fragment) {
     var uri = "";
     if (!compiler.options.enableMinification ||
         backend.mirrorsData.mustPreserveUris) {
@@ -1023,13 +1025,14 @@ class Emitter extends js_emitter.EmitterBase {
 
     String libraryName = (!compiler.options.enableMinification ||
             backend.mirrorsData.mustRetainLibraryNames)
-        ? library.libraryName
+        // TODO(johnniwinther): Support library names for entities.
+        ? library is LibraryElement ? library.libraryName : library.name
         : "";
 
     jsAst.Fun metadata =
         task.metadataCollector.buildLibraryMetadataFunction(library);
 
-    ClassBuilder descriptor = elementDescriptors[fragment][library];
+    ClassBuilder descriptor = libraryDescriptors[fragment][library];
 
     jsAst.ObjectInitializer initializer;
     if (descriptor == null) {
@@ -1263,21 +1266,23 @@ class Emitter extends js_emitter.EmitterBase {
     return new jsAst.Block(parts);
   }
 
-  void checkEverythingEmitted(Iterable<Element> elements) {
-    List<Element> pendingStatics =
-        Elements.sortedByPosition(elements.where((e) => !e.isLibrary));
+  void checkEverythingEmitted(
+      Map<ClassEntity, ClassBuilder> pendingClassBuilders) {
+    if (pendingClassBuilders == null) return;
+    List<ClassEntity> pendingClasses =
+        _sorter.sortClasses(pendingClassBuilders.keys);
 
-    pendingStatics.forEach((element) => reporter.reportInfo(
+    pendingClasses.forEach((ClassEntity element) => reporter.reportInfo(
         element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
 
-    if (pendingStatics != null && !pendingStatics.isEmpty) {
+    if (pendingClasses != null && !pendingClasses.isEmpty) {
       reporter.internalError(
-          pendingStatics.first, 'Pending statics (see above).');
+          pendingClasses.first, 'Pending statics (see above).');
     }
   }
 
   void assembleLibrary(Library library, Fragment fragment) {
-    LibraryElement libraryElement = library.element;
+    LibraryEntity libraryElement = library.element;
 
     assembleStaticFunctions(library.statics, fragment);
 
@@ -1325,13 +1330,13 @@ class Emitter extends js_emitter.EmitterBase {
     }
 
     // Collect the AST for the descriptors.
-    Map<Element, ClassBuilder> descriptors = elementDescriptors[mainFragment];
-    if (descriptors == null) descriptors = const {};
+    Map<LibraryEntity, ClassBuilder> descriptors =
+        libraryDescriptors[mainFragment] ?? const {};
 
-    checkEverythingEmitted(descriptors.keys);
+    checkEverythingEmitted(classDescriptors[mainFragment]);
 
     Iterable<LibraryEntity> libraries = outputLibraryLists[mainOutputUnit];
-    if (libraries == null) libraries = <LibraryElement>[];
+    if (libraries == null) libraries = <LibraryEntity>[];
 
     List<jsAst.Expression> parts = <jsAst.Expression>[];
     for (LibraryEntity library in _sorter.sortLibraries(libraries)) {
@@ -1340,18 +1345,14 @@ class Emitter extends js_emitter.EmitterBase {
     }
 
     if (descriptors.isNotEmpty) {
-      List<Element> remainingLibraries =
-          descriptors.keys.where((Element e) => e is LibraryElement).toList();
+      List<LibraryEntity> remainingLibraries = descriptors.keys.toList();
 
       // The remaining descriptors are only accessible through reflection.
       // The program builder does not collect libraries that only
       // contain typedefs that are used for reflection.
-      for (LibraryElement element in remainingLibraries) {
-        assert(element is LibraryElement);
-        if (element is LibraryElement) {
-          parts.add(generateLibraryDescriptor(element, mainFragment));
-          descriptors.remove(element);
-        }
+      for (LibraryEntity element in remainingLibraries) {
+        parts.add(generateLibraryDescriptor(element, mainFragment));
+        descriptors.remove(element);
       }
     }
     jsAst.ArrayInitializer descriptorsAst = new jsAst.ArrayInitializer(parts);
@@ -1548,11 +1549,12 @@ class Emitter extends js_emitter.EmitterBase {
     for (Fragment fragment in program.deferredFragments) {
       OutputUnit outputUnit = fragment.outputUnit;
 
-      Map<Element, ClassBuilder> descriptors = elementDescriptors[fragment];
+      Map<LibraryEntity, ClassBuilder> descriptors =
+          libraryDescriptors[fragment];
 
       if (descriptors != null && descriptors.isNotEmpty) {
         Iterable<LibraryEntity> libraries = outputLibraryLists[outputUnit];
-        if (libraries == null) libraries = [];
+        if (libraries == null) libraries = <LibraryEntity>[];
 
         // TODO(johnniwinther): Avoid creating [CodeBuffer]s.
         List<jsAst.Expression> parts = <jsAst.Expression>[];
@@ -1629,37 +1631,40 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   ClassBuilder getStaticMethodDescriptor(
-      MethodElement element, Fragment fragment) {
-    Element owner = element.library;
+      FunctionEntity element, Fragment fragment) {
     if (!_nativeData.isNativeMember(element)) {
       // For static (not top level) elements, record their code in a buffer
       // specific to the class. For now, not supported for native classes and
       // native elements.
-      ClassElement cls = element.enclosingClass;
+      ClassEntity cls = element.enclosingClass;
       if (compiler.codegenWorldBuilder.directlyInstantiatedClasses
               .contains(cls) &&
           !_nativeData.isNativeClass(cls) &&
-          compiler.deferredLoadTask.outputUnitForElement(element) ==
-              compiler.deferredLoadTask.outputUnitForElement(cls)) {
-        owner = cls;
+          compiler.deferredLoadTask.outputUnitForMember(element) ==
+              compiler.deferredLoadTask.outputUnitForClass(cls)) {
+        return classDescriptors
+            .putIfAbsent(fragment, () => new Map<ClassEntity, ClassBuilder>())
+            .putIfAbsent(cls, () {
+          return new ClassBuilder.forClass(cls, namer);
+        });
       }
     }
-    return _getElementDescriptor(element, owner, fragment);
+    return _getLibraryDescriptor(element, element.library, fragment);
   }
 
-  ClassBuilder getLibraryDescriptor(LibraryElement element, Fragment fragment) {
-    return _getElementDescriptor(element, element, fragment);
+  ClassBuilder getLibraryDescriptor(LibraryEntity element, Fragment fragment) {
+    return _getLibraryDescriptor(element, element, fragment);
   }
 
-  ClassBuilder _getElementDescriptor(
-      Element element, Element owner, Fragment fragment) {
+  ClassBuilder _getLibraryDescriptor(
+      Entity element, LibraryEntity owner, Fragment fragment) {
     if (owner == null) {
       reporter.internalError(element, 'Owner is null.');
     }
-    return elementDescriptors
-        .putIfAbsent(fragment, () => new Map<Element, ClassBuilder>())
+    return libraryDescriptors
+        .putIfAbsent(fragment, () => new Map<LibraryEntity, ClassBuilder>())
         .putIfAbsent(owner, () {
-      return new ClassBuilder(owner, namer, owner.isClass);
+      return new ClassBuilder.forLibrary(owner, namer);
     });
   }
 

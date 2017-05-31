@@ -181,7 +181,10 @@ class MirrorsDataBuilderImpl extends MirrorsDataImpl {
 
   @override
   void computeMembersNeededForReflection(
-      ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld) {}
+      ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld) {
+    // TODO(johnniwinther): Support dart:mirrors.
+    createImmutableSets();
+  }
 
   @override
   void maybeMarkClosureAsNeededForReflection(
@@ -239,12 +242,12 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
 class MirrorsCodegenAnalysisImpl implements MirrorsCodegenAnalysis {
   @override
   int get preMirrorsMethodCount {
-    throw new UnimplementedError(
-        'MirrorsCodegenAnalysisImpl.preMirrorsMethodCount');
+    // TODO(johnniwinther): Implement this.
+    return null;
   }
 
   @override
   void onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
-    throw new UnimplementedError('MirrorsCodegenAnalysisImpl.onQueueEmpty');
+    // TODO(johnniwinther): Implement this.
   }
 }
