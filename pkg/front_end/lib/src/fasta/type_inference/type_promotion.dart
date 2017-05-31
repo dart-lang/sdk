@@ -206,9 +206,7 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
         _computeCurrentFactMap()[variable],
         functionNestingLevel,
         type);
-    if (isInverted) {
-      _recordPromotionExpression(isExpression, _currentFacts, isCheck);
-    } else {
+    if (!isInverted) {
       _recordPromotionExpression(isExpression, isCheck, _currentFacts);
     }
   }
