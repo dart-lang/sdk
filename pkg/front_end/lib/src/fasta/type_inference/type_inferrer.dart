@@ -26,6 +26,7 @@ import 'package:kernel/ast.dart'
         Member,
         Name,
         Procedure,
+        ProcedureKind,
         Statement,
         TypeParameterType,
         VariableDeclaration,
@@ -206,44 +207,58 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   FunctionType getCalleeFunctionType(
       Member interfaceMember, DartType receiverType, Name methodName) {
-    if (receiverType is InterfaceType) {
-      if (interfaceMember == null) return _functionReturningDynamic;
-      var memberClass = interfaceMember.enclosingClass;
-      if (interfaceMember is Procedure) {
-        var memberFunctionType = interfaceMember.function.functionType;
-        if (memberClass.typeParameters.isNotEmpty) {
-          var castedType = classHierarchy.getClassAsInstanceOf(
-              receiverType.classNode, memberClass);
-          memberFunctionType = Substitution
-              .fromInterfaceType(Substitution
-                  .fromInterfaceType(receiverType)
-                  .substituteType(castedType.asInterfaceType))
-              .substituteType(memberFunctionType);
-        }
-        return memberFunctionType;
-      } else if (interfaceMember is Field) {
-        // TODO(paulberry): handle this case
-        return _functionReturningDynamic;
-      } else {
-        return _functionReturningDynamic;
-      }
-    } else if (receiverType is DynamicType) {
+    var type = getCalleeType(interfaceMember, receiverType, methodName);
+    if (type is FunctionType) {
+      return type;
+    } else {
       return _functionReturningDynamic;
+    }
+  }
+
+  DartType getCalleeType(
+      Member interfaceMember, DartType receiverType, Name methodName) {
+    if (receiverType is InterfaceType) {
+      if (interfaceMember == null) return const DynamicType();
+      var memberClass = interfaceMember.enclosingClass;
+      DartType calleeType;
+      if (interfaceMember is Procedure) {
+        if (interfaceMember.kind == ProcedureKind.Getter) {
+          calleeType = interfaceMember.function.returnType;
+        } else {
+          calleeType = interfaceMember.function.functionType;
+        }
+      } else if (interfaceMember is Field) {
+        calleeType = interfaceMember.type;
+      } else {
+        calleeType = const DynamicType();
+      }
+      if (memberClass.typeParameters.isNotEmpty) {
+        var castedType = classHierarchy.getClassAsInstanceOf(
+            receiverType.classNode, memberClass);
+        calleeType = Substitution
+            .fromInterfaceType(Substitution
+                .fromInterfaceType(receiverType)
+                .substituteType(castedType.asInterfaceType))
+            .substituteType(calleeType);
+      }
+      return calleeType;
+    } else if (receiverType is DynamicType) {
+      return const DynamicType();
     } else if (receiverType is FunctionType) {
       if (methodName.name == 'call') {
         return receiverType;
       } else {
         // TODO(paulberry): handle the case of invoking .toString() on a
         // function type.
-        return _functionReturningDynamic;
+        return const DynamicType();
       }
     } else if (receiverType is TypeParameterType) {
       // TODO(paulberry): use the bound
-      return _functionReturningDynamic;
+      return const DynamicType();
     } else {
       // TODO(paulberry): handle the case of invoking .toString() on a type
       // that's none of the above (e.g. `dynamic` or `bottom`)
-      return _functionReturningDynamic;
+      return const DynamicType();
     }
   }
 

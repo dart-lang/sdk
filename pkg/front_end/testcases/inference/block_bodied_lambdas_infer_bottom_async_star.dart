@@ -13,5 +13,5 @@ main() async {
   };
   Stream y = f();
   Stream<String> z = f();
-  String s = await f().first;
+  String s = await f(). /*@target=Stream::first*/ first;
 }

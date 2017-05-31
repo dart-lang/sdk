@@ -154,12 +154,13 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
   }
 }
 
-/// Instance of [InstrumentationValue] describing a [MethodElement].
-class _InstrumentationValueForMethodElement extends fasta.InstrumentationValue {
-  final MethodElement element;
+/// Instance of [InstrumentationValue] describing an [ExecutableElement].
+class _InstrumentationValueForExecutableElement
+    extends fasta.InstrumentationValue {
+  final ExecutableElement element;
   final _ElementNamer elementNamer;
 
-  _InstrumentationValueForMethodElement(this.element, this.elementNamer);
+  _InstrumentationValueForExecutableElement(this.element, this.elementNamer);
 
   @override
   String toString() {
@@ -264,7 +265,7 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
 
   visitBinaryExpression(BinaryExpression node) {
     super.visitBinaryExpression(node);
-    _recordMethodTarget(node.operator.charOffset, node.staticElement);
+    _recordTarget(node.operator.charOffset, node.staticElement);
   }
 
   @override
@@ -292,6 +293,14 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
     super.visitConstructorDeclaration(node);
     elementNamer = oldElementNamer;
+  }
+
+  @override
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    super.visitDeclaredIdentifier(node);
+    if (node.type == null) {
+      _recordType(node.identifier.offset, node.element.type);
+    }
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -329,7 +338,7 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
 
   visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
-    _recordMethodTarget(node.leftBracket.charOffset, node.staticElement);
+    _recordTarget(node.leftBracket.charOffset, node.staticElement);
   }
 
   visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -365,7 +374,9 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
 
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
-    _recordMethodTarget(node.methodName.offset, node.methodName.staticElement);
+    if (node.target != null) {
+      _recordTarget(node.methodName.offset, node.methodName.staticElement);
+    }
     if (node.typeArguments == null) {
       var inferredTypeArguments = _getInferredFunctionTypeArguments(
               node.function.staticType,
@@ -378,9 +389,28 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
+  @override
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    super.visitPrefixedIdentifier(node);
+    if (node.prefix.staticElement is! PrefixElement &&
+        node.prefix.staticElement is! ClassElement) {
+      if (node.identifier.inGetterContext()) {
+        _recordTarget(node.identifier.offset, node.identifier.staticElement);
+      }
+    }
+  }
+
   visitPrefixExpression(PrefixExpression node) {
     super.visitPrefixExpression(node);
-    _recordMethodTarget(node.operator.charOffset, node.staticElement);
+    _recordTarget(node.operator.charOffset, node.staticElement);
+  }
+
+  @override
+  visitPropertyAccess(PropertyAccess node) {
+    super.visitPropertyAccess(node);
+    if (node.propertyName.inGetterContext()) {
+      _recordTarget(node.propertyName.offset, node.propertyName.staticElement);
+    }
   }
 
   visitSimpleIdentifier(SimpleIdentifier node) {
@@ -401,14 +431,6 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
       recordPromotions(element.type);
     } else if (element is ParameterElement) {
       recordPromotions(element.type);
-    }
-  }
-
-  @override
-  visitDeclaredIdentifier(DeclaredIdentifier node) {
-    super.visitDeclaredIdentifier(node);
-    if (node.type == null) {
-      _recordType(node.identifier.offset, node.element.type);
     }
   }
 
@@ -439,10 +461,10 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
-  void _recordMethodTarget(int offset, Element element) {
-    if (element is MethodElement) {
+  void _recordTarget(int offset, Element element) {
+    if (element is ExecutableElement) {
       _instrumentation.record(uri, offset, 'target',
-          new _InstrumentationValueForMethodElement(element, elementNamer));
+          new _InstrumentationValueForExecutableElement(element, elementNamer));
     }
   }
 

@@ -11,7 +11,6 @@ accessors: Fail
 arithmetic: Fail
 async_function: Fail
 await: Fail
-bad_store: Fail
 call: Fail
 cascade: Fail
 casts: Fail
@@ -40,7 +39,6 @@ named_parameters: Fail
 null_aware: Fail
 operators: Fail
 optional: Fail
-override: Fail
 platform: Fail
 prefer_baseclass: Fail
 redirecting_constructor: Fail
@@ -79,7 +77,6 @@ inference/generic_functions_return_typedef: Fail
 inference/generic_methods_downwards_inference_fold: Fail
 inference/generic_methods_infer_js_builtin: Fail
 inference/generic_methods_iterable_and_future: Fail
-inference/generic_methods_nested_generic_instantiation: Fail
 inference/infer_assign_to_index: Fail
 inference/infer_assign_to_property: Fail
 inference/infer_assign_to_property_custom: Fail
@@ -101,14 +98,10 @@ inference/infer_prefix_expression: Fail
 inference/infer_statics_transitively: Fail
 inference/infer_statics_transitively3: Fail
 inference/infer_statics_transitively_a: Fail
-inference/infer_statics_with_method_invocations: Fail
 inference/infer_type_on_var_from_field: Fail
-inference/infer_types_on_generic_instantiations_in_library_cycle: Fail
 inference/infer_types_on_loop_indices_for_each_loop: Fail
 inference/infer_types_on_loop_indices_for_loop_with_inference: Fail
 inference/inferred_type_cascade: Fail
-inference/inferred_type_extract_method_tear_off: Fail
-inference/inferred_type_extract_method_tear_off_via_interface: Fail
 inference/inferred_type_is_typedef_parameterized: Fail
 inference/inferred_type_uses_synthetic_function_type_named_param: Fail
 inference/inferred_type_uses_synthetic_function_type_positional_param: Fail
@@ -119,7 +112,6 @@ inference/method_call_with_type_arguments_static_method: Fail
 inference/null_coalescing_operator: Fail
 inference/null_coalescing_operator_2: Fail
 inference/null_literal_should_not_infer_as_bottom: Fail
-inference/propagate_inference_to_field_in_class: Fail
 inference/reference_to_typedef: Fail
 inference/refine_binary_expression_type_type_parameter_t_double: Fail
 inference/refine_binary_expression_type_type_parameter_t_int: Fail

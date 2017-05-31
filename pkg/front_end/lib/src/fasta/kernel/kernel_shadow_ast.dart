@@ -1072,7 +1072,7 @@ class KernelMethodInvocation extends MethodInvocation
         // to fail.  TODO(paulberry): fix this.
         if (inferrer.strongMode) {
           inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-              'target', new InstrumentationValueForProcedure(interfaceMember));
+              'target', new InstrumentationValueForMember(interfaceMember));
           interfaceTarget = interfaceMember;
         }
         isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
@@ -1152,8 +1152,28 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    typeNeeded =
+        inferrer.listener.propertyGetEnter(this, typeContext) || typeNeeded;
+    // First infer the receiver so we can look up the getter that was invoked.
+    var receiverType = inferrer.inferExpression(receiver, null, true);
+    Member interfaceMember;
+    if (receiverType is InterfaceType) {
+      interfaceMember = inferrer.classHierarchy
+          .getInterfaceMember(receiverType.classNode, name);
+      // Our non-strong golden files currently don't include interface targets,
+      // so we can't store the interface target without causing tests to fail.
+      // TODO(paulberry): fix this.
+      if (inferrer.strongMode) {
+        inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+            'target', new InstrumentationValueForMember(interfaceMember));
+        interfaceTarget = interfaceMember;
+      }
+    }
+    var inferredType =
+        inferrer.getCalleeType(interfaceMember, receiverType, name);
+    // TODO(paulberry): Infer tear-off type arguments if appropriate.
+    inferrer.listener.propertyGetExit(this, inferredType);
+    return typeNeeded ? inferredType : null;
   }
 }
 
@@ -1884,10 +1904,6 @@ class KernelYieldStatement extends YieldStatement implements KernelStatement {
 }
 
 class _UnfinishedCascade extends Expression {
-  getStaticType(types) {
-    return internalError("Internal error: Unsupported operation.");
-  }
-
   accept(v) {
     return internalError("Internal error: Unsupported operation.");
   }
@@ -1896,11 +1912,15 @@ class _UnfinishedCascade extends Expression {
     return internalError("Internal error: Unsupported operation.");
   }
 
-  visitChildren(v) {
+  getStaticType(types) {
     return internalError("Internal error: Unsupported operation.");
   }
 
   transformChildren(v) {
+    return internalError("Internal error: Unsupported operation.");
+  }
+
+  visitChildren(v) {
     return internalError("Internal error: Unsupported operation.");
   }
 }

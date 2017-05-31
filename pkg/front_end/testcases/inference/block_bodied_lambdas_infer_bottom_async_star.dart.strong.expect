@@ -48,7 +48,7 @@ static method main() → dynamic /* originally async */ {
         };
         asy::Stream<dynamic> y = f.call();
         asy::Stream<core::String> z = f.call();
-        asy::_awaitHelper(f.call().first, :async_op_then, :async_op_error, :async_op);
+        asy::_awaitHelper(f.call().{asy::Stream::first}, :async_op_then, :async_op_error, :async_op);
         [yield] null;
         core::String s = :result;
       }

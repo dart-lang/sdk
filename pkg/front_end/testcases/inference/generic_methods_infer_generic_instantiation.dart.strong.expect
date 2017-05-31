@@ -39,20 +39,20 @@ static method main() → dynamic {
   self::takeDID(math::min);
   self::takeOON(math::min);
   self::takeOOO(math::min);
-  self::takeIII(new self::C::•().m);
-  self::takeDDD(new self::C::•().m);
-  self::takeNNN(new self::C::•().m);
-  self::takeIDN(new self::C::•().m);
-  self::takeDIN(new self::C::•().m);
-  self::takeIIN(new self::C::•().m);
-  self::takeDDN(new self::C::•().m);
-  self::takeIIO(new self::C::•().m);
-  self::takeDDO(new self::C::•().m);
-  self::takeOON(new self::C::•().m);
-  self::takeOOO(new self::C::•().m);
-  self::takeOOI(new self::C::•().m);
-  self::takeIDI(new self::C::•().m);
-  self::takeDID(new self::C::•().m);
+  self::takeIII(new self::C::•().{self::C::m});
+  self::takeDDD(new self::C::•().{self::C::m});
+  self::takeNNN(new self::C::•().{self::C::m});
+  self::takeIDN(new self::C::•().{self::C::m});
+  self::takeDIN(new self::C::•().{self::C::m});
+  self::takeIIN(new self::C::•().{self::C::m});
+  self::takeDDN(new self::C::•().{self::C::m});
+  self::takeIIO(new self::C::•().{self::C::m});
+  self::takeDDO(new self::C::•().{self::C::m});
+  self::takeOON(new self::C::•().{self::C::m});
+  self::takeOOO(new self::C::•().{self::C::m});
+  self::takeOOI(new self::C::•().{self::C::m});
+  self::takeIDI(new self::C::•().{self::C::m});
+  self::takeDID(new self::C::•().{self::C::m});
 }
 static method takeIII((core::int, core::int) → core::int fn) → void {}
 static method takeDDD((core::double, core::double) → core::double fn) → void {}

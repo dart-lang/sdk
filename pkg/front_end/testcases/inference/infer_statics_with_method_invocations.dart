@@ -8,7 +8,7 @@ library test;
 import 'infer_statics_with_method_invocations_a.dart';
 
 class T {
-  static final T foo = /*@target=T::m1*/ m1(/*@target=T::m2*/ m2(m3('', '')));
+  static final T foo = m1(m2(m3('', '')));
   static T m1(String m) {
     return null;
   }

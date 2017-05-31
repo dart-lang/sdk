@@ -16,8 +16,8 @@ class A {
 }
 
 foo() {
-  int y = new C().x;
-  String z = /*error:INVALID_ASSIGNMENT*/ new C().x;
+  int y = new C(). /*@target=C::x*/ x;
+  String z = /*error:INVALID_ASSIGNMENT*/ new C(). /*@target=C::x*/ x;
 }
 
 main() {

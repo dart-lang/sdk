@@ -15,8 +15,8 @@ class B<E> extends A<E> {
 }
 
 foo() {
-  int y = /*error:INVALID_ASSIGNMENT*/ new B<String>().x;
-  String z = new B<String>().x;
+  int y = /*error:INVALID_ASSIGNMENT*/ new B<String>(). /*@target=B::x*/ x;
+  String z = new B<String>(). /*@target=B::x*/ x;
 }
 
 main() {
