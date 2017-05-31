@@ -291,9 +291,9 @@ abstract class Iterable<E> {
    * Checks every element in iteration order, and returns `false` if
    * any of them make [test] return `false`, otherwise returns `true`.
    */
-  bool every(bool f(E element)) {
+  bool every(bool test(E element)) {
     for (E element in this) {
-      if (!f(element)) return false;
+      if (!test(element)) return false;
     }
     return true;
   }
@@ -330,9 +330,9 @@ abstract class Iterable<E> {
    * Checks every element in iteration order, and returns `true` if
    * any of them make [test] return `true`, otherwise returns false.
    */
-  bool any(bool f(E element)) {
+  bool any(bool test(E element)) {
     for (E element in this) {
-      if (f(element)) return true;
+      if (test(element)) return true;
     }
     return false;
   }

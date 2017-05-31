@@ -13,9 +13,9 @@ part of dart.collection;
  * implementing `keys`, `operator[]`, `operator[]=`, `remove` and `clear`.
  * The remaining operations are implemented in terms of these five.
  *
- * The `keys` iterable should have efficient [length] and [contains]
- * operations, and it should catch concurrent modifications of the keys
- * while iterating.
+ * The `keys` iterable should have efficient [Iterable.length] and
+ * [Iterable.contains] operations, and it should catch concurrent modifications
+ * of the keys while iterating.
  *
  * A more efficient implementation is usually possible by overriding
  * some of the other members as well.
@@ -31,9 +31,9 @@ abstract class MapBase<K, V> = Object with MapMixin<K, V>;
  * implementing `keys`, `operator[]`, `operator[]=`, `remove` and `clear`.
  * The remaining operations are implemented in terms of these five.
  *
- * The `keys` iterable should have efficient [length] and [contains]
- * operations, and it should catch concurrent modifications of the keys
- * while iterating.
+ * The `keys` iterable should have efficient [Iterable.length] and
+ * [Iterable.contains] operations, and it should catch concurrent modifications
+ * of the keys while iterating.
  *
  * A more efficient implementation is usually possible by overriding
  * some of the other members as well.
@@ -93,9 +93,9 @@ abstract class MapMixin<K, V> implements Map<K, V> {
  * The remaining non-modifying operations are implemented in terms of `keys`
  * and `operator[]`.
  *
- * The `keys` iterable should have efficient [length] and [contains]
- * operations, and it should catch concurrent modifications of the keys
- * while iterating.
+ * The `keys` iterable should have efficient [Iterable.length] and
+ * [Iterable.contains] operations, and it should catch concurrent modifications
+ * of the keys while iterating.
  *
  * A more efficient implementation is usually possible by overriding
  * some of the other members as well.

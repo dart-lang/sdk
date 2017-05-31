@@ -308,7 +308,7 @@ abstract class Future<T> {
    * non-null result of successful futures.
    * This makes it posible to `cleanUp` resources that would otherwise be
    * lost (since the returned future does not provide access to these values).
-   * The [cleanup] function is unused if there is no error.
+   * The [cleanUp] function is unused if there is no error.
    *
    * The call to `cleanUp` should not throw. If it does, the error will be an
    * uncaught asynchronous error.

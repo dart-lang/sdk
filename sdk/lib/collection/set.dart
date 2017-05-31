@@ -29,13 +29,13 @@ abstract class SetMixin<E> implements Set<E> {
   // If/when Dart mixins get more powerful, we should just create a single
   // Mixin class from IterableMixin and the new methods of this class.
 
-  bool add(E element);
+  bool add(E value);
 
   bool contains(Object element);
 
   E lookup(Object element);
 
-  bool remove(Object element);
+  bool remove(Object value);
 
   Iterator<E> get iterator;
 

@@ -22,28 +22,22 @@ abstract class ZLibOption {
   /// and [ZLibDecoder.windowBits].
   static const int DEFAULT_WINDOW_BITS = 15;
 
-  /// Minimal value for [ZLibCodec.level], [ZLibEncoder.level]
-  /// and [ZLibDecoder.level].
+  /// Minimal value for [ZLibCodec.level] and [ZLibEncoder.level].
   static const int MIN_LEVEL = -1;
 
-  /// Maximal value for [ZLibCodec.level], [ZLibEncoder.level]
-  /// and [ZLibDecoder.level].
+  /// Maximal value for [ZLibCodec.level] and [ZLibEncoder.level]
   static const int MAX_LEVEL = 9;
 
-  /// Default value for [ZLibCodec.level], [ZLibEncoder.level]
-  /// and [ZLibDecoder.level].
+  /// Default value for [ZLibCodec.level] and [ZLibEncoder.level].
   static const int DEFAULT_LEVEL = 6;
 
-  /// Minimal value for [ZLibCodec.memLevel], [ZLibEncoder.memLevel]
-  /// and [ZLibDecoder.memLevel].
+  /// Minimal value for [ZLibCodec.memLevel] and [ZLibEncoder.memLevel].
   static const int MIN_MEM_LEVEL = 1;
 
-  /// Maximal value for [ZLibCodec.memLevel], [ZLibEncoder.memLevel]
-  /// and [ZLibDecoder.memLevel].
+  /// Maximal value for [ZLibCodec.memLevel] and [ZLibEncoder.memLevel].
   static const int MAX_MEM_LEVEL = 9;
 
-  /// Default value for [ZLibCodec.memLevel], [ZLibEncoder.memLevel]
-  /// and [ZLibDecoder.memLevel].
+  /// Default value for [ZLibCodec.memLevel] and [ZLibEncoder.memLevel].
   static const int DEFAULT_MEM_LEVEL = 8;
 
   /// Recommended strategy for data produced by a filter (or predictor)

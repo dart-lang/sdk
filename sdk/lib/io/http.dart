@@ -1367,7 +1367,7 @@ abstract class HttpClient {
    * The `Host` header for the request will be set to the value
    * [Uri.host]:[Uri.port] from [url]. This can be overridden through the
    * [HttpClientRequest] interface before the request is sent.  NOTE
-   * if [host] is an IP address this will still be set in the `Host`
+   * if [Uri.host] is an IP address this will still be set in the `Host`
    * header.
    *
    * For additional information on the sequence of events during an

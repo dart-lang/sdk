@@ -434,11 +434,6 @@ abstract class ListMixin<E> implements List<E> {
     return -1;
   }
 
-  /**
-   * Returns the last index in the list [a] of the given [element], starting
-   * the search at index [startIndex] to 0.
-   * Returns -1 if [element] is not found.
-   */
   int lastIndexOf(Object element, [int startIndex]) {
     if (startIndex == null) {
       startIndex = this.length - 1;
