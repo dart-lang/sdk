@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library http_server;
-
 import 'dart:async';
+import 'dart:convert' show HtmlEscape;
 import 'dart:io';
 
-import 'dart:convert' show HtmlEscape;
+import 'package:package_resolver/package_resolver.dart';
 
-import 'test_suite.dart'; // For TestUtils.
+import 'configuration.dart';
+import 'test_suite.dart';
 import 'vendored_pkg/args/args.dart';
 import 'utils.dart';
-import 'package:package_resolver/package_resolver.dart';
 
 class DispatchingServer {
   HttpServer server;
@@ -94,7 +93,7 @@ void main(List<String> arguments) {
     var servers = new TestingServers(
         args['build-directory'] as String,
         args['csp'] as bool,
-        args['runtime'] as String,
+        Runtime.find(args['runtime'] as String),
         null,
         args['package-root'] as String,
         args['packages'] as String);
@@ -132,12 +131,12 @@ class TestingServers {
   Uri _packageRoot;
   Uri _packages;
   final bool useContentSecurityPolicy;
-  final String runtime;
+  final Runtime runtime;
   DispatchingServer _server;
   SyncPackageResolver _resolver;
 
   TestingServers(String buildDirectory, this.useContentSecurityPolicy,
-      [String this.runtime = 'none',
+      [this.runtime = Runtime.none,
       String dartDirectory,
       String packageRoot,
       String packages]) {
@@ -194,7 +193,7 @@ class TestingServers {
       '-c',
       crossOriginPort,
       '--build-directory=$buildDirectory',
-      '--runtime=$runtime'
+      '--runtime=${runtime.name}'
     ];
     if (useContentSecurityPolicy) {
       command.add('--csp');

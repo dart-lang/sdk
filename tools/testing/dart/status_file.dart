@@ -4,7 +4,9 @@
 
 import 'dart:io';
 
+import 'environment.dart';
 import 'expectation.dart';
+import 'path.dart';
 import 'status_expression.dart';
 
 /// Splits out a trailing line comment
@@ -43,18 +45,31 @@ final _issuePattern = new RegExp("[Ii]ssue ([0-9]+)");
 /// Entries may also appear before any section header, in which case they
 /// always apply.
 class StatusFile {
+  final String _path;
   final List<StatusSection> sections = [];
 
-  /// Parses the status file at [path].
-  StatusFile.read(String path) {
-    var lines = new File(path).readAsLinesSync();
+  /// Parses the status file at [_path].
+  StatusFile.read(this._path) {
+    var lines = new File(_path).readAsLinesSync();
 
     // The current section whose rules are being parsed.
     StatusSection section;
 
     var lineNumber = 0;
+
     for (var line in lines) {
       lineNumber++;
+
+      fail(String message, [List<String> errors]) {
+        print('$message in "$_shortPath" line $lineNumber:\n$line');
+
+        if (errors != null) {
+          for (var error in errors) {
+            print("- ${error.replaceAll('\n', '\n  ')}");
+          }
+        }
+        exit(1);
+      }
 
       // Strip off the comment and whitespace.
       var match = _commentPattern.firstMatch(line);
@@ -71,9 +86,22 @@ class StatusFile {
       // See if we are starting a new section.
       match = _sectionPattern.firstMatch(source);
       if (match != null) {
-        var condition = Expression.parse(match[1].trim());
-        section = new StatusSection(condition);
-        sections.add(section);
+        try {
+          var condition = Expression.parse(match[1].trim());
+
+          var errors = <String>[];
+          condition.validate(errors);
+
+          if (errors.isNotEmpty) {
+            var s = errors.length > 1 ? "s" : "";
+            fail('Validation error$s', errors);
+          }
+
+          section = new StatusSection(condition);
+          sections.add(section);
+        } on FormatException {
+          fail("Status expression syntax error");
+        }
         continue;
       }
 
@@ -82,7 +110,16 @@ class StatusFile {
       if (match != null) {
         var path = match[1].trim();
         // TODO(whesse): Handle test names ending in a wildcard (*).
-        var expectations = _parseExpectations(match[2]);
+        var expectations = <Expectation>[];
+        for (var name in match[2].split(",")) {
+          name = name.trim();
+          try {
+            expectations.add(Expectation.find(name));
+          } on ArgumentError {
+            fail('Unrecognized test expectation "$name"');
+          }
+        }
+
         var issue = _issueNumber(comment);
 
         // If we haven't found a section header yet, create an implicit section
@@ -96,17 +133,16 @@ class StatusFile {
         continue;
       }
 
-      throw new FormatException(
-          "Could not parse line $lineNumber of status file '$path':\n$line");
+      fail("Unrecognized input");
     }
   }
 
-  /// Parses a comma-separated list of expectation names from [text].
-  List<Expectation> _parseExpectations(String text) {
-    return text
-        .split(",")
-        .map((name) => Expectation.find(name.trim()))
-        .toList();
+  /// Gets the path to this status file relative to the Dart repo root.
+  String get _shortPath {
+    var repoRoot = new Path(Platform.script
+            .toFilePath(windows: Platform.operatingSystem == "windows"))
+        .join(new Path("../../../../"));
+    return new Path(_path).relativeTo(repoRoot).toString();
   }
 
   /// Returns the issue number embedded in [comment] or `null` if there is none.
@@ -148,7 +184,7 @@ class StatusSection {
   final List<StatusEntry> entries = [];
 
   /// Returns true if this section should apply in the given [environment].
-  bool isEnabled(Map<String, dynamic> environment) =>
+  bool isEnabled(Environment environment) =>
       _condition == null || _condition.evaluate(environment);
 
   StatusSection(this._condition);
