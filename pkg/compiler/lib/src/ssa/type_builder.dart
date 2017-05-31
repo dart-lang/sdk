@@ -10,6 +10,7 @@ import '../types/types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../universe/use.dart' show TypeUse;
 
@@ -54,8 +55,7 @@ class TypeBuilder {
   /// Depending on the context and the mode, wrap the given type in an
   /// instruction that checks the type is what we expect or automatically
   /// trusts the written type.
-  HInstruction potentiallyCheckOrTrustType(
-      HInstruction original, ResolutionDartType type,
+  HInstruction potentiallyCheckOrTrustType(HInstruction original, DartType type,
       {int kind: HTypeConversion.CHECKED_MODE_CHECK}) {
     if (type == null) return original;
     HInstruction checkedOrTrusted = original;

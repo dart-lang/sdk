@@ -34,6 +34,7 @@ import 'compiler_helper.dart';
 const SOURCE = const {
   'main.dart': '''
 main() {
+  return null;
 }
 '''
 };

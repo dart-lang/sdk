@@ -364,14 +364,9 @@ class KernelAstAdapter extends KernelToElementMapMixin {
         .mapType(getDartType(literal.keyType), getDartType(literal.valueType));
   }
 
-  ResolutionDartType getFunctionReturnType(ir.FunctionNode node) {
-    if (node.returnType is ir.InvalidType) return const ResolutionDynamicType();
-    return getDartType(node.returnType);
-  }
-
   /// Computes the function type corresponding the signature of [node].
   ResolutionFunctionType getFunctionType(ir.FunctionNode node) {
-    ResolutionDartType returnType = getFunctionReturnType(node);
+    ResolutionDartType returnType = getDartType(node.returnType);
     List<ResolutionDartType> parameterTypes = <ResolutionDartType>[];
     List<ResolutionDartType> optionalParameterTypes = <ResolutionDartType>[];
     for (ir.VariableDeclaration variable in node.positionalParameters) {
@@ -494,11 +489,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
 
   @override
   ResolutionDartType visitInvalidType(ir.InvalidType node) {
-    if (topLevel) {
-      throw new UnimplementedError(
-          "Outermost invalid types not currently supported");
-    }
-    // Nested invalid types are treated as `dynamic`.
+    // Root uses such a `o is Unresolved` and `o as Unresolved` must be special
+    // cased in the builder, nested invalid types are treated as `dynamic`.
     return const ResolutionDynamicType();
   }
 }

@@ -33,6 +33,9 @@ abstract class KernelToElementMap {
   /// Returns the [DartType] corresponding to [type].
   DartType getDartType(ir.DartType type);
 
+  /// Returns the [FunctionType] of the [node].
+  FunctionType getFunctionType(ir.FunctionNode node);
+
   /// Returns the list of [DartType]s corresponding to [types].
   List<DartType> getDartTypes(List<ir.DartType> types);
 
@@ -165,7 +168,6 @@ enum ForeignKind {
 
 abstract class KernelToElementMapMixin implements KernelToElementMap {
   DiagnosticReporter get reporter;
-  FunctionType getFunctionType(ir.FunctionNode node);
   native.BehaviorBuilder get nativeBehaviorBuilder;
   ConstantValue computeConstantValue(ConstantExpression constant);
 

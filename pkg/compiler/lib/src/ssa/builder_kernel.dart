@@ -831,7 +831,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       assert(_targetFunction != null && _targetFunction is ir.FunctionNode);
       returnStatement.expression.accept(this);
       value = pop();
-      DartType returnType = astAdapter.getFunctionReturnType(_targetFunction);
+      DartType returnType = _elementMap.getFunctionType(_targetFunction);
       if (_targetFunction.asyncMarker == ir.AsyncMarker.Async) {
         if (options.enableTypeAssertions &&
             !isValidAsyncReturnType(returnType)) {

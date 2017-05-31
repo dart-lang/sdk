@@ -1322,11 +1322,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitInvalidType(ir.InvalidType node) {
-    if (topLevel) {
-      throw new UnimplementedError(
-          "Outermost invalid types not currently supported");
-    }
-    // Nested invalid types are treated as `dynamic`.
+    // Root uses such a `o is Unresolved` and `o as Unresolved` must be special
+    // cased in the builder, nested invalid types are treated as `dynamic`.
     return const DynamicType();
   }
 }
@@ -1435,6 +1432,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
       : super(
             elementMap.elementEnvironment,
             elementMap.commonElements,
+            elementMap._constantEnvironment.constantSystem,
             nativeBasicData,
             nativeDataBuilder,
             interceptorDataBuilder,

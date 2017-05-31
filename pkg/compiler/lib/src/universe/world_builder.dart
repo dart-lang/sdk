@@ -10,6 +10,7 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart';
+import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
