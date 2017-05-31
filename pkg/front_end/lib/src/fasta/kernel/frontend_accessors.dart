@@ -23,9 +23,7 @@ import 'package:front_end/src/fasta/kernel/fasta_accessors.dart'
 
 import 'package:kernel/ast.dart' hide MethodInvocation;
 
-final Name indexGetName = new Name("[]");
-
-final Name indexSetName = new Name("[]=");
+import '../names.dart' show equalsName, indexGetName, indexSetName;
 
 /// An [Accessor] represents a subexpression for which we can't yet build a
 /// kernel [Expression] because we don't yet know the context in which it is
@@ -523,11 +521,8 @@ Expression makeBinary(
     ..fileOffset = offset;
 }
 
-final Name _equalOperator = new Name('==');
-
 Expression buildIsNull(Expression value, {int offset: TreeNode.noOffset}) {
-  return makeBinary(value, _equalOperator, null, new NullLiteral(),
-      offset: offset);
+  return makeBinary(value, equalsName, null, new NullLiteral(), offset: offset);
 }
 
 VariableDeclaration makeOrReuseVariable(Expression value) {
