@@ -1120,9 +1120,12 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     return getMightBePassedToApply(element);
   }
 
-  // TODO(johnniwinther): Support [cls] as a [ClassEntity].
   @override
-  String dump([ClassElement cls]) {
+  String dump([ClassEntity cls]) {
+    if (cls is! ClassElement) {
+      // TODO(johnniwinther): Support [cls] as a [ClassEntity].
+      cls = null;
+    }
     StringBuffer sb = new StringBuffer();
     if (cls != null) {
       sb.write("Classes in the closed world related to $cls:\n");

@@ -4,12 +4,13 @@
 
 // Partial test that the closed world computed from [WorldImpact]s derived from
 // kernel is equivalent to the original computed from resolution.
-library dart2js.kernel.closed_world_from_dill_test;
+library dart2js.kernel.compile_from_dill_test;
 
 import 'dart:async';
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
@@ -18,12 +19,14 @@ import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
 import '../equivalence/check_functions.dart';
+import '../equivalence/check_helpers.dart';
 import '../serialization/helper.dart';
 import 'test_helpers.dart';
 
@@ -31,40 +34,7 @@ import 'compiler_helper.dart';
 
 const SOURCE = const {
   'main.dart': '''
-
-class ClassWithSetter {
-  void set setter(_) {}
-}
-
-class Mixin {
-  method1() {}
-  method2() {}
-  method3() {}
-  method4() {}
-  var field;
-  get property => 0;
-  set property(_) {}
-}
-class Class1 = Object with Mixin;
-class Class2 extends Object with Mixin {
-  method3() {}
-  method5() {
-    super.method4();
-    super.property;
-    super.property = null;
-    super.field;
-    super.field = null;
-  }
-}
-
 main() {
-  print('Hello World');
-  ''.contains; // Trigger member closurization.
-  new ClassWithSetter().setter = null;
-  new Class1().method1();
-  new Class2().method2();
-  new Class2().method3();
-  new Class2().method5();
 }
 '''
 };
@@ -100,12 +70,14 @@ Future<ResultKind> mainInternal(List<String> args,
   });
   entryPoint = dir.uri.resolve(entryPoint.path);
 
-  print('---- analyze-only ------------------------------------------------');
+  print('---- compile from ast ----------------------------------------------');
   DiagnosticCollector collector = new DiagnosticCollector();
+  OutputCollector collector1 = new OutputCollector();
   Compiler compiler1 = compilerFor(
       entryPoint: entryPoint,
       diagnosticHandler: collector,
-      options: [Flags.analyzeOnly, Flags.enableAssertMessage]);
+      outputProvider: collector1,
+      options: [Flags.disableTypeInference, Flags.enableAssertMessage]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler1.resolution.retainCachesForTesting = true;
   await compiler1.run(entryPoint);
@@ -123,11 +95,13 @@ Future<ResultKind> mainInternal(List<String> args,
   }
   Expect.isFalse(compiler1.compilationFailed);
   ResolutionEnqueuer enqueuer1 = compiler1.enqueuer.resolution;
-  ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
+  ClosedWorld closedWorld1 =
+      compiler1.resolutionWorldBuilder.closedWorldForTesting;
 
-  Compiler compiler2 = await compileWithDill(
-      entryPoint, const {}, [Flags.analyzeOnly, Flags.enableAssertMessage],
-      printSteps: true);
+  OutputCollector collector2 = new OutputCollector();
+  Compiler compiler2 = await compileWithDill(entryPoint, const {},
+      [Flags.disableTypeInference, Flags.enableAssertMessage],
+      printSteps: true, compilerOutput: collector2);
 
   KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
   KernelToElementMap elementMap = frontEndStrategy.elementMap;
@@ -137,7 +111,8 @@ Future<ResultKind> mainInternal(List<String> args,
   KernelEquivalence equivalence = new KernelEquivalence(elementMap);
 
   ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
-  ClosedWorld closedWorld2 = compiler2.resolutionWorldBuilder.closeWorld();
+  ClosedWorld closedWorld2 =
+      compiler2.resolutionWorldBuilder.closedWorldForTesting;
 
   checkBackendUsage(closedWorld1.backendUsage, closedWorld2.backendUsage,
       equivalence.defaultStrategy);
@@ -149,7 +124,27 @@ Future<ResultKind> mainInternal(List<String> args,
   }, elementFilter: elementFilter, verbose: arguments.verbose);
 
   checkClosedWorlds(closedWorld1, closedWorld2,
-      strategy: equivalence.defaultStrategy, verbose: arguments.verbose);
+      strategy: equivalence.defaultStrategy,
+      verbose: arguments.verbose,
+      // TODO(johnniwinther,efortuna): Require closure class equivalence when
+      // these are supported.
+      allowMissingClosureClasses: true);
 
+  // TODO(johnniwinther): Perform equivalence tests on the model: codegen world
+  // impacts, codegen world builder, etc.
+
+  collector1.outputMap
+      .forEach((OutputType outputType, Map<String, BufferedOutputSink> map1) {
+    if (outputType == OutputType.sourceMap) {
+      // TODO(johnniwinther): Support source map from .dill.
+      return;
+    }
+    Map<String, BufferedOutputSink> map2 = collector2.outputMap[outputType];
+    checkSets(map1.keys, map2.keys, 'output', equality);
+    map1.forEach((String name, BufferedOutputSink output1) {
+      BufferedOutputSink output2 = map2[name];
+      Expect.stringEquals(output1.text, output2.text);
+    });
+  });
   return ResultKind.success;
 }

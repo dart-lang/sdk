@@ -9,6 +9,7 @@ library dart2js.kernel.compiler_helper;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/names.dart';
@@ -139,8 +140,8 @@ class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
 }
 
 Future<Compiler> compileWithDill(
-    Uri entryPoint, Map<String, String> memorySourceFiles,
-    {bool printSteps: false}) async {
+    Uri entryPoint, Map<String, String> memorySourceFiles, List<String> options,
+    {bool printSteps: false, CompilerOutput compilerOutput}) async {
   if (memorySourceFiles.isNotEmpty) {
     Directory dir = await Directory.systemTemp.createTemp('dart2js-with-dill');
     if (printSteps) {
@@ -164,11 +165,10 @@ Future<Compiler> compileWithDill(
   if (printSteps) {
     print('---- closed world from dill $dillFile ----------------------------');
   }
-  Compiler compiler = compilerFor(entryPoint: dillFile, options: [
-    Flags.analyzeOnly,
-    Flags.enableAssertMessage,
-    Flags.loadFromDill
-  ]);
+  Compiler compiler = compilerFor(
+      entryPoint: dillFile,
+      options: [Flags.loadFromDill]..addAll(options),
+      outputProvider: compilerOutput);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler.resolution.retainCachesForTesting = true;
   await compiler.run(dillFile);

@@ -26,7 +26,8 @@ import 'check_helpers.dart';
 void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
     {TestStrategy strategy: const TestStrategy(),
     bool allowExtra: false,
-    bool verbose: false}) {
+    bool verbose: false,
+    bool allowMissingClosureClasses: false}) {
   if (verbose) {
     print(closedWorld1.dump());
     print(closedWorld2.dump());
@@ -39,7 +40,8 @@ void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
       closedWorld2
           .getClassHierarchyNode(closedWorld2.commonElements.objectClass),
       strategy.elementEquivalence,
-      verbose: verbose);
+      verbose: verbose,
+      allowMissingClosureClasses: allowMissingClosureClasses);
 
   checkNativeData(closedWorld1.nativeData, closedWorld2.nativeData,
       strategy: strategy, allowExtra: allowExtra, verbose: verbose);
@@ -152,7 +154,8 @@ void checkClassHierarchyNodes(
     ClassHierarchyNode node1,
     ClassHierarchyNode node2,
     bool elementEquivalence(Entity a, Entity b),
-    {bool verbose: false}) {
+    {bool verbose: false,
+    bool allowMissingClosureClasses: false}) {
   if (verbose) {
     print('Checking $node1 vs $node2');
   }
@@ -180,12 +183,13 @@ void checkClassHierarchyNodes(
       if (elementEquivalence(child1, child2)) {
         checkClassHierarchyNodes(
             closedWorld1, closedWorld2, child, other, elementEquivalence,
-            verbose: verbose);
+            verbose: verbose,
+            allowMissingClosureClasses: allowMissingClosureClasses);
         found = true;
         break;
       }
     }
-    if (!found) {
+    if (!found && (!child.cls.isClosure || !allowMissingClosureClasses)) {
       if (child.isInstantiated) {
         print('Missing subclass ${child.cls} of ${node1.cls} '
             'in ${node2.directSubclasses}');

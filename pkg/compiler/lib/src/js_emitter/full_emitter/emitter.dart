@@ -1026,7 +1026,7 @@ class Emitter extends js_emitter.EmitterBase {
     String libraryName = (!compiler.options.enableMinification ||
             backend.mirrorsData.mustRetainLibraryNames)
         // TODO(johnniwinther): Support library names for entities.
-        ? library is LibraryElement ? library.libraryName : library.name
+        ? library is LibraryElement ? library.libraryName : ''
         : "";
 
     jsAst.Fun metadata =
@@ -1905,7 +1905,12 @@ class Emitter extends js_emitter.EmitterBase {
 
   jsAst.Comment buildGeneratedBy() {
     List<String> options = [];
-    if (compiler.commonElements.mirrorsLibrary != null) options.add('mirrors');
+    if (compiler.commonElements.mirrorsLibrary != null &&
+        !compiler.options.loadFromDill) {
+      // TODO(johnniwinther): Add `isMirrorsUsed` to [BackendData] instead
+      // of checking `mirrorsLibrary`.
+      options.add('mirrors');
+    }
     if (compiler.options.useContentSecurityPolicy) options.add("CSP");
     return new jsAst.Comment(generatedBy(compiler, flavor: options.join(", ")));
   }
