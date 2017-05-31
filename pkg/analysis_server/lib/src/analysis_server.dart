@@ -253,6 +253,15 @@ class AnalysisServer {
   ServerPerformance performanceAfterStartup;
 
   /**
+   * Return the total time the server's been alive.
+   */
+  Duration get uptime {
+    DateTime start = new DateTime.fromMillisecondsSinceEpoch(
+        performanceDuringStartup.startTime);
+    return new DateTime.now().difference(start);
+  }
+
+  /**
    * The class into which performance information is currently being recorded.
    * During startup, this will be the same as [performanceDuringStartup]
    * and after startup is complete, this switches to [performanceAfterStartup].

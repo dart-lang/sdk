@@ -108,6 +108,11 @@ td.pre {
   white-space: nowrap;
 }
 
+.scroll-table {
+  max-height: 190px;
+  overflow-x: auto;
+}
+
 .footer {
   padding-top: 3rem;
   padding-bottom: 3rem;
@@ -428,7 +433,7 @@ class ProfilePage extends DiagnosticPageWithNav {
     // prepare sorted tags
     List<PerformanceTag> tags = PerformanceTag.all.toList();
     tags.remove(ServerPerformanceStatistics.idle);
-    tags.removeWhere((tag) => tag.label == 'unknown');
+    tags.remove(PerformanceTag.UNKNOWN);
     tags.sort((a, b) => b.elapsedMs - a.elapsedMs);
 
     // draw a pie chart
@@ -466,8 +471,10 @@ class ProfilePage extends DiagnosticPageWithNav {
           buf.write('<th>$d</th>');
         }
       } else {
-        for (String d in data) {
-          buf.write('<td>$d</td>');
+        buf.write('<td>${data[0]}</td>');
+
+        for (String d in data.sublist(1)) {
+          buf.write('<td class="right">$d</td>');
         }
       }
       buf.writeln('</tr>');
@@ -607,20 +614,20 @@ class ContextsPage extends DiagnosticPageWithNav {
     h3('Context files');
 
     h4('Priority files ${lenCounter(priorityFiles)}', raw: true);
-    inputList(priorityFiles, (file) => buf.write(file));
+    ul(priorityFiles, (file) => buf.write(file), classes: 'scroll-table');
 
     h4('Added files ${lenCounter(addedFiles)}', raw: true);
-    inputList(addedFiles, (file) => buf.write(file));
+    ul(addedFiles, (file) => buf.write(file), classes: 'scroll-table');
 
     h4('ImplicitFiles files ${lenCounter(implicitFiles)}', raw: true);
-    inputList(implicitFiles, (file) => buf.write(file));
+    ul(implicitFiles, (file) => buf.write(file), classes: 'scroll-table');
 
     SourceFactory sourceFactory = driver.sourceFactory;
     if (sourceFactory is SourceFactoryImpl) {
       h3('Resolvers');
       for (UriResolver resolver in sourceFactory.resolvers) {
         h4(resolver.runtimeType.toString());
-        buf.write('<p>');
+        buf.write('<p class="scroll-table">');
         if (resolver is DartUriResolver) {
           DartSdk sdk = resolver.dartSdk;
           buf.write(' (sdk = ');
@@ -890,8 +897,8 @@ class CommunicationsPage extends DiagnosticPageWithNav {
       h3('Current');
 
       int requestCount = perf.requestCount;
-      double averageLatency =
-          requestCount > 0 ? (perf.requestLatency / requestCount) : 0.0;
+      int averageLatency =
+          requestCount > 0 ? (perf.requestLatency ~/ requestCount) : 0;
       int maximumLatency = perf.maxLatency;
       double slowRequestPercent =
           requestCount > 0 ? (perf.slowRequestCount / requestCount) : 0.0;
@@ -906,6 +913,13 @@ class CommunicationsPage extends DiagnosticPageWithNav {
       writeRow([printPercentage(slowRequestPercent), '> 150 ms latency'],
           classes: ["right", null]);
       buf.write('</table>');
+
+      String time = server.uptime.toString();
+      if (time.contains('.')) {
+        time = time.substring(0, time.indexOf('.'));
+      }
+      buf.writeln(writeOption('Uptime', time));
+
       buf.write('</div>');
     }
 
@@ -914,8 +928,8 @@ class CommunicationsPage extends DiagnosticPageWithNav {
     perf = server.performanceDuringStartup;
 
     int requestCount = perf.requestCount;
-    double averageLatency =
-        requestCount > 0 ? (perf.requestLatency / requestCount) : 0.0;
+    int averageLatency =
+        requestCount > 0 ? (perf.requestLatency ~/ requestCount) : 0;
     int maximumLatency = perf.maxLatency;
     double slowRequestPercent =
         requestCount > 0 ? (perf.slowRequestCount / requestCount) : 0.0;
@@ -934,7 +948,8 @@ class CommunicationsPage extends DiagnosticPageWithNav {
     if (server.performanceAfterStartup != null) {
       int startupTime =
           server.performanceAfterStartup.startTime - perf.startTime;
-      p('(initial analysis time: ${printMilliseconds(startupTime)})');
+      buf.writeln(
+          writeOption('Initial analysis time', printMilliseconds(startupTime)));
     }
     buf.write('</div>');
 

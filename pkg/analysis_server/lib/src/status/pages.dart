@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:intl/intl.dart';
+
 /// Contains a collection of Pages.
 abstract class Site {
   final String title;
@@ -107,8 +109,8 @@ abstract class Page {
     buf.writeln('<h4>${raw ? text : escape(text)}</h4>');
   }
 
-  void ul<T>(Iterable<T> items, void gen(T item)) {
-    buf.writeln('<ul>');
+  void ul<T>(Iterable<T> items, void gen(T item), {String classes}) {
+    buf.writeln('<ul${classes == null ? '' : ' class=$classes'}>');
     for (T item in items) {
       buf.write('<li>');
       gen(item);
@@ -156,14 +158,10 @@ abstract class Page {
 
 String escape(String text) => text == null ? '' : HTML_ESCAPE.convert(text);
 
-String printInteger(int value) {
-  return value.toString();
-}
+final NumberFormat numberFormat = new NumberFormat.decimalPattern();
 
-String printMilliseconds(num value) {
-  return '${value.toStringAsFixed(1)} ms';
-}
+String printInteger(int value) => numberFormat.format(value);
 
-String printPercentage(num value) {
-  return '${(value * 100).toStringAsFixed(1)}%';
-}
+String printMilliseconds(num value) => '${numberFormat.format(value)} ms';
+
+String printPercentage(num value) => '${(value * 100).toStringAsFixed(1)}%';
