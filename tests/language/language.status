@@ -13,6 +13,8 @@ abstract_beats_arguments2_test/01: Crash # Issue 29171
 async_star_cancel_while_paused_test: RuntimeError
 # This is OK for now, but we may want to change the semantics to match the test.
 async_star_pause_test: Fail, OK
+
+[ $compiler == dartk ]
 const_native_factory_test/01: MissingCompileTimeError # Issue 29763
 
 # These tests are skipped in the VM because it has "--supermixin"
