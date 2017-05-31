@@ -5626,7 +5626,8 @@ void Parser::ParseTypeParameters(bool parameterizing_class) {
         // i.e. to the class or function currently being parsed.
         // Postpone resolution in order to avoid resolving the owner and its
         // type parameters, as they are not fully parsed yet.
-        type_parameter_bound = ParseType(ClassFinalizer::kDoNotResolve);
+        type_parameter_bound =
+            ParseTypeOrFunctionType(false, ClassFinalizer::kDoNotResolve);
         if (is_lower_bound) {
           // TODO(regis): Handle 'super' differently than 'extends' if lower
           // bounds make it in the final specification and if run time support

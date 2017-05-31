@@ -12,6 +12,7 @@ regress_27617_test/1: MissingCompileTimeError
 regress_29025_test: StaticWarning # Issue 29081
 regress_29405_test: StaticWarning # Issue 29421
 regress_29349_test: CompileTimeError # Issue 29744
+regress_29481_test: Crash # Issue 29755
 
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
