@@ -16,6 +16,7 @@ import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
+import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
@@ -57,16 +58,6 @@ import 'package:plugin/plugin.dart';
  * encoded).
  */
 typedef void HtmlGenerator(StringBuffer buffer);
-
-/**
- * Instances of the class [AbstractGetHandler] handle GET requests.
- */
-abstract class AbstractGetHandler {
-  /**
-   * Handle a GET request received by the HTTP server.
-   */
-  void handleGetRequest(HttpRequest request);
-}
 
 class ElementCounter extends RecursiveElementVisitor {
   Map<Type, int> counts = new HashMap<Type, int>();

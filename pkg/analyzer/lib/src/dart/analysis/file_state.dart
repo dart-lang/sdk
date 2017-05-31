@@ -64,6 +64,11 @@ class FileContentOverlay {
       _map[path] = content;
     }
   }
+
+  /**
+   * Return the paths currently being overridden.
+   */
+  Iterable<String> get paths => _map.keys;
 }
 
 /**
