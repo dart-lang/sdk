@@ -406,13 +406,21 @@ void checkMaps(Map map1, Map map2, String messagePrefix, bool sameKey(a, b),
     bool sameValue(a, b),
     {bool failOnUnfound: true,
     bool failOnMismatch: true,
+    bool keyFilter(key),
     bool verbose: false,
     String keyToString(key): defaultToString,
     String valueToString(key): defaultToString}) {
   List<List> common = <List>[];
   List unfound = [];
   List<List> mismatch = <List>[];
-  Set remaining = computeSetDifference(map1.keys, map2.keys, common, unfound,
+
+  Iterable keys1 = map1.keys;
+  Iterable keys2 = map2.keys;
+  if (keyFilter != null) {
+    keys1 = keys1.where(keyFilter);
+    keys2 = keys2.where(keyFilter);
+  }
+  Set remaining = computeSetDifference(keys1, keys2, common, unfound,
       sameElement: sameKey, checkElements: (k1, k2) {
     var v1 = map1[k1];
     var v2 = map2[k2];

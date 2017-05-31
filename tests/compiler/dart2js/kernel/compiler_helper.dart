@@ -163,7 +163,7 @@ Future<Compiler> compileWithDill(
   ]);
 
   if (printSteps) {
-    print('---- closed world from dill $dillFile ----------------------------');
+    print('---- compile from dill $dillFile ---------------------------------');
   }
   Compiler compiler = compilerFor(
       entryPoint: dillFile,

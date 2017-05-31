@@ -119,7 +119,12 @@ main(List<String> args) {
         backendUsage, backendUsage, compiler.enqueuer.resolution, enqueuer,
         typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
       return areTypesEquivalent(unalias(a), unalias(b));
-    }, elementFilter: elementFilter, verbose: arguments.verbose);
+    },
+        elementFilter: elementFilter,
+        verbose: arguments.verbose,
+        // TODO(johnniwinther): Support class usage testing in presence of
+        // redirecting constructors.
+        skipClassUsageTesting: true);
     checkClosedWorlds(
         compiler.resolutionWorldBuilder.closedWorldForTesting, closedWorld,
         verbose: arguments.verbose);

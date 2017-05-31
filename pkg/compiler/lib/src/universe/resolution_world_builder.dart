@@ -285,13 +285,21 @@ abstract class ResolutionWorldBuilderBase
   final Map<ClassEntity, _ClassUsage> _processedClasses =
       <ClassEntity, _ClassUsage>{};
 
+  Map<ClassEntity, _ClassUsage> get classUsageForTesting => _processedClasses;
+
   /// Map of registered usage of static members of live classes.
   final Map<Entity, _StaticMemberUsage> _staticMemberUsage =
       <Entity, _StaticMemberUsage>{};
 
+  Map<Entity, _StaticMemberUsage> get staticMemberUsageForTesting =>
+      _staticMemberUsage;
+
   /// Map of registered usage of instance members of live classes.
   final Map<MemberEntity, _MemberUsage> _instanceMemberUsage =
       <MemberEntity, _MemberUsage>{};
+
+  Map<MemberEntity, _MemberUsage> get instanceMemberUsageForTesting =>
+      _instanceMemberUsage;
 
   /// Map containing instance members of live classes that are not yet live
   /// themselves.

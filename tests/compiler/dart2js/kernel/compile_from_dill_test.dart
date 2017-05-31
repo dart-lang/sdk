@@ -16,7 +16,6 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
-import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
@@ -94,7 +93,6 @@ Future<ResultKind> mainInternal(List<String> args,
     return ResultKind.warnings;
   }
   Expect.isFalse(compiler1.compilationFailed);
-  ResolutionEnqueuer enqueuer1 = compiler1.enqueuer.resolution;
   ClosedWorld closedWorld1 =
       compiler1.resolutionWorldBuilder.closedWorldForTesting;
 
@@ -110,7 +108,6 @@ Future<ResultKind> mainInternal(List<String> args,
 
   KernelEquivalence equivalence = new KernelEquivalence(elementMap);
 
-  ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
   ClosedWorld closedWorld2 =
       compiler2.resolutionWorldBuilder.closedWorldForTesting;
 
@@ -118,7 +115,8 @@ Future<ResultKind> mainInternal(List<String> args,
       equivalence.defaultStrategy);
 
   checkResolutionEnqueuers(closedWorld1.backendUsage, closedWorld2.backendUsage,
-      enqueuer1, enqueuer2, elementEquivalence: equivalence.entityEquivalence,
+      compiler1.enqueuer.resolution, compiler2.enqueuer.resolution,
+      elementEquivalence: equivalence.entityEquivalence,
       typeEquivalence: (ResolutionDartType a, DartType b) {
     return equivalence.typeEquivalence(unalias(a), b);
   }, elementFilter: elementFilter, verbose: arguments.verbose);
@@ -131,7 +129,14 @@ Future<ResultKind> mainInternal(List<String> args,
       allowMissingClosureClasses: true);
 
   // TODO(johnniwinther): Perform equivalence tests on the model: codegen world
-  // impacts, codegen world builder, etc.
+  // impacts, program model, etc.
+
+  checkCodegenEnqueuers(compiler1.enqueuer.codegenEnqueuerForTesting,
+      compiler2.enqueuer.codegenEnqueuerForTesting,
+      elementEquivalence: equivalence.entityEquivalence,
+      typeEquivalence: (ResolutionDartType a, DartType b) {
+    return equivalence.typeEquivalence(unalias(a), b);
+  }, elementFilter: elementFilter, verbose: arguments.verbose);
 
   collector1.outputMap
       .forEach((OutputType outputType, Map<String, BufferedOutputSink> map1) {
