@@ -157,8 +157,11 @@ Future<Compiler> compileWithDill(
   }
 
   Uri dillFile = Uri.parse('$entryPoint.dill');
+  String buildDir = Platform.isMacOS ? 'xcodebuild' : 'out';
+  String configuration =
+      Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
   await generate.main([
-    '--platform=out/ReleaseX64/patched_dart2js_sdk/platform.dill',
+    '--platform=$buildDir/$configuration/patched_dart2js_sdk/platform.dill',
     '$entryPoint'
   ]);
 
