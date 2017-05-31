@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'environment.dart';
+
 /// A parsed Boolean expression AST.
 abstract class Expression {
   /// Parses Boolean expressions in a .status file for Dart.
@@ -20,9 +22,17 @@ abstract class Expression {
   static Expression parse(String expression) =>
       new _ExpressionParser(expression).parse();
 
+  /// Validates that this expression does not contain any invalid uses of
+  /// variables.
+  ///
+  /// Ensures that any variable names are known and that any literal values are
+  /// allowed for their corresponding variable. If an invalid variable or value
+  /// is found, adds appropriate error messages to [errors].
+  void validate(List<String> errors);
+
   /// Evaluates the expression where all variables are defined by the given
   /// [environment].
-  bool evaluate(Map<String, dynamic> environment);
+  bool evaluate(Environment environment);
 }
 
 /// Keyword token strings.
@@ -42,8 +52,8 @@ class _Variable {
 
   _Variable(this.name);
 
-  String lookup(Map<String, dynamic> environment) {
-    var value = environment[name];
+  String lookup(Environment environment) {
+    var value = environment.lookUp(name);
     if (value == null) {
       throw new Exception("Could not find '$name' in environment "
           "while evaluating status file expression.");
@@ -69,7 +79,11 @@ class _ComparisonExpression implements Expression {
 
   _ComparisonExpression(this.left, this.right, this.negate);
 
-  bool evaluate(Map<String, dynamic> environment) {
+  void validate(List<String> errors) {
+    Environment.validate(left.name, right, errors);
+  }
+
+  bool evaluate(Environment environment) {
     return negate != (left.lookup(environment) == right);
   }
 
@@ -85,7 +99,12 @@ class _VariableExpression implements Expression {
 
   _VariableExpression(this.variable);
 
-  bool evaluate(Map<String, dynamic> environment) =>
+  void validate(List<String> errors) {
+    // It must be a Boolean, so it should allow either Boolean value.
+    Environment.validate(variable.name, "true", errors);
+  }
+
+  bool evaluate(Environment environment) =>
       variable.lookup(environment) == "true";
 
   String toString() => "(bool \$${variable.name})";
@@ -101,7 +120,12 @@ class _LogicExpression implements Expression {
 
   _LogicExpression(this.op, this.left, this.right);
 
-  bool evaluate(Map<String, dynamic> environment) => (op == _Token.and)
+  void validate(List<String> errors) {
+    left.validate(errors);
+    right.validate(errors);
+  }
+
+  bool evaluate(Environment environment) => (op == _Token.and)
       ? left.evaluate(environment) && right.evaluate(environment)
       : left.evaluate(environment) || right.evaluate(environment);
 

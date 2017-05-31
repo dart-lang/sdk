@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library compiler_configuration;
+import 'dart:io';
 
-import 'dart:io' show Platform;
-
-import 'runtime_configuration.dart' show RuntimeConfiguration;
-import 'runtime_configuration.dart' show DartPrecompiledAdbRuntimeConfiguration;
-import 'test_runner.dart' show Command, CommandBuilder, CompilationCommand;
-import 'test_suite.dart' show TestInformation, TestUtils;
+import 'configuration.dart';
+import 'runtime_configuration.dart';
+import 'test_runner.dart';
+import 'test_suite.dart';
 
 List<String> replaceDartFileWith(List<String> list, String replacement) {
   var copy = new List<String>.from(list);
@@ -53,84 +51,70 @@ abstract class CompilerConfiguration {
     throw new UnsupportedError("This compiler does not support DFE.");
   }
 
-  // TODO(ahe): Remove this constructor and move the switch to
-  // test_options.dart.  We probably want to store an instance of
-  // [CompilerConfiguration] in [configuration] there.
-  factory CompilerConfiguration(Map<String, dynamic> configuration) {
-    var compiler = configuration['compiler'] as String;
-
-    // TODO(ahe): Move these booleans into a struction configuration object
-    // which can eventually completely replace the Map-based configuration
-    // object.
-    var isDebug = (configuration['mode'] as String) == 'debug';
-    var isChecked = configuration['checked'] as bool;
-    var isStrong = configuration['strong'] as bool;
-    var isHostChecked = configuration['host_checked'] as bool;
-    var useSdk = configuration['use_sdk'] as bool;
-    var isCsp = configuration['csp'] as bool;
-    var useBlobs = configuration['use_blobs'] as bool;
-    var hotReload = configuration['hot_reload'] as bool;
-    var hotReloadRollback = configuration['hot_reload_rollback'] as bool;
-    var useFastStartup = configuration['fast_startup'] as bool;
-    var useKernelInDart2js = configuration['dart2js_with_kernel'] as bool;
-
-    switch (compiler) {
-      case 'dart2analyzer':
+  factory CompilerConfiguration(Configuration configuration) {
+    switch (configuration.compiler) {
+      case Compiler.dart2analyzer:
         return new AnalyzerCompilerConfiguration(
-            isDebug: isDebug,
-            isChecked: isChecked,
-            isStrong: isStrong,
-            isHostChecked: isHostChecked,
-            useSdk: useSdk);
-      case 'dart2js':
+            isDebug: configuration.mode.isDebug,
+            isChecked: configuration.isChecked,
+            isStrong: configuration.isStrong,
+            isHostChecked: configuration.isHostChecked,
+            useSdk: configuration.useSdk);
+
+      case Compiler.dart2js:
         return new Dart2jsCompilerConfiguration(
-            isDebug: isDebug,
-            isChecked: isChecked,
-            isHostChecked: isHostChecked,
-            useSdk: useSdk,
-            isCsp: isCsp,
-            useFastStartup: useFastStartup,
-            useKernel: useKernelInDart2js,
-            extraDart2jsOptions:
-                TestUtils.getExtraOptions(configuration, 'dart2js_options'));
-      case 'app_jit':
+            isDebug: configuration.mode.isDebug,
+            isChecked: configuration.isChecked,
+            isHostChecked: configuration.isHostChecked,
+            useSdk: configuration.useSdk,
+            isCsp: configuration.isCsp,
+            useFastStartup: configuration.useFastStartup,
+            useKernel: configuration.useDart2JSWithKernel,
+            extraDart2jsOptions: configuration.dart2jsOptions);
+
+      case Compiler.appJit:
         return new AppJitCompilerConfiguration(
-            isDebug: isDebug, isChecked: isChecked);
-      case 'precompiler':
+            isDebug: configuration.mode.isDebug,
+            isChecked: configuration.isChecked);
+
+      case Compiler.precompiler:
         return new PrecompilerCompilerConfiguration(
-            isDebug: isDebug,
-            isChecked: isChecked,
-            arch: configuration['arch'] as String,
-            useBlobs: useBlobs,
-            isAndroid: configuration['system'] == 'android');
-      case 'dartk':
+            isDebug: configuration.mode.isDebug,
+            isChecked: configuration.isChecked,
+            arch: configuration.architecture,
+            useBlobs: configuration.useBlobs,
+            isAndroid: configuration.system == System.android);
+
+      case Compiler.dartk:
         return new NoneCompilerConfiguration(
-            isDebug: isDebug,
-            isChecked: isChecked,
-            isHostChecked: isHostChecked,
-            useSdk: useSdk,
-            hotReload: hotReload,
-            hotReloadRollback: hotReloadRollback,
+            isDebug: configuration.mode.isDebug,
+            isChecked: configuration.isChecked,
+            isHostChecked: configuration.isHostChecked,
+            useSdk: configuration.useSdk,
+            hotReload: configuration.hotReload,
+            hotReloadRollback: configuration.hotReloadRollback,
             useDfe: true);
-      case 'dartkp':
+
+      case Compiler.dartkp:
         return new PrecompilerCompilerConfiguration(
-            isDebug: isDebug,
-            isChecked: isChecked,
-            arch: configuration['arch'] as String,
-            useBlobs: useBlobs,
-            isAndroid: configuration['system'] == 'android',
+            isDebug: configuration.mode.isDebug,
+            isChecked: configuration.isChecked,
+            arch: configuration.architecture,
+            useBlobs: configuration.useBlobs,
+            isAndroid: configuration.system == System.android,
             useDfe: true);
-      case 'none':
+
+      case Compiler.none:
         return new NoneCompilerConfiguration(
-            isDebug: isDebug,
-            isChecked: isChecked,
-            isHostChecked: isHostChecked,
-            useSdk: useSdk,
-            hotReload: hotReload,
-            hotReloadRollback: hotReloadRollback);
-      default:
-        throw "Unknown compiler '$compiler'";
+            isDebug: configuration.mode.isDebug,
+            isChecked: configuration.isChecked,
+            isHostChecked: configuration.isHostChecked,
+            useSdk: configuration.useSdk,
+            hotReload: configuration.hotReload,
+            hotReloadRollback: configuration.hotReloadRollback);
     }
+
+    throw "unreachable";
   }
 
   CompilerConfiguration._subclass(
@@ -140,11 +124,8 @@ abstract class CompilerConfiguration {
       this.isHostChecked: false,
       this.useSdk: false});
 
-  /// Return a multiplier used to give tests longer time to run.
-  // TODO(ahe): Convert to getter!
-  int computeTimeoutMultiplier() {
-    return 1;
-  }
+  /// A multiplier used to give tests longer time to run.
+  int get timeoutMultiplier => 1;
 
   // TODO(ahe): It shouldn't be necessary to pass [buildDir] to any of these
   // functions. It is fixed for a given configuration.
@@ -430,7 +411,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   static ComposedCompilerConfiguration createDartKPConfiguration(
       {bool isChecked,
       bool isHostChecked,
-      String arch,
+      Architecture arch,
       bool useBlobs,
       bool isAndroid,
       bool useSdk,
@@ -560,8 +541,8 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
             isHostChecked: isHostChecked,
             useSdk: useSdk);
 
-  int computeTimeoutMultiplier() {
-    int multiplier = 1;
+  int get timeoutMultiplier {
+    var multiplier = 1;
     if (isDebug) multiplier *= 4;
     if (isChecked) multiplier *= 2;
     if (isHostChecked) multiplier *= 16;
@@ -600,7 +581,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
 }
 
 class PrecompilerCompilerConfiguration extends CompilerConfiguration {
-  final String arch;
+  final Architecture arch;
   final bool useBlobs;
   final bool isAndroid;
   final bool useDfe;
@@ -614,8 +595,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       this.useDfe: false})
       : super._subclass(isDebug: isDebug, isChecked: isChecked);
 
-  int computeTimeoutMultiplier() {
-    int multiplier = 2;
+  int get timeoutMultiplier {
+    var multiplier = 2;
     if (isDebug) multiplier *= 4;
     if (isChecked) multiplier *= 2;
     return multiplier;
@@ -648,9 +629,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       Map<String, String> environmentOverrides) {
     String exec;
     if (isAndroid) {
-      if (arch == "arm") {
+      if (arch == Architecture.arm) {
         exec = "$buildDir/clang_x86/dart_bootstrap";
-      } else if (arch == "arm64") {
+      } else if (arch == Architecture.arm64) {
         exec = "$buildDir/clang_x64/dart_bootstrap";
       }
     } else {
@@ -668,7 +649,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     } else {
       args.add("--snapshot=$tempDir/out.S");
     }
-    if (isAndroid && arch == 'arm') {
+    if (isAndroid && arch == Architecture.arm) {
       args.add('--no-sim-use-hardfp');
     }
     args.addAll(arguments);
@@ -683,13 +664,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
-    String cc, shared, ld_flags;
+    String cc, shared, ldFlags;
     if (isAndroid) {
       var ndk = "third_party/android_tools/ndk";
       String triple;
-      if (arch == "arm") {
+      if (arch == Architecture.arm) {
         triple = "arm-linux-androideabi";
-      } else if (arch == "arm64") {
+      } else if (arch == Architecture.arm64) {
         triple = "aarch64-linux-android";
       }
       String host;
@@ -707,36 +688,37 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       cc = 'clang';
       shared = '-dynamiclib';
       // Tell Mac linker to give up generating eh_frame from dwarf.
-      ld_flags = '-Wl,-no_compact_unwind';
+      ldFlags = '-Wl,-no_compact_unwind';
     } else {
       throw "Platform not supported: ${Platform.operatingSystem}";
     }
 
-    String cc_flags;
-    if (arch == 'x64') {
-      cc_flags = "-m64";
-    } else if (arch == 'simarm64') {
-      cc_flags = "-m64";
-    } else if (arch == 'ia32') {
-      cc_flags = "-m32";
-    } else if (arch == 'simarm') {
-      cc_flags = "-m32";
-    } else if (arch == 'simmips') {
-      cc_flags = "-m32";
-    } else if (arch == 'arm') {
-      cc_flags = null;
-    } else if (arch == 'arm64') {
-      cc_flags = null;
-    } else if (arch == 'mips') {
-      cc_flags = "-EL";
-    } else {
-      throw "Architecture not supported: $arch";
+    String ccFlags;
+    switch (arch) {
+      case Architecture.x64:
+      case Architecture.simarm64:
+        ccFlags = "-m64";
+        break;
+      case Architecture.ia32:
+      case Architecture.simarm:
+      case Architecture.simmips:
+        ccFlags = "-m32";
+        break;
+      case Architecture.arm:
+      case Architecture.arm64:
+        ccFlags = null;
+        break;
+      case Architecture.mips:
+        ccFlags = "-EL";
+        break;
+      default:
+        throw "Architecture not supported: ${arch.name}";
     }
 
     var exec = cc;
     var args = <String>[];
-    if (cc_flags != null) args.add(cc_flags);
-    if (ld_flags != null) args.add(ld_flags);
+    if (ccFlags != null) args.add(ccFlags);
+    if (ldFlags != null) args.add(ldFlags);
     args.add(shared);
     args.add('-nostdlib');
     args.add('-o');
@@ -824,8 +806,8 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   AppJitCompilerConfiguration({bool isDebug, bool isChecked})
       : super._subclass(isDebug: isDebug, isChecked: isChecked);
 
-  int computeTimeoutMultiplier() {
-    int multiplier = 1;
+  int get timeoutMultiplier {
+    var multiplier = 1;
     if (isDebug) multiplier *= 2;
     if (isChecked) multiplier *= 2;
     return multiplier;
@@ -909,9 +891,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
             isHostChecked: isHostChecked,
             useSdk: useSdk);
 
-  int computeTimeoutMultiplier() {
-    return 4;
-  }
+  int get timeoutMultiplier => 4;
 
   String computeCompilerPath(String buildDir) {
     var prefix = 'sdk/bin';

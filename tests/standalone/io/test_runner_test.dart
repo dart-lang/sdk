@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
-import "dart:isolate";
 import "dart:async";
+import "../../../tools/testing/dart/configuration.dart";
 import "../../../tools/testing/dart/expectation.dart";
 import "../../../tools/testing/dart/options.dart";
-import "../../../tools/testing/dart/status_file.dart";
 import "../../../tools/testing/dart/test_runner.dart";
 import "../../../tools/testing/dart/test_suite.dart";
 import "../../../tools/testing/dart/test_progress.dart" as progress;
@@ -67,7 +66,8 @@ class TestController {
 }
 
 class CustomTestSuite extends TestSuite {
-  CustomTestSuite(Map configuration) : super(configuration, "CustomTestSuite");
+  CustomTestSuite(Configuration configuration)
+      : super(configuration, "CustomTestSuite");
 
   Future forEachTest(TestCaseEvent onTest, Map testCache, [onDone]) {
     void enqueueTestCase(testCase) {

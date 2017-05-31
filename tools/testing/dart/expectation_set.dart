@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'configuration.dart';
+import 'environment.dart';
 import 'expectation.dart';
 import 'status_file.dart';
 
@@ -13,9 +15,10 @@ import 'status_file.dart';
 /// that happens, all of the expectations of every entry are combined.
 class ExpectationSet {
   /// Reads the expectations defined by the status files at [statusFilePaths]
-  /// given [environment].
+  /// when in [configuration].
   static ExpectationSet read(
-      List<String> statusFilePaths, Map<String, dynamic> environment) {
+      List<String> statusFilePaths, Configuration configuration) {
+    var environment = new Environment(configuration);
     var expectations = new ExpectationSet._();
     for (var path in statusFilePaths) {
       var file = new StatusFile.read(path);

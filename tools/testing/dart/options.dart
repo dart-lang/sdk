@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
+import 'configuration.dart';
 import 'drt_updater.dart';
-import 'test_suite.dart';
 import 'path.dart';
-import 'compiler_configuration.dart' show CompilerConfiguration;
-import 'runtime_configuration.dart' show RuntimeConfiguration;
+import 'test_suite.dart';
 
 const _defaultTestSelectors = const [
   'samples',
@@ -35,7 +35,7 @@ class _Option {
   // TODO(rnystrom): Some string options use "" to mean "no value" and others
   // use null. Clean that up.
   _Option(this.name, this.description,
-      {String abbr, List<String> values, String defaultsTo = ""})
+      {String abbr, List<String> values, String defaultsTo})
       : abbreviation = abbr,
         values = values ?? [],
         defaultValue = defaultsTo,
@@ -74,8 +74,8 @@ class OptionsParser {
   static final List<_Option> _options = [
     new _Option('mode', 'Mode in which to run the tests.',
         abbr: 'm',
-        values: ['all', 'debug', 'release', 'product'],
-        defaultsTo: 'debug'),
+        values: ['all']..addAll(Mode.names),
+        defaultsTo: Mode.debug.name),
     new _Option(
         'compiler',
         '''Specify any compilation step (if needed).
@@ -107,16 +107,8 @@ dartkp:        Compile the Dart source into Kernel and then Kernel
                into AOT snapshot before running the test.
                (Only valid with runtime dart_precompiled.)''',
         abbr: 'c',
-        values: [
-          'none',
-          'precompiler',
-          'dart2js',
-          'dart2analyzer',
-          'app_jit',
-          'dartk',
-          'dartkp'
-        ],
-        defaultsTo: 'none'),
+        values: Compiler.names,
+        defaultsTo: Compiler.none.name),
     new _Option(
         'runtime',
         '''Where the tests should be run.
@@ -160,30 +152,8 @@ self_check:       Pass each test or its compiled output to every
 none:             No runtime, compile only. (For example, used
                   for dart2analyzer static analysis tests).''',
         abbr: 'r',
-        values: [
-          'vm',
-          'flutter',
-          'dart_precompiled',
-          'd8',
-          'jsshell',
-          'drt',
-          'dartium',
-          'ff',
-          'firefox',
-          'chrome',
-          'safari',
-          'ie9',
-          'ie10',
-          'ie11',
-          'opera',
-          'chromeOnAndroid',
-          'safarimobilesim',
-          'ContentShellOnAndroid',
-          'DartiumOnAndroid',
-          'self_check',
-          'none'
-        ],
-        defaultsTo: 'vm'),
+        values: Runtime.names,
+        defaultsTo: Runtime.vm.name),
     new _Option(
         'arch',
         '''The architecture to run tests for.
@@ -196,28 +166,10 @@ simarm, simarmv6, simarmv5te, simarm64,
 mips, simmips
 simdbc, simdbc64''',
         abbr: 'a',
-        values: [
-          'all',
-          'ia32',
-          'x64',
-          'arm',
-          'armv6',
-          'armv5te',
-          'arm64',
-          'mips',
-          'simarm',
-          'simarmv6',
-          'simarmv5te',
-          'simarm64',
-          'simmips',
-          'simdbc',
-          'simdbc64',
-        ],
-        defaultsTo: 'x64'),
+        values: ['all']..addAll(Architecture.names),
+        defaultsTo: Architecture.x64.name),
     new _Option('system', 'The operating system to run tests on.',
-        abbr: 's',
-        values: ['linux', 'macos', 'windows', 'android'],
-        defaultsTo: Platform.operatingSystem),
+        abbr: 's', values: System.names, defaultsTo: Platform.operatingSystem),
     new _Option.bool('checked', 'Run tests in checked mode.'),
     new _Option.bool('strong', 'Run tests in strong mode.'),
     new _Option.bool('host_checked', 'Run compiler in checked mode.'),
@@ -233,8 +185,7 @@ simdbc, simdbc64''',
         'hot_reload_rollback', 'Run hot reload rollback stress tests.'),
     new _Option.bool('use_blobs',
         'Use mmap instead of shared libraries for precompilation.'),
-    new _Option.int('timeout', 'Timeout in seconds.',
-        abbr: 't', defaultsTo: -1),
+    new _Option.int('timeout', 'Timeout in seconds.', abbr: 't'),
     new _Option(
         'progress',
         '''Progress indication mode.
@@ -243,19 +194,9 @@ Allowed values are:
 compact, color, line, verbose, silent, status, buildbot, diff
 ''',
         abbr: 'p',
-        values: [
-          'compact',
-          'color',
-          'line',
-          'verbose',
-          'silent',
-          'status',
-          'buildbot',
-          'diff'
-        ],
-        defaultsTo: 'compact'),
-    new _Option('step_name', 'Step name for use by -pbuildbot.',
-        defaultsTo: null),
+        values: Progress.names,
+        defaultsTo: Progress.compact.name),
+    new _Option('step_name', 'Step name for use by -pbuildbot.'),
     new _Option.bool('report',
         'Print a summary report of the number of tests, by expectation.'),
     new _Option.int('tasks', 'The number of parallel tasks to run.',
@@ -276,9 +217,7 @@ compact, color, line, verbose, silent, status, buildbot, diff
     new _Option.bool('time', 'Print timing information after running tests.'),
     new _Option('dart', 'Path to dart executable.'),
     new _Option('flutter', 'Path to flutter executable.'),
-    new _Option(
-        'drt', // TODO(antonm): fix the option name.
-        'Path to content shell executable.'),
+    new _Option('drt', 'Path to content shell executable.'),
     new _Option('dartium', 'Path to Dartium Chrome executable.'),
     new _Option('firefox', 'Path to firefox browser executable.'),
     new _Option('chrome', 'Path to chrome browser executable.'),
@@ -292,6 +231,7 @@ this option, the compiler or runtime in PRODUCT_DIR/dart-sdk/bin
 is tested.
 
 (Note: currently only implemented for dart2js.)'''),
+    // TODO(rnystrom): This does not appear to be used. Remove?
     new _Option('build_directory',
         'The name of the build directory, where products are placed.'),
     new _Option.bool('noBatch', 'Do not run tests in batch mode.', 'n'),
@@ -328,34 +268,26 @@ used for browsers to connect to.''',
         'test_driver_error_port', 'Port for http test driver server errors.',
         defaultsTo: 0),
     new _Option('record_to_file',
-        'Records all commands to be executed and writes to a file.',
-        defaultsTo: null),
+        'Records all commands to be executed and writes to a file.'),
     new _Option(
-        'replay_from_file', 'Replays a previously recorded list of commands.',
-        defaultsTo: null),
+        'replay_from_file', 'Replays a previously recorded list of commands.'),
     new _Option(
         'builder_tag',
         '''Machine specific options that is not captured by the regular test
 options. Used to be able to make sane updates to the status files.'''),
-    new _Option('vm_options', 'Extra options to send to the vm when running.',
-        defaultsTo: null),
+    new _Option('vm_options', 'Extra options to send to the vm when running.'),
     new _Option(
-        'dart2js_options', 'Extra options for dart2js compilation step.',
-        defaultsTo: null),
+        'dart2js_options', 'Extra options for dart2js compilation step.'),
     new _Option(
-        'suite_dir', 'Additional directory to add to the testing matrix.',
-        defaultsTo: null),
-    new _Option('package_root', 'The package root to use for testing.',
-        defaultsTo: null),
-    new _Option('packages', 'The package spec file to use for testing.',
-        defaultsTo: null),
+        'suite_dir', 'Additional directory to add to the testing matrix.'),
+    new _Option('package_root', 'The package root to use for testing.'),
+    new _Option('packages', 'The package spec file to use for testing.'),
     new _Option(
         'exclude_suite',
         '''Exclude suites from default selector, only works when no selector
-has been specified on the command line.''',
-        defaultsTo: null),
+has been specified on the command line.'''),
     new _Option.bool(
-        'skip-compilation',
+        'skip_compilation',
         '''
 Skip the compilation step, using the compilation artifacts left in
 the output folder from a previous run. This flag will often cause
@@ -397,7 +329,7 @@ compiler.''')
   /// Configurations are maps mapping from option keys to values. When
   /// encountering the first non-option string, the rest of the arguments are
   /// stored in the returned Map under the 'rest' key.
-  List<Map<String, dynamic>> parse(List<String> arguments) {
+  List<Configuration> parse(List<String> arguments) {
     // TODO(rnystrom): The builders on the buildbots still pass this even
     // though it does nothing. Until those can be fixed, silently ignore the
     // option. Remove this once the buildbot scripts are fixed.
@@ -517,13 +449,7 @@ compiler.''')
       }
     }
 
-    var expandedConfigs = _expandConfigurations(configuration);
-    var result = expandedConfigs.where(_isValidConfig).toList();
-    for (var config in result) {
-      config['_reproducing_arguments_'] = _reproducingCommand(config);
-    }
-
-    return result.isEmpty ? null : result;
+    return _createConfigurations(configuration);
   }
 
   /// Prints [message] and exits with a non-zero exit code.
@@ -532,19 +458,19 @@ compiler.''')
     exit(1);
   }
 
-  /// Given a configuration, returns the list of command line arguments that
-  /// would reproduce that configuration.
-  List<String> _reproducingCommand(Map config) {
+  /// Given a set of parsed option values, returns the list of command line
+  /// arguments that would reproduce that configuration.
+  List<String> _reproducingCommand(Map<String, dynamic> data) {
     var arguments = <String>[];
 
     for (var option in _options) {
       var name = option.name;
-      if (!config.containsKey(name) || _blacklistedOptions.contains(name)) {
+      if (!data.containsKey(name) || _blacklistedOptions.contains(name)) {
         continue;
       }
 
-      var value = config[name];
-      if (config[name] == option.defaultValue ||
+      var value = data[name];
+      if (data[name] == option.defaultValue ||
           (name == 'packages' &&
               value ==
                   TestUtils.dartDirUri.resolve('.packages').toFilePath())) {
@@ -560,201 +486,25 @@ compiler.''')
     return arguments;
   }
 
-  /// Determines if a particular configuration has a valid combination of
-  /// compiler and runtime elements.
-  bool _isValidConfig(Map config) {
-    var isValid = true;
-    List<String> validRuntimes;
-    switch (config['compiler'] as String) {
-      case 'dart2js':
-        // Note: by adding 'none' as a configuration, if the user
-        // runs test.py -c dart2js -r drt,none the dart2js_none and
-        // dart2js_drt will be duplicating work. If later we don't need 'none'
-        // with dart2js, we should remove it from here.
-        validRuntimes = const [
-          'd8',
-          'jsshell',
-          'drt',
-          'none',
-          'dartium',
-          'ff',
-          'chrome',
-          'safari',
-          'ie9',
-          'ie10',
-          'ie11',
-          'opera',
-          'chromeOnAndroid',
-          'safarimobilesim'
-        ];
-        break;
-      case 'dart2analyzer':
-        validRuntimes = const ['none'];
-        break;
-      case 'app_jit':
-      case 'dartk':
-        validRuntimes = const ['vm', 'self_check', 'none'];
-        break;
-      case 'precompiler':
-      case 'dartkp':
-        validRuntimes = const ['dart_precompiled'];
-        break;
-      case 'none':
-        validRuntimes = const [
-          'vm',
-          'flutter',
-          'drt',
-          'dartium',
-          'ContentShellOnAndroid',
-          'DartiumOnAndroid'
-        ];
-        break;
-    }
-
-    if (!validRuntimes.contains(config['runtime'])) {
-      isValid = false;
-      print("Warning: combination of compiler '${config['compiler']}' and "
-          "runtime '${config['runtime']}' is invalid. "
-          "Skipping this combination.");
-    }
-
-    if ((config['ie'] as bool) && Platform.operatingSystem != 'windows') {
-      isValid = false;
-      print("Warning: cannot run Internet Explorer on non-Windows operating"
-          " system.");
-    }
-
-    if ((config['shard'] as int) < 1 ||
-        (config['shard'] as int) > (config['shards'] as int)) {
-      isValid = false;
-      print("Error: shard index is ${config['shard']} out of "
-          "${config['shards']} shards");
-    }
-
-    if (config['runtime'] == 'flutter' && config['flutter'] == '') {
-      isValid = false;
-      print("-rflutter requires the flutter engine executable to "
-          "be specified using --flutter=");
-    }
-
-    if (config['runtime'] == 'flutter' && config['arch'] != 'x64') {
-      isValid = false;
-      print("-rflutter is applicable only for --arch=x64");
-    }
-
-    return isValid;
-  }
-
-  /// Recursively expands a configuration with multiple values per key into a
-  /// list of configurations with exactly one value per key.
-  List<Map<String, dynamic>> _expandConfigurations(
+  List<Configuration> _createConfigurations(
       Map<String, dynamic> configuration) {
-    // Expand the pseudo-values such as 'all'.
-    if (configuration['arch'] == 'all') {
-      configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips,simdbc64';
-    }
-
-    if (configuration['mode'] == 'all') {
-      configuration['mode'] = 'debug,release,product';
-    }
-
-    if (configuration['report_in_json'] as bool) {
-      configuration['list'] = true;
-      configuration['report'] = true;
-    }
-
-    // Use verbose progress indication for verbose output unless buildbot
-    // progress indication is requested.
-    if ((configuration['verbose'] as bool) &&
-        (configuration['progress'] as String) != 'buildbot') {
-      configuration['progress'] = 'verbose';
-    }
-
-    // Create the artificial negative options that test status files
-    // expect.
-    configuration['unchecked'] = !(configuration['checked'] as bool);
-    configuration['host_unchecked'] = !(configuration['host_checked'] as bool);
-    configuration['unminified'] = !(configuration['minified'] as bool);
-    configuration['nocsp'] = !(configuration['csp'] as bool);
-
-    var runtime = configuration['runtime'] as String;
-    if (runtime == 'firefox') {
-      configuration['runtime'] == 'ff';
-    }
-
-    var compiler = configuration['compiler'] as String;
-    configuration['browser'] = TestUtils.isBrowserRuntime(runtime);
-    configuration['analyzer'] = TestUtils.isCommandLineAnalyzer(compiler);
-
-    // Set the javascript command line flag for less verbose status files.
-    configuration['jscl'] = TestUtils.isJsCommandLineRuntime(runtime);
-
-    // Allow suppression that is valid for all ie versions
-    configuration['ie'] = runtime.startsWith('ie');
-
-    // Expand the test selectors into a suite name and a simple
-    // regular expressions to be used on the full path of a test file
-    // in that test suite. If no selectors are explicitly given use
-    // the default suite patterns.
-    var selectors = configuration['selectors'];
-    if (selectors is! Map) {
-      if (selectors == null) {
-        if (configuration['suite_dir'] != null) {
-          var suite_path = new Path(configuration['suite_dir'] as String);
-          selectors = [suite_path.filename];
-        } else {
-          selectors = _defaultTestSelectors.toList();
-        }
-
-        var excludeSuites = configuration['exclude_suite'] != null
-            ? configuration['exclude_suite'].split(',')
-            : [];
-        for (var exclude in excludeSuites) {
-          if ((selectors as List).contains(exclude)) {
-            selectors.remove(exclude);
-          } else {
-            print("Warning: default selectors does not contain $exclude");
-          }
-        }
-      }
-      var selectorMap = <String, RegExp>{};
-      for (var i = 0; i < (selectors as List).length; i++) {
-        var pattern = selectors[i] as String;
-        var suite = pattern;
-        var slashLocation = pattern.indexOf('/');
-        if (slashLocation != -1) {
-          suite = pattern.substring(0, slashLocation);
-          pattern = pattern.substring(slashLocation + 1);
-          pattern = pattern.replaceAll('*', '.*');
-        } else {
-          pattern = ".?";
-        }
-        if (selectorMap.containsKey(suite)) {
-          print("Error: '$suite/$pattern'.  Only one test selection"
-              " pattern is allowed to start with '$suite/'");
-          exit(1);
-        }
-        selectorMap[suite] = new RegExp(pattern);
-      }
-      configuration['selectors'] = selectorMap;
-    }
+    var selectors = _expandSelectors(configuration);
 
     // Put observatory_ui in a configuration with its own packages override.
     // Only one value in the configuration map is mutable:
-    selectors = configuration['selectors'];
-    if ((selectors as Map<String, dynamic>).containsKey('observatory_ui')) {
+    if (selectors.containsKey('observatory_ui')) {
       if (selectors.length == 1) {
         configuration['packages'] = TestUtils.dartDirUri
             .resolve('runtime/observatory/.packages')
             .toFilePath();
       } else {
         // Make a new configuration whose selectors map only contains
-        // observatory_ui, and remove the key from the original selectors.
-        // The only mutable value in the map is the selectors, so a
+        // observatory_ui, and remove observatory_ui from the original
+        // selectors. The only mutable value in the map is the selectors, so a
         // shallow copy is safe.
         var observatoryConfiguration =
             new Map<String, dynamic>.from(configuration);
-        observatoryConfiguration['selectors'] = {
+        var observatorySelectors = {
           'observatory_ui': selectors['observatory_ui']
         };
         selectors.remove('observatory_ui');
@@ -764,82 +514,198 @@ compiler.''')
             .resolve('runtime/observatory/.packages')
             .toFilePath();
 
-        // Return the expansions of both configurations. Neither will reach
-        // this line in the recursive call to _expandConfigurations.
-        return _expandConfigurations(configuration)
-          ..addAll(_expandConfigurations(observatoryConfiguration));
+        return _expandConfigurations(configuration, selectors)
+          ..addAll(_expandConfigurations(
+              observatoryConfiguration, observatorySelectors));
       }
     }
 
-    // Set the default package spec explicitly.
-    if (configuration['package_root'] == null &&
-        configuration['packages'] == null) {
-      configuration['packages'] =
-          TestUtils.dartDirUri.resolve('.packages').toFilePath();
+    return _expandConfigurations(configuration, selectors);
+  }
+
+  /// Recursively expands a configuration with multiple values per key into a
+  /// list of configurations with exactly one value per key.
+  List<Configuration> _expandConfigurations(
+      Map<String, dynamic> data, Map<String, RegExp> selectors) {
+    var result = <Configuration>[];
+
+    // Handles a string option containing a space-separated list of words.
+    listOption(String name) {
+      var value = data[name] as String;
+      if (value == null) return const <String>[];
+      return value
+          .split(" ")
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
     }
 
-    // Expand the architectures.
-    if ((configuration['arch'] as String).contains(',')) {
-      return _expandHelper('arch', configuration);
+    var dart2jsOptions = listOption("dart2js_options");
+    var vmOptions = listOption("vm_options");
+
+    // JSON reporting implies listing and reporting.
+    if (data['report_in_json'] as bool) {
+      data['list'] = true;
+      data['report'] = true;
     }
 
-    // Expand modes.
-    if ((configuration['mode'] as String).contains(',')) {
-      return _expandHelper('mode', configuration);
-    }
-
-    // Expand compilers.
-    if ((configuration['compiler'] as String).contains(',')) {
-      return _expandHelper('compiler', configuration);
+    // Use verbose progress indication for verbose output unless buildbot
+    // progress indication is requested.
+    if ((data['verbose'] as bool) &&
+        (data['progress'] as String) != 'buildbot') {
+      data['progress'] = 'verbose';
     }
 
     // Expand runtimes.
-    var runtimes = configuration['runtime'] as String;
-    if (runtimes.contains(',')) {
-      return _expandHelper('runtime', configuration);
-    } else {
-      // All runtimes eventually go through this path, after expansion.
-      var updater = runtimeUpdater(configuration);
+    for (var runtimeName in (data["runtime"] as String).split(",")) {
+      var runtime = Runtime.find(runtimeName);
+
+      // Install the runtime if needed.
+      var updater = runtimeUpdater(
+          runtime, data["drt"] as String, data["dartium"] as String);
       if (updater != null) {
         updater.update();
       }
+
+      // Expand architectures.
+      var architectures = data["arch"] as String;
+      if (architectures == "all") {
+        architectures = "ia32,x64,simarm,simarm64,simmips,simdbc64";
+      }
+
+      for (var architectureName in architectures.split(",")) {
+        var architecture = Architecture.find(architectureName);
+
+        // Expand compilers.
+        var compilers = data["compiler"] as String;
+        for (var compilerName in compilers.split(",")) {
+          var compiler = Compiler.find(compilerName);
+
+          // Expand modes.
+          var modes = data["mode"] as String;
+          if (modes == "all") modes = "debug,release,product";
+          for (var modeName in modes.split(",")) {
+            var mode = Mode.find(modeName);
+
+            var configuration = new Configuration(
+                architecture: architecture,
+                compiler: compiler,
+                mode: mode,
+                progress: Progress.find(data["progress"] as String),
+                runtime: runtime,
+                system: System.find(data["system"] as String),
+                selectors: selectors,
+                appendLogs: data["append_logs"] as bool,
+                batch: !(data["noBatch"] as bool),
+                batchDart2JS: data["dart2js_batch"] as bool,
+                copyCoreDumps: data["copy_coredumps"] as bool,
+                hotReload: data["hot_reload"] as bool,
+                hotReloadRollback: data["hot_reload_rollback"] as bool,
+                isChecked: data["checked"] as bool,
+                isStrong: data["strong"] as bool,
+                isHostChecked: data["host_checked"] as bool,
+                isCsp: data["csp"] as bool,
+                isMinified: data["minified"] as bool,
+                isVerbose: data["verbose"] as bool,
+                listTests: data["list"] as bool,
+                printTiming: data["time"] as bool,
+                printReport: data["report"] as bool,
+                reportInJson: data["report_in_json"] as bool,
+                resetBrowser: data["reset_browser_configuration"] as bool,
+                skipCompilation: data["skip_compilation"] as bool,
+                useBlobs: data["use_blobs"] as bool,
+                useSdk: data["use_sdk"] as bool,
+                useFastStartup: data["fast_startup"] as bool,
+                useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
+                writeDebugLog: data["write_debug_log"] as bool,
+                writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
+                drtPath: data["drt"] as String,
+                dartiumPath: data["dartium"] as String,
+                chromePath: data["chrome"] as String,
+                safariPath: data["safari"] as String,
+                firefoxPath: data["firefox"] as String,
+                dartPath: data["dart"] as String,
+                dartPrecompiledPath: data["dart_precompiled"] as String,
+                flutterPath: data["flutter"] as String,
+                recordingPath: data["record_to_file"] as String,
+                replayPath: data["replay_from_file"] as String,
+                taskCount: data["tasks"] as int,
+                timeout: data["timeout"] as int,
+                shardCount: data["shards"] as int,
+                shard: data["shard"] as int,
+                stepName: data["step_name"] as String,
+                testServerPort: data["test_server_port"] as int,
+                testServerCrossOriginPort:
+                    data['test_server_cross_origin_port'] as int,
+                testDriverErrorPort: data["test_driver_error_port"] as int,
+                localIP: data["local_ip"] as String,
+                dart2jsOptions: dart2jsOptions,
+                vmOptions: vmOptions,
+                packages: data["packages"] as String,
+                packageRoot: data["package_root"] as String,
+                suiteDirectory: data["suite_dir"] as String,
+                builderTag: data["builder_tag"] as String,
+                reproducingArguments: _reproducingCommand(data));
+
+            if (configuration.validate()) {
+              result.add(configuration);
+            }
+          }
+        }
+      }
     }
 
-    // Adjust default timeout based on mode, compiler, and sometimes runtime.
-    if (configuration['timeout'] == -1) {
-      var isReload = (configuration['hot_reload'] as bool) ||
-          (configuration['hot_reload_rollback'] as bool);
-      int compilerMulitiplier =
-          new CompilerConfiguration(configuration).computeTimeoutMultiplier();
-      int runtimeMultiplier = new RuntimeConfiguration(configuration)
-          .computeTimeoutMultiplier(
-              mode: configuration['mode'] as String,
-              isChecked: configuration['checked'] as bool,
-              isReload: isReload,
-              arch: configuration['arch'] as String);
-      configuration['timeout'] = 60 * compilerMulitiplier * runtimeMultiplier;
-    }
-
-    return [configuration];
+    return result;
   }
 
-  /// Helper for _expandConfigurations. Creates a new configuration and adds it
-  /// to a list, for use in a case when a particular configuration has multiple
-  /// results (separated by a ',').
-  /// Arguments:
-  /// option: The particular test option we are expanding.
-  /// configuration: The map containing all test configuration information
-  /// specified.
-  List<Map<String, dynamic>> _expandHelper(
-      String option, Map<String, dynamic> configuration) {
-    var result = <Map<String, dynamic>>[];
-    var configs = configuration[option];
-    for (var config in configs.split(',')) {
-      var newConfiguration = new Map<String, dynamic>.from(configuration);
-      newConfiguration[option] = config;
-      result.addAll(_expandConfigurations(newConfiguration));
+  /// Expands the test selectors into a suite name and a simple regular
+  /// expression to be used on the full path of a test file in that test suite.
+  ///
+  /// If no selectors are explicitly given, uses the default suite patterns.
+  Map<String, RegExp> _expandSelectors(Map<String, dynamic> configuration) {
+    var selectors = configuration['selectors'];
+
+    if (selectors == null) {
+      if (configuration['suite_dir'] != null) {
+        var suitePath = new Path(configuration['suite_dir'] as String);
+        selectors = [suitePath.filename];
+      } else {
+        selectors = _defaultTestSelectors.toList();
+      }
+
+      var excludeSuites = configuration['exclude_suite'] != null
+          ? configuration['exclude_suite'].split(',')
+          : [];
+      for (var exclude in excludeSuites) {
+        if ((selectors as List).contains(exclude)) {
+          selectors.remove(exclude);
+        } else {
+          print("Warning: default selectors does not contain $exclude");
+        }
+      }
     }
-    return result;
+
+    var selectorMap = <String, RegExp>{};
+    for (var i = 0; i < (selectors as List).length; i++) {
+      var pattern = selectors[i] as String;
+      var suite = pattern;
+      var slashLocation = pattern.indexOf('/');
+      if (slashLocation != -1) {
+        suite = pattern.substring(0, slashLocation);
+        pattern = pattern.substring(slashLocation + 1);
+        pattern = pattern.replaceAll('*', '.*');
+      } else {
+        pattern = ".?";
+      }
+      if (selectorMap.containsKey(suite)) {
+        print("Error: '$suite/$pattern'.  Only one test selection"
+            " pattern is allowed to start with '$suite/'");
+        exit(1);
+      }
+      selectorMap[suite] = new RegExp(pattern);
+    }
+
+    return selectorMap;
   }
 
   /// Print out usage information.
