@@ -78,7 +78,7 @@ vars = {
   'buildspec_platforms':
     'chromeos,',
   'buildtools_revision':
-    '14288a03a92856fe1fc296d39e6a25c2d83cd6cf',
+    '3d2e47bf14e4e67816a53e304dea422fa18f9180',
   'chromium_git':
     'https://chromium.googlesource.com',
   'deqp_revision':
@@ -122,7 +122,7 @@ deps = {
   'src/breakpad/src':
     (Var("chromium_git")) + '/breakpad/breakpad/src.git@481608d284106df9400d447e95574799670cabaf',
   'src/buildtools':
-    (Var("chromium_git")) + '/chromium/buildtools.git@14288a03a92856fe1fc296d39e6a25c2d83cd6cf',
+    (Var("chromium_git")) + '/chromium/buildtools.git@3d2e47bf14e4e67816a53e304dea422fa18f9180',
   'src/chrome/test/data/perf/canvas_bench':
     (Var("chromium_git")) + '/chromium/canvas_bench.git@a7b40ea5ae0239517d78845a5fc9b12976bfc732',
   'src/chrome/test/data/perf/frame_rate/content':
