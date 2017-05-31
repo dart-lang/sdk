@@ -68,6 +68,7 @@ class Visitor extends SimpleAstVisitor {
   visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.body is EmptyFunctionBody &&
         !node.element.isConst &&
+        !_hasMixin(node.element.enclosingElement) &&
         _hasImmutableAnnotation(node.element.enclosingElement) &&
         _hasConstSuperConstructor(node) &&
         _hasOnlyConstExpressionsInIntializerList(node)) {
@@ -75,9 +76,10 @@ class Visitor extends SimpleAstVisitor {
     }
   }
 
+  bool _hasMixin(ClassElement clazz) => clazz.mixins.isNotEmpty;
+
   bool _hasImmutableAnnotation(ClassElement clazz) {
-    final inheritedAndSelfTypes =
-        _getSelfAndInheritedTypes(clazz.type).toList();
+    final inheritedAndSelfTypes = _getSelfAndInheritedTypes(clazz.type);
     final inheritedAndSelfAnnotations = inheritedAndSelfTypes
         .map((type) => type.element)
         .expand((c) => c.metadata)
