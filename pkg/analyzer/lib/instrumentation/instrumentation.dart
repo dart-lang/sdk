@@ -213,9 +213,16 @@ class InstrumentationService {
    */
   void logPluginError(
       PluginData plugin, String code, String message, String stackTrace) {
-    List<String> fields = <String>[TAG_PLUGIN_ERROR, code, message, stackTrace];
-    plugin.addToFields(fields);
-    _instrumentationServer.log(_join(fields));
+    if (_instrumentationServer != null) {
+      List<String> fields = <String>[
+        TAG_PLUGIN_ERROR,
+        code,
+        message,
+        stackTrace
+      ];
+      plugin.addToFields(fields);
+      _instrumentationServer.log(_join(fields));
+    }
   }
 
   /**

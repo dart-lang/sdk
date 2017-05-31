@@ -748,13 +748,8 @@ class PluginSession {
    */
   void handleOnError(List<String> errorPair) {
     // TODO(brianwilkerson) Decide how we want to handle errors.
-//    String message = errorPair[0];
-//    String stackTrace = errorPair[1];
-//    print('PluginSession.handleOnError');
-//    print('  plugin = ${info.executionPath}');
-//    print('  $message');
-//    print('  ${new StackTrace.fromString(stackTrace)}');
-//    pluginStoppedCompleter.completeError(message, new StackTrace.fromString(stackTrace));
+    info.instrumentationService.logPluginException(
+        info.data, errorPair[0], new StackTrace.fromString(errorPair[1]));
   }
 
   /**
