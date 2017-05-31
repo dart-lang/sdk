@@ -469,7 +469,7 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
       ASSERT(raw_object->IsRemembered());
       raw_object->ClearRememberedBit();
       visitor->VisitingOldObject(raw_object);
-      raw_object->VisitPointers(visitor);
+      raw_object->VisitPointersNonvirtual(visitor);
     }
     pending->Reset();
     // Return the emptied block for recycling (no need to check threshold).
@@ -550,7 +550,7 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
       RawObject* raw_obj = RawObject::FromAddr(resolved_top_);
       intptr_t class_id = raw_obj->GetClassId();
       if (class_id != kWeakPropertyCid) {
-        resolved_top_ += raw_obj->VisitPointers(visitor);
+        resolved_top_ += raw_obj->VisitPointersNonvirtual(visitor);
       } else {
         RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
         resolved_top_ += ProcessWeakProperty(raw_weak, visitor);
@@ -566,7 +566,7 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         // objects to be resolved in the to space.
         ASSERT(!raw_object->IsRemembered());
         visitor->VisitingOldObject(raw_object);
-        raw_object->VisitPointers(visitor);
+        raw_object->VisitPointersNonvirtual(visitor);
       }
       visitor->VisitingOldObject(NULL);
     }
@@ -593,7 +593,7 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         // Reset the next pointer in the weak property.
         cur_weak->ptr()->next_ = 0;
         if (IsForwarding(header)) {
-          cur_weak->VisitPointers(visitor);
+          cur_weak->VisitPointersNonvirtual(visitor);
         } else {
           EnqueueWeakProperty(cur_weak);
         }
@@ -661,7 +661,7 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
     }
   }
   // Key is gray or black.  Make the weak property black.
-  return raw_weak->VisitPointers(visitor);
+  return raw_weak->VisitPointersNonvirtual(visitor);
 }
 
 

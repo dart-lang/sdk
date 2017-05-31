@@ -453,8 +453,48 @@ class RawObject {
   }
 
   void Validate(Isolate* isolate) const;
-  intptr_t VisitPointers(ObjectPointerVisitor* visitor);
   bool FindObject(FindObjectVisitor* visitor);
+
+  intptr_t VisitPointers(ObjectPointerVisitor* visitor) {
+    // Fall back to virtual variant for predefined classes
+    intptr_t class_id = GetClassId();
+    if (class_id < kNumPredefinedCids) {
+      return VisitPointersPredefined(visitor, class_id);
+    }
+
+    // Calculate the first and last raw object pointer fields.
+    intptr_t instance_size = Size();
+    uword obj_addr = ToAddr(this);
+    uword from = obj_addr + sizeof(RawObject);
+    uword to = obj_addr + instance_size - kWordSize;
+
+    // Call visitor function non-virtually
+    visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
+                           reinterpret_cast<RawObject**>(to));
+
+    return instance_size;
+  }
+
+  template <class V>
+  intptr_t VisitPointersNonvirtual(V* visitor) {
+    // Fall back to virtual variant for predefined classes
+    intptr_t class_id = GetClassId();
+    if (class_id < kNumPredefinedCids) {
+      return VisitPointersPredefined(visitor, class_id);
+    }
+
+    // Calculate the first and last raw object pointer fields.
+    intptr_t instance_size = Size();
+    uword obj_addr = ToAddr(this);
+    uword from = obj_addr + sizeof(RawObject);
+    uword to = obj_addr + instance_size - kWordSize;
+
+    // Call visitor function non-virtually
+    visitor->V::VisitPointers(reinterpret_cast<RawObject**>(from),
+                              reinterpret_cast<RawObject**>(to));
+
+    return instance_size;
+  }
 
   static RawObject* FromAddr(uword addr) {
     // We expect the untagged address here.
@@ -512,6 +552,9 @@ class RawObject {
     return reinterpret_cast<RawObject*>(reinterpret_cast<uword>(this) -
                                         kHeapObjectTag);
   }
+
+  intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
+                                   intptr_t class_id);
 
   intptr_t SizeFromClass() const;
 
