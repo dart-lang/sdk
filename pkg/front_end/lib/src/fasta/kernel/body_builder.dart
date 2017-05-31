@@ -21,7 +21,8 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart'
     show TypePromoter;
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart'
+    hide InvalidExpression, InvalidInitializer, InvalidStatement;
 
 import 'package:kernel/clone.dart' show CloneVisitor;
 
@@ -454,10 +455,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       initializer =
           buildSuperInitializer(node.target, node.arguments, token.charOffset);
     } else {
+      Expression value = toValue(node);
       if (node is! Throw) {
-        // TODO(ahe): This is probably an internal error.
-        needsImplicitSuperInitializer = false;
-        node = wrapInvalid(node);
+        value = wrapInCompileTimeError(value, "Expected an initializer.");
       }
       initializer = buildInvalidIntializer(node, token.charOffset);
     }
@@ -1224,10 +1224,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("AssignmentExpression");
     Expression value = popForValue();
     var accessor = pop();
-    if (accessor is TypeDeclarationBuilder) {
-      push(wrapInvalid(new KernelTypeLiteral(
-          accessor.buildTypesWithBuiltArguments(library, null))));
-    } else if (accessor is! FastaAccessor) {
+    if (accessor is TypeDeclarationBuilder || accessor is! FastaAccessor) {
       push(buildCompileTimeError("Can't assign to this.", token.charOffset));
     } else {
       push(new DelayedAssignment(
@@ -1758,9 +1755,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       if (catchParameters.required.length > 2 ||
           catchParameters.optional != null) {
-        body = new Block(<Statement>[new InvalidStatement()]);
-        compileTimeErrorInTry ??= buildCompileTimeErrorStatement(
-            "Invalid catch arguments.", catchKeyword.next.charOffset);
+        body = new Block(<Statement>[
+          compileTimeErrorInTry ??= buildCompileTimeErrorStatement(
+              "Invalid catch arguments.", catchKeyword.next.charOffset)
+        ]);
       }
     }
     push(new Catch(exception, body, guard: type, stackTrace: stackTrace));
@@ -1846,7 +1844,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(accessor.buildPrefixIncrement(incrementOperator(token),
           offset: token.charOffset));
     } else {
-      push(wrapInvalid(toValue(accessor)));
+      push(wrapInCompileTimeError(toValue(accessor), "Can't assign to this."));
     }
   }
 
@@ -1858,7 +1856,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(new DelayedPostfixIncrement(
           this, token, accessor, incrementOperator(token), null));
     } else {
-      push(wrapInvalid(toValue(accessor)));
+      push(wrapInCompileTimeError(toValue(accessor), "Can't assign to this."));
     }
   }
 
@@ -2128,7 +2126,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         isFinal: true, isLocalFunction: true)
       ..fileOffset = offsetForToken(name.token);
     push(new KernelFunctionDeclaration(
-        variable, new FunctionNode(new InvalidStatement()))
+        variable,
+        // The function node is created later.
+        null)
       ..fileOffset = beginToken.charOffset);
     declareVariable(variable);
     enterLocalScope();
@@ -2652,7 +2652,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     String message = formatUnexpected(uri, charOffset, error);
     Builder constructor = library.loader.getCompileTimeError();
     return new Throw(buildStaticInvocation(constructor.target,
-        new KernelArguments(<Expression>[new StringLiteral(message)])));
+        new KernelArguments(<Expression>[new StringLiteral(message)]),
+        charOffset: charOffset));
+  }
+
+  Expression wrapInCompileTimeError(Expression expression, String message) {
+    return new Let(
+        new VariableDeclaration.forValue(expression)
+          ..fileOffset = expression.fileOffset,
+        buildCompileTimeError(message, expression.fileOffset))
+      ..fileOffset = expression.fileOffset;
   }
 
   Expression buildAbstractClassInstantiationError(String className,
@@ -2703,7 +2712,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleOperator(Token token) {
     debugEvent("Operator");
-    push(new Operator(token.stringValue)..fileOffset = token.charOffset);
+    push(new Operator(token.stringValue, token.charOffset));
   }
 
   @override
@@ -2725,7 +2734,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (member.isNative) {
       push(NullValue.FunctionBody);
     } else {
-      push(new Block(<Statement>[new InvalidStatement()]));
+      push(new Block(<Statement>[
+        buildCompileTimeErrorStatement("Expected '{'.", token.charOffset)
+      ]));
     }
   }
 
@@ -2786,11 +2797,12 @@ class Identifier {
   String toString() => "identifier($name)";
 }
 
-// TODO(ahe): Shouldn't need to be an expression.
-class Operator extends InvalidExpression {
+class Operator {
   final String name;
 
-  Operator(this.name);
+  final int charOffset;
+
+  Operator(this.name, this.charOffset);
 
   String toString() => "operator($name)";
 }
@@ -2803,8 +2815,7 @@ class InitializedIdentifier extends Identifier {
   String toString() => "initialized-identifier($name, $initializer)";
 }
 
-// TODO(ahe): Shouldn't need to be an expression.
-class Label extends InvalidExpression {
+class Label {
   String name;
 
   Label(this.name);

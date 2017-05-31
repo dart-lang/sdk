@@ -25,9 +25,12 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart'
+    hide InvalidExpression, InvalidInitializer, InvalidStatement;
 import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/type_algebra.dart';
+
+import '../errors.dart' show internalError;
 
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(Member constructor) {
@@ -198,7 +201,7 @@ class KernelCascadeExpression extends Let implements KernelExpression {
   KernelCascadeExpression(KernelVariableDeclaration variable)
       : super(
             variable,
-            makeLet(new VariableDeclaration.forValue(new InvalidExpression()),
+            makeLet(new VariableDeclaration.forValue(new _UnfinishedCascade()),
                 new VariableGet(variable))) {
     nextCascade = body;
   }
@@ -206,9 +209,9 @@ class KernelCascadeExpression extends Let implements KernelExpression {
   /// Adds a new unfinalized section to the end of the cascade.  Should be
   /// called after the previous cascade section has been finalized.
   void extend() {
-    assert(nextCascade.variable.initializer is! InvalidExpression);
+    assert(nextCascade.variable.initializer is! _UnfinishedCascade);
     Let newCascade = makeLet(
-        new VariableDeclaration.forValue(new InvalidExpression()),
+        new VariableDeclaration.forValue(new _UnfinishedCascade()),
         nextCascade.body);
     nextCascade.body = newCascade;
     newCascade.parent = nextCascade;
@@ -217,7 +220,7 @@ class KernelCascadeExpression extends Let implements KernelExpression {
 
   /// Finalizes the last cascade section with the given [expression].
   void finalize(Expression expression) {
-    assert(nextCascade.variable.initializer is InvalidExpression);
+    assert(nextCascade.variable.initializer is _UnfinishedCascade);
     nextCascade.variable.initializer = expression;
     expression.parent = nextCascade.variable;
   }
@@ -1879,5 +1882,27 @@ class KernelYieldStatement extends YieldStatement implements KernelStatement {
         expression, typeContext, closureContext != null);
     closureContext.handleYield(inferrer, isYieldStar, inferredType);
     inferrer.listener.yieldStatementExit(this);
+  }
+}
+
+class _UnfinishedCascade extends Expression {
+  getStaticType(types) {
+    return internalError("Internal error: Unsupported operation.");
+  }
+
+  accept(v) {
+    return internalError("Internal error: Unsupported operation.");
+  }
+
+  accept1(v, arg) {
+    return internalError("Internal error: Unsupported operation.");
+  }
+
+  visitChildren(v) {
+    return internalError("Internal error: Unsupported operation.");
+  }
+
+  transformChildren(v) {
+    return internalError("Internal error: Unsupported operation.");
   }
 }

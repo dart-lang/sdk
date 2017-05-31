@@ -21,9 +21,11 @@ import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:front_end/src/fasta/kernel/fasta_accessors.dart'
     show BuilderHelper;
 
-import 'package:kernel/ast.dart' hide MethodInvocation;
+import 'package:kernel/ast.dart' hide MethodInvocation, InvalidExpression;
 
 import '../names.dart' show equalsName, indexGetName, indexSetName;
+
+import '../errors.dart' show internalError;
 
 /// An [Accessor] represents a subexpression for which we can't yet build a
 /// kernel [Expression] because we don't yet know the context in which it is
@@ -136,13 +138,19 @@ abstract class Accessor {
   /// Returns an [Expression] representing a compile-time error.
   ///
   /// At runtime, an exception will be thrown.
-  makeInvalidRead() => new InvalidExpression();
+  makeInvalidRead() {
+    return internalError(
+        "Unhandled compile-time error.", null, offsetForToken(token));
+  }
 
   /// Returns an [Expression] representing a compile-time error wrapping
   /// [value].
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
-  makeInvalidWrite(Expression value) => wrapInvalid(value);
+  makeInvalidWrite(Expression value) {
+    return internalError(
+        "Unhandled compile-time error.", null, offsetForToken(token));
+  }
 }
 
 abstract class VariableAccessor extends Accessor {
@@ -529,8 +537,4 @@ VariableDeclaration makeOrReuseVariable(Expression value) {
   // TODO: Devise a way to remember if a variable declaration was reused
   // or is fresh (hence needs a let binding).
   return new VariableDeclaration.forValue(value);
-}
-
-Expression wrapInvalid(Expression e) {
-  return new Let(new VariableDeclaration.forValue(e), new InvalidExpression());
 }

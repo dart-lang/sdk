@@ -4,8 +4,6 @@
 
 library fasta.fasta_accessors;
 
-export 'frontend_accessors.dart' show wrapInvalid;
-
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
     show KernelArguments, KernelMethodInvocation;
 

@@ -90,7 +90,7 @@ class KernelTargetForDart2js extends KernelTarget {
   Token skipNativeClause(Token token) => _skipNative(token);
 
   @override
-  String extractNativeMethodName(Token token) => null;
+  String extractNativeMethodName(Token token) => "";
 
   @override
   void loadExtraRequiredLibraries(Loader loader) => _loadExtras(loader);
@@ -109,7 +109,7 @@ class DillTargetForDart2js extends DillTarget {
   Token skipNativeClause(Token token) => _skipNative(token);
 
   @override
-  String extractNativeMethodName(Token token) => null;
+  String extractNativeMethodName(Token token) => "";
 
   @override
   void loadExtraRequiredLibraries(Loader loader) => _loadExtras(loader);
