@@ -204,14 +204,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// inference.
   TypePromoter<Expression, VariableDeclaration> get typePromoter;
 
-  FunctionType getCalleeFunctionType(Member interfaceMember,
-      DartType receiverType, Name methodName, int offset) {
+  FunctionType getCalleeFunctionType(
+      Member interfaceMember, DartType receiverType, Name methodName) {
     if (receiverType is InterfaceType) {
       if (interfaceMember == null) return _functionReturningDynamic;
       var memberClass = interfaceMember.enclosingClass;
       if (interfaceMember is Procedure) {
-        instrumentation?.record(Uri.parse(uri), offset, 'target',
-            new InstrumentationValueForProcedure(interfaceMember));
         var memberFunctionType = interfaceMember.function.functionType;
         if (memberClass.typeParameters.isNotEmpty) {
           var castedType = classHierarchy.getClassAsInstanceOf(

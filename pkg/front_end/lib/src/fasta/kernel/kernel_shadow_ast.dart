@@ -1075,14 +1075,16 @@ class KernelMethodInvocation extends MethodInvocation
         // targets, so we can't store the interface target without causing tests
         // to fail.  TODO(paulberry): fix this.
         if (inferrer.strongMode) {
+          inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+              'target', new InstrumentationValueForProcedure(interfaceMember));
           interfaceTarget = interfaceMember;
         }
         isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
             .isOverloadedArithmeticOperator(interfaceMember);
       }
     }
-    var calleeType = inferrer.getCalleeFunctionType(
-        interfaceMember, receiverType, name, fileOffset);
+    var calleeType =
+        inferrer.getCalleeFunctionType(interfaceMember, receiverType, name);
     var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
         fileOffset, calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
