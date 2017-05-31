@@ -66,9 +66,17 @@ List<List<String>> findShards(List<String> source) {
   return result;
 }
 
+void help() {
+  print("Generates the 'shard_data.dart' file that is used by our gardening");
+  print("tools. This tool needs to be run when the buildbot configuration");
+  print("(shard) changes\n");
+  print('Usage: dart create_shard_groups.dart <darto-source-file>');
+}
+
 main(List<String> args) {
-  if (args.length != 1) {
-    print('Usage: dart create_shard_groups.dart <darto-source-file>');
+  if (args.length != 1 || args[0] == "--help") {
+    help();
+    if (args.length == 1) return;
     exit(1);
   }
 

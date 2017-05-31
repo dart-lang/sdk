@@ -52,6 +52,7 @@ Future<String> readUriAsText(HttpClient client, Uri uri) async {
 
 ArgParser createArgParser() {
   ArgParser argParser = new ArgParser();
+  argParser.addFlag('help', help: "Help");
   argParser.addFlag('verbose',
       abbr: 'v', negatable: false, help: "Turn on logging output.");
   argParser.addOption('cache',
