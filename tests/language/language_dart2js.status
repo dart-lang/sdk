@@ -405,12 +405,9 @@ issue_25671b_test/01: Crash # Issue 27394
 list_is_test: RuntimeError # Issue 27394
 list_test: RuntimeError # Issue 27394
 main_not_a_function_test/01: Crash # Issue 27394
-malformed_inheritance_test/02: Crash # Issue 27394
 malformed_inheritance_test/03: Crash # Issue 27394
-malformed_inheritance_test/04: Crash # Issue 27394
 malformed_inheritance_test/09: Crash # Issue 27394
 malformed_inheritance_test/10: Crash # Issue 27394
-malformed_test/06: Crash # Issue 27394
 malformed_test/none: Crash # Issue 27394
 many_generic_instanceof_test: RuntimeError # Issue 27394
 many_method_calls_test: Pass # Issue 27394
@@ -480,7 +477,6 @@ redirecting_factory_reflection_test: Crash # Issue 27394
 regress_18535_test: Crash # Issue 27394
 regress_18713_test: Crash # Issue 27394
 regress_22666_test: Crash # Issue 27394
-regress_23408_test: Crash # Issue 27394
 regress_23996_test: RuntimeError # Issue 27394
 regress_25246_1_test: Crash # Issue 27394
 regress_28255_test: Crash # Issue 27394
