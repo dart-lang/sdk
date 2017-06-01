@@ -77,55 +77,27 @@ class _AssertVisitor extends RecursiveAstVisitor {
 
   ClassElement get classElement => constructorElement.enclosingElement;
 
-  bool _isInstanceNeeded(Expression node) {
-    if (node is MethodInvocation) {
-      return _isInstanceNeeded(node.target);
-    } else if (node is PropertyAccess) {
-      return _isInstanceNeeded(node.target);
-    } else if (node is SimpleIdentifier) {
-      final element = node.staticElement;
-      if (element?.enclosingElement == classElement) {
-        if (element is MethodElement) return true;
-        if (element is PropertyAccessorElement) {
-          return !constructorElement.parameters
-              .where((p) => p is FieldFormalParameterElement)
-              .any((p) =>
-                  (p as FieldFormalParameterElement).field.getter == element);
-        }
-      }
-      return false;
-    } else {
-      return false;
-    }
-  }
-
-  @override
-  visitMethodInvocation(MethodInvocation node) {
-    if (_isInstanceNeeded(node)) {
-      needInstance = true;
-    }
-    super.visitMethodInvocation(node);
-  }
-
-  @override
-  visitPropertyAccess(PropertyAccess node) {
-    if (_isInstanceNeeded(node)) {
-      needInstance = true;
-    }
-    super.visitPropertyAccess(node);
-  }
-
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    if (_isInstanceNeeded(node)) {
-      needInstance = true;
-    }
-    super.visitSimpleIdentifier(node);
+    final element = node.staticElement;
+
+    // exit if not an identifier of the current class
+    if (element?.enclosingElement != classElement) return;
+
+    // use method
+    needInstance = needInstance || element is MethodElement;
+
+    // use property accessor not used as field formal parameter
+    needInstance = needInstance ||
+        element is PropertyAccessorElement &&
+            !constructorElement.parameters
+                .where((p) => p is FieldFormalParameterElement)
+                .any((p) =>
+                    (p as FieldFormalParameterElement).field.getter == element);
   }
 
   @override
   visitThisExpression(ThisExpression node) {
     needInstance = true;
-    super.visitThisExpression(node);
   }
 }
