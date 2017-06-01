@@ -12584,12 +12584,13 @@ static int PrintVarInfo(char* buffer,
   const RawLocalVarDescriptors::VarInfoKind kind = info.kind();
   const int32_t index = info.index();
   if (kind == RawLocalVarDescriptors::kContextLevel) {
-    return OS::SNPrint(buffer, len, "%2" Pd
-                                    " %-13s level=%-3d scope=%-3d"
-                                    " begin=%-3d end=%d\n",
+    return OS::SNPrint(buffer, len,
+                       "%2" Pd
+                       " %-13s level=%-3d"
+                       " begin=%-3d end=%d\n",
                        i, LocalVarDescriptors::KindToCString(kind), index,
-                       info.scope_id, static_cast<int>(info.begin_pos.Pos()),
-                       static_cast<int>(info.end_pos.Pos()));
+                       static_cast<int>(info.begin_pos.value()),
+                       static_cast<int>(info.end_pos.value()));
   } else if (kind == RawLocalVarDescriptors::kContextVar) {
     return OS::SNPrint(
         buffer, len, "%2" Pd

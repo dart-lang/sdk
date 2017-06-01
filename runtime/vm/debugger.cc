@@ -12,6 +12,7 @@
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
+#include "vm/disassembler.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/json_stream.h"
@@ -264,6 +265,7 @@ ActivationFrame::ActivationFrame(uword pc,
       token_pos_initialized_(false),
       token_pos_(TokenPosition::kNoSource),
       try_index_(-1),
+      deopt_id_(Thread::kNoDeoptId),
       line_number_(-1),
       column_number_(-1),
       context_level_(-1),
@@ -636,6 +638,7 @@ TokenPosition ActivationFrame::TokenPos() {
       if (iter.PcOffset() == pc_offset) {
         try_index_ = iter.TryIndex();
         token_pos_ = iter.TokenPos();
+        deopt_id_ = iter.DeoptId();
         break;
       }
     }
@@ -649,6 +652,14 @@ intptr_t ActivationFrame::TryIndex() {
     TokenPos();  // Side effect: computes token_pos_initialized_, try_index_.
   }
   return try_index_;
+}
+
+
+intptr_t ActivationFrame::DeoptId() {
+  if (!token_pos_initialized_) {
+    TokenPos();  // Side effect: computes token_pos_initialized_, try_index_.
+  }
+  return deopt_id_;
 }
 
 
@@ -703,41 +714,54 @@ bool ActivationFrame::IsDebuggable() const {
 }
 
 
+void ActivationFrame::PrintDescriptorsError(const char* message) {
+  OS::PrintErr("Bad descriptors: %s\n", message);
+  OS::PrintErr("function %s\n", function().ToQualifiedCString());
+  OS::PrintErr("pc_ %" Px "\n", pc_);
+  OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
+  OS::PrintErr("context_level_ %" Px "\n", context_level_);
+  DisassembleToStdout formatter;
+  code().Disassemble(&formatter);
+  PcDescriptors::Handle(code().pc_descriptors()).Print();
+  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+                            Thread::Current(),
+                            StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* frame = frames.NextFrame();
+  while (frame != NULL) {
+    OS::PrintErr("%s\n", frame->ToCString());
+    frame = frames.NextFrame();
+  }
+  OS::Abort();
+}
+
+
 // Calculate the context level at the current token index of the frame.
 intptr_t ActivationFrame::ContextLevel() {
   const Context& ctx = GetSavedCurrentContext();
   if (context_level_ < 0 && !ctx.IsNull()) {
     ASSERT(!code_.is_optimized());
-    context_level_ = 0;
-    // TODO(hausner): What to do if there is no descriptor entry
-    // for the code position of the frame? For now say we are at context
-    // level 0.
-    TokenPos();
-    if (token_pos_ == TokenPosition::kNoSource) {
-      // No PcDescriptor.
-      return context_level_;
-    }
-    ASSERT(!pc_desc_.IsNull());
-    TokenPosition innermost_begin_pos = TokenPosition::kMinSource;
-    TokenPosition activation_token_pos = TokenPos().FromSynthetic();
-    ASSERT(activation_token_pos.IsReal());
+
     GetVarDescriptors();
+    intptr_t deopt_id = DeoptId();
+    if (deopt_id == Thread::kNoDeoptId) {
+      PrintDescriptorsError("Missing deopt id");
+    }
     intptr_t var_desc_len = var_descriptors_.Length();
+    bool found = false;
     for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
       RawLocalVarDescriptors::VarInfo var_info;
       var_descriptors_.GetInfo(cur_idx, &var_info);
       const int8_t kind = var_info.kind();
       if ((kind == RawLocalVarDescriptors::kContextLevel) &&
-          (var_info.begin_pos <= activation_token_pos) &&
-          (activation_token_pos < var_info.end_pos)) {
-        // This var_descriptors_ entry is a context scope which is in scope
-        // of the current token position. Now check whether it is shadowing
-        // the previous context scope.
-        if (innermost_begin_pos < var_info.begin_pos) {
-          innermost_begin_pos = var_info.begin_pos;
-          context_level_ = var_info.index();
-        }
+          (deopt_id >= var_info.begin_pos.value()) &&
+          (deopt_id <= var_info.end_pos.value())) {
+        context_level_ = var_info.index();
+        found = true;
+        break;
       }
+    }
+    if (!found) {
+      PrintDescriptorsError("Missing context level");
     }
     ASSERT(context_level_ >= 0);
   }

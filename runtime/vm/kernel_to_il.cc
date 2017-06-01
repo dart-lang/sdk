@@ -2013,6 +2013,7 @@ FlowGraphBuilder::FlowGraphBuilder(
     TreeNode* node,
     ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
+    ZoneGrowableArray<intptr_t>* context_level_array,
     InlineExitCollector* exit_collector,
     intptr_t osr_id,
     intptr_t first_block_id)
@@ -2023,6 +2024,7 @@ FlowGraphBuilder::FlowGraphBuilder(
       parsed_function_(parsed_function),
       osr_id_(osr_id),
       ic_data_array_(ic_data_array),
+      context_level_array_(context_level_array),
       exit_collector_(exit_collector),
       next_block_id_(first_block_id),
       next_function_id_(0),
@@ -2418,8 +2420,7 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
       false,                     // Not an artifact of compilation.
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
       handler_index, *CurrentException(), *CurrentStackTrace(),
-      needs_stacktrace, H.thread()->GetNextDeoptId(),
-      should_restore_closure_context);
+      needs_stacktrace, GetNextDeoptId(), should_restore_closure_context);
   graph_entry_->AddCatchEntry(entry);
   Fragment instructions(entry);
 
@@ -2835,9 +2836,9 @@ Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(
   if (I->use_field_guards()) {
     LocalVariable* store_expression = MakeTemporary();
     instructions += LoadLocal(store_expression);
-    instructions += GuardFieldClass(field_clone, H.thread()->GetNextDeoptId());
+    instructions += GuardFieldClass(field_clone, GetNextDeoptId());
     instructions += LoadLocal(store_expression);
-    instructions += GuardFieldLength(field_clone, H.thread()->GetNextDeoptId());
+    instructions += GuardFieldLength(field_clone, GetNextDeoptId());
   }
   instructions += StoreInstanceField(field_clone, is_initialization_store);
   return instructions;
@@ -3511,11 +3512,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
     instructions += StaticCall(TokenPosition::kNoSource, target, 1);
     instructions += Drop();
 
+    // TODO(29737): This sequence should be generated in order.
     body = instructions + body;
     context_depth_ = current_context_depth;
   }
 
   if (NeedsDebugStepCheck(dart_function, function->position())) {
+    const intptr_t current_context_depth = context_depth_;
+    context_depth_ = 0;
+
     // If a switch was added above: Start the switch by injecting a debuggable
     // safepoint so stepping over an await works.
     // If not, still start the body with a debuggable safepoint to ensure
@@ -3535,7 +3540,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
       check_pos = function->position();
       ASSERT(check_pos.IsDebugPause());
     }
+
+    // TODO(29737): This sequence should be generated in order.
     body = DebugStepCheck(check_pos) + body;
+    context_depth_ = current_context_depth;
   }
 
   normal_entry->LinkTo(body.entry);
@@ -3882,8 +3890,8 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
 }
 
 Fragment FlowGraphBuilder::DebugStepCheck(TokenPosition position) {
-  return Fragment(
-      new (Z) DebugStepCheckInstr(position, RawPcDescriptors::kRuntimeCall));
+  return Fragment(new (Z) DebugStepCheckInstr(
+      position, RawPcDescriptors::kRuntimeCall, GetNextDeoptId()));
 }
 
 
@@ -3966,7 +3974,7 @@ Fragment FlowGraphBuilder::AssertAssignable(const AbstractType& dst_type,
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
       TokenPosition::kNoSource, value, instantiator_type_args,
-      function_type_args, dst_type, dst_name, H.thread()->GetNextDeoptId());
+      function_type_args, dst_type, dst_name, GetNextDeoptId());
   Push(instr);
 
   instructions += Fragment(instr);

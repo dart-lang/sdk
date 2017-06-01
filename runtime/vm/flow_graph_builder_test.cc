@@ -60,8 +60,9 @@ class SourcePositionTest : public ValueObject {
         new ParsedFunction(thread_, Function::ZoneHandle(function.raw()));
     Parser::ParseFunction(parsed_function);
     parsed_function->AllocateVariables();
-    FlowGraphBuilder builder(*parsed_function, *ic_data_array, NULL,
-                             Compiler::kNoOSRDeoptId);
+    FlowGraphBuilder builder(*parsed_function, *ic_data_array,
+                             /* not building var desc */ NULL,
+                             /* not inlining */ NULL, Compiler::kNoOSRDeoptId);
     graph_ = builder.BuildGraph();
     EXPECT(graph_ != NULL);
     blocks_ = graph_->CodegenBlockOrder(optimized);

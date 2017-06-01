@@ -518,8 +518,8 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
 
   if (needs_number_check() && token_pos().IsReal()) {
     compiler->RecordSafepoint(locs());
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
-                                   Thread::kNoDeoptId, token_pos());
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, deopt_id_,
+                                   token_pos());
   }
 
   return condition;
@@ -923,6 +923,8 @@ EMIT_NATIVE_CODE(StringInterpolate,
   // StringInterpolateInstr::ArgumentCount() is 0. However
   // internally it does a call with 1 argument which needs to
   // be reflected in the lazy deoptimization environment.
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
+                                 token_pos());
   compiler->RecordAfterCallHelper(token_pos(), deopt_id(), kArgumentCount,
                                   FlowGraphCompiler::kHasResult, locs());
   if (compiler->is_optimizing()) {
@@ -1290,7 +1292,7 @@ EMIT_NATIVE_CODE(InstantiateTypeArguments,
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ DebugStep();
-  compiler->AddCurrentDescriptor(stub_kind_, Thread::kNoDeoptId, token_pos());
+  compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
 }
 
 

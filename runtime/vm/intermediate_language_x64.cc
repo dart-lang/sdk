@@ -6620,13 +6620,15 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Condition true_condition;
   if (left.IsConstant()) {
     true_condition = compiler->EmitEqualityRegConstCompare(
-        right.reg(), left.constant(), needs_number_check(), token_pos());
+        right.reg(), left.constant(), needs_number_check(), token_pos(),
+        deopt_id_);
   } else if (right.IsConstant()) {
     true_condition = compiler->EmitEqualityRegConstCompare(
-        left.reg(), right.constant(), needs_number_check(), token_pos());
+        left.reg(), right.constant(), needs_number_check(), token_pos(),
+        deopt_id_);
   } else {
     true_condition = compiler->EmitEqualityRegRegCompare(
-        left.reg(), right.reg(), needs_number_check(), token_pos());
+        left.reg(), right.reg(), needs_number_check(), token_pos(), deopt_id_);
   }
   if (kind() != Token::kEQ_STRICT) {
     ASSERT(kind() == Token::kNE_STRICT);
@@ -6752,7 +6754,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
   __ CallPatchable(*StubCode::DebugStepCheck_entry());
-  compiler->AddCurrentDescriptor(stub_kind_, Thread::kNoDeoptId, token_pos());
+  compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
   compiler->RecordSafepoint(locs());
 }
 

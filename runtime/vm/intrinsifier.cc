@@ -165,8 +165,8 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new ZoneGrowableArray<const ICData*>();
   FlowGraphBuilder builder(parsed_function, *ic_data_array,
-                           NULL,  // NULL = not inlining.
-                           Compiler::kNoOSRDeoptId);
+                           /* not building var desc */ NULL,
+                           /* not inlining */ NULL, Compiler::kNoOSRDeoptId);
 
   intptr_t block_id = builder.AllocateBlockId();
   TargetEntryInstr* normal_entry =

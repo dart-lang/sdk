@@ -165,6 +165,17 @@ void NestedStatement::AdjustContextLevel(intptr_t context_level) {
 }
 
 
+intptr_t FlowGraphBuilder::GetNextDeoptId() const {
+  intptr_t deopt_id = thread()->GetNextDeoptId();
+  if (context_level_array_ != NULL) {
+    intptr_t level = context_level();
+    context_level_array_->Add(deopt_id);
+    context_level_array_->Add(level);
+  }
+  return deopt_id;
+}
+
+
 intptr_t FlowGraphBuilder::context_level() const {
   return (nesting_stack() == NULL) ? 0 : nesting_stack()->ContextLevel();
 }
@@ -301,10 +312,12 @@ JoinEntryInstr* NestedSwitch::ContinueTargetFor(SourceLabel* label) {
 FlowGraphBuilder::FlowGraphBuilder(
     const ParsedFunction& parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
+    ZoneGrowableArray<intptr_t>* context_level_array,
     InlineExitCollector* exit_collector,
     intptr_t osr_id)
     : parsed_function_(parsed_function),
       ic_data_array_(ic_data_array),
+      context_level_array_(context_level_array),
       num_copied_params_(parsed_function.num_copied_params()),
       // All parameters are copied if any parameter is.
       num_non_copied_params_(
@@ -1104,7 +1117,8 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   if (FLAG_support_debugger && node->token_pos().IsDebugPause() &&
       !function.is_native()) {
     AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
-                                               RawPcDescriptors::kRuntimeCall));
+                                               RawPcDescriptors::kRuntimeCall,
+                                               owner()->GetNextDeoptId()));
   }
 
   NestedContextAdjustment context_adjustment(owner(), owner()->context_level());
@@ -1496,7 +1510,7 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
     function_type_arguments = BuildFunctionTypeArguments(token_pos);
   }
 
-  const intptr_t deopt_id = Thread::Current()->GetNextDeoptId();
+  const intptr_t deopt_id = owner()->GetNextDeoptId();
   return new (Z) AssertAssignableInstr(
       token_pos, value, instantiator_type_arguments, function_type_arguments,
       dst_type, dst_name, deopt_id);
@@ -2112,7 +2126,8 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
   if (FLAG_support_debugger && owner()->function().is_debuggable()) {
     AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
-                                               RawPcDescriptors::kRuntimeCall));
+                                               RawPcDescriptors::kRuntimeCall,
+                                               owner()->GetNextDeoptId()));
   }
 
   NestedContextAdjustment context_adjustment(owner(), owner()->context_level());
@@ -3463,8 +3478,9 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
           !rhs->AsLoadLocalNode()->local().IsInternal()) ||
          rhs->IsClosureNode()) &&
         !node->local().IsInternal() && node->token_pos().IsDebugPause()) {
-      AddInstruction(new (Z) DebugStepCheckInstr(
-          node->token_pos(), RawPcDescriptors::kRuntimeCall));
+      AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
+                                                 RawPcDescriptors::kRuntimeCall,
+                                                 owner()->GetNextDeoptId()));
     }
   }
 
@@ -3566,8 +3582,9 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
     if ((rhs->IsLiteralNode() || rhs->IsLoadLocalNode() ||
          rhs->IsLoadStaticFieldNode() || rhs->IsClosureNode()) &&
         node->token_pos().IsDebugPause()) {
-      AddInstruction(new (Z) DebugStepCheckInstr(
-          node->token_pos(), RawPcDescriptors::kRuntimeCall));
+      AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
+                                                 RawPcDescriptors::kRuntimeCall,
+                                                 owner()->GetNextDeoptId()));
     }
   }
 
@@ -3927,8 +3944,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       check_pos = node->token_pos();
       ASSERT(check_pos.IsDebugPause());
     }
-    AddInstruction(
-        new (Z) DebugStepCheckInstr(check_pos, RawPcDescriptors::kRuntimeCall));
+    AddInstruction(new (Z) DebugStepCheckInstr(
+        check_pos, RawPcDescriptors::kRuntimeCall, owner()->GetNextDeoptId()));
   }
 
   // This check may be deleted if the generated code is leaf.
@@ -4164,7 +4181,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
       owner()->AllocateBlockId(), catch_handler_index, owner()->graph_entry(),
       catch_block->handler_types(), try_handler_index,
       catch_block->exception_var(), catch_block->stacktrace_var(),
-      catch_block->needs_stacktrace(), Thread::Current()->GetNextDeoptId());
+      catch_block->needs_stacktrace(), owner()->GetNextDeoptId());
   owner()->AddCatchEntry(catch_entry);
   AppendFragment(catch_entry, for_catch);
 
@@ -4210,7 +4227,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
         owner()->AllocateBlockId(), original_handler_index,
         owner()->graph_entry(), types, catch_handler_index,
         catch_block->exception_var(), catch_block->stacktrace_var(),
-        catch_block->needs_stacktrace(), Thread::Current()->GetNextDeoptId());
+        catch_block->needs_stacktrace(), owner()->GetNextDeoptId());
     owner()->AddCatchEntry(finally_entry);
     AppendFragment(finally_entry, for_finally);
   }
@@ -4339,8 +4356,9 @@ void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
         node->exception()->IsLoadLocalNode() ||
         node->exception()->IsLoadStaticFieldNode() ||
         node->exception()->IsClosureNode()) {
-      AddInstruction(new (Z) DebugStepCheckInstr(
-          node->token_pos(), RawPcDescriptors::kRuntimeCall));
+      AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
+                                                 RawPcDescriptors::kRuntimeCall,
+                                                 owner()->GetNextDeoptId()));
     }
   }
   ValueGraphVisitor for_exception(owner());

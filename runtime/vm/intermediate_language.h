@@ -933,6 +933,8 @@ class Instruction : public ZoneAllocated {
   friend class Scheduler;
   friend class BlockEntryInstr;
   friend class CatchBlockEntryInstr;  // deopt_id_
+  friend class DebugStepCheckInstr;   // deopt_id_
+  friend class StrictCompareInstr;    // deopt_id_
 
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const { return deopt_id_; }
@@ -3628,8 +3630,12 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
 
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
  public:
-  DebugStepCheckInstr(TokenPosition token_pos, RawPcDescriptors::Kind stub_kind)
-      : token_pos_(token_pos), stub_kind_(stub_kind) {}
+  DebugStepCheckInstr(TokenPosition token_pos,
+                      RawPcDescriptors::Kind stub_kind,
+                      intptr_t deopt_id)
+      : TemplateInstruction<0, NoThrow>(deopt_id),
+        token_pos_(token_pos),
+        stub_kind_(stub_kind) {}
 
   DECLARE_INSTRUCTION(DebugStepCheck)
 

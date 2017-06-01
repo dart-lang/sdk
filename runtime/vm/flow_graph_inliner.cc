@@ -800,7 +800,8 @@ class CallSiteInliner : public ValueObject {
               parsed_function->function().kernel_function());
 
           kernel::FlowGraphBuilder builder(
-              node, parsed_function, *ic_data_array, exit_collector,
+              node, parsed_function, *ic_data_array,
+              /* not building var desc */ NULL, exit_collector,
               Compiler::kNoOSRDeoptId, caller_graph_->max_block_id() + 1);
           {
             CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
@@ -808,6 +809,7 @@ class CallSiteInliner : public ValueObject {
           }
         } else {
           FlowGraphBuilder builder(*parsed_function, *ic_data_array,
+                                   /* not building var desc */ NULL,
                                    exit_collector, Compiler::kNoOSRDeoptId);
           builder.SetInitialBlockId(caller_graph_->max_block_id());
           {
