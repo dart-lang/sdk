@@ -479,14 +479,38 @@ const char* Debugger::QualifiedFunctionName(const Function& func) {
 }
 
 
-// Returns true if function contains the token position in the given script.
-static bool FunctionContains(const Function& func,
+// Returns true if the function |func| overlaps the token range
+// [|token_pos|, |end_token_pos|] in |script|.
+static bool FunctionOverlaps(const Function& func,
                              const Script& script,
-                             TokenPosition token_pos) {
-  if ((func.token_pos() <= token_pos) && (token_pos <= func.end_token_pos())) {
+                             TokenPosition token_pos,
+                             TokenPosition end_token_pos) {
+  TokenPosition func_start = func.token_pos();
+  if (((func_start <= token_pos) && (token_pos <= func.end_token_pos())) ||
+      ((token_pos <= func_start) && (func_start <= end_token_pos))) {
     // Check script equality second because it allocates
     // handles as a side effect.
     return func.script() == script.raw();
+  }
+  return false;
+}
+
+
+static bool IsImplicitFunction(const Function& func) {
+  switch (func.kind()) {
+    case RawFunction::kImplicitGetter:
+    case RawFunction::kImplicitSetter:
+    case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kMethodExtractor:
+    case RawFunction::kNoSuchMethodDispatcher:
+    case RawFunction::kInvokeFieldDispatcher:
+    case RawFunction::kIrregexpFunction:
+      return true;
+    default:
+      if (func.token_pos() == func.end_token_pos()) {
+        // |func| could be an implicit constructor for example.
+        return true;
+      }
   }
   return false;
 }
@@ -502,7 +526,8 @@ bool Debugger::HasBreakpoint(const Function& func, Zone* zone) {
     BreakpointLocation* sbpt = breakpoint_locations_;
     while (sbpt != NULL) {
       script = sbpt->script();
-      if (FunctionContains(func, script, sbpt->token_pos())) {
+      if (FunctionOverlaps(func, script, sbpt->token_pos(),
+                           sbpt->end_token_pos())) {
         return true;
       }
       sbpt = sbpt->next_;
@@ -2650,11 +2675,6 @@ static void SelectBestFit(Function* best_fit, Function* func) {
 }
 
 
-static bool IsTokenPosWithinFunction(const Function& func, TokenPosition pos) {
-  return (func.token_pos() <= pos && pos <= func.end_token_pos());
-}
-
-
 // Returns true if a best fit is found. A best fit can either be a function
 // or a field. If it is a function, then the best fit function is returned
 // in |best_fit|. If a best fit is a field, it means that a latent
@@ -2676,10 +2696,7 @@ bool Debugger::FindBestFit(const Script& script,
   const intptr_t num_closures = closures.Length();
   for (intptr_t i = 0; i < num_closures; i++) {
     function ^= closures.At(i);
-    if (function.script() != script.raw()) {
-      continue;
-    }
-    if (IsTokenPosWithinFunction(function, token_pos)) {
+    if (FunctionOverlaps(function, script, token_pos, last_token_pos)) {
       // Select the inner most closure.
       SelectBestFit(best_fit, &function);
     }
@@ -2716,7 +2733,12 @@ bool Debugger::FindBestFit(const Script& script,
       for (intptr_t pos = 0; pos < num_functions; pos++) {
         function ^= functions.At(pos);
         ASSERT(!function.IsNull());
-        if (IsTokenPosWithinFunction(function, token_pos)) {
+        if (IsImplicitFunction(function)) {
+          // Implicit functions do not have a user specifiable source
+          // location.
+          continue;
+        }
+        if (FunctionOverlaps(function, script, token_pos, last_token_pos)) {
           // Closures and inner functions within a class method are not
           // present in the functions of a class. Hence, we can return
           // right away as looking through other functions of a class
@@ -4044,7 +4066,8 @@ void Debugger::NotifyCompilation(const Function& func) {
   for (BreakpointLocation* loc = breakpoint_locations_; loc != NULL;
        loc = loc->next()) {
     script = loc->script();
-    if (FunctionContains(func, script, loc->token_pos())) {
+    if (FunctionOverlaps(func, script, loc->token_pos(),
+                         loc->end_token_pos())) {
       Function& inner_function = Function::Handle(zone);
       inner_function = FindInnermostClosure(func, loc->token_pos());
       if (!inner_function.IsNull()) {

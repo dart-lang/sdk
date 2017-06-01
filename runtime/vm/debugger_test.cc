@@ -130,6 +130,13 @@ TEST_CASE(Debugger_SetBreakpointInFunctionLiteralFieldInitializers) {
   EXPECT(Dart_IsInteger(result));
   EXPECT_VALID(Dart_IntegerToInt64(result, &closure_bp_id[3]));
 
+  // Cannot set breakpoint at the start of the class definition.
+  // The implicit constructor token position matches that of the
+  // class definition's token position. So, we do not want to
+  // allow setting breakpoints in implicit consturctors.
+  result = Dart_SetBreakpoint(url, 8);
+  EXPECT_ERROR(result, "could not set breakpoint at line 8");
+
   result = Dart_SetBreakpoint(url, 20);
   EXPECT_ERROR(result, "could not set breakpoint at line 20");
 
@@ -141,10 +148,7 @@ TEST_CASE(Debugger_SetBreakpointInFunctionLiteralFieldInitializers) {
   Dart_SetPausedEventHandler(PausedInClosuresHandler);
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
-  // TODO(sivachandra): Understand why a breakpoint on a single line
-  // functional literal is not being hit. When that issue is resolved,
-  // adjust this test to check hitting the breakpoint at line 19 also.
-  EXPECT(closure_hit_count == 3);
+  EXPECT(closure_hit_count == 4);
 }
 
 TEST_CASE(Debugger_RemoveBreakpoint) {
