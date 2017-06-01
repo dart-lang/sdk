@@ -16,6 +16,7 @@ import '../common_elements.dart' show CommonElements;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
@@ -1303,7 +1304,7 @@ class Namer {
     } else {
       // TODO(johnniwinther): Change factory name encoding as to not include
       // the class-name twice.
-      return '${className}_${Elements.reconstructConstructorName(element)}';
+      return '${className}_${utils.reconstructConstructorName(element)}';
     }
   }
 

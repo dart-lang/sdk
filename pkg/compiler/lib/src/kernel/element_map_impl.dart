@@ -715,6 +715,11 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   ir.Member getMemberNode(KMember member) {
     return _memberList[member.memberIndex].node;
   }
+
+  /// Returns the kernel IR node that defines the [cls].
+  ir.Class getClassNode(KClass cls) {
+    return _classEnvs[cls.classIndex].cls;
+  }
 }
 
 /// Environment for fast lookup of program libraries.

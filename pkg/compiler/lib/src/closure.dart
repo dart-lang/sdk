@@ -13,6 +13,7 @@ import 'constants/expressions.dart';
 import 'elements/resolution_types.dart';
 import 'elements/elements.dart';
 import 'elements/entities.dart';
+import 'elements/entity_utils.dart' as utils;
 import 'elements/modelx.dart'
     show BaseFunctionElementX, ClassElementX, ElementX;
 import 'elements/visitor.dart' show ElementVisitor;
@@ -1070,7 +1071,7 @@ class ClosureTranslator extends Visitor {
           enclosingElement.isGenerativeConstructorBody ||
           enclosingElement.isFactoryConstructor) {
         ConstructorElement constructor = enclosingElement;
-        parts = parts.prepend(Elements.reconstructConstructorName(constructor));
+        parts = parts.prepend(utils.reconstructConstructorName(constructor));
       } else {
         String surroundingName =
             Elements.operatorNameToIdentifier(enclosingElement.name);

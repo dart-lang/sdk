@@ -33,7 +33,9 @@ import 'compiler_helper.dart';
 
 const SOURCE = const {
   'main.dart': '''
+foo() {}
 main() {
+  foo();
   return null;
 }
 '''
@@ -77,7 +79,11 @@ Future<ResultKind> mainInternal(List<String> args,
       entryPoint: entryPoint,
       diagnosticHandler: collector,
       outputProvider: collector1,
-      options: [Flags.disableTypeInference, Flags.enableAssertMessage]);
+      options: [
+        Flags.disableTypeInference,
+        Flags.disableInlining,
+        Flags.enableAssertMessage
+      ]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler1.resolution.retainCachesForTesting = true;
   await compiler1.run(entryPoint);
@@ -98,9 +104,16 @@ Future<ResultKind> mainInternal(List<String> args,
       compiler1.resolutionWorldBuilder.closedWorldForTesting;
 
   OutputCollector collector2 = new OutputCollector();
-  Compiler compiler2 = await compileWithDill(entryPoint, const {},
-      [Flags.disableTypeInference, Flags.enableAssertMessage],
-      printSteps: true, compilerOutput: collector2);
+  Compiler compiler2 = await compileWithDill(
+      entryPoint,
+      const {},
+      [
+        Flags.disableTypeInference,
+        Flags.disableInlining,
+        Flags.enableAssertMessage
+      ],
+      printSteps: true,
+      compilerOutput: collector2);
 
   KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
   KernelToElementMap elementMap = frontEndStrategy.elementMap;

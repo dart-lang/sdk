@@ -20,6 +20,7 @@ import '../universe/call_structure.dart';
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'entities.dart';
+import 'entity_utils.dart' as utils;
 import 'names.dart';
 import 'resolution_types.dart';
 import 'types.dart';
@@ -542,17 +543,7 @@ class Elements {
     if (element.name == '') {
       return element.enclosingClass.name;
     } else {
-      return reconstructConstructorName(element);
-    }
-  }
-
-  // TODO(johnniwinther): Move this (other similar) to an entity_utils library.
-  static String reconstructConstructorName(FunctionEntity element) {
-    String className = element.enclosingClass.name;
-    if (element.name == '') {
-      return className;
-    } else {
-      return '$className\$${element.name}';
+      return utils.reconstructConstructorName(element);
     }
   }
 
@@ -667,75 +658,13 @@ class Elements {
   /// on the source code order.
   static int compareByPosition(Element a, Element b) {
     if (identical(a, b)) return 0;
-    int r = _compareLibraries(a.library, b.library);
+    int r = utils.compareLibrariesUris(
+        a.library.canonicalUri, b.library.canonicalUri);
     if (r != 0) return r;
-    r = _compareCompilationUnits(a.compilationUnit, b.compilationUnit);
+    r = utils.compareSourceUris(a.compilationUnit.script.readableUri,
+        b.compilationUnit.script.readableUri);
     if (r != 0) return r;
-    int offsetA = a.sourceOffset ?? -1;
-    int offsetB = b.sourceOffset ?? -1;
-    r = offsetA.compareTo(offsetB);
-    if (r != 0) return r;
-    r = a.name.compareTo(b.name);
-    if (r != 0) return r;
-    // Same file, position and name.  If this happens, we should find out why
-    // and make the order total and independent of hashCode.
-    return a.hashCode.compareTo(b.hashCode);
-  }
-
-  // Somewhat stable ordering for [LibraryElement]s
-  static int _compareLibraries(LibraryElement a, LibraryElement b) {
-    if (a == b) return 0;
-
-    int byCanonicalUriPath() {
-      return a.canonicalUri.path.compareTo(b.canonicalUri.path);
-    }
-
-    // Order: platform < package < other.
-    if (a.isPlatformLibrary) {
-      if (b.isPlatformLibrary) return byCanonicalUriPath();
-      return -1;
-    }
-    if (b.isPlatformLibrary) return 1;
-
-    if (a.isPackageLibrary) {
-      if (b.isPackageLibrary) return byCanonicalUriPath();
-      return -1;
-    }
-    if (b.isPackageLibrary) return 1;
-
-    return _compareCanonicalUri(a.canonicalUri, b.canonicalUri);
-  }
-
-  static int _compareCanonicalUri(Uri a, Uri b) {
-    int r = a.scheme.compareTo(b.scheme);
-    if (r != 0) return r;
-
-    // We would like the order of 'file:' Uris to be stable across different
-    // users or different builds from temporary directories.  We sort by
-    // pathSegments elements from the last to the first since that tends to find
-    // a stable distinction regardless of directory root.
-    List<String> aSegments = a.pathSegments;
-    List<String> bSegments = b.pathSegments;
-    int aI = aSegments.length;
-    int bI = bSegments.length;
-    while (aI > 0 && bI > 0) {
-      String aSegment = aSegments[--aI];
-      String bSegment = bSegments[--bI];
-      r = aSegment.compareTo(bSegment);
-      if (r != 0) return r;
-    }
-    return aI.compareTo(bI); // Shortest first.
-  }
-
-  static int _compareCompilationUnits(
-      CompilationUnitElement a, CompilationUnitElement b) {
-    if (a == b) return 0;
-    // Compilation units are compared only within the same library so we expect
-    // the Uris to usually be clustered together with a common scheme and path
-    // prefix.
-    Uri aUri = a.script.readableUri;
-    Uri bUri = b.script.readableUri;
-    return '${aUri}'.compareTo('${bUri}');
+    return utils.compareEntities(a, a.sourceOffset, -1, b, b.sourceOffset, -1);
   }
 
   static List<E> sortedByPosition<E extends Element>(Iterable<E> elements) {

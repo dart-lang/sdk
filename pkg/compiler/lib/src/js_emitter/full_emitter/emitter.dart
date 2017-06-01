@@ -22,13 +22,13 @@ import '../../elements/elements.dart'
     show
         ClassElement,
         Element,
-        Elements,
         FieldElement,
         FunctionSignature,
         LibraryElement,
         MethodElement,
         TypedefElement;
 import '../../elements/entities.dart';
+import '../../elements/entity_utils.dart' as utils;
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
 import '../../io/location_provider.dart' show LocationCollector;
@@ -481,7 +481,7 @@ class Emitter extends js_emitter.EmitterBase {
         MethodElement function = elementOrSelector;
         if (function.isConstructor) {
           isConstructor = true;
-          name = Elements.reconstructConstructorName(function);
+          name = utils.reconstructConstructorName(function);
         }
         FunctionSignature signature = function.functionSignature;
         positionalParameterCount = signature.requiredParameterCount;

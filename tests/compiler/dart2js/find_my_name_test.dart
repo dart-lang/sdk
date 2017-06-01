@@ -5,6 +5,7 @@
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import "package:compiler/src/elements/elements.dart";
+import 'package:compiler/src/elements/entity_utils.dart' as utils;
 import "mock_compiler.dart";
 import "parser_helper.dart";
 import 'package:compiler/src/elements/modelx.dart';
@@ -41,7 +42,7 @@ testClass(String code, MockCompiler compiler) {
     String name = e.name;
     if (e.isConstructor) {
       ConstructorElement c = e;
-      name = Elements.reconstructConstructorName(c).replaceFirst(r'$', '.');
+      name = utils.reconstructConstructorName(c).replaceFirst(r'$', '.');
     }
     Expect.equals(code.indexOf(name, skip), e.position.charOffset);
   });

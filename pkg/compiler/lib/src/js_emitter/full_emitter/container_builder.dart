@@ -6,8 +6,9 @@ library dart2js.js_emitter.full_emitter.container_builder;
 
 import '../../constants/values.dart';
 import '../../elements/elements.dart'
-    show Element, Elements, MetadataAnnotation, MethodElement;
+    show Element, MetadataAnnotation, MethodElement;
 import '../../elements/entities.dart';
+import '../../elements/entity_utils.dart' as utils;
 import '../../elements/names.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
@@ -170,7 +171,7 @@ class ContainerBuilder extends CodeEmitterHelper {
         //               given that we use a different name below?
         emitter.getReflectionName(member, name);
         reflectionName = new jsAst.LiteralString(
-            '"new ${Elements.reconstructConstructorName(member)}"');
+            '"new ${utils.reconstructConstructorName(member)}"');
       } else {
         reflectionName = js.string(namer.privateName(memberName));
       }

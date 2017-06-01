@@ -42,6 +42,9 @@ class CodeEmitterTask extends CompilerTask {
   Emitter _emitter;
   final Compiler compiler;
 
+  /// The [Sorter] use for ordering elements in the generated JavaScript.
+  final Sorter sorter;
+
   JavaScriptBackend get backend => compiler.backend;
 
   @deprecated
@@ -54,6 +57,7 @@ class CodeEmitterTask extends CompilerTask {
   CodeEmitterTask(
       Compiler compiler, bool generateSourceMap, bool useStartupEmitter)
       : compiler = compiler,
+        sorter = compiler.backendStrategy.sorter,
         super(compiler.measurer) {
     if (USE_LAZY_EMITTER) {
       _emitterFactory = new lazy_js_emitter.EmitterFactory();
@@ -79,11 +83,6 @@ class CodeEmitterTask extends CompilerTask {
         failedAt(NO_LOCATION_SPANNABLE, "Emitter has not been created yet."));
     return _emitter;
   }
-
-  /// Returns the [Sorter] use for ordering elements in the generated
-  /// JavaScript.
-  // TODO(johnniwinther): Switch this based on the used entity model.
-  Sorter get sorter => const ElementSorter();
 
   String get name => 'Code emitter';
 

@@ -12,6 +12,7 @@ import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart';
 import '../compiler.dart';
 import '../elements/entities.dart';
+import '../elements/entity_utils.dart' as utils;
 import '../enqueue.dart';
 import '../io/source_information.dart';
 import '../js/js_source_mapping.dart';
@@ -30,6 +31,7 @@ import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../world.dart';
+import 'element_map_impl.dart';
 import 'kernel_strategy.dart';
 
 /// Backend strategy that uses the kernel elements as the backend model.
@@ -37,6 +39,7 @@ import 'kernel_strategy.dart';
 // model.
 class KernelBackendStrategy implements BackendStrategy {
   final Compiler _compiler;
+  Sorter _sorter;
 
   KernelBackendStrategy(this._compiler);
 
@@ -46,8 +49,13 @@ class KernelBackendStrategy implements BackendStrategy {
   }
 
   @override
-  Sorter get sorter =>
-      throw new UnimplementedError('KernelBackendStrategy.sorter');
+  Sorter get sorter {
+    if (_sorter == null) {
+      KernelFrontEndStrategy frontEndStrategy = _compiler.frontEndStrategy;
+      _sorter = new KernelSorter(frontEndStrategy.elementMap);
+    }
+    return _sorter;
+  }
 
   @override
   void convertClosures(ClosedWorldRefiner closedWorldRefiner) {
@@ -225,5 +233,53 @@ class KernelClosureClassMaps implements ClosureClassMaps {
   @override
   ClosureClassMap getMemberMap(MemberEntity member) {
     return new ClosureClassMap(null, null, null, null);
+  }
+}
+
+class KernelSorter implements Sorter {
+  final KernelToElementMapImpl elementMap;
+
+  KernelSorter(this.elementMap);
+
+  int _compareLibraries(LibraryEntity a, LibraryEntity b) {
+    return utils.compareLibrariesUris(a.canonicalUri, b.canonicalUri);
+  }
+
+  int _compareNodes(
+      Entity entity1, ir.TreeNode node1, Entity entity2, ir.TreeNode node2) {
+    ir.Location location1 = node1.location;
+    ir.Location location2 = node2.location;
+    int r = utils.compareSourceUris(
+        Uri.parse(location1.file), Uri.parse(location2.file));
+    if (r != 0) return r;
+    return utils.compareEntities(entity1, location1.line, location1.column,
+        entity2, location2.line, location2.column);
+  }
+
+  @override
+  Iterable<LibraryEntity> sortLibraries(Iterable<LibraryEntity> libraries) {
+    return libraries.toList()..sort(_compareLibraries);
+  }
+
+  @override
+  Iterable<MemberEntity> sortMembers(Iterable<MemberEntity> members) {
+    return members.toList()
+      ..sort((MemberEntity a, MemberEntity b) {
+        int r = _compareLibraries(a.library, b.library);
+        if (r != 0) return r;
+        return _compareNodes(
+            a, elementMap.getMemberNode(a), b, elementMap.getMemberNode(b));
+      });
+  }
+
+  @override
+  Iterable<ClassEntity> sortClasses(Iterable<ClassEntity> classes) {
+    return classes.toList()
+      ..sort((ClassEntity a, ClassEntity b) {
+        int r = _compareLibraries(a.library, b.library);
+        if (r != 0) return r;
+        return _compareNodes(
+            a, elementMap.getClassNode(a), b, elementMap.getClassNode(b));
+      });
   }
 }
