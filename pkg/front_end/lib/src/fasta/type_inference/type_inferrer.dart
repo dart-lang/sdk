@@ -99,11 +99,10 @@ class ClosureContext {
         inferrer.inferReturnType(_inferredReturnType, isExpressionFunction);
     if (!isExpressionFunction &&
         returnContext != null &&
-        (!inferrer.typeSchemaEnvironment
-                .isSubtypeOf(inferredReturnType, returnContext) ||
-            returnContext is VoidType)) {
+        !_analyzerSubtypeOf(inferrer, inferredReturnType, returnContext)) {
       // For block-bodied functions, if the inferred return type isn't a
-      // subtype of the context (or the context is void), we use the context.
+      // subtype of the context, we use the context.  We use analyzer subtyping
+      // rules here.
       // TODO(paulberry): this is inherited from analyzer; it's not part of
       // the spec.  See also dartbug.com/29606.
       inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
@@ -139,6 +138,19 @@ class ClosureContext {
       _inferredReturnType = inferrer.typeSchemaEnvironment
           .getLeastUpperBound(_inferredReturnType, type);
     }
+  }
+
+  static bool _analyzerSubtypeOf(
+      TypeInferrerImpl inferrer, DartType subtype, DartType supertype) {
+    if (supertype is VoidType) {
+      if (subtype is VoidType) return true;
+      if (subtype is InterfaceType &&
+          identical(subtype.classNode, inferrer.coreTypes.nullClass)) {
+        return true;
+      }
+      return false;
+    }
+    return inferrer.typeSchemaEnvironment.isSubtypeOf(subtype, supertype);
   }
 }
 

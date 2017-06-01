@@ -240,6 +240,7 @@ inference/infer_variable_void: Crash
 inference/inferred_initializing_formal_checks_default_value: Crash
 inference/inferred_nonstatic_field_depends_on_static_field_complex: Crash
 inference/inferred_nonstatic_field_depends_on_top_level_var_simple: Crash
+inference/inferred_type_block_closure_no_args_no_return_void_context: Crash
 inference/inferred_type_cascade: Crash
 inference/inferred_type_custom_binary_op: Crash
 inference/inferred_type_custom_binary_op_via_interface: Crash
