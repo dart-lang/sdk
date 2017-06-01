@@ -1007,7 +1007,6 @@
             '--snapshot_kind', 'core',
             '--vm_output_bin', '<(vm_isolate_snapshot_bin_file)',
             '--isolate_output_bin', '<(isolate_snapshot_bin_file)',
-            '--target_os', '<(OS)',
             '--timestamp_file', '<(gen_snapshot_stamp_file)',
           ],
           'message': 'Generating ''<(vm_isolate_snapshot_bin_file)'' ''<(isolate_snapshot_bin_file)'' files.'
