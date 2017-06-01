@@ -143,10 +143,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// a previous call to [createTopLevelTypeInferrer].
   TypeInferrerImpl getFieldTypeInferrer(KernelField field);
 
-  /// Gets the URI of the compilation unit the [field] is declared in.
-  /// TODO(paulberry): can we remove this?
-  String getFieldUri(KernelField field);
-
   /// Performs type inference on the given [field].
   void inferField(FieldNode fieldNode) {
     var field = fieldNode._field;

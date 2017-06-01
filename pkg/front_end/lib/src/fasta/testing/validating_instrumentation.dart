@@ -78,6 +78,7 @@ class ValidatingInstrumentation implements Instrumentation {
   /// Updates the source file at [uri] based on the actual property/value
   /// pairs that were observed.
   Future<Null> fixSource(Uri uri, bool offsetsCountCharacters) async {
+    uri = Uri.base.resolveUri(uri);
     var fixes = _fixes[uri];
     if (fixes == null) return;
     File file = new File.fromUri(uri);
@@ -104,6 +105,7 @@ class ValidatingInstrumentation implements Instrumentation {
   ///
   /// Should be called before [finish].
   Future<Null> loadExpectations(Uri uri) async {
+    uri = Uri.base.resolveUri(uri);
     var bytes = await readBytesFromFile(uri);
     var expectations = _unsatisfiedExpectations.putIfAbsent(uri, () => {});
     var testedFeaturesState = _testedFeaturesState.putIfAbsent(uri, () => {});
@@ -153,6 +155,7 @@ class ValidatingInstrumentation implements Instrumentation {
   @override
   void record(
       Uri uri, int offset, String property, InstrumentationValue value) {
+    uri = Uri.base.resolveUri(uri);
     var expectationsForUri = _unsatisfiedExpectations[uri];
     if (expectationsForUri == null) return;
     var expectationsAtOffset = expectationsForUri[offset];

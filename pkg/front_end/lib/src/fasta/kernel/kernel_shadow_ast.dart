@@ -498,14 +498,6 @@ class KernelField extends Field {
     super.type = value;
   }
 
-  String get _fileUri {
-    // TODO(paulberry): This is a hack.  We should use this.fileUri, because we
-    // want the URI of the compilation unit.  But that gives a relative URI,
-    // and I don't know what it's relative to or how to convert it to an
-    // absolute URI.
-    return enclosingLibrary.importUri.toString();
-  }
-
   void _setInferredType(DartType inferredType) {
     _isInferred = true;
     super.type = inferredType;
@@ -1558,7 +1550,7 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
   KernelTypeInferrer createTopLevelTypeInferrer(
       KernelField field, TypeInferenceListener listener) {
     return field._typeInferrer =
-        new KernelTypeInferrer._(this, getFieldUri(field), listener, true);
+        new KernelTypeInferrer._(this, field.fileUri, listener, true);
   }
 
   @override
@@ -1579,11 +1571,6 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
   @override
   KernelTypeInferrer getFieldTypeInferrer(KernelField field) {
     return field._typeInferrer;
-  }
-
-  @override
-  String getFieldUri(KernelField field) {
-    return field._fileUri;
   }
 
   @override
