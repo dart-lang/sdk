@@ -27,13 +27,23 @@ final _variables = {
   "jscl": new _Variable.bool((c) => c.runtime.isJSCommandLine),
   "minified": new _Variable.bool((c) => c.isMinified),
   "mode": new _Variable((c) => c.mode.name, Mode.names),
-  "runtime": new _Variable((c) => c.runtime.name, Runtime.names),
+  "runtime": new _Variable(_runtimeName, Runtime.names),
   "strong": new _Variable.bool((c) => c.isStrong),
   "system": new _Variable((c) => c.system.name, System.names),
   "unchecked": new _Variable.bool((c) => !c.isChecked),
   "unminified": new _Variable.bool((c) => !c.isMinified),
   "use_sdk": new _Variable.bool((c) => c.useSdk)
 };
+
+/// Gets the name of the runtime as it appears in status files.
+String _runtimeName(Configuration configuration) {
+  // TODO(rnystrom): Handle "ff" being used as the name for firefox. We don't
+  // want to make the Runtime itself use that as the name because it appears
+  // elsewhere in test.dart and we want those other places to show "firefox".
+  if (configuration.runtime == Runtime.firefox) return 'ff';
+
+  return configuration.runtime.name;
+}
 
 /// Defines the variables that are available for use inside a status file
 /// section header.
