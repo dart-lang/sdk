@@ -52,12 +52,14 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.element.isFactory) return;
+
     final body = node.body;
     if (body is BlockFunctionBody) {
       for (final statement in body.block.statements) {
         if (statement is! AssertStatement) break;
 
-        final assertVisitor = new _AssertVisitor(node.element.enclosingElement);
+        final assertVisitor = new _AssertVisitor(node.element);
         statement.visitChildren(assertVisitor);
         if (!assertVisitor.needInstance) {
           rule.reportLintForToken(statement.beginToken);
@@ -68,30 +70,56 @@ class Visitor extends SimpleAstVisitor {
 }
 
 class _AssertVisitor extends RecursiveAstVisitor {
-  _AssertVisitor(this.classElement);
-  final ClassElement classElement;
+  _AssertVisitor(this.constructorElement);
+
+  final ConstructorElement constructorElement;
   bool needInstance = false;
+
+  ClassElement get classElement => constructorElement.enclosingElement;
+
+  bool _isInstanceNeeded(Expression node) {
+    if (node is MethodInvocation) {
+      return _isInstanceNeeded(node.target);
+    } else if (node is PropertyAccess) {
+      return _isInstanceNeeded(node.target);
+    } else if (node is SimpleIdentifier) {
+      final element = node.staticElement;
+      if (element?.enclosingElement == classElement) {
+        if (element is MethodElement) return true;
+        if (element is PropertyAccessorElement) {
+          return !constructorElement.parameters
+              .where((p) => p is FieldFormalParameterElement)
+              .any((p) =>
+                  (p as FieldFormalParameterElement).field.getter == element);
+        }
+      }
+      return false;
+    } else {
+      return false;
+    }
+  }
 
   @override
   visitMethodInvocation(MethodInvocation node) {
-    needInstance = true;
+    if (_isInstanceNeeded(node)) {
+      needInstance = true;
+    }
     super.visitMethodInvocation(node);
   }
 
   @override
   visitPropertyAccess(PropertyAccess node) {
-    needInstance = true;
+    if (_isInstanceNeeded(node)) {
+      needInstance = true;
+    }
     super.visitPropertyAccess(node);
   }
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    final element = node.staticElement;
-    if ((element is PropertyAccessorElement || element is MethodElement) &&
-        element.enclosingElement == classElement) {
+    if (_isInstanceNeeded(node)) {
       needInstance = true;
     }
-
     super.visitSimpleIdentifier(node);
   }
 

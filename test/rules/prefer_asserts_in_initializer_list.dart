@@ -5,7 +5,7 @@
 // test w/ `pub run test -N prefer_asserts_in_initializer_list`
 
 class A {
-  final f;
+  var f;
   get g => null;
   m() => null;
   A.c1(a) {
@@ -41,8 +41,20 @@ class A {
     assert(m() != null); // OK
   }
   // no lint if property access is used
-  A.c_(a) {
+  A.c8(a) {
     assert(this.g != null); // OK
     assert(g != null); // OK
+  }
+  // no lint if method is call on other objet
+  A.c9({f}) : f = f ?? 'f' {
+    assert(f != null); // LINT
+    assert(f.toString() != null); // LINT
+    assert(f.toString().toString() != null); // LINT
+  }
+  A.c10({this.f}) {
+    assert(f != null); // LINT
+  }
+  factory A.c11({f}) {
+    assert(f != null); // OK
   }
 }
