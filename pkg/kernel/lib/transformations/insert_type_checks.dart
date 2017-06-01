@@ -20,10 +20,9 @@ class InsertTypeChecks {
   final CoreTypes coreTypes;
   ClassHierarchy hierarchy;
 
-  InsertTypeChecks(this.coreTypes, {this.hierarchy});
+  InsertTypeChecks(this.coreTypes, this.hierarchy);
 
   void transformProgram(Program program) {
-    hierarchy ??= new ClassHierarchy(program);
     new CheckInsertingTypeChecker(coreTypes, hierarchy).checkProgram(program);
   }
 }

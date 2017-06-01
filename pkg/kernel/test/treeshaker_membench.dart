@@ -45,8 +45,8 @@ main(List<String> args) {
   int copyCount = int.parse(options['count']);
 
   TreeShaker buildTreeShaker() {
-    return new TreeShaker(coreTypes, program,
-        hierarchy: hierarchy, strongMode: strongMode);
+    return new TreeShaker(coreTypes, hierarchy, program,
+        strongMode: strongMode);
   }
 
   List<TreeShaker> keepAlive = <TreeShaker>[];

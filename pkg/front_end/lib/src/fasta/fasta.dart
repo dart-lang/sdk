@@ -16,6 +16,8 @@ import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/binary/ast_to_binary.dart'
     show LibraryFilteringBinaryPrinter;
 
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/kernel.dart' show Library, Program, loadProgramFromBytes;
@@ -196,6 +198,7 @@ Future<CompilationResult> parseScriptInFileSystem(
     }
 
     CoreTypes coreTypes;
+    ClassHierarchy hierarchy;
     Program program;
     try {
       TranslateUri uriTranslator =
@@ -210,6 +213,7 @@ Future<CompilationResult> parseScriptInFileSystem(
       await dillTarget.buildOutlines();
       await kernelTarget.buildOutlines();
       coreTypes = kernelTarget.loader.coreTypes;
+      hierarchy = kernelTarget.loader.hierarchy;
       program = await kernelTarget.buildProgram();
       if (kernelTarget.errors.isNotEmpty) {
         return new CompilationResult.errors(kernelTarget.errors);
@@ -224,7 +228,7 @@ Future<CompilationResult> parseScriptInFileSystem(
 
     // Perform target-specific transformations.
     Target target = getTarget("vm", new TargetFlags(strongMode: false));
-    target.performModularTransformations(coreTypes, program);
+    target.performModularTransformations(coreTypes, hierarchy, program);
     target.performGlobalTransformations(coreTypes, program);
 
     // Write the program to a list of bytes and return it.  Do not include

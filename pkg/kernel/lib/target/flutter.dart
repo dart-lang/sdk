@@ -4,6 +4,7 @@
 library kernel.target.flutter;
 
 import '../ast.dart';
+import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../transformations/continuation.dart' as cont;
 import '../transformations/erasure.dart';
@@ -50,8 +51,9 @@ class FlutterTarget extends Target {
         'dart:vmservice_sky',
       ];
 
-  void performModularTransformations(CoreTypes coreTypes, Program program) {
-    mix.transformLibraries(this, coreTypes, program.libraries);
+  void performModularTransformations(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, Program program) {
+    mix.transformLibraries(this, coreTypes, hierarchy, program.libraries);
   }
 
   void performGlobalTransformations(CoreTypes coreTypes, Program program) {

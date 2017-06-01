@@ -53,9 +53,10 @@ import '../visitor.dart';
 ///   var b = new B();
 ///   b.foo(499, named1: 88);
 /// }
-Program transformProgram(CoreTypes coreTypes, Program program,
+Program transformProgram(
+    CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
     [debug = false]) {
-  new MethodCallTransformer(coreTypes, debug).visitProgram(program);
+  new MethodCallTransformer(coreTypes, hierarchy, debug).visitProgram(program);
   return program;
 }
 
@@ -111,12 +112,10 @@ class MethodCallTransformer extends Transformer {
   Constructor _invocationMirrorConstructor; // cached
   Procedure _listFrom; // cached
 
-  MethodCallTransformer(this.coreTypes, this._debug);
+  MethodCallTransformer(this.coreTypes, this.hierarchy, this._debug);
 
   @override
   TreeNode visitProgram(Program node) {
-    hierarchy = new ClassHierarchy(node);
-
     // First move body of all procedures that takes optional positional or named
     // parameters and record which non-static procedure names have optional
     // positional arguments.

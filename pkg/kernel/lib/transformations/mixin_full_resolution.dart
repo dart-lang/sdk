@@ -10,9 +10,10 @@ import '../core_types.dart';
 import '../target/targets.dart' show Target;
 import '../type_algebra.dart';
 
-void transformLibraries(
-    Target targetInfo, CoreTypes coreTypes, List<Library> libraries) {
-  new MixinFullResolution(targetInfo, coreTypes).transform(libraries);
+void transformLibraries(Target targetInfo, CoreTypes coreTypes,
+    ClassHierarchy hierarchy, List<Library> libraries) {
+  new MixinFullResolution(targetInfo, coreTypes, hierarchy)
+      .transform(libraries);
 }
 
 /// Replaces all mixin applications with regular classes, cloning all fields
@@ -23,11 +24,16 @@ void transformLibraries(
 /// to their targets in this pass.
 class MixinFullResolution {
   final Target targetInfo;
-
   final CoreTypes coreTypes;
+
+  /// The [ClassHierarchy] that should be used after applying this transformer.
+  /// If any class was updated, in general we need to create a new
+  /// [ClassHierarchy] instance, with new dispatch targets; or at least let
+  /// the existing instance know that some of its dispatch tables are not
+  /// valid anymore.
   ClassHierarchy hierarchy;
 
-  MixinFullResolution(this.targetInfo, this.coreTypes);
+  MixinFullResolution(this.targetInfo, this.coreTypes, this.hierarchy);
 
   /// Transform the given new [libraries].  It is expected that all other
   /// libraries have already been transformed.
@@ -47,10 +53,11 @@ class MixinFullResolution {
       }
     }
 
-    // TODO(scheglov) Remove "program" once we switch to creating "hierarchy"
-    // and "coreTypes" outside and passing into the transformers.
-    var program = libraries.first.enclosingProgram;
-    hierarchy = new ClassHierarchy(program);
+    // If there are transformed classes, we need to update hierarchy.
+    if (transformedClasses.isNotEmpty) {
+      var program = libraries.first.enclosingProgram;
+      hierarchy = new ClosedWorldClassHierarchy(program);
+    }
 
     // Resolve all super call expressions and super initializers.
     for (var library in libraries) {

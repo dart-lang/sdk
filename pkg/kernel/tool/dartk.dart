@@ -12,6 +12,7 @@ import '../bin/util.dart';
 import 'package:args/args.dart';
 import 'package:analyzer/src/kernel/loader.dart';
 import 'package:kernel/application_root.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/verifier.dart';
 import 'package:kernel/kernel.dart';
@@ -407,7 +408,8 @@ Future<CompilerOutcome> batchMain(
   // Apply target-specific transformations.
   if (target != null && canContinueCompilation) {
     CoreTypes coreTypes = new CoreTypes(program);
-    target.performModularTransformations(coreTypes, program);
+    ClassHierarchy hierarchy = new ClosedWorldClassHierarchy(program);
+    target.performModularTransformations(coreTypes, hierarchy, program);
     runVerifier();
     if (options['link']) {
       target.performGlobalTransformations(coreTypes, program);

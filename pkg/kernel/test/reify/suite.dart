@@ -13,6 +13,8 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/kernel/loader.dart'
     show DartLoader, DartOptions, createDartSdk;
 
+import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
+
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
@@ -194,8 +196,9 @@ class NotReifiedKernel extends Step<TestDescription, Program, TestContext> {
         return fail(program, "$error");
       }
       var coreTypes = new CoreTypes(program);
+      var hierarchy = new ClosedWorldClassHierarchy(program);
       target
-        ..performModularTransformations(coreTypes, program)
+        ..performModularTransformations(coreTypes, hierarchy, program)
         ..performGlobalTransformations(coreTypes, program);
       return pass(program);
     } catch (e, s) {

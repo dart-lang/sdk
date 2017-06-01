@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
@@ -77,23 +78,24 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
 
   var program = loadProgramFromBinary(input);
   var coreTypes = new CoreTypes(program);
+  var hierarchy = new ClosedWorldClassHierarchy(program);
   switch (options['transformation']) {
     case 'continuation':
       program = cont.transformProgram(coreTypes, program);
       break;
     case 'resolve-mixins':
       mix.transformLibraries(
-          new NoneTarget(null), coreTypes, program.libraries);
+          new NoneTarget(null), coreTypes, hierarchy, program.libraries);
       break;
     case 'closures':
       program = closures.transformProgram(coreTypes, program);
       break;
     case 'treeshake':
-      program = treeshaker.transformProgram(coreTypes, program,
+      program = treeshaker.transformProgram(coreTypes, hierarchy, program,
           programRoots: programRoots);
       break;
     case 'methodcall':
-      program = method_call.transformProgram(coreTypes, program);
+      program = method_call.transformProgram(coreTypes, hierarchy, program);
       break;
     case 'empty':
       program = empty.transformProgram(program);

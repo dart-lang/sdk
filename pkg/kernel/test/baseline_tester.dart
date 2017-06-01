@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:analyzer/src/kernel/loader.dart';
 import 'package:kernel/application_root.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
@@ -27,7 +28,7 @@ abstract class TestTarget extends Target {
 
   // Return a list of strings so that we can accumulate errors.
   List<String> performModularTransformations(
-      CoreTypes coreTypes, Program program);
+      CoreTypes coreTypes, ClassHierarchy hierarchy, Program program);
   List<String> performGlobalTransformations(
       CoreTypes coreTypes, Program program);
 }
@@ -49,6 +50,7 @@ void runBaselineTests(String folderName, TestTarget target) {
 
         var program = new Program();
         var coreTypes = new CoreTypes(program);
+        var hierarchy = new ClosedWorldClassHierarchy(program);
         var loader = await batch.getLoader(
             program,
             new DartOptions(
@@ -59,7 +61,8 @@ void runBaselineTests(String folderName, TestTarget target) {
         loader.loadProgram(dartPath, target: target);
         verifyProgram(program);
         var errors = <String>[];
-        errors.addAll(target.performModularTransformations(coreTypes, program));
+        errors.addAll(target.performModularTransformations(
+            coreTypes, hierarchy, program));
         verifyProgram(program);
         errors.addAll(target.performGlobalTransformations(coreTypes, program));
         verifyProgram(program);

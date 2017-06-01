@@ -22,7 +22,8 @@ import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
 
 import 'package:kernel/ast.dart' show Program;
 
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClosedWorldClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -440,7 +441,7 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void computeHierarchy(Program program) {
-    hierarchy = new ClassHierarchy(program);
+    hierarchy = new ClosedWorldClassHierarchy(program);
     ticker.logMs("Computed class hierarchy");
     coreTypes = new CoreTypes(program);
     ticker.logMs("Computed core types");

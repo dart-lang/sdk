@@ -70,10 +70,9 @@ class InsertCovarianceChecks {
   /// in [unsafeMemberEntryPoint].
   final Set<Member> membersWithCheckedEntryPoint = new Set<Member>();
 
-  InsertCovarianceChecks(this.coreTypes, {this.hierarchy});
+  InsertCovarianceChecks(this.coreTypes, this.hierarchy);
 
   void transformProgram(Program program) {
-    hierarchy ??= new ClassHierarchy(program);
     types = new TypeEnvironment(coreTypes, hierarchy);
     // We transform every class before their subtypes.
     // This ensures that transitive overrides are taken into account.

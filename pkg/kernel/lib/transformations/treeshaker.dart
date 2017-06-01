@@ -10,9 +10,10 @@ import '../core_types.dart';
 import '../type_environment.dart';
 import '../library_index.dart';
 
-Program transformProgram(CoreTypes coreTypes, Program program,
+Program transformProgram(
+    CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
     {List<ProgramRoot> programRoots}) {
-  new TreeShaker(coreTypes, program, programRoots: programRoots)
+  new TreeShaker(coreTypes, hierarchy, program, programRoots: programRoots)
       .transform(program);
   return program;
 }
@@ -90,9 +91,9 @@ class ProgramRoot {
 //
 // TODO(asgerf): Tree shake unused instance fields.
 class TreeShaker {
-  final Program program;
-  final ClosedWorldClassHierarchy hierarchy;
   final CoreTypes coreTypes;
+  final ClosedWorldClassHierarchy hierarchy;
+  final Program program;
   final bool strongMode;
   final List<ProgramRoot> programRoots;
 
@@ -169,12 +170,9 @@ class TreeShaker {
   /// the mirrors library.
   bool get forceShaking => programRoots != null && programRoots.isNotEmpty;
 
-  TreeShaker(CoreTypes coreTypes, Program program,
-      {ClassHierarchy hierarchy,
-      bool strongMode: false,
-      List<ProgramRoot> programRoots})
-      : this._internal(program, hierarchy ?? new ClassHierarchy(program),
-            coreTypes, strongMode, programRoots);
+  TreeShaker(CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
+      {bool strongMode: false, List<ProgramRoot> programRoots})
+      : this._internal(coreTypes, hierarchy, program, strongMode, programRoots);
 
   bool isMemberBodyUsed(Member member) {
     return _usedMembers.containsKey(member);
@@ -209,10 +207,9 @@ class TreeShaker {
     new _TreeShakingTransformer(this).transform(program);
   }
 
-  TreeShaker._internal(this.program, ClosedWorldClassHierarchy hierarchy,
-      this.coreTypes, this.strongMode, this.programRoots)
-      : this.hierarchy = hierarchy,
-        this._dispatchedNames = new List<Set<Name>>(hierarchy.classes.length),
+  TreeShaker._internal(this.coreTypes, this.hierarchy, this.program,
+      this.strongMode, this.programRoots)
+      : this._dispatchedNames = new List<Set<Name>>(hierarchy.classes.length),
         this._usedMembersWithHost =
             new List<Set<Member>>(hierarchy.classes.length),
         this._classRetention = new List<ClassRetention>.filled(

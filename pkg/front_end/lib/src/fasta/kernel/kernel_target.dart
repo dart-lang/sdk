@@ -660,7 +660,8 @@ class KernelTarget extends TargetImplementation {
   }
 
   void transformMixinApplications() {
-    mix.transformLibraries(backendTarget, loader.coreTypes, loader.libraries);
+    mix.transformLibraries(
+        backendTarget, loader.coreTypes, loader.hierarchy, loader.libraries);
     ticker.logMs("Transformed mixin applications");
   }
 

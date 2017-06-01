@@ -4,6 +4,7 @@
 library kernel.target.targets;
 
 import '../ast.dart';
+import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../transformations/treeshaker.dart' show ProgramRoot;
 import 'flutter.dart';
@@ -71,7 +72,8 @@ abstract class Target {
   ///
   /// These transformations should not be whole-program transformations.  They
   /// should expect that the program will contain external libraries.
-  void performModularTransformations(CoreTypes coreTypes, Program program);
+  void performModularTransformations(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, Program program);
 
   /// Perform target-specific whole-program transformations.
   ///
@@ -96,7 +98,8 @@ class NoneTarget extends Target {
   bool get strongMode => flags.strongMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
-  void performModularTransformations(CoreTypes coreTypes, Program program) {}
+  void performModularTransformations(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, Program program) {}
   void performGlobalTransformations(CoreTypes coreTypes, Program program) {}
 
   @override

@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.treeshaker_check;
 
+import 'dart:io';
+
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/transformations/treeshaker.dart';
-import 'dart:io';
 
 String usage = '''
 Usage: treeshaker_check FILE.dill
@@ -21,7 +23,8 @@ main(List<String> args) {
   }
   var program = loadProgramFromBinary(args[0]);
   var coreTypes = new CoreTypes(program);
-  var shaker = new TreeShaker(coreTypes, program);
+  var hierarchy = new ClosedWorldClassHierarchy(program);
+  var shaker = new TreeShaker(coreTypes, hierarchy, program);
   shaker.transform(program);
   new TreeShakingSanityCheck(shaker).visit(program);
 }
