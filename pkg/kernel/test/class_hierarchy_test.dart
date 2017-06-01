@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/testing/mock_sdk_program.dart';
 import 'package:kernel/text/ast_to_text.dart';
+import 'package:kernel/type_algebra.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -330,6 +331,83 @@ class implements_ implements self::base {}
     expect(hierarchy.getClassDepth(extends_), 2);
     expect(hierarchy.getClassDepth(with_), 2);
     expect(hierarchy.getClassDepth(implements_), 2);
+  }
+
+  /// Copy of the tests/language/least_upper_bound_expansive_test.dart test.
+  void test_getClassicLeastUpperBound_expansive() {
+    var int = coreTypes.intClass.rawType;
+    var string = coreTypes.stringClass.rawType;
+
+    // class N<T> {}
+    var NT = new TypeParameter('T', objectClass.rawType);
+    var N = addClass(
+        new Class(name: 'N', typeParameters: [NT], supertype: objectSuper));
+
+    // class C1<T> extends N<N<C1<T>>> {}
+    Class C1;
+    {
+      var T = new TypeParameter('T', objectClass.rawType);
+      C1 = addClass(
+          new Class(name: 'C1', typeParameters: [T], supertype: objectSuper));
+      DartType C1_T = Substitution
+          .fromMap({T: new TypeParameterType(T)}).substituteType(C1.thisType);
+      DartType N_C1_T =
+          Substitution.fromMap({NT: C1_T}).substituteType(N.thisType);
+      Supertype N_N_C1_T = Substitution
+          .fromMap({NT: N_C1_T}).substituteSupertype(N.asThisSupertype);
+      C1.supertype = N_N_C1_T;
+    }
+
+    // class C2<T> extends N<N<C2<N<C2<T>>>>> {}
+    Class C2;
+    {
+      var T = new TypeParameter('T', objectClass.rawType);
+      C2 = addClass(
+          new Class(name: 'C2', typeParameters: [T], supertype: objectSuper));
+      DartType C2_T = Substitution
+          .fromMap({T: new TypeParameterType(T)}).substituteType(C2.thisType);
+      DartType N_C2_T =
+          Substitution.fromMap({NT: C2_T}).substituteType(N.thisType);
+      DartType C2_N_C2_T =
+          Substitution.fromMap({T: N_C2_T}).substituteType(C2.thisType);
+      DartType N_C2_N_C2_T =
+          Substitution.fromMap({NT: C2_N_C2_T}).substituteType(N.thisType);
+      Supertype N_N_C2_N_C2_T = Substitution
+          .fromMap({NT: N_C2_N_C2_T}).substituteSupertype(N.asThisSupertype);
+      C2.supertype = N_N_C2_N_C2_T;
+    }
+
+    _assertTestLibraryText('''
+class N<T> {}
+class C1<T> extends self::N<self::N<self::C1<self::C1::T>>> {}
+class C2<T> extends self::N<self::N<self::C2<self::N<self::C2<self::C2::T>>>>> {}
+''');
+
+    // The least upper bound of C1<int> and N<C1<String>> is Object since the
+    // supertypes are
+    //     {C1<int>, N<N<C1<int>>>, Object} for C1<int> and
+    //     {N<C1<String>>, Object} for N<C1<String>> and
+    // Object is the most specific type in the intersection of the supertypes.
+    expect(
+        hierarchy.getClassicLeastUpperBound(
+            new InterfaceType(C1, [int]),
+            new InterfaceType(N, [
+              new InterfaceType(C1, [string])
+            ])),
+        objectClass.thisType);
+
+    // The least upper bound of C2<int> and N<C2<String>> is Object since the
+    // supertypes are
+    //     {C2<int>, N<N<C2<N<C2<int>>>>>, Object} for C2<int> and
+    //     {N<C2<String>>, Object} for N<C2<String>> and
+    // Object is the most specific type in the intersection of the supertypes.
+    expect(
+        hierarchy.getClassicLeastUpperBound(
+            new InterfaceType(C2, [int]),
+            new InterfaceType(N, [
+              new InterfaceType(C2, [string])
+            ])),
+        objectClass.thisType);
   }
 
   void test_getClassicLeastUpperBound_generic() {
