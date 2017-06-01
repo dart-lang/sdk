@@ -56,7 +56,6 @@ void-methods: Fail
 inference/constructors_too_many_positional_arguments: Fail
 inference/downwards_inference_annotations: Fail
 inference/downwards_inference_initializing_formal_default_formal: Fail
-inference/downwards_inference_on_function_expressions: Fail
 inference/downwards_inference_on_function_of_t_using_the_t: Fail
 inference/downwards_inference_on_generic_function_expressions: Fail
 inference/downwards_inference_on_list_literals_infer_downwards: Fail
@@ -109,7 +108,6 @@ inference/map_literals_can_infer_null_top_level: Fail
 inference/method_call_with_type_arguments_static_method: Fail
 inference/null_coalescing_operator: Fail
 inference/null_coalescing_operator_2: Fail
-inference/null_literal_should_not_infer_as_bottom: Fail
 inference/reference_to_typedef: Fail
 inference/refine_binary_expression_type_type_parameter_t_double: Fail
 inference/refine_binary_expression_type_type_parameter_t_int: Fail

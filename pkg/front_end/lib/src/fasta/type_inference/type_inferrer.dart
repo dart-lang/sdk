@@ -107,6 +107,14 @@ class ClosureContext {
       // TODO(paulberry): this is inherited from analyzer; it's not part of
       // the spec.  See also dartbug.com/29606.
       inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
+    } else if (isExpressionFunction &&
+        returnContext != null &&
+        inferredReturnType is DynamicType) {
+      // For expression-bodied functions, if the inferred return type is
+      // `dynamic`, we use the context.
+      // TODO(paulberry): this is inherited from analyzer; it's not part of the
+      // spec.
+      inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
     }
 
     if (isGenerator) {

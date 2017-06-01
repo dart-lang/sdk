@@ -8,7 +8,7 @@ library test;
 var /*@topType=dynamic*/ h = null;
 void foo(int f(Object _)) {}
 
-main() {
+test() {
   var /*@type=(Object) -> dynamic*/ f = /*@returnType=dynamic*/ (Object x) =>
       null;
   String y = /*info:DYNAMIC_CAST*/ f(42);
@@ -26,3 +26,5 @@ main() {
   foo(/*@returnType=<BottomType>*/ (/*@type=Object*/ x) =>
       throw "not implemented");
 }
+
+main() {}
