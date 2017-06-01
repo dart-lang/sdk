@@ -98,6 +98,10 @@ class HeapMapElement extends HtmlElement implements Renderable {
         ..onMouseMove.listen(_handleMouseMove)
         ..onMouseDown.listen(_handleClick);
     }
+
+    // Set hover text to describe the object under the cursor.
+    _canvas.title = _status;
+
     children = [
       navBar([
         new NavTopMenuElement(queue: _r.queue),

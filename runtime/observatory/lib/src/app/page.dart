@@ -518,7 +518,6 @@ class InspectPage extends MatchingPage {
             _reachableSizeRepository,
             _inboundReferencesRepository,
             _retainingPathRepository,
-            _objectRepository,
             queue: app.queue)
       ];
     } else if (obj is Sentinel) {

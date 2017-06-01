@@ -51,8 +51,6 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
 
   M.NotificationRepository get notifications => _notifications;
   M.NativeMemorySampleProfileRepository get profiles => _profiles;
-  // With non-isolate version.
-  M.VMRef get vm => _vm;
 
   factory NativeMemoryProfileElement(
       M.VM vm,
@@ -143,8 +141,8 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
   }
 
   Future _request({bool forceFetch: false}) async {
-    for (Isolate isolate in vm.isolates) {
-      await isolate.invokeRpc("_collectAllGarbage", {});
+    for (M.Isolate isolate in _vm.isolates) {
+      await isolate.collectAllGarbage();
     }
     _progress = null;
     _progressStream = _profiles.get(_vm, _tag, forceFetch: forceFetch);
