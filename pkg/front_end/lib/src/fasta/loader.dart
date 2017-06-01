@@ -25,6 +25,8 @@ abstract class Loader<L> {
 
   final TargetImplementation target;
 
+  final List<InputError> errors = <InputError>[];
+
   LibraryBuilder coreLibrary;
 
   LibraryBuilder first;
@@ -138,7 +140,7 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   Future<Null> buildBody(covariant LibraryBuilder library);
 
   List<InputError> collectCompileTimeErrors() {
-    List<InputError> errors = <InputError>[];
+    List<InputError> errors = <InputError>[]..addAll(this.errors);
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         errors.addAll(library.compileTimeErrors);
@@ -147,13 +149,21 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
     return errors;
   }
 
-  Builder getCompileTimeError() => target.getCompileTimeError(this);
-
-  Builder getNativeAnnotation() => target.getNativeAnnotation(this);
-
   Builder getAbstractClassInstantiationError() {
     return target.getAbstractClassInstantiationError(this);
   }
+
+  Builder getCompileTimeError() => target.getCompileTimeError(this);
+
+  Builder getDuplicatedFieldInitializerError() {
+    return target.getDuplicatedFieldInitializerError(this);
+  }
+
+  Builder getFallThroughError() => target.getFallThroughError(this);
+
+  Builder getNativeAnnotation() => target.getNativeAnnotation(this);
+
+  Builder getNoSuchMethodError() => target.getNoSuchMethodError(this);
 }
 
 String format(double d, int fractionDigits, int width) {

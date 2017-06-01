@@ -6,6 +6,8 @@ library fasta.target_implementation;
 
 import 'package:kernel/target/targets.dart' as backend show Target;
 
+import 'package:kernel/ast.dart' show Arguments, Expression, Member;
+
 import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
 import 'parser/dart_vm_native.dart' as vm show skipNativeClause;
@@ -28,9 +30,13 @@ abstract class TargetImplementation extends Target {
 
   final backend.Target backendTarget;
 
-  Builder cachedCompileTimeError;
   Builder cachedAbstractClassInstantiationError;
+  Builder cachedCompileTimeError;
+  Builder cachedDuplicatedFieldInitializerError;
+  Builder cachedFallThroughError;
+  Builder cachedInvocation;
   Builder cachedNativeAnnotation;
+  Builder cachedNoSuchMethodError;
 
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
       : super(ticker);
@@ -52,15 +58,6 @@ abstract class TargetImplementation extends Target {
 
   Uri translateUri(Uri uri) => uriTranslator.translate(uri);
 
-  /// Returns a reference to the constructor used for creating a compile-time
-  /// error. The constructor is expected to accept a single argument of type
-  /// String, which is the compile-time error message.
-  Builder getCompileTimeError(Loader loader) {
-    if (cachedCompileTimeError != null) return cachedCompileTimeError;
-    return cachedCompileTimeError =
-        loader.coreLibrary.getConstructor("_CompileTimeError", isPrivate: true);
-  }
-
   /// Returns a reference to the constructor of
   /// [AbstractClassInstantiationError] error.  The constructor is expected to
   /// accept a single argument of type String, which is the name of the
@@ -73,6 +70,51 @@ abstract class TargetImplementation extends Target {
         loader.coreLibrary.getConstructor("AbstractClassInstantiationError");
   }
 
+  /// Returns a reference to the constructor used for creating a compile-time
+  /// error. The constructor is expected to accept a single argument of type
+  /// String, which is the compile-time error message.
+  Builder getCompileTimeError(Loader loader) {
+    if (cachedCompileTimeError != null) return cachedCompileTimeError;
+    return cachedCompileTimeError =
+        loader.coreLibrary.getConstructor("_CompileTimeError", isPrivate: true);
+  }
+
+  /// Returns a reference to the constructor used for creating a runtime error
+  /// when a final field is initialized twice. The constructor is expected to
+  /// accept a single argument which is the name of the field.
+  Builder getDuplicatedFieldInitializerError(Loader loader) {
+    if (cachedDuplicatedFieldInitializerError != null) {
+      return cachedDuplicatedFieldInitializerError;
+    }
+    return cachedDuplicatedFieldInitializerError = loader.coreLibrary
+        .getConstructor("_DuplicatedFieldInitializerError", isPrivate: true);
+  }
+
+  /// Returns a reference to the constructor of [FallThroughError] error.  The
+  /// constructor is expected to accept no arguments.
+  Builder getFallThroughError(Loader loader) {
+    if (cachedFallThroughError != null) {
+      return cachedFallThroughError;
+    }
+    return cachedFallThroughError =
+        loader.coreLibrary.getConstructor("FallThroughError");
+  }
+
+  /// Returns a reference to the constructor of [Invocation]. The
+  /// constructor is expected to accept these arguments:
+  ///
+  ///     String functionName,
+  ///     List argumentsDescriptor,
+  ///     List arguments,
+  ///     bool isSuperInvocation
+  Builder getInvocation(Loader loader) {
+    if (cachedInvocation != null) {
+      return cachedInvocation;
+    }
+    return cachedInvocation =
+        loader.coreLibrary.getConstructor("_InvocationMirror", isPrivate: true);
+  }
+
   /// Returns a reference to the constructor used for creating `native`
   /// annotations. The constructor is expected to accept a single argument of
   /// type String, which is the name of the native method.
@@ -80,6 +122,22 @@ abstract class TargetImplementation extends Target {
     if (cachedNativeAnnotation != null) return cachedNativeAnnotation;
     LibraryBuilder internal = loader.read(Uri.parse("dart:_internal"), -1);
     return cachedNativeAnnotation = internal.getConstructor("ExternalName");
+  }
+
+  /// Returns a reference to the constructor of [NoSuchMethodError] error. The
+  /// constructor is expected to accept these arguments:
+  ///
+  ///     Object receiver, // A class literal for static methods.
+  ///     Symbol memberName,
+  ///     int type, // [computeNoSuchMethodType](kernel/kernel_builder.dart).
+  ///     List positionalArguments,
+  ///     Map<Symbol, dynamic> namedArguments,
+  Builder getNoSuchMethodError(Loader loader) {
+    if (cachedNoSuchMethodError != null) {
+      return cachedNoSuchMethodError;
+    }
+    return cachedNoSuchMethodError = loader.coreLibrary
+        .getConstructor("NoSuchMethodError", constructorName: "_withType");
   }
 
   void loadExtraRequiredLibraries(Loader loader) {
@@ -118,5 +176,11 @@ abstract class TargetImplementation extends Target {
         library.loader.read(patch, -1, fileUri: patch, isPatch: true);
       }
     }
+  }
+
+  Expression instantiateInvocation(Member target, Expression receiver,
+      String name, Arguments arguments, int offset, bool isSuper) {
+    return backendTarget.instantiateInvocation(
+        target, receiver, name, arguments, offset, isSuper);
   }
 }

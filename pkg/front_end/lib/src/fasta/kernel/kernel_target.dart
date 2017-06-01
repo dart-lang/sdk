@@ -97,7 +97,8 @@ class KernelTarget extends TargetImplementation {
   final Map<String, Source> uriToSource;
 
   SourceLoader<Library> loader;
-  Program _program;
+
+  Program program;
 
   final List<String> errors = <String>[];
 
@@ -222,7 +223,7 @@ class KernelTarget extends TargetImplementation {
       print(message);
       errors.add(message);
     }
-    _program = erroneousProgram(isFullProgram);
+    program = erroneousProgram(isFullProgram);
   }
 
   @override
@@ -244,9 +245,9 @@ class KernelTarget extends TargetImplementation {
       installDefaultConstructors(sourceClasses);
       loader.resolveConstructors();
       loader.finishTypeVariables(objectClassBuilder);
-      _program =
+      program =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
-      loader.computeHierarchy(_program);
+      loader.computeHierarchy(program);
       loader.checkOverrides(sourceClasses);
       loader.prepareInitializerInference();
       loader.performInitializerInference();
@@ -255,7 +256,7 @@ class KernelTarget extends TargetImplementation {
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
-    return _program;
+    return program;
   }
 
   /// Build the kernel representation of the program loaded by this target. The
@@ -278,7 +279,7 @@ class KernelTarget extends TargetImplementation {
     if (errors.isNotEmpty) {
       handleInputError(null,
           isFullProgram: true, trimDependencies: trimDependencies);
-      return _program;
+      return program;
     }
 
     try {
@@ -301,7 +302,7 @@ class KernelTarget extends TargetImplementation {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
     if (trimDependencies) trimDependenciesInProgram();
-    return _program;
+    return program;
   }
 
   Future writeDepsFile(Uri output, Uri depsFile,
@@ -664,24 +665,26 @@ class KernelTarget extends TargetImplementation {
   }
 
   void otherTransformations() {
-    // TODO(ahe): Don't generate type variables in the first place.
     if (!strongMode) {
-      _program.accept(new Erasure());
+      // TODO(ahe): Don't generate type variables in the first place.
+      program.accept(new Erasure());
       ticker.logMs("Erased type variables in generic methods");
     }
-    // TODO(kmillikin): Make this run on a per-method basis.
-    transformAsync.transformLibraries(loader.coreTypes, loader.libraries);
+    if (errors.isEmpty && loader.collectCompileTimeErrors().isEmpty) {
+      // TODO(kmillikin): Make this run on a per-method basis.
+      transformAsync.transformLibraries(loader.coreTypes, loader.libraries);
+    }
     ticker.logMs("Transformed async methods");
   }
 
   void verify() {
-    var verifyErrors = verifyProgram(_program);
+    var verifyErrors = verifyProgram(program);
     errors.addAll(verifyErrors.map((error) => '$error'));
     ticker.logMs("Verified program");
   }
 
   /// Tree-shakes most code from the [dillTarget] by visiting all other
-  /// libraries in [_program] and marking the APIs from the [dillTarget]
+  /// libraries in [program] and marking the APIs from the [dillTarget]
   /// libraries that are in use.
   ///
   /// Note: while it's likely we'll do some trimming of programs for modular
@@ -697,8 +700,8 @@ class KernelTarget extends TargetImplementation {
     // TODO(sigmund): replace this step with data that is directly computed from
     // the builders: we should know the tree-shaking roots without having to do
     // a second visit over the tree.
-    new RootsMarker(loader.coreTypes, data).run(_program, isIncluded);
-    trimProgram(_program, data, isIncluded);
+    new RootsMarker(loader.coreTypes, data).run(program, isIncluded);
+    trimProgram(program, data, isIncluded);
   }
 
   /// Return `true` if the given [library] was built by this [KernelTarget]
