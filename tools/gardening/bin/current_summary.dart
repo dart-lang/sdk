@@ -14,8 +14,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:gardening/src/buildbot_data.dart';
-import 'package:gardening/src/buildbot_loading.dart';
 import 'package:gardening/src/buildbot_structures.dart';
+import 'package:gardening/src/client.dart';
 import 'package:gardening/src/util.dart';
 
 void help(ArgParser argParser) {
@@ -33,6 +33,11 @@ main(List<String> args) async {
   ArgParser argParser = createArgParser();
   ArgResults argResults = argParser.parse(args);
   processArgResults(argResults);
+
+  BuildbotClient client = argResults['logdog']
+      ? new LogdogBuildbotClient()
+      : new HttpBuildbotClient();
+
   if (argResults.rest.length == 0 || argResults['help']) {
     help(argParser);
     if (argResults['help']) return;
@@ -41,15 +46,15 @@ main(List<String> args) async {
   int maxStatusWidth = 0;
   int maxConfigWidth = 0;
 
-  HttpClient client = new HttpClient();
   Map<String, Map<BuildUri, TestStatus>> resultMap =
       <String, Map<BuildUri, TestStatus>>{};
   for (BuildGroup group in buildGroups) {
-    // TODO(johnniwinther): Support reading a partially completed shard, i.e.
-    // use build number `-1`.
-    var resultFutures = group.createUris(-2).map((uri) {
+    // TODO(johnniwinther): Support reading a partially completed shard from
+    // http, i.e. always use build number `-1`.
+    var resultFutures =
+        group.createUris(client.mostRecentBuildNumber).map((uri) {
       log('Fetching $uri');
-      return readBuildResult(client, uri);
+      return client.readResult(uri);
     }).toList();
     var results = await Future.wait(resultFutures);
     for (BuildResult buildResult in results) {
