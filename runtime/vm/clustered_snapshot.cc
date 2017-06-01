@@ -5302,6 +5302,10 @@ void Deserializer::ReadVMSnapshot() {
     refs_ = NULL;
   }
 
+  // Move remaining bump allocation space to the freelist so it used by C++
+  // allocations (e.g., FinalizeVMIsolate) before allocating new pages.
+  heap_->old_space()->AbandonBumpAllocation();
+
   Symbols::InitOnceFromSnapshot(isolate());
 
   Object::set_vm_isolate_snapshot_object_table(refs);
