@@ -164,8 +164,10 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 
 [ $compiler == dart2js && $fast_startup ]
 io/skipping_dart2js_compilations_test: CompileTimeError # Imports dart:mirrors
+io/status_file_parser_test: CompileTimeError # Imports dart:mirrors
 io/test_harness_analyzer_test: CompileTimeError # Imports dart:mirrors
 io/test_runner_test: CompileTimeError # Imports dart:mirrors
+status_expression_test: CompileTimeError # Imports dart:mirrors
 
 [ $compiler == dart2js && $browser ]
 *: Skip
@@ -553,7 +555,8 @@ package/package_test: Fail # Unable to parse package files Flutter Issue 9115
 #unboxed_int_converter_test: Fail # Unable to parse package files Flutter Issue 9115
 io/process_run_output_test: Fail # Unable to parse package files Flutter Issue 9115
 
-io/test_harness_analyzer_test: CompileTimeError # Uses mirrors
 io/skipping_dart2js_compilations_test: CompileTimeError # Uses mirrors
+io/status_file_parser_test: CompileTimeError # Uses mirrors
+io/test_harness_analyzer_test: CompileTimeError # Uses mirrors
 io/test_runner_test: CompileTimeError # Uses mirrors
-
+status_expression_test: CompileTimeError # Uses mirrors
