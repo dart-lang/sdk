@@ -90,11 +90,12 @@ abstract class _ClassHierarchyTest {
         new FunctionNode(body, returnType: const VoidType()));
   }
 
-  Procedure newEmptySetter(String name) {
+  Procedure newEmptySetter(String name, {bool abstract: false}) {
+    var body = abstract ? null : new Block([]);
     return new Procedure(
         new Name(name),
         ProcedureKind.Setter,
-        new FunctionNode(new Block([]),
+        new FunctionNode(body,
             returnType: const VoidType(),
             positionalParameters: [new VariableDeclaration('_')]));
   }
@@ -110,17 +111,88 @@ abstract class _ClassHierarchyTest {
     program.libraries.add(library);
   }
 
-  void test_forEachOverridePair_overrideSupertype() {
-    var aFoo = newEmptyMethod('foo');
-    var aBar = newEmptyMethod('bar');
-    var bFoo = newEmptyMethod('foo');
-    var cBar = newEmptyMethod('bar');
-    var a = addClass(
-        new Class(name: 'A', supertype: objectSuper, procedures: [aFoo, aBar]));
-    var b = addClass(
-        new Class(name: 'B', supertype: a.asThisSupertype, procedures: [bFoo]));
-    var c = addClass(
-        new Class(name: 'C', supertype: b.asThisSupertype, procedures: [cBar]));
+  /// 2. A non-abstract member is inherited from a superclass, and in the
+  /// context of this class, it overrides an abstract member inheritable through
+  /// one of its superinterfaces.
+  void test_forEachOverridePair_supertypeOverridesInterface() {
+    var a = addClass(new Class(
+        name: 'A',
+        supertype: objectSuper,
+        procedures: [newEmptyMethod('foo'), newEmptyMethod('bar')]));
+    var b = addClass(new Class(
+        name: 'B',
+        supertype: a.asThisSupertype,
+        procedures: [newEmptyMethod('foo', abstract: true)]));
+    var c = addClass(new Class(
+        name: 'C',
+        supertype: a.asThisSupertype,
+        implementedTypes: [b.asThisSupertype]));
+    var d = addClass(new Class(name: 'D', supertype: objectSuper));
+    var e = addClass(new Class(
+        name: 'E',
+        supertype: d.asThisSupertype,
+        mixedInType: a.asThisSupertype,
+        implementedTypes: [b.asThisSupertype]));
+
+    _assertTestLibraryText('''
+class A {
+  method foo() → void {}
+  method bar() → void {}
+}
+class B extends self::A {
+  method foo() → void;
+}
+class C extends self::A implements self::B {}
+class D {}
+class E = self::D with self::A implements self::B {}
+''');
+
+    _assertOverridePairs(c, ['test::A::foo overrides test::B::foo']);
+    _assertOverridePairs(e, ['test::A::foo overrides test::B::foo']);
+  }
+
+  /// 3. A non-abstract member is inherited from a superclass, and it overrides
+  /// an abstract member declared in this class.
+  /// TODO(scheglov): Implementation does not follow the documentation.
+  @failingTest
+  void test_forEachOverridePair_supertypeOverridesThisAbstract() {
+    var a = addClass(new Class(
+        name: 'A',
+        supertype: objectSuper,
+        procedures: [newEmptyMethod('foo'), newEmptyMethod('bar')]));
+    var b = addClass(new Class(
+        name: 'B',
+        supertype: a.asThisSupertype,
+        procedures: [newEmptyMethod('foo', abstract: true)]));
+
+    _assertTestLibraryText('''
+class A {
+  method foo() → void {}
+  method bar() → void {}
+}
+class B extends self::A {
+  method foo() → void;
+}
+''');
+
+    _assertOverridePairs(b, ['test::A::foo overrides test::B::foo']);
+  }
+
+  /// 1. A member declared in the class overrides a member inheritable through
+  /// one of the supertypes of the class.
+  void test_forEachOverridePair_thisOverridesSupertype() {
+    var a = addClass(new Class(
+        name: 'A',
+        supertype: objectSuper,
+        procedures: [newEmptyMethod('foo'), newEmptyMethod('bar')]));
+    var b = addClass(new Class(
+        name: 'B',
+        supertype: a.asThisSupertype,
+        procedures: [newEmptyMethod('foo')]));
+    var c = addClass(new Class(
+        name: 'C',
+        supertype: b.asThisSupertype,
+        procedures: [newEmptyMethod('bar')]));
 
     _assertTestLibraryText('''
 class A {
@@ -137,6 +209,39 @@ class C extends self::B {
 
     _assertOverridePairs(b, ['test::B::foo overrides test::A::foo']);
     _assertOverridePairs(c, ['test::C::bar overrides test::A::bar']);
+  }
+
+  /// 1. A member declared in the class overrides a member inheritable through
+  /// one of the supertypes of the class.
+  void test_forEachOverridePair_thisOverridesSupertype_setter() {
+    var a = addClass(new Class(
+        name: 'A',
+        supertype: objectSuper,
+        procedures: [newEmptySetter('foo'), newEmptySetter('bar')]));
+    var b = addClass(new Class(
+        name: 'B',
+        supertype: a.asThisSupertype,
+        procedures: [newEmptySetter('foo')]));
+    var c = addClass(new Class(
+        name: 'C',
+        supertype: b.asThisSupertype,
+        procedures: [newEmptySetter('bar')]));
+
+    _assertTestLibraryText('''
+class A {
+  set foo(dynamic _) → void {}
+  set bar(dynamic _) → void {}
+}
+class B extends self::A {
+  set foo(dynamic _) → void {}
+}
+class C extends self::B {
+  set bar(dynamic _) → void {}
+}
+''');
+
+    _assertOverridePairs(b, ['test::B::foo= overrides test::A::foo=']);
+    _assertOverridePairs(c, ['test::C::bar= overrides test::A::bar=']);
   }
 
   void test_getClassAsInstanceOf_generic_extends() {
@@ -736,7 +841,9 @@ class B<T> extends self::A<self::B::T, core::bool> {}
     List<String> overrideDescriptions = [];
     hierarchy.forEachOverridePair(class_,
         (Member declaredMember, Member interfaceMember, bool isSetter) {
-      var desc = '$declaredMember overrides $interfaceMember';
+      String declaredName = '$declaredMember${isSetter ? '=': ''}';
+      String interfaceName = '$interfaceMember${isSetter ? '=': ''}';
+      var desc = '$declaredName overrides $interfaceName';
       overrideDescriptions.add(desc);
     });
     expect(overrideDescriptions, unorderedEquals(expected));
