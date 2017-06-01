@@ -75,9 +75,6 @@ entirely to allow inference to fill in the type.
   * JSON maps are now typed as `Map<String, dynamic>` instead of
     `Map<dynamic, dynamic>`. A JSON-map is not a `HashMap` or `LinkedHashMap`
     anymore (but just a `Map`).
-* `dart:async`
-  * Add `groupBy` to `Stream`. Allows splitting a string into separate streams
-    depending on "key" property computed from the individual events.
 * `dart:async`, `dart:io`, `dart:core`
     * Adding to a closed sink, including `IOSink`, is not allowed anymore. In
       1.24, violations are only reported (on stdout or stderr), but a future
