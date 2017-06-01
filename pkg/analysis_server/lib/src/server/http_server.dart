@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:analysis_server/src/channel/web_socket_channel.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
-import 'package:analysis_server/src/status/get_handler.dart';
 
 /**
  * Instances of the class [HttpServer] implement a simple HTTP server. The
@@ -96,11 +95,10 @@ class HttpAnalysisServer {
   void _handleGetRequest(HttpRequest request) {
     if (getHandler == null) {
       if (socketServer.analysisServer.options.enableNewAnalysisDriver) {
-        // TODO(devoncarew): Remove GetHandler2.
         getHandler = new DiagnosticsSite(socketServer, _printBuffer);
       } else {
-        // TODO(devoncarew): GetHandler is essentially dead code.
-        getHandler = new GetHandler(socketServer, _printBuffer);
+        getHandler = new ErrorGetHandler(
+            'Diagnostics only supported for the new analysis driver.');
       }
     }
     getHandler.handleGetRequest(request);
@@ -157,4 +155,22 @@ abstract class AbstractGetHandler {
    * Handle a GET request received by the HTTP server.
    */
   void handleGetRequest(HttpRequest request);
+}
+
+/**
+ * An [AbstractGetHandler] that always returns the given error message.
+ */
+class ErrorGetHandler extends AbstractGetHandler {
+  final String message;
+
+  ErrorGetHandler(this.message);
+
+  @override
+  void handleGetRequest(HttpRequest request) {
+    HttpResponse response = request.response;
+    response.statusCode = HttpStatus.NOT_FOUND;
+    response.headers.contentType = ContentType.TEXT;
+    response.write(message);
+    response.close();
+  }
 }
