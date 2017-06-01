@@ -20,7 +20,7 @@ export PATH=$PATH:third_party/android_tools/sdk/platform-tools/\
 FORWARDER_PID=$!
 sleep 15
 ./dart/tools/test.py -m release -a arm --progress=line --report --time \
-    --failure-summary --write-debug-log --local_ip=localhost \
+    --write-debug-log --local_ip=localhost \
     --test_server_port=8083 --test_server_cross_origin_port=8084 \
     --test_driver_port=8081 --test_driver_error_port=8082 \
     -r ContentShellOnAndroid --drt=$1

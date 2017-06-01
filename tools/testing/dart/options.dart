@@ -330,14 +330,6 @@ compiler.''')
   /// encountering the first non-option string, the rest of the arguments are
   /// stored in the returned Map under the 'rest' key.
   List<Configuration> parse(List<String> arguments) {
-    // TODO(rnystrom): The builders on the buildbots still pass this even
-    // though it does nothing. Until those can be fixed, silently ignore the
-    // option. Remove this once the buildbot scripts are fixed.
-    if (arguments.contains("--failure-summary")) {
-      arguments = arguments.where((arg) => arg != "--failure-summary").toList();
-      print('Note: Ignoring unsupported "--failure-summary" option.');
-    }
-
     var configuration = <String, dynamic>{};
 
     // Fill in configuration with arguments passed to the test script.
