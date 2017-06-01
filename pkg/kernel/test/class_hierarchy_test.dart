@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/testing/mock_sdk_program.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_algebra.dart';
@@ -14,6 +15,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClosedWorldClassHierarchyTest);
+    defineReflectiveTests(IncrementalClassHierarchyTest);
   });
 }
 
@@ -21,6 +23,103 @@ main() {
 class ClosedWorldClassHierarchyTest extends _ClassHierarchyTest {
   ClassHierarchy createClassHierarchy(Program program) {
     return new ClosedWorldClassHierarchy(program);
+  }
+}
+
+@reflectiveTest
+class IncrementalClassHierarchyTest extends _ClassHierarchyTest {
+  ClassHierarchy createClassHierarchy(Program program) {
+    return new IncrementalClassHierarchy();
+  }
+
+  @failingTest
+  void test_forEachOverridePair_supertypeOverridesInterface() {
+    super.test_forEachOverridePair_supertypeOverridesInterface();
+  }
+
+  @failingTest
+  void test_forEachOverridePair_thisOverridesSupertype() {
+    super.test_forEachOverridePair_thisOverridesSupertype();
+  }
+
+  @failingTest
+  void test_forEachOverridePair_thisOverridesSupertype_setter() {
+    super.test_forEachOverridePair_thisOverridesSupertype_setter();
+  }
+
+  @failingTest
+  void test_getClassAsInstanceOf_generic_extends() {
+    super.test_getClassAsInstanceOf_generic_extends();
+  }
+
+  @failingTest
+  void test_getClassAsInstanceOf_generic_implements() {
+    super.test_getClassAsInstanceOf_generic_implements();
+  }
+
+  @failingTest
+  void test_getClassAsInstanceOf_generic_with() {
+    super.test_getClassAsInstanceOf_generic_with();
+  }
+
+  @failingTest
+  void test_getClassAsInstanceOf_notGeneric_extends() {
+    super.test_getClassAsInstanceOf_notGeneric_extends();
+  }
+
+  @failingTest
+  void test_getClassAsInstanceOf_notGeneric_implements() {
+    super.test_getClassAsInstanceOf_notGeneric_implements();
+  }
+
+  @failingTest
+  void test_getClassAsInstanceOf_notGeneric_with() {
+    super.test_getClassAsInstanceOf_notGeneric_with();
+  }
+
+  @failingTest
+  void test_getClassicLeastUpperBound_expansive() {
+    super.test_getClassicLeastUpperBound_expansive();
+  }
+
+  @failingTest
+  void test_getClassicLeastUpperBound_generic() {
+    super.test_getClassicLeastUpperBound_generic();
+  }
+
+  @failingTest
+  void test_getClassicLeastUpperBound_nonGeneric() {
+    super.test_getClassicLeastUpperBound_nonGeneric();
+  }
+
+  @failingTest
+  void test_getDispatchTarget() {
+    super.test_getDispatchTarget();
+  }
+
+  @failingTest
+  void test_getDispatchTarget_abstract() {
+    super.test_getDispatchTarget_abstract();
+  }
+
+  @failingTest
+  void test_getInterfaceMember_extends() {
+    super.test_getInterfaceMember_extends();
+  }
+
+  @failingTest
+  void test_getInterfaceMember_implements() {
+    super.test_getInterfaceMember_implements();
+  }
+
+  @failingTest
+  void test_getRankedSuperclasses() {
+    super.test_getRankedSuperclasses();
+  }
+
+  @failingTest
+  void test_getTypeAsInstanceOf_generic_extends() {
+    super.test_getTypeAsInstanceOf_generic_extends();
   }
 }
 
