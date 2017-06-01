@@ -15,6 +15,8 @@ import 'package:gardening/src/client.dart';
 import 'package:gardening/src/logdog.dart' as logdog;
 import 'package:gardening/src/util.dart';
 
+// TODO(johnniwinther): Adjustments needed: this script may run with
+// no output for a long time. Hence not yet run by bot.dart.
 main(List<String> args) async {
   ArgParser argParser = createArgParser();
   argParser.addOption('start',
