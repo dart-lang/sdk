@@ -42,25 +42,16 @@ Dart_Port Builtin::load_port_ = ILLEGAL_PORT;
 const int Builtin::num_libs_ =
     sizeof(Builtin::builtin_libraries_) / sizeof(Builtin::builtin_lib_props);
 
-static const bool use_builtin_source_paths = false;
-
 // Patch all the specified patch files in the array 'patch_files' into the
 // library specified in 'library'.
 static void LoadPatchFiles(Dart_Handle library,
                            const char* patch_uri,
                            const char** patch_files) {
-  for (intptr_t j = 0; patch_files[j] != NULL; j += 3) {
-    Dart_Handle patch_src = Dart_Null();
-    if (use_builtin_source_paths) {
-      patch_src = DartUtils::ReadStringFromFile(patch_files[j + 1]);
-    }
-    if (!Dart_IsString(patch_src)) {
-      // If use_builtin_source_paths is false or reading the file caused
-      // an error, use the sources linked in the binary.
-      const char* source = patch_files[j + 2];
-      patch_src = Dart_NewStringFromUTF8(
-          reinterpret_cast<const uint8_t*>(source), strlen(source));
-    }
+  for (intptr_t j = 0; patch_files[j] != NULL; j += 2) {
+    // Use the sources linked in the binary.
+    const char* source = patch_files[j + 1];
+    Dart_Handle patch_src = Dart_NewStringFromUTF8(
+        reinterpret_cast<const uint8_t*>(source), strlen(source));
 
     // Prepend the patch library URI to form a unique script URI for the patch.
     intptr_t len = snprintf(NULL, 0, "%s/%s", patch_uri, patch_files[j]);
@@ -98,21 +89,12 @@ Dart_Handle Builtin::GetSource(const char** source_paths, const char* uri) {
   if (source_paths == NULL) {
     return Dart_Null();  // No path mapping information exists for library.
   }
-  for (intptr_t i = 0; source_paths[i] != NULL; i += 3) {
+  for (intptr_t i = 0; source_paths[i] != NULL; i += 2) {
     if (!strcmp(uri, source_paths[i])) {
-      const char* source_path = source_paths[i + 1];
-      Dart_Handle src = Dart_Null();
-      if (use_builtin_source_paths) {
-        src = DartUtils::ReadStringFromFile(source_path);
-      }
-      if (!Dart_IsString(src)) {
-        // If use_builtin_source_paths is false or reading the file caused
-        // an error, use the sources linked in the binary.
-        const char* source = source_paths[i + 2];
-        src = Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(source),
-                                     strlen(source));
-      }
-      return src;
+      // Use the sources linked in the binary.
+      const char* source = source_paths[i + 1];
+      return Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(source),
+                                    strlen(source));
     }
   }
   return Dart_Null();  // Uri does not exist in path mapping information.

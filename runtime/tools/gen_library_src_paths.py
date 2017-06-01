@@ -58,16 +58,13 @@ def makeFile(output_file, input_cc_file, include, var_name, lib_name, in_files):
             main_file_found = True
             bootstrap_cc_text = bootstrap_cc_text.replace(
                  "{{LIBRARY_SOURCE_MAP}}",
-                 ' "' + lib_name + '",\n "' +
-                 os.path.abspath(string_file).replace('\\', '\\\\') + '",\n' +
+                 ' "' + lib_name + '",\n' +
                  ' source_array_' + str(file_count) + ',\n')
         inpt.close()
         if (main_file_found):
           continue
       part_index.append(' "' +
           os.path.basename(string_file).replace('\\', '\\\\') + '",\n')
-      part_index.append(' "' +
-          os.path.abspath(string_file).replace('\\', '\\\\') + '",\n')
       part_index.append(' source_array_' + str(file_count) + ',\n\n')
   bootstrap_cc_text = bootstrap_cc_text.replace("{{LIBRARY_SOURCE_MAP}}", '')
   bootstrap_cc_text = bootstrap_cc_text.replace("{{PART_SOURCE_MAP}}",
