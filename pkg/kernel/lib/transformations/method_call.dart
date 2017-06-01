@@ -851,7 +851,7 @@ class MethodCallTransformer extends Transformer {
     } else {
       // Get noSuchMethod on Object then...
       noSuchMethod = hierarchy.getDispatchTarget(
-          hierarchy.rootClass, new Name("noSuchMethod"));
+          coreTypes.objectClass, new Name("noSuchMethod"));
       ConstructorInvocation invocation = _createInvocation(
           procedureName.name, new Arguments(newParameterVariableGets));
       ConstructorInvocation invocationPrime =

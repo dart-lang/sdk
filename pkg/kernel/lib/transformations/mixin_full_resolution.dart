@@ -282,7 +282,7 @@ class SuperCallResolutionTransformer extends Transformer {
       // Incorrect noSuchMethod method: Call noSuchMethod on Object
       // with Invocation of noSuchMethod as the method that did not exist.
       noSuchMethod = hierarchy.getDispatchTarget(
-          hierarchy.rootClass, new Name("noSuchMethod"));
+          coreTypes.objectClass, new Name("noSuchMethod"));
       ConstructorInvocation invocation = _createInvocation(
           methodNameUsed, methodArguments, isSuper, new ThisExpression());
       ConstructorInvocation invocationPrime = _createInvocation("noSuchMethod",

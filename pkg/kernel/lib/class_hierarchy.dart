@@ -21,8 +21,6 @@ abstract class ClassHierarchy {
   /// The iterable is ordered so that classes occur after their super classes.
   Iterable<Class> get classes;
 
-  Class get rootClass;
-
   /// Returns the index of [class_] in the [classes] list.
   int getClassIndex(Class class_);
 
@@ -30,7 +28,7 @@ abstract class ClassHierarchy {
   bool hasProperSubtypes(Class class_);
 
   /// Returns the number of steps in the longest inheritance path from [class_]
-  /// to [rootClass].
+  /// to [Object].
   int getClassDepth(Class class_);
 
   /// Returns a list of classes appropriate for use in calculating a least upper
@@ -135,8 +133,6 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   ClosedWorldClassHierarchy(Program program)
       : this._internal(program, _countClasses(program));
-
-  Class get rootClass => classes[0];
 
   @override
   int getClassIndex(Class class_) => _infoFor[class_].topologicalIndex;
@@ -472,7 +468,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
     // Run a downward traversal from the root, compute preorder numbers for
     // each class, and build their subtype sets as interval lists.
-    _topDownSortVisit(_infoFor[rootClass]);
+    _topDownSortVisit(_infoFor[classes[0]]);
 
     for (int i = 0; i < classes.length; ++i) {
       var class_ = classes[i];

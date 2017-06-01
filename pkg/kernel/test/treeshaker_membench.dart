@@ -59,7 +59,7 @@ main(List<String> args) {
   if (args.contains('-v')) {
     // Use of the list for something to avoid premature GC.
     for (var treeShaker in keepAlive) {
-      treeShaker.getClassRetention(hierarchy.rootClass);
+      treeShaker.getClassRetention(coreTypes.objectClass);
     }
   }
 }

@@ -654,11 +654,6 @@ class B<T> extends self::A<self::B::T, core::bool> {}
         new InterfaceType(objectClass));
   }
 
-  void test_rootClass() {
-    addClass(new Class(name: 'A', supertype: objectSuper));
-    expect(hierarchy.rootClass, objectClass);
-  }
-
   void _assertOverridePairs(Class class_, List<String> expected) {
     List<String> overrideDescriptions = [];
     hierarchy.forEachOverridePair(class_,
