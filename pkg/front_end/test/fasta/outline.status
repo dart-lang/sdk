@@ -2,7 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-function_type_recovery: Fail
+function_type_recovery: Fail # Fixed in ahe's dev branch.
+inference/constructors_infer_from_arguments_redirecting_factory_to_factory: Fail # Fixed in ahe's dev branch.
+rasta/class_hierarchy: Fail # Fixed in ahe's dev branch.
+redirecting_constructor: Fail # Fixed in ahe's dev branch.
+redirecting_factory: Fail # Fixed in ahe's dev branch.
 
 inference/async_closure_return_type_flatten: Fail
 inference/async_closure_return_type_future: Fail

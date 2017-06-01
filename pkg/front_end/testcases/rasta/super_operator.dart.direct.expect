@@ -28,5 +28,5 @@ class Autobianchi extends core::Object {
     : super core::Object::•()
     ;
   method g() → dynamic
-    return super.[](0);
+    return this.{=core::Object::noSuchMethod}(new core::_InvocationMirror::•("[]", core::List::from<dynamic>(<dynamic>[2, 2], growable: false), core::List::from<dynamic>(<dynamic>[this, 0], growable: false), true));
 }

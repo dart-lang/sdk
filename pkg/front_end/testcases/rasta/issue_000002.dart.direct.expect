@@ -8,7 +8,7 @@ class Foo extends core::Object {
   final field dynamic value;
   constructor •(dynamic value) → void
     : self::Foo::value = value, super core::Object::•() {}
-  static factory fac(dynamic value) → dynamic {
+  static factory fac(dynamic value) → self::Foo {
     return new self::Foo::•(value);
   }
 }
