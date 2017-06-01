@@ -1,3 +1,15 @@
+## 1.25.0
+
+### Language
+
+#### Strong Mode
+
+### Core library changes
+
+### Dart VM
+
+### Tool Changes
+
 ## 1.24.0
 
 ### Language
