@@ -37,29 +37,8 @@ InterfaceType computeConstructorReturnType(Member constructor) {
   if (constructor is Constructor) {
     return constructor.enclosingClass.thisType;
   } else {
-    return computeFactoryConstructorReturnType(constructor);
+    return constructor.function.returnType;
   }
-}
-
-/// Computes the return type of a factory constructor.
-///
-/// Note that we can't just use `constructor.function.functionType.returnType`,
-/// because that's `dynamic` for factory constructors.  TODO(paulberry):
-/// investigate whether this can be changed.
-InterfaceType computeFactoryConstructorReturnType(Procedure constructor) {
-  var returnType = constructor.enclosingClass.thisType;
-  if (constructor.enclosingClass.typeParameters.isNotEmpty) {
-    // target.enclosingClass.typeParameters is not the same as
-    // target.function.functionType.typeParameters, so we have to substitute.
-    returnType = Substitution
-        .fromPairs(
-            constructor.enclosingClass.typeParameters,
-            constructor.function.functionType.typeParameters
-                .map((p) => new TypeParameterType(p))
-                .toList())
-        .substituteType(returnType);
-  }
-  return returnType;
 }
 
 List<DartType> getExplicitTypeArguments(Arguments arguments) {

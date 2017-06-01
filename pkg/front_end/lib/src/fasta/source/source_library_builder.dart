@@ -30,6 +30,7 @@ import '../builder/builder.dart'
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
+        NamedTypeBuilder,
         PrefixBuilder,
         ProcedureBuilder,
         Scope,
@@ -540,6 +541,14 @@ class DeclarationBuilder<T extends TypeBuilder> {
         assert(procedure.typeVariables.isEmpty);
         procedure.typeVariables
             .addAll(library.copyTypeVariables(typeVariables));
+        DeclarationBuilder<T> savedDeclaration = library.currentDeclaration;
+        library.currentDeclaration = declaration;
+        for (TypeVariableBuilder tv in procedure.typeVariables) {
+          NamedTypeBuilder<T, dynamic> t = procedure.returnType;
+          t.arguments
+              .add(library.addNamedType(tv.name, null, procedure.charOffset));
+        }
+        library.currentDeclaration = savedDeclaration;
         declaration.resolveTypes(procedure.typeVariables, library);
       });
       Map<String, TypeVariableBuilder> map = <String, TypeVariableBuilder>{};

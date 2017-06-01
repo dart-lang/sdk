@@ -560,6 +560,8 @@ class KernelLibraryBuilder
       int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName) {
+    KernelTypeBuilder returnType = addNamedType(
+        currentDeclaration.parent.name, <KernelTypeBuilder>[], charOffset);
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
         endNestedDeclaration();
@@ -573,7 +575,7 @@ class KernelLibraryBuilder
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
         metadata,
         staticMask | modifiers,
-        null,
+        returnType,
         name,
         <TypeVariableBuilder>[],
         formals,

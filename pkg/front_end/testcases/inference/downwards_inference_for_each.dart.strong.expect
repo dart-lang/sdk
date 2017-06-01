@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 abstract class MyStream<T extends core::Object> extends asy::Stream<self::MyStream::T> {
-  static factory •<T extends core::Object>() → dynamic
+  static factory •<T extends core::Object>() → self::MyStream<self::MyStream::•::T>
     return null;
 }
 static method F<T extends core::Object>() → self::F::T

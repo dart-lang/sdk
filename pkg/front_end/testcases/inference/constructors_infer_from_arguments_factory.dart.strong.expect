@@ -7,7 +7,7 @@ class C<T extends core::Object> extends core::Object {
   constructor _() → void
     : super core::Object::•()
     ;
-  static factory •<T extends core::Object>(self::C::•::T t) → dynamic {
+  static factory •<T extends core::Object>(self::C::•::T t) → self::C<self::C::•::T> {
     self::C<self::C::•::T> x = new self::C::_<self::C::•::T>();
     x.{self::C::t} = t;
     return x;
