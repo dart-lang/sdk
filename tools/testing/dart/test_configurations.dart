@@ -25,6 +25,7 @@ import 'vm_test_config.dart';
  * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = [
+  new Path('third_party/pkg/dartdoc'),
   new Path('pkg'),
   new Path('third_party/pkg_tested'),
   new Path('runtime/tests/vm'),

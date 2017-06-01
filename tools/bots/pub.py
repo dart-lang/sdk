@@ -37,9 +37,12 @@ def PubConfig(name, is_buildbot):
 
 def PubSteps(build_info):
   pub_location = os.path.join('third_party', 'pkg', 'pub')
-
   with bot.BuildStep('Running pub tests'):
     bot.RunTestRunner(build_info, pub_location)
+
+  dartdoc_location = os.path.join('third_party', 'pkg', 'dartdoc')
+  with bot.BuildStep('Running dartdoc tests'):
+    bot.RunTestRunner(build_info, dartdoc_location)
 
 if __name__ == '__main__':
   bot.RunBot(PubConfig, PubSteps)
