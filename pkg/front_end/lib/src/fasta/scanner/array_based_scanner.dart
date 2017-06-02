@@ -17,7 +17,7 @@ import '../../scanner/token.dart'
         TokenType,
         TokenWithComment;
 
-import 'token.dart' show StringToken;
+import '../../scanner/token.dart' as analyzer show StringToken;
 
 import 'token_constants.dart'
     show
@@ -222,9 +222,17 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     appendToken(token);
   }
 
+  @override
   void appendSubstringToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     appendToken(createSubstringToken(type, start, asciiOnly, extraOffset));
+  }
+
+  @override
+  void appendSyntheticSubstringToken(
+      TokenType type, int start, bool asciiOnly, String closingQuotes) {
+    appendToken(
+        createSyntheticSubstringToken(type, start, asciiOnly, closingQuotes));
   }
 
   /**
@@ -236,8 +244,19 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
-  StringToken createSubstringToken(TokenType type, int start, bool asciiOnly,
+  analyzer.StringToken createSubstringToken(
+      TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]);
+
+  /**
+   * Returns a new synthetic substring from the scan offset [start]
+   * to the current [scanOffset] plus the [closingQuotes].
+   * The [closingQuotes] are appended to the unterminated string
+   * literal's lexeme but the returned token's length will *not* include
+   * those closing quotes so as to be true to the original source.
+   */
+  analyzer.StringToken createSyntheticSubstringToken(
+      TokenType type, int start, bool asciiOnly, String closingQuotes);
 
   /**
    * This method is called to discard '<' from the "grouping" stack.

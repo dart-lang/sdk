@@ -439,6 +439,7 @@ abstract class ScannerTestBase {
       // fasta inserts synthetic closers
       expectedTokens.addAll([
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 10),
+        new SyntheticStringToken(TokenType.STRING, "\"", 10, 0),
       ]);
     } else {
       expectedTokens.addAll([
@@ -992,28 +993,58 @@ abstract class ScannerTestBase {
   }
 
   void test_string_multi_unterminated() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8,
-        "'''string", [new StringToken(TokenType.STRING, "'''string", 0)]);
+    List<Token> expectedTokens = [];
+    if (usingFasta) {
+      // fasta inserts synthetic closers
+      expectedTokens.addAll([
+        new SyntheticStringToken(TokenType.STRING, "'''string'''", 0, 9),
+      ]);
+    } else {
+      expectedTokens.addAll([
+        new StringToken(TokenType.STRING, "'''string", 0),
+      ]);
+    }
   }
 
   void test_string_multi_unterminated_interpolation_block() {
-    _assertErrorAndTokens(
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''\${name", [
+    List<Token> expectedTokens = [
       new StringToken(TokenType.STRING, "'''", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 3),
       new StringToken(TokenType.IDENTIFIER, "name", 5),
-      new StringToken(TokenType.STRING, "", 9)
-    ]);
+    ];
+    if (usingFasta) {
+      // fasta inserts synthetic closers
+      expectedTokens.addAll([
+        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 9),
+        new SyntheticStringToken(TokenType.STRING, "'''", 9, 0),
+      ]);
+    } else {
+      expectedTokens.addAll([
+        new StringToken(TokenType.STRING, "", 9),
+      ]);
+    }
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8,
+        "'''\${name", expectedTokens);
   }
 
   void test_string_multi_unterminated_interpolation_identifier() {
-    _assertErrorAndTokens(
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "'''\$name", [
+    List<Token> expectedTokens = [
       new StringToken(TokenType.STRING, "'''", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
       new StringToken(TokenType.IDENTIFIER, "name", 4),
-      new StringToken(TokenType.STRING, "", 8)
-    ]);
+    ];
+    if (usingFasta) {
+      // fasta inserts synthetic closers
+      expectedTokens.addAll([
+        new SyntheticStringToken(TokenType.STRING, "'''", 8, 0),
+      ]);
+    } else {
+      expectedTokens.addAll([
+        new StringToken(TokenType.STRING, "", 8),
+      ]);
+    }
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7,
+        "'''\$name", expectedTokens);
   }
 
   void test_string_raw_multi_double() {
@@ -1026,8 +1057,19 @@ abstract class ScannerTestBase {
 
   void test_string_raw_multi_unterminated() {
     String source = "r'''string";
+    List<Token> expectedTokens = [];
+    if (usingFasta) {
+      // fasta inserts synthetic closers
+      expectedTokens.addAll([
+        new SyntheticStringToken(TokenType.STRING, "r'''string'''", 0, 10),
+      ]);
+    } else {
+      expectedTokens.addAll([
+        new StringToken(TokenType.STRING, "r'''string", 0),
+      ]);
+    }
     _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9,
-        source, [new StringToken(TokenType.STRING, source, 0)]);
+        source, expectedTokens);
   }
 
   void test_string_raw_simple_double() {
@@ -1040,14 +1082,36 @@ abstract class ScannerTestBase {
 
   void test_string_raw_simple_unterminated_eof() {
     String source = "r'string";
+    List<Token> expectedTokens = [];
+    if (usingFasta) {
+      // fasta inserts synthetic closers
+      expectedTokens.addAll([
+        new SyntheticStringToken(TokenType.STRING, "r'string'", 0, 8),
+      ]);
+    } else {
+      expectedTokens.addAll([
+        new StringToken(TokenType.STRING, "r'string", 0),
+      ]);
+    }
     _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7,
-        source, [new StringToken(TokenType.STRING, source, 0)]);
+        source, expectedTokens);
   }
 
   void test_string_raw_simple_unterminated_eol() {
-    String source = "r'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8,
-        "$source\n", [new StringToken(TokenType.STRING, source, 0)]);
+    String source = "r'string\n";
+    List<Token> expectedTokens = [];
+    if (usingFasta) {
+      // fasta inserts synthetic closers
+      expectedTokens.addAll([
+        new SyntheticStringToken(TokenType.STRING, "r'string'", 0, 8),
+      ]);
+    } else {
+      expectedTokens.addAll([
+        new StringToken(TokenType.STRING, "r'string", 0),
+      ]);
+    }
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        usingFasta ? 7 : 8, source, expectedTokens);
   }
 
   void test_string_simple_double() {
@@ -1143,34 +1207,77 @@ abstract class ScannerTestBase {
 
   void test_string_simple_unterminated_eof() {
     String source = "'string";
+    List<Token> expectedTokens = [];
+    if (usingFasta) {
+      // fasta inserts synthetic closers
+      expectedTokens.addAll([
+        new SyntheticStringToken(TokenType.STRING, "'string'", 0, 7),
+      ]);
+    } else {
+      expectedTokens.addAll([
+        new StringToken(TokenType.STRING, "'string", 0),
+      ]);
+    }
     _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6,
-        source, [new StringToken(TokenType.STRING, source, 0)]);
+        source, expectedTokens);
   }
 
   void test_string_simple_unterminated_eol() {
-    String source = "'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7,
-        "$source\r", [new StringToken(TokenType.STRING, source, 0)]);
+    String source = "'string\r";
+    List<Token> expectedTokens = [];
+    if (usingFasta) {
+      // fasta inserts synthetic closers
+      expectedTokens.addAll([
+        new SyntheticStringToken(TokenType.STRING, "'string'", 0, 7),
+      ]);
+    } else {
+      expectedTokens.addAll([
+        new StringToken(TokenType.STRING, "'string", 0),
+      ]);
+    }
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        usingFasta ? 6 : 7, source, expectedTokens);
   }
 
   void test_string_simple_unterminated_interpolation_block() {
-    _assertErrorAndTokens(
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6, "'\${name", [
+    List<Token> expectedTokens = [
       new StringToken(TokenType.STRING, "'", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 1),
       new StringToken(TokenType.IDENTIFIER, "name", 3),
-      new StringToken(TokenType.STRING, "", 7)
-    ]);
+    ];
+    if (usingFasta) {
+      // fasta inserts synthetic closers
+      expectedTokens.addAll([
+        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 7),
+        new SyntheticStringToken(TokenType.STRING, "'", 7, 0),
+      ]);
+    } else {
+      expectedTokens.addAll([
+        new StringToken(TokenType.STRING, "", 7),
+      ]);
+    }
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6,
+        "'\${name", expectedTokens);
   }
 
   void test_string_simple_unterminated_interpolation_identifier() {
-    _assertErrorAndTokens(
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 5, "'\$name", [
+    List<Token> expectedTokens = [
       new StringToken(TokenType.STRING, "'", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
       new StringToken(TokenType.IDENTIFIER, "name", 2),
-      new StringToken(TokenType.STRING, "", 6)
-    ]);
+    ];
+    if (usingFasta) {
+      // fasta inserts synthetic closers
+      expectedTokens.addAll([
+        new SyntheticStringToken(TokenType.STRING, "'", 6, 0),
+      ]);
+    } else {
+      expectedTokens.addAll([
+        new StringToken(TokenType.STRING, "", 6),
+      ]);
+    }
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 5,
+        "'\$name", expectedTokens);
   }
 
   void test_sync_star() {

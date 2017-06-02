@@ -192,48 +192,6 @@ class ScannerTest_Replacement extends ScannerTestBase {
 
   @override
   @failingTest
-  void test_string_multi_unterminated() {
-    // See defaultRecoveryStrategy recoverString
-    super.test_string_multi_unterminated();
-  }
-
-  @override
-  @failingTest
-  void test_string_multi_unterminated_interpolation_block() {
-    // See defaultRecoveryStrategy recoverString
-    super.test_string_multi_unterminated_interpolation_block();
-  }
-
-  @override
-  @failingTest
-  void test_string_multi_unterminated_interpolation_identifier() {
-    // See defaultRecoveryStrategy recoverString
-    super.test_string_multi_unterminated_interpolation_identifier();
-  }
-
-  @override
-  @failingTest
-  void test_string_raw_multi_unterminated() {
-    // See defaultRecoveryStrategy recoverString
-    super.test_string_raw_multi_unterminated();
-  }
-
-  @override
-  @failingTest
-  void test_string_raw_simple_unterminated_eof() {
-    // See defaultRecoveryStrategy recoverString
-    super.test_string_raw_simple_unterminated_eof();
-  }
-
-  @override
-  @failingTest
-  void test_string_raw_simple_unterminated_eol() {
-    // See defaultRecoveryStrategy recoverString
-    super.test_string_raw_simple_unterminated_eol();
-  }
-
-  @override
-  @failingTest
   void test_string_simple_interpolation_missingIdentifier() {
     // See defaultRecoveryStrategy recoverStringInterpolation
     super.test_string_simple_interpolation_missingIdentifier();
@@ -244,34 +202,6 @@ class ScannerTest_Replacement extends ScannerTestBase {
   void test_string_simple_interpolation_nonIdentifier() {
     // See defaultRecoveryStrategy recoverStringInterpolation
     super.test_string_simple_interpolation_nonIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_string_simple_unterminated_eof() {
-    // See defaultRecoveryStrategy recoverString
-    super.test_string_simple_unterminated_eof();
-  }
-
-  @override
-  @failingTest
-  void test_string_simple_unterminated_eol() {
-    // See defaultRecoveryStrategy recoverString
-    super.test_string_simple_unterminated_eol();
-  }
-
-  @override
-  @failingTest
-  void test_string_simple_unterminated_interpolation_block() {
-    // See defaultRecoveryStrategy recoverString
-    super.test_string_simple_unterminated_interpolation_block();
-  }
-
-  @override
-  @failingTest
-  void test_string_simple_unterminated_interpolation_identifier() {
-    // See defaultRecoveryStrategy recoverString
-    super.test_string_simple_unterminated_interpolation_identifier();
   }
 
   @override

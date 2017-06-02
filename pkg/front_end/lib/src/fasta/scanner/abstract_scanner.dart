@@ -162,6 +162,16 @@ abstract class AbstractScanner implements Scanner {
   void appendSubstringToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset]);
 
+  /**
+   * Appends a substring from the scan offset [start] to the current
+   * [scanOffset] plus [closingQuotes]. The closing quote(s) will be added
+   * to the unterminated string literal's lexeme but the returned
+   * token's length will *not* include those closing quotes
+   * so as to be true to the original source.
+   */
+  void appendSyntheticSubstringToken(
+      TokenType type, int start, bool asciiOnly, String closingQuotes);
+
   /** Documentation in subclass [ArrayBasedScanner]. */
   void appendPrecedenceToken(TokenType type);
 
@@ -1024,7 +1034,7 @@ abstract class AbstractScanner implements Scanner {
               identical(next, $CR) ||
               identical(next, $EOF))) {
         if (!asciiOnly) handleUnicode(start);
-        return unterminatedString(quoteChar);
+        return unterminatedString(quoteChar, start, asciiOnly);
       }
       if (next > 127) asciiOnly = false;
       next = advance();
@@ -1089,14 +1099,14 @@ abstract class AbstractScanner implements Scanner {
         return next;
       } else if (identical(next, $LF) || identical(next, $CR)) {
         if (!asciiOnly) handleUnicode(start);
-        return unterminatedRawString(quoteChar);
+        return unterminatedRawString(quoteChar, start, asciiOnly);
       } else if (next > 127) {
         asciiOnly = false;
       }
       next = advance();
     }
     if (!asciiOnly) handleUnicode(start);
-    return unterminatedRawString(quoteChar);
+    return unterminatedRawString(quoteChar, start, asciiOnly);
   }
 
   int tokenizeMultiLineRawString(int quoteChar, int start) {
@@ -1134,7 +1144,7 @@ abstract class AbstractScanner implements Scanner {
       }
     }
     if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    return unterminatedRawMultiLineString(quoteChar);
+    return unterminatedRawMultiLineString(quoteChar, start, asciiOnlyLine);
   }
 
   int tokenizeMultiLineString(int quoteChar, int start, bool raw) {
@@ -1185,7 +1195,7 @@ abstract class AbstractScanner implements Scanner {
       next = advance();
     }
     if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    return unterminatedMultiLineString(quoteChar);
+    return unterminatedMultiLineString(quoteChar, start, asciiOnlyString);
   }
 
   int unexpected(int character) {
@@ -1198,22 +1208,37 @@ abstract class AbstractScanner implements Scanner {
     return advanceAfterError(shouldAdvance);
   }
 
-  int unterminatedString(int quoteChar) {
-    return unterminated(new String.fromCharCodes([quoteChar]));
+  void terminateUnterminatedString(
+      int start, bool asciiOnlyString, String closingQuotes) {
+    appendSyntheticSubstringToken(
+        TokenType.STRING, start, asciiOnlyString, closingQuotes);
+    beginToken();
   }
 
-  int unterminatedRawString(int quoteChar) {
-    return unterminated('r${new String.fromCharCodes([quoteChar])}');
+  int unterminatedString(int quoteChar, int start, bool asciiOnlyString) {
+    String suffix = new String.fromCharCodes([quoteChar]);
+    terminateUnterminatedString(start, asciiOnlyString, suffix);
+    return unterminated(suffix);
   }
 
-  int unterminatedMultiLineString(int quoteChar) {
-    return unterminated(
-        new String.fromCharCodes([quoteChar, quoteChar, quoteChar]));
+  int unterminatedRawString(int quoteChar, int start, bool asciiOnlyString) {
+    String suffix = new String.fromCharCodes([quoteChar]);
+    terminateUnterminatedString(start, asciiOnlyString, suffix);
+    return unterminated('r$suffix');
   }
 
-  int unterminatedRawMultiLineString(int quoteChar) {
-    return unterminated(
-        'r${new String.fromCharCodes([quoteChar, quoteChar, quoteChar])}');
+  int unterminatedMultiLineString(
+      int quoteChar, int start, bool asciiOnlyString) {
+    String suffix = new String.fromCharCodes([quoteChar, quoteChar, quoteChar]);
+    terminateUnterminatedString(start, asciiOnlyString, suffix);
+    return unterminated(suffix);
+  }
+
+  int unterminatedRawMultiLineString(
+      int quoteChar, int start, bool asciiOnlyString) {
+    String suffix = new String.fromCharCodes([quoteChar, quoteChar, quoteChar]);
+    terminateUnterminatedString(start, asciiOnlyString, suffix);
+    return unterminated('r$suffix');
   }
 
   int advanceAfterError(bool shouldAdvance) {
