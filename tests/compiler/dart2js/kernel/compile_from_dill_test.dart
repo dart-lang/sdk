@@ -33,7 +33,7 @@ import 'compiler_helper.dart';
 
 const SOURCE = const {
   'main.dart': '''
-foo() {}
+foo() => 1;
 main() {
   foo();
   return null;

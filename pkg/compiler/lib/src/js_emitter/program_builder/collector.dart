@@ -72,8 +72,7 @@ class Collector {
 
   Set<ClassElement> computeInterceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
-    JavaScriptConstantCompiler handler = _constantHandler;
-    List<ConstantValue> constants = handler.getConstantsForEmission();
+    List<ConstantValue> constants = _worldBuilder.getConstantsForEmission();
     for (ConstantValue constant in constants) {
       if (constant is InterceptorConstantValue) {
         InterceptorConstantValue interceptorConstant = constant;
@@ -174,9 +173,8 @@ class Collector {
       typedefsNeededForReflection.forEach(_mirrorsData.retainMetadataOfTypedef);
     }
 
-    JavaScriptConstantCompiler handler = _constantHandler;
     List<ConstantValue> constants =
-        handler.getConstantsForEmission(_emitter.compareConstants);
+        _worldBuilder.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (_emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
 

@@ -48,7 +48,7 @@ class _KernelDartTypes implements DartTypes {
   @override
   FunctionType getCallType(InterfaceType type) {
     // TODO(johnniwinther): Compute the call type.
-    throw new UnimplementedError('_KernelDartTypes.getCallType');
+    return null;
   }
 
   @override

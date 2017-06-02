@@ -28,6 +28,8 @@ import 'package:compiler/src/js_emitter/full_emitter/emitter.dart' as full
 import 'package:compiler/src/old_to_new_api.dart'
     show LegacyCompilerDiagnostics;
 
+import 'package:compiler/src/universe/world_builder.dart';
+
 void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
   if (kind.name == 'verbose info') {
     print(message);
@@ -143,7 +145,9 @@ void main() {
     }
 
     int metadataCount = 0;
-    Set<ConstantValue> compiledConstants = backend.constants.compiledConstants;
+    CodegenWorldBuilderImpl codegenWorldBuilder = compiler.codegenWorldBuilder;
+    Set<ConstantValue> compiledConstants =
+        codegenWorldBuilder.compiledConstants;
     // Make sure that most of the metadata constants aren't included in the
     // generated code.
     MirrorsResolutionAnalysisImpl mirrorsResolutionAnalysis =

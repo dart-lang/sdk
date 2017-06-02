@@ -25,7 +25,6 @@ import '../enqueue.dart';
 import '../frontend_strategy.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
-import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/mirrors_analysis.dart';
 import '../js_backend/mirrors_data.dart';
@@ -93,17 +92,6 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
 
   NoSuchMethodResolver createNoSuchMethodResolver() =>
       new ResolutionNoSuchMethodResolver();
-
-  CustomElementsResolutionAnalysis createCustomElementsResolutionAnalysis(
-      NativeBasicData nativeBasicData,
-      BackendUsageBuilder backendUsageBuilder) {
-    return new CustomElementsResolutionAnalysis(
-        _compiler.resolution,
-        _compiler.backend.constantSystem,
-        _compiler.commonElements,
-        nativeBasicData,
-        backendUsageBuilder);
-  }
 
   MirrorsDataBuilder createMirrorsDataBuilder() {
     return new MirrorsDataImpl(

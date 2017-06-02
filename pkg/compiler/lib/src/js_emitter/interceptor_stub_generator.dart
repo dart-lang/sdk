@@ -13,8 +13,6 @@ import '../elements/types.dart' show InterfaceType;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/namer.dart' show Namer;
-import '../js_backend/constant_handler_javascript.dart'
-    show JavaScriptConstantCompiler;
 import '../js_backend/custom_elements_analysis.dart'
     show CustomElementsCodegenAnalysis;
 import '../js_backend/native_data.dart';
@@ -32,7 +30,6 @@ class InterceptorStubGenerator {
   final CommonElements _commonElements;
   final CodeEmitterTask _emitterTask;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
-  final JavaScriptConstantCompiler _constants;
   final Namer _namer;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
@@ -44,7 +41,6 @@ class InterceptorStubGenerator {
       this._commonElements,
       this._emitterTask,
       this._nativeCodegenEnqueuer,
-      this._constants,
       this._namer,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
@@ -417,7 +413,7 @@ class InterceptorStubGenerator {
 
     List<jsAst.Expression> elements = <jsAst.Expression>[];
     List<ConstantValue> constants =
-        _constants.getConstantsForEmission(_emitter.compareConstants);
+        _codegenWorldBuilder.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (constant is TypeConstantValue &&
           constant.representedType is InterfaceType) {

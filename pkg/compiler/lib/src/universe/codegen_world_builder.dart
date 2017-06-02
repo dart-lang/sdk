@@ -48,6 +48,18 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 
   /// Set of methods in instantiated classes that are potentially closurized.
   Iterable<FunctionEntity> get closurizedMembers;
+
+  /// Register [constant] as needed for emission.
+  void addCompileTimeConstantForEmission(ConstantValue constant);
+
+  /// Returns a list of constants topologically sorted so that dependencies
+  /// appear before the dependent constant.
+  ///
+  /// [preSortCompare] is a comparator function that gives the constants a
+  /// consistent order prior to the topological sort which gives the constants
+  /// an ordering that is less sensitive to perturbations in the source code.
+  List<ConstantValue> getConstantsForEmission(
+      [Comparator<ConstantValue> preSortCompare]);
 }
 
 abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
@@ -487,17 +499,53 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     }
   }
 
-  bool registerConstantUse(ConstantUse use);
+  /// Set of all registered compiled constants.
+  final Set<ConstantValue> compiledConstants = new Set<ConstantValue>();
+
+  @override
+  void addCompileTimeConstantForEmission(ConstantValue constant) {
+    compiledConstants.add(constant);
+  }
+
+  @override
+  List<ConstantValue> getConstantsForEmission(
+      [Comparator<ConstantValue> preSortCompare]) {
+    // We must emit dependencies before their uses.
+    Set<ConstantValue> seenConstants = new Set<ConstantValue>();
+    List<ConstantValue> result = new List<ConstantValue>();
+
+    void addConstant(ConstantValue constant) {
+      if (!seenConstants.contains(constant)) {
+        constant.getDependencies().forEach(addConstant);
+        assert(!seenConstants.contains(constant));
+        result.add(constant);
+        seenConstants.add(constant);
+      }
+    }
+
+    List<ConstantValue> sorted = compiledConstants.toList();
+    if (preSortCompare != null) {
+      sorted.sort(preSortCompare);
+    }
+    sorted.forEach(addConstant);
+    return result;
+  }
+
+  /// Register the constant [use] with this world builder. Returns `true` if
+  /// the constant use was new to the world.
+  bool registerConstantUse(ConstantUse use) {
+    if (use.kind == ConstantUseKind.DIRECT) {
+      addCompileTimeConstantForEmission(use.value);
+    }
+    return _constantValues.add(use.value);
+  }
 }
 
 class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
-  final JavaScriptConstantCompiler _constants;
-
   ElementCodegenWorldBuilderImpl(
       ElementEnvironment elementEnvironment,
       NativeBasicData nativeBasicData,
       ClosedWorld world,
-      this._constants,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(elementEnvironment, nativeBasicData, world,
             selectorConstraintsStrategy);
@@ -541,16 +589,6 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
     super.registerStaticUse(staticUse, memberUsed);
   }
 
-  /// Register the constant [use] with this world builder. Returns `true` if
-  /// the constant use was new to the world.
-  @override
-  bool registerConstantUse(ConstantUse use) {
-    if (use.kind == ConstantUseKind.DIRECT) {
-      _constants.addCompileTimeConstantForEmission(use.value);
-    }
-    return _constantValues.add(use.value);
-  }
-
   void registerIsCheck(ResolutionDartType type) {
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
@@ -568,12 +606,6 @@ class KernelCodegenWorldBuilder extends CodegenWorldBuilderImpl {
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(elementEnvironment, nativeBasicData, world,
             selectorConstraintsStrategy);
-
-  @override
-  bool registerConstantUse(ConstantUse use) {
-    throw new UnimplementedError(
-        'KernelCodegenWorldBuilder.registerConstantUse');
-  }
 
   @override
   void forEachParameter(

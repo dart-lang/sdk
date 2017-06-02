@@ -50,12 +50,8 @@ class ElementBackendStrategy implements BackendStrategy {
       NativeBasicData nativeBasicData,
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new ElementCodegenWorldBuilderImpl(
-        _compiler.elementEnvironment,
-        nativeBasicData,
-        closedWorld,
-        _compiler.backend.constants,
-        selectorConstraintsStrategy);
+    return new ElementCodegenWorldBuilderImpl(_compiler.elementEnvironment,
+        nativeBasicData, closedWorld, selectorConstraintsStrategy);
   }
 
   @override

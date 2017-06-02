@@ -53,7 +53,6 @@ void testTypeRepresentations() {
                 env.compiler.elementEnvironment,
                 env.compiler.backend.nativeBasicData,
                 closedWorld,
-                env.compiler.backend.constants,
                 const TypeMaskStrategy()));
         TypeRepresentationGenerator typeRepresentation =
             new TypeRepresentationGenerator(env.compiler.backend.namer);

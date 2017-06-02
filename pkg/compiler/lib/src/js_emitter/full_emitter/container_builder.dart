@@ -156,7 +156,7 @@ class ContainerBuilder extends CodeEmitterHelper {
               parameter.metadata.map((MetadataAnnotation annotation) {
             ConstantValue constant =
                 backend.constants.getConstantValueForMetadata(annotation);
-            backend.constants.addCompileTimeConstantForEmission(constant);
+            codegenWorldBuilder.addCompileTimeConstantForEmission(constant);
             return task.metadataCollector.reifyMetadata(annotation);
           });
           expressions.add(new jsAst.ArrayInitializer(metadataIndices.toList()));

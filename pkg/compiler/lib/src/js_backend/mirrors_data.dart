@@ -305,7 +305,8 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(_compiler.resolution);
       ConstantValue constant = _constants.getConstantValueForMetadata(metadata);
-      _constants.addCompileTimeConstantForEmission(constant);
+      CodegenWorldBuilder worldBuilder = _compiler.codegenWorldBuilder;
+      worldBuilder.addCompileTimeConstantForEmission(constant);
     }
   }
 
@@ -376,7 +377,7 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   }
 
   @override
-  bool isClassAccessibleByReflection(ClassElement element) {
+  bool isClassAccessibleByReflection(ClassEntity element) {
     return _classesNeededForReflection.contains(_getDartClass(element));
   }
 
@@ -389,7 +390,8 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
     if (element.isLibrary) {
       return false;
     } else if (element.isClass) {
-      return isClassAccessibleByReflection(element);
+      ClassElement cls = element;
+      return isClassAccessibleByReflection(cls);
     } else if (element.isTypedef) {
       return isTypedefAccessibleByReflection(element);
     } else {
@@ -398,7 +400,7 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
     }
   }
 
-  ClassElement _getDartClass(ClassElement cls) {
+  ClassEntity _getDartClass(ClassEntity cls) {
     if (cls == _commonElements.jsIntClass) {
       return _commonElements.intClass;
     } else if (cls == _commonElements.jsBoolClass) {

@@ -19,7 +19,6 @@ import '../enqueue.dart';
 import '../frontend_strategy.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
-import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/mirrors_analysis.dart';
 import '../js_backend/mirrors_data.dart';
@@ -88,14 +87,8 @@ class KernelFrontEndStrategy implements FrontEndStrategy {
     return elementEnvironment.mainFunction;
   }
 
-  CustomElementsResolutionAnalysis createCustomElementsResolutionAnalysis(
-      NativeBasicData nativeBasicData,
-      BackendUsageBuilder backendUsageBuilder) {
-    return new CustomElementsResolutionAnalysisImpl();
-  }
-
   MirrorsDataBuilder createMirrorsDataBuilder() {
-    return new MirrorsDataBuilderImpl();
+    return new MirrorsDataBuilderImpl(elementMap.commonElements);
   }
 
   MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
@@ -174,7 +167,8 @@ class KernelWorkItem implements ResolutionWorkItem {
 
 /// Mock implementation of [MirrorsDataImpl].
 class MirrorsDataBuilderImpl extends MirrorsDataImpl {
-  MirrorsDataBuilderImpl() : super(null, null, null);
+  MirrorsDataBuilderImpl(CommonElements commonElements)
+      : super(null, null, commonElements);
 
   @override
   void registerUsedMember(MemberEntity member) {}
@@ -198,30 +192,6 @@ class MirrorsDataBuilderImpl extends MirrorsDataImpl {
   @override
   void registerMirrorUsage(
       Set<String> symbols, Set<Element> targets, Set<Element> metaTargets) {}
-}
-
-/// Mock implementation of [CustomElementsResolutionAnalysis].
-class CustomElementsResolutionAnalysisImpl
-    implements CustomElementsResolutionAnalysis {
-  @override
-  CustomElementsAnalysisJoin get join {
-    throw new UnimplementedError('CustomElementsResolutionAnalysisImpl.join');
-  }
-
-  @override
-  WorldImpact flush() {
-    // TODO(johnniwinther): Implement this.
-    return const WorldImpact();
-  }
-
-  @override
-  void registerStaticUse(MemberEntity element) {}
-
-  @override
-  void registerInstantiatedClass(ClassEntity classElement) {}
-
-  @override
-  void registerTypeLiteral(DartType type) {}
 }
 
 /// Mock implementation of [MirrorsResolutionAnalysis].

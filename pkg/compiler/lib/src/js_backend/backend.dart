@@ -803,9 +803,12 @@ class JavaScriptBackend {
         _backendUsageBuilder,
         compiler.frontEndStrategy.createNativeClassFinder(nativeBasicData));
     _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
-    _customElementsResolutionAnalysis = compiler.frontEndStrategy
-        .createCustomElementsResolutionAnalysis(
-            nativeBasicData, _backendUsageBuilder);
+    _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
+        constantSystem,
+        compiler.elementEnvironment,
+        commonElements,
+        nativeBasicData,
+        _backendUsageBuilder);
     impactTransformer = new JavaScriptImpactTransformer(
         compiler.options,
         compiler.elementEnvironment,
@@ -869,7 +872,10 @@ class JavaScriptBackend {
         lookupMapResolutionAnalysis);
     _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
-        compiler.resolution, constantSystem, commonElements, nativeBasicData);
+        constantSystem,
+        commonElements,
+        compiler.elementEnvironment,
+        nativeBasicData);
     _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
         compiler.options,
         compiler.elementEnvironment,

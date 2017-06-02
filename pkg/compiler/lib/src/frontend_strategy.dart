@@ -14,7 +14,6 @@ import 'environment.dart';
 import 'enqueue.dart';
 import 'js_backend/backend.dart';
 import 'js_backend/backend_usage.dart';
-import 'js_backend/custom_elements_analysis.dart';
 import 'js_backend/interceptor_data.dart';
 import 'js_backend/mirrors_analysis.dart';
 import 'js_backend/mirrors_data.dart';
@@ -83,10 +82,6 @@ abstract class FrontEndStrategy {
       LibraryEntity mainLibrary, WorldImpactBuilder impactBuilder);
 
   // TODO(johnniwinther): Reuse the following classes between strategies:
-
-  /// Creates the [CustomElementsResolutionAnalysis] for this strategy.
-  CustomElementsResolutionAnalysis createCustomElementsResolutionAnalysis(
-      NativeBasicData nativeBasicData, BackendUsageBuilder backendUsageBuilder);
 
   /// Creates the [MirrorsDataBuilder] for this strategy.
   MirrorsDataBuilder createMirrorsDataBuilder();
