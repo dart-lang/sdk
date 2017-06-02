@@ -259,12 +259,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         calleeType = const DynamicType();
       }
       if (memberClass.typeParameters.isNotEmpty) {
-        var castedType = classHierarchy.getClassAsInstanceOf(
-            receiverType.classNode, memberClass);
+        var castedType =
+            classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
         calleeType = Substitution
-            .fromInterfaceType(Substitution
-                .fromInterfaceType(receiverType)
-                .substituteType(castedType.asInterfaceType))
+            .fromInterfaceType(castedType)
             .substituteType(calleeType);
       }
       return calleeType;
@@ -315,8 +313,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
   }
 
-  DartType getSetterType(
-      Member interfaceMember, DartType receiverType, Name methodName) {
+  DartType getSetterType(Member interfaceMember, DartType receiverType) {
     if (receiverType is InterfaceType) {
       if (interfaceMember == null) return const DynamicType();
       var memberClass = interfaceMember.enclosingClass;
@@ -333,12 +330,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         setterType = const DynamicType();
       }
       if (memberClass.typeParameters.isNotEmpty) {
-        var castedType = classHierarchy.getClassAsInstanceOf(
-            receiverType.classNode, memberClass);
+        var castedType =
+            classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
         setterType = Substitution
-            .fromInterfaceType(Substitution
-                .fromInterfaceType(receiverType)
-                .substituteType(castedType.asInterfaceType))
+            .fromInterfaceType(castedType)
             .substituteType(setterType);
       }
       return setterType;

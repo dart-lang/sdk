@@ -1192,8 +1192,7 @@ class KernelPropertySet extends PropertySet implements KernelExpression {
         interfaceTarget = interfaceMember;
       }
     }
-    var setterType =
-        inferrer.getSetterType(interfaceMember, receiverType, name);
+    var setterType = inferrer.getSetterType(interfaceMember, receiverType);
     var inferredType = inferrer.inferExpression(value, setterType, typeNeeded);
     inferrer.listener.propertySetExit(this, inferredType);
     return typeNeeded ? inferredType : null;
