@@ -126,8 +126,10 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
     if (_mirrorsData.mustRetainMetadata) {
       _reporter.log('Retaining metadata.');
 
-      (_compiler.libraryLoader.libraries as Iterable<LibraryElement>)
-          .forEach(_mirrorsData.retainMetadataOfLibrary);
+      for (LibraryEntity library in _compiler.libraryLoader.libraries) {
+        _mirrorsData.retainMetadataOfLibrary(library,
+            addForEmission: !enqueuer.isResolutionQueue);
+      }
 
       if (!enqueuer.queueIsClosed) {
         /// Register the constant value of [metadata] as live in resolution.
