@@ -930,6 +930,11 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
       return namer.uniqueNameForTypeConstantElement(
           type.element.library, type.element);
     }
+    if (type is FunctionType) {
+      // TODO(johnniwinther): Add naming scheme for function type literals.
+      // These currently only occur from kernel.
+      return '()->';
+    }
     InterfaceType interface = type;
     String name = namer.uniqueNameForTypeConstantElement(
         interface.element.library, interface.element);

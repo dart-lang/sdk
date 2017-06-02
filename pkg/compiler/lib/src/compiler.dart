@@ -578,7 +578,9 @@ abstract class Compiler {
         _reporter.reportSuppressedMessagesSummary();
 
         if (compilationFailed) {
-          if (!options.generateCodeWithCompileTimeErrors) return;
+          if (!options.generateCodeWithCompileTimeErrors || options.useKernel) {
+            return;
+          }
           if (mainFunction == null) return;
           if (!backend
               .enableCodegenWithErrorsIfSupported(NO_LOCATION_SPANNABLE)) {

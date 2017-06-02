@@ -1449,7 +1449,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         new Map<ir.Expression, ConstantValue>();
     for (ir.SwitchCase switchCase in switchStatement.cases) {
       for (ir.Expression caseExpression in switchCase.expressions) {
-        ConstantValue constant = astAdapter.getConstantFor(caseExpression);
+        ConstantValue constant = _elementMap.getConstantValue(caseExpression);
         constants[caseExpression] = constant;
       }
     }
@@ -1820,7 +1820,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   void visitSymbolLiteral(ir.SymbolLiteral symbolLiteral) {
     stack.add(graph.addConstant(
-        astAdapter.getConstantForSymbol(symbolLiteral), closedWorld));
+        _elementMap.getConstantValue(symbolLiteral), closedWorld));
     registry?.registerConstSymbol(symbolLiteral.value);
   }
 
@@ -1851,7 +1851,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction listInstruction;
     if (listLiteral.isConst) {
       listInstruction = graph.addConstant(
-          astAdapter.getConstantFor(listLiteral), closedWorld);
+          _elementMap.getConstantValue(listLiteral), closedWorld);
     } else {
       List<HInstruction> elements = <HInstruction>[];
       for (ir.Expression element in listLiteral.expressions) {
@@ -1877,7 +1877,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitMapLiteral(ir.MapLiteral mapLiteral) {
     if (mapLiteral.isConst) {
       stack.add(graph.addConstant(
-          astAdapter.getConstantFor(mapLiteral), closedWorld));
+          _elementMap.getConstantValue(mapLiteral), closedWorld));
       return;
     }
 
@@ -1963,7 +1963,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitTypeLiteral(ir.TypeLiteral typeLiteral) {
     ir.DartType type = typeLiteral.type;
     if (type is ir.InterfaceType || type is ir.DynamicType) {
-      ConstantValue constant = astAdapter.getConstantForType(type);
+      ConstantValue constant = _elementMap.getConstantValue(typeLiteral);
       stack.add(graph.addConstant(constant, closedWorld));
       return;
     }
@@ -1996,8 +1996,16 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     } else if (staticTarget is ir.Field &&
         (staticTarget.isConst ||
             staticTarget.isFinal && !_isLazyStatic(staticTarget))) {
-      stack.add(graph.addConstant(
-          astAdapter.getConstantFor(staticTarget.initializer), closedWorld));
+      ConstantValue value = _elementMap.getConstantValue(
+          staticTarget.initializer,
+          requireConstant: staticTarget.isConst);
+      if (value != null) {
+        stack.add(graph.addConstant(value, closedWorld));
+      } else {
+        FieldEntity field = _elementMap.getField(staticTarget);
+        push(
+            new HLazyStatic(field, _typeInferenceMap.getInferredTypeOf(field)));
+      }
     } else {
       if (_isLazyStatic(staticTarget)) {
         FieldEntity field = _elementMap.getField(staticTarget);
@@ -2228,8 +2236,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     ir.Expression initializer = parameter.initializer;
     if (initializer == null) return graph.addConstantNull(closedWorld);
     // TODO(sra): Evaluate constant in ir.Node domain.
-    ConstantValue constant =
-        astAdapter.getConstantForParameterDefaultValue(initializer);
+    ConstantValue constant = _elementMap.getConstantValue(initializer);
     if (constant == null) return graph.addConstantNull(closedWorld);
     return graph.addConstant(constant, closedWorld);
   }
@@ -2254,7 +2261,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         if (invocation.isConst) {
           // Just like all const constructors (see visitConstructorInvocation).
           stack.add(graph.addConstant(
-              astAdapter.getConstantFor(invocation), closedWorld));
+              _elementMap.getConstantValue(invocation), closedWorld));
         } else {
           generateUnsupportedError(
               invocation,
@@ -2960,7 +2967,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitConstructorInvocation(ir.ConstructorInvocation invocation) {
     ir.Constructor target = invocation.target;
     if (invocation.isConst) {
-      ConstantValue constant = astAdapter.getConstantFor(invocation);
+      ConstantValue constant = _elementMap.getConstantValue(invocation);
       stack.add(graph.addConstant(constant, closedWorld));
       return;
     }

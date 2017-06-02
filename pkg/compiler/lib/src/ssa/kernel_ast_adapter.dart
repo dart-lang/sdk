@@ -87,8 +87,16 @@ class KernelAstAdapter extends KernelToElementMapMixin
   }
 
   @override
-  ConstantValue computeConstantValue(ConstantExpression constant) {
-    return _compiler.constants.getConstantValue(constant);
+  ConstantValue computeConstantValue(ConstantExpression constant,
+      {bool requireConstant: true}) {
+    _compiler.backend.constants.evaluate(constant);
+    ConstantValue value =
+        _compiler.backend.constants.getConstantValue(constant);
+    if (value == null && requireConstant) {
+      throw new UnsupportedError(
+          'No constant value for ${constant.toStructuredText()}');
+    }
+    return value;
   }
 
   /// Called to find the corresponding Kernel element for a particular Element
@@ -145,19 +153,6 @@ class KernelAstAdapter extends KernelToElementMapMixin
   Compiler get _compiler => _backend.compiler;
   TreeElements get elements => _resolvedAst.elements;
   DiagnosticReporter get reporter => _compiler.reporter;
-
-  ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
-    if (kernel.syntheticNodes.contains(node)) {
-      return _backend.constantSystem
-          .createSymbol(_compiler.commonElements, node.value);
-    }
-    ast.Node astNode = getNode(node);
-    ConstantValue constantValue = _backend.constants
-        .getConstantValueForNode(astNode, _resolvedAst.elements);
-    assert(invariant(astNode, constantValue != null,
-        message: 'No constant computed for $node'));
-    return constantValue;
-  }
 
   // TODO(johnniwinther): Use the more precise functions below.
   Element getElement(ir.Node node) {
@@ -225,37 +220,6 @@ class KernelAstAdapter extends KernelToElementMapMixin
 
   FunctionSignature getFunctionSignature(ir.FunctionNode function) {
     return getElement(function).asFunctionElement().functionSignature;
-  }
-
-  ConstantValue getConstantFor(ir.Node node) {
-    // Some `null`s are not mapped when they correspond to errors, e.g. missing
-    // `const` initializers.
-    if (node is ir.NullLiteral) return new NullConstantValue();
-
-    ConstantValue constantValue =
-        _backend.constants.getConstantValueForNode(getNode(node), elements);
-    assert(invariant(getNode(node), constantValue != null,
-        message: 'No constant computed for $node'));
-    return constantValue;
-  }
-
-  ConstantValue getConstantForParameterDefaultValue(ir.Node defaultExpression) {
-    // TODO(27394): Evaluate constant expressions in ir.Node domain.
-    // In the interim, expand the Constantifier and do this:
-    //
-    //     ConstantExpression constantExpression =
-    //         defaultExpression.accept(new Constantifier(this));
-    //     assert(constantExpression != null);
-    ConstantExpression constantExpression =
-        kernel.parameterInitializerNodeToConstant[defaultExpression];
-    if (constantExpression == null) return null;
-    return _backend.constants.getConstantValue(constantExpression);
-  }
-
-  ConstantValue getConstantForType(ir.DartType irType) {
-    ResolutionDartType type = getDartType(irType);
-    return _backend.constantSystem
-        .createType(_compiler.commonElements, type.asRaw());
   }
 
   // Is the member a lazy initialized static or top-level member?

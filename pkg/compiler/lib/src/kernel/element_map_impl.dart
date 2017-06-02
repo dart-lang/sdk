@@ -130,7 +130,8 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   native.BehaviorBuilder get nativeBehaviorBuilder => _nativeBehaviorBuilder;
 
   @override
-  ConstantValue computeConstantValue(ConstantExpression constant) {
+  ConstantValue computeConstantValue(ConstantExpression constant,
+      {bool requireConstant: true}) {
     return _constantEnvironment.getConstantValue(constant);
   }
 

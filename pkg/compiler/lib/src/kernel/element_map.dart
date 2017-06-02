@@ -147,7 +147,8 @@ abstract class KernelToElementMap {
   InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node);
 
   /// Computes the [ConstantValue] for the constant [expression].
-  ConstantValue getConstantValue(ir.Expression expression);
+  ConstantValue getConstantValue(ir.Expression expression,
+      {bool requireConstant: true});
 
   /// Returns the `noSuchMethod` [FunctionEntity] call from a
   /// `super.noSuchMethod` invocation within [cls].
@@ -170,7 +171,8 @@ enum ForeignKind {
 abstract class KernelToElementMapMixin implements KernelToElementMap {
   DiagnosticReporter get reporter;
   native.BehaviorBuilder get nativeBehaviorBuilder;
-  ConstantValue computeConstantValue(ConstantExpression constant);
+  ConstantValue computeConstantValue(ConstantExpression constant,
+      {bool requireConstant: true});
 
   @override
   Name getName(ir.Name name) {
@@ -240,13 +242,18 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
     return new Selector.setter(name);
   }
 
-  ConstantValue getConstantValue(ir.Expression node) {
-    ConstantExpression constant = new Constantifier(this).visit(node);
+  ConstantValue getConstantValue(ir.Expression node,
+      {bool requireConstant: true}) {
+    ConstantExpression constant =
+        new Constantifier(this, requireConstant: requireConstant).visit(node);
     if (constant == null) {
-      throw new UnsupportedError(
-          'No constant for ${DebugPrinter.prettyPrint(node)}');
+      if (requireConstant) {
+        throw new UnsupportedError(
+            'No constant for ${DebugPrinter.prettyPrint(node)}');
+      }
+      return null;
     }
-    return computeConstantValue(constant);
+    return computeConstantValue(constant, requireConstant: requireConstant);
   }
 
   /// Converts [annotations] into a list of [ConstantValue]s.
@@ -550,8 +557,11 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   }
 
   ConstantExpression defaultExpression(ir.Expression node) {
-    throw new UnimplementedError(
-        'Unimplemented constant expression $node (${node.runtimeType})');
+    if (requireConstant) {
+      throw new UnimplementedError(
+          'Unimplemented constant expression $node (${node.runtimeType})');
+    }
+    return null;
   }
 
   List<ConstantExpression> _computeList(List<ir.Expression> expressions) {
@@ -581,12 +591,14 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
   ConstructedConstantExpression _computeConstructorInvocation(
       ir.Constructor target, ir.Arguments arguments) {
+    List<ConstantExpression> expressions = _computeArguments(arguments);
+    if (expressions == null) return null;
     return new ConstructedConstantExpression(
         elementAdapter.createInterfaceType(
             target.enclosingClass, arguments.types),
         elementAdapter.getConstructor(target),
         elementAdapter.getCallStructure(arguments),
-        _computeArguments(arguments));
+        expressions);
   }
 
   @override
@@ -605,22 +617,23 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
         assert(function.namedParameters.contains(node.variable));
         return new NamedArgumentReference(node.variable.name);
       }
+    } else if (node.variable.isConst) {
+      return visit(node.variable.initializer);
     }
-    throw new UnimplementedError(
-        'Unimplemented constant expression $node (${node.runtimeType})');
+    return defaultExpression(node);
   }
 
   @override
   ConstantExpression visitStaticGet(ir.StaticGet node) {
-    if (node.target is ir.Field) {
+    ir.Member target = node.target;
+    if (target is ir.Field && target.isConst) {
       return new FieldConstantExpression(elementAdapter.getField(node.target));
     } else if (node.target is ir.Procedure) {
       FunctionEntity function = elementAdapter.getMethod(node.target);
       DartType type = elementAdapter.getFunctionType(node.target.function);
       return new FunctionConstantExpression(function, type);
     }
-    throw new UnimplementedError(
-        'Unexpected constant expression $node (${node.runtimeType})');
+    return defaultExpression(node);
   }
 
   @override
@@ -655,22 +668,27 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
   @override
   ConstantExpression visitStringConcatenation(ir.StringConcatenation node) {
-    return new ConcatenateConstantExpression(_computeList(node.expressions));
+    List<ConstantExpression> expressions = _computeList(node.expressions);
+    if (expressions == null) return null;
+    return new ConcatenateConstantExpression(expressions);
   }
 
   @override
   ConstantExpression visitMapLiteral(ir.MapLiteral node) {
     if (!node.isConst) {
-      throw new UnimplementedError(
-          'Unexpected constant expression $node (${node.runtimeType})');
+      return defaultExpression(node);
     }
     DartType keyType = elementAdapter.getDartType(node.keyType);
     DartType valueType = elementAdapter.getDartType(node.valueType);
     List<ConstantExpression> keys = <ConstantExpression>[];
     List<ConstantExpression> values = <ConstantExpression>[];
     for (ir.MapEntry entry in node.entries) {
-      keys.add(visit(entry.key));
-      values.add(visit(entry.value));
+      ConstantExpression key = visit(entry.key);
+      if (key == null) return null;
+      keys.add(key);
+      ConstantExpression value = visit(entry.value);
+      if (value == null) return null;
+      values.add(value);
     }
     return new MapConstantExpression(
         _commonElements.mapType(keyType, valueType), keys, values);
@@ -679,23 +697,52 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   @override
   ConstantExpression visitListLiteral(ir.ListLiteral node) {
     if (!node.isConst) {
-      throw new UnimplementedError(
-          'Unexpected constant expression $node (${node.runtimeType})');
+      return defaultExpression(node);
     }
     DartType elementType = elementAdapter.getDartType(node.typeArgument);
     List<ConstantExpression> values = <ConstantExpression>[];
-    for (ir.Expression value in node.expressions) {
-      values.add(visit(value));
+    for (ir.Expression expression in node.expressions) {
+      ConstantExpression value = visit(expression);
+      if (value == null) return null;
+      values.add(value);
     }
     return new ListConstantExpression(
         _commonElements.listType(elementType), values);
   }
 
   @override
+  ConstantExpression visitTypeLiteral(ir.TypeLiteral node) {
+    DartType type = elementAdapter.getDartType(node.type);
+    String name;
+    if (type.isDynamic) {
+      name = 'dynamic';
+    } else if (type is InterfaceType) {
+      name = type.element.name;
+    } else if (type.isFunctionType || type.isTypedef) {
+      // TODO(johnniwinther): Compute a name for the type literal? It is only
+      // used in error messages in the old SSA builder.
+      name = '?';
+    } else {
+      return defaultExpression(node);
+    }
+    return new TypeConstantExpression(type, name);
+  }
+
+  @override
+  ConstantExpression visitNot(ir.Not node) {
+    ConstantExpression expression = visit(node.operand);
+    if (expression == null) return null;
+    return new UnaryConstantExpression(UnaryOperator.NOT, expression);
+  }
+
+  @override
   ConstantExpression visitConditionalExpression(ir.ConditionalExpression node) {
     ConstantExpression condition = visit(node.condition);
+    if (condition == null) return null;
     ConstantExpression trueExp = visit(node.then);
+    if (trueExp == null) return null;
     ConstantExpression falseExp = visit(node.otherwise);
+    if (falseExp == null) return null;
     return new ConditionalConstantExpression(condition, trueExp, falseExp);
   }
 
@@ -706,6 +753,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
           'Unexpected constant expression $node (${node.runtimeType})');
     }
     ConstantExpression receiver = visit(node.receiver);
+    if (receiver == null) return null;
     return new StringLengthConstantExpression(receiver);
   }
 
@@ -714,8 +762,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     // Method invocations are generally not constant expressions but unary
     // and binary expressions are encoded as method invocations in kernel.
     if (node.arguments.named.isNotEmpty) {
-      throw new UnimplementedError(
-          'Unexpected constant expression $node (${node.runtimeType})');
+      return defaultExpression(node);
     }
     if (node.arguments.positional.length == 0) {
       UnaryOperator operator;
@@ -726,6 +773,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       }
       if (operator != null) {
         ConstantExpression expression = visit(node.receiver);
+        if (expression == null) return null;
         return new UnaryConstantExpression(operator, expression);
       }
     }
@@ -733,12 +781,13 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       BinaryOperator operator = BinaryOperator.parse(node.name.name);
       if (operator != null) {
         ConstantExpression left = visit(node.receiver);
+        if (left == null) return null;
         ConstantExpression right = visit(node.arguments.positional.single);
+        if (right == null) return null;
         return new BinaryConstantExpression(left, operator, right);
       }
     }
-    throw new UnimplementedError(
-        'Unexpected constant expression $node (${node.runtimeType})');
+    return defaultExpression(node);
   }
 
   @override
@@ -748,19 +797,22 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       if (node.arguments.positional.length == 2 &&
           node.arguments.named.isEmpty) {
         ConstantExpression left = visit(node.arguments.positional[0]);
+        if (left == null) return null;
         ConstantExpression right = visit(node.arguments.positional[1]);
+        if (right == null) return null;
         return new IdenticalConstantExpression(left, right);
       }
     } else if (member.name == 'fromEnvironment' &&
         node.arguments.positional.length == 1) {
       ConstantExpression name = visit(node.arguments.positional.single);
+      if (name == null) return null;
       ConstantExpression defaultValue;
       if (node.arguments.named.length == 1) {
         if (node.arguments.named.single.name != 'defaultValue') {
-          throw new UnimplementedError(
-              'Unexpected constant expression $node (${node.runtimeType})');
+          return defaultExpression(node);
         }
         defaultValue = visit(node.arguments.named.single.value);
+        if (defaultValue == null) return null;
       }
       if (member.enclosingClass == _commonElements.boolClass) {
         return new BoolFromEnvironmentConstantExpression(name, defaultValue);
@@ -770,8 +822,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
         return new StringFromEnvironmentConstantExpression(name, defaultValue);
       }
     }
-    throw new UnimplementedError(
-        'Unexpected constant expression $node (${node.runtimeType})');
+    return defaultExpression(node);
   }
 
   @override
@@ -779,11 +830,12 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     BinaryOperator operator = BinaryOperator.parse(node.operator);
     if (operator != null) {
       ConstantExpression left = visit(node.left);
+      if (left == null) return null;
       ConstantExpression right = visit(node.right);
+      if (right == null) return null;
       return new BinaryConstantExpression(left, operator, right);
     }
-    throw new UnimplementedError(
-        'Unexpected constant expression $node (${node.runtimeType})');
+    return defaultExpression(node);
   }
 
   @override
@@ -803,7 +855,9 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
             // We have <left> ?? <right> encoded as:
             //    let #1 = <left> in #1 == null ? <right> : #1
             ConstantExpression left = visit(node.variable.initializer);
+            if (left == null) return null;
             ConstantExpression right = visit(body.then);
+            if (right == null) return null;
             // TODO(johnniwinther): Remove [IF_NULL] binary constant expression
             // when the resolver is removed; then we no longer need the
             // expressions to be structurally equivalence for equivalence
@@ -814,8 +868,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
         }
       }
     }
-    throw new UnimplementedError(
-        'Unexpected constant expression $node (${node.runtimeType})');
+    return defaultExpression(node);
   }
 
   /// Compute the [ConstantConstructor] corresponding to the const constructor
@@ -829,20 +882,25 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     Map<dynamic, ConstantExpression> defaultValues =
         <dynamic, ConstantExpression>{};
     int parameterIndex = 0;
-    node.function.positionalParameters
-        .forEach((ir.VariableDeclaration parameter) {
+    for (ir.VariableDeclaration parameter
+        in node.function.positionalParameters) {
       if (parameterIndex >= node.function.requiredParameterCount) {
+        ConstantExpression defaultValue;
         if (parameter.initializer != null) {
-          defaultValues[parameterIndex] = parameter.initializer.accept(this);
+          defaultValue = parameter.initializer.accept(this);
         } else {
-          defaultValues[parameterIndex] = new NullConstantExpression();
+          defaultValue = new NullConstantExpression();
         }
+        if (defaultValue == null) return null;
+        defaultValues[parameterIndex] = defaultValue;
       }
       parameterIndex++;
-    });
-    node.function.namedParameters.forEach((ir.VariableDeclaration parameter) {
-      defaultValues[parameter.name] = parameter.initializer.accept(this);
-    });
+    }
+    for (ir.VariableDeclaration parameter in node.function.namedParameters) {
+      ConstantExpression defaultValue = parameter.initializer.accept(this);
+      if (defaultValue == null) return null;
+      defaultValues[parameter.name] = defaultValue;
+    }
 
     bool isRedirecting = node.initializers.length == 1 &&
         node.initializers.single is ir.RedirectingInitializer;
