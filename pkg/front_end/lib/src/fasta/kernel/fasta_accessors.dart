@@ -147,7 +147,7 @@ abstract class FastaAccessor implements Accessor {
       int offset, Arguments arguments);
 
   /* Expression | FastaAccessor */ buildPropertyAccess(
-      IncompleteSend send, bool isNullAware) {
+      IncompleteSend send, int operatorOffset, bool isNullAware) {
     if (send is SendAccessor) {
       return helper.buildMethodInvocation(buildSimpleRead(), send.name,
           send.arguments, offsetForToken(send.token),
@@ -189,7 +189,7 @@ abstract class ErrorAccessor implements FastaAccessor {
   @override
   String get plainNameForRead => name.name;
 
-  withReceiver(Object receiver, {bool isNullAware}) => this;
+  withReceiver(Object receiver, int operatorOffset, {bool isNullAware}) => this;
 
   @override
   Initializer buildFieldInitializer(
@@ -204,7 +204,10 @@ abstract class ErrorAccessor implements FastaAccessor {
   }
 
   @override
-  buildPropertyAccess(IncompleteSend send, bool isNullAware) => this;
+  buildPropertyAccess(
+      IncompleteSend send, int operatorOffset, bool isNullAware) {
+    return this;
+  }
 
   @override
   buildThrowNoSuchMethodError(Arguments arguments,
@@ -300,7 +303,8 @@ class ThisAccessor extends FastaAccessor {
         offset);
   }
 
-  buildPropertyAccess(IncompleteSend send, bool isNullAware) {
+  buildPropertyAccess(
+      IncompleteSend send, int operatorOffset, bool isNullAware) {
     if (isInitializer && send is SendAccessor) {
       return buildConstructorInitializer(
           offsetForToken(send.token), send.name, send.arguments);
@@ -405,7 +409,7 @@ abstract class IncompleteSend extends FastaAccessor {
 
   IncompleteSend(this.helper, this.token, this.name);
 
-  withReceiver(Object receiver, {bool isNullAware});
+  withReceiver(Object receiver, int operatorOffset, {bool isNullAware});
 
   Arguments get arguments => null;
 }
@@ -446,9 +450,9 @@ class SendAccessor extends IncompleteSend {
     return internalError("Unhandled");
   }
 
-  withReceiver(Object receiver, {bool isNullAware: false}) {
+  withReceiver(Object receiver, int operatorOffset, {bool isNullAware: false}) {
     if (receiver is FastaAccessor) {
-      return receiver.buildPropertyAccess(this, isNullAware);
+      return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
     }
     if (receiver is PrefixBuilder) {
       PrefixBuilder prefix = receiver;
@@ -503,9 +507,9 @@ class IncompletePropertyAccessor extends IncompleteSend {
     return internalError("Unhandled");
   }
 
-  withReceiver(Object receiver, {bool isNullAware: false}) {
+  withReceiver(Object receiver, int operatorOffset, {bool isNullAware: false}) {
     if (receiver is FastaAccessor) {
-      return receiver.buildPropertyAccess(this, isNullAware);
+      return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
     }
     if (receiver is PrefixBuilder) {
       PrefixBuilder prefix = receiver;
@@ -852,7 +856,8 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
   }
 
   @override
-  buildPropertyAccess(IncompleteSend send, bool isNullAware) {
+  buildPropertyAccess(
+      IncompleteSend send, int operatorOffset, bool isNullAware) {
     // `SomeType?.toString` is the same as `SomeType.toString`, not
     // `(SomeType).toString`.
     isNullAware = false;
@@ -888,7 +893,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
           ? accessor
           : accessor.doInvocation(offsetForToken(send.token), arguments);
     } else {
-      return super.buildPropertyAccess(send, isNullAware);
+      return super.buildPropertyAccess(send, operatorOffset, isNullAware);
     }
   }
 

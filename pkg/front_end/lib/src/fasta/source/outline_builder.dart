@@ -159,11 +159,11 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void endPart(Token partKeyword, Token semicolon) {
     debugEvent("Part");
-    popCharOffset();
+    int charOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
     if (uri != null) {
-      library.addPart(metadata, uri);
+      library.addPart(metadata, uri, charOffset);
     }
     checkEmpty(partKeyword.charOffset);
   }
@@ -395,7 +395,8 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("MixinApplication");
     List<TypeBuilder> mixins = pop();
     TypeBuilder supertype = pop();
-    push(library.addMixinApplication(supertype, mixins, -1));
+    push(
+        library.addMixinApplication(supertype, mixins, withKeyword.charOffset));
   }
 
   @override

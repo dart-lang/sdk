@@ -579,7 +579,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           arguments[i] = new NamedExpression(
               "#$i",
               buildCompileTimeError(
-                  "Expected named argument.", arguments[i].fileOffset));
+                  "Expected named argument.", arguments[i].fileOffset))
+            ..fileOffset = beginToken.charOffset;
         }
       }
     }
@@ -588,9 +589,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           arguments.getRange(0, firstNamedArgumentIndex));
       List<NamedExpression> named = new List<NamedExpression>.from(
           arguments.getRange(firstNamedArgumentIndex, arguments.length));
-      push(new KernelArguments(positional, named: named));
+      push(new KernelArguments(positional, named: named)
+        ..fileOffset = beginToken.charOffset);
     } else {
-      push(new KernelArguments(arguments));
+      push(new KernelArguments(arguments)..fileOffset = beginToken.charOffset);
     }
   }
 
@@ -740,14 +742,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   /// Handle `a?.b(...)`.
   void doIfNotNull(Token token) {
     IncompleteSend send = pop();
-    push(send.withReceiver(pop(), isNullAware: true));
+    push(send.withReceiver(pop(), token.charOffset, isNullAware: true));
   }
 
   void doDotOrCascadeExpression(Token token) {
     // TODO(ahe): Handle null-aware.
     IncompleteSend send = pop();
     Object receiver = optional(".", token) ? pop() : popForValue();
-    push(send.withReceiver(receiver));
+    push(send.withReceiver(receiver, token.charOffset));
   }
 
   @override
@@ -757,9 +759,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (target is Procedure) {
       if (!target.isAccessor) {
         if (areArgumentsCompatible(target.function, node.arguments)) {
-          // TODO(ahe): Use [DirectMethodInvocation] when possible.
           Expression result = new KernelDirectMethodInvocation(
-              new ThisExpression(), target, node.arguments);
+              new ThisExpression()..fileOffset = node.fileOffset,
+              target,
+              node.arguments);
+          // TODO(ahe): Use [DirectMethodInvocation] when possible, that is,
+          // remove the next line:
           result =
               new KernelSuperMethodInvocation(node.name, node.arguments, null);
           return result;
@@ -773,9 +778,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           node.name.name, node.arguments, node.fileOffset,
           isSuper: true);
     }
-    // TODO(ahe): Use [DirectPropertyGet] when possible.
-    Expression receiver =
-        new KernelDirectPropertyGet(new ThisExpression(), target);
+    Expression receiver = new KernelDirectPropertyGet(
+        new ThisExpression()..fileOffset = node.fileOffset, target);
+    // TODO(ahe): Use [DirectPropertyGet] when possible, that is, remove the
+    // next line:
     receiver = new KernelSuperPropertyGet(node.name, target);
     return buildMethodInvocation(
         receiver, callName, node.arguments, node.fileOffset);
@@ -2103,7 +2109,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("NamedArgument");
     Expression value = popForValue();
     Identifier identifier = pop();
-    push(new NamedExpression(identifier.name, value));
+    push(new NamedExpression(identifier.name, value)
+      ..fileOffset = offsetForToken(identifier.token));
   }
 
   @override

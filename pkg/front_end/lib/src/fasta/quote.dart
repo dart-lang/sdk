@@ -160,7 +160,7 @@ String unescape(String string, Quote quote) {
           ? string
           : unescapeCodeUnits(string.codeUnits, true);
   }
-  return internalError("Unhandled string quote: $quote");
+  return internalError("Internal error: Unexpected quote: $quote.");
 }
 
 const String incompleteSequence = "Incomplete escape sequence.";

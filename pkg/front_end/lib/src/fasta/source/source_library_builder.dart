@@ -149,7 +149,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         prefixCharOffset));
   }
 
-  void addPart(List<MetadataBuilder> metadata, String path) {
+  void addPart(List<MetadataBuilder> metadata, String path, int charOffset) {
     Uri resolvedUri;
     Uri newFileUri;
     if (uri.scheme == "dart") {

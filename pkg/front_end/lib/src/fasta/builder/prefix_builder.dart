@@ -15,8 +15,12 @@ class PrefixBuilder extends Builder {
 
   final bool deferred;
 
+  @override
+  final int charOffset;
+
   PrefixBuilder(this.name, this.deferred, LibraryBuilder parent, int charOffset)
       : parent = parent,
+        charOffset = charOffset,
         super(parent, charOffset, parent.fileUri);
 
   Builder lookup(String name, int charOffset, Uri fileUri) {
