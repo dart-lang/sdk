@@ -70,7 +70,7 @@ vars = {
   "http_multi_server_tag" : "@2.0.3",
   "http_parser_tag" : "@3.1.1",
   "http_tag" : "@0.11.3+9",
-  "http_throttle_rev" : "@284344cd357e435c6c8ff9a4a21f02b9e384a541",
+  "http_throttle_tag" : "@1.0.1",
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
   "initialize_tag": "@v0.6.2+5",
   "intl_tag": "@0.14.0",
@@ -229,7 +229,7 @@ deps = {
       (Var("github_mirror") % "http_parser") + Var("http_parser_tag"),
   Var("dart_root") + "/third_party/pkg/http_throttle":
       (Var("github_mirror") % "http_throttle") +
-      Var("http_throttle_rev"),
+      Var("http_throttle_tag"),
   Var("dart_root") + "/third_party/pkg/initialize":
       (Var("github_mirror") % "initialize") + Var("initialize_tag"),
   Var("dart_root") + "/third_party/pkg/intl":
