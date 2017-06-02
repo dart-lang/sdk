@@ -304,7 +304,6 @@ dart/redirection_type_shuffling_test/none: Crash # Issue 29201
 dart/spawn_shutdown_test: Timeout
 
 [ ($compiler == dartk) && ($runtime == vm) ]
-cc/ByteDataAccess : Fail
 cc/CanonicalizationInScriptSnapshots : Fail
 cc/Class_ComputeEndTokenPos : Crash
 cc/ClassHierarchyAnalysis : Crash
@@ -322,6 +321,7 @@ cc/DartGeneratedMessages : Crash
 cc/Debug_EvaluateExpr : Fail
 cc/Debug_EvaluateInActivationOfEvaluate : Fail
 cc/Debug_GetClosureInfo : Fail
+cc/Debug_InterruptIsolate : Timeout
 cc/Debug_IsolateID : Fail
 cc/Debug_ListSuperType : Fail
 cc/Debug_ScriptGetTokenInfo_Basic : Fail
@@ -331,15 +331,7 @@ cc/Debugger_Rewind_Optimized : Timeout
 cc/Debugger_SetBreakpointInFunctionLiteralFieldInitializers : Crash
 cc/ErrorHandleBasics : Fail
 cc/EvalExpression : Crash
-cc/ExternalByteDataAccess : Fail
 cc/ExternalizeConstantStrings : Fail
-cc/ExternalStringDeoptimize : Fail
-cc/ExternalStringDoubleParse : Fail
-cc/ExternalStringGuardFieldDeoptimize : Fail
-cc/ExternalStringLoadElimination : Fail
-cc/ExternalStringPolymorphicDeoptimize : Fail
-cc/ExternalStringStaticFieldDeoptimize : Fail
-cc/ExternalStringTrimDoubleParse : Fail
 cc/ExternalUint8ClampedArrayAccess : Fail
 cc/FieldAccess : Fail
 cc/Float32x4List : Crash
@@ -353,7 +345,6 @@ cc/GetNativeArgumentCount : Fail
 cc/GetNativeArguments : Fail
 cc/GetStaticField_RunsInitializer : Fail
 cc/GetType : Fail
-cc/GuardExternalizedString : Fail
 cc/ImplicitNativeFieldAccess : Fail
 cc/InjectNativeFieldsSuperClass : Fail
 cc/InstanceOf : Fail
@@ -442,7 +433,6 @@ cc/NegativeNativeFieldInIsolateMessage : Crash
 cc/New : Fail
 cc/NewNativePort : Fail
 cc/NumberValues : Fail
-cc/OptimizedExternalByteDataAccess : Fail
 cc/Parser_AllocateVariables_CapturedVar : Fail
 cc/Parser_AllocateVariables_CaptureLoopVar : Fail
 cc/Parser_AllocateVariables_Issue7681 : Fail
@@ -515,7 +505,6 @@ cc/Debug_InspectStack_NotOptimized : Fail
 cc/Debug_InspectStack_Optimized : Fail
 cc/Debug_InspectStackWithClosure_NotOptimized : Fail
 cc/Debug_InspectStackWithClosure_Optimized : Fail
-cc/Debug_InterruptIsolate : Timeout
 cc/DeepStackTraceInfo : Fail
 cc/HashCode : Fail
 cc/InjectNativeFields1 : Fail
@@ -535,13 +524,12 @@ cc/Profiler_TypedArrayAllocation : Fail
 cc/Service_TokenStream : Fail
 
 [ ($compiler == dartk) && ($runtime == vm) && ($mode == debug) ]
-cc/Debug_BreakpointStubPatching : Crash
+cc/Debug_BreakpointStubPatching : Fail
 cc/Debug_InspectObject : Crash
 cc/Debug_InspectStack_NotOptimized : Crash
 cc/Debug_InspectStack_Optimized : Crash
 cc/Debug_InspectStackWithClosure_NotOptimized : Crash
 cc/Debug_InspectStackWithClosure_Optimized : Crash
-cc/Debug_InterruptIsolate : Crash
 cc/DeepStackTraceInfo : Crash
 cc/HashCode : Crash
 cc/InjectNativeFields1 : Crash
