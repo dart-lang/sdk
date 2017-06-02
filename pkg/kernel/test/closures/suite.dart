@@ -39,6 +39,8 @@ import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
 
 import 'package:kernel/kernel.dart' show loadProgramFromBinary;
 
+import 'package:kernel/target/targets.dart' show TargetFlags;
+
 const String STRONG_MODE = " strong mode ";
 
 class ClosureConversionContext extends ChainContext {
@@ -99,11 +101,13 @@ class FastaCompile
       TestDescription description, ClosureConversionContext context) async {
     Program platform = await context.loadPlatform();
     Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator, "vm");
+    DillTarget dillTarget = new DillTarget(
+        ticker, context.uriTranslator, "vm_fasta",
+        flags: new TargetFlags(strongMode: context.strongMode));
     platform.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platform);
-    KernelTarget sourceTarget = new KernelTarget(PhysicalFileSystem.instance,
-        dillTarget, context.uriTranslator, context.strongMode);
+    KernelTarget sourceTarget = new KernelTarget(
+        PhysicalFileSystem.instance, dillTarget, context.uriTranslator);
 
     Program p;
     try {

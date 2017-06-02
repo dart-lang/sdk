@@ -50,6 +50,8 @@ import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:kernel/kernel.dart' show loadProgramFromBytes;
 
+import 'package:kernel/target/targets.dart' show TargetFlags;
+
 export 'package:testing/testing.dart' show Chain, runMe;
 
 const String STRONG_MODE = " strong mode ";
@@ -216,7 +218,9 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     CompilerContext.current.disableColors();
     Program platformOutline = await context.loadPlatformOutline();
     Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator, "vm");
+    DillTarget dillTarget = new DillTarget(
+        ticker, context.uriTranslator, "vm_fasta",
+        flags: new TargetFlags(strongMode: strongMode));
     platformOutline.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platformOutline);
     // We create a new URI translator to avoid reading plaform libraries from
@@ -228,7 +232,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
         ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
         : new KernelTarget(
-            PhysicalFileSystem.instance, dillTarget, uriTranslator, strongMode);
+            PhysicalFileSystem.instance, dillTarget, uriTranslator);
 
     Program p;
     try {

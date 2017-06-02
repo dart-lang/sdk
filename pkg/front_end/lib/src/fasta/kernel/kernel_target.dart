@@ -40,12 +40,6 @@ import 'package:kernel/ast.dart'
         VariableGet,
         VoidType;
 
-import 'package:kernel/transformations/erasure.dart' show Erasure;
-
-import 'package:kernel/transformations/continuation.dart' as transformAsync;
-
-import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
-
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import '../source/source_loader.dart' show SourceLoader;
@@ -89,8 +83,6 @@ class KernelTarget extends TargetImplementation {
   /// The [FileSystem] which should be used to access files.
   final FileSystem fileSystem;
 
-  final bool strongMode;
-
   final DillTarget dillTarget;
 
   /// Shared with [CompilerContext].
@@ -105,8 +97,10 @@ class KernelTarget extends TargetImplementation {
   final TypeBuilder dynamicType =
       new KernelNamedTypeBuilder("dynamic", null, -1, null);
 
-  KernelTarget(this.fileSystem, DillTarget dillTarget,
-      TranslateUri uriTranslator, this.strongMode,
+  bool get strongMode => backendTarget.strongMode;
+
+  KernelTarget(
+      this.fileSystem, DillTarget dillTarget, TranslateUri uriTranslator,
       [Map<String, Source> uriToSource])
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
@@ -655,27 +649,11 @@ class KernelTarget extends TargetImplementation {
   /// Run all transformations that are needed when building a program for the
   /// first time.
   void runBuildTransformations() {
-    transformMixinApplications();
-    otherTransformations();
-  }
-
-  void transformMixinApplications() {
-    mix.transformLibraries(
-        backendTarget, loader.coreTypes, loader.hierarchy, loader.libraries);
-    ticker.logMs("Transformed mixin applications");
-  }
-
-  void otherTransformations() {
-    if (!strongMode) {
-      // TODO(ahe): Don't generate type variables in the first place.
-      program.accept(new Erasure());
-      ticker.logMs("Erased type variables in generic methods");
-    }
-    if (errors.isEmpty && loader.collectCompileTimeErrors().isEmpty) {
-      // TODO(kmillikin): Make this run on a per-method basis.
-      transformAsync.transformLibraries(loader.coreTypes, loader.libraries);
-    }
-    ticker.logMs("Transformed async methods");
+    backendTarget.performModularTransformationsOnLibraries(
+        loader.coreTypes, loader.hierarchy, loader.libraries,
+        logger: (String msg) => ticker.logMs(msg));
+    backendTarget.performGlobalTransformations(loader.coreTypes, program,
+        logger: (String msg) => ticker.logMs(msg));
   }
 
   void verify() {

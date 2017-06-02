@@ -27,10 +27,12 @@ abstract class TestTarget extends Target {
   Annotator get annotator => null;
 
   // Return a list of strings so that we can accumulate errors.
-  List<String> performModularTransformations(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, Program program);
+  List<String> performModularTransformationsOnProgram(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
+      {void logger(String msg)});
   List<String> performGlobalTransformations(
-      CoreTypes coreTypes, Program program);
+      CoreTypes coreTypes, Program program,
+      {void logger(String msg)});
 }
 
 void runBaselineTests(String folderName, TestTarget target) {
@@ -61,7 +63,7 @@ void runBaselineTests(String folderName, TestTarget target) {
         loader.loadProgram(dartPath, target: target);
         verifyProgram(program);
         var errors = <String>[];
-        errors.addAll(target.performModularTransformations(
+        errors.addAll(target.performModularTransformationsOnProgram(
             coreTypes, hierarchy, program));
         verifyProgram(program);
         errors.addAll(target.performGlobalTransformations(coreTypes, program));

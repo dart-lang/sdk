@@ -24,6 +24,8 @@ import 'ticker.dart' show Ticker;
 
 import 'translate_uri.dart' show TranslateUri;
 
+import 'package:kernel/target/targets.dart' show TargetFlags;
+
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
 Future mainEntryPoint(List<String> arguments) async {
@@ -71,10 +73,11 @@ Future compilePlatformInternal(CompilerContext c, Ticker ticker, Uri patchedSdk,
       .parse(c.fileSystem, patchedSdk, packages: c.options.packages);
   ticker.logMs("Read packages file");
 
-  DillTarget dillTarget =
-      new DillTarget(ticker, uriTranslator, c.options.target);
-  KernelTarget kernelTarget = new KernelTarget(c.fileSystem, dillTarget,
-      uriTranslator, c.options.strongMode, c.uriToSource);
+  DillTarget dillTarget = new DillTarget(
+      ticker, uriTranslator, c.options.target,
+      flags: new TargetFlags(strongMode: c.options.strongMode));
+  KernelTarget kernelTarget =
+      new KernelTarget(c.fileSystem, dillTarget, uriTranslator, c.uriToSource);
 
   kernelTarget.read(Uri.parse("dart:core"));
   await dillTarget.buildOutlines();

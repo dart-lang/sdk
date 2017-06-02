@@ -22,6 +22,7 @@ import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 import 'package:front_end/src/fasta/translate_uri.dart';
 import 'package:front_end/src/fasta/parser/dart_vm_native.dart'
     show skipNativeClause;
+import 'package:kernel/target/targets.dart' show TargetFlags;
 
 /// Cumulative total number of chars scanned.
 int inputSize = 0;
@@ -214,9 +215,10 @@ generateKernel(Uri entryUri,
 
   var timer = new Stopwatch()..start();
   final Ticker ticker = new Ticker();
-  final DillTarget dillTarget = new DillTarget(ticker, uriResolver, "vm");
-  final KernelTarget kernelTarget = new KernelTarget(
-      PhysicalFileSystem.instance, dillTarget, uriResolver, strongMode);
+  final DillTarget dillTarget = new DillTarget(ticker, uriResolver, "vm_fasta",
+      flags: new TargetFlags(strongMode: strongMode));
+  final KernelTarget kernelTarget =
+      new KernelTarget(PhysicalFileSystem.instance, dillTarget, uriResolver);
   var entrypoints = [
     entryUri,
     // These extra libraries are added to match the same set of libraries

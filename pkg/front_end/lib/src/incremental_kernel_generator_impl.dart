@@ -20,6 +20,7 @@ import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart' hide Source;
+import 'package:kernel/target/targets.dart' show TargetFlags;
 
 dynamic unimplemented() {
   // TODO(paulberry): get rid of this.
@@ -100,8 +101,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       });
 
       CanonicalName nameRoot = new CanonicalName.root();
-      DillTarget dillTarget =
-          new DillTarget(new Ticker(isVerbose: false), _uriTranslator, "vm");
+      DillTarget dillTarget = new DillTarget(
+          new Ticker(isVerbose: false), _uriTranslator, "vm_fasta",
+          flags: new TargetFlags(strongMode: _options.strongMode));
 
       List<_LibraryCycleResult> results = [];
       await _logger.runAsync('Compute results for cycles', () async {
@@ -204,8 +206,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       }
 
       // Create KernelTarget and configure it for compiling the cycle URIs.
-      KernelTarget kernelTarget = new KernelTarget(_fsState.fileSystemView,
-          dillTarget, _uriTranslator, _options.strongMode);
+      KernelTarget kernelTarget =
+          new KernelTarget(_fsState.fileSystemView, dillTarget, _uriTranslator);
       for (FileState library in cycle.libraries) {
         kernelTarget.read(library.uri);
       }

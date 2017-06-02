@@ -33,6 +33,7 @@ import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 import 'package:kernel/ast.dart' show Program;
 import 'package:kernel/kernel.dart' show loadProgramFromBytes;
+import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 import 'testing/suite.dart';
@@ -95,10 +96,11 @@ class BuildProgram
       var platformOutline = context.loadPlatformOutline();
       platformOutline.unbindCanonicalNames();
       var dillTarget = new DillTarget(
-          new Ticker(isVerbose: false), context.uriTranslator, "vm");
+          new Ticker(isVerbose: false), context.uriTranslator, "vm_fasta",
+          flags: new TargetFlags(strongMode: false));
       dillTarget.loader.appendLibraries(platformOutline);
-      var sourceTarget = new KernelTarget(PhysicalFileSystem.instance,
-          dillTarget, context.uriTranslator, false);
+      var sourceTarget = new KernelTarget(
+          PhysicalFileSystem.instance, dillTarget, context.uriTranslator);
       await dillTarget.buildOutlines();
 
       var inputUri = description.uri;
@@ -113,8 +115,8 @@ class BuildProgram
 
       /// This new KernelTarget contains only sources from the test without
       /// lib.dart.
-      sourceTarget = new KernelTarget(PhysicalFileSystem.instance, dillTarget,
-          context.uriTranslator, false);
+      sourceTarget = new KernelTarget(
+          PhysicalFileSystem.instance, dillTarget, context.uriTranslator);
 
       await dillTarget.buildOutlines();
       sourceTarget.read(inputUri);
