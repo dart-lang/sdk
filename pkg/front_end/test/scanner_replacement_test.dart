@@ -124,43 +124,6 @@ class ScannerTest_Replacement extends ScannerTestBase {
   }
 
   @override
-  void test_mismatched_closer() {
-    // When openers and closers are mismatched,
-    // fasta favors considering the opener to be mismatched,
-    // and inserts synthetic closers as needed.
-    // `(])` is parsed as `()])` where the first `)` is synthetic
-    // and the trailing `])` are unmatched.
-    analyzer.BeginToken openParen = _scan('(])');
-    fasta.Token closeParen = openParen.next;
-    fasta.Token closeBracket = closeParen.next;
-    fasta.Token closeParen2 = closeBracket.next;
-    fasta.Token eof = closeParen2.next;
-
-    expect(openParen.endToken, same(closeParen));
-    expect(closeParen.isSynthetic, isTrue);
-    expect(eof.isEof, isTrue);
-  }
-
-  @override
-  void test_mismatched_opener() {
-    // When openers and closers are mismatched,
-    // fasta favors considering the opener to be mismatched
-    // and inserts synthetic closers as needed.
-    // `([)` is parsed as `([])` where `]` is synthetic.
-    analyzer.BeginToken openParen = _scan('([)');
-    analyzer.BeginToken openBracket = openParen.next;
-    fasta.Token closeBracket = openBracket.next; // <-- synthetic
-    fasta.Token closeParen = closeBracket.next;
-    fasta.Token eof = closeParen.next;
-
-    expect(openParen.endToken, same(closeParen));
-    expect(closeParen.isSynthetic, isFalse);
-    expect(openBracket.endToken, same(closeBracket));
-    expect(closeBracket.isSynthetic, isTrue);
-    expect(eof.isEof, isTrue);
-  }
-
-  @override
   void test_mismatched_opener_in_interpolation() {
     // When openers and closers are mismatched,
     // fasta favors considering the opener to be mismatched
@@ -188,20 +151,6 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(openParen2.endToken, same(closeParen2));
     expect(closeParen2.isSynthetic, isTrue);
     expect(eof.isEof, isTrue);
-  }
-
-  @override
-  @failingTest
-  void test_string_simple_interpolation_missingIdentifier() {
-    // See defaultRecoveryStrategy recoverStringInterpolation
-    super.test_string_simple_interpolation_missingIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_string_simple_interpolation_nonIdentifier() {
-    // See defaultRecoveryStrategy recoverStringInterpolation
-    super.test_string_simple_interpolation_nonIdentifier();
   }
 
   @override

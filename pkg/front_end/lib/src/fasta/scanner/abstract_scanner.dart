@@ -1083,6 +1083,8 @@ abstract class AbstractScanner implements Scanner {
       beginToken(); // The identifier starts here.
       next = tokenizeKeywordOrIdentifier(next, false);
     } else {
+      beginToken(); // The synthetic identifier starts here.
+      appendSyntheticSubstringToken(TokenType.IDENTIFIER, scanOffset, true, '');
       unterminated(r'$', shouldAdvance: false);
     }
     beginToken(); // The string interpolation suffix starts here.

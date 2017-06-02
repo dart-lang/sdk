@@ -775,10 +775,26 @@ abstract class ScannerTestBase {
     // closer to be mismatched, which means that `(])` parses as a pair of
     // matched parentheses with an unmatched closing bracket between them.
     var openParen = _scan('(])') as BeginToken;
-    var closeBracket = openParen.next;
-    var closeParen = closeBracket.next;
-    expect(closeParen.next.type, TokenType.EOF);
-    expect(openParen.endToken, same(closeParen));
+    if (usingFasta) {
+      // When openers and closers are mismatched,
+      // fasta favors considering the opener to be mismatched,
+      // and inserts synthetic closers as needed.
+      // `(])` is parsed as `()])` where the first `)` is synthetic
+      // and the trailing `])` are unmatched.
+      var closeParen = openParen.next;
+      expect(closeParen.isSynthetic, isTrue);
+      var closeBracket = closeParen.next;
+      expect(closeBracket.isSynthetic, isFalse);
+      var closeParen2 = closeBracket.next;
+      expect(closeParen2.isSynthetic, isFalse);
+      expect(closeParen2.next.type, TokenType.EOF);
+      expect(openParen.endToken, same(closeParen));
+    } else {
+      var closeBracket = openParen.next;
+      var closeParen = closeBracket.next;
+      expect(closeParen.next.type, TokenType.EOF);
+      expect(openParen.endToken, same(closeParen));
+    }
   }
 
   void test_mismatched_opener() {
@@ -787,10 +803,24 @@ abstract class ScannerTestBase {
     // tokens.
     var openParen = _scan('([)') as BeginToken;
     var openBracket = openParen.next as BeginToken;
-    var closeParen = openBracket.next;
-    expect(closeParen.next.type, TokenType.EOF);
-    expect(openParen.endToken, isNull);
-    expect(openBracket.endToken, isNull);
+    if (usingFasta) {
+      // When openers and closers are mismatched,
+      // fasta favors considering the opener to be mismatched
+      // and inserts synthetic closers as needed.
+      // `([)` is scanned as `([])` where `]` is synthetic.
+      var closeBracket = openBracket.next;
+      expect(closeBracket.isSynthetic, isTrue);
+      var closeParen = closeBracket.next;
+      expect(closeParen.isSynthetic, isFalse);
+      expect(closeParen.next.type, TokenType.EOF);
+      expect(openBracket.endToken, closeBracket);
+      expect(openParen.endToken, closeParen);
+    } else {
+      var closeParen = openBracket.next;
+      expect(closeParen.next.type, TokenType.EOF);
+      expect(openParen.endToken, isNull);
+      expect(openBracket.endToken, isNull);
+    }
   }
 
   void test_mismatched_opener_in_interpolation() {
@@ -1183,22 +1213,41 @@ abstract class ScannerTestBase {
   }
 
   void test_string_simple_interpolation_missingIdentifier() {
-    _assertTokens("'\$x\$'", [
+    var expectedTokens = <Token>[
       new StringToken(TokenType.STRING, "'", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
       new StringToken(TokenType.IDENTIFIER, "x", 2),
       new StringToken(TokenType.STRING, "", 3),
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
-      new StringToken(TokenType.STRING, "'", 4)
-    ]);
+    ];
+    if (usingFasta) {
+      // Fasta scanner inserts a synthetic identifier
+      expectedTokens.addAll([
+        new SyntheticStringToken(TokenType.IDENTIFIER, "", 4, 0),
+        new StringToken(TokenType.STRING, "'", 4),
+      ]);
+    } else {
+      expectedTokens.addAll([
+        new StringToken(TokenType.STRING, "'", 4),
+      ]);
+    }
+    _assertTokens("'\$x\$'", expectedTokens);
   }
 
   void test_string_simple_interpolation_nonIdentifier() {
-    _assertTokens("'\$1'", [
+    var expectedTokens = <Token>[
       new StringToken(TokenType.STRING, "'", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
-      new StringToken(TokenType.STRING, "1'", 2)
+    ];
+    if (usingFasta) {
+      expectedTokens.addAll([
+        new SyntheticStringToken(TokenType.IDENTIFIER, "", 2),
+      ]);
+    }
+    expectedTokens.addAll([
+      new StringToken(TokenType.STRING, "1'", 2),
     ]);
+    _assertTokens("'\$1'", expectedTokens);
   }
 
   void test_string_simple_single() {

@@ -203,22 +203,6 @@ main() {}
   }
 
   @override
-  @failingTest
-  void test_mismatched_closer() {
-    // TODO(paulberry,ahe): Fasta and analyzer recover this error differently.
-    // Figure out which recovery technique we want the front end to use.
-    super.test_mismatched_closer();
-  }
-
-  @override
-  @failingTest
-  void test_mismatched_opener() {
-    // TODO(paulberry,ahe): Fasta and analyzer recover this error differently.
-    // Figure out which recovery technique we want the front end to use.
-    super.test_mismatched_opener();
-  }
-
-  @override
   void test_mismatched_opener_in_interpolation() {
     // When openers and closers are mismatched,
     // fasta favors considering the opener to be mismatched
@@ -299,6 +283,34 @@ abstract class ScannerTest_Fasta_Base {
     if (lexeme != null) {
       expect(token.lexeme, lexeme, reason: description);
     }
+  }
+
+  void test_string_simple_interpolation_missingIdentifier() {
+    Token token = scan("'\$x\$'");
+    expectToken(token, TokenType.STRING, 0, 1, lexeme: "'");
+
+    token = token.next;
+    expectToken(token, TokenType.STRING_INTERPOLATION_IDENTIFIER, 1, 1);
+
+    token = token.next;
+    expectToken(token, TokenType.IDENTIFIER, 2, 1, lexeme: 'x');
+
+    token = token.next;
+    expectToken(token, TokenType.STRING, 3, 0, lexeme: '', isSynthetic: true);
+
+    token = token.next;
+    expectToken(token, TokenType.STRING_INTERPOLATION_IDENTIFIER, 3, 1);
+
+    token = token.next;
+    expectToken(token, TokenType.IDENTIFIER, 4, 0,
+        lexeme: '', isSynthetic: true);
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode,
+        same(codeUnexpectedDollarInString));
+
+    token = token.next;
+    expectToken(token, TokenType.STRING, 4, 1, lexeme: "'");
   }
 
   void test_string_simple_unterminated_interpolation_block() {
@@ -391,6 +403,10 @@ abstract class ScannerTest_Fasta_Base {
 
     token = token.next;
     expectToken(token, TokenType.STRING_INTERPOLATION_IDENTIFIER, 5, 1);
+
+    token = token.next;
+    expectToken(token, TokenType.IDENTIFIER, 6, 0,
+        isSynthetic: true, lexeme: '');
 
     token = token.next;
     expect((token as fasta.ErrorToken).errorCode,

@@ -143,8 +143,7 @@ Token defaultRecoveryStrategy(
   }
 
   recoverStringInterpolation() {
-    // TODO(ahe): Improve this.
-    return skipToEof(errorTail);
+    return errorTail.next;
   }
 
   recoverComment() {
