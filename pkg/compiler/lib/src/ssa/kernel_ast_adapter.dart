@@ -126,14 +126,15 @@ class KernelAstAdapter extends KernelToElementMapMixin {
 
   /// Push the existing resolved AST on the stack and shift the current resolved
   /// AST to the AST that this kernel node points to.
-  void pushResolvedAst(ir.Node node) {
+  void enterInlinedMember(MemberElement member) {
     _resolvedAstStack.add(_resolvedAst);
-    _resolvedAst = (getElement(node) as AstElement).resolvedAst;
+    _resolvedAst = member.resolvedAst;
   }
 
   /// Pop the resolved AST stack to reset it to the previous resolved AST node.
-  void popResolvedAstStack() {
+  void leaveInlinedMember(MemberElement member) {
     assert(_resolvedAstStack.isNotEmpty);
+    assert(_resolvedAst.element == member);
     _resolvedAst = _resolvedAstStack.removeLast();
   }
 
@@ -224,26 +225,6 @@ class KernelAstAdapter extends KernelToElementMapMixin {
 
   FunctionSignature getFunctionSignature(ir.FunctionNode function) {
     return getElement(function).asFunctionElement().functionSignature;
-  }
-
-  ir.Field getFieldFromElement(FieldElement field) {
-    return kernel.fields[field];
-  }
-
-  bool isFixedLength(TypeMask mask, ClosedWorld closedWorld) {
-    if (mask.isContainer && (mask as ContainerTypeMask).length != null) {
-      // A container on which we have inferred the length.
-      return true;
-    }
-    // TODO(sra): Recognize any combination of fixed length indexables.
-    if (mask.containsOnly(closedWorld.commonElements.jsFixedArrayClass) ||
-        mask.containsOnly(
-            closedWorld.commonElements.jsUnmodifiableArrayClass) ||
-        mask.containsOnlyString(closedWorld) ||
-        closedWorld.commonMasks.isTypedArray(mask)) {
-      return true;
-    }
-    return false;
   }
 
   ConstantValue getConstantFor(ir.Node node) {
@@ -337,11 +318,6 @@ class KernelAstAdapter extends KernelToElementMapMixin {
   }
 
   ResolutionDartType getDartType(ir.DartType type) {
-    return _typeConverter.convert(type);
-  }
-
-  ResolutionDartType getDartTypeIfValid(ir.DartType type) {
-    if (type is ir.InvalidType) return null;
     return _typeConverter.convert(type);
   }
 
@@ -686,6 +662,22 @@ class KernelAstTypeInferenceMap implements KernelToTypeInferenceMap {
             closedWorld.commonElements.jsIndexableClass, closedWorld) &&
         // String is indexable but not iterable.
         !mask.satisfies(closedWorld.commonElements.jsStringClass, closedWorld);
+  }
+
+  bool isFixedLength(TypeMask mask, ClosedWorld closedWorld) {
+    if (mask.isContainer && (mask as ContainerTypeMask).length != null) {
+      // A container on which we have inferred the length.
+      return true;
+    }
+    // TODO(sra): Recognize any combination of fixed length indexables.
+    if (mask.containsOnly(closedWorld.commonElements.jsFixedArrayClass) ||
+        mask.containsOnly(
+            closedWorld.commonElements.jsUnmodifiableArrayClass) ||
+        mask.containsOnlyString(closedWorld) ||
+        closedWorld.commonMasks.isTypedArray(mask)) {
+      return true;
+    }
+    return false;
   }
 
   TypeMask inferredIndexType(ir.ForInStatement forInStatement) {

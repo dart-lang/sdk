@@ -118,7 +118,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler = new LocalsHandler(this, targetElement, targetElement,
         contextClass, null, nativeData, interceptorData);
-    _targetStack.add(target);
+    _targetStack.add(targetElement);
   }
 
   @deprecated // Use [_elementMap] instead.
@@ -159,7 +159,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       field.initializer.accept(this);
       HInstruction fieldValue = pop();
       HInstruction checkInstruction = typeBuilder.potentiallyCheckOrTrustType(
-          fieldValue, astAdapter.getDartTypeIfValid(field.type));
+          fieldValue, _getDartTypeIfValid(field.type));
       stack.add(checkInstruction);
     } else {
       stack.add(graph.addConstantNull(closedWorld));
@@ -167,6 +167,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction value = pop();
     closeAndGotoExit(new HReturn(value, null));
     closeFunction();
+  }
+
+  DartType _getDartTypeIfValid(ir.DartType type) {
+    if (type is ir.InvalidType) return null;
+    return _elementMap.getDartType(type);
   }
 
   /// Pops the most recent instruction from the stack and 'boolifies' it.
@@ -251,7 +256,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // TODO(sra): Checked mode parameter checks.
 
     // Collect field values for the current class.
-    Map<ir.Field, HInstruction> fieldValues =
+    Map<FieldEntity, HInstruction> fieldValues =
         _collectFieldValues(constructedClass);
     List<ir.Constructor> constructorChain = <ir.Constructor>[];
     _buildInitializers(constructor, constructorChain, fieldValues);
@@ -262,9 +267,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     ClassElement cls = _elementMap.getClass(constructedClass);
     cls.forEachInstanceField(
         (ClassElement enclosingClass, FieldElement member) {
-      var value = fieldValues[astAdapter.getFieldFromElement(member)];
-      assert(value != null,
-          'No value for field ${member} aka ${astAdapter.getFieldFromElement(member)}');
+      var value = fieldValues[member];
+      assert(value != null, 'No value for field ${member}');
       constructorArguments.add(value);
     }, includeSuperAndInjectedMembers: true);
 
@@ -315,7 +319,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // Pass uncaptured arguments first, captured arguments in a box, then type
       // arguments.
 
-      ConstructorElement constructorElement = astAdapter.getElement(body);
+      ConstructorElement constructorElement = astAdapter.getConstructor(body);
       ClosureClassMap parameterClosureData =
           closureToClassMapper.getMemberMap(constructorElement);
 
@@ -371,44 +375,42 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     add(invoke);
   }
 
-  withCurrentIrNode(ir.Node node, f()) {
-    reporter.withCurrentElement(astAdapter.getElement(node), f);
-  }
-
   /// Sets context for generating code that is the result of inlining
   /// [inlinedTarget].
-  inlinedFrom(ir.TreeNode inlinedTarget, f()) {
-    withCurrentIrNode(inlinedTarget, () {
+  inlinedFrom(MemberEntity inlinedTarget, f()) {
+    reporter.withCurrentElement(inlinedTarget, () {
       SourceInformationBuilder oldSourceInformationBuilder =
           sourceInformationBuilder;
       // TODO(sra): Update sourceInformationBuilder to Kernel.
       // sourceInformationBuilder =
       //   sourceInformationBuilder.forContext(resolvedAst);
+
+      _elementMap.enterInlinedMember(inlinedTarget);
       _targetStack.add(inlinedTarget);
       var result = f();
       sourceInformationBuilder = oldSourceInformationBuilder;
       _targetStack.removeLast();
+      _elementMap.leaveInlinedMember(inlinedTarget);
       return result;
     });
   }
 
   /// Maps the instance fields of a class to their SSA values.
-  Map<ir.Field, HInstruction> _collectFieldValues(ir.Class clazz) {
-    final fieldValues = <ir.Field, HInstruction>{};
+  Map<FieldEntity, HInstruction> _collectFieldValues(ir.Class clazz) {
+    Map<FieldEntity, HInstruction> fieldValues = <FieldEntity, HInstruction>{};
 
-    for (var field in clazz.fields) {
-      if (field.isInstanceMember) {
-        if (field.initializer == null) {
+    for (ir.Field node in clazz.fields) {
+      if (node.isInstanceMember) {
+        FieldEntity field = _elementMap.getField(node);
+        if (node.initializer == null) {
           fieldValues[field] = graph.addConstantNull(closedWorld);
         } else {
           // Gotta update the resolvedAst when we're looking at field values
           // outside the constructor.
-          astAdapter.pushResolvedAst(field);
           inlinedFrom(field, () {
-            field.initializer.accept(this);
+            node.initializer.accept(this);
             fieldValues[field] = pop();
           });
-          astAdapter.popResolvedAstStack();
         }
       }
     }
@@ -420,7 +422,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void _buildInitializers(
       ir.Constructor constructor,
       List<ir.Constructor> constructorChain,
-      Map<ir.Field, HInstruction> fieldValues) {
+      Map<FieldEntity, HInstruction> fieldValues) {
     astAdapter.assertAtResolvedAstFor(constructor);
     constructorChain.add(constructor);
 
@@ -428,7 +430,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     for (var initializer in constructor.initializers) {
       if (initializer is ir.FieldInitializer) {
         initializer.value.accept(this);
-        fieldValues[initializer.field] = pop();
+        fieldValues[_elementMap.getField(initializer.field)] = pop();
       } else if (initializer is ir.SuperInitializer) {
         assert(!foundSuperOrRedirectCall);
         foundSuperOrRedirectCall = true;
@@ -509,9 +511,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
       localsHandler.updateLocal(
           localsHandler.getTypeVariableAsLocal(
-              astAdapter.getDartType(new ir.TypeParameterType(parameter))),
+              _elementMap.getDartType(new ir.TypeParameterType(parameter))),
           typeBuilder.analyzeTypeArgument(
-              astAdapter.getDartType(argument), sourceElement));
+              _elementMap.getDartType(argument), sourceElement));
     }
   }
 
@@ -521,7 +523,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void _inlineRedirectingInitializer(
       ir.RedirectingInitializer initializer,
       List<ir.Constructor> constructorChain,
-      Map<ir.Field, HInstruction> fieldValues,
+      Map<FieldEntity, HInstruction> fieldValues,
       ir.Constructor caller) {
     var superOrRedirectConstructor = initializer.target;
     var arguments = _normalizeAndBuildArguments(
@@ -543,7 +545,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void _inlineSuperInitializer(
       ir.SuperInitializer initializer,
       List<ir.Constructor> constructorChain,
-      Map<ir.Field, HInstruction> fieldValues,
+      Map<FieldEntity, HInstruction> fieldValues,
       ir.Constructor caller) {
     var target = initializer.target;
     var arguments =
@@ -557,7 +559,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     ir.Class cls = target.enclosingClass;
 
-    inlinedFrom(target, () {
+    inlinedFrom(_elementMap.getConstructor(target), () {
       fieldValues.addAll(_collectFieldValues(cls));
     });
 
@@ -570,7 +572,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       ir.Constructor constructor,
       List<HInstruction> arguments,
       List<ir.Constructor> constructorChain,
-      Map<ir.Field, HInstruction> fieldValues,
+      Map<FieldEntity, HInstruction> fieldValues,
       ir.Constructor caller) {
     var signature = astAdapter.getFunctionSignature(constructor.function);
     var index = 0;
@@ -584,8 +586,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     });
 
     // Set the locals handler state as if we were inlining the constructor.
-    astAdapter.pushResolvedAst(constructor);
-    ConstructorElement astElement = astAdapter.getElement(constructor);
+    ConstructorElement astElement = _elementMap.getConstructor(constructor);
     ResolvedAst resolvedAst = astElement.resolvedAst;
     ClosureClassMap oldClosureData = localsHandler.closureData;
     ClosureClassMap newClosureData =
@@ -595,11 +596,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       localsHandler.enterScope(resolvedAst.node,
           forGenerativeConstructorBody: astElement.isGenerativeConstructorBody);
     }
-    inlinedFrom(constructor, () {
+    inlinedFrom(astElement, () {
       _buildInitializers(constructor, constructorChain, fieldValues);
     });
     localsHandler.closureData = oldClosureData;
-    astAdapter.popResolvedAstStack();
   }
 
   /// Builds generative constructor body.
@@ -625,8 +625,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (parent is ir.Procedure &&
         parent.kind == ir.ProcedureKind.Operator &&
         parent.name.name == '==') {
-      if (!backend
-          .operatorEqHandlesNullArgument(_elementMap.getMethod(parent))) {
+      MethodElement method = _elementMap.getMethod(parent);
+      if (!backend.operatorEqHandlesNullArgument(method)) {
         handleIf(
           visitCondition: () {
             HParameterValue parameter = parameters.values.first;
@@ -636,8 +636,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           visitThen: () {
             closeAndGotoExit(new HReturn(
                 graph.addConstantBool(false, closedWorld),
-                sourceInformationBuilder
-                    .buildImplicitReturn(astAdapter.getElement(parent))));
+                sourceInformationBuilder.buildImplicitReturn(method)));
           },
           visitElse: null,
           // TODO(27394): Add sourceInformation via
@@ -713,29 +712,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   // TODO(sra): Re-implement type builder using Kernel types and the
   // `target` for context.
   @override
-  Element get sourceElement => _sourceElementForTarget(_targetStack.last);
+  MemberElement get sourceElement => _targetStack.last;
 
-  List<ir.Node> _targetStack = <ir.Node>[];
-
-  Element _sourceElementForTarget(ir.Node target) {
-    // For closure-converted (i.e. local functions) the source element is the
-    // 'call' method of the class that represents the closure.
-    Element callMethodOfClosureClass() {
-      LocalFunctionElement element = astAdapter.getElement(target);
-      ClosureClassMap classMap =
-          closureToClassMapper.getLocalFunctionMap(element);
-      return classMap.callElement;
-    }
-
-    if (target is ir.FunctionExpression) {
-      return callMethodOfClosureClass();
-    }
-    if (target is ir.FunctionDeclaration) {
-      return callMethodOfClosureClass();
-    }
-    Element element = astAdapter.getElement(target);
-    return element;
-  }
+  List<MemberEntity> _targetStack = <MemberEntity>[];
 
   @override
   void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
@@ -949,7 +928,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     void buildInitializer() {
       forInStatement.iterable.accept(this);
       array = pop();
-      isFixed = astAdapter.isFixedLength(array.instructionType, closedWorld);
+      isFixed =
+          _typeInferenceMap.isFixedLength(array.instructionType, closedWorld);
       localsHandler.updateLocal(
           indexVariable, graph.addConstantInt(0, closedWorld));
       originalLength = buildGetLength();
@@ -2048,7 +2028,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       add(new HStaticStore(
           _elementMap.getMember(staticTarget),
           typeBuilder.potentiallyCheckOrTrustType(
-              value, astAdapter.getDartTypeIfValid(staticTarget.setterType))));
+              value, _getDartTypeIfValid(staticTarget.setterType))));
     }
     stack.add(value);
   }
@@ -2135,7 +2115,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   void _visitLocalSetter(ir.VariableDeclaration variable, HInstruction value) {
-    LocalElement local = astAdapter.getElement(variable);
+    LocalElement local = astAdapter.getLocal(variable);
 
     // Give the value a name if it doesn't have one already.
     if (value.sourceElement == null) {
@@ -2146,7 +2126,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     localsHandler.updateLocal(
         local,
         typeBuilder.potentiallyCheckOrTrustType(
-            value, astAdapter.getDartTypeIfValid(variable.type)));
+            value, _getDartTypeIfValid(variable.type)));
   }
 
   @override
@@ -2780,7 +2760,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   visitFunctionNode(ir.FunctionNode node) {
-    LocalFunctionElement methodElement = astAdapter.getElement(node);
+    Local methodElement = _elementMap.getLocalFunction(node);
     ClosureClassMap nestedClosureData =
         closureToClassMapper.getLocalFunctionMap(methodElement);
     assert(nestedClosureData != null);
@@ -2807,8 +2787,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   visitFunctionDeclaration(ir.FunctionDeclaration declaration) {
     assert(isReachable);
     declaration.function.accept(this);
-    LocalFunctionElement localFunction =
-        astAdapter.getElement(declaration.function);
+    Local localFunction = _elementMap.getLocalFunction(declaration.function);
     localsHandler.updateLocal(localFunction, pop());
   }
 
@@ -3360,7 +3339,7 @@ class TryCatchFinallyBuilder {
       catchesIndex++;
       if (catchBlock.exception != null) {
         LocalVariableElement exceptionVariable =
-            kernelBuilder.astAdapter.getElement(catchBlock.exception);
+            kernelBuilder.astAdapter.getLocal(catchBlock.exception);
         kernelBuilder.localsHandler
             .updateLocal(exceptionVariable, unwrappedException);
       }
@@ -3372,7 +3351,7 @@ class TryCatchFinallyBuilder {
                 kernelBuilder._commonElements.traceFromException));
         HInstruction traceInstruction = kernelBuilder.pop();
         LocalVariableElement traceVariable =
-            kernelBuilder.astAdapter.getElement(catchBlock.stackTrace);
+            kernelBuilder.astAdapter.getLocal(catchBlock.stackTrace);
         kernelBuilder.localsHandler
             .updateLocal(traceVariable, traceInstruction);
       }

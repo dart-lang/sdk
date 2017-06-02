@@ -155,6 +155,14 @@ abstract class KernelToElementMap {
   /// Returns a [Spannable] for a message pointing to the IR [node] in the
   /// context of [member].
   Spannable getSpannable(MemberEntity member, ir.Node node);
+
+  // TODO(johnniwinther): Move these to a `KernelToLocalsMap`, maybe even make
+  // the return the `KernelToLocalsMap` to use from now on.
+  /// Call to notify that [member] is currently being inlined.
+  void enterInlinedMember(MemberEntity member);
+
+  /// Call to notify that [member] is no longer being inlined.
+  void leaveInlinedMember(MemberEntity member);
 }
 
 /// Kinds of foreign functions.
@@ -509,6 +517,12 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
         message: "No super noSuchMethod found for class $cls."));
     return function;
   }
+
+  @override
+  void enterInlinedMember(MemberEntity member) {}
+
+  @override
+  void leaveInlinedMember(MemberEntity member) {}
 }
 
 /// Visitor that converts string literals and concatenations of string literals
@@ -919,6 +933,10 @@ abstract class KernelToTypeInferenceMap {
   /// indexable iterator.
   bool isJsIndexableIterator(
       ir.ForInStatement forInStatement, ClosedWorld closedWorld);
+
+  /// Returns `true` if [mask] is inferred to have a JavaScript `length`
+  /// property.
+  bool isFixedLength(TypeMask mask, ClosedWorld closedWorld);
 
   /// Returns the inferred index type of [forInStatement].
   TypeMask inferredIndexType(ir.ForInStatement forInStatement);

@@ -179,6 +179,11 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   @override
+  bool isFixedLength(TypeMask mask, ClosedWorld closedWorld) {
+    return false;
+  }
+
+  @override
   TypeMask typeOfIteratorMoveNext(ir.ForInStatement forInStatement) {
     return _closedWorld.commonMasks.dynamicType;
   }
