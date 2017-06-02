@@ -14,7 +14,6 @@ import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -143,7 +142,7 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(new ExecutionDomainPage(this));
     pages.add(new OverlaysPage(this));
     pages.add(new ProfilePage(this));
-    //pages.add(new ExceptionsPage(this));
+    pages.add(new ExceptionsPage(this));
     pages.add(new InstrumentationPage(this));
     pages.add(new PluginsPage(this));
 
@@ -496,28 +495,30 @@ class ProfilePage extends DiagnosticPageWithNav {
   }
 }
 
-// TODO(devoncarew): This is not hooked up.
 class ExceptionsPage extends DiagnosticPageWithNav {
   ExceptionsPage(DiagnosticsSite site)
       : super(site, 'exceptions', 'Exceptions',
             description: 'Exceptions from the analysis server.');
 
-  String get navDetail => exceptions.length.toString();
+  String get navDetail => printInteger(exceptions.length);
 
   @override
   void generateContent(Map<String, String> params) {
     if (exceptions.isEmpty) {
       blankslate('No exceptions encountered!');
     } else {
-      for (CaughtException ex in exceptions) {
-        h3('${ex.exception}');
-        p(ex.toString(), style: 'white-space: pre');
+      for (ServerException ex in exceptions) {
+        h3('Exception ${ex.exception}');
+        p('${escape(ex.message)}<br>${writeOption('fatal', ex.fatal)}',
+            raw: true);
+        pre(() {
+          buf.writeln('<code>${escape(ex.stackTrace.toString())}</code>');
+        }, classes: "scroll-table");
       }
     }
   }
 
-  // TODO: Implement - read this from a server exception ring buffer.
-  List<CaughtException> get exceptions => [];
+  Iterable<ServerException> get exceptions => server.exceptions.items;
 }
 
 class ContextsPage extends DiagnosticPageWithNav {

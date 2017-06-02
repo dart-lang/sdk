@@ -13,6 +13,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
@@ -260,6 +261,12 @@ class AnalysisServer {
         performanceDuringStartup.startTime);
     return new DateTime.now().difference(start);
   }
+
+  /**
+   * A [RecentBuffer] of the most recent exceptions encountered by the analysis
+   * server.
+   */
+  final RecentBuffer<ServerException> exceptions = new RecentBuffer(10);
 
   /**
    * The class into which performance information is currently being recorded.
@@ -1233,26 +1240,26 @@ class AnalysisServer {
   void sendServerErrorNotification(String message, exception, stackTrace,
       {bool fatal: false}) {
     StringBuffer buffer = new StringBuffer();
-    if (exception != null) {
-      buffer.write(exception);
-    } else {
-      buffer.write('null exception');
-    }
+    buffer.write(exception ?? 'null exception');
     if (stackTrace != null) {
       buffer.writeln();
       buffer.write(stackTrace);
     } else if (exception is! CaughtException) {
-      try {
-        throw 'ignored';
-      } catch (ignored, stackTrace) {
-        buffer.writeln();
-        buffer.write(stackTrace);
-      }
+      stackTrace = StackTrace.current;
+      buffer.writeln();
+      buffer.write(stackTrace);
     }
+
     // send the notification
     channel.sendNotification(
         new ServerErrorParams(fatal, message, buffer.toString())
             .toNotification());
+
+    // remember the last few exceptions
+    if (exception is CaughtException) {
+      stackTrace ??= exception.stackTrace;
+    }
+    exceptions.add(new ServerException(message, exception, stackTrace, fatal));
   }
 
   /**
@@ -2383,4 +2390,19 @@ class ServerPerformanceStatistics {
    * The [PerformanceTag] for time spent in split store microtasks.
    */
   static PerformanceTag splitStore = new PerformanceTag('splitStore');
+}
+
+/**
+ * Used to record server exceptions.
+ */
+class ServerException {
+  final String message;
+  final dynamic exception;
+  final StackTrace stackTrace;
+  final bool fatal;
+
+  ServerException(this.message, this.exception, this.stackTrace, this.fatal);
+
+  @override
+  String toString() => message;
 }

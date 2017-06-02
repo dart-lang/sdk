@@ -149,6 +149,16 @@ abstract class Page {
     }
   }
 
+  void pre(void gen(), {String classes}) {
+    if (classes != null) {
+      buf.write('<pre class="$classes">');
+    } else {
+      buf.write('<pre>');
+    }
+    gen();
+    buf.writeln('</pre>');
+  }
+
   void blankslate(String str) {
     div(() => buf.writeln(str), classes: 'blankslate');
   }
