@@ -207,7 +207,7 @@ Future<CompilationResult> parseScriptInFileSystem(
       final DillTarget dillTarget = new DillTarget(
           ticker, uriTranslator, backendTarget,
           flags: new TargetFlags(strongMode: strongMode));
-      _appendDillForUri(dillTarget, patchedSdk.resolve('platform.dill'));
+      _appendDillForUri(dillTarget, patchedSdk.resolve('outline.dill'));
       final KernelTarget kernelTarget =
           new KernelTarget(fileSystem, dillTarget, uriTranslator, strongMode);
       kernelTarget.read(fileName);
