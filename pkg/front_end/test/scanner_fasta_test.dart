@@ -329,6 +329,62 @@ abstract class ScannerTest_Fasta_Base {
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
   }
 
+  void test_string_simple_unterminated_interpolation_block2() {
+    Token token = scan(r'"foo ${bar(baz[');
+    expectToken(token, TokenType.STRING, 0, 5, lexeme: '"foo ');
+
+    token = token.next;
+    expectToken(token, TokenType.STRING_INTERPOLATION_EXPRESSION, 5, 2);
+    BeginToken interpolationStart = token;
+
+    token = token.next;
+    expectToken(token, TokenType.IDENTIFIER, 7, 3, lexeme: 'bar');
+
+    token = token.next;
+    expectToken(token, TokenType.OPEN_PAREN, 10, 1);
+    BeginToken openParen = token;
+
+    token = token.next;
+    expectToken(token, TokenType.IDENTIFIER, 11, 3, lexeme: 'baz');
+
+    token = token.next;
+    expectToken(token, TokenType.OPEN_SQUARE_BRACKET, 14, 1);
+    BeginToken openSquareBracket = token;
+
+    token = token.next;
+    expectToken(token, TokenType.CLOSE_SQUARE_BRACKET, 15, 0,
+        isSynthetic: true, lexeme: ']');
+    expect(openSquareBracket.endToken, same(token));
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
+    expect((token as fasta.UnmatchedToken).begin, same(openSquareBracket));
+
+    token = token.next;
+    expectToken(token, TokenType.CLOSE_PAREN, 15, 0,
+        isSynthetic: true, lexeme: ')');
+    expect(openParen.endToken, same(token));
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
+    expect((token as fasta.UnmatchedToken).begin, same(openParen));
+
+    token = token.next;
+    expectToken(token, TokenType.CLOSE_CURLY_BRACKET, 15, 0,
+        isSynthetic: true, lexeme: '}');
+    expect(interpolationStart.endToken, same(token));
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
+    expect((token as fasta.UnmatchedToken).begin, same(interpolationStart));
+
+    token = token.next;
+    expectToken(token, TokenType.STRING, 15, 0, isSynthetic: true, lexeme: '"');
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
+  }
+
   void test_string_simple_missing_interpolation_identifier() {
     Token token = scan(r'"foo $');
     expectToken(token, TokenType.STRING, 0, 5, lexeme: '"foo ');

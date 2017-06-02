@@ -279,15 +279,16 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   /**
    * This method is called to discard '${' from the "grouping" stack.
    *
-   * This method is called when the scanner finds the end of a string
-   * or an unterminated string.
+   * This method is called when the scanner finds an unterminated
+   * interpolation expression.
    */
   void discardInterpolation() {
-    if (groupingStack.isEmpty) return;
-    BeginToken begin = groupingStack.head;
-    if (begin.kind != STRING_INTERPOLATION_TOKEN) return;
-    unmatchedBeginGroup(begin);
-    groupingStack = groupingStack.tail;
+    while (!groupingStack.isEmpty) {
+      BeginToken beginToken = groupingStack.head;
+      unmatchedBeginGroup(beginToken);
+      groupingStack = groupingStack.tail;
+      if (identical(beginToken.kind, STRING_INTERPOLATION_TOKEN)) break;
+    }
   }
 
   void unmatchedBeginGroup(BeginToken begin) {
