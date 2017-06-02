@@ -89,7 +89,6 @@ function_syntax_test/69: MissingCompileTimeError
 function_syntax_test/71: MissingCompileTimeError
 function_syntax_test/73: MissingCompileTimeError
 function_syntax_test/74: MissingCompileTimeError
-function_type/*: RuntimeError
 function_type_alias5_test/00: MissingCompileTimeError
 function_type_alias5_test/01: MissingCompileTimeError
 function_type_alias5_test/02: MissingCompileTimeError
@@ -97,6 +96,9 @@ function_type_alias6_test/00: MissingCompileTimeError
 function_type_alias7_test/00: MissingCompileTimeError
 function_type_alias7_test/02: MissingCompileTimeError
 function_type_alias9_test/00: MissingCompileTimeError
+generic_closure_test: RuntimeError
+generic_method_types_test/01: RuntimeError
+generic_method_types_test/02: RuntimeError
 generic_method_types_test: Pass, RuntimeError
 getter_closure_execution_order_test: RuntimeError
 getter_parameters_test/01: MissingCompileTimeError
@@ -123,6 +125,7 @@ library_ambiguous_test/04: MissingRuntimeError
 malformed2_test/00: RuntimeError
 metadata_test: CompileTimeError
 method_name_test: CompileTimeError
+method_override_test: RuntimeError
 method_override_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
@@ -152,6 +155,7 @@ ref_before_declaration_test/07: MissingCompileTimeError
 regress_13494_test: CompileTimeError
 regress_22438_test: RuntimeError
 regress_29349_test: CompileTimeError
+runtime_type_function_test: RuntimeError
 scope_variable_test/01: MissingCompileTimeError
 static_field3_test/03: CompileTimeError
 static_field3_test/04: CompileTimeError
@@ -255,24 +259,6 @@ for_variable_capture_test: RuntimeError # KernelVM bug: Closure conversion?
 
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
-
-function_subtype2_test: RuntimeError # KernelVM bug: Issue 29409
-function_subtype_bound_closure3_test: RuntimeError # KernelVM bug: Issue 29409
-function_subtype_bound_closure4_test: RuntimeError # KernelVM bug: Issue 29409
-function_subtype_cast1_test: RuntimeError # KernelVM bug: Issue 29409
-function_subtype_inline0_test: RuntimeError # KernelVM bug: Issue 29409
-function_subtype_local3_test: RuntimeError # KernelVM bug: Issue 29409
-function_subtype_local4_test: RuntimeError # KernelVM bug: Issue 29409
-function_subtype_not1_test: RuntimeError # KernelVM bug: Issue 29409
-function_type_alias2_test: RuntimeError # KernelVM bug: Issue 29409
-function_type_alias3_test: RuntimeError # KernelVM bug: Issue 29409
-function_type_alias4_test: RuntimeError # KernelVM bug: Issue 29409
-generic_closure_test: RuntimeError # KernelVM bug: Issue 29409
-generic_method_types_test/01: RuntimeError # KernelVM bug: Issue 29409
-generic_method_types_test/02: RuntimeError # KernelVM bug: Issue 29409
-method_override_test: RuntimeError # KernelVM bug: Issue 29409
-runtime_type_function_test: RuntimeError # KernelVM bug: Issue 29409
-type_variable_function_type_test: RuntimeError # KernelVM bug: Issue 29409
 
 large_class_declaration_test: SkipSlow  # KernelVM bug: KernelVM Issue 28312
 

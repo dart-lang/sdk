@@ -3806,6 +3806,18 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   fragment += AllocateObject(closure_class, target);
   LocalVariable* closure = MakeTemporary();
 
+  // The function signature can have uninstantiated class type parameters.
+  //
+  // TODO(regis): Also handle the case of a function signature that has
+  // uninstantiated function type parameters.
+  if (!target.HasInstantiatedSignature(kCurrentClass)) {
+    fragment += LoadLocal(closure);
+    fragment += LoadInstantiatorTypeArguments();
+    fragment +=
+        StoreInstanceField(TokenPosition::kNoSource,
+                           Closure::instantiator_type_arguments_offset());
+  }
+
   // Allocate a context that closes over `this`.
   fragment += AllocateContext(1);
   LocalVariable* context = MakeTemporary();
@@ -6705,7 +6717,17 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
   Fragment instructions = AllocateObject(closure_class, function);
   LocalVariable* closure = MakeTemporary();
 
-  // TODO(27590): Generic closures need type arguments.
+  // The function signature can have uninstantiated class type parameters.
+  //
+  // TODO(regis): Also handle the case of a function signature that has
+  // uninstantiated function type parameters.
+  if (!function.HasInstantiatedSignature(kCurrentClass)) {
+    instructions += LoadLocal(closure);
+    instructions += LoadInstantiatorTypeArguments();
+    instructions +=
+        StoreInstanceField(TokenPosition::kNoSource,
+                           Closure::instantiator_type_arguments_offset());
+  }
 
   // Store the function and the context in the closure.
   instructions += LoadLocal(closure);
