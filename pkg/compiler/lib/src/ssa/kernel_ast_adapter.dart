@@ -280,10 +280,6 @@ class KernelAstAdapter extends KernelToElementMapMixin
     });
   }
 
-  native.NativeBehavior getNativeBehavior(ir.Node node) {
-    return elements.getNativeData(getNode(node));
-  }
-
   js.Name getNameForJsGetName(ir.Node argument, ConstantValue constant) {
     int index = _extractEnumIndexFromConstantValue(
         constant, _compiler.commonElements.jsGetNameEnum);

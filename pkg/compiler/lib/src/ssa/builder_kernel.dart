@@ -2556,7 +2556,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         emitter.generateEmbeddedGlobalAccess(globalName));
 
     native.NativeBehavior nativeBehavior =
-        astAdapter.getNativeBehavior(invocation);
+        _elementMap.getNativeBehaviorForJsEmbeddedGlobalCall(invocation);
     assert(invariant(_elementMap.getSpannable(targetElement, invocation),
         nativeBehavior != null,
         message: "No NativeBehavior for $invocation"));
@@ -2601,7 +2601,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     native.NativeBehavior nativeBehavior =
-        astAdapter.getNativeBehavior(invocation);
+        _elementMap.getNativeBehaviorForJsBuiltinCall(invocation);
     assert(invariant(_elementMap.getSpannable(targetElement, invocation),
         nativeBehavior != null,
         message: "No NativeBehavior for $invocation"));
@@ -2669,7 +2669,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     native.NativeBehavior nativeBehavior =
-        astAdapter.getNativeBehaviorForJsCall(invocation);
+        _elementMap.getNativeBehaviorForJsCall(invocation);
     assert(invariant(_elementMap.getSpannable(targetElement, invocation),
         nativeBehavior != null,
         message: "No NativeBehavior for $invocation"));
