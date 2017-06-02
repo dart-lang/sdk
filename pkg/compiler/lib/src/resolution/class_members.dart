@@ -7,7 +7,6 @@ library dart2js.resolution.compute_members;
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names;
 import '../common/resolution.dart' show Resolution;
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart'
     show
         ClassElement,
@@ -17,6 +16,8 @@ import '../elements/elements.dart'
         MemberElement,
         MemberSignature,
         MixinApplicationElement;
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../elements/names.dart';
 import '../util/util.dart';
 

@@ -34,8 +34,12 @@ import 'compiler_helper.dart';
 const SOURCE = const {
   'main.dart': '''
 foo() => 1;
+bar() => true;
 main() {
   foo();
+  bar();
+  [];
+  {};
   return null;
 }
 '''

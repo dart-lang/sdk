@@ -11,7 +11,6 @@ import '../deferred_load.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart' show Entity, Local, MemberEntity;
-import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
@@ -98,7 +97,7 @@ abstract class GraphBuilder {
 
   DeferredLoadTask get deferredLoadTask => compiler.deferredLoadTask;
 
-  Types get types => compiler.types;
+  DartTypes get types => compiler.types;
 
   /// Used to track the locals while building the graph.
   LocalsHandler localsHandler;

@@ -168,7 +168,7 @@ class TypeBuilder {
     if (builder.compiler.options.useKernel) return true;
     return invariant(spannable == null ? CURRENT_ELEMENT_SPANNABLE : spannable,
         () {
-      ClassElement contextClass = Types.getClassContext(type);
+      ClassElement contextClass = DartTypes.getClassContext(type);
       return contextClass == null ||
           contextClass == builder.localsHandler.contextClass;
     },

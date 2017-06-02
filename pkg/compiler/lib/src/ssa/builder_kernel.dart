@@ -650,13 +650,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     closeFunction();
   }
 
-  void addImplicitInstantiation(ResolutionDartType type) {
+  void addImplicitInstantiation(DartType type) {
     if (type != null) {
       currentImplicitInstantiations.add(type);
     }
   }
 
-  void removeImplicitInstantiation(ResolutionDartType type) {
+  void removeImplicitInstantiation(DartType type) {
     if (type != null) {
       currentImplicitInstantiations.removeLast();
     }
@@ -1830,15 +1830,15 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   /// Set the runtime type information if necessary.
-  HInstruction setListRuntimeTypeInfoIfNeeded(
+  HInstruction _setListRuntimeTypeInfoIfNeeded(
       HInstruction object, ir.ListLiteral listLiteral) {
-    ResolutionInterfaceType type = localsHandler
-        .substInContext(astAdapter.getDartTypeOfListLiteral(listLiteral));
+    InterfaceType type = localsHandler.substInContext(_commonElements
+        .listType(_elementMap.getDartType(listLiteral.typeArgument)));
     if (!rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
     List<HInstruction> arguments = <HInstruction>[];
-    for (ResolutionDartType argument in type.typeArguments) {
+    for (DartType argument in type.typeArguments) {
       arguments.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
     }
     // TODO(15489): Register at codegen.
@@ -1862,7 +1862,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           new HLiteralList(elements, commonMasks.extendableArrayType);
       add(listInstruction);
       listInstruction =
-          setListRuntimeTypeInfoIfNeeded(listInstruction, listLiteral);
+          _setListRuntimeTypeInfoIfNeeded(listInstruction, listLiteral);
     }
 
     TypeMask type = _typeInferenceMap.typeOfListLiteral(
@@ -1905,14 +1905,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     assert(
         constructor is ConstructorEntity && constructor.isFactoryConstructor);
 
-    ResolutionInterfaceType type = localsHandler
-        .substInContext(astAdapter.getDartTypeOfMapLiteral(mapLiteral));
-
+    InterfaceType type = localsHandler.substInContext(_commonElements.mapType(
+        _elementMap.getDartType(mapLiteral.keyType),
+        _elementMap.getDartType(mapLiteral.valueType)));
     ClassEntity cls = constructor.enclosingClass;
 
     if (rtiNeed.classNeedsRti(cls)) {
       List<HInstruction> typeInputs = <HInstruction>[];
-      type.typeArguments.forEach((ResolutionDartType argument) {
+      type.typeArguments.forEach((DartType argument) {
         typeInputs
             .add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
       });

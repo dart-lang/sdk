@@ -4,9 +4,9 @@
 
 import '../closure.dart';
 import '../common.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
@@ -34,8 +34,8 @@ class LocalsHandler {
       new Map<Local, CapturedVariable>();
   final GraphBuilder builder;
   ClosureClassMap closureData;
-  Map<ResolutionTypeVariableType, TypeVariableLocal> typeVariableLocals =
-      new Map<ResolutionTypeVariableType, TypeVariableLocal>();
+  Map<TypeVariableType, TypeVariableLocal> typeVariableLocals =
+      new Map<TypeVariableType, TypeVariableLocal>();
   final Entity executableContext;
   final MemberEntity memberContext;
 
@@ -59,7 +59,7 @@ class LocalsHandler {
   /// [instanceType] is not used if it contains type variables, since these
   /// might not be in scope or from the current instance.
   ///
-  final ResolutionInterfaceType instanceType;
+  final InterfaceType instanceType;
 
   final NativeData _nativeData;
 
@@ -70,7 +70,7 @@ class LocalsHandler {
       this.executableContext,
       this.memberContext,
       this.contextClass,
-      ResolutionInterfaceType instanceType,
+      InterfaceType instanceType,
       this._nativeData,
       this._interceptorData)
       : this.instanceType =
@@ -89,15 +89,18 @@ class LocalsHandler {
 
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
-  ResolutionDartType substInContext(ResolutionDartType type) {
+  DartType substInContext(DartType type) {
     if (contextClass != null) {
-      ClassElement typeContext = Types.getClassContext(type);
+      ClassElement typeContext = DartTypes.getClassContext(type);
       if (typeContext != null) {
-        type = type.substByContext(contextClass.asInstanceOf(typeContext));
+        type = builder.types.substByContext(
+            type,
+            builder.types.asInstanceOf(
+                builder.types.getThisType(contextClass), typeContext));
       }
     }
     if (instanceType != null) {
-      type = type.substByContext(instanceType);
+      type = builder.types.substByContext(type, instanceType);
     }
     return type;
   }
@@ -398,7 +401,7 @@ class LocalsHandler {
     });
   }
 
-  Local getTypeVariableAsLocal(ResolutionTypeVariableType type) {
+  Local getTypeVariableAsLocal(TypeVariableType type) {
     return typeVariableLocals.putIfAbsent(type, () {
       return new TypeVariableLocal(type, executableContext);
     });

@@ -12,7 +12,6 @@ import '../common/resolution.dart' show ResolutionImpact;
 import '../constants/expressions.dart';
 import '../common_elements.dart' show ElementEnvironment;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart' show Types;
 import '../elements/types.dart';
 import '../native/enqueue.dart';
 import '../native/native.dart' as native;
@@ -289,7 +288,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     // defined (that is the enclosing class of the current element being
     // resolved) and the class of [type]. If the class of [type] requires RTI,
     // then the class of the type variable does too.
-    ClassEntity contextClass = Types.getClassContext(interfaceType);
+    ClassEntity contextClass = DartTypes.getClassContext(interfaceType);
     if (contextClass != null) {
       _rtiNeedBuilder.registerRtiDependency(
           interfaceType.element, contextClass);

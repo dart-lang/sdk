@@ -549,7 +549,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     return env.orderedTypeSet.maxDepth;
   }
 
-  InterfaceType _substByContext(InterfaceType type, InterfaceType context) {
+  DartType _substByContext(DartType type, InterfaceType context) {
     return type.subst(
         context.typeArguments, _getThisType(context.element).typeArguments);
   }

@@ -147,13 +147,13 @@ class InheritedMember implements DeclaredMember {
       // Assert that if [instance] contains type variables, then these are
       // defined in the declaration of [newInstance] and will therefore be
       // substituted into the context of [newInstance] in the created member.
-      ClassElement contextClass = Types.getClassContext(instance);
+      ClassElement contextClass = DartTypes.getClassContext(instance);
       return contextClass == null || contextClass == newInstance.element;
     },
         failedAt(
             declaration.element,
             "Context mismatch: Context class "
-            "${Types.getClassContext(instance)} from $instance does match "
+            "${DartTypes.getClassContext(instance)} from $instance does match "
             "the new instance $newInstance."));
     return _newInheritedMember(newInstance);
   }

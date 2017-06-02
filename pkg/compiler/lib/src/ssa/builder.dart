@@ -3565,14 +3565,14 @@ class SsaBuilder extends ast.Visitor
     bool definitelyFails = false;
 
     void addTypeVariableBoundCheck(
-        GenericType instance,
+        ResolutionInterfaceType instance,
         ResolutionDartType typeArgument,
         ResolutionTypeVariableType typeVariable,
         ResolutionDartType bound) {
       if (definitelyFails) return;
 
       int subtypeRelation = types.computeSubtypeRelation(typeArgument, bound);
-      if (subtypeRelation == Types.IS_SUBTYPE) return;
+      if (subtypeRelation == DartTypes.IS_SUBTYPE) return;
 
       String message = "Can't create an instance of malbounded type '$type': "
           "'${typeArgument}' is not a subtype of bound '${bound}' for "
@@ -3582,11 +3582,11 @@ class SsaBuilder extends ast.Visitor
               : "'${instance.element.thisType}' on the supertype "
                 "'${instance}' of '${type}'"
             }.";
-      if (subtypeRelation == Types.NOT_SUBTYPE) {
+      if (subtypeRelation == DartTypes.NOT_SUBTYPE) {
         generateTypeError(node, message);
         definitelyFails = true;
         return;
-      } else if (subtypeRelation == Types.MAYBE_SUBTYPE) {
+      } else if (subtypeRelation == DartTypes.MAYBE_SUBTYPE) {
         Set<ResolutionDartType> seenChecks = seenChecksMap.putIfAbsent(
             typeArgument, () => new Set<ResolutionDartType>());
         if (!seenChecks.contains(bound)) {
@@ -3601,7 +3601,7 @@ class SsaBuilder extends ast.Visitor
       return true;
     }
     for (ResolutionInterfaceType supertype in type.element.allSupertypes) {
-      ResolutionDartType instance = type.asInstanceOf(supertype.element);
+      ResolutionInterfaceType instance = type.asInstanceOf(supertype.element);
       types.checkTypeVariableBounds(instance, addTypeVariableBoundCheck);
       if (definitelyFails) {
         return true;

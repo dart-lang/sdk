@@ -11,10 +11,11 @@ import '../compiler.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../common_elements.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart';
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../kernel/element_map.dart';
@@ -309,31 +310,16 @@ class KernelAstAdapter extends KernelToElementMapMixin
     return null;
   }
 
-  ResolutionDartType getDartType(ir.DartType type) {
+  DartType getDartType(ir.DartType type) {
     return _typeConverter.convert(type);
   }
 
-  List<ResolutionDartType> getDartTypes(List<ir.DartType> types) {
+  List<DartType> getDartTypes(List<ir.DartType> types) {
     return types.map(getDartType).toList();
   }
 
-  ResolutionInterfaceType getDartTypeOfListLiteral(ir.ListLiteral list) {
-    ast.Node node = getNodeOrNull(list);
-    if (node != null) return elements.getType(node);
-    assertNodeIsSynthetic(list);
-    return _compiler.commonElements.listType(getDartType(list.typeArgument));
-  }
-
-  ResolutionInterfaceType getDartTypeOfMapLiteral(ir.MapLiteral literal) {
-    ast.Node node = getNodeOrNull(literal);
-    if (node != null) return elements.getType(node);
-    assertNodeIsSynthetic(literal);
-    return _compiler.commonElements
-        .mapType(getDartType(literal.keyType), getDartType(literal.valueType));
-  }
-
   /// Computes the function type corresponding the signature of [node].
-  ResolutionFunctionType getFunctionType(ir.FunctionNode node) {
+  FunctionType getFunctionType(ir.FunctionNode node) {
     ResolutionDartType returnType = getDartType(node.returnType);
     List<ResolutionDartType> parameterTypes = <ResolutionDartType>[];
     List<ResolutionDartType> optionalParameterTypes = <ResolutionDartType>[];
@@ -356,10 +342,9 @@ class KernelAstAdapter extends KernelToElementMapMixin
         optionalParameterTypes, namedParameters, namedParameterTypes);
   }
 
-  ResolutionInterfaceType getInterfaceType(ir.InterfaceType type) =>
-      getDartType(type);
+  InterfaceType getInterfaceType(ir.InterfaceType type) => getDartType(type);
 
-  ResolutionInterfaceType createInterfaceType(
+  InterfaceType createInterfaceType(
       ir.Class cls, List<ir.DartType> typeArguments) {
     return new ResolutionInterfaceType(
         getClass(cls), getDartTypes(typeArguments));

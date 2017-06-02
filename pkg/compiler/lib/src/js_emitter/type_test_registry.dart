@@ -13,7 +13,6 @@ import '../elements/resolution_types.dart'
         ResolutionDartType,
         ResolutionFunctionType,
         ResolutionInterfaceType,
-        Types,
         ResolutionTypeVariableType;
 import '../elements/types.dart';
 import '../js_backend/runtime_types.dart'
@@ -135,7 +134,7 @@ class TypeTestRegistry {
     // 3.  Add classes that contain checked generic function types. These are
     //     needed to store the signature encoding.
     for (ResolutionFunctionType type in checkedFunctionTypes) {
-      ClassElement contextClass = Types.getClassContext(type);
+      ClassElement contextClass = DartTypes.getClassContext(type);
       if (contextClass != null) {
         _rtiNeededClasses.add(contextClass);
       }
