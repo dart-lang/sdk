@@ -126,20 +126,33 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
     if (_mirrorsData.mustRetainMetadata) {
       _reporter.log('Retaining metadata.');
 
-      /// Register the constant value of [metadata] as live in resolution.
-      void registerMetadataConstant(MetadataAnnotation metadata) {
-        metadata.ensureResolved(_compiler.resolution);
-        ConstantValue constant =
-            _constants.getConstantValueForMetadata(metadata);
-        Dependency dependency =
-            new Dependency(constant, metadata.annotatedElement);
-        _metadataConstants.add(dependency);
-        _impactBuilder.registerConstantUse(new ConstantUse.mirrors(constant));
+      for (LibraryEntity library in _compiler.libraryLoader.libraries) {
+        _mirrorsData.retainMetadataOfLibrary(library,
+            addForEmission: !enqueuer.isResolutionQueue);
       }
 
-      // TODO(johnniwinther): We should have access to all recently processed
-      // elements and process these instead.
-      processMetadata(enqueuer.processedEntities, registerMetadataConstant);
+      if (!enqueuer.queueIsClosed) {
+        /// Register the constant value of [metadata] as live in resolution.
+        void registerMetadataConstant(MetadataAnnotation metadata) {
+          ConstantValue constant =
+              _constants.getConstantValueForMetadata(metadata);
+          Dependency dependency =
+              new Dependency(constant, metadata.annotatedElement);
+          _metadataConstants.add(dependency);
+          _impactBuilder.registerConstantUse(new ConstantUse.mirrors(constant));
+        }
+
+        // TODO(johnniwinther): We should have access to all recently processed
+        // elements and process these instead.
+        processMetadata(enqueuer.processedEntities, registerMetadataConstant);
+      } else {
+        for (Dependency dependency in _metadataConstants) {
+          _impactBuilder.registerConstantUse(
+              new ConstantUse.mirrors(dependency.constant));
+        }
+        _metadataConstants.clear();
+      }
+      enqueuer.applyImpact(_impactBuilder.flush());
     }
   }
 
@@ -173,10 +186,11 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
           if (element.enclosingElement is ClassElement) {
             // Use [enclosingElement] instead of [enclosingClass] to ensure that
             // we process patch class metadata for patch and injected members.
+            processElementMetadata(element.enclosingElement);
           }
-          processElementMetadata(element.enclosingClass);
+        } else {
+          processLibraryMetadata(element.library);
         }
-        processLibraryMetadata(element.library);
       }
     }
 
