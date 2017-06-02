@@ -425,7 +425,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       ir.Constructor constructor,
       List<ir.Constructor> constructorChain,
       Map<FieldEntity, HInstruction> fieldValues) {
-    astAdapter.assertAtResolvedAstFor(constructor);
+    assert(_elementMap.getConstructor(constructor) == _localsMap.currentMember);
     constructorChain.add(constructor);
 
     var foundSuperOrRedirectCall = false;
@@ -2117,7 +2117,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   void _visitLocalSetter(ir.VariableDeclaration variable, HInstruction value) {
-    LocalElement local = _localsMap.getLocal(variable);
+    Local local = _localsMap.getLocal(variable);
 
     // Give the value a name if it doesn't have one already.
     if (value.sourceElement == null) {

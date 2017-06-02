@@ -136,7 +136,7 @@ class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
         _compiler,
         _elementMap,
         new KernelToTypeInferenceMapImpl(closedWorld),
-        null,
+        new KernelToLocalsMapImpl(work.element),
         closedWorld,
         work.registry,
         // TODO(johnniwinther): Support these:
@@ -229,11 +229,25 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
 }
 
 class KernelToLocalsMapImpl implements KernelToLocalsMap {
-  @override
-  void enterInlinedMember(MemberEntity member) {}
+  final List<MemberEntity> _members = <MemberEntity>[];
+  Map<ir.VariableDeclaration, KLocal> _map = <ir.VariableDeclaration, KLocal>{};
+
+  MemberEntity get currentMember => _members.last;
+
+  KernelToLocalsMapImpl(MemberEntity member) {
+    _members.add(member);
+  }
 
   @override
-  void leaveInlinedMember(MemberEntity member) {}
+  void enterInlinedMember(MemberEntity member) {
+    _members.add(member);
+  }
+
+  @override
+  void leaveInlinedMember(MemberEntity member) {
+    assert(member == currentMember);
+    _members.removeLast();
+  }
 
   @override
   JumpTarget getJumpTarget(ir.TreeNode node, {bool isContinueTarget: false}) {
@@ -242,8 +256,20 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   @override
   Local getLocal(ir.VariableDeclaration node) {
-    throw new UnimplementedError('KernelToLocalsMapImpl.getLocal');
+    return _map.putIfAbsent(node, () {
+      return new KLocal(node.name, currentMember);
+    });
   }
+}
+
+class KLocal implements Local {
+  final String name;
+  final MemberEntity memberContext;
+
+  KLocal(this.name, this.memberContext);
+
+  @override
+  Entity get executableContext => memberContext;
 }
 
 /// TODO(johnniwinther,efortuna): Implement this.

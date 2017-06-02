@@ -126,6 +126,8 @@ class KernelAstAdapter extends KernelToElementMapMixin
   @override
   ElementEnvironment get elementEnvironment => _compiler.elementEnvironment;
 
+  MemberElement get currentMember => _resolvedAst.element;
+
   /// Push the existing resolved AST on the stack and shift the current resolved
   /// AST to the AST that this kernel node points to.
   void enterInlinedMember(MemberElement member) {
@@ -138,11 +140,6 @@ class KernelAstAdapter extends KernelToElementMapMixin
     assert(_resolvedAstStack.isNotEmpty);
     assert(_resolvedAst.element == member);
     _resolvedAst = _resolvedAstStack.removeLast();
-  }
-
-  void assertAtResolvedAstFor(ir.Node node) {
-    assert(invariant(getElement(node),
-        _resolvedAst.element == getElement(node).declaration));
   }
 
   Compiler get _compiler => _backend.compiler;

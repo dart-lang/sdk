@@ -942,6 +942,9 @@ abstract class KernelToTypeInferenceMap {
 
 /// Map from kernel IR nodes to local entities.
 abstract class KernelToLocalsMap {
+  /// The member currently being built.
+  MemberEntity get currentMember;
+
   // TODO(johnniwinther): Make these return the [KernelToLocalsMap] to use from
   // now on.
   /// Call to notify that [member] is currently being inlined.

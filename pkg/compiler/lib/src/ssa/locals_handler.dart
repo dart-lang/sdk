@@ -41,7 +41,7 @@ class LocalsHandler {
 
   /// The class that defines the current type environment or null if no type
   /// variables are in scope.
-  final ClassElement contextClass;
+  final ClassEntity contextClass;
 
   /// The type of the current instance, if concrete.
   ///
@@ -256,7 +256,7 @@ class LocalsHandler {
     // If this method is an intercepted method, add the extra
     // parameter to it, that is the actual receiver for intercepted
     // classes, or the same as [:this:] for non-intercepted classes.
-    ClassElement cls = element.enclosingClass;
+    ClassEntity cls = element.enclosingClass;
 
     // When the class extends a native class, the instance is pre-constructed
     // and passed to the generative constructor factory function as a parameter.

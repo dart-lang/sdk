@@ -40,7 +40,8 @@ main() {
   bar();
   [];
   {};
-  return null;
+  var x = null;
+  return x;
 }
 '''
 };
