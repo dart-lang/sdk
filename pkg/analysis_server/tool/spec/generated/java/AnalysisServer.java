@@ -285,6 +285,71 @@ public interface AnalysisServer {
   public void analysis_updateOptions(AnalysisOptions options);
 
   /**
+   * {@code analytics.enable}
+   *
+   * Enable or disable the sending of analytics data. Note that there are other ways for users to
+   * change this setting, so clients cannot assume that they have complete control over this setting.
+   * In particular, there is no guarantee that the result returned by the isEnabled request will
+   * match the last value set via this request.
+   *
+   * @param value Enable or disable analytics.
+   */
+  public void analytics_enable(boolean value);
+
+  /**
+   * {@code analytics.isEnabled}
+   *
+   * Query whether analytics is enabled.
+   *
+   * This flag controls whether the analysis server sends any analytics data to the cloud. If
+   * disabled, the analysis server does not send any analytics data, and any data sent to it by
+   * clients (from sendEvent and sendTiming) will be ignored.
+   *
+   * The value of this flag can be changed by other tools outside of the analysis server's process.
+   * When you query the flag, you get the value of the flag at a given moment. Clients should not use
+   * the value returned to decide whether or not to send the sendEvent and sendTiming requests. Those
+   * requests should be used unconditionally and server will determine whether or not it is
+   * appropriate to forward the information to the cloud at the time each request is received.
+   */
+  public void analytics_isEnabled(IsEnabledConsumer consumer);
+
+  /**
+   * {@code analytics.sendEvent}
+   *
+   * Send information about client events.
+   *
+   * Ask the analysis server to include the fact that an action was performed in the client as part
+   * of the analytics data being sent. The data will only be included if the sending of analytics
+   * data is enabled at the time the request is processed. The action that was performed is indicated
+   * by the value of the action field.
+   *
+   * The value of the action field should not include the identity of the client. The analytics data
+   * sent by server will include the client id passed in using the --client-id command-line argument.
+   * The request will be ignored if the client id was not provided when server was started.
+   *
+   * @param action The value used to indicate which action was performed.
+   */
+  public void analytics_sendEvent(String action);
+
+  /**
+   * {@code analytics.sendTiming}
+   *
+   * Send timing information for client events (e.g. code completions).
+   *
+   * Ask the analysis server to include the fact that a timed event occurred as part of the analytics
+   * data being sent. The data will only be included if the sending of analytics data is enabled at
+   * the time the request is processed.
+   *
+   * The value of the event field should not include the identity of the client. The analytics data
+   * sent by server will include the client id passed in using the --client-id command-line argument.
+   * The request will be ignored if the client id was not provided when server was started.
+   *
+   * @param event The name of the event.
+   * @param millis The duration of the event in milliseconds.
+   */
+  public void analytics_sendTiming(String event, int millis);
+
+  /**
    * {@code completion.getSuggestions}
    *
    * Request that completion suggestions for the given offset in the given file be returned.

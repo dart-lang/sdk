@@ -49,3 +49,9 @@ server calls. This file is validated by `coverage_test.dart`.
 - [x] server.getVersion
 - [x] server.shutdown
 - [x] server.setSubscriptions
+
+## analytics domain
+- [x] analytics.isEnabled
+- [x] analytics.enable
+- [x] analytics.sendEvent
+- [x] analytics.sendTiming

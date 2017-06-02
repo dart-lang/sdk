@@ -76,11 +76,25 @@ const String CONTENT = 'content';
 const String CORRECTION = 'correction';
 const String DART_DOC = 'dartdoc';
 const String DEFAULT = 'default';
-const String DIAGNOSTIC_GET_DIAGNOSTICS = 'diagnostic.getDiagnostics';
-const String DIAGNOSTIC_GET_SERVER_PORT = 'diagnostic.getServerPort';
 const String DISPLAY_NAME = 'displayName';
 const String EDIT_FORMAT = 'edit.format';
 const String EDIT_GET_ASSISTS = 'edit.getAssists';
+const String EDIT_SORT_MEMBERS = 'edit.sortMembers';
+const String EDITS = 'edits';
+
+//
+// Diagnostic methods
+//
+const String DIAGNOSTIC_GET_DIAGNOSTICS = 'diagnostic.getDiagnostics';
+const String DIAGNOSTIC_GET_SERVER_PORT = 'diagnostic.getServerPort';
+
+//
+// Analytics methods
+//
+const String ANALYTICS_IS_ENABLED = 'analytics.isEnabled';
+const String ANALYTICS_ENABLE = 'analytics.enable';
+const String ANALYTICS_SEND_EVENT = 'analytics.sendEvent';
+const String ANALYTICS_SEND_TIMING = 'analytics.sendTiming';
 
 //
 // Execution methods
@@ -94,12 +108,6 @@ const String EDIT_GET_STATEMENT_COMPLETION = "edit.getStatementCompletion";
 // Execution notifications
 //
 const String EDIT_ORGANIZE_DIRECTIVES = 'edit.organizeDirectives';
-
-//
-// Diagnostics methods
-//
-const String EDIT_SORT_MEMBERS = 'edit.sortMembers';
-const String EDITS = 'edits';
 
 //
 // Analysis option names
