@@ -48,36 +48,6 @@ class IncrementalClassHierarchyTest extends _ClassHierarchyTest {
   }
 
   @failingTest
-  void test_getClassAsInstanceOf_generic_extends() {
-    super.test_getClassAsInstanceOf_generic_extends();
-  }
-
-  @failingTest
-  void test_getClassAsInstanceOf_generic_implements() {
-    super.test_getClassAsInstanceOf_generic_implements();
-  }
-
-  @failingTest
-  void test_getClassAsInstanceOf_generic_with() {
-    super.test_getClassAsInstanceOf_generic_with();
-  }
-
-  @failingTest
-  void test_getClassAsInstanceOf_notGeneric_extends() {
-    super.test_getClassAsInstanceOf_notGeneric_extends();
-  }
-
-  @failingTest
-  void test_getClassAsInstanceOf_notGeneric_implements() {
-    super.test_getClassAsInstanceOf_notGeneric_implements();
-  }
-
-  @failingTest
-  void test_getClassAsInstanceOf_notGeneric_with() {
-    super.test_getClassAsInstanceOf_notGeneric_with();
-  }
-
-  @failingTest
   void test_getClassicLeastUpperBound_expansive() {
     super.test_getClassicLeastUpperBound_expansive();
   }
@@ -110,11 +80,6 @@ class IncrementalClassHierarchyTest extends _ClassHierarchyTest {
   @failingTest
   void test_getInterfaceMember_implements() {
     super.test_getInterfaceMember_implements();
-  }
-
-  @failingTest
-  void test_getTypeAsInstanceOf_generic_extends() {
-    super.test_getTypeAsInstanceOf_generic_extends();
   }
 }
 
