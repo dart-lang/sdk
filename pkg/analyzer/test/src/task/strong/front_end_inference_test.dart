@@ -319,7 +319,12 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
         List<FormalParameter> parameters = node.parameters.parameters;
         for (int i = 0; i < parameters.length; i++) {
           FormalParameter parameter = parameters[i];
-          if (parameter is SimpleFormalParameter && parameter.type == null) {
+          NormalFormalParameter normalParameter =
+              parameter is DefaultFormalParameter
+                  ? parameter.parameter
+                  : parameter;
+          if (normalParameter is SimpleFormalParameter &&
+              normalParameter.type == null) {
             _recordType(parameter.offset, type.parameters[i].type);
           }
         }
