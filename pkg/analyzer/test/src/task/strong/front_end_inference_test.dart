@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/instrumentation.dart' as fasta;
 import 'package:front_end/src/fasta/compiler_context.dart' as fasta;
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
@@ -212,10 +213,34 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
 
   void _appendParameters(
       StringBuffer buffer, List<ParameterElement> parameters) {
-    _appendList<ParameterElement>(buffer, '(', ')', parameters, ', ',
-        (parameter) {
+    buffer.write('(');
+    bool first = true;
+    ParameterKind lastKind = ParameterKind.REQUIRED;
+    for (var parameter in parameters) {
+      if (!first) {
+        buffer.write(', ');
+      }
+      if (lastKind != parameter.parameterKind) {
+        if (parameter.parameterKind == ParameterKind.POSITIONAL) {
+          buffer.write('[');
+        } else if (parameter.parameterKind == ParameterKind.NAMED) {
+          buffer.write('{');
+        }
+      }
+      if (parameter.parameterKind == ParameterKind.NAMED) {
+        buffer.write(parameter.name);
+        buffer.write(': ');
+      }
       _appendType(buffer, parameter.type);
-    }, includeEmpty: true);
+      lastKind = parameter.parameterKind;
+      first = false;
+    }
+    if (lastKind == ParameterKind.POSITIONAL) {
+      buffer.write(']');
+    } else if (lastKind == ParameterKind.NAMED) {
+      buffer.write('}');
+    }
+    buffer.write(')');
   }
 
   void _appendType(StringBuffer buffer, DartType type) {
