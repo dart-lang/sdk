@@ -1141,7 +1141,11 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
     // - The inference dependency of the identifier is the referent if the
     //   referent is a candidate for inference.  Otherwise there are no
     //   inference dependencies.
-    // TODO(paulberry): implement the proper logic here.
+
+    // For a property get, the only things we could be looking at are an
+    // instance field, an instance getter, or an instance method.  For the first
+    // two, we disallow them in [_inferExpression].  For the last, there are no
+    // field dependencies.  So we don't need to do anything here.
   }
 
   @override
