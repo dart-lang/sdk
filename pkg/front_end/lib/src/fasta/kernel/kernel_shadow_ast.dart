@@ -572,6 +572,16 @@ class KernelFunctionDeclaration extends FunctionDeclaration
   @override
   void _inferStatement(KernelTypeInferrer inferrer) {
     inferrer.listener.functionDeclarationEnter(this);
+    for (var parameter in function.positionalParameters) {
+      if (parameter.initializer != null) {
+        inferrer.inferExpression(parameter.initializer, parameter.type, false);
+      }
+    }
+    for (var parameter in function.namedParameters) {
+      if (parameter.initializer != null) {
+        inferrer.inferExpression(parameter.initializer, parameter.type, false);
+      }
+    }
     var oldClosureContext = inferrer.closureContext;
     inferrer.closureContext =
         new ClosureContext(inferrer, function.asyncMarker, function.returnType);
@@ -613,7 +623,21 @@ class KernelFunctionExpression extends FunctionExpression
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.functionExpressionEnter(this, typeContext) ||
         typeNeeded;
-    // TODO(paulberry): do we also need to visit default parameter values?
+
+    if (!inferrer.isTopLevel) {
+      for (var parameter in function.positionalParameters) {
+        if (parameter.initializer != null) {
+          inferrer.inferExpression(
+              parameter.initializer, parameter.type, false);
+        }
+      }
+      for (var parameter in function.namedParameters) {
+        if (parameter.initializer != null) {
+          inferrer.inferExpression(
+              parameter.initializer, parameter.type, false);
+        }
+      }
+    }
 
     // Let `<T0, ..., Tn>` be the set of type parameters of the closure (with
     // `n`=0 if there are no type parameters).

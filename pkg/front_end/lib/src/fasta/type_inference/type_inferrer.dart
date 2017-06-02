@@ -177,6 +177,10 @@ abstract class TypeInferrer {
 
   /// Performs type inference on the given constructor initializer.
   void inferInitializer(Initializer initializer);
+
+  /// Performs type inference on the given function parameter initializer
+  /// expression.
+  void inferParameterInitializer(Expression initializer, DartType declaredType);
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -482,6 +486,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           : substitution.substituteType(returnType);
     }
     return inferredType;
+  }
+
+  @override
+  void inferParameterInitializer(
+      Expression initializer, DartType declaredType) {
+    assert(closureContext == null);
+    inferExpression(initializer, declaredType, false);
   }
 
   /// Modifies a type as appropriate when inferring a closure return type.

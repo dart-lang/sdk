@@ -1,0 +1,16 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object> extends core::Object {
+  constructor optional(([self::C::T]) → void func) → void
+    ;
+  constructor named(({x: self::C::T}) → void func) → void
+    ;
+}
+static method optional_toplevel([dynamic x]) → void
+  ;
+static method named_toplevel({dynamic x}) → void
+  ;
+static method main() → dynamic
+  ;

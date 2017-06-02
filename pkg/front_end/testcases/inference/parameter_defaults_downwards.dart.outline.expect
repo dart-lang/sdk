@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method optional_toplevel([core::List<core::int> x]) → void
+  ;
+static method named_toplevel({core::List<core::int> x}) → void
+  ;
+static method main() → dynamic
+  ;

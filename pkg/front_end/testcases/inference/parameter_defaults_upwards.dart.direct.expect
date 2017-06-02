@@ -1,0 +1,22 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object> extends core::Object {
+  constructor optional(([self::C::T]) → void func) → void
+    : super core::Object::•() {}
+  constructor named(({x: self::C::T}) → void func) → void
+    : super core::Object::•() {}
+}
+static method optional_toplevel([dynamic x = const <dynamic>[0]]) → void {}
+static method named_toplevel({dynamic x = const <dynamic>[0]}) → void {}
+static method main() → dynamic {
+  function optional_local([dynamic x = const <dynamic>[0]]) → void {}
+  function named_local({dynamic x = const <dynamic>[0]}) → void {}
+  dynamic c_optional_toplevel = new self::C::optional<dynamic>(self::optional_toplevel);
+  dynamic c_named_toplevel = new self::C::named<dynamic>(self::named_toplevel);
+  dynamic c_optional_local = new self::C::optional<dynamic>(optional_local);
+  dynamic c_named_local = new self::C::named<dynamic>(named_local);
+  dynamic c_optional_closure = new self::C::optional<dynamic>(([dynamic x = const <dynamic>[0]]) → dynamic {});
+  dynamic c_named_closure = new self::C::named<dynamic>(({dynamic x = const <dynamic>[0]}) → dynamic {});
+}
