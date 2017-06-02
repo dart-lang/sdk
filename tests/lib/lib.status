@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $unchecked ]
+[ ! $checked ]
 mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
 
 [ $compiler == dart2js ]
@@ -115,7 +115,7 @@ mirrors/reflected_type_generics_test/04: Fail # Issues in reflecting bounded typ
 mirrors/reflected_type_generics_test/05: Fail # Issues in reflecting generic typedefs.
 mirrors/reflected_type_generics_test/06: Fail # Issues in reflecting bounded type variables.
 
-[ $compiler == none && $unchecked ]
+[ $compiler == none && ! $checked ]
 mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded type argument.
 
 [ $compiler == dart2js && $fast_startup ]

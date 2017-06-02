@@ -22,6 +22,7 @@ main() {
   testExpression();
   testSyntaxError();
   testBoolean();
+  testNotBoolean();
   testNotEqual();
 }
 
@@ -73,6 +74,29 @@ void testBoolean() {
   environment["arch"] = "arm";
   Expect.isFalse(expression.evaluate(environment));
   environment["checked"] = "true";
+  Expect.isFalse(expression.evaluate(environment));
+}
+
+void testNotBoolean() {
+  var expression =
+      Expression.parse(r"  $arch == ia32 && ! $checked || $mode == release ");
+  Expect.equals(
+      r"((($arch == ia32) && (bool ! $checked)) || ($mode == release))",
+      expression.toString());
+
+  var environment = new TestEnvironment(
+      {"arch": "ia32", "checked": "false", "mode": "debug"});
+
+  Expect.isTrue(expression.evaluate(environment));
+  environment["mode"] = "release";
+  Expect.isTrue(expression.evaluate(environment));
+  environment["checked"] = "true";
+  Expect.isTrue(expression.evaluate(environment));
+  environment["mode"] = "debug";
+  Expect.isFalse(expression.evaluate(environment));
+  environment["arch"] = "arm";
+  Expect.isFalse(expression.evaluate(environment));
+  environment["checked"] = "false";
   Expect.isFalse(expression.evaluate(environment));
 }
 

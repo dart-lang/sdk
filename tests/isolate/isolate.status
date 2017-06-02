@@ -87,7 +87,7 @@ stacktrace_message_test: Fail # mirrors not supported
 static_function_test: Fail # mirrors not supported
 unresolved_ports_test: Fail # mirrors not supported
 
-[ $compiler == dart2js && $fast_startup && $browser == false ]
+[ $compiler == dart2js && $fast_startup && ! $browser ]
 isolate_current_test: Fail  # please triage
 
 [ $csp ]

@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Skip entire suite if not running in strong mode.
-[ $strong == false ]
+[ ! $strong ]
 *: SkipByDesign
 
 # Skip tests that are not yet strong-mode clean.

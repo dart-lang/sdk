@@ -3,11 +3,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Skip entire suite if not running in strong mode.
-[ $strong == false ]
+[ ! $strong ]
 *: SkipByDesign
 
 # Skip tests that are not yet strong-mode clean.
-[ $strong == true ]
+[ $strong ]
 big_integer_arith_vm_test: Skip
 bool_from_environment2_test: Skip
 core_runtime_types_test: Skip

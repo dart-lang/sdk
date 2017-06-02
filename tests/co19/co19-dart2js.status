@@ -556,7 +556,7 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t06: Fail # 
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-005_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t01: Fail # please triage
 
-[ $compiler == dart2js && $checked != true && $runtime != d8 && $runtime != jsshell]
+[ $compiler == dart2js && ! $checked && $runtime != d8 && $runtime != jsshell]
 LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $minified ]
@@ -2694,7 +2694,7 @@ LayoutTests/fast/dom/HTMLScriptElement/script-reexecution_t01: RuntimeError # Pl
 LayoutTests/fast/dom/HTMLTemplateElement/inertContents_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/create-contextual-fragment-script-unmark-already-started_t01: RuntimeError # Please triage this failure
 
-[ $compiler == dart2js && $runtime == drt && $minified != true && $csp != true]
+[ $compiler == dart2js && $runtime == drt && ! $minified && ! $csp]
 LayoutTests/fast/dom/HTMLScriptElement/remove-source_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # Please triage this failure
 
@@ -2777,7 +2777,7 @@ WebPlatformTest/dom/nodes/DOMImplementation-createDocumentType_t01: RuntimeError
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
 
-[ $compiler == dart2js && $runtime == drt && $checked == false ]
+[ $compiler == dart2js && $runtime == drt && ! $checked ]
 LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff ]
@@ -4123,7 +4123,7 @@ WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage t
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure. Note that Chrome also requires the Slow flag. (Could just be a slow test).
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 
-[ $compiler == dart2js && $runtime == ff && $checked == false]
+[ $compiler == dart2js && $runtime == ff && ! $checked]
 LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $checked]

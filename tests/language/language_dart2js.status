@@ -179,7 +179,7 @@ malbounded_type_test_test/04: Fail # Issue 14121
 malbounded_type_test2_test: Fail # Issue 14121
 default_factory2_test/01: Fail # Issue 14121
 
-[ $compiler == dart2js && $unchecked ]
+[ $compiler == dart2js && ! $checked ]
 type_checks_in_factory_method_test: RuntimeError # Issue 12746
 assertion_test: RuntimeError # Issue 12748
 generic_test: RuntimeError, OK
@@ -191,7 +191,7 @@ positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
 
-[ $compiler == dart2js && $unchecked && $minified ]
+[ $compiler == dart2js && ! $checked && $minified ]
 f_bounded_quantification5_test: Fail, OK # Issue 12605
 
 [ $compiler == dart2js && $minified ]

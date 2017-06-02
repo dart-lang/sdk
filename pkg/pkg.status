@@ -88,10 +88,10 @@ front_end/tool/perf_test: Slow, Pass
 front_end/test/fasta/*: Skip # Issue 28629
 compiler/tool/generate_kernel_test*: Skip # Issue 28629
 
-[ $runtime == vm && $use_sdk == false ]
+[ $runtime == vm && ! $use_sdk ]
 front_end/tool/perf_test: Skip # Issue 28698
 
-[ $runtime == vm && $use_sdk == true ]
+[ $runtime == vm && $use_sdk ]
 front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 
 [ $runtime == vm && $system == windows]

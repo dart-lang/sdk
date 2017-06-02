@@ -9,13 +9,10 @@ import 'expectation.dart';
 import 'path.dart';
 import 'status_expression.dart';
 
-/// Splits out a trailing line comment
-final _commentPattern = new RegExp("^([^#]*)(#.*)?\$");
-
 /// Matches the header that begins a new section, like:
 ///
 ///     [ $compiler == dart2js && $minified ]
-final _sectionPattern = new RegExp(r"^\[([^\]]+)\]");
+final _sectionPattern = new RegExp(r"^\[(.+?)\]");
 
 /// Matches an entry that defines the status for a path in the current section,
 /// like:
@@ -27,7 +24,7 @@ final _entryPattern = new RegExp(r"\s*([^: ]*)\s*:(.*)");
 ///
 ///     blah_test: Fail # Issue 1234
 ///                       ^^^^
-final _issuePattern = new RegExp("[Ii]ssue ([0-9]+)");
+final _issuePattern = new RegExp(r"[Ii]ssue (\d+)");
 
 /// A parsed status file, which describes how a collection of tests are
 /// expected to behave under various configurations and conditions.
@@ -72,19 +69,20 @@ class StatusFile {
       }
 
       // Strip off the comment and whitespace.
-      var match = _commentPattern.firstMatch(line);
-      var source = "";
+      var source = line;
       var comment = "";
-      if (match != null) {
-        source = match[1].trim();
-        comment = match[2] ?? "";
+      var hashIndex = line.indexOf('#');
+      if (hashIndex >= 0) {
+        source = line.substring(0, hashIndex);
+        comment = line.substring(hashIndex);
       }
+      source = source.trim();
 
       // Ignore empty (or comment-only) lines.
       if (source.isEmpty) continue;
 
       // See if we are starting a new section.
-      match = _sectionPattern.firstMatch(source);
+      var match = _sectionPattern.firstMatch(source);
       if (match != null) {
         try {
           var condition = Expression.parse(match[1].trim());
@@ -150,7 +148,7 @@ class StatusFile {
     var match = _issuePattern.firstMatch(comment);
     if (match == null) return null;
 
-    return int.parse(match[1], onError: (_) => null);
+    return int.parse(match[1]);
   }
 
   String toString() {
