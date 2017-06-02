@@ -441,7 +441,7 @@ defineTests() {
         expect(
             collectingOut.trim(),
             stringContainsInOrder(
-                ['A.c2(a) { // LINT', '1 file analyzed, 1 issue found, in']));
+                ['lib.dart 6:5', '1 file analyzed, 1 issue found, in']));
       });
     });
 
