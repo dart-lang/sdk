@@ -124,8 +124,7 @@ abstract class MirrorsData {
   @deprecated
   bool isAccessibleByReflection(Element element);
 
-  bool retainMetadataOfLibrary(LibraryEntity element,
-      {bool addForEmission: true});
+  bool retainMetadataOfLibrary(LibraryEntity element);
   bool retainMetadataOfTypedef(TypedefElement element);
   bool retainMetadataOfClass(ClassEntity element);
   bool retainMetadataOfMember(MemberEntity element);
@@ -291,26 +290,23 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   }
 
   @override
-  bool retainMetadataOfLibrary(LibraryElement element,
-      {bool addForEmission: true}) {
+  bool retainMetadataOfLibrary(LibraryElement element) {
     if (mustRetainMetadata) {
       hasRetainedMetadata = true;
       if (isLibraryReferencedFromMirrorSystem(element)) {
-        _retainMetadataOf(element, addForEmission: addForEmission);
+        _retainMetadataOf(element);
         return true;
       }
     }
     return false;
   }
 
-  void _retainMetadataOf(Element element, {bool addForEmission: true}) {
+  void _retainMetadataOf(Element element) {
+    assert(_compiler.phase == Compiler.PHASE_COMPILING);
     for (MetadataAnnotation metadata in element.metadata) {
-      metadata.ensureResolved(_compiler.resolution);
       ConstantValue constant = _constants.getConstantValueForMetadata(metadata);
-      if (addForEmission) {
-        CodegenWorldBuilder worldBuilder = _compiler.codegenWorldBuilder;
-        worldBuilder.addCompileTimeConstantForEmission(constant);
-      }
+      CodegenWorldBuilder worldBuilder = _compiler.codegenWorldBuilder;
+      worldBuilder.addCompileTimeConstantForEmission(constant);
     }
   }
 
