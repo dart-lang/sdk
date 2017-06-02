@@ -139,8 +139,14 @@ class MyAnalysisErrorListener extends AnalysisErrorListener {
   bool hasConstError = false;
   @override
   void onError(AnalysisError error) {
-    if (error.errorCode ==
-        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER)
-      hasConstError = true;
+    switch (error.errorCode) {
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+      case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
+      case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
+        hasConstError = true;
+    }
   }
 }

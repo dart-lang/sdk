@@ -72,3 +72,9 @@ class G {
   G.d() : this.c(); // LINT
   const G.e() : this.c(); // OK
 }
+
+@immutable
+class H {
+  final f;
+  H(f) : f = f ?? f == null; // OK
+}
