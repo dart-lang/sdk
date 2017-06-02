@@ -11,6 +11,63 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/heap.dart';
 import 'package:kernel/type_algebra.dart';
 
+/// Compares members by name.
+int _compareMembers(Member first, Member second) {
+  return _compareNames(first.name, second.name);
+}
+
+/// Compares names using an arbitrary as-fast-as-possible sorting criterion.
+int _compareNames(Name firstName, Name secondName) {
+  int firstHash = firstName.hashCode;
+  int secondHash = secondName.hashCode;
+  if (firstHash != secondHash) return firstHash - secondHash;
+  String firstString = firstName.name;
+  String secondString = secondName.name;
+  int firstLength = firstString.length;
+  int secondLength = secondString.length;
+  if (firstLength != secondLength) {
+    return firstLength - secondLength;
+  }
+  Library firstLibrary = firstName.library;
+  Library secondLibrary = secondName.library;
+  if (firstLibrary != secondLibrary) {
+    if (firstLibrary == null) return -1;
+    if (secondLibrary == null) return 1;
+    return firstLibrary.compareTo(secondLibrary);
+  }
+  for (int i = 0; i < firstLength; ++i) {
+    int firstUnit = firstString.codeUnitAt(i);
+    int secondUnit = secondString.codeUnitAt(i);
+    int delta = firstUnit - secondUnit;
+    if (delta != 0) return delta;
+  }
+  return 0;
+}
+
+/// Returns the member with the given [name] in the given sorted list of
+/// [members], or `null` if no member has the name.  In case the list contains
+/// multiple members with the given name, the one that occurs first in the list
+/// is returned.
+Member _findMemberByName(List<Member> members, Name name) {
+  int low = 0, high = members.length - 1;
+  while (low <= high) {
+    int mid = low + ((high - low) >> 1);
+    Member pivot = members[mid];
+    int comparison = _compareNames(name, pivot.name);
+    if (comparison < 0) {
+      high = mid - 1;
+    } else if (comparison > 0) {
+      low = mid + 1;
+    } else if (high != mid) {
+      // Ensure we find the first element of the given name.
+      high = mid;
+    } else {
+      return pivot;
+    }
+  }
+  return null;
+}
+
 /// Lazy and incremental implementation of [ClassHierarchy].
 class IncrementalClassHierarchy implements ClassHierarchy {
   /// The next unique identifier for [_ClassInfo]s.
@@ -150,9 +207,11 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  Member getDispatchTarget(Class class_, Name name, {bool setter: false}) {
-    // TODO(scheglov): implement getDispatchTarget
-    throw new UnimplementedError();
+  Member getDispatchTarget(Class node, Name name, {bool setter: false}) {
+    _ClassInfo info = _getInfo(node);
+    List<Member> targets =
+        setter ? info.implementedSetters : info.implementedGettersAndCalls;
+    return _findMemberByName(targets, name);
   }
 
   @override
@@ -180,6 +239,58 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   bool hasProperSubtypes(Class class_) {
     // TODO(scheglov): implement hasProperSubtypes
     throw new UnimplementedError();
+  }
+
+  /// Fill the given [info] with declared methods and setters.
+  void _buildDeclaredMembers(_ClassInfo info) {
+    Class node = info.node;
+    if (node.mixedInType != null) {
+      _ClassInfo mixedInfo = _getInfo(node.mixedInType.classNode);
+      info.declaredGettersAndCalls = mixedInfo.declaredGettersAndCalls;
+      info.declaredSetters = mixedInfo.declaredSetters;
+    } else {
+      var members = info.declaredGettersAndCalls = <Member>[];
+      var setters = info.declaredSetters = <Member>[];
+      for (Procedure procedure in node.procedures) {
+        if (procedure.isStatic) continue;
+        if (procedure.kind == ProcedureKind.Setter) {
+          setters.add(procedure);
+        } else {
+          members.add(procedure);
+        }
+      }
+      for (Field field in node.fields) {
+        if (field.isStatic) continue;
+        if (field.hasImplicitGetter) {
+          members.add(field);
+        }
+        if (field.hasImplicitSetter) {
+          setters.add(field);
+        }
+      }
+      members.sort(_compareMembers);
+      setters.sort(_compareMembers);
+    }
+  }
+
+  /// Fill the given [info] with implemented not abstract members and setters.
+  void _buildImplementedMembers(_ClassInfo info) {
+    List<Member> inheritedMembers;
+    List<Member> inheritedSetters;
+    Supertype supertype = info.node.supertype;
+    if (supertype == null) {
+      inheritedMembers = inheritedSetters = const <Member>[];
+    } else {
+      _ClassInfo superInfo = _getInfo(supertype.classNode);
+      inheritedMembers = superInfo.implementedGettersAndCalls;
+      inheritedSetters = superInfo.implementedSetters;
+    }
+    info.implementedGettersAndCalls = _inheritMembers(
+        info.declaredGettersAndCalls, inheritedMembers,
+        skipAbstractMembers: true);
+    info.implementedSetters = _inheritMembers(
+        info.declaredSetters, inheritedSetters,
+        skipAbstractMembers: true);
   }
 
   /// Return the [_ClassInfo] for the [node].
@@ -214,6 +325,9 @@ class IncrementalClassHierarchy implements ClassHierarchy {
         _recordSuperTypes(info, implementedType, implementedInfo);
       }
       info.depth = superDepth + 1;
+
+      _buildDeclaredMembers(info);
+      _buildImplementedMembers(info);
     }
     return info;
   }
@@ -283,6 +397,57 @@ class IncrementalClassHierarchy implements ClassHierarchy {
       subInfo.genericSuperTypes[superclass] = supertype;
     }
   }
+
+  /// Computes the list of implemented members, based on the declared instance
+  /// members and inherited instance members.
+  ///
+  /// Both lists must be sorted by name beforehand.
+  static List<Member> _inheritMembers(
+      List<Member> declared, List<Member> inherited,
+      {bool skipAbstractMembers: false}) {
+    List<Member> result = <Member>[]..length =
+        declared.length + inherited.length;
+    // Since both lists are sorted, we can fuse them like in merge sort.
+    int storeIndex = 0;
+    int i = 0, j = 0;
+    while (i < declared.length && j < inherited.length) {
+      Member declaredMember = declared[i];
+      Member inheritedMember = inherited[j];
+      if (skipAbstractMembers && declaredMember.isAbstract) {
+        ++i;
+        continue;
+      }
+      if (skipAbstractMembers && inheritedMember.isAbstract) {
+        ++j;
+        continue;
+      }
+      int comparison = _compareMembers(declaredMember, inheritedMember);
+      if (comparison < 0) {
+        result[storeIndex++] = declaredMember;
+        ++i;
+      } else if (comparison > 0) {
+        result[storeIndex++] = inheritedMember;
+        ++j;
+      } else {
+        result[storeIndex++] = declaredMember;
+        ++i;
+        ++j; // Move past overridden member.
+      }
+    }
+    // One of the two lists is now exhausted, copy over the remains.
+    while (i < declared.length) {
+      Member declaredMember = declared[i++];
+      if (skipAbstractMembers && declaredMember.isAbstract) continue;
+      result[storeIndex++] = declaredMember;
+    }
+    while (j < inherited.length) {
+      Member inheritedMember = inherited[j++];
+      if (skipAbstractMembers && inheritedMember.isAbstract) continue;
+      result[storeIndex++] = inheritedMember;
+    }
+    result.length = storeIndex;
+    return result;
+  }
 }
 
 /// Information about a [Class].
@@ -333,6 +498,22 @@ class _ClassInfo {
   /// we may add additional entries to the map or transfer ownership to another
   /// class.
   bool ownsGenericSuperTypeMap = true;
+
+  /// Instance fields, getters, methods, and operators declared in this class
+  /// or its mixed-in class, sorted according to [_compareMembers].
+  List<Member> declaredGettersAndCalls;
+
+  /// Non-final instance fields and setters declared in this class or its
+  /// mixed-in class, sorted according to [_compareMembers].
+  List<Member> declaredSetters;
+
+  /// Instance fields, getters, methods, and operators implemented by this class
+  /// (declared or inherited).
+  List<Member> implementedGettersAndCalls;
+
+  /// Non-final instance fields and setters implemented by this class
+  /// (declared or inherited).
+  List<Member> implementedSetters;
 
   _ClassInfo(this.id, this.node);
 

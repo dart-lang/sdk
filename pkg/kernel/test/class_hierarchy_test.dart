@@ -48,16 +48,6 @@ class IncrementalClassHierarchyTest extends _ClassHierarchyTest {
   }
 
   @failingTest
-  void test_getDispatchTarget() {
-    super.test_getDispatchTarget();
-  }
-
-  @failingTest
-  void test_getDispatchTarget_abstract() {
-    super.test_getDispatchTarget_abstract();
-  }
-
-  @failingTest
   void test_getInterfaceMember_extends() {
     super.test_getInterfaceMember_extends();
   }
