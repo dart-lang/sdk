@@ -100,8 +100,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       });
 
       CanonicalName nameRoot = new CanonicalName.root();
-      DillTarget dillTarget = new DillTarget(
-          new Ticker(isVerbose: false), _uriTranslator, "vm_fasta");
+      DillTarget dillTarget =
+          new DillTarget(new Ticker(isVerbose: false), _uriTranslator, "vm");
 
       List<_LibraryCycleResult> results = [];
       await _logger.runAsync('Compute results for cycles', () async {

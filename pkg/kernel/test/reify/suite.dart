@@ -198,7 +198,7 @@ class NotReifiedKernel extends Step<TestDescription, Program, TestContext> {
       var coreTypes = new CoreTypes(program);
       var hierarchy = new ClosedWorldClassHierarchy(program);
       target
-        ..performModularTransformationsOnProgram(coreTypes, hierarchy, program)
+        ..performModularTransformations(coreTypes, hierarchy, program)
         ..performGlobalTransformations(coreTypes, program);
       return pass(program);
     } catch (e, s) {

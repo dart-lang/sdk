@@ -95,7 +95,7 @@ class BuildProgram
       var platformOutline = context.loadPlatformOutline();
       platformOutline.unbindCanonicalNames();
       var dillTarget = new DillTarget(
-          new Ticker(isVerbose: false), context.uriTranslator, "vm_fasta");
+          new Ticker(isVerbose: false), context.uriTranslator, "vm");
       dillTarget.loader.appendLibraries(platformOutline);
       var sourceTarget = new KernelTarget(PhysicalFileSystem.instance,
           dillTarget, context.uriTranslator, false);

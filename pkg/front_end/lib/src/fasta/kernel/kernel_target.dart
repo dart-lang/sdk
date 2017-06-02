@@ -655,11 +655,27 @@ class KernelTarget extends TargetImplementation {
   /// Run all transformations that are needed when building a program for the
   /// first time.
   void runBuildTransformations() {
-    backendTarget.performModularTransformationsOnLibraries(
-        loader.coreTypes, loader.hierarchy, loader.libraries,
-        logger: (String msg) => ticker.logMs(msg));
-    backendTarget.performGlobalTransformations(loader.coreTypes, program,
-        logger: (String msg) => ticker.logMs(msg));
+    transformMixinApplications();
+    otherTransformations();
+  }
+
+  void transformMixinApplications() {
+    mix.transformLibraries(
+        backendTarget, loader.coreTypes, loader.hierarchy, loader.libraries);
+    ticker.logMs("Transformed mixin applications");
+  }
+
+  void otherTransformations() {
+    if (!strongMode) {
+      // TODO(ahe): Don't generate type variables in the first place.
+      program.accept(new Erasure());
+      ticker.logMs("Erased type variables in generic methods");
+    }
+    if (errors.isEmpty && loader.collectCompileTimeErrors().isEmpty) {
+      // TODO(kmillikin): Make this run on a per-method basis.
+      transformAsync.transformLibraries(loader.coreTypes, loader.libraries);
+    }
+    ticker.logMs("Transformed async methods");
   }
 
   void verify() {

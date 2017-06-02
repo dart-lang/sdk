@@ -409,8 +409,7 @@ Future<CompilerOutcome> batchMain(
   if (target != null && canContinueCompilation) {
     CoreTypes coreTypes = new CoreTypes(program);
     ClassHierarchy hierarchy = new ClosedWorldClassHierarchy(program);
-    target.performModularTransformationsOnProgram(
-        coreTypes, hierarchy, program);
+    target.performModularTransformations(coreTypes, hierarchy, program);
     runVerifier();
     if (options['link']) {
       target.performGlobalTransformations(coreTypes, program);
