@@ -10,6 +10,7 @@ import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../common_elements.dart';
+import '../elements/elements.dart' show JumpTarget;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/operators.dart';
@@ -155,14 +156,6 @@ abstract class KernelToElementMap {
   /// Returns a [Spannable] for a message pointing to the IR [node] in the
   /// context of [member].
   Spannable getSpannable(MemberEntity member, ir.Node node);
-
-  // TODO(johnniwinther): Move these to a `KernelToLocalsMap`, maybe even make
-  // the return the `KernelToLocalsMap` to use from now on.
-  /// Call to notify that [member] is currently being inlined.
-  void enterInlinedMember(MemberEntity member);
-
-  /// Call to notify that [member] is no longer being inlined.
-  void leaveInlinedMember(MemberEntity member);
 }
 
 /// Kinds of foreign functions.
@@ -517,12 +510,6 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
         message: "No super noSuchMethod found for class $cls."));
     return function;
   }
-
-  @override
-  void enterInlinedMember(MemberEntity member) {}
-
-  @override
-  void leaveInlinedMember(MemberEntity member) {}
 }
 
 /// Visitor that converts string literals and concatenations of string literals
@@ -951,4 +938,22 @@ abstract class KernelToTypeInferenceMap {
   /// Returns the returned type annotation in the [nativeBehavior].
   TypeMask typeFromNativeBehavior(
       native.NativeBehavior nativeBehavior, ClosedWorld closedWorld);
+}
+
+/// Map from kernel IR nodes to local entities.
+abstract class KernelToLocalsMap {
+  // TODO(johnniwinther): Make these return the [KernelToLocalsMap] to use from
+  // now on.
+  /// Call to notify that [member] is currently being inlined.
+  void enterInlinedMember(MemberEntity member);
+
+  /// Call to notify that [member] is no longer being inlined.
+  void leaveInlinedMember(MemberEntity member);
+
+  /// Returns the [Local] for [node].
+  Local getLocal(ir.VariableDeclaration node);
+
+  /// Returns the [JumpTarget] for the branch in [node].
+  // TODO(johnniwinther): Split this by kind of [node]?
+  JumpTarget getJumpTarget(ir.TreeNode node, {bool isContinueTarget: false});
 }

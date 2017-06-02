@@ -11,6 +11,7 @@ import '../closure.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart';
 import '../compiler.dart';
+import '../elements/elements.dart' show JumpTarget;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../enqueue.dart';
@@ -135,6 +136,7 @@ class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
         _compiler,
         _elementMap,
         new KernelToTypeInferenceMapImpl(closedWorld),
+        null,
         closedWorld,
         work.registry,
         // TODO(johnniwinther): Support these:
@@ -223,6 +225,24 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   @override
   TypeMask getReturnTypeOf(FunctionEntity function) {
     return _closedWorld.commonMasks.dynamicType;
+  }
+}
+
+class KernelToLocalsMapImpl implements KernelToLocalsMap {
+  @override
+  void enterInlinedMember(MemberEntity member) {}
+
+  @override
+  void leaveInlinedMember(MemberEntity member) {}
+
+  @override
+  JumpTarget getJumpTarget(ir.TreeNode node, {bool isContinueTarget: false}) {
+    throw new UnimplementedError('KernelToLocalsMapImpl.getJumpTarget');
+  }
+
+  @override
+  Local getLocal(ir.VariableDeclaration node) {
+    throw new UnimplementedError('KernelToLocalsMapImpl.getLocal');
   }
 }
 

@@ -34,7 +34,8 @@ import 'types.dart';
 /// A helper class that abstracts all accesses of the AST from Kernel nodes.
 ///
 /// The goal is to remove all need for the AST from the Kernel SSA builder.
-class KernelAstAdapter extends KernelToElementMapMixin {
+class KernelAstAdapter extends KernelToElementMapMixin
+    implements KernelToLocalsMap {
   final Kernel kernel;
   final JavaScriptBackend _backend;
   final Map<ir.Node, ast.Node> _nodeToAst;
@@ -214,6 +215,7 @@ class KernelAstAdapter extends KernelToElementMapMixin {
         message: "No synthetic marker found for $node"));
   }
 
+  @override
   Local getLocal(ir.VariableDeclaration variable) {
     // If this is a synthetic local, return the synthetic local
     if (variable.name == null) {
@@ -267,9 +269,6 @@ class KernelAstAdapter extends KernelToElementMapMixin {
     return false;
   }
 
-  LibraryElement get jsHelperLibrary =>
-      _compiler.commonElements.jsHelperLibrary;
-
   KernelJumpTarget getJumpTarget(ir.TreeNode node,
       {bool isContinueTarget: false}) {
     return _jumpTargets.putIfAbsent(node, () {
@@ -280,9 +279,6 @@ class KernelAstAdapter extends KernelToElementMapMixin {
           makeContinueLabel: isContinueTarget);
     });
   }
-
-  bool isInForeignLibrary(ir.Member member) =>
-      _backend.isForeign(getElement(member));
 
   native.NativeBehavior getNativeBehavior(ir.Node node) {
     return elements.getNativeData(getNode(node));
@@ -569,7 +565,7 @@ class KernelJumpTarget extends JumpTarget {
 /// targeting switch cases.
 class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
   KernelSwitchCaseJumpHandler(GraphBuilder builder, JumpTarget target,
-      ir.SwitchStatement switchStatement, KernelAstAdapter astAdapter)
+      ir.SwitchStatement switchStatement, KernelToLocalsMap localsMap)
       : super(builder, target) {
     // The switch case indices must match those computed in
     // [KernelSsaBuilder.buildSwitchCaseConstants].
@@ -579,7 +575,7 @@ class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
     int switchIndex = 1;
     for (ir.SwitchCase switchCase in switchStatement.cases) {
       JumpTarget continueTarget =
-          astAdapter.getJumpTarget(switchCase, isContinueTarget: true);
+          localsMap.getJumpTarget(switchCase, isContinueTarget: true);
       assert(continueTarget is KernelJumpTarget);
       targetIndexMap[continueTarget] = switchIndex;
       assert(builder.jumpTargets[continueTarget] == null);

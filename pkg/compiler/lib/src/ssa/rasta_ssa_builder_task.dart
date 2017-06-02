@@ -41,6 +41,7 @@ class RastaSsaBuilderTask extends SsaAstBuilderBase {
           backend.compiler,
           astAdapter,
           typeInferenceMap,
+          astAdapter,
           closedWorld,
           work.registry,
           backend.compiler.closureToClassMapper,

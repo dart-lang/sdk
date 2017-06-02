@@ -86,6 +86,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   SourceInformationBuilder sourceInformationBuilder;
   final KernelToElementMap _elementMap;
   final KernelToTypeInferenceMap _typeInferenceMap;
+  final KernelToLocalsMap _localsMap;
   LoopHandler<ir.Node> loopHandler;
   TypeBuilder typeBuilder;
 
@@ -103,6 +104,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       this.compiler,
       this._elementMap,
       this._typeInferenceMap,
+      this._localsMap,
       this.closedWorld,
       this.registry,
       this.closureToClassMapper,
@@ -319,7 +321,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // Pass uncaptured arguments first, captured arguments in a box, then type
       // arguments.
 
-      ConstructorElement constructorElement = astAdapter.getConstructor(body);
+      ConstructorElement constructorElement = _elementMap.getConstructor(body);
       ClosureClassMap parameterClosureData =
           closureToClassMapper.getMemberMap(constructorElement);
 
@@ -385,12 +387,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // sourceInformationBuilder =
       //   sourceInformationBuilder.forContext(resolvedAst);
 
-      _elementMap.enterInlinedMember(inlinedTarget);
+      _localsMap.enterInlinedMember(inlinedTarget);
       _targetStack.add(inlinedTarget);
       var result = f();
       sourceInformationBuilder = oldSourceInformationBuilder;
       _targetStack.removeLast();
-      _elementMap.leaveInlinedMember(inlinedTarget);
+      _localsMap.leaveInlinedMember(inlinedTarget);
       return result;
     });
   }
@@ -961,7 +963,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       HInstruction value = new HIndex(array, index, null, type);
       add(value);
 
-      Local loopVariableLocal = astAdapter.getLocal(forInStatement.variable);
+      Local loopVariableLocal = _localsMap.getLocal(forInStatement.variable);
       localsHandler.updateLocal(loopVariableLocal, value);
       // Hint to name loop value after name of loop variable.
       if (loopVariableLocal is! SyntheticLocal) {
@@ -1022,7 +1024,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       TypeMask mask = _typeInferenceMap.typeOfIteratorCurrent(forInStatement);
       _pushDynamicInvocation(forInStatement, mask, [iterator],
           selector: Selectors.current);
-      Local loopVariableLocal = astAdapter.getLocal(forInStatement.variable);
+      Local loopVariableLocal = _localsMap.getLocal(forInStatement.variable);
       HInstruction value = pop();
       localsHandler.updateLocal(loopVariableLocal, value);
       // Hint to name loop value after name of loop variable.
@@ -1064,7 +1066,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       _pushDynamicInvocation(forInStatement, mask, [streamIterator],
           selector: Selectors.current);
       localsHandler.updateLocal(
-          astAdapter.getLocal(forInStatement.variable), pop());
+          _localsMap.getLocal(forInStatement.variable), pop());
       forInStatement.body.accept(this);
     }
 
@@ -1131,7 +1133,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock loopEntryBlock = current;
     HBasicBlock bodyEntryBlock = current;
-    JumpTarget target = astAdapter.getJumpTarget(doStatement);
+    JumpTarget target = _localsMap.getJumpTarget(doStatement);
     bool hasContinues = target != null && target.isContinueTarget;
     if (hasContinues) {
       // Add extra block to hang labels on.
@@ -1243,7 +1245,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         // Since the body of the loop has a break, we attach a synthesized label
         // to the body.
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
-        JumpTarget target = astAdapter.getJumpTarget(doStatement);
+        JumpTarget target = _localsMap.getJumpTarget(doStatement);
         LabelDefinition label = target.addLabel(null, 'loop');
         label.setBreakTarget();
         HLabeledBlockInformation info = new HLabeledBlockInformation(
@@ -1368,14 +1370,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// to distinguish the synthesized loop created for a switch statement with
   /// continue statements from simple switch statements.
   JumpHandler createJumpHandler(ir.TreeNode node, {bool isLoopJump: false}) {
-    JumpTarget target = astAdapter.getJumpTarget(node);
+    JumpTarget target = _localsMap.getJumpTarget(node);
     assert(target is KernelJumpTarget);
     if (target == null) {
       // No breaks or continues to this node.
       return new NullJumpHandler(reporter);
     }
     if (isLoopJump && node is ir.SwitchStatement) {
-      return new KernelSwitchCaseJumpHandler(this, target, node, astAdapter);
+      return new KernelSwitchCaseJumpHandler(this, target, node, _localsMap);
     }
 
     return new JumpHandler(this, target);
@@ -1385,7 +1387,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitBreakStatement(ir.BreakStatement breakStatement) {
     assert(!isAborted());
     handleInTryStatement();
-    JumpTarget target = astAdapter.getJumpTarget(breakStatement.target);
+    JumpTarget target = _localsMap.getJumpTarget(breakStatement.target);
     assert(target != null);
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
@@ -1458,7 +1460,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitContinueSwitchStatement(
       ir.ContinueSwitchStatement switchStatement) {
     handleInTryStatement();
-    JumpTarget target = astAdapter.getJumpTarget(switchStatement.target);
+    JumpTarget target = _localsMap.getJumpTarget(switchStatement.target);
     assert(target != null);
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
@@ -1578,7 +1580,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // This is because JS does not have this same "continue label" semantics so
     // we encode it in the form of a state machine.
 
-    JumpTarget switchTarget = astAdapter.getJumpTarget(switchStatement);
+    JumpTarget switchTarget = _localsMap.getJumpTarget(switchStatement);
     localsHandler.updateLocal(switchTarget, graph.addConstantNull(closedWorld));
 
     var switchCases = switchStatement.cases;
@@ -2051,7 +2053,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return;
     }
 
-    Local local = astAdapter.getLocal(variableGet.variable);
+    Local local = _localsMap.getLocal(variableGet.variable);
     stack.add(localsHandler.readLocal(local));
   }
 
@@ -2099,7 +2101,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitVariableDeclaration(ir.VariableDeclaration declaration) {
-    Local local = astAdapter.getLocal(declaration);
+    Local local = _localsMap.getLocal(declaration);
     if (declaration.initializer == null) {
       HInstruction initialValue = graph.addConstantNull(closedWorld);
       localsHandler.updateLocal(local, initialValue);
@@ -2115,7 +2117,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   void _visitLocalSetter(ir.VariableDeclaration variable, HInstruction value) {
-    LocalElement local = astAdapter.getLocal(variable);
+    LocalElement local = _localsMap.getLocal(variable);
 
     // Give the value a name if it doesn't have one already.
     if (value.sourceElement == null) {
@@ -3339,7 +3341,7 @@ class TryCatchFinallyBuilder {
       catchesIndex++;
       if (catchBlock.exception != null) {
         LocalVariableElement exceptionVariable =
-            kernelBuilder.astAdapter.getLocal(catchBlock.exception);
+            kernelBuilder._localsMap.getLocal(catchBlock.exception);
         kernelBuilder.localsHandler
             .updateLocal(exceptionVariable, unwrappedException);
       }
@@ -3351,7 +3353,7 @@ class TryCatchFinallyBuilder {
                 kernelBuilder._commonElements.traceFromException));
         HInstruction traceInstruction = kernelBuilder.pop();
         LocalVariableElement traceVariable =
-            kernelBuilder.astAdapter.getLocal(catchBlock.stackTrace);
+            kernelBuilder._localsMap.getLocal(catchBlock.stackTrace);
         kernelBuilder.localsHandler
             .updateLocal(traceVariable, traceInstruction);
       }
