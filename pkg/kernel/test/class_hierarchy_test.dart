@@ -48,21 +48,6 @@ class IncrementalClassHierarchyTest extends _ClassHierarchyTest {
   }
 
   @failingTest
-  void test_getClassicLeastUpperBound_expansive() {
-    super.test_getClassicLeastUpperBound_expansive();
-  }
-
-  @failingTest
-  void test_getClassicLeastUpperBound_generic() {
-    super.test_getClassicLeastUpperBound_generic();
-  }
-
-  @failingTest
-  void test_getClassicLeastUpperBound_nonGeneric() {
-    super.test_getClassicLeastUpperBound_nonGeneric();
-  }
-
-  @failingTest
   void test_getDispatchTarget() {
     super.test_getDispatchTarget();
   }

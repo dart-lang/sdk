@@ -51,8 +51,97 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   @override
   InterfaceType getClassicLeastUpperBound(
       InterfaceType type1, InterfaceType type2) {
-    // TODO(scheglov): implement getClassicLeastUpperBound
-    throw new UnimplementedError();
+    // The algorithm is: first we compute a list of superclasses for both types,
+    // ordered from greatest to least depth, and ordered by topological sort
+    // index within each depth.  Due to the sort order, we can find the
+    // intersection of these lists by a simple walk.
+    //
+    // Then, for each class in the intersection, determine the exact type that
+    // is implemented by type1 and type2.  If the types match, that type is a
+    // candidate (it's a member of S_n).  As soon as we find a candidate which
+    // is unique for its depth, we return it.
+    //
+    // As an optimization, if the class for I is a subtype of the class for J,
+    // then we know that the list of superclasses of J is a subset of the list
+    // of superclasses for I; therefore it is sufficient to compute just the
+    // list of superclasses for J.  To avoid complicating the code below (which
+    // intersects the two lists), we set both lists equal to the list of
+    // superclasses for J.  And vice versa with the role of I and J swapped.
+
+    // Compute the list of superclasses for both types, with the above
+    // optimization.
+    _ClassInfo info1 = _getInfo(type1.classNode);
+    _ClassInfo info2 = _getInfo(type2.classNode);
+    List<_ClassInfo> classes1;
+    List<_ClassInfo> classes2;
+    if (identical(info1, info2) || info1.isSubtypeOf(info2)) {
+      classes1 = classes2 = _getRankedSuperclassList(info2);
+    } else if (info2.isSubtypeOf(info1)) {
+      classes1 = classes2 = _getRankedSuperclassList(info1);
+    } else {
+      classes1 = _getRankedSuperclassList(info1);
+      classes2 = _getRankedSuperclassList(info2);
+    }
+
+    // Walk the lists finding their intersection, looking for a depth that has a
+    // single candidate.
+    int i1 = 0;
+    int i2 = 0;
+    InterfaceType candidate = null;
+    int currentDepth = -1;
+    int numCandidatesAtThisDepth = 0;
+    while (true) {
+      _ClassInfo next = classes1[i1];
+      _ClassInfo next2 = classes2[i2];
+      if (!identical(next, next2)) {
+        if (_LubHeap.sortsBeforeStatic(next, next2)) {
+          ++i1;
+        } else {
+          ++i2;
+        }
+        continue;
+      }
+      ++i2;
+      ++i1;
+      if (next.depth != currentDepth) {
+        if (numCandidatesAtThisDepth == 1) return candidate;
+        currentDepth = next.depth;
+        numCandidatesAtThisDepth = 0;
+        candidate = null;
+      } else if (numCandidatesAtThisDepth > 1) {
+        continue;
+      }
+
+      // For each class in the intersection, find the exact type that is
+      // implemented by type1 and type2.  If they match, it's a candidate.
+      //
+      // Two additional optimizations:
+      //
+      // - If this class lacks type parameters, we know there is a match without
+      //   needing to substitute.
+      //
+      // - If the depth is 0, we have reached Object, so we can return it
+      //   immediately.  Since all interface types are subtypes of Object, this
+      //   ensures the loop terminates.
+      if (next.node.typeParameters.isEmpty) {
+        candidate = next.node.rawType;
+        if (currentDepth == 0) return candidate;
+        ++numCandidatesAtThisDepth;
+      } else {
+        var superType1 = identical(info1, next)
+            ? type1
+            : Substitution.fromInterfaceType(type1).substituteType(
+                info1.genericSuperTypes[next.node].asInterfaceType);
+        var superType2 = identical(info2, next)
+            ? type2
+            : Substitution.fromInterfaceType(type2).substituteType(
+                info2.genericSuperTypes[next.node].asInterfaceType);
+        if (superType1 == superType2) {
+          candidate = superType1;
+          ++numCandidatesAtThisDepth;
+        }
+      }
+    }
   }
 
   @override
