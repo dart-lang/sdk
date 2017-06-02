@@ -161,8 +161,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         newFileUri = fileUri.resolve(path);
       }
     }
-    parts
-        .add(loader.read(resolvedUri, -1, fileUri: newFileUri, accessor: this));
+    parts.add(loader.read(resolvedUri, charOffset,
+        fileUri: newFileUri, accessor: this));
   }
 
   void addPartOf(List<MetadataBuilder> metadata, String name, String uri) {

@@ -75,8 +75,8 @@ abstract class TargetImplementation extends Target {
   /// String, which is the compile-time error message.
   Builder getCompileTimeError(Loader loader) {
     if (cachedCompileTimeError != null) return cachedCompileTimeError;
-    return cachedCompileTimeError =
-        loader.coreLibrary.getConstructor("_CompileTimeError", isPrivate: true);
+    return cachedCompileTimeError = loader.coreLibrary
+        .getConstructor("_CompileTimeError", bypassLibraryPrivacy: true);
   }
 
   /// Returns a reference to the constructor used for creating a runtime error
@@ -87,7 +87,8 @@ abstract class TargetImplementation extends Target {
       return cachedDuplicatedFieldInitializerError;
     }
     return cachedDuplicatedFieldInitializerError = loader.coreLibrary
-        .getConstructor("_DuplicatedFieldInitializerError", isPrivate: true);
+        .getConstructor("_DuplicatedFieldInitializerError",
+            bypassLibraryPrivacy: true);
   }
 
   /// Returns a reference to the constructor of [FallThroughError] error.  The
@@ -111,8 +112,8 @@ abstract class TargetImplementation extends Target {
     if (cachedInvocation != null) {
       return cachedInvocation;
     }
-    return cachedInvocation =
-        loader.coreLibrary.getConstructor("_InvocationMirror", isPrivate: true);
+    return cachedInvocation = loader.coreLibrary
+        .getConstructor("_InvocationMirror", bypassLibraryPrivacy: true);
   }
 
   /// Returns a reference to the constructor used for creating `native`

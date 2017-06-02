@@ -65,6 +65,7 @@ import 'kernel_builder.dart';
 import '../names.dart';
 
 class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
+  @override
   final KernelLibraryBuilder library;
 
   final MemberBuilder member;
@@ -2044,7 +2045,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
       String errorName;
       if (type is ClassBuilder) {
-        Builder b = type.findConstructorOrFactory(name, token.charOffset, uri);
+        Builder b =
+            type.findConstructorOrFactory(name, token.charOffset, uri, library);
         Member target;
         Member initialTarget;
         if (b == null) {

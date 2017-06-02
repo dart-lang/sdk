@@ -10,7 +10,7 @@ import 'dart:collection' show Queue;
 
 import 'builder/builder.dart' show Builder, LibraryBuilder;
 
-import 'errors.dart' show InputError, firstSourceUri;
+import 'errors.dart' show InputError, firstSourceUri, printUnexpected;
 
 import 'target_implementation.dart' show TargetImplementation;
 
@@ -81,7 +81,14 @@ abstract class Loader<L> {
       }
       return library;
     });
-    // TODO(ahe): Check that [accessor] is allowed to access [builder].
+    if (accessor != null &&
+        uri.scheme == "dart" &&
+        uri.path.startsWith("_") &&
+        accessor.uri.scheme != "dart") {
+      const String message = "Can't access platform private library.";
+      printUnexpected(accessor.fileUri, charOffset, message);
+      errors.add(new InputError(accessor.fileUri, charOffset, message));
+    }
     return builder;
   }
 

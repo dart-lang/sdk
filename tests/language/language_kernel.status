@@ -60,10 +60,8 @@ deferred_inheritance_constraints_test/redirecting_constructor: RuntimeError
 deferred_no_prefix_test/01: MissingCompileTimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_shadow_load_library_test: RuntimeError
-enum_private_test/02: RuntimeError
 enum_syntax_test/06: MissingCompileTimeError
 enum_syntax_test/30: MissingCompileTimeError
-export_private_test/01: MissingCompileTimeError
 external_test/11: MissingCompileTimeError
 external_test/12: MissingCompileTimeError
 external_test/21: MissingCompileTimeError
@@ -106,7 +104,6 @@ getter_parameters_test/02: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
 if_null_assignment_behavior_test/15: RuntimeError
-import_private_test/01: MissingCompileTimeError
 initializing_formal_capture_test: RuntimeError
 initializing_formal_final_test: RuntimeError
 inst_field_initializer1_negative_test: Fail
@@ -142,8 +139,6 @@ named_parameters_aggregated_test/06: MissingCompileTimeError
 named_parameters_default_eq_test/01: MissingCompileTimeError
 on_catch_malformed_type_test: RuntimeError
 parameter_initializer6_negative_test: Fail
-private_access_test/05: RuntimeError
-private_access_test/06: RuntimeError
 ref_before_declaration_test/00: MissingCompileTimeError
 ref_before_declaration_test/01: MissingCompileTimeError
 ref_before_declaration_test/02: MissingCompileTimeError

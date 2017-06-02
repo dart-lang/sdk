@@ -37,11 +37,18 @@ import 'frontend_accessors.dart' as kernel
         VariableAccessor;
 
 import 'kernel_builder.dart'
-    show Builder, KernelClassBuilder, PrefixBuilder, TypeDeclarationBuilder;
+    show
+        Builder,
+        KernelClassBuilder,
+        LibraryBuilder,
+        PrefixBuilder,
+        TypeDeclarationBuilder;
 
 import '../names.dart' show callName, lengthName;
 
 abstract class BuilderHelper {
+  LibraryBuilder get library;
+
   Uri get uri;
 
   TypePromoter get typePromoter;
@@ -447,8 +454,8 @@ class SendAccessor extends IncompleteSend {
     }
     Expression result;
     if (receiver is KernelClassBuilder) {
-      Builder builder =
-          receiver.findStaticBuilder(name.name, offsetForToken(token), uri);
+      Builder builder = receiver.findStaticBuilder(
+          name.name, offsetForToken(token), uri, helper.library);
       if (builder == null || builder is AccessErrorBuilder) {
         return buildThrowNoSuchMethodError(arguments);
       }
@@ -539,8 +546,8 @@ class IncompletePropertyAccessor extends IncompleteSend {
           isQualified: true, prefix: prefix);
     }
     if (receiver is KernelClassBuilder) {
-      Builder builder =
-          receiver.findStaticBuilder(name.name, offsetForToken(token), uri);
+      Builder builder = receiver.findStaticBuilder(
+          name.name, offsetForToken(token), uri, helper.library);
       if (builder == null) {
         // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
         return buildThrowNoSuchMethodError(new Arguments.empty(),
@@ -551,7 +558,7 @@ class IncompletePropertyAccessor extends IncompleteSend {
         setter = builder;
       } else if (builder.isGetter) {
         setter = receiver.findStaticBuilder(
-            name.name, offsetForToken(token), uri,
+            name.name, offsetForToken(token), uri, helper.library,
             isSetter: true);
       } else if (builder.isField && !builder.isFinal) {
         setter = builder;

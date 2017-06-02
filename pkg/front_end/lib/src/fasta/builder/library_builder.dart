@@ -118,21 +118,32 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   int finishNativeMethods() => 0;
 
-  /// Looks up [constructorName] in the class named [className]. It's an error
-  /// if no such class is exported by this library, or if the class doesn't
-  /// have a matching constructor (or factory).
+  /// Looks up [constructorName] in the class named [className].
+  ///
+  /// The class is looked up in this library's export scope unless
+  /// [bypassLibraryPrivacy] is true, in which case it is looked up in the
+  /// library scope of this library.
+  ///
+  /// It is an error if no such class is found, or if the class doesn't have a
+  /// matching constructor (or factory).
   ///
   /// If [constructorName] is null or the empty string, it's assumed to be an
-  /// unnamed constructor.
+  /// unnamed constructor. it's an error if [constructorName] starts with
+  /// `"_"`, and [bypassLibraryPrivacy] is false.
   Builder getConstructor(String className,
-      {String constructorName, bool isPrivate: false}) {
+      {String constructorName, bool bypassLibraryPrivacy: false}) {
     constructorName ??= "";
-    Builder cls = (isPrivate ? scope : exports).lookup(className, -1, null);
+    if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
+      throw internalError("Internal error: Can't access private constructor "
+          "'$constructorName'.");
+    }
+    Builder cls =
+        (bypassLibraryPrivacy ? scope : exports).lookup(className, -1, null);
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
       Builder constructor =
-          cls.findConstructorOrFactory(constructorName, -1, null);
+          cls.findConstructorOrFactory(constructorName, -1, null, this);
       if (constructor == null) {
         // Fall-through to internal error below.
       } else if (constructor.isConstructor) {

@@ -242,8 +242,8 @@ class KernelEnumBuilder extends SourceClassBuilder
             new VariableGet(constructor.function.positionalParameters.single))
           ..parent = constructor);
     KernelClassBuilder objectClass = objectType.builder;
-    MemberBuilder superConstructor =
-        objectClass.findConstructorOrFactory("", charOffset, fileUri);
+    MemberBuilder superConstructor = objectClass.findConstructorOrFactory(
+        "", charOffset, fileUri, libraryBuilder);
     if (superConstructor == null || !superConstructor.isConstructor) {
       // TODO(ahe): Ideally, we would also want to check that [Object]'s
       // unnamed constructor requires no arguments. But that information isn't
@@ -269,7 +269,8 @@ class KernelEnumBuilder extends SourceClassBuilder
   }
 
   @override
-  Builder findConstructorOrFactory(String name, int charOffset, Uri uri) {
+  Builder findConstructorOrFactory(
+      String name, int charOffset, Uri uri, LibraryBuilder library) {
     return null;
   }
 }
