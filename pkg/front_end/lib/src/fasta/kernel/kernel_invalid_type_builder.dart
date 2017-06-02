@@ -4,30 +4,29 @@
 
 library fasta.kernel_invalid_type_builder;
 
-import 'package:kernel/ast.dart' show DartType, DynamicType;
-
-import '../messages.dart' show warning;
+import 'package:kernel/ast.dart' show DartType, InvalidType;
 
 import 'kernel_builder.dart'
     show InvalidTypeBuilder, KernelTypeBuilder, LibraryBuilder;
 
 class KernelInvalidTypeBuilder
     extends InvalidTypeBuilder<KernelTypeBuilder, DartType> {
-  KernelInvalidTypeBuilder(String name, int charOffset, Uri fileUri)
-      : super(name, charOffset, fileUri);
+  final String message;
+
+  KernelInvalidTypeBuilder(String name, int charOffset, Uri fileUri,
+      [String message])
+      : message = message ?? "No type for: '$name'.",
+        super(name, charOffset, fileUri);
 
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
-    // TODO(ahe): Implement error handling.
-    warning(fileUri, charOffset, "No type for: '$name'.");
-    return const DynamicType();
+    return buildTypesWithBuiltArguments(library, null);
   }
 
   /// [Arguments] have already been built.
   DartType buildTypesWithBuiltArguments(
       LibraryBuilder library, List<DartType> arguments) {
-    // TODO(ahe): Implement error handling.
-    warning(fileUri, charOffset, "No type for: '$name'.");
-    return const DynamicType();
+    library.addWarning(charOffset, message, fileUri: fileUri);
+    return const InvalidType();
   }
 }

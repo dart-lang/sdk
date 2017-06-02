@@ -181,22 +181,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Expression toValue(Object node) {
     if (node is FastaAccessor) {
       return node.buildSimpleRead();
-    } else if (node is TypeVariableBuilder) {
-      TypeParameterType type = node.buildTypesWithBuiltArguments(library, null);
-      if (!isInstanceContext && type.parameter.parent is Class) {
-        return buildCompileTimeError(
-            "Type variables can only be used in instance methods.");
-      } else {
-        if (constantExpressionRequired) {
-          addCompileTimeError(-1,
-              "Type variable can't be used as a constant expression $type.");
-        }
-        return new TypeLiteral(type);
-      }
-    } else if (node is TypeDeclarationBuilder) {
-      return new TypeLiteral(node.buildTypesWithBuiltArguments(library, null));
-    } else if (node is KernelTypeBuilder) {
-      return new TypeLiteral(node.build(library));
     } else if (node is Expression) {
       return node;
     } else if (node is PrefixBuilder) {
@@ -926,7 +910,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         addCompileTimeError(
             offsetForToken(token), "Not a constant expression.");
       }
-      return builder;
+      return new TypeDeclarationAccessor(this, builder, name, token);
     } else if (builder.isLocal) {
       if (constantExpressionRequired &&
           !builder.isConst &&
@@ -1231,7 +1215,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("AssignmentExpression");
     Expression value = popForValue();
     var accessor = pop();
-    if (accessor is TypeDeclarationBuilder || accessor is! FastaAccessor) {
+    if (accessor is! FastaAccessor) {
       push(buildCompileTimeError("Can't assign to this.", token.charOffset));
     } else {
       push(new DelayedAssignment(
@@ -1428,7 +1412,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Builder builder = scope.lookup(name, charOffset, uri);
     if (builder == null) {
       warning("Type not found: '$name'.", charOffset);
-      return const DynamicType();
+      return const InvalidType();
     } else {
       return kernelTypeFromBuilder(builder, arguments, charOffset);
     }
@@ -1439,9 +1423,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (constantExpressionRequired && builder is TypeVariableBuilder) {
       addCompileTimeError(charOffset, "Not a constant expression.");
     }
-    if (builder is TypeDeclarationBuilder) {
-      return builder.buildTypesWithBuiltArguments(library, arguments);
-    } else if (builder.hasProblem) {
+    if (builder.hasProblem) {
       ProblemBuilder problem = builder;
       addCompileTimeError(charOffset, problem.message);
     } else {
@@ -1449,7 +1431,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "Not a type: '${builder.fullNameForErrors}'.", charOffset);
     }
     // TODO(ahe): Create an error somehow.
-    return const DynamicType();
+    return const InvalidType();
   }
 
   @override
@@ -1480,7 +1462,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         name = scopeLookup(builder.exports, suffix, beginToken,
             isQualified: true, prefix: builder);
       } else {
-        push(const DynamicType());
+        push(const InvalidType());
         addCompileTimeError(beginToken.charOffset,
             "Can't be used as a type: '${debugName(prefix, suffix)}'.");
         return;
@@ -1489,18 +1471,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (name is Identifier) {
       name = name.name;
     }
-    if (name is FastaAccessor) {
+    if (name is TypeDeclarationAccessor) {
+      push(name.buildType(arguments));
+    } else if (name is FastaAccessor) {
       warningNotError(
           "'${beginToken.lexeme}' isn't a type.", beginToken.charOffset);
-      push(const DynamicType());
-    } else if (name is TypeVariableBuilder && !member.isConstructor) {
-      if (constantExpressionRequired) {
-        addCompileTimeError(
-            beginToken.charOffset, "Not a constant expression.");
-      }
-      push(name.buildTypesWithBuiltArguments(library, arguments));
-    } else if (name is TypeDeclarationBuilder) {
-      push(name.buildTypesWithBuiltArguments(library, arguments));
+      push(const InvalidType());
     } else if (name is TypeBuilder) {
       push(name.build(library));
     } else if (name is Builder) {
@@ -1509,15 +1485,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(kernelTypeFromString(name, arguments, beginToken.charOffset));
     } else {
       internalError("Unhandled: '${name.runtimeType}'.");
-    }
-    if (peek() is TypeParameterType) {
-      TypeParameterType type = peek();
-      if (!isInstanceContext && type.parameter.parent is Class) {
-        pop();
-        warning("Type variables can only be used in instance methods.",
-            beginToken.charOffset);
-        push(const DynamicType());
-      }
     }
   }
 
@@ -1911,7 +1878,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         type = scopeLookup(prefix.exports, identifier.name, start,
             isQualified: true, prefix: prefix);
         identifier = null;
-      } else if (prefix is ClassBuilder) {
+      } else if (prefix is TypeDeclarationAccessor) {
         type = prefix;
       } else {
         type = new Identifier(start);
@@ -2031,6 +1998,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     String name = pop();
     List<DartType> typeArguments = pop();
     var type = pop();
+    if (type is TypeDeclarationAccessor) {
+      TypeDeclarationAccessor accessor = type;
+      type = accessor.declaration;
+    }
     bool savedConstantExpressionRequired = pop();
     () {
       if (arguments == null) {
@@ -2771,6 +2742,26 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     super.warning(message, charOffset);
   }
 
+  @override
+  DartType validatedTypeVariableUse(
+      TypeParameterType type, int offset, bool nonInstanceAccessIsError) {
+    if (!isInstanceContext && type.parameter.parent is Class) {
+      String message = "Type variables can't be used in static members.";
+      if (nonInstanceAccessIsError) {
+        addCompileTimeError(offset, message);
+      } else {
+        warning(message, offset);
+      }
+      return const InvalidType();
+    } else if (constantExpressionRequired) {
+      addCompileTimeError(
+          offset,
+          "Type variable '${type.parameter.name}' can't be used as a constant "
+          "expression $type.");
+    }
+    return type;
+  }
+
   Expression evaluateArgumentsBefore(
       Arguments arguments, Expression expression) {
     if (arguments == null) return expression;
@@ -3254,10 +3245,8 @@ String debugName(String className, String name, [String prefix]) {
 String getNodeName(Object node) {
   if (node is Identifier) {
     return node.name;
-  } else if (node is TypeDeclarationBuilder) {
-    return node.name;
-  } else if (node is PrefixBuilder) {
-    return node.name;
+  } else if (node is Builder) {
+    return node.fullNameForErrors;
   } else if (node is ThisAccessor) {
     return node.isSuper ? "super" : "this";
   } else if (node is FastaAccessor) {

@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
-call_nonexistent_static_test/01: CompileTimeError
-call_nonexistent_static_test/04: CompileTimeError
 compile_time_constant_test/01: MissingCompileTimeError
 conditional_method_invocation_test/11: MissingCompileTimeError
 conditional_property_access_test/09: MissingCompileTimeError
@@ -98,28 +96,14 @@ generic_closure_test: RuntimeError
 generic_method_types_test/01: RuntimeError
 generic_method_types_test/02: RuntimeError
 generic_method_types_test: Pass, RuntimeError
-getter_closure_execution_order_test: RuntimeError
 getter_parameters_test/01: MissingCompileTimeError
 getter_parameters_test/02: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
-if_null_assignment_behavior_test/15: RuntimeError
 initializing_formal_capture_test: RuntimeError
 initializing_formal_final_test: RuntimeError
 inst_field_initializer1_negative_test: Fail
-instanceof3_test: RuntimeError
 invocation_mirror_test: RuntimeError
-is_malformed_type_test/94: RuntimeError
-is_malformed_type_test/95: RuntimeError
-is_malformed_type_test/96: RuntimeError
-is_malformed_type_test/97: RuntimeError
-is_malformed_type_test/98: RuntimeError
-is_malformed_type_test/99: RuntimeError
-is_not_class2_test: RuntimeError
-isnot_malformed_type_test: RuntimeError
-library_ambiguous_test/00: MissingRuntimeError
-library_ambiguous_test/04: MissingRuntimeError
-malformed2_test/00: RuntimeError
 metadata_test: CompileTimeError
 method_name_test: CompileTimeError
 method_override_test: RuntimeError
@@ -137,7 +121,6 @@ named_parameters_aggregated_test/03: MissingCompileTimeError
 named_parameters_aggregated_test/04: MissingCompileTimeError
 named_parameters_aggregated_test/06: MissingCompileTimeError
 named_parameters_default_eq_test/01: MissingCompileTimeError
-on_catch_malformed_type_test: RuntimeError
 parameter_initializer6_negative_test: Fail
 ref_before_declaration_test/00: MissingCompileTimeError
 ref_before_declaration_test/01: MissingCompileTimeError
@@ -147,13 +130,9 @@ ref_before_declaration_test/04: MissingCompileTimeError
 ref_before_declaration_test/05: MissingCompileTimeError
 ref_before_declaration_test/06: MissingCompileTimeError
 ref_before_declaration_test/07: MissingCompileTimeError
-regress_13494_test: CompileTimeError
-regress_22438_test: RuntimeError
 regress_29349_test: CompileTimeError
 runtime_type_function_test: RuntimeError
 scope_variable_test/01: MissingCompileTimeError
-static_field3_test/03: CompileTimeError
-static_field3_test/04: CompileTimeError
 static_parameter_test/05: MissingCompileTimeError
 static_parameter_test/06: MissingCompileTimeError
 static_parameter_test/07: MissingCompileTimeError
@@ -191,18 +170,6 @@ try_catch_syntax_test/11: MissingCompileTimeError
 try_catch_syntax_test/12: MissingCompileTimeError
 vm/regress_27201_test: CompileTimeError
 
-assign_to_type_test/01: CompileTimeError # Fasta bug: Incorrect handling of types as expressions.
-assign_to_type_test/02: CompileTimeError # Fasta bug: Incorrect handling of types as expressions.
-assign_to_type_test/03: CompileTimeError # Fasta bug: Incorrect handling of types as expressions.
-assign_to_type_test/04: CompileTimeError # Fasta bug: Incorrect handling of types as expressions.
-class_literal_test/12: CompileTimeError # Fasta bug: Incorrect handling of types as expressions.
-class_literal_test/13: CompileTimeError # Fasta bug: Incorrect handling of types as expressions.
-class_literal_test/24: CompileTimeError # Fasta bug: Incorrect handling of types as expressions.
-first_class_types_literals_test/03: CompileTimeError # Fasta bug: Incorrect handling of types as expressions.
-first_class_types_literals_test/04: CompileTimeError # Fasta bug: Incorrect handling of types as expressions.
-first_class_types_literals_test/08: CompileTimeError # Fasta bug: Incorrect handling of types as expressions.
-first_class_types_literals_test/09: CompileTimeError # Fasta bug: Incorrect handling of types as expressions.
-if_null_assignment_behavior_test/15: CompileTimeError # Fasta bug: Incorrect handling of types as expressions.
 
 config_import_corelib_test: RuntimeError # KernelVM bug: Configurable imports.
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
@@ -313,7 +280,7 @@ regress_20394_test/01: MissingCompileTimeError # Fasta bug: Illegal access to pr
 
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
 
-malformed_test/none: RuntimeError # Fasta bug: Leads to assertion error in Fasta.
+malformed_test/none: Crash # Fasta bug: Leads to assertion error in Fasta.
 
 export_double_same_main_test: CompileTimeError # Fasta bug: Main is exported.
 export_main_test: CompileTimeError # Fasta bug: Main is exported.
@@ -437,9 +404,6 @@ function_type2_test: RuntimeError
 generic_constructor_mixin3_test: RuntimeError
 generic_field_mixin6_test/01: RuntimeError
 inst_field_initializer1_negative_test: Pass
-is_malformed_type_test/94: Pass
-is_malformed_type_test/96: Pass
-is_malformed_type_test/98: Pass
 list_literal1_test/01: MissingCompileTimeError
 malbounded_redirecting_factory2_test/03: Fail
 malbounded_redirecting_factory2_test/04: Fail

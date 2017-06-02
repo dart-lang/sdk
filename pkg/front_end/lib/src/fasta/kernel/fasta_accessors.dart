@@ -40,6 +40,7 @@ import 'kernel_builder.dart'
     show
         Builder,
         KernelClassBuilder,
+        KernelInvalidTypeBuilder,
         LibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder;
@@ -102,6 +103,11 @@ abstract class BuilderHelper {
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
       {bool isConstantExpression, bool isNullAware});
+
+  DartType validatedTypeVariableUse(
+      TypeParameterType type, int offset, bool nonInstanceAccessIsError);
+
+  void warning(String message, [int charOffset]);
 }
 
 abstract class FastaAccessor implements Accessor {
@@ -400,6 +406,8 @@ abstract class IncompleteSend extends FastaAccessor {
   IncompleteSend(this.helper, this.token, this.name);
 
   withReceiver(Object receiver, {bool isNullAware});
+
+  Arguments get arguments => null;
 }
 
 class IncompleteError extends IncompleteSend with ErrorAccessor {
@@ -420,6 +428,7 @@ class IncompleteError extends IncompleteSend with ErrorAccessor {
 }
 
 class SendAccessor extends IncompleteSend {
+  @override
   final Arguments arguments;
 
   SendAccessor(BuilderHelper helper, Token token, Name name, this.arguments)
@@ -438,11 +447,6 @@ class SendAccessor extends IncompleteSend {
   }
 
   withReceiver(Object receiver, {bool isNullAware: false}) {
-    if (receiver is TypeDeclarationBuilder) {
-      /// `SomeType?.toString` is the same as `SomeType.toString`, not
-      /// `(SomeType).toString`.
-      isNullAware = false;
-    }
     if (receiver is FastaAccessor) {
       return receiver.buildPropertyAccess(this, isNullAware);
     }
@@ -452,40 +456,9 @@ class SendAccessor extends IncompleteSend {
           isQualified: true, prefix: prefix);
       return helper.finishSend(receiver, arguments, offsetForToken(token));
     }
-    Expression result;
-    if (receiver is KernelClassBuilder) {
-      Builder builder = receiver.findStaticBuilder(
-          name.name, offsetForToken(token), uri, helper.library);
-      if (builder == null || builder is AccessErrorBuilder) {
-        return buildThrowNoSuchMethodError(arguments);
-      }
-      if (builder.hasProblem) {
-        result = helper.buildProblemExpression(builder, offsetForToken(token));
-      } else {
-        Member target = builder.target;
-        if (target != null) {
-          if (target is Field) {
-            result = helper.buildMethodInvocation(
-                new StaticGet(target),
-                callName,
-                arguments,
-                offsetForToken(token) + (target.name?.name?.length ?? 0),
-                isNullAware: isNullAware);
-          } else {
-            result = helper.buildStaticInvocation(target, arguments)
-              ..fileOffset = offsetForToken(token);
-          }
-        } else {
-          result = buildThrowNoSuchMethodError(arguments)
-            ..fileOffset = offsetForToken(token);
-        }
-      }
-    } else {
-      result = helper.buildMethodInvocation(
-          helper.toValue(receiver), name, arguments, offsetForToken(token),
-          isNullAware: isNullAware);
-    }
-    return result;
+    return helper.buildMethodInvocation(
+        helper.toValue(receiver), name, arguments, offsetForToken(token),
+        isNullAware: isNullAware);
   }
 
   Expression buildNullAwareAssignment(Expression value, DartType type,
@@ -531,12 +504,6 @@ class IncompletePropertyAccessor extends IncompleteSend {
   }
 
   withReceiver(Object receiver, {bool isNullAware: false}) {
-    if (receiver is TypeDeclarationBuilder) {
-      /// For reasons beyond comprehension, `SomeType?.toString` is the same as
-      /// `SomeType.toString`, not `(SomeType).toString`. WTAF!?!
-      //
-      isNullAware = false;
-    }
     if (receiver is FastaAccessor) {
       return receiver.buildPropertyAccess(this, isNullAware);
     }
@@ -545,26 +512,7 @@ class IncompletePropertyAccessor extends IncompleteSend {
       return helper.scopeLookup(prefix.exports, name.name, token,
           isQualified: true, prefix: prefix);
     }
-    if (receiver is KernelClassBuilder) {
-      Builder builder = receiver.findStaticBuilder(
-          name.name, offsetForToken(token), uri, helper.library);
-      if (builder == null) {
-        // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
-        return buildThrowNoSuchMethodError(new Arguments.empty(),
-            isGetter: true);
-      }
-      Builder setter;
-      if (builder.isSetter) {
-        setter = builder;
-      } else if (builder.isGetter) {
-        setter = receiver.findStaticBuilder(
-            name.name, offsetForToken(token), uri, helper.library,
-            isSetter: true);
-      } else if (builder.isField && !builder.isFinal) {
-        setter = builder;
-      }
-      return new StaticAccessor.fromBuilder(helper, builder, token, setter);
-    }
+
     return PropertyAccessor.make(
         helper, token, helper.toValue(receiver), name, null, null, isNullAware);
   }
@@ -866,6 +814,93 @@ class ParenthesizedExpression extends ReadOnlyAccessor {
   Expression makeInvalidWrite(Expression value) {
     return helper.buildCompileTimeError(
         "Can't assign to a parenthesized expression.", offsetForToken(token));
+  }
+}
+
+class TypeDeclarationAccessor extends ReadOnlyAccessor {
+  final TypeDeclarationBuilder declaration;
+
+  TypeDeclarationAccessor(BuilderHelper helper, this.declaration,
+      String plainNameForRead, Token token)
+      : super(helper, null, plainNameForRead, token);
+
+  Expression get expression {
+    if (super.expression == null) {
+      int offset = offsetForToken(token);
+      if (declaration is KernelInvalidTypeBuilder) {
+        KernelInvalidTypeBuilder declaration = this.declaration;
+        String message = declaration.message;
+        helper.library.addWarning(declaration.charOffset, message,
+            fileUri: declaration.fileUri);
+        helper.warning(message, offset);
+        super.expression = new Throw(
+            new StringLiteral(message)..fileOffset = offsetForToken(token))
+          ..fileOffset = offset;
+      } else {
+        super.expression =
+            new TypeLiteral(buildType(null, nonInstanceAccessIsError: true))
+              ..fileOffset = offsetForToken(token);
+      }
+    }
+    return super.expression;
+  }
+
+  Expression makeInvalidWrite(Expression value) {
+    return buildThrowNoSuchMethodError(
+        new Arguments(<Expression>[value])..fileOffset = value.fileOffset,
+        isSetter: true);
+  }
+
+  @override
+  buildPropertyAccess(IncompleteSend send, bool isNullAware) {
+    // `SomeType?.toString` is the same as `SomeType.toString`, not
+    // `(SomeType).toString`.
+    isNullAware = false;
+
+    Name name = send.name;
+    Arguments arguments = send.arguments;
+
+    if (declaration is KernelClassBuilder) {
+      KernelClassBuilder declaration = this.declaration;
+      Builder builder = declaration.findStaticBuilder(
+          name.name, offsetForToken(token), uri, helper.library);
+
+      FastaAccessor accessor;
+      if (builder == null) {
+        // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
+        accessor = new UnresolvedAccessor(helper, name, token);
+      } else {
+        Builder setter;
+        if (builder.isSetter) {
+          setter = builder;
+        } else if (builder.isGetter) {
+          setter = declaration.findStaticBuilder(
+              name.name, offsetForToken(token), uri, helper.library,
+              isSetter: true);
+        } else if (builder.isField && !builder.isFinal) {
+          setter = builder;
+        }
+        accessor =
+            new StaticAccessor.fromBuilder(helper, builder, send.token, setter);
+      }
+
+      return arguments == null
+          ? accessor
+          : accessor.doInvocation(offsetForToken(send.token), arguments);
+    } else {
+      return super.buildPropertyAccess(send, isNullAware);
+    }
+  }
+
+  DartType buildType(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    DartType type =
+        declaration.buildTypesWithBuiltArguments(helper.library, arguments);
+    if (type is TypeParameterType) {
+      return helper.validatedTypeVariableUse(
+          type, offsetForToken(token), nonInstanceAccessIsError);
+    }
+    return type;
   }
 }
 
