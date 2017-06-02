@@ -113,11 +113,6 @@ class IncrementalClassHierarchyTest extends _ClassHierarchyTest {
   }
 
   @failingTest
-  void test_getRankedSuperclasses() {
-    super.test_getRankedSuperclasses();
-  }
-
-  @failingTest
   void test_getTypeAsInstanceOf_generic_extends() {
     super.test_getTypeAsInstanceOf_generic_extends();
   }
