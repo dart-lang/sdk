@@ -560,12 +560,12 @@ abstract class Stream<T> {
    *
    * Returns a new stream where each element of this stream is replaced
    * by zero or more data events.
-   * The event values are proveded as an [Iterable] by a call to [convert]
+   * The event values are provided as an [Iterable] by a call to [convert]
    * with the element as argument, and the elements of that iterable is
    * emitted in iteration order.
-   * If calling [convert] throws, or if iteration of the returned values throws,
-   * the error is emitted on the returned stream and iteration ends for that
-   * element of this stream.
+   * If calling [convert] throws, or if the iteration of the returned values
+   * throws, the error is emitted on the returned stream and iteration ends
+   * for that element of this stream.
    *
    * Error events and the done event of this stream are forwarded directly
    * to the returned stream.
