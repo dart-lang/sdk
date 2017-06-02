@@ -10,6 +10,11 @@
 
 ### Tool Changes
 
+* Pub
+
+  * `pub get` and `pub upgrade` properly produce an error message and exit code
+    when no network is present.
+
 ## 1.24.0
 
 ### Language
@@ -142,9 +147,6 @@ entirely to allow inference to fill in the type.
 
     * Don't dump a stack trace when a network error occurs while fetching
       packages.
-
-    * Properly produce an error message and exit code when no network is
-      present.
 
 * dartfmt
     * Preserve type parameters in new generic function typedef syntax.
