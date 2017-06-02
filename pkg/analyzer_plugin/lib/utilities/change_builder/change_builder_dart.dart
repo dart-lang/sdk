@@ -186,8 +186,13 @@ abstract class DartEditBuilder extends EditBuilder {
   /**
    * Write the code for a list of [parameters], including the surrounding
    * parentheses.
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
    */
-  void writeParameters(Iterable<ParameterElement> parameters);
+  void writeParameters(Iterable<ParameterElement> parameters,
+      {ExecutableElement methodBeingCopied});
 
   /**
    * Write the code for a list of parameters that would match the given list of
@@ -198,8 +203,13 @@ abstract class DartEditBuilder extends EditBuilder {
   /**
    * Write the code for a single parameter with the given [type] and [name].
    * The [type] can be `null` if no type is to be specified for the parameter.
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
    */
-  void writeParameterSource(DartType type, String name);
+  void writeParameterSource(DartType type, String name,
+      {ExecutableElement methodBeingCopied});
 
   /**
    * Write the code for a type annotation for the given [type]. If the [type] is
@@ -212,10 +222,15 @@ abstract class DartEditBuilder extends EditBuilder {
    * name. If the [groupName] is not `null` and [addSupertypeProposals] is
    * `true`, then all of the supertypes of the [type] will be added as
    * suggestions for alternatives to the type name.
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
    */
   bool writeType(DartType type,
       {bool addSupertypeProposals: false,
       String groupName,
+      ExecutableElement methodBeingCopied,
       bool required: false});
 
   /**

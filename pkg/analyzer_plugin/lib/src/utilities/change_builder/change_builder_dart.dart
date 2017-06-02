@@ -219,8 +219,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(' ');
     }
     if (returnType != null) {
-      writeType(returnType, groupName: returnTypeGroupName);
-      write(' ');
+      if (writeType(returnType, groupName: returnTypeGroupName)) {
+        write(' ');
+      }
     }
     if (nameGroupName != null) {
       addLinkedEdit(nameGroupName, (LinkedEditBuilder builder) {
@@ -258,8 +259,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(' ');
     }
     if (returnType != null && !returnType.isDynamic) {
-      writeType(returnType, groupName: returnTypeGroupName);
-      write(' ');
+      if (writeType(returnType, groupName: returnTypeGroupName)) {
+        write(' ');
+      }
     }
     write(Keyword.GET.lexeme);
     write(' ');
@@ -296,7 +298,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     if (type != null) {
       if (!typeRequired) {
-        // The type is required unless we're written a keyword.
+        // The type is required unless we've written a keyword.
         write(' ');
       }
       writeType(type, groupName: typeGroupName);
@@ -339,9 +341,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     writeln('@override');
     write(prefix);
     // return type
-    bool shouldReturn =
-        writeType(member.type.returnType, groupName: returnTypeGroupName);
-    write(' ');
+    bool shouldReturn = writeType(member.type.returnType,
+        groupName: returnTypeGroupName, methodBeingCopied: member);
+    if (shouldReturn) {
+      write(' ');
+    }
     if (isGetter) {
       write(Keyword.GET.lexeme);
       write(' ');
@@ -359,7 +363,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       writeln(' => null;');
     } else {
       List<ParameterElement> parameters = member.parameters;
-      writeParameters(parameters);
+      writeParameters(parameters, methodBeingCopied: member);
       writeln(' {');
       // TO-DO
       write(prefix2);
@@ -399,7 +403,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeParameters(Iterable<ParameterElement> parameters) {
+  void writeParameters(Iterable<ParameterElement> parameters,
+      {ExecutableElement methodBeingCopied}) {
     write('(');
     bool sawNamed = false;
     bool sawPositional = false;
@@ -423,7 +428,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         }
       }
       // parameter
-      writeParameterSource(parameter.type, parameter.name);
+      writeParameterSource(parameter.type, parameter.name,
+          methodBeingCopied: methodBeingCopied);
       // default value
       String defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {
@@ -469,11 +475,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeParameterSource(DartType type, String name) {
+  void writeParameterSource(DartType type, String name,
+      {ExecutableElement methodBeingCopied}) {
     _EnclosingElementFinder finder = new _EnclosingElementFinder();
     finder.find(dartFileEditBuilder.unit, offset);
     String parameterSource = _getParameterSource(
-        type, name, finder.enclosingClass, finder.enclosingExecutable);
+        type, name, finder.enclosingClass, finder.enclosingExecutable,
+        methodBeingCopied: methodBeingCopied);
     write(parameterSource);
   }
 
@@ -481,12 +489,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   bool writeType(DartType type,
       {bool addSupertypeProposals: false,
       String groupName,
+      ExecutableElement methodBeingCopied,
       bool required: false}) {
     if (type != null && !type.isDynamic) {
       _EnclosingElementFinder finder = new _EnclosingElementFinder();
       finder.find(dartFileEditBuilder.unit, offset);
       String typeSource = _getTypeSource(
-          type, finder.enclosingClass, finder.enclosingExecutable);
+          type, finder.enclosingClass, finder.enclosingExecutable,
+          methodBeingCopied: methodBeingCopied);
       if (typeSource != 'dynamic') {
         if (groupName != null) {
           addLinkedEdit(groupName, (LinkedEditBuilder builder) {
@@ -535,7 +545,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   /**
    * Write the code for a comma-separated list of [types], optionally prefixed
-   * by a [prefix]. If the list of [types] is `null` or does not return any
+   * by a [prefix]. If the list of [types] is `null` or does not contain any
    * types, then nothing will be written.
    */
   void writeTypes(Iterable<DartType> types, {String prefix}) {
@@ -749,7 +759,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    * Return the source for the parameter with the given [type] and [name].
    */
   String _getParameterSource(DartType type, String name,
-      ClassElement enclosingClass, ExecutableElement enclosingExecutable) {
+      ClassElement enclosingClass, ExecutableElement enclosingExecutable,
+      {ExecutableElement methodBeingCopied}) {
     // no type
     if (type == null || type.isDynamic) {
       return name;
@@ -757,36 +768,43 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     // function type
     if (type is FunctionType && type.element.isSynthetic) {
       FunctionType functionType = type;
-      StringBuffer sb = new StringBuffer();
+      StringBuffer buffer = new StringBuffer();
       // return type
       DartType returnType = functionType.returnType;
       if (returnType != null && !returnType.isDynamic) {
-        String returnTypeSource =
-            _getTypeSource(returnType, enclosingClass, enclosingExecutable);
-        sb.write(returnTypeSource);
-        sb.write(' ');
+        String returnTypeSource = _getTypeSource(
+            returnType, enclosingClass, enclosingExecutable,
+            methodBeingCopied: methodBeingCopied);
+        if (returnTypeSource.isNotEmpty) {
+          buffer.write(returnTypeSource);
+          buffer.write(' ');
+        }
       }
       // parameter name
-      sb.write(name);
+      buffer.write(name);
       // parameters
-      sb.write('(');
+      buffer.write('(');
       List<ParameterElement> fParameters = functionType.parameters;
       for (int i = 0; i < fParameters.length; i++) {
         ParameterElement fParameter = fParameters[i];
         if (i != 0) {
-          sb.write(", ");
+          buffer.write(", ");
         }
-        sb.write(_getParameterSource(fParameter.type, fParameter.name,
+        buffer.write(_getParameterSource(fParameter.type, fParameter.name,
             enclosingClass, enclosingExecutable));
       }
-      sb.write(')');
+      buffer.write(')');
       // done
-      return sb.toString();
+      return buffer.toString();
     }
     // simple type
-    String typeSource =
-        _getTypeSource(type, enclosingClass, enclosingExecutable);
-    return '$typeSource $name';
+    String typeSource = _getTypeSource(
+        type, enclosingClass, enclosingExecutable,
+        methodBeingCopied: methodBeingCopied);
+    if (typeSource.isNotEmpty) {
+      return '$typeSource $name';
+    }
+    return name;
   }
 
   /**
@@ -797,21 +815,23 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    */
   String _getTypeSource(DartType type, ClassElement enclosingClass,
       ExecutableElement enclosingExecutable,
-      {StringBuffer parametersBuffer}) {
-    StringBuffer sb = new StringBuffer();
+      {ExecutableElement methodBeingCopied, StringBuffer parametersBuffer}) {
+    StringBuffer buffer = new StringBuffer();
     // type parameter
-    if (!_isTypeVisible(type, enclosingClass, enclosingExecutable)) {
+    if (!_isTypeVisible(type, enclosingClass, enclosingExecutable,
+        methodBeingCopied: methodBeingCopied)) {
       return 'dynamic';
     }
     // just a Function, not FunctionTypeAliasElement
     if (type is FunctionType && type.element is! FunctionTypeAliasElement) {
       if (parametersBuffer == null) {
-        return "Function";
+        return 'Function';
       }
       parametersBuffer.write('(');
       for (ParameterElement parameter in type.parameters) {
-        String parameterType =
-            _getTypeSource(parameter.type, enclosingClass, enclosingExecutable);
+        String parameterType = _getTypeSource(
+            parameter.type, enclosingClass, enclosingExecutable,
+            methodBeingCopied: methodBeingCopied);
         if (parametersBuffer.length != 1) {
           parametersBuffer.write(', ');
         }
@@ -821,7 +841,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
       parametersBuffer.write(')');
       return _getTypeSource(
-          type.returnType, enclosingClass, enclosingExecutable);
+          type.returnType, enclosingClass, enclosingExecutable,
+          methodBeingCopied: methodBeingCopied);
     }
     // <Bottom>, Null
     if (type.isBottom || type.isDartCoreNull) {
@@ -841,15 +862,15 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (definingLibrary != null && definingLibrary != importingLibrary) {
       // no source, if private
       if (element.isPrivate) {
-        return null;
+        return '';
       }
       // ensure import
       ImportElement importElement =
           _getImportElement(element, importingLibrary);
       if (importElement != null) {
         if (importElement.prefix != null) {
-          sb.write(importElement.prefix.displayName);
-          sb.write(".");
+          buffer.write(importElement.prefix.displayName);
+          buffer.write(".");
         }
       } else {
         importLibrary(definingLibrary.source);
@@ -857,7 +878,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     // append simple name
     String name = element.displayName;
-    sb.write(name);
+    buffer.write(name);
     // may be type arguments
     if (type is ParameterizedType) {
       List<DartType> arguments = type.typeArguments;
@@ -867,29 +888,31 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       for (DartType argument in arguments) {
         hasArguments = hasArguments || !argument.isDynamic;
         allArgumentsVisible = allArgumentsVisible &&
-            _isTypeVisible(argument, enclosingClass, enclosingExecutable);
+            _isTypeVisible(argument, enclosingClass, enclosingExecutable,
+                methodBeingCopied: methodBeingCopied);
       }
       // append type arguments
       if (hasArguments && allArgumentsVisible) {
-        sb.write("<");
+        buffer.write("<");
         for (int i = 0; i < arguments.length; i++) {
           DartType argument = arguments[i];
           if (i != 0) {
-            sb.write(", ");
+            buffer.write(", ");
           }
-          String argumentSrc =
-              _getTypeSource(argument, enclosingClass, enclosingExecutable);
+          String argumentSrc = _getTypeSource(
+              argument, enclosingClass, enclosingExecutable,
+              methodBeingCopied: methodBeingCopied);
           if (argumentSrc != null) {
-            sb.write(argumentSrc);
+            buffer.write(argumentSrc);
           } else {
             return null;
           }
         }
-        sb.write(">");
+        buffer.write(">");
       }
     }
     // done
-    return sb.toString();
+    return buffer.toString();
   }
 
   /**
@@ -936,15 +959,17 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    * [enclosingClass].
    */
   bool _isTypeVisible(DartType type, ClassElement enclosingClass,
-      ExecutableElement enclosingExecutable) {
+      ExecutableElement enclosingExecutable,
+      {ExecutableElement methodBeingCopied}) {
     if (type is TypeParameterType) {
       TypeParameterElement parameterElement = type.element;
       Element parameterParent = parameterElement.enclosingElement;
       // TODO(brianwilkerson) This needs to compare the parameterParent with
       // each of the parents of the enclosingElement. (That means that we only
       // need the most closely enclosing element.)
-      return identical(parameterParent, enclosingExecutable) ||
-          identical(parameterParent, enclosingClass);
+      return parameterParent == enclosingExecutable ||
+          parameterParent == enclosingClass ||
+          parameterParent == methodBeingCopied;
     }
     return true;
   }

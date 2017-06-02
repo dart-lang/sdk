@@ -3430,6 +3430,7 @@ int main() async {
 library main;
 
 import 'dart:async';
+
 Future<int> main() async {
 }
 ''');
