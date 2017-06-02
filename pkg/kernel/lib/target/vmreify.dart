@@ -27,7 +27,8 @@ class VmGenericTypesReifiedTarget extends vmcc_target.VmClosureConvertedTarget {
   }
 
   @override
-  void performGlobalTransformations(CoreTypes coreTypes, Program program) {
+  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+      {void logger(String msg)}) {
     super.performGlobalTransformations(coreTypes, program);
     // TODO(dmitryas) this transformation should be made modular
     reify.transformProgram(coreTypes, program);

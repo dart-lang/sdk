@@ -51,12 +51,14 @@ class FlutterTarget extends Target {
         'dart:vmservice_sky',
       ];
 
-  void performModularTransformations(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, Program program) {
-    mix.transformLibraries(this, coreTypes, hierarchy, program.libraries);
+  void performModularTransformationsOnLibraries(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+      {void logger(String msg)}) {
+    mix.transformLibraries(this, coreTypes, hierarchy, libraries);
   }
 
-  void performGlobalTransformations(CoreTypes coreTypes, Program program) {
+  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+      {void logger(String msg)}) {
     cont.transformProgram(coreTypes, program);
 
     // Repair `_getMainClosure()` function in dart:{_builtin,ui} libraries.

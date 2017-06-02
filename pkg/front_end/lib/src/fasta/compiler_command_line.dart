@@ -91,7 +91,7 @@ class CompilerCommandLine extends CommandLine {
   bool get strongMode => options.containsKey("--strong-mode");
 
   String get target {
-    return options["-t"] ?? options["--target"] ?? "vm";
+    return options["-t"] ?? options["--target"] ?? "vm_fasta";
   }
 
   static dynamic withGlobalOptions(String programName, List<String> arguments,

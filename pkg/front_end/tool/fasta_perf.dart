@@ -214,7 +214,7 @@ generateKernel(Uri entryUri,
 
   var timer = new Stopwatch()..start();
   final Ticker ticker = new Ticker();
-  final DillTarget dillTarget = new DillTarget(ticker, uriResolver, "vm");
+  final DillTarget dillTarget = new DillTarget(ticker, uriResolver, "vm_fasta");
   final KernelTarget kernelTarget = new KernelTarget(
       PhysicalFileSystem.instance, dillTarget, uriResolver, strongMode);
   var entrypoints = [

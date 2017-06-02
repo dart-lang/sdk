@@ -56,15 +56,17 @@ class VmTarget extends Target {
 
   ClassHierarchy _hierarchy;
 
-  void performModularTransformations(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, Program program) {
+  void performModularTransformationsOnLibraries(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+      {void logger(String msg)}) {
     var mixins = new mix.MixinFullResolution(this, coreTypes, hierarchy)
-      ..transform(program.libraries);
+      ..transform(libraries);
 
     _hierarchy = mixins.hierarchy;
   }
 
-  void performGlobalTransformations(CoreTypes coreTypes, Program program) {
+  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+      {void logger(String msg)}) {
     if (strongMode) {
       new InsertTypeChecks(coreTypes, _hierarchy).transformProgram(program);
       new InsertCovarianceChecks(coreTypes, _hierarchy)

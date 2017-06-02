@@ -216,7 +216,8 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     CompilerContext.current.disableColors();
     Program platformOutline = await context.loadPlatformOutline();
     Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator, "vm");
+    DillTarget dillTarget =
+        new DillTarget(ticker, context.uriTranslator, "vm_fasta");
     platformOutline.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platformOutline);
     // We create a new URI translator to avoid reading plaform libraries from
