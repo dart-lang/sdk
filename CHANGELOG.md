@@ -140,9 +140,8 @@ entirely to allow inference to fill in the type.
 
   * `pub get` and `pub upgrade`
 
-    * Better handling for network errors when fetching packages. These are no
-      longer unhandled errors and won't print a stack trace unless you are
-      running in verbose mode.
+    * Don't dump a stack trace when a network error occurs while fetching
+      packages.
 
     * Properly produce an error message and exit code when no network is
       present.
