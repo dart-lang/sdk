@@ -4,6 +4,9 @@
 
 // test w/ `pub run test -N prefer_asserts_in_initializer_list`
 
+get tla => null;
+tlm() => null;
+
 class A {
   var f;
   get g => null;
@@ -48,13 +51,48 @@ class A {
   // no lint if method is call on other objet
   A.c9({f}) : f = f ?? 'f' {
     assert(f != null); // LINT
-    assert(f.toString() != null); // LINT
-    assert(f.toString().toString() != null); // LINT
+    assert(f.m1() != null); // LINT
+    assert(f.m1().m2() != null); // LINT
   }
   A.c10({this.f}) {
     assert(f != null); // LINT
   }
   factory A.c11({f}) {
     assert(f != null); // OK
+  }
+  // lint for call of top level member
+  A.c12() {
+    assert(tla != null); // LINT
+    assert(tlm() != null); // LINT
+  }
+
+  // lint for call of static member
+  static get sa => null;
+  static sm() => null;
+  A.c13() {
+    assert(sa != null); // LINT
+    assert(sm() != null); // LINT
+  }
+}
+
+// no lint for super class attributs
+class B {
+  var a;
+  get b => null;
+}
+class C extends B {
+  C() {
+    assert(a != null); // OK
+    assert(b != null); // OK
+  }
+}
+
+// no lint for mixin attributs
+class Mixin {
+  var a;
+}
+class D extends Object with Mixin {
+  D() {
+    assert(a != null); // OK
   }
 }

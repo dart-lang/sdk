@@ -84,15 +84,17 @@ class _AssertVisitor extends RecursiveAstVisitor {
   visitSimpleIdentifier(SimpleIdentifier node) {
     final element = node.staticElement;
 
-    // exit if not an identifier of the current class
-    if (element?.enclosingElement != classElement) return;
-
     // use method
-    needInstance = needInstance || element is MethodElement;
+    needInstance = needInstance ||
+        element is MethodElement &&
+            !element.isStatic &&
+            classElement.type.lookUpInheritedMethod(element.name) == element;
 
     // use property accessor not used as field formal parameter
     needInstance = needInstance ||
         element is PropertyAccessorElement &&
+            !element.isStatic &&
+            classElement.type.lookUpInheritedGetter(element.name) == element &&
             !constructorElement.parameters
                 .where((p) => p is FieldFormalParameterElement)
                 .any((p) =>
