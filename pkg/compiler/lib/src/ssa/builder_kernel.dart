@@ -475,8 +475,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           builtArguments.add(pop());
         } else {
           var constantValue = constants.getConstantValue(element.constant);
-          assert(invariant(element, constantValue != null,
-              message: 'No constant computed for $element'));
+          assert(constantValue != null,
+              failedAt(element, 'No constant computed for $element'));
           builtArguments.add(graph.addConstant(constantValue, closedWorld));
         }
       });
@@ -490,8 +490,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           builtArguments.add(pop());
         } else {
           var constantValue = constants.getConstantValue(element.constant);
-          assert(invariant(element, constantValue != null,
-              message: 'No constant computed for $element'));
+          assert(constantValue != null,
+              failedAt(element, 'No constant computed for $element'));
           builtArguments.add(graph.addConstant(constantValue, closedWorld));
         }
       });
@@ -1101,9 +1101,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // The new object will now be referenced through the
     // `setRuntimeTypeInfo` call. We therefore set the type of that
     // instruction to be of the object's type.
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE,
+    assert(
         stack.last is HInvokeStatic || stack.last == newObject,
-        message: "Unexpected `stack.last`: Found ${stack.last}, "
+        failedAt(
+            CURRENT_ELEMENT_SPANNABLE,
+            "Unexpected `stack.last`: Found ${stack.last}, "
             "expected ${newObject} or an HInvokeStatic. "
             "State: typeInfo=$typeInfo, stack=$stack."));
     stack.last.instructionType = newObject.instructionType;
@@ -1734,9 +1736,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       caseHandlers.add(locals);
     });
     jumpHandler.forEachContinue((HContinue instruction, LocalsHandler locals) {
-      assert(invariant(
-          _elementMap.getSpannable(targetElement, switchStatement), false,
-          message: 'Continue cannot target a switch.'));
+      assert(
+          false,
+          failedAt(_elementMap.getSpannable(targetElement, switchStatement),
+              'Continue cannot target a switch.'));
     });
     if (!isAborted()) {
       current.close(new HGoto());
@@ -2564,9 +2567,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     native.NativeBehavior nativeBehavior =
         _elementMap.getNativeBehaviorForJsEmbeddedGlobalCall(invocation);
-    assert(invariant(_elementMap.getSpannable(targetElement, invocation),
+    assert(
         nativeBehavior != null,
-        message: "No NativeBehavior for $invocation"));
+        failedAt(_elementMap.getSpannable(targetElement, invocation),
+            "No NativeBehavior for $invocation"));
 
     TypeMask ssaType =
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
@@ -2609,9 +2613,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     native.NativeBehavior nativeBehavior =
         _elementMap.getNativeBehaviorForJsBuiltinCall(invocation);
-    assert(invariant(_elementMap.getSpannable(targetElement, invocation),
+    assert(
         nativeBehavior != null,
-        message: "No NativeBehavior for $invocation"));
+        failedAt(_elementMap.getSpannable(targetElement, invocation),
+            "No NativeBehavior for $invocation"));
 
     TypeMask ssaType =
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
@@ -2677,9 +2682,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     native.NativeBehavior nativeBehavior =
         _elementMap.getNativeBehaviorForJsCall(invocation);
-    assert(invariant(_elementMap.getSpannable(targetElement, invocation),
+    assert(
         nativeBehavior != null,
-        message: "No NativeBehavior for $invocation"));
+        failedAt(_elementMap.getSpannable(targetElement, invocation),
+            "No NativeBehavior for $invocation"));
 
     List<HInstruction> inputs = <HInstruction>[];
     for (ir.Expression argument in invocation.arguments.positional.skip(2)) {

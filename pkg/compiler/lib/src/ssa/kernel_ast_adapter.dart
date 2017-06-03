@@ -157,8 +157,8 @@ class KernelAstAdapter extends KernelToElementMapMixin
   // TODO(johnniwinther): Use the more precise functions below.
   Element getElement(ir.Node node) {
     Element result = _nodeToElement[node];
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE, result != null,
-        message: "No element found for $node."));
+    assert(result != null,
+        failedAt(CURRENT_ELEMENT_SPANNABLE, "No element found for $node."));
     return result;
   }
 
@@ -193,8 +193,8 @@ class KernelAstAdapter extends KernelToElementMapMixin
 
   ast.Node getNode(ir.Node node) {
     ast.Node result = _nodeToAst[node];
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE, result != null,
-        message: "No node found for $node"));
+    assert(result != null,
+        failedAt(CURRENT_ELEMENT_SPANNABLE, "No node found for $node"));
     return result;
   }
 
@@ -203,9 +203,10 @@ class KernelAstAdapter extends KernelToElementMapMixin
   }
 
   void assertNodeIsSynthetic(ir.Node node) {
-    assert(invariant(
-        CURRENT_ELEMENT_SPANNABLE, kernel.syntheticNodes.contains(node),
-        message: "No synthetic marker found for $node"));
+    assert(
+        kernel.syntheticNodes.contains(node),
+        failedAt(
+            CURRENT_ELEMENT_SPANNABLE, "No synthetic marker found for $node"));
   }
 
   @override

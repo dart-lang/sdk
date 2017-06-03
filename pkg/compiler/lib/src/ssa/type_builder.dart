@@ -166,14 +166,15 @@ class TypeBuilder {
   /// This should only be called in assertions.
   bool assertTypeInContext(ResolutionDartType type, [Spannable spannable]) {
     if (builder.compiler.options.useKernel) return true;
-    return invariant(spannable == null ? CURRENT_ELEMENT_SPANNABLE : spannable,
-        () {
-      ClassElement contextClass = DartTypes.getClassContext(type);
-      return contextClass == null ||
-          contextClass == builder.localsHandler.contextClass;
-    },
-        message: "Type '$type' is not valid context of "
-            "${builder.localsHandler.contextClass}.");
+    ClassElement contextClass = DartTypes.getClassContext(type);
+    assert(
+        contextClass == null ||
+            contextClass == builder.localsHandler.contextClass,
+        failedAt(
+            spannable ?? CURRENT_ELEMENT_SPANNABLE,
+            "Type '$type' is not valid context of "
+            "${builder.localsHandler.contextClass}."));
+    return true;
   }
 
   HInstruction analyzeTypeArgument(

@@ -87,12 +87,13 @@ abstract class SsaAstBuilderBase extends CompilerTask
             return true;
           }
         } else {
-          assert(invariant(
-              field,
+          assert(
               field.isInstanceMember ||
                   constant.isImplicit ||
                   constant.isPotential,
-              message: "Constant expression without value: "
+              failedAt(
+                  field,
+                  "Constant expression without value: "
                   "${constant.toStructuredText()}."));
         }
       } else {
@@ -325,7 +326,7 @@ class SsaBuilder extends ast.Visitor
 
   /// Build the graph for [target].
   HGraph build() {
-    assert(invariant(target, target.isImplementation));
+    assert(target.isImplementation, failedAt(target));
     HInstruction.idCounter = 0;
     // TODO(sigmund): remove `result` and return graph directly, need to ensure
     // that it can never be null (see result in buildFactory for instance).
@@ -364,7 +365,7 @@ class SsaBuilder extends ast.Visitor
       Selector selector,
       List<HInstruction> providedArguments,
       ast.Node currentNode) {
-    assert(invariant(function, function.isImplementation));
+    assert(function.isImplementation, failedAt(function));
     assert(providedArguments != null);
 
     bool isInstanceMember = function.isInstanceMember;
@@ -485,12 +486,12 @@ class SsaBuilder extends ast.Visitor
     bool meetsHardConstraints() {
       if (options.disableInlining) return false;
 
-      assert(invariant(
-          currentNode != null ? currentNode : function,
+      assert(
           selector != null ||
               Elements.isStaticOrTopLevel(function) ||
               function.isGenerativeConstructorBody,
-          message: "Missing selector for inlining of $function."));
+          failedAt(currentNode ?? function,
+              "Missing selector for inlining of $function."));
       if (selector != null) {
         if (!selector.applies(function)) return false;
         if (mask != null && !mask.canHit(function, selector, closedWorld)) {
@@ -684,8 +685,8 @@ class SsaBuilder extends ast.Visitor
   HInstruction handleConstantForOptionalParameter(ParameterElement parameter) {
     ConstantValue constantValue =
         constants.getConstantValue(parameter.constant);
-    assert(invariant(parameter, constantValue != null,
-        message: 'No constant computed for $parameter'));
+    assert(constantValue != null,
+        failedAt(parameter, 'No constant computed for $parameter'));
     return graph.addConstant(constantValue, closedWorld);
   }
 
@@ -717,8 +718,8 @@ class SsaBuilder extends ast.Visitor
   ConstantValue getConstantForNode(ast.Node node) {
     ConstantValue constantValue =
         constants.getConstantValueForNode(node, elements);
-    assert(invariant(node, constantValue != null,
-        message: 'No constant computed for $node'));
+    assert(constantValue != null,
+        failedAt(node, 'No constant computed for $node'));
     return constantValue;
   }
 
@@ -732,7 +733,7 @@ class SsaBuilder extends ast.Visitor
    * Invariant: [functionElement] must be an implementation element.
    */
   HGraph buildMethod(MethodElement functionElement) {
-    assert(invariant(functionElement, functionElement.isImplementation));
+    assert(functionElement.isImplementation, failedAt(functionElement));
     graph.calledInLoop =
         closedWorld.isCalledInLoop(functionElement.declaration);
     ast.FunctionExpression function = resolvedAst.node;
@@ -748,7 +749,7 @@ class SsaBuilder extends ast.Visitor
           value, sourceInformationBuilder.buildReturn(functionElement.node)));
       return closeFunction();
     }
-    assert(invariant(functionElement, !function.modifiers.isExternal));
+    assert(!function.modifiers.isExternal, failedAt(functionElement));
 
     // If [functionElement] is `operator==` we explicitly add a null check at
     // the beginning of the method. This is to avoid having call sites do the
@@ -817,13 +818,15 @@ class SsaBuilder extends ast.Visitor
   }
 
   HGraph buildLazyInitializer(FieldElement variable) {
-    assert(invariant(variable, resolvedAst.element == variable,
-        message: "Unexpected variable $variable for $resolvedAst."));
+    assert(resolvedAst.element == variable,
+        failedAt(variable, "Unexpected variable $variable for $resolvedAst."));
     inLazyInitializerExpression = true;
     ast.VariableDefinitions node = resolvedAst.node;
     ast.Node initializer = resolvedAst.body;
-    assert(invariant(variable, initializer != null,
-        message: "Non-constant variable $variable has no initializer."));
+    assert(
+        initializer != null,
+        failedAt(
+            variable, "Non-constant variable $variable has no initializer."));
     openFunction(variable, node);
     visit(initializer);
     HInstruction value = pop();
@@ -1046,9 +1049,10 @@ class SsaBuilder extends ast.Visitor
       ConstructorElement constructor,
       List<ResolvedAst> constructorResolvedAsts,
       Map<Element, HInstruction> fieldValues) {
-    assert(invariant(
-        constructor, resolvedAst.element == constructor.declaration,
-        message: "Expected ResolvedAst for $constructor, found $resolvedAst"));
+    assert(
+        resolvedAst.element == constructor.declaration,
+        failedAt(constructor,
+            "Expected ResolvedAst for $constructor, found $resolvedAst"));
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
       buildParsedInitializers(
           constructor, constructorResolvedAsts, fieldValues);
@@ -1062,8 +1066,10 @@ class SsaBuilder extends ast.Visitor
       ConstructorElement constructor,
       List<ResolvedAst> constructorResolvedAsts,
       Map<Element, HInstruction> fieldValues) {
-    assert(invariant(constructor, constructor.isSynthesized,
-        message: "Unexpected unsynthesized constructor: $constructor"));
+    assert(
+        constructor.isSynthesized,
+        failedAt(
+            constructor, "Unexpected unsynthesized constructor: $constructor"));
     List<HInstruction> arguments = <HInstruction>[];
     HInstruction compileArgument(ParameterElement parameter) {
       return localsHandler.readLocal(parameter);
@@ -1107,10 +1113,12 @@ class SsaBuilder extends ast.Visitor
       List<ResolvedAst> constructorResolvedAsts,
       Map<Element, HInstruction> fieldValues) {
     assert(
-        invariant(constructor, resolvedAst.element == constructor.declaration));
-    assert(invariant(constructor, constructor.isImplementation));
-    assert(invariant(constructor, !constructor.isSynthesized,
-        message: "Unexpected synthesized constructor: $constructor"));
+        resolvedAst.element == constructor.declaration, failedAt(constructor));
+    assert(constructor.isImplementation, failedAt(constructor));
+    assert(
+        !constructor.isSynthesized,
+        failedAt(
+            constructor, "Unexpected synthesized constructor: $constructor"));
     ast.FunctionExpression functionNode = resolvedAst.node;
 
     bool foundSuperOrRedirect = false;
@@ -1184,7 +1192,7 @@ class SsaBuilder extends ast.Visitor
    */
   void buildFieldInitializers(
       ClassElement classElement, Map<Element, HInstruction> fieldValues) {
-    assert(invariant(classElement, classElement.isImplementation));
+    assert(classElement.isImplementation, failedAt(classElement));
     classElement.forEachInstanceField(
         (ClassElement enclosingClass, FieldElement member) {
       if (compiler.elementHasCompileTimeError(member)) return;
@@ -1279,8 +1287,8 @@ class SsaBuilder extends ast.Visitor
       if (value == null) {
         // Uninitialized native fields are pre-initialized by the native
         // implementation.
-        assert(invariant(
-            member, isNativeUpgradeFactory || reporter.hasReportedError));
+        assert(isNativeUpgradeFactory || reporter.hasReportedError,
+            failedAt(member));
       } else {
         fields.add(member);
         ResolutionDartType type = localsHandler.substInContext(member.type);
@@ -1428,7 +1436,7 @@ class SsaBuilder extends ast.Visitor
    * Invariant: [functionElement] must be the implementation element.
    */
   void openFunction(MemberElement element, ast.Node node) {
-    assert(invariant(element, element.isImplementation));
+    assert(element.isImplementation, failedAt(element));
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
 
@@ -2125,7 +2133,7 @@ class SsaBuilder extends ast.Visitor
       handleInvalidStaticGet(node, element);
     } else {
       // This happens when [element] has parse errors.
-      assert(invariant(node, element == null || element.isMalformed));
+      assert(element == null || element.isMalformed, failedAt(node));
       // TODO(ahe): Do something like the above, that is, emit a runtime
       // error.
       stack.add(graph.addConstantNull(closedWorld));
@@ -2318,9 +2326,11 @@ class SsaBuilder extends ast.Visitor
   void generateInstanceSetterWithCompiledReceiver(
       ast.Send send, HInstruction receiver, HInstruction value,
       {Selector selector, TypeMask mask, ast.Node location}) {
-    assert(invariant(send == null ? location : send,
+    assert(
         send == null || Elements.isInstanceSend(send, elements),
-        message: "Unexpected instance setter"
+        failedAt(
+            send ?? location,
+            "Unexpected instance setter"
             "${send != null ? " element: ${elements[send]}" : ""}"));
     if (selector == null) {
       assert(send != null);
@@ -2355,9 +2365,8 @@ class SsaBuilder extends ast.Visitor
       assert(send != null);
       location = send;
     }
-    assert(invariant(
-        location, send == null || !Elements.isInstanceSend(send, elements),
-        message: "Unexpected non instance setter: $element."));
+    assert(send == null || !Elements.isInstanceSend(send, elements),
+        failedAt(location, "Unexpected non instance setter: $element."));
     if (Elements.isStaticOrTopLevelField(element)) {
       if (element.isSetter) {
         pushInvokeStatic(location, element, <HInstruction>[value]);
@@ -2548,7 +2557,7 @@ class SsaBuilder extends ast.Visitor
    */
   List<HInstruction> makeStaticArgumentList(CallStructure callStructure,
       Link<ast.Node> arguments, MethodElement element) {
-    assert(invariant(element, element.isDeclaration));
+    assert(element.isDeclaration, failedAt(element));
 
     HInstruction compileArgument(ast.Node argument) {
       visit(argument);
@@ -2677,8 +2686,8 @@ class SsaBuilder extends ast.Visitor
           node.argumentsNode, 'At least two arguments expected.');
     }
     native.NativeBehavior nativeBehavior = elements.getNativeData(node);
-    assert(invariant(node, nativeBehavior != null,
-        message: "No NativeBehavior for $node"));
+    assert(
+        nativeBehavior != null, failedAt(node, "No NativeBehavior for $node"));
 
     List<HInstruction> inputs = <HInstruction>[];
     addGenericSendArgumentsToList(link.tail.tail, inputs);
@@ -2840,8 +2849,8 @@ class SsaBuilder extends ast.Visitor
     }
 
     native.NativeBehavior nativeBehavior = elements.getNativeData(node);
-    assert(invariant(node, nativeBehavior != null,
-        message: "No NativeBehavior for $node"));
+    assert(
+        nativeBehavior != null, failedAt(node, "No NativeBehavior for $node"));
 
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
@@ -2886,8 +2895,8 @@ class SsaBuilder extends ast.Visitor
     js.Template expr = js.js.expressionTemplateYielding(
         emitter.generateEmbeddedGlobalAccess(globalName));
     native.NativeBehavior nativeBehavior = elements.getNativeData(node);
-    assert(invariant(node, nativeBehavior != null,
-        message: "No NativeBehavior for $node"));
+    assert(
+        nativeBehavior != null, failedAt(node, "No NativeBehavior for $node"));
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
     push(new HForeignCode(expr, ssaType, const [],
@@ -3040,7 +3049,9 @@ class SsaBuilder extends ast.Visitor
   generateDeferredLoaderGet(ast.Send node, FunctionElement deferredLoader,
       SourceInformation sourceInformation) {
     // Until now we only handle these as getters.
-    invariant(node, deferredLoader.isDeferredLoaderGetter);
+    if (!deferredLoader.isDeferredLoaderGetter) {
+      failedAt(node);
+    }
     FunctionEntity loadFunction = commonElements.loadLibraryWrapper;
     PrefixElement prefixElement = deferredLoader.enclosingElement;
     String loadId = deferredLoadTask.getImportDeferName(node, prefixElement);
@@ -3115,8 +3126,8 @@ class SsaBuilder extends ast.Visitor
     // calling [makeStaticArgumentList].
     Selector selector = elements.getSelector(node);
     MethodElement implementation = method.implementation;
-    assert(invariant(node, selector.applies(implementation),
-        message: "$selector does not apply to ${implementation}"));
+    assert(selector.applies(implementation),
+        failedAt(node, "$selector does not apply to ${implementation}"));
     List<HInstruction> inputs =
         makeStaticArgumentList(selector.callStructure, node.arguments, method);
     push(buildInvokeSuper(selector, method, inputs, sourceInformation));
@@ -3315,9 +3326,11 @@ class SsaBuilder extends ast.Visitor
     // The new object will now be referenced through the
     // `setRuntimeTypeInfo` call. We therefore set the type of that
     // instruction to be of the object's type.
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE,
+    assert(
         stack.last is HInvokeStatic || stack.last == newObject,
-        message: "Unexpected `stack.last`: Found ${stack.last}, "
+        failedAt(
+            CURRENT_ELEMENT_SPANNABLE,
+            "Unexpected `stack.last`: Found ${stack.last}, "
             "expected ${newObject} or an HInvokeStatic. "
             "State: typeInfo=$typeInfo, stack=$stack."));
     stack.last.instructionType = newObject.instructionType;
@@ -3385,12 +3398,12 @@ class SsaBuilder extends ast.Visitor
 
     if (isSymbolConstructor) {
       constructor = commonElements.symbolValidatedConstructor;
-      assert(invariant(send, constructor != null,
-          message: 'Constructor Symbol.validated is missing'));
+      assert(constructor != null,
+          failedAt(send, 'Constructor Symbol.validated is missing'));
       callStructure =
           commonElements.symbolValidatedConstructorSelector.callStructure;
-      assert(invariant(send, callStructure != null,
-          message: 'Constructor Symbol.validated is missing'));
+      assert(callStructure != null,
+          failedAt(send, 'Constructor Symbol.validated is missing'));
     }
 
     bool isRedirected = constructorDeclaration.isRedirectingFactory;
@@ -6065,8 +6078,7 @@ class SsaBuilder extends ast.Visitor
       caseHandlers.add(locals);
     });
     jumpHandler.forEachContinue((HContinue instruction, LocalsHandler locals) {
-      assert(invariant(errorNode, false,
-          message: 'Continue cannot target a switch.'));
+      assert(false, failedAt(errorNode, 'Continue cannot target a switch.'));
     });
     if (!isAborted()) {
       current.close(new HGoto());

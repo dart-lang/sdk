@@ -202,8 +202,8 @@ class LocalsHandler {
   /// Invariant: [function] must be an implementation element.
   void startFunction(MemberEntity element, ast.Node node,
       {bool isGenerativeConstructorBody}) {
-    assert(invariant(
-        element, !(element is MemberElement && !element.isImplementation)));
+    assert(!(element is MemberElement && !element.isImplementation),
+        failedAt(element));
     closureData = _closureToClassMapper.getMemberMap(element);
 
     if (element is MethodElement) {
@@ -387,9 +387,10 @@ class LocalsHandler {
     // the other one would not know it is just a copy of the real
     // parameter.
     if (local is ParameterElement) {
-      assert(invariant(local, builder.parameters.containsKey(local),
-          message: "No local value for parameter $local in "
-              "${builder.parameters}."));
+      assert(
+          builder.parameters.containsKey(local),
+          failedAt(local,
+              "No local value for parameter $local in ${builder.parameters}."));
       return builder.parameters[local];
     }
 
