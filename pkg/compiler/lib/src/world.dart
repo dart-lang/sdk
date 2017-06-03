@@ -1171,19 +1171,17 @@ class ClosedWorldImpl extends ClosedWorldBase {
   bool _checkEntity(Element element) => element.isDeclaration;
 
   bool _checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
-    return invariant(cls, cls.isDeclaration,
-                message: '$cls must be the declaration.') &&
-            invariant(cls, cls.isResolved,
-                message:
-                    '$cls must be resolved.') /* &&
-      // TODO(johnniwinther): Reinsert this or similar invariant. Currently
-      // various call sites use uninstantiated classes for isSubtypeOf or
-      // isSubclassOf. Some are valid, some are not. Work out better invariants
-      // to catch the latter.
-      (!mustBeInstantiated ||
-       invariant(cls, isInstantiated(cls),
-                 message: '$cls is not instantiated.'))*/
-        ;
+    assert(cls.isDeclaration, failedAt(cls, '$cls must be the declaration.'));
+    assert(cls.isResolved, failedAt(cls, '$cls must be resolved.'));
+
+    // TODO(johnniwinther): Reinsert this or similar invariant. Currently
+    // various call sites use uninstantiated classes for isSubtypeOf or
+    // isSubclassOf. Some are valid, some are not. Work out better invariants
+    // to catch the latter.
+    // if (mustBeInstantiated) {
+    //  assert(isInstantiated(cls), failedAt(cls, '$cls is not instantiated.'));
+    // }
+    return true;
   }
 
   OrderedTypeSet _getOrderedTypeSet(ClassElement cls) =>

@@ -148,8 +148,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
         computeInlineFunctionType(
             link.head.asSend().selector.asFunctionExpression());
       } else {
-        assert(invariant(currentDefinitions,
-            link.head.asIdentifier() != null || link.head.asSend() != null));
+        assert(link.head.asIdentifier() != null || link.head.asSend() != null,
+            failedAt(currentDefinitions));
         if (fieldElement != null) {
           element.typeCache = fieldElement.computeType(resolution);
         } else {
@@ -365,7 +365,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
           // reported. In the case of parse errors, it is possible that there
           // are formal parameters, but something else in the method failed to
           // parse. So we suppress the message about missing formals.
-          assert(invariant(element, reporter.hasReportedError));
+          assert(reporter.hasReportedError, failedAt(element));
         } else {
           reporter.reportErrorMessage(element, MessageKind.MISSING_FORMALS);
         }

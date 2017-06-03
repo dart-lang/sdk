@@ -513,8 +513,8 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
     }
     FunctionEntity function = elementEnvironment.lookupClassMember(
         commonElements.objectClass, Identifiers.noSuchMethod_);
-    assert(invariant(cls, function != null,
-        message: "No super noSuchMethod found for class $cls."));
+    assert(function != null,
+        failedAt(cls, "No super noSuchMethod found for class $cls."));
     return function;
   }
 }

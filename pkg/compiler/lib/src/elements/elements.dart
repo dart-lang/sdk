@@ -811,8 +811,11 @@ class Elements {
       ConstructorElement callee,
       T compileArgument(ParameterElement element),
       T compileConstant(ParameterElement element)) {
-    assert(invariant(caller, !callee.isMalformed,
-        message: "Cannot compute arguments to malformed constructor: "
+    assert(
+        !callee.isMalformed,
+        failedAt(
+            caller,
+            "Cannot compute arguments to malformed constructor: "
             "$caller calling $callee."));
 
     FunctionSignature signature = caller.functionSignature;

@@ -788,8 +788,8 @@ class ElementListener extends Listener {
   }
 
   void pushElement(ElementX element) {
-    assert(invariant(element, element.declarationSite != null,
-        message: 'Missing declaration site for $element.'));
+    assert(element.declarationSite != null,
+        failedAt(element, 'Missing declaration site for $element.'));
     popMetadata(element);
     compilationUnitElement.addMember(element, reporter);
   }
