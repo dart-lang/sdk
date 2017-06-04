@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -44,8 +45,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
    * A list of code completion performance measurements for the latest
    * completion operation up to [performanceListMaxLength] measurements.
    */
-  final List<CompletionPerformance> performanceList =
-      new List<CompletionPerformance>();
+  final RecentBuffer<CompletionPerformance> performanceList =
+      new RecentBuffer<CompletionPerformance>(performanceListMaxLength);
 
   /**
    * Performance for the last priority change event.
@@ -248,9 +249,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       return;
     }
     performance.setContentsAndOffset(content, offset);
-    while (performanceList.length >= performanceListMaxLength) {
-      performanceList.removeAt(0);
-    }
     performanceList.add(performance);
   }
 

@@ -323,9 +323,18 @@ class FeedbackPage extends DiagnosticPage {
       'what you think the expected behavior should have been',
     ], (line) => buf.writeln(line));
 
+    List<String> ideInfo = [];
+    if (server.options.clientId != null) {
+      ideInfo.add(server.options.clientId);
+    }
+    if (server.options.clientVersion != null) {
+      ideInfo.add(server.options.clientVersion);
+    }
+    String ideText = ideInfo.map((str) => '<code>$str</code>').join(', ');
+
     p('Other data to include:');
     ul([
-      "the IDE you are using and it's version",
+      "the IDE you are using and it's version${ideText.isEmpty ? '' : ' ($ideText)'}",
       'the Dart SDK version (<code>${escape(_sdkVersion)}</code>)',
       'your operating system (<code>${escape(Platform.operatingSystem)}</code>)',
     ], (line) => buf.writeln(line));
@@ -809,12 +818,12 @@ class CompletionPage extends DiagnosticPageWithNav {
 
   @override
   void generateContent(Map<String, String> params) {
-    CompletionDomainHandler domain = server.handlers.firstWhere(
+    CompletionDomainHandler completionDomain = server.handlers.firstWhere(
         (handler) => handler is CompletionDomainHandler,
         orElse: () => null);
 
-    List<CompletionPerformance> completions = domain.performanceList.toList();
-    completions.sort((a, b) => b.start.compareTo(a.start));
+    List<CompletionPerformance> completions =
+        completionDomain.performanceList.items.toList();
 
     if (completions.isEmpty) {
       blankslate('No completions recorded.');

@@ -1927,6 +1927,10 @@ class AnalysisServerOptions {
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
+
+  String clientId;
+  String clientVersion;
+
   // IDE options
   bool enableVerboseFlutterCompletions = false;
 }
