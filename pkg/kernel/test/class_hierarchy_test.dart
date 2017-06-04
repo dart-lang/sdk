@@ -46,16 +46,6 @@ class IncrementalClassHierarchyTest extends _ClassHierarchyTest {
   void test_forEachOverridePair_thisOverridesSupertype_setter() {
     super.test_forEachOverridePair_thisOverridesSupertype_setter();
   }
-
-  @failingTest
-  void test_getInterfaceMember_extends() {
-    super.test_getInterfaceMember_extends();
-  }
-
-  @failingTest
-  void test_getInterfaceMember_implements() {
-    super.test_getInterfaceMember_implements();
-  }
 }
 
 abstract class _ClassHierarchyTest {

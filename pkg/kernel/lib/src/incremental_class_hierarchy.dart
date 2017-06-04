@@ -215,9 +215,11 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  Member getInterfaceMember(Class class_, Name name, {bool setter: false}) {
-    // TODO(scheglov): implement getInterfaceMember
-    throw new UnimplementedError();
+  Member getInterfaceMember(Class node, Name name, {bool setter: false}) {
+    _ClassInfo info = _getInfo(node);
+    List<Member> members =
+        setter ? info.interfaceSetters : info.interfaceGettersAndCalls;
+    return _findMemberByName(members, name);
   }
 
   @override
@@ -241,7 +243,7 @@ class IncrementalClassHierarchy implements ClassHierarchy {
     throw new UnimplementedError();
   }
 
-  /// Fill the given [info] with declared methods and setters.
+  /// Fill the given [info] with declared instance methods and setters.
   void _buildDeclaredMembers(_ClassInfo info) {
     Class node = info.node;
     if (node.mixedInType != null) {
@@ -293,6 +295,38 @@ class IncrementalClassHierarchy implements ClassHierarchy {
         skipAbstractMembers: true);
   }
 
+  /// Build interface methods or setters for the class described by [info].
+  void _buildInterfaceMembers(_ClassInfo info) {
+    List<Member> declaredGetters = info.declaredGettersAndCalls;
+    List<Member> declaredSetters = info.declaredSetters;
+    List<Member> allInheritedGetters = <Member>[];
+    List<Member> allInheritedSetters = <Member>[];
+
+    void inheritFrom(Supertype type) {
+      if (type == null) return;
+      var info = _getInfo(type.classNode);
+      // TODO(scheglov): Can we optimize this with yield?
+
+      var inheritedGetters = _getUnshadowedInheritedMembers(
+          declaredGetters, info.interfaceGettersAndCalls);
+      allInheritedGetters = _merge(allInheritedGetters, inheritedGetters);
+
+      var inheritedSetters = _getUnshadowedInheritedMembers(
+          declaredSetters, info.interfaceSetters);
+      allInheritedSetters = _merge(allInheritedSetters, inheritedSetters);
+    }
+
+    Class node = info.node;
+    inheritFrom(node.supertype);
+    inheritFrom(node.mixedInType);
+    node.implementedTypes.forEach(inheritFrom);
+
+    info.interfaceGettersAndCalls =
+        _inheritMembers(declaredGetters, allInheritedGetters);
+    info.interfaceSetters =
+        _inheritMembers(declaredSetters, allInheritedSetters);
+  }
+
   /// Return the [_ClassInfo] for the [node].
   _ClassInfo _getInfo(Class node) {
     var info = _info[node];
@@ -328,6 +362,7 @@ class IncrementalClassHierarchy implements ClassHierarchy {
 
       _buildDeclaredMembers(info);
       _buildImplementedMembers(info);
+      _buildInterfaceMembers(info);
     }
     return info;
   }
@@ -398,6 +433,40 @@ class IncrementalClassHierarchy implements ClassHierarchy {
     }
   }
 
+  /// Returns the subset of members in [inherited] for which a member with the
+  /// same name does not occur in [declared].
+  ///
+  /// The input lists must be sorted, and the returned list is sorted.
+  static List<Member> _getUnshadowedInheritedMembers(
+      List<Member> declared, List<Member> inherited) {
+    List<Member> result =
+        new List<Member>.filled(inherited.length, null, growable: true);
+    int storeIndex = 0;
+    int i = 0, j = 0;
+    while (i < declared.length && j < inherited.length) {
+      Member declaredMember = declared[i];
+      Member inheritedMember = inherited[j];
+      int comparison = _compareMembers(declaredMember, inheritedMember);
+      if (comparison < 0) {
+        ++i;
+      } else if (comparison > 0) {
+        result[storeIndex++] = inheritedMember;
+        ++j;
+      } else {
+        // Move past the shadowed member, but retain the declared member, as
+        // it may shadow multiple members.
+        ++j;
+      }
+    }
+    // If the list of declared members is exhausted, copy over the remains of
+    // the inherited members.
+    while (j < inherited.length) {
+      result[storeIndex++] = inherited[j++];
+    }
+    result.length = storeIndex;
+    return result;
+  }
+
   /// Computes the list of implemented members, based on the declared instance
   /// members and inherited instance members.
   ///
@@ -444,6 +513,44 @@ class IncrementalClassHierarchy implements ClassHierarchy {
       Member inheritedMember = inherited[j++];
       if (skipAbstractMembers && inheritedMember.isAbstract) continue;
       result[storeIndex++] = inheritedMember;
+    }
+    result.length = storeIndex;
+    return result;
+  }
+
+  /// Merges two sorted lists.
+  ///
+  /// If a given member occurs in both lists, the merge will attempt to exclude
+  /// the duplicate member, but is not strictly guaranteed to do so.
+  static List<Member> _merge(List<Member> first, List<Member> second) {
+    if (first.isEmpty) return second;
+    if (second.isEmpty) return first;
+    List<Member> result = new List<Member>.filled(
+        first.length + second.length, null,
+        growable: true);
+    int storeIndex = 0;
+    int i = 0, j = 0;
+    while (i < first.length && j < second.length) {
+      Member firstMember = first[i];
+      Member secondMember = second[j];
+      int compare = _compareMembers(firstMember, secondMember);
+      if (compare <= 0) {
+        result[storeIndex++] = firstMember;
+        ++i;
+        // If the same member occurs in both lists, skip the duplicate.
+        if (identical(firstMember, secondMember)) {
+          ++j;
+        }
+      } else {
+        result[storeIndex++] = secondMember;
+        ++j;
+      }
+    }
+    while (i < first.length) {
+      result[storeIndex++] = first[i++];
+    }
+    while (j < second.length) {
+      result[storeIndex++] = second[j++];
     }
     result.length = storeIndex;
     return result;
@@ -514,6 +621,16 @@ class _ClassInfo {
   /// Non-final instance fields and setters implemented by this class
   /// (declared or inherited).
   List<Member> implementedSetters;
+
+  /// Instance fields, getters, methods, and operators declared in this class,
+  /// or its supertype, or interfaces, sorted according to [_compareMembers],
+  /// or `null` if it has not been computed yet.
+  List<Member> interfaceGettersAndCalls;
+
+  /// Non-final instance fields and setters declared in this class, or its
+  /// supertype, or interfaces, sorted according to [_compareMembers], or
+  /// `null` if it has not been computed yet.
+  List<Member> interfaceSetters;
 
   _ClassInfo(this.id, this.node);
 
