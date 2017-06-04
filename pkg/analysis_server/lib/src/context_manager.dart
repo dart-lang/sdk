@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:core';
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -1155,9 +1154,7 @@ class ContextManagerImpl implements ContextManager {
           }
         }
 
-        ServerPerformanceStatistics.pub.makeCurrentWhile(() {
-          packageMapInfo = _packageMapProvider.computePackageMap(folder);
-        });
+        packageMapInfo = _packageMapProvider.computePackageMap(folder);
       } finally {
         callbacks.computingPackageMap(false);
       }

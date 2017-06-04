@@ -1092,7 +1092,7 @@ class AnalysisServer {
    */
   void performOperation() {
     assert(performOperationPending);
-    PerformanceTag.UNKNOWN.makeCurrent();
+    PerformanceTag.unknown.makeCurrent();
     performOperationPending = false;
     if (!running) {
       // An error has occurred, or the connection to the client has been
@@ -2347,6 +2347,11 @@ class ServerPerformance {
  */
 class ServerPerformanceStatistics {
   /**
+   * The [PerformanceTag] for `package:analysis_server`.
+   */
+  static PerformanceTag server = new PerformanceTag('server');
+
+  /**
    * The [PerformanceTag] for time spent in [ExecutionDomainHandler].
    */
   static PerformanceTag executionNotifications =
@@ -2373,22 +2378,22 @@ class ServerPerformanceStatistics {
    * The [PerformanceTag] for time spent in
    * PerformAnalysisOperation._sendNotices.
    */
-  static PerformanceTag notices = new PerformanceTag('notices');
+  static PerformanceTag notices = server.createChild('notices');
 
   /**
    * The [PerformanceTag] for time spent running pub.
    */
-  static PerformanceTag pub = new PerformanceTag('pub');
+  static PerformanceTag pub = server.createChild('pub');
 
   /**
    * The [PerformanceTag] for time spent in server communication channels.
    */
-  static PerformanceTag serverChannel = new PerformanceTag('serverChannel');
+  static PerformanceTag serverChannel = server.createChild('channel');
 
   /**
    * The [PerformanceTag] for time spent in server request handlers.
    */
-  static PerformanceTag serverRequests = new PerformanceTag('serverRequests');
+  static PerformanceTag serverRequests = server.createChild('requests');
 
   /**
    * The [PerformanceTag] for time spent in split store microtasks.

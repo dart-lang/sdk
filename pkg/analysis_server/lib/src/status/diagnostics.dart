@@ -39,7 +39,7 @@ final String kCustomCss = '''
 .container {
   width: 1160px;
 }
-    
+
 .masthead {
   padding-top: 1rem;
   padding-bottom: 1rem;
@@ -93,8 +93,8 @@ final String kCustomCss = '''
 .menu-item .counter {
   float: right;
   margin-left: 5px;
-}    
-    
+}
+
 td.right {
   text-align: right;
 }
@@ -239,7 +239,7 @@ abstract class DiagnosticPage extends Page {
     buf.writeln('''
     <footer class="footer">
       Dart ${site.title} <span style="float:right">SDK ${_sdkVersion}</span>
-    </footer>    
+    </footer>
 ''');
   }
 
@@ -441,7 +441,8 @@ class ProfilePage extends DiagnosticPageWithNav {
     // prepare sorted tags
     List<PerformanceTag> tags = PerformanceTag.all.toList();
     tags.remove(ServerPerformanceStatistics.idle);
-    tags.remove(PerformanceTag.UNKNOWN);
+    tags.remove(PerformanceTag.unknown);
+    tags.removeWhere((tag) => tag.elapsedMs == 0);
     tags.sort((a, b) => b.elapsedMs - a.elapsedMs);
 
     // draw a pie chart
@@ -453,7 +454,7 @@ class ProfilePage extends DiagnosticPageWithNav {
       <script type="text/javascript">
         google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(drawChart);
-  
+
         function drawChart() {
           var data = new google.visualization.DataTable();
           data.addColumn('string', 'Tag');
@@ -463,7 +464,7 @@ class ProfilePage extends DiagnosticPageWithNav {
           var chart = new google.visualization.PieChart(document.getElementById('chart-div'));
           chart.draw(data, options);
         }
-      </script>    
+      </script>
 ''');
 
     // print total time
@@ -858,7 +859,7 @@ class CompletionPage extends DiagnosticPageWithNav {
         var chart = new google.charts.Bar(document.getElementById('chart-div'));
         chart.draw(data, google.charts.Bar.convertOptions(options));
       }
-      </script>    
+      </script>
 ''');
 
     // emit the data as a table

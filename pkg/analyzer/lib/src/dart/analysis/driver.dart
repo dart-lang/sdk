@@ -25,8 +25,13 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, AnalysisOptions;
+    show
+        AnalysisContext,
+        AnalysisEngine,
+        AnalysisOptions,
+        PerformanceStatistics;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -35,6 +40,13 @@ import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:meta/meta.dart';
+
+class DriverPerformance {
+  static final PerformanceTag driver =
+      PerformanceStatistics.analyzer.createChild('driver');
+
+  static final PerformanceTag cache = driver.createChild('cache');
+}
 
 /**
  * This class computes [AnalysisResult]s for Dart files.
@@ -978,7 +990,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
-      List<int> bytes = _byteStore.get(key);
+      List<int> bytes = DriverPerformance.cache.makeCurrentWhile(() {
+        return _byteStore.get(key);
+      });
       if (bytes != null) {
         return _getAnalysisResultFromBytes(file, signature, bytes);
       }

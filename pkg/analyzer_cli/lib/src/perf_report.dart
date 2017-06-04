@@ -66,7 +66,7 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options,
   // Convert performance tags to JSON representation.
   var perfTagsJson = <String, dynamic>{};
   for (PerformanceTag tag in PerformanceTag.all) {
-    if (tag != PerformanceTag.UNKNOWN) {
+    if (tag != PerformanceTag.unknown) {
       int tagTime = tag.elapsedMs;
       perfTagsJson[tag.label] = tagTime;
       otherTime -= tagTime;

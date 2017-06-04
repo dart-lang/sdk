@@ -2552,19 +2552,29 @@ class ObsoleteSourceAnalysisException extends AnalysisException {
  */
 class PerformanceStatistics {
   /**
+   * The [PerformanceTag] for `package:analyzer`.
+   */
+  static PerformanceTag analyzer = new PerformanceTag('analyzer');
+
+  /**
    * The [PerformanceTag] for time spent in reading files.
    */
-  static PerformanceTag io = new PerformanceTag('io');
+  static PerformanceTag io = analyzer.createChild('io');
+
+  /**
+   * The [PerformanceTag] for general phases of analysis.
+   */
+  static PerformanceTag analysis = analyzer.createChild('analysis');
 
   /**
    * The [PerformanceTag] for time spent in scanning.
    */
-  static PerformanceTag scan = new PerformanceTag('scan');
+  static PerformanceTag scan = analyzer.createChild('scan');
 
   /**
    * The [PerformanceTag] for time spent in parsing.
    */
-  static PerformanceTag parse = new PerformanceTag('parse');
+  static PerformanceTag parse = analyzer.createChild('parse');
 
   /**
    * The [PerformanceTag] for time spent in resolving.
@@ -2574,17 +2584,17 @@ class PerformanceStatistics {
   /**
    * The [PerformanceTag] for time spent in error verifier.
    */
-  static PerformanceTag errors = new PerformanceTag('errors');
+  static PerformanceTag errors = analysis.createChild('errors');
 
   /**
    * The [PerformanceTag] for time spent in hints generator.
    */
-  static PerformanceTag hints = new PerformanceTag('hints');
+  static PerformanceTag hints = analysis.createChild('hints');
 
   /**
    * The [PerformanceTag] for time spent in linting.
    */
-  static PerformanceTag lint = new PerformanceTag('lint');
+  static PerformanceTag lints = analysis.createChild('lints');
 
   /**
    * The [PerformanceTag] for time spent computing cycles.
@@ -2592,34 +2602,9 @@ class PerformanceStatistics {
   static PerformanceTag cycles = new PerformanceTag('cycles');
 
   /**
-   * The [PerformanceTag] for time spent in other phases of analysis.
-   */
-  static PerformanceTag performAnalysis = new PerformanceTag('performAnalysis');
-
-  /**
-   * The [PerformanceTag] for time spent in the analysis task visitor after
-   * tasks are complete.
-   */
-  static PerformanceTag analysisTaskVisitor =
-      new PerformanceTag('analysisTaskVisitor');
-
-  /**
-   * The [PerformanceTag] for time spent in the getter
-   * AnalysisContextImpl.nextAnalysisTask.
-   */
-  static var nextTask = new PerformanceTag('nextAnalysisTask');
-
-  /**
-   * The [PerformanceTag] for time spent during otherwise not accounted parts
-   * incremental of analysis.
-   */
-  static PerformanceTag incrementalAnalysis =
-      new PerformanceTag('incrementalAnalysis');
-
-  /**
    * The [PerformanceTag] for time spent in summaries support.
    */
-  static PerformanceTag summary = new PerformanceTag('summary');
+  static PerformanceTag summary = analyzer.createChild('summary');
 
   /**
    * Statistics about cache consistency validation.

@@ -60,6 +60,12 @@ class LibraryAnalyzer {
    * Compute analysis results for all units of the library.
    */
   Map<FileState, UnitAnalysisResult> analyze() {
+    return PerformanceStatistics.analysis.makeCurrentWhile(() {
+      return _analyze();
+    });
+  }
+
+  Map<FileState, UnitAnalysisResult> _analyze() {
     Map<FileState, CompilationUnit> units = {};
 
     // Parse all files.
@@ -92,32 +98,38 @@ class LibraryAnalyzer {
 
       _computeConstants();
 
-      units.forEach((file, unit) {
-        _computeVerifyErrors(file, unit);
+      PerformanceStatistics.errors.makeCurrentWhile(() {
+        units.forEach((file, unit) {
+          _computeVerifyErrors(file, unit);
+        });
       });
 
       if (_analysisOptions.hint) {
-        units.forEach((file, unit) {
-          {
-            var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
-            unit.accept(visitor);
-            _usedLocalElementsList.add(visitor.usedElements);
-          }
-          {
-            var visitor =
-                new GatherUsedImportedElementsVisitor(_libraryElement);
-            unit.accept(visitor);
-            _usedImportedElementsList.add(visitor.usedElements);
-          }
-        });
-        units.forEach((file, unit) {
-          _computeHints(file, unit);
+        PerformanceStatistics.hints.makeCurrentWhile(() {
+          units.forEach((file, unit) {
+            {
+              var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
+              unit.accept(visitor);
+              _usedLocalElementsList.add(visitor.usedElements);
+            }
+            {
+              var visitor =
+                  new GatherUsedImportedElementsVisitor(_libraryElement);
+              unit.accept(visitor);
+              _usedImportedElementsList.add(visitor.usedElements);
+            }
+          });
+          units.forEach((file, unit) {
+            _computeHints(file, unit);
+          });
         });
       }
 
       if (_analysisOptions.lint) {
-        units.forEach((file, unit) {
-          _computeLints(file, unit);
+        PerformanceStatistics.lints.makeCurrentWhile(() {
+          units.forEach((file, unit) {
+            _computeLints(file, unit);
+          });
         });
       }
     } finally {

@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:core';
 import 'dart:io' as io;
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -71,7 +72,9 @@ class PubPackageMapProvider implements PackageMapProvider {
     // to respond.
     io.ProcessResult result;
     try {
-      result = _runPubList(folder);
+      result = ServerPerformanceStatistics.pub.makeCurrentWhile(() {
+        return _runPubList(folder);
+      });
     } on io.ProcessException catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
           "Error running pub $PUB_LIST_COMMAND\n$exception\n$stackTrace");
