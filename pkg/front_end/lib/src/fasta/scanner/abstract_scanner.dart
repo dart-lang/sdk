@@ -1034,7 +1034,8 @@ abstract class AbstractScanner implements Scanner {
               identical(next, $CR) ||
               identical(next, $EOF))) {
         if (!asciiOnly) handleUnicode(start);
-        return unterminatedString(quoteChar, start, asciiOnly);
+        return unterminatedString(quoteChar, start,
+            asciiOnly: asciiOnly, isMultiLine: false, isRaw: false);
       }
       if (next > 127) asciiOnly = false;
       next = advance();
@@ -1101,14 +1102,16 @@ abstract class AbstractScanner implements Scanner {
         return next;
       } else if (identical(next, $LF) || identical(next, $CR)) {
         if (!asciiOnly) handleUnicode(start);
-        return unterminatedRawString(quoteChar, start, asciiOnly);
+        return unterminatedString(quoteChar, start,
+            asciiOnly: asciiOnly, isMultiLine: false, isRaw: true);
       } else if (next > 127) {
         asciiOnly = false;
       }
       next = advance();
     }
     if (!asciiOnly) handleUnicode(start);
-    return unterminatedRawString(quoteChar, start, asciiOnly);
+    return unterminatedString(quoteChar, start,
+        asciiOnly: asciiOnly, isMultiLine: false, isRaw: true);
   }
 
   int tokenizeMultiLineRawString(int quoteChar, int start) {
@@ -1146,7 +1149,8 @@ abstract class AbstractScanner implements Scanner {
       }
     }
     if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    return unterminatedRawMultiLineString(quoteChar, start, asciiOnlyLine);
+    return unterminatedString(quoteChar, start,
+        asciiOnly: asciiOnlyLine, isMultiLine: true, isRaw: true);
   }
 
   int tokenizeMultiLineString(int quoteChar, int start, bool raw) {
@@ -1197,7 +1201,8 @@ abstract class AbstractScanner implements Scanner {
       next = advance();
     }
     if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    return unterminatedMultiLineString(quoteChar, start, asciiOnlyString);
+    return unterminatedString(quoteChar, start,
+        asciiOnly: asciiOnlyString, isMultiLine: true, isRaw: false);
   }
 
   int unexpected(int character) {
@@ -1210,37 +1215,15 @@ abstract class AbstractScanner implements Scanner {
     return advanceAfterError(shouldAdvance);
   }
 
-  void terminateUnterminatedString(
-      int start, bool asciiOnlyString, String closingQuotes) {
-    appendSyntheticSubstringToken(
-        TokenType.STRING, start, asciiOnlyString, closingQuotes);
+  int unterminatedString(int quoteChar, int start,
+      {bool asciiOnly, bool isMultiLine, bool isRaw}) {
+    String suffix = new String.fromCharCodes(
+        isMultiLine ? [quoteChar, quoteChar, quoteChar] : [quoteChar]);
+    String prefix = isRaw ? 'r$suffix' : suffix;
+
+    appendSyntheticSubstringToken(TokenType.STRING, start, asciiOnly, suffix);
     beginToken();
-  }
-
-  int unterminatedString(int quoteChar, int start, bool asciiOnlyString) {
-    String suffix = new String.fromCharCodes([quoteChar]);
-    terminateUnterminatedString(start, asciiOnlyString, suffix);
-    return unterminated(suffix);
-  }
-
-  int unterminatedRawString(int quoteChar, int start, bool asciiOnlyString) {
-    String suffix = new String.fromCharCodes([quoteChar]);
-    terminateUnterminatedString(start, asciiOnlyString, suffix);
-    return unterminated('r$suffix');
-  }
-
-  int unterminatedMultiLineString(
-      int quoteChar, int start, bool asciiOnlyString) {
-    String suffix = new String.fromCharCodes([quoteChar, quoteChar, quoteChar]);
-    terminateUnterminatedString(start, asciiOnlyString, suffix);
-    return unterminated(suffix);
-  }
-
-  int unterminatedRawMultiLineString(
-      int quoteChar, int start, bool asciiOnlyString) {
-    String suffix = new String.fromCharCodes([quoteChar, quoteChar, quoteChar]);
-    terminateUnterminatedString(start, asciiOnlyString, suffix);
-    return unterminated('r$suffix');
+    return unterminated(prefix);
   }
 
   int advanceAfterError(bool shouldAdvance) {
