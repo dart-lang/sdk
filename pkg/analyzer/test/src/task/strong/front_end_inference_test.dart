@@ -96,37 +96,36 @@ class _ElementNamer {
       return;
     }
 
-    LibraryElement library = element.library;
-    if (library == null) {
-      throw new StateError('Unexpected element without library: $element');
+    var enclosing = element.enclosingElement;
+    if (enclosing is CompilationUnitElement) {
+      enclosing = enclosing.enclosingElement;
+    } else if (enclosing is ClassElement &&
+        currentFactoryConstructor != null &&
+        identical(enclosing, currentFactoryConstructor.enclosingElement) &&
+        element is TypeParameterElement) {
+      enclosing = currentFactoryConstructor;
     }
-    String libraryName = library.name;
+    if (enclosing != null) {
+      if (enclosing is LibraryElement &&
+          (enclosing.name == 'dart.core' ||
+              enclosing.name == 'dart.async' ||
+              enclosing.name == 'test')) {
+        // For brevity, omit library name
+      } else {
+        appendElementName(buffer, enclosing);
+        buffer.write('::');
+      }
+    }
 
     String name = element.name ?? '';
-    if (name.endsWith('=') &&
+    if (element is ConstructorElement && name == '') {
+      name = '•';
+    } else if (name.endsWith('=') &&
         element is PropertyAccessorElement &&
         element.isSetter) {
       name = name.substring(0, name.length - 1);
     }
-    if (libraryName != 'dart.core' &&
-        libraryName != 'dart.async' &&
-        libraryName != 'test') {
-      buffer.write('$libraryName::');
-    }
-    var enclosing = element.enclosingElement;
-    if (enclosing is ClassElement) {
-      buffer.write('${enclosing.name}::');
-      if (currentFactoryConstructor != null &&
-          identical(enclosing, currentFactoryConstructor.enclosingElement) &&
-          element is TypeParameterElement) {
-        String factoryConstructorName = currentFactoryConstructor.name;
-        if (factoryConstructorName == '') {
-          factoryConstructorName = '•';
-        }
-        buffer.write('$factoryConstructorName::');
-      }
-    }
-    buffer.write('$name');
+    buffer.write(name);
   }
 }
 
