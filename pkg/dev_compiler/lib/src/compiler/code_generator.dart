@@ -690,7 +690,6 @@ class CodeGenerator extends Object
     var to = node.type.type;
 
     JS.Expression jsFrom = _visit(fromExpr);
-    if (_inWhitelistCode(node)) return jsFrom;
 
     // Skip the cast if it's not needed.
     if (rules.isSubtypeOf(from, to)) return jsFrom;
@@ -2378,8 +2377,7 @@ class CodeGenerator extends Object
           resolutionMap.elementDeclaredByFormalParameter(param).type;
       if (node is MethodDeclaration &&
           (resolutionMap.elementDeclaredByFormalParameter(param).isCovariant ||
-              _unsoundCovariant(paramType, true)) &&
-          !_inWhitelistCode(node)) {
+              _unsoundCovariant(paramType, true))) {
         var castType = _emitType(paramType,
             nameType: options.nameTypeTests || options.hoistTypeTests,
             hoistType: options.hoistTypeTests);
@@ -3294,22 +3292,6 @@ class CodeGenerator extends Object
     }
 
     if (target != null && isDynamicInvoke(target)) {
-      if (_inWhitelistCode(lhs)) {
-        var vars = <JS.MetaLetVariable, JS.Expression>{};
-        var l = _visit(_bindValue(vars, 'l', target));
-        var name = _emitMemberName(id.name);
-        return new JS.MetaLet(vars, [
-          js.call('(#[(#[#._extensionType]) ? #[#] : #] = #)', [
-            l,
-            l,
-            _runtimeModule,
-            _extensionSymbolsModule,
-            name,
-            name,
-            _visit(rhs)
-          ])
-        ]);
-      }
       return _callHelper('#(#, #, #)', [
         _emitDynamicOperationName('dput'),
         _visit(target),
@@ -3617,23 +3599,6 @@ class CodeGenerator extends Object
 
     JS.Expression jsTarget = _emitTarget(target, element, isStatic);
     if (isDynamicInvoke(target) || isDynamicInvoke(node.methodName)) {
-      if (_inWhitelistCode(target)) {
-        var vars = <JS.MetaLetVariable, JS.Expression>{};
-        var l = _visit(_bindValue(vars, 'l', target));
-        jsTarget = new JS.MetaLet(vars, [
-          js.call('(#[(#[#._extensionType]) ? #[#] : #]).bind(#)', [
-            l,
-            l,
-            _runtimeModule,
-            _extensionSymbolsModule,
-            memberName,
-            memberName,
-            l
-          ])
-        ]);
-        if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
-        return new JS.Call(jsTarget, args);
-      }
       if (typeArgs != null) {
         return _callHelper('#(#, #, #, #)', [
           _emitDynamicOperationName('dgsend'),
@@ -3665,9 +3630,6 @@ class CodeGenerator extends Object
       return _callHelper(
           'dgcall(#, #, #)', [fn, new JS.ArrayInitializer(typeArgs), args]);
     } else {
-      if (_inWhitelistCode(node, isCall: true)) {
-        return new JS.Call(fn, args);
-      }
       return _callHelper('dcall(#, #)', [fn, args]);
     }
   }
@@ -4972,14 +4934,6 @@ class CodeGenerator extends Object
     var name = _emitMemberName(memberName,
         type: getStaticType(target), isStatic: isStatic, element: member);
     if (isDynamicInvoke(target)) {
-      if (_inWhitelistCode(target)) {
-        var vars = <JS.MetaLetVariable, JS.Expression>{};
-        var l = _visit(_bindValue(vars, 'l', target));
-        return new JS.MetaLet(vars, [
-          js.call('(#[#._extensionType]) ? #[#[#]] : #.#',
-              [l, _runtimeModule, l, _extensionSymbolsModule, name, l, name])
-        ]);
-      }
       return _callHelper('#(#, #)',
           [_emitDynamicOperationName('dload'), _visit(target), name]);
     }
@@ -5036,22 +4990,6 @@ class CodeGenerator extends Object
     var type = getStaticType(target);
     var memberName = _emitMemberName(name, type: type);
     if (isDynamicInvoke(target)) {
-      if (_inWhitelistCode(target)) {
-        var vars = <JS.MetaLetVariable, JS.Expression>{};
-        var l = _visit(_bindValue(vars, 'l', target));
-        return new JS.MetaLet(vars, [
-          js.call('(#[(#[#._extensionType]) ? #[#] : #]).call(#, #)', [
-            l,
-            l,
-            _runtimeModule,
-            _extensionSymbolsModule,
-            memberName,
-            memberName,
-            l,
-            _visitList(args)
-          ])
-        ]);
-      }
       // dynamic dispatch
       var dynamicHelper = const {'[]': 'dindex', '[]=': 'dsetindex'}[name];
       if (dynamicHelper != null) {
@@ -5835,56 +5773,6 @@ class CodeGenerator extends Object
       args = [_runtimeModule, args];
     }
     return js.statement('#.$code', args);
-  }
-
-  // TODO(kevmoo): https://github.com/dart-lang/sdk/issues/27255
-  // TODO(kevmoo): Remove once pkg/angular2 has moved to the new compiler
-  //               See https://github.com/dart-lang/angular2/issues/48
-  /// Temporary workaround *cough* total hack *cough*.
-  ///
-  /// Maps whitelisted files to a list of whitelisted methods
-  /// within the file.
-  ///
-  /// If the value is null, the entire file is whitelisted.
-  ///
-  static const Map<String, List<String>> _uncheckedWhitelist = const {
-    'dom_renderer.dart': const ['moveNodesAfterSibling'],
-    'template_ref.dart': const ['createEmbeddedView'],
-    'ng_class.dart': const ['_applyIterableChanges'],
-    'ng_for.dart': const ['_bulkRemove', '_bulkInsert'],
-    'view_container_ref.dart': const ['createEmbeddedView'],
-    'default_iterable_differ.dart': null,
-  };
-
-  static Set<String> _uncheckedWhitelistCalls = new Set()
-    ..add('ng_zone_impl.dart')
-    ..add('stack_zone_specification.dart')
-    ..add('view_manager.dart')
-    ..add('view.dart');
-
-  bool _inWhitelistCode(AstNode node, {isCall: false}) {
-    if (!options.useAngular2Whitelist) return false;
-    var path = currentElement.source.fullName;
-    var filename = path.split("/").last;
-    if (_uncheckedWhitelist.containsKey(filename)) {
-      var whitelisted = _uncheckedWhitelist[filename];
-      if (whitelisted == null) return true;
-      var enclosing = node;
-      while (enclosing != null &&
-          !(enclosing is ClassMember || enclosing is FunctionDeclaration)) {
-        enclosing = enclosing.parent;
-      }
-      String name = (enclosing as dynamic)?.element?.name;
-      if (name != null) {
-        return whitelisted.contains(name);
-      }
-    }
-
-    // Dynamic calls are less risky so there is no need to whitelist at the
-    // method level.
-    if (isCall && _uncheckedWhitelistCalls.contains(filename)) return true;
-
-    return path.endsWith(".template.dart");
   }
 
   _unreachable(AstNode node) {

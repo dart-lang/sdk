@@ -279,10 +279,6 @@ class CompilerOptions {
   /// Hoist types in type tests
   final bool hoistTypeTests;
 
-  // TODO(kevmoo): Remove once https://github.com/dart-lang/sdk/issues/27255
-  //               is fixed.
-  final bool useAngular2Whitelist;
-
   /// Enable ES6 destructuring of named parameters. Off by default.
   ///
   /// Older V8 versions do not accept default values with destructuring in
@@ -322,7 +318,6 @@ class CompilerOptions {
       this.hoistSignatureTypes: false,
       this.nameTypeTests: true,
       this.hoistTypeTests: true,
-      this.useAngular2Whitelist: false,
       this.bazelMapping: const {},
       this.summaryOutPath});
 
@@ -341,7 +336,6 @@ class CompilerOptions {
         hoistSignatureTypes = args['hoist-signature-types'],
         nameTypeTests = args['name-type-tests'],
         hoistTypeTests = args['hoist-type-tests'],
-        useAngular2Whitelist = args['unsafe-angular2-whitelist'],
         bazelMapping = _parseBazelMappings(args['bazel-mapping']),
         summaryOutPath = args['summary-out'];
 
@@ -390,9 +384,6 @@ class CompilerOptions {
           help: 'Name types used in type tests', defaultsTo: true, hide: hide)
       ..addFlag('hoist-type-tests',
           help: 'Hoist types used in type tests', defaultsTo: true, hide: hide)
-      // TODO(kevmoo): Remove once https://github.com/dart-lang/sdk/issues/27255
-      //               is fixed.
-      ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: hide)
       ..addOption('bazel-mapping',
           help:
               '--bazel-mapping=genfiles/to/library.dart,to/library.dart uses \n'
