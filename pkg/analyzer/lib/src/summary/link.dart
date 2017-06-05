@@ -1077,30 +1077,35 @@ abstract class CompilationUnitElementForLink
   }
 
   @override
-  DartType resolveTypeRef(ElementImpl context, EntityRef type,
+  DartType resolveTypeRef(ElementImpl context, EntityRef entity,
       {bool defaultVoid: false,
       bool instantiateToBoundsAllowed: true,
       bool declaredType: false}) {
-    if (type == null) {
+    if (entity == null) {
       if (defaultVoid) {
         return VoidTypeImpl.instance;
       } else {
         return DynamicTypeImpl.instance;
       }
     }
-    if (type.paramReference != 0) {
+    if (entity.paramReference != 0) {
       return context.typeParameterContext
-          .getTypeParameterType(type.paramReference);
-    } else if (type.syntheticReturnType != null) {
+          .getTypeParameterType(entity.paramReference);
+    } else if (entity.syntheticReturnType != null) {
       // TODO(paulberry): implement.
       throw new UnimplementedError();
-    } else if (type.implicitFunctionTypeIndices.isNotEmpty) {
-      // TODO(paulberry): implement.
-      throw new UnimplementedError();
+    } else if (entity.implicitFunctionTypeIndices.isNotEmpty) {
+      DartType type = resolveRef(entity.reference).asStaticType;
+      for (int index in entity.implicitFunctionTypeIndices) {
+        type = (type as FunctionType).parameters[index].type;
+      }
+      return type;
     } else {
+      ReferenceableElementForLink element = resolveRef(entity.reference);
+
       DartType getTypeArgument(int i) {
-        if (i < type.typeArguments.length) {
-          return resolveTypeRef(context, type.typeArguments[i]);
+        if (i < entity.typeArguments.length) {
+          return resolveTypeRef(context, entity.typeArguments[i]);
         } else if (!instantiateToBoundsAllowed) {
           // Do not allow buildType to instantiate the bounds; force dynamic.
           return DynamicTypeImpl.instance;
@@ -1109,9 +1114,8 @@ abstract class CompilationUnitElementForLink
         }
       }
 
-      ReferenceableElementForLink element = resolveRef(type.reference);
       return element.buildType(
-          getTypeArgument, type.implicitFunctionTypeIndices);
+          getTypeArgument, entity.implicitFunctionTypeIndices);
     }
   }
 
