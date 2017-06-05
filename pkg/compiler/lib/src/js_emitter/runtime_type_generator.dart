@@ -121,7 +121,7 @@ class RuntimeTypeGenerator {
       jsAst.Expression thisAccess = new jsAst.This();
       if (!method.isAbstract) {
         ClosureClassMap closureData =
-            _closureToClassMapper.getClosureToClassMapping(method.resolvedAst);
+            _closureToClassMapper.getClosureToClassMapping(method);
         if (closureData != null) {
           ClosureFieldElement thisLocal =
               closureData.freeVariableMap[closureData.thisLocal];
