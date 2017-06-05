@@ -244,7 +244,9 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
 
   void _appendType(StringBuffer buffer, DartType type) {
     if (type is FunctionType) {
-      _appendTypeArguments(buffer, type.typeArguments);
+      if (type.typeFormals.isNotEmpty) {
+        _appendTypeArguments(buffer, type.typeArguments);
+      }
       _appendParameters(buffer, type.parameters);
       buffer.write(' -> ');
       _appendType(buffer, type.returnType);
