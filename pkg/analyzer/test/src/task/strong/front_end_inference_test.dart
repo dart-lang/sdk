@@ -338,7 +338,7 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     if (node.parent is! FunctionDeclaration) {
       DartType type = node.staticType;
       if (type is FunctionType) {
-        _instrumentation.record(uri, node.offset, 'returnType',
+        _instrumentation.record(uri, node.parameters.offset, 'returnType',
             new _InstrumentationValueForType(type.returnType, elementNamer));
         List<FormalParameter> parameters = node.parameters.parameters;
         for (int i = 0; i < parameters.length; i++) {

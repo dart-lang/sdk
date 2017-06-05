@@ -56,7 +56,6 @@ void-methods: Fail
 inference/constructors_too_many_positional_arguments: Fail
 inference/downwards_inference_annotations: Fail
 inference/downwards_inference_on_function_of_t_using_the_t: Fail
-inference/downwards_inference_on_generic_function_expressions: Fail
 inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: Fail
 inference/future_then_conditional: Fail
 inference/future_then_conditional_2: Fail
