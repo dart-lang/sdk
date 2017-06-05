@@ -108,10 +108,11 @@ abstract class _ClassHierarchyTest {
 
   ClassHierarchy createClassHierarchy(Program program);
 
-  Procedure newEmptyMethod(String name, {bool abstract: false}) {
-    var body = abstract ? null : new Block([]);
+  Procedure newEmptyMethod(String name, {bool isAbstract: false}) {
+    var body = isAbstract ? null : new Block([]);
     return new Procedure(new Name(name), ProcedureKind.Method,
-        new FunctionNode(body, returnType: const VoidType()));
+        new FunctionNode(body, returnType: const VoidType()),
+        isAbstract: isAbstract);
   }
 
   Procedure newEmptySetter(String name, {bool abstract: false}) {
@@ -146,7 +147,7 @@ abstract class _ClassHierarchyTest {
     var b = addClass(new Class(
         name: 'B',
         supertype: a.asThisSupertype,
-        procedures: [newEmptyMethod('foo', abstract: true)]));
+        procedures: [newEmptyMethod('foo', isAbstract: true)]));
     var c = addClass(new Class(
         name: 'C',
         supertype: a.asThisSupertype,
@@ -164,7 +165,7 @@ class A {
   method bar() → void {}
 }
 class B extends self::A {
-  method foo() → void;
+  abstract method foo() → void;
 }
 class C extends self::A implements self::B {}
 class D {}
@@ -187,7 +188,7 @@ class E = self::D with self::A implements self::B {}
     var b = addClass(new Class(
         name: 'B',
         supertype: a.asThisSupertype,
-        procedures: [newEmptyMethod('foo', abstract: true)]));
+        procedures: [newEmptyMethod('foo', isAbstract: true)]));
 
     _assertTestLibraryText('''
 class A {
@@ -195,7 +196,7 @@ class A {
   method bar() → void {}
 }
 class B extends self::A {
-  method foo() → void;
+  abstract method foo() → void;
 }
 ''');
 
@@ -680,44 +681,41 @@ class C extends self::B {}
   }
 
   void test_getDispatchTarget_abstract() {
-    var aMethodConcrete = newEmptyMethod('aMethodConcrete');
-    var bMethodConcrete = newEmptyMethod('aMethodConcrete');
-    var a = addClass(new Class(name: 'A', supertype: objectSuper, procedures: [
-      newEmptyMethod('aMethodAbstract', abstract: true),
-      aMethodConcrete
-    ]));
-    var b = addClass(
-        new Class(name: 'B', supertype: a.asThisSupertype, procedures: [
-      newEmptyMethod('aMethodConcrete', abstract: true),
-      newEmptyMethod('bMethodAbstract', abstract: true),
-      bMethodConcrete
-    ]));
-    addClass(new Class(name: 'C', supertype: b.asThisSupertype));
+    var aFoo = newEmptyMethod('foo', isAbstract: true);
+    var aBar = newEmptyMethod('bar');
+    var bFoo = newEmptyMethod('foo');
+    var bBar = newEmptyMethod('bar', isAbstract: true);
+    var a = addClass(new Class(
+        isAbstract: true,
+        name: 'A',
+        supertype: objectSuper,
+        procedures: [aFoo, aBar]));
+    var b = addClass(new Class(
+        isAbstract: true,
+        name: 'B',
+        supertype: a.asThisSupertype,
+        procedures: [bFoo, bBar]));
+    var c = addClass(new Class(name: 'C', supertype: b.asThisSupertype));
 
     _assertTestLibraryText('''
-class A {
-  method aMethodAbstract() → void;
-  method aMethodConcrete() → void {}
+abstract class A {
+  abstract method foo() → void;
+  method bar() → void {}
 }
-class B extends self::A {
-  method aMethodConcrete() → void;
-  method bMethodAbstract() → void;
-  method aMethodConcrete() → void {}
+abstract class B extends self::A {
+  method foo() → void {}
+  abstract method bar() → void;
 }
 class C extends self::B {}
 ''');
 
-    expect(hierarchy.getDispatchTarget(a, new Name('aMethodConcrete')),
-        aMethodConcrete);
-    // TODO(scheglov): The next two commented statements verify the behavior
-    // documented as "If the class is abstract, abstract members are ignored and
-    // the dispatch is resolved if the class was not abstract.". Unfortunately
-    // the implementation does not follow the documentation. We need to fix
-    // either documentation, or implementation.
-//    expect(hierarchy.getDispatchTarget(c, new Name('aMethodConcrete')),
-//        aMethodConcrete);
-//    expect(hierarchy.getDispatchTarget(b, new Name('aMethodConcrete')),
-//        aMethodConcrete);
+    expect(hierarchy.getDispatchTarget(a, new Name('foo')), isNull);
+    expect(hierarchy.getDispatchTarget(b, new Name('foo')), bFoo);
+    expect(hierarchy.getDispatchTarget(c, new Name('foo')), bFoo);
+
+    expect(hierarchy.getDispatchTarget(a, new Name('bar')), aBar);
+    expect(hierarchy.getDispatchTarget(b, new Name('bar')), aBar);
+    expect(hierarchy.getDispatchTarget(c, new Name('bar')), aBar);
   }
 
   void test_getInterfaceMember_extends() {
