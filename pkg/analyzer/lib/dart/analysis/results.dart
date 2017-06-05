@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -84,6 +85,16 @@ abstract class ResolveResult implements AnalysisResultWithErrors {
    * The content of the file that was scanned, parsed and resolved.
    */
   String get content;
+
+  /**
+   * The element representing the library containing the compilation [unit].
+   */
+  LibraryElement get libraryElement;
+
+  /**
+   * The type provider used when resolving the compilation [unit].
+   */
+  TypeProvider get typeProvider;
 
   /**
    * The fully resolved compilation unit for the [content].

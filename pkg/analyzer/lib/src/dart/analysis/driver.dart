@@ -30,6 +30,7 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisEngine,
         AnalysisOptions,
         PerformanceStatistics;
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/registry.dart' as linter;
@@ -40,13 +41,6 @@ import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:meta/meta.dart';
-
-class DriverPerformance {
-  static final PerformanceTag driver =
-      PerformanceStatistics.analyzer.createChild('driver');
-
-  static final PerformanceTag cache = driver.createChild('cache');
-}
 
 /**
  * This class computes [AnalysisResult]s for Dart files.
@@ -1668,8 +1662,21 @@ class AnalysisResult implements results.ResolveResult {
       this._index);
 
   @override
+  LibraryElement get libraryElement => unit.element.library;
+
+  @override
   results.ResultState get state =>
       exists ? results.ResultState.VALID : results.ResultState.NOT_A_FILE;
+
+  @override
+  TypeProvider get typeProvider => unit.element.context.typeProvider;
+}
+
+class DriverPerformance {
+  static final PerformanceTag driver =
+      PerformanceStatistics.analyzer.createChild('driver');
+
+  static final PerformanceTag cache = driver.createChild('cache');
 }
 
 /**

@@ -7,11 +7,11 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/local_declaration_visitor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 
 import '../../../protocol_server.dart' show CompletionSuggestion;
 

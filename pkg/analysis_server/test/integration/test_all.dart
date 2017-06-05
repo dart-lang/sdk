@@ -5,7 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis/test_all.dart' as analysis_test_all;
-import 'analytics//test_all.dart' as analytics_test_all;
+import 'analytics/test_all.dart' as analytics_test_all;
 import 'completion/test_all.dart' as completion_test_all;
 import 'coverage_test.dart' as coverage_test;
 import 'diagnostic/test_all.dart' as diagnostic_test_all;
