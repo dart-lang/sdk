@@ -1705,13 +1705,7 @@ class KernelTypeLiteral extends TypeLiteral implements KernelExpression {
 
 /// Concrete implementation of [TypePromoter] specialized to work with kernel
 /// objects.
-///
-/// Note: the second type parameter really ought to be
-/// KernelVariableDeclaration, but we can't do that yet because BodyBuilder
-/// still uses raw VariableDeclaration objects sometimes.
-/// TODO(paulberry): fix this.
-class KernelTypePromoter
-    extends TypePromoterImpl<Expression, VariableDeclaration> {
+class KernelTypePromoter extends TypePromoterImpl {
   @override
   int getVariableFunctionNestingLevel(VariableDeclaration variable) {
     if (variable is KernelVariableDeclaration) {
@@ -1841,7 +1835,7 @@ class KernelVariableDeclaration extends VariableDeclaration
 
 /// Concrete shadow object representing a read from a variable in kernel form.
 class KernelVariableGet extends VariableGet implements KernelExpression {
-  final TypePromotionFact<VariableDeclaration> _fact;
+  final TypePromotionFact _fact;
 
   final TypePromotionScope _scope;
 

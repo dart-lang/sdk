@@ -93,7 +93,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   final TypeInferrer _typeInferrer;
 
   @override
-  final TypePromoter<Expression, VariableDeclaration> typePromoter;
+  final TypePromoter typePromoter;
 
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.

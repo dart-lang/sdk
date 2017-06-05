@@ -29,7 +29,6 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         Statement,
         TypeParameterType,
-        VariableDeclaration,
         VoidType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -162,7 +161,7 @@ class ClosureContext {
 abstract class TypeInferrer {
   /// Gets the [TypePromoter] that can be used to perform type promotion within
   /// this method body or initializer.
-  TypePromoter<Expression, VariableDeclaration> get typePromoter;
+  TypePromoter get typePromoter;
 
   /// The URI of the code for which type inference is currently being
   /// performed--this is used for testing.
@@ -233,7 +232,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Gets the type promoter that should be used to promote types during
   /// inference.
-  TypePromoter<Expression, VariableDeclaration> get typePromoter;
+  TypePromoter get typePromoter;
 
   FunctionType getCalleeFunctionType(
       Member interfaceMember, DartType receiverType, Name methodName) {
