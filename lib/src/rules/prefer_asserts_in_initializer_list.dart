@@ -86,19 +86,36 @@ class _AssertVisitor extends RecursiveAstVisitor {
 
     // use method
     needInstance = needInstance ||
-        element is MethodElement &&
-            !element.isStatic &&
-            classElement.type.lookUpInheritedMethod(element.name) == element;
+        element is MethodElement && !element.isStatic && _hasMethod(element);
 
     // use property accessor not used as field formal parameter
     needInstance = needInstance ||
         element is PropertyAccessorElement &&
             !element.isStatic &&
-            classElement.type.lookUpInheritedGetter(element.name) == element &&
+            _hasAccessor(element) &&
             !constructorElement.parameters
                 .where((p) => p is FieldFormalParameterElement)
                 .any((p) =>
                     (p as FieldFormalParameterElement).field.getter == element);
+  }
+
+  bool _hasMethod(MethodElement element) {
+    final type = classElement.type;
+    final name = element.name;
+    return type.lookUpMethod(name, element.library) == element ||
+        type.lookUpInheritedMethod(name) == element;
+  }
+
+  bool _hasAccessor(PropertyAccessorElement element) {
+    final type = classElement.type;
+    final name = element.name;
+    if (element.isGetter) {
+      return type.lookUpGetter(name, element.library) == element ||
+          type.lookUpInheritedGetter(name) == element;
+    } else {
+      return type.lookUpSetter(name, element.library) == element ||
+          type.lookUpInheritedSetter(name) == element;
+    }
   }
 
   @override

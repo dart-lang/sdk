@@ -4,7 +4,7 @@
 
 // test w/ `pub run test -N prefer_asserts_in_initializer_list`
 
-get tla => null;
+get tlg => null;
 tlm() => null;
 
 class A {
@@ -62,7 +62,7 @@ class A {
   }
   // lint for call of top level member
   A.c12() {
-    assert(tla != null); // LINT
+    assert(tlg != null); // LINT
     assert(tlm() != null); // LINT
   }
 
@@ -73,6 +73,14 @@ class A {
     assert(sa != null); // LINT
     assert(sm() != null); // LINT
   }
+
+  A.c14() {
+    assert(() // OK
+        {
+      f = true;
+      return false;
+    });
+  }
 }
 
 // no lint for super class attributes
@@ -80,6 +88,7 @@ class B {
   var a;
   get b => null;
 }
+
 class C extends B {
   C() {
     assert(a != null); // OK
@@ -91,8 +100,17 @@ class C extends B {
 class Mixin {
   var a;
 }
+
 class D extends Object with Mixin {
   D() {
     assert(a != null); // OK
+  }
+}
+
+class E {
+  set tlg(v) {}
+  E() {
+    // setter with the same name as top level getter used
+    assert(tlg != null); // LINT
   }
 }
