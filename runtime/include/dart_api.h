@@ -3194,6 +3194,31 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
 DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
 
 
+/**
+ * Record all functions which have been compiled in the current isolate.
+ *
+ * \param buffer Returns a pointer to a buffer containing the trace.
+ *   This buffer is scope allocated and is only valid  until the next call to
+ *   Dart_ExitScope.
+ * \param size Returns the size of the buffer.
+ * \return Returns an valid handle upon success.
+ */
+DART_EXPORT Dart_Handle Dart_SaveCompilationTrace(uint8_t** buffer,
+                                                  intptr_t* buffer_length);
+
+
+/**
+ * Compile all functions from data from Dart_SaveCompilationTrace. Unlike JIT
+ * feedback, this data is fuzzy: loading does not need to happen in the exact
+ * program that was saved, the saver and loader do not need to agree on checked
+ * mode versus production mode or debug/release/product.
+ *
+ * \return Returns an error handle if a compilation error was encountered.
+ */
+DART_EXPORT Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer,
+                                                  intptr_t buffer_length);
+
+
 /*
  * ==============
  * Precompilation

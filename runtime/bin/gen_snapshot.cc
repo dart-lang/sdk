@@ -85,6 +85,11 @@ static bool print_dependencies = false;
 static const char* dependencies_filename = NULL;
 
 
+// Value of the --load-compilation-trace flag.
+// (This pointer points into an argv buffer and does not need to be
+// free'd.)
+static const char* load_compilation_trace_filename = NULL;
+
 // Value of the --package-root flag.
 // (This pointer points into an argv buffer and does not need to be
 // free'd.)
@@ -358,6 +363,16 @@ static bool ProcessEmbedderEntryPointsManifestOption(const char* option) {
 }
 
 
+static bool ProcessLoadCompilationTraceOption(const char* option) {
+  const char* name = ProcessOption(option, "--load_compilation_trace=");
+  if (name != NULL) {
+    load_compilation_trace_filename = name;
+    return true;
+  }
+  return false;
+}
+
+
 static bool ProcessPackageRootOption(const char* option) {
   const char* name = ProcessOption(option, "--package_root=");
   if (name == NULL) {
@@ -424,8 +439,10 @@ static int ParseArguments(int argc,
         ProcessDependenciesOnlyOption(argv[i]) ||
         ProcessPrintDependenciesOption(argv[i]) ||
         ProcessEmbedderEntryPointsManifestOption(argv[i]) ||
-        ProcessURLmappingOption(argv[i]) || ProcessPackageRootOption(argv[i]) ||
-        ProcessPackagesOption(argv[i]) || ProcessEnvironmentOption(argv[i])) {
+        ProcessURLmappingOption(argv[i]) ||
+        ProcessLoadCompilationTraceOption(argv[i]) ||
+        ProcessPackageRootOption(argv[i]) || ProcessPackagesOption(argv[i]) ||
+        ProcessEnvironmentOption(argv[i])) {
       i += 1;
       continue;
     }
@@ -523,10 +540,9 @@ static int ParseArguments(int argc,
 }
 
 
-static void WriteSnapshotFile(const char* filename,
-                              const uint8_t* buffer,
-                              const intptr_t size,
-                              bool write_magic_number = false) {
+static void WriteFile(const char* filename,
+                      const uint8_t* buffer,
+                      const intptr_t size) {
   File* file = File::Open(filename, File::kWriteTruncate);
   if (file == NULL) {
     Log::PrintErr("Error: Unable to write snapshot file: %s\n\n", filename);
@@ -534,12 +550,28 @@ static void WriteSnapshotFile(const char* filename,
     Dart_ShutdownIsolate();
     exit(kErrorExitCode);
   }
-  if (write_magic_number) {
-    // Write the magic number to indicate file is a script snapshot.
-    DartUtils::WriteMagicNumber(file);
-  }
   if (!file->WriteFully(buffer, size)) {
     Log::PrintErr("Error: Unable to write snapshot file: %s\n\n", filename);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    exit(kErrorExitCode);
+  }
+  file->Release();
+}
+
+
+static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
+  File* file = File::Open(filename, File::kRead);
+  if (file == NULL) {
+    Log::PrintErr("Unable to open file %s\n", filename);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    exit(kErrorExitCode);
+  }
+  *size = file->Length();
+  *buffer = reinterpret_cast<uint8_t*>(malloc(*size));
+  if (!file->ReadFully(*buffer, *size)) {
+    Log::PrintErr("Unable to read file %s\n", filename);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
     exit(kErrorExitCode);
@@ -1273,6 +1305,18 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestIfPresent() {
 }
 
 
+static void LoadCompilationTrace() {
+  if ((load_compilation_trace_filename != NULL) &&
+      (snapshot_kind == kCoreJIT)) {
+    uint8_t* buffer = NULL;
+    intptr_t size = 0;
+    ReadFile(load_compilation_trace_filename, &buffer, &size);
+    Dart_Handle result = Dart_LoadCompilationTrace(buffer, size);
+    CHECK_RESULT(result);
+  }
+}
+
+
 static void CreateAndWriteCoreSnapshot() {
   ASSERT(snapshot_kind == kCore);
   ASSERT(vm_snapshot_data_filename != NULL);
@@ -1292,15 +1336,15 @@ static void CreateAndWriteCoreSnapshot() {
 
   // Now write the vm isolate and isolate snapshots out to the
   // specified file and exit.
-  WriteSnapshotFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
-                    vm_snapshot_data_size);
+  WriteFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
+            vm_snapshot_data_size);
   if (vm_snapshot_instructions_filename != NULL) {
-    WriteSnapshotFile(vm_snapshot_instructions_filename, NULL, 0);
+    WriteFile(vm_snapshot_instructions_filename, NULL, 0);
   }
-  WriteSnapshotFile(isolate_snapshot_data_filename,
-                    isolate_snapshot_data_buffer, isolate_snapshot_data_size);
+  WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
+            isolate_snapshot_data_size);
   if (isolate_snapshot_instructions_filename != NULL) {
-    WriteSnapshotFile(isolate_snapshot_instructions_filename, NULL, 0);
+    WriteFile(isolate_snapshot_instructions_filename, NULL, 0);
   }
 }
 
@@ -1333,16 +1377,15 @@ static void CreateAndWriteCoreJITSnapshot() {
 
   // Now write the vm isolate and isolate snapshots out to the
   // specified file and exit.
-  WriteSnapshotFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
-                    vm_snapshot_data_size);
-  WriteSnapshotFile(vm_snapshot_instructions_filename,
-                    vm_snapshot_instructions_buffer,
-                    vm_snapshot_instructions_size);
-  WriteSnapshotFile(isolate_snapshot_data_filename,
-                    isolate_snapshot_data_buffer, isolate_snapshot_data_size);
-  WriteSnapshotFile(isolate_snapshot_instructions_filename,
-                    isolate_snapshot_instructions_buffer,
-                    isolate_snapshot_instructions_size);
+  WriteFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
+            vm_snapshot_data_size);
+  WriteFile(vm_snapshot_instructions_filename, vm_snapshot_instructions_buffer,
+            vm_snapshot_instructions_size);
+  WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
+            isolate_snapshot_data_size);
+  WriteFile(isolate_snapshot_instructions_filename,
+            isolate_snapshot_instructions_buffer,
+            isolate_snapshot_instructions_size);
 }
 
 
@@ -1357,7 +1400,7 @@ static void CreateAndWriteScriptSnapshot() {
   CHECK_RESULT(result);
 
   // Now write it out to the specified file.
-  WriteSnapshotFile(script_snapshot_filename, buffer, size, false);
+  WriteFile(script_snapshot_filename, buffer, size);
 }
 
 
@@ -1381,7 +1424,7 @@ static void CreateAndWritePrecompiledSnapshot(
         Dart_CreateAppAOTSnapshotAsAssembly(&assembly_buffer, &assembly_size);
     CHECK_RESULT(result);
 
-    WriteSnapshotFile(assembly_filename, assembly_buffer, assembly_size);
+    WriteFile(assembly_filename, assembly_buffer, assembly_size);
   } else {
     ASSERT(snapshot_kind == kAppAOTBlobs);
 
@@ -1401,16 +1444,15 @@ static void CreateAndWritePrecompiledSnapshot(
         &isolate_snapshot_instructions_size);
     CHECK_RESULT(result);
 
-    WriteSnapshotFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
-                      vm_snapshot_data_size);
-    WriteSnapshotFile(vm_snapshot_instructions_filename,
-                      vm_snapshot_instructions_buffer,
-                      vm_snapshot_instructions_size);
-    WriteSnapshotFile(isolate_snapshot_data_filename,
-                      isolate_snapshot_data_buffer, isolate_snapshot_data_size);
-    WriteSnapshotFile(isolate_snapshot_instructions_filename,
-                      isolate_snapshot_instructions_buffer,
-                      isolate_snapshot_instructions_size);
+    WriteFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
+              vm_snapshot_data_size);
+    WriteFile(vm_snapshot_instructions_filename,
+              vm_snapshot_instructions_buffer, vm_snapshot_instructions_size);
+    WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
+              isolate_snapshot_data_size);
+    WriteFile(isolate_snapshot_instructions_filename,
+              isolate_snapshot_instructions_buffer,
+              isolate_snapshot_instructions_size);
   }
 }
 
@@ -1727,6 +1769,8 @@ int main(int argc, char** argv) {
     result = Dart_FinalizeLoading(false);
     CHECK_RESULT(result);
 
+    LoadCompilationTrace();
+
     if (!dependencies_only) {
       switch (snapshot_kind) {
         case kCore:
@@ -1758,6 +1802,7 @@ int main(int argc, char** argv) {
     Dart_ShutdownIsolate();
   } else {
     SetupForGenericSnapshotCreation();
+    LoadCompilationTrace();
     switch (snapshot_kind) {
       case kCore:
         CreateAndWriteCoreSnapshot();

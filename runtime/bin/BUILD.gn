@@ -464,44 +464,30 @@ dart_io("standalone_dart_io") {
   extra_sources = []
 }
 
-action("generate_snapshot_bin") {
-  deps = [
-    "../bin:gen_snapshot($host_toolchain)",
-  ]
-
+compiled_action("generate_snapshot_bin") {
   vm_snapshot_data = "$target_gen_dir/vm_snapshot_data.bin"
   vm_snapshot_instructions = "$target_gen_dir/vm_snapshot_instructions.bin"
   isolate_snapshot_data = "$target_gen_dir/isolate_snapshot_data.bin"
   isolate_snapshot_instructions =
       "$target_gen_dir/isolate_snapshot_instructions.bin"
-  gen_snapshot_stamp_file = "$target_gen_dir/gen_snapshot.stamp"
+
+  inputs = []
   outputs = [
     vm_snapshot_data,
     vm_snapshot_instructions,
     isolate_snapshot_data,
     isolate_snapshot_instructions,
-    gen_snapshot_stamp_file,
   ]
-
-  gen_snapshot_dir =
-      get_label_info("../bin:gen_snapshot($host_toolchain)", "root_out_dir")
-
-  script = rebase_path("../tools/create_snapshot_bin.py")
+  tool = ":gen_snapshot"
   args = [
-    "--executable",
-    rebase_path("$gen_snapshot_dir/gen_snapshot"),
-    "--snapshot_kind",
-    dart_core_snapshot_kind,
-    "--vm_output_bin",
-    rebase_path(vm_snapshot_data, root_build_dir),
-    "--vm_instructions_output_bin",
-    rebase_path(vm_snapshot_instructions, root_build_dir),
-    "--isolate_output_bin",
-    rebase_path(isolate_snapshot_data, root_build_dir),
-    "--isolate_instructions_output_bin",
-    rebase_path(isolate_snapshot_instructions, root_build_dir),
-    "--timestamp_file",
-    rebase_path(gen_snapshot_stamp_file, root_build_dir),
+    "--snapshot_kind=" + dart_core_snapshot_kind,
+    "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
+    "--vm_snapshot_instructions=" +
+        rebase_path(vm_snapshot_instructions, root_build_dir),
+    "--isolate_snapshot_data=" +
+        rebase_path(isolate_snapshot_data, root_build_dir),
+    "--isolate_snapshot_instructions=" +
+        rebase_path(isolate_snapshot_instructions, root_build_dir),
   ]
 }
 

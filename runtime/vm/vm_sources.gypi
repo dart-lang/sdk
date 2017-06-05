@@ -102,6 +102,8 @@
     'code_patcher_mips_test.cc',
     'code_patcher_x64.cc',
     'code_patcher_x64_test.cc',
+    'compilation_trace.cc',
+    'compilation_trace.h',
     'compiler.cc',
     'compiler.h',
     'compiler_stats.cc',

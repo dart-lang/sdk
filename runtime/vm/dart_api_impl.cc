@@ -6,10 +6,11 @@
 #include "include/dart_mirrors_api.h"
 #include "include/dart_native_api.h"
 
-#include "platform/assert.h"
 #include "lib/stacktrace.h"
+#include "platform/assert.h"
 #include "vm/class_finalizer.h"
 #include "vm/clustered_snapshot.h"
+#include "vm/compilation_trace.h"
 #include "vm/compiler.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"
@@ -23,25 +24,25 @@
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
-#include "vm/lockers.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
+#include "vm/lockers.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
-#include "vm/os_thread.h"
 #include "vm/os.h"
+#include "vm/os_thread.h"
 #include "vm/port.h"
 #include "vm/precompiler.h"
 #include "vm/profiler.h"
 #include "vm/program_visitor.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
+#include "vm/service.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
-#include "vm/service.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
@@ -6485,6 +6486,37 @@ DART_EXPORT void Dart_SetThreadName(const char* name) {
     return;
   }
   thread->SetName(name);
+}
+
+
+DART_EXPORT
+Dart_Handle Dart_SaveCompilationTrace(uint8_t** buffer,
+                                      intptr_t* buffer_length) {
+  API_TIMELINE_DURATION;
+  Thread* thread = Thread::Current();
+  DARTSCOPE(thread);
+  CHECK_NULL(buffer);
+  CHECK_NULL(buffer_length);
+  CompilationTraceSaver saver(thread->zone());
+  ProgramVisitor::VisitFunctions(&saver);
+  saver.StealBuffer(buffer, buffer_length);
+  return Api::Success();
+}
+
+
+DART_EXPORT
+Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length) {
+  Thread* thread = Thread::Current();
+  API_TIMELINE_DURATION;
+  DARTSCOPE(thread);
+  CHECK_NULL(buffer);
+  CompilationTraceLoader loader(thread);
+  const Object& error =
+      Object::Handle(loader.CompileTrace(reinterpret_cast<char*>(buffer)));
+  if (error.IsError()) {
+    return Api::NewHandle(T, Error::Cast(error).raw());
+  }
+  return Api::Success();
 }
 
 
