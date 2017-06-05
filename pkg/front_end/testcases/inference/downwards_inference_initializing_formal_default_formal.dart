@@ -18,3 +18,5 @@ void f([List<int> l = /*@typeArgs=int*/ const [1]]) {}
 Function2<List<int>, String> g = /*@returnType=String*/ (
         [/*@type=List<int>*/ llll = /*@typeArgs=int*/ const [1]]) =>
     "hello";
+
+main() {}
