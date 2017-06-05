@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.prefer_const_constructors_in_immutables;
+library linter.src.rules.prefer_asserts_in_initializer_list;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart' show AstVisitor;
