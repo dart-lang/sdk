@@ -29,28 +29,6 @@ class ImportedReferenceContributorTest extends DartCompletionContributorTest {
     return new ImportedReferenceContributor();
   }
 
-  test_ArgDefaults_Flutter_cons_with_children() async {
-    addMetaPackageSource();
-
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
-
-    addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
-
-build() => new Container(
-    child: new Row^
-  );
-''');
-
-    await computeSuggestions();
-
-    assertSuggestConstructor("Row",
-        defaultArgListString: "children: <Widget>[]",
-        defaultArgumentListTextRanges: [10, 10]);
-  }
-
   /// Sanity check.  Permutations tested in local_ref_contributor.
   test_ArgDefaults_function_with_required_named() async {
     addMetaPackageSource();
