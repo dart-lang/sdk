@@ -2907,6 +2907,7 @@ class Parser {
           parameter.identifier == null) {
         _reportErrorForCurrentToken(
             ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER);
+        parameter.identifier = createSyntheticIdentifier(isDeclaration: true);
       }
       return astFactory.defaultFormalParameter(
           parameter, kind, separator, defaultValue);
@@ -2930,6 +2931,7 @@ class Parser {
           parameter.identifier == null) {
         _reportErrorForCurrentToken(
             ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER);
+        parameter.identifier = createSyntheticIdentifier(isDeclaration: true);
       }
       return astFactory.defaultFormalParameter(
           parameter, kind, separator, defaultValue);
@@ -2939,6 +2941,7 @@ class Parser {
           parameter.identifier == null) {
         _reportErrorForCurrentToken(
             ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER);
+        parameter.identifier = createSyntheticIdentifier(isDeclaration: true);
       }
       return astFactory.defaultFormalParameter(parameter, kind, null, null);
     }

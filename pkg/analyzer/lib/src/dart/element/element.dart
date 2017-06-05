@@ -7600,6 +7600,7 @@ class ParameterElementImpl extends VariableElementImpl
     if (offset == 0 && _unlinkedParam != null) {
       if (isSynthetic ||
           (_unlinkedParam.name.isEmpty &&
+              _unlinkedParam.kind != UnlinkedParamKind.named &&
               enclosingElement is GenericFunctionTypeElement)) {
         return -1;
       }

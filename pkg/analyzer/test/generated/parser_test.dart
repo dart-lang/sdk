@@ -3515,6 +3515,7 @@ class Foo {
       ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
       ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER
     ]);
+    expect(parameter.identifier, isNotNull);
   }
 
   void test_missingNameForNamedParameter_equals() {
@@ -3526,6 +3527,7 @@ class Foo {
       ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
       ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER
     ]);
+    expect(parameter.identifier, isNotNull);
   }
 
   void test_missingNameForNamedParameter_noDefault() {
@@ -3535,6 +3537,7 @@ class Foo {
     expectNotNullIfNoErrors(parameter);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER]);
+    expect(parameter.identifier, isNotNull);
   }
 
   void test_missingNameInLibraryDirective() {
