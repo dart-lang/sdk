@@ -915,7 +915,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
     ClosureClassMap closureData =
-        compiler.closureToClassMapper.getClosureToClassMapping(analyzedElement);
+        compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);
     });
@@ -1098,8 +1098,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
     // a previous closure.
-    ClosureClassMap nestedClosureData =
-        compiler.closureToClassMapper.getClosureToClassMapping(element);
+    ClosureClassMap nestedClosureData = compiler.closureToClassMapper
+        .getClosureToClassMapping(element.resolvedAst);
     nestedClosureData.forEachCapturedVariable((variable, field) {
       if (!nestedClosureData.isVariableBoxed(variable)) {
         if (variable == nestedClosureData.thisLocal) {
