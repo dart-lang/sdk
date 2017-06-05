@@ -5530,7 +5530,7 @@ void Parser::SkipTypeArguments() {
   if (CurrentToken() == Token::kLT) {
     do {
       ConsumeToken();
-      SkipTypeOrFunctionType(false);
+      SkipTypeOrFunctionType(true);
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();
     if ((token == Token::kGT) || (token == Token::kSHR)) {
@@ -5685,7 +5685,7 @@ RawTypeArguments* Parser::ParseTypeArguments(
     AbstractType& type = AbstractType::Handle(Z);
     do {
       ConsumeToken();
-      type = ParseTypeOrFunctionType(false, finalization);
+      type = ParseTypeOrFunctionType(true, finalization);
       // Map a malformed type argument to dynamic.
       if (type.IsMalformed()) {
         type = Type::DynamicType();

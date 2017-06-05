@@ -15878,6 +15878,7 @@ bool Instance::IsInstanceOf(
       }
       if (instantiated_other.IsDynamicType() ||
           instantiated_other.IsObjectType() ||
+          instantiated_other.IsVoidType() ||
           instantiated_other.IsDartFunctionType()) {
         return true;
       }
@@ -15928,7 +15929,8 @@ bool Instance::IsInstanceOf(
     if (instantiated_other.IsTypeRef()) {
       instantiated_other = TypeRef::Cast(instantiated_other).type();
     }
-    if (instantiated_other.IsDynamicType()) {
+    if (instantiated_other.IsDynamicType() ||
+        instantiated_other.IsObjectType() || instantiated_other.IsVoidType()) {
       return true;
     }
   }
@@ -15963,7 +15965,7 @@ bool Instance::IsInstanceOf(
   if (IsNull()) {
     ASSERT(cls.IsNullClass());
     // As of Dart 1.5, the null instance and Null type are handled differently.
-    // We already checked for other.IsDynamicType().
+    // We already checked other for dynamic and void.
     return other_class.IsNullClass() || other_class.IsObjectClass();
   }
   return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
