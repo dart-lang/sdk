@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer_plugin/protocol/protocol.dart';
-import 'package:analyzer_plugin/utilities/navigation.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
+import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
+import 'package:analyzer_plugin/utilities/generator.dart';
+import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,20 +17,26 @@ void main() {
 
 @reflectiveTest
 class NavigationGeneratorTest {
+  MemoryResourceProvider provider = new MemoryResourceProvider();
+
+  ResolveResult resolveResult = new driver.AnalysisResult(
+      null, null, 'a.dart', null, true, '', null, '', null, null, null);
+
   test_none() {
-    NavigationGenerator generator = new NavigationGenerator(null, []);
-    List<Notification> notifications =
-        generator.generateNavigationNotification('a.dart');
-    expect(notifications, hasLength(1));
+    NavigationGenerator generator = new NavigationGenerator([]);
+    NavigationRequest request =
+        new NavigationRequestImpl(provider, 0, 100, resolveResult);
+    GeneratorResult result = generator.generateNavigationNotification(request);
+    expect(result.notifications, hasLength(1));
   }
 
   test_normal() {
     TestContributor contributor = new TestContributor();
-    NavigationGenerator generator =
-        new NavigationGenerator(null, [contributor]);
-    List<Notification> notifications =
-        generator.generateNavigationNotification('a.dart');
-    expect(notifications, hasLength(1));
+    NavigationGenerator generator = new NavigationGenerator([contributor]);
+    NavigationRequest request =
+        new NavigationRequestImpl(provider, 0, 100, resolveResult);
+    GeneratorResult result = generator.generateNavigationNotification(request);
+    expect(result.notifications, hasLength(1));
     expect(contributor.count, 1);
   }
 
@@ -42,16 +51,17 @@ class NavigationGeneratorTest {
     TestContributor contributor3 = new TestContributor();
     TestContributor contributor4 = new TestContributor(throwException: true);
     NavigationGenerator generator = new NavigationGenerator(
-        null, [contributor1, contributor2, contributor3, contributor4]);
-    List<Notification> notifications =
-        generator.generateNavigationNotification('a.dart');
-    expect(notifications, hasLength(3));
+        [contributor1, contributor2, contributor3, contributor4]);
+    NavigationRequest request =
+        new NavigationRequestImpl(provider, 0, 100, resolveResult);
+    GeneratorResult result = generator.generateNavigationNotification(request);
+    expect(result.notifications, hasLength(3));
     expect(
-        notifications.where(
+        result.notifications.where(
             (notification) => notification.event == 'analysis.navigation'),
         hasLength(1));
     expect(
-        notifications
+        result.notifications
             .where((notification) => notification.event == 'plugin.error'),
         hasLength(2));
     expect(contributor1.count, 1);
@@ -76,8 +86,8 @@ class TestContributor implements NavigationContributor {
   TestContributor({this.throwException: false});
 
   @override
-  void computeNavigation(NavigationCollector collector,
-      AnalysisDriverGeneric driver, String filePath, int offset, int length) {
+  void computeNavigation(
+      NavigationRequest request, NavigationCollector collector) {
     count++;
     if (throwException) {
       throw new Exception();

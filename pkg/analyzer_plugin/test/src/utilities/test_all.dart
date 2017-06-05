@@ -5,14 +5,14 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'change_builder/test_all.dart' as change_builder;
-import 'navigation_test.dart' as navigation_test;
+import 'navigation/test_all.dart' as navigation;
 import 'string_utilities_test.dart' as string_utilities;
 import 'visitors/test_all.dart' as visitors;
 
 main() {
   defineReflectiveSuite(() {
     change_builder.main();
-    navigation_test.main();
+    navigation.main();
     string_utilities.main();
     visitors.main();
   }, name: 'utilities');

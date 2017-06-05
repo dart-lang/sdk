@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceRange;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_plugin/utilities/navigation.dart';
+import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/pair.dart';
 
 /**
@@ -80,4 +82,27 @@ class NavigationCollectorImpl implements NavigationCollector {
     }
     return index;
   }
+}
+
+/**
+ * A concrete implementation of [NavigationRequest].
+ */
+class NavigationRequestImpl implements NavigationRequest {
+  @override
+  final ResourceProvider resourceProvider;
+
+  @override
+  final int length;
+
+  @override
+  final int offset;
+
+  @override
+  final ResolveResult result;
+
+  /**
+   * Initialize a newly create request with the given data.
+   */
+  NavigationRequestImpl(
+      this.resourceProvider, this.offset, this.length, this.result);
 }
