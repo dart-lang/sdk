@@ -4,6 +4,9 @@
 
 // test w/ `pub run test -N prefer_asserts_in_initializer_list`
 
+get tlg => null;
+tlm() => null;
+
 class A {
   var f;
   get g => null;
@@ -45,16 +48,69 @@ class A {
     assert(this.g != null); // OK
     assert(g != null); // OK
   }
-  // no lint if method is call on other objet
+  // lint if method call is not on current object
   A.c9({f}) : f = f ?? 'f' {
     assert(f != null); // LINT
-    assert(f.toString() != null); // LINT
-    assert(f.toString().toString() != null); // LINT
+    assert(f.m1() != null); // LINT
+    assert(f.m1().m2() != null); // LINT
   }
   A.c10({this.f}) {
     assert(f != null); // LINT
   }
   factory A.c11({f}) {
     assert(f != null); // OK
+  }
+  // lint for call of top level member
+  A.c12() {
+    assert(tlg != null); // LINT
+    assert(tlm() != null); // LINT
+  }
+
+  // lint for call of static member
+  static get sa => null;
+  static sm() => null;
+  A.c13() {
+    assert(sa != null); // LINT
+    assert(sm() != null); // LINT
+  }
+
+  A.c14() {
+    assert(() // OK
+        {
+      f = true;
+      return false;
+    });
+  }
+}
+
+// no lint for super class attributes
+class B {
+  var a;
+  get b => null;
+}
+
+class C extends B {
+  C() {
+    assert(a != null); // OK
+    assert(b != null); // OK
+  }
+}
+
+// no lint for mixin attributes
+class Mixin {
+  var a;
+}
+
+class D extends Object with Mixin {
+  D() {
+    assert(a != null); // OK
+  }
+}
+
+class E {
+  set tlg(v) {}
+  E() {
+    // setter with the same name as top level getter used
+    assert(tlg != null); // LINT
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.prefer_const_constructors_in_immutables;
+library linter.src.rules.prefer_asserts_in_initializer_list;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart' show AstVisitor;
@@ -84,19 +84,38 @@ class _AssertVisitor extends RecursiveAstVisitor {
   visitSimpleIdentifier(SimpleIdentifier node) {
     final element = node.staticElement;
 
-    // exit if not an identifier of the current class
-    if (element?.enclosingElement != classElement) return;
-
     // use method
-    needInstance = needInstance || element is MethodElement;
+    needInstance = needInstance ||
+        element is MethodElement && !element.isStatic && _hasMethod(element);
 
     // use property accessor not used as field formal parameter
     needInstance = needInstance ||
         element is PropertyAccessorElement &&
+            !element.isStatic &&
+            _hasAccessor(element) &&
             !constructorElement.parameters
                 .where((p) => p is FieldFormalParameterElement)
                 .any((p) =>
                     (p as FieldFormalParameterElement).field.getter == element);
+  }
+
+  bool _hasMethod(MethodElement element) {
+    final type = classElement.type;
+    final name = element.name;
+    return type.lookUpMethod(name, element.library) == element ||
+        type.lookUpInheritedMethod(name) == element;
+  }
+
+  bool _hasAccessor(PropertyAccessorElement element) {
+    final type = classElement.type;
+    final name = element.name;
+    if (element.isGetter) {
+      return type.lookUpGetter(name, element.library) == element ||
+          type.lookUpInheritedGetter(name) == element;
+    } else {
+      return type.lookUpSetter(name, element.library) == element ||
+          type.lookUpInheritedSetter(name) == element;
+    }
   }
 
   @override
