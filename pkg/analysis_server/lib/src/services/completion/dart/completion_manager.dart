@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -106,9 +105,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   final AnalysisResult result;
 
   @override
-  IdeOptions ideOptions;
-
-  @override
   final LibraryElement coreLib;
 
   @override
@@ -149,8 +145,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       this.offset,
       CompilationUnit unit,
       this._originalRequest,
-      this.performance,
-      this.ideOptions) {
+      this.performance) {
     _updateTargets(unit);
   }
 
@@ -260,8 +255,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
         request.offset,
         unit,
         request,
-        performance,
-        request.ideOptions);
+        performance);
 
     performance.logElapseTime(BUILD_REQUEST_TAG);
     return dartRequest;

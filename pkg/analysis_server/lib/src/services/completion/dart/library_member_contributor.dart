@@ -55,19 +55,15 @@ class LibraryMemberContributor extends DartCompletionContributor {
           bool typesOnly = parent is TypeName;
           bool instCreation = typesOnly && isConstructor;
           LibraryElementSuggestionBuilder builder =
-              new LibraryElementSuggestionBuilder(
-                  containingLibrary,
-                  CompletionSuggestionKind.INVOCATION,
-                  typesOnly,
-                  instCreation,
-                  request.ideOptions);
+              new LibraryElementSuggestionBuilder(containingLibrary,
+                  CompletionSuggestionKind.INVOCATION, typesOnly, instCreation);
           library.visitChildren(builder);
           suggestions.addAll(builder.suggestions);
 
           // If the import is 'deferred' then suggest 'loadLibrary'
           if (importElem.isDeferred) {
             FunctionElement loadLibFunct = library.loadLibraryFunction;
-            suggestions.add(createSuggestion(loadLibFunct, request.ideOptions));
+            suggestions.add(createSuggestion(loadLibFunct));
           }
         }
       }

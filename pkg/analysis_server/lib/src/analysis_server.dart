@@ -23,7 +23,6 @@ import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
@@ -116,11 +115,6 @@ class AnalysisServer {
    * to stdin. This should be removed once the underlying problem is fixed.
    */
   static int performOperationDelayFrequency = 25;
-
-  /**
-   * IDE options for this server instance.
-   */
-  IdeOptions ideOptions;
 
   /**
    * The options of this server instance.
@@ -254,15 +248,6 @@ class AnalysisServer {
   ServerPerformance performanceAfterStartup;
 
   /**
-   * Return the total time the server's been alive.
-   */
-  Duration get uptime {
-    DateTime start = new DateTime.fromMillisecondsSinceEpoch(
-        performanceDuringStartup.startTime);
-    return new DateTime.now().difference(start);
-  }
-
-  /**
    * A [RecentBuffer] of the most recent exceptions encountered by the analysis
    * server.
    */
@@ -364,9 +349,9 @@ class AnalysisServer {
   ResolverProvider packageResolverProvider;
 
   PerformanceLog _analysisPerformanceLogger;
+
   ByteStore byteStore;
   nd.AnalysisDriverScheduler analysisDriverScheduler;
-
   /**
    * This exists as a temporary stopgap for plugins, until the official plugin
    * API is complete.
@@ -520,7 +505,6 @@ class AnalysisServer {
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
-    ideOptions = new IdeOptions.from(options);
   }
 
   /**
@@ -621,6 +605,15 @@ class AnalysisServer {
       _test_onOperationPerformedCompleter = new Completer();
     }
     return _test_onOperationPerformedCompleter.future;
+  }
+
+  /**
+   * Return the total time the server's been alive.
+   */
+  Duration get uptime {
+    DateTime start = new DateTime.fromMillisecondsSinceEpoch(
+        performanceDuringStartup.startTime);
+    return new DateTime.now().difference(start);
   }
 
   /**
@@ -2295,6 +2288,21 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 }
 
 /**
+ * Used to record server exceptions.
+ */
+class ServerException {
+  final String message;
+  final dynamic exception;
+  final StackTrace stackTrace;
+  final bool fatal;
+
+  ServerException(this.message, this.exception, this.stackTrace, this.fatal);
+
+  @override
+  String toString() => message;
+}
+
+/**
  * A class used by [AnalysisServer] to record performance information
  * such as request latency.
  */
@@ -2399,19 +2407,4 @@ class ServerPerformanceStatistics {
    * The [PerformanceTag] for time spent in split store microtasks.
    */
   static PerformanceTag splitStore = new PerformanceTag('splitStore');
-}
-
-/**
- * Used to record server exceptions.
- */
-class ServerException {
-  final String message;
-  final dynamic exception;
-  final StackTrace stackTrace;
-  final bool fatal;
-
-  ServerException(this.message, this.exception, this.stackTrace, this.fatal);
-
-  @override
-  String toString() => message;
 }

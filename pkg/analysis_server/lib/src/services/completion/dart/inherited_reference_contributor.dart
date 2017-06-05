@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
@@ -82,32 +81,31 @@ class InheritedReferenceContributor extends DartCompletionContributor
         skipChildClass: skipChildClass);
   }
 
-  _addSuggestionsForType(
-      InterfaceType type, OpType optype, IdeOptions ideOptions,
+  _addSuggestionsForType(InterfaceType type, OpType optype,
       {bool isFunctionalArgument: false}) {
     if (!isFunctionalArgument) {
       for (PropertyAccessorElement elem in type.accessors) {
         if (elem.isGetter) {
           if (optype.includeReturnValueSuggestions) {
-            addSuggestion(elem, ideOptions);
+            addSuggestion(elem);
           }
         } else {
           if (optype.includeVoidReturnSuggestions) {
-            addSuggestion(elem, ideOptions);
+            addSuggestion(elem);
           }
         }
       }
     }
     for (MethodElement elem in type.methods) {
       if (elem.returnType == null) {
-        addSuggestion(elem, ideOptions);
+        addSuggestion(elem);
       } else if (!elem.returnType.isVoid) {
         if (optype.includeReturnValueSuggestions) {
-          addSuggestion(elem, ideOptions);
+          addSuggestion(elem);
         }
       } else {
         if (optype.includeVoidReturnSuggestions) {
-          addSuggestion(elem, ideOptions);
+          addSuggestion(elem);
         }
       }
     }
@@ -123,12 +121,12 @@ class InheritedReferenceContributor extends DartCompletionContributor
     OpType optype = request.opType;
 
     if (!skipChildClass) {
-      _addSuggestionsForType(classElement.type, optype, request.ideOptions,
+      _addSuggestionsForType(classElement.type, optype,
           isFunctionalArgument: isFunctionalArgument);
     }
 
     for (InterfaceType type in classElement.allSupertypes) {
-      _addSuggestionsForType(type, optype, request.ideOptions,
+      _addSuggestionsForType(type, optype,
           isFunctionalArgument: isFunctionalArgument);
     }
     return suggestions;

@@ -55,8 +55,7 @@ part '$testFile';
         provider,
         testSource,
         completionOffset,
-        new CompletionPerformance(),
-        null);
+        new CompletionPerformance());
     Completer<DartCompletionRequest> requestCompleter =
         new Completer<DartCompletionRequest>();
     DartCompletionRequestImpl

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
@@ -22,9 +21,6 @@ main() {
 
 @reflectiveTest
 class ImportedReferenceContributorTest extends DartCompletionContributorTest {
-  final IdeOptions generateChildrenBoilerPlate = new IdeOptionsImpl()
-    ..generateFlutterWidgetChildrenBoilerPlate = true;
-
   @override
   bool get isNullExpectedReturnTypeConsideredDynamic => false;
 
@@ -48,7 +44,7 @@ build() => new Container(
   );
 ''');
 
-    await computeSuggestions(options: generateChildrenBoilerPlate);
+    await computeSuggestions();
 
     assertSuggestConstructor("Row",
         defaultArgListString: "children: <Widget>[]",

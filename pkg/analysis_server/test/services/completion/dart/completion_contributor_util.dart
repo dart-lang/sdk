@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -456,7 +455,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return driver.getResult(testFile).then((result) => null);
   }
 
-  Future computeSuggestions({int times = 200, IdeOptions options}) async {
+  Future computeSuggestions({int times = 200}) async {
     AnalysisResult analysisResult = await driver.getResult(testFile);
     testSource = analysisResult.unit.element.source;
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
@@ -464,8 +463,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         provider,
         testSource,
         completionOffset,
-        new CompletionPerformance(),
-        options);
+        new CompletionPerformance());
 
     // Build the request
     Completer<DartCompletionRequest> requestCompleter =

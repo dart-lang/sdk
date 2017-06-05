@@ -477,8 +477,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         .map((p) => p.element);
     suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
-    addDefaultArgDetails(suggestion, null, requiredParameters, namedParameters,
-        request.ideOptions);
+    addDefaultArgDetails(suggestion, null, requiredParameters, namedParameters);
   }
 
   bool _isVoid(TypeAnnotation returnType) {

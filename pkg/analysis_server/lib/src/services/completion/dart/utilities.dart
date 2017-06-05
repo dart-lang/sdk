@@ -5,11 +5,9 @@
 /**
  * A collection of utility methods used by completion contributors.
  */
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind, Location;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -40,8 +38,7 @@ void addDefaultArgDetails(
     CompletionSuggestion suggestion,
     Element element,
     Iterable<ParameterElement> requiredParams,
-    Iterable<ParameterElement> namedParams,
-    IdeOptions options) {
+    Iterable<ParameterElement> namedParams) {
   StringBuffer sb = new StringBuffer();
   List<int> ranges = <int>[];
 
@@ -68,25 +65,6 @@ void addDefaultArgDetails(
       String defaultValue = _getDefaultValue(param);
       sb.write(defaultValue);
       ranges.addAll([offset, defaultValue.length]);
-    }
-  }
-
-  if (options?.generateFlutterWidgetChildrenBoilerPlate == true) {
-    if (element is ConstructorElement) {
-      if (isFlutterWidget(element.enclosingElement)) {
-        for (ParameterElement param in element.parameters) {
-          if (param.name == 'children') {
-            String defaultValue = getDefaultStringParameterValue(param) ?? '';
-            if (sb.isNotEmpty) {
-              sb.write(', ');
-            }
-            sb.write('children: ');
-            offset = sb.length;
-            sb.write(defaultValue);
-            ranges.addAll([offset, defaultValue.length]);
-          }
-        }
-      }
     }
   }
 

@@ -205,12 +205,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       recordRequest(performance, source, result.content, offset);
     }
     CompletionRequestImpl completionRequest = new CompletionRequestImpl(
-        result,
-        server.resourceProvider,
-        source,
-        offset,
-        performance,
-        server.ideOptions);
+        result, server.resourceProvider, source, offset, performance);
 
     String completionId = (_nextCompletionId++).toString();
 
