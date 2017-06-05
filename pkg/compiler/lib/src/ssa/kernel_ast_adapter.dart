@@ -116,7 +116,7 @@ class KernelAstAdapter extends KernelToElementMapMixin
       if (target == null) {
         MethodElement originTargetFunction = originTarget;
         ClosureClassMap classMap = _compiler.closureToClassMapper
-            .getClosureToClassMapping(originTargetFunction.resolvedAst);
+            .getClosureToClassMapping(originTargetFunction);
         if (classMap.closureElement != null) {
           target = kernel.localFunctions[classMap.closureElement];
         }

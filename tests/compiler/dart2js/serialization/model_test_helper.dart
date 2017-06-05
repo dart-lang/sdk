@@ -160,12 +160,10 @@ void checkElements(
   if (element1.isFunction ||
       element1.isConstructor ||
       (element1.isField && element1.isInstanceMember)) {
-    AstElement astElement1 = element1;
-    AstElement astElement2 = element2;
-    ClosureClassMap closureData1 = compiler1.closureToClassMapper
-        .getClosureToClassMapping(astElement1.resolvedAst);
-    ClosureClassMap closureData2 = compiler2.closureToClassMapper
-        .getClosureToClassMapping(astElement2.resolvedAst);
+    ClosureClassMap closureData1 =
+        compiler1.closureToClassMapper.getClosureToClassMapping(element1);
+    ClosureClassMap closureData2 =
+        compiler2.closureToClassMapper.getClosureToClassMapping(element2);
 
     checkElementIdentities(
         closureData1,

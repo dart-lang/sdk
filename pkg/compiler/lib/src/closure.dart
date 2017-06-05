@@ -42,26 +42,23 @@ class ClosureTask extends CompilerTask implements ClosureClassMaps {
   DiagnosticReporter get reporter => compiler.reporter;
 
   ClosureClassMap getMemberMap(MemberElement member) {
-    return getClosureToClassMapping(member.resolvedAst);
+    return getClosureToClassMapping(member);
   }
 
   ClosureClassMap getLocalFunctionMap(LocalFunctionElement localFunction) {
-    return getClosureToClassMapping(localFunction.resolvedAst);
+    return getClosureToClassMapping(localFunction);
   }
 
   /// Returns the [ClosureClassMap] computed for [resolvedAst].
-  ClosureClassMap getClosureToClassMapping(ResolvedAst resolvedAst) {
+  ClosureClassMap getClosureToClassMapping(Element element) {
     return measure(() {
-      Element element = resolvedAst.element;
       if (element.isGenerativeConstructorBody) {
         ConstructorBodyElement constructorBody = element;
         element = constructorBody.constructor;
       }
       ClosureClassMap closureClassMap = _closureMappingCache[element];
-      assert(
-          closureClassMap != null,
-          failedAt(resolvedAst.element,
-              "No ClosureClassMap computed for ${element}."));
+      assert(closureClassMap != null,
+          failedAt(element, "No ClosureClassMap computed for ${element}."));
       return closureClassMap;
     });
   }
@@ -78,23 +75,22 @@ class ClosureTask extends CompilerTask implements ClosureClassMaps {
         // Skip top-level/static fields without an initializer.
         return;
       }
-      computeClosureToClassMapping(resolvedAst, closedWorldRefiner);
+      computeClosureToClassMapping(element, closedWorldRefiner);
     });
   }
 
   ClosureClassMap computeClosureToClassMapping(
-      ResolvedAst resolvedAst, ClosedWorldRefiner closedWorldRefiner) {
+      AstElement element, ClosedWorldRefiner closedWorldRefiner) {
     return measure(() {
-      Element element = resolvedAst.element;
       ClosureClassMap cached = _closureMappingCache[element];
       if (cached != null) return cached;
-      if (resolvedAst.kind != ResolvedAstKind.PARSED) {
+      if (element.resolvedAst.kind != ResolvedAstKind.PARSED) {
         return _closureMappingCache[element] =
             new ClosureClassMap(null, null, null, new ThisLocal(element));
       }
       return reporter.withCurrentElement(element.implementation, () {
-        Node node = resolvedAst.node;
-        TreeElements elements = resolvedAst.elements;
+        Node node = element.resolvedAst.node;
+        TreeElements elements = element.resolvedAst.elements;
 
         ClosureTranslator translator = new ClosureTranslator(
             compiler, closedWorldRefiner, elements, _closureMappingCache);
@@ -111,7 +107,7 @@ class ClosureTask extends CompilerTask implements ClosureClassMaps {
         } else {
           assert(element.isField,
               failedAt(element, "Expected $element to be a field."));
-          Node initializer = resolvedAst.body;
+          Node initializer = element.resolvedAst.body;
           if (initializer != null) {
             // The lazy initializer of a static.
             translator.translateLazyInitializer(element, node, initializer);
@@ -1139,6 +1135,7 @@ class ClosureTranslator extends Visitor {
             compiler.backend.rtiNeed.methodNeedsRti(element);
       }
     }
+    closureMappingCache[element] = closureData;
     closureMappingCache[element.declaration] = closureData;
     if (closureData.callElement != null) {
       closureMappingCache[closureData.callElement] = closureData;

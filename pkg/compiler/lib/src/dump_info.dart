@@ -215,7 +215,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     _elementToInfo[element] = closureInfo;
 
     ClosureClassMap closureMap = compiler.closureToClassMapper
-        .getClosureToClassMapping(element.methodElement.resolvedAst);
+        .getClosureToClassMapping(element.methodElement);
     assert(closureMap != null && closureMap.closureClassElement == element);
 
     FunctionInfo functionInfo = this.process(closureMap.callElement);
