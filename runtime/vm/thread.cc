@@ -445,9 +445,9 @@ uword Thread::GetCurrentStackPointer() {
 #if !defined(TARGET_ARCH_DBC)
   // Since AddressSanitizer's detect_stack_use_after_return instruments the
   // C++ code to give out fake stack addresses, we call a stub in that case.
-  ASSERT(StubCode::GetStackPointer_entry() != NULL);
+  ASSERT(StubCode::GetCStackPointer_entry() != NULL);
   uword (*func)() = reinterpret_cast<uword (*)()>(
-      StubCode::GetStackPointer_entry()->EntryPoint());
+      StubCode::GetCStackPointer_entry()->EntryPoint());
 #else
   uword (*func)() = NULL;
 #endif

@@ -22,7 +22,7 @@ class SnapshotWriter;
 // isolates running in this dart process.
 #if !defined(TARGET_ARCH_DBC)
 #define VM_STUB_CODE_LIST(V)                                                   \
-  V(GetStackPointer)                                                           \
+  V(GetCStackPointer)                                                          \
   V(JumpToFrame)                                                               \
   V(RunExceptionHandler)                                                       \
   V(DeoptForRewind)                                                            \

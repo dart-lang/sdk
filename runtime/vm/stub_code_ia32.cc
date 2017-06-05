@@ -1830,7 +1830,7 @@ void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
 // Return the current stack pointer address, used to do stack alignment checks.
 // TOS + 0: return address
 // Result in EAX.
-void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
+void StubCode::GenerateGetCStackPointerStub(Assembler* assembler) {
   __ leal(EAX, Address(ESP, kWordSize));
   __ ret();
 }
