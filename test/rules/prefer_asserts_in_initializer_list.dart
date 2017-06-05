@@ -48,7 +48,7 @@ class A {
     assert(this.g != null); // OK
     assert(g != null); // OK
   }
-  // no lint if method is call on other objet
+  // lint if method call is not on current object
   A.c9({f}) : f = f ?? 'f' {
     assert(f != null); // LINT
     assert(f.m1() != null); // LINT
@@ -75,7 +75,7 @@ class A {
   }
 }
 
-// no lint for super class attributs
+// no lint for super class attributes
 class B {
   var a;
   get b => null;
@@ -87,7 +87,7 @@ class C extends B {
   }
 }
 
-// no lint for mixin attributs
+// no lint for mixin attributes
 class Mixin {
   var a;
 }
