@@ -31,21 +31,6 @@ class IncrementalClassHierarchyTest extends _ClassHierarchyTest {
   ClassHierarchy createClassHierarchy(Program program) {
     return new IncrementalClassHierarchy();
   }
-
-  @failingTest
-  void test_forEachOverridePair_supertypeOverridesInterface() {
-    super.test_forEachOverridePair_supertypeOverridesInterface();
-  }
-
-  @failingTest
-  void test_forEachOverridePair_thisOverridesSupertype() {
-    super.test_forEachOverridePair_thisOverridesSupertype();
-  }
-
-  @failingTest
-  void test_forEachOverridePair_thisOverridesSupertype_setter() {
-    super.test_forEachOverridePair_thisOverridesSupertype_setter();
-  }
 }
 
 abstract class _ClassHierarchyTest {
@@ -178,8 +163,6 @@ class E = self::D with self::A implements self::B {}
 
   /// 3. A non-abstract member is inherited from a superclass, and it overrides
   /// an abstract member declared in this class.
-  /// TODO(scheglov): Implementation does not follow the documentation.
-  @failingTest
   void test_forEachOverridePair_supertypeOverridesThisAbstract() {
     var a = addClass(new Class(
         name: 'A',
@@ -200,7 +183,12 @@ class B extends self::A {
 }
 ''');
 
-    _assertOverridePairs(b, ['test::A::foo overrides test::B::foo']);
+    // The documentation says:
+    // It is possible for two methods to override one another in both directions.
+    _assertOverridePairs(b, [
+      'test::A::foo overrides test::B::foo',
+      'test::B::foo overrides test::A::foo'
+    ]);
   }
 
   /// 1. A member declared in the class overrides a member inheritable through

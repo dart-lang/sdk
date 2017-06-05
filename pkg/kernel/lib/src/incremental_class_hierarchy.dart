@@ -84,10 +84,38 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  void forEachOverridePair(Class class_,
+  void forEachOverridePair(Class node,
       callback(Member declaredMember, Member interfaceMember, bool isSetter)) {
-    // TODO(scheglov): implement forEachOverridePair
-    throw new UnimplementedError();
+    _ClassInfo info = _getInfo(node);
+    for (var supertype in node.supers) {
+      var superNode = supertype.classNode;
+      var superInfo = _getInfo(superNode);
+
+      var superGetters = superInfo.interfaceGettersAndCalls;
+      _reportOverrides(info.implementedGettersAndCalls, superGetters, callback);
+      _reportOverrides(info.declaredGettersAndCalls, superGetters, callback,
+          onlyAbstract: true);
+
+      var superSetters = superInfo.interfaceSetters;
+      _reportOverrides(info.implementedSetters, superSetters, callback,
+          isSetter: true);
+      _reportOverrides(info.declaredSetters, superSetters, callback,
+          isSetter: true, onlyAbstract: true);
+    }
+    if (!node.isAbstract) {
+      // If a non-abstract class declares an abstract method M whose
+      // implementation M' is inherited from the superclass, then the inherited
+      // method M' overrides the declared method M.
+      // This flies in the face of conventional override logic, but is necessary
+      // because an instance of the class will contain the method M' which can
+      // be invoked through the interface of M.
+      // Note that [_reportOverrides] does not report self-overrides, so in
+      // most cases these calls will just scan both lists and report nothing.
+      _reportOverrides(info.implementedGettersAndCalls,
+          info.declaredGettersAndCalls, callback);
+      _reportOverrides(info.implementedSetters, info.declaredSetters, callback,
+          isSetter: true);
+    }
   }
 
   @override
@@ -554,6 +582,36 @@ class IncrementalClassHierarchy implements ClassHierarchy {
     }
     result.length = storeIndex;
     return result;
+  }
+
+  static void _reportOverrides(
+      List<Member> declaredList,
+      List<Member> inheritedList,
+      callback(Member declaredMember, Member interfaceMember, bool isSetter),
+      {bool isSetter: false,
+      bool onlyAbstract: false}) {
+    int i = 0, j = 0;
+    while (i < declaredList.length && j < inheritedList.length) {
+      Member declared = declaredList[i];
+      if (onlyAbstract && !declared.isAbstract) {
+        ++i;
+        continue;
+      }
+      Member inherited = inheritedList[j];
+      int comparison = _compareMembers(declared, inherited);
+      if (comparison < 0) {
+        ++i;
+      } else if (comparison > 0) {
+        ++j;
+      } else {
+        if (!identical(declared, inherited)) {
+          callback(declared, inherited, isSetter);
+        }
+        // A given declared member may override multiple interface members,
+        // so only move past the interface member.
+        ++j;
+      }
+    }
   }
 }
 
