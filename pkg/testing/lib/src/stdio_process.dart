@@ -27,7 +27,7 @@ class StdioProcess {
     if (exitCode == expected) {
       return new Result<int>.pass(exitCode);
     } else {
-      return new Result<Program>(
+      return new Result<int>(
           exitCode, ExpectationSet.Default["RuntimeError"], output, null);
     }
   }
