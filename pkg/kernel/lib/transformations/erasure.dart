@@ -9,6 +9,7 @@ import '../core_types.dart';
 
 Program transformProgram(CoreTypes coreTypes, Program program) {
   program.accept(new Erasure());
+  return program;
 }
 
 void transformLibraries(CoreTypes coreTypes, List<Library> libraries) {
