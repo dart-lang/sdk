@@ -21,7 +21,7 @@ main() {
 
 @reflectiveTest
 class OpTypeTest extends AbstractContextTest {
-  static const testpath = '/completionTest.dart';
+  String testpath;
   int completionOffset;
   OpType visitor;
 
@@ -71,6 +71,12 @@ class OpTypeTest extends AbstractContextTest {
         reason: 'staticMethodBody');
     expect(visitor.isPrefixed, prefixed, reason: 'prefixed');
     expect(visitor.suggestKind, kind, reason: 'suggestion kind');
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    testpath = provider.convertPath('/completionTest.dart');
   }
 
   test_Annotation() async {
