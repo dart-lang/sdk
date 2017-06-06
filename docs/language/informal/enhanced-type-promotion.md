@@ -70,7 +70,7 @@ propagation, but it handles the simplest, most common cases.
 
 ## How Type Promotion Works
 
-The language specifies type promotion out of three pieces:
+The language specifies type promotion out of four components:
 
 1.  **Certain expressions cause a fact to be known about a variable.** For
     example, `o` is String deduces the fact "`o` must be a String".
@@ -125,7 +125,12 @@ The language specifies type promotion out of three pieces:
     closure that is passed to it. To avoid cases like this, the spec defines
     certain variables to be off limits for type promotion.
 
-This proposal keeps the same three general pieces, but refines each of them.
+4.  **Which pairs of types -- declared and promoted -- are allowed for
+    promotion.** The spec says that promotion only applies if the promoted type
+    is a subtype of the declared type.
+
+This proposal keeps the same general pieces, but refines the first three of
+them. The forth is unchanged.
 
 ## Facts for False Expressions
 
@@ -218,7 +223,7 @@ has type T:
 ```dart
 while (o is String) oPromotedToStringHere;
 
-for (; o is String;;) oPromotedToStringHere;
+for (; o is String;) oPromotedToStringHere;
 ```
 
 ### Scopes After Exits
@@ -246,8 +251,8 @@ We say a statement "cannot complete normally" if the statement is one of:
 
 *   A block that directly contains a statement that cannot complete normally.
 
-We do not allowed *labeled* statements of the above form. Fortunately, labels
-are so vanishingly rare that this is unlikely to affect users in practice.
+We do not allow *labeled* statements of the above form. Fortunately, labels are
+so vanishingly rare that this is unlikely to affect users in practice.
 
 Then, given an if statement of the form `if (b) s1 else s2` that is contained in
 some block:
@@ -284,7 +289,8 @@ The specification places several restrictions on the variables whose type can be
     potentially mutated anywhere.
 
 This is a little too restrictive. We relax the restriction on potential
-assignments to allow assignments of the same type, as in:
+assignments to allow assignments inside the scope that promotion applies to if
+the assigned value's type is the same as the promoted type, as in:
 
 ```dart
 int stringLength(Object o) {
@@ -295,8 +301,9 @@ int stringLength(Object o) {
 }
 ```
 
-Here, since `trim()` returns a String, the assignment of `o` to its result does
-not disable its promotion.
+Here, the `if (o is String)` promotes `o` to String inside the body of the if.
+Since `trim()` returns a String which is the same as that promoted type, the
+assignment of `o` to its result does not disable its promotion.
 
 We couldn't relax this restriction before strong mode because the static type of
 expressions could not be trusted. Now that we have a sound type system, it's a
@@ -311,7 +318,9 @@ relaxation could be made for the locations of closures that capture the
 variable. This would require defining precisely what we mean by "before", which
 might be more work than it's worth.*
 
-*Optional: The restriction on mutation within the scope that the promotion would apply to could be relaxed by allowing the promotion to apply to everything up to the point of mutation. For example:*
+*Optional: The restriction on mutation within the scope that the promotion would
+apply to could be relaxed by allowing the promotion to apply to everything up to
+the point of mutation. For example:*
 
 ```dart
 if (v is T) {
@@ -332,145 +341,146 @@ because that was found to be confusing.
 
 ### 16.20 Conditional
 
-Given a conditional expression c of the form e1 ? e2 : e3, if
+Given a conditional expression c of the form `e1 ? e2 : e3`, if
 
-*   the variable v is promotable in e2, and
-*   e1 shows that a variable v has type T when e1 is true.
+*   the variable `v` is promotable in `e2`, and
+*   `e1` shows that a variable `v` has type T when `e1` is true.
 
-then the type of v is known to be T in e2.
+then the type of `v` is known to be T in `e2`.
 
-Given a conditional expression c of the form e1 ? e2 : e3, if
+Given a conditional expression `c` of the form `e1 ? e2 : e3`, if
 
-*   the variable v is promotable in e3, and
-*   e1 shows that a variable v has type T when e1 is false,
+*   the variable `v` is promotable in `e3`, and
+*   `e1` shows that a variable `v` has type T when `e1` is false,
 
-then the type of v is known to be T in e3.
+then the type of `v` is known to be T in `e3`.
 
 ### 16.22 Logical Boolean Expressions
 
-A logical boolean expression b of the form e1 || e2 shows that a variable v has
-type T when b is false if either e1 shows that v has type T when e1 is false or
-e2 shows that v has type T when e2 is false.
+A logical boolean expression `b` of the form `e1 || e2` shows that a variable
+`v` has type T when `b` is false if either `e1` shows that `v` has type T when
+`e1` is false or `e2` shows that `v` has type T when `e2` is false.
 
-Given a logical boolean expression b of the form e1 || e2, if:
+Given a logical boolean expression `b` of the form `e1 || e2`, if:
 
-*   the variable v is promotable in e2, and
-*   e1 shows that v has type T when e1 is false,
+*   the variable `v` is promotable in `e2`, and
+*   `e1` shows that `v` has type T when `e1` is false,
 
-then the type of v is known to be T in e2.
+then the type of `v` is known to be T in `e2`.
 
-A logical boolean expression b of the form e1 && e2 shows that a variable v has
-type T when b is true if either e1 shows that v has type T when e1 is true or e2
-shows that v has type T when e2 is true.
+A logical boolean expression `b` of the form `e1 && e2` shows that a variable
+`v` has type T when `b` is true if either `e1` shows that `v` has type T when
+`e1` is true or `e2` shows that `v` has type T when `e2` is true.
 
-Given a logical boolean expression b of the form e1 && e2, if:
+Given a logical boolean expression `b` of the form `e1 && e2`, if:
 
-*   the variable v is promotable in e2, and
-*   e1 shows that v has type T when e1 is true.
+*   the variable `v` is promotable in `e2`, and
+*   `e1` shows that `v` has type T when `e1` is true.
 
-then the type of v is known to be T in e2.
+then the type of `v` is known to be T in `e2`.
 
 ### 16.29 Unary Expressions
 
-A unary expression b of the form !e shows that a variable v has type T when b is
-true if e shows that the variable v has type T when e is false. A unary
-expression b of the form !e shows that a variable v has type T when b is false
-if e shows that the variable v has type T when e is true.
+A unary expression `b` of the form `!e` shows that a variable `v` has type T
+when `b` is true if `e` shows that the variable `v` has type T when `e` is
+false. A unary expression `b` of the form `!e` shows that a variable `v` has
+type T when b is false if e shows that the variable v has type T when e is true.
 
 ### 16.34 Type Test
 
-Dart 1.0: Let v be a local variable or a formal parameter. An is-expression e of
-the form v is T shows that v has type T when e is true iff T is more specific
-than the type S of the expression v and both T != dynamic and S != dynamic. An
-is-expression e of the form v is! T shows that v has type T when e is false iff
-T is more specific than the type S of the expression v and both T != dynamic and
-S != dynamic.
+Dart 1.0: Let `v` be a local variable or a formal parameter. An is-expression
+`e` of the form `v is T` shows that `v` has type T when `e` is true iff T is
+more specific than the type S of the expression `v` and both T != dynamic and S
+!= dynamic. An is-expression `e` of the form `v is! T` shows that `v` has type T
+when `e` is false iff T is more specific than the type S of the expression `v`
+and both T != dynamic and S != dynamic.
 
-Dart 2.0: Let v be a local variable or a formal parameter. An is-expression e of
-the form v is T shows that v has type T when e is true iff T is a subtype of the
-type S of the expression v, or, if S is a type variable with bound B, if T is a
-subtype of B. An is-expression e of the form v is! T shows that v has type T
-when e is false iff T is a subtype of the type S of the expression v, or, if S
-is a type variable with bound B, if T is a subtype of B.
+Dart 2.0: Let `v` be a local variable or a formal parameter. An is-expression
+`e` of the form `v is T` shows that `v` has type T when `e` is true iff T is a
+subtype of the type S of the expression `v`, or, if S is a type variable with
+bound B, if T is a subtype of B. An is-expression `e` of the form `v is! T`
+shows that `v` has type T when `e` is false iff T is a subtype of the type S of
+the expression `v`, or, if S is a type variable with bound B, if T is a subtype
+of B.
 
 ### 17.5 If
 
-Given an if statement of the form if (b) s1 else s2, if:
+Given an if statement of the form `if (b) s1 else s2`, if:
 
-*   the variable v is promotable in s1, and
-*   b shows that a variable v has type T when b is true.
+*   the variable `v` is promotable in `s1`, and
+*   `b` shows that a variable `v` has type T when `b` is true.
 
-then the type of v is known to be T in s1. If the if-statement is enclosed in a
-block and if s2 cannot complete normally, and v is promotable in the statements
-(S) in the immediately enclosing block that follow the if statement, then v is
-known to have type T in S.
+then the type of `v` is known to be T in `s1`. If the if-statement is enclosed
+in a block and if `s2` cannot complete normally, and `v` is promotable in the
+statements (S) in the immediately enclosing block that follow the if statement,
+then `v` is known to have type T in S.
 
-Given an if statement of the form if (b) s1 else s2, if:
+Given an if statement of the form `if (b) s1 else s2`, if:
 
-*   the variable v is promotable in s2, and
-*   b shows that a variable v has type T when b is false,
+*   the variable `v` is promotable in `s2`, and
+*   `b` shows that a variable `v` has type T when `b` is false,
 
-then the type of v is known to be T in s2. If the if-statement in enclosed in a
-block and if s1 cannot complete normally, and v is promotable in the statements
-(S) in the immediately enclosing block that follow the if statement, then v is
-known to have type T in S.
+then the type of `v` is known to be T in `s2`. If the if-statement in enclosed
+in a block and if `s1` cannot complete normally, and `v` is promotable in the
+statements (S) in the immediately enclosing block that follow the if statement,
+then `v` is known to have type T in S.
 
 ### 17.6.1 For Loop
 
-Given a for statement of the form for (..., c, ...) s, if
+Given a for statement of the form `for (...; c; ...) s`, if
 
-*   the variable v is promotable in s, and
-*   c shows that v has the type T when true,
+*   the variable `v` is promotable in `s`, and
+*   `c` shows that `v` has the type T when true,
 
-then v is known to have type T in s.
+then `v` is known to have type T in `s`.
 
-Given a for statement of the form for (..., c, u) s, if
+Given a for statement of the form `for (...; c; u) s`, if
 
-*   the variable v is promotable in u, and
-*   c shows that v has the type T when true,
+*   the variable `v` is promotable in `u`, and
+*   `c` shows that `v` has the type T when true,
 
-then v is known to have type T in u.
+then `v` is known to have type T in `u`.
 
-Given a for statement of the form for (..., c, u) s, if
+Given a for statement of the form `for (...; c; u) s`, if
 
-*   the variable v is promotable in the statements (S) in the immediately
+*   the variable `v` is promotable in the statements (S) in the immediately
     enclosing block that follow the for statement,
-*   e shows that v has the type T when false, and
-*   s is neither a break statement, nor a block containing, directly or
+*   `c` shows that `v` has the type T when false, and
+*   `s` is neither a break statement, nor a block containing, directly or
     indirectly, a break statement,
 
-then v is known to have type T in S.
+then `v` is known to have type T in S.
 
 ### 17.7 While
 
-Given a while statement of the form while (e) s, if
+Given a while statement of the form `while (e) s`, if
 
-*   the variable v is promotable in s, and
-*   e shows that v has the type T when true,
+*   the variable `v` is promotable in `s`, and
+*   `e` shows that `v` has the type T when true,
 
-then v is known to have type T in s.
+then `v` is known to have type T in `s`.
 
-Given a while statement of the form while (e) s, if
+Given a while statement of the form `while (e) s`, if
 
-*   the variable v is promotable in the statements (S) in the immediately
+*   the variable `v` is promotable in the statements (S) in the immediately
     enclosing block that follow the while statement,
-*   e shows that v has the type T when false, and
-*   s is neither a break statement, nor a block containing, directly or
+*   `e` shows that `v` has the type T when false, and
+*   `s` is neither a break statement, nor a block containing, directly or
     indirectly, a break statement,
 
-then v is known to have type T in S.
+then `v` is known to have type T in S.
 
 ### 17.8 Do
 
-Given a do statement of the form do s while (e);, if
+Given a do statement of the form `do s while (e);`, if
 
-*   the variable v is promotable in the statements (S) in the immediately
+*   the variable `v` is promotable in the statements (S) in the immediately
     enclosing block that follow the do statement,
-*   e shows that v has the type T when false, and
-*   s is neither a break statement, nor a block containing, directly or
+*   `e` shows that `v` has the type T when false, and
+*   `s` is neither a break statement, nor a block containing, directly or
     indirectly, a break statement,
 
-then v is known to have type T in S.
+then `v` is known to have type T in S.
 
 ### 19.1.1 Type Promotion
 
@@ -478,56 +488,56 @@ The static type system ascribes a static type to every expression. In some
 cases, the types of local variables and formal parameters may be promoted from
 their declared types based on control flow.
 
-We say that a variable v is known to have type T whenever we allow the type of v
-to be promoted. The exact circumstances when type promotion is allowed are given
-in the relevant sections of the specification (16.20, 16.22, 16.29, 17.5,
+We say that a variable `v` is known to have type T whenever we allow the type of
+`v` to be promoted. The exact circumstances when type promotion is allowed are
+given in the relevant sections of the specification (16.20, 16.22, 16.29, 17.5,
 17.6.1, and 17.7). Each of these sections defines the scope (range of code) in
 which the variable's type is to be promoted.
 
-Type promotion for a variable v is allowed only when we can deduce that such
+Type promotion for a variable `v` is allowed only when we can deduce that such
 promotion is valid based on an analysis of certain boolean expressions. In such
-cases, we either say that the boolean expression b shows that v has type T when
-b is true, or that the boolean expression b shows that v has type T when b is
-false. As a rule, for all variables v and types T, a boolean expression does not
-show that v has type T. Those situations where an expression does show that a
-variable has a type are mentioned explicitly in the relevant sections of this
-specification (16.34 and 16.22).
+cases, we either say that the boolean expression `b` shows that `v` has type T
+when `b` is true, or that the boolean expression `b` shows that `v` has type T
+when `b` is false. As a rule, for all variables `v` and types T, a boolean
+expression does not show that `v` has type T. Those situations where an
+expression does show that a variable has a type are mentioned explicitly in the
+relevant sections of this specification (16.34 and 16.22).
 
-Dart 1.0: Type promotion for a variable v is also allowed only for a subset of
+Dart 1.0: Type promotion for a variable `v` is also allowed only for a subset of
 variables and is dependent on the use of the variable in the scope in which the
 promotion would occur. If a variable is one for which type promotion is allowed,
-we say that the variable is promotable in some scope. A variable v is promotable
-in the scope S if all of the following conditions are met:
+we say that the variable is promotable in some scope. A variable `v` is
+promotable in the scope S if all of the following conditions are met:
 
-*   v is either a local variable or a parameter,
+*   `v` is either a local variable or a parameter,
 
-*   v cannot be potentially mutated within any closure unless all of the types
-    of the values that would be assigned to v within S are more specific than
-    the promoted type of v, and
+*   `v` cannot be potentially mutated within any closure unless all of the types
+    of the values that would be assigned to `v` within S are more specific than
+    the promoted type of `v`, and
 
-*   if v is captured by a closure in S then v cannot be potentially mutated
-    anywhere unless all of the types of the values that would be assigned to v
-    within S are more specific than the promoted type of v.
+*   if `v` is captured by a closure in S then `v` cannot be potentially mutated
+    anywhere unless all of the types of the values that would be assigned to `v`
+    within S are more specific than the promoted type of `v`.
 
-Dart 2.0: Type promotion for a variable v is also allowed only for a subset of
+Dart 2.0: Type promotion for a variable `v` is also allowed only for a subset of
 variables and is dependent on the use of the variable in the scope in which the
 promotion would occur. If a variable is one for which type promotion is allowed,
-we say that the variable is promotable in some scope. A variable v is promotable
-in the scope S if all of the following conditions are met:
+we say that the variable is promotable in some scope. A variable `v` is
+promotable in the scope S if all of the following conditions are met:
 
-*   v is either a local variable or a parameter,
+*   `v` is either a local variable or a parameter,
 
-*   v cannot be potentially mutated within S unless all of the types of the
-    values that would be assigned to v within S are a subtype of the promoted
-    type of v,
+*   `v` cannot be potentially mutated within S unless all of the types of the
+    values that would be assigned to `v` within S are a subtype of the promoted
+    type of `v`,
 
-*   v cannot be potentially mutated within any closure unless all of the types
-    of the values that would be assigned to v within S are a subtype of the
-    promoted type of v, and
+*   `v` cannot be potentially mutated within any closure unless all of the types
+    of the values that would be assigned to `v` within S are a subtype of the
+    promoted type of `v`, and
 
-*   if v is captured by a closure in S then v cannot be potentially mutated
-    anywhere unless all of the types of the values that would be assigned to v
-    within S are a subtype of the promoted type of v.
+*   if `v` is captured by a closure in S then `v` cannot be potentially mutated
+    anywhere unless all of the types of the values that would be assigned to `v`
+    within S are a subtype of the promoted type of `v`.
 
 For the purposes of type promotion, a statement cannot complete normally if the
 statement is either
@@ -535,6 +545,6 @@ statement is either
 *   a return statement,
 *   a rethrow statement,
 *   an expression statement whose expression is a throw expression,
-*   an if statement of the form if (b) s1 else s2 where neither s1 nor s2 can
-    complete normally, or
+*   an if statement of the form `if (b) s1 else s2` where neither `s1` nor `s2`
+    can complete normally, or
 *   a block whose last statement cannot complete normally.
