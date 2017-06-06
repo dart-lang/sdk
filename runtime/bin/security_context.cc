@@ -228,20 +228,22 @@ static int SetTrustedCertificatesBytesPEM(SSL_CTX* context, BIO* bio) {
 
 void SSLCertContext::SetTrustedCertificatesBytes(Dart_Handle cert_bytes,
                                                  const char* password) {
-  ScopedMemBIO bio(cert_bytes);
-  int status = SetTrustedCertificatesBytesPEM(context(), bio.bio());
-  if (status == 0) {
-    if (SecureSocketUtils::NoPEMStartLine()) {
+  int status = 0;
+  {
+    ScopedMemBIO bio(cert_bytes);
+    status = SetTrustedCertificatesBytesPEM(context(), bio.bio());
+    if (status == 0) {
+      if (SecureSocketUtils::NoPEMStartLine()) {
+        ERR_clear_error();
+        BIO_reset(bio.bio());
+        status =
+            SetTrustedCertificatesBytesPKCS12(context(), bio.bio(), password);
+      }
+    } else {
+      // The PEM file was successfully parsed.
       ERR_clear_error();
-      BIO_reset(bio.bio());
-      status =
-          SetTrustedCertificatesBytesPKCS12(context(), bio.bio(), password);
     }
-  } else {
-    // The PEM file was successfully parsed.
-    ERR_clear_error();
   }
-
   SecureSocketUtils::CheckStatus(status, "TlsException",
                                  "Failure trusting builtin roots");
 }
