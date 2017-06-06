@@ -11,7 +11,7 @@ import 'dart:convert' show LineSplitter, UTF8;
 import 'dart:io'
     show Directory, File, FileSystemEntity, Platform, Process, ProcessResult;
 
-import '../testing.dart' show startDart;
+import '../testing.dart' show dartArguments, startDart;
 
 import 'log.dart' show isVerbose, splitLines;
 
@@ -221,7 +221,12 @@ Future<Null> analyzeUris(
     print("Running dartanalyzer.");
   }
   Stopwatch sw = new Stopwatch()..start();
-  Process process = await startDart(analyzer, const <String>["--batch"]);
+  Process process = await startDart(
+      analyzer,
+      const <String>["--batch"],
+      dartArguments
+        ..remove("-c")
+        ..add("-DuseFastaScanner=true"));
   process.stdin.writeln(arguments.join(" "));
   process.stdin.close();
 
