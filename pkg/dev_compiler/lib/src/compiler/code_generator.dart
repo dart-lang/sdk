@@ -2811,8 +2811,8 @@ class CodeGenerator extends Object
   JS.Expression _emitSimpleIdentifier(SimpleIdentifier node) {
     var accessor = resolutionMap.staticElementForIdentifier(node);
     if (accessor == null) {
-      return js.commentExpression(
-          'Unimplemented unknown name', new JS.Identifier(node.name));
+      return _callHelper('throw("compile error: unresolved identifier: " + #)',
+          js.escapedString(node.name ?? '<null>'));
     }
 
     // Get the original declaring element. If we had a property accessor, this
@@ -4101,14 +4101,11 @@ class CodeGenerator extends Object
       bool isFactory = false;
       bool isNative = false;
       if (element == null) {
-        // TODO(jmesserly): this only happens if we had a static error.
-        // Should we generate a throw instead?
-        ctor = _emitConstructorAccess(type,
-            nameType: options.hoistInstanceCreation,
-            hoistType: options.hoistInstanceCreation);
-        if (name != null) {
-          ctor = new JS.PropertyAccess(ctor, _propertyName(name.name));
-        }
+        ctor = _callHelper(
+            'throw("compile error: unresolved constructor: " + # + "." + #)', [
+          js.escapedString(type?.name ?? '<null>'),
+          js.escapedString(name?.name ?? '<unnamed>')
+        ]);
       } else {
         ctor = _emitConstructorName(element, type, name);
         isFactory = element.isFactory;
