@@ -355,6 +355,9 @@ static bool ProcessPrintDependenciesOption(const char* option) {
 
 static bool ProcessEmbedderEntryPointsManifestOption(const char* option) {
   const char* name = ProcessOption(option, "--embedder_entry_points_manifest=");
+  if (name == NULL) {
+    name = ProcessOption(option, "--embedder-entry-points-manifest=");
+  }
   if (name != NULL) {
     entry_points_files->AddArgument(name);
     return true;
@@ -365,6 +368,9 @@ static bool ProcessEmbedderEntryPointsManifestOption(const char* option) {
 
 static bool ProcessLoadCompilationTraceOption(const char* option) {
   const char* name = ProcessOption(option, "--load_compilation_trace=");
+  if (name == NULL) {
+    name = ProcessOption(option, "--load-compilation-trace=");
+  }
   if (name != NULL) {
     load_compilation_trace_filename = name;
     return true;
@@ -691,7 +697,7 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   if (Dart_IsError(source)) {
     return source;
   }
-  if (snapshot_kind == kCore) {
+  if ((snapshot_kind == kCore) || (snapshot_kind == kCoreJIT)) {
     return Dart_LoadLibrary(resolved_uri, Dart_Null(), source, 0, 0);
   } else {
     return Dart_LoadScript(resolved_uri, Dart_Null(), source, 0, 0);
@@ -1536,18 +1542,27 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
 }
 
 
-static MappedMemory* MapFile(const char* filename, File::MapType type) {
+static MappedMemory* MapFile(const char* filename,
+                             File::MapType type,
+                             const uint8_t** buffer) {
   File* file = File::Open(filename, File::kRead);
   if (file == NULL) {
     Log::PrintErr("Failed to open: %s\n", filename);
     exit(kErrorExitCode);
   }
-  MappedMemory* mapping = file->Map(type, 0, file->Length());
+  intptr_t length = file->Length();
+  if (length == 0) {
+    // Can't map an empty file.
+    *buffer = NULL;
+    return NULL;
+  }
+  MappedMemory* mapping = file->Map(type, 0, length);
   if (mapping == NULL) {
-    Log::PrintErr("Failed to read: %s\n", vm_snapshot_data_filename);
+    Log::PrintErr("Failed to read: %s\n", filename);
     exit(kErrorExitCode);
   }
   file->Release();
+  *buffer = reinterpret_cast<const uint8_t*>(mapping->address());
   return mapping;
 }
 
@@ -1619,27 +1634,23 @@ int main(int argc, char** argv) {
   MappedMemory* mapped_isolate_snapshot_instructions = NULL;
   if (snapshot_kind == kScript) {
     mapped_vm_snapshot_data =
-        MapFile(vm_snapshot_data_filename, File::kReadOnly);
-    init_params.vm_snapshot_data =
-        reinterpret_cast<const uint8_t*>(mapped_vm_snapshot_data->address());
+        MapFile(vm_snapshot_data_filename, File::kReadOnly,
+                &init_params.vm_snapshot_data);
 
     if (vm_snapshot_instructions_filename != NULL) {
       mapped_vm_snapshot_instructions =
-          MapFile(vm_snapshot_instructions_filename, File::kReadExecute);
-      init_params.vm_snapshot_instructions = reinterpret_cast<const uint8_t*>(
-          mapped_vm_snapshot_instructions->address());
+          MapFile(vm_snapshot_instructions_filename, File::kReadExecute,
+                  &init_params.vm_snapshot_instructions);
     }
 
     mapped_isolate_snapshot_data =
-        MapFile(isolate_snapshot_data_filename, File::kReadOnly);
-    isolate_snapshot_data = reinterpret_cast<const uint8_t*>(
-        mapped_isolate_snapshot_data->address());
+        MapFile(isolate_snapshot_data_filename, File::kReadOnly,
+                &isolate_snapshot_data);
 
     if (isolate_snapshot_instructions_filename != NULL) {
       mapped_isolate_snapshot_instructions =
-          MapFile(isolate_snapshot_instructions_filename, File::kReadExecute);
-      isolate_snapshot_instructions = reinterpret_cast<const uint8_t*>(
-          mapped_isolate_snapshot_instructions->address());
+          MapFile(isolate_snapshot_instructions_filename, File::kReadExecute,
+                  &isolate_snapshot_instructions);
     }
   }
 
@@ -1825,7 +1836,9 @@ int main(int argc, char** argv) {
   }
   EventHandler::Stop();
   delete mapped_vm_snapshot_data;
+  delete mapped_vm_snapshot_instructions;
   delete mapped_isolate_snapshot_data;
+  delete mapped_isolate_snapshot_instructions;
   return 0;
 }
 

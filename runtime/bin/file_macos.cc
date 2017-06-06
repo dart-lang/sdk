@@ -83,6 +83,7 @@ bool File::IsClosed() {
 
 MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
   ASSERT(handle_->fd() >= 0);
+  ASSERT(length > 0);
   int prot = PROT_NONE;
   switch (type) {
     case kReadOnly:
