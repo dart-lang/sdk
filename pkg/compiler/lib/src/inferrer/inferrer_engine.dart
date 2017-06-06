@@ -760,7 +760,7 @@ class InferrerEngine {
   /**
    * Returns the type of [element].
    */
-  TypeInformation typeOfElement(Element element) {
+  TypeInformation typeOfElement(Entity element) {
     if (element is FunctionElement) return types.functionType;
     return types.getInferredTypeOf(element);
   }
@@ -768,7 +768,7 @@ class InferrerEngine {
   /**
    * Returns the return type of [element].
    */
-  TypeInformation returnTypeOfElement(Element element) {
+  TypeInformation returnTypeOfElement(Entity element) {
     if (element is! FunctionElement) return types.dynamicType;
     return types.getInferredTypeOf(element);
   }
@@ -779,7 +779,7 @@ class InferrerEngine {
    * [nodeHolder] is the element holder of [node].
    */
   void recordTypeOfFinalField(
-      Spannable node, Element analyzed, Element element, TypeInformation type) {
+      Spannable node, Entity analyzed, Entity element, TypeInformation type) {
     types.getInferredTypeOf(element).addAssignment(type);
   }
 
@@ -788,14 +788,14 @@ class InferrerEngine {
    * [type].
    */
   void recordTypeOfNonFinalField(
-      Spannable node, Element element, TypeInformation type) {
+      Spannable node, Entity element, TypeInformation type) {
     types.getInferredTypeOf(element).addAssignment(type);
   }
 
   /**
    * Records that [element] is of type [type].
    */
-  void recordType(Element element, TypeInformation type) {
+  void recordType(Entity element, TypeInformation type) {
     types.getInferredTypeOf(element).addAssignment(type);
   }
 
