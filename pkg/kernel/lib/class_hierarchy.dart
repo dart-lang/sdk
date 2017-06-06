@@ -16,12 +16,12 @@ abstract class ClassHierarchy {
   factory ClassHierarchy(Program program) =>
       new ClosedWorldClassHierarchy(program);
 
-  /// All classes in the program.
-  ///
-  /// The iterable is ordered so that classes occur after their super classes.
-  Iterable<Class> get classes;
+  /// Given the [unordered] classes, return them in such order that classes
+  /// occur after their superclasses.  If some superclasses are not in
+  /// [unordered], they are not included.
+  Iterable<Class> getOrderedClasses(Iterable<Class> unordered);
 
-  /// Returns the index of [class_] in the [classes] list.
+  /// Returns the unique index of the [class_].
   int getClassIndex(Class class_);
 
   /// True if the program contains another class that is a subtype of given one.
@@ -136,6 +136,12 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   int getClassIndex(Class class_) => _infoFor[class_].topologicalIndex;
+
+  @override
+  Iterable<Class> getOrderedClasses(Iterable<Class> unordered) {
+    var unorderedSet = unordered.toSet();
+    return classes.where(unorderedSet.contains);
+  }
 
   /// True if [subclass] inherits from [superclass] though zero or more
   /// `extends` relationships.

@@ -796,6 +796,25 @@ class C implements self::B {}
     expect(hierarchy.getInterfaceMember(c, bSetterName, setter: true), bSetter);
   }
 
+  void test_getOrderedClasses() {
+    var a = addClass(new Class(name: 'A', supertype: objectSuper));
+    var b = addClass(new Class(name: 'B', supertype: a.asThisSupertype));
+    var c = addClass(new Class(name: 'C', supertype: b.asThisSupertype));
+
+    void assertOrderOfClasses(List<Class> unordered, List<Class> expected) {
+      var ordered = hierarchy.getOrderedClasses(unordered);
+      expect(ordered, expected);
+    }
+
+    assertOrderOfClasses([a, b, c], [a, b, c]);
+    assertOrderOfClasses([b, a, c], [a, b, c]);
+    assertOrderOfClasses([a, c, b], [a, b, c]);
+    assertOrderOfClasses([b, c, a], [a, b, c]);
+    assertOrderOfClasses([c, a, b], [a, b, c]);
+    assertOrderOfClasses([c, b, a], [a, b, c]);
+    assertOrderOfClasses([c, b], [b, c]);
+  }
+
   void test_getRankedSuperclasses() {
     var a = addImplementsClass('A', []);
     var b = addImplementsClass('B', [a]);

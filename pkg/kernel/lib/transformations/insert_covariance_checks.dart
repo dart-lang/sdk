@@ -76,7 +76,11 @@ class InsertCovarianceChecks {
     types = new TypeEnvironment(coreTypes, hierarchy);
     // We transform every class before their subtypes.
     // This ensures that transitive overrides are taken into account.
-    hierarchy.classes.forEach(transformClass);
+    var unorderedClasses = program.libraries
+        .map((library) => library.classes)
+        .expand((classes) => classes);
+    var ordered = hierarchy.getOrderedClasses(unorderedClasses);
+    ordered.forEach(transformClass);
 
     program.accept(new _CallTransformer(this));
   }

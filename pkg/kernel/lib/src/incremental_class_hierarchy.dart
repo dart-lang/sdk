@@ -74,14 +74,9 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   int _nextId = 0;
 
   /// The mapping from [Class]es to the corresponding [_ClassInfo]s.
+  /// The map is ordered in such a way that classes are after superclasses.
   /// It is filled lazily as the client requests information about classes.
-  final Map<Class, _ClassInfo> _info = {};
-
-  @override
-  Iterable<Class> get classes {
-    // TODO(scheglov): implement classes
-    throw new UnimplementedError();
-  }
+  final Map<Class, _ClassInfo> _info = new LinkedHashMap<Class, _ClassInfo>();
 
   @override
   void forEachOverridePair(Class node,
@@ -251,6 +246,13 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   }
 
   @override
+  Iterable<Class> getOrderedClasses(Iterable<Class> unordered) {
+    unordered.forEach(_getInfo);
+    var unorderedSet = unordered.toSet();
+    return _info.keys.where(unorderedSet.contains);
+  }
+
+  @override
   List<Class> getRankedSuperclasses(Class node) {
     var info = _getInfo(node);
     return _getRankedSuperclassList(info).map((info) => info.node).toList();
@@ -360,7 +362,6 @@ class IncrementalClassHierarchy implements ClassHierarchy {
     var info = _info[node];
     if (info == null) {
       info = new _ClassInfo(_nextId++, node);
-      _info[node] = info;
 
       void addSupertypeIdentifiers(_ClassInfo superInfo) {
         info.supertypeIdSet.add(superInfo.id);
@@ -386,7 +387,9 @@ class IncrementalClassHierarchy implements ClassHierarchy {
         addSupertypeIdentifiers(implementedInfo);
         _recordSuperTypes(info, implementedType, implementedInfo);
       }
+
       info.depth = superDepth + 1;
+      _info[node] = info;
 
       _buildDeclaredMembers(info);
       _buildImplementedMembers(info);
@@ -628,7 +631,7 @@ class _ClassInfo {
   int depth = -1;
 
   /// The list of superclasses sorted by depth (descending order) and
-  /// unique identifiers (ascending order), or `null` if the lit has not
+  /// unique identifiers (ascending order), or `null` if the list has not
   /// been computed yet.
   List<_ClassInfo> rankedSuperclassList;
 
