@@ -211,6 +211,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final TypeInferenceListener listener;
 
+  final InterfaceType thisType;
+
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
   ClosureContext closureContext;
@@ -221,8 +223,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Not used when performing local inference.
   bool isImmediatelyEvident = true;
 
-  TypeInferrerImpl(
-      TypeInferenceEngineImpl engine, this.uri, this.listener, bool topLevel)
+  TypeInferrerImpl(TypeInferenceEngineImpl engine, this.uri, this.listener,
+      bool topLevel, this.thisType)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,

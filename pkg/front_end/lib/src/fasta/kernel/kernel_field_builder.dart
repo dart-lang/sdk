@@ -73,8 +73,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       // should it be the part URI?
       var typeInferenceEngine = library.loader.typeInferenceEngine;
       var listener = new TypeInferenceListener();
-      var typeInferrer =
-          typeInferenceEngine.createTopLevelTypeInferrer(field, listener);
+      var typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(
+          listener, field.enclosingClass?.thisType, field);
       var bodyBuilder = new BodyBuilder(
           library,
           this,

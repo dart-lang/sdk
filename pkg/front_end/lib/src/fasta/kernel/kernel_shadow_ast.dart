@@ -1520,15 +1520,15 @@ class KernelSymbolLiteral extends SymbolLiteral implements KernelExpression {
 class KernelThisExpression extends ThisExpression implements KernelExpression {
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
-    // TODO(paulberry): figure out the right thing to do here.
-    throw 'TODO(paulberry)';
+    // Field initializers are not allowed to refer to [this].  But if it
+    // happens, we can still proceed; no additional type inference dependencies
+    // are introduced.
   }
 
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    return typeNeeded ? (inferrer.thisType ?? const DynamicType()) : null;
   }
 }
 
@@ -1569,15 +1569,16 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
 
   @override
   KernelTypeInferrer createLocalTypeInferrer(
-      Uri uri, TypeInferenceListener listener) {
-    return new KernelTypeInferrer._(this, uri.toString(), listener, false);
+      Uri uri, TypeInferenceListener listener, InterfaceType thisType) {
+    return new KernelTypeInferrer._(
+        this, uri.toString(), listener, false, thisType);
   }
 
   @override
-  KernelTypeInferrer createTopLevelTypeInferrer(
-      KernelField field, TypeInferenceListener listener) {
+  KernelTypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
+      InterfaceType thisType, KernelField field) {
     return field._typeInferrer =
-        new KernelTypeInferrer._(this, field.fileUri, listener, true);
+        new KernelTypeInferrer._(this, field.fileUri, listener, true, thisType);
   }
 
   @override
@@ -1618,8 +1619,8 @@ class KernelTypeInferrer extends TypeInferrerImpl {
   final typePromoter = new KernelTypePromoter();
 
   KernelTypeInferrer._(KernelTypeInferenceEngine engine, String uri,
-      TypeInferenceListener listener, bool topLevel)
-      : super(engine, uri, listener, topLevel);
+      TypeInferenceListener listener, bool topLevel, InterfaceType thisType)
+      : super(engine, uri, listener, topLevel, thisType);
 
   @override
   Expression getFieldInitializer(KernelField field) {

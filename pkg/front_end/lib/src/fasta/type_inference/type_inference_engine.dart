@@ -8,7 +8,8 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:kernel/ast.dart' show Class, DartType, DynamicType;
+import 'package:kernel/ast.dart'
+    show Class, DartType, DynamicType, InterfaceType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 
@@ -49,12 +50,13 @@ abstract class TypeInferenceEngine {
 
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
-  TypeInferrer createLocalTypeInferrer(Uri uri, TypeInferenceListener listener);
+  TypeInferrer createLocalTypeInferrer(
+      Uri uri, TypeInferenceListener listener, InterfaceType thisType);
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
-  TypeInferrer createTopLevelTypeInferrer(
-      KernelField field, TypeInferenceListener listener);
+  TypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
+      InterfaceType thisType, KernelField field);
 
   /// Performs the second phase of top level initializer inference, which is to
   /// visit all fields and top level variables that were passed to [recordField]

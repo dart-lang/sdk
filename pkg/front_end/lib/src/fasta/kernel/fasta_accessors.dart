@@ -5,7 +5,7 @@
 library fasta.fasta_accessors;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelArguments;
+    show KernelArguments, KernelThisExpression;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
 
@@ -286,7 +286,7 @@ class ThisAccessor extends FastaAccessor {
 
   Expression buildSimpleRead() {
     if (!isSuper) {
-      return new ThisExpression();
+      return new KernelThisExpression();
     } else {
       return helper.buildCompileTimeError(
           "Can't use `super` as an expression.", offsetForToken(token));
@@ -313,7 +313,7 @@ class ThisAccessor extends FastaAccessor {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
       MethodInvocation result = helper.buildMethodInvocation(
-          new ThisExpression(),
+          new KernelThisExpression(),
           send.name,
           send.arguments,
           offsetForToken(token));
@@ -336,7 +336,7 @@ class ThisAccessor extends FastaAccessor {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else {
       return helper.buildMethodInvocation(
-          new ThisExpression(), callName, arguments, offset);
+          new KernelThisExpression(), callName, arguments, offset);
     }
   }
 
@@ -756,7 +756,7 @@ class ThisPropertyAccessor extends kernel.ThisPropertyAccessor
       interfaceTarget = null;
     }
     return helper.buildMethodInvocation(
-        new ThisExpression(), name, arguments, offset);
+        new KernelThisExpression(), name, arguments, offset);
   }
 
   toString() => "ThisPropertyAccessor()";
