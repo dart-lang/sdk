@@ -406,6 +406,7 @@ class FileState {
             null,
             new _FastaElementStoreProxy(),
             new fasta.Scope.top(isModifiable: true),
+            true,
             uri);
         astBuilder.parseGenericMethodComments = analysisOptions.strongMode;
 

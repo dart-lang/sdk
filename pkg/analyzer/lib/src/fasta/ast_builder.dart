@@ -58,8 +58,12 @@ class AstBuilder extends ScopeListener {
   /// being parsed.
   String className;
 
+  /// If true, this is building a full AST. Otherwise, only create method
+  /// bodies.
+  final bool isFullAst;
+
   AstBuilder(this.errorReporter, this.library, this.member, this.elementStore,
-      Scope scope,
+      Scope scope, this.isFullAst,
       [Uri uri])
       : uri = uri ?? library.fileUri,
         super(scope);
@@ -403,6 +407,7 @@ class AstBuilder extends ScopeListener {
 
   void handleNoInitializers() {
     debugEvent("NoInitializers");
+    if (!isFullAst) return;
     push(NullValue.ConstructorInitializerSeparator);
     push(NullValue.ConstructorInitializers);
   }
@@ -410,6 +415,7 @@ class AstBuilder extends ScopeListener {
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
     List<Object> initializerObjects = popList(count) ?? const [];
+    if (!isFullAst) return;
 
     push(beginToken);
 

@@ -514,10 +514,6 @@ class DietListener extends StackListener {
       bool allowAbstract = asyncModifier == AsyncMarker.Sync;
       parser.parseFunctionBody(token, isExpression, allowAbstract);
       var body = listener.pop();
-      if (listener.stack.length == 2) {
-        listener.pop(); // constructor initializers
-        listener.pop(); // separator before constructor initializers
-      }
       listener.checkEmpty(token.charOffset);
       listener.finishFunction(formals, asyncModifier, body);
     } on InputError {
