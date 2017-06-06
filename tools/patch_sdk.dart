@@ -94,7 +94,7 @@ Future _main(List<String> argv) async {
   var libContents = readInputFile(path.join(
       sdkLibIn, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'));
   if (forVm) libContents = _updateLibraryMetadata(sdkOut, libContents);
-  var sdkLibraries = _getSdkLibraries(libContents);
+  var sdkLibraries = _getSdkLibraries(libContents, forDart2js);
 
   Map<String, String> locations = <String, String>{};
 
@@ -624,8 +624,8 @@ class _StringEdit implements Comparable<_StringEdit> {
   }
 }
 
-List<SdkLibrary> _getSdkLibraries(String contents) {
-  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(true);
+List<SdkLibrary> _getSdkLibraries(String contents, bool useDart2js) {
+  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(useDart2js);
   parseCompilationUnit(contents).accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
 }
