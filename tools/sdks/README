@@ -8,10 +8,13 @@ current platform (linux, macos, or windows) is downloaded. This requires
 the subdirectories to have the special names "linux", "win", and "mac", which
 the download script is hardcoded to recognize.
 
-The linux SDK has three extra dart executables added to the bin directory.
-'dart-mips', 'dart-arm', and 'dart-arm64' are executables compiled to run on
-mips, arm, and arm64 (aarch64) processors, respectively. We are currently
+The linux SDK has two extra dart executables added to the bin directory.
+'dart-arm' and 'dart-arm64' are executables compiled to run on
+arm and arm64 (aarch64) processors, respectively. We are currently
 using the 32-bit ia32 build as the default on linux, windows, and macos.
+If we switch to the 64-bit build on linux, the snapshots will no longer be
+portable to arm and arm64, and we will need to upload complete SDKs for each
+processor architecture.
 
 To upload new versions of these tar files, use the "upload_to_google_storage"
 tool in depot_tools, and download the new stable SDKs from the dartlang.org
