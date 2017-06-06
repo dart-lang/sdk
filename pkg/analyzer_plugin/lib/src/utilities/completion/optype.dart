@@ -1,10 +1,7 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart' hide Element;
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -14,6 +11,9 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
+import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
+import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
 typedef int SuggestionsFilter(DartType dartType, int relevance);
 
@@ -287,6 +287,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     }
   }
 
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     if (identical(entity, node.rightHandSide)) {
       optype.includeReturnValueSuggestions = true;
@@ -365,6 +366,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     optype.suggestKind = CompletionSuggestionKind.IDENTIFIER;
   }
 
+  @override
   void visitCompilationUnit(CompilationUnit node) {
     if (entity is! CommentToken) {
       optype.includeTypeNameSuggestions = true;
@@ -669,6 +671,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     }
   }
 
+  @override
   void visitLibraryIdentifier(LibraryIdentifier node) {
     // No suggestions.
   }
@@ -764,6 +767,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     }
   }
 
+  @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;

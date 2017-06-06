@@ -19,7 +19,6 @@ import 'local_constructor_contributor_test.dart' as local_constructor_test;
 import 'local_library_contributor_test.dart' as local_lib_test;
 import 'local_reference_contributor_test.dart' as local_ref_test;
 import 'named_constructor_contributor_test.dart' as named_contributor_test;
-import 'optype_test.dart' as optype_test;
 import 'override_contributor_test.dart' as override_contributor_test;
 import 'static_member_contributor_test.dart' as static_contributor_test;
 import 'type_member_contributor_test.dart' as type_member_contributor_test;
@@ -44,7 +43,6 @@ main() {
     local_lib_test.main();
     local_ref_test.main();
     named_contributor_test.main();
-    optype_test.main();
     override_contributor_test.main();
     static_contributor_test.main();
     type_member_contributor_test.main();

@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,33 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-
-int _computeArgIndex(AstNode containingNode, Object entity) {
-  var argList = containingNode;
-  if (argList is NamedExpression) {
-    entity = argList;
-    argList = argList.parent;
-  }
-  if (argList is ArgumentList) {
-    NodeList<Expression> args = argList.arguments;
-    for (int index = 0; index < args.length; ++index) {
-      if (entity == args[index]) {
-        return index;
-      }
-    }
-    if (args.isEmpty) {
-      return 0;
-    }
-    if (entity == argList.rightParenthesis) {
-      // Parser ignores trailing commas
-      if (argList.rightParenthesis.previous?.lexeme == ',') {
-        return args.length;
-      }
-      return args.length - 1;
-    }
-  }
-  return null;
-}
 
 /**
  * A CompletionTarget represents an edge in the parse tree which connects an
@@ -338,6 +311,33 @@ class CompletionTarget {
       }
     }
     return false;
+  }
+
+  static int _computeArgIndex(AstNode containingNode, Object entity) {
+    var argList = containingNode;
+    if (argList is NamedExpression) {
+      entity = argList;
+      argList = argList.parent;
+    }
+    if (argList is ArgumentList) {
+      NodeList<Expression> args = argList.arguments;
+      for (int index = 0; index < args.length; ++index) {
+        if (entity == args[index]) {
+          return index;
+        }
+      }
+      if (args.isEmpty) {
+        return 0;
+      }
+      if (entity == argList.rightParenthesis) {
+        // Parser ignores trailing commas
+        if (argList.rightParenthesis.previous?.lexeme == ',') {
+          return args.length;
+        }
+        return args.length - 1;
+      }
+    }
+    return null;
   }
 
   /**
