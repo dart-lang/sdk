@@ -77,13 +77,17 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(close.isSynthetic, isFalse);
   }
 
-  void _assertOpenOnly(String source) {
-    analyzer.BeginToken open = _scan(source);
+  void _assertOpenOnly(String source, String expectedCloser) {
+    ErrorListener listener = new ErrorListener();
+    analyzer.BeginToken open = scanWithListener(source, listener);
     fasta.Token close = open.next;
     expect(close.next.isEof, isTrue);
     expect(open.endGroup, close);
     expect(open.isSynthetic, isFalse);
     expect(close.isSynthetic, isTrue);
+    listener.assertErrors([
+      new TestError(0, ScannerErrorCode.EXPECTED_TOKEN, [expectedCloser]),
+    ]);
   }
 
   void test_lt() {
@@ -100,7 +104,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
 
   @override
   void test_open_curly_bracket() {
-    _assertOpenOnly('{');
+    _assertOpenOnly('{', '}');
   }
 
   void test_open_curly_bracket_with_close() {
@@ -108,7 +112,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
   }
 
   void test_open_paren() {
-    _assertOpenOnly('(');
+    _assertOpenOnly('(', ')');
   }
 
   void test_open_paren_with_close() {
@@ -116,7 +120,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
   }
 
   void test_open_square_bracket() {
-    _assertOpenOnly('[');
+    _assertOpenOnly('[', ']');
   }
 
   void test_open_square_bracket_with_close() {
@@ -130,11 +134,12 @@ class ScannerTest_Replacement extends ScannerTestBase {
     // and inserts synthetic closers as needed.
     // r'"${({(}}"' is parsed as r'"${({()})}"'
     // where both ')' are synthetic
-    var stringStart = _scan(r'"${({(}}"');
-    var interpolationStart = stringStart.next as analyzer.BeginToken;
-    var openParen1 = interpolationStart.next as analyzer.BeginToken;
-    var openBrace = openParen1.next as analyzer.BeginToken;
-    var openParen2 = openBrace.next as analyzer.BeginToken;
+    ErrorListener listener = new ErrorListener();
+    var stringStart = scanWithListener(r'"${({(}}"', listener);
+    analyzer.BeginToken interpolationStart = stringStart.next;
+    analyzer.BeginToken openParen1 = interpolationStart.next;
+    analyzer.BeginToken openBrace = openParen1.next;
+    analyzer.BeginToken openParen2 = openBrace.next;
     var closeParen2 = openParen2.next;
     var closeBrace = closeParen2.next;
     var closeParen1 = closeBrace.next;
@@ -151,15 +156,20 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(openParen2.endToken, same(closeParen2));
     expect(closeParen2.isSynthetic, isTrue);
     expect(eof.isEof, isTrue);
+    listener.assertErrors([
+      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(5, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+    ]);
   }
 
   @override
   void test_unmatched_openers() {
+    ErrorListener listener = new ErrorListener();
     // fasta inserts missing closers except for '<'
-    var openBrace = _scan('{[(<') as analyzer.BeginToken;
-    var openBracket = openBrace.next as analyzer.BeginToken;
-    var openParen = openBracket.next as analyzer.BeginToken;
-    var openLT = openParen.next as analyzer.BeginToken;
+    analyzer.BeginToken openBrace = scanWithListener('{[(<', listener);
+    analyzer.BeginToken openBracket = openBrace.next;
+    analyzer.BeginToken openParen = openBracket.next;
+    analyzer.BeginToken openLT = openParen.next;
     var closeParen = openLT.next;
     var closeBracket = closeParen.next;
     var closeBrace = closeBracket.next;
@@ -169,6 +179,12 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(openBracket.endGroup, same(closeBracket));
     expect(openParen.endGroup, same(closeParen));
     expect(eof.isEof, true);
+
+    listener.assertErrors([
+      new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [']']),
+      new TestError(0, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+    ]);
   }
 
   analyzer.Token _scan(String source,

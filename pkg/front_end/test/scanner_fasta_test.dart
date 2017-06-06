@@ -209,11 +209,12 @@ main() {}
     // and inserts synthetic closers as needed.
     // r'"${({(}}"' is parsed as r'"${({()})}"'
     // where both ')' are synthetic
-    var stringStart = _scan(r'"${({(}}"');
-    var interpolationStart = stringStart.next as BeginToken;
-    var openParen1 = interpolationStart.next as BeginToken;
-    var openBrace = openParen1.next as BeginToken;
-    var openParen2 = openBrace.next as BeginToken;
+    ErrorListener listener = new ErrorListener();
+    BeginToken interpolationStart =
+        scanWithListener(r'"${({(}}"', listener).next;
+    BeginToken openParen1 = interpolationStart.next;
+    BeginToken openBrace = openParen1.next;
+    BeginToken openParen2 = openBrace.next;
     var closeParen2 = openParen2.next;
     var closeBrace = closeParen2.next;
     var closeParen1 = closeBrace.next;
@@ -224,6 +225,10 @@ main() {}
     expect(openParen1.endToken, same(closeParen1));
     expect(openBrace.endToken, same(closeBrace));
     expect(openParen2.endToken, same(closeParen2));
+    listener.assertErrors([
+      new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(5, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+    ]);
   }
 
   void test_next_previous() {
@@ -245,9 +250,10 @@ main() {}
 
   @override
   void test_unmatched_openers() {
-    var openBrace = _scan('{[(') as BeginToken;
-    var openBracket = openBrace.next as BeginToken;
-    var openParen = openBracket.next as BeginToken;
+    ErrorListener listener = new ErrorListener();
+    BeginToken openBrace = scanWithListener('{[(', listener);
+    BeginToken openBracket = openBrace.next;
+    BeginToken openParen = openBracket.next;
     var closeParen = openParen.next;
     var closeBracket = closeParen.next;
     var closeBrace = closeBracket.next;
@@ -255,17 +261,11 @@ main() {}
     expect(openBrace.endToken, same(closeBrace));
     expect(openBracket.endToken, same(closeBracket));
     expect(openParen.endToken, same(closeParen));
-  }
-
-  Token _scan(String source,
-      {bool genericMethodComments: false,
-      bool lazyAssignmentOperators: false}) {
-    ErrorListener listener = new ErrorListener();
-    Token token = scanWithListener(source, listener,
-        genericMethodComments: genericMethodComments,
-        lazyAssignmentOperators: lazyAssignmentOperators);
-    listener.assertNoErrors();
-    return token;
+    listener.assertErrors([
+      new TestError(0, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+      new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [']']),
+      new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+    ]);
   }
 }
 
@@ -482,7 +482,7 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_match_angle_brackets() {
     var x = scan('x<y>');
-    var lessThan = x.next as BeginToken;
+    BeginToken lessThan = x.next;
     var y = lessThan.next;
     var greaterThan = y.next;
     expect(greaterThan.next.isEof, isTrue);
@@ -493,9 +493,9 @@ abstract class ScannerTest_Fasta_Base {
     // When a ">>" appears in the token stream, Fasta's scanner matches it to
     // the outer "<".  The inner "<" is left unmatched.
     var x = scan('x<y<z>>');
-    var lessThan1 = x.next as BeginToken;
+    BeginToken lessThan1 = x.next;
     var y = lessThan1.next;
-    var lessThan2 = y.next as BeginToken;
+    BeginToken lessThan2 = y.next;
     var z = lessThan2.next;
     var greaterThans = z.next;
     expect(greaterThans.next.isEof, isTrue);
@@ -505,9 +505,9 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_match_angle_brackets_interrupted_by_close_brace() {
     // A "}" appearing in the token stream interrupts matching of "<" and ">".
-    var openBrace = scan('{x<y}>z') as BeginToken;
+    BeginToken openBrace = scan('{x<y}>z');
     var x = openBrace.next;
-    var lessThan = x.next as BeginToken;
+    BeginToken lessThan = x.next;
     var y = lessThan.next;
     var closeBrace = y.next;
     var greaterThan = closeBrace.next;
@@ -519,9 +519,9 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_match_angle_brackets_interrupted_by_close_bracket() {
     // A "]" appearing in the token stream interrupts matching of "<" and ">".
-    var openBracket = scan('[x<y]>z') as BeginToken;
+    BeginToken openBracket = scan('[x<y]>z');
     var x = openBracket.next;
-    var lessThan = x.next as BeginToken;
+    BeginToken lessThan = x.next;
     var y = lessThan.next;
     var closeBracket = y.next;
     var greaterThan = closeBracket.next;
@@ -533,9 +533,9 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_match_angle_brackets_interrupted_by_close_paren() {
     // A ")" appearing in the token stream interrupts matching of "<" and ">".
-    var openParen = scan('(x<y)>z') as BeginToken;
+    BeginToken openParen = scan('(x<y)>z');
     var x = openParen.next;
-    var lessThan = x.next as BeginToken;
+    BeginToken lessThan = x.next;
     var y = lessThan.next;
     var closeParen = y.next;
     var greaterThan = closeParen.next;
@@ -548,9 +548,9 @@ abstract class ScannerTest_Fasta_Base {
   void test_match_angle_brackets_interrupted_by_interpolation_expr() {
     // A "${" appearing in the token stream interrupts matching of "<" and ">".
     var x = scan(r'x<"${y>z}"');
-    var lessThan = x.next as BeginToken;
+    BeginToken lessThan = x.next;
     var beginString = lessThan.next;
-    var beginInterpolation = beginString.next as BeginToken;
+    BeginToken beginInterpolation = beginString.next;
     var y = beginInterpolation.next;
     var greaterThan = y.next;
     var z = greaterThan.next;
@@ -564,8 +564,8 @@ abstract class ScannerTest_Fasta_Base {
   void test_match_angle_brackets_interrupted_by_open_brace() {
     // A "{" appearing in the token stream interrupts matching of "<" and ">".
     var x = scan('x<{y>z}');
-    var lessThan = x.next as BeginToken;
-    var openBrace = lessThan.next as BeginToken;
+    BeginToken lessThan = x.next;
+    BeginToken openBrace = lessThan.next;
     var y = openBrace.next;
     var greaterThan = y.next;
     var z = greaterThan.next;
@@ -578,9 +578,9 @@ abstract class ScannerTest_Fasta_Base {
   void test_match_angle_brackets_interrupted_by_open_bracket() {
     // A "[" appearing in the token stream interrupts matching of "<" and ">".
     var x = scan('x<y[z>a]');
-    var lessThan = x.next as BeginToken;
+    BeginToken lessThan = x.next;
     var y = lessThan.next;
-    var openBracket = y.next as BeginToken;
+    BeginToken openBracket = y.next;
     var z = openBracket.next;
     var greaterThan = z.next;
     var a = greaterThan.next;
@@ -593,9 +593,9 @@ abstract class ScannerTest_Fasta_Base {
   void test_match_angle_brackets_interrupted_by_open_paren() {
     // A "(" appearing in the token stream interrupts matching of "<" and ">".
     var x = scan('x<y(z>a)');
-    var lessThan = x.next as BeginToken;
+    BeginToken lessThan = x.next;
     var y = lessThan.next;
-    var openParen = y.next as BeginToken;
+    BeginToken openParen = y.next;
     var z = openParen.next;
     var greaterThan = z.next;
     var a = greaterThan.next;
@@ -607,9 +607,9 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_match_angle_brackets_nested() {
     var x = scan('x<y<z>,a>');
-    var lessThan1 = x.next as BeginToken;
+    BeginToken lessThan1 = x.next;
     var y = lessThan1.next;
-    var lessThan2 = y.next as BeginToken;
+    BeginToken lessThan2 = y.next;
     var z = lessThan2.next;
     var greaterThan1 = z.next;
     var comma = greaterThan1.next;
@@ -624,7 +624,7 @@ abstract class ScannerTest_Fasta_Base {
     // When a ">>" appears in the token stream and there is no outer "<",
     // Fasta's scanner leaves the inner "<" unmatched.
     var x = scan('x<y>>z');
-    var lessThan = x.next as BeginToken;
+    BeginToken lessThan = x.next;
     var y = lessThan.next;
     var greaterThans = y.next;
     var z = greaterThans.next;

@@ -133,8 +133,7 @@ Token defaultRecoveryStrategy(
   }
 
   recoverString() {
-    // TODO(ahe): Improve this.
-    return skipToEof(errorTail);
+    return errorTail.next;
   }
 
   recoverHexDigit() {
