@@ -33,7 +33,7 @@ class CompletionTargetTest extends AbstractContextTest {
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
-    testSource = addSource('/test.dart', content);
+    testSource = addSource(provider.convertPath('/test.dart'), content);
     AnalysisResult result = await driver.getResult(testSource.fullName);
     target = new CompletionTarget.forOffset(result.unit, completionOffset);
   }
