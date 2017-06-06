@@ -79,6 +79,29 @@ class NavigationGenerator {
         .toNotification());
     return new GeneratorResult(null, notifications);
   }
+
+  /**
+   * Create an 'analysis.getNavigation' response for the portion of the file
+   * specified by the given [request]. If any of the contributors throws an
+   * exception, also create a non-fatal 'plugin.error' notification.
+   */
+  GeneratorResult generateNavigationResponse(NavigationRequest request) {
+    List<Notification> notifications = <Notification>[];
+    NavigationCollectorImpl collector = new NavigationCollectorImpl();
+    for (NavigationContributor contributor in contributors) {
+      try {
+        contributor.computeNavigation(request, collector);
+      } catch (exception, stackTrace) {
+        notifications.add(new PluginErrorParams(
+                false, exception.toString(), stackTrace.toString())
+            .toNotification());
+      }
+    }
+    collector.createRegions();
+    AnalysisGetNavigationResult result = new AnalysisGetNavigationResult(
+        collector.files, collector.targets, collector.regions);
+    return new GeneratorResult(result, notifications);
+  }
 }
 
 /**
