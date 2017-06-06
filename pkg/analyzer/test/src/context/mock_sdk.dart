@@ -209,6 +209,8 @@ abstract class int extends num {
   external static int parse(String source,
                             { int radix,
                               int onError(String source) });
+
+  String toString();
 }
 
 abstract class double extends num {

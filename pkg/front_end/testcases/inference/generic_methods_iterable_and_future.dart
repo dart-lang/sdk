@@ -21,7 +21,7 @@ main() {
                   '',
                   /*@returnType=FutureOr<String>*/ (/*@type=FutureOr<String>*/ x,
                           /*@type=int*/ y) => /*info:DYNAMIC_CAST,info:DYNAMIC_INVOKE*/ x /*error:UNDEFINED_OPERATOR*/ +
-                      y. /*@target=Object::toString*/ toString()));
+                      y. /*@target=int::toString*/ toString()));
 
   Future<String> results3 =
       results. /*@typeArgs=String*/ /*@target=Future::then*/ then(
@@ -32,7 +32,7 @@ main() {
                               x,
                           /*@type=int*/ y) =>
                       x /*@target=String::+*/ +
-                      y. /*@target=Object::toString*/ toString()));
+                      y. /*@target=int::toString*/ toString()));
 
   Future<String> results4 =
       results. /*@typeArgs=String*/ /*@target=Future::then*/ then(
@@ -42,5 +42,5 @@ main() {
                   /*@returnType=String*/ (/*@type=String*/ x,
                           /*@type=int*/ y) =>
                       x /*@target=String::+*/ +
-                      y. /*@target=Object::toString*/ toString()));
+                      y. /*@target=int::toString*/ toString()));
 }
