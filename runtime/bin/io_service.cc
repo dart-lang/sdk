@@ -10,7 +10,8 @@
 #include "bin/directory.h"
 #include "bin/file.h"
 #include "bin/io_buffer.h"
-#include "bin/secure_socket.h"
+#include "bin/secure_socket_filter.h"
+#include "bin/security_context.h"
 #include "bin/socket.h"
 #include "bin/utils.h"
 
