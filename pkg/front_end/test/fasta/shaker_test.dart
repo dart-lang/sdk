@@ -34,6 +34,7 @@ import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 import 'package:kernel/ast.dart' show Program;
 import 'package:kernel/kernel.dart' show loadProgramFromBytes;
 import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 import 'testing/suite.dart';
@@ -96,8 +97,9 @@ class BuildProgram
       var platformOutline = context.loadPlatformOutline();
       platformOutline.unbindCanonicalNames();
       var dillTarget = new DillTarget(
-          new Ticker(isVerbose: false), context.uriTranslator, "vm_fasta",
-          flags: new TargetFlags(strongMode: false));
+          new Ticker(isVerbose: false),
+          context.uriTranslator,
+          new VmFastaTarget(new TargetFlags(strongMode: false)));
       dillTarget.loader.appendLibraries(platformOutline);
       var sourceTarget = new KernelTarget(
           PhysicalFileSystem.instance, dillTarget, context.uriTranslator);

@@ -37,6 +37,8 @@ import 'package:kernel/kernel.dart' show loadProgramFromBinary;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+
 import 'package:kernel/interpreter/interpreter.dart';
 
 const String STRONG_MODE = " strong mode ";
@@ -82,9 +84,8 @@ class FastaCompile extends Step<TestDescription, Program, InterpreterContext> {
       TestDescription description, InterpreterContext context) async {
     Program platform = await context.loadPlatform();
     Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(
-        ticker, context.uriTranslator, "vm_fasta",
-        flags: new TargetFlags(strongMode: context.strongMode));
+    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
+        new VmFastaTarget(new TargetFlags(strongMode: context.strongMode)));
     platform.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platform);
     KernelTarget sourceTarget = new KernelTarget(

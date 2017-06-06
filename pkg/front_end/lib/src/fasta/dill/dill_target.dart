@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import 'package:kernel/ast.dart' show Class;
 
-import 'package:kernel/target/targets.dart' show getTarget, TargetFlags;
+import 'package:kernel/target/targets.dart' show Target;
 
 import '../errors.dart' show internalError;
 import '../kernel/kernel_builder.dart' show ClassBuilder;
@@ -22,11 +22,8 @@ class DillTarget extends TargetImplementation {
   bool isLoaded = false;
   DillLoader loader;
 
-  DillTarget(
-      Ticker ticker, TranslateUri uriTranslator, String backendTargetName,
-      {TargetFlags flags})
-      : super(ticker, uriTranslator,
-            getTarget(backendTargetName, flags ?? new TargetFlags())) {
+  DillTarget(Ticker ticker, TranslateUri uriTranslator, Target backendTarget)
+      : super(ticker, uriTranslator, backendTarget) {
     loader = new DillLoader(this);
   }
 

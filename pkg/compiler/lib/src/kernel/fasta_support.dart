@@ -22,7 +22,7 @@ import 'package:front_end/file_system.dart';
 import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' show Source, Library;
-import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/targets.dart' show TargetFlags, NoneTarget;
 
 import 'package:front_end/src/fasta/builder/builder.dart' show LibraryBuilder;
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
@@ -139,9 +139,8 @@ class SourceLoaderForDart2js<L> extends SourceLoader<L> {
 /// Specializes [DillTarget] to build kernel for dart2js: JS-specific libraries
 /// are included in the SDK, and native clauses have no string parameter.
 class DillTargetForDart2js extends DillTarget {
-  DillTargetForDart2js(Ticker ticker, TranslateUri uriTranslator,
-      {TargetFlags flags})
-      : super(ticker, uriTranslator, "none", flags: flags);
+  DillTargetForDart2js(Ticker ticker, TranslateUri uriTranslator)
+      : super(ticker, uriTranslator, new NoneTarget(new TargetFlags()));
 
   @override
   Token skipNativeClause(Token token) => _skipNative(token);

@@ -18,7 +18,7 @@ import 'package:kernel/binary/ast_to_binary.dart'
 
 import 'package:kernel/kernel.dart' show Library, Program, loadProgramFromBytes;
 
-import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/targets.dart' show getTarget, TargetFlags;
 
 import 'compiler_command_line.dart' show CompilerCommandLine;
 
@@ -114,8 +114,11 @@ class CompileTask {
   CompileTask(this.c, this.ticker);
 
   DillTarget createDillTarget(TranslateUri uriTranslator) {
-    return new DillTarget(ticker, uriTranslator, c.options.target,
-        flags: new TargetFlags(strongMode: c.options.strongMode));
+    return new DillTarget(
+        ticker,
+        uriTranslator,
+        getTarget(c.options.target,
+            new TargetFlags(strongMode: c.options.strongMode)));
   }
 
   KernelTarget createKernelTarget(
@@ -199,9 +202,8 @@ Future<CompilationResult> parseScriptInFileSystem(
       TranslateUri uriTranslator =
           await TranslateUri.parse(fileSystem, patchedSdk, packages: packages);
       final Ticker ticker = new Ticker(isVerbose: verbose);
-      final DillTarget dillTarget = new DillTarget(
-          ticker, uriTranslator, backendTarget,
-          flags: new TargetFlags(strongMode: strongMode));
+      final DillTarget dillTarget = new DillTarget(ticker, uriTranslator,
+          getTarget(backendTarget, new TargetFlags(strongMode: strongMode)));
       _appendDillForUri(dillTarget, patchedSdk.resolve('platform.dill'));
       final KernelTarget kernelTarget =
           new KernelTarget(fileSystem, dillTarget, uriTranslator);
@@ -275,8 +277,8 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
     TranslateUri uriTranslator = await TranslateUri.parse(c.fileSystem, sdk,
         packages: c.options.packages);
     ticker.logMs("Read packages file");
-    DillTarget dillTarget = new DillTarget(ticker, uriTranslator, backendTarget,
-        flags: new TargetFlags(strongMode: false));
+    DillTarget dillTarget = new DillTarget(ticker, uriTranslator,
+        getTarget(backendTarget, new TargetFlags(strongMode: false)));
     _appendDillForUri(dillTarget, platform);
     KernelTarget kernelTarget = new KernelTarget(
         PhysicalFileSystem.instance, dillTarget, uriTranslator, c.uriToSource);

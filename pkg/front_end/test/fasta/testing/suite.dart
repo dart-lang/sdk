@@ -52,6 +52,8 @@ import 'package:kernel/kernel.dart' show loadProgramFromBytes;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+
 export 'package:testing/testing.dart' show Chain, runMe;
 
 const String STRONG_MODE = " strong mode ";
@@ -218,9 +220,8 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     CompilerContext.current.disableColors();
     Program platformOutline = await context.loadPlatformOutline();
     Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(
-        ticker, context.uriTranslator, "vm_fasta",
-        flags: new TargetFlags(strongMode: strongMode));
+    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
+        new VmFastaTarget(new TargetFlags(strongMode: strongMode)));
     platformOutline.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platformOutline);
     // We create a new URI translator to avoid reading plaform libraries from
