@@ -105,7 +105,7 @@ abstract class BuilderHelper {
 
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
-      {bool isConstantExpression, bool isNullAware});
+      {bool isConstantExpression, bool isNullAware, bool isImplicitCall});
 
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
@@ -337,7 +337,8 @@ class ThisAccessor extends FastaAccessor {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else {
       return helper.buildMethodInvocation(
-          new KernelThisExpression(), callName, arguments, offset);
+          new KernelThisExpression(), callName, arguments, offset,
+          isImplicitCall: true);
     }
   }
 
@@ -565,11 +566,8 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildMethodInvocation(
-      buildSimpleRead(),
-      callName,
-      arguments,
-      offset,
-    );
+        buildSimpleRead(), callName, arguments, offset,
+        isImplicitCall: true);
   }
 
   toString() => "IndexAccessor()";
@@ -666,7 +664,8 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
           arguments, offset + (readTarget?.name?.name?.length ?? 0),
           // This isn't a constant expression, but we have checked if a
           // constant expression error should be emitted already.
-          isConstantExpression: true);
+          isConstantExpression: true,
+          isImplicitCall: true);
     } else {
       return helper.buildStaticInvocation(readTarget, arguments)
         ..fileOffset = offset;
@@ -693,7 +692,8 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
           buildSimpleRead(), callName, arguments, offset,
           // This isn't a constant expression, but we have checked if a
           // constant expression error should be emitted already.
-          isConstantExpression: true);
+          isConstantExpression: true,
+          isImplicitCall: true);
     } else {
       return new DirectMethodInvocation(new ThisExpression(), getter, arguments)
         ..fileOffset = offset;
@@ -714,7 +714,8 @@ class ThisIndexAccessor extends kernel.ThisIndexAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset);
+        buildSimpleRead(), callName, arguments, offset,
+        isImplicitCall: true);
   }
 
   toString() => "ThisIndexAccessor()";
@@ -731,7 +732,8 @@ class SuperIndexAccessor extends kernel.SuperIndexAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset);
+        buildSimpleRead(), callName, arguments, offset,
+        isImplicitCall: true);
   }
 
   toString() => "SuperIndexAccessor()";
@@ -796,7 +798,8 @@ class VariableAccessor extends kernel.VariableAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
-        adjustForImplicitCall(plainNameForRead, offset));
+        adjustForImplicitCall(plainNameForRead, offset),
+        isImplicitCall: true);
   }
 
   toString() => "VariableAccessor()";
@@ -811,7 +814,8 @@ class ReadOnlyAccessor extends kernel.ReadOnlyAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
-        adjustForImplicitCall(plainNameForRead, offset));
+        adjustForImplicitCall(plainNameForRead, offset),
+        isImplicitCall: true);
   }
 }
 

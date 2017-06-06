@@ -645,7 +645,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return receiver.doInvocation(charOffset, arguments);
     } else {
       return buildMethodInvocation(
-          toValue(receiver), callName, arguments, charOffset);
+          toValue(receiver), callName, arguments, charOffset,
+          isImplicitCall: true);
     }
   }
 
@@ -795,7 +796,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // next line:
     receiver = new KernelSuperPropertyGet(node.name, target);
     return buildMethodInvocation(
-        receiver, callName, node.arguments, node.fileOffset);
+        receiver, callName, node.arguments, node.fileOffset,
+        isImplicitCall: true);
   }
 
   bool areArgumentsCompatible(FunctionNode function, Arguments arguments) {
@@ -2847,7 +2849,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
-      {bool isConstantExpression: false, bool isNullAware: false}) {
+      {bool isConstantExpression: false,
+      bool isNullAware: false,
+      bool isImplicitCall: false}) {
     if (constantExpressionRequired && !isConstantExpression) {
       return buildCompileTimeError("Not a constant expression.", offset);
     }
@@ -2862,7 +2866,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
                 ..fileOffset = offset,
               const DynamicType()));
     } else {
-      return new KernelMethodInvocation(receiver, name, arguments)
+      return new KernelMethodInvocation(receiver, name, arguments,
+          isImplicitCall: isImplicitCall)
         ..fileOffset = offset;
     }
   }

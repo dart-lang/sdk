@@ -361,6 +361,15 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   @override
   visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     super.visitFunctionExpressionInvocation(node);
+    var receiverType = node.function.staticType;
+    if (receiverType is InterfaceType) {
+      // This is a hack since analyzer doesn't record .call targets
+      var target = receiverType.element.lookUpMethod('call', null) ??
+          receiverType.element.lookUpGetter('call', null);
+      if (target != null) {
+        _recordTarget(node.argumentList.offset, target);
+      }
+    }
     if (node.typeArguments == null) {
       var inferredTypeArguments = _getInferredFunctionTypeArguments(
               node.function.staticType,

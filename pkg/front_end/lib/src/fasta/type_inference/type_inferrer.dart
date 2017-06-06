@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import 'package:front_end/src/fasta/names.dart' show callName;
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
@@ -236,14 +237,19 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// inference.
   TypePromoter get typePromoter;
 
-  FunctionType getCalleeFunctionType(
-      Member interfaceMember, DartType receiverType, Name methodName) {
+  FunctionType getCalleeFunctionType(Member interfaceMember,
+      DartType receiverType, Name methodName, bool followCall) {
     var type = getCalleeType(interfaceMember, receiverType, methodName);
     if (type is FunctionType) {
       return type;
-    } else {
-      return _functionReturningDynamic;
+    } else if (followCall && type is InterfaceType) {
+      var member = classHierarchy.getInterfaceMember(type.classNode, callName);
+      var callType = member?.getterType;
+      if (callType is FunctionType) {
+        return callType;
+      }
     }
+    return _functionReturningDynamic;
   }
 
   DartType getCalleeType(

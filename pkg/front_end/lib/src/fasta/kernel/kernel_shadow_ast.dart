@@ -1034,13 +1034,14 @@ class KernelMapLiteral extends MapLiteral implements KernelExpression {
 /// Shadow object for [MethodInvocation].
 class KernelMethodInvocation extends MethodInvocation
     implements KernelExpression {
-  KernelMethodInvocation(Expression receiver, Name name, Arguments arguments,
-      [Procedure interfaceTarget])
-      : super(receiver, name, arguments, interfaceTarget);
+  /// Indicates whether this method invocation is a call to a `call` method
+  /// resulting from the invocation of a function expression.
+  final bool _isImplicitCall;
 
-  KernelMethodInvocation.byReference(Expression receiver, Name name,
-      Arguments arguments, Reference interfaceTargetReference)
-      : super.byReference(receiver, name, arguments, interfaceTargetReference);
+  KernelMethodInvocation(Expression receiver, Name name, Arguments arguments,
+      {bool isImplicitCall: false, Procedure interfaceTarget})
+      : _isImplicitCall = isImplicitCall,
+        super(receiver, name, arguments, interfaceTarget);
 
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
@@ -1081,8 +1082,8 @@ class KernelMethodInvocation extends MethodInvocation
             .isOverloadedArithmeticOperator(interfaceMember);
       }
     }
-    var calleeType =
-        inferrer.getCalleeFunctionType(interfaceMember, receiverType, name);
+    var calleeType = inferrer.getCalleeFunctionType(
+        interfaceMember, receiverType, name, !_isImplicitCall);
     var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
         fileOffset, calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,

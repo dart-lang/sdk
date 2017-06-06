@@ -317,13 +317,15 @@ class IndexAccessor extends Accessor {
       : super(helper, token);
 
   Expression _makeSimpleRead() => new KernelMethodInvocation(
-      receiver, indexGetName, new KernelArguments(<Expression>[index]), getter)
+      receiver, indexGetName, new KernelArguments(<Expression>[index]),
+      interfaceTarget: getter)
     ..fileOffset = offsetForToken(token);
 
   Expression _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
-    return new KernelMethodInvocation(receiver, indexSetName,
-        new KernelArguments(<Expression>[index, value]), setter)
+    return new KernelMethodInvocation(
+        receiver, indexSetName, new KernelArguments(<Expression>[index, value]),
+        interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -342,14 +344,16 @@ class IndexAccessor extends Accessor {
 
   Expression _makeRead() {
     return new KernelMethodInvocation(receiverAccess(), indexGetName,
-        new KernelArguments(<Expression>[indexAccess()]), getter)
+        new KernelArguments(<Expression>[indexAccess()]),
+        interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
   }
 
   Expression _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new KernelMethodInvocation(receiverAccess(), indexSetName,
-        new KernelArguments(<Expression>[indexAccess(), value]), setter)
+        new KernelArguments(<Expression>[indexAccess(), value]),
+        interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -364,7 +368,7 @@ class IndexAccessor extends Accessor {
         indexSetName,
         new KernelArguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
-        setter)
+        interfaceTarget: setter)
       ..fileOffset = offsetForToken(token));
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
@@ -388,13 +392,15 @@ class ThisIndexAccessor extends Accessor {
 
   Expression _makeSimpleRead() {
     return new KernelMethodInvocation(new ThisExpression(), indexGetName,
-        new KernelArguments(<Expression>[index]), getter);
+        new KernelArguments(<Expression>[index]),
+        interfaceTarget: getter);
   }
 
   Expression _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new KernelMethodInvocation(new ThisExpression(), indexSetName,
-        new KernelArguments(<Expression>[index, value]), setter);
+        new KernelArguments(<Expression>[index, value]),
+        interfaceTarget: setter);
   }
 
   indexAccess() {
@@ -403,12 +409,14 @@ class ThisIndexAccessor extends Accessor {
   }
 
   Expression _makeRead() => new KernelMethodInvocation(new ThisExpression(),
-      indexGetName, new KernelArguments(<Expression>[indexAccess()]), getter);
+      indexGetName, new KernelArguments(<Expression>[indexAccess()]),
+      interfaceTarget: getter);
 
   Expression _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new KernelMethodInvocation(new ThisExpression(), indexSetName,
-        new KernelArguments(<Expression>[indexAccess(), value]), setter);
+        new KernelArguments(<Expression>[indexAccess(), value]),
+        interfaceTarget: setter);
   }
 
   _makeWriteAndReturn(Expression value) {
@@ -418,7 +426,7 @@ class ThisIndexAccessor extends Accessor {
         indexSetName,
         new KernelArguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
-        setter));
+        interfaceTarget: setter));
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
@@ -525,7 +533,8 @@ Expression makeBinary(
     Expression left, Name operator, Procedure interfaceTarget, Expression right,
     {int offset: TreeNode.noOffset}) {
   return new KernelMethodInvocation(
-      left, operator, new KernelArguments(<Expression>[right]), interfaceTarget)
+      left, operator, new KernelArguments(<Expression>[right]),
+      interfaceTarget: interfaceTarget)
     ..fileOffset = offset;
 }
 

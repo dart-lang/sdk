@@ -81,6 +81,7 @@ inference/block_bodied_lambdas_sync_star: Crash
 inference/block_bodied_lambdas_void_context: Crash
 inference/bottom: Crash
 inference/bottom_in_closure: Crash
+inference/call_corner_cases: Crash
 inference/circular_reference_via_closures: Crash
 inference/circular_reference_via_closures_initializer_types: Crash
 inference/conditional_lub: Crash
