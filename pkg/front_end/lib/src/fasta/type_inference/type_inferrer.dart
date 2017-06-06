@@ -61,9 +61,8 @@ class ClosureContext {
             returnContext, inferrer.coreTypes.iterableClass);
       }
     } else if (isAsync) {
-      returnContext = inferrer.wrapType(
-          inferrer.typeSchemaEnvironment.flattenFutures(returnContext),
-          inferrer.coreTypes.futureOrClass);
+      returnContext = inferrer.wrapFutureOrType(
+          inferrer.typeSchemaEnvironment.flattenFutures(returnContext));
     }
     return new ClosureContext._(isAsync, isGenerator, returnContext);
   }
@@ -538,7 +537,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     // TODO(paulberry): If [type] is a subtype of `Future`, should we just
     // return it unmodified?
-    return new InterfaceType(coreTypes.futureOrClass, <DartType>[type]);
+    return new InterfaceType(
+        coreTypes.futureOrClass, <DartType>[type ?? const DynamicType()]);
   }
 
   DartType wrapFutureType(DartType type) {

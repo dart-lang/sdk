@@ -14,7 +14,7 @@ class MyFuture<T> implements Future<T> {
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
-void main() {
+void test() {
   Future<bool> f;
   Future<int> t1 = f. /*@typeArgs=int*/ /*@target=Future::then*/ then(
       /*@returnType=Future<int>*/ (/*@type=bool*/ x) async =>
@@ -34,3 +34,5 @@ void main() {
     return /*info:DOWN_CAST_COMPOSITE*/ x ? 2 : new MyFuture<int>.value(3);
   });
 }
+
+main() {}
