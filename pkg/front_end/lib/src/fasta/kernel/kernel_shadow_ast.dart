@@ -1061,15 +1061,22 @@ class KernelMethodInvocation extends MethodInvocation
     if (receiverType is InterfaceType) {
       interfaceMember = inferrer.classHierarchy
           .getInterfaceMember(receiverType.classNode, name);
-      if (interfaceMember is Procedure) {
-        // Our non-strong golden files currently don't include interface
-        // targets, so we can't store the interface target without causing tests
-        // to fail.  TODO(paulberry): fix this.
-        if (inferrer.strongMode) {
+      // Our non-strong golden files currently don't include interface
+      // targets, so we can't store the interface target without causing tests
+      // to fail.  TODO(paulberry): fix this.
+      if (inferrer.strongMode) {
+        if (interfaceMember != null) {
           inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
               'target', new InstrumentationValueForMember(interfaceMember));
+        }
+        // interfaceTarget is currently required to be a procedure, so we skip
+        // if it's anything else.  TODO(paulberry): fix this - see
+        // https://codereview.chromium.org/2923653003/.
+        if (interfaceMember is Procedure) {
           interfaceTarget = interfaceMember;
         }
+      }
+      if (interfaceMember is Procedure) {
         isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
             .isOverloadedArithmeticOperator(interfaceMember);
       }

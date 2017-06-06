@@ -411,7 +411,8 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
 
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
-    if (node.target != null) {
+    var element = node.methodName.staticElement;
+    if (_elementRequiresMethodDispatch(element)) {
       _recordTarget(node.methodName.offset, node.methodName.staticElement);
     }
     if (node.typeArguments == null) {
@@ -484,6 +485,17 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
           _recordTopType(variable.name.offset, element.type);
         }
       }
+    }
+  }
+
+  bool _elementRequiresMethodDispatch(Element element) {
+    if (element is ClassMemberElement) {
+      return !element.isStatic;
+    } else if (element is ExecutableElement &&
+        element.enclosingElement is ClassElement) {
+      return !element.isStatic;
+    } else {
+      return false;
     }
   }
 

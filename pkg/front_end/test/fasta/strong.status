@@ -56,7 +56,6 @@ void-methods: Fail
 inference/constructors_too_many_positional_arguments: Fail
 inference/downwards_inference_annotations: Fail
 inference/downwards_inference_on_function_of_t_using_the_t: Fail
-inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: Fail
 inference/future_then_conditional: Fail
 inference/future_then_conditional_2: Fail
 inference/future_then_conditional_3: Fail
@@ -64,8 +63,6 @@ inference/future_then_conditional_4: Fail
 inference/future_then_conditional_5: Fail
 inference/future_then_conditional_6: Fail
 inference/future_then_explicit_future: Fail
-inference/future_union_downwards_generic_method_with_future_return: Fail
-inference/future_union_upwards_generic_methods: Fail
 inference/generic_functions_return_typedef: Fail
 inference/generic_methods_downwards_inference_fold: Fail
 inference/generic_methods_infer_js_builtin: Fail
@@ -98,7 +95,6 @@ inference/inferred_type_cascade: Fail
 inference/lambda_does_not_have_propagated_type_hint: Fail
 inference/list_literals_can_infer_null_top_level: Fail
 inference/map_literals_can_infer_null_top_level: Fail
-inference/method_call_with_type_arguments_static_method: Fail
 inference/null_coalescing_operator: Fail
 inference/null_coalescing_operator_2: Fail
 inference/reference_to_typedef: Fail

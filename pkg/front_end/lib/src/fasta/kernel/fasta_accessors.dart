@@ -317,7 +317,7 @@ class ThisAccessor extends FastaAccessor {
           new KernelThisExpression(),
           send.name,
           send.arguments,
-          offsetForToken(token));
+          offsetForToken(send.token));
       return isSuper ? helper.toSuperMethodInvocation(result) : result;
     } else {
       if (isSuper) {

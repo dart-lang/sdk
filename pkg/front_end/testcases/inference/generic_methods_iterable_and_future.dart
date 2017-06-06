@@ -13,8 +13,7 @@ Future<int> make(int x) => (new /*@typeArgs=int*/ Future(
 main() {
   Iterable<Future<int>> list = <int>[1, 2, 3]
       . /*@typeArgs=Future<int>*/ /*@target=Iterable::map*/ map(make);
-  Future<List<int>> results =
-      Future. /*@typeArgs=int*/ /*@target=Future::wait*/ wait(list);
+  Future<List<int>> results = Future. /*@typeArgs=int*/ wait(list);
   Future<String> results2 =
       results. /*@typeArgs=String*/ /*@target=Future::then*/ then(
           /*@returnType=FutureOr<String>*/ (List<int> list) =>

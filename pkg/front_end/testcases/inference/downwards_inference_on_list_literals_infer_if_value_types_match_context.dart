@@ -22,13 +22,13 @@ abstract class C {
   AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf;
 
   method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
-    assertAOf(
+    /*@target=C::assertAOf*/ assertAOf(
         /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
     assertBOf(
         /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
     assertCOf(
         /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-    assertDOf(
+    /*@target=C::assertDOf*/ assertDOf(
         /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
     assertEOf(
         /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
@@ -40,7 +40,7 @@ abstract class G<T> {
   AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf;
 
   method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
-    assertAOf(
+    /*@target=G::assertAOf*/ assertAOf(
         /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
     this. /*@target=G::assertAOf*/ assertAOf(
         /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
@@ -54,7 +54,7 @@ abstract class G<T> {
 AsserterBuilder<List<Asserter<DartType>>, DartType> assertBOf;
 AsserterBuilder<List<Asserter<DartType>>, DartType> get assertCOf => null;
 
-main() {
+test() {
   AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf;
   assertAOf(
       /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
@@ -62,9 +62,9 @@ main() {
       /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
   assertCOf(
       /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-  C. /*@target=C::assertBOf*/ assertBOf(
+  C.assertBOf(
       /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-  C. /*@target=C::assertCOf*/ assertCOf(
+  C.assertCOf(
       /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
 
   C c;
@@ -79,3 +79,5 @@ main() {
   g. /*@target=G::assertDOf*/ assertDOf(
       /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
 }
+
+main() {}
