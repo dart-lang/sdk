@@ -87,9 +87,4 @@ abstract class UnhandledListener extends StackListener {
     pop(); // Return type.
     push(NullValue.Type);
   }
-
-  @override
-  void prepareInitializers() {
-    debugEvent("prepareInitializers");
-  }
 }

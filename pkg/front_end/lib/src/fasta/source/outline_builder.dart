@@ -627,22 +627,22 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("endTopLevelFields");
-    List namesOffsetsAndInitializers = popList(count * 4);
+    List fieldsInfo = popList(count * 4);
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFields(metadata, modifiers, type, namesOffsetsAndInitializers);
+    library.addFields(metadata, modifiers, type, fieldsInfo);
     checkEmpty(beginToken.charOffset);
   }
 
   @override
   void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
-    List namesOffsetsAndInitializers = popList(count * 4);
+    List fieldsInfo = popList(count * 4);
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFields(metadata, modifiers, type, namesOffsetsAndInitializers);
+    library.addFields(metadata, modifiers, type, fieldsInfo);
   }
 
   @override
@@ -724,8 +724,20 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void endFieldInitializer(Token assignmentOperator, Token token) {
     debugEvent("FieldInitializer");
+    Token beforeLast = assignmentOperator.next;
+    Token next = beforeLast.next;
+    while (next != token && !next.isEof) {
+      // To avoid storing the rest of the token stream, we need to identify the
+      // token before [token]. That token will be the last token of the
+      // initializer expression and by setting its tail to EOF we only store
+      // the tokens for the expression.
+      // TODO(ahe): Might be clearer if this search was moved to
+      // `library.addFields`.
+      beforeLast = next;
+      next = next.next;
+    }
     push(assignmentOperator.next);
-    push(token);
+    push(beforeLast);
   }
 
   @override

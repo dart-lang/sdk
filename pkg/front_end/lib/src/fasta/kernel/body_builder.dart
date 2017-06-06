@@ -78,9 +78,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   final bool isInstanceMember;
 
-  final Map<String, FieldInitializer> fieldInitializers =
-      <String, FieldInitializer>{};
-
   final Scope enclosingScope;
 
   final bool enableNative;
@@ -132,6 +129,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   // Using non-null value to initialize this field based on performance advice
   // from VM engineers. TODO(ahe): Does this still apply?
   int currentLocalVariableModifiers = -1;
+
+  /// If non-null, records instance fields which have already been initialized
+  /// and where that was.
+  Map<String, int> initializedFields;
 
   BodyBuilder(
       KernelLibraryBuilder library,
@@ -392,33 +393,53 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
-  @override
   void prepareInitializers() {
-    scope = formalParameterScope;
-    assert(fieldInitializers.isEmpty);
-    final member = this.member;
+    ProcedureBuilder member = this.member;
+    scope = member.computeFormalParameterInitializerScope(scope);
     if (member is KernelConstructorBuilder) {
-      Constructor constructor = member.constructor;
-      classBuilder.forEach((String name, Builder builder) {
-        if (builder is KernelFieldBuilder && builder.isInstanceMember) {
-          // TODO(ahe): Compute initializers (as in `field = initializer`).
-          fieldInitializers[name] = new FieldInitializer(builder.field, null)
-            ..parent = constructor;
-        }
-      });
       if (member.formals != null) {
         for (KernelFormalParameterBuilder formal in member.formals) {
           if (formal.hasThis) {
-            FieldInitializer initializer = fieldInitializers[formal.name];
-            if (initializer != null) {
-              fieldInitializers.remove(formal.name);
-              initializer.value = new VariableGet(formal.declaration)
-                ..parent = initializer;
-              member.addInitializer(initializer);
+            Initializer initializer;
+            if (member.isExternal) {
+              initializer = buildInvalidInitializer(
+                  buildCompileTimeError(
+                      "An external constructor can't initialize fields.",
+                      formal.charOffset),
+                  formal.charOffset);
+            } else {
+              initializer = buildFieldInitializer(formal.name,
+                  formal.charOffset, new VariableGet(formal.declaration));
             }
+            member.addInitializer(initializer);
           }
         }
       }
+    }
+  }
+
+  @override
+  void handleNoInitializers() {
+    debugEvent("NoInitializers");
+    if (functionNestingLevel == 0) {
+      prepareInitializers();
+      scope = formalParameterScope;
+    }
+  }
+
+  @override
+  void beginInitializers(Token token) {
+    debugEvent("beginInitializers");
+    if (functionNestingLevel == 0) {
+      prepareInitializers();
+    }
+  }
+
+  @override
+  void endInitializers(int count, Token beginToken, Token endToken) {
+    debugEvent("Initializers");
+    if (functionNestingLevel == 0) {
+      scope = formalParameterScope;
     }
   }
 
@@ -438,7 +459,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (node is Initializer) {
       initializer = node;
     } else if (node is FastaAccessor) {
-      initializer = node.buildFieldInitializer(fieldInitializers);
+      initializer = node.buildFieldInitializer(initializedFields);
     } else if (node is ConstructorInvocation) {
       initializer =
           buildSuperInitializer(node.target, node.arguments, token.charOffset);
@@ -447,7 +468,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (node is! Throw) {
         value = wrapInCompileTimeError(value, "Expected an initializer.");
       }
-      initializer = buildInvalidIntializer(node, token.charOffset);
+      initializer = buildInvalidInitializer(node, token.charOffset);
     }
     _typeInferrer.inferInitializer(initializer);
     if (member is KernelConstructorBuilder) {
@@ -456,16 +477,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       addCompileTimeError(
           token.charOffset, "Can't have initializers: ${member.name}");
     }
-  }
-
-  @override
-  void handleNoInitializers() {
-    debugEvent("NoInitializers");
-  }
-
-  @override
-  void endInitializers(int count, Token beginToken, Token endToken) {
-    debugEvent("Initializers");
   }
 
   DartType _computeReturnTypeContext(MemberBuilder member) {
@@ -519,7 +530,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (asyncModifier != AsyncMarker.Sync) {
       // TODO(ahe): Change this to a null check.
       int offset = builder.body?.fileOffset ?? builder.charOffset;
-      constructor.initializers.add(buildInvalidIntializer(
+      constructor.initializers.add(buildInvalidInitializer(
           buildCompileTimeError(
               "A constructor can't be '${asyncModifier}'.", offset),
           offset));
@@ -538,7 +549,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         String message = superTarget == null
             ? "'$superclass' doesn't have an unnamed constructor."
             : "The unnamed constructor in '$superclass' requires arguments.";
-        initializer = buildInvalidIntializer(
+        initializer = buildInvalidInitializer(
             buildCompileTimeError(message, builder.charOffset),
             builder.charOffset);
       } else {
@@ -924,7 +935,23 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         addCompileTimeError(
             offsetForToken(token), "Not a constant expression.");
       }
-      return new VariableAccessor(this, token, builder.target);
+      // An initializing formal parameter might be final without its
+      // VariableDeclaration being final. See
+      // [ProcedureBuilder.computeFormalParameterInitializerScope]. If that
+      // wasn't the case, we could always use VariableAccessor.
+      if (builder.isFinal) {
+        var fact =
+            typePromoter.getFactForAccess(builder.target, functionNestingLevel);
+        var scope = typePromoter.currentScope;
+        return new ReadOnlyAccessor(
+            this,
+            new KernelVariableGet(builder.target, fact, scope)
+              ..fileOffset = offsetForToken(token),
+            name,
+            token);
+      } else {
+        return new VariableAccessor(this, token, builder.target);
+      }
     } else if (builder.isInstanceMember) {
       if (constantExpressionRequired &&
           !inInitializer &&
@@ -1593,44 +1620,25 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
         memberKind != MemberKind.GeneralizedFunctionType) {
-      dynamic builder = formalParameterScope.lookup(
-          name.name, offsetForToken(name.token), uri);
-      if (builder == null) {
-        if (thisKeyword == null) {
-          internalError("Internal error: formal missing for '${name.name}'");
-        } else {
-          addCompileTimeError(thisKeyword.charOffset,
-              "'${name.name}' isn't a field in this class.");
-          thisKeyword = null;
-        }
-      } else if (thisKeyword == null) {
-        variable = builder.build(library);
-        variable.initializer = name.initializer;
-      } else if (builder.isField && builder.parent == classBuilder) {
-        FieldBuilder field = builder;
-        if (type != null) {
-          nit("Ignoring type on 'this' parameter '${name.name}'.",
-              thisKeyword.charOffset);
-        }
-        type = field.target.type;
-        variable = new KernelVariableDeclaration(
-            name.name, functionNestingLevel,
-            type: type,
-            initializer: name.initializer,
-            isFinal: isFinal,
-            isConst: isConst)
-          ..fileOffset = offsetForToken(name.token);
+      ProcedureBuilder member = this.member;
+      KernelFormalParameterBuilder formal = member.getFormal(name.name);
+      if (formal == null) {
+        internalError("Internal error: formal missing for '${name.name}'");
       } else {
-        addCompileTimeError(offsetForToken(name.token),
-            "'${name.name}' isn't a field in this class.");
+        variable = formal.build(library);
+        variable.initializer = name.initializer;
+      }
+    } else {
+      variable = new KernelVariableDeclaration(name?.name, functionNestingLevel,
+          type: type,
+          initializer: name?.initializer,
+          isFinal: isFinal,
+          isConst: isConst);
+      if (name != null) {
+        // TODO(ahe): Need an offset when name is null.
+        variable.fileOffset = offsetForToken(name.token);
       }
     }
-    variable ??= new KernelVariableDeclaration(name?.name, functionNestingLevel,
-        type: type,
-        initializer: name?.initializer,
-        isFinal: isFinal,
-        isConst: isConst)
-      ..fileOffset = offsetForToken(name?.token);
     push(variable);
   }
 
@@ -2675,11 +2683,59 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Initializer buildInvalidIntializer(Expression expression,
+  Initializer buildInvalidInitializer(Expression expression,
       [int charOffset = -1]) {
     needsImplicitSuperInitializer = false;
     return new LocalInitializer(new VariableDeclaration.forValue(expression))
       ..fileOffset = charOffset;
+  }
+
+  Initializer buildDuplicatedInitializer(
+      String name, int offset, int previousInitializerOffset) {
+    Initializer initializer = buildInvalidInitializer(
+        buildCompileTimeError("'$name' has already been initialized.", offset),
+        offset);
+    addCompileTimeError(
+        initializedFields[name], "'$name' was initialized here.");
+    return initializer;
+  }
+
+  @override
+  Initializer buildFieldInitializer(
+      String name, int offset, Expression expression) {
+    Builder builder = classBuilder.scope.local[name];
+    if (builder is KernelFieldBuilder && builder.isInstanceMember) {
+      initializedFields ??= <String, int>{};
+      if (initializedFields.containsKey(name)) {
+        return buildDuplicatedInitializer(
+            name, offset, initializedFields[name]);
+      }
+      initializedFields[name] = offset;
+      if (builder.isFinal && builder.hasInitializer) {
+        // TODO(ahe): If CL 2843733002 is landed, this becomes a compile-time
+        // error. Also, this is a compile-time error in strong mode.
+        warningNotError(
+            "'$name' is final instance variable that has already been "
+            "initialized.",
+            offset);
+        warningNotError("'$name' was initialized here.", builder.charOffset);
+        Builder constructor =
+            library.loader.getDuplicatedFieldInitializerError();
+        return buildInvalidInitializer(
+            new Throw(buildStaticInvocation(constructor.target,
+                new Arguments(<Expression>[new StringLiteral(name)]),
+                charOffset: offset)),
+            offset);
+      } else {
+        return new FieldInitializer(builder.field, expression)
+          ..fileOffset = offset;
+      }
+    } else {
+      return buildInvalidInitializer(
+          buildCompileTimeError(
+              "'$name' isn't an instance field of this class.", offset),
+          offset);
+    }
   }
 
   @override
@@ -2988,20 +3044,14 @@ class DelayedAssignment extends ContextAccessor {
     }
   }
 
-  Initializer buildFieldInitializer(
-      Map<String, FieldInitializer> initializers) {
+  @override
+  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
     if (!identical("=", assignmentOperator) ||
         !accessor.isThisPropertyAccessor) {
-      return accessor.buildFieldInitializer(initializers);
+      return accessor.buildFieldInitializer(initializedFields);
     }
-    String name = accessor.plainNameForRead;
-    FieldInitializer initializer = initializers[name];
-    if (initializer != null && initializer.value == null) {
-      initializers.remove(name);
-      initializer.value = value..parent = initializer;
-      return initializer;
-    }
-    return accessor.buildFieldInitializer(initializers);
+    return helper.buildFieldInitializer(
+        accessor.plainNameForRead, offsetForToken(token), value);
   }
 }
 

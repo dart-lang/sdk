@@ -22,7 +22,10 @@ import 'package:front_end/src/fasta/source/source_library_builder.dart'
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
     show TypeInferenceListener;
 
-import 'package:kernel/ast.dart' show DartType, Expression, Field, Name;
+import 'package:kernel/ast.dart'
+    show DartType, Expression, Field, Name, NullLiteral;
+
+import '../errors.dart' show internalError;
 
 import 'kernel_builder.dart'
     show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
@@ -39,7 +42,12 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
           ..fileOffset = charOffset,
         super(name, modifiers, compilationUnit, charOffset);
 
+  bool get hasInitializer => initializerToken != null;
+
   void set initializer(Expression value) {
+    if (!hasInitializer && value is! NullLiteral && !isConst && !isFinal) {
+      internalError("Attempt to set initializer on field without initializer.");
+    }
     field.initializer = value..parent = field;
   }
 
@@ -55,7 +63,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitGetter = isInstanceMember
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
-    if (initializerToken != null) {
+    if (initializerToken != null && !initializerToken.isEof) {
       library.loader.typeInferenceEngine.recordField(field);
     }
     return field;
@@ -66,7 +74,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   @override
   void prepareInitializerInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {
-    if (initializerToken != null) {
+    if (initializerToken != null && !initializerToken.isEof) {
       var memberScope =
           currentClass == null ? library.scope : currentClass.scope;
       // TODO(paulberry): Is it correct to pass library.uri into BodyBuilder, or

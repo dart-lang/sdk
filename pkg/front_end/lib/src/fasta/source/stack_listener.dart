@@ -71,10 +71,6 @@ abstract class StackListener extends Listener {
   // and ast_builder.dart.
   void exitLocalScope() => internalError("Unsupported operation");
 
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
-  // and ast_builder.dart.
-  void prepareInitializers() => internalError("Unsupported operation");
-
   void push(Object node) {
     if (node == null) internalError("null not allowed.");
     stack.push(node);

@@ -15,15 +15,12 @@ Language/Classes/Constructors/Factories/name_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/name_t03: MissingCompileTimeError
 Language/Classes/Constructors/Factories/name_t04: MissingCompileTimeError
 Language/Classes/Constructors/Factories/name_t05: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: RuntimeError # Dartk Issue 28566
 Language/Classes/Constructors/Generative_Constructors/execution_t04: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t05: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t06: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t07: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t09: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t12: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/formal_parameter_t02: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: RuntimeError # Dartk Issue 28566
 Language/Classes/Constructors/Generative_Constructors/redirection_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/redirection_t03: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/redirection_t07: MissingCompileTimeError
@@ -235,8 +232,6 @@ Language/Variables/constant_variable_t06: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t01: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
-Language/Variables/final_t01/01: MissingRuntimeError # Dartk Issue 28566
-Language/Variables/final_t02/01: MissingRuntimeError # Dartk Issue 28566
 Language/Variables/final_t04: MissingCompileTimeError
 Language/Variables/final_t05: MissingCompileTimeError
 Language/Variables/final_t06: MissingCompileTimeError

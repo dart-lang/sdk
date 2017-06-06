@@ -192,18 +192,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String name, int charOffset, Token initializer);
 
   void addFields(List<MetadataBuilder> metadata, int modifiers, T type,
-      List<Object> namesOffsetsAndInitializers) {
-    for (int i = 0; i < namesOffsetsAndInitializers.length; i += 4) {
-      String name = namesOffsetsAndInitializers[i];
-      int charOffset = namesOffsetsAndInitializers[i + 1];
-      Token initializer;
-      if (type == null) {
-        initializer = namesOffsetsAndInitializers[i + 2];
-        Token afterInitializer = namesOffsetsAndInitializers[i + 3];
-        // TODO(paulberry): figure out a way to do this without using
-        // Token.previous.
-        afterInitializer?.previous
-            ?.setNext(new Token.eof(afterInitializer.offset));
+      List<Object> fieldsInfo) {
+    for (int i = 0; i < fieldsInfo.length; i += 4) {
+      String name = fieldsInfo[i];
+      int charOffset = fieldsInfo[i + 1];
+      Token initializer = fieldsInfo[i + 2];
+      if (initializer != null) {
+        Token beforeLast = fieldsInfo[i + 3];
+        beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
       addField(metadata, modifiers, type, name, charOffset, initializer);
     }

@@ -17,10 +17,6 @@ const_constructor_syntax_test/01: MissingCompileTimeError
 const_constructor_syntax_test/02: MissingCompileTimeError
 const_constructor_syntax_test/03: MissingCompileTimeError
 const_constructor_test/01: MissingCompileTimeError
-const_error_multiply_initialized_test/01: MissingCompileTimeError
-const_error_multiply_initialized_test/02: RuntimeError
-const_error_multiply_initialized_test/03: MissingCompileTimeError
-const_error_multiply_initialized_test/04: RuntimeError
 const_for_in_variable_test/01: MissingCompileTimeError
 const_native_factory_test/01: MissingCompileTimeError # Issue 29763
 const_syntax_test/01: MissingCompileTimeError
@@ -35,9 +31,6 @@ const_types_test/29: MissingCompileTimeError
 const_types_test/30: MissingCompileTimeError
 const_types_test/41: MissingCompileTimeError
 constant_locals_test/01: MissingCompileTimeError
-constructor_duplicate_final_test/01: MissingRuntimeError
-constructor_duplicate_final_test/02: MissingRuntimeError
-constructor_duplicate_initializers_test/03: MissingCompileTimeError
 cyclic_typedef_test/01: MissingCompileTimeError
 cyclic_typedef_test/02: MissingCompileTimeError
 cyclic_typedef_test/03: MissingCompileTimeError
@@ -65,7 +58,6 @@ external_test/12: MissingCompileTimeError
 external_test/21: MissingCompileTimeError
 external_test/22: MissingCompileTimeError
 external_test/23: MissingCompileTimeError
-external_test/24: MissingCompileTimeError
 external_test/25: MissingCompileTimeError
 external_test/30: MissingCompileTimeError
 external_test/31: MissingCompileTimeError
@@ -100,8 +92,6 @@ getter_parameters_test/01: MissingCompileTimeError
 getter_parameters_test/02: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
-initializing_formal_capture_test: RuntimeError
-initializing_formal_final_test: RuntimeError
 inst_field_initializer1_negative_test: Fail
 invocation_mirror_test: RuntimeError
 metadata_test: CompileTimeError
@@ -317,7 +307,6 @@ language/regress_22728_test: Fail # Dartk Issue 28498
 const_locals_test: RuntimeError
 const_string_test: RuntimeError
 const_syntax_test/08: MissingCompileTimeError
-const_syntax_test/09: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
 disassemble_test: Pass, Crash  # Multitest via multiple VMOptions! Hits assert "kind() != RawScript::kKernelTag". Issue 28790
 getter_declaration_negative_test: Fail
@@ -335,7 +324,6 @@ vm/optimized_stacktrace_test: Skip # Issue 28788
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $mode == debug ]
-constructor_duplicate_initializers_test/03: Crash
 deopt_inlined_function_lazy_test: Skip
 hello_dart_test: Crash  # error: expected: cls.is_type_finalized()
 ref_before_declaration_test/00: Crash
@@ -351,7 +339,6 @@ vm/lazy_deopt_vm_test: Crash
 # dartk: precompilation failures
 [ $compiler == dartkp ]
 const_syntax_test/08: Crash
-const_syntax_test/09: Crash
 final_syntax_test/09: MissingCompileTimeError
 getter_declaration_negative_test: Crash
 getter_parameters_test/02: Crash

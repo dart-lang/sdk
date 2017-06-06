@@ -7,6 +7,8 @@ library fasta.kernel_formal_parameter_builder;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
     show KernelVariableDeclaration;
 
+import '../modifier.dart' show finalMask;
+
 import 'kernel_builder.dart'
     show
         FormalParameterBuilder,
@@ -46,5 +48,15 @@ class KernelFormalParameterBuilder
       }
     }
     return declaration;
+  }
+
+  @override
+  FormalParameterBuilder forFormalParameterInitializerScope() {
+    assert(declaration != null);
+    return !hasThis
+        ? this
+        : (new KernelFormalParameterBuilder(metadata, modifiers | finalMask,
+            type, name, hasThis, parent, charOffset)
+          ..declaration = declaration);
   }
 }

@@ -21,5 +21,7 @@ abstract class FieldBuilder<T> extends MemberBuilder {
 
   void set initializer(T value);
 
+  bool get hasInitializer;
+
   bool get isField => true;
 }

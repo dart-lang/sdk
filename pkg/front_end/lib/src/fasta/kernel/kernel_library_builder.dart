@@ -463,6 +463,7 @@ class KernelLibraryBuilder
     checkTypeVariables(typeVariables, supertype.builder);
   }
 
+  @override
   void addField(List<MetadataBuilder> metadata, int modifiers,
       KernelTypeBuilder type, String name, int charOffset, Token initializer) {
     addBuilder(
