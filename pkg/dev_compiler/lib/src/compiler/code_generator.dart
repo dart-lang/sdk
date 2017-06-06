@@ -1602,15 +1602,16 @@ class CodeGenerator extends Object
       fnBody = js.call('#._check(#)', [_emitType(method.returnType), fnBody]);
     }
 
-    var fn = new JS.Fun(fnArgs, js.statement('{ return #; }', [fnBody]),
-        typeParams: _emitTypeFormals(method.type.typeFormals));
+    var fn = _makeGenericFunction(new JS.Fun(
+        fnArgs, js.statement('{ return #; }', [fnBody]),
+        typeParams: _emitTypeFormals(method.type.typeFormals)));
 
     // TODO(jmesserly): generic type arguments will get dropped.
     // We have a similar issue with `dgsend` helpers.
     return new JS.Method(
         _declareMemberName(method,
             useExtension: _extensionTypes.isNativeClass(type.element)),
-        _makeGenericFunction(fn),
+        fn,
         isGetter: method is PropertyAccessorElement && method.isGetter,
         isSetter: method is PropertyAccessorElement && method.isSetter,
         isStatic: false);
@@ -2442,16 +2443,6 @@ class CodeGenerator extends Object
       fn = _emitNativeFunctionBody(node);
     } else {
       fn = _emitFunctionBody(node.element, node.parameters, node.body);
-
-      if (node.operatorKeyword != null &&
-          node.name.name == '[]=' &&
-          fn.params.isNotEmpty) {
-        // []= methods need to return the value. We could also address this at
-        // call sites, but it's cleaner to instead transform the operator method.
-        fn = _alwaysReturnLastParameter(fn);
-      }
-
-      fn = _makeGenericFunction(fn);
     }
 
     return annotate(
@@ -2467,20 +2458,15 @@ class CodeGenerator extends Object
   ///
   /// This is useful for indexed set methods, which otherwise would not have
   /// the right return value in JS.
-  JS.Fun _alwaysReturnLastParameter(JS.Fun fn) {
-    var body = fn.body;
-    if (JS.Return.foundIn(fn)) {
+  JS.Node _alwaysReturnLastParameter(JS.Node body, JS.Parameter lastParam) {
+    if (JS.Return.foundIn(body)) {
       // If a return is inside body, transform `(params) { body }` to
       // `(params) { (() => { body })(); return value; }`.
       // TODO(jmesserly): we could instead generate the return differently,
       // and avoid the immediately invoked function.
-      body = new JS.Call(new JS.ArrowFun([], fn.body), []).toStatement();
+      body = new JS.Call(new JS.ArrowFun([], body), []).toStatement();
     }
-    // Rewrite the function to include the return.
-    return new JS.Fun(
-        fn.params, new JS.Block([body, new JS.Return(fn.params.last)]),
-        typeParams: fn.typeParams, returnType: fn.returnType)
-      ..sourceInformation = fn.sourceInformation;
+    return new JS.Block([body, new JS.Return(lastParam)]);
   }
 
   @override
@@ -2629,7 +2615,23 @@ class CodeGenerator extends Object
   }
 
   JS.ArrowFun _emitArrowFunction(FunctionExpression node) {
-    JS.Fun f = _emitFunctionBody(node.element, node.parameters, node.body);
+    JS.Fun fn = _emitFunctionBody(node.element, node.parameters, node.body);
+
+    return annotate(_toArrowFunction(fn), node);
+  }
+
+  JS.Fun _makeGenericFunction(JS.Fun fn) {
+    if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
+
+    return new JS.Fun(
+        fn.typeParams,
+        new JS.Block([
+          // Convert the function to an => function, to ensure `this` binding.
+          new JS.Return(_toArrowFunction(fn))
+        ]));
+  }
+
+  JS.ArrowFun _toArrowFunction(JS.Fun f) {
     JS.Node body = f.body;
 
     // Simplify `=> { return e; }` to `=> e`
@@ -2643,28 +2645,9 @@ class CodeGenerator extends Object
 
     // Convert `function(...) { ... }` to `(...) => ...`
     // This is for readability, but it also ensures correct `this` binding.
-    var fn = new JS.ArrowFun(f.params, body,
-        typeParams: f.typeParams, returnType: f.returnType);
-
-    return annotate(_makeGenericArrowFun(fn), node);
-  }
-
-  JS.ArrowFun _makeGenericArrowFun(JS.ArrowFun fn) {
-    if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
-    return new JS.ArrowFun(fn.typeParams, fn);
-  }
-
-  JS.Fun _makeGenericFunction(JS.Fun fn) {
-    if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
-
-    // TODO(jmesserly): we could make these default to `dynamic`.
-    return new JS.Fun(
-        fn.typeParams,
-        new JS.Block([
-          // Convert the function to an => function, to ensure `this` binding.
-          new JS.Return(new JS.ArrowFun(fn.params, fn.body,
-              typeParams: fn.typeParams, returnType: fn.returnType))
-        ]));
+    return new JS.ArrowFun(f.params, body,
+        typeParams: f.typeParams, returnType: f.returnType)
+      ..sourceInformation = f.sourceInformation;
   }
 
   /// Emits a non-arrow FunctionExpression node.
@@ -2675,8 +2658,8 @@ class CodeGenerator extends Object
   ///
   /// Contrast with [visitFunctionExpression].
   JS.Fun _emitFunction(FunctionExpression node) {
-    var fn = _emitFunctionBody(node.element, node.parameters, node.body);
-    return annotate(_makeGenericFunction(fn), node);
+    return annotate(
+        _emitFunctionBody(node.element, node.parameters, node.body), node);
   }
 
   JS.Fun _emitFunctionBody(ExecutableElement element,
@@ -2698,8 +2681,15 @@ class CodeGenerator extends Object
         code
       ]);
     }
-    return new JS.Fun(formals, code,
-        typeParams: typeFormals, returnType: returnType);
+
+    if (element.isOperator && element.name == '[]=' && formals.isNotEmpty) {
+      // []= methods need to return the value. We could also address this at
+      // call sites, but it's cleaner to instead transform the operator method.
+      code = _alwaysReturnLastParameter(code, formals.last);
+    }
+
+    return _makeGenericFunction(new JS.Fun(formals, code,
+        typeParams: typeFormals, returnType: returnType));
   }
 
   JS.Expression _emitGeneratorFunctionBody(ExecutableElement element,
