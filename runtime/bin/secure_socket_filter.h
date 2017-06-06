@@ -1,30 +1,18 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_BIN_SECURE_SOCKET_BORINGSSL_H_
-#define RUNTIME_BIN_SECURE_SOCKET_BORINGSSL_H_
-
-#if !defined(RUNTIME_BIN_SECURE_SOCKET_H_)
-#error Do not include secure_socket_boringssl.h directly. Use secure_socket.h.
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
+#ifndef RUNTIME_BIN_SECURE_SOCKET_FILTER_H_
+#define RUNTIME_BIN_SECURE_SOCKET_FILTER_H_
 
 #include <openssl/bio.h>
-#include <openssl/err.h>
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 
 #include "bin/builtin.h"
-#include "bin/dartutils.h"
 #include "bin/reference_counting.h"
-#include "bin/socket.h"
-#include "bin/thread.h"
-#include "bin/utils.h"
+#include "bin/security_context.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -33,44 +21,6 @@ namespace bin {
 extern const unsigned char* root_certificates_pem;
 extern unsigned int root_certificates_pem_length;
 
-class SSLContext {
- public:
-  static const intptr_t kApproximateSize;
-
-  explicit SSLContext(SSL_CTX* context)
-      : context_(context), alpn_protocol_string_(NULL) {}
-
-  ~SSLContext() {
-    SSL_CTX_free(context_);
-    if (alpn_protocol_string_ != NULL) {
-      free(alpn_protocol_string_);
-    }
-  }
-
-  SSL_CTX* context() const { return context_; }
-
-  uint8_t* alpn_protocol_string() const { return alpn_protocol_string_; }
-  void set_alpn_protocol_string(uint8_t* protocol_string) {
-    if (alpn_protocol_string_ != NULL) {
-      free(alpn_protocol_string_);
-    }
-    alpn_protocol_string_ = protocol_string;
-  }
-
- private:
-  SSL_CTX* context_;
-  uint8_t* alpn_protocol_string_;
-
-  DISALLOW_COPY_AND_ASSIGN(SSLContext);
-};
-
-/*
- * SSLFilter encapsulates the SSL(TLS) code in a filter, that communicates
- * with the containing _SecureFilterImpl Dart object through four shared
- * ExternalByteArray buffers, for reading and writing plaintext, and
- * reading and writing encrypted text.  The filter handles handshaking
- * and certificate verification.
- */
 class SSLFilter : public ReferenceCounted<SSLFilter> {
  public:
   // These enums must agree with those in sdk/lib/io/secure_socket.dart.
@@ -84,6 +34,7 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
   };
 
   static const intptr_t kApproximateSize;
+  static const int kSSLFilterNativeFieldIndex = 0;
 
   SSLFilter()
       : callback_error(NULL),
@@ -100,7 +51,7 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
 
   Dart_Handle Init(Dart_Handle dart_this);
   void Connect(const char* hostname,
-               SSL_CTX* context,
+               SSLCertContext* context,
                bool is_server,
                bool request_client_certificate,
                bool require_client_certificate,
@@ -133,14 +84,13 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
   // The index of the external data field in _ssl that points to the SSLFilter.
   static int filter_ssl_index;
 
-  // TODO(whesse): make private:
-  SSL* ssl_;
-  BIO* socket_side_;
-
  private:
   static const intptr_t kInternalBIOSize;
   static bool library_initialized_;
   static Mutex* mutex_;  // To protect library initialization.
+
+  SSL* ssl_;
+  BIO* socket_side_;
 
   uint8_t* buffers_[kNumBuffers];
   int buffer_size_;
@@ -154,7 +104,7 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
   bool is_server_;
   char* hostname_;
 
-  static bool isBufferEncrypted(int i) {
+  static bool IsBufferEncrypted(int i) {
     return static_cast<BufferIndex>(i) >= kFirstEncrypted;
   }
   Dart_Handle InitializeBuffers(Dart_Handle dart_this);
@@ -166,4 +116,4 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // RUNTIME_BIN_SECURE_SOCKET_BORINGSSL_H_
+#endif  // RUNTIME_BIN_SECURE_SOCKET_FILTER_H_

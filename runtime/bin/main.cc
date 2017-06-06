@@ -560,7 +560,6 @@ static bool ProcessShortSocketWriteOption(const char* arg,
 }
 
 
-#if !defined(HOST_OS_MACOS)
 extern const char* commandline_root_certs_file;
 extern const char* commandline_root_certs_cache;
 
@@ -596,7 +595,6 @@ static bool ProcessRootCertsCacheOption(const char* arg,
   commandline_root_certs_cache = arg;
   return true;
 }
-#endif  // !defined(HOST_OS_MACOS)
 
 
 static struct {
@@ -636,10 +634,8 @@ static struct {
     {"--hot-reload-rollback-test-mode", ProcessHotReloadRollbackTestModeOption},
     {"--short_socket_read", ProcessShortSocketReadOption},
     {"--short_socket_write", ProcessShortSocketWriteOption},
-#if !defined(HOST_OS_MACOS)
     {"--root-certs-file=", ProcessRootCertsFileOption},
     {"--root-certs-cache=", ProcessRootCertsCacheOption},
-#endif  // !defined(HOST_OS_MACOS)
     {NULL, NULL}};
 
 

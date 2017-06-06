@@ -417,9 +417,9 @@ template("dart_io") {
       if (is_mac) {
         libs += [ "CoreServices.framework" ]
       }
-    } else {
-      deps += [ "//third_party/boringssl" ]
     }
+
+    deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
       libs = [ "launchpad" ]
