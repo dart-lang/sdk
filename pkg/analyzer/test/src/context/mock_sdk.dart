@@ -276,6 +276,9 @@ abstract class Iterable<E> {
   void forEach(void f(E element));
 
   List<E> toList();
+
+  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
+      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
 }
 
 class List<E> implements Iterable<E> {
@@ -290,9 +293,6 @@ class List<E> implements Iterable<E> {
   bool get isEmpty => false;
   E get first => null;
   E get last => null;
-
-  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
-      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
 
 }
 
