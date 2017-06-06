@@ -130,10 +130,15 @@ class ClosureTask extends CompilerTask implements ClosureClassMaps {
   }
 }
 
+/// Common interface for [BoxFieldElement] and [ClosureFieldElement] as
+/// non-elements.
+// TODO(johnniwinther): Remove `implements Element`.
+abstract class CapturedVariable implements Element {}
+
 // TODO(ahe): These classes continuously cause problems.  We need to
 // find a more general solution.
 class ClosureFieldElement extends ElementX
-    implements FieldElement, PrivatelyNamedJSEntity {
+    implements FieldElement, CapturedVariable, PrivatelyNamedJSEntity {
   /// The [BoxLocal] or [LocalElement] being accessed through the field.
   final Local local;
 
@@ -290,7 +295,11 @@ class BoxLocal extends Local {
 // TODO(ngeoffray, ahe): These classes continuously cause problems.  We need to
 // find a more general solution.
 class BoxFieldElement extends ElementX
-    implements TypedElement, FieldElement, PrivatelyNamedJSEntity {
+    implements
+        TypedElement,
+        CapturedVariable,
+        FieldElement,
+        PrivatelyNamedJSEntity {
   final BoxLocal box;
 
   BoxFieldElement(String name, this.variableElement, BoxLocal box)
@@ -413,7 +422,7 @@ class ClosureScope {
   // If the scope is attached to a [For] contains the variables that are
   // declared in the initializer of the [For] and that need to be boxed.
   // Otherwise contains the empty List.
-  List<Local> boxedLoopVariables = const <Local>[];
+  List<VariableElement> boxedLoopVariables = const <VariableElement>[];
 
   ClosureScope(this.boxElement, this.capturedVariables);
 
@@ -473,7 +482,8 @@ class ClosureClassMap {
 
   /// Maps free locals, arguments, function elements, and box locals to
   /// their locations.
-  final Map<Local, FieldEntity> freeVariableMap = new Map<Local, FieldEntity>();
+  final Map<Local, CapturedVariable> freeVariableMap =
+      new Map<Local, CapturedVariable>();
 
   /// Maps [Loop] and [FunctionExpression] nodes to their [ClosureScope] which
   /// contains their box and the captured variables that are stored in the box.
@@ -503,7 +513,7 @@ class ClosureClassMap {
     return freeVariableMap.containsKey(element);
   }
 
-  void forEachFreeVariable(f(Local variable, FieldEntity field)) {
+  void forEachFreeVariable(f(Local variable, CapturedVariable field)) {
     freeVariableMap.forEach(f);
   }
 
@@ -520,14 +530,14 @@ class ClosureClassMap {
   }
 
   bool isVariableBoxed(Local variable) {
-    FieldEntity copy = freeVariableMap[variable];
+    CapturedVariable copy = freeVariableMap[variable];
     if (copy is BoxFieldElement) {
       return true;
     }
     return capturingScopesBox(variable);
   }
 
-  void forEachCapturedVariable(void f(Local variable, FieldEntity field)) {
+  void forEachCapturedVariable(void f(Local variable, CapturedVariable field)) {
     freeVariableMap.forEach((variable, copy) {
       if (variable is BoxLocal) return;
       f(variable, copy);

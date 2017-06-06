@@ -30,7 +30,8 @@ class LocalsHandler {
   /// e.g. Element hash codes.  I'd prefer to use a SortedMap but some elements
   /// don't have source locations for [Elements.compareByPosition].
   Map<Local, HInstruction> directLocals = new Map<Local, HInstruction>();
-  Map<Local, FieldEntity> redirectionMapping = new Map<Local, FieldEntity>();
+  Map<Local, CapturedVariable> redirectionMapping =
+      new Map<Local, CapturedVariable>();
   final GraphBuilder builder;
   ClosureClassMap closureData;
   Map<TypeVariableType, TypeVariableLocal> typeVariableLocals =
@@ -124,7 +125,7 @@ class LocalsHandler {
 
   /// Redirects accesses from element [from] to element [to]. The [to] element
   /// must be a boxed variable or a variable that is stored in a closure-field.
-  void redirectElement(Local from, FieldEntity to) {
+  void redirectElement(Local from, CapturedVariable to) {
     assert(redirectionMapping[from] == null);
     redirectionMapping[from] = to;
     assert(isStoredInClosureField(from) || isBoxed(from));
@@ -179,12 +180,13 @@ class LocalsHandler {
 
   /// Replaces the current box with a new box and copies over the given list
   /// of elements from the old box into the new box.
-  void updateCaptureBox(Local boxElement, List<Local> toBeCopiedElements) {
+  void updateCaptureBox(
+      BoxLocal boxElement, List<LocalVariableElement> toBeCopiedElements) {
     // Create a new box and copy over the values from the old box into the
     // new one.
     HInstruction oldBox = readLocal(boxElement);
     HInstruction newBox = createBox();
-    for (Local boxedVariable in toBeCopiedElements) {
+    for (LocalVariableElement boxedVariable in toBeCopiedElements) {
       // [readLocal] uses the [boxElement] to find its box. By replacing it
       // behind its back we can still get to the old values.
       updateLocal(boxElement, oldBox);
@@ -231,7 +233,7 @@ class LocalsHandler {
     // If the freeVariableMapping is not empty, then this function was a
     // nested closure that captures variables. Redirect the captured
     // variables to fields in the closure.
-    closureData.forEachFreeVariable((Local from, FieldEntity to) {
+    closureData.forEachFreeVariable((Local from, CapturedVariable to) {
       redirectElement(from, to);
     });
     if (closureData.isClosure) {
@@ -304,7 +306,7 @@ class LocalsHandler {
   bool isStoredInClosureField(Local local) {
     assert(local != null);
     if (isAccessedDirectly(local)) return false;
-    FieldEntity redirectTarget = redirectionMapping[local];
+    CapturedVariable redirectTarget = redirectionMapping[local];
     if (redirectTarget == null) return false;
     return redirectTarget is ClosureFieldElement;
   }

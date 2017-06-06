@@ -241,7 +241,7 @@ bool areLocalsEquivalent(Local a, Local b) {
   }
 }
 
-bool areCapturedVariablesEquivalent(FieldEntity a, FieldEntity b) {
+bool areCapturedVariablesEquivalent(CapturedVariable a, CapturedVariable b) {
   if (a == b) return true;
   if (a == null || b == null) return false;
   if (a is ClosureFieldElement && b is ClosureFieldElement) {
