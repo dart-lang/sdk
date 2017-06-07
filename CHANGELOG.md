@@ -6,6 +6,12 @@
 
 ### Core library changes
 
+* `dart:io`
+  * Unified backends for `SecureSocket`, `SecurityContext`, and 
+    `X509Certificate` to be consistent across all platforms. All
+    `SecureSocket`, `SecurityContext`, and `X509Certificate` properties and
+    methods are now supported on iOS and OSX.
+
 ### Dart VM
 
 ### Tool Changes
