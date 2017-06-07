@@ -890,9 +890,8 @@ LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError # Please triage thi
 LayoutTests/fast/canvas/webgl/gl-object-get-calls_t01: RuntimeError # Please triage this failure (issue 29065)
 LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: RuntimeError # Please triage this failure
@@ -1198,7 +1197,7 @@ LayoutTests/fast/forms/button-baseline-and-collapsing_t01: Pass, RuntimeError # 
 LayoutTests/fast/forms/button/button-disabled-blur_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/checkValidity-001_t01: RuntimeError # Issue 25155
 LayoutTests/fast/forms/clone-input-with-dirty-value_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/datalist_t01: RuntimeError # https://github.com/dart-lang/sdk/issues/29814
+LayoutTests/fast/forms/datalist/datalist_t01: RuntimeError # https://github.com/dart-lang/sdk/issues/29814
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue-onfocusremoved_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-valueasdate-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/ValidityState-typeMismatch-datetimelocal_t01: RuntimeError # Please triage this failure
@@ -1570,6 +1569,7 @@ WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formacti
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setSelectionRange_t01: Pass, RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/the-button-element/button-validation_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: RuntimeError # https://github.com/dart-lang/sdk/issues/29814
 WebPlatformTest/html/semantics/forms/the-form-element/form-autocomplete_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/the-form-element/form-elements-matches_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/the-form-element/form-elements-nameditem_t02: RuntimeError # Please triage this failure
@@ -1791,21 +1791,17 @@ LayoutTests/fast/canvas/webgl/css-webkit-canvas_t01: RuntimeError # Please triag
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/framebuffer-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/functions-returning-strings_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/gl-enable-enum-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-getstring_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-pixelstorei_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-vertexattribpointer_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/index-validation-with-resized-buffer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/invalid-UTF-16_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/invalid-passed-params_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/null-uniform-location_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texture-active-bind_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/texture-npot_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-unprefixed-context-id_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/zero-width-characters-complex-script_t01: RuntimeError # Please triage this failure
 
@@ -2395,7 +2391,6 @@ WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeEr
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setSelectionRange_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/the-button-element/button-validation_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: RuntimeError # https://github.com/dart-lang/sdk/issues/29814
 WebPlatformTest/html/semantics/forms/the-fieldset-element/disabled_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/the-form-element/form-autocomplete_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/the-form-element/form-elements-matches_t01: RuntimeError # Please triage this failure
