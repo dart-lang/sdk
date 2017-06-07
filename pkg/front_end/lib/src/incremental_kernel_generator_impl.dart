@@ -292,14 +292,18 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// Refresh all the invalidated files and update dependencies.
   Future<Null> _refreshInvalidatedFiles() async {
     await _logger.runAsync('Refresh invalidated files', () async {
-      for (var fileUri in _invalidatedFiles) {
+      // Create a copy to avoid concurrent modifications.
+      var invalidatedFiles = _invalidatedFiles.toList();
+      _invalidatedFiles.clear();
+
+      // Refresh the files.
+      for (var fileUri in invalidatedFiles) {
         var file = _fsState.getFileByFileUri(fileUri);
         if (file != null) {
           _logger.writeln('Refresh $fileUri');
           await file.refresh();
         }
       }
-      _invalidatedFiles.clear();
     });
   }
 
