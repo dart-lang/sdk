@@ -1039,7 +1039,7 @@ class KernelMethodInvocation extends MethodInvocation
   final bool _isImplicitCall;
 
   KernelMethodInvocation(Expression receiver, Name name, Arguments arguments,
-      {bool isImplicitCall: false, Procedure interfaceTarget})
+      {bool isImplicitCall: false, Member interfaceTarget})
       : _isImplicitCall = isImplicitCall,
         super(receiver, name, arguments, interfaceTarget);
 
@@ -1070,12 +1070,7 @@ class KernelMethodInvocation extends MethodInvocation
           inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
               'target', new InstrumentationValueForMember(interfaceMember));
         }
-        // interfaceTarget is currently required to be a procedure, so we skip
-        // if it's anything else.  TODO(paulberry): fix this - see
-        // https://codereview.chromium.org/2923653003/.
-        if (interfaceMember is Procedure) {
-          interfaceTarget = interfaceMember;
-        }
+        interfaceTarget = interfaceMember;
       }
       if (interfaceMember is Procedure) {
         isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment

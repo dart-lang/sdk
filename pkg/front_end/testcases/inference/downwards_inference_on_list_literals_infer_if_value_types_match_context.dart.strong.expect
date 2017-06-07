@@ -19,7 +19,7 @@ abstract class C extends core::Object {
     return null;
   abstract get assertDOf() → (core::List<(self::DartType) → void>) → (self::DartType) → void;
   method method((core::List<(self::DartType) → void>) → (self::DartType) → void assertEOf) → dynamic {
-    this.assertAOf(<(self::DartType) → void>[self::_isInt, self::_isString]);
+    this.{self::C::assertAOf}(<(self::DartType) → void>[self::_isInt, self::_isString]);
     self::C::assertBOf.call(<(self::DartType) → void>[self::_isInt, self::_isString]);
     self::C::assertCOf.call(<(self::DartType) → void>[self::_isInt, self::_isString]);
     this.{self::C::assertDOf}(<(self::DartType) → void>[self::_isInt, self::_isString]);
@@ -33,8 +33,8 @@ abstract class G<T extends core::Object> extends core::Object {
     ;
   abstract get assertDOf() → (core::List<(self::DartType) → void>) → (self::DartType) → void;
   method method((core::List<(self::DartType) → void>) → (self::DartType) → void assertEOf) → dynamic {
-    this.assertAOf(<(self::DartType) → void>[self::_isInt, self::_isString]);
-    this.assertAOf(<(self::DartType) → void>[self::_isInt, self::_isString]);
+    this.{self::G::assertAOf}(<(self::DartType) → void>[self::_isInt, self::_isString]);
+    this.{self::G::assertAOf}(<(self::DartType) → void>[self::_isInt, self::_isString]);
     this.{self::G::assertDOf}(<(self::DartType) → void>[self::_isInt, self::_isString]);
     assertEOf.call(<(self::DartType) → void>[self::_isInt, self::_isString]);
   }
@@ -52,10 +52,10 @@ static method test() → dynamic {
   self::C::assertBOf.call(<(self::DartType) → void>[self::_isInt, self::_isString]);
   self::C::assertCOf.call(<(self::DartType) → void>[self::_isInt, self::_isString]);
   self::C c;
-  c.assertAOf(<(self::DartType) → void>[self::_isInt, self::_isString]);
+  c.{self::C::assertAOf}(<(self::DartType) → void>[self::_isInt, self::_isString]);
   c.{self::C::assertDOf}(<(self::DartType) → void>[self::_isInt, self::_isString]);
   self::G<core::int> g;
-  g.assertAOf(<(self::DartType) → void>[self::_isInt, self::_isString]);
+  g.{self::G::assertAOf}(<(self::DartType) → void>[self::_isInt, self::_isString]);
   g.{self::G::assertDOf}(<(self::DartType) → void>[self::_isInt, self::_isString]);
 }
 static method main() → dynamic {}

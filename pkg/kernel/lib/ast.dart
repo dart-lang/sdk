@@ -2132,7 +2132,7 @@ class MethodInvocation extends InvocationExpression {
   Reference interfaceTargetReference;
 
   MethodInvocation(Expression receiver, Name name, Arguments arguments,
-      [Procedure interfaceTarget])
+      [Member interfaceTarget])
       : this.byReference(
             receiver, name, arguments, getMemberReference(interfaceTarget));
 
@@ -2142,27 +2142,33 @@ class MethodInvocation extends InvocationExpression {
     arguments?.parent = this;
   }
 
-  Procedure get interfaceTarget => interfaceTargetReference?.asProcedure;
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
 
   void set interfaceTarget(Member target) {
     interfaceTargetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) {
+    var interfaceTarget = this.interfaceTarget;
     if (interfaceTarget != null) {
-      if (types.isOverloadedArithmeticOperator(interfaceTarget)) {
+      if (interfaceTarget is Procedure &&
+          types.isOverloadedArithmeticOperator(interfaceTarget)) {
         return types.getTypeOfOverloadedArithmetic(
             receiver.getStaticType(types),
             arguments.positional[0].getStaticType(types));
       }
       Class superclass = interfaceTarget.enclosingClass;
       var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-      var returnType = Substitution
+      var getterType = Substitution
           .fromInterfaceType(receiverType)
-          .substituteType(interfaceTarget.function.returnType);
-      return Substitution
-          .fromPairs(interfaceTarget.function.typeParameters, arguments.types)
-          .substituteType(returnType);
+          .substituteType(interfaceTarget.getterType);
+      if (getterType is FunctionType) {
+        return Substitution
+            .fromPairs(getterType.typeParameters, arguments.types)
+            .substituteType(getterType.returnType);
+      } else {
+        return const DynamicType();
+      }
     }
     if (name.name == 'call') {
       var receiverType = receiver.getStaticType(types);
