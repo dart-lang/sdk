@@ -151,6 +151,22 @@ class EditBuilderImpl implements EditBuilder {
     }
   }
 
+  @override
+  void addSimpleLinkedEdit(String groupName, String text,
+      {LinkedEditSuggestionKind kind, List<String> suggestions}) {
+    addLinkedEdit(groupName, (LinkedEditBuilder builder) {
+      builder.write(text);
+      if (kind != null && suggestions != null) {
+        for (String suggestion in suggestions) {
+          builder.addSuggestion(kind, suggestion);
+        }
+      } else if (kind != null || suggestions != null) {
+        throw new ArgumentError(
+            'Either both kind and suggestions must be provided or neither.');
+      }
+    });
+  }
+
   LinkedEditBuilderImpl createLinkedEditBuilder() {
     return new LinkedEditBuilderImpl(this);
   }

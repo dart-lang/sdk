@@ -107,9 +107,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (nameGroupName == null) {
       write(name);
     } else {
-      addLinkedEdit(nameGroupName, (LinkedEditBuilder builder) {
-        write(name);
-      });
+      addSimpleLinkedEdit(nameGroupName, name);
     }
     if (superclass != null) {
       write(' extends ');
@@ -145,9 +143,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       if (constructorNameGroupName == null) {
         write(constructorName.name);
       } else {
-        addLinkedEdit(constructorNameGroupName, (LinkedEditBuilder builder) {
-          write(constructorName.name);
-        });
+        addSimpleLinkedEdit(constructorNameGroupName, constructorName.name);
       }
     }
     write('(');
@@ -193,9 +189,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     write(' ');
     if (nameGroupName != null) {
-      addLinkedEdit(nameGroupName, (LinkedEditBuilder builder) {
-        write(name);
-      });
+      addSimpleLinkedEdit(nameGroupName, name);
     } else {
       write(name);
     }
@@ -224,9 +218,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
     if (nameGroupName != null) {
-      addLinkedEdit(nameGroupName, (LinkedEditBuilder builder) {
-        write(name);
-      });
+      addSimpleLinkedEdit(nameGroupName, name);
     } else {
       write(name);
     }
@@ -266,9 +258,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     write(Keyword.GET.lexeme);
     write(' ');
     if (nameGroupName != null) {
-      addLinkedEdit(nameGroupName, (LinkedEditBuilder builder) {
-        write(name);
-      });
+      addSimpleLinkedEdit(nameGroupName, name);
     } else {
       write(name);
     }
@@ -307,9 +297,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     write(' ');
     if (nameGroupName != null) {
-      addLinkedEdit(nameGroupName, (LinkedEditBuilder builder) {
-        write(name);
-      });
+      addSimpleLinkedEdit(nameGroupName, name);
     } else {
       write(name);
     }
@@ -395,10 +383,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           _getParameterNameSuggestions(usedNames, type, argument, index);
       String favorite = suggestions[0];
       usedNames.add(favorite);
-      addLinkedEdit('PARAM$index', (LinkedEditBuilder builder) {
-        write(favorite);
-        builder.addSuggestions(LinkedEditSuggestionKind.PARAMETER, suggestions);
-      });
+      addSimpleLinkedEdit('PARAM$index', favorite,
+          kind: LinkedEditSuggestionKind.PARAMETER, suggestions: suggestions);
     }
   }
 

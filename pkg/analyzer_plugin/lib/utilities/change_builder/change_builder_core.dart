@@ -58,6 +58,17 @@ abstract class EditBuilder {
       String groupName, void buildLinkedEdit(LinkedEditBuilder builder));
 
   /**
+   * Add the given text as a linked edit group with the given [groupName]. If
+   * both a [kind] and a list of [suggestions] are provided, they will be added
+   * as suggestions to the group with the given kind.
+   *
+   * Throws an [ArgumentError] if either [kind] or [suggestions] are provided
+   * without the other.
+   */
+  void addSimpleLinkedEdit(String groupName, String text,
+      {LinkedEditSuggestionKind kind, List<String> suggestions});
+
+  /**
    * Set the selection to the given location within the edit being built.
    */
   @experimental

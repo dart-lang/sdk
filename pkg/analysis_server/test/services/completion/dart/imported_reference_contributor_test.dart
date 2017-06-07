@@ -10,7 +10,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../correction/flutter_util.dart';
 import 'completion_contributor_util.dart';
 
 main() {

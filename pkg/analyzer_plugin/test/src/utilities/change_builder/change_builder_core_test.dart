@@ -99,6 +99,29 @@ class EditBuilderImplTest {
     expect(positions[0].offset, offset);
   }
 
+  test_addSimpleLinkedEdit() async {
+    ChangeBuilderImpl builder = new ChangeBuilderImpl();
+    int offset = 10;
+    String text = 'content';
+    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+      builder.addInsertion(10, (EditBuilder builder) {
+        builder.addSimpleLinkedEdit('a', text);
+        SourceEdit sourceEdit = (builder as EditBuilderImpl).sourceEdit;
+        expect(sourceEdit.replacement, text);
+      });
+    });
+    SourceChange sourceChange = builder.sourceChange;
+    expect(sourceChange, isNotNull);
+    List<LinkedEditGroup> groups = sourceChange.linkedEditGroups;
+    expect(groups, hasLength(1));
+    LinkedEditGroup group = groups[0];
+    expect(group, isNotNull);
+    expect(group.length, text.length);
+    List<Position> positions = group.positions;
+    expect(positions, hasLength(1));
+    expect(positions[0].offset, offset);
+  }
+
   test_createLinkedEditBuilder() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     await builder.addFileEdit(path, 0, (FileEditBuilder builder) {

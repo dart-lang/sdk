@@ -1056,11 +1056,8 @@ class FixProcessor {
               builder.write(', ');
             }
             // default value
-            DartType parameterType = parameter.type;
-            builder.addLinkedEdit(parameter.name,
-                (DartLinkedEditBuilder builder) {
-              builder.write(getDefaultValueCode(parameterType));
-            });
+            builder.addSimpleLinkedEdit(
+                parameter.name, getDefaultValueCode(parameter.type));
           }
           builder.write(')');
         });
@@ -1120,10 +1117,7 @@ class FixProcessor {
           builder.write(targetLocation.prefix);
           builder.write(targetClassName);
           if (!constructorName.isEmpty) {
-            builder.addLinkedEdit('NAME', (DartLinkedEditBuilder builder) {
-              builder.write('.');
-              builder.write(constructorName);
-            });
+            builder.addSimpleLinkedEdit('NAME', '.$constructorName');
           }
           builder.write('(');
           builder.write(parametersBuffer.toString());

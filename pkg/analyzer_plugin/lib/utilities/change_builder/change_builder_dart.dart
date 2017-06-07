@@ -18,7 +18,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DartChangeBuilder extends ChangeBuilder {
+abstract class DartChangeBuilder implements ChangeBuilder {
   /**
    * Initialize a newly created change builder.
    */
@@ -34,7 +34,7 @@ abstract class DartChangeBuilder extends ChangeBuilder {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DartEditBuilder extends EditBuilder {
+abstract class DartEditBuilder implements EditBuilder {
   @override
   void addLinkedEdit(
       String groupName, void buildLinkedEdit(DartLinkedEditBuilder builder));
@@ -251,7 +251,7 @@ abstract class DartEditBuilder extends EditBuilder {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DartFileEditBuilder extends FileEditBuilder {
+abstract class DartFileEditBuilder implements FileEditBuilder {
   @override
   void addInsertion(int offset, void buildEdit(DartEditBuilder builder));
 
@@ -294,7 +294,7 @@ abstract class DartFileEditBuilder extends FileEditBuilder {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DartLinkedEditBuilder extends LinkedEditBuilder {
+abstract class DartLinkedEditBuilder implements LinkedEditBuilder {
   /**
    * Add the given [type] and all of its supertypes (other than mixins) as
    * suggestions for the current linked edit group.
