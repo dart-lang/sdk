@@ -138,6 +138,16 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       // contents to compute signatures (not just API parts). So, every library
       // that imports a changed one, is affected.
 
+      // Set the main method.
+      for (var library in program.libraries) {
+        if (library.fileUri == _entryPoint.toString()) {
+          program.mainMethod = library.procedures.firstWhere(
+              (procedure) => procedure.name.name == 'main',
+              orElse: () => null);
+          break;
+        }
+      }
+
       return new DeltaProgram(program);
     });
   }

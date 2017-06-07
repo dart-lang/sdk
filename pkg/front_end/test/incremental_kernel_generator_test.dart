@@ -72,6 +72,7 @@ import 'a.dart';
 import 'b.dart';
 var c1 = a;
 var c2 = b;
+void main() {}
 ''');
 
     {
@@ -90,7 +91,11 @@ import "./b.dart" as b;
 
 static field core::int c1 = a::a;
 static field core::int c2 = b::b;
+static method main() → void {}
 ''');
+      // The main method is set.
+      expect(program.mainMethod, isNotNull);
+      expect(program.mainMethod.enclosingLibrary.fileUri, cUri.toString());
     }
 
     // Update b.dart and recompile c.dart
@@ -118,7 +123,11 @@ import "./b.dart" as b;
 
 static field core::int c1 = a::a;
 static field core::double c2 = b::b;
+static method main() → void {}
 ''');
+      // The main method is set even though not the entry point is updated.
+      expect(program.mainMethod, isNotNull);
+      expect(program.mainMethod.enclosingLibrary.fileUri, cUri.toString());
     }
   }
 
@@ -421,6 +430,7 @@ main() {
 
       // Remove b.dart from the program.
       // So, the program is now ready for re-adding the library.
+      program.mainMethod = null;
       program.libraries.remove(initialLibrary);
       program.root.removeChild(initialLibrary.importUri.toString());
     }
@@ -438,6 +448,8 @@ main() {
     // Add the library into the program.
     program.libraries.add(loadedLibrary);
     loadedLibrary.parent = program;
+    program.mainMethod = loadedLibrary.procedures
+        .firstWhere((procedure) => procedure.name.name == 'main');
 
     expect(_getLibraryText(loadedLibrary), initialKernelText);
     verifyProgram(program);
