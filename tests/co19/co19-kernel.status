@@ -235,8 +235,6 @@ LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 Language/Classes/Instance_Variables/constant_t01: Crash
 Language/Statements/Labels/scope_t01: Crash
 Language/Statements/Labels/scope_t07: Crash
-Language/Statements/Switch/syntax_t16: Crash
-Language/Statements/Switch/syntax_t17: Crash
 
 # dartk: JIT failures
 [ $compiler == dartk ]
