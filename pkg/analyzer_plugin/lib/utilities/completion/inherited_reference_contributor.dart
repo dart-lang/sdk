@@ -4,13 +4,14 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
+import 'package:analyzer_plugin/src/utilities/completion/element_suggestion_builder.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
 
@@ -25,6 +26,9 @@ class InheritedReferenceContributor extends Object
 
   @override
   CompletionSuggestionKind kind;
+
+  @override
+  ResourceProvider resourceProvider;
 
   @override
   Future<Null> computeSuggestions(
@@ -46,21 +50,6 @@ class InheritedReferenceContributor extends Object
         resolutionMap.elementDeclaredByClassDeclaration(classDecl),
         request,
         optype);
-  }
-
-  List<CompletionSuggestion> computeSuggestionsForClass(
-      CompletionCollector collector,
-      ClassElement classElement,
-      CompletionRequest request,
-      {bool skipChildClass: true}) {
-//    if (!request.includeIdentifiers) {
-//      return const <CompletionSuggestion>[];
-//    }
-//    containingLibrary = request.result.libraryElement;
-//
-//    return _computeSuggestionsForClass2(collector, classElement, request,
-//        skipChildClass: skipChildClass);
-    throw new StateError('Unexpected invocation of computeSuggestionsForClass');
   }
 
   _addSuggestionsForType(InterfaceType type, OpType optype,
