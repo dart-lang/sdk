@@ -889,9 +889,11 @@ LayoutTests/fast/canvas/webgl/get-active-test_t01: RuntimeError # Please triage 
 LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-object-get-calls_t01: RuntimeError # Please triage this failure (issue 29065)
 LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: RuntimeError # Please triage this failure
@@ -1172,7 +1174,7 @@ LayoutTests/fast/events/scroll-during-zoom-change_t01: Skip # Times out. Please 
 LayoutTests/fast/events/scroll-event-does-not-bubble_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/scroll-event-phase_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/eventsource/eventsoruce-constructor_t01: RuntimeError # https://github.com/dart-lang/sdk/issues/29814
+LayoutTests/fast/eventsource/eventsource-constructor_t01: RuntimeError # https://github.com/dart-lang/sdk/issues/29814
 LayoutTests/fast/exclusions/parsing/parsing-wrap-flow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/exclusions/parsing/parsing-wrap-through_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/files/blob-constructor_t01: RuntimeError # https://github.com/dart-lang/sdk/issues/29814
@@ -1787,8 +1789,6 @@ LayoutTests/fast/css-grid-layout/grid-element-shrink-to-fit_t01: RuntimeError # 
 
 [ $compiler == dart2js && $runtime == chrome && $system != macos ]
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/zero-width-characters-complex-script_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $system == linux]
