@@ -82,6 +82,9 @@ class Required {
   }
 
   Source addSource(String path, String content, [Uri uri]) {
+    if (path.startsWith('/')) {
+      path = provider.convertPath(path);
+    }
     driver.addFile(path);
     driver.changeFile(path);
     _fileContentOverlay[path] = content;
