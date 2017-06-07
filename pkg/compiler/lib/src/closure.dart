@@ -10,12 +10,13 @@ import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
-import 'elements/resolution_types.dart';
 import 'elements/elements.dart';
 import 'elements/entities.dart';
 import 'elements/entity_utils.dart' as utils;
 import 'elements/modelx.dart'
     show BaseFunctionElementX, ClassElementX, ElementX;
+import 'elements/resolution_types.dart';
+import 'elements/types.dart';
 import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/tree_elements.dart' show TreeElements;
@@ -757,7 +758,8 @@ class ClosureTranslator extends Visitor {
   }
 
   void useTypeVariableAsLocal(ResolutionTypeVariableType typeVariable) {
-    useLocal(new TypeVariableLocal(typeVariable, outermostElement));
+    useLocal(new TypeVariableLocal(
+        typeVariable, outermostElement, outermostElement.memberContext));
   }
 
   void declareLocal(LocalVariableElement element) {
@@ -1207,15 +1209,14 @@ class ClosureTranslator extends Visitor {
 
 /// A type variable as a local variable.
 class TypeVariableLocal implements Local {
-  final ResolutionTypeVariableType typeVariable;
-  final ExecutableElement executableContext;
+  final TypeVariableType typeVariable;
+  final Entity executableContext;
+  final MemberEntity memberContext;
 
-  TypeVariableLocal(this.typeVariable, this.executableContext);
+  TypeVariableLocal(
+      this.typeVariable, this.executableContext, this.memberContext);
 
-  @override
-  MemberElement get memberContext => executableContext.memberContext;
-
-  String get name => typeVariable.name;
+  String get name => typeVariable.element.name;
 
   int get hashCode => typeVariable.hashCode;
 

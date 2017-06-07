@@ -219,10 +219,6 @@ class KernelAstAdapter extends KernelToElementMapMixin
     return getElement(variable) as LocalElement;
   }
 
-  FunctionSignature getFunctionSignature(ir.FunctionNode function) {
-    return getElement(function).asFunctionElement().functionSignature;
-  }
-
   // Is the member a lazy initialized static or top-level member?
   bool isLazyStatic(ir.Member member) {
     if (member is ir.Field) {

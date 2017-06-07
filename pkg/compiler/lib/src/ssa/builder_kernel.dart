@@ -42,7 +42,6 @@ import 'nodes.dart';
 import 'ssa_branch_builder.dart';
 import 'switch_continue_analysis.dart';
 import 'type_builder.dart';
-import 'types.dart' show TypeMaskFactory;
 
 class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   final ir.Node target;
@@ -70,8 +69,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// for these nodes.
   // TODO(karlklose): consider removing this and keeping the (substituted) types
   // of the type variables in an environment (like the [LocalsHandler]).
-  final List<ResolutionDartType> currentImplicitInstantiations =
-      <ResolutionDartType>[];
+  final List<InterfaceType> currentImplicitInstantiations = <InterfaceType>[];
 
   HInstruction rethrowableException;
 
@@ -197,27 +195,28 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// to `dynamic` (represented as `null`) so the bindings are available for
   /// building types up the inheritance chain of generative constructors.
   void _addClassTypeVariablesIfNeeded(ir.Member constructor) {
-    var enclosing = constructor.enclosingClass;
+    ir.Class enclosing = constructor.enclosingClass;
+    ClassEntity cls = _elementMap.getClass(enclosing);
     bool needParameters;
     enclosing.typeParameters.forEach((ir.TypeParameter typeParameter) {
-      var typeParamElement = astAdapter.getElement(typeParameter);
+      TypeVariableType typeVariableType =
+          _elementMap.getDartType(new ir.TypeParameterType(typeParameter));
       HInstruction param;
-      needParameters ??= rtiNeed.classNeedsRti(_elementMap.getClass(enclosing));
+      needParameters ??= rtiNeed.classNeedsRti(cls);
       if (needParameters) {
-        param = addParameter(typeParamElement, commonMasks.nonNullType);
+        param = addParameter(typeVariableType.element, commonMasks.nonNullType);
       } else {
         // Unused, so bind to `dynamic`.
         param = graph.addConstantNull(closedWorld);
       }
-      // This is a little bit wacky (and n^2) until we make the localsHandler
-      // take Kernel DartTypes instead of just the AST DartTypes.
-      ClassElement cls = _elementMap.getClass(enclosing);
-      ResolutionTypeVariableType typeVariableType = cls.typeVariables
-          .firstWhere(
-              (ResolutionTypeVariableType i) => i.name == typeParameter.name);
       localsHandler.directLocals[
           localsHandler.getTypeVariableAsLocal(typeVariableType)] = param;
     });
+  }
+
+  /// Comparator for the canonical order or named arguments.
+  int namedOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
+    return a.name.compareTo(b.name);
   }
 
   /// Builds a generative constructor.
@@ -325,15 +324,20 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       ClosureClassMap parameterClosureData =
           closureToClassMapper.getMemberMap(constructorElement);
 
-      var functionSignature = astAdapter.getFunctionSignature(body.function);
-      // Provide the parameters to the generative constructor body.
-      functionSignature.orderedForEachParameter((ParameterElement parameter) {
+      void handleParameter(ir.VariableDeclaration node) {
+        Local parameter = _localsMap.getLocal(node);
         // If [parameter] is boxed, it will be a field in the box passed as the
         // last parameter. So no need to directly pass it.
         if (!localsHandler.isBoxed(parameter)) {
           bodyCallInputs.add(localsHandler.readLocal(parameter));
         }
-      });
+      }
+
+      // Provide the parameters to the generative constructor body.
+      body.function.positionalParameters.forEach(handleParameter);
+      body.function.namedParameters.toList()
+        ..sort(namedOrdering)
+        ..forEach(handleParameter);
 
       // If there are locals that escape (i.e. mutated in closures), we pass the
       // box to the constructor.
@@ -461,41 +465,40 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   List<HInstruction> _normalizeAndBuildArguments(
       ir.FunctionNode function, ir.Arguments arguments) {
-    var signature = astAdapter.getFunctionSignature(function);
     var builtArguments = <HInstruction>[];
     var positionalIndex = 0;
-    signature.forEachRequiredParameter((_) {
-      arguments.positional[positionalIndex++].accept(this);
-      builtArguments.add(pop());
+    function.positionalParameters.forEach((ir.VariableDeclaration node) {
+      if (positionalIndex < arguments.positional.length) {
+        arguments.positional[positionalIndex++].accept(this);
+        builtArguments.add(pop());
+      } else {
+        ConstantValue constantValue =
+            _elementMap.getConstantValue(node.initializer, implicitNull: true);
+        assert(
+            constantValue != null,
+            failedAt(_elementMap.getMethod(function.parent),
+                'No constant computed for $node'));
+        builtArguments.add(graph.addConstant(constantValue, closedWorld));
+      }
     });
-    if (!signature.optionalParametersAreNamed) {
-      signature.forEachOptionalParameter((ParameterElement element) {
-        if (positionalIndex < arguments.positional.length) {
-          arguments.positional[positionalIndex++].accept(this);
-          builtArguments.add(pop());
-        } else {
-          var constantValue = constants.getConstantValue(element.constant);
-          assert(constantValue != null,
-              failedAt(element, 'No constant computed for $element'));
-          builtArguments.add(graph.addConstant(constantValue, closedWorld));
-        }
-      });
-    } else {
-      signature.orderedOptionalParameters.forEach((ParameterElement element) {
-        var correspondingNamed = arguments.named.firstWhere(
-            (named) => named.name == element.name,
-            orElse: () => null);
+    function.namedParameters.toList()
+      ..sort(namedOrdering)
+      ..forEach((ir.VariableDeclaration node) {
+        var correspondingNamed = arguments.named
+            .firstWhere((named) => named.name == node.name, orElse: () => null);
         if (correspondingNamed != null) {
           correspondingNamed.value.accept(this);
           builtArguments.add(pop());
         } else {
-          var constantValue = constants.getConstantValue(element.constant);
-          assert(constantValue != null,
-              failedAt(element, 'No constant computed for $element'));
+          ConstantValue constantValue = _elementMap
+              .getConstantValue(node.initializer, implicitNull: true);
+          assert(
+              constantValue != null,
+              failedAt(_elementMap.getMethod(function.parent),
+                  'No constant computed for $node'));
           builtArguments.add(graph.addConstant(constantValue, closedWorld));
         }
       });
-    }
 
     return builtArguments;
   }
@@ -576,16 +579,21 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       List<ir.Constructor> constructorChain,
       Map<FieldEntity, HInstruction> fieldValues,
       ir.Constructor caller) {
-    var signature = astAdapter.getFunctionSignature(constructor.function);
     var index = 0;
-    signature.orderedForEachParameter((ParameterElement parameter) {
+    void handleParameter(ir.VariableDeclaration node) {
+      Local parameter = _localsMap.getLocal(node);
       HInstruction argument = arguments[index++];
       // Because we are inlining the initializer, we must update
       // what was given as parameter. This will be used in case
       // there is a parameter check expression in the initializer.
       parameters[parameter] = argument;
       localsHandler.updateLocal(parameter, argument);
-    });
+    }
+
+    constructor.function.positionalParameters.forEach(handleParameter);
+    constructor.function.namedParameters.toList()
+      ..sort(namedOrdering)
+      ..forEach(handleParameter);
 
     // Set the locals handler state as if we were inlining the constructor.
     ConstructorElement astElement = _elementMap.getConstructor(constructor);
@@ -1942,10 +1950,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // The instruction type will always be a subtype of the mapLiteralClass, but
     // type inference might discover a more specific type, or find nothing (in
     // dart2js unit tests).
+
     TypeMask mapType = new TypeMask.nonNullSubtype(
         _commonElements.mapLiteralClass, closedWorld);
-    TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
-        constructor, globalInferenceResults);
+    TypeMask returnTypeMask = _typeInferenceMap.getReturnTypeOf(constructor);
     TypeMask instructionType =
         mapType.intersection(returnTypeMask, closedWorld);
 
@@ -2236,11 +2244,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   HInstruction _defaultValueForParameter(ir.VariableDeclaration parameter) {
-    ir.Expression initializer = parameter.initializer;
-    if (initializer == null) return graph.addConstantNull(closedWorld);
-    // TODO(sra): Evaluate constant in ir.Node domain.
-    ConstantValue constant = _elementMap.getConstantValue(initializer);
-    if (constant == null) return graph.addConstantNull(closedWorld);
+    ConstantValue constant =
+        _elementMap.getConstantValue(parameter.initializer, implicitNull: true);
+    assert(constant != null, failedAt(CURRENT_ELEMENT_SPANNABLE));
     return graph.addConstant(constant, closedWorld);
   }
 
@@ -2738,7 +2744,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         targetCanThrow: !closedWorld.getCannotThrow(target));
     if (currentImplicitInstantiations.isNotEmpty) {
       instruction.instantiatedTypes =
-          new List<ResolutionInterfaceType>.from(currentImplicitInstantiations);
+          new List<InterfaceType>.from(currentImplicitInstantiations);
     }
     instruction.sideEffects = closedWorld.getSideEffectsOfElement(target);
 

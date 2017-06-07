@@ -148,7 +148,7 @@ abstract class KernelToElementMap {
 
   /// Computes the [ConstantValue] for the constant [expression].
   ConstantValue getConstantValue(ir.Expression expression,
-      {bool requireConstant: true});
+      {bool requireConstant: true, bool implicitNull: false});
 
   /// Returns the `noSuchMethod` [FunctionEntity] call from a
   /// `super.noSuchMethod` invocation within [cls].
@@ -243,9 +243,18 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
   }
 
   ConstantValue getConstantValue(ir.Expression node,
-      {bool requireConstant: true}) {
-    ConstantExpression constant =
-        new Constantifier(this, requireConstant: requireConstant).visit(node);
+      {bool requireConstant: true, bool implicitNull: false}) {
+    ConstantExpression constant;
+    if (node == null) {
+      if (!implicitNull) {
+        throw new SpannableAssertionFailure(
+            CURRENT_ELEMENT_SPANNABLE, 'No expression for constant.');
+      }
+      constant = new NullConstantExpression();
+    } else {
+      constant =
+          new Constantifier(this, requireConstant: requireConstant).visit(node);
+    }
     if (constant == null) {
       if (requireConstant) {
         throw new UnsupportedError(
