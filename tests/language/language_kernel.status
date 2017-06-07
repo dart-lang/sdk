@@ -141,7 +141,6 @@ super_conditional_operator_test/13: MissingCompileTimeError
 super_conditional_operator_test/14: MissingCompileTimeError
 super_conditional_operator_test/15: MissingCompileTimeError
 super_conditional_operator_test/16: MissingCompileTimeError
-switch1_negative_test: Fail
 syntax_test/02: MissingCompileTimeError
 syntax_test/03: MissingCompileTimeError
 syntax_test/27: MissingCompileTimeError

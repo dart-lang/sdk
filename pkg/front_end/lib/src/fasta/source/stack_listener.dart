@@ -235,6 +235,11 @@ abstract class StackListener extends Listener {
   }
 
   @override
+  void endCaseExpression(Token colon) {
+    debugEvent("CaseExpression");
+  }
+
+  @override
   void endCatchClause(Token token) {
     debugEvent("CatchClause");
   }

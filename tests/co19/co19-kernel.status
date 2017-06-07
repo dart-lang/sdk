@@ -194,8 +194,6 @@ Language/Statements/Switch/expressions_t01: MissingCompileTimeError
 Language/Statements/Switch/expressions_t02: MissingCompileTimeError
 Language/Statements/Switch/expressions_t03: MissingCompileTimeError
 Language/Statements/Switch/expressions_t04: MissingCompileTimeError
-Language/Statements/Switch/syntax_t16: MissingCompileTimeError
-Language/Statements/Switch/syntax_t17: MissingCompileTimeError
 Language/Statements/Try/syntax_t13: MissingCompileTimeError
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495

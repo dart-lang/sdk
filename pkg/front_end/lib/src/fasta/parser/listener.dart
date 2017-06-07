@@ -66,7 +66,7 @@ class Listener {
   void beginCaseExpression(Token caseKeyword) {}
 
   void endCaseExpression(Token colon) {
-    // logEvent("CaseExpression");
+    logEvent("CaseExpression");
   }
 
   void beginClassBody(Token token) {}

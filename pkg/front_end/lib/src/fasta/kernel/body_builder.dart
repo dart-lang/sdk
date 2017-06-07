@@ -2483,7 +2483,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         if (labelOrExpression is Label) {
           labels.add(labelOrExpression);
         } else {
-          expressions.add(toValue(labelOrExpression));
+          expressions.add(labelOrExpression);
         }
       }
     }
@@ -2510,6 +2510,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Token firstToken,
       Token endToken) {
     debugEvent("SwitchCase");
+    // We always create a block here so that we later know that there's always
+    // one synthetic block when we finish compiling the switch statement and
+    // check this switch case to see if it falls through to the next case.
     Block block = popBlock(statementCount, firstToken);
     exitLocalScope();
     List<Label> labels = pop();
@@ -2544,7 +2547,39 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           target.resolveGotos(current);
         }
       }
-      // TODO(ahe): Validate that there's only one default and it's last.
+    }
+    // Check all but the last case for the following:
+    // 1. That it isn't a default case (which should be last).
+    // 2. That it doesn't fall through to the next case.
+    for (int i = 0; i < caseCount - 1; i++) {
+      SwitchCase current = cases[i];
+      if (current.isDefault) {
+        addCompileTimeError(current.fileOffset,
+            "'default' switch case should be the last case.");
+        continue;
+      }
+      Block block = current.body;
+      // [block] is a synthetic block that is added to handle variable
+      // declarations in the switch case.
+      TreeNode lastNode =
+          block.statements.isEmpty ? null : block.statements.last;
+      if (lastNode is Block) {
+        // This is a non-synthetic block.
+        Block block = lastNode;
+        lastNode = block.statements.isEmpty ? null : block.statements.last;
+      }
+      if (lastNode is ExpressionStatement) {
+        ExpressionStatement statement = lastNode;
+        lastNode = statement.expression;
+      }
+      if (lastNode is! BreakStatement &&
+          lastNode is! ContinueSwitchStatement &&
+          lastNode is! Rethrow &&
+          lastNode is! ReturnStatement &&
+          lastNode is! Throw) {
+        block.addStatement(
+            new ExpressionStatement(buildFallThroughError(current.fileOffset)));
+      }
     }
     JumpTarget target = exitBreakTarget();
     exitSwitchScope();
@@ -2717,6 +2752,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           ..fileOffset = expression.fileOffset,
         buildCompileTimeError(message, expression.fileOffset))
       ..fileOffset = expression.fileOffset;
+  }
+
+  Expression buildFallThroughError(int charOffset) {
+    warningNotError("Switch case may fall through to next case.", charOffset);
+    Builder constructor = library.loader.getFallThroughError();
+    return new Throw(buildStaticInvocation(
+        constructor.target, new Arguments.empty(),
+        charOffset: charOffset));
   }
 
   Expression buildAbstractClassInstantiationError(String className,

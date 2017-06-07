@@ -345,7 +345,6 @@ rasta/super_initializer: Fail
 rasta/super_mixin: Fail
 rasta/super_operator: Fail
 rasta/supports_reflection: VerificationError
-rasta/switch_execution_case_t02: Fail
 rasta/switch_fall_through: Fail
 rasta/try_label: Fail
 rasta/type_literals: Fail
