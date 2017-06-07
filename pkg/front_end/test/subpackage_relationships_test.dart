@@ -135,6 +135,10 @@ final subpackageRules = {
     // fasta scanner produces analyzer scanner tokens
     'lib/src/fasta/scanner',
   ]),
+  'lib/src/testing': new SubpackageRules(allowedDependencies: [
+    'lib',
+  ]),
+  'lib/src/vm': new SubpackageRules(allowedDependencies: []),
 };
 
 /// Rules for what a subpackage may depend directly on.
