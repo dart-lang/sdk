@@ -116,9 +116,6 @@ regress_r21715_test: RuntimeError # Requires bigint support.
 list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
-[ $compiler == dart2js && $runtime == chrome ]
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
 [ $compiler == dart2js && $runtime == drt ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
