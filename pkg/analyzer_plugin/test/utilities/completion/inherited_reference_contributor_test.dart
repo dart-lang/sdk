@@ -39,7 +39,7 @@ class A {
    bool foo(int bar, {bool boo, @required int baz}) => false;
 }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class B extends A {
   b() => f^
 }
@@ -60,7 +60,7 @@ class A {
   Future y() async {return 0;}
 }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class B extends A {
   Future a() async {return 0;}
   foo() async {await ^}
@@ -89,7 +89,7 @@ class B extends A {
       class I { int i1; i2() { } }
       class M { var m1; int m2() { } }''');
     addTestSource('''
-      import "/testB.dart";
+      import "testB.dart";
       class A extends E implements I with M {a() {^}}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -143,7 +143,7 @@ class A2 {
   int y2() {return 0;}
 }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A1 {
   int x;
   int y() {return 0;}
@@ -194,7 +194,7 @@ class A {
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -239,7 +239,7 @@ class A {
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -284,7 +284,7 @@ class A {
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -329,7 +329,7 @@ class A {
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -368,7 +368,7 @@ class A {
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -413,7 +413,7 @@ class A {
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -442,7 +442,7 @@ class M2 {
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class C extends B with M1, M2 {
   void f() {
     ^
@@ -462,7 +462,7 @@ class A {
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -481,7 +481,7 @@ class A {
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -500,7 +500,7 @@ class A {
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -510,7 +510,7 @@ class B extends A {
     assertHasNoParameterInfo(suggestion);
   }
 
-  test_ouside_class() async {
+  test_outside_class() async {
     resolveSource(
         '/testB.dart',
         '''
@@ -522,7 +522,7 @@ class A2 {
   int y2() {return 0;}
 }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A1 {
   int x;
   int y() {return 0;}
@@ -565,7 +565,7 @@ class A2 {
   int y2() {return 0;}
 }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A1 {
   int x;
   int y() {return 0;}
@@ -608,7 +608,7 @@ class A2 {
   int y2() {return 0;}
 }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A1 {
   int x;
   int y() {return 0;}
