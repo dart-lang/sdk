@@ -27,7 +27,7 @@ int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
 
 abstract class DartCompletionContributorTest extends AbstractContextTest {
   static const String _UNCHECKED = '__UNCHECKED__';
-  String testFile = '/completionTest.dart';
+  String testFile;
   Source testSource;
   int completionOffset;
   int replacementOffset;
@@ -584,6 +584,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
+    testFile = provider.convertPath('/completionTest.dart');
     contributor = createContributor();
   }
 }

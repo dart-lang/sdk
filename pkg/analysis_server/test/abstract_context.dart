@@ -98,6 +98,9 @@ class Required {
   }
 
   Source addSource(String path, String content, [Uri uri]) {
+    if (path.startsWith('/')) {
+      path = provider.convertPath(path);
+    }
     File file = newFile(path, content);
     Source source = file.createSource(uri);
     if (enableNewAnalysisDriver) {
