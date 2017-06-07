@@ -4,25 +4,30 @@
 
 #include "bin/dfe.h"
 #include "bin/dartutils.h"
+#include "bin/error_exit.h"
+
+#include "vm/kernel.h"
 
 namespace dart {
 namespace bin {
 
-DFE::DFE() : frontend_filename_(NULL), platform_binary_filename_(NULL) {}
+DFE::DFE()
+    : frontend_filename_(NULL),
+      platform_binary_filename_(NULL),
+      kernel_platform_(NULL) {}
 
 
 DFE::~DFE() {
   frontend_filename_ = NULL;
   platform_binary_filename_ = NULL;
+  if (kernel_platform_ != NULL) {
+    delete reinterpret_cast<kernel::Program*>(kernel_platform_);
+  }
+  kernel_platform_ = NULL;
 }
 
-Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, Dart_Handle url) {
+Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
   ASSERT(!Dart_IsServiceIsolate(isolate) && !Dart_IsKernelIsolate(isolate));
-  const char* url_string = NULL;
-  Dart_Handle result = Dart_StringToCString(url, &url_string);
-  if (Dart_IsError(result)) {
-    return result;
-  }
   // First check if the URL points to a Kernel IR file in which case we
   // skip the compilation step and directly reload the file.
   const uint8_t* kernel_ir = NULL;
@@ -41,7 +46,7 @@ Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, Dart_Handle url) {
   }
   void* kernel_program = Dart_ReadKernelBinary(kernel_ir, kernel_ir_size);
   ASSERT(kernel_program != NULL);
-  result = Dart_LoadKernel(kernel_program);
+  Dart_Handle result = Dart_LoadKernel(kernel_program);
   if (Dart_IsError(result)) {
     return result;
   }
@@ -52,6 +57,54 @@ Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, Dart_Handle url) {
     return result;
   }
   return Dart_Null();
+}
+
+
+void* DFE::CompileAndReadScript(const char* script_uri,
+                                char** error,
+                                int* exit_code) {
+  Dart_KernelCompilationResult result = Dart_CompileToKernel(script_uri);
+  switch (result.status) {
+    case Dart_KernelCompilationStatus_Ok:
+      return Dart_ReadKernelBinary(result.kernel, result.kernel_size);
+    case Dart_KernelCompilationStatus_Error:
+      *error = result.error;  // Copy error message.
+      *exit_code = kCompilationErrorExitCode;
+      break;
+    case Dart_KernelCompilationStatus_Crash:
+      *error = result.error;  // Copy error message.
+      *exit_code = kDartFrontendErrorExitCode;
+      break;
+    case Dart_KernelCompilationStatus_Unknown:
+      *error = result.error;  // Copy error message.
+      *exit_code = kErrorExitCode;
+      break;
+  }
+  return NULL;
+}
+
+
+void* DFE::ReadPlatform() {
+  const uint8_t* buffer = NULL;
+  intptr_t buffer_length = -1;
+  bool result =
+      TryReadKernelFile(platform_binary_filename_, &buffer, &buffer_length);
+  if (result) {
+    kernel_platform_ = Dart_ReadKernelBinary(buffer, buffer_length);
+    return kernel_platform_;
+  }
+  return NULL;
+}
+
+
+void* DFE::ReadScript(const char* script_uri) {
+  const uint8_t* buffer = NULL;
+  intptr_t buffer_length = -1;
+  bool result = TryReadKernelFile(script_uri, &buffer, &buffer_length);
+  if (result) {
+    return Dart_ReadKernelBinary(buffer, buffer_length);
+  }
+  return NULL;
 }
 
 

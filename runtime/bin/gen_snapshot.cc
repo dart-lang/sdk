@@ -1711,28 +1711,20 @@ int main(int argc, char** argv) {
     // be in the snapshot.
     isolate_data = new IsolateData(app_script_name, commandline_package_root,
                                    commandline_packages_file, NULL);
-    const uint8_t* kernel = NULL;
-    intptr_t kernel_length = 0;
-    const bool is_kernel_file =
-        dfe.TryReadKernelFile(app_script_name, &kernel, &kernel_length);
-
     if ((dependencies_filename != NULL) || print_dependencies) {
       isolate_data->set_dependencies(new MallocGrowableArray<char*>());
     }
 
-    void* kernel_program = NULL;
-    if (is_kernel_file) {
-      kernel_program = Dart_ReadKernelBinary(kernel, kernel_length);
-      free(const_cast<uint8_t*>(kernel));
+    Dart_Isolate isolate = NULL;
+    void* kernel_program = dfe.ReadScript(app_script_name);
+    if (kernel_program != NULL) {
+      isolate = Dart_CreateIsolateFromKernel(NULL, NULL, kernel_program, NULL,
+                                             isolate_data, &error);
+    } else {
+      isolate = Dart_CreateIsolate(NULL, NULL, isolate_snapshot_data,
+                                   isolate_snapshot_instructions, NULL,
+                                   isolate_data, &error);
     }
-
-    Dart_Isolate isolate =
-        is_kernel_file
-            ? Dart_CreateIsolateFromKernel(NULL, NULL, kernel_program, NULL,
-                                           isolate_data, &error)
-            : Dart_CreateIsolate(NULL, NULL, isolate_snapshot_data,
-                                 isolate_snapshot_instructions, NULL,
-                                 isolate_data, &error);
     if (isolate == NULL) {
       Log::PrintErr("%s\n", error);
       free(error);
@@ -1754,7 +1746,7 @@ int main(int argc, char** argv) {
     Dart_QualifiedFunctionName* entry_points =
         ParseEntryPointsManifestIfPresent();
 
-    if (is_kernel_file) {
+    if (kernel_program != NULL) {
       Dart_Handle library = Dart_LoadKernel(kernel_program);
       if (Dart_IsError(library)) FATAL("Failed to load app from Kernel IR");
     } else {
@@ -1768,7 +1760,7 @@ int main(int argc, char** argv) {
 
     SetupStubNativeResolvers();
 
-    if (!is_kernel_file) {
+    if (kernel_program == NULL) {
       // Load the specified script.
       library = LoadSnapshotCreationScript(app_script_name);
       CHECK_RESULT(library);

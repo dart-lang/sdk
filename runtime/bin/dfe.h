@@ -30,12 +30,32 @@ class DFE {
   }
   bool UsePlatformBinary() const { return platform_binary_filename_ != NULL; }
 
+  void* kernel_platform() const { return kernel_platform_; }
+
   // Method to reload a script into a running a isolate.
   // If the specified script [url] is not a kernel IR, compile it first using
   // DFE and then reload the resulting kernel IR into the isolate.
   // Returns Dart_Null if successful, otherwise an error object is returned.
-  Dart_Handle ReloadScript(Dart_Isolate isolate, Dart_Handle url);
+  Dart_Handle ReloadScript(Dart_Isolate isolate, const char* url_string);
 
+  // Compiles a script and reads the resulting kernel file.
+  // If the compilation is successful, returns a valid in memory kernel
+  // representation of the script, NULL otherwise
+  // 'error' and 'exit_code' have the error values in case of errors.
+  void* CompileAndReadScript(const char* script_uri,
+                             char** error,
+                             int* exit_code);
+
+  // Reads the platform kernel file.
+  // Returns an in memory kernel representation of the platform kernel file.
+  void* ReadPlatform();
+
+  // Reads the script kernel file if specified 'script_uri' is a kernel file.
+  // Returns an in memory kernel representation of the specified script is a
+  // valid kernel file, false otherwise.
+  void* ReadScript(const char* script_uri);
+
+ private:
   // Tries to read [script_uri] as a Kernel IR file.
   // Returns `true` if successful and sets [kernel_file] and [kernel_length]
   // to be the kernel IR contents.
@@ -45,9 +65,9 @@ class DFE {
                          const uint8_t** kernel_ir,
                          intptr_t* kernel_ir_size);
 
- private:
   const char* frontend_filename_;
   const char* platform_binary_filename_;
+  void* kernel_platform_;
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
 };

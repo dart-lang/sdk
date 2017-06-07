@@ -861,12 +861,14 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                                        const char* script_uri,
                                        const char* package_root,
                                        const char* packages_config,
-                                       void* kernel_program,
                                        bool set_native_resolvers,
                                        bool isolate_run_app_snapshot,
                                        char** error,
                                        int* exit_code) {
   Dart_EnterScope();
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
+  void* kernel_program = isolate_data->kernel_program;
 
   // Set up the library tag handler for this isolate.
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
@@ -1006,7 +1008,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* main,
   }
 
   return IsolateSetupHelper(isolate, false, script_uri, package_root,
-                            packages_config, NULL, isolate_snapshot_data,
+                            packages_config, isolate_snapshot_data,
                             isolate_run_app_snapshot, error, exit_code);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -1087,6 +1089,12 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   void* kernel_program = NULL;
   AppSnapshot* app_snapshot = NULL;
 
+  IsolateData* isolate_data =
+      new IsolateData(script_uri, package_root, packages_config, app_snapshot);
+  if (is_main_isolate && (snapshot_deps_filename != NULL)) {
+    isolate_data->set_dependencies(new MallocGrowableArray<char*>());
+  }
+
 #if defined(DART_PRECOMPILED_RUNTIME)
   // AOT: All isolates start from the app snapshot.
   bool isolate_run_app_snapshot = true;
@@ -1117,60 +1125,19 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
           &isolate_snapshot_data, &isolate_snapshot_instructions);
     }
   }
-  const uint8_t* platform_file = NULL;
-  if (dfe.UsePlatformBinary()) {
-    intptr_t platform_length = -1;
-    bool success = dfe.TryReadKernelFile(dfe.platform_binary_filename(),
-                                         &platform_file, &platform_length);
-    if (!success) {
-      *error = strdup("The platform binary is not a valid Dart Kernel file.");
-      *exit_code = kErrorExitCode;
-      return NULL;
+  if (!isolate_run_app_snapshot) {
+    kernel_platform = dfe.kernel_platform();
+    kernel_program = dfe.ReadScript(script_uri);
+    if (kernel_program == NULL && dfe.UseDartFrontend()) {
+      kernel_program = dfe.CompileAndReadScript(script_uri, error, exit_code);
+      if (kernel_program == NULL) {
+        return NULL;
+      }
     }
-    kernel_platform = Dart_ReadKernelBinary(platform_file, platform_length);
-  }
-
-  bool is_kernel = false;
-  const uint8_t* kernel_file = NULL;
-  intptr_t kernel_length = -1;
-  if (dfe.UseDartFrontend()) {
-    Dart_KernelCompilationResult result = Dart_CompileToKernel(script_uri);
-    *error = result.error;  // Copy error message (if any).
-    switch (result.status) {
-      case Dart_KernelCompilationStatus_Ok:
-        is_kernel = true;
-        kernel_file = result.kernel;
-        kernel_length = result.kernel_size;
-        break;
-      case Dart_KernelCompilationStatus_Error:
-        *exit_code = kCompilationErrorExitCode;
-        break;
-      case Dart_KernelCompilationStatus_Crash:
-        *exit_code = kDartFrontendErrorExitCode;
-        break;
-      case Dart_KernelCompilationStatus_Unknown:
-        *exit_code = kErrorExitCode;
-        break;
-    }
-    if (!is_kernel) {
-      free(const_cast<uint8_t*>(platform_file));
-      delete reinterpret_cast<kernel::Program*>(kernel_platform);
-      return NULL;
-    }
-  } else if (!isolate_run_app_snapshot) {
-    is_kernel = dfe.TryReadKernelFile(script_uri, &kernel_file, &kernel_length);
-  }
-
-  if (is_kernel) {
-    kernel_program = Dart_ReadKernelBinary(kernel_file, kernel_length);
+    isolate_data->kernel_program = kernel_program;
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  IsolateData* isolate_data =
-      new IsolateData(script_uri, package_root, packages_config, app_snapshot);
-  if (is_main_isolate && (snapshot_deps_filename != NULL)) {
-    isolate_data->set_dependencies(new MallocGrowableArray<char*>());
-  }
   Dart_Isolate isolate = NULL;
   if (kernel_platform != NULL) {
     isolate = Dart_CreateIsolateFromKernel(script_uri, main, kernel_platform,
@@ -1188,9 +1155,9 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     return NULL;
   }
 
+  bool set_native_resolvers = (kernel_program || isolate_snapshot_data);
   return IsolateSetupHelper(isolate, is_main_isolate, script_uri, package_root,
-                            packages_config, kernel_program,
-                            (kernel_program || isolate_snapshot_data),
+                            packages_config, set_native_resolvers,
                             isolate_run_app_snapshot, error, exit_code);
 }
 
@@ -1896,6 +1863,18 @@ void main(int argc, char** argv) {
   Dart_SetServiceStreamCallbacks(&ServiceStreamListenCallback,
                                  &ServiceStreamCancelCallback);
   Dart_SetFileModifiedCallback(&FileModifiedCallback);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // If a kernel platform binary file is specified, read it. This
+  // step will become redundant once we have the snapshot version
+  // of the kernel core/platform libraries.
+  if (dfe.UsePlatformBinary()) {
+    if (dfe.ReadPlatform() == NULL) {
+      Log::PrintErr("The platform binary is not a valid Dart Kernel file.");
+      Platform::Exit(kErrorExitCode);
+    }
+  }
+#endif
 
   // Run the main isolate until we aren't told to restart.
   while (RunMainIsolate(script_name, &dart_options)) {
