@@ -157,13 +157,7 @@ Future<CompilationResult> rebuild(
   try {
     var program = result.program = await compiler.recompile();
     if (program != null && !program.libraries.isEmpty) {
-      // TODO(sigmund): the incremental generator should set the main method
-      // directly.
-      var mainLib = program.libraries.last;
-      program.mainMethod =
-          mainLib.procedures.firstWhere((p) => p.name.name == 'main');
       var sink = new File.fromUri(outputUri).openWrite();
-
       // TODO(sigmund): should the incremental generator always filter these
       // libraries instead?
       new LimitedBinaryPrinter(

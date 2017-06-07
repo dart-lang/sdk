@@ -136,12 +136,14 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       // that imports a changed one, is affected.
 
       // Set the main method.
-      for (var library in program.libraries) {
-        if (library.fileUri == _entryPoint.toString()) {
-          program.mainMethod = library.procedures.firstWhere(
-              (procedure) => procedure.name.name == 'main',
-              orElse: () => null);
-          break;
+      if (program.libraries.isNotEmpty) {
+        for (Library library in results.last.kernelLibraries) {
+          if (library.importUri == _entryPoint) {
+            program.mainMethod = library.procedures.firstWhere(
+                (procedure) => procedure.name.name == 'main',
+                orElse: () => null);
+            break;
+          }
         }
       }
 
