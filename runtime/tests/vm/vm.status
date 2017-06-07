@@ -90,7 +90,7 @@ cc/Service_Profile: Fail
 # On the simluator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct
 # symbol names.
-[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simmips || $arch == simdbc  || $arch == simdbc64 ]
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simdbc  || $arch == simdbc64 ]
 cc/Service_Profile: Skip
 cc/Profiler_AllocationSampleTest: Skip
 cc/Profiler_ArrayAllocation: Skip
@@ -159,12 +159,6 @@ dart/inline_stack_frame_test: RuntimeError, Pass # Issue 7953
 [ $compiler == dart2js || $compiler == dart2analyzer ]
 # Data uri's not supported by dart2js or the analyzer.
 dart/data_uri*test: Skip
-
-[ $arch == mips ]
-cc/Int8ListLengthMaxElements: Skip # Issue 23536, uses 1 GB memory.
-
-[ $arch == mips && $mode == debug ]
-cc/FindCodeObject: SkipSlow # Takes more than 8 minutes. Issue 17440
 
 [ $compiler == dart2analyzer ]
 dart/optimized_stacktrace_line_test: StaticWarning
@@ -585,6 +579,3 @@ cc/Profiler_BinaryOperatorSourcePosition : Crash
 cc/Profiler_BinaryOperatorSourcePositionOptimized : Crash
 cc/Profiler_SourcePosition : Crash
 cc/Profiler_SourcePositionOptimized : Crash
-
-[ ($compiler == dartk) && ($runtime == vm) && ($system == macos) && ($mode == debug)]
-cc/FindCodeObject : Timeout
