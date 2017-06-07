@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:front_end/src/scanner/scanner.dart' as fe;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2522,7 +2523,11 @@ class Foo {
     createParser("'\$x\$'");
     StringLiteral literal = parser.parseStringLiteral();
     expectNotNullIfNoErrors(literal);
-    listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
+    listener.assertErrorsWithCodes([
+      fe.Scanner.useFasta
+          ? ScannerErrorCode.MISSING_IDENTIFIER
+          : ParserErrorCode.MISSING_IDENTIFIER
+    ]);
   }
 
   void test_expectedInterpolationIdentifier_emptyString() {
@@ -2532,8 +2537,9 @@ class Foo {
     createParser("'\$\$foo'");
     StringLiteral literal = parser.parseStringLiteral();
     expectNotNullIfNoErrors(literal);
-    listener.assertErrors(
-        [new AnalysisError(null, 2, 1, ParserErrorCode.MISSING_IDENTIFIER)]);
+    listener.assertErrors(fe.Scanner.useFasta
+        ? [new AnalysisError(null, 2, 1, ScannerErrorCode.MISSING_IDENTIFIER)]
+        : [new AnalysisError(null, 2, 1, ParserErrorCode.MISSING_IDENTIFIER)]);
   }
 
   @failingTest
@@ -2861,14 +2867,23 @@ class Foo {
 
   void test_functionTypedParameter_incomplete1() {
     // This caused an exception at one point.
-    parseCompilationUnit("void f(int Function(", [
-      ParserErrorCode.MISSING_FUNCTION_BODY,
-      ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
-      ParserErrorCode.EXPECTED_EXECUTABLE,
-      ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+    parseCompilationUnit(
+        "void f(int Function(",
+        fe.Scanner.useFasta
+            ? [
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_FUNCTION_BODY,
+                ParserErrorCode.MISSING_IDENTIFIER,
+              ]
+            : [
+                ParserErrorCode.MISSING_FUNCTION_BODY,
+                ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
+                ParserErrorCode.EXPECTED_EXECUTABLE,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]);
   }
 
   void test_functionTypedParameter_var() {
@@ -3041,7 +3056,11 @@ class Foo {
     createParser("'\$1'");
     StringLiteral literal = parser.parseStringLiteral();
     expectNotNullIfNoErrors(literal);
-    listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
+    listener.assertErrorsWithCodes([
+      fe.Scanner.useFasta
+          ? ScannerErrorCode.MISSING_IDENTIFIER
+          : ParserErrorCode.MISSING_IDENTIFIER
+    ]);
   }
 
   void test_invalidLiteralInConfiguration() {
@@ -3304,8 +3323,11 @@ class Foo {
     createParser('(int a, int b ;');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener
-        .assertErrorsWithCodes([ParserErrorCode.MISSING_CLOSING_PARENTHESIS]);
+    listener.assertErrorsWithCodes([
+      fe.Scanner.useFasta
+          ? ScannerErrorCode.EXPECTED_TOKEN
+          : ParserErrorCode.MISSING_CLOSING_PARENTHESIS
+    ]);
   }
 
   void test_missingConstFinalVarOrType_static() {
@@ -3578,16 +3600,22 @@ class Foo {
     createParser('(a, {b: 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP]);
+    listener.assertErrorsWithCodes([
+      fe.Scanner.useFasta
+          ? ScannerErrorCode.EXPECTED_TOKEN
+          : ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP
+    ]);
   }
 
   void test_missingTerminatorForParameterGroup_optional() {
     createParser('(a, [b = 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP]);
+    listener.assertErrorsWithCodes([
+      fe.Scanner.useFasta
+          ? ScannerErrorCode.EXPECTED_TOKEN
+          : ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP
+    ]);
   }
 
   void test_missingTypedefParameters_nonVoid() {
@@ -3951,15 +3979,28 @@ m() {
  {
  '${${
 ''',
-        [
-          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-          ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_TOKEN,
-        ]);
+        fe.Scanner.useFasta
+            ? [
+                ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_EXECUTABLE,
+              ]
+            : [
+                ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+              ]);
   }
 
   void test_switchHasCaseAfterDefaultCase() {
@@ -4083,16 +4124,18 @@ main() {
     createParser('(a, b})');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
+    listener.assertErrorsWithCodes(fe.Scanner.useFasta
+        ? [ScannerErrorCode.EXPECTED_TOKEN]
+        : [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
   void test_unexpectedTerminatorForParameterGroup_optional() {
     createParser('(a, b])');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
+    listener.assertErrorsWithCodes(fe.Scanner.useFasta
+        ? [ScannerErrorCode.EXPECTED_TOKEN]
+        : [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
   void test_unexpectedToken_endOfFieldDeclarationStatement() {
@@ -4133,7 +4176,9 @@ void main() {
   var x = "''',
         [
           ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-          ParserErrorCode.EXPECTED_TOKEN,
+          fe.Scanner.useFasta
+              ? ScannerErrorCode.EXPECTED_TOKEN
+              : ParserErrorCode.EXPECTED_TOKEN,
           ParserErrorCode.EXPECTED_TOKEN
         ]);
   }
@@ -4162,7 +4207,9 @@ void main() {
   var x = """''',
         [
           ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-          ParserErrorCode.EXPECTED_TOKEN,
+          fe.Scanner.useFasta
+              ? ScannerErrorCode.EXPECTED_TOKEN
+              : ParserErrorCode.EXPECTED_TOKEN,
           ParserErrorCode.EXPECTED_TOKEN
         ]);
   }
@@ -4177,7 +4224,9 @@ void main() {
   var x = """"''',
         [
           ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-          ParserErrorCode.EXPECTED_TOKEN,
+          fe.Scanner.useFasta
+              ? ScannerErrorCode.EXPECTED_TOKEN
+              : ParserErrorCode.EXPECTED_TOKEN,
           ParserErrorCode.EXPECTED_TOKEN
         ]);
   }
@@ -4192,7 +4241,9 @@ void main() {
   var x = """""''',
         [
           ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-          ParserErrorCode.EXPECTED_TOKEN,
+          fe.Scanner.useFasta
+              ? ScannerErrorCode.EXPECTED_TOKEN
+              : ParserErrorCode.EXPECTED_TOKEN,
           ParserErrorCode.EXPECTED_TOKEN
         ]);
   }
@@ -4333,16 +4384,18 @@ void main() {
     createParser('(a, {b, c])');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP]);
+    listener.assertErrorsWithCodes(fe.Scanner.useFasta
+        ? [ScannerErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN]
+        : [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 
   void test_wrongTerminatorForParameterGroup_optional() {
     createParser('(a, [b, c})');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP]);
+    listener.assertErrorsWithCodes(fe.Scanner.useFasta
+        ? [ScannerErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN]
+        : [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP]);
   }
 }
 
@@ -11263,7 +11316,11 @@ void''');
     createParser('{');
     FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
     expectNotNullIfNoErrors(functionBody);
-    listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_TOKEN]);
+    listener.assertErrorsWithCodes([
+      fe.Scanner.useFasta
+          ? ScannerErrorCode.EXPECTED_TOKEN
+          : ParserErrorCode.EXPECTED_TOKEN
+    ]);
     expect(functionBody, new isInstanceOf<EmptyFunctionBody>());
   }
 

@@ -1230,6 +1230,9 @@ class TokenType {
       '==', 'EQ_EQ', EQUALITY_PRECEDENCE, EQ_EQ_TOKEN,
       isOperator: true, isUserDefinableOperator: true);
 
+  /// The `===` operator is not supported in the Dart language
+  /// but is parsed as such by the scanner to support better recovery
+  /// when a JavaScript code snippet is pasted into a Dart file.
   static const TokenType EQ_EQ_EQ =
       const TokenType('===', 'EQ_EQ_EQ', EQUALITY_PRECEDENCE, EQ_EQ_EQ_TOKEN);
 

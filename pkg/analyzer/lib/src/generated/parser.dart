@@ -1275,7 +1275,8 @@ class Parser {
         _validateModifiersForGetterOrSetterOrMethod(modifiers);
         return parseSetter(commentAndMetadata, modifiers.externalKeyword,
             modifiers.staticKeyword, returnType);
-      } else if (keyword == Keyword.OPERATOR && _isOperator(next)) {
+      } else if (keyword == Keyword.OPERATOR &&
+          (_isOperator(next) || next.type == TokenType.EQ_EQ_EQ)) {
         _validateModifiersForOperator(modifiers);
         return _parseOperatorAfterKeyword(commentAndMetadata,
             modifiers.externalKeyword, returnType, getAndAdvance());
@@ -7209,7 +7210,10 @@ class Parser {
       Token operatorKeyword) {
     if (!_currentToken.isUserDefinableOperator) {
       _reportErrorForCurrentToken(
-          ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
+          _currentToken.type == TokenType.EQ_EQ_EQ
+              ? ParserErrorCode.INVALID_OPERATOR
+              : ParserErrorCode.NON_USER_DEFINABLE_OPERATOR,
+          [_currentToken.lexeme]);
     }
     SimpleIdentifier name =
         astFactory.simpleIdentifier(getAndAdvance(), isDeclaration: true);
