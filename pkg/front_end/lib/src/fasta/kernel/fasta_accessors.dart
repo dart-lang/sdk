@@ -91,8 +91,12 @@ abstract class BuilderHelper {
   Expression buildProblemExpression(ProblemBuilder builder, int offset);
 
   Expression throwNoSuchMethodError(
-      String name, Arguments arguments, int offset,
-      {bool isSuper, bool isGetter, bool isSetter});
+      Expression receiver, String name, Arguments arguments, int offset,
+      {bool isSuper, bool isGetter, bool isSetter, bool isStatic});
+
+  Expression invokeSuperNoSuchMethod(
+      String name, Arguments arguments, int charOffset,
+      {bool isGetter, bool isSetter});
 
   bool checkArguments(FunctionNode function, Arguments arguments,
       List<TypeParameter> typeParameters);
@@ -137,11 +141,16 @@ abstract class FastaAccessor implements Accessor {
   }
 
   Expression makeInvalidRead() {
-    return buildThrowNoSuchMethodError(new Arguments.empty(), isGetter: true);
+    return buildThrowNoSuchMethodError(
+        new NullLiteral()..fileOffset = offsetForToken(token),
+        new Arguments.empty(),
+        isGetter: true);
   }
 
   Expression makeInvalidWrite(Expression value) {
-    return buildThrowNoSuchMethodError(new KernelArguments(<Expression>[value]),
+    return buildThrowNoSuchMethodError(
+        new NullLiteral()..fileOffset = offsetForToken(token),
+        new KernelArguments(<Expression>[value]),
         isSetter: true);
   }
 
@@ -165,15 +174,19 @@ abstract class FastaAccessor implements Accessor {
   }
 
   /* Expression | FastaAccessor */ buildThrowNoSuchMethodError(
-      Arguments arguments,
+      Expression receiver, Arguments arguments,
       {bool isSuper: false,
       bool isGetter: false,
       bool isSetter: false,
+      bool isStatic: false,
       String name,
       int offset}) {
-    return helper.throwNoSuchMethodError(name ?? plainNameForWrite, arguments,
-        offset ?? offsetForToken(this.token),
-        isGetter: isGetter, isSetter: isSetter, isSuper: isSuper);
+    return helper.throwNoSuchMethodError(receiver, name ?? plainNameForWrite,
+        arguments, offset ?? offsetForToken(this.token),
+        isGetter: isGetter,
+        isSetter: isSetter,
+        isSuper: isSuper,
+        isStatic: isStatic);
   }
 
   bool get isThisPropertyAccessor => false;
@@ -211,10 +224,11 @@ abstract class ErrorAccessor implements FastaAccessor {
   }
 
   @override
-  buildThrowNoSuchMethodError(Arguments arguments,
+  buildThrowNoSuchMethodError(Expression receiver, Arguments arguments,
       {bool isSuper: false,
-      isGetter: false,
-      isSetter: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isStatic: false,
       String name,
       int offset}) {
     return this;
@@ -349,7 +363,8 @@ class ThisAccessor extends FastaAccessor {
         !helper.checkArguments(
             constructor.function, arguments, <TypeParameter>[])) {
       return helper.buildInvalidInitializer(
-          buildThrowNoSuchMethodError(arguments,
+          buildThrowNoSuchMethodError(
+              new NullLiteral()..fileOffset = offset, arguments,
               isSuper: isSuper, name: name.name, offset: offset),
           offset);
     } else if (isSuper) {
@@ -700,6 +715,21 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
     }
   }
 
+  Expression makeInvalidRead() {
+    int offset = offsetForToken(token);
+    return helper.invokeSuperNoSuchMethod(
+        plainNameForRead, new Arguments.empty()..fileOffset = offset, offset,
+        isGetter: true);
+  }
+
+  Expression makeInvalidWrite(Expression value) {
+    return helper.invokeSuperNoSuchMethod(
+        plainNameForRead,
+        new Arguments(<Expression>[value])..fileOffset = value.fileOffset,
+        offsetForToken(token),
+        isSetter: true);
+  }
+
   toString() => "SuperPropertyAccessor()";
 }
 
@@ -860,6 +890,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
 
   Expression makeInvalidWrite(Expression value) {
     return buildThrowNoSuchMethodError(
+        new NullLiteral()..fileOffset = offsetForToken(token),
         new Arguments(<Expression>[value])..fileOffset = value.fileOffset,
         isSetter: true);
   }
@@ -937,8 +968,9 @@ class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
   @override
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
-    return helper.throwNoSuchMethodError(
-        plainNameForRead, arguments, offset ?? offsetForToken(this.token),
+    offset ??= offsetForToken(this.token);
+    return helper.throwNoSuchMethodError(new NullLiteral()..fileOffset = offset,
+        plainNameForRead, arguments, offset,
         isGetter: isGetter, isSetter: isSetter);
   }
 }

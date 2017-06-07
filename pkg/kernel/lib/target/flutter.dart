@@ -73,8 +73,25 @@ class FlutterTarget extends Target {
   }
 
   @override
-  Expression instantiateInvocation(Member target, Expression receiver,
+  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
+    // TODO(ahe): This should probably return the same as VmTarget does.
+    return new InvalidExpression();
+  }
+
+  @override
+  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
+      Expression receiver, String name, Arguments arguments, int offset,
+      {bool isMethod: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isField: false,
+      bool isLocalVariable: false,
+      bool isDynamic: false,
+      bool isSuper: false,
+      bool isStatic: false,
+      bool isConstructor: false,
+      bool isTopLevel: false}) {
     // TODO(ahe): This should probably return the same as VmTarget does.
     return new InvalidExpression();
   }

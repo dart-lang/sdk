@@ -62,9 +62,6 @@ Language/Classes/definition_t23: CompileTimeError
 Language/Classes/same_name_member_and_class_t01: MissingCompileTimeError
 Language/Classes/same_name_member_and_class_t03: MissingCompileTimeError
 Language/Enums/restrictions_t08: MissingCompileTimeError
-Language/Expressions/Assignment/super_assignment_failed_t01: RuntimeError
-Language/Expressions/Assignment/super_assignment_failed_t02: RuntimeError
-Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError
 Language/Expressions/Constants/bitwise_operators_t02: Crash
 Language/Expressions/Constants/bitwise_operators_t03: Crash
 Language/Expressions/Constants/bitwise_operators_t04: Crash
@@ -94,10 +91,6 @@ Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
-Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t01: RuntimeError
-Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t02: RuntimeError
-Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t03: RuntimeError
-Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t04: RuntimeError
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t03: MissingCompileTimeError
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Issue 24332
@@ -108,8 +101,6 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError
-Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t02: RuntimeError
 Language/Expressions/This/placement_t04: MissingCompileTimeError
 Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
 Language/Expressions/Type_Cast/syntax_t01: RuntimeError
@@ -240,17 +231,6 @@ Language/Variables/local_variable_t01: MissingCompileTimeError
 Language/Variables/local_variable_t04: MissingCompileTimeError
 Language/Variables/local_variable_t05: MissingCompileTimeError
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
-LibTest/core/Invocation/isAccessor_A01_t01: RuntimeError
-LibTest/core/Invocation/isAccessor_A01_t02: RuntimeError
-LibTest/core/Invocation/isGetter_A01_t01: RuntimeError
-LibTest/core/Invocation/isGetter_A01_t02: RuntimeError
-LibTest/core/Invocation/isMethod_A01_t01: RuntimeError
-LibTest/core/Invocation/isMethod_A01_t02: RuntimeError
-LibTest/core/Invocation/isSetter_A01_t01: RuntimeError
-LibTest/core/Invocation/isSetter_A01_t02: RuntimeError
-LibTest/core/Invocation/memberName_A01_t01: RuntimeError
-LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError
-LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError
 LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]

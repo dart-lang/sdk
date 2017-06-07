@@ -169,8 +169,6 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   Builder getFallThroughError() => target.getFallThroughError(this);
 
   Builder getNativeAnnotation() => target.getNativeAnnotation(this);
-
-  Builder getNoSuchMethodError() => target.getNoSuchMethodError(this);
 }
 
 String format(double d, int fractionDigits, int width) {

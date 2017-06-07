@@ -234,6 +234,10 @@ class NoSuchMethodError {
 
   // This constructor seems to be called with either strings or
   // values read from another NoSuchMethodError.
+  //
+  // NOTE: When making changes to this constructor, please also update
+  // `VmTarget.instantiateNoSuchMethodError` in
+  // `pkg/kernel/lib/target/vm.dart`.
   NoSuchMethodError._withType(
       this._receiver,
       /*String|Symbol*/ memberName,

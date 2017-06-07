@@ -20,7 +20,7 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
     show TypeInferenceEngine;
 
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Arguments, Expression, Program;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -485,4 +485,36 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   List<Uri> getDependencies() => sourceBytes.keys.toList();
+
+  Expression instantiateInvocation(Expression receiver, String name,
+      Arguments arguments, int offset, bool isSuper) {
+    return target.backendTarget.instantiateInvocation(
+        coreTypes, receiver, name, arguments, offset, isSuper);
+  }
+
+  Expression instantiateNoSuchMethodError(
+      Expression receiver, String name, Arguments arguments, int offset,
+      {bool isMethod: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isField: false,
+      bool isLocalVariable: false,
+      bool isDynamic: false,
+      bool isSuper: false,
+      bool isStatic: false,
+      bool isConstructor: false,
+      bool isTopLevel: false}) {
+    return target.backendTarget.instantiateNoSuchMethodError(
+        coreTypes, receiver, name, arguments, offset,
+        isMethod: isMethod,
+        isGetter: isGetter,
+        isSetter: isSetter,
+        isField: isField,
+        isLocalVariable: isLocalVariable,
+        isDynamic: isDynamic,
+        isSuper: isSuper,
+        isStatic: isStatic,
+        isConstructor: isConstructor,
+        isTopLevel: isTopLevel);
+  }
 }

@@ -8,11 +8,6 @@
 
 rasta/unsupported_platform_library: RuntimeError # OK, this must report an error at runtime.
 
-accessors: Fail # Fixed in ahe's dev branch.
-expressions: Fail # Fixed in ahe's dev branch.
-rasta/static: Fail # Fixed in ahe's dev branch.
-super_rasta_copy: Fail # Fixed in ahe's dev branch.
-
 DeltaBlue: Fail # Missing types on constructor parameters.
 async_function: Fail # Async transformer should be optional.
 await: Fail

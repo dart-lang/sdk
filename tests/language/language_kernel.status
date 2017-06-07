@@ -62,7 +62,6 @@ external_test/25: MissingCompileTimeError
 external_test/30: MissingCompileTimeError
 external_test/31: MissingCompileTimeError
 final_initializer_instance_reference_test/01: MissingCompileTimeError
-final_super_field_set_test/01: RuntimeError
 final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
@@ -93,7 +92,6 @@ getter_parameters_test/02: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
 inst_field_initializer1_negative_test: Fail
-invocation_mirror_test: RuntimeError
 metadata_test: CompileTimeError
 method_name_test: CompileTimeError
 method_override_test: RuntimeError
@@ -143,11 +141,6 @@ super_conditional_operator_test/13: MissingCompileTimeError
 super_conditional_operator_test/14: MissingCompileTimeError
 super_conditional_operator_test/15: MissingCompileTimeError
 super_conditional_operator_test/16: MissingCompileTimeError
-super_no_such_method1_test/01: RuntimeError
-super_no_such_method2_test/01: RuntimeError
-super_no_such_method3_test/01: RuntimeError
-super_no_such_method4_test/01: RuntimeError
-super_no_such_method5_test/01: RuntimeError
 switch1_negative_test: Fail
 syntax_test/02: MissingCompileTimeError
 syntax_test/03: MissingCompileTimeError
@@ -317,8 +310,6 @@ redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError
 setter_declaration2_negative_test: Fail
 setter_declaration_negative_test: Fail
-super_call4_test: RuntimeError
-super_getter_setter_test: RuntimeError
 vm/lazy_deopt_vm_test: Pass, Slow, Timeout
 vm/optimized_stacktrace_test: Skip # Issue 28788
 

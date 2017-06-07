@@ -114,8 +114,21 @@ abstract class Target {
 
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
-  Expression instantiateInvocation(Member target, Expression receiver,
+  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper);
+
+  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
+      Expression receiver, String name, Arguments arguments, int offset,
+      {bool isMethod: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isField: false,
+      bool isLocalVariable: false,
+      bool isDynamic: false,
+      bool isSuper: false,
+      bool isStatic: false,
+      bool isConstructor: false,
+      bool isTopLevel: false});
 
   String toString() => 'Target($name)';
 }
@@ -135,8 +148,24 @@ class NoneTarget extends Target {
       {void logger(String msg)}) {}
 
   @override
-  Expression instantiateInvocation(Member target, Expression receiver,
+  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
+    return new InvalidExpression();
+  }
+
+  @override
+  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
+      Expression receiver, String name, Arguments arguments, int offset,
+      {bool isMethod: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isField: false,
+      bool isLocalVariable: false,
+      bool isDynamic: false,
+      bool isSuper: false,
+      bool isStatic: false,
+      bool isConstructor: false,
+      bool isTopLevel: false}) {
     return new InvalidExpression();
   }
 }

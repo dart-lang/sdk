@@ -200,7 +200,6 @@ class SuperCallResolutionTransformer extends Transformer {
   final CoreTypes coreTypes;
   final Class lookupClass;
   final Target targetInfo;
-  Constructor _invocationMirrorConstructor; // cached
 
   SuperCallResolutionTransformer(
       this.hierarchy, this.coreTypes, this.lookupClass, this.targetInfo);
@@ -296,13 +295,8 @@ class SuperCallResolutionTransformer extends Transformer {
   /// Creates an "new _InvocationMirror(...)" invocation.
   ConstructorInvocation _createInvocation(String methodName,
       Arguments callArguments, bool isSuperInvocation, Expression receiver) {
-    if (_invocationMirrorConstructor == null) {
-      Class clazz = coreTypes.invocationMirrorClass;
-      _invocationMirrorConstructor = clazz.constructors[0];
-    }
-
-    return targetInfo.instantiateInvocation(_invocationMirrorConstructor,
-        receiver, methodName, callArguments, -1, isSuperInvocation);
+    return targetInfo.instantiateInvocation(
+        coreTypes, receiver, methodName, callArguments, -1, isSuperInvocation);
   }
 
   /// Check that a call to the targetFunction is legal given the arguments.

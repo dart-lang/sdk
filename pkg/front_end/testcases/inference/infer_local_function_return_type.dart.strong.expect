@@ -109,7 +109,7 @@ static method main() → dynamic {
   function f7() → dynamic
     return f7.call();
   function f8() → dynamic
-    return throw new core::NoSuchMethodError::•(null, #f9, <dynamic>[], <dynamic, dynamic>{}, null);
+    return throw new core::NoSuchMethodError::_withType(null, #f9, 32, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
   function f9() → dynamic
     return f5.call();
 }

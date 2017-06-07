@@ -786,9 +786,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
     if (isNoSuchMethod) {
-      return throwNoSuchMethodError(
-          node.name.name, node.arguments, node.fileOffset,
-          isSuper: true);
+      return invokeSuperNoSuchMethod(
+          node.name.name, node.arguments, node.fileOffset);
     }
     Expression receiver = new KernelDirectPropertyGet(
         new ThisExpression()..fileOffset = node.fileOffset, target);
@@ -807,8 +806,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Expression throwNoSuchMethodError(
-      String name, Arguments arguments, int charOffset,
-      {bool isSuper: false, isGetter: false, isSetter: false}) {
+      Expression receiver, String name, Arguments arguments, int charOffset,
+      {bool isSuper: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isStatic: false}) {
     String errorName = isSuper ? "super.$name" : name;
     String message;
     if (isGetter) {
@@ -822,19 +824,61 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return buildCompileTimeError(message, charOffset);
     }
     warning(message, charOffset);
-    Constructor constructor =
-        coreTypes.noSuchMethodErrorClass.constructors.first;
-    return new Throw(new ConstructorInvocation(
-        constructor,
-        new KernelArguments(<Expression>[
-          new KernelNullLiteral(),
-          new SymbolLiteral(name),
-          new ListLiteral(arguments.positional),
-          new MapLiteral(arguments.named.map((arg) {
-            return new MapEntry(new SymbolLiteral(arg.name), arg.value);
-          }).toList()),
-          new KernelNullLiteral()
-        ])));
+    return new Throw(library.loader.instantiateNoSuchMethodError(
+        receiver, name, arguments, charOffset,
+        isMethod: !isGetter && !isSetter,
+        isGetter: isGetter,
+        isSetter: isSetter,
+        isStatic: isStatic,
+        isTopLevel: !isStatic && !isSuper));
+  }
+
+  @override
+  Expression invokeSuperNoSuchMethod(
+      String name, Arguments arguments, int charOffset,
+      {bool isGetter: false, bool isSetter: false}) {
+    String errorName = "super.$name";
+    String message;
+    if (isGetter) {
+      message = "Getter not found: '$errorName'.";
+      name = "get:$name";
+    } else if (isSetter) {
+      message = "Setter not found: '$errorName'.";
+      name = "set:$name";
+    } else {
+      message = "Method not found: '$errorName'.";
+    }
+    warning(message, charOffset);
+    VariableDeclaration value;
+    if (isSetter) {
+      value = new VariableDeclaration.forValue(arguments.positional.single,
+          isFinal: true)
+        ..fileOffset = charOffset;
+      arguments = new Arguments(<Expression>[
+        new VariableGet(value)..fileOffset = arguments.fileOffset
+      ]);
+    }
+    Expression result = new SuperMethodInvocation(
+        noSuchMethodName,
+        new Arguments(<Expression>[
+          library.loader.instantiateInvocation(
+              new ThisExpression()..fileOffset = charOffset,
+              name,
+              arguments,
+              charOffset,
+              true)
+        ])
+          ..fileOffset = arguments.fileOffset);
+    if (isSetter) {
+      result = new Let(
+          value,
+          new Let(
+              new VariableDeclaration.forValue(result, isFinal: true)
+                ..fileOffset = charOffset,
+              new VariableGet(value)..fileOffset = value.fileOffset))
+        ..fileOffset = charOffset;
+    }
+    return result;
   }
 
   @override
@@ -1924,7 +1968,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       typeParameters = target.enclosingClass.typeParameters;
     }
     if (!checkArguments(target.function, arguments, typeParameters)) {
-      return throwNoSuchMethodError(target.name.name, arguments, charOffset);
+      return throwNoSuchMethodError(new NullLiteral()..fileOffset = charOffset,
+          target.name.name, arguments, charOffset);
     }
     if (target is Constructor) {
       return new KernelConstructorInvocation(target, initialTarget, arguments,
@@ -2073,7 +2118,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         errorName = debugName(getNodeName(type), name);
       }
       errorName ??= name;
-      push(throwNoSuchMethodError(errorName, arguments, nameToken.charOffset));
+      push(throwNoSuchMethodError(
+          new NullLiteral()..fileOffset = token.charOffset,
+          errorName,
+          arguments,
+          nameToken.charOffset));
     }();
     constantExpressionRequired = savedConstantExpressionRequired;
   }
