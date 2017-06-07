@@ -180,10 +180,12 @@ class Run extends Step<Uri, int, FastaContext> {
   bool get isRuntime => true;
 
   Future<Result<int>> run(Uri uri, FastaContext context) async {
+    if (context.platformUri == null) {
+      throw "Executed `Run` step before initializing the context.";
+    }
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      await context.ensurePlatformUris();
       var platformDill = context.platformUri.toFilePath();
       var args = ['--platform=$platformDill', generated.path, "Hello, World!"];
       process = await StdioProcess.run(context.vm.toFilePath(), args);
