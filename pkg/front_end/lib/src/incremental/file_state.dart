@@ -221,10 +221,12 @@ class FileSystemState {
 
   _FileSystemView _fileSystemView;
 
-  /// Mapping from file URIs to corresponding [FileState]s.
+  /// Mapping from import URIs to corresponding [FileState]s. For example, this
+  /// may contain an entry for `dart:core`.
   final Map<Uri, FileState> _uriToFile = {};
 
-  /// Mapping from file URIs to corresponding [FileState]s.
+  /// Mapping from file URIs to corresponding [FileState]s. This map should only
+  /// contain `file:*` URIs as keys.
   final Map<Uri, FileState> _fileUriToFile = {};
 
   FileSystemState(this.fileSystem, this.uriTranslator);
@@ -236,6 +238,9 @@ class FileSystemState {
   FileSystem get fileSystemView {
     return _fileSystemView ??= new _FileSystemView(this);
   }
+
+  /// The `file:` URI of all files currently tracked by this instance.
+  Iterable<Uri> get fileUris => _fileUriToFile.keys;
 
   /// Return the [FileState] for the given [absoluteUri], or `null` if the
   /// [absoluteUri] cannot be resolved into a file URI.

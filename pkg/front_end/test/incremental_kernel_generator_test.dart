@@ -663,6 +663,26 @@ static method main() → void {}
     }
   }
 
+  test_invalidateAll() async {
+    writeFile('/test/.packages', '');
+    Uri aUri = writeFile('/test/a.dart', "import 'b.dart';\nint a = b;");
+    Uri bUri = writeFile('/test/b.dart', 'var b = 1;');
+
+    Program program = await getInitialState(aUri);
+    expect(_getLibraryText(_getLibrary(program, aUri)), contains("int a ="));
+    expect(_getLibraryText(_getLibrary(program, bUri)), contains("b = 1"));
+
+    writeFile('/test/a.dart', "import 'b.dart';\ndouble a = b;");
+    writeFile('/test/b.dart', 'var b = 2;');
+    incrementalKernelGenerator.invalidateAll();
+
+    DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+    program = delta.newProgram;
+    _assertLibraryUris(program, includes: [aUri, bUri]);
+    expect(_getLibraryText(_getLibrary(program, aUri)), contains("double a ="));
+    expect(_getLibraryText(_getLibrary(program, bUri)), contains("b = 2"));
+  }
+
   /// Write the given [text] of the file with the given [path] into the
   /// virtual filesystem.  Return the URI of the file.
   Uri writeFile(String path, String text) {

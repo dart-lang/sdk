@@ -23,11 +23,6 @@ import 'package:kernel/kernel.dart' hide Source;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 
-dynamic unimplemented() {
-  // TODO(paulberry): get rid of this.
-  throw new UnimplementedError();
-}
-
 class ByteSink implements Sink<List<int>> {
   final BytesBuilder builder = new BytesBuilder();
 
@@ -133,6 +128,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         }
       }
 
+      if (watch != null) _fsState.fileUris.forEach((f) => watch(f, true));
+
       // TODO(scheglov) Add libraries which import changed libraries.
       // For now the corresponding test works because we use full library
       // contents to compute signatures (not just API parts). So, every library
@@ -158,7 +155,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   }
 
   @override
-  void invalidateAll() => unimplemented();
+  void invalidateAll() {
+    _invalidatedFiles.addAll(_fsState.fileUris);
+  }
 
   /// Ensure that [dillTarget] includes the [cycle] libraries.  It already
   /// contains all the libraries that sorted before the given [cycle] in
