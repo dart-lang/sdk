@@ -245,6 +245,8 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
     'language/covariant_override': {},
 
+    'codegen': {},
+
     'corelib': {
       'apply2_test': fail,
       'apply3_test': fail,
@@ -688,17 +690,33 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
   let unittest_tests = [];
   let unittestAccidentallyInitialized = false;
 
+  // Pattern for selecting out generated test files in sub-directories
+  // of the codegen directory.  These are the language, corelib, etc
+  // tests
   let languageTestPattern =
       new RegExp('gen/codegen_output/(.*)/([^/]*_test[^/]*)');
+  // Pattern for selecting out generated test files in the toplevel
+  // codegen directory.  These are codegen tests that should be
+  // executed.
+  let codegenTestPattern =
+      new RegExp('gen/codegen_output/([^/]*_test[^/]*)');
   // We need to let Dart unittest control when tests are run not mocha.
   // mocha.allowUncaught(true);
   for (let testFile of allTestFiles) {
+    let status_group;
+    let name;
+    let module;
     let match = languageTestPattern.exec(testFile);
     if (match != null) {
-      let status_group = match[1];
-      let name = match[2];
-      let module = match[0];
-
+      status_group = match[1];
+      name = match[2];
+      module = match[0];
+    } else if ((match = codegenTestPattern.exec(testFile)) != null) {
+      status_group = 'codegen';
+      name = match[1];
+      module = match[0];
+    }
+    if (match != null) {
       let status = all_status[status_group];
       if (status == null) throw "No status for '" + status_group + "'";
 
