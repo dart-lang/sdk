@@ -809,11 +809,6 @@ void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
 }
 
 
-void FUNCTION_NAME(SecurityContext_AlpnSupported)(Dart_NativeArguments args) {
-  Dart_SetReturnValue(args, Dart_NewBoolean(true));
-}
-
-
 void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
     Dart_NativeArguments args) {
   SSLCertContext* context = SSLCertContext::GetSecurityContext(args);

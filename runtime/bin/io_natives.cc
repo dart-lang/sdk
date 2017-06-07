@@ -116,7 +116,6 @@ namespace bin {
   V(SecureSocket_Renegotiate, 4)                                               \
   V(SecurityContext_Allocate, 1)                                               \
   V(SecurityContext_UsePrivateKeyBytes, 3)                                     \
-  V(SecurityContext_AlpnSupported, 0)                                          \
   V(SecurityContext_SetAlpnProtocols, 3)                                       \
   V(SecurityContext_SetClientAuthoritiesBytes, 3)                              \
   V(SecurityContext_SetTrustedCertificatesBytes, 3)                            \

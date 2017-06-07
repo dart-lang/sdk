@@ -11,6 +11,8 @@
     `X509Certificate` to be consistent across all platforms. All
     `SecureSocket`, `SecurityContext`, and `X509Certificate` properties and
     methods are now supported on iOS and OSX.
+  * Removed `SecurityContext.alpnSupported` as ALPN is now supported on all
+    platforms.
 
 ### Dart VM
 

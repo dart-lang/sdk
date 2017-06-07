@@ -459,11 +459,6 @@ class SecurityContext {
   static SecurityContext get defaultContext {
     throw new UnsupportedError("default SecurityContext getter");
   }
-
-  @patch
-  static bool get alpnSupported {
-    throw new UnsupportedError("SecurityContext alpnSupported getter");
-  }
 }
 
 @patch

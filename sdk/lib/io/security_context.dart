@@ -149,11 +149,6 @@ abstract class SecurityContext {
   void setClientAuthoritiesBytes(List<int> authCertBytes, {String password});
 
   /**
-   * Whether the platform supports ALPN.
-   */
-  external static bool get alpnSupported;
-
-  /**
    * Sets the list of application-level protocols supported by a client
    * connection or server connection. The ALPN (application level protocol
    * negotiation) extension to TLS allows a client to send a list of
