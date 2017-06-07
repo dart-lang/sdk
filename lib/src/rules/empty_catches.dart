@@ -73,7 +73,7 @@ class Visitor extends SimpleAstVisitor {
 
     Block body = node.body;
     if (node.body.statements.isEmpty &&
-        body.rightBracket is! TokenWithComment) {
+        body.rightBracket?.precedingComments == null) {
       rule.reportLint(body);
     }
   }

@@ -57,7 +57,7 @@ class Visitor extends SimpleAstVisitor {
     if (node.body is BlockFunctionBody) {
       Block block = (node.body as BlockFunctionBody).block;
       if (block.statements.length == 0) {
-        if (block.endToken is! TokenWithComment) {
+        if (block.endToken?.precedingComments == null) {
           rule.reportLint(block);
         }
       }
