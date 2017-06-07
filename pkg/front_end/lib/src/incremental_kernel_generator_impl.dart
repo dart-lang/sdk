@@ -93,7 +93,10 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       await _refreshInvalidatedFiles();
 
       // Ensure that the graph starting at the entry point is ready.
-      FileState entryLibrary = await _fsState.getFile(_entryPoint);
+      FileState entryLibrary =
+          await _logger.runAsync('Build graph of files', () async {
+        return await _fsState.getFile(_entryPoint);
+      });
 
       List<LibraryCycle> cycles = _logger.run('Compute library cycles', () {
         List<LibraryCycle> cycles = entryLibrary.topologicalOrder;
