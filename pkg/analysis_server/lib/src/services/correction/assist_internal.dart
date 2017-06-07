@@ -1747,7 +1747,7 @@ class AssistProcessor {
     sb.append(indentArg);
     sb.append('new ');
     sb.startPosition('WIDGET');
-    sb.append('widget');
+    sb.append('Widget');
     sb.endPosition();
     sb.append('(');
     sb.append(eol);
@@ -1778,7 +1778,7 @@ class AssistProcessor {
     SourceBuilder sb = new SourceBuilder(file, newExpr.offset);
     sb.append('new ');
     sb.startPosition('WIDGET');
-    sb.append('widget');
+    sb.append('Widget');
     sb.endPosition();
     sb.append('(');
     if (newExprSrc.contains(eol)) {
