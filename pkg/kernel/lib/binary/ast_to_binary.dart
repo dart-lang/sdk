@@ -146,6 +146,11 @@ class BinaryPrinter extends Visitor {
     writeList(list, writeCanonicalNameEntry);
   }
 
+  /// Compute canonical names for the whole program or parts of it.
+  void computeCanonicalNames(Program program) {
+    program.computeCanonicalNames();
+  }
+
   /// Return `true` if all canonical names of the [library] should be written
   /// into the link table.  If some libraries of the program are skipped,
   /// then [addCanonicalNamesForLinkTable] should append all the additional
@@ -168,7 +173,7 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeProgramFile(Program program) {
-    program.computeCanonicalNames();
+    computeCanonicalNames(program);
     writeMagicWord(Tag.ProgramFile);
     buildStringIndex(program);
     writeStringTable(stringIndexer);

@@ -229,7 +229,6 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           .toList();
 
       _logger.run('Serialize ${kernelLibraries.length} libraries', () {
-        program.unbindCanonicalNames();
         program.uriToSource.clear();
         List<int> bytes = _writeProgramBytes(program, kernelLibraries.contains);
         _byteStore.put(kernelKey, bytes);

@@ -17,6 +17,18 @@ class LimitedBinaryPrinter extends BinaryPrinter {
       : super(sink, stringIndexer: new ReferencesStringIndexer());
 
   @override
+  void computeCanonicalNames(Program program) {
+    for (var library in program.libraries) {
+      if (predicate(library)) {
+        program.root
+            .getChildFromUri(library.importUri)
+            .bindTo(library.reference);
+        library.computeCanonicalNames();
+      }
+    }
+  }
+
+  @override
   void addCanonicalNamesForLinkTable(List<CanonicalName> list) {
     ReferencesStringIndexer stringIndexer = this.stringIndexer;
     stringIndexer.referencedNames.forEach((name) {
