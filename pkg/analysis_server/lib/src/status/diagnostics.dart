@@ -8,12 +8,14 @@ import 'dart:io';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
+import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -139,12 +141,17 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(new CompletionPage(this));
     pages.add(new CommunicationsPage(this));
     pages.add(new ContextsPage(this));
-    pages.add(new ExecutionDomainPage(this));
-    pages.add(new OverlaysPage(this));
-    pages.add(new ProfilePage(this));
     pages.add(new ExceptionsPage(this));
     pages.add(new InstrumentationPage(this));
+    pages.add(new OverlaysPage(this));
     pages.add(new PluginsPage(this));
+    pages.add(new ProfilePage(this));
+    pages.add(new SubscriptionsPage(this));
+
+    ProcessProfiler profiler = ProcessProfiler.getProfilerForPlatform();
+    if (profiler != null) {
+      pages.add(new MemoryAndCpuPage(this, profiler));
+    }
 
     pages.sort(((Page a, Page b) =>
         a.title.toLowerCase().compareTo(b.title.toLowerCase())));
@@ -369,23 +376,6 @@ class StatusPage extends DiagnosticPageWithNav {
     buf.writeln('</div>');
 
     buf.writeln('</div>');
-
-    h3('Server domain subscriptions');
-    ul(ServerService.VALUES, (item) {
-      if (server.serverServices.contains(item)) {
-        buf.write('$item (has subscriptions)');
-      } else {
-        buf.write('$item (no subscriptions)');
-      }
-    });
-
-    h3('Analysis domain subscriptions');
-    for (AnalysisService service in AnalysisService.VALUES) {
-      buf.writeln('${service.name}<br>');
-      ul(server.analysisServices[service] ?? [], (item) {
-        buf.write('$item');
-      });
-    }
 
     List<String> lines = (site as DiagnosticsSite).lastPrintedLines;
     if (lines.isNotEmpty) {
@@ -717,6 +707,32 @@ class ContextsPage extends DiagnosticPageWithNav {
   }
 }
 
+class MemoryAndCpuPage extends DiagnosticPageWithNav {
+  final ProcessProfiler profiler;
+
+  MemoryAndCpuPage(DiagnosticsSite site, this.profiler)
+      : super(site, 'memory', 'Memory and CPU Usage',
+            description: 'Memory and CPU usage for the analysis server.');
+
+  @override
+  void generateContent(Map<String, String> params) {
+    UsageInfo usage = profiler.getProcessUsageSync(pid);
+    if (usage != null) {
+      buf.writeln(
+          writeOption('CPU', printPercentage(usage.cpuPercentage / 100.0)));
+      buf.writeln(
+          writeOption('Memory', '${printInteger(usage.memoryMB.round())} MB'));
+    } else {
+      p('Error retreiving the memory and cpu usage information.');
+    }
+  }
+
+  DiagnosticDomainHandler get diagnosticDomain {
+    return server.handlers
+        .firstWhere((handler) => handler is DiagnosticDomainHandler);
+  }
+}
+
 class OverlaysPage extends DiagnosticPageWithNav {
   OverlaysPage(DiagnosticsSite site)
       : super(site, 'overlays', 'Overlays',
@@ -729,6 +745,8 @@ class OverlaysPage extends DiagnosticPageWithNav {
 
     String overlayPath = params['overlay'];
     if (overlayPath != null) {
+      p(overlayPath);
+
       if (overlays[overlayPath] != null) {
         buf.write('<pre><code>');
         buf.write(overlays[overlayPath]);
@@ -790,18 +808,38 @@ class PluginsPage extends DiagnosticPageWithNav {
   }
 }
 
-class ExecutionDomainPage extends DiagnosticPageWithNav {
-  ExecutionDomainPage(DiagnosticsSite site)
-      : super(site, 'execution', 'Execution Domain',
-            description: 'Data for the analysis server\'s execution domain.');
+class SubscriptionsPage extends DiagnosticPageWithNav {
+  SubscriptionsPage(DiagnosticsSite site)
+      : super(site, 'subscriptions', 'Subscriptions',
+            description: 'Registered subscriptions to analysis server events.');
 
   @override
   void generateContent(Map<String, String> params) {
+    // server domain
+    h3('Server domain subscriptions');
+    ul(ServerService.VALUES, (item) {
+      if (server.serverServices.contains(item)) {
+        buf.write('$item (has subscriptions)');
+      } else {
+        buf.write('$item (no subscriptions)');
+      }
+    });
+
+    // analysis domain
+    h3('Analysis domain subscriptions');
+    for (AnalysisService service in AnalysisService.VALUES) {
+      buf.writeln('${service.name}<br>');
+      ul(server.analysisServices[service] ?? [], (item) {
+        buf.write('$item');
+      });
+    }
+
+    // execution domain
     ExecutionDomainHandler domain = server.handlers.firstWhere(
         (handler) => handler is ExecutionDomainHandler,
         orElse: () => null);
 
-    h3('Subscriptions');
+    h3('Execution domain');
     ul(ExecutionService.VALUES, (item) {
       if (domain.onFileAnalyzed != null) {
         buf.write('$item (has subscriptions)');
@@ -819,9 +857,8 @@ class CompletionPage extends DiagnosticPageWithNav {
 
   @override
   void generateContent(Map<String, String> params) {
-    CompletionDomainHandler completionDomain = server.handlers.firstWhere(
-        (handler) => handler is CompletionDomainHandler,
-        orElse: () => null);
+    CompletionDomainHandler completionDomain = server.handlers
+        .firstWhere((handler) => handler is CompletionDomainHandler);
 
     List<CompletionPerformance> completions =
         completionDomain.performanceList.items.toList();
