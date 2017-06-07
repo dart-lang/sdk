@@ -18,13 +18,14 @@ main() {
       expect(ProcessProfiler.getProfilerForPlatform(), isNotNull);
     });
 
-    test('getProcessUsage', () async {
-      ProcessProfiler profiler = ProcessProfiler.getProfilerForPlatform();
-      UsageInfo info = await profiler.getProcessUsage(pid);
-
-      expect(info, isNotNull);
-      expect(info.cpuPercentage, greaterThanOrEqualTo(0.0));
-      expect(info.memoryKB, greaterThanOrEqualTo(0));
-    });
+    // TODO: https://github.com/dart-lang/sdk/issues/29815
+//    test('getProcessUsage', () async {
+//      ProcessProfiler profiler = ProcessProfiler.getProfilerForPlatform();
+//      UsageInfo info = await profiler.getProcessUsage(pid);
+//
+//      expect(info, isNotNull);
+//      expect(info.cpuPercentage, greaterThanOrEqualTo(0.0));
+//      expect(info.memoryKB, greaterThanOrEqualTo(0));
+//    });
   });
 }
