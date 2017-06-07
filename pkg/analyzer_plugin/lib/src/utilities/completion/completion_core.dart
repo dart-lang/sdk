@@ -26,7 +26,7 @@ class CompletionCollectorImpl implements CompletionCollector {
   /**
    * A list of the completion suggestions that have been collected.
    */
-  List<CompletionSuggestion> suggestions;
+  List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
   /**
    * Initialize a newly created completion collector.
