@@ -90,39 +90,24 @@ The language specifies type promotion out of four components:
     statement.
 
 3.  **Which variables can have their types promoted.** Some code may cause a
-    fact to no longer be true. In that case, we shouldn't promote it. A simple
-    example is:
+    fact to not be soundly reliable. In that case, we shouldn't promote. For
+    example:
 
     ```dart
-    if (o is String) {
-      o = 123; // Not a string anymore!
-      return o.length;
-    }
-    ```
-
-    After the assignment, it's definitely no longer a true fact that `o` is a
-    String.
-
-    There are other, more subtle ways where a fact may be true, but the analysis
-    is too complex to do. Usually this relates to closures that modify a
-    variable and may or may not be called, like:
-
-    ```dart
-    int stringLength(Object o, takeCallback(callback())) {
+    test(Object o, bool callClosure) {
       closure() {
-        o = 123; // Not a string.
+        o = 123;
       }
 
       if (o is String) {
-        takeCallback(closure); // ???
-        return o.length;
+        if (callClosure) closure();
+        print(o.length);
       }
     }
     ```
 
-    After the invocation of `takeCallback()`, will `o` still be a String? Maybe.
-    It depends on whether the function passed to `stringLength()` calls the
-    closure that is passed to it. To avoid cases like this, the spec defines
+    At the point where `.length` is accessed, `o` may be a String, or it may be
+    an int if `callClosure` was true. To avoid cases like this, the spec defines
     certain variables to be off limits for type promotion.
 
 4.  **Which pairs of types -- declared and promoted -- are allowed for
@@ -288,28 +273,58 @@ The specification places several restrictions on the variables whose type can be
 *   if `v` is captured by a closure in the scope S then `v` cannot be
     potentially mutated anywhere.
 
-This is a little too restrictive. We relax the restriction on potential
-assignments to allow assignments inside the scope that promotion applies to if
-the assigned value's type is the same as the promoted type, as in:
+The most common case where this eliminates useful promotion is the second rule.
+Consider:
 
 ```dart
-int stringLength(Object o) {
+Object trimIfString(Object o) {
+  if (o is String) o = o.trim();
+  return o;
+}
+```
+
+In Dart today, the assignment to `o` prevents `o` from being promoted. That in
+turn means the call to `o.trim()` has a static error since Object has no
+`trim()` method.
+
+We accommodate these cases by simply removing the second restriction. We allow
+promotion to occur even if the variable is assigned within the promoted scope.
+This opens the door to code that is not safe:
+
+```dart
+test(Object o) {
   if (o is String) {
-    o = o.trim();
-    return o.length;
+    o = 123;          // No longer a String.
+    print(o.length);  // Error!
   }
 }
 ```
 
-Here, the `if (o is String)` promotes `o` to String inside the body of the if.
-Since `trim()` returns a String which is the same as that promoted type, the
-assignment of `o` to its result does not disable its promotion.
+Obviously, by the time we execute `o.length`, `o` will no longer be a String and
+the call will fail. We address this by promoting `o`'s static type not just for
+accesses of `o`, but for assignments to it as well.
 
-We couldn't relax this restriction before strong mode because the static type of
-expressions could not be trusted. Now that we have a sound type system, it's a
-reasonable change. This does imply, though, that during static analysis of type
-promotion, we need to compute the static type of the right-hand side of
-assignment expressions to be able to determine if promotion applies.
+In this example, if means the `o = 123` now generates a static error because an
+int cannot be assigned to a variable of (promoted) type String. There are still
+cases where the assignment is allowed but would lead to unsound code because of
+an implicit downcast:
+
+```dart
+test(Object o) {
+  if (o is String) {
+    o = new Object(); // No longer a String.
+    print(o.length);  // Error!
+  }
+}
+```
+
+Here, the assignment `o = new Object()` has no static error, but would lead to
+code that fails later since Object has no `length` getter. We address this like
+all downcasts are addressed in strong mode, by checking at runtime that the
+assignment succeeds. Now, though, the runtime check is against the *promoted*
+type. In the above example, at runtime, we check that `new Object()` can be
+assigned to String. That check fails at runtime, and we never reach the invalid
+call to `o.length`.
 
 *Optional: The restriction on mutation within closures could be relaxed to only
 apply to closures defined before the boolean expression that allows for the
@@ -511,13 +526,10 @@ promotable in the scope S if all of the following conditions are met:
 
 *   `v` is either a local variable or a parameter,
 
-*   `v` cannot be potentially mutated within any closure unless all of the types
-    of the values that would be assigned to `v` within S are more specific than
-    the promoted type of `v`, and
+*   `v` cannot be potentially mutated within any closure, and
 
-*   if `v` is captured by a closure in S then `v` cannot be potentially mutated
-    anywhere unless all of the types of the values that would be assigned to `v`
-    within S are more specific than the promoted type of `v`.
+*   if `v` is accessed by a closure in S then `v` cannot be potentially mutated
+    anywhere.
 
 Dart 2.0: Type promotion for a variable `v` is also allowed only for a subset of
 variables and is dependent on the use of the variable in the scope in which the
@@ -527,17 +539,10 @@ promotable in the scope S if all of the following conditions are met:
 
 *   `v` is either a local variable or a parameter,
 
-*   `v` cannot be potentially mutated within S unless all of the types of the
-    values that would be assigned to `v` within S are a subtype of the promoted
-    type of `v`,
+*   `v` cannot be potentially mutated within any closure, and
 
-*   `v` cannot be potentially mutated within any closure unless all of the types
-    of the values that would be assigned to `v` within S are a subtype of the
-    promoted type of `v`, and
-
-*   if `v` is captured by a closure in S then `v` cannot be potentially mutated
-    anywhere unless all of the types of the values that would be assigned to `v`
-    within S are a subtype of the promoted type of `v`.
+*   if `v` is accessed by a closure in S then `v` cannot be potentially mutated
+    anywhere.
 
 For the purposes of type promotion, a statement cannot complete normally if the
 statement is either
