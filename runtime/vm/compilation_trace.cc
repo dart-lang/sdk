@@ -22,6 +22,11 @@ CompilationTraceSaver::CompilationTraceSaver(Zone* zone)
 
 void CompilationTraceSaver::Visit(const Function& function) {
   if (!function.HasCode()) {
+    return;  // Not compiled.
+  }
+  if (function.parent_function() != Function::null()) {
+    // Lookup works poorly for local functions. We compile all local functions
+    // in a compiled function instead.
     return;
   }
 
@@ -52,21 +57,40 @@ CompilationTraceLoader::CompilationTraceLoader(Thread* thread)
       error_(Object::Handle(zone_)) {}
 
 
-RawObject* CompilationTraceLoader::CompileTrace(char* buffer) {
+static char* FindCharacter(char* str, char goal, char* limit) {
+  while (str < limit) {
+    if (*str == goal) {
+      return str;
+    }
+    str++;
+  }
+  return NULL;
+}
+
+
+RawObject* CompilationTraceLoader::CompileTrace(uint8_t* buffer,
+                                                intptr_t size) {
   // First compile functions named in the trace.
-  char* cursor = buffer;
-  while (cursor != NULL) {
+  char* cursor = reinterpret_cast<char*>(buffer);
+  char* limit = cursor + size;
+  while (cursor < limit) {
     char* uri = cursor;
-    char* comma1 = strchr(uri, ',');
-    if (comma1 == NULL) break;
+    char* comma1 = FindCharacter(uri, ',', limit);
+    if (comma1 == NULL) {
+      break;
+    }
     *comma1 = 0;
     char* cls_name = comma1 + 1;
-    char* comma2 = strchr(cls_name, ',');
-    if (comma2 == NULL) break;
+    char* comma2 = FindCharacter(cls_name, ',', limit);
+    if (comma2 == NULL) {
+      break;
+    }
     *comma2 = 0;
     char* func_name = comma2 + 1;
-    char* newline = strchr(func_name, '\n');
-    if (newline == NULL) break;
+    char* newline = FindCharacter(func_name, '\n', limit);
+    if (newline == NULL) {
+      break;
+    }
     *newline = 0;
     error_ = CompileTriple(uri, cls_name, func_name);
     if (error_.IsError()) {
@@ -94,7 +118,8 @@ RawObject* CompilationTraceLoader::CompileTrace(char* buffer) {
     }
   }
 
-  // Finally, compile closures in all compiled functions.
+  // Finally, compile closures in all compiled functions. Don't cache the
+  // length since compiling may append to this list.
   const GrowableObjectArray& closure_functions = GrowableObjectArray::Handle(
       zone_, thread_->isolate()->object_store()->closure_functions());
   for (intptr_t i = 0; i < closure_functions.Length(); i++) {
@@ -112,6 +137,16 @@ RawObject* CompilationTraceLoader::CompileTrace(char* buffer) {
 }
 
 
+// Use a fuzzy match to find the right function to compile. This allows a
+// compilation trace to remain mostly valid in the face of program changes, and
+// deals with implicit/dispatcher functions that don't have proper names.
+//  - Ignore private name mangling
+//  - If looking for a getter and we only have the corresponding regular method,
+//    compile the regular method, create its implicit closure and compile that.
+//  - If looking for a regular method and we only have the corresponding getter,
+//    compile the getter, create its method extractor and compile that.
+//  - If looking for a getter and we only have a const field, evaluate the const
+//    field.
 RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
                                                  const char* cls_cstr,
                                                  const char* func_cstr) {
@@ -158,8 +193,8 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
 
     function_ = cls_.LookupFunctionAllowPrivate(function_name_);
     field_ = cls_.LookupFieldAllowPrivate(function_name_);
-    if (field_.IsNull() && is_getter) {
-      // Maybe this is a tear off.
+    if (function_.IsNull() && is_getter) {
+      // Maybe this was a tear off.
       add_closure = true;
       function_name2_ = Field::NameFromGetter(function_name_);
       function_ = cls_.LookupFunctionAllowPrivate(function_name2_);

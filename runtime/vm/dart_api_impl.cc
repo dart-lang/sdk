@@ -6512,7 +6512,7 @@ Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length) {
   CHECK_NULL(buffer);
   CompilationTraceLoader loader(thread);
   const Object& error =
-      Object::Handle(loader.CompileTrace(reinterpret_cast<char*>(buffer)));
+      Object::Handle(loader.CompileTrace(buffer, buffer_length));
   if (error.IsError()) {
     return Api::NewHandle(T, Error::Cast(error).raw());
   }

@@ -23,6 +23,12 @@ def BuildOptions():
       action="store", type="string",
       help="kind of snapshot to generate",
       default="core")
+  result.add_option("--load_compilation_trace",
+      action="store", type="string",
+      help="path to a compilation trace to load before generating a core-jit snapshot")
+  result.add_option("--vm_flag",
+      action="append", type="string", default=[],
+      help="pass additional Dart VM flag")
   result.add_option("--vm_output_bin",
       action="store", type="string",
       help="output file name into which vm isolate snapshot in binary form " +
@@ -112,7 +118,13 @@ def Main():
     return 1
 
   # Setup arguments to the snapshot generator binary.
-  script_args = ["--ignore_unrecognized_flags" ]
+  script_args = ["--ignore_unrecognized_flags"]
+
+  for flag in options.vm_flag:
+    script_args.append(flag)
+
+  if options.load_compilation_trace:
+    script_args.append(''.join([ "--load_compilation_trace=", options.load_compilation_trace]))
 
   # Pass along the package_root if there is one.
   if options.package_root:

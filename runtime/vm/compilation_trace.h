@@ -20,7 +20,7 @@ class CompilationTraceSaver : public FunctionVisitor {
 
   void StealBuffer(uint8_t** buffer, intptr_t* buffer_length) {
     *buffer = reinterpret_cast<uint8_t*>(buf_.buffer());
-    *buffer_length = buf_.length() + 1;  // Include terminating NUL.
+    *buffer_length = buf_.length();
   }
 
  private:
@@ -36,7 +36,7 @@ class CompilationTraceLoader : public ValueObject {
  public:
   explicit CompilationTraceLoader(Thread* thread);
 
-  RawObject* CompileTrace(char* buffer);
+  RawObject* CompileTrace(uint8_t* buffer, intptr_t buffer_length);
 
  private:
   RawObject* CompileTriple(const char* uri_cstr,
