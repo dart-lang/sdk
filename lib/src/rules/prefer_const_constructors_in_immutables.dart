@@ -113,7 +113,7 @@ class Visitor extends SimpleAstVisitor {
     final listener = new MyAnalysisErrorListener();
 
     // put a fake const keyword to use ConstantVerifier
-    node.constKeyword = new Token(TokenType.KEYWORD, node.offset);
+    node.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
     try {
       final errorReporter = new ErrorReporter(listener, rule.reporter.source);
       node.accept(new ConstantVerifier(errorReporter, node.element.library,
