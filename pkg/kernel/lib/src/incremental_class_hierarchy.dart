@@ -79,6 +79,12 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   final Map<Class, _ClassInfo> _info = new LinkedHashMap<Class, _ClassInfo>();
 
   @override
+  ClassHierarchy applyChanges(Iterable<Class> classes) {
+    if (classes.isEmpty) return this;
+    return new IncrementalClassHierarchy();
+  }
+
+  @override
   void forEachOverridePair(Class node,
       callback(Member declaredMember, Member interfaceMember, bool isSetter)) {
     _ClassInfo info = _getInfo(node);

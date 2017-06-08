@@ -24,12 +24,48 @@ class ClosedWorldClassHierarchyTest extends _ClassHierarchyTest {
   ClassHierarchy createClassHierarchy(Program program) {
     return new ClosedWorldClassHierarchy(program);
   }
+
+  void test_applyChanges() {
+    var a = addClass(new Class(name: 'A', supertype: objectSuper));
+    addClass(new Class(name: 'B', supertype: a.asThisSupertype));
+
+    _assertTestLibraryText('''
+class A {}
+class B extends self::A {}
+''');
+
+    // No updated classes, the same hierarchy.
+    expect(hierarchy.applyChanges([]), same(hierarchy));
+
+    // Has updated classes, a new hierarchy.
+    var newHierarchy = hierarchy.applyChanges([a]);
+    expect(newHierarchy, isNot(same(hierarchy)));
+    expect(newHierarchy, new isInstanceOf<ClosedWorldClassHierarchy>());
+  }
 }
 
 @reflectiveTest
 class IncrementalClassHierarchyTest extends _ClassHierarchyTest {
   ClassHierarchy createClassHierarchy(Program program) {
     return new IncrementalClassHierarchy();
+  }
+
+  void test_applyChanges() {
+    var a = addClass(new Class(name: 'A', supertype: objectSuper));
+    addClass(new Class(name: 'B', supertype: a.asThisSupertype));
+
+    _assertTestLibraryText('''
+class A {}
+class B extends self::A {}
+''');
+
+    // No updated classes, the same hierarchy.
+    expect(hierarchy.applyChanges([]), same(hierarchy));
+
+    // Has updated classes, a new hierarchy.
+    var newHierarchy = hierarchy.applyChanges([a]);
+    expect(newHierarchy, isNot(same(hierarchy)));
+    expect(newHierarchy, new isInstanceOf<IncrementalClassHierarchy>());
   }
 }
 

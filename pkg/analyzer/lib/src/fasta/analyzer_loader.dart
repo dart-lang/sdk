@@ -23,6 +23,7 @@ import 'package:analyzer/src/fasta/element_store.dart' show ElementStore;
 import 'analyzer_diet_listener.dart' show AnalyzerDietListener;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/src/incremental_class_hierarchy.dart';
 
 class AnalyzerLoader<L> extends SourceLoader<L> {
   ElementStore elementStore;
@@ -34,6 +35,8 @@ class AnalyzerLoader<L> extends SourceLoader<L> {
   void computeHierarchy(Program program) {
     elementStore = new ElementStore(coreLibrary, builders);
     ticker.logMs("Built analyzer element model.");
+    hierarchy = new IncrementalClassHierarchy();
+    ticker.logMs("Computed class hierarchy");
     coreTypes = new CoreTypes(program);
     ticker.logMs("Computed core types");
   }

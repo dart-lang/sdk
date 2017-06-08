@@ -120,10 +120,19 @@ abstract class ClassHierarchy {
   /// parameter determines which type of access is being overridden.
   void forEachOverridePair(Class class_,
       callback(Member declaredMember, Member interfaceMember, bool isSetter));
+
+  /// This method is invoked by the client after it changed the [classes], and
+  /// some of the information that this hierarchy might have cached, is not
+  /// valid anymore. The hierarchy may perform required updates and return the
+  /// same instance, or return a new instance.
+  ClassHierarchy applyChanges(Iterable<Class> classes);
 }
 
 /// Implementation of [ClassHierarchy] for closed world.
 class ClosedWorldClassHierarchy implements ClassHierarchy {
+  /// The [Program] that this class hierarchy represents.
+  final Program _program;
+
   /// All classes in the program.
   ///
   /// The list is ordered so that classes occur after their super classes.
@@ -447,10 +456,16 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return new ClassSet(this, _infoFor[class_].subclassIntervalList);
   }
 
-  ClosedWorldClassHierarchy._internal(Program program, int numberOfClasses)
+  @override
+  ClassHierarchy applyChanges(Iterable<Class> classes) {
+    if (classes.isEmpty) return this;
+    return new ClosedWorldClassHierarchy(_program);
+  }
+
+  ClosedWorldClassHierarchy._internal(this._program, int numberOfClasses)
       : classes = new List<Class>(numberOfClasses) {
     // Build the class ordering based on a topological sort.
-    for (var library in program.libraries) {
+    for (var library in _program.libraries) {
       for (var classNode in library.classes) {
         _topologicalSortVisit(classNode);
       }

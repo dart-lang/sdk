@@ -53,11 +53,8 @@ class MixinFullResolution {
       }
     }
 
-    // If there are transformed classes, we need to update hierarchy.
-    if (transformedClasses.isNotEmpty) {
-      var program = libraries.first.enclosingProgram;
-      hierarchy = new ClosedWorldClassHierarchy(program);
-    }
+    // We might need to update the class hierarchy.
+    hierarchy = hierarchy.applyChanges(transformedClasses);
 
     // Resolve all super call expressions and super initializers.
     for (var library in libraries) {
