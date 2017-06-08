@@ -215,3 +215,6 @@ analyzer_cli/test/driver_test: Pass, Slow
 
 [ $runtime == vm && $system == windows ]
 analyzer/test/src/task/strong/checker_test: Pass, Slow
+
+[ $runtime == vm && $system == linux && $checked ]
+analysis_server/test/integration/diagnostic/get_server_port_test: RuntimeError
