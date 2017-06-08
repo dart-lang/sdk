@@ -234,6 +234,7 @@ cc/IsolateReload_TearOff_Instance_Equality: Fail # Issue 28349
 cc/IsolateReload_TearOff_Library_Identity: Fail # Issue 28349
 cc/IsolateReload_TearOff_List_Set: Fail # Issue 28349
 cc/IsolateReload_TopLevelFieldAdded: Fail # Issue 28349
+cc/IsolateReload_TypedefAddParameter: Fail # Issue 28349
 cc/IsolateReload_TypeIdentity: Fail # Issue 28349
 cc/IsolateReload_TypeIdentityGeneric: Fail # Issue 28349
 cc/IsolateReload_TypeIdentityParameter: Fail # Issue 28349
