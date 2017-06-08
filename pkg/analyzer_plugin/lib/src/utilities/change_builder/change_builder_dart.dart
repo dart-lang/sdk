@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -372,6 +373,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       Expression argument, int index, Set<String> usedNames) {
     // append type name
     DartType type = argument.bestType;
+    if (type == null || type.isBottom || type.isDartCoreNull) {
+      type = DynamicTypeImpl.instance;
+    }
     if (writeType(type, addSupertypeProposals: true, groupName: 'TYPE$index')) {
       write(' ');
     }
@@ -593,13 +597,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   void _addSuperTypeProposals(
       LinkedEditBuilder builder, DartType type, Set<DartType> alreadyAdded) {
-    if (type != null &&
-        type.element is ClassElement &&
-        alreadyAdded.add(type)) {
-      ClassElement element = type.element as ClassElement;
-      builder.addSuggestion(LinkedEditSuggestionKind.TYPE, element.name);
-      _addSuperTypeProposals(builder, element.supertype, alreadyAdded);
-      for (InterfaceType interfaceType in element.interfaces) {
+    if (type is InterfaceType && alreadyAdded.add(type)) {
+      builder.addSuggestion(LinkedEditSuggestionKind.TYPE, type.displayName);
+      _addSuperTypeProposals(builder, type.superclass, alreadyAdded);
+      for (InterfaceType interfaceType in type.interfaces) {
         _addSuperTypeProposals(builder, interfaceType, alreadyAdded);
       }
     }
@@ -796,8 +797,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /**
    * Returns the source to reference [type] in this [CompilationUnit].
    *
-   * Fills [librariesToImport] with [LibraryElement]s whose elements are
-   * used by the generated source, but not imported.
+   * Causes any libraries whose elements are used by the generated source, to be
+   * imported.
    */
   String _getTypeSource(DartType type, ClassElement enclosingClass,
       ExecutableElement enclosingExecutable,

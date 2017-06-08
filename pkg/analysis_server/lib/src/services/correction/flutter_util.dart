@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
 const _FLUTTER_WIDGET_NAME = "Widget";
 const _FLUTTER_WIDGET_URI = "package:flutter/src/widgets/framework.dart";
@@ -50,6 +51,48 @@ void convertFlutterChildToChildren(
         new RegExp("^$indentOld", multiLine: true), "$indentNew");
     newChildArgSrc = "$prefix$newChildArgSrc,$eol$indentOld]";
     _addReplaceEdit(rangeNode(childArg), newChildArgSrc);
+  }
+}
+
+void convertFlutterChildToChildren2(
+    DartFileEditBuilder builder,
+    InstanceCreationExpression childArg,
+    NamedExpression namedExp,
+    String eol,
+    Function getNodeText,
+    Function getLinePrefix,
+    Function getIndent,
+    Function getText,
+    Function rangeNode) {
+  int childLoc = namedExp.offset + 'child'.length;
+  builder.addSimpleInsertion(childLoc, 'ren');
+  int listLoc = childArg.offset;
+  String childArgSrc = getNodeText(childArg);
+  if (!childArgSrc.contains(eol)) {
+    builder.addSimpleInsertion(listLoc, '<Widget>[');
+    builder.addSimpleInsertion(listLoc + childArg.length, ']');
+  } else {
+    int newlineLoc = childArgSrc.lastIndexOf(eol);
+    if (newlineLoc == childArgSrc.length) {
+      newlineLoc -= 1;
+    }
+    String indentOld = getLinePrefix(childArg.offset + 1 + newlineLoc);
+    String indentNew = '$indentOld${getIndent(1)}';
+    // The separator includes 'child:' but that has no newlines.
+    String separator =
+        getText(namedExp.offset, childArg.offset - namedExp.offset);
+    String prefix = separator.contains(eol) ? "" : "$eol$indentNew";
+    if (prefix.isEmpty) {
+      builder.addSimpleInsertion(
+          namedExp.offset + 'child:'.length, ' <Widget>[');
+      builder.addDeletion(new SourceRange(childArg.offset - 2, 2));
+    } else {
+      builder.addSimpleInsertion(listLoc, '<Widget>[');
+    }
+    String newChildArgSrc = childArgSrc.replaceAll(
+        new RegExp("^$indentOld", multiLine: true), "$indentNew");
+    newChildArgSrc = "$prefix$newChildArgSrc,$eol$indentOld]";
+    builder.addSimpleReplacement(rangeNode(childArg), newChildArgSrc);
   }
 }
 

@@ -4530,7 +4530,7 @@ main() {
   test(throw 42);
 }
 
-void test(arg0) {
+void test(param0) {
 }
 ''');
   }
@@ -4733,7 +4733,7 @@ main() {
   test(null);
 }
 
-void test(arg0) {
+void test(param0) {
 }
 ''');
   }
@@ -5102,7 +5102,7 @@ class A<T> {
 }
 
 class B {
-  dynamic compute() {}
+  compute() {}
 }
 ''');
   }
