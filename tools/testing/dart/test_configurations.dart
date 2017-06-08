@@ -68,16 +68,8 @@ Future testConfigurations(List<Configuration> configurations) async {
   var listTests = firstConf.listTests;
 
   var reportInJson = firstConf.reportInJson;
-  var recordingPath = firstConf.recordingPath;
-  var replayPath = firstConf.replayPath;
 
   Browser.resetBrowserConfiguration = firstConf.resetBrowser;
-
-  if (recordingPath != null && replayPath != null) {
-    print("Fatal: Can't have the '--record_to_file' and '--replay_from_file'"
-        "at the same time. Exiting ...");
-    exit(1);
-  }
 
   if (!firstConf.appendLogs) {
     var files = [
@@ -271,16 +263,6 @@ Future testConfigurations(List<Configuration> configurations) async {
 
   // [firstConf] is needed here, since the ProcessQueue needs to know the
   // settings of 'noBatch' and 'local_ip'
-  new ProcessQueue(
-      firstConf,
-      maxProcesses,
-      maxBrowserProcesses,
-      startTime,
-      testSuites,
-      eventListener,
-      allTestsFinished,
-      verbose,
-      recordingPath,
-      replayPath,
-      adbDevicePool);
+  new ProcessQueue(firstConf, maxProcesses, maxBrowserProcesses, startTime,
+      testSuites, eventListener, allTestsFinished, verbose, adbDevicePool);
 }

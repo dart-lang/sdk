@@ -267,10 +267,6 @@ used for browsers to connect to.''',
     new _Option.int(
         'test_driver_error_port', 'Port for http test driver server errors.',
         defaultsTo: 0),
-    new _Option('record_to_file',
-        'Records all commands to be executed and writes to a file.'),
-    new _Option(
-        'replay_from_file', 'Replays a previously recorded list of commands.'),
     new _Option(
         'builder_tag',
         '''Machine specific options that is not captured by the regular test
@@ -619,8 +615,6 @@ compiler.''')
                 dartPath: data["dart"] as String,
                 dartPrecompiledPath: data["dart_precompiled"] as String,
                 flutterPath: data["flutter"] as String,
-                recordingPath: data["record_to_file"] as String,
-                replayPath: data["replay_from_file"] as String,
                 taskCount: data["tasks"] as int,
                 timeout: data["timeout"] as int,
                 shardCount: data["shards"] as int,

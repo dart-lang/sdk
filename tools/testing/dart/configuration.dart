@@ -58,8 +58,6 @@ class Configuration {
       this.dartPath,
       this.dartPrecompiledPath,
       this.flutterPath,
-      this.recordingPath,
-      this.replayPath,
       this.taskCount,
       int timeout,
       this.shardCount,
@@ -125,8 +123,6 @@ class Configuration {
   final String dartPath;
   final String dartPrecompiledPath;
   final String flutterPath;
-  final String recordingPath;
-  final String replayPath;
 
   final int taskCount;
   final int shardCount;

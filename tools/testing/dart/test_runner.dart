@@ -23,7 +23,6 @@ import 'configuration.dart';
 import 'dependency_graph.dart' as dgraph;
 import 'expectation.dart';
 import 'path.dart';
-import 'record_and_replay.dart';
 import 'runtime_configuration.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';
@@ -2892,50 +2891,6 @@ class CommandExecutorImpl implements CommandExecutor {
   }
 }
 
-class RecordingCommandExecutor implements CommandExecutor {
-  TestCaseRecorder _recorder;
-
-  RecordingCommandExecutor(Path path) : _recorder = new TestCaseRecorder(path);
-
-  Future<CommandOutput> runCommand(node, ProcessCommand command, int timeout) {
-    assert(node.dependencies.length == 0);
-    assert(_cleanEnvironmentOverrides(command.environmentOverrides));
-    _recorder.nextCommand(command, timeout);
-    // Return dummy CommandOutput
-    var output =
-        createCommandOutput(command, 0, false, [], [], const Duration(), false);
-    return new Future.value(output);
-  }
-
-  Future cleanup() {
-    _recorder.finish();
-    return new Future.value();
-  }
-
-  // Returns [:true:] if the environment contains only 'DART_CONFIGURATION'
-  bool _cleanEnvironmentOverrides(Map environment) {
-    if (environment == null) return true;
-    return environment.length == 0 ||
-        (environment.length == 1 &&
-            environment.containsKey("DART_CONFIGURATION"));
-  }
-}
-
-class ReplayingCommandExecutor implements CommandExecutor {
-  TestCaseOutputArchive _archive = new TestCaseOutputArchive();
-
-  ReplayingCommandExecutor(Path path) {
-    _archive.loadFromPath(path);
-  }
-
-  Future cleanup() => new Future.value();
-
-  Future<CommandOutput> runCommand(node, ProcessCommand command, int timeout) {
-    assert(node.dependencies.length == 0);
-    return new Future.value(_archive.outputOf(command));
-  }
-}
-
 bool shouldRetryCommand(CommandOutput output) {
   if (!output.successful) {
     List<String> stdout, stderr;
@@ -3116,8 +3071,6 @@ class ProcessQueue {
       this._eventListener,
       this._allDone,
       [bool verbose = false,
-      String recordingOutputFile,
-      String recordedInputFile,
       AdbDevicePool adbDevicePool]) {
     void setupForListing(TestCaseEnqueuer testCaseEnqueuer) {
       _graph.events
@@ -3198,9 +3151,6 @@ class ProcessQueue {
         });
       }
 
-      bool recording = recordingOutputFile != null;
-      bool replaying = recordedInputFile != null;
-
       // When the graph building is finished, notify event listeners.
       _graph.events
           .where((event) => event is dgraph.GraphSealedEvent)
@@ -3212,16 +3162,9 @@ class ProcessQueue {
       new CommandEnqueuer(_graph);
 
       // CommandExecutor will execute commands
-      CommandExecutor executor;
-      if (recording) {
-        executor = new RecordingCommandExecutor(new Path(recordingOutputFile));
-      } else if (replaying) {
-        executor = new ReplayingCommandExecutor(new Path(recordedInputFile));
-      } else {
-        executor = new CommandExecutorImpl(
-            _globalConfiguration, maxProcesses, maxBrowserProcesses,
-            adbDevicePool: adbDevicePool);
-      }
+      var executor = new CommandExecutorImpl(
+          _globalConfiguration, maxProcesses, maxBrowserProcesses,
+          adbDevicePool: adbDevicePool);
 
       // Run "runnable commands" using [executor] subject to
       // maxProcesses/maxBrowserProcesses constraint
@@ -3234,10 +3177,7 @@ class ProcessQueue {
       testCaseCompleter.finishedTestCases.listen((TestCase finishedTestCase) {
         resetDebugTimer();
 
-        // If we're recording, we don't report any TestCases to listeners.
-        if (!recording) {
-          eventFinishedTestCase(finishedTestCase);
-        }
+        eventFinishedTestCase(finishedTestCase);
       }, onDone: () {
         // Wait until the commandQueue/exectutor is done (it may need to stop
         // batch runners, browser controllers, ....)
