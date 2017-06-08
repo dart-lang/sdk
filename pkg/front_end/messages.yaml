@@ -398,3 +398,11 @@ TypeAfterVar:
 TypeRequired:
   template: "A type or modifier is required here."
   tip: "Try adding a type, 'var', 'const', or 'final'."
+
+AssertExtraneousArgument:
+  template: "`assert` can't have more than two arguments."
+  dart2jsCode: FASTA_FATAL
+
+AssertAsExpression:
+  template: "`assert` can't be used as an expression."
+  dart2jsCode: FASTA_FATAL

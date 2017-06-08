@@ -150,7 +150,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleRecoverExpression(Token token) {
+  void handleRecoverExpression(Token token, FastaMessage message) {
     debugEvent("RecoverExpression");
     push(NullValue.Expression);
     push(token.charOffset);

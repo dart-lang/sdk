@@ -230,8 +230,13 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleRecoverExpression(Token token) {
+  void handleRecoverExpression(Token token, FastaMessage message) {
     debugEvent("RecoverExpression");
+  }
+
+  void handleExtraneousExpression(Token token, FastaMessage message) {
+    debugEvent("ExtraneousExpression");
+    pop(); // Discard the extraneous expression.
   }
 
   @override

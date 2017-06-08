@@ -11,7 +11,7 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType, MemberKind, Parser;
+    show Assert, FormalParameterType, MemberKind, Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
 import 'package:front_end/src/scanner/token.dart' as analyzer;
@@ -682,9 +682,9 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+  void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
       Token comma, Token rightParenthesis, Token semicolon) {
-    debugEvent("AssertStatement");
+    debugEvent("Assert");
     Expression message = popIfNotNull(comma);
     Expression condition = pop();
     push(ast.assertStatement(assertKeyword, leftParenthesis, condition, comma,

@@ -295,12 +295,8 @@ conditional_import_string_test: Crash # Requires deferred libraries
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
 vm/optimized_stacktrace_test: Pass, Slow
 
-[$runtime != vm || $compiler != none]
-assert_initializer_test: SKIP  # not implemented yet, experiment is VM only.
-
-[$runtime == vm && $compiler == none && ! $checked]
-assert_initializer_test/*: MissingCompileTimeError, OK  # asserts shouldn't fail in unchecked mode.
-assert_initializer_test/none: pass
+[ ($runtime != vm && $compiler != dartk && $compiler != dartkp ) || ($compiler != none && $compiler != dartk && $compiler != dartkp )]
+assert_initializer_test/*: SKIP  # not implemented yet, experiment is VM only.
 
 [($runtime == vm || $runtime == flutter) && $compiler == none && $checked]
 # The VM doesn't enforce that potentially const expressions are actually

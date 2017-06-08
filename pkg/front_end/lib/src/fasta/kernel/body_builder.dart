@@ -7,7 +7,8 @@ library fasta.body_builder;
 import '../fasta_codes.dart'
     show FastaMessage, codeExpectedButGot, codeExpectedFunctionBody;
 
-import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
+import '../parser/parser.dart'
+    show Assert, FormalParameterType, MemberKind, optional;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
@@ -106,6 +107,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   Scope formalParameterScope;
 
+  /// This is set to true when we start parsing an initializer. We use this to
+  /// find the correct scope for initializers like in this example:
+  ///
+  ///     class C {
+  ///       final x;
+  ///       C(x) : x = x;
+  ///     }
+  ///
+  /// When parsing this initializer `x = x`, `x` must be resolved in two
+  /// different scopes. The first `x` must be resolved in the class' scope, the
+  /// second in the formal parameter scope.
   bool inInitializer = false;
 
   bool inCatchClause = false;
@@ -2446,12 +2458,55 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+  void beginAssert(Token assertKeyword, Assert kind) {
+    debugEvent("beginAssert");
+    // If in an assert initializer, make sure [inInitializer] is false so we
+    // use the formal parameter scope. If this is any other kind of assert,
+    // inInitializer should be false anyway.
+    inInitializer = false;
+  }
+
+  @override
+  void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
       Token commaToken, Token rightParenthesis, Token semicolonToken) {
-    debugEvent("AssertStatement");
+    debugEvent("Assert");
     Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();
-    push(new AssertStatement(condition, message));
+    AssertStatement statement = new AssertStatement(condition, message);
+    switch (kind) {
+      case Assert.Statement:
+        push(statement);
+        break;
+
+      case Assert.Expression:
+        push(buildCompileTimeError("`assert` can't be used as an expression."));
+        break;
+
+      case Assert.Initializer:
+        push(buildAssertInitializer(statement));
+        break;
+    }
+  }
+
+  Initializer buildAssertInitializer(AssertStatement statement) {
+    // Since kernel only has asserts in statment form, we convert it to an
+    // expression by wrapping it in an anonymous function which we call
+    // immediately.
+    //
+    // Additionally, kernel has no initializer that evaluates an expression,
+    // but it does have `LocalInitializer` which requires a variable declartion.
+    //
+    // So we produce an initializer like this:
+    //
+    //    var #t0 = (() { statement; }) ()
+    return new LocalInitializer(new VariableDeclaration.forValue(
+        buildMethodInvocation(
+            new FunctionExpression(new FunctionNode(statement)),
+            callName,
+            new Arguments.empty(),
+            statement.fileOffset,
+            isConstantExpression: true,
+            isImplicitCall: true)));
   }
 
   @override

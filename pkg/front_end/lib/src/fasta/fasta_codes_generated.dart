@@ -44,6 +44,21 @@ FastaMessage _formatStackOverflow(Uri uri, int charOffset) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_AssertExtraneousArgument> codeAssertExtraneousArgument =
+    const FastaCode<_AssertExtraneousArgument>("AssertExtraneousArgument",
+        template: r"`assert` can't have more than two arguments.",
+        dart2jsCode: "FASTA_FATAL",
+        format: _formatAssertExtraneousArgument);
+
+typedef FastaMessage _AssertExtraneousArgument(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatAssertExtraneousArgument(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeAssertExtraneousArgument,
+      message: "`assert` can't have more than two arguments.", arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_UnexpectedToken> codeUnexpectedToken =
     const FastaCode<_UnexpectedToken>("UnexpectedToken",
         template: r"Unexpected token '#lexeme'.",
@@ -756,6 +771,21 @@ FastaMessage _formatYieldAsIdentifier(Uri uri, int charOffset) {
       message:
           "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
       arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_AssertAsExpression> codeAssertAsExpression =
+    const FastaCode<_AssertAsExpression>("AssertAsExpression",
+        template: r"`assert` can't be used as an expression.",
+        dart2jsCode: "FASTA_FATAL",
+        format: _formatAssertAsExpression);
+
+typedef FastaMessage _AssertAsExpression(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatAssertAsExpression(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeAssertAsExpression,
+      message: "`assert` can't be used as an expression.", arguments: {});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

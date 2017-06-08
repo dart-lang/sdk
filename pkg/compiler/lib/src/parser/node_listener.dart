@@ -17,6 +17,8 @@ import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'element_listener.dart' show ElementListener, ScannerOptions;
 
+import 'package:front_end/src/fasta/parser/parser.dart' as fasta show Assert;
+
 class NodeListener extends ElementListener {
   NodeListener(ScannerOptions scannerOptions, DiagnosticReporter reporter,
       CompilationUnitElement element)
@@ -961,7 +963,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+  void endAssert(Token assertKeyword, fasta.Assert kind, Token leftParenthesis,
       Token commaToken, Token rightParenthesis, Token semicolonToken) {
     Node message;
     Node condition;

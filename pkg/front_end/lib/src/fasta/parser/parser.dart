@@ -10,6 +10,8 @@ import '../fasta_codes.dart'
         FastaMessage,
         codeAbstractNotSync,
         codeAsciiControlCharacter,
+        codeAssertAsExpression,
+        codeAssertExtraneousArgument,
         codeAsyncAsIdentifier,
         codeAwaitAsIdentifier,
         codeAwaitForNotAsync,
@@ -156,6 +158,17 @@ enum MemberKind {
 
   /// A top-level field.
   TopLevelField,
+}
+
+/// Syntactic forms of `assert`.
+///
+/// An assertion can legally occur as a statement. However, assertions are also
+/// experimentally allowed in initializers. For improved error recovery, we
+/// also attempt to parse asserts as expressions.
+enum Assert {
+  Expression,
+  Initializer,
+  Statement,
 }
 
 /// An event generating parser of Dart programs. This parser expects all tokens
@@ -1561,14 +1574,22 @@ class Parser {
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = false;
     do {
-      token = token.next;
-      listener.beginInitializer(token);
-      token = parseExpression(token);
-      listener.endInitializer(token);
+      token = parseInitializer(token.next);
       ++count;
     } while (optional(',', token));
     mayParseFunctionExpressions = old;
     listener.endInitializers(count, begin, token);
+    return token;
+  }
+
+  Token parseInitializer(Token token) {
+    listener.beginInitializer(token);
+    if (optional('assert', token)) {
+      token = parseAssert(token, Assert.Initializer);
+    } else {
+      token = parseExpression(token);
+    }
+    listener.endInitializer(token);
     return token;
   }
 
@@ -1577,7 +1598,8 @@ class Parser {
       return parseLiteralString(token);
     } else {
       reportRecoverableErrorCodeWithToken(token, codeExpectedString);
-      return parseRecoverExpression(token);
+      return parseRecoverExpression(
+          token, codeExpectedString.format(uri, token.charOffset, token));
     }
   }
 
@@ -2686,7 +2708,8 @@ class Parser {
     return token;
   }
 
-  Token parseRecoverExpression(Token token) => parseExpression(token);
+  Token parseRecoverExpression(Token token, FastaMessage message) =>
+      parseExpression(token);
 
   int expressionDepth = 0;
   Token parseExpression(Token token) {
@@ -2915,6 +2938,8 @@ class Parser {
       } else if (!inPlainSync &&
           (identical(value, "yield") || identical(value, "async"))) {
         return expressionExpected(token);
+      } else if (identical(value, "assert")) {
+        return parseAssert(token, Assert.Expression);
       } else if (token.isIdentifier) {
         return parseSendOrFunctionLiteral(token, context);
       } else {
@@ -3773,7 +3798,8 @@ class Parser {
     return expectSemicolon(token);
   }
 
-  Token parseAssertStatement(Token token) {
+  Token parseAssert(Token token, Assert kind) {
+    listener.beginAssert(token, kind);
     Token assertKeyword = token;
     Token commaToken = null;
     token = expect('assert', token);
@@ -3787,11 +3813,30 @@ class Parser {
       token = token.next;
       token = parseExpression(token);
     }
+    if (optional(',', token)) {
+      Token firstExtra = token.next;
+      while (optional(',', token)) {
+        token = token.next;
+        Token begin = token;
+        token = parseExpression(token);
+        listener.handleExtraneousExpression(
+            begin, codeAssertExtraneousArgument.format(uri, token.charOffset));
+      }
+      reportRecoverableErrorCode(firstExtra, codeAssertExtraneousArgument);
+    }
     Token rightParenthesis = token;
     token = expect(')', token);
     mayParseFunctionExpressions = old;
-    listener.handleAssertStatement(
-        assertKeyword, leftParenthesis, commaToken, rightParenthesis, token);
+    listener.endAssert(assertKeyword, kind, leftParenthesis, commaToken,
+        rightParenthesis, token);
+    if (kind == Assert.Expression) {
+      reportRecoverableErrorCode(assertKeyword, codeAssertAsExpression);
+    }
+    return token;
+  }
+
+  Token parseAssertStatement(Token token) {
+    token = parseAssert(token, Assert.Statement);
     return expectSemicolon(token);
   }
 
