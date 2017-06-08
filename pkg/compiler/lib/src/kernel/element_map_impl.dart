@@ -550,6 +550,12 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     return env.orderedTypeSet.maxDepth;
   }
 
+  ClassEntity _getAppliedMixin(KClass cls) {
+    _KClassEnv env = _classEnvs[cls.classIndex];
+    _ensureSupertypes(cls, env);
+    return env.mixedInType?.element;
+  }
+
   DartType _substByContext(DartType type, InterfaceType context) {
     return type.subst(
         context.typeArguments, _getThisType(context.element).typeArguments);
@@ -1468,8 +1474,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
   @override
   ClassEntity getAppliedMixin(ClassEntity cls) {
-    // TODO(johnniwinther): Implement this.
-    return null;
+    return elementMap._getAppliedMixin(cls);
   }
 
   @override

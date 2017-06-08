@@ -34,10 +34,10 @@ import 'compiler_helper.dart';
 const SOURCE = const {
   'main.dart': '''
 foo() => 1;
-bar() => true;
+bar(a) => !a;
 main() {
   foo();
-  bar();
+  bar(true);
   [];
   {};
   var x = null;

@@ -625,6 +625,11 @@ class KernelAstTypeInferenceMap implements KernelToTypeInferenceMap {
         member, _globalInferenceResults);
   }
 
+  TypeMask getInferredTypeOfParameter(Local parameter) {
+    return TypeMaskFactory.inferredTypeForParameter(
+        parameter, _globalInferenceResults);
+  }
+
   TypeMask selectorTypeOf(Selector selector, TypeMask mask) {
     return TypeMaskFactory.inferredTypeForSelector(
         selector, mask, _globalInferenceResults);

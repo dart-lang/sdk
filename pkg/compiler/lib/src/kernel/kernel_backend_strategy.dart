@@ -170,6 +170,11 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   @override
+  TypeMask getInferredTypeOfParameter(Local parameter) {
+    return _closedWorld.commonMasks.dynamicType;
+  }
+
+  @override
   TypeMask inferredIndexType(ir.ForInStatement forInStatement) {
     return _closedWorld.commonMasks.dynamicType;
   }
@@ -270,6 +275,20 @@ class KLocal implements Local {
 
   @override
   Entity get executableContext => memberContext;
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('local(');
+    if (memberContext.enclosingClass != null) {
+      sb.write(memberContext.enclosingClass.name);
+      sb.write('.');
+    }
+    sb.write(memberContext.name);
+    sb.write('#');
+    sb.write(name);
+    sb.write(')');
+    return sb.toString();
+  }
 }
 
 /// TODO(johnniwinther,efortuna): Implement this.

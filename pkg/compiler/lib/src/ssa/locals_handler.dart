@@ -84,8 +84,6 @@ class LocalsHandler {
   GlobalTypeInferenceResults get _globalInferenceResults =>
       builder.globalInferenceResults;
 
-  ClosureClassMaps get _closureToClassMapper => builder.closureToClassMapper;
-
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
   DartType substInContext(DartType type) {
@@ -138,10 +136,10 @@ class LocalsHandler {
 
   /// If the scope (function or loop) [node] has captured variables then this
   /// method creates a box and sets up the redirections.
-  void enterScope(ast.Node node, {bool forGenerativeConstructorBody: false}) {
+  void enterScope(ClosureScope scopeData,
+      {bool forGenerativeConstructorBody: false}) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
-    ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData == null) return;
     HInstruction box;
     // The scope has captured variables.
@@ -198,35 +196,28 @@ class LocalsHandler {
   /// Documentation wanted -- johnniwinther
   ///
   /// Invariant: [function] must be an implementation element.
-  void startFunction(MemberEntity element, ast.Node node,
+  void startFunction(MemberEntity element, ClosureClassMap closureData,
+      ClosureScope scopeData, Map<Local, TypeMask> parameters,
       {bool isGenerativeConstructorBody}) {
     assert(!(element is MemberElement && !element.isImplementation),
         failedAt(element));
-    closureData = _closureToClassMapper.getMemberMap(element);
+    this.closureData = closureData;
 
-    if (element is MethodElement) {
-      MethodElement functionElement = element;
-      FunctionSignature params = functionElement.functionSignature;
-      ClosureScope scopeData = closureData.capturingScopes[node];
-      params.orderedForEachParameter((ParameterElement parameterElement) {
-        if (element.isGenerativeConstructorBody) {
-          if (scopeData != null &&
-              scopeData.isCapturedVariable(parameterElement)) {
-            // The parameter will be a field in the box passed as the
-            // last parameter. So no need to have it.
-            return;
-          }
+    parameters.forEach((Local local, TypeMask typeMask) {
+      if (isGenerativeConstructorBody) {
+        if (scopeData != null && scopeData.isCapturedVariable(local)) {
+          // The parameter will be a field in the box passed as the
+          // last parameter. So no need to have it.
+          return;
         }
-        HInstruction parameter = builder.addParameter(
-            parameterElement,
-            TypeMaskFactory.inferredTypeForParameter(
-                parameterElement, _globalInferenceResults));
-        builder.parameters[parameterElement] = parameter;
-        directLocals[parameterElement] = parameter;
-      });
-    }
+      }
+      HInstruction parameter = builder.addParameter(local, typeMask);
+      builder.parameters[local] = parameter;
+      directLocals[local] = parameter;
+    });
 
-    enterScope(node, forGenerativeConstructorBody: isGenerativeConstructorBody);
+    enterScope(scopeData,
+        forGenerativeConstructorBody: isGenerativeConstructorBody);
 
     // If the freeVariableMapping is not empty, then this function was a
     // nested closure that captures variables. Redirect the captured
@@ -325,12 +316,16 @@ class LocalsHandler {
   HInstruction readLocal(Local local, {SourceInformation sourceInformation}) {
     if (isAccessedDirectly(local)) {
       if (directLocals[local] == null) {
-        if (local is TypeVariableElement) {
-          throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
-              "Runtime type information not available for $local.");
+        if (local is TypeVariableLocal) {
+          throw new SpannableAssertionFailure(
+              CURRENT_ELEMENT_SPANNABLE,
+              "Runtime type information not available for $local "
+              "in $executableContext.");
         } else {
           throw new SpannableAssertionFailure(
-              local, "Cannot find value $local in ${directLocals.keys}.");
+              local,
+              "Cannot find value $local in ${directLocals.keys} for "
+              "$executableContext.");
         }
       }
       HInstruction value = directLocals[local];
@@ -486,7 +481,7 @@ class LocalsHandler {
       // redirections already now. This way the initializer can write its
       // values into the box.
       // For other loops the box will be created when entering the body.
-      enterScope(node);
+      enterScope(scopeData);
     }
   }
 
@@ -519,7 +514,7 @@ class LocalsHandler {
     // If there are no declared boxed loop variables then we did not create the
     // box before the initializer and we have to create the box now.
     if (!scopeData.hasBoxedLoopVariables()) {
-      enterScope(node);
+      enterScope(scopeData);
     }
   }
 

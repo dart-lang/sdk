@@ -165,8 +165,7 @@ abstract class GraphBuilder {
 
   HParameterValue lastAddedParameter;
 
-  Map<ParameterElement, HInstruction> parameters =
-      <ParameterElement, HInstruction>{};
+  Map<Local, HInstruction> parameters = <Local, HInstruction>{};
 
   HBasicBlock addNewBlock() {
     HBasicBlock block = graph.addNewBlock();

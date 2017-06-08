@@ -1035,7 +1035,8 @@ class SsaBuilder extends ast.Visitor
           closureToClassMapper.getMemberMap(callee);
       localsHandler.closureData = newClosureData;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        localsHandler.enterScope(resolvedAst.node,
+        localsHandler.enterScope(
+            newClosureData.capturingScopes[resolvedAst.node],
             forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
@@ -1440,7 +1441,18 @@ class SsaBuilder extends ast.Visitor
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
 
-    localsHandler.startFunction(element, node,
+    Map<Local, TypeMask> parameters = <Local, TypeMask>{};
+    if (element is MethodElement) {
+      element.functionSignature
+          .orderedForEachParameter((ParameterElement parameter) {
+        parameters[parameter] = TypeMaskFactory.inferredTypeForParameter(
+            parameter, globalInferenceResults);
+      });
+    }
+
+    ClosureClassMap closureData = closureToClassMapper.getMemberMap(element);
+    localsHandler.startFunction(
+        element, closureData, closureData.capturingScopes[node], parameters,
         isGenerativeConstructorBody: element.isGenerativeConstructorBody);
     close(new HGoto()).addSuccessor(block);
 

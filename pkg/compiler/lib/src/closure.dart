@@ -420,7 +420,7 @@ class ClosureScope {
 
   bool hasBoxedLoopVariables() => !boxedLoopVariables.isEmpty;
 
-  bool isCapturedVariable(VariableElement variable) {
+  bool isCapturedVariable(Local variable) {
     return capturedVariables.containsKey(variable);
   }
 
@@ -1223,6 +1223,20 @@ class TypeVariableLocal implements Local {
   bool operator ==(other) {
     if (other is! TypeVariableLocal) return false;
     return typeVariable == other.typeVariable;
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('type_variable_local(');
+    if (memberContext.enclosingClass != null) {
+      sb.write(memberContext.enclosingClass.name);
+      sb.write('.');
+    }
+    sb.write(memberContext.name);
+    sb.write('#');
+    sb.write(name);
+    sb.write(')');
+    return sb.toString();
   }
 }
 

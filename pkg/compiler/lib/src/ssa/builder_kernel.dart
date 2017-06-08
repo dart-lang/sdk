@@ -249,7 +249,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void buildConstructor(ir.Constructor constructor) {
     ir.Class constructedClass = constructor.enclosingClass;
 
-    openFunction();
+    openFunction(constructor.function);
     _addClassTypeVariablesIfNeeded(constructor);
 
     // TODO(sra): Type parameter constraint checks.
@@ -603,7 +603,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         closureToClassMapper.getMemberMap(astElement);
     localsHandler.closureData = newClosureData;
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      localsHandler.enterScope(resolvedAst.node,
+      localsHandler.enterScope(newClosureData.capturingScopes[resolvedAst.node],
           forGenerativeConstructorBody: astElement.isGenerativeConstructorBody);
     }
     inlinedFrom(astElement, () {
@@ -614,7 +614,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   /// Builds generative constructor body.
   void buildConstructorBody(ir.Constructor constructor) {
-    openFunction();
+    openFunction(constructor.function);
     _addClassTypeVariablesIfNeeded(constructor);
     constructor.function.body.accept(this);
     closeFunction();
@@ -623,7 +623,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// Builds a SSA graph for FunctionNodes, found in FunctionExpressions and
   /// Procedures.
   void buildFunctionNode(ir.FunctionNode functionNode) {
-    openFunction();
+    openFunction(functionNode);
     ir.TreeNode parent = functionNode.parent;
     if (parent is ir.Procedure && parent.kind == ir.ProcedureKind.Factory) {
       _addClassTypeVariablesIfNeeded(functionNode.parent);
@@ -670,11 +670,28 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
   }
 
-  void openFunction() {
+  void openFunction([ir.FunctionNode function]) {
+    Map<Local, TypeMask> parameterMap = <Local, TypeMask>{};
+    if (function != null) {
+      void handleParameter(ir.VariableDeclaration node) {
+        Local local = _localsMap.getLocal(node);
+        parameterMap[local] =
+            _typeInferenceMap.getInferredTypeOfParameter(local);
+      }
+
+      function.positionalParameters.forEach(handleParameter);
+      function.namedParameters.toList()
+        ..sort(namedOrdering)
+        ..forEach(handleParameter);
+    }
+
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
 
-    localsHandler.startFunction(targetElement, functionNode,
+    ClosureClassMap closureData =
+        closureToClassMapper.getMemberMap(targetElement);
+    localsHandler.startFunction(targetElement, closureData,
+        closureData.capturingScopes[functionNode], parameterMap,
         isGenerativeConstructorBody: _targetIsConstructorBody);
     close(new HGoto()).addSuccessor(block);
 

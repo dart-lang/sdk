@@ -208,6 +208,10 @@ void checkClassHierarchyNodes(
   checkMixinUses(
       closedWorld1, closedWorld2, node1.cls, node2.cls, elementEquivalence,
       verbose: verbose);
+  Expect.isNotNull(
+      closedWorld1.getClassSet(cls1), "Missing ClassSet for $cls1");
+  Expect.isNotNull(
+      closedWorld2.getClassSet(cls2), "Missing ClassSet for $cls2");
 }
 
 void checkMixinUses(

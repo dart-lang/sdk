@@ -998,6 +998,9 @@ abstract class KernelToTypeInferenceMap {
   /// Returns the inferred type of [member].
   TypeMask getInferredTypeOf(MemberEntity member);
 
+  /// Returns the inferred type of the [parameter].
+  TypeMask getInferredTypeOfParameter(Local parameter);
+
   /// Returns the inferred type of a dynamic [selector] access on a receiver of
   /// type [mask].
   TypeMask selectorTypeOf(Selector selector, TypeMask mask);

@@ -923,6 +923,8 @@ abstract class ResolutionWorldBuilderBase
     // variables to the super constructor.
     forEachInstantiatedClass(addSubtypes);
 
+    _classHierarchyNodes.keys.toList().forEach(_ensureClassSet);
+
     return typesImplementedBySubclasses;
   }
 }
@@ -953,6 +955,10 @@ abstract class KernelResolutionWorldBuilderBase
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
     _closed = true;
+    assert(
+        _classHierarchyNodes.length == _classSets.length,
+        "ClassHierarchyNode/ClassSet mismatch: "
+        "$_classHierarchyNodes vs $_classSets");
     return _closedWorldCache = new KernelClosedWorld(
         commonElements: _commonElements,
         nativeData: _nativeDataBuilder.close(),
