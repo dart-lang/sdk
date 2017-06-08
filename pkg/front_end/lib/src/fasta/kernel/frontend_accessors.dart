@@ -8,9 +8,12 @@
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
     show
         KernelArguments,
+        KernelComplexAssign,
+        KernelConditionalExpression,
         KernelMethodInvocation,
         KernelPropertyGet,
         KernelPropertySet,
+        KernelVariableDeclaration,
         KernelVariableGet,
         KernelVariableSet;
 
@@ -69,14 +72,16 @@ abstract class Accessor {
   Expression buildNullAwareAssignment(Expression value, DartType type,
       {bool voidContext: false}) {
     if (voidContext) {
-      return _finish(new ConditionalExpression(buildIsNull(_makeRead()),
-          _makeWrite(value, false), new NullLiteral(), type));
+      return _finish(new KernelConditionalExpression(
+          buildIsNull(_makeRead()), _makeWrite(value, false), new NullLiteral(),
+          isNullAwareCombiner: true));
     }
     var tmp = new VariableDeclaration.forValue(_makeRead());
     return _finish(makeLet(
         tmp,
-        new ConditionalExpression(buildIsNull(new VariableGet(tmp)),
-            _makeWrite(value, false), new VariableGet(tmp), type)));
+        new KernelConditionalExpression(buildIsNull(new VariableGet(tmp)),
+            _makeWrite(value, false), new VariableGet(tmp),
+            isNullAwareCombiner: true)));
   }
 
   /// Returns an [Expression] representing a compound assignment (e.g. `+=`)
@@ -87,7 +92,7 @@ abstract class Accessor {
       Procedure interfaceTarget}) {
     return _finish(_makeWrite(
         makeBinary(_makeRead(), binaryOperator, interfaceTarget, value,
-            offset: offset),
+            offset: offset, isCombiner: true),
         voidContext));
   }
 
@@ -115,11 +120,14 @@ abstract class Accessor {
     }
     var value = new VariableDeclaration.forValue(_makeRead());
     valueAccess() => new VariableGet(value);
-    var dummy = new VariableDeclaration.forValue(_makeWrite(
-        makeBinary(
-            valueAccess(), binaryOperator, interfaceTarget, new IntLiteral(1),
-            offset: offset),
-        true));
+    var dummy = new KernelVariableDeclaration.forValue(
+        _makeWrite(
+            makeBinary(valueAccess(), binaryOperator, interfaceTarget,
+                new IntLiteral(1),
+                offset: offset, isCombiner: true),
+            true),
+        helper.functionNestingLevel,
+        isDiscarding: true);
     return _finish(makeLet(value, makeLet(dummy, valueAccess())));
   }
 
@@ -267,8 +275,8 @@ class NullAwarePropertyAccessor extends Accessor {
 
   Expression _finish(Expression body) => makeLet(
       receiver,
-      new ConditionalExpression(
-          buildIsNull(receiverAccess()), new NullLiteral(), body, type));
+      new KernelConditionalExpression(
+          buildIsNull(receiverAccess()), new NullLiteral(), body));
 }
 
 class SuperPropertyAccessor extends Accessor {
@@ -363,19 +371,28 @@ class IndexAccessor extends Accessor {
     // The call to []= does not return the value like direct-style assignments
     // do.  We need to bind the value in a let.
     var valueVariable = new VariableDeclaration.forValue(value);
-    var dummy = new VariableDeclaration.forValue(new KernelMethodInvocation(
-        receiverAccess(),
-        indexSetName,
-        new KernelArguments(
-            <Expression>[indexAccess(), new VariableGet(valueVariable)]),
-        interfaceTarget: setter)
-      ..fileOffset = offsetForToken(token));
+    var dummy = new KernelVariableDeclaration.forValue(
+        new KernelMethodInvocation(
+            receiverAccess(),
+            indexSetName,
+            new KernelArguments(
+                <Expression>[indexAccess(), new VariableGet(valueVariable)]),
+            interfaceTarget: setter)
+          ..fileOffset = offsetForToken(token),
+        helper.functionNestingLevel,
+        isDiscarding: true);
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
 
   Expression _finish(Expression body) {
-    return makeLet(receiverVariable, makeLet(indexVariable, body));
+    if (receiverVariable == null) {
+      assert(indexVariable == null);
+      return body;
+    } else {
+      return new KernelComplexAssign(
+          receiverVariable, makeLet(indexVariable, body));
+    }
   }
 }
 
@@ -531,10 +548,10 @@ Expression makeLet(VariableDeclaration variable, Expression body) {
 
 Expression makeBinary(
     Expression left, Name operator, Procedure interfaceTarget, Expression right,
-    {int offset: TreeNode.noOffset}) {
+    {int offset: TreeNode.noOffset, bool isCombiner: false}) {
   return new KernelMethodInvocation(
       left, operator, new KernelArguments(<Expression>[right]),
-      interfaceTarget: interfaceTarget)
+      interfaceTarget: interfaceTarget, isCombiner: isCombiner)
     ..fileOffset = offset;
 }
 

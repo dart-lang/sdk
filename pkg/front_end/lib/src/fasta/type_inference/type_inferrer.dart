@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/errors.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
-import 'package:front_end/src/fasta/names.dart' show callName;
+import 'package:front_end/src/fasta/names.dart'
+    show callName, indexGetName, indexSetName;
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
@@ -24,12 +26,16 @@ import 'package:kernel/ast.dart'
         FunctionType,
         Initializer,
         InterfaceType,
+        Let,
         Member,
+        MethodInvocation,
         Name,
         Procedure,
         ProcedureKind,
         Statement,
         TypeParameterType,
+        VariableDeclaration,
+        VariableGet,
         VoidType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -236,6 +242,39 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// inference.
   TypePromoter get typePromoter;
 
+  /// Finds a member of [receiverType] called [name], and if it is found,
+  /// reports it through instrumentation using [fileOffset].
+  Member findInterfaceMember(DartType receiverType, Name name, int fileOffset,
+      {bool setter: false, bool silent: false}) {
+    // Our non-strong golden files currently don't include interface
+    // targets, so we can't store the interface target without causing tests
+    // to fail.  TODO(paulberry): fix this.
+    if (!strongMode) return null;
+
+    if (receiverType is InterfaceType) {
+      var interfaceMember = classHierarchy
+          .getInterfaceMember(receiverType.classNode, name, setter: setter);
+      if (!silent && interfaceMember != null) {
+        instrumentation?.record(Uri.parse(uri), fileOffset, 'target',
+            new InstrumentationValueForMember(interfaceMember));
+      }
+      return interfaceMember;
+    }
+    return null;
+  }
+
+  /// Finds a member of [receiverType] called [name], and if it is found,
+  /// reports it through instrumentation and records it in [methodInvocation].
+  Member findMethodInvocationMember(
+      DartType receiverType, MethodInvocation methodInvocation,
+      {bool silent: false}) {
+    var interfaceMember = findInterfaceMember(
+        receiverType, methodInvocation.name, methodInvocation.fileOffset,
+        silent: silent);
+    methodInvocation.interfaceTarget = interfaceMember;
+    return interfaceMember;
+  }
+
   FunctionType getCalleeFunctionType(Member interfaceMember,
       DartType receiverType, Name methodName, bool followCall) {
     var type = getCalleeType(interfaceMember, receiverType, methodName);
@@ -409,6 +448,172 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     closureContext = new ClosureContext(this, asyncMarker, returnType);
     inferStatement(body);
     closureContext = null;
+  }
+
+  /// Performs type inference for a (possibly compound) assignment whose LHS is
+  /// an index expression.
+  DartType inferIndexAssign(
+      Expression expression, DartType typeContext, bool typeNeeded) {
+    typeNeeded =
+        listener.indexAssignEnter(expression, typeContext) || typeNeeded;
+
+    // Decompose an expression like `a[b] += c` into subexpressions and record
+    // the variables holding those subexpressions (if any):
+    //   receiver: a
+    //   index: b
+    //   read: a[b]
+    //   rhs: c
+    //   value: a[b] + c
+    //   write: a[b] = a[b] + c
+    Expression receiver;
+    VariableDeclaration receiverVariable;
+    Expression index;
+    VariableDeclaration indexVariable;
+    Expression read;
+    VariableDeclaration readVariable;
+    Expression rhs;
+    VariableDeclaration rhsVariable;
+    Expression value;
+    VariableDeclaration valueVariable;
+    MethodInvocation write;
+    KernelConditionalExpression nullAwareCombiner;
+    MethodInvocation combiner;
+    List<VariableDeclaration> syntheticVariables = [];
+    VariableGet finalValue;
+    bool isPostIncDec = false;
+
+    // Dig in to the tree to find the expression with the main effect.
+    Expression e = expression;
+    while (true) {
+      if (e is Let) {
+        Let let = e;
+        var variable = let.variable;
+        syntheticVariables.add(variable);
+        if (KernelVariableDeclaration.isDiscarding(variable)) {
+          // This happens when we are dealing with a desugared expression for
+          // something like `var x = a[b] = c;`, which desugars to:
+          //
+          // var x =
+          //  let v1 = a in
+          //   let v2 = b in
+          //    let v3 = c in
+          //     let v4 = v1.[]=(v2, v3) in
+          //      v3
+          //
+          // In this case `e` is `let v4 = v1.[]=(v2, v3) in v3`, so the
+          // expression with the main effect is found in the initializer.
+          //
+          // We know that the "let" body is always a VariableGet, since the only
+          // circumstance in which this sort of desugaring occurs is when the
+          // final value of the expression was computed in a previous "let".
+          assert(let.body is VariableGet);
+          finalValue = let.body;
+          e = variable.initializer;
+        } else {
+          e = let.body;
+        }
+      } else if (e is KernelConditionalExpression &&
+          KernelConditionalExpression.isNullAwareCombiner(e)) {
+        KernelConditionalExpression conditional = e;
+        nullAwareCombiner = conditional;
+        e = conditional.then;
+      } else {
+        break;
+      }
+    }
+
+    Expression deref(Expression e, void callback(VariableDeclaration v)) {
+      if (e is VariableGet) {
+        var variable = e.variable;
+        if (syntheticVariables.contains(variable)) {
+          callback(variable);
+          return variable.initializer;
+        }
+      }
+      return e;
+    }
+
+    if (e is KernelMethodInvocation && identical(e.name.name, '[]=')) {
+      write = e;
+      receiver = deref(e.receiver, (v) => receiverVariable = v);
+      index = deref(e.arguments.positional[0], (v) => indexVariable = v);
+      value = deref(e.arguments.positional[1], (v) => valueVariable = v);
+      if (value is KernelMethodInvocation &&
+          KernelMethodInvocation.isCombiner(value)) {
+        combiner = value;
+        read = deref(value.receiver, (v) => readVariable = v);
+        rhs = deref(value.arguments.positional[0], (v) => rhsVariable = v);
+        isPostIncDec =
+            finalValue is VariableGet && finalValue.variable == readVariable;
+      } else {
+        rhs = value;
+        if (nullAwareCombiner != null) {
+          MethodInvocation equalsNullCheck = nullAwareCombiner.condition;
+          read = deref(equalsNullCheck.receiver, (v) => readVariable = v);
+        }
+      }
+    } else {
+      internalError('Unexpected expression type: $e');
+    }
+
+    var receiverType = inferExpression(receiver, null, true);
+    receiverVariable?.type = receiverType;
+    if (read != null) {
+      var readMember =
+          findMethodInvocationMember(receiverType, read, silent: true);
+      if (readVariable != null) {
+        var calleeType = getCalleeType(readMember, receiverType, indexGetName);
+        if (calleeType is FunctionType) {
+          readVariable.type = calleeType.returnType;
+        }
+      }
+    }
+    var writeMember = findMethodInvocationMember(receiverType, write);
+    // To replicate analyzer behavior, we base type inference on the write
+    // member.  TODO(paulberry): would it be better to use the read member
+    // when doing compound assignment?
+    var calleeType = getCalleeType(writeMember, receiverType, indexSetName);
+    DartType indexContext;
+    DartType rhsContext;
+    DartType inferredType;
+    if (calleeType is FunctionType &&
+        calleeType.positionalParameters.length >= 2) {
+      // TODO(paulberry): we ought to get a context for the index expression
+      // from the index formal parameter, but analyzer doesn't so for now we
+      // replicate its behavior.
+      indexContext = null;
+      rhsContext = calleeType.positionalParameters[1];
+      if (combiner != null) {
+        var combinerMember =
+            findMethodInvocationMember(rhsContext, combiner, silent: true);
+        if (isPostIncDec) {
+          inferredType = rhsContext;
+        } else {
+          inferredType = getCalleeFunctionType(
+                  combinerMember, rhsContext, combiner.name, false)
+              .returnType;
+        }
+        // Analyzer uses a null context for the RHS here.
+        // TODO(paulberry): improve on this.
+        rhsContext = null;
+      } else {
+        inferredType = rhsContext;
+      }
+    } else {
+      inferredType = const DynamicType();
+    }
+    var indexType = inferExpression(index, indexContext, true);
+    indexVariable?.type = indexType;
+    var rhsType = inferExpression(rhs, rhsContext, true);
+    rhsVariable?.type = rhsType;
+    valueVariable?.type = rhsContext ?? const DynamicType();
+    if (nullAwareCombiner != null) {
+      MethodInvocation equalsInvocation = nullAwareCombiner.condition;
+      findMethodInvocationMember(rhsContext, equalsInvocation);
+      nullAwareCombiner.staticType = inferredType;
+    }
+    listener.indexAssignExit(expression, inferredType);
+    return inferredType;
   }
 
   /// Performs the type inference steps that are shared by all kinds of

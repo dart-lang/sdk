@@ -760,8 +760,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
     push(makeLet(
         variable,
-        new ConditionalExpression(buildIsNull(new VariableGet(variable)), b,
-            new VariableGet(variable), const DynamicType())));
+        new KernelConditionalExpression(buildIsNull(new VariableGet(variable)),
+            b, new VariableGet(variable))));
   }
 
   /// Handle `a?.b(...)`.
@@ -3003,12 +3003,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       VariableDeclaration variable = new VariableDeclaration.forValue(receiver);
       return makeLet(
           variable,
-          new ConditionalExpression(
+          new KernelConditionalExpression(
               buildIsNull(new VariableGet(variable)),
               new NullLiteral(),
               new MethodInvocation(new VariableGet(variable), name, arguments)
-                ..fileOffset = offset,
-              const DynamicType()));
+                ..fileOffset = offset));
     } else {
       return new KernelMethodInvocation(receiver, name, arguments,
           isImplicitCall: isImplicitCall)

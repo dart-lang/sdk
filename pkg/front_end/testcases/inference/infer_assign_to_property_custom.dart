@@ -14,10 +14,10 @@ class B {
   A a;
 }
 
-var /*@topType=dynamic*/ v_prefix_pp = (/*@target=A::+*/ ++new B()
-    . /*error:TOP_LEVEL_INSTANCE_GETTER*/ /*@target=B::a*/ a);
-var /*@topType=dynamic*/ v_prefix_mm = (/*@target=A::-*/ --new B()
-    . /*error:TOP_LEVEL_INSTANCE_GETTER*/ /*@target=B::a*/ a);
+var /*@topType=dynamic*/ v_prefix_pp =
+    (++new B(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ /*@target=B::a*/ a);
+var /*@topType=dynamic*/ v_prefix_mm =
+    (--new B(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ /*@target=B::a*/ a);
 var /*@topType=dynamic*/ v_postfix_pp =
     (new B(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ /*@target=B::a*/ a++);
 var /*@topType=dynamic*/ v_postfix_mm =

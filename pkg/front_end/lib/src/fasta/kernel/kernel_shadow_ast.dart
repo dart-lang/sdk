@@ -232,13 +232,41 @@ class KernelCascadeExpression extends Let implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing a complex assignment in kernel form.
+///
+/// TODO(paulberry): once we know exactly what constitutes a "complex
+/// assignment", document it here.  It will probably be something like: an
+/// assignment that desugars to a "let" expression.
+class KernelComplexAssign extends Let implements KernelExpression {
+  KernelComplexAssign(VariableDeclaration variable, Expression body)
+      : super(variable, body);
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Assignment expressions are not immediately evident expressions.
+    collector.recordNotImmediatelyEvident(fileOffset);
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferIndexAssign(this, typeContext, typeNeeded);
+  }
+}
+
 /// Concrete shadow object representing a conditional expression in kernel form.
 /// Shadow object for [ConditionalExpression].
 class KernelConditionalExpression extends ConditionalExpression
     implements KernelExpression {
+  /// Indicates whether this conditional expression is associated with a `??=`
+  /// in a null-aware compound assignment.
+  final bool _isNullAwareCombiner;
+
   KernelConditionalExpression(
-      Expression condition, Expression then, Expression otherwise)
-      : super(condition, then, otherwise, const DynamicType());
+      Expression condition, Expression then, Expression otherwise,
+      {bool isNullAwareCombiner: false})
+      : _isNullAwareCombiner = isNullAwareCombiner,
+        super(condition, then, otherwise, const DynamicType());
 
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
@@ -268,6 +296,11 @@ class KernelConditionalExpression extends ConditionalExpression
     inferrer.listener.conditionalExpressionExit(this, inferredType);
     return inferredType;
   }
+
+  /// Helper method allowing [_isNullAwareCombiner] to be checked from outside
+  /// this library without adding a public member to the class.
+  static bool isNullAwareCombiner(KernelConditionalExpression e) =>
+      e._isNullAwareCombiner;
 }
 
 /// Shadow object for [ConstructorInvocation].
@@ -1038,9 +1071,16 @@ class KernelMethodInvocation extends MethodInvocation
   /// resulting from the invocation of a function expression.
   final bool _isImplicitCall;
 
+  /// Indicates whether this method invocation invokes the operator that
+  /// combines old and new values in a compound assignment.
+  final bool _isCombiner;
+
   KernelMethodInvocation(Expression receiver, Name name, Arguments arguments,
-      {bool isImplicitCall: false, Member interfaceTarget})
+      {bool isImplicitCall: false,
+      Member interfaceTarget,
+      bool isCombiner: false})
       : _isImplicitCall = isImplicitCall,
+        _isCombiner = isCombiner,
         super(receiver, name, arguments, interfaceTarget);
 
   @override
@@ -1053,29 +1093,19 @@ class KernelMethodInvocation extends MethodInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    if (identical(name.name, '[]=')) {
+      return inferrer.inferIndexAssign(this, typeContext, typeNeeded);
+    }
     typeNeeded = inferrer.listener.methodInvocationEnter(this, typeContext) ||
         typeNeeded;
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType = inferrer.inferExpression(receiver, null, true);
     bool isOverloadedArithmeticOperator = false;
-    Member interfaceMember;
-    if (receiverType is InterfaceType) {
-      interfaceMember = inferrer.classHierarchy
-          .getInterfaceMember(receiverType.classNode, name);
-      // Our non-strong golden files currently don't include interface
-      // targets, so we can't store the interface target without causing tests
-      // to fail.  TODO(paulberry): fix this.
-      if (inferrer.strongMode) {
-        if (interfaceMember != null) {
-          inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-              'target', new InstrumentationValueForMember(interfaceMember));
-        }
-        interfaceTarget = interfaceMember;
-      }
-      if (interfaceMember is Procedure) {
-        isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
-            .isOverloadedArithmeticOperator(interfaceMember);
-      }
+    Member interfaceMember =
+        inferrer.findMethodInvocationMember(receiverType, this);
+    if (interfaceMember is Procedure) {
+      isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
+          .isOverloadedArithmeticOperator(interfaceMember);
     }
     var calleeType = inferrer.getCalleeFunctionType(
         interfaceMember, receiverType, name, !_isImplicitCall);
@@ -1086,6 +1116,10 @@ class KernelMethodInvocation extends MethodInvocation
     inferrer.listener.methodInvocationExit(this, inferredType);
     return inferredType;
   }
+
+  /// Helper method allowing [_isCombiner] to be checked from outside this
+  /// library without adding a public member to the class.
+  static bool isCombiner(KernelMethodInvocation e) => e._isCombiner;
 }
 
 /// Shadow object for [Not].
@@ -1158,27 +1192,17 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
         inferrer.listener.propertyGetEnter(this, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the getter that was invoked.
     var receiverType = inferrer.inferExpression(receiver, null, true);
-    Member interfaceMember;
-    if (receiverType is InterfaceType) {
-      interfaceMember = inferrer.classHierarchy
-          .getInterfaceMember(receiverType.classNode, name);
-      if (inferrer.isTopLevel &&
-          ((interfaceMember is Procedure &&
-                  interfaceMember.kind == ProcedureKind.Getter) ||
-              interfaceMember is Field)) {
-        // References to fields and getters can't be relied upon for top level
-        // inference.
-        inferrer.recordNotImmediatelyEvident(fileOffset);
-      }
-      // Our non-strong golden files currently don't include interface targets,
-      // so we can't store the interface target without causing tests to fail.
-      // TODO(paulberry): fix this.
-      if (inferrer.strongMode) {
-        inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-            'target', new InstrumentationValueForMember(interfaceMember));
-        interfaceTarget = interfaceMember;
-      }
+    Member interfaceMember =
+        inferrer.findInterfaceMember(receiverType, name, fileOffset);
+    if (inferrer.isTopLevel &&
+        ((interfaceMember is Procedure &&
+                interfaceMember.kind == ProcedureKind.Getter) ||
+            interfaceMember is Field)) {
+      // References to fields and getters can't be relied upon for top level
+      // inference.
+      inferrer.recordNotImmediatelyEvident(fileOffset);
     }
+    interfaceTarget = interfaceMember;
     var inferredType =
         inferrer.getCalleeType(interfaceMember, receiverType, name);
     // TODO(paulberry): Infer tear-off type arguments if appropriate.
@@ -1210,19 +1234,9 @@ class KernelPropertySet extends PropertySet implements KernelExpression {
         inferrer.listener.propertySetEnter(this, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the setter that was invoked.
     var receiverType = inferrer.inferExpression(receiver, null, true);
-    Member interfaceMember;
-    if (receiverType is InterfaceType) {
-      interfaceMember = inferrer.classHierarchy
-          .getInterfaceMember(receiverType.classNode, name, setter: true);
-      // Our non-strong golden files currently don't include interface targets,
-      // so we can't store the interface target without causing tests to fail.
-      // TODO(paulberry): fix this.
-      if (inferrer.strongMode) {
-        inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-            'target', new InstrumentationValueForMember(interfaceMember));
-        interfaceTarget = interfaceMember;
-      }
-    }
+    Member interfaceMember = inferrer
+        .findInterfaceMember(receiverType, name, fileOffset, setter: true);
+    interfaceTarget = interfaceMember;
     var setterType = inferrer.getSetterType(interfaceMember, receiverType);
     var inferredType = inferrer.inferExpression(value, setterType, typeNeeded);
     inferrer.listener.propertySetExit(this, inferredType);
@@ -1792,6 +1806,10 @@ class KernelVariableDeclaration extends VariableDeclaration
 
   final bool _isLocalFunction;
 
+  /// Indicates whether this variable declaration exists for the sole purpose of
+  /// discarding a return value in a complex desugared expression.
+  final bool _isDiscarding;
+
   KernelVariableDeclaration(String name, this._functionNestingLevel,
       {Expression initializer,
       DartType type,
@@ -1800,6 +1818,7 @@ class KernelVariableDeclaration extends VariableDeclaration
       bool isLocalFunction: false})
       : _implicitlyTyped = type == null,
         _isLocalFunction = isLocalFunction,
+        _isDiscarding = false,
         super(name,
             initializer: initializer,
             type: type ?? const DynamicType(),
@@ -1807,9 +1826,11 @@ class KernelVariableDeclaration extends VariableDeclaration
             isConst: isConst);
 
   KernelVariableDeclaration.forValue(
-      Expression initializer, this._functionNestingLevel)
+      Expression initializer, this._functionNestingLevel,
+      {bool isDiscarding: false})
       : _implicitlyTyped = true,
         _isLocalFunction = false,
+        _isDiscarding = isDiscarding,
         super.forValue(initializer);
 
   @override
@@ -1827,6 +1848,11 @@ class KernelVariableDeclaration extends VariableDeclaration
     }
     inferrer.listener.variableDeclarationExit(this);
   }
+
+  /// Helper method allowing [_isDiscarding] to be checked from outside this
+  /// library without adding a public member to the class.
+  static bool isDiscarding(VariableDeclaration v) =>
+      v is KernelVariableDeclaration && v._isDiscarding;
 
   /// Determine whether the given [KernelVariableDeclaration] had an implicit
   /// type.

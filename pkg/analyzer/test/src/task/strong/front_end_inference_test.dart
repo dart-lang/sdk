@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -450,7 +451,10 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
 
   visitPrefixExpression(PrefixExpression node) {
     super.visitPrefixExpression(node);
-    _recordTarget(node.operator.charOffset, node.staticElement);
+    if (node.operator.type != TokenType.PLUS_PLUS &&
+        node.operator.type != TokenType.MINUS_MINUS) {
+      _recordTarget(node.operator.charOffset, node.staticElement);
+    }
   }
 
   @override

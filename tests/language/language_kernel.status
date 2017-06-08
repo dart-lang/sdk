@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
-generic_closure_test: RuntimeError # Not triaged.
 method_override_test: RuntimeError # Not triaged.
 runtime_type_function_test: RuntimeError # Not triaged.
 

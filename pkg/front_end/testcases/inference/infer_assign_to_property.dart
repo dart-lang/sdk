@@ -17,10 +17,10 @@ var /*@topType=dynamic*/ v_minus =
     (/*error:TOP_LEVEL_UNSUPPORTED*/ new A(). /*@target=A::f*/ f -= 1);
 var /*@topType=dynamic*/ v_multiply =
     (/*error:TOP_LEVEL_UNSUPPORTED*/ new A(). /*@target=A::f*/ f *= 1);
-var /*@topType=dynamic*/ v_prefix_pp = (/*@target=num::+*/ ++new A()
-    . /*error:TOP_LEVEL_INSTANCE_GETTER*/ /*@target=A::f*/ f);
-var /*@topType=dynamic*/ v_prefix_mm = (/*@target=num::-*/ --new A()
-    . /*error:TOP_LEVEL_INSTANCE_GETTER*/ /*@target=A::f*/ f);
+var /*@topType=dynamic*/ v_prefix_pp =
+    (++new A(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ /*@target=A::f*/ f);
+var /*@topType=dynamic*/ v_prefix_mm =
+    (--new A(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ /*@target=A::f*/ f);
 var /*@topType=dynamic*/ v_postfix_pp =
     (new A(). /*error:TOP_LEVEL_INSTANCE_GETTER*/ /*@target=A::f*/ f++);
 var /*@topType=dynamic*/ v_postfix_mm =

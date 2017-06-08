@@ -156,6 +156,12 @@ class TypeInferenceListener
   void ifStatementExit(IfStatement statement) =>
       debugStatementExit('ifStatement', statement);
 
+  bool indexAssignEnter(Expression expression, DartType typeContext) =>
+      debugExpressionEnter("indexAssign", expression, typeContext);
+
+  void indexAssignExit(Expression expression, DartType inferredType) =>
+      debugExpressionExit("indexAssign", expression, inferredType);
+
   bool intLiteralEnter(IntLiteral expression, DartType typeContext) =>
       debugExpressionEnter("intLiteral", expression, typeContext);
 
