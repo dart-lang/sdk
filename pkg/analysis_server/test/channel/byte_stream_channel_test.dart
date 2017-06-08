@@ -11,6 +11,7 @@ import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:typed_mock/typed_mock.dart';
 
 import '../mocks.dart';
 
@@ -236,6 +237,25 @@ class ByteStreamServerChannelTest {
     });
   }
 
+  test_sendNotification_exceptionInSink() async {
+    // This IOSink asynchronously throws an exception on any writeln().
+    var outputSink = new _IOSinkMock();
+    when(outputSink.writeln(anyObject)).thenInvoke((object) {
+      new Timer(new Duration(milliseconds: 10), () {
+        throw '42';
+      });
+    });
+
+    var channel = new ByteStreamServerChannel(
+        null, outputSink, InstrumentationService.NULL_SERVICE);
+
+    // Attempt to send a notification.
+    channel.sendNotification(new Notification('foo'));
+
+    // An exception was thrown, it did not leak, but the channel was closed.
+    await channel.closed;
+  }
+
   test_sendResponse() {
     channel.sendResponse(new Response('foo'));
     return outputLineStream.first
@@ -248,3 +268,5 @@ class ByteStreamServerChannelTest {
     });
   }
 }
+
+class _IOSinkMock extends TypedMock implements IOSink {}
