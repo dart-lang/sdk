@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/src/scanner/scanner.dart' as fe;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -131,7 +132,8 @@ class LineInfoTest extends EngineTestCase {
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
-    expect(lineStarts, orderedEquals([0, 5, 7, 9, 11]));
+    expect(
+        lineStarts, orderedEquals([0, 5, 7, 9, fe.Scanner.useFasta ? 12 : 11]));
   }
 
   void _assertLineInfo(

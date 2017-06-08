@@ -137,11 +137,11 @@ class _Scanner2 implements Scanner {
 
   @override
   void setSourceStart(int line, int column) {
-    lineStarts.removeAt(0);
     int offset = _readerOffset;
     if (line < 1 || column < 1 || offset < 0 || (line + column - 2) >= offset) {
       return;
     }
+    lineStarts.removeAt(0);
     for (int i = 2; i < line; i++) {
       lineStarts.add(1);
     }

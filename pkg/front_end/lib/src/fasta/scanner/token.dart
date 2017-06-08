@@ -118,7 +118,7 @@ class StringToken extends analyzer.TokenWithComment
 
   @override
   Token copy() => new StringToken._(
-      type, valueOrLazySubstring, charOffset, precedingComments);
+      type, valueOrLazySubstring, charOffset, copyComments(precedingComments));
 
   @override
   String value() => lexeme;
@@ -138,7 +138,7 @@ class SyntheticStringToken extends StringToken
 
   @override
   Token copy() => new SyntheticStringToken(
-      type, valueOrLazySubstring, offset, precedingComments);
+      type, valueOrLazySubstring, offset, copyComments(precedingComments));
 }
 
 class CommentToken extends StringToken implements analyzer.CommentToken {
