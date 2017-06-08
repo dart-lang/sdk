@@ -7,7 +7,7 @@
 ### Core library changes
 
 * `dart:io`
-  * Unified backends for `SecureSocket`, `SecurityContext`, and 
+  * Unified backends for `SecureSocket`, `SecurityContext`, and
     `X509Certificate` to be consistent across all platforms. All
     `SecureSocket`, `SecurityContext`, and `X509Certificate` properties and
     methods are now supported on iOS and OSX.
@@ -24,10 +24,12 @@
 * During a dynamic type check, `void` is not required to be `null` anymore.
   In practice, this makes overriding `void` functions with non-`void` functions
   safer.
+
 * During static analysis, a function or setter declared using `=>` with return
   type `void` now allows the returned expression to have any type. For example,
   assuming the declaration `int x;`, it is now type correct to have
   `void f() => ++x;`.
+
 * A new function-type syntax has been added to the language.
   Intuitively, the type of a function can be constructed by textually replacing
   the function's name with `Function` in its declaration. For instance, the
@@ -35,11 +37,13 @@
   wherever a type can be written. It is thus now possible to declare fields
   containing functions without needing to write typedefs: `void Function() x;`.
   The new function type has one restriction: it may not contain the old-style
-  function-type syntax for its parameters. The following is thus
-  illegal: `void Function(int f())`.
+  function-type syntax for its parameters. The following is thus illegal:
+  `void Function(int f())`.
   `typedefs` have been updated to support this new syntax.
+
   Examples:
-  ```
+
+  ```dart
   typedef F = void Function();  // F is the name for a `void` callback.
   int Function(int) f;  // A field `f` that contains an int->int function.
 
@@ -55,40 +59,39 @@
 
 #### Strong Mode
 
-* Removed ad hoc Future.then inference in favor of using FutureOr.  Prior to
-adding FutureOr to the language, the analyzer implented an ad hoc type inference
-for Future.then (and overrides) treating it as if the onValue callback was typed
-to return FutureOr for the purposes of inference.  This ad hoc inference has
-been removed now that FutureOr has been added.
+* Removed ad hoc `Future.then` inference in favor of using `FutureOr`.  Prior to
+  adding `FutureOr` to the language, the analyzer implented an ad hoc type
+  inference for `Future.then` (and overrides) treating it as if the onValue
+  callback was typed to return `FutureOr` for the purposes of inference.
+  This ad hoc inference has been removed now that `FutureOr` has been added.
 
-Packages that implement `Future` must either type the `onValue` parameter to
-`.then` as returning `FutureOr<T>`, or else must leave the type of the parameter
-entirely to allow inference to fill in the type.
+  Packages that implement `Future` must either type the `onValue` parameter to
+  `.then` as returning `FutureOr<T>`, or else must leave the type of the parameter
+  entirely to allow inference to fill in the type.
 
-* The following is also a change in strong mode: During static analysis, a
-  function or setter declared using `=>` with return type `void` now allows the
-  returned expression to have any type.
-* The new function-type syntax is also supported by strong mode.
+* During static analysis, a function or setter declared using `=>` with return
+  type `void` now allows the returned expression to have any type.
 
 ### Core library changes
+
+* `dart:async`, `dart:core`, `dart:io`
+    * Adding to a closed sink, including `IOSink`, is no longer not allowed. In
+      1.24, violations are only reported (on stdout or stderr), but a future
+      version of the Dart SDK will change this to throwing a `StateError`.
+
+* `dart:convert`
+  * **BREAKING** Removed the deprecated `ChunkedConverter` class.
+  * JSON maps are now typed as `Map<String, dynamic>` instead of
+    `Map<dynamic, dynamic>`. A JSON-map is not a `HashMap` or `LinkedHashMap`
+    anymore (but just a `Map`).
 
 * `dart:io`
   * Added `Platform.localeName`, needed for accessing the locale on platforms
     that don't store it in an environment variable.
   * Added `ProcessInfo.currentRss` and `ProcessInfo.maxRss` for inspecting
     the Dart VM process current and peak resident set size.
-  * Added 'RawSynchronousSocket', a basic synchronous socket implementation.
-* `dart:convert`
-  * Removed deprecated `ChunkedConverter` class.
-  * JSON maps are now typed as `Map<String, dynamic>` instead of
-    `Map<dynamic, dynamic>`. A JSON-map is not a `HashMap` or `LinkedHashMap`
-    anymore (but just a `Map`).
-* `dart:async`, `dart:io`, `dart:core`
-    * Adding to a closed sink, including `IOSink`, is not allowed anymore. In
-      1.24, violations are only reported (on stdout or stderr), but a future
-      version of the Dart SDK will change this to throwing a `StateError`.
+  * Added `RawSynchronousSocket`, a basic synchronous socket implementation.
 
-### Dart VM
 
 ### Tool Changes
 
