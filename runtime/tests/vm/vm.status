@@ -386,6 +386,7 @@ cc/IsolateReload_MainLibModified : Crash
 cc/IsolateReload_MixinChanged : Fail
 cc/IsolateReload_NoLibsModified : Crash
 cc/IsolateReload_NotEnumToEnum : Fail
+cc/IsolateReload_NotTypedefToTypedef : Fail
 cc/IsolateReload_PendingSuperCall : Fail
 cc/IsolateReload_PrefixImportedLibModified : Crash
 cc/IsolateReload_RunNewFieldInitializers : Fail
@@ -393,7 +394,7 @@ cc/IsolateReload_RunNewFieldInitializersMutateStaticField : Fail
 cc/IsolateReload_RunNewFieldInitializersReferenceStaticField : Fail
 cc/IsolateReload_RunNewFieldInitializersSyntaxError3 : Fail
 cc/IsolateReload_RunNewFieldInitializersThrows : Fail
-cc/IsolateREload_RunNewFieldInitialiazersSuperClass : Fail
+cc/IsolateReload_RunNewFieldInitialiazersSuperClass : Fail
 cc/IsolateReload_SavedClosure : Fail
 cc/IsolateReload_ShapeChangeRetainsHash : Fail
 cc/IsolateReload_SmiFastPathStubs : Fail
@@ -406,6 +407,8 @@ cc/IsolateReload_TearOff_Instance_Equality : Fail
 cc/IsolateReload_TearOff_Library_Identity : Fail
 cc/IsolateReload_TearOff_List_Set : Fail
 cc/IsolateReload_TopLevelParseError : Fail
+cc/IsolateReload_TypedefAddParameter: Fail
+cc/IsolateReload_TypedefToNotTypedef: Fail
 cc/IsolateReload_TypeIdentity : Fail
 cc/IsolateReload_TypeIdentityGeneric : Fail
 cc/IsolateReload_TypeIdentityParameter : Fail
@@ -546,7 +549,7 @@ cc/Service_TokenStream : Crash
 cc/DeepStackTraceInfo : Crash
 cc/Invoke_FunnyArgs : Fail
 cc/Invoke_PrivateStatic : Crash
-cc/IsolateREload_RunNewFieldInitialiazersSuperClass : Crash
+cc/IsolateReload_RunNewFieldInitialiazersSuperClass : Crash
 cc/IsolateReload_ComplexInheritanceChange : Crash
 cc/IsolateReload_DanglingGetter_Class : Crash
 cc/IsolateReload_DanglingGetter_Instance : Crash

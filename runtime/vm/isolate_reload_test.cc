@@ -3387,7 +3387,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError3) {
 }
 
 
-TEST_CASE(IsolateREload_RunNewFieldInitialiazersSuperClass) {
+TEST_CASE(IsolateReload_RunNewFieldInitialiazersSuperClass) {
   const char* kScript =
       "class Super {\n"
       "  static var foo = 'right';\n"
