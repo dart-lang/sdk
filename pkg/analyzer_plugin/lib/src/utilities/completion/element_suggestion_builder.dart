@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/protocol_server.dart'
-    hide Element, ElementKind;
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    hide Element, ElementKind;
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/suggestion_builder.dart';
+import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
 /**
  * Common mixin for sharing behavior.
