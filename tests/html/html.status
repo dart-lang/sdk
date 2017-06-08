@@ -329,9 +329,6 @@ webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'hea
 [ $runtime == dartium && ($system == windows || $system == linux) ]
 webgl_extensions_test: Fail # WebGL extension tests fail on Dartium without graphics. This is dependent on our bot configuration.
 
-[ $runtime == chrome && ($system == windows || $system == linux) ]
-webgl_extensions_test: Fail # WebGL extension tests fail without graphics. This is dependent on our bot configuration.
-
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
 # TODO(sra): Change these tests to use a same-origin JavaScript script file.
