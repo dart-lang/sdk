@@ -18,6 +18,11 @@
 
 ### Tool Changes
 
+* Pub
+
+  * `pub get` and `pub upgrade` properly produce an error message and exit code
+    when no network is present.
+
 ## 1.24.0
 
 ### Language
@@ -154,7 +159,10 @@
   details on the changed APIs.
 
 * Pub
-    * Added support for the Dart Development Compiler in `build` and `serve`.
+
+  * `pub build` and `pub serve`
+  
+    * Added support for the Dart Development Compiler.
 
       Unlike dart2js, this new compiler is modular, which allows pub to do
       incremental re-builds for `pub serve`, and potentially `pub build` in the
@@ -194,14 +202,20 @@
 
     * The `--no-dart2js` flag has been deprecated in favor of
       `--web-compiler=none`.
-    * Added support for the UNLICENSE file when validating licenses on
-      `pub lish`.
-    * Better handling for network errors when fetching packages. These are no
-      longer unhandled errors and won't print a stack trace unless you are
-      running in verbose mode.
+
     * `pub build` will use a failing exit code if there are errors in any
       transformer.
-    * Allow publishing packages that depend on the Flutter SDK.
+
+  * `pub publish`
+  
+    * Added support for the UNLICENSE file.
+
+    * Packages that depend on the Flutter SDK may be published.
+
+  * `pub get` and `pub upgrade`
+
+    * Don't dump a stack trace when a network error occurs while fetching
+      packages.
 
 * dartfmt
     * Preserve type parameters in new generic function typedef syntax.
