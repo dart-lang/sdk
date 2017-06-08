@@ -431,6 +431,7 @@ io/skipping_dart2js_compilations_test: Pass, Slow # Slow.
 io/raw_datagram_socket_test: SkipByDesign
 io/socket_source_address_test: SkipByDesign
 io/socket_bind_test: SkipByDesign
+io/http_loopback_test: SkipByDesign
 io/http_proxy_advanced_test: SkipByDesign
 io/http_ipv6_test: SkipByDesign
 io/socket_ipv6_test: SkipByDesign
