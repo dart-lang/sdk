@@ -141,7 +141,9 @@ class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
 
 Future<Compiler> compileWithDill(
     Uri entryPoint, Map<String, String> memorySourceFiles, List<String> options,
-    {bool printSteps: false, CompilerOutput compilerOutput}) async {
+    {bool printSteps: false,
+    CompilerOutput compilerOutput,
+    void beforeRun(Compiler compiler)}) async {
   if (memorySourceFiles.isNotEmpty) {
     Directory dir = await Directory.systemTemp.createTemp('dart2js-with-dill');
     if (printSteps) {
@@ -174,6 +176,9 @@ Future<Compiler> compileWithDill(
       outputProvider: compilerOutput);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler.resolution.retainCachesForTesting = true;
+  if (beforeRun != null) {
+    beforeRun(compiler);
+  }
   await compiler.run(dillFile);
   return compiler;
 }

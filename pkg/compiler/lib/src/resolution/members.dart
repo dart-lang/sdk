@@ -3722,7 +3722,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         redirectionTarget,
         redirectionTarget.enclosingClass.thisType
             .subst(type.typeArguments, targetClass.typeVariables)));
-    if (resolution.commonElements.isSymbolConstructor(enclosingElement)) {
+    if (resolution.commonElements.isSymbolConstructor(constructor)) {
       registry.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
     }
     if (isValidAsConstant) {

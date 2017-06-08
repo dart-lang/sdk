@@ -954,6 +954,7 @@ abstract class KernelResolutionWorldBuilderBase
   ClosedWorld closeWorld() {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
+    _classHierarchyNodes.keys.toList().forEach(_ensureClassSet);
     _closed = true;
     assert(
         _classHierarchyNodes.length == _classSets.length,
@@ -966,6 +967,7 @@ abstract class KernelResolutionWorldBuilderBase
         backendUsage: _backendUsageBuilder.close(),
         constantSystem: _constantSystem,
         resolutionWorldBuilder: this,
+        implementedClasses: _implementedClasses,
         functionSet: _allFunctions.close(),
         allTypedefs: _allTypedefs,
         mixinUses: _mixinUses,

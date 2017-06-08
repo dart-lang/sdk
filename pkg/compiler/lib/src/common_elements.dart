@@ -159,10 +159,9 @@ class CommonElements {
 
   /// Whether [element] is the same as [symbolConstructor]. Used to check
   /// for the constructor without computing it until it is likely to be seen.
-  // TODO(johnniwinther): Change type of [e] to [MemberEntity].
-  bool isSymbolConstructor(Entity e) {
-    return e == symbolConstructorTarget ||
-        e == _findConstructor(symbolClass, '', required: false);
+  bool isSymbolConstructor(ConstructorEntity element) {
+    return element == symbolConstructorTarget ||
+        element == _findConstructor(symbolClass, '', required: false);
   }
 
   /// The `MirrorSystem` class in dart:mirrors.
@@ -333,16 +332,12 @@ class CommonElements {
   }
 
   /// Returns `true` if [element] is a superclass of `String` or `num`.
-  // TODO(johnniwinther): Change types to `ClassEntity` when these are not
-  // called with unrelated elements.
-  bool isNumberOrStringSupertype(/*Class*/ Entity element) {
+  bool isNumberOrStringSupertype(ClassEntity element) {
     return element == _findClass(coreLibrary, 'Comparable', required: false);
   }
 
   /// Returns `true` if [element] is a superclass of `String`.
-  // TODO(johnniwinther): Change types to `ClassEntity` when these are not
-  // called with unrelated elements.
-  bool isStringOnlySupertype(/*Class*/ Entity element) {
+  bool isStringOnlySupertype(ClassEntity element) {
     return element == _findClass(coreLibrary, 'Pattern', required: false);
   }
 

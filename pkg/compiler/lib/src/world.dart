@@ -403,7 +403,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   final FunctionSet _allFunctions;
 
-  final Iterable<TypedefElement> _allTypedefs;
+  final Set<TypedefElement> _allTypedefs;
 
   final Map<ClassEntity, Set<ClassEntity>> _mixinUses;
   Map<ClassEntity, List<ClassEntity>> _liveMixinUses;
@@ -431,7 +431,11 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   final CommonElements commonElements;
 
+  // TODO(johnniwinther): Avoid this.
   final ResolutionWorldBuilder _resolverWorld;
+
+  // TODO(johnniwinther): Can this be derived from [ClassSet]s?
+  final Set<ClassEntity> _implementedClasses;
 
   ClosedWorldBase(
       {this.commonElements,
@@ -440,13 +444,15 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.interceptorData,
       this.backendUsage,
       ResolutionWorldBuilder resolutionWorldBuilder,
+      Set<ClassEntity> implementedClasses,
       FunctionSet functionSet,
-      Iterable<TypedefElement> allTypedefs,
+      Set<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
       : this._resolverWorld = resolutionWorldBuilder,
+        this._implementedClasses = implementedClasses,
         this._allFunctions = functionSet,
         this._allTypedefs = allTypedefs,
         this._mixinUses = mixinUses,
@@ -474,55 +480,55 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     return cachedMasks.putIfAbsent(base, createMask);
   }
 
-  bool _checkEntity(Entity element);
+  bool checkEntity(Entity element);
 
-  bool _checkClass(ClassEntity cls);
+  bool checkClass(ClassEntity cls);
 
-  bool _checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true});
+  bool checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true});
 
-  OrderedTypeSet _getOrderedTypeSet(ClassEntity cls);
+  OrderedTypeSet getOrderedTypeSet(ClassEntity cls);
 
-  int _getHierarchyDepth(ClassEntity cls);
+  int getHierarchyDepth(ClassEntity cls);
 
-  ClassEntity _getSuperClass(ClassEntity cls);
+  ClassEntity getSuperClass(ClassEntity cls);
 
-  Iterable<ClassEntity> _getInterfaces(ClassEntity cls);
+  Iterable<ClassEntity> getInterfaces(ClassEntity cls);
 
-  ClassEntity _getAppliedMixin(ClassEntity cls);
+  ClassEntity getAppliedMixin(ClassEntity cls);
 
-  bool _isNamedMixinApplication(ClassEntity cls);
+  bool isNamedMixinApplication(ClassEntity cls);
 
   @override
   bool isInstantiated(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassHierarchyNode node = _classHierarchyNodes[cls];
     return node != null && node.isInstantiated;
   }
 
   @override
   bool isDirectlyInstantiated(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassHierarchyNode node = _classHierarchyNodes[cls];
     return node != null && node.isDirectlyInstantiated;
   }
 
   @override
   bool isAbstractlyInstantiated(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassHierarchyNode node = _classHierarchyNodes[cls];
     return node != null && node.isAbstractlyInstantiated;
   }
 
   @override
   bool isExplicitlyInstantiated(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassHierarchyNode node = _classHierarchyNodes[cls];
     return node != null && node.isExplicitlyInstantiated;
   }
 
   @override
   bool isIndirectlyInstantiated(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassHierarchyNode node = _classHierarchyNodes[cls];
     return node != null && node.isIndirectlyInstantiated;
   }
@@ -532,28 +538,28 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls) {
-    return _resolverWorld.isImplemented(cls);
+    return _implementedClasses.contains(cls);
   }
 
   /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
   /// instance of [y].
   bool isSubtypeOf(ClassEntity x, ClassEntity y) {
-    assert(_checkInvariants(x));
-    assert(_checkInvariants(y, mustBeInstantiated: false));
+    assert(checkInvariants(x));
+    assert(checkInvariants(y, mustBeInstantiated: false));
     return _classSets[y].hasSubtype(_classHierarchyNodes[x]);
   }
 
   /// Return `true` if [x] is a (non-strict) subclass of [y].
   bool isSubclassOf(ClassEntity x, ClassEntity y) {
-    assert(_checkInvariants(x));
-    assert(_checkInvariants(y));
+    assert(checkInvariants(x));
+    assert(checkInvariants(y));
     return _classHierarchyNodes[y].hasSubclass(_classHierarchyNodes[x]);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
   /// [cls] possibly including [cls] itself, if it is live.
   Iterable<ClassEntity> subclassesOf(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls];
     if (hierarchy == null) return const <ClassEntity>[];
     return hierarchy
@@ -563,7 +569,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns an iterable over the directly instantiated classes that extend
   /// [cls] _not_ including [cls] itself.
   Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return const <ClassEntity>[];
     return subclasses.subclassesByMask(
@@ -574,7 +580,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns the number of live classes that extend [cls] _not_
   /// including [cls] itself.
   int strictSubclassCount(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return 0;
     return subclasses.instantiatedSubclassCount;
@@ -584,7 +590,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// itself.
   void forEachStrictSubclassOf(
       ClassEntity cls, IterationStep f(ClassEntity cls)) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return;
     subclasses.forEachSubclass(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
@@ -594,7 +600,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns `true` if [predicate] applies to any live class that extend [cls]
   /// _not_ including [cls] itself.
   bool anyStrictSubclassOf(ClassEntity cls, bool predicate(ClassEntity cls)) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return false;
     return subclasses.anySubclass(
@@ -605,7 +611,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// possibly including [cls] itself, if it is live.
   Iterable<ClassEntity> subtypesOf(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassSet classSet = _classSets[cls];
     if (classSet == null) {
       return const <ClassEntity>[];
@@ -618,7 +624,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// _not_ including [cls].
   Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassSet classSet = _classSets[cls];
     if (classSet == null) {
       return const <ClassEntity>[];
@@ -631,7 +637,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns the number of live classes that implement [cls] _not_
   /// including [cls] itself.
   int strictSubtypeCount(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassSet classSet = _classSets[cls];
     if (classSet == null) return 0;
     return classSet.instantiatedSubtypeCount;
@@ -641,7 +647,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// itself.
   void forEachStrictSubtypeOf(
       ClassEntity cls, IterationStep f(ClassEntity cls)) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassSet classSet = _classSets[cls];
     if (classSet == null) return;
     classSet.forEachSubtype(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
@@ -651,7 +657,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns `true` if [predicate] applies to any live class that extend [cls]
   /// _not_ including [cls] itself.
   bool anyStrictSubtypeOf(ClassEntity cls, bool predicate(ClassEntity cls)) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassSet classSet = _classSets[cls];
     if (classSet == null) return false;
     return classSet.anySubtype(
@@ -661,8 +667,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   /// Returns `true` if [a] and [b] have any known common subtypes.
   bool haveAnyCommonSubtypes(ClassEntity a, ClassEntity b) {
-    assert(_checkClass(a));
-    assert(_checkClass(b));
+    assert(checkClass(a));
+    assert(checkClass(b));
     ClassSet classSetA = _classSets[a];
     ClassSet classSetB = _classSets[b];
     if (classSetA == null || classSetB == null) return false;
@@ -679,7 +685,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns `true` if any directly instantiated class other than [cls] extends
   /// [cls].
   bool hasAnyStrictSubclass(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return false;
     return subclasses.isIndirectlyInstantiated;
@@ -694,7 +700,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns `true` if all directly instantiated classes that implement [cls]
   /// extend it.
   bool hasOnlySubclasses(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     // TODO(johnniwinther): move this to ClassSet?
     if (cls == commonElements.objectClass) return true;
     ClassSet classSet = _classSets[cls];
@@ -707,7 +713,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   @override
   ClassEntity getLubOfInstantiatedSubclasses(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     if (nativeData.isJsInteropClass(cls)) {
       return commonElements.jsJavaScriptObjectClass;
     }
@@ -719,7 +725,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   @override
   ClassEntity getLubOfInstantiatedSubtypes(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     if (nativeData.isJsInteropClass(cls)) {
       return commonElements.jsJavaScriptObjectClass;
     }
@@ -763,8 +769,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
   /// of a mixin application of [y].
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y) {
-    assert(_checkClass(x));
-    assert(_checkClass(y));
+    assert(checkClass(x));
+    assert(checkClass(y));
     Map<ClassEntity, bool> secondMap =
         _subtypeCoveredByCache[x] ??= <ClassEntity, bool>{};
     return secondMap[y] ??= subtypesOf(x).every((ClassEntity cls) =>
@@ -773,7 +779,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassEntity superclass, ClassEntity type) {
-    assert(_checkClass(superclass));
+    assert(checkClass(superclass));
     Set<ClassEntity> subclasses = _typesImplementedBySubclasses[superclass];
     if (subclasses == null) return false;
     return subclasses.contains(type);
@@ -838,16 +844,16 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     if (!iterator.moveNext()) return const <ClassEntity>[];
 
     ClassEntity cls = iterator.current;
-    assert(_checkInvariants(cls));
-    OrderedTypeSet typeSet = _getOrderedTypeSet(cls);
+    assert(checkInvariants(cls));
+    OrderedTypeSet typeSet = getOrderedTypeSet(cls);
     if (!iterator.moveNext()) return typeSet.types.map((type) => type.element);
 
     int depth = typeSet.maxDepth;
     Link<OrderedTypeSet> otherTypeSets = const Link<OrderedTypeSet>();
     do {
       ClassEntity otherClass = iterator.current;
-      assert(_checkInvariants(otherClass));
-      OrderedTypeSet otherTypeSet = _getOrderedTypeSet(otherClass);
+      assert(checkInvariants(otherClass));
+      OrderedTypeSet otherTypeSet = getOrderedTypeSet(otherClass);
       otherTypeSets = otherTypeSets.prepend(otherTypeSet);
       if (otherTypeSet.maxDepth < depth) {
         depth = otherTypeSet.maxDepth;
@@ -863,7 +869,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       for (Link<OrderedTypeSet> link = otherTypeSets;
           !link.isEmpty;
           link = link.tail) {
-        if (link.head.asInstanceOf(cls, _getHierarchyDepth(cls)) == null) {
+        if (link.head.asInstanceOf(cls, getHierarchyDepth(cls)) == null) {
           continue OUTER;
         }
       }
@@ -884,7 +890,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     // that do not have a superclass or supertype that will be a
     // better candidate.
     return common.where((ClassEntity each) {
-      bool containsSuperclass = common.contains(_getSuperClass(each));
+      bool containsSuperclass = common.contains(getSuperClass(each));
       // If the superclass is also a candidate, then we don't want to
       // deal with this class. If we're only looking for a subclass we
       // know we don't have to look at the list of interfaces because
@@ -898,7 +904,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       // set contains the direct supertype of the class, we ignore the
       // the class because the supertype is a better candidate.
 
-      for (ClassEntity interface in _getInterfaces(each)) {
+      for (ClassEntity interface in getInterfaces(each)) {
         if (common.contains(interface)) return false;
       }
       return true;
@@ -915,7 +921,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
         void addLiveUse(ClassEntity mixinApplication) {
           if (isInstantiated(mixinApplication)) {
             uses.add(mixinApplication);
-          } else if (_isNamedMixinApplication(mixinApplication)) {
+          } else if (isNamedMixinApplication(mixinApplication)) {
             Set<ClassEntity> next = _mixinUses[mixinApplication];
             if (next != null) {
               next.forEach(addLiveUse);
@@ -943,14 +949,14 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   /// Returns `true` if [cls] or any superclass mixes in [mixin].
   bool isSubclassOfMixinUseOf(ClassEntity cls, ClassEntity mixin) {
-    assert(_checkClass(cls));
-    assert(_checkClass(mixin));
+    assert(checkClass(cls));
+    assert(checkClass(mixin));
     if (isUsedAsMixin(mixin)) {
       ClassEntity current = cls;
       while (current != null) {
-        ClassEntity currentMixin = _getAppliedMixin(current);
+        ClassEntity currentMixin = getAppliedMixin(current);
         if (currentMixin == mixin) return true;
-        current = _getSuperClass(current);
+        current = getSuperClass(current);
       }
     }
     return false;
@@ -962,7 +968,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// This method is only provided for testing. For queries on classes, use the
   /// methods defined in [ClosedWorld].
   ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     return _classHierarchyNodes[cls];
   }
 
@@ -972,7 +978,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// This method is only provided for testing. For queries on classes, use the
   /// methods defined in [ClosedWorld].
   ClassSet getClassSet(ClassEntity cls) {
-    assert(_checkClass(cls));
+    assert(checkClass(cls));
     return _classSets[cls];
   }
 
@@ -1056,7 +1062,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   }
 
   SideEffects getSideEffectsOfElement(Entity element) {
-    assert(_checkEntity(element));
+    assert(checkEntity(element));
     return _sideEffects.putIfAbsent(element, _makeSideEffects);
   }
 
@@ -1068,29 +1074,29 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   }
 
   void registerSideEffects(Entity element, SideEffects effects) {
-    assert(_checkEntity(element));
+    assert(checkEntity(element));
     if (_sideEffectsFreeElements.contains(element)) return;
     _sideEffects[element] = effects;
   }
 
   void registerSideEffectsFree(Entity element) {
-    assert(_checkEntity(element));
+    assert(checkEntity(element));
     _sideEffects[element] = new SideEffects.empty();
     _sideEffectsFreeElements.add(element);
   }
 
   void addFunctionCalledInLoop(Entity element) {
-    assert(_checkEntity(element));
+    assert(checkEntity(element));
     _functionsCalledInLoop.add(element);
   }
 
   bool isCalledInLoop(Entity element) {
-    assert(_checkEntity(element));
+    assert(checkEntity(element));
     return _functionsCalledInLoop.contains(element);
   }
 
   void registerCannotThrow(Entity element) {
-    assert(_checkEntity(element));
+    assert(checkEntity(element));
     _elementsThatCannotThrow.add(element);
   }
 
@@ -1146,8 +1152,9 @@ class ClosedWorldImpl extends ClosedWorldBase {
       InterceptorData interceptorData,
       BackendUsage backendUsage,
       ResolutionWorldBuilder resolutionWorldBuilder,
+      Set<ClassEntity> implementedClasses,
       FunctionSet functionSet,
-      Iterable<TypedefElement> allTypedefs,
+      Set<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
@@ -1159,6 +1166,7 @@ class ClosedWorldImpl extends ClosedWorldBase {
             interceptorData: interceptorData,
             backendUsage: backendUsage,
             resolutionWorldBuilder: resolutionWorldBuilder,
+            implementedClasses: implementedClasses,
             functionSet: functionSet,
             allTypedefs: allTypedefs,
             mixinUses: mixinUses,
@@ -1166,11 +1174,11 @@ class ClosedWorldImpl extends ClosedWorldBase {
             classHierarchyNodes: classHierarchyNodes,
             classSets: classSets);
 
-  bool _checkClass(ClassElement cls) => cls.isDeclaration;
+  bool checkClass(ClassElement cls) => cls.isDeclaration;
 
-  bool _checkEntity(Element element) => element.isDeclaration;
+  bool checkEntity(Element element) => element.isDeclaration;
 
-  bool _checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
+  bool checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
     assert(cls.isDeclaration, failedAt(cls, '$cls must be the declaration.'));
     assert(cls.isResolved, failedAt(cls, '$cls must be resolved.'));
 
@@ -1184,23 +1192,22 @@ class ClosedWorldImpl extends ClosedWorldBase {
     return true;
   }
 
-  OrderedTypeSet _getOrderedTypeSet(ClassElement cls) =>
+  OrderedTypeSet getOrderedTypeSet(ClassElement cls) =>
       cls.allSupertypesAndSelf;
 
-  int _getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
+  int getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
 
-  ClassEntity _getSuperClass(ClassElement cls) => cls.superclass;
+  ClassEntity getSuperClass(ClassElement cls) => cls.superclass;
 
-  Iterable<ClassEntity> _getInterfaces(ClassElement cls) sync* {
+  Iterable<ClassEntity> getInterfaces(ClassElement cls) sync* {
     for (Link link = cls.interfaces; !link.isEmpty; link = link.tail) {
       yield link.head.element;
     }
   }
 
-  bool _isNamedMixinApplication(ClassElement cls) =>
-      cls.isNamedMixinApplication;
+  bool isNamedMixinApplication(ClassElement cls) => cls.isNamedMixinApplication;
 
-  ClassEntity _getAppliedMixin(ClassElement cls) {
+  ClassEntity getAppliedMixin(ClassElement cls) {
     if (cls.isMixinApplication) {
       MixinApplicationElement application = cls;
       return application.mixin;
@@ -1290,8 +1297,9 @@ class KernelClosedWorld extends ClosedWorldBase {
       InterceptorData interceptorData,
       BackendUsage backendUsage,
       ResolutionWorldBuilder resolutionWorldBuilder,
+      Set<ClassEntity> implementedClasses,
       FunctionSet functionSet,
-      Iterable<TypedefElement> allTypedefs,
+      Set<TypedefElement> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
@@ -1303,6 +1311,7 @@ class KernelClosedWorld extends ClosedWorldBase {
             interceptorData: interceptorData,
             backendUsage: backendUsage,
             resolutionWorldBuilder: resolutionWorldBuilder,
+            implementedClasses: implementedClasses,
             functionSet: functionSet,
             allTypedefs: allTypedefs,
             mixinUses: mixinUses,
@@ -1317,44 +1326,44 @@ class KernelClosedWorld extends ClosedWorldBase {
   }
 
   @override
-  bool _isNamedMixinApplication(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld._isNamedMixinApplication');
+  bool isNamedMixinApplication(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorld.isNamedMixinApplication');
   }
 
   @override
-  ClassEntity _getAppliedMixin(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld._getAppliedMixin');
+  ClassEntity getAppliedMixin(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorld.getAppliedMixin');
   }
 
   @override
-  Iterable<ClassEntity> _getInterfaces(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld._getInterfaces');
+  Iterable<ClassEntity> getInterfaces(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorld.getInterfaces');
   }
 
   @override
-  ClassEntity _getSuperClass(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld._getSuperClass');
+  ClassEntity getSuperClass(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorld.getSuperClass');
   }
 
   @override
-  int _getHierarchyDepth(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld._getHierarchyDepth');
+  int getHierarchyDepth(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorld.getHierarchyDepth');
   }
 
   @override
-  OrderedTypeSet _getOrderedTypeSet(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld._getOrderedTypeSet');
+  OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorld.getOrderedTypeSet');
   }
 
   @override
-  bool _checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true}) =>
+  bool checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true}) =>
       true;
 
   @override
-  bool _checkClass(ClassEntity cls) => true;
+  bool checkClass(ClassEntity cls) => true;
 
   @override
-  bool _checkEntity(Entity element) => true;
+  bool checkEntity(Entity element) => true;
 
   @override
   void registerClosureClass(ClassElement cls) {

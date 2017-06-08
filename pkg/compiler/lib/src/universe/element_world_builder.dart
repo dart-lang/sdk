@@ -179,6 +179,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
         interceptorData: _interceptorDataBuilder.close(),
         backendUsage: _backendUsageBuilder.close(),
         resolutionWorldBuilder: this,
+        implementedClasses: _implementedClasses,
         functionSet: _allFunctions.close(),
         allTypedefs: _allTypedefs,
         mixinUses: _mixinUses,
