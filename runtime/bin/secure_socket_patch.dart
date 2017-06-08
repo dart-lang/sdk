@@ -129,6 +129,9 @@ class SecurityContext {
   static SecurityContext get defaultContext {
     return _SecurityContext.defaultContext;
   }
+
+  @patch
+  static bool get alpnSupported => true;
 }
 
 class _SecurityContext extends NativeFieldWrapperClass1
