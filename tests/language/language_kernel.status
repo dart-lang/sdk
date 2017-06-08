@@ -3,154 +3,71 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
-compile_time_constant_test/01: MissingCompileTimeError
-conditional_method_invocation_test/11: MissingCompileTimeError
-conditional_property_access_test/09: MissingCompileTimeError
-conditional_property_assignment_test/20: MissingCompileTimeError
-conditional_property_assignment_test/21: MissingCompileTimeError
-conditional_property_assignment_test/22: MissingCompileTimeError
-const_constructor_mixin2_test/01: MissingCompileTimeError
-const_constructor_mixin3_test/01: MissingCompileTimeError
-const_constructor_mixin_test/01: MissingCompileTimeError
-const_constructor_super_test/01: MissingCompileTimeError
-const_constructor_syntax_test/01: MissingCompileTimeError
-const_constructor_syntax_test/02: MissingCompileTimeError
-const_constructor_syntax_test/03: MissingCompileTimeError
-const_constructor_test/01: MissingCompileTimeError
-const_for_in_variable_test/01: MissingCompileTimeError
-const_native_factory_test/01: MissingCompileTimeError # Issue 29763
-const_syntax_test/01: MissingCompileTimeError
-const_syntax_test/02: MissingCompileTimeError
-const_types_test/23: MissingCompileTimeError
-const_types_test/24: MissingCompileTimeError
-const_types_test/25: MissingCompileTimeError
-const_types_test/26: MissingCompileTimeError
-const_types_test/27: MissingCompileTimeError
-const_types_test/28: MissingCompileTimeError
-const_types_test/29: MissingCompileTimeError
-const_types_test/30: MissingCompileTimeError
-const_types_test/41: MissingCompileTimeError
-constant_locals_test/01: MissingCompileTimeError
-cyclic_typedef_test/01: MissingCompileTimeError
-cyclic_typedef_test/02: MissingCompileTimeError
-cyclic_typedef_test/03: MissingCompileTimeError
-cyclic_typedef_test/04: MissingCompileTimeError
-cyclic_typedef_test/05: MissingCompileTimeError
-cyclic_typedef_test/06: MissingCompileTimeError
-cyclic_typedef_test/07: MissingCompileTimeError
-cyclic_typedef_test/08: MissingCompileTimeError
-cyclic_typedef_test/09: MissingCompileTimeError
-deferred_call_empty_before_load_test: RuntimeError # Deferred Loading Issue 28335
-deferred_duplicate_prefix1_test/01: MissingCompileTimeError
-deferred_duplicate_prefix2_test/01: MissingCompileTimeError
-deferred_duplicate_prefix3_test/01: MissingCompileTimeError
-deferred_inheritance_constraints_test/extends: MissingCompileTimeError
-deferred_inheritance_constraints_test/implements: MissingCompileTimeError
-deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_inheritance_constraints_test/redirecting_constructor: RuntimeError
-deferred_no_prefix_test/01: MissingCompileTimeError
-deferred_not_loaded_check_test: RuntimeError
-deferred_shadow_load_library_test: RuntimeError
-enum_syntax_test/06: MissingCompileTimeError
-enum_syntax_test/30: MissingCompileTimeError
-external_test/11: MissingCompileTimeError
-external_test/12: MissingCompileTimeError
-external_test/21: MissingCompileTimeError
-external_test/22: MissingCompileTimeError
-external_test/23: MissingCompileTimeError
-external_test/25: MissingCompileTimeError
-external_test/30: MissingCompileTimeError
-external_test/31: MissingCompileTimeError
-final_initializer_instance_reference_test/01: MissingCompileTimeError
-final_syntax_test/01: MissingCompileTimeError
-final_syntax_test/02: MissingCompileTimeError
-final_syntax_test/03: MissingCompileTimeError
-final_syntax_test/04: MissingCompileTimeError
-function_syntax_test/00: MissingCompileTimeError
-function_syntax_test/01: MissingCompileTimeError
-function_syntax_test/22: MissingCompileTimeError
-function_syntax_test/64: MissingCompileTimeError
-function_syntax_test/67: MissingCompileTimeError
-function_syntax_test/68: MissingCompileTimeError
-function_syntax_test/69: MissingCompileTimeError
-function_syntax_test/71: MissingCompileTimeError
-function_syntax_test/73: MissingCompileTimeError
-function_syntax_test/74: MissingCompileTimeError
-function_type_alias5_test/00: MissingCompileTimeError
-function_type_alias5_test/01: MissingCompileTimeError
-function_type_alias5_test/02: MissingCompileTimeError
-function_type_alias6_test/00: MissingCompileTimeError
-function_type_alias7_test/00: MissingCompileTimeError
-function_type_alias7_test/02: MissingCompileTimeError
-function_type_alias9_test/00: MissingCompileTimeError
-generic_closure_test: RuntimeError
-generic_method_types_test/01: RuntimeError
-generic_method_types_test/02: RuntimeError
-generic_method_types_test: Pass, RuntimeError
-getter_parameters_test/01: MissingCompileTimeError
-getter_parameters_test/02: MissingCompileTimeError
-getter_parameters_test/03: MissingCompileTimeError
-getter_parameters_test/04: MissingCompileTimeError
-inst_field_initializer1_negative_test: Fail
-metadata_test: CompileTimeError
-method_name_test: CompileTimeError
-method_override_test: RuntimeError
-method_override_test: RuntimeError
-mixin_forwarding_constructor4_test/01: MissingCompileTimeError
-mixin_forwarding_constructor4_test/02: MissingCompileTimeError
-mixin_forwarding_constructor4_test/03: MissingCompileTimeError
-mixin_super_constructor_named_test/01: MissingCompileTimeError
-mixin_super_constructor_positionals_test/01: MissingCompileTimeError
-mixin_type_parameters_super_extends_test: RuntimeError
-mixin_type_parameters_super_test: RuntimeError
-named_constructor_test/01: MissingRuntimeError
-named_parameters_aggregated_test/01: MissingCompileTimeError
-named_parameters_aggregated_test/03: MissingCompileTimeError
-named_parameters_aggregated_test/04: MissingCompileTimeError
-named_parameters_aggregated_test/06: MissingCompileTimeError
-named_parameters_default_eq_test/01: MissingCompileTimeError
-parameter_initializer6_negative_test: Fail
-ref_before_declaration_test/00: MissingCompileTimeError
-ref_before_declaration_test/01: MissingCompileTimeError
-ref_before_declaration_test/02: MissingCompileTimeError
-ref_before_declaration_test/03: MissingCompileTimeError
-ref_before_declaration_test/04: MissingCompileTimeError
-ref_before_declaration_test/05: MissingCompileTimeError
-ref_before_declaration_test/06: MissingCompileTimeError
-ref_before_declaration_test/07: MissingCompileTimeError
-regress_29349_test: CompileTimeError
-runtime_type_function_test: RuntimeError
-scope_variable_test/01: MissingCompileTimeError
-static_parameter_test/05: MissingCompileTimeError
-static_parameter_test/06: MissingCompileTimeError
-static_parameter_test/07: MissingCompileTimeError
-static_parameter_test/08: MissingCompileTimeError
-super_conditional_operator_test/01: MissingCompileTimeError
-super_conditional_operator_test/02: MissingCompileTimeError
-super_conditional_operator_test/03: MissingCompileTimeError
-super_conditional_operator_test/04: MissingCompileTimeError
-super_conditional_operator_test/05: MissingCompileTimeError
-super_conditional_operator_test/06: MissingCompileTimeError
-super_conditional_operator_test/07: MissingCompileTimeError
-super_conditional_operator_test/08: MissingCompileTimeError
-super_conditional_operator_test/09: MissingCompileTimeError
-super_conditional_operator_test/10: MissingCompileTimeError
-super_conditional_operator_test/11: MissingCompileTimeError
-super_conditional_operator_test/12: MissingCompileTimeError
-super_conditional_operator_test/13: MissingCompileTimeError
-super_conditional_operator_test/14: MissingCompileTimeError
-super_conditional_operator_test/15: MissingCompileTimeError
-super_conditional_operator_test/16: MissingCompileTimeError
-syntax_test/02: MissingCompileTimeError
-syntax_test/03: MissingCompileTimeError
-syntax_test/27: MissingCompileTimeError
-this_conditional_operator_test/01: MissingCompileTimeError
-try_catch_syntax_test/07: MissingCompileTimeError
-try_catch_syntax_test/09: MissingCompileTimeError
-try_catch_syntax_test/10: MissingCompileTimeError
-try_catch_syntax_test/11: MissingCompileTimeError
-try_catch_syntax_test/12: MissingCompileTimeError
-vm/regress_27201_test: CompileTimeError
+generic_closure_test: RuntimeError # Not triaged.
+method_override_test: RuntimeError # Not triaged.
+runtime_type_function_test: RuntimeError # Not triaged.
+
+cha_deopt1_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+cha_deopt2_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+cha_deopt3_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+conditional_import_string_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+conditional_import_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_closurize_load_library_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constant_list_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_constants_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_constants_test/reference_after_load: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/as_operation: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/catch_check: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/is_check: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/new: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/new_before_load: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/new_generic1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/new_generic2: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/new_generic3: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/static_method: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_generic2: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_generic3: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_null: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_top_level: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_function_type_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_global_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_import_core_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_inheritance_constraints_test/redirecting_constructor: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_inlined_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_load_constants_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_load_inval_code_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_load_library_wrong_args_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_mixin_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_no_prefix_test/01: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_no_such_method_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_only_constant_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_optimized_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_redirecting_factory_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_regression_22995_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_regression_28678_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_shadow_load_library_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_shared_and_unshared_classes_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_static_seperate_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_super_dependency_test/01: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_type_dependency_test/as: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_type_dependency_test/is: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_type_dependency_test/none: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+deferred_type_dependency_test/type_annotation: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+issue_1751477_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+regress_22443_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+regress_23408_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+regress_28278_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
+vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 
 config_import_corelib_test: RuntimeError # KernelVM bug: Configurable imports.
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
@@ -158,7 +75,6 @@ library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imp
 library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
 
 compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-const_conditional_test/08: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_map2_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_map3_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
@@ -275,7 +191,11 @@ generic_metadata_test/03: MissingCompileTimeError # Fasta bug: Type arguments ar
 
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 
-generic_function_typedef_test: RuntimeError
+regress_29349_test: CompileTimeError # Fasta bug: Parser bug.
+
+const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
+
+generic_function_typedef_test: RuntimeError # Fasta bug: resolution of type variables in typedef.
 
 # dartk: JIT & AOT failures (debug)
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
@@ -290,7 +210,7 @@ type_parameter_test/05: Crash
 
 # Triaged checked mode failures
 [ ($compiler == dartk || $compiler == dartkp) && $checked ]
-language/regress_22728_test: Fail # Dartk Issue 28498
+regress_22728_test: Fail # Dartk Issue 28498
 
 # dartk: JIT failures
 [ $compiler == dartk ]
@@ -329,7 +249,6 @@ vm/lazy_deopt_vm_test: Crash
 const_syntax_test/08: Crash
 final_syntax_test/09: MissingCompileTimeError
 getter_declaration_negative_test: Crash
-getter_parameters_test/02: Crash
 ref_before_declaration_test/00: Crash
 ref_before_declaration_test/01: Crash
 ref_before_declaration_test/02: Crash
@@ -373,7 +292,6 @@ async_await_test: RuntimeError
 async_return_types_test/nestedFuture: Fail
 async_return_types_test/wrongTypeParameter: Fail
 compile_time_constant_checked_test/02: MissingCompileTimeError
-const_conditional_test/08: Pass
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
@@ -395,7 +313,6 @@ function_subtype_inline2_test: RuntimeError # Issue 29225
 function_type2_test: RuntimeError
 generic_constructor_mixin3_test: RuntimeError
 generic_field_mixin6_test/01: RuntimeError
-inst_field_initializer1_negative_test: Pass
 list_literal1_test/01: MissingCompileTimeError
 malbounded_redirecting_factory2_test/03: Fail
 malbounded_redirecting_factory2_test/04: Fail
@@ -426,57 +343,134 @@ type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/06: Fail
 type_variable_bounds4_test/01: RuntimeError
 
-# Deferred loading kernel issue 28335.
-[ ($compiler == dartk || $compiler == dartkp) ]
-cha_deopt1_test: CompileTimeError # Deferred loading kernel issue 28335.
-cha_deopt2_test: CompileTimeError # Deferred loading kernel issue 28335.
-cha_deopt3_test: CompileTimeError # Deferred loading kernel issue 28335.
-conditional_import_string_test: CompileTimeError # Deferred loading kernel issue 28335.
-conditional_import_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_closurize_load_library_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constant_list_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_constants_test/none: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_constants_test/reference_after_load: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/as_operation: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/catch_check: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/is_check: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/new: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/new_before_load: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/new_generic1: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/new_generic2: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/new_generic3: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/none: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/static_method: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/type_annotation1: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/type_annotation_generic1: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/type_annotation_generic2: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/type_annotation_generic3: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/type_annotation_generic4: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/type_annotation_null: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/type_annotation_top_level: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_function_type_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_global_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_import_core_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_inlined_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_load_constants_test/none: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_load_inval_code_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_load_library_wrong_args_test/none: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_mixin_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_no_such_method_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_only_constant_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_optimized_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_redirecting_factory_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_regression_22995_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_regression_28678_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_shared_and_unshared_classes_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_static_seperate_test: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_super_dependency_test/01: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_type_dependency_test/as: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_type_dependency_test/is: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_type_dependency_test/none: CompileTimeError # Deferred loading kernel issue 28335.
-deferred_type_dependency_test/type_annotation: CompileTimeError # Deferred loading kernel issue 28335.
-issue_1751477_test: CompileTimeError # Deferred loading kernel issue 28335.
-regress_22443_test: CompileTimeError # Deferred loading kernel issue 28335.
-regress_23408_test: CompileTimeError # Deferred loading kernel issue 28335.
-regress_28278_test: CompileTimeError # Deferred loading kernel issue 28335.
+[ $compiler == dartk || $compiler == dartkp ]
+compile_time_constant_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+conditional_method_invocation_test/11: MissingCompileTimeError # Fixed in ahe's dev branch.
+conditional_property_access_test/09: MissingCompileTimeError # Fixed in ahe's dev branch.
+conditional_property_assignment_test/20: MissingCompileTimeError # Fixed in ahe's dev branch.
+conditional_property_assignment_test/21: MissingCompileTimeError # Fixed in ahe's dev branch.
+conditional_property_assignment_test/22: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_constructor_mixin2_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_constructor_mixin3_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_constructor_mixin_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_constructor_super_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_constructor_syntax_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_constructor_syntax_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_constructor_syntax_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_constructor_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_for_in_variable_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_syntax_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_syntax_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_types_test/23: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_types_test/24: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_types_test/25: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_types_test/26: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_types_test/27: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_types_test/28: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_types_test/29: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_types_test/30: MissingCompileTimeError # Fixed in ahe's dev branch.
+const_types_test/41: MissingCompileTimeError # Fixed in ahe's dev branch.
+constant_locals_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+cyclic_typedef_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+cyclic_typedef_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
+cyclic_typedef_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
+cyclic_typedef_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
+cyclic_typedef_test/05: MissingCompileTimeError # Fixed in ahe's dev branch.
+cyclic_typedef_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
+cyclic_typedef_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
+cyclic_typedef_test/08: MissingCompileTimeError # Fixed in ahe's dev branch.
+cyclic_typedef_test/09: MissingCompileTimeError # Fixed in ahe's dev branch.
+deferred_duplicate_prefix1_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+deferred_duplicate_prefix2_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+deferred_duplicate_prefix3_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+enum_syntax_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
+enum_syntax_test/30: MissingCompileTimeError # Fixed in ahe's dev branch.
+external_test/11: MissingCompileTimeError # Fixed in ahe's dev branch.
+external_test/12: MissingCompileTimeError # Fixed in ahe's dev branch.
+external_test/21: MissingCompileTimeError # Fixed in ahe's dev branch.
+external_test/22: MissingCompileTimeError # Fixed in ahe's dev branch.
+external_test/23: MissingCompileTimeError # Fixed in ahe's dev branch.
+external_test/25: MissingCompileTimeError # Fixed in ahe's dev branch.
+external_test/30: MissingCompileTimeError # Fixed in ahe's dev branch.
+external_test/31: MissingCompileTimeError # Fixed in ahe's dev branch.
+final_initializer_instance_reference_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+final_syntax_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+final_syntax_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
+final_syntax_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
+final_syntax_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_syntax_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_syntax_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_syntax_test/22: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_syntax_test/64: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_syntax_test/67: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_syntax_test/68: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_syntax_test/69: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_syntax_test/71: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_syntax_test/73: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_syntax_test/74: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_type_alias5_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_type_alias5_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_type_alias5_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_type_alias6_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_type_alias7_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_type_alias7_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
+function_type_alias9_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
+getter_parameters_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+getter_parameters_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
+getter_parameters_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
+metadata_test: CompileTimeError # Fixed in ahe's dev branch.
+named_parameters_aggregated_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+named_parameters_aggregated_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
+named_parameters_aggregated_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
+named_parameters_aggregated_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
+named_parameters_default_eq_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+parameter_initializer6_negative_test: Fail # Fixed in ahe's dev branch.
+ref_before_declaration_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
+ref_before_declaration_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+ref_before_declaration_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
+ref_before_declaration_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
+ref_before_declaration_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
+ref_before_declaration_test/05: MissingCompileTimeError # Fixed in ahe's dev branch.
+ref_before_declaration_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
+ref_before_declaration_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
+regress_29349_test: CompileTimeError # Fixed in ahe's dev branch.
+scope_variable_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+static_parameter_test/05: MissingCompileTimeError # Fixed in ahe's dev branch.
+static_parameter_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
+static_parameter_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
+static_parameter_test/08: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/05: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/08: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/09: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/10: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/11: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/12: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/13: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/14: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/15: MissingCompileTimeError # Fixed in ahe's dev branch.
+super_conditional_operator_test/16: MissingCompileTimeError # Fixed in ahe's dev branch.
+syntax_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
+syntax_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
+syntax_test/27: MissingCompileTimeError # Fixed in ahe's dev branch.
+this_conditional_operator_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
+try_catch_syntax_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
+try_catch_syntax_test/09: MissingCompileTimeError # Fixed in ahe's dev branch.
+try_catch_syntax_test/10: MissingCompileTimeError # Fixed in ahe's dev branch.
+try_catch_syntax_test/11: MissingCompileTimeError # Fixed in ahe's dev branch.
+try_catch_syntax_test/12: MissingCompileTimeError # Fixed in ahe's dev branch.
+
+[ $compiler == dartk ]
+getter_parameters_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
+
+[ $compiler == dartkp ]
+getter_parameters_test/02: Crash # Fixed in ahe's dev branch.
+
+[ $unchecked && ($compiler == dartk || $compiler == dartkp) ]
+const_conditional_test/08: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+inst_field_initializer1_negative_test: Fail # Fixed in ahe's dev branch.
