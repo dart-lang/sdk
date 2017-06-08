@@ -181,58 +181,62 @@ class ErrorCodeValuesTest {
             .remove(AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING.name);
       } else if (errorType == StaticWarningCode) {
         declaredNames.remove(
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS.name);
+            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS.name +
+                '_PLUS');
       } else if (errorType == StrongModeCode) {
-        declaredNames.remove(StrongModeCode.DOWN_CAST_COMPOSITE.name);
-        declaredNames.remove(StrongModeCode.DOWN_CAST_IMPLICIT.name);
-        declaredNames.remove(StrongModeCode.DOWN_CAST_IMPLICIT_ASSIGN.name);
-        declaredNames.remove(StrongModeCode.DYNAMIC_CAST.name);
-        declaredNames.remove(StrongModeCode.ASSIGNMENT_CAST.name);
-        declaredNames.remove(StrongModeCode.INVALID_PARAMETER_DECLARATION.name);
-        declaredNames.remove(StrongModeCode.COULD_NOT_INFER.name);
-        declaredNames.remove(StrongModeCode.INFERRED_TYPE.name);
-        declaredNames.remove(StrongModeCode.INFERRED_TYPE_LITERAL.name);
-        declaredNames.remove(StrongModeCode.INFERRED_TYPE_ALLOCATION.name);
-        declaredNames.remove(StrongModeCode.INFERRED_TYPE_CLOSURE.name);
-        declaredNames.remove(StrongModeCode.INVALID_CAST_LITERAL.name);
-        declaredNames.remove(StrongModeCode.INVALID_CAST_LITERAL_LIST.name);
-        declaredNames.remove(StrongModeCode.INVALID_CAST_LITERAL_MAP.name);
-        declaredNames.remove(StrongModeCode.INVALID_CAST_FUNCTION_EXPR.name);
-        declaredNames.remove(StrongModeCode.INVALID_CAST_NEW_EXPR.name);
-        declaredNames.remove(StrongModeCode.INVALID_CAST_METHOD.name);
-        declaredNames.remove(StrongModeCode.INVALID_CAST_FUNCTION.name);
-        declaredNames.remove(StrongModeCode.INVALID_SUPER_INVOCATION.name);
-        declaredNames.remove(StrongModeCode.NON_GROUND_TYPE_CHECK_INFO.name);
-        declaredNames.remove(StrongModeCode.DYNAMIC_INVOKE.name);
-        declaredNames.remove(StrongModeCode.INVALID_METHOD_OVERRIDE.name);
-        declaredNames
-            .remove(StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE.name);
-        declaredNames
-            .remove(StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN.name);
-        declaredNames.remove(StrongModeCode.INVALID_FIELD_OVERRIDE.name);
-        declaredNames.remove(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER.name);
-        declaredNames.remove(StrongModeCode.IMPLICIT_DYNAMIC_RETURN.name);
-        declaredNames.remove(StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE.name);
-        declaredNames.remove(StrongModeCode.IMPLICIT_DYNAMIC_FIELD.name);
-        declaredNames.remove(StrongModeCode.IMPLICIT_DYNAMIC_TYPE.name);
-        declaredNames.remove(StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL.name);
-        declaredNames.remove(StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL.name);
-        declaredNames.remove(StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION.name);
-        declaredNames.remove(StrongModeCode.IMPLICIT_DYNAMIC_METHOD.name);
-        declaredNames.remove(StrongModeCode.IMPLICIT_DYNAMIC_INVOKE.name);
-        declaredNames.remove(StrongModeCode.NO_DEFAULT_BOUNDS.name);
-        declaredNames.remove(StrongModeCode.NOT_INSTANTIATED_BOUND.name);
-        declaredNames.remove(StrongModeCode.TOP_LEVEL_CYCLE.name);
-        declaredNames
-            .remove(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK.name);
-        declaredNames
-            .remove(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_PARAMETER.name);
-        declaredNames.remove(StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE.name);
-        declaredNames.remove(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER.name);
-        declaredNames.remove(StrongModeCode.TOP_LEVEL_TYPE_ARGUMENTS.name);
-        declaredNames.remove(StrongModeCode.TOP_LEVEL_UNSUPPORTED.name);
-        declaredNames
-            .remove(StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE.name);
+        void removeCode(StrongModeCode code) {
+          String name = code.name;
+          declaredNames.remove(name);
+          if (name.startsWith('STRONG_MODE_')) {
+            declaredNames.remove(name.substring(12));
+          }
+        }
+
+        removeCode(StrongModeCode.DOWN_CAST_COMPOSITE);
+        removeCode(StrongModeCode.DOWN_CAST_IMPLICIT);
+        removeCode(StrongModeCode.DOWN_CAST_IMPLICIT_ASSIGN);
+        removeCode(StrongModeCode.DYNAMIC_CAST);
+        removeCode(StrongModeCode.ASSIGNMENT_CAST);
+        removeCode(StrongModeCode.INVALID_PARAMETER_DECLARATION);
+        removeCode(StrongModeCode.COULD_NOT_INFER);
+        removeCode(StrongModeCode.INFERRED_TYPE);
+        removeCode(StrongModeCode.INFERRED_TYPE_LITERAL);
+        removeCode(StrongModeCode.INFERRED_TYPE_ALLOCATION);
+        removeCode(StrongModeCode.INFERRED_TYPE_CLOSURE);
+        removeCode(StrongModeCode.INVALID_CAST_LITERAL);
+        removeCode(StrongModeCode.INVALID_CAST_LITERAL_LIST);
+        removeCode(StrongModeCode.INVALID_CAST_LITERAL_MAP);
+        removeCode(StrongModeCode.INVALID_CAST_FUNCTION_EXPR);
+        removeCode(StrongModeCode.INVALID_CAST_NEW_EXPR);
+        removeCode(StrongModeCode.INVALID_CAST_METHOD);
+        removeCode(StrongModeCode.INVALID_CAST_FUNCTION);
+        removeCode(StrongModeCode.INVALID_SUPER_INVOCATION);
+        removeCode(StrongModeCode.NON_GROUND_TYPE_CHECK_INFO);
+        removeCode(StrongModeCode.DYNAMIC_INVOKE);
+        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE);
+        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE);
+        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN);
+        removeCode(StrongModeCode.INVALID_FIELD_OVERRIDE);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_RETURN);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_FIELD);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_TYPE);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_METHOD);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_INVOKE);
+        removeCode(StrongModeCode.NO_DEFAULT_BOUNDS);
+        removeCode(StrongModeCode.NOT_INSTANTIATED_BOUND);
+        removeCode(StrongModeCode.TOP_LEVEL_CYCLE);
+        removeCode(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK);
+        removeCode(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_PARAMETER);
+        removeCode(StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE);
+        removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER);
+        removeCode(StrongModeCode.TOP_LEVEL_TYPE_ARGUMENTS);
+        removeCode(StrongModeCode.TOP_LEVEL_UNSUPPORTED);
+        removeCode(StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE);
       } else if (errorType == TodoCode) {
         declaredNames.remove('TODO_REGEX');
       }
