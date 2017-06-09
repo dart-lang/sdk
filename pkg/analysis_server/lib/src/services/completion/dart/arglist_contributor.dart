@@ -254,9 +254,14 @@ class ArgListContributor extends DartCompletionContributor {
       if (appendComma) {
         completion += ',';
       }
+
+      final int relevance = parameter.isRequired
+          ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
+          : DART_RELEVANCE_NAMED_PARAMETER;
+
       CompletionSuggestion suggestion = new CompletionSuggestion(
           CompletionSuggestionKind.NAMED_ARGUMENT,
-          DART_RELEVANCE_NAMED_PARAMETER,
+          relevance,
           completion,
           selectionOffset,
           0,

@@ -95,9 +95,11 @@ class ArgListContributorTest extends DartCompletionContributorTest {
    */
   void assertSuggestArgumentsAndTypes(
       {Map<String, String> namedArgumentsWithTypes,
+      List<int> requiredParamIndices: const <int>[],
       bool includeColon: true,
       bool includeComma: false}) {
     List<CompletionSuggestion> expected = new List<CompletionSuggestion>();
+    int paramIndex = 0;
     namedArgumentsWithTypes.forEach((String name, String type) {
       String completion = includeColon ? '$name: ' : name;
       // Selection should be before any trailing commas.
@@ -105,9 +107,12 @@ class ArgListContributorTest extends DartCompletionContributorTest {
       if (includeComma) {
         completion = '$completion,';
       }
+      int relevance = requiredParamIndices.contains(paramIndex++)
+          ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
+          : DART_RELEVANCE_NAMED_PARAMETER;
       expected.add(assertSuggest(completion,
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-          relevance: DART_RELEVANCE_NAMED_PARAMETER,
+          relevance: relevance,
           paramName: name,
           paramType: type,
           selectionOffset: selectionOffset));
@@ -861,6 +866,18 @@ main() { new A(^, two: 'foo');}''');
         namedArgumentsWithTypes: {'one': 'int'}, includeComma: false);
     assertSuggestArgumentAndCompletion('one',
         completion: 'one: ', selectionOffset: 5);
+  }
+
+  test_ArgumentList_local_constructor_required_param_0() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+class A { A({int one, @required String two: 'defaultValue'}) { } }
+main() { new A(^);}''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(
+        namedArgumentsWithTypes: {'one': 'int', 'two': 'String'},
+        requiredParamIndices: [1]);
   }
 
   test_ArgumentList_local_function_1() async {
