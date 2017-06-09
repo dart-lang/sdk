@@ -192,8 +192,8 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     ],
 
     'HTMLCanvasElement.getContext': [
-      "@Creates('CanvasRenderingContext2D|RenderingContext')",
-      "@Returns('CanvasRenderingContext2D|RenderingContext|Null')",
+      "@Creates('CanvasRenderingContext2D|RenderingContext|RenderingContext2')",
+      "@Returns('CanvasRenderingContext2D|RenderingContext|RenderingContext2|Null')",
     ],
 
     'HTMLInputElement.valueAsDate': [
