@@ -18,8 +18,8 @@ import 'dart:io';
 
 import 'configuration.dart';
 import 'options.dart';
-import 'test_suite.dart';
 import 'test_configurations.dart';
+import 'utils.dart';
 
 const List<String> COMMON_ARGUMENTS = const <String>[
   '--report',

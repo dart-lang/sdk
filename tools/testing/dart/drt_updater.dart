@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'configuration.dart';
-import 'test_suite.dart';
+import 'utils.dart';
 
 typedef void Action();
 

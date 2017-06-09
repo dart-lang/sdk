@@ -8,6 +8,7 @@ import 'configuration.dart';
 import 'runtime_configuration.dart';
 import 'test_runner.dart';
 import 'test_suite.dart';
+import 'utils.dart';
 
 List<String> replaceDartFileWith(List<String> list, String replacement) {
   var copy = new List<String>.from(list);
@@ -272,7 +273,7 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
       List<String> arguments,
       Map<String, String> environmentOverrides) {
     return new CommandArtifact(<Command>[
-      this.computeCompilationCommand('$tempDir/out.dill', buildDir,
+      computeCompilationCommand('$tempDir/out.dill', buildDir,
           CommandBuilder.instance, arguments, environmentOverrides)
     ], '$tempDir/out.dill', 'application/dart');
   }

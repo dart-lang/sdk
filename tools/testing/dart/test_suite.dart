@@ -14,7 +14,6 @@
  */
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'browser_test.dart';
 import 'compiler_configuration.dart';
@@ -752,9 +751,7 @@ class StandardTestSuite extends TestSuite {
   }
 
   static Path _findPubspecYamlFile(Path filePath) {
-    final existsCache = TestUtils.existsCache;
-
-    Path root = TestUtils.dartDir;
+    var root = TestUtils.dartDir;
     assert("$filePath".startsWith("$root"));
 
     // We start with the parent directory of [filePath] and go up until
@@ -762,11 +759,12 @@ class StandardTestSuite extends TestSuite {
     List<String> segments = filePath.directoryPath.relativeTo(root).segments();
     while (segments.length > 0) {
       var pubspecYamlPath = new Path(segments.join('/')).append('pubspec.yaml');
-      if (existsCache.doesFileExist(pubspecYamlPath.toNativePath())) {
+      if (TestUtils.existsCache.doesFileExist(pubspecYamlPath.toNativePath())) {
         return root.join(pubspecYamlPath);
       }
       segments.removeLast();
     }
+
     return null;
   }
 
@@ -780,11 +778,11 @@ class StandardTestSuite extends TestSuite {
       enqueueHtmlTest(info, testName, expectations);
       return;
     }
+
     var optionsFromFile = info.optionsFromFile;
 
     // If this test is inside a package, we will check if there is a
     // pubspec.yaml file and if so, create a custom package root for it.
-    List<Command> baseCommands = <Command>[];
     Path packageRoot;
     Path packages;
 
@@ -804,7 +802,7 @@ class StandardTestSuite extends TestSuite {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
-      enqueueStandardTest(baseCommands, info, testName, expectations);
+      enqueueStandardTest(info, testName, expectations);
     } else if (configuration.runtime.isBrowser) {
       if (info.optionsFromFile['isMultiHtmlTest'] as bool) {
         // A browser multi-test has multiple expectations for one test file.
@@ -816,19 +814,18 @@ class StandardTestSuite extends TestSuite {
           multiHtmlTestExpectations[fullTestName] =
               testExpectations.expectations(fullTestName);
         }
-        enqueueBrowserTest(baseCommands, packageRoot, packages, info, testName,
-            multiHtmlTestExpectations);
-      } else {
         enqueueBrowserTest(
-            baseCommands, packageRoot, packages, info, testName, expectations);
+            packageRoot, packages, info, testName, multiHtmlTestExpectations);
+      } else {
+        enqueueBrowserTest(packageRoot, packages, info, testName, expectations);
       }
     } else {
-      enqueueStandardTest(baseCommands, info, testName, expectations);
+      enqueueStandardTest(info, testName, expectations);
     }
   }
 
-  void enqueueStandardTest(List<Command> baseCommands, TestInformation info,
-      String testName, Set<Expectation> expectations) {
+  void enqueueStandardTest(
+      TestInformation info, String testName, Set<Expectation> expectations) {
     var commonArguments =
         commonArgumentsFromFile(info.filePath, info.optionsFromFile);
 
@@ -844,9 +841,8 @@ class StandardTestSuite extends TestSuite {
         allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
       }
 
-      var commands = baseCommands.toList();
-      commands.addAll(
-          makeCommands(info, vmOptionsVariant, allVmOptions, commonArguments));
+      var commands =
+          makeCommands(info, vmOptionsVariant, allVmOptions, commonArguments);
       enqueueNewTestCase(new TestCase(
           '$suiteName/$testName', commands, configuration, expectations,
           isNegative: isNegative(info), info: info));
@@ -1030,7 +1026,6 @@ class StandardTestSuite extends TestSuite {
    * compilation and many browser runs).
    */
   void enqueueBrowserTest(
-      List<Command> baseCommands,
       Path packageRoot,
       Path packages,
       TestInformation info,
@@ -1044,13 +1039,12 @@ class StandardTestSuite extends TestSuite {
       var optionsName =
           multipleOptions ? vmOptions.join('-').replaceAll(badChars, '') : '';
       var tempDir = createOutputDirectory(info.filePath, optionsName);
-      enqueueBrowserTestWithOptions(baseCommands, packageRoot, packages, info,
-          testName, expectations, vmOptions, tempDir);
+      enqueueBrowserTestWithOptions(packageRoot, packages, info, testName,
+          expectations, vmOptions, tempDir);
     }
   }
 
   void enqueueBrowserTestWithOptions(
-      List<Command> baseCommands,
       Path packageRoot,
       Path packages,
       TestInformation info,
@@ -1080,7 +1074,7 @@ class StandardTestSuite extends TestSuite {
 
     // Construct the command(s) that compile all the inputs needed by the
     // browser test. For running Dart in DRT, this will be noop commands.
-    var commands = baseCommands.toList();
+    var commands = <Command>[];
 
     // Use existing HTML document if available.
     String htmlPath;
@@ -1723,7 +1717,6 @@ class PKGTestSuite extends StandardTestSuite {
             recursive: true);
 
   void enqueueBrowserTest(
-      List<Command> baseCommands,
       Path packageRoot,
       packages,
       TestInformation info,
@@ -1737,14 +1730,15 @@ class PKGTestSuite extends StandardTestSuite {
     var customHtml = new File(customHtmlPath.toNativePath());
     if (!customHtml.existsSync()) {
       super.enqueueBrowserTest(
-          baseCommands, packageRoot, packages, info, testName, expectations);
+          packageRoot, packages, info, testName, expectations);
     } else {
       var relativeHtml = customHtmlPath.relativeTo(TestUtils.dartDir);
-      var commands = baseCommands.toList();
       var fullPath = _createUrlPathFromFile(customHtmlPath);
 
-      commands.add(CommandBuilder.instance
-          .getBrowserTestCommand(fullPath, configuration, !isNegative(info)));
+      var commands = [
+        CommandBuilder.instance
+            .getBrowserTestCommand(fullPath, configuration, !isNegative(info))
+      ];
       var testDisplayName = '$suiteName/$testName';
       enqueueNewTestCase(new BrowserTestCase(
           testDisplayName,
@@ -1813,273 +1807,4 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
   }
 
   bool get listRecursively => true;
-}
-
-class LastModifiedCache {
-  Map<String, DateTime> _cache = <String, DateTime>{};
-
-  /**
-   * Returns the last modified date of the given [uri].
-   *
-   * The return value will be cached for future queries. If [uri] is a local
-   * file, it's last modified [Date] will be returned. If the file does not
-   * exist, null will be returned instead.
-   * In case [uri] is not a local file, this method will always return
-   * the current date.
-   */
-  DateTime getLastModified(Uri uri) {
-    if (uri.scheme == "file") {
-      if (_cache.containsKey(uri.path)) {
-        return _cache[uri.path];
-      }
-      var file = new File(new Path(uri.path).toNativePath());
-      _cache[uri.path] = file.existsSync() ? file.lastModifiedSync() : null;
-      return _cache[uri.path];
-    }
-    return new DateTime.now();
-  }
-}
-
-class ExistsCache {
-  Map<String, bool> _cache = <String, bool>{};
-
-  /**
-   * Returns true if the file in [path] exists, false otherwise.
-   *
-   * The information will be cached.
-   */
-  bool doesFileExist(String path) {
-    if (!_cache.containsKey(path)) {
-      _cache[path] = new File(path).existsSync();
-    }
-    return _cache[path];
-  }
-}
-
-class TestUtils {
-  /**
-   * Any script using TestUtils must set dartDirUri to a file:// URI
-   * pointing to the root of the Dart checkout.
-   */
-  static void setDartDirUri(Uri uri) {
-    dartDirUri = uri;
-    dartDir = new Path(uri.toFilePath());
-  }
-
-  static Random rand = new Random.secure();
-  static Uri dartDirUri;
-  static Path dartDir;
-  static LastModifiedCache lastModifiedCache = new LastModifiedCache();
-  static ExistsCache existsCache = new ExistsCache();
-  static Path currentWorkingDirectory = new Path(Directory.current.path);
-
-  /**
-   * Generates a random number.
-   */
-  static int getRandomNumber() {
-    return rand.nextInt(0xffffffff);
-  }
-
-  /**
-   * Creates a directory using a [relativePath] to an existing
-   * [base] directory if that [relativePath] does not already exist.
-   */
-  static Directory mkdirRecursive(Path base, Path relativePath) {
-    if (relativePath.isAbsolute) {
-      base = new Path('/');
-    }
-    Directory dir = new Directory(base.toNativePath());
-    assert(dir.existsSync());
-    var segments = relativePath.segments();
-    for (String segment in segments) {
-      base = base.append(segment);
-      if (base.toString() == "/$segment" &&
-          segment.length == 2 &&
-          segment.endsWith(':')) {
-        // Skip the directory creation for a path like "/E:".
-        continue;
-      }
-      dir = new Directory(base.toNativePath());
-      if (!dir.existsSync()) {
-        dir.createSync();
-      }
-      assert(dir.existsSync());
-    }
-    return dir;
-  }
-
-  /**
-   * Copy a [source] file to a new place.
-   * Assumes that the directory for [dest] already exists.
-   */
-  static Future copyFile(Path source, Path dest) {
-    return new File(source.toNativePath())
-        .openRead()
-        .pipe(new File(dest.toNativePath()).openWrite());
-  }
-
-  static Future copyDirectory(String source, String dest) {
-    source = new Path(source).toNativePath();
-    dest = new Path(dest).toNativePath();
-
-    var executable = 'cp';
-    var args = ['-Rp', source, dest];
-    if (Platform.operatingSystem == 'windows') {
-      executable = 'xcopy';
-      args = [source, dest, '/e', '/i'];
-    }
-    return Process.run(executable, args).then((ProcessResult result) {
-      if (result.exitCode != 0) {
-        throw new Exception("Failed to execute '$executable "
-            "${args.join(' ')}'.");
-      }
-    });
-  }
-
-  static Future deleteDirectory(String path) {
-    // We are seeing issues with long path names on windows when
-    // deleting them. Use the system tools to delete our long paths.
-    // See issue 16264.
-    if (Platform.operatingSystem == 'windows') {
-      var native_path = new Path(path).toNativePath();
-      // Running this in a shell sucks, but rmdir is not part of the standard
-      // path.
-      return Process
-          .run('rmdir', ['/s', '/q', native_path], runInShell: true)
-          .then((ProcessResult result) {
-        if (result.exitCode != 0) {
-          throw new Exception('Can\'t delete path $native_path. '
-              'This path might be too long');
-        }
-      });
-    } else {
-      var dir = new Directory(path);
-      return dir.delete(recursive: true);
-    }
-  }
-
-  static void deleteTempSnapshotDirectory(Configuration configuration) {
-    if (configuration.compiler == Compiler.appJit ||
-        configuration.compiler == Compiler.precompiler) {
-      var checked = configuration.isChecked ? '-checked' : '';
-      var strong = configuration.isStrong ? '-strong' : '';
-      var minified = configuration.isMinified ? '-minified' : '';
-      var csp = configuration.isCsp ? '-csp' : '';
-      var sdk = configuration.useSdk ? '-sdk' : '';
-      var dirName = "${configuration.compiler.name}"
-          "$checked$strong$minified$csp$sdk";
-      var generatedPath =
-          configuration.buildDirectory + "/generated_compilations/$dirName";
-      TestUtils.deleteDirectory(generatedPath);
-    }
-  }
-
-  static final debugLogFilePath = new Path(".debug.log");
-
-  /// If a flaky test did fail, infos about it (i.e. test name, stdin, stdout)
-  /// will be written to this file.
-  ///
-  /// This is useful for debugging flaky tests. When running on a buildbot, the
-  /// file can be made visible in the waterfall UI.
-  static const flakyFileName = ".flaky.log";
-
-  /// If test.py was invoked with '--write-test-outcome-log it will write
-  /// test outcomes to this file.
-  static const testOutcomeFileName = ".test-outcome.log";
-
-  static void ensureExists(String filename, Configuration configuration) {
-    if (!configuration.listTests && !existsCache.doesFileExist(filename)) {
-      throw "'$filename' does not exist";
-    }
-  }
-
-  static Path absolutePath(Path path) {
-    if (!path.isAbsolute) {
-      return currentWorkingDirectory.join(path);
-    }
-    return path;
-  }
-
-  static int shortNameCounter = 0; // Make unique short file names on Windows.
-
-  static String getShortName(String path) {
-    final PATH_REPLACEMENTS = const {
-      "pkg_polymer_e2e_test_bad_import_test": "polymer_bi",
-      "pkg_polymer_e2e_test_canonicalization_test": "polymer_c16n",
-      "pkg_polymer_e2e_test_experimental_boot_test": "polymer_boot",
-      "pkg_polymer_e2e_test_good_import_test": "polymer_gi",
-      "tests_co19_src_Language_12_Expressions_14_Function_Invocation_":
-          "co19_fn_invoke_",
-      "tests_co19_src_LayoutTests_fast_css_getComputedStyle_getComputedStyle-":
-          "co19_css_getComputedStyle_",
-      "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
-          "caretRangeFromPoint-": "co19_caretrangefrompoint_",
-      "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
-          "hittest-relative-to-viewport_": "co19_caretrange_hittest_",
-      "tests_co19_src_LayoutTests_fast_dom_HTMLLinkElement_link-onerror-"
-          "stylesheet-with-": "co19_dom_link-",
-      "tests_co19_src_LayoutTests_fast_dom_": "co19_dom",
-      "tests_co19_src_LayoutTests_fast_canvas_webgl": "co19_canvas_webgl",
-      "tests_co19_src_LibTest_core_AbstractClassInstantiationError_"
-          "AbstractClassInstantiationError_": "co19_abstract_class_",
-      "tests_co19_src_LibTest_core_IntegerDivisionByZeroException_"
-          "IntegerDivisionByZeroException_": "co19_division_by_zero",
-      "tests_co19_src_WebPlatformTest_html_dom_documents_dom-tree-accessors_":
-          "co19_dom_accessors_",
-      "tests_co19_src_WebPlatformTest_html_semantics_embedded-content_"
-          "media-elements_": "co19_media_elements",
-      "tests_co19_src_WebPlatformTest_html_semantics_": "co19_semantics_",
-      "tests_co19_src_WebPlatformTest_html-templates_additions-to-"
-          "the-steps-to-clone-a-node_": "co19_htmltemplates_clone_",
-      "tests_co19_src_WebPlatformTest_html-templates_definitions_"
-          "template-contents-owner": "co19_htmltemplates_contents",
-      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
-          "templates_additions-to-": "co19_htmltemplates_add_",
-      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
-          "templates_appending-to-a-template_": "co19_htmltemplates_append_",
-      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
-          "templates_clearing-the-stack-back-to-a-given-context_":
-          "co19_htmltemplates_clearstack_",
-      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
-          "templates_creating-an-element-for-the-token_":
-          "co19_htmltemplates_create_",
-      "tests_co19_src_WebPlatformTest_html-templates_template-element"
-          "_template-": "co19_htmltemplates_element-",
-      "tests_co19_src_WebPlatformTest_html-templates_": "co19_htmltemplate_",
-      "tests_co19_src_WebPlatformTest_shadow-dom_shadow-trees_":
-          "co19_shadow-trees_",
-      "tests_co19_src_WebPlatformTest_shadow-dom_elements-and-dom-objects_":
-          "co19_shadowdom_",
-      "tests_co19_src_WebPlatformTest_shadow-dom_html-elements-in-"
-          "shadow-trees_": "co19_shadow_html_",
-      "tests_co19_src_WebPlatformTest_html_webappapis_system-state-and-"
-          "capabilities_the-navigator-object": "co19_webappapis_navigator_",
-      "tests_co19_src_WebPlatformTest_DOMEvents_approved_": "co19_dom_approved_"
-    };
-
-    // Some tests are already in [build_dir]/generated_tests.
-    String GEN_TESTS = 'generated_tests/';
-    if (path.contains(GEN_TESTS)) {
-      int index = path.indexOf(GEN_TESTS) + GEN_TESTS.length;
-      path = 'multitest/${path.substring(index)}';
-    }
-    path = path.replaceAll('/', '_');
-    final int WINDOWS_SHORTEN_PATH_LIMIT = 58;
-    final int WINDOWS_PATH_END_LENGTH = 30;
-    if (Platform.operatingSystem == 'windows' &&
-        path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
-      for (var key in PATH_REPLACEMENTS.keys) {
-        if (path.startsWith(key)) {
-          path = path.replaceFirst(key, PATH_REPLACEMENTS[key]);
-          break;
-        }
-      }
-      if (path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
-        ++shortNameCounter;
-        var pathEnd = path.substring(path.length - WINDOWS_PATH_END_LENGTH);
-        path = "short${shortNameCounter}_$pathEnd";
-      }
-    }
-    return path;
-  }
 }

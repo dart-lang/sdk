@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:package_resolver/package_resolver.dart';
 
 import 'configuration.dart';
-import 'test_suite.dart';
 import 'vendored_pkg/args/args.dart';
 import 'utils.dart';
 

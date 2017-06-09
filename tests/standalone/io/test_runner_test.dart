@@ -10,6 +10,7 @@ import "../../../tools/testing/dart/options.dart";
 import "../../../tools/testing/dart/test_runner.dart";
 import "../../../tools/testing/dart/test_suite.dart";
 import "../../../tools/testing/dart/test_progress.dart" as progress;
+import "../../../tools/testing/dart/utils.dart";
 import "process_test_util.dart";
 
 final DEFAULT_TIMEOUT = 20;

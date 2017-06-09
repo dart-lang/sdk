@@ -7,7 +7,7 @@ import 'dart:io';
 import 'configuration.dart';
 import 'drt_updater.dart';
 import 'path.dart';
-import 'test_suite.dart';
+import 'utils.dart';
 
 const _defaultTestSelectors = const [
   'samples',

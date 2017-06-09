@@ -5,7 +5,7 @@
 import 'configuration.dart';
 import 'options.dart';
 import 'test_configurations.dart';
-import 'test_suite.dart';
+import 'utils.dart';
 
 void main(List<String> arguments) {
   TestUtils.setDartDirUri(Uri.base);

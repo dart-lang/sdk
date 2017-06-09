@@ -10,6 +10,7 @@ import 'configuration.dart';
 // from TestSuite once the refactoring is complete.
 import 'test_suite.dart';
 import 'test_runner.dart';
+import 'utils.dart';
 
 /// Describes the commands to run a given test case or its compiled output.
 ///

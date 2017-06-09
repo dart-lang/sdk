@@ -24,7 +24,7 @@ import "dart:io";
 
 import "options.dart";
 import "test_configurations.dart";
-import "test_suite.dart";
+import 'utils.dart';
 
 /// Runs all of the tests specified by the given command line [arguments].
 void main(List<String> arguments) {

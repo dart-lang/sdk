@@ -10,7 +10,7 @@ import 'compiler_configuration.dart';
 import 'http_server.dart';
 import 'path.dart';
 import 'runtime_configuration.dart';
-import 'test_suite.dart';
+import 'utils.dart';
 
 /// All of the contextual information to determine how a test suite should be
 /// run.
