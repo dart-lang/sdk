@@ -230,6 +230,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitFormalParameterList(FormalParameterList node) {
+    _checkRequiredParameter(node);
+    return super.visitFormalParameterList(node);
+  }
+
+  @override
   Object visitForStatement(ForStatement node) {
     _checkForPossibleNullCondition(node.condition);
     return super.visitForStatement(node);
@@ -1018,6 +1024,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(
             HintCode.MISSING_RETURN, returnType, [returnTypeType.displayName]);
       }
+    }
+  }
+
+  void _checkRequiredParameter(FormalParameterList node) {
+    final requiredParameters =
+        node.parameters.where((p) => p.element?.isRequired == true);
+    final nonNamedParamsWithRequired =
+        requiredParameters.where((p) => p.kind != ParameterKind.NAMED);
+    final namedParamsWithRequiredAndDefault = requiredParameters
+        .where((p) => p.kind == ParameterKind.NAMED)
+        .where((p) => p.element.defaultValueCode != null);
+    final paramsToHint = [
+      nonNamedParamsWithRequired,
+      namedParamsWithRequiredAndDefault
+    ].expand((e) => e);
+    for (final param in paramsToHint) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_REQUIRED_PARAM, param, [param.identifier.name]);
     }
   }
 
