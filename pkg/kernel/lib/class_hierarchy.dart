@@ -13,9 +13,6 @@ import 'type_algebra.dart';
 /// TODO(scheglov) Several methods are not used, or used only in tests.
 /// Check if these methods are not useful and should be removed .
 abstract class ClassHierarchy {
-  factory ClassHierarchy(Program program) =>
-      new ClosedWorldClassHierarchy(program);
-
   /// Given the [unordered] classes, return them in such order that classes
   /// occur after their superclasses.  If some superclasses are not in
   /// [unordered], they are not included.

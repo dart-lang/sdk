@@ -5,8 +5,8 @@
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/testing/mock_sdk_program.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -802,7 +802,7 @@ class TypeSchemaEnvironmentTest {
 
   TypeSchemaEnvironment _makeEnv() {
     return new TypeSchemaEnvironment(
-        coreTypes, new ClassHierarchy(program), true);
+        coreTypes, new IncrementalClassHierarchy(), true);
   }
 
   DartType _map(DartType key, DartType value) =>
