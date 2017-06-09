@@ -25,12 +25,41 @@ import 'tree/tree.dart';
 import 'util/util.dart';
 import 'world.dart' show ClosedWorldRefiner;
 
-abstract class ClosureClassMaps {
+/// Where T is ir.Node or Node.
+abstract class ClosureClassMaps<T> {
   ClosureClassMap getMemberMap(MemberEntity member);
   ClosureClassMap getLocalFunctionMap(Local localFunction);
+
+  /// Accessor to the information about closures that the SSA builder will use.
+  ClosureAnalysisInfo getClosureAnalysisInfo(T node);
 }
 
-class ClosureTask extends CompilerTask implements ClosureClassMaps {
+/// Class that provides a black-box interface to information gleaned from
+/// analyzing a closure's characteristics, most commonly used to influence how
+/// code should be generated in SSA builder stage.
+class ClosureAnalysisInfo {
+  const ClosureAnalysisInfo();
+
+  /// If true, this closure accesses a variable that was defined in an outside
+  /// scope and this variable gets modified at some point (sometimes we say that
+  /// variable has been "captured"). In this situation, access to this variable
+  /// is controlled via a wrapper (box) so that updates to this variable
+  /// are done in a way that is in line with Dart's closure rules.
+  bool requiresContextBox() => false;
+
+  /// Accessor to the local environment in which a particular closure node is
+  /// executed. This will encapsulate the value of any variables that have been
+  /// scoped into this context from outside. This is an accessor to the
+  /// contextBox that [requiresContextBox] is testing for.
+  Local get context => null;
+
+  /// True if the specified variable has been mutated inside the scope of this
+  /// closure.
+  bool isCaptured(Local variable) => false;
+}
+
+class ClosureTask extends CompilerTask implements ClosureClassMaps<Node> {
+  Map<Node, ClosureScope> _closureInfoMap = <Node, ClosureScope>{};
   Map<Element, ClosureClassMap> _closureMappingCache =
       <Element, ClosureClassMap>{};
   Compiler compiler;
@@ -41,6 +70,11 @@ class ClosureTask extends CompilerTask implements ClosureClassMaps {
   String get name => "Closure Simplifier";
 
   DiagnosticReporter get reporter => compiler.reporter;
+
+  ClosureAnalysisInfo getClosureAnalysisInfo(Node node) {
+    var value = _closureInfoMap[node];
+    return value == null ? const ClosureAnalysisInfo() : value;
+  }
 
   ClosureClassMap getMemberMap(MemberElement member) {
     return getClosureToClassMapping(member);
@@ -94,7 +128,11 @@ class ClosureTask extends CompilerTask implements ClosureClassMaps {
         TreeElements elements = element.resolvedAst.elements;
 
         ClosureTranslator translator = new ClosureTranslator(
-            compiler, closedWorldRefiner, elements, _closureMappingCache);
+            compiler,
+            closedWorldRefiner,
+            elements,
+            _closureMappingCache,
+            _closureInfoMap);
 
         // The translator will store the computed closure-mappings inside the
         // cache. One for given node and one for each nested closure.
@@ -407,7 +445,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
 
 // The box-element for a scope, and the captured variables that need to be
 // stored in the box.
-class ClosureScope {
+class ClosureScope implements ClosureAnalysisInfo {
   final BoxLocal boxElement;
   final Map<Local, BoxFieldElement> capturedVariables;
 
@@ -418,9 +456,15 @@ class ClosureScope {
 
   ClosureScope(this.boxElement, this.capturedVariables);
 
+  Local get context => boxElement;
+
+  bool requiresContextBox() => capturedVariables.keys.isNotEmpty;
+
+  List<Local> get boxedVariables => boxedLoopVariables;
+
   bool hasBoxedLoopVariables() => !boxedLoopVariables.isEmpty;
 
-  bool isCapturedVariable(Local variable) {
+  bool isCaptured(Local variable) {
     return capturedVariables.containsKey(variable);
   }
 
@@ -559,6 +603,7 @@ class ClosureTranslator extends Visitor {
   bool inTryStatement = false;
 
   final Map<Element, ClosureClassMap> closureMappingCache;
+  final Map<Node, ClosureScope> closureInfo;
 
   // Map of captured variables. Initially they will map to `null`. If
   // a variable needs to be boxed then the scope declaring the variable
@@ -585,7 +630,7 @@ class ClosureTranslator extends Visitor {
   bool insideClosure = false;
 
   ClosureTranslator(this.compiler, this.closedWorldRefiner, this.elements,
-      this.closureMappingCache);
+      this.closureMappingCache, this.closureInfo);
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -969,6 +1014,8 @@ class ClosureTranslator extends Visitor {
     if (!scopeMapping.isEmpty) {
       ClosureScope scope = new ClosureScope(box, scopeMapping);
       closureData.capturingScopes[node] = scope;
+      assert(closureInfo[node] == null);
+      closureInfo[node] = scope;
     }
   }
 

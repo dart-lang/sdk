@@ -320,8 +320,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // arguments.
 
       ConstructorElement constructorElement = _elementMap.getConstructor(body);
-      ClosureClassMap parameterClosureData =
-          closureToClassMapper.getMemberMap(constructorElement);
 
       void handleParameter(ir.VariableDeclaration node) {
         Local parameter = _localsMap.getLocal(node);
@@ -340,10 +338,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
       // If there are locals that escape (i.e. mutated in closures), we pass the
       // box to the constructor.
-      ClosureScope scopeData = parameterClosureData
-          .capturingScopes[constructorElement.resolvedAst.node];
-      if (scopeData != null) {
-        bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
+      ClosureAnalysisInfo scopeData = closureToClassMapper
+          .getClosureAnalysisInfo(constructorElement.resolvedAst.node);
+      if (scopeData.requiresContextBox()) {
+        bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
 
       // Pass type arguments.

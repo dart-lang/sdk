@@ -1376,8 +1376,6 @@ class SsaBuilder extends ast.Visitor
       }
       bodyCallInputs.add(newObject);
       ast.Node node = constructorResolvedAst.node;
-      ClosureClassMap parameterClosureData =
-          closureToClassMapper.getMemberMap(constructor);
 
       FunctionSignature functionSignature = body.functionSignature;
       // Provide the parameters to the generative constructor body.
@@ -1392,9 +1390,10 @@ class SsaBuilder extends ast.Visitor
       // If there are locals that escape (ie mutated in closures), we
       // pass the box to the constructor.
       // The box must be passed before any type variable.
-      ClosureScope scopeData = parameterClosureData.capturingScopes[node];
-      if (scopeData != null) {
-        bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
+      ClosureAnalysisInfo scopeData =
+          closureToClassMapper.getClosureAnalysisInfo(node);
+      if (scopeData.requiresContextBox()) {
+        bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
 
       // Type variables arguments must come after the box (if there is one).
@@ -1480,11 +1479,11 @@ class SsaBuilder extends ast.Visitor
       // because that is where the type guards will also be inserted.
       // This way we ensure that a type guard will dominate the type
       // check.
-      ClosureScope scopeData = localsHandler.closureData.capturingScopes[node];
       signature.orderedForEachParameter((ParameterElement parameterElement) {
         if (element.isGenerativeConstructorBody) {
-          if (scopeData != null &&
-              scopeData.isCapturedVariable(parameterElement)) {
+          if (closureToClassMapper
+              .getClosureAnalysisInfo(node)
+              .isCaptured(parameterElement)) {
             // The parameter will be a field in the box passed as the
             // last parameter. So no need to have it.
             return;

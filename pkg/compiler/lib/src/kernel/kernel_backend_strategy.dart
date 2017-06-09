@@ -293,7 +293,7 @@ class KLocal implements Local {
 }
 
 /// TODO(johnniwinther,efortuna): Implement this.
-class KernelClosureClassMaps implements ClosureClassMaps {
+class KernelClosureClassMaps implements ClosureClassMaps<ir.Node> {
   const KernelClosureClassMaps();
 
   @override
@@ -308,6 +308,11 @@ class KernelClosureClassMaps implements ClosureClassMaps {
       thisLocal = new ThisLocal(member);
     }
     return new ClosureClassMap(null, null, null, thisLocal);
+  }
+
+  @override
+  ClosureAnalysisInfo getClosureAnalysisInfo(ir.Node node) {
+    return const ClosureAnalysisInfo();
   }
 }
 
