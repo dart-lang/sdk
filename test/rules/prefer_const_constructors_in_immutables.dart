@@ -78,3 +78,10 @@ class H {
   final f;
   H(f) : f = f ?? f == null; // OK
 }
+
+// no lint for class with final field initialized with new
+@immutable
+class I {
+  final f = new Object();
+  I(f); // OK
+}
