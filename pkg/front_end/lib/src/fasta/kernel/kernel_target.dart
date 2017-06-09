@@ -371,8 +371,7 @@ class KernelTarget extends TargetImplementation {
         new Map<String, Source>.from(this.uriToSource);
 
     libraries.addAll(dillTarget.loader.libraries);
-    // TODO(scheglov) Should we also somehow update `uriToSource`?
-//    uriToSource.addAll(binary.uriToSource);
+    uriToSource.addAll(dillTarget.loader.uriToSource);
 
     // TODO(ahe): Remove this line. Kernel seems to generate a default line map
     // that used when there's no fileUri on an element. Instead, ensure all
