@@ -5967,13 +5967,13 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionType toNode = this._toNode as GenericFunctionType;
+    GenericFunctionTypeImpl toNode = this._toNode as GenericFunctionTypeImpl;
     if (_and(
         _isEqualNodes(node.returnType, toNode.returnType),
         _isEqualTokens(node.functionKeyword, toNode.functionKeyword),
         _isEqualNodes(node.typeParameters, toNode.typeParameters),
         _isEqualNodes(node.parameters, toNode.parameters))) {
-      // TODO(brianwilkerson) Copy the type information.
+      toNode.type = node.type;
       return true;
     }
     return false;
@@ -5981,7 +5981,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitGenericTypeAlias(GenericTypeAlias node) {
-    GenericTypeAlias toNode = this._toNode as GenericTypeAlias;
+    GenericTypeAliasImpl toNode = this._toNode as GenericTypeAliasImpl;
     if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -5991,7 +5991,6 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.equals, toNode.equals),
         _isEqualNodes(node.functionType, toNode.functionType),
         _isEqualTokens(node.semicolon, toNode.semicolon))) {
-      // TODO(brianwilkerson) Copy the type and element information.
       return true;
     }
     return false;
