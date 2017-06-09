@@ -350,6 +350,7 @@ void Assembler::movw(const Address& dst, Register src) {
 void Assembler::movw(const Address& dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandSizeOverride();
+  EmitOperandREX(0, dst, REX_NONE);
   EmitUint8(0xC7);
   EmitOperand(0, dst);
   EmitUint8(imm.value() & 0xFF);
@@ -1383,14 +1384,16 @@ void Assembler::cmpb(const Address& address, const Immediate& imm) {
 void Assembler::cmpw(Register reg, const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandSizeOverride();
+  EmitOperandREX(reg, address, REX_NONE);
   EmitUint8(0x3B);
-  EmitOperand(reg, address);
+  EmitOperand(reg & 7, address);
 }
 
 
 void Assembler::cmpw(const Address& address, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandSizeOverride();
+  EmitOperandREX(7, address, REX_NONE);
   EmitUint8(0x81);
   EmitOperand(7, address);
   EmitUint8(imm.value() & 0xFF);
