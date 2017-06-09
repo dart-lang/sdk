@@ -915,7 +915,6 @@ class ObjectGraph {
   }
 
   void _calculateRetainedSizes() {
-    var N = _N;
     var Nconnected = _Nconnected;
 
     var size = 0;
@@ -1052,7 +1051,6 @@ class ObjectGraph {
       if (next[parent1] == end) return;
 
       // Find the middle of the list.
-      int cid = cids[parent1];
       int slow = parent1;
       int fast = parent1;
       while (next[fast] != end && next[next[fast]] != end) {
@@ -1083,7 +1081,6 @@ class ObjectGraph {
     while (workStackTop > 0) {
       var parent = workStack[--workStackTop];
 
-      var prev = SENTINEL;
       var child = head[parent];
       while (child != SENTINEL) {
         // Push child.

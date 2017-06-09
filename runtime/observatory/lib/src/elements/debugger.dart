@@ -442,7 +442,6 @@ class ReloadCommand extends DebuggerCommand {
 
   Future run(List<String> args) async {
     try {
-      int count = 1;
       if (args.length > 0) {
         debugger.console.print('reload expects no arguments');
         return;
