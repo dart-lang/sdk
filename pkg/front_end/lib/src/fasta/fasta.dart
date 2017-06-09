@@ -18,7 +18,7 @@ import 'package:kernel/binary/ast_to_binary.dart'
 
 import 'package:kernel/kernel.dart' show Library, Program, loadProgramFromBytes;
 
-import 'package:kernel/target/targets.dart' show getTarget, TargetFlags;
+import 'package:kernel/target/targets.dart' show Target;
 
 import 'compiler_command_line.dart' show CompilerCommandLine;
 
@@ -114,11 +114,7 @@ class CompileTask {
   CompileTask(this.c, this.ticker);
 
   DillTarget createDillTarget(TranslateUri uriTranslator) {
-    return new DillTarget(
-        ticker,
-        uriTranslator,
-        getTarget(c.options.target,
-            new TargetFlags(strongMode: c.options.strongMode)));
+    return new DillTarget(ticker, uriTranslator, c.options.target);
   }
 
   KernelTarget createKernelTarget(
@@ -176,17 +172,16 @@ class CompileTask {
 }
 
 Future<CompilationResult> parseScript(
-    Uri fileName, Uri packages, Uri patchedSdk,
-    {bool verbose: false, bool strongMode: false}) async {
-  return parseScriptInFileSystem(
-      fileName, PhysicalFileSystem.instance, packages, patchedSdk,
-      verbose: verbose, strongMode: strongMode);
+    Uri fileName, Uri packages, Uri patchedSdk, Target backendTarget,
+    {bool verbose: false}) async {
+  return parseScriptInFileSystem(fileName, PhysicalFileSystem.instance,
+      packages, patchedSdk, backendTarget,
+      verbose: verbose);
 }
 
-Future<CompilationResult> parseScriptInFileSystem(
-    Uri fileName, FileSystem fileSystem, Uri packages, Uri patchedSdk,
-    {bool verbose: false, bool strongMode: false, String backendTarget}) async {
-  backendTarget ??= "vm_fasta";
+Future<CompilationResult> parseScriptInFileSystem(Uri fileName,
+    FileSystem fileSystem, Uri packages, Uri patchedSdk, Target backendTarget,
+    {bool verbose: false}) async {
   try {
     if (!await fileSystem.entityForUri(fileName).exists()) {
       return new CompilationResult.error(
@@ -202,8 +197,8 @@ Future<CompilationResult> parseScriptInFileSystem(
       TranslateUri uriTranslator =
           await TranslateUri.parse(fileSystem, patchedSdk, packages: packages);
       final Ticker ticker = new Ticker(isVerbose: verbose);
-      final DillTarget dillTarget = new DillTarget(ticker, uriTranslator,
-          getTarget(backendTarget, new TargetFlags(strongMode: strongMode)));
+      final DillTarget dillTarget =
+          new DillTarget(ticker, uriTranslator, backendTarget);
       _appendDillForUri(dillTarget, patchedSdk.resolve('platform.dill'));
       final KernelTarget kernelTarget =
           new KernelTarget(fileSystem, dillTarget, uriTranslator);
@@ -268,6 +263,8 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
   Ticker ticker = new Ticker(isVerbose: verbose);
   await CompilerCommandLine.withGlobalOptions("", [""],
       (CompilerContext c) async {
+    c.options.options["--target"] = backendTarget;
+    c.options.options["--strong-mode"] = false;
     c.options.options["--packages"] = packages;
     if (verbose) {
       c.options.options["--verbose"] = true;
@@ -277,8 +274,8 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
     TranslateUri uriTranslator = await TranslateUri.parse(c.fileSystem, sdk,
         packages: c.options.packages);
     ticker.logMs("Read packages file");
-    DillTarget dillTarget = new DillTarget(ticker, uriTranslator,
-        getTarget(backendTarget, new TargetFlags(strongMode: false)));
+    DillTarget dillTarget =
+        new DillTarget(ticker, uriTranslator, c.options.target);
     _appendDillForUri(dillTarget, platform);
     KernelTarget kernelTarget = new KernelTarget(
         PhysicalFileSystem.instance, dillTarget, uriTranslator, c.uriToSource);

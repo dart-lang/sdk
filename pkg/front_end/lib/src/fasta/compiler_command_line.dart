@@ -10,6 +10,9 @@ import 'command_line.dart' show CommandLine, argumentError;
 
 import 'compiler_context.dart' show CompilerContext;
 
+import 'package:kernel/target/targets.dart'
+    show Target, getTarget, TargetFlags, targets;
+
 const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--compile-sdk": Uri,
   "--fatal": ",",
@@ -60,6 +63,16 @@ class CompilerCommandLine extends CommandLine {
     } else if (arguments.isEmpty) {
       return argumentError(usage, "No Dart file specified.");
     }
+
+    Target target =
+        getTarget(targetName, new TargetFlags(strongMode: strongMode));
+    if (target == null) {
+      return argumentError(
+          usage,
+          "Target '${targetName}' not recognized. "
+          "Valid targets are:\n  ${targets.keys.join("\n  ")}");
+    }
+    options["target"] = target;
   }
 
   Uri get output {
@@ -90,9 +103,11 @@ class CompilerCommandLine extends CommandLine {
 
   bool get strongMode => options.containsKey("--strong-mode");
 
-  String get target {
+  String get targetName {
     return options["-t"] ?? options["--target"] ?? "vm_fasta";
   }
+
+  Target get target => options["target"];
 
   static dynamic withGlobalOptions(String programName, List<String> arguments,
       dynamic f(CompilerContext context)) {
