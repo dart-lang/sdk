@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io' as io;
 
-import '../lib/shared_messages.dart';
+import 'package:dart_messages/shared_messages.dart';
 
 const String jsonPath = '../lib/generated/shared_messages.json';
 const String dart2jsPath =
