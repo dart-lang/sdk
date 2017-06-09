@@ -17,8 +17,3 @@ declare_args() {
   # the VM enables this only for Linux builds.
   dart_use_tcmalloc = false
 }
-
-# TODO(zra): Remove this when Fuchsia has a root cert cache on the filesystem.
-if (defined(is_fuchsia) && is_fuchsia) {
-  dart_use_fallback_root_certificates = true
-}

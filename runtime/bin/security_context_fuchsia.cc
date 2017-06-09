@@ -44,12 +44,12 @@ void SSLCertContext::TrustBuiltinRoots() {
     return;
   }
 
-  // Fall back on the compiled-in certs if the standard locations don't exist,
-  // or we aren't on Linux.
-  if (SSL_LOG_STATUS) {
-    Log::Print("Trusting compiled-in roots\n");
+  const char* bundle = "/system/data/boringssl/cert.pem";
+  if (!File::Exists(bundle)) {
+    FATAL1("Failed to find trusted certs at %s\n", bundle);
   }
-  AddCompiledInCerts();
+
+  LoadRootCertFile(bundle);
 }
 
 
