@@ -64,11 +64,13 @@ class IncrementalCompiler {
   /// Create an instance of [IncrementalCompiler].
   static Future<IncrementalCompiler> create(
       CompilerOptions options, Uri entryUri) async {
-    return new IncrementalCompiler._internal(
-        await IncrementalKernelGenerator.newInstance(options, entryUri));
+    var compiler = new IncrementalCompiler._internal();
+    compiler._generator = await IncrementalKernelGenerator
+        .newInstance(options, entryUri, watch: compiler._watch);
+    return compiler;
   }
 
-  IncrementalCompiler._internal(this._generator);
+  IncrementalCompiler._internal();
 
   /// Callback for the [IncrementalKernelGenerator] to keep track of relevant
   /// files.
@@ -114,7 +116,7 @@ class IncrementalCompiler {
     if (changed == 0 && lastModified.isNotEmpty) return null;
 
     var compileTimer = new Stopwatch()..start();
-    var delta = await _generator.computeDelta(watch: _watch);
+    var delta = await _generator.computeDelta();
     compileTimer.stop();
     compileTime = compileTimer.elapsedMilliseconds;
     var program = delta.newProgram;

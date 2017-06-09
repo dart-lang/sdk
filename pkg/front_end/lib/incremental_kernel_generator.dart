@@ -10,6 +10,18 @@ import 'package:kernel/kernel.dart';
 
 import 'compiler_options.dart';
 
+/// The type of the function that clients can pass to track used files.
+///
+/// When a file is first used during compilation, this function is called with
+/// the [Uri] of that file and [used] == `true`. The content of the file is not
+/// read until the [Future] returned by the function completes. If, during a
+/// subsequent compilation, a file that was being used is no longer used, then
+/// the function is called with the [Uri] of that file and [used] == `false`.
+///
+/// Multiple invocations of may be running concurrently.
+///
+typedef Future<Null> WatchUsedFilesFn(Uri uri, bool used);
+
 /// Represents the difference between "old" and "new" states of a program.
 ///
 /// Not intended to be implemented or extended by clients.
@@ -62,16 +74,6 @@ abstract class IncrementalKernelGenerator {
   /// from disk; they are assumed to be unchanged regardless of the state of the
   /// filesystem.
   ///
-  /// If [watch] is not `null`, then when a source file is first used
-  /// by [computeDelta], [watch] is called with the Uri of that source
-  /// file and `used` == `true` indicating that the source file is being
-  /// used when compiling the program. The content of the file is not read
-  /// until the Future returned by [watch] completes. If during a subsequent
-  /// call to [computeDelta], a source file that was being used is no longer
-  /// used, then [watch] is called with the Uri of that source file and
-  /// `used` == `false` indicating that the source file is no longer needed.
-  /// Multiple invocations of [watch] may be running concurrently.
-  ///
   /// If the future completes successfully, the previous file state is updated
   /// and the set of valid sources is set to the set of all sources in the
   /// program.
@@ -80,7 +82,7 @@ abstract class IncrementalKernelGenerator {
   /// source code), the caller may consider the previous file state and the set
   /// of valid sources to be unchanged; this means that once the user fixes the
   /// errors, it is safe to call [computeDelta] again.
-  Future<DeltaProgram> computeDelta({Future<Null> watch(Uri uri, bool used)});
+  Future<DeltaProgram> computeDelta();
 
   /// Remove the file associated with the given file [uri] from the set of
   /// valid files.  This guarantees that those files will be re-read on the
@@ -104,10 +106,12 @@ abstract class IncrementalKernelGenerator {
   /// code, and the initial set of valid sources is empty.  To obtain a kernel
   /// representation of the program, call [computeDelta].
   static Future<IncrementalKernelGenerator> newInstance(
-      CompilerOptions options, Uri entryPoint) async {
+      CompilerOptions options, Uri entryPoint,
+      {WatchUsedFilesFn watch}) async {
     var processedOptions = new ProcessedOptions(options);
     var uriTranslator = await processedOptions.getUriTranslator();
     return new IncrementalKernelGeneratorImpl(
-        processedOptions, uriTranslator, entryPoint);
+        processedOptions, uriTranslator, entryPoint,
+        watch: watch);
   }
 }

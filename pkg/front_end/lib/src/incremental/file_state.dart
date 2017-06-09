@@ -21,6 +21,10 @@ import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
 import 'package:kernel/target/vm.dart';
 
+/// This function is called for each newly discovered file, and the returned
+/// [Future] is awaited before reading the file content.
+typedef Future<Null> NewFileFn(Uri uri);
+
 /// Information about a file being compiled, explicitly or implicitly.
 ///
 /// It provides a consistent view on its properties.
@@ -279,6 +283,7 @@ class FileSystemState {
   final FileSystem fileSystem;
   final TranslateUri uriTranslator;
   final List<int> _salt;
+  final NewFileFn _newFileFn;
 
   _FileSystemView _fileSystemView;
 
@@ -290,7 +295,8 @@ class FileSystemState {
   /// contain `file:*` URIs as keys.
   final Map<Uri, FileState> _fileUriToFile = {};
 
-  FileSystemState(this.fileSystem, this.uriTranslator, this._salt);
+  FileSystemState(
+      this.fileSystem, this.uriTranslator, this._salt, this._newFileFn);
 
   /// Return the [FileSystem] that is backed by this [FileSystemState].  The
   /// files in this [FileSystem] always have the same content as the
@@ -322,6 +328,11 @@ class FileSystemState {
       file = new FileState._(this, absoluteUri, fileUri);
       _uriToFile[absoluteUri] = file;
       _fileUriToFile[fileUri] = file;
+
+      // Notify the function about a new file.
+      if (_newFileFn != null) {
+        await _newFileFn(fileUri);
+      }
 
       // Build the sub-graph of the file.
       await file.refresh();

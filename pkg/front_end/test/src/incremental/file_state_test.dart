@@ -25,13 +25,17 @@ class FileSystemStateTest {
   FileSystemState fsState;
 
   Uri _coreUri;
+  List<Uri> _newFileUris = <Uri>[];
 
   void setUp() {
     Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
     uriTranslator.dartLibraries.addAll(dartLibraries);
     _coreUri = Uri.parse('dart:core');
     expect(_coreUri, isNotNull);
-    fsState = new FileSystemState(fileSystem, uriTranslator, <int>[]);
+    fsState = new FileSystemState(fileSystem, uriTranslator, <int>[], (uri) {
+      _newFileUris.add(uri);
+      return new Future.value();
+    });
   }
 
   test_apiSignature() async {
@@ -230,6 +234,36 @@ export "c.dart" show A, B, C, D hide C show A, D;
       expect(export_.isExposed('C'), isFalse);
       expect(export_.isExposed('D'), isTrue);
     }
+  }
+
+  test_newFileListener() async {
+    var a = writeFile('/a.dart', '');
+    var b = writeFile('/b.dart', '');
+    var c = writeFile(
+        '/c.dart',
+        r'''
+import 'a.dart';
+''');
+
+    FileState cFile = await fsState.getFile(c);
+
+    // c.dart uses c.dart and a.dart, but not b.dart yet.
+    expect(_newFileUris, contains(c));
+    expect(_newFileUris, contains(a));
+    expect(_newFileUris, isNot(contains(b)));
+    _newFileUris.clear();
+
+    // Update c.dart to use b.dart too.
+    writeFile(
+        '/c.dart',
+        r'''
+import 'a.dart';
+import 'b.dart';
+''');
+    await cFile.refresh();
+
+    // b.dart is the only new file.
+    expect(_newFileUris, [b]);
   }
 
   test_topologicalOrder_cycleBeforeTarget() async {

@@ -30,6 +30,9 @@ class IncrementalKernelGeneratorTest {
   /// Virtual filesystem for testing.
   final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
 
+  /// The used file watcher.
+  WatchUsedFilesFn watchFn = (uri, used) {};
+
   /// The object under test.
   IncrementalKernelGenerator incrementalKernelGenerator;
 
@@ -48,8 +51,8 @@ class IncrementalKernelGeneratorTest {
       ..chaseDependencies = true
       ..dartLibraries = dartLibraries
       ..packagesFileUri = Uri.parse('file:///test/.packages');
-    incrementalKernelGenerator = await IncrementalKernelGenerator.newInstance(
-        compilerOptions, entryPoint);
+    incrementalKernelGenerator = await IncrementalKernelGenerator
+        .newInstance(compilerOptions, entryPoint, watch: watchFn);
     return (await incrementalKernelGenerator.computeDelta()).newProgram;
   }
 
@@ -327,6 +330,26 @@ import "dart:core" as core;
 
 static field (core::String) → core::int f;
 ''');
+  }
+
+  test_invalidateAll() async {
+    writeFile('/test/.packages', '');
+    Uri aUri = writeFile('/test/a.dart', "import 'b.dart';\nint a = b;");
+    Uri bUri = writeFile('/test/b.dart', 'var b = 1;');
+
+    Program program = await getInitialState(aUri);
+    expect(_getLibraryText(_getLibrary(program, aUri)), contains("int a ="));
+    expect(_getLibraryText(_getLibrary(program, bUri)), contains("b = 1"));
+
+    writeFile('/test/a.dart', "import 'b.dart';\ndouble a = b;");
+    writeFile('/test/b.dart', 'var b = 2;');
+    incrementalKernelGenerator.invalidateAll();
+
+    DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+    program = delta.newProgram;
+    _assertLibraryUris(program, includes: [aUri, bUri]);
+    expect(_getLibraryText(_getLibrary(program, aUri)), contains("double a ="));
+    expect(_getLibraryText(_getLibrary(program, bUri)), contains("b = 2"));
   }
 
   test_limited_ast_to_binary() async {
@@ -663,24 +686,48 @@ static method main() → void {}
     }
   }
 
-  test_invalidateAll() async {
-    writeFile('/test/.packages', '');
-    Uri aUri = writeFile('/test/a.dart', "import 'b.dart';\nint a = b;");
-    Uri bUri = writeFile('/test/b.dart', 'var b = 1;');
+  test_watch() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    Uri aUri = writeFile(aPath, '');
+    Uri bUri = writeFile(bPath, '');
+    Uri cUri = writeFile(
+        cPath,
+        r'''
+import 'a.dart';
+''');
 
-    Program program = await getInitialState(aUri);
-    expect(_getLibraryText(_getLibrary(program, aUri)), contains("int a ="));
-    expect(_getLibraryText(_getLibrary(program, bUri)), contains("b = 1"));
+    var usedFiles = <Uri>[];
+    watchFn = (Uri uri, bool used) {
+      expect(used, isTrue);
+      usedFiles.add(uri);
+      return new Future.value();
+    };
 
-    writeFile('/test/a.dart', "import 'b.dart';\ndouble a = b;");
-    writeFile('/test/b.dart', 'var b = 2;');
-    incrementalKernelGenerator.invalidateAll();
+    {
+      await getInitialState(cUri);
+      // We use at least c.dart and a.dart now.
+      expect(usedFiles, contains(cUri));
+      expect(usedFiles, contains(aUri));
+      usedFiles.clear();
+    }
 
-    DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
-    program = delta.newProgram;
-    _assertLibraryUris(program, includes: [aUri, bUri]);
-    expect(_getLibraryText(_getLibrary(program, aUri)), contains("double a ="));
-    expect(_getLibraryText(_getLibrary(program, bUri)), contains("b = 2"));
+    // Update c.dart to reference also b.dart file.
+    writeFile(
+        cPath,
+        r'''
+import 'a.dart';
+import 'b.dart';
+''');
+    incrementalKernelGenerator.invalidate(cUri);
+    {
+      await incrementalKernelGenerator.computeDelta();
+      // The only new file is b.dart now.
+      expect(usedFiles, [bUri]);
+      usedFiles.clear();
+    }
   }
 
   /// Write the given [text] of the file with the given [path] into the

@@ -74,16 +74,17 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   final Set<Uri> _invalidatedFiles = new Set<Uri>();
 
   IncrementalKernelGeneratorImpl(
-      this._options, this._uriTranslator, this._entryPoint)
+      this._options, this._uriTranslator, this._entryPoint,
+      {WatchUsedFilesFn watch})
       : _logger = _options.logger,
         _byteStore = _options.byteStore {
     _computeSalt();
-    _fsState = new FileSystemState(_options.fileSystem, _uriTranslator, _salt);
+    _fsState = new FileSystemState(
+        _options.fileSystem, _uriTranslator, _salt, (uri) => watch(uri, true));
   }
 
   @override
-  Future<DeltaProgram> computeDelta(
-      {Future<Null> watch(Uri uri, bool used)}) async {
+  Future<DeltaProgram> computeDelta() async {
     return await _logger.runAsync('Compute delta', () async {
       await _refreshInvalidatedFiles();
 
@@ -127,8 +128,6 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           }
         }
       }
-
-      if (watch != null) _fsState.fileUris.forEach((f) => watch(f, true));
 
       // TODO(scheglov) Add libraries which import changed libraries.
       // For now the corresponding test works because we use full library
