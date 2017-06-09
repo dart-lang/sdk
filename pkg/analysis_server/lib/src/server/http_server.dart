@@ -79,7 +79,7 @@ class HttpAnalysisServer {
 
     try {
       _serverFuture =
-          HttpServer.bind(InternetAddress.LOOPBACK_IP_V6, initialPort ?? 0);
+          HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, initialPort ?? 0);
 
       HttpServer server = await _serverFuture;
       _handleServer(server);
