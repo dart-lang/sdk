@@ -242,6 +242,16 @@ EntityRefBuilder _createLinkedType(
       // TODO(paulberry): do I need to store type arguments?
       return result;
     }
+    if (element is GenericFunctionTypeElement) {
+      result.entityKind = EntityRefKind.genericFunctionType;
+      result.syntheticReturnType = _createLinkedType(
+          type.returnType, compilationUnit, typeParameterContext);
+      result.syntheticParams = type.parameters
+          .map((ParameterElement param) => _serializeSyntheticParam(
+              param, compilationUnit, typeParameterContext))
+          .toList();
+      return result;
+    }
     // TODO(paulberry): implement other cases.
     throw new UnimplementedError('${element.runtimeType}');
   }
@@ -1091,6 +1101,8 @@ abstract class CompilationUnitElementForLink
     if (entity.paramReference != 0) {
       return context.typeParameterContext
           .getTypeParameterType(entity.paramReference);
+    } else if (entity.entityKind == EntityRefKind.genericFunctionType) {
+      return new GenericFunctionTypeElementForLink(this, context, entity).type;
     } else if (entity.syntheticReturnType != null) {
       // TODO(paulberry): implement.
       throw new UnimplementedError();
@@ -3235,6 +3247,87 @@ class FunctionTypeAliasElementForLink extends Object
       return _type ??= new FunctionTypeImpl.forTypedef(this);
     }
   }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => '$enclosingElement.$name';
+}
+
+/**
+ * Element representing a generic function resynthesized from a summary during
+ * linking.
+ */
+class GenericFunctionTypeElementForLink extends Object
+    with
+        TypeParameterizedElementMixin,
+        ParameterParentElementForLink,
+        ReferenceableElementForLink
+    implements GenericFunctionTypeElement, ElementImpl {
+  @override
+  final CompilationUnitElementForLink enclosingUnit;
+
+  @override
+  final ElementImpl enclosingElement;
+
+  /**
+   * The linked representation of the generic function in the summary.
+   */
+  final EntityRef _entity;
+
+  DartType _returnType;
+  FunctionTypeImpl _type;
+
+  GenericFunctionTypeElementForLink(
+      this.enclosingUnit, this.enclosingElement, this._entity);
+
+  @override
+  DartType get asStaticType {
+    return enclosingUnit.enclosingElement._linker.typeProvider.typeType;
+  }
+
+  @override
+  ContextForLink get context => enclosingElement.context;
+
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext {
+    return enclosingElement.typeParameterContext;
+  }
+
+  @override
+  String get identifier => name;
+
+  @override
+  List<int> get implicitFunctionTypeIndices => const <int>[];
+
+  @override
+  bool get isSynthetic => false;
+
+  @override
+  LibraryElementForLink get library => enclosingElement.library;
+
+  @override
+  String get name => '-';
+
+  @override
+  DartType get returnType => _returnType ??=
+      enclosingUnit.resolveTypeRef(this, _entity.syntheticReturnType);
+
+  @override
+  FunctionType get type {
+    return _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
+        this, null, allEnclosingTypeParameterTypes, false);
+  }
+
+  @override
+  TypeParameterizedElementMixin get typeParameterContext => this;
+
+  @override
+  List<UnlinkedParam> get unlinkedParameters => _entity.syntheticParams;
+
+  @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams => _entity.typeParameters;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
