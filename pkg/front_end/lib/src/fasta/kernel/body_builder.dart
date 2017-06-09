@@ -3100,7 +3100,8 @@ abstract class ContextAccessor extends FastaAccessor {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget}) {
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
     return makeInvalidWrite(value);
   }
 

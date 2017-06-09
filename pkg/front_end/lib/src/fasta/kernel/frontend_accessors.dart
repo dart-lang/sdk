@@ -96,8 +96,10 @@ abstract class Accessor {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget}) {
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
     var complexAssignment = startComplexAssignment(value);
+    complexAssignment?.isPreIncDec = isPreIncDec;
     var combiner = makeBinary(
         _makeRead(complexAssignment), binaryOperator, interfaceTarget, value,
         offset: offset);
@@ -115,7 +117,8 @@ abstract class Accessor {
     return buildCompoundAssignment(binaryOperator, new IntLiteral(1),
         offset: offset,
         voidContext: voidContext,
-        interfaceTarget: interfaceTarget);
+        interfaceTarget: interfaceTarget,
+        isPreIncDec: true);
   }
 
   /// Returns an [Expression] representing a post-increment or post-decrement
@@ -157,8 +160,14 @@ abstract class Accessor {
       KernelComplexAssignment complexAssignment);
 
   Expression _finish(
-          Expression body, KernelComplexAssignment complexAssignment) =>
-      body;
+      Expression body, KernelComplexAssignment complexAssignment) {
+    if (complexAssignment != null) {
+      complexAssignment.desugared = body;
+      return complexAssignment;
+    } else {
+      return body;
+    }
+  }
 
   /// Returns an [Expression] representing a compile-time error.
   ///
@@ -195,17 +204,21 @@ abstract class VariableAccessor extends Accessor {
     var fact = helper.typePromoter
         .getFactForAccess(variable, helper.functionNestingLevel);
     var scope = helper.typePromoter.currentScope;
-    return new KernelVariableGet(variable, fact, scope)
+    var read = new KernelVariableGet(variable, fact, scope)
       ..fileOffset = offsetForToken(token);
+    complexAssignment?.read = read;
+    return read;
   }
 
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
     helper.typePromoter.mutateVariable(variable, helper.functionNestingLevel);
-    return variable.isFinal || variable.isConst
+    var write = variable.isFinal || variable.isConst
         ? makeInvalidWrite(value)
         : new KernelVariableSet(variable, value)
       ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
   }
 }
 

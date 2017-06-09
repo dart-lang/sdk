@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method getInt() → core::int
+  ;
+static method getNum() → core::num
+  ;
+static method getDouble() → core::double
+  ;
+static method test1(core::int t) → void
+  ;
+static method test2(core::num t) → void
+  ;
+static method test3(core::double t) → void
+  ;
+static method main() → dynamic
+  ;

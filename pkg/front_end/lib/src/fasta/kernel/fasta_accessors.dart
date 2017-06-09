@@ -5,7 +5,12 @@
 library fasta.fasta_accessors;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelArguments, KernelComplexAssignment, KernelThisExpression;
+    show
+        KernelArguments,
+        KernelComplexAssignment,
+        KernelIndexAssign,
+        KernelThisExpression,
+        KernelVariableAssignment;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
 
@@ -246,7 +251,8 @@ abstract class ErrorAccessor implements FastaAccessor {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget}) {
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
     return buildError(new KernelArguments(<Expression>[value]), isGetter: true);
   }
 
@@ -389,7 +395,8 @@ class ThisAccessor extends FastaAccessor {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget}) {
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
     return buildAssignmentError();
   }
 
@@ -491,7 +498,10 @@ class SendAccessor extends IncompleteSend {
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
     return internalError("Unhandled");
   }
 
@@ -547,7 +557,10 @@ class IncompletePropertyAccessor extends IncompleteSend {
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
     return internalError("Unhandled");
   }
 
@@ -607,10 +620,7 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
 
   @override
   KernelComplexAssignment startComplexAssignment(Expression rhs) =>
-      new KernelComplexAssignment()
-        ..receiver = receiver
-        ..index = index
-        ..rhs = rhs;
+      new KernelIndexAssign(receiver, index, rhs);
 }
 
 class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
@@ -843,6 +853,10 @@ class VariableAccessor extends kernel.VariableAccessor with FastaAccessor {
   }
 
   toString() => "VariableAccessor()";
+
+  @override
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelVariableAssignment(rhs);
 }
 
 class ReadOnlyAccessor extends kernel.ReadOnlyAccessor with FastaAccessor {

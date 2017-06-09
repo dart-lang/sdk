@@ -233,32 +233,24 @@ class KernelCascadeExpression extends Let implements KernelExpression {
   }
 }
 
-/// Concrete shadow object representing a complex assignment in kernel form.
+/// Abstract shadow object representing a complex assignment in kernel form.
 ///
 /// Since there are many forms a complex assignment might have been desugared
 /// to, this class wraps the desugared assignment rather than extending it.
 ///
 /// TODO(paulberry): once we know exactly what constitutes a "complex
-/// assignment", document it here.  It will probably be something like: an
-/// assignment that desugars to a "let" expression.
-class KernelComplexAssignment extends Expression implements KernelExpression {
+/// assignment", document it here.
+abstract class KernelComplexAssignment extends Expression
+    implements KernelExpression {
   /// The full desugared assignment expression
   Expression desugared;
-
-  /// The receiver of the assignment target (e.g. `a` in `a[b] = c`), or `null`
-  /// if there is no receiver.
-  Expression receiver;
-
-  /// In an assignment to an index expression, the index expression, or `null`
-  /// if this is not an assignment to an index expression.
-  Expression index;
 
   /// In a compound assignment, the expression that reads the old value, or
   /// `null` if this is not a compound assignment.
   Expression read;
 
   /// The expression appearing on the RHS of the assignment.
-  Expression rhs;
+  final Expression rhs;
 
   /// The expression that performs the write (e.g. `a.[]=(b, a.[](b) + 1)` in
   /// `++a[b]`).
@@ -283,6 +275,12 @@ class KernelComplexAssignment extends Expression implements KernelExpression {
   /// post-decrement.
   bool isPostIncDec = false;
 
+  /// Indicates whether the expression arose from a pre-increment or
+  /// pre-decrement.
+  bool isPreIncDec = false;
+
+  KernelComplexAssignment(this.rhs);
+
   @override
   accept(ExpressionVisitor v) => desugared.accept(v);
 
@@ -294,19 +292,8 @@ class KernelComplexAssignment extends Expression implements KernelExpression {
       desugared.getStaticType(types);
 
   String toString() {
-    List<String> parts = [];
-    if (desugared != null) parts.add('desugared=$desugared');
-    if (receiver != null) parts.add('receiver=$receiver');
-    if (index != null) parts.add('index=$index');
-    if (read != null) parts.add('read=$read');
-    if (rhs != null) parts.add('rhs=$rhs');
-    if (write != null) parts.add('write=$write');
-    if (combiner != null) parts.add('combiner=$combiner');
-    if (nullAwareCombiner != null) {
-      parts.add('nullAwareCombiner=$nullAwareCombiner');
-    }
-    if (isPostIncDec) parts.add('isPostIncDec=true');
-    return 'KernelComplexAssignment(${parts.join(', ')})';
+    var parts = _getToStringParts();
+    return '${runtimeType}(${parts.join(', ')})';
   }
 
   @override
@@ -321,61 +308,61 @@ class KernelComplexAssignment extends Expression implements KernelExpression {
     collector.recordNotImmediatelyEvident(fileOffset);
   }
 
-  @override
-  DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded = inferrer.listener.indexAssignEnter(desugared, typeContext) ||
-        typeNeeded;
-    // TODO(paulberry): record the appropriate types on let variables and
-    // conditional expressions.
-    var receiverType = inferrer.inferExpression(receiver, null, true);
-    if (read != null) {
-      inferrer.findMethodInvocationMember(receiverType, read, silent: true);
+  List<String> _getToStringParts() {
+    List<String> parts = [];
+    if (desugared != null) parts.add('desugared=$desugared');
+    if (read != null) parts.add('read=$read');
+    if (rhs != null) parts.add('rhs=$rhs');
+    if (write != null) parts.add('write=$write');
+    if (combiner != null) parts.add('combiner=$combiner');
+    if (nullAwareCombiner != null) {
+      parts.add('nullAwareCombiner=$nullAwareCombiner');
     }
-    var writeMember = inferrer.findMethodInvocationMember(receiverType, write);
-    // To replicate analyzer behavior, we base type inference on the write
-    // member.  TODO(paulberry): would it be better to use the read member
-    // when doing compound assignment?
-    var calleeType =
-        inferrer.getCalleeType(writeMember, receiverType, indexSetName);
-    DartType indexContext;
-    DartType rhsContext;
-    DartType inferredType;
-    if (calleeType is FunctionType &&
-        calleeType.positionalParameters.length >= 2) {
-      // TODO(paulberry): we ought to get a context for the index expression
-      // from the index formal parameter, but analyzer doesn't so for now we
-      // replicate its behavior.
-      indexContext = null;
-      rhsContext = calleeType.positionalParameters[1];
-      if (combiner != null) {
-        var combinerMember = inferrer
-            .findMethodInvocationMember(rhsContext, combiner, silent: true);
-        if (isPostIncDec) {
-          inferredType = rhsContext;
+    if (isPostIncDec) parts.add('isPostIncDec=true');
+    if (isPreIncDec) parts.add('isPreIncDec=true');
+    return parts;
+  }
+
+  DartType _inferRhs(KernelTypeInferrer inferrer, DartType writeContext) {
+    DartType inferredType = writeContext ?? const DynamicType();
+    if (nullAwareCombiner != null) {
+      var rhsType = inferrer.inferExpression(rhs, writeContext, true);
+      MethodInvocation equalsInvocation = nullAwareCombiner.condition;
+      inferrer.findMethodInvocationMember(writeContext, equalsInvocation);
+      return inferrer.typeSchemaEnvironment
+          .getLeastUpperBound(inferredType, rhsType);
+    } else if (combiner != null) {
+      bool isOverloadedArithmeticOperator = false;
+      var combinerMember = inferrer
+          .findMethodInvocationMember(writeContext, combiner, silent: true);
+      if (combinerMember is Procedure) {
+        isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
+            .isOverloadedArithmeticOperator(combinerMember);
+      }
+      if (isPostIncDec) {
+        return inferredType;
+      } else {
+        DartType rhsType;
+        if (isPreIncDec) {
+          rhsType = inferrer.coreTypes.intClass.rawType;
         } else {
-          inferredType = inferrer
+          // Analyzer uses a null context for the RHS here.
+          // TODO(paulberry): improve on this.
+          rhsType = inferrer.inferExpression(rhs, null, true);
+        }
+        if (isOverloadedArithmeticOperator) {
+          return inferrer.typeSchemaEnvironment
+              .getTypeOfOverloadedArithmetic(inferredType, rhsType);
+        } else {
+          return inferrer
               .getCalleeFunctionType(
-                  combinerMember, rhsContext, combiner.name, false)
+                  combinerMember, writeContext, combiner.name, false)
               .returnType;
         }
-        // Analyzer uses a null context for the RHS here.
-        // TODO(paulberry): improve on this.
-        rhsContext = null;
-      } else {
-        inferredType = rhsContext;
       }
     } else {
-      inferredType = const DynamicType();
+      return inferrer.inferExpression(rhs, writeContext, true);
     }
-    inferrer.inferExpression(index, indexContext, false);
-    inferrer.inferExpression(rhs, rhsContext, false);
-    if (nullAwareCombiner != null) {
-      MethodInvocation equalsInvocation = nullAwareCombiner.condition;
-      inferrer.findMethodInvocationMember(rhsContext, equalsInvocation);
-    }
-    inferrer.listener.indexAssignExit(desugared, inferredType);
-    return inferredType;
   }
 }
 
@@ -919,6 +906,61 @@ class KernelIfStatement extends IfStatement implements KernelStatement {
     inferrer.inferStatement(then);
     if (otherwise != null) inferrer.inferStatement(otherwise);
     inferrer.listener.ifStatementExit(this);
+  }
+}
+
+/// Concrete shadow object representing an assignment to a target of the form
+/// `a[b]`.
+class KernelIndexAssign extends KernelComplexAssignment {
+  /// The receiver of the assignment target (e.g. `a` in `a[b] = c`), or `null`
+  /// if there is no receiver.
+  Expression receiver;
+
+  /// In an assignment to an index expression, the index expression, or `null`
+  /// if this is not an assignment to an index expression.
+  Expression index;
+
+  KernelIndexAssign(this.receiver, this.index, Expression rhs) : super(rhs);
+
+  @override
+  List<String> _getToStringParts() {
+    var parts = super._getToStringParts();
+    if (receiver != null) parts.add('receiver=$receiver');
+    if (index != null) parts.add('index=$index');
+    return parts;
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    typeNeeded = inferrer.listener.indexAssignEnter(desugared, typeContext) ||
+        typeNeeded;
+    // TODO(paulberry): record the appropriate types on let variables and
+    // conditional expressions.
+    var receiverType = inferrer.inferExpression(receiver, null, true);
+    if (read != null) {
+      inferrer.findMethodInvocationMember(receiverType, read, silent: true);
+    }
+    var writeMember = inferrer.findMethodInvocationMember(receiverType, write);
+    // To replicate analyzer behavior, we base type inference on the write
+    // member.  TODO(paulberry): would it be better to use the read member
+    // when doing compound assignment?
+    var calleeType =
+        inferrer.getCalleeType(writeMember, receiverType, indexSetName);
+    DartType indexContext;
+    DartType writeContext;
+    if (calleeType is FunctionType &&
+        calleeType.positionalParameters.length >= 2) {
+      // TODO(paulberry): we ought to get a context for the index expression
+      // from the index formal parameter, but analyzer doesn't so for now we
+      // replicate its behavior.
+      indexContext = null;
+      writeContext = calleeType.positionalParameters[1];
+    }
+    inferrer.inferExpression(index, indexContext, false);
+    var inferredType = _inferRhs(inferrer, writeContext);
+    inferrer.listener.indexAssignExit(desugared, inferredType);
+    return inferredType;
   }
 }
 
@@ -1890,6 +1932,29 @@ class KernelTypePromoter extends TypePromoterImpl {
       // KernelVariableDeclaration.
       return true;
     }
+  }
+}
+
+/// Concrete shadow object representing an assignment to a local variable.
+class KernelVariableAssignment extends KernelComplexAssignment {
+  KernelVariableAssignment(Expression rhs) : super(rhs);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    typeNeeded =
+        inferrer.listener.variableAssignEnter(desugared, typeContext) ||
+            typeNeeded;
+    // TODO(paulberry): record the appropriate types on let variables and
+    // conditional expressions.
+    DartType writeContext;
+    var write = this.write;
+    if (write is VariableSet) {
+      writeContext = write.variable.type;
+    }
+    var inferredType = _inferRhs(inferrer, writeContext);
+    inferrer.listener.variableAssignExit(desugared, inferredType);
+    return inferredType;
   }
 }
 

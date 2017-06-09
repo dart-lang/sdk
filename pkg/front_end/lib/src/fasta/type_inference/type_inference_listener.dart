@@ -258,6 +258,12 @@ class TypeInferenceListener
   void stringLiteralExit(StringLiteral expression, DartType inferredType) =>
       debugExpressionExit("StringLiteral", expression, inferredType);
 
+  bool variableAssignEnter(Expression expression, DartType typeContext) =>
+      debugExpressionEnter("variableAssign", expression, typeContext);
+
+  void variableAssignExit(Expression expression, DartType inferredType) =>
+      debugExpressionExit("variableAssign", expression, inferredType);
+
   void variableDeclarationEnter(VariableDeclaration statement) =>
       debugStatementEnter('variableDeclaration', statement);
 
