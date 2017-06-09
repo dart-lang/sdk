@@ -17,9 +17,10 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--compile-sdk": Uri,
   "--fatal": ",",
   "--output": Uri,
+  "-o": Uri,
   "--packages": Uri,
   "--platform": Uri,
-  "-o": Uri,
+  "--sdk": Uri,
   "--target": String,
   "-t": String,
 };
@@ -58,6 +59,11 @@ class CompilerCommandLine extends CommandLine {
     if (options.containsKey("-t") && options.containsKey("--target")) {
       return argumentError(usage, "Can't specify both '-t' and '--target'.");
     }
+    if (options.containsKey("--compile-sdk") &&
+        options.containsKey("--platform")) {
+      return argumentError(
+          usage, "Can't specify both '--compile-sdk' and '--platform'.");
+    }
     if (programName == "compile_platform" && arguments.length != 3) {
       return argumentError(usage, "Expected three arguments.");
     } else if (arguments.isEmpty) {
@@ -89,7 +95,7 @@ class CompilerCommandLine extends CommandLine {
 
   Uri get packages => options["--packages"] ?? Uri.base.resolve(".packages");
 
-  Uri get sdk => options["--compile-sdk"];
+  Uri get sdk => options["--sdk"] ?? options["--compile-sdk"];
 
   Set<String> get fatal {
     return new Set<String>.from(options["--fatal"] ?? <String>[]);
@@ -204,6 +210,10 @@ Supported options:
 
   --compile-sdk=<patched_sdk>
     Compile the SDK from scratch instead of reading it from 'platform.dill'.
+
+  --sdk=<patched_sdk>
+    Location of the SDK sources for use when compiling additional platform
+    libraries.
 
   --fatal=errors
   --fatal=warnings
