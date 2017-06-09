@@ -3556,7 +3556,6 @@ void main() {C.^ print("something");}''');
     assertSuggestGetter('length', 'int');
   }
 
-//  @soloTest
   test_PrefixedIdentifier_trailingStmt_const_untyped() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('const g = "hello"; f() {g.^ int y = 0;}');
