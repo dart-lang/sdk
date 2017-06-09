@@ -126,6 +126,7 @@ final subpackageRules = {
     'lib/src/base',
     'lib/src/fasta',
     'lib/src/fasta/parser',
+    'lib/src/fasta/scanner',
     'lib/src/fasta/source',
   ]),
   'lib/src/scanner': new SubpackageRules(allowedDependencies: [

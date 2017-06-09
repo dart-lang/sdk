@@ -54,9 +54,6 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The logger to report compilation progress.
   final PerformanceLog _logger;
 
-  /// The current file system state.
-  final FileSystemState _fsState;
-
   /// The byte storage to get and put serialized data.
   final ByteStore _byteStore;
 
@@ -65,6 +62,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
   /// The salt to mix into all hashes used as keys for serialized data.
   List<int> _salt;
+
+  /// The current file system state.
+  FileSystemState _fsState;
 
   /// Latest compilation signatures produced by [computeDelta] for libraries.
   final Map<Uri, String> _latestSignature = {};
@@ -76,9 +76,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   IncrementalKernelGeneratorImpl(
       this._options, this._uriTranslator, this._entryPoint)
       : _logger = _options.logger,
-        _fsState = new FileSystemState(_options.fileSystem, _uriTranslator),
         _byteStore = _options.byteStore {
     _computeSalt();
+    _fsState = new FileSystemState(_options.fileSystem, _uriTranslator, _salt);
   }
 
   @override
