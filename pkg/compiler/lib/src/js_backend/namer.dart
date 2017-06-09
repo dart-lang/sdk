@@ -527,8 +527,8 @@ class Namer {
   final NamingScope instanceScope = new NamingScope();
   final Map<String, jsAst.Name> userInstanceMembers =
       new HashMap<String, jsAst.Name>();
-  final Map<Element, jsAst.Name> internalInstanceMembers =
-      new HashMap<Element, jsAst.Name>();
+  final Map<MemberEntity, jsAst.Name> internalInstanceMembers =
+      new HashMap<MemberEntity, jsAst.Name>();
   final Map<String, jsAst.Name> userInstanceOperators =
       new HashMap<String, jsAst.Name>();
 
@@ -769,7 +769,7 @@ class Namer {
   }
 
   /// Name for a constructor body.
-  jsAst.Name constructorBodyName(FunctionElement ctor) {
+  jsAst.Name constructorBodyName(ConstructorBodyElement ctor) {
     return _disambiguateInternalMember(
         ctor, () => _proposeNameForConstructorBody(ctor));
   }
@@ -984,10 +984,11 @@ class Namer {
   }
 
   /// Annotated name for the getter of [element].
-  jsAst.Name getterForElement(MemberElement element) {
+  jsAst.Name getterForElement(MemberEntity element) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
-    jsAst.Name name = _disambiguateMember(element.memberName);
+    jsAst.Name name = _disambiguateMember(
+        new Name(element.name, element.library, isSetter: element.isSetter));
     return deriveGetterName(name);
   }
 
@@ -1158,14 +1159,13 @@ class Namer {
   ///
   /// The resulting name is unique within the instance-member namespace.
   jsAst.Name _disambiguateInternalMember(
-      Element element, String proposeName()) {
+      MemberEntity element, String proposeName()) {
     jsAst.Name newName = internalInstanceMembers[element];
     if (newName == null) {
       String name = proposeName();
 
-      Entity asEntity = element;
-      if (asEntity is PrivatelyNamedJSEntity) {
-        NamingScope scope = _getPrivateScopeFor(asEntity);
+      if (element is PrivatelyNamedJSEntity) {
+        NamingScope scope = _getPrivateScopeFor(element);
         newName = getFreshName(scope, name,
             sanitizeForAnnotations: true, sanitizeForNatives: false);
         internalInstanceMembers[element] = newName;
@@ -1468,7 +1468,7 @@ class Namer {
   ///         this.super$A$foo(); // super.foo()
   ///     }
   ///
-  jsAst.Name aliasedSuperMemberPropertyName(MemberElement member) {
+  jsAst.Name aliasedSuperMemberPropertyName(MemberEntity member) {
     assert(!member.isField); // Fields do not need super aliases.
     return _disambiguateInternalMember(member, () {
       String invocationName = operatorNameToIdentifier(member.name);

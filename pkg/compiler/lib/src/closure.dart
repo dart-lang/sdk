@@ -150,7 +150,8 @@ class ClosureFieldElement extends ElementX
   MemberElement get memberContext => closureClass.methodElement.memberContext;
 
   @override
-  Entity get declaredEntity => local;
+  Local get declaredEntity => local;
+
   @override
   Entity get rootOfScope => closureClass;
 
@@ -292,6 +293,7 @@ class BoxLocal extends Local {
 // find a more general solution.
 class BoxFieldElement extends ElementX
     implements TypedElement, FieldElement, PrivatelyNamedJSEntity {
+  final LocalVariableElement variableElement;
   final BoxLocal box;
 
   BoxFieldElement(String name, this.variableElement, BoxLocal box)
@@ -303,11 +305,10 @@ class BoxFieldElement extends ElementX
   ResolutionDartType get type => variableElement.type;
 
   @override
-  Entity get declaredEntity => variableElement;
+  Local get declaredEntity => variableElement;
+
   @override
   Entity get rootOfScope => box;
-
-  final VariableElement variableElement;
 
   accept(ElementVisitor visitor, arg) {
     return visitor.visitBoxFieldElement(this, arg);
@@ -722,7 +723,6 @@ class ClosureTranslator extends Visitor {
         String name = getClosureVariableName(capturedLocal.name, id);
         addClosureField(capturedLocal, name);
       }
-      closureClass.reverseBackendMembers();
     }
   }
 
@@ -1243,8 +1243,8 @@ class TypeVariableLocal implements Local {
 ///
 /// Move the below classes to a JS model eventually.
 ///
-abstract class JSEntity implements Entity {
-  Entity get declaredEntity;
+abstract class JSEntity implements MemberEntity {
+  Local get declaredEntity;
 }
 
 abstract class PrivatelyNamedJSEntity implements JSEntity {

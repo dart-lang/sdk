@@ -17,6 +17,7 @@ import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import '../../elements/elements.dart'
     show
         ClassElement,
+        ConstructorBodyElement,
         Element,
         Elements,
         FieldElement,
@@ -517,8 +518,10 @@ class ProgramBuilder {
     var stubNames = new Set<String>();
     librariesMap
         .forEach((LibraryEntity library, List<ClassEntity> classElements, _) {
-      for (ClassElement e in classElements) {
-        if (_nativeData.isJsInteropClass(e)) {
+      for (ClassEntity cls in classElements) {
+        if (_nativeData.isJsInteropClass(cls)) {
+          // TODO(johnniwinther): Handle class entities.
+          ClassElement e = cls;
           e.declaration.forEachMember((_, Element member) {
             var jsName = _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
@@ -663,19 +666,19 @@ class ProgramBuilder {
         library, uri, statics, classes, staticFieldsForReflection);
   }
 
-  bool _isSoftDeferred(ClassElement element) {
+  bool _isSoftDeferred(ClassEntity element) {
     return _notSoftDeferred != null && !_notSoftDeferred.contains(element);
   }
 
-  Class _buildClass(ClassElement element) {
-    bool onlyForRti = collector.classesOnlyNeededForRti.contains(element);
-    bool hasRtiField = _rtiNeed.classNeedsRtiField(element);
-    if (_nativeData.isJsInteropClass(element)) {
+  Class _buildClass(ClassEntity cls) {
+    bool onlyForRti = collector.classesOnlyNeededForRti.contains(cls);
+    bool hasRtiField = _rtiNeed.classNeedsRtiField(cls);
+    if (_nativeData.isJsInteropClass(cls)) {
       // TODO(jacobr): check whether the class has any active static fields
       // if it does not we can suppress it completely.
       onlyForRti = true;
     }
-    bool isClosureBaseClass = element == _commonElements.closureClass;
+    bool isClosureBaseClass = cls == _commonElements.closureClass;
 
     List<Method> methods = [];
     List<StubMethod> callStubs = <StubMethod>[];
@@ -695,11 +698,10 @@ class ProgramBuilder {
         _rtiSubstitutions,
         _jsInteropAnalysis);
 
-    void visitMember(ClassElement enclosing, MemberElement member) {
-      assert(member.isDeclaration, failedAt(element));
-      assert(element == enclosing, failedAt(element));
+    void visitMember(ClassEntity declarer, MemberEntity member) {
+      if (cls != declarer) return;
 
-      if (Elements.isNonAbstractInstanceMember(member)) {
+      if (member.isInstanceMember && !member.isAbstract && !member.isField) {
         // TODO(herhut): Remove once _buildMethod can no longer return null.
         Method method = _buildMethod(member);
         if (method != null) methods.add(method);
@@ -719,7 +721,8 @@ class ProgramBuilder {
 
     List<StubMethod> noSuchMethodStubs = <StubMethod>[];
 
-    if (_backendUsage.isNoSuchMethodUsed && element.isObject) {
+    if (_backendUsage.isNoSuchMethodUsed &&
+        cls == _commonElements.objectClass) {
       Map<js.Name, Selector> selectors =
           classStubGenerator.computeSelectorsForNsmHandlers();
       selectors.forEach((js.Name name, Selector selector) {
@@ -741,33 +744,36 @@ class ProgramBuilder {
       callStubs.add(_buildStubMethod(name, function));
     }
 
-    ClassElement implementation = element.implementation;
-
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
-    if (!onlyForRti && !element.isMixinApplication) {
-      implementation.forEachMember(visitMember, includeBackendMembers: true);
+    if (!onlyForRti && !_elementEnvironment.isUnnamedMixinApplication(cls)) {
+      _elementEnvironment.forEachClassMember(cls, visitMember);
+      if (cls is ClassElement) {
+        // TODO(johnniwinther): Support constructor bodies for entities.
+        cls.forEachConstructorBody((ConstructorBodyElement constructorBody) =>
+            visitMember(cls, constructorBody));
+      }
     }
-    bool isInterceptedClass = _interceptorData.isInterceptedClass(element);
+    bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
     List<Field> instanceFields = onlyForRti
         ? const <Field>[]
         : _buildFields(
-            cls: element,
+            cls: cls,
             visitStatics: false,
             isHolderInterceptedClass: isInterceptedClass);
     List<Field> staticFieldsForReflection = onlyForRti
         ? const <Field>[]
         : _buildFields(
-            cls: element,
+            cls: cls,
             visitStatics: true,
             isHolderInterceptedClass: isInterceptedClass);
 
-    TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(element,
+    TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(cls,
         storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
     List<StubMethod> checkedSetters = <StubMethod>[];
     List<StubMethod> isChecks = <StubMethod>[];
-    if (_nativeData.isJsInteropClass(element)) {
+    if (_nativeData.isJsInteropClass(cls)) {
       typeTests.properties.forEach((js.Name name, js.Node code) {
         _classes[_commonElements.jsInterceptorClass]
             .isChecks
@@ -790,22 +796,22 @@ class ProgramBuilder {
       });
     }
 
-    js.Name name = _namer.className(element);
-    String holderName = _namer.globalObjectForClass(element);
+    js.Name name = _namer.className(cls);
+    String holderName = _namer.globalObjectForClass(cls);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a class.
     Holder holder = _registry.registerHolder(holderName);
-    bool isInstantiated = !_nativeData.isJsInteropClass(element) &&
-        _worldBuilder.directlyInstantiatedClasses.contains(element);
+    bool isInstantiated = !_nativeData.isJsInteropClass(cls) &&
+        _worldBuilder.directlyInstantiatedClasses.contains(cls);
 
     Class result;
-    if (element.isMixinApplication && !onlyForRti) {
-      assert(!_nativeData.isNativeClass(element));
+    if (_elementEnvironment.isUnnamedMixinApplication(cls) && !onlyForRti) {
+      assert(!_nativeData.isNativeClass(cls));
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);
 
       result = new MixinApplication(
-          element,
+          cls,
           name,
           holder,
           instanceFields,
@@ -819,7 +825,7 @@ class ProgramBuilder {
           onlyForRti: onlyForRti);
     } else {
       result = new Class(
-          element,
+          cls,
           name,
           holder,
           methods,
@@ -833,11 +839,11 @@ class ProgramBuilder {
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
           onlyForRti: onlyForRti,
-          isNative: _nativeData.isNativeClass(element),
+          isNative: _nativeData.isNativeClass(cls),
           isClosureBaseClass: isClosureBaseClass,
-          isSoftDeferred: _isSoftDeferred(element));
+          isSoftDeferred: _isSoftDeferred(cls));
     }
-    _classes[element] = result;
+    _classes[cls] = result;
     return result;
   }
 
@@ -874,8 +880,8 @@ class ProgramBuilder {
     return optionalParameterDefaultValues;
   }
 
-  DartMethod _buildMethod(MethodElement element) {
-    assert(element.isDeclaration);
+  DartMethod _buildMethod(FunctionEntity element) {
+    assert(!(element is MethodElement && !element.isDeclaration));
     js.Name name = _namer.methodPropertyName(element);
     js.Expression code = _generatedCode[element];
 
@@ -885,7 +891,8 @@ class ProgramBuilder {
     bool canTearOff = false;
     js.Name tearOffName;
     bool isClosureCallMethod = false;
-    bool isNotApplyTarget = !element.isFunction || element.isAccessor;
+    bool isNotApplyTarget =
+        !element.isFunction || element.isGetter || element.isSetter;
 
     bool canBeReflected = _methodCanBeReflected(element);
     bool canBeApplied = _methodCanBeApplied(element);
@@ -903,7 +910,7 @@ class ProgramBuilder {
       } else {
         // Careful with operators.
         canTearOff = _worldBuilder.hasInvokedGetter(element, _closedWorld) ||
-            (canBeReflected && !element.isOperator);
+            (canBeReflected && !Selector.isOperatorName(element.name));
         assert(canTearOff ||
             !_worldBuilder.methodsNeedingSuperGetter.contains(element));
         tearOffName = _namer.getterForElement(element);
@@ -911,9 +918,8 @@ class ProgramBuilder {
     }
 
     if (canTearOff) {
-      assert(!element.isGenerativeConstructor, failedAt(element));
-      assert(!element.isGenerativeConstructorBody, failedAt(element));
-      assert(!element.isConstructor, failedAt(element));
+      assert(element is! ConstructorEntity, failedAt(element));
+      assert(element is! ConstructorBodyElement, failedAt(element));
     }
 
     js.Name callName = null;
@@ -923,27 +929,19 @@ class ProgramBuilder {
       callName = _namer.invocationName(callSelector);
     }
 
-    ResolutionDartType memberType;
-    if (element.isGenerativeConstructorBody) {
-      // TODO(herhut): Why does this need to be normalized away? We never need
-      //               this information anyway as they cannot be torn off or
-      //               reflected.
-      var body = element;
-      memberType = body.constructor.type;
-    } else {
-      memberType = element.type;
-    }
-
+    DartType memberType = _elementEnvironment.getFunctionType(element);
     js.Expression functionType;
     if (canTearOff || canBeReflected) {
-      OutputUnit outputUnit = _deferredLoadTask.outputUnitForElement(element);
+      OutputUnit outputUnit = _deferredLoadTask.outputUnitForMember(element);
       functionType = _generateFunctionType(memberType, outputUnit);
     }
 
     int requiredParameterCount;
     var /* List | Map */ optionalParameterDefaultValues;
     if (canBeApplied || canBeReflected) {
-      FunctionSignature signature = element.functionSignature;
+      // TODO(johnniwinther): Handle function entities.
+      MethodElement method = element;
+      FunctionSignature signature = method.functionSignature;
       requiredParameterCount = signature.requiredParameterCount;
       optionalParameterDefaultValues =
           _computeParameterDefaultValues(signature);

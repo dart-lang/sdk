@@ -138,6 +138,7 @@ class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
         new KernelToTypeInferenceMapImpl(closedWorld),
         new KernelToLocalsMapImpl(work.element),
         closedWorld,
+        _compiler.codegenWorldBuilder,
         work.registry,
         // TODO(johnniwinther): Support these:
         const KernelClosureClassMaps(),

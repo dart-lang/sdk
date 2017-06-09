@@ -507,17 +507,6 @@ class Elements {
         (identical(element.kind, ElementKind.FUNCTION));
   }
 
-  /// Also returns true for [ConstructorBodyElement]s and getters/setters.
-  static bool isNonAbstractInstanceMember(Element element) {
-    // The generative constructor body is not a function. We therefore treat
-    // it specially.
-    if (element.isGenerativeConstructorBody) return true;
-    return !Elements.isUnresolved(element) &&
-        !element.isAbstract &&
-        element.isInstanceMember &&
-        (element.isFunction || element.isAccessor);
-  }
-
   static bool isInstanceSend(Send send, TreeElements elements) {
     Element element = elements[send];
     if (element == null) return !isClosureSend(send, element);
@@ -1511,7 +1500,7 @@ abstract class ClassElement extends TypeDeclarationElement
   ///
   bool get isUnnamedMixinApplication;
 
-  bool get hasBackendMembers;
+  bool get hasConstructorBodies;
   bool get hasLocalScopeMembers;
 
   /// Returns `true` if this class is `Object` from dart:core.
@@ -1542,8 +1531,7 @@ abstract class ClassElement extends TypeDeclarationElement
   /// Returns `true` if the class hierarchy for this class contains errors.
   bool get hasIncompleteHierarchy;
 
-  void addBackendMember(Element element);
-  void reverseBackendMembers();
+  void addConstructorBody(ConstructorBodyElement element);
 
   Element lookupMember(String memberName);
 
@@ -1556,7 +1544,7 @@ abstract class ClassElement extends TypeDeclarationElement
   MemberElement lookupSuperByName(Name memberName);
 
   Element lookupLocalMember(String memberName);
-  Element lookupBackendMember(String memberName);
+  ConstructorBodyElement lookupConstructorBody(String memberName);
   Element lookupSuperMember(String memberName);
 
   Element lookupSuperMemberInLibrary(String memberName, LibraryElement library);
@@ -1577,7 +1565,7 @@ abstract class ClassElement extends TypeDeclarationElement
   /// Similar to [forEachInstanceField] but visits static fields.
   void forEachStaticField(void f(ClassElement enclosingClass, Element field));
 
-  void forEachBackendMember(void f(Element member));
+  void forEachConstructorBody(void f(ConstructorBodyElement member));
 
   /// Looks up the member [name] in this class.
   Member lookupClassMember(Name name);

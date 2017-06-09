@@ -480,7 +480,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     }
   }
 
-  InterfaceType _getThisType(KClass cls) {
+  InterfaceType getThisType(KClass cls) {
     _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureThisAndRawType(cls, env);
     return env.thisType;
@@ -558,7 +558,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
 
   DartType _substByContext(DartType type, InterfaceType context) {
     return type.subst(
-        context.typeArguments, _getThisType(context.element).typeArguments);
+        context.typeArguments, getThisType(context.element).typeArguments);
   }
 
   InterfaceType _getSuperType(KClass cls) {
@@ -1108,7 +1108,7 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   InterfaceType getThisType(ClassEntity cls) {
-    return elementMap._getThisType(cls);
+    return elementMap.getThisType(cls);
   }
 
   @override

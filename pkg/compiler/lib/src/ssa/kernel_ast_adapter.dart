@@ -302,6 +302,8 @@ class KernelAstAdapter extends KernelToElementMapMixin
 
   InterfaceType getInterfaceType(ir.InterfaceType type) => getDartType(type);
 
+  InterfaceType getThisType(ClassElement cls) => cls.thisType;
+
   InterfaceType createInterfaceType(
       ir.Class cls, List<ir.DartType> typeArguments) {
     return new ResolutionInterfaceType(

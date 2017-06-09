@@ -616,7 +616,9 @@ class KernelCodegenWorldBuilder extends CodegenWorldBuilderImpl {
   @override
   void forEachInstanceField(
       ClassEntity cls, void f(ClassEntity declarer, FieldEntity field)) {
-    throw new UnimplementedError(
-        'KernelCodegenWorldBuilder.forEachInstanceField');
+    _elementEnvironment.forEachClassMember(cls,
+        (ClassEntity declarer, MemberEntity member) {
+      if (member.isField && member.isInstanceMember) f(declarer, member);
+    });
   }
 }

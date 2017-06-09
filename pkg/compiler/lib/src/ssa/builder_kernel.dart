@@ -31,6 +31,7 @@ import '../types/masks.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show DynamicUse;
+import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
@@ -54,6 +55,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   // handler.
   final Node functionNode;
   final ClosedWorld closedWorld;
+  final CodegenWorldBuilder _worldBuilder;
   final CodegenRegistry registry;
   final ClosureClassMaps closureToClassMapper;
 
@@ -104,6 +106,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       this._typeInferenceMap,
       this._localsMap,
       this.closedWorld,
+      this._worldBuilder,
       this.registry,
       this.closureToClassMapper,
       // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
@@ -127,30 +130,33 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   CommonElements get _commonElements => _elementMap.commonElements;
 
   HGraph build() {
-    // TODO(het): no reason to do this here...
-    HInstruction.idCounter = 0;
-    if (target is ir.Procedure) {
-      _targetFunction = (target as ir.Procedure).function;
-      buildFunctionNode(_targetFunction);
-    } else if (target is ir.Field) {
-      buildField(target);
-    } else if (target is ir.Constructor) {
-      if (_targetIsConstructorBody) {
-        buildConstructorBody(target);
+    return reporter.withCurrentElement(_localsMap.currentMember, () {
+      // TODO(het): no reason to do this here...
+      HInstruction.idCounter = 0;
+      if (target is ir.Procedure) {
+        _targetFunction = (target as ir.Procedure).function;
+        buildFunctionNode(_targetFunction);
+      } else if (target is ir.Field) {
+        buildField(target);
+      } else if (target is ir.Constructor) {
+        if (_targetIsConstructorBody) {
+          buildConstructorBody(target);
+        } else {
+          buildConstructor(target);
+        }
+      } else if (target is ir.FunctionExpression) {
+        _targetFunction = (target as ir.FunctionExpression).function;
+        buildFunctionNode(_targetFunction);
+      } else if (target is ir.FunctionDeclaration) {
+        _targetFunction = (target as ir.FunctionDeclaration).function;
+        buildFunctionNode(_targetFunction);
       } else {
-        buildConstructor(target);
+        throw 'No case implemented to handle target: '
+            '$target for $targetElement';
       }
-    } else if (target is ir.FunctionExpression) {
-      _targetFunction = (target as ir.FunctionExpression).function;
-      buildFunctionNode(_targetFunction);
-    } else if (target is ir.FunctionDeclaration) {
-      _targetFunction = (target as ir.FunctionDeclaration).function;
-      buildFunctionNode(_targetFunction);
-    } else {
-      throw 'No case implemented to handle target: $target for $targetElement';
-    }
-    assert(graph.isValid());
-    return graph;
+      assert(graph.isValid());
+      return graph;
+    });
   }
 
   void buildField(ir.Field field) {
@@ -265,17 +271,17 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     final constructorArguments = <HInstruction>[];
     // Doing this instead of fieldValues.forEach because we haven't defined the
     // order of the arguments here. We can define that with JElements.
-    ClassElement cls = _elementMap.getClass(constructedClass);
-    cls.forEachInstanceField(
-        (ClassElement enclosingClass, FieldElement member) {
+    ClassEntity cls = _elementMap.getClass(constructedClass);
+    InterfaceType thisType = _elementMap.getThisType(cls);
+    _worldBuilder.forEachInstanceField(cls,
+        (ClassEntity enclosingClass, FieldEntity member) {
       var value = fieldValues[member];
       assert(value != null, 'No value for field ${member}');
       constructorArguments.add(value);
-    }, includeSuperAndInjectedMembers: true);
+    });
 
     // Create the runtime type information, if needed.
-    bool hasRtiInput = backend.rtiNeed
-        .classNeedsRtiField(_elementMap.getClass(constructedClass));
+    bool hasRtiInput = backend.rtiNeed.classNeedsRtiField(cls);
     if (hasRtiInput) {
       // Read the values of the type arguments and create a HTypeInfoExpression
       // to set on the newly create object.
@@ -283,29 +289,22 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       for (ir.DartType typeParameter
           in constructedClass.thisType.typeArguments) {
         HInstruction argument = localsHandler.readLocal(localsHandler
-            .getTypeVariableAsLocal(_elementMap.getDartType(typeParameter)
-                as ResolutionTypeVariableType));
+            .getTypeVariableAsLocal(_elementMap.getDartType(typeParameter)));
         typeArguments.add(argument);
       }
 
-      ClassElement cls = _elementMap.getClass(constructedClass);
       HInstruction typeInfo = new HTypeInfoExpression(
           TypeInfoExpressionKind.INSTANCE,
-          cls.thisType,
+          thisType,
           typeArguments,
           commonMasks.dynamicType);
       add(typeInfo);
       constructorArguments.add(typeInfo);
     }
 
-    ClassElement constructedCls = _elementMap.getClass(constructedClass);
     HInstruction newObject = new HCreate(
-        _elementMap.getClass(constructedClass),
-        constructorArguments,
-        new TypeMask.nonNullExact(
-            _elementMap.getClass(constructedClass), closedWorld),
-        instantiatedTypes: <ResolutionInterfaceType>[constructedCls.thisType],
-        hasRtiInput: hasRtiInput);
+        cls, constructorArguments, new TypeMask.nonNullExact(cls, closedWorld),
+        instantiatedTypes: <InterfaceType>[thisType], hasRtiInput: hasRtiInput);
 
     add(newObject);
 

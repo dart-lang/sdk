@@ -592,6 +592,9 @@ class _CompilerElementEnvironment implements ElementEnvironment {
 
   @override
   ResolutionFunctionType getFunctionType(MethodElement method) {
+    if (method is ConstructorBodyElement) {
+      return method.constructor.type;
+    }
     method.computeType(_resolution);
     return method.type;
   }

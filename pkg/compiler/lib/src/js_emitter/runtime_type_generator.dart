@@ -12,6 +12,7 @@ import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionFunctionType, ResolutionInterfaceType;
 import '../elements/elements.dart'
     show ClassElement, Element, FunctionElement, MixinApplicationElement;
+import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/js_interop_analysis.dart';
@@ -97,11 +98,14 @@ class RuntimeTypeGenerator {
   /// type (if class has one) in the metadata object and stores its index in
   /// the result. This is only possible for function types that do not contain
   /// type variables.
-  TypeTestProperties generateIsTests(ClassElement classElement,
+  TypeTestProperties generateIsTests(ClassEntity cls,
       {bool storeFunctionTypeInMetadata: true}) {
-    assert(classElement.isDeclaration, failedAt(classElement));
-
     TypeTestProperties result = new TypeTestProperties();
+    if (cls is! ClassElement) return result;
+
+    // TODO(johnniwinther): Handle class entities.
+    ClassElement classElement = cls;
+    assert(classElement.isDeclaration, failedAt(classElement));
 
     /// Generates an is-test if the test is not inherited from a superclass
     /// This assumes that for every class an is-tests is generated
@@ -282,7 +286,7 @@ class RuntimeTypeGenerator {
       Element call = cls.lookupLocalMember(Identifiers.call);
       if (call == null) {
         // If [cls] is a closure, it has a synthetic call operator method.
-        call = cls.lookupBackendMember(Identifiers.call);
+        call = cls.lookupConstructorBody(Identifiers.call);
       }
       if (call != null && call.isFunction) {
         FunctionElement callFunction = call;

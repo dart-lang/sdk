@@ -43,6 +43,10 @@ abstract class KernelToElementMap {
   /// Returns the [InterfaceType] corresponding to [type].
   InterfaceType getInterfaceType(ir.InterfaceType type);
 
+  /// Returns the 'this type' of [cls]. That is, the instantiation of [cls]
+  /// where the type arguments are the type variables of [cls].
+  InterfaceType getThisType(ClassEntity cls);
+
   /// Return the [InterfaceType] corresponding to the [cls] with the given
   /// [typeArguments].
   InterfaceType createInterfaceType(

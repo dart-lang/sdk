@@ -355,7 +355,7 @@ abstract class ClassElementCommon implements ClassElement {
       // example when emitting the initializers of fields.
       classElement.forEachLocalMember((e) => f(classElement, e));
       if (includeBackendMembers) {
-        classElement.forEachBackendMember((e) => f(classElement, e));
+        classElement.forEachConstructorBody((e) => f(classElement, e));
       }
       if (includeInjectedMembers) {
         if (classElement.isPatched) {
@@ -473,23 +473,19 @@ abstract class ClassElementCommon implements ClassElement {
 
   // backendMembers are members that have been added by the backend to simplify
   // compilation. They don't have any user-side counter-part.
-  Link<Element> backendMembers = const Link<Element>();
+  List<ConstructorBodyElement> constructorBodies = <ConstructorBodyElement>[];
 
-  bool get hasBackendMembers => !backendMembers.isEmpty;
+  bool get hasConstructorBodies => !constructorBodies.isEmpty;
 
-  void addBackendMember(Element member) {
+  void addConstructorBody(ConstructorBodyElement member) {
     // TODO(ngeoffray): Deprecate this method.
     assert(member.isGenerativeConstructorBody);
-    backendMembers = backendMembers.prepend(member);
-  }
-
-  void reverseBackendMembers() {
-    backendMembers = backendMembers.reverse();
+    constructorBodies.add(member);
   }
 
   /// Lookup a synthetic element created by the backend.
-  Element lookupBackendMember(String memberName) {
-    for (Element element in backendMembers) {
+  ConstructorBodyElement lookupConstructorBody(String memberName) {
+    for (ConstructorBodyElement element in constructorBodies) {
       if (element.name == memberName) {
         return element;
       }
@@ -497,8 +493,8 @@ abstract class ClassElementCommon implements ClassElement {
     return null;
   }
 
-  void forEachBackendMember(void f(Element member)) {
-    backendMembers.forEach(f);
+  void forEachConstructorBody(void f(ConstructorBodyElement member)) {
+    constructorBodies.forEach(f);
   }
 }
 

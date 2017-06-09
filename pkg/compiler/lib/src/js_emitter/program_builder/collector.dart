@@ -210,17 +210,17 @@ class Collector {
             .where(computeClassFilter())
             .toSet();
 
-    void addClassWithSuperclasses(ClassElement cls) {
+    void addClassWithSuperclasses(ClassEntity cls) {
       neededClasses.add(cls);
-      for (ClassElement superclass = cls.superclass;
+      for (ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
           superclass != null;
-          superclass = superclass.superclass) {
+          superclass = _elementEnvironment.getSuperClass(superclass)) {
         neededClasses.add(superclass);
       }
     }
 
     void addClassesWithSuperclasses(Iterable<ClassEntity> classes) {
-      for (ClassElement cls in classes) {
+      for (ClassEntity cls in classes) {
         addClassWithSuperclasses(cls);
       }
     }
@@ -229,10 +229,12 @@ class Collector {
     addClassesWithSuperclasses(instantiatedClasses);
 
     // 2. Add all classes used as mixins.
-    Set<ClassElement> mixinClasses = neededClasses
-        .where((ClassElement element) => element.isMixinApplication)
-        .map(computeMixinClass)
-        .toSet();
+    Set<ClassEntity> mixinClasses = new Set<ClassEntity>();
+    for (ClassEntity cls in neededClasses) {
+      _elementEnvironment.forEachMixin(cls, (ClassEntity mixinClass) {
+        mixinClasses.add(mixinClass);
+      });
+    }
     neededClasses.addAll(mixinClasses);
 
     // 3. Find all classes needed for rti.
@@ -282,13 +284,13 @@ class Collector {
         nativeClassesAndSubclasses.add(cls);
         assert(!_deferredLoadTask.isDeferredClass(cls), failedAt(cls));
         outputClassLists
-            .putIfAbsent(_deferredLoadTask.mainOutputUnit,
-                () => new List<ClassElement>())
+            .putIfAbsent(
+                _deferredLoadTask.mainOutputUnit, () => new List<ClassEntity>())
             .add(cls);
       } else {
         outputClassLists
             .putIfAbsent(_deferredLoadTask.outputUnitForClass(cls),
-                () => new List<ClassElement>())
+                () => new List<ClassEntity>())
             .add(cls);
       }
     }
