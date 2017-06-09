@@ -15,7 +15,6 @@ import 'evaluate_activation_in_method_class_other.dart';
 
 var topLevel = "TestLibrary";
 
-// ignore: mixin_inherits_from_not_object
 class Subclass extends Superclass with Klass {
   var _instVar = 'Subclass';
   var instVar = 'Subclass';
