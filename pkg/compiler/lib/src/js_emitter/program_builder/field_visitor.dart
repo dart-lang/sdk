@@ -83,8 +83,8 @@ class FieldVisitor {
           'Expected a ClassElement or a LibraryElement.');
     }
 
-    void visitField(FieldElement field, {ClassEntity holder}) {
-      assert(field.isDeclaration, failedAt(field));
+    void visitField(FieldEntity field, {ClassEntity holder}) {
+      assert(!(field is FieldElement && !field.isDeclaration), failedAt(field));
 
       bool isMixinNativeField = isNativeClass &&
           _elementEnvironment.isUnnamedMixinApplication(holder);
@@ -149,24 +149,24 @@ class FieldVisitor {
     }
   }
 
-  bool fieldNeedsGetter(FieldElement field) {
+  bool fieldNeedsGetter(FieldEntity field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     if (_mirrorsData.shouldRetainGetter(field)) return true;
-    return field.isClassMember &&
+    return field.enclosingClass != null &&
         _codegenWorldBuilder.hasInvokedGetter(field, _closedWorld);
   }
 
-  bool fieldNeedsSetter(FieldElement field) {
+  bool fieldNeedsSetter(FieldEntity field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
-    if (field.isFinal || field.isConst) return false;
+    if (!field.isAssignable) return false;
     if (_mirrorsData.shouldRetainSetter(field)) return true;
-    return field.isClassMember &&
+    return field.enclosingClass != null &&
         _codegenWorldBuilder.hasInvokedSetter(field, _closedWorld);
   }
 
-  static bool fieldAccessNeverThrows(VariableElement field) {
+  static bool fieldAccessNeverThrows(FieldEntity field) {
     return
         // We never access a field in a closure (a captured variable) without
         // knowing that it is there.  Therefore we don't need to use a getter
@@ -175,7 +175,7 @@ class FieldVisitor {
         field is ClosureFieldElement;
   }
 
-  bool canAvoidGeneratedCheckedSetter(VariableElement member) {
+  bool canAvoidGeneratedCheckedSetter(FieldElement member) {
     // We never generate accessors for top-level/static fields.
     if (!member.isInstanceMember) return true;
     ResolutionDartType type = member.type;

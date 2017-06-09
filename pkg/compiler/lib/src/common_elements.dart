@@ -1166,6 +1166,9 @@ abstract class ElementEnvironment {
   /// Returns all known libraries.
   Iterable<LibraryEntity> get libraries;
 
+  /// Returns the library name of [library] or '' if the library is unnamed.
+  String getLibraryName(LibraryEntity library);
+
   /// Lookup the library with the canonical [uri], fail if the library is
   /// missing and [required];
   LibraryEntity lookupLibrary(Uri uri, {bool required: false});

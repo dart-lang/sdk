@@ -378,6 +378,9 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   Iterable<LibraryEntity> get libraries => _compiler.libraryLoader.libraries;
 
   @override
+  String getLibraryName(LibraryElement library) => library.libraryName;
+
+  @override
   ResolutionInterfaceType getThisType(ClassElement cls) {
     cls.ensureResolved(_resolution);
     return cls.thisType;

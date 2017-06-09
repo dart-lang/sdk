@@ -40,6 +40,7 @@ main() {
   bar(true);
   [];
   {};
+  new Object();
   var x = null;
   return x;
 }

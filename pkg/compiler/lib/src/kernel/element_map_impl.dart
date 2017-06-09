@@ -155,6 +155,11 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     });
   }
 
+  String _getLibraryName(KLibrary library) {
+    _KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
+    return libraryEnv.library.name ?? '';
+  }
+
   MemberEntity lookupLibraryMember(KLibrary library, String name,
       {bool setter: false}) {
     _KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
@@ -1105,6 +1110,11 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   Iterable<LibraryEntity> get libraries => elementMap._libraries;
+
+  @override
+  String getLibraryName(LibraryEntity library) {
+    return elementMap._getLibraryName(library);
+  }
 
   @override
   InterfaceType getThisType(ClassEntity cls) {

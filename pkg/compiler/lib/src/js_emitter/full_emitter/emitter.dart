@@ -15,7 +15,7 @@ import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
-import '../../common_elements.dart' show CommonElements;
+import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
@@ -124,6 +124,7 @@ class Emitter extends js_emitter.EmitterBase {
   NativeEmitter get nativeEmitter => task.nativeEmitter;
   TypeTestRegistry get typeTestRegistry => task.typeTestRegistry;
   CommonElements get commonElements => compiler.commonElements;
+  ElementEnvironment get _elementEnvironment => compiler.elementEnvironment;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();
@@ -555,7 +556,7 @@ class Emitter extends js_emitter.EmitterBase {
 
   void assembleClass(
       Class cls, ClassBuilder enclosingBuilder, Fragment fragment) {
-    ClassElement classElement = cls.element;
+    ClassEntity classElement = cls.element;
     reporter.withCurrentElement(classElement, () {
       classEmitter.emitClass(cls, enclosingBuilder, fragment);
     });
@@ -1025,8 +1026,7 @@ class Emitter extends js_emitter.EmitterBase {
 
     String libraryName = (!compiler.options.enableMinification ||
             backend.mirrorsData.mustRetainLibraryNames)
-        // TODO(johnniwinther): Support library names for entities.
-        ? library is LibraryElement ? library.libraryName : ''
+        ? _elementEnvironment.getLibraryName(library)
         : "";
 
     jsAst.Fun metadata =

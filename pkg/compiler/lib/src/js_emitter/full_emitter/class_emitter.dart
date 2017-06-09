@@ -6,10 +6,12 @@ library dart2js.js_emitter.full_emitter.class_emitter;
 
 import '../../common.dart';
 import '../../common/names.dart' show Names;
+import '../../common_elements.dart';
 import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
     show ClassElement, FieldElement, MemberElement;
+import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
@@ -30,17 +32,20 @@ class ClassEmitter extends CodeEmitterHelper {
       compiler.commonElements, namer, codegenWorldBuilder, closedWorld,
       enableMinification: compiler.options.enableMinification);
 
+  ElementEnvironment get _elementEnvironment => compiler.elementEnvironment;
+
   /**
    * Documentation wanted -- johnniwinther
    */
   void emitClass(Class cls, ClassBuilder enclosingBuilder, Fragment fragment) {
-    ClassElement classElement = cls.element;
+    ClassEntity classElement = cls.element;
 
-    assert(classElement.isDeclaration, failedAt(classElement));
+    assert(!(classElement is ClassElement && !classElement.isDeclaration),
+        failedAt(classElement));
 
     emitter.needsClassSupport = true;
 
-    ClassElement superclass = classElement.superclass;
+    ClassEntity superclass = _elementEnvironment.getSuperClass(classElement);
     jsAst.Name superName;
     if (superclass != null) {
       superName = namer.className(superclass);
@@ -257,8 +262,9 @@ class ClassEmitter extends CodeEmitterHelper {
    * Invariant: [classElement] must be a declaration element.
    */
   void emitInstanceMembers(Class cls, ClassBuilder builder) {
-    ClassElement classElement = cls.element;
-    assert(classElement.isDeclaration, failedAt(classElement));
+    ClassEntity classElement = cls.element;
+    assert(!(classElement is ClassElement && !classElement.isDeclaration),
+        failedAt(classElement));
 
     if (cls.onlyForRti || cls.isMixinApplication) return;
 
@@ -272,7 +278,8 @@ class ClassEmitter extends CodeEmitterHelper {
       emitter.containerBuilder.addMemberMethod(method, builder);
     }
 
-    if (classElement.isObject && closedWorld.backendUsage.isNoSuchMethodUsed) {
+    if (classElement == closedWorld.commonElements.objectClass &&
+        closedWorld.backendUsage.isNoSuchMethodUsed) {
       // Emit the noSuchMethod handlers on the Object prototype now,
       // so that the code in the dynamicFunction helper can find
       // them. Note that this helper is invoked before analyzing the
@@ -302,16 +309,18 @@ class ClassEmitter extends CodeEmitterHelper {
 
   void emitClassBuilderWithReflectionData(Class cls, ClassBuilder classBuilder,
       ClassBuilder enclosingBuilder, Fragment fragment) {
-    ClassElement classElement = cls.element;
+    ClassEntity classEntity = cls.element;
     jsAst.Name className = cls.name;
 
     var metadata =
-        task.metadataCollector.buildClassMetadataFunction(classElement);
+        task.metadataCollector.buildClassMetadataFunction(classEntity);
     if (metadata != null) {
       classBuilder.addPropertyByName("@", metadata);
     }
 
-    if (backend.mirrorsData.isClassAccessibleByReflection(classElement)) {
+    if (backend.mirrorsData.isClassAccessibleByReflection(classEntity)) {
+      // TODO(johnniwinther): Handle class entities.
+      ClassElement classElement = classEntity;
       List<ResolutionDartType> typeVars = classElement.typeVariables;
       Iterable typeVariableProperties =
           emitter.typeVariableCodegenAnalysis.typeVariablesOf(classElement);
@@ -327,19 +336,19 @@ class ClassEmitter extends CodeEmitterHelper {
 
     List<jsAst.Property> statics = new List<jsAst.Property>();
     ClassBuilder staticsBuilder =
-        new ClassBuilder.forStatics(classElement, namer);
+        new ClassBuilder.forStatics(classEntity, namer);
     if (emitFields(cls, staticsBuilder, emitStatics: true)) {
       jsAst.ObjectInitializer initializer =
           staticsBuilder.toObjectInitializer();
-      compiler.dumpInfoTask.registerElementAst(classElement, initializer);
+      compiler.dumpInfoTask.registerElementAst(classEntity, initializer);
       jsAst.Node property = initializer.properties.single;
-      compiler.dumpInfoTask.registerElementAst(classElement, property);
+      compiler.dumpInfoTask.registerElementAst(classEntity, property);
       statics.add(property);
     }
 
     // TODO(herhut): Do not grab statics out of the properties.
     ClassBuilder classProperties =
-        emitter.classDescriptors[fragment]?.remove(classElement);
+        emitter.classDescriptors[fragment]?.remove(classEntity);
     if (classProperties != null) {
       statics.addAll(classProperties.properties);
     }
@@ -356,8 +365,10 @@ class ClassEmitter extends CodeEmitterHelper {
         .registerElementAst(classBuilder.element, propertyValue);
     enclosingBuilder.addProperty(className, propertyValue);
 
-    String reflectionName = emitter.getReflectionName(classElement, className);
+    String reflectionName = emitter.getReflectionName(classEntity, className);
     if (reflectionName != null) {
+      // TODO(johnniwinther): Handle class entities.
+      ClassElement classElement = classEntity;
       if (!backend.mirrorsData.isClassAccessibleByReflection(classElement) ||
           cls.onlyForRti) {
         // TODO(herhut): Fix use of reflection name here.

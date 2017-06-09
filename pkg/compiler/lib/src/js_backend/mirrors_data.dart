@@ -227,11 +227,11 @@ class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
     }
   }
 
-  bool shouldRetainGetter(FieldElement element) {
+  bool shouldRetainGetter(FieldEntity element) {
     return isTreeShakingDisabled && isMemberAccessibleByReflection(element);
   }
 
-  bool shouldRetainSetter(FieldElement element) {
+  bool shouldRetainSetter(FieldEntity element) {
     return isTreeShakingDisabled && isMemberAccessibleByReflection(element);
   }
 

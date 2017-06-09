@@ -28,8 +28,7 @@ import '../../elements/elements.dart'
         MemberElement,
         MethodElement,
         ParameterElement,
-        TypedefElement,
-        VariableElement;
+        TypedefElement;
 import '../../elements/entities.dart';
 import '../../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionFunctionType, ResolutionTypedefType;

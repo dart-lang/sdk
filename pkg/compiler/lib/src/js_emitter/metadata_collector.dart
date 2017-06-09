@@ -189,11 +189,13 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return _buildMetadataFunction(element as LibraryElement);
   }
 
-  jsAst.Fun buildClassMetadataFunction(ClassElement element) {
+  jsAst.Fun buildClassMetadataFunction(ClassEntity cls) {
     if (!_mirrorsData.mustRetainMetadata ||
-        !_mirrorsData.isClassReferencedFromMirrorSystem(element)) {
+        !_mirrorsData.isClassReferencedFromMirrorSystem(cls)) {
       return null;
     }
+    // TODO(johnniwinther): Handle class entities.
+    ClassElement element = cls;
     return _buildMetadataFunction(element);
   }
 
