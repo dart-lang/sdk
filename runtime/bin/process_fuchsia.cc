@@ -338,7 +338,7 @@ class ExitCodeHandler {
       LOG_INFO("ExitCodeHandler thread reading interrupt message\n");
       mx_status_t status =
           mx_socket_read(interrupt_out_, 0, &msg, sizeof(msg), &actual);
-      if (status == ERR_SHOULD_WAIT) {
+      if (status == MX_ERR_SHOULD_WAIT) {
         LOG_INFO("ExitCodeHandler thread done reading interrupt messages\n");
         return;
       }
@@ -438,7 +438,7 @@ int64_t Process::CurrentRSS() {
   mx_handle_t process = mx_process_self();
   mx_status_t status = mx_object_get_info(
       process, MX_INFO_TASK_STATS, &task_stats, sizeof(task_stats), NULL, NULL);
-  if (status != NO_ERROR) {
+  if (status != MX_OK) {
     // TODO(zra): Translate this to a Unix errno.
     errno = status;
     return -1;
@@ -612,7 +612,7 @@ bool Process::Kill(intptr_t id, int signal) {
     return false;
   }
   mx_status_t status = mx_task_kill(process);
-  if (status != NO_ERROR) {
+  if (status != MX_OK) {
     LOG_ERR("mx_task_kill failed: %s\n", mx_status_get_string(status));
     errno = EPERM;  // TODO(zra): Figure out what it really should be.
     return false;
@@ -700,7 +700,7 @@ class ProcessStarter {
     // Set up a launchpad.
     launchpad_t* lp = NULL;
     mx_status_t status = SetupLaunchpad(&lp);
-    if (status != NO_ERROR) {
+    if (status != MX_OK) {
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
       return status;
@@ -766,7 +766,7 @@ class ProcessStarter {
     mx_handle_t job = MX_HANDLE_INVALID;
     mx_status_t status =
         mx_handle_duplicate(mx_job_default(), MX_RIGHT_SAME_RIGHTS, &job);
-    if (status != NO_ERROR) {
+    if (status != MX_OK) {
       mx_handle_close(binary_vmo);
     }
     CHECK_FOR_ERROR(status, "mx_handle_duplicate");
@@ -787,7 +787,7 @@ class ProcessStarter {
     launchpad_elf_load(lp, binary_vmo);
     launchpad_load_vdso(lp, MX_HANDLE_INVALID);
     *launchpad = lp;
-    return NO_ERROR;
+    return MX_OK;
   }
 
 #undef CHECK_FOR_ERROR

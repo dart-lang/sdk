@@ -40,8 +40,8 @@ class ThreadSuspendScope {
       : thread_handle_(thread_handle), suspended_(true) {
     mx_status_t status = mx_task_suspend(thread_handle);
     // If a thread is somewhere where suspend is impossible, mx_task_suspend()
-    // can return ERR_NOT_SUPPORTED.
-    if (status != NO_ERROR) {
+    // can return MX_ERR_NOT_SUPPORTED.
+    if (status != MX_OK) {
       if (FLAG_trace_thread_interrupter) {
         OS::PrintErr("ThreadInterrupter: mx_task_suspend failed: %s\n",
                      mx_status_get_string(status));
@@ -53,7 +53,7 @@ class ThreadSuspendScope {
   ~ThreadSuspendScope() {
     if (suspended_) {
       mx_status_t status = mx_task_resume(thread_handle_, 0);
-      if (status != NO_ERROR) {
+      if (status != MX_OK) {
         // If we fail to resume a thread, then it's likely the program will
         // hang. Crash instead.
         FATAL1("mx_task_resume failed: %s", mx_status_get_string(status));
@@ -80,7 +80,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
     uint32_t regset_size;
     mx_status_t status = mx_thread_read_state(
         thread, MX_THREAD_STATE_REGSET0, &regs, sizeof(regs), &regset_size);
-    if (status != NO_ERROR) {
+    if (status != MX_OK) {
       if (FLAG_trace_thread_interrupter) {
         OS::PrintErr("ThreadInterrupter failed to get registers: %s\n",
                      mx_status_get_string(status));
@@ -99,7 +99,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
     uint32_t regset_size;
     mx_status_t status = mx_thread_read_state(
         thread, MX_THREAD_STATE_REGSET0, &regs, sizeof(regs), &regset_size);
-    if (status != NO_ERROR) {
+    if (status != MX_OK) {
       if (FLAG_trace_thread_interrupter) {
         OS::PrintErr("ThreadInterrupter failed to get registers: %s\n",
                      mx_status_get_string(status));
@@ -131,7 +131,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
     mx_handle_t target_thread_handle;
     status = mx_object_get_child(mx_process_self(), target_thread_koid,
                                  MX_RIGHT_SAME_RIGHTS, &target_thread_handle);
-    if (status != NO_ERROR) {
+    if (status != MX_OK) {
       if (FLAG_trace_thread_interrupter) {
         OS::PrintErr("ThreadInterrupter: mx_object_get_child failed: %s\n",
                      mx_status_get_string(status));
@@ -156,7 +156,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
 
     // Check that the thread is suspended.
     status = PollThreadUntilSuspended(target_thread_handle);
-    if (status != NO_ERROR) {
+    if (status != MX_OK) {
       return;
     }
 
@@ -203,7 +203,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
           mx_object_get_info(thread_handle, MX_INFO_THREAD, &thread_info,
                              sizeof(thread_info), NULL, NULL);
       poll_tries++;
-      if (status != NO_ERROR) {
+      if (status != MX_OK) {
         if (FLAG_trace_thread_interrupter) {
           OS::PrintErr("ThreadInterrupter: mx_object_get_info failed: %s\n",
                        mx_status_get_string(status));
@@ -212,7 +212,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
       }
       if (thread_info.state == MX_THREAD_STATE_SUSPENDED) {
         // Success.
-        return NO_ERROR;
+        return MX_OK;
       }
       if (thread_info.state == MX_THREAD_STATE_RUNNING) {
         // Poll.
@@ -222,12 +222,12 @@ class ThreadInterrupterFuchsia : public AllStatic {
         OS::PrintErr("ThreadInterrupter: Thread is not suspended: %s\n",
                      ThreadStateGetString(thread_info.state));
       }
-      return ERR_BAD_STATE;
+      return MX_ERR_BAD_STATE;
     }
     if (FLAG_trace_thread_interrupter) {
       OS::PrintErr("ThreadInterrupter: Exceeded max suspend poll tries\n");
     }
-    return ERR_BAD_STATE;
+    return MX_ERR_BAD_STATE;
   }
 };
 

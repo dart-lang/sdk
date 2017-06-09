@@ -160,7 +160,7 @@ VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
                          MX_VM_FLAG_CAN_MAP_EXECUTE;
   mx_status_t status =
       mx_vmar_allocate(mx_vmar_root_self(), 0, size, flags, &vmar, &addr);
-  if (status != NO_ERROR) {
+  if (status != MX_OK) {
     LOG_ERR("mx_vmar_allocate(size = %ld) failed: %s\n", size,
             mx_status_get_string(status));
     return NULL;
@@ -175,11 +175,11 @@ VirtualMemory::~VirtualMemory() {
   if (vm_owns_region()) {
     mx_handle_t vmar = static_cast<mx_handle_t>(handle());
     mx_status_t status = mx_vmar_destroy(vmar);
-    if (status != NO_ERROR) {
+    if (status != MX_OK) {
       LOG_ERR("mx_vmar_destroy failed: %s\n", mx_status_get_string(status));
     }
     status = mx_handle_close(vmar);
-    if (status != NO_ERROR) {
+    if (status != MX_OK) {
       LOG_ERR("mx_handle_close failed: %s\n", mx_status_get_string(status));
     }
     VmarList::RemoveVmar(start());
@@ -193,7 +193,7 @@ bool VirtualMemory::FreeSubSegment(int32_t handle,
   mx_handle_t vmar = static_cast<mx_handle_t>(handle);
   mx_status_t status =
       mx_vmar_unmap(vmar, reinterpret_cast<uintptr_t>(address), size);
-  if (status != NO_ERROR) {
+  if (status != MX_OK) {
     LOG_ERR("mx_vmar_unmap failed: %s\n", mx_status_get_string(status));
     return false;
   }
@@ -206,7 +206,7 @@ bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
   ASSERT(Contains(addr + size) || (addr + size == end()));
   mx_handle_t vmo = MX_HANDLE_INVALID;
   mx_status_t status = mx_vmo_create(size, 0u, &vmo);
-  if (status != NO_ERROR) {
+  if (status != MX_OK) {
     LOG_ERR("mx_vmo_create(%ld) failed: %s\n", size,
             mx_status_get_string(status));
     return false;
@@ -219,7 +219,7 @@ bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
                          (executable ? MX_VM_FLAG_PERM_EXECUTE : 0);
   uintptr_t mapped_addr;
   status = mx_vmar_map(vmar, offset, vmo, 0, size, flags, &mapped_addr);
-  if (status != NO_ERROR) {
+  if (status != MX_OK) {
     mx_handle_close(vmo);
     LOG_ERR("mx_vmar_map(%ld, %ld, %u) failed: %s\n", offset, size, flags,
             mx_status_get_string(status));
@@ -268,7 +268,7 @@ bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   }
   mx_status_t status =
       mx_vmar_protect(vmar, page_address, end_address - page_address, prot);
-  if (status != NO_ERROR) {
+  if (status != MX_OK) {
     LOG_ERR("mx_vmar_protect(%lx, %lx, %x) success: %s\n", page_address,
             end_address - page_address, prot, mx_status_get_string(status));
     return false;

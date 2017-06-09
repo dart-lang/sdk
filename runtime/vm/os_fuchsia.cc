@@ -156,7 +156,7 @@ uintptr_t OS::MaxRSS() {
   mx_handle_t process = mx_process_self();
   mx_status_t status = mx_object_get_info(
       process, MX_INFO_TASK_STATS, &task_stats, sizeof(task_stats), NULL, NULL);
-  return (status == NO_ERROR)
+  return (status == MX_OK)
              ? (task_stats.mem_private_bytes + task_stats.mem_shared_bytes)
              : 0;
 }

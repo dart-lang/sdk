@@ -165,7 +165,7 @@ ThreadId OSThread::GetCurrentThreadId() {
   mx_status_t status =
       mx_object_get_info(thread_handle, MX_INFO_HANDLE_BASIC, &info,
                          sizeof(info), nullptr, nullptr);
-  if (status != NO_ERROR) {
+  if (status != MX_OK) {
     FATAL1("Failed to get thread koid: %s\n", mx_status_get_string(status));
   }
   return info.koid;
