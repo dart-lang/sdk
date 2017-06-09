@@ -5,7 +5,7 @@
 library fasta.fasta_accessors;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelArguments, KernelThisExpression;
+    show KernelArguments, KernelComplexAssignment, KernelThisExpression;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
 
@@ -190,6 +190,9 @@ abstract class FastaAccessor implements Accessor {
   }
 
   bool get isThisPropertyAccessor => false;
+
+  @override
+  KernelComplexAssignment startComplexAssignment(Expression rhs) => null;
 }
 
 abstract class ErrorAccessor implements FastaAccessor {
@@ -601,6 +604,13 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
           helper, token, receiver, index, getter, setter);
     }
   }
+
+  @override
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelComplexAssignment()
+        ..receiver = receiver
+        ..index = index
+        ..rhs = rhs;
 }
 
 class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {

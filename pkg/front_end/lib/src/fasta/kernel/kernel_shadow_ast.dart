@@ -29,6 +29,7 @@ import 'package:kernel/ast.dart'
     hide InvalidExpression, InvalidInitializer, InvalidStatement;
 import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../errors.dart' show internalError;
 
@@ -234,12 +235,85 @@ class KernelCascadeExpression extends Let implements KernelExpression {
 
 /// Concrete shadow object representing a complex assignment in kernel form.
 ///
+/// Since there are many forms a complex assignment might have been desugared
+/// to, this class wraps the desugared assignment rather than extending it.
+///
 /// TODO(paulberry): once we know exactly what constitutes a "complex
 /// assignment", document it here.  It will probably be something like: an
 /// assignment that desugars to a "let" expression.
-class KernelComplexAssign extends Let implements KernelExpression {
-  KernelComplexAssign(VariableDeclaration variable, Expression body)
-      : super(variable, body);
+class KernelComplexAssignment extends Expression implements KernelExpression {
+  /// The full desugared assignment expression
+  Expression desugared;
+
+  /// The receiver of the assignment target (e.g. `a` in `a[b] = c`), or `null`
+  /// if there is no receiver.
+  Expression receiver;
+
+  /// In an assignment to an index expression, the index expression, or `null`
+  /// if this is not an assignment to an index expression.
+  Expression index;
+
+  /// In a compound assignment, the expression that reads the old value, or
+  /// `null` if this is not a compound assignment.
+  Expression read;
+
+  /// The expression appearing on the RHS of the assignment.
+  Expression rhs;
+
+  /// The expression that performs the write (e.g. `a.[]=(b, a.[](b) + 1)` in
+  /// `++a[b]`).
+  Expression write;
+
+  /// In a compound assignment without shortcut semantics, the expression that
+  /// combines the old and new values, or `null` if this is not a compound
+  /// assignment.
+  ///
+  /// Note that in a compound assignment with shortcut semantics, this is not
+  /// used; [nullAwareCombiner] is used instead.
+  MethodInvocation combiner;
+
+  /// In a compound assignment with shortcut semantics, the conditional
+  /// expression that determines whether the assignment occurs.
+  ///
+  /// Note that in a compound assignment without shortcut semantics, this is not
+  /// used; [combiner] is used instead.
+  ConditionalExpression nullAwareCombiner;
+
+  /// Indicates whether the expression arose from a post-increment or
+  /// post-decrement.
+  bool isPostIncDec = false;
+
+  @override
+  accept(ExpressionVisitor v) => desugared.accept(v);
+
+  @override
+  accept1(ExpressionVisitor1 v, arg) => desugared.accept1(v, arg);
+
+  @override
+  DartType getStaticType(TypeEnvironment types) =>
+      desugared.getStaticType(types);
+
+  String toString() {
+    List<String> parts = [];
+    if (desugared != null) parts.add('desugared=$desugared');
+    if (receiver != null) parts.add('receiver=$receiver');
+    if (index != null) parts.add('index=$index');
+    if (read != null) parts.add('read=$read');
+    if (rhs != null) parts.add('rhs=$rhs');
+    if (write != null) parts.add('write=$write');
+    if (combiner != null) parts.add('combiner=$combiner');
+    if (nullAwareCombiner != null) {
+      parts.add('nullAwareCombiner=$nullAwareCombiner');
+    }
+    if (isPostIncDec) parts.add('isPostIncDec=true');
+    return 'KernelComplexAssignment(${parts.join(', ')})';
+  }
+
+  @override
+  transformChildren(Transformer v) => desugared.transformChildren(v);
+
+  @override
+  visitChildren(Visitor v) => desugared.visitChildren(v);
 
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
@@ -250,7 +324,58 @@ class KernelComplexAssign extends Let implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferIndexAssign(this, typeContext, typeNeeded);
+    typeNeeded = inferrer.listener.indexAssignEnter(desugared, typeContext) ||
+        typeNeeded;
+    // TODO(paulberry): record the appropriate types on let variables and
+    // conditional expressions.
+    var receiverType = inferrer.inferExpression(receiver, null, true);
+    if (read != null) {
+      inferrer.findMethodInvocationMember(receiverType, read, silent: true);
+    }
+    var writeMember = inferrer.findMethodInvocationMember(receiverType, write);
+    // To replicate analyzer behavior, we base type inference on the write
+    // member.  TODO(paulberry): would it be better to use the read member
+    // when doing compound assignment?
+    var calleeType =
+        inferrer.getCalleeType(writeMember, receiverType, indexSetName);
+    DartType indexContext;
+    DartType rhsContext;
+    DartType inferredType;
+    if (calleeType is FunctionType &&
+        calleeType.positionalParameters.length >= 2) {
+      // TODO(paulberry): we ought to get a context for the index expression
+      // from the index formal parameter, but analyzer doesn't so for now we
+      // replicate its behavior.
+      indexContext = null;
+      rhsContext = calleeType.positionalParameters[1];
+      if (combiner != null) {
+        var combinerMember = inferrer
+            .findMethodInvocationMember(rhsContext, combiner, silent: true);
+        if (isPostIncDec) {
+          inferredType = rhsContext;
+        } else {
+          inferredType = inferrer
+              .getCalleeFunctionType(
+                  combinerMember, rhsContext, combiner.name, false)
+              .returnType;
+        }
+        // Analyzer uses a null context for the RHS here.
+        // TODO(paulberry): improve on this.
+        rhsContext = null;
+      } else {
+        inferredType = rhsContext;
+      }
+    } else {
+      inferredType = const DynamicType();
+    }
+    inferrer.inferExpression(index, indexContext, false);
+    inferrer.inferExpression(rhs, rhsContext, false);
+    if (nullAwareCombiner != null) {
+      MethodInvocation equalsInvocation = nullAwareCombiner.condition;
+      inferrer.findMethodInvocationMember(rhsContext, equalsInvocation);
+    }
+    inferrer.listener.indexAssignExit(desugared, inferredType);
+    return inferredType;
   }
 }
 
@@ -258,15 +383,9 @@ class KernelComplexAssign extends Let implements KernelExpression {
 /// Shadow object for [ConditionalExpression].
 class KernelConditionalExpression extends ConditionalExpression
     implements KernelExpression {
-  /// Indicates whether this conditional expression is associated with a `??=`
-  /// in a null-aware compound assignment.
-  final bool _isNullAwareCombiner;
-
   KernelConditionalExpression(
-      Expression condition, Expression then, Expression otherwise,
-      {bool isNullAwareCombiner: false})
-      : _isNullAwareCombiner = isNullAwareCombiner,
-        super(condition, then, otherwise, const DynamicType());
+      Expression condition, Expression then, Expression otherwise)
+      : super(condition, then, otherwise, const DynamicType());
 
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
@@ -296,11 +415,6 @@ class KernelConditionalExpression extends ConditionalExpression
     inferrer.listener.conditionalExpressionExit(this, inferredType);
     return inferredType;
   }
-
-  /// Helper method allowing [_isNullAwareCombiner] to be checked from outside
-  /// this library without adding a public member to the class.
-  static bool isNullAwareCombiner(KernelConditionalExpression e) =>
-      e._isNullAwareCombiner;
 }
 
 /// Shadow object for [ConstructorInvocation].
@@ -1071,16 +1185,9 @@ class KernelMethodInvocation extends MethodInvocation
   /// resulting from the invocation of a function expression.
   final bool _isImplicitCall;
 
-  /// Indicates whether this method invocation invokes the operator that
-  /// combines old and new values in a compound assignment.
-  final bool _isCombiner;
-
   KernelMethodInvocation(Expression receiver, Name name, Arguments arguments,
-      {bool isImplicitCall: false,
-      Member interfaceTarget,
-      bool isCombiner: false})
+      {bool isImplicitCall: false, Member interfaceTarget})
       : _isImplicitCall = isImplicitCall,
-        _isCombiner = isCombiner,
         super(receiver, name, arguments, interfaceTarget);
 
   @override
@@ -1093,9 +1200,6 @@ class KernelMethodInvocation extends MethodInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    if (identical(name.name, '[]=')) {
-      return inferrer.inferIndexAssign(this, typeContext, typeNeeded);
-    }
     typeNeeded = inferrer.listener.methodInvocationEnter(this, typeContext) ||
         typeNeeded;
     // First infer the receiver so we can look up the method that was invoked.
@@ -1116,10 +1220,6 @@ class KernelMethodInvocation extends MethodInvocation
     inferrer.listener.methodInvocationExit(this, inferredType);
     return inferredType;
   }
-
-  /// Helper method allowing [_isCombiner] to be checked from outside this
-  /// library without adding a public member to the class.
-  static bool isCombiner(KernelMethodInvocation e) => e._isCombiner;
 }
 
 /// Shadow object for [Not].
@@ -1806,10 +1906,6 @@ class KernelVariableDeclaration extends VariableDeclaration
 
   final bool _isLocalFunction;
 
-  /// Indicates whether this variable declaration exists for the sole purpose of
-  /// discarding a return value in a complex desugared expression.
-  final bool _isDiscarding;
-
   KernelVariableDeclaration(String name, this._functionNestingLevel,
       {Expression initializer,
       DartType type,
@@ -1818,7 +1914,6 @@ class KernelVariableDeclaration extends VariableDeclaration
       bool isLocalFunction: false})
       : _implicitlyTyped = type == null,
         _isLocalFunction = isLocalFunction,
-        _isDiscarding = false,
         super(name,
             initializer: initializer,
             type: type ?? const DynamicType(),
@@ -1826,11 +1921,9 @@ class KernelVariableDeclaration extends VariableDeclaration
             isConst: isConst);
 
   KernelVariableDeclaration.forValue(
-      Expression initializer, this._functionNestingLevel,
-      {bool isDiscarding: false})
+      Expression initializer, this._functionNestingLevel)
       : _implicitlyTyped = true,
         _isLocalFunction = false,
-        _isDiscarding = isDiscarding,
         super.forValue(initializer);
 
   @override
@@ -1848,11 +1941,6 @@ class KernelVariableDeclaration extends VariableDeclaration
     }
     inferrer.listener.variableDeclarationExit(this);
   }
-
-  /// Helper method allowing [_isDiscarding] to be checked from outside this
-  /// library without adding a public member to the class.
-  static bool isDiscarding(VariableDeclaration v) =>
-      v is KernelVariableDeclaration && v._isDiscarding;
 
   /// Determine whether the given [KernelVariableDeclaration] had an implicit
   /// type.
