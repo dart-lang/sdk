@@ -138,6 +138,12 @@ class Heap {
                    intptr_t max_old_gen_words,
                    intptr_t max_external_words);
 
+  // Writes a suitable name for a VM region in the heap into the buffer `name`.
+  static void RegionName(Heap* heap,
+                         Space space,
+                         char* name,
+                         intptr_t name_size);
+
   // Verify that all pointers in the heap point to the heap.
   bool Verify(MarkExpectation mark_expectation = kForbidMarked) const;
 

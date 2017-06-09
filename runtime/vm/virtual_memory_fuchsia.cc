@@ -201,7 +201,10 @@ bool VirtualMemory::FreeSubSegment(int32_t handle,
 }
 
 
-bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
+bool VirtualMemory::Commit(uword addr,
+                           intptr_t size,
+                           bool executable,
+                           const char* name) {
   ASSERT(Contains(addr));
   ASSERT(Contains(addr + size) || (addr + size == end()));
   mx_handle_t vmo = MX_HANDLE_INVALID;
@@ -210,6 +213,10 @@ bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
     LOG_ERR("mx_vmo_create(%ld) failed: %s\n", size,
             mx_status_get_string(status));
     return false;
+  }
+
+  if (name != NULL) {
+    mx_object_set_property(vmo, MX_PROP_NAME, name, strlen(name));
   }
 
   mx_handle_t vmar = static_cast<mx_handle_t>(handle());

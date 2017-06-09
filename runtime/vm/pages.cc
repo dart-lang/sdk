@@ -56,13 +56,15 @@ DEFINE_FLAG(bool,
             "Always try to drop code if the function's usage counter is >= 0");
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
-HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
+HeapPage* HeapPage::Initialize(VirtualMemory* memory,
+                               PageType type,
+                               const char* name) {
   ASSERT(memory != NULL);
   ASSERT(memory->size() > VirtualMemory::PageSize());
   bool is_executable = (type == kExecutable);
   // Create the new page executable (RWX) only if we're not in W^X mode
   bool create_executable = !FLAG_write_protect_code && is_executable;
-  if (!memory->Commit(create_executable)) {
+  if (!memory->Commit(create_executable, name)) {
     return NULL;
   }
   HeapPage* result = reinterpret_cast<HeapPage*>(memory->address());
@@ -77,13 +79,15 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
 }
 
 
-HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
+HeapPage* HeapPage::Allocate(intptr_t size_in_words,
+                             PageType type,
+                             const char* name) {
   VirtualMemory* memory =
       VirtualMemory::Reserve(size_in_words << kWordSizeLog2);
   if (memory == NULL) {
     return NULL;
   }
-  HeapPage* result = Initialize(memory, type);
+  HeapPage* result = Initialize(memory, type, name);
   if (result == NULL) {
     delete memory;  // Release reservation to OS.
     return NULL;
@@ -228,12 +232,15 @@ intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
 
 
 HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
-  HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type);
+  const bool is_exec = (type == HeapPage::kExecutable);
+  const intptr_t kVmNameSize = 128;
+  char vm_name[kVmNameSize];
+  Heap::RegionName(heap_, is_exec ? Heap::kCode : Heap::kOld, vm_name,
+                   kVmNameSize);
+  HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type, vm_name);
   if (page == NULL) {
     return NULL;
   }
-
-  bool is_exec = (type == HeapPage::kExecutable);
 
   MutexLocker ml(pages_lock_);
   if (!is_exec) {
@@ -268,8 +275,13 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
 
 
 HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
-  intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
-  HeapPage* page = HeapPage::Allocate(page_size_in_words, type);
+  const bool is_exec = (type == HeapPage::kExecutable);
+  const intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
+  const intptr_t kVmNameSize = 128;
+  char vm_name[kVmNameSize];
+  Heap::RegionName(heap_, is_exec ? Heap::kCode : Heap::kOld, vm_name,
+                   kVmNameSize);
+  HeapPage* page = HeapPage::Allocate(page_size_in_words, type, vm_name);
   if (page == NULL) {
     return NULL;
   }

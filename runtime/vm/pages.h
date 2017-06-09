@@ -60,8 +60,12 @@ class HeapPage {
   }
 
   // These return NULL on OOM.
-  static HeapPage* Initialize(VirtualMemory* memory, PageType type);
-  static HeapPage* Allocate(intptr_t size_in_words, PageType type);
+  static HeapPage* Initialize(VirtualMemory* memory,
+                              PageType type,
+                              const char* name);
+  static HeapPage* Allocate(intptr_t size_in_words,
+                            PageType type,
+                            const char* name);
 
   // Deallocate the virtual memory backing this page. The page pointer to this
   // page becomes immediately inaccessible.

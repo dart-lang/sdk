@@ -32,7 +32,9 @@ class SemiSpace {
 
   // Get a space of the given size. Returns NULL on out of memory. If size is 0,
   // returns an empty space: pointer(), start() and end() all return NULL.
-  static SemiSpace* New(intptr_t size_in_words);
+  // The name parameter may be NULL. If non-NULL it is ued to give the OS a name
+  // for the underlying virtual memory region.
+  static SemiSpace* New(intptr_t size_in_words, const char* name);
 
   // Hand back an unused space.
   void Delete();
