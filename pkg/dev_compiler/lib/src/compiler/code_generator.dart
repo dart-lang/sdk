@@ -723,7 +723,8 @@ class CodeGenerator extends Object
     var type = node.type.type;
     var lhs = _visit(node.expression);
     var typeofName = _jsTypeofName(type);
-    if (typeofName != null) {
+    // Inline primitives other than int (which requires a Math.floor check).
+    if (typeofName != null && type != types.intType) {
       result = js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     } else {
       // Always go through a runtime helper, because implicit interfaces.
