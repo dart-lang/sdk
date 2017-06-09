@@ -468,7 +468,7 @@ class RawObject {
     uword from = obj_addr + sizeof(RawObject);
     uword to = obj_addr + instance_size - kWordSize;
 
-    // Call visitor function non-virtually
+    // Call visitor function virtually
     visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
                            reinterpret_cast<RawObject**>(to));
 
