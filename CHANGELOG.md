@@ -4,10 +4,12 @@
 * During a dynamic type check, `void` is not required to be `null` anymore.
   In practice, this makes overriding `void` functions with non-`void` functions
   safer.
+
 * During static analysis, a function or setter declared using `=>` with return
   type `void` now allows the returned expression to have any type. For example,
   assuming the declaration `int x;`, it is now type correct to have
   `void f() => ++x;`.
+
 * A new function-type syntax has been added to the language.
   Intuitively, the type of a function can be constructed by textually replacing
   the function's name with `Function` in its declaration. For instance, the
@@ -15,11 +17,13 @@
   wherever a type can be written. It is thus now possible to declare fields
   containing functions without needing to write typedefs: `void Function() x;`.
   The new function type has one restriction: it may not contain the old-style
-  function-type syntax for its parameters. The following is thus
-  illegal: `void Function(int f())`.
+  function-type syntax for its parameters. The following is thus illegal:
+  `void Function(int f())`.
   `typedefs` have been updated to support this new syntax.
+
   Examples:
-  ```
+
+  ```dart
   typedef F = void Function();  // F is the name for a `void` callback.
   int Function(int) f;  // A field `f` that contains an int->int function.
 
@@ -33,47 +37,107 @@
   typedef Invoker = T Function<T>(T Function() callback);
   ```
 
-#### Strong Mode
-
-* Removed ad hoc Future.then inference in favor of using FutureOr.  Prior to
-adding FutureOr to the language, the analyzer implented an ad hoc type inference
-for Future.then (and overrides) treating it as if the onValue callback was typed
-to return FutureOr for the purposes of inference.  This ad hoc inference has
-been removed now that FutureOr has been added.
-
-Packages that implement `Future` must either type the `onValue` parameter to
-`.then` as returning `FutureOr<T>`, or else must leave the type of the parameter
-entirely to allow inference to fill in the type.
-
-* The following is also a change in strong mode: During static analysis, a
-  function or setter declared using `=>` with return type `void` now allows the
-  returned expression to have any type.
-* The new function-type syntax is also supported by strong mode.
-
 ### Core library changes
+
+* `dart:async`, `dart:core`, `dart:io`
+    * Adding to a closed sink, including `IOSink`, is no longer not allowed. In
+      1.24, violations are only reported (on stdout or stderr), but a future
+      version of the Dart SDK will change this to throwing a `StateError`.
+
+* `dart:convert`
+  * **BREAKING** Removed the deprecated `ChunkedConverter` class.
+  * JSON maps are now typed as `Map<String, dynamic>` instead of
+    `Map<dynamic, dynamic>`. A JSON-map is not a `HashMap` or `LinkedHashMap`
+    anymore (but just a `Map`).
 
 * `dart:io`
   * Added `Platform.localeName`, needed for accessing the locale on platforms
     that don't store it in an environment variable.
   * Added `ProcessInfo.currentRss` and `ProcessInfo.maxRss` for inspecting
     the Dart VM process current and peak resident set size.
-  * Added 'RawSynchronousSocket', a basic synchronous socket implementation.
-* `dart:convert`
-  * Removed deprecated `ChunkedConverter` class.
-  * JSON maps are now typed as `Map<String, dynamic>` instead of
-    `Map<dynamic, dynamic>`. A JSON-map is not a `HashMap` or `LinkedHashMap`
-    anymore (but just a `Map`).
-* `dart:async`, `dart:io`, `dart:core`
-    * Adding to a closed sink, including `IOSink`, is not allowed anymore. In
-      1.24, violations are only reported (on stdout or stderr), but a future
-      version of the Dart SDK will change this to throwing a `StateError`.
+  * Added `RawSynchronousSocket`, a basic synchronous socket implementation.
 
-### Dart VM
+* `dart:` web APIs have been updated to align with Chrome v50.
+   This change includes **a large number of changes**, many of which are
+   breaking. In some cases, new class names may conflict with names that exist
+   in existing code.
+
+* `dart:html`
+
+  * **REMOVED** classes: `Bluetooth`, `BluetoothDevice`,
+    `BluetoothGattCharacteristic`, `BluetoothGattRemoteServer`,
+    `BluetoothGattService`, `BluetoothUuid`, `CrossOriginConnectEvent`,
+    `DefaultSessionStartEvent`, `DomSettableTokenList`, `MediaKeyError`,
+    `PeriodicSyncEvent`, `PluginPlaceholderElement`, `ReadableStream`,
+    `StashedMessagePort`, `SyncRegistration`
+
+  * **REMOVED** members:
+    * `texImage2DCanvas` was removed from `RenderingContext`.
+    * `endClip` and `startClip` were removed from `Animation`.
+    * `after` and `before` were removed from `CharacterData`, `ChildNode` and
+      `Element`.
+    * `keyLocation` was removed from `KeyboardEvent`. Use `location` instead.
+    * `generateKeyRequest`, `keyAddedEvent`, `keyErrorEvent`, `keyMessageEvent`,
+      `mediaGroup`, `needKeyEvent`, `onKeyAdded`, `onKeyError`, `onKeyMessage`,
+      and `onNeedKey` were removed from `MediaElement`.
+    * `getStorageUpdates` was removed from `Navigator`
+    * `status` was removed from `PermissionStatus`
+    * `getAvailability` was removed from `PreElement`
+
+  * Other behavior changes:
+    * URLs returned in CSS or html are formatted with quoted string.
+      Like `url("http://google.com")` instead of `url(http://google.com)`.
+    * Event timestamp property type changed from `int` to `num`.
+    * Chrome introduced slight layout changes of UI objects.
+      In addition many height/width dimensions are returned in subpixel values
+      (`num` instead of whole numbers).
+    * `setRangeText` with a `selectionMode` value of 'invalid' is no longer
+      valid. Only "select", "start", "end", "preserve" are allowed.
+
+* `dart:svg`
+
+  * A large number of additions and removals. Review your use of `dart:svg`
+    carefully.
+
+* `dart:web_audio`
+
+  * new method on `AudioContext` – `createIirFilter` returns a new class
+    `IirFilterNode`.
+
+* `dart:web_gl`
+
+  * new classes: `CompressedTextureAstc`, `ExtColorBufferFloat`,
+    `ExtDisjointTimerQuery`, and `TimerQueryExt`.
+
+  * `ExtFragDepth` added: `readPixels2` and `texImage2D2`.
+
+#### Strong Mode
+
+* Removed ad hoc `Future.then` inference in favor of using `FutureOr`.  Prior to
+  adding `FutureOr` to the language, the analyzer implented an ad hoc type
+  inference for `Future.then` (and overrides) treating it as if the onValue
+  callback was typed to return `FutureOr` for the purposes of inference.
+  This ad hoc inference has been removed now that `FutureOr` has been added.
+
+  Packages that implement `Future` must either type the `onValue` parameter to
+  `.then` as returning `FutureOr<T>`, or else must leave the type of the parameter
+  entirely to allow inference to fill in the type.
+
+* During static analysis, a function or setter declared using `=>` with return
+  type `void` now allows the returned expression to have any type.
 
 ### Tool Changes
 
+* Dartium
+
+  Dartium is now based on Chrome v50. See *Core library changes* above for
+  details on the changed APIs.
+
 * Pub
-    * Added support for the Dart Development Compiler in `build` and `serve`.
+
+  * `pub build` and `pub serve`
+  
+    * Added support for the Dart Development Compiler.
 
       Unlike dart2js, this new compiler is modular, which allows pub to do
       incremental re-builds for `pub serve`, and potentially `pub build` in the
@@ -113,14 +177,20 @@ entirely to allow inference to fill in the type.
 
     * The `--no-dart2js` flag has been deprecated in favor of
       `--web-compiler=none`.
-    * Added support for the UNLICENSE file when validating licenses on
-      `pub lish`.
-    * Better handling for network errors when fetching packages. These are no
-      longer unhandled errors and won't print a stack trace unless you are
-      running in verbose mode.
+
     * `pub build` will use a failing exit code if there are errors in any
       transformer.
-    * Allow publishing packages that depend on the Flutter SDK.
+
+  * `pub publish`
+  
+    * Added support for the UNLICENSE file.
+
+    * Packages that depend on the Flutter SDK may be published.
+
+  * `pub get` and `pub upgrade`
+
+    * Don't dump a stack trace when a network error occurs while fetching
+      packages.
 
 * dartfmt
     * Preserve type parameters in new generic function typedef syntax.
