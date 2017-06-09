@@ -303,7 +303,11 @@ class KernelClosureClassMaps implements ClosureClassMaps {
 
   @override
   ClosureClassMap getMemberMap(MemberEntity member) {
-    return new ClosureClassMap(null, null, null, null);
+    ThisLocal thisLocal;
+    if (member.isInstanceMember) {
+      thisLocal = new ThisLocal(member);
+    }
+    return new ClosureClassMap(null, null, null, thisLocal);
   }
 }
 

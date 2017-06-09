@@ -931,6 +931,8 @@ abstract class ResolutionWorldBuilderBase
 
 abstract class KernelResolutionWorldBuilderBase
     extends ResolutionWorldBuilderBase {
+  KernelToElementMapImpl get elementMap;
+
   KernelResolutionWorldBuilderBase(
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
@@ -960,7 +962,8 @@ abstract class KernelResolutionWorldBuilderBase
         _classHierarchyNodes.length == _classSets.length,
         "ClassHierarchyNode/ClassSet mismatch: "
         "$_classHierarchyNodes vs $_classSets");
-    return _closedWorldCache = new KernelClosedWorld(
+    return _closedWorldCache = new KernelClosedWorld(elementMap,
+        elementEnvironment: _elementEnvironment,
         commonElements: _commonElements,
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),

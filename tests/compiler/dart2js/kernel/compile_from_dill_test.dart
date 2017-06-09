@@ -35,12 +35,14 @@ const SOURCE = const {
   'main.dart': '''
 foo() => 1;
 bar(a) => !a;
+class Class {}
 main() {
   foo();
   bar(true);
   [];
   {};
   new Object();
+  new Class();
   var x = null;
   return x;
 }

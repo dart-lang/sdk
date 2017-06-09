@@ -546,7 +546,17 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   bool isSubtypeOf(ClassEntity x, ClassEntity y) {
     assert(checkInvariants(x));
     assert(checkInvariants(y, mustBeInstantiated: false));
-    return _classSets[y].hasSubtype(_classHierarchyNodes[x]);
+    ClassSet classSet = _classSets[y];
+    assert(
+        classSet != null,
+        failedAt(
+            y,
+            "No ClassSet for $y (${y.runtimeType}): "
+            "${dump(y)} : ${_classSets}"));
+    ClassHierarchyNode classHierarchyNode = _classHierarchyNodes[x];
+    assert(classHierarchyNode != null,
+        failedAt(x, "No ClassHierarchyNode for $x: ${dump(x)}"));
+    return classSet.hasSubtype(classHierarchyNode);
   }
 
   /// Return `true` if [x] is a (non-strict) subclass of [y].
@@ -1286,92 +1296,5 @@ class ClosedWorldImpl extends ClosedWorldBase {
     assert(!element.isGenerativeConstructorBody);
     assert(!element.isField);
     return super.getSideEffectsOfElement(element);
-  }
-}
-
-class KernelClosedWorld extends ClosedWorldBase {
-  KernelClosedWorld(
-      {CommonElements commonElements,
-      ConstantSystem constantSystem,
-      NativeData nativeData,
-      InterceptorData interceptorData,
-      BackendUsage backendUsage,
-      ResolutionWorldBuilder resolutionWorldBuilder,
-      Set<ClassEntity> implementedClasses,
-      FunctionSet functionSet,
-      Set<TypedefElement> allTypedefs,
-      Map<ClassEntity, Set<ClassEntity>> mixinUses,
-      Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
-      Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets})
-      : super(
-            commonElements: commonElements,
-            constantSystem: constantSystem,
-            nativeData: nativeData,
-            interceptorData: interceptorData,
-            backendUsage: backendUsage,
-            resolutionWorldBuilder: resolutionWorldBuilder,
-            implementedClasses: implementedClasses,
-            functionSet: functionSet,
-            allTypedefs: allTypedefs,
-            mixinUses: mixinUses,
-            typesImplementedBySubclasses: typesImplementedBySubclasses,
-            classHierarchyNodes: classHierarchyNodes,
-            classSets: classSets);
-
-  @override
-  bool hasConcreteMatch(ClassEntity cls, Selector selector,
-      {ClassEntity stopAtSuperclass}) {
-    throw new UnimplementedError('KernelClosedWorld.hasConcreteMatch');
-  }
-
-  @override
-  bool isNamedMixinApplication(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld.isNamedMixinApplication');
-  }
-
-  @override
-  ClassEntity getAppliedMixin(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld.getAppliedMixin');
-  }
-
-  @override
-  Iterable<ClassEntity> getInterfaces(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld.getInterfaces');
-  }
-
-  @override
-  ClassEntity getSuperClass(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld.getSuperClass');
-  }
-
-  @override
-  int getHierarchyDepth(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld.getHierarchyDepth');
-  }
-
-  @override
-  OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
-    throw new UnimplementedError('KernelClosedWorld.getOrderedTypeSet');
-  }
-
-  @override
-  bool checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true}) =>
-      true;
-
-  @override
-  bool checkClass(ClassEntity cls) => true;
-
-  @override
-  bool checkEntity(Entity element) => true;
-
-  @override
-  void registerClosureClass(ClassElement cls) {
-    throw new UnimplementedError('KernelClosedWorld.registerClosureClass');
-  }
-
-  @override
-  bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
-    throw new UnimplementedError('KernelClosedWorld.hasElementIn');
   }
 }

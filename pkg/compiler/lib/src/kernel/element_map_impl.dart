@@ -33,7 +33,11 @@ import '../native/native.dart' as native;
 import '../native/resolver.dart';
 import '../ordered_typeset.dart';
 import '../ssa/kernel_impact.dart';
+import '../universe/class_set.dart';
+import '../universe/function_set.dart';
+import '../universe/selector.dart';
 import '../universe/world_builder.dart';
+import '../world.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'element_map.dart';
 import 'elements.dart';
@@ -1492,6 +1496,108 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
   @override
   bool checkClass(ClassEntity cls) => true;
+}
+
+class KernelClosedWorld extends ClosedWorldBase {
+  final KernelToElementMapImpl _elementMap;
+  final ElementEnvironment _elementEnvironment;
+
+  KernelClosedWorld(this._elementMap,
+      {ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
+      ConstantSystem constantSystem,
+      NativeData nativeData,
+      InterceptorData interceptorData,
+      BackendUsage backendUsage,
+      ResolutionWorldBuilder resolutionWorldBuilder,
+      Set<ClassEntity> implementedClasses,
+      FunctionSet functionSet,
+      Set<TypedefElement> allTypedefs,
+      Map<ClassEntity, Set<ClassEntity>> mixinUses,
+      Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
+      Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
+      Map<ClassEntity, ClassSet> classSets})
+      : this._elementEnvironment = elementEnvironment,
+        super(
+            commonElements: commonElements,
+            constantSystem: constantSystem,
+            nativeData: nativeData,
+            interceptorData: interceptorData,
+            backendUsage: backendUsage,
+            resolutionWorldBuilder: resolutionWorldBuilder,
+            implementedClasses: implementedClasses,
+            functionSet: functionSet,
+            allTypedefs: allTypedefs,
+            mixinUses: mixinUses,
+            typesImplementedBySubclasses: typesImplementedBySubclasses,
+            classHierarchyNodes: classHierarchyNodes,
+            classSets: classSets);
+
+  @override
+  bool hasConcreteMatch(ClassEntity cls, Selector selector,
+      {ClassEntity stopAtSuperclass}) {
+    throw new UnimplementedError('KernelClosedWorld.hasConcreteMatch');
+  }
+
+  @override
+  bool isNamedMixinApplication(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorld.isNamedMixinApplication');
+  }
+
+  @override
+  ClassEntity getAppliedMixin(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorld.getAppliedMixin');
+  }
+
+  @override
+  Iterable<ClassEntity> getInterfaces(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorld.getInterfaces');
+  }
+
+  @override
+  ClassEntity getSuperClass(ClassEntity cls) {
+    throw new UnimplementedError('KernelClosedWorld.getSuperClass');
+  }
+
+  @override
+  int getHierarchyDepth(ClassEntity cls) {
+    return _elementMap._getHierarchyDepth(cls);
+  }
+
+  @override
+  OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
+    return _elementMap._getOrderedTypeSet(cls);
+  }
+
+  @override
+  bool checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true}) =>
+      true;
+
+  @override
+  bool checkClass(ClassEntity cls) => true;
+
+  @override
+  bool checkEntity(Entity element) => true;
+
+  @override
+  void registerClosureClass(ClassElement cls) {
+    throw new UnimplementedError('KernelClosedWorld.registerClosureClass');
+  }
+
+  @override
+  bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
+    while (cls != null) {
+      MemberEntity member = _elementEnvironment
+          .lookupClassMember(cls, selector.name, setter: selector.isSetter);
+      if (member != null &&
+          (!selector.memberName.isPrivate ||
+              member.library == selector.library)) {
+        return member == element;
+      }
+      cls = _elementEnvironment.getSuperClass(cls);
+    }
+    return false;
+  }
 }
 
 // Interface for testing equivalence of Kernel-based entities.

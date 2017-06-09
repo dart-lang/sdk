@@ -595,15 +595,20 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       ..forEach(handleParameter);
 
     // Set the locals handler state as if we were inlining the constructor.
-    ConstructorElement astElement = _elementMap.getConstructor(constructor);
-    ResolvedAst resolvedAst = astElement.resolvedAst;
+    ConstructorEntity astElement = _elementMap.getConstructor(constructor);
     ClosureClassMap oldClosureData = localsHandler.closureData;
     ClosureClassMap newClosureData =
         closureToClassMapper.getMemberMap(astElement);
-    localsHandler.closureData = newClosureData;
-    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      localsHandler.enterScope(newClosureData.capturingScopes[resolvedAst.node],
-          forGenerativeConstructorBody: astElement.isGenerativeConstructorBody);
+    if (astElement is ConstructorElement) {
+      // TODO(johnniwinther): Support constructor (body) entities.
+      ResolvedAst resolvedAst = astElement.resolvedAst;
+      localsHandler.closureData = newClosureData;
+      if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+        localsHandler.enterScope(
+            newClosureData.capturingScopes[resolvedAst.node],
+            forGenerativeConstructorBody:
+                astElement.isGenerativeConstructorBody);
+      }
     }
     inlinedFrom(astElement, () {
       _buildInitializers(constructor, constructorChain, fieldValues);
@@ -634,7 +639,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (parent is ir.Procedure &&
         parent.kind == ir.ProcedureKind.Operator &&
         parent.name.name == '==') {
-      MethodElement method = _elementMap.getMethod(parent);
+      FunctionEntity method = _elementMap.getMethod(parent);
       if (!backend.operatorEqHandlesNullArgument(method)) {
         handleIf(
           visitCondition: () {
@@ -645,7 +650,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           visitThen: () {
             closeAndGotoExit(new HReturn(
                 graph.addConstantBool(false, closedWorld),
-                sourceInformationBuilder.buildImplicitReturn(method)));
+                // TODO(johnniwinther): Provider source information like
+                // `sourceInformationBuilder.buildImplicitReturn(method)`.
+                null));
           },
           visitElse: null,
           // TODO(27394): Add sourceInformation via
@@ -3037,7 +3044,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return;
     }
 
-    ResolutionDartType typeValue =
+    DartType typeValue =
         localsHandler.substInContext(_elementMap.getDartType(type));
 
     if (type is ir.FunctionType) {
@@ -3065,10 +3072,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     if (_isInterfaceWithNoDynamicTypes(type)) {
+      InterfaceType interfaceType = typeValue;
       HInstruction representations = typeBuilder
           .buildTypeArgumentRepresentations(typeValue, sourceElement);
       add(representations);
-      ClassElement element = typeValue.element;
+      ClassEntity element = interfaceType.element;
       js.Name operator = namer.operatorIs(element);
       HInstruction isFieldName =
           graph.addConstantStringFromName(operator, closedWorld);

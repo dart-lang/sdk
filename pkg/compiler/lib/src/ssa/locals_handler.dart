@@ -631,15 +631,15 @@ class LocalsHandler {
     TypeMask result = cachedTypeOfThis;
     if (result == null) {
       ThisLocal local = closureData.thisLocal;
-      ClassElement cls = local.enclosingClass;
+      ClassEntity cls = local.enclosingClass;
       if (closedWorld.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be
         // of the class that mixins the enclosing class. These two
         // classes do not have a subclass relationship, so, for
         // simplicity, we mark the type as an interface type.
-        result = new TypeMask.nonNullSubtype(cls.declaration, closedWorld);
+        result = new TypeMask.nonNullSubtype(cls, closedWorld);
       } else {
-        result = new TypeMask.nonNullSubclass(cls.declaration, closedWorld);
+        result = new TypeMask.nonNullSubclass(cls, closedWorld);
       }
       cachedTypeOfThis = result;
     }

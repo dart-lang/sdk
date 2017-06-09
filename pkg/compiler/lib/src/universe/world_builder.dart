@@ -20,12 +20,12 @@ import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
 import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
 import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
+import '../kernel/element_map_impl.dart';
 import '../universe/class_set.dart';
 import '../universe/function_set.dart' show FunctionSetBuilder;
 import '../util/enumset.dart';
 import '../util/util.dart';
-import '../world.dart'
-    show World, ClosedWorld, ClosedWorldImpl, KernelClosedWorld, OpenWorld;
+import '../world.dart' show World, ClosedWorld, ClosedWorldImpl, OpenWorld;
 import 'selector.dart' show Selector;
 import 'use.dart'
     show

@@ -81,7 +81,7 @@ class ClosureTask extends CompilerTask implements ClosureClassMaps {
   }
 
   ClosureClassMap computeClosureToClassMapping(
-      AstElement element, ClosedWorldRefiner closedWorldRefiner) {
+      MemberElement element, ClosedWorldRefiner closedWorldRefiner) {
     return measure(() {
       ClosureClassMap cached = _closureMappingCache[element];
       if (cached != null) return cached;
@@ -350,17 +350,16 @@ class BoxFieldElement extends ElementX
 
 /// A local variable used encode the direct (uncaptured) references to [this].
 class ThisLocal extends Local {
-  final ExecutableElement executableContext;
+  final MemberEntity memberContext;
   final hashCode = ElementX.newHashCode();
 
-  ThisLocal(this.executableContext);
+  ThisLocal(this.memberContext);
 
-  @override
-  MemberElement get memberContext => executableContext.memberContext;
+  Entity get executableContext => memberContext;
 
   String get name => 'this';
 
-  ClassElement get enclosingClass => executableContext.enclosingClass;
+  ClassEntity get enclosingClass => memberContext.enclosingClass;
 }
 
 /// Call method of a closure class.
@@ -652,8 +651,8 @@ class ClosureTranslator extends Visitor {
     updateClosures();
   }
 
-  void translateLazyInitializer(VariableElement element,
-      VariableDefinitions node, Expression initializer) {
+  void translateLazyInitializer(
+      FieldElement element, VariableDefinitions node, Expression initializer) {
     visitInvokable(element, node, () {
       visit(initializer);
     });
@@ -1119,7 +1118,8 @@ class ClosureTranslator extends Visitor {
       outermostElement = element;
       ThisLocal thisElement = null;
       if (element.isInstanceMember || element.isGenerativeConstructor) {
-        thisElement = new ThisLocal(element);
+        MemberElement member = element;
+        thisElement = new ThisLocal(member);
       }
       closureData = new ClosureClassMap(null, null, null, thisElement);
       if (element is MethodElement) {

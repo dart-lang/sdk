@@ -1351,7 +1351,7 @@ class Namer {
   }
 
   String suffixForGetInterceptor(Iterable<ClassEntity> classes) {
-    String abbreviate(ClassElement cls) {
+    String abbreviate(ClassEntity cls) {
       if (cls == _commonElements.objectClass) return "o";
       if (cls == _commonElements.jsStringClass) return "s";
       if (cls == _commonElements.jsArrayClass) return "a";
@@ -1380,7 +1380,7 @@ class Namer {
 
   /// Property name used for `getInterceptor` or one of its specializations.
   jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes) {
-    MethodElement getInterceptor = _commonElements.getInterceptorMethod;
+    FunctionEntity getInterceptor = _commonElements.getInterceptorMethod;
     if (classes.contains(_commonElements.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes, we
       // need to go through the generic getInterceptorMethod, since any subclass

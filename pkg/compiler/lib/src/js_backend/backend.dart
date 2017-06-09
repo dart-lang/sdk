@@ -22,6 +22,7 @@ import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../enqueue.dart'
     show
         DirectEnqueuerStrategy,
@@ -1007,8 +1008,10 @@ class JavaScriptBackend {
    * Returns [:true:] if the checking of [type] is performed directly on the
    * object and not on an interceptor.
    */
-  bool hasDirectCheckFor(ResolutionDartType type) {
-    Element element = type.element;
+  bool hasDirectCheckFor(DartType type) {
+    if (!type.isInterfaceType) return false;
+    InterfaceType interfaceType = type;
+    ClassEntity element = interfaceType.element;
     return element == commonElements.stringClass ||
         element == commonElements.boolClass ||
         element == commonElements.numClass ||
