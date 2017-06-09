@@ -469,6 +469,7 @@ const List<ErrorCode> errorCodeValues = const [
   ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
   ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH,
   ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART,
+  ResolverErrorCode.PART_OF_UNNAMED_LIBRARY,
   ScannerErrorCode.EXPECTED_TOKEN,
   ScannerErrorCode.ILLEGAL_CHARACTER,
   ScannerErrorCode.MISSING_DIGIT,

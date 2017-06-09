@@ -4980,6 +4980,22 @@ class ResolverErrorCode extends ErrorCode {
           "Libraries that have parts must have a library directive");
 
   /**
+   * Parts: It is a static warning if the referenced part declaration
+   * <i>p</i> names a library that does not have a library tag.
+   *
+   * Parameters:
+   * 0: the URI of the expected library
+   * 1: the non-matching actual library name from the "part of" declaration
+   */
+  static const ResolverErrorCode PART_OF_UNNAMED_LIBRARY =
+      const ResolverErrorCode(
+          'PART_OF_UNNAMED_LIBRARY',
+          "Library is unnamed. Expected a URI not a library name '{0}' in the "
+          "part-of directive.",
+          "Try changing the part-of directive to a URI, or try including a"
+          " different part.");
+
+  /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]
    * template. The correction associated with the error will be created from the

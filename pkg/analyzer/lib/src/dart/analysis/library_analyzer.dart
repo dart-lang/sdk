@@ -479,7 +479,10 @@ class LibraryAnalyzer {
           } else {
             String name = nameOrSource.name;
             if (name != null) {
-              if (libraryNameNode != null && libraryNameNode.name != name) {
+              if (libraryNameNode == null) {
+                libraryErrorReporter.reportErrorForNode(
+                    ResolverErrorCode.PART_OF_UNNAMED_LIBRARY, partUri, [name]);
+              } else if (libraryNameNode.name != name) {
                 libraryErrorReporter.reportErrorForNode(
                     StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
