@@ -248,15 +248,25 @@ cc/UseDartApi: Pass,Crash # Issue 28499
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 
+[ ($compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) && $unchecked ]
+dart/redirection_type_shuffling_test/00: RuntimeError # Issue 29201
+
 [ ($compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
+dart/byte_array_optimized_test: RuntimeError
+dart/byte_array_test: RuntimeError
 dart/data_uri_import_test/base64: CompileTimeError
 dart/data_uri_import_test/nocharset: CompileTimeError
 dart/data_uri_import_test/nomime: CompileTimeError
 dart/data_uri_import_test/percentencoded: CompileTimeError
 dart/data_uri_import_test/wrongmime: CompileTimeError
 dart/data_uri_spawn_test: RuntimeError
-dart/redirection_type_shuffling_test/00: Crash # Issue 29201
-dart/redirection_type_shuffling_test/none: Crash # Issue 29201
+dart/double_materialize_test: RuntimeError
+dart/double_to_smi_test: RuntimeError
+dart/error_stacktrace_test: RuntimeError
+dart/inline_stack_frame_test: RuntimeError
+dart/optimized_stacktrace_line_test: RuntimeError
+dart/redirection_type_shuffling_test/none: RuntimeError # Issue 29201
+dart/regress29620_test: RuntimeError
 dart/spawn_shutdown_test: Timeout
 
 [ ($compiler == dartk) && ($runtime == vm) ]
@@ -271,8 +281,9 @@ cc/DartGeneratedListMessages: Crash
 cc/DartGeneratedListMessagesWithBackref: Crash
 cc/DartGeneratedListMessagesWithTypedData: Crash
 cc/DartGeneratedMessages: Crash
-cc/Dart_LoadLibraryPatch_1: Fail
+cc/Dart_LoadLibraryPatch_Error1: Fail
 cc/Dart_LoadLibraryPatch_Error2: Fail
+cc/Dart_LoadLibraryPatch_Error3: Fail
 cc/Dart_PropagateError: Fail
 cc/Debug_EvaluateExpr: Fail
 cc/Debug_EvaluateInActivationOfEvaluate: Fail

@@ -22,7 +22,7 @@ import '../errors.dart' show internalError;
 
 import '../builder/builder.dart';
 
-import '../modifier.dart' show Modifier;
+import '../modifier.dart' show abstractMask, externalMask, Modifier;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -373,6 +373,9 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder returnType = pop();
     int modifiers =
         Modifier.validate(pop(), isAbstract: bodyKind == MethodBody.Abstract);
+    if ((modifiers & externalMask) != 0) {
+      modifiers &= ~abstractMask;
+    }
     List<MetadataBuilder> metadata = pop();
     library.addProcedure(
         metadata,

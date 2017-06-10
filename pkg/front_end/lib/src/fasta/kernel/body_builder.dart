@@ -484,7 +484,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       initializer = buildInvalidInitializer(node, token.charOffset);
     }
     _typeInferrer.inferInitializer(initializer);
-    if (member is KernelConstructorBuilder) {
+    if (member is KernelConstructorBuilder && !member.isExternal) {
       member.addInitializer(initializer);
     } else {
       addCompileTimeError(

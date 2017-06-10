@@ -115,6 +115,7 @@ dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Blocked on language is
 for2_test: RuntimeError # KernelVM bug: Closure conversion?
 for_variable_capture_test: RuntimeError # KernelVM bug: Closure conversion?
 
+external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
 
@@ -361,14 +362,6 @@ deferred_duplicate_prefix2_test/01: MissingCompileTimeError # Fixed in ahe's dev
 deferred_duplicate_prefix3_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 enum_syntax_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
 enum_syntax_test/30: MissingCompileTimeError # Fixed in ahe's dev branch.
-external_test/11: MissingCompileTimeError # Fixed in ahe's dev branch.
-external_test/12: MissingCompileTimeError # Fixed in ahe's dev branch.
-external_test/21: MissingCompileTimeError # Fixed in ahe's dev branch.
-external_test/22: MissingCompileTimeError # Fixed in ahe's dev branch.
-external_test/23: MissingCompileTimeError # Fixed in ahe's dev branch.
-external_test/25: MissingCompileTimeError # Fixed in ahe's dev branch.
-external_test/30: MissingCompileTimeError # Fixed in ahe's dev branch.
-external_test/31: MissingCompileTimeError # Fixed in ahe's dev branch.
 final_initializer_instance_reference_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 final_syntax_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 final_syntax_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.

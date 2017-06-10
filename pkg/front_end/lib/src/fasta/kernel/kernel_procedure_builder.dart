@@ -80,8 +80,14 @@ abstract class KernelFunctionBuilder
             compilationUnit, charOffset);
 
   void set body(Statement newBody) {
-    if (isAbstract && newBody != null) {
-      return internalError("Attempting to set body on abstract method.");
+    if (newBody != null) {
+      if (isAbstract) {
+        return internalError("Attempting to set body on abstract method.");
+      }
+      if (isExternal) {
+        return library.addCompileTimeError(
+            newBody.fileOffset, "An external method can't have a body.");
+      }
     }
     actualBody = newBody;
     if (function != null) {
