@@ -429,3 +429,8 @@ CatchSyntax:
   template: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
   tip: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
   dart2jsCode: FASTA_IGNORED
+
+SuperNullAware:
+  template: "'super' can't be null."
+  tip: "Try replacing '?.' with '.'"
+  dart2jsCode: FASTA_IGNORED

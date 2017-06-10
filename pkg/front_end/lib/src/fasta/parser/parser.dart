@@ -51,6 +51,7 @@ import '../fasta_codes.dart'
         codeRequiredParameterWithDefault,
         codeSetterNotSync,
         codeStackOverflow,
+        codeSuperNullAware,
         codeTypeAfterVar,
         codeTypeRequired,
         codeUnexpectedToken,
@@ -3057,6 +3058,8 @@ class Parser {
       listener.handleNoTypeArguments(token);
       token = parseArguments(token);
       listener.endSend(beginToken, token);
+    } else if (optional("?.", token)) {
+      reportRecoverableErrorCode(token, codeSuperNullAware);
     }
     return token;
   }

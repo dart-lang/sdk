@@ -342,11 +342,6 @@ type_variable_bounds4_test/01: RuntimeError
 
 [ $compiler == dartk || $compiler == dartkp ]
 compile_time_constant_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-conditional_method_invocation_test/11: MissingCompileTimeError # Fixed in ahe's dev branch.
-conditional_property_access_test/09: MissingCompileTimeError # Fixed in ahe's dev branch.
-conditional_property_assignment_test/20: MissingCompileTimeError # Fixed in ahe's dev branch.
-conditional_property_assignment_test/21: MissingCompileTimeError # Fixed in ahe's dev branch.
-conditional_property_assignment_test/22: MissingCompileTimeError # Fixed in ahe's dev branch.
 const_constructor_mixin2_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 const_constructor_mixin3_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 const_constructor_mixin_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
@@ -413,23 +408,6 @@ ref_before_declaration_test/06: MissingCompileTimeError # Fixed in ahe's dev bra
 ref_before_declaration_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
 regress_29349_test: CompileTimeError # Fixed in ahe's dev branch.
 scope_variable_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/05: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/08: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/09: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/10: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/11: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/12: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/13: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/14: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/15: MissingCompileTimeError # Fixed in ahe's dev branch.
-super_conditional_operator_test/16: MissingCompileTimeError # Fixed in ahe's dev branch.
-this_conditional_operator_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 
 [ $unchecked && ($compiler == dartk || $compiler == dartkp) ]
 const_conditional_test/08: MissingCompileTimeError # KernelVM bug: Constant evaluation.

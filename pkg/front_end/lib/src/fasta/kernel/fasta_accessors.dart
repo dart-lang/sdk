@@ -331,6 +331,10 @@ class ThisAccessor extends FastaAccessor {
   buildPropertyAccess(
       IncompleteSend send, int operatorOffset, bool isNullAware) {
     if (isInitializer && send is SendAccessor) {
+      if (isNullAware) {
+        helper.addCompileTimeError(
+            operatorOffset, "Expected '.'\nTry removing '?'.");
+      }
       return buildConstructorInitializer(
           offsetForToken(send.token), send.name, send.arguments);
     }
@@ -484,6 +488,12 @@ class SendAccessor extends IncompleteSend {
     }
     if (receiver is PrefixBuilder) {
       PrefixBuilder prefix = receiver;
+      if (isNullAware) {
+        helper.addCompileTimeError(
+            offsetForToken(token),
+            "Library prefix '${prefix.name}' can't be used with null-aware "
+            "operator.\nTry removing '?'.");
+      }
       receiver = helper.scopeLookup(prefix.exports, name.name, token,
           isQualified: true, prefix: prefix);
       return helper.finishSend(receiver, arguments, offsetForToken(token));
@@ -544,6 +554,12 @@ class IncompletePropertyAccessor extends IncompleteSend {
     }
     if (receiver is PrefixBuilder) {
       PrefixBuilder prefix = receiver;
+      if (isNullAware) {
+        helper.addCompileTimeError(
+            offsetForToken(token),
+            "Library prefix '${prefix.name}' can't be used with null-aware "
+            "operator.\nTry removing '?'.");
+      }
       return helper.scopeLookup(prefix.exports, name.name, token,
           isQualified: true, prefix: prefix);
     }

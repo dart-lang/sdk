@@ -124,6 +124,24 @@ FastaMessage _formatFactoryNotSync(Uri uri, int charOffset) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_SuperNullAware> codeSuperNullAware =
+    const FastaCode<_SuperNullAware>("SuperNullAware",
+        template: r"'super' can't be null.",
+        tip: r"Try replacing '?.' with '.'",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatSuperNullAware);
+
+typedef FastaMessage _SuperNullAware(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatSuperNullAware(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeSuperNullAware,
+      message: "'super' can't be null.",
+      tip: "Try replacing '?.' with '.'",
+      arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_PrivateNamedParameter> codePrivateNamedParameter =
     const FastaCode<_PrivateNamedParameter>("PrivateNamedParameter",
         template: r"An optional named parameter can't start with '_'.",
