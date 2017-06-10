@@ -17,7 +17,7 @@ class Pair<T extends self::Clonable<self::Pair::T>, U extends self::Clonable<sel
     : self::Pair::u = null, self::Pair::t = null, super core::Object::•()
     ;
   get reversed() → self::Pair<self::Pair::U, self::Pair::T>
-    return new self::Pair::•<self::Pair::U, self::Pair::T>(this.u, this.t);
+    return new self::Pair::•<self::Pair::U, self::Pair::T>(this.{self::Pair::u}, this.{self::Pair::t});
 }
 static method main() → dynamic {
   final self::Pair<self::Clonable<dynamic>, self::Clonable<dynamic>> x = new self::Pair::_<self::Clonable<dynamic>, self::Clonable<dynamic>>();

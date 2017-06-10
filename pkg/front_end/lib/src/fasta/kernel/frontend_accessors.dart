@@ -13,6 +13,7 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelMethodInvocation,
         KernelPropertyGet,
         KernelPropertySet,
+        KernelThisExpression,
         KernelVariableDeclaration,
         KernelVariableGet,
         KernelVariableSet;
@@ -284,12 +285,13 @@ class ThisPropertyAccessor extends Accessor {
       : super(helper, token);
 
   Expression _makeRead(KernelComplexAssignment complexAssignment) =>
-      new KernelPropertyGet(new ThisExpression(), name, getter)
+      new KernelPropertyGet(new KernelThisExpression(), name, getter)
         ..fileOffset = offsetForToken(token);
 
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
-    return new KernelPropertySet(new ThisExpression(), name, value, setter)
+    return new KernelPropertySet(
+        new KernelThisExpression(), name, value, setter)
       ..fileOffset = offsetForToken(token);
   }
 }

@@ -421,10 +421,6 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
 
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
-    var element = node.methodName.staticElement;
-    if (_elementRequiresMethodDispatch(element)) {
-      _recordTarget(node.methodName.offset, node.methodName.staticElement);
-    }
     if (node.typeArguments == null) {
       var inferredTypeArguments = _getInferredFunctionTypeArguments(
               node.function.staticType,
@@ -437,18 +433,6 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
-  @override
-  visitPrefixedIdentifier(PrefixedIdentifier node) {
-    super.visitPrefixedIdentifier(node);
-    if (node.prefix.staticElement is! PrefixElement &&
-        node.prefix.staticElement is! ClassElement) {
-      if (node.identifier.inGetterContext() ||
-          node.identifier.inSetterContext()) {
-        _recordTarget(node.identifier.offset, node.identifier.staticElement);
-      }
-    }
-  }
-
   visitPrefixExpression(PrefixExpression node) {
     super.visitPrefixExpression(node);
     if (node.operator.type != TokenType.PLUS_PLUS &&
@@ -457,18 +441,14 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
-  @override
-  visitPropertyAccess(PropertyAccess node) {
-    super.visitPropertyAccess(node);
-    if (node.propertyName.inGetterContext() ||
-        node.propertyName.inSetterContext()) {
-      _recordTarget(node.propertyName.offset, node.propertyName.staticElement);
-    }
-  }
-
   visitSimpleIdentifier(SimpleIdentifier node) {
     super.visitSimpleIdentifier(node);
     Element element = node.staticElement;
+    if (_elementRequiresMethodDispatch(element) &&
+        !node.inDeclarationContext() &&
+        (node.inGetterContext() || node.inSetterContext())) {
+      _recordTarget(node.offset, element);
+    }
     void recordPromotions(DartType elementType) {
       if (node.inGetterContext() && !node.inDeclarationContext()) {
         int offset = node.offset;
@@ -502,7 +482,9 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   }
 
   bool _elementRequiresMethodDispatch(Element element) {
-    if (element is ClassMemberElement) {
+    if (element is ConstructorElement) {
+      return false;
+    } else if (element is ClassMemberElement) {
       return !element.isStatic;
     } else if (element is ExecutableElement &&
         element.enclosingElement is ClassElement) {
