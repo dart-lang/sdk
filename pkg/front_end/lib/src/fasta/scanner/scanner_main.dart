@@ -12,7 +12,13 @@ scanAll(Map<Uri, List<int>> files) {
   Stopwatch sw = new Stopwatch()..start();
   int byteCount = 0;
   files.forEach((Uri uri, List<int> bytes) {
-    scan(bytes);
+    var token = scan(bytes).tokens;
+    if (const bool.fromEnvironment("printTokens")) {
+      while (!token.isEof) {
+        print("${token.charOffset}: ${token}");
+        token = token.next;
+      }
+    }
     byteCount += bytes.length - 1;
   });
   sw.stop();
