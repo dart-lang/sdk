@@ -406,3 +406,26 @@ AssertExtraneousArgument:
 AssertAsExpression:
   template: "`assert` can't be used as an expression."
   dart2jsCode: FASTA_FATAL
+
+FunctionTypeDefaultValue:
+  template: "Can't have a default value in a function type."
+  dart2jsCode: FASTA_IGNORED
+
+PrivateNamedParameter:
+  template: "An optional named parameter can't start with '_'."
+  dart2jsCode: FASTA_IGNORED
+
+NoFormals:
+  template: "A function should have formal parameters."
+  tip: "Try adding '()' after '#lexeme', or add 'get' before '#lexeme' to declare a getter."
+  dart2jsCode: FASTA_IGNORED
+
+GetterWithFormals:
+  template: "A getter can't have formal parameters."
+  tip: "Try removing '(...)'."
+  dart2jsCode: FASTA_IGNORED
+
+CatchSyntax:
+  template: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
+  tip: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
+  dart2jsCode: FASTA_IGNORED

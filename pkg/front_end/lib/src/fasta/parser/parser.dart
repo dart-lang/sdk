@@ -18,6 +18,7 @@ import '../fasta_codes.dart'
         codeAwaitNotAsync,
         codeBuiltInIdentifierAsType,
         codeBuiltInIdentifierInDeclaration,
+        codeCatchSyntax,
         codeEmptyNamedParameterList,
         codeEmptyOptionalParameterList,
         codeEncoding,
@@ -34,15 +35,19 @@ import '../fasta_codes.dart'
         codeExpectedString,
         codeExtraneousModifier,
         codeFactoryNotSync,
+        codeFunctionTypeDefaultValue,
         codeGeneratorReturnsValue,
+        codeGetterWithFormals,
         codeInvalidAwaitFor,
         codeInvalidInlineFunctionType,
         codeInvalidSyncModifier,
         codeInvalidVoid,
+        codeNoFormals,
         codeNonAsciiIdentifier,
         codeNonAsciiWhitespace,
         codeOnlyTry,
         codePositionalParameterWithEquals,
+        codePrivateNamedParameter,
         codeRequiredParameterWithDefault,
         codeSetterNotSync,
         codeStackOverflow,
@@ -716,6 +721,7 @@ class Parser {
     Token nameToken;
     if (inFunctionType) {
       if (isNamedParameter || token.isIdentifier) {
+        nameToken = token;
         token = parseIdentifier(
             token, IdentifierContext.formalParameterDeclaration);
       } else {
@@ -732,6 +738,9 @@ class Parser {
         token = parseIdentifier(
             token, IdentifierContext.formalParameterDeclaration);
       }
+    }
+    if (isNamedParameter && nameToken.lexeme.startsWith("_")) {
+      reportRecoverableErrorCode(nameToken, codePrivateNamedParameter);
     }
 
     token = listener.injectGenericCommentTypeList(token);
@@ -764,7 +773,6 @@ class Parser {
     }
     String value = token.stringValue;
     if ((identical('=', value)) || (identical(':', value))) {
-      // TODO(ahe): Validate that these are only used for optional parameters.
       Token equal = token;
       token = parseExpression(token.next);
       listener.handleValuedFormalParameter(equal, token);
@@ -772,6 +780,10 @@ class Parser {
         reportRecoverableErrorCode(equal, codeRequiredParameterWithDefault);
       } else if (parameterKind.isPositional && identical(':', value)) {
         reportRecoverableErrorCode(equal, codePositionalParameterWithEquals);
+      } else if (inFunctionType ||
+          memberKind == MemberKind.FunctionTypeAlias ||
+          memberKind == MemberKind.FunctionTypedParameter) {
+        reportRecoverableErrorCode(equal.next, codeFunctionTypeDefaultValue);
       }
     } else {
       listener.handleFormalParameterWithoutValue(token);
@@ -1375,11 +1387,14 @@ class Parser {
     Token token =
         parseIdentifier(name, IdentifierContext.topLevelFunctionDeclaration);
 
+    bool isGetter = false;
     if (getOrSet == null) {
       token = parseTypeVariablesOpt(token);
     } else {
+      isGetter = optional("get", getOrSet);
       listener.handleNoTypeVariables(token);
     }
+    checkFormals(isGetter, name, token);
     token = parseFormalParametersOpt(token, MemberKind.TopLevelMethod);
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token;
@@ -1393,6 +1408,16 @@ class Parser {
     token = token.next;
     listener.endTopLevelMethod(start, getOrSet, endToken);
     return token;
+  }
+
+  void checkFormals(bool isGetter, Token name, Token token) {
+    if (optional("(", token)) {
+      if (isGetter) {
+        reportRecoverableErrorCode(token, codeGetterWithFormals);
+      }
+    } else if (!isGetter) {
+      reportRecoverableErrorCodeWithToken(name, codeNoFormals);
+    }
   }
 
   /// Looks ahead to find the name of a member. Returns a link of the modifiers,
@@ -1694,7 +1719,10 @@ class Parser {
             }
             typeRequired = false;
           } else if (optional("static", token)) {
-            if (memberKind == MemberKind.NonStaticMethod) {
+            if (parameterKind != null) {
+              reportRecoverableErrorCodeWithToken(
+                  token, codeExtraneousModifier);
+            } else if (memberKind == MemberKind.NonStaticMethod) {
               memberKind = MemberKind.StaticMethod;
             } else if (memberKind == MemberKind.NonStaticField) {
               memberKind = MemberKind.StaticField;
@@ -2070,11 +2098,14 @@ class Parser {
 
     token = parseQualifiedRestOpt(
         token, IdentifierContext.methodDeclarationContinuation);
+    bool isGetter = false;
     if (getOrSet == null) {
       token = parseTypeVariablesOpt(token);
     } else {
+      isGetter = optional("get", getOrSet);
       listener.handleNoTypeVariables(token);
     }
+    checkFormals(isGetter, name, token);
     token = parseFormalParametersOpt(
         token,
         staticModifier != null
@@ -3660,7 +3691,24 @@ class Parser {
       Token catchKeyword = null;
       if (identical(value, 'catch')) {
         catchKeyword = token;
-        // TODO(ahe): Validate the "parameters".
+        Token openParens = catchKeyword.next;
+        Token exceptionName = openParens.next;
+        Token commaOrCloseParens = exceptionName.next;
+        Token traceName = commaOrCloseParens.next;
+        Token closeParens = traceName.next;
+        if (!optional("(", openParens)) {
+          // Handled below by parseFormalParameters.
+        } else if (!exceptionName.isIdentifier) {
+          reportRecoverableErrorCode(exceptionName, codeCatchSyntax);
+        } else if (optional(")", commaOrCloseParens)) {
+          // OK: `catch (identifier)`.
+        } else if (!optional(",", commaOrCloseParens)) {
+          reportRecoverableErrorCode(exceptionName, codeCatchSyntax);
+        } else if (!traceName.isIdentifier) {
+          reportRecoverableErrorCode(exceptionName, codeCatchSyntax);
+        } else if (!optional(")", closeParens)) {
+          reportRecoverableErrorCode(exceptionName, codeCatchSyntax);
+        }
         token = parseFormalParameters(token.next, MemberKind.Catch);
       }
       listener.endCatchClause(token);

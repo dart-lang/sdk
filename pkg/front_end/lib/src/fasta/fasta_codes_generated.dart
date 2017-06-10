@@ -29,6 +29,21 @@ FastaMessage _formatExpectedClassBodyToSkip(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_FunctionTypeDefaultValue> codeFunctionTypeDefaultValue =
+    const FastaCode<_FunctionTypeDefaultValue>("FunctionTypeDefaultValue",
+        template: r"Can't have a default value in a function type.",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatFunctionTypeDefaultValue);
+
+typedef FastaMessage _FunctionTypeDefaultValue(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatFunctionTypeDefaultValue(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeFunctionTypeDefaultValue,
+      message: "Can't have a default value in a function type.", arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_StackOverflow> codeStackOverflow =
     const FastaCode<_StackOverflow>("StackOverflow",
         template: r"Stack overflow.",
@@ -105,6 +120,22 @@ typedef FastaMessage _FactoryNotSync(Uri uri, int charOffset);
 FastaMessage _formatFactoryNotSync(Uri uri, int charOffset) {
   return new FastaMessage(uri, charOffset, codeFactoryNotSync,
       message: "Factories can't use 'async', 'async*', or 'sync*'.",
+      arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_PrivateNamedParameter> codePrivateNamedParameter =
+    const FastaCode<_PrivateNamedParameter>("PrivateNamedParameter",
+        template: r"An optional named parameter can't start with '_'.",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatPrivateNamedParameter);
+
+typedef FastaMessage _PrivateNamedParameter(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatPrivateNamedParameter(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codePrivateNamedParameter,
+      message: "An optional named parameter can't start with '_'.",
       arguments: {});
 }
 
@@ -568,6 +599,45 @@ FastaMessage _formatInvalidSyncModifier(Uri uri, int charOffset) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_GetterWithFormals> codeGetterWithFormals =
+    const FastaCode<_GetterWithFormals>("GetterWithFormals",
+        template: r"A getter can't have formal parameters.",
+        tip: r"Try removing '(...)'.",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatGetterWithFormals);
+
+typedef FastaMessage _GetterWithFormals(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatGetterWithFormals(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeGetterWithFormals,
+      message: "A getter can't have formal parameters.",
+      tip: "Try removing '(...)'.",
+      arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_NoFormals> codeNoFormals = const FastaCode<_NoFormals>(
+    "NoFormals",
+    template: r"A function should have formal parameters.",
+    tip:
+        r"Try adding '()' after '#lexeme', or add 'get' before '#lexeme' to declare a getter.",
+    dart2jsCode: "FASTA_IGNORED",
+    format: _formatNoFormals);
+
+typedef FastaMessage _NoFormals(Uri uri, int charOffset, Token token);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatNoFormals(Uri uri, int charOffset, Token token) {
+  String lexeme = token.lexeme;
+  return new FastaMessage(uri, charOffset, codeNoFormals,
+      message: "A function should have formal parameters.",
+      tip:
+          "Try adding '()' after '$lexeme', or add 'get' before '$lexeme' to declare a getter.",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedOpenParens> codeExpectedOpenParens =
     const FastaCode<_ExpectedOpenParens>("ExpectedOpenParens",
         template: r"Expected '('.",
@@ -596,6 +666,28 @@ typedef FastaMessage _UnterminatedComment(Uri uri, int charOffset);
 FastaMessage _formatUnterminatedComment(Uri uri, int charOffset) {
   return new FastaMessage(uri, charOffset, codeUnterminatedComment,
       message: "Comment starting with '/*' must end with '*/'.", arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_CatchSyntax> codeCatchSyntax = const FastaCode<_CatchSyntax>(
+    "CatchSyntax",
+    template:
+        r"'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
+    tip:
+        r"No types are needed, the first is given by 'on', the second is always 'StackTrace'.",
+    dart2jsCode: "FASTA_IGNORED",
+    format: _formatCatchSyntax);
+
+typedef FastaMessage _CatchSyntax(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatCatchSyntax(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeCatchSyntax,
+      message:
+          "'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
+      tip:
+          "No types are needed, the first is given by 'on', the second is always 'StackTrace'.",
+      arguments: {});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

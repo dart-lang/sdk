@@ -218,7 +218,6 @@ const_string_test: RuntimeError
 const_syntax_test/08: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
 disassemble_test: Pass, Crash  # Multitest via multiple VMOptions! Hits assert "kind() != RawScript::kKernelTag". Issue 28790
-getter_declaration_negative_test: Fail
 hello_dart_test: Crash
 instance_creation_in_function_annotation_test: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
@@ -247,7 +246,6 @@ vm/lazy_deopt_vm_test: Crash
 [ $compiler == dartkp ]
 const_syntax_test/08: Crash
 final_syntax_test/09: MissingCompileTimeError
-getter_declaration_negative_test: Crash
 ref_before_declaration_test/00: Crash
 ref_before_declaration_test/01: Crash
 ref_before_declaration_test/02: Crash
@@ -397,33 +395,14 @@ final_syntax_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 final_syntax_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
 final_syntax_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
 final_syntax_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_syntax_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_syntax_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_syntax_test/22: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_syntax_test/64: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_syntax_test/67: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_syntax_test/68: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_syntax_test/69: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_syntax_test/71: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_syntax_test/73: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_syntax_test/74: MissingCompileTimeError # Fixed in ahe's dev branch.
 function_type_alias5_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
 function_type_alias5_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 function_type_alias5_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
 function_type_alias6_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_type_alias7_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_type_alias7_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
 function_type_alias9_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
-getter_parameters_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-getter_parameters_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
-getter_parameters_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
 metadata_test: CompileTimeError # Fixed in ahe's dev branch.
-named_parameters_aggregated_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-named_parameters_aggregated_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
 named_parameters_aggregated_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
 named_parameters_aggregated_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
-named_parameters_default_eq_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-parameter_initializer6_negative_test: Fail # Fixed in ahe's dev branch.
 ref_before_declaration_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
 ref_before_declaration_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 ref_before_declaration_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
@@ -434,10 +413,6 @@ ref_before_declaration_test/06: MissingCompileTimeError # Fixed in ahe's dev bra
 ref_before_declaration_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
 regress_29349_test: CompileTimeError # Fixed in ahe's dev branch.
 scope_variable_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-static_parameter_test/05: MissingCompileTimeError # Fixed in ahe's dev branch.
-static_parameter_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
-static_parameter_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
-static_parameter_test/08: MissingCompileTimeError # Fixed in ahe's dev branch.
 super_conditional_operator_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 super_conditional_operator_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
 super_conditional_operator_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
@@ -454,21 +429,7 @@ super_conditional_operator_test/13: MissingCompileTimeError # Fixed in ahe's dev
 super_conditional_operator_test/14: MissingCompileTimeError # Fixed in ahe's dev branch.
 super_conditional_operator_test/15: MissingCompileTimeError # Fixed in ahe's dev branch.
 super_conditional_operator_test/16: MissingCompileTimeError # Fixed in ahe's dev branch.
-syntax_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
-syntax_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
-syntax_test/27: MissingCompileTimeError # Fixed in ahe's dev branch.
 this_conditional_operator_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-try_catch_syntax_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
-try_catch_syntax_test/09: MissingCompileTimeError # Fixed in ahe's dev branch.
-try_catch_syntax_test/10: MissingCompileTimeError # Fixed in ahe's dev branch.
-try_catch_syntax_test/11: MissingCompileTimeError # Fixed in ahe's dev branch.
-try_catch_syntax_test/12: MissingCompileTimeError # Fixed in ahe's dev branch.
-
-[ $compiler == dartk ]
-getter_parameters_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
-
-[ $compiler == dartkp ]
-getter_parameters_test/02: Crash # Fixed in ahe's dev branch.
 
 [ $unchecked && ($compiler == dartk || $compiler == dartkp) ]
 const_conditional_test/08: MissingCompileTimeError # KernelVM bug: Constant evaluation.

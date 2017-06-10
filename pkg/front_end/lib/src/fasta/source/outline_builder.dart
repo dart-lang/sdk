@@ -521,30 +521,54 @@ class OutlineBuilder extends UnhandledListener {
   void endFormalParameters(
       int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
-    List formals = popList(count);
-    if (formals != null && formals.isNotEmpty) {
-      var last = formals.last;
+    List<FormalParameterBuilder> formals;
+    if (count == 1) {
+      var last = pop();
       if (last is List) {
-        // TODO(sigmund): change `List newList` back to `var` (this is a
-        // workaround for issue #28651). Eventually, make optional
-        // formals a separate stack entry (#28673).
-        List newList =
-            new List<FormalParameterBuilder>(formals.length - 1 + last.length);
-        newList.setRange(0, formals.length - 1, formals);
-        newList.setRange(formals.length - 1, newList.length, last);
-        for (int i = 0; i < last.length; i++) {
-          newList[i + formals.length - 1] = last[i];
-        }
-        formals = newList;
+        formals = new List<FormalParameterBuilder>.from(last);
+      } else {
+        formals = <FormalParameterBuilder>[last];
       }
+    } else if (count > 1) {
+      var last = pop();
+      count--;
+      if (last is List) {
+        formals = new List<FormalParameterBuilder>.filled(
+            count + last.length, null,
+            growable: true);
+        // ignore: ARGUMENT_TYPE_NOT_ASSIGNABLE
+        formals.setRange(count, formals.length, last);
+      } else {
+        formals = new List<FormalParameterBuilder>.filled(count + 1, null,
+            growable: true);
+        formals[count] = last;
+      }
+      popList(count, formals);
     }
     if (formals != null) {
-      for (var formal in formals) {
-        if (formal is! FormalParameterBuilder) {
-          internalError(formals);
+      if (formals.length == 2) {
+        // The name may be null for generalized function types.
+        if (formals[0].name != null && formals[0].name == formals[1].name) {
+          library.addCompileTimeError(formals[1].charOffset,
+              "Duplicated parameter name '${formals[1].name}'.");
+          library.addCompileTimeError(formals[0].charOffset,
+              "Other parameter named '${formals[1].name}'.");
+        }
+      } else if (formals.length > 2) {
+        Map<String, FormalParameterBuilder> seenNames =
+            <String, FormalParameterBuilder>{};
+        for (FormalParameterBuilder formal in formals) {
+          if (formal.name == null) continue;
+          if (seenNames.containsKey(formal.name)) {
+            library.addCompileTimeError(formal.charOffset,
+                "Duplicated parameter name '${formal.name}'.");
+            library.addCompileTimeError(seenNames[formal.name].charOffset,
+                "Other parameter named '${formal.name}'.");
+          } else {
+            seenNames[formal.name] = formal;
+          }
         }
       }
-      formals = new List<FormalParameterBuilder>.from(formals);
     }
     push(beginToken.charOffset);
     push(formals ?? NullValue.FormalParameters);

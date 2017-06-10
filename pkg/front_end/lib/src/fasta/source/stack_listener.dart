@@ -84,9 +84,9 @@ abstract class StackListener extends Listener {
     return value == null ? null : pop();
   }
 
-  List popList(int n) {
+  List popList(int n, [List list]) {
     if (n == 0) return null;
-    return stack.popList(n);
+    return stack.popList(n, list);
   }
 
   void debugEvent(String name) {
@@ -298,13 +298,13 @@ class Stack {
     return value is NullValue ? null : value;
   }
 
-  List popList(int count) {
+  List popList(int count, List list) {
     assert(arrayLength >= count);
 
     final table = array;
     final length = arrayLength;
 
-    final tailList = new List.filled(count, null, growable: true);
+    final tailList = list ?? new List.filled(count, null, growable: true);
     final startIndex = length - count;
     for (int i = 0; i < count; i++) {
       final value = table[startIndex + i];
