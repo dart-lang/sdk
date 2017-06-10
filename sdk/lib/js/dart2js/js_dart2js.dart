@@ -500,7 +500,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     _checkRange(start, end, length);
-    int length = end - start;
+    length = end - start;
     if (length == 0) return;
     if (skipCount < 0) throw new ArgumentError(skipCount);
     var args = [start, length]..addAll(iterable.skip(skipCount).take(length));

@@ -31,6 +31,8 @@ class Scope extends MutableScope {
 
   Map<String, Builder> forwardDeclaredLabels;
 
+  Map<String, int> usedNames;
+
   Scope(Map<String, Builder> local, Map<String, Builder> setters, Scope parent,
       {this.isModifiable: true})
       : super(local, setters = setters ?? const <String, Builder>{}, parent);
@@ -89,6 +91,13 @@ class Scope extends MutableScope {
     return new Scope(local, setters, parent, isModifiable: true);
   }
 
+  void recordUse(String name, int charOffset, Uri fileUri) {
+    if (isModifiable) {
+      usedNames ??= <String, int>{};
+      usedNames.putIfAbsent(name, () => charOffset);
+    }
+  }
+
   Builder lookupIn(String name, int charOffset, Uri fileUri,
       Map<String, Builder> map, bool isInstanceScope) {
     Builder builder = map[name];
@@ -104,6 +113,7 @@ class Scope extends MutableScope {
 
   Builder lookup(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope: true}) {
+    recordUse(name, charOffset, fileUri);
     Builder builder =
         lookupIn(name, charOffset, fileUri, local, isInstanceScope);
     if (builder != null) return builder;
@@ -120,6 +130,7 @@ class Scope extends MutableScope {
 
   Builder lookupSetter(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope: true}) {
+    recordUse(name, charOffset, fileUri);
     Builder builder =
         lookupIn(name, charOffset, fileUri, setters, isInstanceScope);
     if (builder != null) return builder;
@@ -175,11 +186,15 @@ class Scope extends MutableScope {
   InputError declare(
       String name, Builder builder, int charOffset, Uri fileUri) {
     if (isModifiable) {
+      if (usedNames?.containsKey(name) ?? false) {
+        return new InputError(
+            fileUri, usedNames[name], "Previous use of '$name'.");
+      }
+      recordUse(name, charOffset, fileUri);
       local[name] = builder;
     } else {
       internalError("Can't extend an unmodifiable scope.");
     }
-    // TODO(ahe): Return an error if [name] was already used in this scope.
     return null;
   }
 

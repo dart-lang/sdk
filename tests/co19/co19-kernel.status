@@ -169,10 +169,6 @@ Language/Statements/For/syntax_t13: MissingCompileTimeError
 Language/Statements/For/syntax_t19: MissingCompileTimeError
 Language/Statements/For/syntax_t20: MissingCompileTimeError
 Language/Statements/Labels/scope_t05: MissingCompileTimeError
-Language/Statements/Local_Function_Declaration/reference_before_declaration_t01: MissingCompileTimeError
-Language/Statements/Local_Function_Declaration/reference_before_declaration_t03: MissingCompileTimeError
-Language/Statements/Local_Variable_Declaration/syntax_t11: MissingCompileTimeError
-Language/Statements/Local_Variable_Declaration/syntax_t20: MissingCompileTimeError
 Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError
 Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError
 Language/Statements/Switch/expressions_t01: MissingCompileTimeError
@@ -207,9 +203,6 @@ Language/Variables/final_t04: MissingCompileTimeError
 Language/Variables/final_t05: MissingCompileTimeError
 Language/Variables/final_t06: MissingCompileTimeError
 Language/Variables/final_t07: MissingCompileTimeError
-Language/Variables/local_variable_t01: MissingCompileTimeError
-Language/Variables/local_variable_t04: MissingCompileTimeError
-Language/Variables/local_variable_t05: MissingCompileTimeError
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
 LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
