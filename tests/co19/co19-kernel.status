@@ -240,7 +240,7 @@ Language/Statements/Labels/scope_t07: Crash
 [ $compiler == dartk ]
 Language/Classes/Getters/syntax_t06: MissingCompileTimeError
 Language/Classes/Setters/parameter_t05: MissingCompileTimeError
-Language/Classes/Setters/parameter_t07: MissingCompileTimeError
+Language/Classes/Setters/parameter_t07: DartkCrash
 Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError

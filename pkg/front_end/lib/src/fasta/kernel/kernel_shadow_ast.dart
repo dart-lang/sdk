@@ -1449,6 +1449,28 @@ abstract class KernelStatement extends Statement {
   void _inferStatement(KernelTypeInferrer inferrer);
 }
 
+/// Concrete shadow object representing an assignment to a static variable.
+class KernelStaticAssignment extends KernelComplexAssignment {
+  KernelStaticAssignment(Expression rhs) : super(rhs);
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    typeNeeded = inferrer.listener.staticAssignEnter(desugared, typeContext) ||
+        typeNeeded;
+    // TODO(paulberry): record the appropriate types on let variables and
+    // conditional expressions.
+    DartType writeContext;
+    var write = this.write;
+    if (write is StaticSet) {
+      writeContext = write.target.setterType;
+    }
+    var inferredType = _inferRhs(inferrer, writeContext);
+    inferrer.listener.staticAssignExit(desugared, inferredType);
+    return inferredType;
+  }
+}
+
 /// Concrete shadow object representing a read of a static variable in kernel
 /// form.
 class KernelStaticGet extends StaticGet implements KernelExpression {

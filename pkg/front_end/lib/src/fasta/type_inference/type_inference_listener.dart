@@ -230,6 +230,12 @@ class TypeInferenceListener
   void returnStatementExit(ReturnStatement statement) =>
       debugStatementExit('returnStatement', statement);
 
+  bool staticAssignEnter(Expression expression, DartType typeContext) =>
+      debugExpressionEnter("staticAssign", expression, typeContext);
+
+  void staticAssignExit(Expression expression, DartType inferredType) =>
+      debugExpressionExit("staticAssign", expression, inferredType);
+
   bool staticGetEnter(StaticGet expression, DartType typeContext) =>
       debugExpressionEnter("staticGet", expression, typeContext);
 

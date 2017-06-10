@@ -1,0 +1,48 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::int topLevelInt;
+static field core::num topLevelNum;
+static field core::double topLevelDouble;
+static method getInt() → core::int
+  return 0;
+static method getNum() → core::num
+  return 0;
+static method getDouble() → core::double
+  return 0.0;
+static method test1() → void {
+  core::int v1 = self::topLevelInt = self::getInt();
+  core::num v2 = self::topLevelInt = self::getNum();
+  core::int v4 = let final dynamic #t1 = self::topLevelInt in #t1.{core::num::==}(null) ? self::topLevelInt = self::getInt() : #t1;
+  core::num v5 = let final dynamic #t2 = self::topLevelInt in #t2.{core::num::==}(null) ? self::topLevelInt = self::getNum() : #t2;
+  core::int v7 = self::topLevelInt = self::topLevelInt.{core::num::+}(self::getInt());
+  core::num v8 = self::topLevelInt = self::topLevelInt.{core::num::+}(self::getNum());
+  core::int v10 = self::topLevelInt = self::topLevelInt.{core::num::+}(1);
+  core::int v11 = let final dynamic #t3 = self::topLevelInt in let final dynamic #t4 = self::topLevelInt = #t3.{core::num::+}(1) in #t3;
+}
+static method test2() → void {
+  core::int v1 = self::topLevelNum = self::getInt();
+  core::num v2 = self::topLevelNum = self::getNum();
+  core::double v3 = self::topLevelNum = self::getDouble();
+  core::num v4 = let final dynamic #t5 = self::topLevelNum in #t5.{core::num::==}(null) ? self::topLevelNum = self::getInt() : #t5;
+  core::num v5 = let final dynamic #t6 = self::topLevelNum in #t6.{core::num::==}(null) ? self::topLevelNum = self::getNum() : #t6;
+  core::num v6 = let final dynamic #t7 = self::topLevelNum in #t7.{core::num::==}(null) ? self::topLevelNum = self::getDouble() : #t7;
+  core::num v7 = self::topLevelNum = self::topLevelNum.{core::num::+}(self::getInt());
+  core::num v8 = self::topLevelNum = self::topLevelNum.{core::num::+}(self::getNum());
+  core::num v9 = self::topLevelNum = self::topLevelNum.{core::num::+}(self::getDouble());
+  core::num v10 = self::topLevelNum = self::topLevelNum.{core::num::+}(1);
+  core::num v11 = let final dynamic #t8 = self::topLevelNum in let final dynamic #t9 = self::topLevelNum = #t8.{core::num::+}(1) in #t8;
+}
+static method test3() → void {
+  core::num v2 = self::topLevelDouble = self::getNum();
+  core::double v3 = self::topLevelDouble = self::getDouble();
+  core::num v5 = let final dynamic #t10 = self::topLevelDouble in #t10.{core::num::==}(null) ? self::topLevelDouble = self::getNum() : #t10;
+  core::double v6 = let final dynamic #t11 = self::topLevelDouble in #t11.{core::num::==}(null) ? self::topLevelDouble = self::getDouble() : #t11;
+  core::double v7 = self::topLevelDouble = self::topLevelDouble.{core::double::+}(self::getInt());
+  core::double v8 = self::topLevelDouble = self::topLevelDouble.{core::double::+}(self::getNum());
+  core::double v9 = self::topLevelDouble = self::topLevelDouble.{core::double::+}(self::getDouble());
+  core::double v10 = self::topLevelDouble = self::topLevelDouble.{core::double::+}(1);
+  core::double v11 = let final dynamic #t12 = self::topLevelDouble in let final dynamic #t13 = self::topLevelDouble = #t12.{core::double::+}(1) in #t12;
+}
+static method main() → dynamic {}

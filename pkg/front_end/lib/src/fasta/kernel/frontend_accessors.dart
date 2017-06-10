@@ -576,17 +576,27 @@ class StaticAccessor extends Accessor {
       BuilderHelper helper, this.readTarget, this.writeTarget, Token token)
       : super(helper, token);
 
-  Expression _makeRead(KernelComplexAssignment complexAssignment) =>
-      readTarget == null
-          ? makeInvalidRead()
-          : helper.makeStaticGet(readTarget, token);
+  Expression _makeRead(KernelComplexAssignment complexAssignment) {
+    if (readTarget == null) {
+      return makeInvalidRead();
+    } else {
+      var read = helper.makeStaticGet(readTarget, token);
+      complexAssignment?.read = read;
+      return read;
+    }
+  }
 
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
-    return writeTarget == null
-        ? makeInvalidWrite(value)
-        : new StaticSet(writeTarget, value)
-      ..fileOffset = offsetForToken(token);
+    Expression write;
+    if (writeTarget == null) {
+      write = makeInvalidWrite(value);
+    } else {
+      write = new StaticSet(writeTarget, value);
+      complexAssignment?.write = write;
+    }
+    write.fileOffset = offsetForToken(token);
+    return write;
   }
 }
 

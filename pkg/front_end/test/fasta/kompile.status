@@ -184,6 +184,8 @@ inference/infer_assign_to_local_upwards: Crash
 inference/infer_assign_to_property: Crash
 inference/infer_assign_to_property_custom: Crash
 inference/infer_assign_to_ref: Crash
+inference/infer_assign_to_static: Crash
+inference/infer_assign_to_static_upwards: Crash
 inference/infer_binary_custom: Crash
 inference/infer_binary_double_double: Crash
 inference/infer_binary_double_int: Crash

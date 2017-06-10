@@ -224,7 +224,7 @@ instance_creation_in_function_annotation_test: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError
-setter_declaration2_negative_test: Fail
+setter_declaration2_negative_test: DartkCrash
 setter_declaration_negative_test: Fail
 vm/lazy_deopt_vm_test: Pass, Slow, Timeout
 vm/optimized_stacktrace_test: Skip # Issue 28788

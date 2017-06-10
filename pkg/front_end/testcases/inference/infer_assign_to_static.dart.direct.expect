@@ -1,0 +1,64 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  static field self::B staticVariable = null;
+  constructor •() → void
+    : super self::A::•()
+    ;
+  operator +(self::C v) → self::A
+    return null;
+  operator -(core::int i) → self::B
+    return null;
+  operator *(self::B v) → self::B
+    return null;
+  operator &(self::A v) → self::C
+    return null;
+}
+class C extends self::B {
+  constructor •() → void
+    : super self::B::•()
+    ;
+}
+static field self::B topLevelVariable;
+static method f() → dynamic
+  return null;
+static method test_topLevelVariable() → void {
+  self::topLevelVariable = self::f();
+  self::topLevelVariable.==(null) ? self::topLevelVariable = self::f() : null;
+  self::topLevelVariable = self::topLevelVariable.+(self::f());
+  self::topLevelVariable = self::topLevelVariable.*(self::f());
+  self::topLevelVariable = self::topLevelVariable.&(self::f());
+  self::topLevelVariable = self::topLevelVariable.-(1);
+  self::topLevelVariable = self::topLevelVariable.-(1);
+  dynamic v1 = self::topLevelVariable = self::f();
+  dynamic v2 = let final dynamic #t1 = self::topLevelVariable in #t1.==(null) ? self::topLevelVariable = self::f() : #t1;
+  dynamic v3 = self::topLevelVariable = self::topLevelVariable.+(self::f());
+  dynamic v4 = self::topLevelVariable = self::topLevelVariable.*(self::f());
+  dynamic v5 = self::topLevelVariable = self::topLevelVariable.&(self::f());
+  dynamic v6 = self::topLevelVariable = self::topLevelVariable.-(1);
+  dynamic v7 = let final dynamic #t2 = self::topLevelVariable in let final dynamic #t3 = self::topLevelVariable = #t2.-(1) in #t2;
+}
+static method test_staticVariable() → void {
+  self::B::staticVariable = self::f();
+  self::B::staticVariable.==(null) ? self::B::staticVariable = self::f() : null;
+  self::B::staticVariable = self::B::staticVariable.+(self::f());
+  self::B::staticVariable = self::B::staticVariable.*(self::f());
+  self::B::staticVariable = self::B::staticVariable.&(self::f());
+  self::B::staticVariable = self::B::staticVariable.-(1);
+  self::B::staticVariable = self::B::staticVariable.-(1);
+  dynamic v1 = self::B::staticVariable = self::f();
+  dynamic v2 = let final dynamic #t4 = self::B::staticVariable in #t4.==(null) ? self::B::staticVariable = self::f() : #t4;
+  dynamic v3 = self::B::staticVariable = self::B::staticVariable.+(self::f());
+  dynamic v4 = self::B::staticVariable = self::B::staticVariable.*(self::f());
+  dynamic v5 = self::B::staticVariable = self::B::staticVariable.&(self::f());
+  dynamic v6 = self::B::staticVariable = self::B::staticVariable.-(1);
+  dynamic v7 = let final dynamic #t5 = self::B::staticVariable in let final dynamic #t6 = self::B::staticVariable = #t5.-(1) in #t5;
+}
+static method main() → dynamic {}

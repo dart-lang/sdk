@@ -9,6 +9,7 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelArguments,
         KernelComplexAssignment,
         KernelIndexAssign,
+        KernelStaticAssignment,
         KernelThisExpression,
         KernelVariableAssignment;
 
@@ -708,6 +709,10 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
   }
 
   toString() => "StaticAccessor()";
+
+  @override
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelStaticAssignment(rhs);
 }
 
 class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
