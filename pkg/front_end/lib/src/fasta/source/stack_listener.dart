@@ -252,7 +252,7 @@ abstract class StackListener extends Listener {
   @override
   void handleRecoverableError(Token token, FastaMessage message) {
     debugEvent("Error: ${message.message}");
-    super.handleRecoverableError(token, message);
+    addCompileTimeErrorFromMessage(message);
   }
 
   void addCompileTimeErrorFromMessage(FastaMessage message);

@@ -723,6 +723,30 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     super
         .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
   }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_noType() {
+    super.test_parseNormalFormalParameter_field_const_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_type() {
+    super.test_parseNormalFormalParameter_field_const_type();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_simple_const_noType() {
+    super.test_parseNormalFormalParameter_simple_const_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_simple_const_type() {
+    super.test_parseNormalFormalParameter_simple_const_type();
+  }
 }
 
 /**
@@ -747,6 +771,12 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
   Uri get fileUri => uri;
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  void addCompileTimeError(int charOffset, Object message,
+      {Uri fileUri, bool silent: false}) {
+    fail('$message');
+  }
 }
 
 /**
@@ -959,5 +989,17 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // TODO(paulberry,ahe): URIs in "part of" declarations are not supported by
     // Fasta.
     super.test_parsePartOfDirective_uri();
+  }
+
+  @override
+  @failingTest
+  void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
+    super.test_parseCompilationUnit_operatorAsPrefix_parameterized();
+  }
+
+  @override
+  @failingTest
+  void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
+    super.test_parseCompilationUnit_abstractAsPrefix_parameterized();
   }
 }

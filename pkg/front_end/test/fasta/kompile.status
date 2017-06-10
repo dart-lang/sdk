@@ -30,7 +30,7 @@ fibonacci: Crash
 for_in_scope: Crash
 function_in_field: Crash
 function_type_is_check: Crash
-function_type_recovery: Fail
+function_type_recovery: Crash
 functions: Crash
 implicit_scope_test: Crash
 implicit_this: Crash
@@ -390,10 +390,10 @@ rasta/issue_000035: Crash
 rasta/issue_000035a: Fail
 rasta/issue_000036: Fail
 rasta/issue_000039: Crash
-rasta/issue_000041: Fail
+rasta/issue_000041: Crash
 rasta/issue_000042: Crash
 rasta/issue_000043: Fail
-rasta/issue_000044: Fail
+rasta/issue_000044: Crash
 rasta/issue_000045: Fail
 rasta/issue_000046: Fail
 rasta/issue_000047: Fail
@@ -408,7 +408,7 @@ rasta/issue_000081: Crash
 rasta/malformed_const_constructor: Fail
 rasta/malformed_function: VerificationError
 rasta/malformed_function_type: Crash
-rasta/mandatory_parameter_initializer: Fail
+rasta/mandatory_parameter_initializer: Crash
 rasta/mixin_library: Crash
 rasta/native_is_illegal: Fail
 rasta/parser_error: Crash

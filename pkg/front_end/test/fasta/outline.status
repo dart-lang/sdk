@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-function_type_recovery: Fail # Fixed in ahe's dev branch.
 rasta/class_hierarchy: Fail # Fixed in ahe's dev branch.
 
 inference/async_closure_return_type_flatten: Fail
@@ -276,10 +275,8 @@ inference/void_return_type_subtypes_dynamic: Fail
 
 rasta/generic_factory: Fail
 rasta/issue_000032: Fail
-rasta/issue_000044: Fail
 rasta/issue_000045: Fail
 rasta/issue_000046: Fail
 rasta/issue_000047: Fail
-rasta/mandatory_parameter_initializer: Fail
 rasta/super_mixin: Fail
 rasta/type_with_parse_error: Fail

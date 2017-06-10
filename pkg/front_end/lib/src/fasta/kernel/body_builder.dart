@@ -2924,7 +2924,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       {bool silent: false}) {
     // TODO(ahe): If constantExpressionRequired is set, set it to false to
     // avoid a long list of errors.
-    return library.addCompileTimeError(charOffset, message, fileUri: uri);
+    return library.addCompileTimeError(charOffset, message,
+        fileUri: uri, silent: silent);
   }
 
   @override

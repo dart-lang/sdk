@@ -109,6 +109,10 @@ class KernelTarget extends TargetImplementation {
     loader = createLoader();
   }
 
+  bool get hasErrors {
+    return errors.isNotEmpty || loader.collectCompileTimeErrors().isNotEmpty;
+  }
+
   void addError(file, int charOffset, String message) {
     Uri uri = file is String ? Uri.parse(file) : file;
     InputError error = new InputError(uri, charOffset, message);
@@ -281,7 +285,9 @@ class KernelTarget extends TargetImplementation {
       loader.finishStaticInvocations();
       finishAllConstructors();
       loader.finishNativeMethods();
-      runBuildTransformations();
+      if (!hasErrors) {
+        runBuildTransformations();
+      }
 
       if (verify) this.verify();
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));

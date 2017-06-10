@@ -749,14 +749,11 @@ class KernelLibraryBuilder
           });
       }
     }
-    if (isExport) {
-      addNit(charOffset,
-          "'$name' is exported from both '${uri}' and '${otherUri}'.");
-    } else {
-      addNit(charOffset,
-          "'$name' is imported from both '${uri}' and '${otherUri}'.");
-    }
-    return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
+    String message = isExport
+        ? "'$name' is exported from both '${uri}' and '${otherUri}'."
+        : "'$name' is imported from both '${uri}' and '${otherUri}'.";
+    addNit(charOffset, message);
+    return new KernelInvalidTypeBuilder(name, charOffset, fileUri, message);
   }
 
   int finishStaticInvocations() {
