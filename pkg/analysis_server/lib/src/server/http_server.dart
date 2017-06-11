@@ -9,6 +9,34 @@ import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 
 /**
+ * Instances of the class [AbstractGetHandler] handle GET requests.
+ */
+abstract class AbstractGetHandler {
+  /**
+   * Handle a GET request received by the HTTP server.
+   */
+  void handleGetRequest(HttpRequest request);
+}
+
+/**
+ * An [AbstractGetHandler] that always returns the given error message.
+ */
+class ErrorGetHandler extends AbstractGetHandler {
+  final String message;
+
+  ErrorGetHandler(this.message);
+
+  @override
+  void handleGetRequest(HttpRequest request) {
+    HttpResponse response = request.response;
+    response.statusCode = HttpStatus.NOT_FOUND;
+    response.headers.contentType = ContentType.TEXT;
+    response.write(message);
+    response.close();
+  }
+}
+
+/**
  * Instances of the class [HttpServer] implement a simple HTTP server. The
  * server:
  *
@@ -96,7 +124,7 @@ class HttpAnalysisServer {
   /**
    * Handle a GET request received by the HTTP server.
    */
-  void _handleGetRequest(HttpRequest request) {
+  Future<Null> _handleGetRequest(HttpRequest request) async {
     if (getHandler == null) {
       if (socketServer.analysisServer.options.enableNewAnalysisDriver) {
         getHandler = new DiagnosticsSite(socketServer, _printBuffer);
@@ -105,17 +133,17 @@ class HttpAnalysisServer {
             'Diagnostics only supported for the new analysis driver.');
       }
     }
-    getHandler.handleGetRequest(request);
+    await getHandler.handleGetRequest(request);
   }
 
   /**
    * Attach a listener to a newly created HTTP server.
    */
   void _handleServer(HttpServer httpServer) {
-    httpServer.listen((HttpRequest request) {
+    httpServer.listen((HttpRequest request) async {
       List<String> updateValues = request.headers[HttpHeaders.UPGRADE];
       if (request.method == 'GET') {
-        _handleGetRequest(request);
+        await _handleGetRequest(request);
       } else if (updateValues != null &&
           updateValues.indexOf('websocket') >= 0) {
         // We no longer support serving analysis server communications over
@@ -141,34 +169,6 @@ class HttpAnalysisServer {
     response.statusCode = HttpStatus.NOT_FOUND;
     response.headers.contentType = ContentType.TEXT;
     response.write('Not found');
-    response.close();
-  }
-}
-
-/**
- * Instances of the class [AbstractGetHandler] handle GET requests.
- */
-abstract class AbstractGetHandler {
-  /**
-   * Handle a GET request received by the HTTP server.
-   */
-  void handleGetRequest(HttpRequest request);
-}
-
-/**
- * An [AbstractGetHandler] that always returns the given error message.
- */
-class ErrorGetHandler extends AbstractGetHandler {
-  final String message;
-
-  ErrorGetHandler(this.message);
-
-  @override
-  void handleGetRequest(HttpRequest request) {
-    HttpResponse response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
-    response.headers.contentType = ContentType.TEXT;
-    response.write(message);
     response.close();
   }
 }

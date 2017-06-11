@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -14,6 +15,8 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/socket_server.dart';
+import 'package:analysis_server/src/status/ast_writer.dart';
+import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -24,7 +27,7 @@ import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -128,6 +131,51 @@ td.pre {
 }
 ''';
 
+class AstPage extends DiagnosticPageWithNav {
+  String _description;
+
+  AstPage(DiagnosticsSite site)
+      : super(site, 'ast', 'AST', description: 'The AST for a file.');
+
+  @override
+  String get description => _description ?? super.description;
+
+  @override
+  Future<Null> generatePage(Map<String, String> params) async {
+    try {
+      String path = params['file'];
+      _description = path == null ? null : 'The AST for $path.';
+      await super.generatePage(params);
+    } finally {
+      _description = null;
+    }
+  }
+
+  @override
+  Future<Null> generateContent(Map<String, String> params) async {
+    String path = params['file'];
+    if (path == null) {
+      p('No file path provided.');
+      return;
+    }
+    AnalysisDriver driver = server.getAnalysisDriver(path);
+    if (driver == null) {
+      p('The file <code>${escape(path)}</code> is not being analyzed.',
+          raw: true);
+      return;
+    }
+    AnalysisResult result = await driver.getResult(path);
+    if (result == null) {
+      p('An AST could not be produced for the file <code>${escape(path)}</code>.',
+          raw: true);
+      return;
+    }
+
+    AstWriter writer = new AstWriter(buf);
+    result.unit.accept(writer);
+  }
+}
+
 class DiagnosticsSite extends Site implements AbstractGetHandler {
   /// An object that can handle either a WebSocket connection or a connection
   /// to the client over stdio.
@@ -161,6 +209,9 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
 
     // Add non-nav pages.
     pages.add(new FeedbackPage(this));
+
+    secondaryPages.add(new AstPage(this));
+    secondaryPages.add(new ElementModelPage(this));
   }
 
   String get customCss => kCustomCss;
@@ -182,7 +233,7 @@ abstract class DiagnosticPage extends Page {
   AnalysisServer get server =>
       (site as DiagnosticsSite).socketServer.analysisServer;
 
-  void generatePage(Map<String, String> params) {
+  Future<Null> generatePage(Map<String, String> params) async {
     buf.writeln('<!DOCTYPE html><html lang="en">');
     buf.write('<head>');
     buf.write('<meta charset="utf-8">');
@@ -201,7 +252,7 @@ abstract class DiagnosticPage extends Page {
     buf.writeln('<body>');
     generateHeader();
     buf.writeln('<div class="container">');
-    generateContainer(params);
+    await generateContainer(params);
     generateFooter();
     buf.writeln('</div>'); // div.container
     buf.writeln('</body>');
@@ -228,13 +279,13 @@ abstract class DiagnosticPage extends Page {
 ''');
   }
 
-  void generateContainer(Map<String, String> params) {
+  Future<Null> generateContainer(Map<String, String> params) async {
     buf.writeln('<div class="columns docs-layout">');
     buf.writeln('<div class="three-fourths column markdown-body">');
     h1(title, classes: 'page-title');
-    div(() {
+    await asyncDiv(() async {
       p(description);
-      generateContent(params);
+      await generateContent(params);
     }, classes: 'markdown-body');
     buf.writeln('</div>');
     buf.writeln('</div>');
@@ -258,7 +309,7 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
       {String description})
       : super(site, id, title, description: description);
 
-  void generateContainer(Map<String, String> params) {
+  Future<Null> generateContainer(Map<String, String> params) async {
     buf.writeln('<div class="columns docs-layout">');
 
     buf.writeln('<div class="one-fifth column">');
@@ -277,9 +328,9 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
 
     buf.writeln('<div class="four-fifths column markdown-body">');
     h1(title, classes: 'page-title');
-    div(() {
+    await asyncDiv(() async {
       p(description);
-      generateContent(params);
+      await generateContent(params);
     }, classes: 'markdown-body');
     buf.writeln('</div>');
 
@@ -289,6 +340,52 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
   String get navDetail => null;
 
   bool get isNavPage => true;
+}
+
+class ElementModelPage extends DiagnosticPageWithNav {
+  String _description;
+
+  ElementModelPage(DiagnosticsSite site)
+      : super(site, 'element', 'Element model',
+            description: 'The element model for a file.');
+
+  @override
+  String get description => _description ?? super.description;
+
+  @override
+  Future<Null> generatePage(Map<String, String> params) async {
+    try {
+      String path = params['file'];
+      _description = path == null ? null : 'The element model for $path.';
+      await super.generatePage(params);
+    } finally {
+      _description = null;
+    }
+  }
+
+  @override
+  Future<Null> generateContent(Map<String, String> params) async {
+    String path = params['file'];
+    if (path == null) {
+      p('No file path provided.');
+      return;
+    }
+    AnalysisDriver driver = server.getAnalysisDriver(path);
+    if (driver == null) {
+      p('The file <code>${escape(path)}</code> is not being analyzed.',
+          raw: true);
+      return;
+    }
+    AnalysisResult result = await driver.getResult(path);
+    if (result == null) {
+      p('An element model could not be produced for the file <code>${escape(path)}</code>.',
+          raw: true);
+      return;
+    }
+
+    ElementWriter writer = new ElementWriter(buf);
+    result.unit.element.accept(writer);
+  }
 }
 
 class NotFoundPage extends DiagnosticPage {
@@ -538,11 +635,14 @@ class ContextsPage extends DiagnosticPageWithNav {
     }
 
     String contextPath = params['context'];
-    Folder folder = driverMap.keys
-        .firstWhere((f) => f.path == contextPath, orElse: () => null);
+    List<Folder> folders = driverMap.keys.toList();
+    folders
+        .sort((first, second) => first.shortName.compareTo(second.shortName));
+    Folder folder =
+        folders.firstWhere((f) => f.path == contextPath, orElse: () => null);
 
     if (folder == null) {
-      folder = driverMap.keys.first;
+      folder = folders.first;
       contextPath = folder.path;
     }
 
@@ -550,7 +650,7 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="tabnav">');
     buf.writeln('<nav class="tabnav-tabs">');
-    for (Folder f in driverMap.keys) {
+    for (Folder f in folders) {
       if (f == folder) {
         buf.writeln(
             '<a class="tabnav-tab selected">${escape(f.shortName)}</a>');
@@ -614,14 +714,26 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     h3('Context files');
 
+    void writeFile(String file) {
+      String astPath = '/ast?file=${Uri.encodeQueryComponent(file)}';
+      String elementPath = '/element?file=${Uri.encodeQueryComponent(file)}';
+
+      buf.write(file);
+      buf.write(' (');
+      buf.writeln('<a href="$astPath">ast</a>');
+      buf.write(' ');
+      buf.writeln('<a href="$elementPath">element</a>');
+      buf.write(')');
+    }
+
     h4('Priority files ${lenCounter(priorityFiles)}', raw: true);
-    ul(priorityFiles, (file) => buf.write(file), classes: 'scroll-table');
+    ul(priorityFiles, writeFile, classes: 'scroll-table');
 
     h4('Added files ${lenCounter(addedFiles)}', raw: true);
-    ul(addedFiles, (file) => buf.write(file), classes: 'scroll-table');
+    ul(addedFiles, writeFile, classes: 'scroll-table');
 
     h4('ImplicitFiles files ${lenCounter(implicitFiles)}', raw: true);
-    ul(implicitFiles, (file) => buf.write(file), classes: 'scroll-table');
+    ul(implicitFiles, writeFile, classes: 'scroll-table');
 
     SourceFactory sourceFactory = driver.sourceFactory;
     if (sourceFactory is SourceFactoryImpl) {

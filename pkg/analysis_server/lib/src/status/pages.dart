@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -11,12 +12,13 @@ import 'package:intl/intl.dart';
 abstract class Site {
   final String title;
   List<Page> pages = [];
+  List<Page> secondaryPages = [];
 
   Site(this.title);
 
   String get customCss => '';
 
-  void handleGetRequest(HttpRequest request) {
+  Future<Null> handleGetRequest(HttpRequest request) async {
     try {
       String path = request.uri.path;
 
@@ -29,16 +31,26 @@ abstract class Site {
         if (page.path == path) {
           HttpResponse response = request.response;
           response.headers.contentType = ContentType.HTML;
-          response.write(page.generate(request.uri.queryParameters));
+          response.write(await page.generate(request.uri.queryParameters));
           response.close();
           return;
         }
       }
 
-      respond(request, createUnknownPage(path), HttpStatus.NOT_FOUND);
+      for (Page page in secondaryPages) {
+        if (page.path == path) {
+          HttpResponse response = request.response;
+          response.headers.contentType = ContentType.HTML;
+          response.write(await page.generate(request.uri.queryParameters));
+          response.close();
+          return;
+        }
+      }
+
+      await respond(request, createUnknownPage(path), HttpStatus.NOT_FOUND);
     } catch (e, st) {
       try {
-        respond(request, createExceptionPage('$e', st),
+        await respond(request, createExceptionPage('$e', st),
             HttpStatus.INTERNAL_SERVER_ERROR);
       } catch (e, st) {
         HttpResponse response = request.response;
@@ -54,11 +66,12 @@ abstract class Site {
 
   Page createExceptionPage(String message, StackTrace trace);
 
-  void respond(HttpRequest request, Page page, [int code = HttpStatus.OK]) {
+  Future<Null> respond(HttpRequest request, Page page,
+      [int code = HttpStatus.OK]) async {
     HttpResponse response = request.response;
     response.statusCode = code;
     response.headers.contentType = ContentType.HTML;
-    response.write(page.generate(request.uri.queryParameters));
+    response.write(await page.generate(request.uri.queryParameters));
     response.close();
   }
 
@@ -81,9 +94,9 @@ abstract class Page {
 
   String get path => '/$id';
 
-  String generate(Map<String, String> params) {
+  Future<String> generate(Map<String, String> params) async {
     buf.clear();
-    generatePage(params);
+    await generatePage(params);
     return buf.toString();
   }
 
@@ -127,6 +140,16 @@ abstract class Page {
       buf.write('</option>');
     }
     buf.writeln('</select>');
+  }
+
+  Future<Null> asyncDiv(void gen(), {String classes}) async {
+    if (classes != null) {
+      buf.writeln('<div class="$classes">');
+    } else {
+      buf.writeln('<div>');
+    }
+    await gen();
+    buf.writeln('</div>');
   }
 
   void div(void gen(), {String classes}) {
