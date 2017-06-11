@@ -44,7 +44,7 @@ SourceSpanWithContext _createSpanHelper(
   int lineEnd = endLoc.offset;
   int lineNum = lineInfo.getLocation(lineEnd).lineNumber;
   while (lineEnd < content.length &&
-      lineInfo.getLocation(++lineEnd).lineNumber == lineNum);
+      lineInfo.getLocation(++lineEnd).lineNumber == lineNum) {}
 
   if (end == null) {
     end = lineEnd;
