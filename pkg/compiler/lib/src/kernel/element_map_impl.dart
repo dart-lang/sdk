@@ -524,6 +524,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
 
       if (node.supertype == null) {
         env.orderedTypeSet = new OrderedTypeSet.singleton(env.thisType);
+        env.isMixinApplication = false;
       } else {
         InterfaceType processSupertype(ir.Supertype node) {
           InterfaceType type = _typeConverter.visitSupertype(node);
@@ -537,8 +538,11 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
         LinkBuilder<InterfaceType> linkBuilder =
             new LinkBuilder<InterfaceType>();
         if (node.mixedInType != null) {
+          env.isMixinApplication = true;
           linkBuilder
               .addLast(env.mixedInType = processSupertype(node.mixedInType));
+        } else {
+          env.isMixinApplication = false;
         }
         node.implementedTypes.forEach((ir.Supertype supertype) {
           linkBuilder.addLast(processSupertype(supertype));
@@ -579,6 +583,12 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
     return env.supertype;
+  }
+
+  bool _isMixinApplication(KClass cls) {
+    _KClassEnv env = _classEnvs[cls.classIndex];
+    _ensureSupertypes(cls, env);
+    return env.isMixinApplication;
   }
 
   bool _isUnnamedMixinApplication(KClass cls) {
@@ -871,6 +881,7 @@ class _KLibraryEnv {
 /// Environment for fast lookup of class members.
 class _KClassEnv {
   final ir.Class cls;
+  bool isMixinApplication;
   final bool isUnnamedMixinApplication;
 
   InterfaceType thisType;
@@ -1138,6 +1149,11 @@ class KernelElementEnvironment implements ElementEnvironment {
   @override
   bool isGenericClass(ClassEntity cls) {
     return getThisType(cls).typeArguments.isNotEmpty;
+  }
+
+  @override
+  bool isMixinApplication(KClass cls) {
+    return elementMap._isMixinApplication(cls);
   }
 
   @override

@@ -1254,6 +1254,9 @@ abstract class ElementEnvironment {
   /// Returns `true` if [cls] is generic.
   bool isGenericClass(ClassEntity cls);
 
+  /// Returns `true` if [cls] is a mixin application (named or unnamed).
+  bool isMixinApplication(ClassEntity cls);
+
   /// Returns `true` if [cls] is an unnamed mixin application.
   bool isUnnamedMixinApplication(ClassEntity cls);
 

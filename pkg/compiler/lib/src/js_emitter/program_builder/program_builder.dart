@@ -743,7 +743,7 @@ class ProgramBuilder {
 
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
-    if (!onlyForRti && !_elementEnvironment.isUnnamedMixinApplication(cls)) {
+    if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
       _elementEnvironment.forEachClassMember(cls, visitMember);
       if (cls is ClassElement) {
         // TODO(johnniwinther): Support constructor bodies for entities.
@@ -802,7 +802,7 @@ class ProgramBuilder {
         _worldBuilder.directlyInstantiatedClasses.contains(cls);
 
     Class result;
-    if (_elementEnvironment.isUnnamedMixinApplication(cls) && !onlyForRti) {
+    if (_elementEnvironment.isMixinApplication(cls) && !onlyForRti) {
       assert(!_nativeData.isNativeClass(cls));
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);
