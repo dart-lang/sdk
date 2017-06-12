@@ -345,9 +345,6 @@ cyclic_typedef_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
 cyclic_typedef_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
 cyclic_typedef_test/08: MissingCompileTimeError # Fixed in ahe's dev branch.
 cyclic_typedef_test/09: MissingCompileTimeError # Fixed in ahe's dev branch.
-deferred_duplicate_prefix1_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-deferred_duplicate_prefix2_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-deferred_duplicate_prefix3_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 enum_syntax_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
 enum_syntax_test/30: MissingCompileTimeError # Fixed in ahe's dev branch.
 final_initializer_instance_reference_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
