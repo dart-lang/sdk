@@ -182,6 +182,8 @@ inference/infer_assign_to_index_full: Crash
 inference/infer_assign_to_index_set_vs_get: Crash
 inference/infer_assign_to_index_super: Crash
 inference/infer_assign_to_index_super_upwards: Crash
+inference/infer_assign_to_index_this: Crash
+inference/infer_assign_to_index_this_upwards: Crash
 inference/infer_assign_to_index_upwards: Crash
 inference/infer_assign_to_local: Crash
 inference/infer_assign_to_local_upwards: Crash

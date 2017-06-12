@@ -517,10 +517,13 @@ class ThisIndexAccessor extends Accessor {
 
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
-    if (!voidContext) return _makeWriteAndReturn(value);
-    return new KernelMethodInvocation(new ThisExpression(), indexSetName,
+    if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    var write = new KernelMethodInvocation(new ThisExpression(), indexSetName,
         new KernelArguments(<Expression>[index, value]),
-        interfaceTarget: setter);
+        interfaceTarget: setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
   }
 
   indexAccess() {
@@ -528,34 +531,52 @@ class ThisIndexAccessor extends Accessor {
     return new VariableGet(indexVariable);
   }
 
-  Expression _makeRead(KernelComplexAssignment complexAssignment) =>
-      new KernelMethodInvocation(new ThisExpression(), indexGetName,
-          new KernelArguments(<Expression>[indexAccess()]),
-          interfaceTarget: getter);
+  Expression _makeRead(KernelComplexAssignment complexAssignment) {
+    var read = new KernelMethodInvocation(new ThisExpression(), indexGetName,
+        new KernelArguments(<Expression>[indexAccess()]),
+        interfaceTarget: getter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.read = read;
+    return read;
+  }
 
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
-    if (!voidContext) return _makeWriteAndReturn(value);
-    return new KernelMethodInvocation(new ThisExpression(), indexSetName,
+    if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    var write = new KernelMethodInvocation(new ThisExpression(), indexSetName,
         new KernelArguments(<Expression>[indexAccess(), value]),
-        interfaceTarget: setter);
+        interfaceTarget: setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
   }
 
-  _makeWriteAndReturn(Expression value) {
+  _makeWriteAndReturn(
+      Expression value, KernelComplexAssignment complexAssignment) {
     var valueVariable = new VariableDeclaration.forValue(value);
-    var dummy = new VariableDeclaration.forValue(new KernelMethodInvocation(
+    var write = new KernelMethodInvocation(
         new ThisExpression(),
         indexSetName,
         new KernelArguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
-        interfaceTarget: setter));
+        interfaceTarget: setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    var dummy = new VariableDeclaration.forValue(write);
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
 
   Expression _finish(
-          Expression body, KernelComplexAssignment complexAssignment) =>
-      makeLet(indexVariable, body);
+      Expression body, KernelComplexAssignment complexAssignment) {
+    var desugared = makeLet(indexVariable, body);
+    if (complexAssignment != null) {
+      complexAssignment.desugared = desugared;
+      return complexAssignment;
+    } else {
+      return desugared;
+    }
+  }
 }
 
 class SuperIndexAccessor extends Accessor {

@@ -1,0 +1,59 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Index extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  constructor •() → void
+    : super self::A::•()
+    ;
+  operator +(self::C v) → self::A
+    return null;
+  operator -(core::int i) → self::B
+    return null;
+  operator *(self::B v) → self::B
+    return null;
+  operator &(self::A v) → self::C
+    return null;
+}
+class C extends self::B {
+  constructor •() → void
+    : super self::B::•()
+    ;
+}
+class Test extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  operator [](self::Index i) → self::B
+    return null;
+  operator []=(self::Index i, self::B v) → void {}
+  method test() → void {
+    this.[]=(self::f(), self::f());
+    let final dynamic #t1 = self::f() in this.[](#t1).==(null) ? let final dynamic #t2 = self::f() in let final dynamic #t3 = this.[]=(#t1, #t2) in #t2 : null;
+    let final dynamic #t4 = self::f() in this.[]=(#t4, this.[](#t4).+(self::f()));
+    let final dynamic #t5 = self::f() in this.[]=(#t5, this.[](#t5).*(self::f()));
+    let final dynamic #t6 = self::f() in this.[]=(#t6, this.[](#t6).&(self::f()));
+    let final dynamic #t7 = self::f() in let final dynamic #t8 = this.[](#t7).-(1) in let final dynamic #t9 = this.[]=(#t7, #t8) in #t8;
+    let final dynamic #t10 = self::f() in this.[]=(#t10, this.[](#t10).-(1));
+    dynamic v1 = let final dynamic #t11 = self::f() in let final dynamic #t12 = self::f() in let final dynamic #t13 = this.[]=(#t11, #t12) in #t12;
+    dynamic v2 = let final dynamic #t14 = self::f() in let final dynamic #t15 = this.[](#t14) in #t15.==(null) ? let final dynamic #t16 = self::f() in let final dynamic #t17 = this.[]=(#t14, #t16) in #t16 : #t15;
+    dynamic v3 = let final dynamic #t18 = self::f() in let final dynamic #t19 = this.[](#t18).+(self::f()) in let final dynamic #t20 = this.[]=(#t18, #t19) in #t19;
+    dynamic v4 = let final dynamic #t21 = self::f() in let final dynamic #t22 = this.[](#t21).*(self::f()) in let final dynamic #t23 = this.[]=(#t21, #t22) in #t22;
+    dynamic v5 = let final dynamic #t24 = self::f() in let final dynamic #t25 = this.[](#t24).&(self::f()) in let final dynamic #t26 = this.[]=(#t24, #t25) in #t25;
+    dynamic v6 = let final dynamic #t27 = self::f() in let final dynamic #t28 = this.[](#t27).-(1) in let final dynamic #t29 = this.[]=(#t27, #t28) in #t28;
+    dynamic v7 = let final dynamic #t30 = self::f() in let final dynamic #t31 = this.[](#t30) in let final dynamic #t32 = this.[]=(#t30, #t31.-(1)) in #t31;
+  }
+}
+static method f() → dynamic
+  return null;
+static method main() → dynamic {}
