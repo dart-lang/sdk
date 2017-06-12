@@ -6,15 +6,23 @@ let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic
 let VoidToString = () => (VoidToString = dart.constFn(dart.fnType(core.String, [])))();
 es6_modules.Callback = dart.typedef('Callback', () => dart.fnTypeFuzzy(dart.void, [], {i: core.int}));
 es6_modules.A = class A extends core.Object {};
+(es6_modules.A.new = function() {
+}).prototype = es6_modules.A.prototype;
 es6_modules._A = class _A extends core.Object {};
+(es6_modules._A.new = function() {
+}).prototype = es6_modules._A.prototype;
 es6_modules.B$ = dart.generic(T => {
   class B extends core.Object {}
+  (B.new = function() {
+  }).prototype = B.prototype;
   dart.addTypeTests(B);
   return B;
 });
 es6_modules.B = B();
 es6_modules._B$ = dart.generic(T => {
   class _B extends core.Object {}
+  (_B.new = function() {
+  }).prototype = _B.prototype;
   dart.addTypeTests(_B);
   return _B;
 });

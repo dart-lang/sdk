@@ -234,9 +234,9 @@ _toDisplayName(name) => JS(
 
 Symbol _dartSymbol(name) {
   return (JS('bool', 'typeof # === "symbol"', name))
-      ? JS('', '#(new #(#, #))', const_, _internal.PrivateSymbol,
+      ? JS('Symbol', '#(new #.new(#, #))', const_, _internal.PrivateSymbol,
           _toSymbolName(name), name)
-      : JS('', '#(#.new(#))', const_, Symbol, _toDisplayName(name));
+      : JS('Symbol', '#(#.new(#))', const_, Symbol, _toDisplayName(name));
 }
 
 /// Extracts the named argument array from a list of arguments, and returns it.
@@ -260,7 +260,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
   let originalTarget = obj === void 0 ? f : obj;
 
   function callNSM() {
-    return $noSuchMethod(originalTarget, new $InvocationImpl(
+    return $noSuchMethod(originalTarget, new $InvocationImpl.new(
         $name, $args,
         {namedArguments: $extractNamedArgs($args), isMethod: true}));
   }

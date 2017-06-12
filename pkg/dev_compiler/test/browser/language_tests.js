@@ -190,7 +190,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'memory_swap_test': skip_timeout,
       'method_invocation_test': fail,
       'mint_arithmetic_test': fail,
-      'mixin_super_constructor_positionals_test_none_multi': fail, // Issue 28059
       'modulo_test': fail,
       'named_parameter_clash_test': fail,
       'named_parameters_passing_falsy_test': is.firefox('<=50') ? fail : pass,

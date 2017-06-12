@@ -298,7 +298,7 @@ _createSmall(count, definite, returnType, required) => JS(
  }
  let result = map.get($returnType);
  if (result !== void 0) return result;
- result = new $FunctionType($returnType, args, [], {});
+ result = new $FunctionType.new($returnType, args, [], {});
  map.set($returnType, result);
  return result;
 })()''');

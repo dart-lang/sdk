@@ -17,17 +17,16 @@ define(['dart_sdk'], function(dart_sdk) {
     dart.dcall(x, ...args);
   };
   dart.fn(varargs.varargsTest2, dynamicAnddynamicTodynamic());
-  src__varargs._Rest = class _Rest extends core.Object {
-    new() {
-    }
-  };
+  src__varargs._Rest = class _Rest extends core.Object {};
+  (src__varargs._Rest.new = function() {
+  }).prototype = src__varargs._Rest.prototype;
   dart.defineLazy(src__varargs, {
     get rest() {
-      return dart.const(new src__varargs._Rest());
+      return dart.const(new src__varargs._Rest.new());
     }
   });
   src__varargs.spread = function(args) {
-    dart.throw(new core.StateError('The spread function cannot be called, ' + 'it should be compiled away.'));
+    dart.throw(new core.StateError.new('The spread function cannot be called, ' + 'it should be compiled away.'));
   };
   dart.fn(src__varargs.spread, dynamicTodynamic());
   dart.trackLibraries("varargs", {

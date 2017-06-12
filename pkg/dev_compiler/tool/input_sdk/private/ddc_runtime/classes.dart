@@ -20,7 +20,6 @@ part of dart._runtime;
 ///
 /// For each mixin, we only take its own properties, not anything from its
 /// superclass (prototype).
-///
 mixin(base, @rest mixins) => JS(
     '',
     '''(() => {
@@ -37,31 +36,21 @@ mixin(base, @rest mixins) => JS(
   for (let m of $mixins) {
     $copyProperties(Mixin.prototype, m.prototype);
   }
-  // Restore original Mixin constructor.
+  // Restore original Mixin JS constructor.
   Mixin.prototype.constructor = constructor;  
-  // Initializer methods: run mixin initializers, then the base.
-  Mixin.prototype.new = function(...args) {
-    // Run mixin initializers. They cannot have arguments.
-    // Run them backwards so most-derived mixin is initialized first.
-    for (let i = $mixins.length - 1; i >= 0; i--) {
-      $mixins[i].prototype.new.call(this);
-    }
-    // Run base initializer.
-    $base.prototype.new.apply(this, args);
-  };
-  let namedCtors = ${safeGetOwnProperty(base, _namedConstructors)};
-  if ($base[$_namedConstructors] != null) {
-    for (let namedCtor of $base[$_namedConstructors]) {
-      Mixin.prototype[namedCtor] = function(...args) {
+  // Dart constructors: run mixin constructors, then the base constructors.
+  for (let memberName of $getOwnNamesAndSymbols($base)) {
+    let member = $safeGetOwnProperty($base, memberName);
+    if (typeof member == "function" && member.prototype === base.prototype) {
+      $defineValue(Mixin, memberName, function(...args) {
         // Run mixin initializers. They cannot have arguments.
         // Run them backwards so most-derived mixin is initialized first.
         for (let i = $mixins.length - 1; i >= 0; i--) {
-          $mixins[i].prototype.new.call(this);
+          $mixins[i].new.call(this);
         }
         // Run base initializer.
-        $base.prototype[namedCtor].apply(this, args);
-      };
-      $defineNamedConstructor(Mixin, namedCtor);
+        $base[memberName].apply(this, args);
+      }).prototype = Mixin.prototype;
     }
   }
 
@@ -397,29 +386,6 @@ hasGetter(type, name) => _hasSigEntry(type, _getterSig, name);
 hasSetter(type, name) => _hasSigEntry(type, _setterSig, name);
 hasField(type, name) => _hasSigEntry(type, _fieldSig, name);
 
-/// Given a class and an initializer method name, creates a constructor
-/// function with the same name.
-///
-/// After we define the named constructor, the class can be constructed with
-/// `new SomeClass.name(args)`.
-defineNamedConstructor(clazz, name) => JS(
-    '',
-    '''(() => {
-  let proto = $clazz.prototype;
-  let initMethod = proto[$name];
-  let ctor = function(...args) { initMethod.apply(this, args); };
-  ctor.prototype = proto;
-  // Use defineProperty so we don't hit a property defined on Function,
-  // like `caller` and `arguments`.
-  $defineProperty($clazz, $name, { value: ctor, configurable: true });
-
-  let namedCtors = ${safeGetOwnProperty(clazz, _namedConstructors)};
-  if (namedCtors == null) $clazz[$_namedConstructors] = namedCtors = [];
-  namedCtors.push($name);
-})()''');
-
-final _namedConstructors = JS('', 'Symbol("_namedConstructors")');
-
 final _extensionType = JS('', 'Symbol("extensionType")');
 
 getExtensionType(obj) => JS('', '#[#]', obj, _extensionType);
@@ -599,55 +565,12 @@ setExtensionBaseClass(derived, base) {
 })()''');
 }
 
-/// Given a special constructor function that creates a function instances,
-/// and a class with a `call` method, merge them so the constructor function
-/// will have the correct methods and prototype.
-///
-/// For example:
-///
-///     lib.Foo = dart.callableClass(
-///         function Foo { function call(...args) { ... } ... return call; },
-///         class Foo { call(x) { ... } });
-///     ...
-///       let f = new lib.Foo();
-///       f(42);
-callableClass(callableCtor, classExpr) {
-  JS('', '#.prototype = #.prototype', callableCtor, classExpr);
-  // We're not going to use the original class, so we can safely replace it to
-  // point at this constructor for the runtime type information.
-  JS('', '#.prototype.constructor = #', callableCtor, callableCtor);
-  JS('', '#.__proto__ = #', callableCtor, classExpr);
-  return callableCtor;
-}
-
-/// Given a class and an initializer method name and a call method, creates a
-/// constructor function with the same name.
-///
-/// For example it can be called with `new SomeClass.name(args)`.
-///
-/// The constructor
-defineNamedConstructorCallable(clazz, name, ctor) => JS(
-    '',
-    '''(() => {
-  ctor.prototype = $clazz.prototype;
-  // Use defineProperty so we don't hit a property defined on Function,
-  // like `caller` and `arguments`.
-  $defineProperty($clazz, $name, { value: ctor, configurable: true });
-
-  let namedCtors = ${safeGetOwnProperty(clazz, _namedConstructors)};
-  if (namedCtors == null) $clazz[$_namedConstructors] = namedCtors = [];
-  namedCtors.push($name);
-})()''');
-
-defineEnumValues(enumClass, names) => JS(
-    '',
-    '''(() => {
-  let values = [];
-  for (var i = 0; i < $names.length; i++) {
-    let value = $const_(new $enumClass(i));
-    values.push(value);
-    Object.defineProperty($enumClass, $names[i],
-        { value: value, configurable: true });
+defineEnumValues(enumClass, names) {
+  var values = [];
+  for (var i = 0; i < JS('int', '#.length', names); i++) {
+    var value = const_(JS('', 'new #.new(#)', enumClass, i));
+    JS('', '#.push(#)', values, value);
+    defineValue(enumClass, JS('', '#[#]', names, i), value);
   }
-  $enumClass.values = $constList(values, $enumClass);
-})()''');
+  JS('', '#.values = #', enumClass, constList(values, enumClass));
+}

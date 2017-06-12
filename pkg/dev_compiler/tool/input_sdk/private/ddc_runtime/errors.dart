@@ -40,80 +40,63 @@ void failForWeakModeIsChecks(bool flag) {
   JS('', 'dart.__failForWeakModeIsChecks = #', flag);
 }
 
-throwCastError(object, actual, type) => JS(
-    '',
-    '''(() => {
-  var found = $typeName($actual);
-  var expected = $typeName($type);
-  if (dart.__trapRuntimeErrors) debugger;
-  $throw_(new $CastErrorImplementation($object, found, expected));
-})()''');
+throwCastError(object, actual, type) {
+  var found = typeName(actual);
+  var expected = typeName(type);
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  throw new CastErrorImplementation(object, found, expected);
+}
 
-throwTypeError(object, actual, type) => JS(
-    '',
-    '''(() => {
-  var found = $typeName($actual);
-  var expected = $typeName($type);
-  if (dart.__trapRuntimeErrors) debugger;
-  $throw_(new $TypeErrorImplementation($object, found, expected));
-})()''');
+throwTypeError(object, actual, type) {
+  var found = typeName(actual);
+  var expected = typeName(type);
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  throw new TypeErrorImplementation(object, found, expected);
+}
 
-throwStrongModeCastError(object, actual, type) => JS(
-    '',
-    '''(() => {
-  var found = $typeName($actual);
-  var expected = $typeName($type);
-  if (dart.__trapRuntimeErrors) debugger;
-  $throw_(new $StrongModeCastError($object, found, expected));
-})()''');
+throwStrongModeCastError(object, actual, type) {
+  var found = typeName(actual);
+  var expected = typeName(type);
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  throw new StrongModeCastError(object, found, expected);
+}
 
-throwStrongModeTypeError(object, actual, type) => JS(
-    '',
-    '''(() => {
-  var found = $typeName($actual);
-  var expected = $typeName($type);
-  if (dart.__trapRuntimeErrors) debugger;
-  $throw_(new $StrongModeTypeError($object, found, expected));
-})()''');
+throwStrongModeTypeError(object, actual, type) {
+  var found = typeName(actual);
+  var expected = typeName(type);
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  throw new StrongModeTypeError(object, found, expected);
+}
 
-throwUnimplementedError(message) => JS(
-    '',
-    '''(() => {
-  if (dart.__trapRuntimeErrors) debugger;
-  $throw_(new $UnimplementedError($message));
-})()''');
+throwUnimplementedError(String message) {
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  throw new UnimplementedError(message);
+}
 
-throwAssertionError([message]) => JS(
-    '',
-    '''(() => {
-  if (dart.__trapRuntimeErrors) debugger;
-  let error = $message != null
-        ? new $AssertionErrorWithMessage($message())
-        : new $AssertionError();
-  $throw_(error);
-})()''');
+throwAssertionError([String message()]) {
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  throw message != null
+      ? new AssertionErrorWithMessage(message())
+      : new AssertionError();
+}
 
 throwCyclicInitializationError([String message]) {
   if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw new CyclicInitializationError(message);
 }
 
-throwNullValueError() => JS(
-    '',
-    '''(() => {
+throwNullValueError() {
   // TODO(vsm): Per spec, we should throw an NSM here.  Technically, we ought
   // to thread through method info, but that uglifies the code and can't
   // actually be queried ... it only affects how the error is printed.
-  if (dart.__trapRuntimeErrors) debugger;
-  $throw_(new $NoSuchMethodError(null,
-      new $Symbol('<Unexpected Null Value>'), null, null, null));
-})()''');
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  throw new NoSuchMethodError(
+      null, new Symbol('<Unexpected Null Value>'), null, null, null);
+}
 
-throwNoSuchMethodError(
-        receiver, memberName, positionalArguments, namedArguments) =>
-    JS(
-        '',
-        '''(() => {
-  if (dart.__trapRuntimeErrors) debugger;
-  $throw_(new $NoSuchMethodError($receiver, $memberName, $positionalArguments, $namedArguments));
-})()''');
+throwNoSuchMethodError(Object receiver, Symbol memberName,
+    List positionalArguments, Map<Symbol, dynamic> namedArguments) {
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  throw new NoSuchMethodError(
+      receiver, memberName, positionalArguments, namedArguments);
+}
