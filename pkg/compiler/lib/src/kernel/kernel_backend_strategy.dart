@@ -325,12 +325,6 @@ class KernelClosureClassMaps implements ClosureClassMaps<ir.Node> {
   ClosureAnalysisInfo getClosureAnalysisInfo(ir.Node node) {
     return const ClosureAnalysisInfo();
   }
-
-  @override
-  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
-      ir.Node loopNode) {
-    return const LoopClosureRepresentationInfo();
-  }
 }
 
 class KernelSorter implements Sorter {

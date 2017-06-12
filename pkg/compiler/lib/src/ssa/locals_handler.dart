@@ -136,25 +136,25 @@ class LocalsHandler {
 
   /// If the scope (function or loop) [node] has captured variables then this
   /// method creates a box and sets up the redirections.
-  void enterScope(ClosureAnalysisInfo closureInfo,
+  void enterScope(ClosureScope scopeData,
       {bool forGenerativeConstructorBody: false}) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
-    if (!closureInfo.requiresContextBox()) return;
+    if (scopeData == null) return;
     HInstruction box;
     // The scope has captured variables.
     if (forGenerativeConstructorBody) {
       // The box is passed as a parameter to a generative
       // constructor body.
-      box = builder.addParameter(closureInfo.context, commonMasks.nonNullType);
+      box = builder.addParameter(scopeData.boxElement, commonMasks.nonNullType);
     } else {
       box = createBox();
     }
     // Add the box to the known locals.
-    directLocals[closureInfo.context] = box;
+    directLocals[scopeData.boxElement] = box;
     // Make sure that accesses to the boxed locals go into the box. We also
     // need to make sure that parameters are copied into the box if necessary.
-    closureInfo.forEachCapturedVariable(
+    scopeData.forEachCapturedVariable(
         (LocalVariableElement from, BoxFieldElement to) {
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
@@ -216,14 +216,8 @@ class LocalsHandler {
       directLocals[local] = parameter;
     });
 
-    if (scopeData != null) {
-      // TODO(efortuna): Remove the above if wrapper (always execute this step)
-      // when the switch away from ClosureClassMap is complete (prior behavior
-      // in enterScope it was acceptable to pass in a null scopeData, but no
-      // longer).
-      enterScope(scopeData,
-          forGenerativeConstructorBody: isGenerativeConstructorBody);
-    }
+    enterScope(scopeData,
+        forGenerativeConstructorBody: isGenerativeConstructorBody);
 
     // If the freeVariableMapping is not empty, then this function was a
     // nested closure that captures variables. Redirect the captured
@@ -479,13 +473,15 @@ class LocalsHandler {
   ///    <updates>
   ///    goto loop-entry;
   ///  loop-exit:
-  void startLoop(LoopClosureRepresentationInfo loopInfo) {
-    if (loopInfo.hasBoxedVariables) {
+  void startLoop(ast.Node node) {
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData == null) return;
+    if (scopeData.hasBoxedLoopVariables()) {
       // If there are boxed loop variables then we set up the box and
       // redirections already now. This way the initializer can write its
       // values into the box.
       // For other loops the box will be created when entering the body.
-      enterScope(loopInfo);
+      enterScope(scopeData);
     }
   }
 
@@ -512,22 +508,26 @@ class LocalsHandler {
     });
   }
 
-  void enterLoopBody(LoopClosureRepresentationInfo loopInfo) {
+  void enterLoopBody(ast.Node node) {
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData == null) return;
     // If there are no declared boxed loop variables then we did not create the
     // box before the initializer and we have to create the box now.
-    if (!loopInfo.hasBoxedVariables) {
-      enterScope(loopInfo);
+    if (!scopeData.hasBoxedLoopVariables()) {
+      enterScope(scopeData);
     }
   }
 
-  void enterLoopUpdates(LoopClosureRepresentationInfo loopInfo) {
+  void enterLoopUpdates(ast.Node node) {
     // If there are declared boxed loop variables then the updates might have
     // access to the box and we must switch to a new box before executing the
     // updates.
     // In all other cases a new box will be created when entering the body of
     // the next iteration.
-    if (loopInfo.hasBoxedVariables) {
-      updateCaptureBox(loopInfo.context, loopInfo.boxedVariables);
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData == null) return;
+    if (scopeData.hasBoxedLoopVariables()) {
+      updateCaptureBox(scopeData.boxElement, scopeData.boxedLoopVariables);
     }
   }
 

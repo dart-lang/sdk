@@ -7,7 +7,6 @@ import 'package:kernel/ast.dart' as ir;
 import '../elements/elements.dart' show JumpTarget, LabelDefinition;
 import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
-import '../closure.dart' show LoopClosureRepresentationInfo;
 
 import 'builder.dart';
 import 'builder_kernel.dart';
@@ -28,8 +27,8 @@ abstract class LoopHandler<T> {
   /// For while loops, [initialize] and [update] are null.
   /// The [condition] function must return a boolean result.
   /// None of the functions must leave anything on the stack.
-  void handleLoop(T loop, LoopClosureRepresentationInfo loopClosureInfo,
-      void initialize(), HInstruction condition(), void update(), void body()) {
+  void handleLoop(T loop, void initialize(), HInstruction condition(),
+      void update(), void body()) {
     // Generate:
     //  <initializer>
     //  loop-entry:
@@ -39,7 +38,7 @@ abstract class LoopHandler<T> {
     //    goto loop-entry;
     //  loop-exit:
 
-    builder.localsHandler.startLoop(loopClosureInfo);
+    builder.localsHandler.startLoop(getNode(loop));
 
     // The initializer.
     SubExpression initializerGraph = null;
@@ -74,7 +73,7 @@ abstract class LoopHandler<T> {
     conditionEndBlock.addSuccessor(beginBodyBlock);
     builder.open(beginBodyBlock);
 
-    builder.localsHandler.enterLoopBody(loopClosureInfo);
+    builder.localsHandler.enterLoopBody(getNode(loop));
     body();
 
     SubGraph bodyGraph = new SubGraph(beginBodyBlock, builder.lastOpenedBlock);
@@ -123,7 +122,7 @@ abstract class LoopHandler<T> {
             updateBlock);
       }
 
-      builder.localsHandler.enterLoopUpdates(loopClosureInfo);
+      builder.localsHandler.enterLoopUpdates(getNode(loop));
 
       update();
 
@@ -288,6 +287,9 @@ abstract class LoopHandler<T> {
   /// Returns the jump target defined by [node].
   JumpTarget getTargetDefinition(T node);
 
+  /// Returns the corresponding AST node for [node].
+  ast.Node getNode(T node);
+
   /// Determine what kind of loop [node] represents.
   ///
   /// The result is one of the kinds defined in [HLoopBlockInformation].
@@ -318,6 +320,9 @@ class SsaLoopHandler extends LoopHandler<ast.Node> {
   JumpTarget getTargetDefinition(ast.Node node) {
     return builder.elements.getTargetDefinition(node);
   }
+
+  @override
+  ast.Node getNode(ast.Node node) => node;
 
   @override
   int loopKind(ast.Node node) => node.accept(const _SsaLoopTypeVisitor());
@@ -357,6 +362,9 @@ class KernelLoopHandler extends LoopHandler<ir.TreeNode> {
   @override
   JumpHandler createJumpHandler(ir.TreeNode node, {bool isLoopJump}) =>
       builder.createJumpHandler(node, isLoopJump: isLoopJump);
+
+  @override
+  ast.Node getNode(ir.TreeNode node) => astAdapter.getNode(node);
 
   @override
   JumpTarget getTargetDefinition(ir.TreeNode node) =>
