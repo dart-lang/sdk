@@ -319,13 +319,6 @@ class JavaScriptBackend {
 
   final OptimizerHintsForTests optimizerHints;
 
-  /// Set of classes that need to be considered for reflection although not
-  /// otherwise visible during resolution.
-  Iterable<ClassEntity> get classesRequiredForReflection {
-    // TODO(herhut): Clean this up when classes needed for rti are tracked.
-    return [commonElements.closureClass, commonElements.jsIndexableClass];
-  }
-
   FunctionCompiler functionCompiler;
 
   CodeEmitterTask emitter;
@@ -466,6 +459,7 @@ class JavaScriptBackend {
         _nativeDataResolver = new NativeDataResolverImpl(compiler),
         _rtiNeedBuilder =
             compiler.frontendStrategy.createRuntimeTypesNeedBuilder() {
+    CommonElements commonElements = compiler.frontendStrategy.commonElements;
     _target = new JavaScriptBackendTarget(this);
     impacts = new BackendImpacts(compiler.options, commonElements);
     _mirrorsData = compiler.frontendStrategy.createMirrorsDataBuilder();
@@ -496,8 +490,6 @@ class JavaScriptBackend {
   ConstantSystem get constantSystem => constants.constantSystem;
 
   DiagnosticReporter get reporter => compiler.reporter;
-
-  CommonElements get commonElements => compiler.commonElements;
 
   Resolution get resolution => compiler.resolution;
 
@@ -628,7 +620,7 @@ class JavaScriptBackend {
   }
 
   MethodElement resolveExternalFunction(MethodElement element) {
-    if (isForeign(element)) {
+    if (isForeign(compiler.frontendStrategy.commonElements, element)) {
       return element;
     }
     if (_nativeDataResolver.isJsInteropMember(element)) {
@@ -644,12 +636,12 @@ class JavaScriptBackend {
     });
   }
 
-  bool isForeign(Element element) =>
+  bool isForeign(CommonElements commonElements, Element element) =>
       element.library == commonElements.foreignLibrary;
 
-  bool isBackendLibrary(LibraryElement library) {
+  bool isBackendLibrary(CommonElements commonElements, LibraryElement library) {
     return library == commonElements.interceptorsLibrary ||
-        library == compiler.commonElements.jsHelperLibrary;
+        library == commonElements.jsHelperLibrary;
   }
 
   Namer determineNamer(
@@ -685,16 +677,6 @@ class JavaScriptBackend {
         !mirrorsData.invokedReflectively(method);
   }
 
-  /// Maps compile-time classes to their runtime class.  The runtime class is
-  /// always a superclass or the class itself.
-  ClassElement getRuntimeClass(ClassElement class_) {
-    if (class_.isSubclassOf(commonElements.jsIntClass))
-      return commonElements.jsIntClass;
-    if (class_.isSubclassOf(commonElements.jsArrayClass))
-      return commonElements.jsArrayClass;
-    return class_;
-  }
-
   bool operatorEqHandlesNullArgument(FunctionEntity operatorEqfunction) {
     return specialOperatorEqClasses.contains(operatorEqfunction.enclosingClass);
   }
@@ -702,7 +684,7 @@ class JavaScriptBackend {
   void validateInterceptorImplementsAllObjectMethods(
       ClassEntity interceptorClass) {
     if (interceptorClass == null) return;
-    ClassEntity objectClass = commonElements.objectClass;
+    ClassEntity objectClass = compiler.commonElements.objectClass;
     compiler.elementEnvironment.forEachClassMember(objectClass,
         (_, MemberEntity member) {
       if (member.isConstructor) return;
@@ -725,14 +707,16 @@ class JavaScriptBackend {
     // TODO(johnniwinther): Avoid the compiler.elementEnvironment.getThisType
     // calls. Currently needed to ensure resolution of the classes for various
     // queries in native behavior computation, inference and codegen.
-    compiler.elementEnvironment.getThisType(commonElements.jsArrayClass);
     compiler.elementEnvironment
-        .getThisType(commonElements.jsExtendableArrayClass);
+        .getThisType(compiler.commonElements.jsArrayClass);
+    compiler.elementEnvironment
+        .getThisType(compiler.commonElements.jsExtendableArrayClass);
 
     validateInterceptorImplementsAllObjectMethods(
-        commonElements.jsInterceptorClass);
+        compiler.commonElements.jsInterceptorClass);
     // The null-interceptor must also implement *all* methods.
-    validateInterceptorImplementsAllObjectMethods(commonElements.jsNullClass);
+    validateInterceptorImplementsAllObjectMethods(
+        compiler.commonElements.jsNullClass);
   }
 
   /// Called when the resolution queue has been closed.
@@ -746,7 +730,8 @@ class JavaScriptBackend {
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     for (MemberEntity entity
         in compiler.enqueuer.resolution.processedEntities) {
-      processAnnotations(entity, closedWorldRefiner);
+      processAnnotations(
+          closedWorld.commonElements, entity, closedWorldRefiner);
     }
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
@@ -794,6 +779,7 @@ class JavaScriptBackend {
 
   ResolutionEnqueuer createResolutionEnqueuer(
       CompilerTask task, Compiler compiler) {
+    CommonElements commonElements = compiler.frontendStrategy.commonElements;
     _nativeBasicData =
         nativeBasicDataBuilder.close(compiler.elementEnvironment);
     _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
@@ -862,6 +848,7 @@ class JavaScriptBackend {
   /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(
       CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
+    CommonElements commonElements = closedWorld.commonElements;
     _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
         compiler.elementEnvironment, this, commonElements, mirrorsData);
     _lookupMapAnalysis = new LookupMapAnalysis(
@@ -921,7 +908,7 @@ class JavaScriptBackend {
       return const WorldImpact();
     }
     if (element.isConstructor &&
-        element.enclosingClass == commonElements.jsNullClass) {
+        element.enclosingClass == closedWorld.commonElements.jsNullClass) {
       // Work around a problem compiling JSNull's constructor.
       return const WorldImpact();
     }
@@ -945,7 +932,8 @@ class JavaScriptBackend {
 
   native.NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
-  ClassElement defaultSuperclass(ClassElement element) {
+  ClassElement defaultSuperclass(
+      CommonElements commonElements, ClassElement element) {
     if (nativeBasicData.isJsInteropClass(element)) {
       return commonElements.jsJavaScriptObjectClass;
     }
@@ -1008,7 +996,7 @@ class JavaScriptBackend {
    * Returns [:true:] if the checking of [type] is performed directly on the
    * object and not on an interceptor.
    */
-  bool hasDirectCheckFor(DartType type) {
+  bool hasDirectCheckFor(CommonElements commonElements, DartType type) {
     if (!type.isInterfaceType) return false;
     InterfaceType interfaceType = type;
     ClassEntity element = interfaceType.element;
@@ -1046,7 +1034,8 @@ class JavaScriptBackend {
   /// This method is called when all new libraries loaded through
   /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
   /// have been computed.
-  void onLibrariesLoaded(LoadedLibraries loadedLibraries) {
+  void onLibrariesLoaded(
+      CommonElements commonElements, LoadedLibraries loadedLibraries) {
     if (loadedLibraries.containsLibrary(Uris.dart_core)) {
       assert(loadedLibraries.containsLibrary(Uris.dart_core));
       assert(loadedLibraries.containsLibrary(Uris.dart__interceptors));
@@ -1067,17 +1056,17 @@ class JavaScriptBackend {
   /// [WorldImpact] of enabled backend features is returned.
   WorldImpact onCodegenStart(
       ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
-    _oneShotInterceptorData =
-        new OneShotInterceptorData(closedWorld.interceptorData, commonElements);
+    _oneShotInterceptorData = new OneShotInterceptorData(
+        closedWorld.interceptorData, closedWorld.commonElements);
     _namer = determineNamer(closedWorld, codegenWorldBuilder);
     tracer = new Tracer(closedWorld, namer, compiler);
     _rtiEncoder = _namer.rtiEncoder = new RuntimeTypesEncoderImpl(
-        namer, compiler.elementEnvironment, commonElements);
+        namer, compiler.elementEnvironment, closedWorld.commonElements);
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder);
     _codegenImpactTransformer = new CodegenImpactTransformer(
         compiler.options,
         compiler.elementEnvironment,
-        commonElements,
+        closedWorld.commonElements,
         impacts,
         checkedModeHelpers,
         closedWorld.nativeData,
@@ -1118,8 +1107,8 @@ class JavaScriptBackend {
   /// Process backend specific annotations.
   // TODO(johnniwinther): Merge this with [AnnotationProcessor] and use
   // [ElementEnvironment.getMemberMetadata] in [AnnotationProcessor].
-  void processAnnotations(
-      MemberEntity element, ClosedWorldRefiner closedWorldRefiner) {
+  void processAnnotations(CommonElements commonElements, MemberEntity element,
+      ClosedWorldRefiner closedWorldRefiner) {
     if (element is MemberElement && element.isMalformed) {
       // Elements that are marked as malformed during parsing or resolution
       // might be registered here. These should just be ignored.
@@ -1206,12 +1195,6 @@ class JavaScriptBackend {
     }
   }
 
-  MethodElement helperForBadMain() => commonElements.badMain;
-
-  MethodElement helperForMissingMain() => commonElements.missingMain;
-
-  MethodElement helperForMainArity() => commonElements.mainHasTooManyParameters;
-
   /// Enable deferred loading. Returns `true` if the backend supports deferred
   /// loading.
   bool enableDeferredLoadingIfSupported(Spannable node) => true;
@@ -1220,7 +1203,8 @@ class JavaScriptBackend {
   /// supported by the backend.
   bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
 
-  jsAst.Expression rewriteAsync(MethodElement element, jsAst.Expression code) {
+  jsAst.Expression rewriteAsync(CommonElements commonElements,
+      MethodElement element, jsAst.Expression code) {
     AsyncRewriterBase rewriter = null;
     jsAst.Name name = namer.methodPropertyName(element);
     switch (element.asyncMarker) {
@@ -1341,6 +1325,9 @@ class JavaScriptBackendTarget extends Target {
 
   JavaScriptBackendTarget(this._backend);
 
+  CommonElements get _commonElements =>
+      _backend.compiler.frontendStrategy.commonElements;
+
   @override
   bool isTargetSpecificLibrary(LibraryElement element) {
     return _backend.isTargetSpecificLibrary(element);
@@ -1364,12 +1351,12 @@ class JavaScriptBackendTarget extends Target {
 
   @override
   bool isDefaultNoSuchMethod(MethodElement element) {
-    return _backend.commonElements.isDefaultNoSuchMethodImplementation(element);
+    return _commonElements.isDefaultNoSuchMethodImplementation(element);
   }
 
   @override
   ClassElement defaultSuperclass(ClassElement element) {
-    return _backend.defaultSuperclass(element);
+    return _backend.defaultSuperclass(_commonElements, element);
   }
 
   @override
@@ -1377,7 +1364,8 @@ class JavaScriptBackendTarget extends Target {
       _backend.nativeBasicData.isNativeClass(element);
 
   @override
-  bool isForeign(Element element) => _backend.isForeign(element);
+  bool isForeign(Element element) =>
+      _backend.isForeign(_commonElements, element);
 }
 
 class SuperMemberData {

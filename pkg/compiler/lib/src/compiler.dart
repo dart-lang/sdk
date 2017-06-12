@@ -203,7 +203,7 @@ abstract class Compiler {
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
     _elementEnvironment = frontendStrategy.elementEnvironment;
-    _commonElements = new CommonElements(_elementEnvironment);
+    _commonElements = frontendStrategy.commonElements;
     types = new Types(_resolution);
 
     if (options.verbose) {
@@ -428,7 +428,7 @@ abstract class Compiler {
         }
       }
     }
-    backend.onLibrariesLoaded(loadedLibraries);
+    backend.onLibrariesLoaded(frontendStrategy.commonElements, loadedLibraries);
     return loadedLibraries;
   }
 

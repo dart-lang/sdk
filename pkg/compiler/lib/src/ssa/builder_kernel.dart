@@ -3095,7 +3095,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return;
     }
 
-    if (backend.hasDirectCheckFor(typeValue)) {
+    if (backend.hasDirectCheckFor(closedWorld.commonElements, typeValue)) {
       push(new HIs.direct(typeValue, expression, commonMasks.boolType));
       return;
     }

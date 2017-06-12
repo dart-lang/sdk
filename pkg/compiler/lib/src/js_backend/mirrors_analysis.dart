@@ -384,6 +384,16 @@ class MirrorsHandler {
     }
   }
 
+  /// Set of classes that need to be considered for reflection although not
+  /// otherwise visible during resolution.
+  Iterable<ClassEntity> get _classesRequiredForReflection {
+    // TODO(herhut): Clean this up when classes needed for rti are tracked.
+    return [
+      _backend.compiler.commonElements.closureClass,
+      _backend.compiler.commonElements.jsIndexableClass
+    ];
+  }
+
   /// Enqueue special classes that might not be visible by normal means or that
   /// would not normally be enqueued:
   ///
@@ -392,7 +402,7 @@ class MirrorsHandler {
   /// that none of its methods are reflectable, unless reflectable by
   /// inheritance.
   void _enqueueReflectiveSpecialClasses() {
-    Iterable<ClassElement> classes = _backend.classesRequiredForReflection;
+    Iterable<ClassElement> classes = _classesRequiredForReflection;
     for (ClassElement cls in classes) {
       if (_backend.mirrorsData.isClassReferencedFromMirrorSystem(cls)) {
         _logEnqueueReflectiveAction(cls);

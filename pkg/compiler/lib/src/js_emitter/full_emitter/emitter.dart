@@ -809,7 +809,7 @@ class Emitter extends js_emitter.EmitterBase {
     jsAst.Expression finishedClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
     jsAst.Expression cyclicThrow =
-        staticFunctionAccess(backend.commonElements.cyclicThrowHelper);
+        staticFunctionAccess(compiler.commonElements.cyclicThrowHelper);
     jsAst.Expression laziesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 

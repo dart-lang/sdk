@@ -68,7 +68,8 @@ abstract class SsaAstBuilderBase extends CompilerTask
   ///
   /// If the field is constant, no code is needed for the field and the method
   /// return `true`.
-  bool handleConstantField(ElementCodegenWorkItem work) {
+  bool handleConstantField(
+      ElementCodegenWorkItem work, ClosedWorld closedWorld) {
     MemberElement element = work.element;
     if (element.isField) {
       FieldElement field = element;
@@ -102,7 +103,8 @@ abstract class SsaAstBuilderBase extends CompilerTask
         // the static variable.
         // We also need to register the use of the cyclic-error helper.
         work.registry.worldImpact.registerStaticUse(new StaticUse.staticInvoke(
-            backend.commonElements.cyclicThrowHelper, CallStructure.ONE_ARG));
+            closedWorld.commonElements.cyclicThrowHelper,
+            CallStructure.ONE_ARG));
       }
     }
     return false;
@@ -123,7 +125,7 @@ class SsaAstBuilderTask extends SsaAstBuilderBase {
 
   HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
-      if (handleConstantField(work)) {
+      if (handleConstantField(work, closedWorld)) {
         // No code is generated for `work.element`.
         return null;
       }
@@ -2516,7 +2518,7 @@ class SsaBuilder extends ast.Visitor
       HInstruction call = pop();
       return new HIs.compound(type, expression, call, commonMasks.boolType);
     } else {
-      if (backend.hasDirectCheckFor(type)) {
+      if (backend.hasDirectCheckFor(closedWorld.commonElements, type)) {
         return new HIs.direct(type, expression, commonMasks.boolType);
       }
       // The interceptor is not always needed.  It is removed by optimization
@@ -3699,7 +3701,7 @@ class SsaBuilder extends ast.Visitor
   @override
   void visitTopLevelFunctionInvoke(ast.Send node, MethodElement function,
       ast.NodeList arguments, CallStructure callStructure, _) {
-    if (backend.isForeign(function)) {
+    if (backend.isForeign(closedWorld.commonElements, function)) {
       handleForeignSend(node, function);
     } else {
       generateStaticFunctionInvoke(node, function, callStructure);

@@ -47,6 +47,10 @@ abstract class FrontendStrategy {
   /// strategy.
   ElementEnvironment get elementEnvironment;
 
+  /// Returns the [CommonElements] for the element model used in this
+  /// strategy.
+  CommonElements get commonElements;
+
   /// Returns the [DartTypes] for the element model used in this strategy.
   DartTypes get dartTypes;
 

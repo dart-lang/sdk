@@ -48,10 +48,20 @@ import 'no_such_method_resolver.dart';
 class ResolutionFrontEndStrategy implements FrontendStrategy {
   final Compiler _compiler;
   final ElementEnvironment elementEnvironment;
+  final CommonElements commonElements;
+
   AnnotationProcessor _annotationProcessor;
 
-  ResolutionFrontEndStrategy(this._compiler)
-      : elementEnvironment = new _CompilerElementEnvironment(_compiler);
+  factory ResolutionFrontEndStrategy(Compiler compiler) {
+    ElementEnvironment elementEnvironment =
+        new _CompilerElementEnvironment(compiler);
+    CommonElements commonElements = new CommonElements(elementEnvironment);
+    return new ResolutionFrontEndStrategy.internal(
+        compiler, elementEnvironment, commonElements);
+  }
+
+  ResolutionFrontEndStrategy.internal(
+      this._compiler, this.elementEnvironment, this.commonElements);
 
   DartTypes get dartTypes => _compiler.types;
 
@@ -147,7 +157,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
         errorElement = new ErroneousElementX(MessageKind.MISSING_MAIN,
             {'main': Identifiers.main}, Identifiers.main, mainApp);
       }
-      mainFunction = _compiler.backend.helperForMissingMain();
+      mainFunction = commonElements.missingMain;
     } else if (main.isError && main.isSynthesized) {
       if (main is ErroneousElement) {
         errorElement = main;
@@ -155,11 +165,11 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
         _compiler.reporter
             .internalError(main, 'Problem with ${Identifiers.main}.');
       }
-      mainFunction = _compiler.backend.helperForBadMain();
+      mainFunction = commonElements.badMain;
     } else if (!main.isFunction) {
       errorElement = new ErroneousElementX(MessageKind.MAIN_NOT_A_FUNCTION,
           {'main': Identifiers.main}, Identifiers.main, main);
-      mainFunction = _compiler.backend.helperForBadMain();
+      mainFunction = commonElements.badMain;
     } else {
       mainFunction = main;
       mainFunction.computeType(_compiler.resolution);
@@ -177,7 +187,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
           impactBuilder.registerStaticUse(
               new StaticUse.staticInvoke(mainFunction, CallStructure.NO_ARGS));
 
-          mainFunction = _compiler.backend.helperForMainArity();
+          mainFunction = commonElements.mainHasTooManyParameters;
         });
       }
     }

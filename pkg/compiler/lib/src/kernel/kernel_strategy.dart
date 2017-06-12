@@ -64,6 +64,9 @@ class KernelFrontEndStrategy implements FrontendStrategy {
   @override
   ElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
 
+  @override
+  CommonElements get commonElements => elementMap.commonElements;
+
   DartTypes get dartTypes => elementMap.types;
 
   @override

@@ -114,7 +114,7 @@ class ElementCodegenWorkItemBuilder extends WorkItemBuilder {
   WorkItem createWorkItem(MemberElement element) {
     assert(element.isDeclaration, failedAt(element));
     // Don't generate code for foreign elements.
-    if (_backend.isForeign(element)) return null;
+    if (_backend.isForeign(_closedWorld.commonElements, element)) return null;
     if (element.isAbstract) return null;
 
     // Codegen inlines field initializers. It only needs to generate

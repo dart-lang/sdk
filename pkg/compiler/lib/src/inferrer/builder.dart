@@ -2325,7 +2325,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       if (!target.isRedirectingFactory) break;
       target = target.effectiveTarget.implementation;
     }
-    if (compiler.backend.isForeign(target)) {
+    if (compiler.backend.isForeign(closedWorld.commonElements, target)) {
       return handleForeignSend(node, target);
     }
     Selector selector = elements.getSelector(node);
@@ -2413,7 +2413,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   /// Handle invocation of a top level or static [function].
   TypeInformation handleStaticFunctionInvoke(
       ast.Send node, MethodElement function) {
-    if (compiler.backend.isForeign(function)) {
+    if (compiler.backend.isForeign(closedWorld.commonElements, function)) {
       return handleForeignSend(node, function);
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
