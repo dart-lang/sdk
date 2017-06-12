@@ -15,6 +15,11 @@ final validMultitestOutcomes = new Set<String>.from([
   'checked mode compile-time error'
 ]);
 
+final runtimeErrorOutcomes = [
+  'runtime error',
+  'dynamic type error',
+];
+
 // Require at least one non-space character before '//#'
 // Handle both //# and the legacy /// multitest regexp patterns.
 final _multiTestRegExp = new RegExp(r"\S *//[#/] \w+:(.*)");
@@ -122,7 +127,12 @@ void extractTestsFromMultitest(String filePath, String contents,
   // joining the lines.
   var marker = '// Test created from multitest named $filePath.'
       '$line_separator';
-  for (var test in testsAsLines.values) test.add(marker);
+  testsAsLines.forEach((key, test) {
+    if (runtimeErrorOutcomes.any(outcomes[key].contains)) {
+      test.add('final _expectRuntimeError = true;');
+    }
+    test.add(marker);
+  });
 
   var keysToDelete = [];
   // Check that every key (other than the none case) has at least one outcome
