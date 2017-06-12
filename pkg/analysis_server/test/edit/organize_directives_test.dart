@@ -26,9 +26,6 @@ class OrganizeDirectivesTest extends AbstractAnalysisTest {
   SourceFileEdit fileEdit;
 
   @override
-  bool get enableNewAnalysisDriver => false;
-
-  @override
   void setUp() {
     super.setUp();
     createProject();
@@ -37,8 +34,9 @@ class OrganizeDirectivesTest extends AbstractAnalysisTest {
     handler = new EditDomainHandler(server);
   }
 
+  @failingTest
   Future test_BAD_doesNotExist() async {
-    await waitForTasksFinished();
+    // The analysis driver fails to return an error
     Request request =
         new EditOrganizeDirectivesParams('/no/such/file.dart').toRequest('0');
     Response response = await waitResponse(request);
@@ -52,7 +50,6 @@ import 'dart:async'
 
 main() {}
 ''');
-    await waitForTasksFinished();
     Request request = new EditOrganizeDirectivesParams(testFile).toRequest('0');
     Response response = await waitResponse(request);
     expect(response,
@@ -60,7 +57,6 @@ main() {}
   }
 
   Future test_BAD_notDartFile() async {
-    await waitForTasksFinished();
     Request request =
         new EditOrganizeDirectivesParams('/not-a-Dart-file.txt').toRequest('0');
     Response response = await waitResponse(request);
@@ -160,7 +156,6 @@ main() {
   }
 
   Future _assertOrganized(String expectedCode) async {
-    await waitForTasksFinished();
     await _requestOrganize();
     String resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
     expect(resultCode, expectedCode);

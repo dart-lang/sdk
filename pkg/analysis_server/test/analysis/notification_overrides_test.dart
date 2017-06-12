@@ -23,7 +23,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   List<Override> overridesList;
   Override override;
 
-  bool get enableNewAnalysisDriver => false;
+  Completer _resultsAvailable = new Completer();
 
   /**
    * Asserts that there is an overridden interface [OverriddenMember] at the
@@ -119,7 +119,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
 
   Future prepareOverrides() {
     addAnalysisSubscription(AnalysisService.OVERRIDES, testFile);
-    return waitForTasksFinished();
+    return _resultsAvailable.future;
   }
 
   void processNotification(Notification notification) {
@@ -127,6 +127,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
       var params = new AnalysisOverridesParams.fromNotification(notification);
       if (params.file == testFile) {
         overridesList = params.overrides;
+        _resultsAvailable.complete(null);
       }
     }
   }
