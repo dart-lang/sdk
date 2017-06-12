@@ -242,6 +242,9 @@ RawObject* SnapshotReader::ReadObject() {
     }
     if (backward_references_->length() > 0) {
       ProcessDeferredCanonicalizations();
+      if (kind() == Snapshot::kScript) {
+        FixSubclassesAndImplementors();
+      }
       return (*backward_references_)[0].reference()->raw();
     } else {
       return obj.raw();
@@ -1231,6 +1234,37 @@ void SnapshotReader::ProcessDeferredCanonicalizations() {
         }
       } else {
         ASSERT(objref->IsCanonical());
+      }
+    }
+  }
+}
+
+
+void SnapshotReader::FixSubclassesAndImplementors() {
+  Class& cls = Class::Handle(zone());
+  Class& supercls = Class::Handle(zone());
+  Array& interfaces = Array::Handle(zone());
+  AbstractType& interface = AbstractType::Handle(zone());
+  Class& interface_cls = Class::Handle(zone());
+  for (intptr_t i = 0; i < backward_references_->length(); i++) {
+    BackRefNode& backref = (*backward_references_)[i];
+    Object* objref = backref.reference();
+    if (objref->IsClass()) {
+      cls ^= objref->raw();
+      if (!cls.IsInFullSnapshot()) {
+        supercls = cls.SuperClass();
+        if (!supercls.IsNull() && !supercls.IsObjectClass() &&
+            supercls.IsInFullSnapshot()) {
+          supercls.AddDirectSubclass(cls);
+          supercls.DisableCHAOptimizedCode(cls);
+        }
+        interfaces = cls.interfaces();
+        for (intptr_t i = 0; i < interfaces.Length(); i++) {
+          interface ^= interfaces.At(i);
+          interface_cls = interface.type_class();
+          interface_cls.set_is_implemented();
+          interface_cls.DisableCHAOptimizedCode(cls);
+        }
       }
     }
   }
