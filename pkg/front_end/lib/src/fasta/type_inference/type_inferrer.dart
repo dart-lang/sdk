@@ -25,6 +25,7 @@ import 'package:kernel/ast.dart'
         FunctionType,
         Initializer,
         InterfaceType,
+        InvocationExpression,
         Member,
         MethodInvocation,
         Name,
@@ -33,6 +34,7 @@ import 'package:kernel/ast.dart'
         PropertyGet,
         PropertySet,
         Statement,
+        SuperMethodInvocation,
         SuperPropertyGet,
         SuperPropertySet,
         TypeParameterType,
@@ -266,19 +268,34 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation and records it in [methodInvocation].
   Member findMethodInvocationMember(
-      DartType receiverType, MethodInvocation methodInvocation,
+      DartType receiverType, InvocationExpression methodInvocation,
       {bool silent: false}) {
-    var interfaceMember = findInterfaceMember(
-        receiverType, methodInvocation.name, methodInvocation.fileOffset,
-        silent: silent);
-    methodInvocation.interfaceTarget = interfaceMember;
-    return interfaceMember;
+    // TODO(paulberry): could we add getters to InvocationExpression to make
+    // these is-checks unnecessary?
+    if (methodInvocation is MethodInvocation) {
+      var interfaceMember = findInterfaceMember(
+          receiverType, methodInvocation.name, methodInvocation.fileOffset,
+          silent: silent);
+      methodInvocation.interfaceTarget = interfaceMember;
+      return interfaceMember;
+    } else if (methodInvocation is SuperMethodInvocation) {
+      var interfaceMember = findInterfaceMember(
+          receiverType, methodInvocation.name, methodInvocation.fileOffset,
+          silent: silent);
+      methodInvocation.interfaceTarget = interfaceMember;
+      return interfaceMember;
+    } else {
+      throw internalError(
+          'Unexpected invocation type: ${methodInvocation.runtimeType}');
+    }
   }
 
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation and records it in [propertyGet].
   Member findPropertyGetMember(DartType receiverType, Expression propertyGet,
       {bool silent: false}) {
+    // TODO(paulberry): could we add a common base class to PropertyGet and
+    // SuperPropertyGet to make these is-checks unnecessary?
     if (propertyGet is PropertyGet) {
       var interfaceMember = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,

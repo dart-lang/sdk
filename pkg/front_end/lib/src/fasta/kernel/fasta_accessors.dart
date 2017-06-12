@@ -817,6 +817,10 @@ class SuperIndexAccessor extends kernel.SuperIndexAccessor with FastaAccessor {
   }
 
   toString() => "SuperIndexAccessor()";
+
+  @override
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelIndexAssign(null, index, rhs, isSuper: true);
 }
 
 class ThisPropertyAccessor extends kernel.ThisPropertyAccessor

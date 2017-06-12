@@ -577,37 +577,56 @@ class SuperIndexAccessor extends Accessor {
 
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
-    if (!voidContext) return _makeWriteAndReturn(value);
-    return new SuperMethodInvocation(
-        indexSetName, new KernelArguments(<Expression>[index, value]), setter);
+    if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    var write = new SuperMethodInvocation(
+        indexSetName, new KernelArguments(<Expression>[index, value]), setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
   }
 
   Expression _makeRead(KernelComplexAssignment complexAssignment) {
-    return new SuperMethodInvocation(
-        indexGetName, new KernelArguments(<Expression>[indexAccess()]), getter);
+    var read = new SuperMethodInvocation(
+        indexGetName, new KernelArguments(<Expression>[indexAccess()]), getter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.read = read;
+    return read;
   }
 
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
-    if (!voidContext) return _makeWriteAndReturn(value);
-    return new SuperMethodInvocation(indexSetName,
-        new KernelArguments(<Expression>[indexAccess(), value]), setter);
+    if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    var write = new SuperMethodInvocation(indexSetName,
+        new KernelArguments(<Expression>[indexAccess(), value]), setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
   }
 
-  _makeWriteAndReturn(Expression value) {
+  _makeWriteAndReturn(
+      Expression value, KernelComplexAssignment complexAssignment) {
     var valueVariable = new VariableDeclaration.forValue(value);
-    var dummy = new VariableDeclaration.forValue(new SuperMethodInvocation(
+    var write = new SuperMethodInvocation(
         indexSetName,
         new KernelArguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
-        setter));
+        setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    var dummy = new VariableDeclaration.forValue(write);
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
 
   Expression _finish(
       Expression body, KernelComplexAssignment complexAssignment) {
-    return makeLet(indexVariable, body);
+    var desugared = makeLet(indexVariable, body);
+    if (complexAssignment != null) {
+      complexAssignment.desugared = desugared;
+      return complexAssignment;
+    } else {
+      return desugared;
+    }
   }
 }
 

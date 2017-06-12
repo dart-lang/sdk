@@ -366,6 +366,40 @@ abstract class KernelComplexAssignment extends Expression
   }
 }
 
+/// Abstract shadow object representing a complex assignment involving a
+/// receiver.
+abstract class KernelComplexAssignmentWithReceiver
+    extends KernelComplexAssignment {
+  /// The receiver of the assignment target (e.g. `a` in `a[b] = c`).
+  final Expression receiver;
+
+  /// Indicates whether this assignment uses `super`.
+  final bool isSuper;
+
+  KernelComplexAssignmentWithReceiver(
+      this.receiver, Expression rhs, this.isSuper)
+      : super(rhs);
+
+  @override
+  List<String> _getToStringParts() {
+    var parts = super._getToStringParts();
+    if (receiver != null) parts.add('receiver=$receiver');
+    if (isSuper) parts.add('isSuper=true');
+    return parts;
+  }
+
+  DartType _inferReceiver(KernelTypeInferrer inferrer) {
+    if (receiver != null) {
+      return inferrer.inferExpression(receiver, null, true);
+    } else if (isSuper) {
+      return inferrer.classHierarchy.getTypeAsInstanceOf(
+          inferrer.thisType, inferrer.thisType.classNode.supertype.classNode);
+    } else {
+      return inferrer.thisType;
+    }
+  }
+}
+
 /// Concrete shadow object representing a conditional expression in kernel form.
 /// Shadow object for [ConditionalExpression].
 class KernelConditionalExpression extends ConditionalExpression
@@ -911,19 +945,17 @@ class KernelIfStatement extends IfStatement implements KernelStatement {
 
 /// Concrete shadow object representing an assignment to a target of the form
 /// `a[b]`.
-class KernelIndexAssign extends KernelComplexAssignment {
-  /// The receiver of the assignment target (e.g. `a` in `a[b] = c`).
-  Expression receiver;
-
+class KernelIndexAssign extends KernelComplexAssignmentWithReceiver {
   /// In an assignment to an index expression, the index expression.
   Expression index;
 
-  KernelIndexAssign(this.receiver, this.index, Expression rhs) : super(rhs);
+  KernelIndexAssign(Expression receiver, this.index, Expression rhs,
+      {bool isSuper: false})
+      : super(receiver, rhs, isSuper);
 
   @override
   List<String> _getToStringParts() {
     var parts = super._getToStringParts();
-    if (receiver != null) parts.add('receiver=$receiver');
     if (index != null) parts.add('index=$index');
     return parts;
   }
@@ -935,7 +967,7 @@ class KernelIndexAssign extends KernelComplexAssignment {
         typeNeeded;
     // TODO(paulberry): record the appropriate types on let variables and
     // conditional expressions.
-    var receiverType = inferrer.inferExpression(receiver, null, true);
+    var receiverType = _inferReceiver(inferrer);
     if (read != null) {
       inferrer.findMethodInvocationMember(receiverType, read, silent: true);
     }
@@ -1298,25 +1330,18 @@ class KernelNullLiteral extends NullLiteral implements KernelExpression {
 }
 
 /// Concrete shadow object representing an assignment to a property.
-class KernelPropertyAssign extends KernelComplexAssignment {
-  /// The receiver of the assignment target (e.g. `a` in `a.b = c`), or `null`
-  /// if there is no receiver (implicit `this`).
-  Expression receiver;
-
+class KernelPropertyAssign extends KernelComplexAssignmentWithReceiver {
   /// If this assignment uses null-aware access (`?.`), the conditional
   /// expression that guards the access; otherwise `null`.
   Expression nullAwareGuard;
 
-  /// Indicates whether this assignment uses `super`.
-  final bool isSuper;
-
-  KernelPropertyAssign(this.receiver, Expression rhs, {this.isSuper: false})
-      : super(rhs);
+  KernelPropertyAssign(Expression receiver, Expression rhs,
+      {bool isSuper: false})
+      : super(receiver, rhs, isSuper);
 
   @override
   List<String> _getToStringParts() {
     var parts = super._getToStringParts();
-    if (receiver != null) parts.add('receiver=$receiver');
     if (nullAwareGuard != null) parts.add('nullAwareGuard=$nullAwareGuard');
     return parts;
   }
@@ -1329,15 +1354,7 @@ class KernelPropertyAssign extends KernelComplexAssignment {
             typeNeeded;
     // TODO(paulberry): record the appropriate types on let variables and
     // conditional expressions.
-    DartType receiverType;
-    if (receiver != null) {
-      receiverType = inferrer.inferExpression(receiver, null, true);
-    } else if (isSuper) {
-      receiverType = inferrer.classHierarchy.getTypeAsInstanceOf(
-          inferrer.thisType, inferrer.thisType.classNode.supertype.classNode);
-    } else {
-      receiverType = inferrer.thisType;
-    }
+    var receiverType = _inferReceiver(inferrer);
     if (read != null) {
       inferrer.findPropertyGetMember(receiverType, read, silent: true);
     }
