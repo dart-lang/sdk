@@ -3,22 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug
 
-import 'package:observatory/service_io.dart';
+import 'dart:developer';
+import 'dart:io';
+
 import 'service_test_common.dart';
 import 'test_helper.dart';
-import 'dart:developer';
-
-const int LINE_A = 19;
-const int LINE_B = 20;
-const int LINE_C = 21;
 
 foo() async {}
 
 doAsync(stop) async {
   if (stop) debugger();
-  await foo(); // Line A.
-  await foo(); // Line B.
-  await foo(); // Line C.
+  await foo(); // LINE_A.
+  await foo(); // LINE_B.
+  await foo(); // LINE_C.
   return null;
 }
 
@@ -29,17 +26,19 @@ testMain() {
   doAsync(true);
 }
 
+final ScriptLineParser lineParser = new ScriptLineParser(Platform.script);
+
 var tests = [
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_A),
+  stoppedAtLine(lineParser.lineFor('LINE_A')),
   stepOver, // foo()
   asyncNext,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_B),
+  stoppedAtLine(lineParser.lineFor('LINE_B')),
   stepOver, // foo()
   asyncNext,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_C),
+  stoppedAtLine(lineParser.lineFor('LINE_C')),
   resumeIsolate,
 ];
 

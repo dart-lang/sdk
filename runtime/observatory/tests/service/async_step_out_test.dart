@@ -4,17 +4,10 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug --async_debugger
 
 import 'dart:developer';
-import 'package:observatory/models.dart' as M;
-import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'dart:io';
+
 import 'service_test_common.dart';
 import 'test_helper.dart';
-
-const LINE_A = 20;
-const LINE_B = 21;
-const LINE_C = 26;
-const LINE_D = 27;
-const LINE_E = 28;
 
 helper() async {
   print('helper'); // LINE_A.
@@ -28,21 +21,23 @@ testMain() async {
   print('z'); // LINE_E.
 }
 
+final ScriptLineParser lineParser = new ScriptLineParser(Platform.script);
+
 var tests = [
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_C),
+  stoppedAtLine(lineParser.lineFor('LINE_C')),
   stepOver, // print.
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_D),
+  stoppedAtLine(lineParser.lineFor('LINE_D')),
   stepInto,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_A),
+  stoppedAtLine(lineParser.lineFor('LINE_A')),
   stepOver, // print.
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_B),
+  stoppedAtLine(lineParser.lineFor('LINE_B')),
   stepOut, // out of helper to awaiter testMain.
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_E),
+  stoppedAtLine(lineParser.lineFor('LINE_E')),
 ];
 
 main(args) => runIsolateTests(args, tests, testeeConcurrent: testMain);

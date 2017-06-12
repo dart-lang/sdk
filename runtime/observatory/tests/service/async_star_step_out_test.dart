@@ -4,21 +4,10 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug --async_debugger
 
 import 'dart:developer';
-import 'package:observatory/models.dart' as M;
-import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'dart:io';
+
 import 'service_test_common.dart';
 import 'test_helper.dart';
-
-const LINE_A = 24;
-const LINE_B = 25;
-const LINE_C = 29;
-const LINE_D = 32;
-const LINE_E = 39;
-const LINE_F = 40;
-const LINE_G = 41;
-const LINE_H = 30;
-const LINE_I = 34;
 
 foobar() async* {
   yield 1; // LINE_A.
@@ -27,7 +16,7 @@ foobar() async* {
 
 helper() async {
   print('helper'); // LINE_C.
-  await for (var i in foobar()) { // LINE_H.
+  await for (var i in foobar()) /* LINE_H */ {
     debugger();
     print('loop'); // LINE_D.
   }
@@ -41,49 +30,51 @@ testMain() {
   print('z'); // LINE_G.
 }
 
+final ScriptLineParser lineParser = new ScriptLineParser(Platform.script);
+
 var tests = [
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_E),
+  stoppedAtLine(lineParser.lineFor('LINE_E')),
   stepOver, // print.
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_F),
+  stoppedAtLine(lineParser.lineFor('LINE_F')),
   stepInto,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_C),
+  stoppedAtLine(lineParser.lineFor('LINE_C')),
   stepOver, // print.
   hasStoppedAtBreakpoint,
   stepInto,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_A),
+  stoppedAtLine(lineParser.lineFor('LINE_A')),
   stepOut, // step out of generator.
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_H), // await for.
+  stoppedAtLine(lineParser.lineFor('LINE_H')), // await for.
   stepInto,
   hasStoppedAtBreakpoint, // debugger().
   stepInto,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_D), // print.
+  stoppedAtLine(lineParser.lineFor('LINE_D')), // print.
   stepInto,
   hasStoppedAtBreakpoint, // await for.
   stepInto,
   hasStoppedAtBreakpoint, // back in generator.
-  stoppedAtLine(LINE_B),
+  stoppedAtLine(lineParser.lineFor('LINE_B')),
   stepOut, // step out of generator.
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_H), // await for.
+  stoppedAtLine(lineParser.lineFor('LINE_H')), // await for.
   stepInto,
   hasStoppedAtBreakpoint, // debugger().
   stepInto,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_D), // print.
+  stoppedAtLine(lineParser.lineFor('LINE_D')), // print.
   stepInto,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_H), // await for.
+  stoppedAtLine(lineParser.lineFor('LINE_H')), // await for.
   stepInto,
   hasStoppedAtBreakpoint,
   stepOut, // step out of generator.
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_I), // return null.
+  stoppedAtLine(lineParser.lineFor('LINE_I')), // return null.
 ];
 
 main(args) =>

@@ -5,7 +5,8 @@
 library service_test_common;
 
 import 'dart:async';
-import 'dart:io' show Platform;
+import 'dart:io' show File, Platform;
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_common.dart';
 import 'package:unittest/unittest.dart';
@@ -14,6 +15,29 @@ typedef Future IsolateTest(Isolate isolate);
 typedef Future VMTest(VM vm);
 
 Map<String, StreamSubscription> streamSubscriptions = {};
+
+class ScriptLineParser {
+  List<String> lines;
+
+  ScriptLineParser(Uri scriptUri) {
+    String content = new File(scriptUri.toFilePath()).readAsStringSync();
+    lines = content.split('\n');
+  }
+
+  int lineFor(String commentContent) {
+    String match1 = '// $commentContent';
+    String match2 = '/* $commentContent */';
+
+    for (int i = 0; i < lines.length; i++) {
+      if (lines[i].contains(match1) || lines[i].contains(match2)) {
+        // return the 1-based line number
+        return i + 1;
+      }
+    }
+
+    return -1;
+  }
+}
 
 Future subscribeToStream(VM vm, String streamName, onEvent) async {
   assert(streamSubscriptions[streamName] == null);
