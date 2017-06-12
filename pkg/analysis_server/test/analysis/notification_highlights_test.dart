@@ -23,9 +23,7 @@ main() {
 @reflectiveTest
 class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
   List<HighlightRegion> regions;
-
-  @override
-  bool get enableNewAnalysisDriver => false;
+  Completer _regionsAvailable = new Completer();
 
   void assertHasRawRegion(HighlightRegionType type, int offset, int length) {
     for (HighlightRegion region in regions) {
@@ -93,7 +91,7 @@ class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
 
   Future prepareHighlights() {
     addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
-    return waitForTasksFinished();
+    return _regionsAvailable.future;
   }
 
   void processNotification(Notification notification) {
@@ -101,6 +99,7 @@ class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
       var params = new AnalysisHighlightsParams.fromNotification(notification);
       if (params.file == testFile) {
         regions = params.regions;
+        _regionsAvailable.complete(null);
       }
     }
   }
