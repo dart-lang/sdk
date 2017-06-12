@@ -103,7 +103,7 @@ Future asyncStepOver(Isolate isolate) async {
         (event.breakpoint.isSyntheticAsyncContinuation) &&
         (event.owner == isolate);
     // Resume after synthetic breakpoint added. This is the second event
-    // we will recieve.
+    // we will receive.
     bool isResume = (event.kind == ServiceEvent.kResume) &&
         (syntheticBreakpoint != null) &&
         (event.owner == isolate);

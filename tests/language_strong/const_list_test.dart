@@ -5,7 +5,6 @@
 import "package:expect/expect.dart";
 
 class ConstListTest {
-
   static testConstructors() {
     List fixedList = new List(4);
     List fixedList2 = new List(4);

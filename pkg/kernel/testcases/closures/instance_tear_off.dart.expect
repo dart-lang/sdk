@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field dynamic f = new self::Closure#C#f#function::•(null);
+  field dynamic f = MakeClosure<() → dynamic>(self::closure#C#f#function, null);
   constructor •() → void
     : super core::Object::•()
     ;
   get g() → dynamic {
-    return new self::Closure#C#g#function::•(null);
+    return MakeClosure<(dynamic) → dynamic>(self::closure#C#g#function, null);
   }
   method a() → dynamic {
     return "a";
@@ -22,22 +22,34 @@ class C extends core::Object {
   method d(dynamic x, {dynamic y = 2}) → dynamic {
     return x.+(y);
   }
-  get a#get() → dynamic
-    return new self::Closure#C#a::•(this);
-  get b#get() → dynamic
-    return new self::Closure#C#b::•(this);
-  get c#get() → dynamic
-    return new self::Closure#C#c::•(this);
-  get d#get() → dynamic
-    return new self::Closure#C#d::•(this);
+  method a#get() → dynamic {
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
+    return MakeClosure<() → dynamic>(self::closure#C#a, #context);
+  }
+  method b#get() → dynamic {
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
+    return MakeClosure<(dynamic) → dynamic>(self::closure#C#b, #context);
+  }
+  method c#get() → dynamic {
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
+    return MakeClosure<(dynamic, [dynamic]) → dynamic>(self::closure#C#c, #context);
+  }
+  method d#get() → dynamic {
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
+    return MakeClosure<(dynamic, {y: dynamic}) → dynamic>(self::closure#C#d, #context);
+  }
 }
 class D<T extends core::Object> extends core::Object {
-  field dynamic f = new self::Closure#D#f#function::•(null);
+  field dynamic f = MakeClosure<() → dynamic>(self::closure#D#f#function, null);
   constructor •() → void
     : super core::Object::•()
     ;
   get g() → dynamic {
-    return new self::Closure#D#g#function::•(null);
+    return MakeClosure<(dynamic) → dynamic>(self::closure#D#g#function, null);
   }
   method a() → dynamic {
     return "a";
@@ -51,22 +63,34 @@ class D<T extends core::Object> extends core::Object {
   method d(dynamic x, {dynamic y = 2}) → dynamic {
     return x.+(y);
   }
-  get a#get() → dynamic
-    return new self::Closure#D#a::•<self::D::T>(this);
-  get b#get() → dynamic
-    return new self::Closure#D#b::•<self::D::T>(this);
-  get c#get() → dynamic
-    return new self::Closure#D#c::•<self::D::T>(this);
-  get d#get() → dynamic
-    return new self::Closure#D#d::•<self::D::T>(this);
+  method a#get() → dynamic {
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
+    return MakeClosure<() → dynamic>(self::closure#D#a, #context);
+  }
+  method b#get() → dynamic {
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
+    return MakeClosure<(dynamic) → dynamic>(self::closure#D#b, #context);
+  }
+  method c#get() → dynamic {
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
+    return MakeClosure<(dynamic, [dynamic]) → dynamic>(self::closure#D#c, #context);
+  }
+  method d#get() → dynamic {
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
+    return MakeClosure<(dynamic, {y: dynamic}) → dynamic>(self::closure#D#d, #context);
+  }
 }
 class E<T extends core::Object> extends core::Object {
-  field dynamic f = new self::Closure#E#f#function::•(null);
+  field dynamic f = MakeClosure<() → dynamic>(self::closure#E#f#function, null);
   constructor •() → void
     : super core::Object::•()
     ;
   get g() → dynamic {
-    return new self::Closure#E#g#function::•<self::E::T>(null);
+    return MakeClosure<(dynamic) → dynamic>(self::closure#E#g#function, null);
   }
   method a() → dynamic {
     return "a";
@@ -80,193 +104,25 @@ class E<T extends core::Object> extends core::Object {
   method d(self::E::T x, {self::E::T y = 2}) → dynamic {
     return x.+(y);
   }
-  get a#get() → dynamic
-    return new self::Closure#E#a::•<self::E::T>(this);
-  get b#get() → dynamic
-    return new self::Closure#E#b::•<self::E::T>(this);
-  get c#get() → dynamic
-    return new self::Closure#E#c::•<self::E::T>(this);
-  get d#get() → dynamic
-    return new self::Closure#E#d::•<self::E::T>(this);
-}
-class Closure#C#g#function extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#C#g#function::context = context
-    ;
-  method call(dynamic x) → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#C#g#function::context};
-    return "g(${x})";
+  method a#get() → dynamic {
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
+    return MakeClosure<() → dynamic>(self::closure#E#a, #context);
   }
-}
-class Closure#C#a extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field self::C self;
-  constructor •(final self::C self) → dynamic
-    : self::Closure#C#a::self = self
-    ;
-  method call() → dynamic
-    return this.{self::Closure#C#a::self}.{self::C::a}();
-}
-class Closure#C#b extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field self::C self;
-  constructor •(final self::C self) → dynamic
-    : self::Closure#C#b::self = self
-    ;
-  method call(dynamic x) → dynamic
-    return this.{self::Closure#C#b::self}.{self::C::b}(x);
-}
-class Closure#C#c extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field self::C self;
-  constructor •(final self::C self) → dynamic
-    : self::Closure#C#c::self = self
-    ;
-  method call(dynamic x, [dynamic y = 2]) → dynamic
-    return this.{self::Closure#C#c::self}.{self::C::c}(x, y);
-}
-class Closure#C#d extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field self::C self;
-  constructor •(final self::C self) → dynamic
-    : self::Closure#C#d::self = self
-    ;
-  method call(dynamic x, {dynamic y = 2}) → dynamic
-    return this.{self::Closure#C#d::self}.{self::C::d}(x, y: y);
-}
-class Closure#C#f#function extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#C#f#function::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#C#f#function::context};
-    return "f";
+  method b#get() → dynamic {
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
+    return MakeClosure<(self::E::T) → dynamic>(self::closure#E#b, #context);
   }
-}
-class Closure#D#g#function extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#D#g#function::context = context
-    ;
-  method call(dynamic x) → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#D#g#function::context};
-    return "g(${x})";
+  method c#get() → dynamic {
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
+    return MakeClosure<(self::E::T, [self::E::T]) → dynamic>(self::closure#E#c, #context);
   }
-}
-class Closure#D#a<T extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field self::D<self::Closure#D#a::T> self;
-  constructor •(final self::D<self::Closure#D#a::T> self) → dynamic
-    : self::Closure#D#a::self = self
-    ;
-  method call() → dynamic
-    return this.{self::Closure#D#a::self}.{self::D::a}();
-}
-class Closure#D#b<T extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field self::D<self::Closure#D#b::T> self;
-  constructor •(final self::D<self::Closure#D#b::T> self) → dynamic
-    : self::Closure#D#b::self = self
-    ;
-  method call(dynamic x) → dynamic
-    return this.{self::Closure#D#b::self}.{self::D::b}(x);
-}
-class Closure#D#c<T extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field self::D<self::Closure#D#c::T> self;
-  constructor •(final self::D<self::Closure#D#c::T> self) → dynamic
-    : self::Closure#D#c::self = self
-    ;
-  method call(dynamic x, [dynamic y = 2]) → dynamic
-    return this.{self::Closure#D#c::self}.{self::D::c}(x, y);
-}
-class Closure#D#d<T extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field self::D<self::Closure#D#d::T> self;
-  constructor •(final self::D<self::Closure#D#d::T> self) → dynamic
-    : self::Closure#D#d::self = self
-    ;
-  method call(dynamic x, {dynamic y = 2}) → dynamic
-    return this.{self::Closure#D#d::self}.{self::D::d}(x, y: y);
-}
-class Closure#D#f#function extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#D#f#function::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#D#f#function::context};
-    return "f";
-  }
-}
-class Closure#E#g#function<T extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#E#g#function::context = context
-    ;
-  method call(self::Closure#E#g#function::T x) → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#E#g#function::context};
-    return "g(${x})";
-  }
-}
-class Closure#E#a<T extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field self::E<self::Closure#E#a::T> self;
-  constructor •(final self::E<self::Closure#E#a::T> self) → dynamic
-    : self::Closure#E#a::self = self
-    ;
-  method call() → dynamic
-    return this.{self::Closure#E#a::self}.{self::E::a}();
-}
-class Closure#E#b<T extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field self::E<self::Closure#E#b::T> self;
-  constructor •(final self::E<self::Closure#E#b::T> self) → dynamic
-    : self::Closure#E#b::self = self
-    ;
-  method call(self::Closure#E#b::T x) → dynamic
-    return this.{self::Closure#E#b::self}.{self::E::b}(x);
-}
-class Closure#E#c<T extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field self::E<self::Closure#E#c::T> self;
-  constructor •(final self::E<self::Closure#E#c::T> self) → dynamic
-    : self::Closure#E#c::self = self
-    ;
-  method call(self::Closure#E#c::T x, [self::Closure#E#c::T y = 2]) → dynamic
-    return this.{self::Closure#E#c::self}.{self::E::c}(x, y);
-}
-class Closure#E#d<T extends core::Object> extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field self::E<self::Closure#E#d::T> self;
-  constructor •(final self::E<self::Closure#E#d::T> self) → dynamic
-    : self::Closure#E#d::self = self
-    ;
-  method call(self::Closure#E#d::T x, {self::Closure#E#d::T y = 2}) → dynamic
-    return this.{self::Closure#E#d::self}.{self::E::d}(x, y: y);
-}
-class Closure#E#f#function extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#E#f#function::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#E#f#function::context};
-    return "f";
+  method d#get() → dynamic {
+    final Vector #context = MakeVector(2);
+    #context[1] = this;
+    return MakeClosure<(self::E::T, {y: self::E::T}) → dynamic>(self::closure#E#d, #context);
   }
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
@@ -282,20 +138,62 @@ static method test(dynamic o) → dynamic {
   self::expect("g(42)", o.g(42));
   self::expect("g(42)", o.g.call(42));
   self::expect("a", o.a());
-  self::expect("a", o.a#get.call());
+  self::expect("a", o.a#get().call());
   self::expect(42, o.b(42));
-  self::expect(42, o.b#get.call(42));
+  self::expect(42, o.b#get().call(42));
   self::expect(42, o.c(40));
-  self::expect(42, o.c#get.call(40));
+  self::expect(42, o.c#get().call(40));
   self::expect(87, o.c(80, 7));
-  self::expect(87, o.c#get.call(80, 7));
+  self::expect(87, o.c#get().call(80, 7));
   self::expect(42, o.d(40));
-  self::expect(42, o.d#get.call(40));
+  self::expect(42, o.d#get().call(40));
   self::expect(87, o.d(80, y: 7));
-  self::expect(87, o.d#get.call(80, y: 7));
+  self::expect(87, o.d#get().call(80, y: 7));
 }
 static method main(dynamic arguments) → dynamic {
   self::test(new self::C::•());
   self::test(new self::D::•<core::int>());
   self::test(new self::E::•<core::int>());
+}
+static method closure#C#g#function(Vector #contextParameter, dynamic x) → dynamic {
+  return "g(${x})";
+}
+static method closure#C#a(Vector #contextParameter) → dynamic
+  return (#contextParameter[1]).{self::C::a}();
+static method closure#C#b(Vector #contextParameter, dynamic x) → dynamic
+  return (#contextParameter[1]).{self::C::b}(x);
+static method closure#C#c(Vector #contextParameter, dynamic x, [dynamic y = 2]) → dynamic
+  return (#contextParameter[1]).{self::C::c}(x, y);
+static method closure#C#d(Vector #contextParameter, dynamic x, {dynamic y = 2}) → dynamic
+  return (#contextParameter[1]).{self::C::d}(x, y: y);
+static method closure#C#f#function(Vector #contextParameter) → dynamic {
+  return "f";
+}
+static method closure#D#g#function(Vector #contextParameter, dynamic x) → dynamic {
+  return "g(${x})";
+}
+static method closure#D#a(Vector #contextParameter) → dynamic
+  return (#contextParameter[1]).{self::D::a}();
+static method closure#D#b(Vector #contextParameter, dynamic x) → dynamic
+  return (#contextParameter[1]).{self::D::b}(x);
+static method closure#D#c(Vector #contextParameter, dynamic x, [dynamic y = 2]) → dynamic
+  return (#contextParameter[1]).{self::D::c}(x, y);
+static method closure#D#d(Vector #contextParameter, dynamic x, {dynamic y = 2}) → dynamic
+  return (#contextParameter[1]).{self::D::d}(x, y: y);
+static method closure#D#f#function(Vector #contextParameter) → dynamic {
+  return "f";
+}
+static method closure#E#g#function(Vector #contextParameter, dynamic x) → dynamic {
+  return "g(${x})";
+}
+static method closure#E#a(Vector #contextParameter) → dynamic
+  return (#contextParameter[1]).{self::E::a}();
+static method closure#E#b(Vector #contextParameter, dynamic x) → dynamic
+  return (#contextParameter[1]).{self::E::b}(x);
+static method closure#E#c(Vector #contextParameter, dynamic x, [dynamic y = 2]) → dynamic
+  return (#contextParameter[1]).{self::E::c}(x, y);
+static method closure#E#d(Vector #contextParameter, dynamic x, {dynamic y = 2}) → dynamic
+  return (#contextParameter[1]).{self::E::d}(x, y: y);
+static method closure#E#f#function(Vector #contextParameter) → dynamic {
+  return "f";
 }

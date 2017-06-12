@@ -36,17 +36,19 @@ test(scriptFile, String encoding, stream) {
   }
 
   if (stream == 'stdout') {
-    Process.run(Platform.executable,
-                [scriptFile, encoding, stream],
-                stdoutEncoding: enc). then((result) {
+    Process
+        .run(Platform.executable, [scriptFile, encoding, stream],
+            stdoutEncoding: enc)
+        .then((result) {
       Expect.equals(result.exitCode, 0);
       Expect.equals(result.stderr, '');
       checkOutput(encoding, result.stdout);
     });
   } else {
-    Process.run(Platform.executable,
-                [scriptFile, encoding, stream],
-                stderrEncoding: enc).then((result) {
+    Process
+        .run(Platform.executable, [scriptFile, encoding, stream],
+            stderrEncoding: enc)
+        .then((result) {
       Expect.equals(result.exitCode, 0);
       Expect.equals(result.stdout, '');
       checkOutput(encoding, result.stderr);
@@ -57,8 +59,7 @@ test(scriptFile, String encoding, stream) {
 main() {
   var scriptFile = new File("tests/standalone/io/process_std_io_script2.dart");
   if (!scriptFile.existsSync()) {
-    scriptFile =
-        new File("../tests/standalone/io/process_std_io_script2.dart");
+    scriptFile = new File("../tests/standalone/io/process_std_io_script2.dart");
   }
   Expect.isTrue(scriptFile.existsSync());
   test(scriptFile.path, 'ascii', 'stdout');

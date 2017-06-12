@@ -7,9 +7,9 @@
 
 #include "include/dart_tools_api.h"
 
-#include "vm/hash_map.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
+#include "vm/hash_map.h"
 #include "vm/log.h"
 #include "vm/object.h"
 
@@ -191,7 +191,7 @@ class IsolateReloadContext {
   // Reports all reasons for cancelling reload.
   void ReportReasonsForCancelling();
 
-  // Reports the deails of a reload operation.
+  // Reports the details of a reload operation.
   void ReportOnJSON(JSONStream* stream);
 
   // Store morphing operation.

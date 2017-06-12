@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library document_register_type_extensions_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -12,7 +13,8 @@ class Foo extends HtmlElement {
   static const tag = 'x-foo';
   static final List outerHtmlStrings = [
     '<x-foo></x-foo>',
-    '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" /><x-foo></x-foo>'];
+    '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" /><x-foo></x-foo>'
+  ];
   factory Foo() => new Element.tag(tag);
   Foo.created() : super.created();
 }
@@ -27,8 +29,9 @@ class Bar extends InputElement {
 class Baz extends Foo {
   static const tag = 'x-baz';
   static final List outerHtmlStrings = [
-      '<x-baz></x-baz>',
-      '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" /><x-baz></x-baz>'];
+    '<x-baz></x-baz>',
+    '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" /><x-baz></x-baz>'
+  ];
   factory Baz() => new Element.tag(tag);
   Baz.created() : super.created();
 }
@@ -98,7 +101,8 @@ main() {
     document.registerElement(Baz.tag, Baz);
     document.registerElement(Qux.tag, Qux, extendsTag: 'input');
     document.registerElement(MyCanvas.tag, MyCanvas, extendsTag: 'canvas');
-    document.registerElement(CustomCustomDiv.tag, CustomCustomDiv, extendsTag: 'div');
+    document.registerElement(CustomCustomDiv.tag, CustomCustomDiv,
+        extendsTag: 'div');
   }
 
   setUp(() => customElementsReady);
@@ -128,7 +132,6 @@ main() {
     setUp(registerTypes);
 
     group('constructors', () {
-
       test('custom tag', () {
         var fooNewed = new Foo();
         expect(fooNewed.outerHtml, anyOf(Foo.outerHtmlStrings));
@@ -219,9 +222,11 @@ main() {
 
       test('incorrect extension of custom tag', () {
         var fooBarCreated = new Element.tag(Foo.tag, Bar.tag);
-        expect(fooBarCreated.outerHtml, anyOf(
-            '<x-foo is="x-bar"></x-foo>',
-            '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" />'
+        expect(
+            fooBarCreated.outerHtml,
+            anyOf(
+                '<x-foo is="x-bar"></x-foo>',
+                '<?XML:NAMESPACE PREFIX = PUBLIC NS = "URN:COMPONENT" />'
                 '<x-foo is="x-bar"></x-foo>'));
         expect(fooBarCreated is Foo, isTrue);
       });
@@ -251,23 +256,21 @@ main() {
     setUp(registerTypes);
 
     test('createElementNS', () {
-      var fooCreatedNS =
-          document.createElementNS("http://www.w3.org/1999/xhtml",
-          Foo.tag, null);
+      var fooCreatedNS = document.createElementNS(
+          "http://www.w3.org/1999/xhtml", Foo.tag, null);
       expect(fooCreatedNS.outerHtml, anyOf(Foo.outerHtmlStrings));
       expect(fooCreatedNS is Foo, isTrue);
 
-      var barCreatedNS =
-          document.createElementNS("http://www.w3.org/1999/xhtml", "input",
-          Bar.tag);
+      var barCreatedNS = document.createElementNS(
+          "http://www.w3.org/1999/xhtml", "input", Bar.tag);
       expect(barCreatedNS.outerHtml, Bar.outerHtmlString);
       expect(barCreatedNS is Bar, isTrue);
       expect(isFormControl(barCreatedNS), isTrue);
 
-      expect(() =>
-         document.createElementNS(
-             'http://example.com/2013/no-such-namespace',
-       'xml:lang', 'x-bar'), throws);
+      expect(
+          () => document.createElementNS(
+              'http://example.com/2013/no-such-namespace', 'xml:lang', 'x-bar'),
+          throws);
     });
   });
 
@@ -276,8 +279,8 @@ main() {
 
     test('parsing', () {
       createElementFromHtml(html) {
-        var container = new DivElement()..setInnerHtml(html,
-          treeSanitizer: new NullTreeSanitizer());
+        var container = new DivElement()
+          ..setInnerHtml(html, treeSanitizer: new NullTreeSanitizer());
         upgradeCustomElements(container);
         return container.firstChild;
       }

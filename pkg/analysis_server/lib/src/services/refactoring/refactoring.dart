@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.refactoring;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
-    show RefactoringMethodParameter, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';
 import 'package:analysis_server/src/services/refactoring/convert_method_to_getter.dart';
@@ -30,6 +26,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    show RefactoringMethodParameter, SourceChange;
 
 /**
  * [Refactoring] to convert getters into normal [MethodDeclaration]s.
@@ -126,7 +124,7 @@ abstract class ExtractLocalRefactoring implements Refactoring {
    *
    * It does not perform all the checks (such as checking for conflicts with any
    * existing names in any of the scopes containing the current name), as many
-   * of these checkes require search engine. Use [checkFinalConditions] for this
+   * of these checks require search engine. Use [checkFinalConditions] for this
    * level of checking.
    */
   RefactoringStatus checkName();
@@ -215,7 +213,7 @@ abstract class ExtractMethodRefactoring implements Refactoring {
    *
    * It does not perform all the checks (such as checking for conflicts with any
    * existing names in any of the scopes containing the current name), as many
-   * of these checkes require search engine. Use [checkFinalConditions] for this
+   * of these checks require search engine. Use [checkFinalConditions] for this
    * level of checking.
    */
   RefactoringStatus checkName();
@@ -427,7 +425,7 @@ abstract class RenameRefactoring implements Refactoring {
    *
    * It does not perform all the checks (such as checking for conflicts with any
    * existing names in any of the scopes containing the current name), as many
-   * of these checkes require search engine. Use [checkFinalConditions] for this
+   * of these checks require search engine. Use [checkFinalConditions] for this
    * level of checking.
    */
   RefactoringStatus checkNewName();

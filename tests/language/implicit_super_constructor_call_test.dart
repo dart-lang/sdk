@@ -16,11 +16,10 @@ class A {
 }
 
 class C extends A {
-  C(foobar) { }
+  C(foobar) {}
 }
 
 main() {
   var c = new C(499);
   Expect.equals("foo", c.x.toString());
 }
-

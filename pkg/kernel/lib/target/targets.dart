@@ -80,6 +80,11 @@ abstract class Target {
   /// not to apply these transformations.
   void performGlobalTransformations(Program program);
 
+  /// Builds an expression that instantiates an [Invocation] that can be passed
+  /// to [noSuchMethod].
+  Expression instantiateInvocation(Member target, Expression receiver,
+      String name, Arguments arguments, int offset, bool isSuper);
+
   String toString() => 'Target($name)';
 }
 
@@ -93,4 +98,10 @@ class NoneTarget extends Target {
   List<String> get extraRequiredLibraries => <String>[];
   void performModularTransformations(Program program) {}
   void performGlobalTransformations(Program program) {}
+
+  @override
+  Expression instantiateInvocation(Member target, Expression receiver,
+      String name, Arguments arguments, int offset, bool isSuper) {
+    return new InvalidExpression();
+  }
 }

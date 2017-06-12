@@ -26,7 +26,7 @@ main() {
 
     // .map
     Expect.listEquals(expectedUnits.map((x) => x.toRadixString(16)).toList(),
-                      units.map((x) => x.toRadixString(16)).toList());
+        units.map((x) => x.toRadixString(16)).toList());
 
     if (s == "") {
       Expect.throws(() => units.first, (e) => e is StateError);
@@ -40,13 +40,16 @@ main() {
       Expect.equals(s.codeUnitAt(0), units.first);
       Expect.equals(s.codeUnitAt(s.length - 1), units.last);
       Expect.equals(s.codeUnitAt(0), units[0]);
-      Expect.throws(() { units[0] = 499; }, (e) => e is UnsupportedError);
+      Expect.throws(() {
+        units[0] = 499;
+      }, (e) => e is UnsupportedError);
       List<int> sub = units.sublist(1);
       Expect.listEquals(s.substring(1, s.length).codeUnits, sub);
       Expect.equals(-1, units.indexOf(-1));
       Expect.equals(0, units.indexOf(units[0]));
       Expect.equals(-1, units.lastIndexOf(-1));
-      Expect.equals(units.length - 1, units.lastIndexOf(units[units.length - 1]));
+      Expect.equals(
+          units.length - 1, units.lastIndexOf(units[units.length - 1]));
     }
 
     Iterable reversed = units.reversed;
@@ -64,7 +67,7 @@ main() {
       [0xdc00, 0xd800, 61, 0xd9ab, 0xd9ab, 0xddef, 0xddef, 62, 0xdc00, 0xd800]);
   test(string);
   string = "\x00\x7f\xff\u0100\ufeff\uffef\uffff"
-           "\u{10000}\u{12345}\u{1d800}\u{1dc00}\u{1ffef}\u{1ffff}";
+      "\u{10000}\u{12345}\u{1d800}\u{1dc00}\u{1ffef}\u{1ffff}";
   test(string);
 
   // Reading each unit of a surrogate pair works.

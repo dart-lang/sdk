@@ -56,9 +56,10 @@ void testWrite() {
   bf.write("z");
   bf.write("\n");
   bf.write("thequickbrownfoxjumpsoverthelazydog");
-  Expect.equals("abcdefghijklmnopqrstuvwxyz\n"
-                "thequickbrownfoxjumpsoverthelazydog",
-                bf.toString());
+  Expect.equals(
+      "abcdefghijklmnopqrstuvwxyz\n"
+      "thequickbrownfoxjumpsoverthelazydog",
+      bf.toString());
 
   bf = new StringBuffer("");
   for (int i = 0; i < 100000; i++) {
@@ -122,7 +123,9 @@ void testWriteAll2() {
   Expect.equals("", bf1.toString());
 
   StringBuffer bf2 = new StringBuffer("");
-  Expect.throws(() { bf2.writeAll([1], null); });
+  Expect.throws(() {
+    bf2.writeAll([1], null);
+  });
 }
 
 void testWriteln() {
@@ -172,11 +175,7 @@ void testChaining() {
   StringBuffer bf = new StringBuffer("");
   StringBuffer bf2 = new StringBuffer("");
   bf2.write("bf2");
-  bf..write("foo")
-    ..write("bar")
-    ..write(bf2)
-    ..write(bf2)
-    ..write("toto");
+  bf..write("foo")..write("bar")..write(bf2)..write(bf2)..write("toto");
   Expect.equals("foobarbf2bf2toto", bf.toString());
 }
 
@@ -184,11 +183,11 @@ void testWriteCharCode() {
   StringBuffer bf1 = new StringBuffer();
   StringBuffer bf2 = new StringBuffer();
   bf1.write("a");
-  bf2.writeCharCode(0x61);  // a
+  bf2.writeCharCode(0x61); // a
   bf1.write("b");
-  bf2.writeCharCode(0x62);  // b
+  bf2.writeCharCode(0x62); // b
   bf1.write("c");
-  bf2.writeCharCode(0x63);  // c
+  bf2.writeCharCode(0x63); // c
   bf1.write(new String.fromCharCode(0xD823));
   bf2.writeCharCode(0xD823);
   bf1.write(new String.fromCharCode(0xDC23));
@@ -211,8 +210,12 @@ void testWriteCharCode() {
   Expect.equals("abcdeabcde", bf1.toString());
 
   // Out-of-range character codes are not allowed.
-  Expect.throws(() { bf2.writeCharCode(-1); });
-  Expect.throws(() { bf2.writeCharCode(0x110000); });
+  Expect.throws(() {
+    bf2.writeCharCode(-1);
+  });
+  Expect.throws(() {
+    bf2.writeCharCode(0x110000);
+  });
 }
 
 void testBufferLength(int length, StringBuffer bf) {

@@ -14,8 +14,7 @@ withTryFinally() {
     if (a++ == 0) {
       inIt = true;
     }
-  } finally {
-  }
+  } finally {}
   Expect.isTrue(inIt);
 }
 

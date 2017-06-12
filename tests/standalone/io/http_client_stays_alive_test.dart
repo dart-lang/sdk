@@ -37,18 +37,21 @@ void runServerProcess() {
     server.idleTimeout = const Duration(hours: 1);
 
     var subscription = server.listen((HttpRequest request) {
-      return request.response..write('hello world')..close();
+      return request.response
+        ..write('hello world')
+        ..close();
     });
 
     var sw = new Stopwatch()..start();
-    var script = Platform.script.resolve('http_client_stays_alive_test.dart')
+    var script = Platform.script
+        .resolve('http_client_stays_alive_test.dart')
         .toFilePath();
     var arguments = packageOptions()..add(script)..add(url);
     Process.run(Platform.executable, arguments).then((res) {
       subscription.cancel();
       if (res.exitCode != 0) {
         throw "Child exited with ${res.exitCode} instead of 0. "
-              "(stdout: ${res.stdout}, stderr: ${res.stderr})";
+            "(stdout: ${res.stdout}, stderr: ${res.stderr})";
       }
       var seconds = sw.elapsed.inSeconds;
       // NOTE: There is a slight chance this will cause flakiness, but there is
@@ -56,7 +59,7 @@ void runServerProcess() {
       // form the outside.
       if (seconds < SECONDS || (SECONDS + 30) < seconds) {
         throw "Child did exit within $seconds seconds, but expected it to take "
-              "roughly $SECONDS seconds.";
+            "roughly $SECONDS seconds.";
       }
 
       asyncEnd();
@@ -72,8 +75,9 @@ void runClientProcess(String url) {
   var client = new HttpClient();
   client.idleTimeout = const Duration(seconds: SECONDS);
 
-  client.getUrl(uri)
-      .then((req) =>req.close())
+  client
+      .getUrl(uri)
+      .then((req) => req.close())
       .then((response) => response.drain())
       .then((_) => print('drained client request'));
 }

@@ -41,8 +41,8 @@ main() {
     Expect.equals("a", ("a" + c).trim(), "a-$name");
     Expect.equals("a", (c + "a").trim(), "$name-a");
     Expect.equals("a", (c + c + "a" + c + c).trim(), "$name around");
-    Expect.equals("a" + c + "a", (c + c + "a" + c + "a" + c + c).trim(),
-                  "$name many");
+    Expect.equals(
+        "a" + c + "a", (c + c + "a" + c + "a" + c + c).trim(), "$name many");
   }
   Expect.equals("", new String.fromCharCodes(WHITESPACE).trim(), "ALL");
 }

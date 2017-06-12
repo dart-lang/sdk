@@ -5,6 +5,7 @@
 // PackageRoot=packages/
 
 library package_isolate_test;
+
 import 'package:shared.dart' as shared;
 import 'dart:isolate';
 import '../../../pkg/async_helper/lib/async_helper.dart';
@@ -39,8 +40,8 @@ void main() {
     // Package in spawnUri() of file in folder.
     var replyPort = expectResponse().sendPort;
     shared.output = 'main';
-    Isolate.spawnUri(Uri.parse('test_folder/folder_isolate.dart'),
-                     [], replyPort);
+    Isolate.spawnUri(
+        Uri.parse('test_folder/folder_isolate.dart'), [], replyPort);
   }
 }
 

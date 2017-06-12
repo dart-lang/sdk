@@ -37,7 +37,7 @@ nestedIf2(notTrue) {
 nestedWhile(notTrue) {
   if (notTrue) return 'bad input';
   if (notTrue) {
-    while(notTrue) {
+    while (notTrue) {
       if (notTrue) {
         return 'bad';
       }

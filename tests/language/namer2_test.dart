@@ -17,7 +17,7 @@ main() {
   var c = [new A()];
   Expect.isTrue(c[0] is A);
   Expect.isTrue(c[0] == c[0]);
-  
+
   c = [new A<int>()];
   c[0].$builtinTypeInfo = 42;
   Expect.isTrue(c[0] is! A<String>);

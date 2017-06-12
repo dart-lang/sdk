@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that we do not accidentially leak code from deferred libraries but do
+// Test that we do not accidentally leak code from deferred libraries but do
 // allow inlining of empty functions and from main.
 
 import 'package:async_helper/async_helper.dart';
@@ -32,7 +32,7 @@ void main() {
     var sameContextInline = lib3.find("sameContextInline");
     var ou_lib3 = outputUnitForElement(sameContextInline);
 
-    // Test that we actually got differnt output units.
+    // Test that we actually got different output units.
     Expect.notEquals(ou_lib1.name, ou_lib3.name);
 
     String mainOutput = collector.getOutput("", OutputType.js);

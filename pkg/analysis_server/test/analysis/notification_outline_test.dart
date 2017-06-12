@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.analysis.notification.outline;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,6 +24,9 @@ class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   FileKind fileKind;
   String libraryName;
   Outline outline;
+
+  @override
+  bool get enableNewAnalysisDriver => false;
 
   Future prepareOutline() {
     addAnalysisSubscription(AnalysisService.OUTLINE, testFile);

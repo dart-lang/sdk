@@ -25,7 +25,7 @@ main() {
   final retainedSizes = new RetainedSizeRepositoryMock();
   final inbounds = new InboundReferencesRepositoryMock();
   final paths = new RetainingPathRepositoryMock();
-  final instances = new InstanceRepositoryMock();
+  final objects = new ObjectRepositoryMock();
   test('instantiation', () {
     final e = new MegamorphicCacheViewElement(
         vm,
@@ -38,7 +38,7 @@ main() {
         reachableSizes,
         inbounds,
         paths,
-        instances);
+        objects);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.cache, equals(cache));
@@ -61,7 +61,7 @@ main() {
         reachableSizes,
         inbounds,
         paths,
-        instances);
+        objects);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

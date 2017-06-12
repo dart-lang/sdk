@@ -12,8 +12,7 @@ main() {
   for (int i = 0; i < 1000; i++) testNumberIdentity();
 }
 
-
-testNumberIdentity () {
+testNumberIdentity() {
   const int smi = 8;
   const int bigint = 22107138293752210713829375;
   const double dbl = 8.0;
@@ -27,5 +26,5 @@ testNumberIdentity () {
   var b = a + 0;
   Expect.isTrue(identical(a, b));
   b = a + 1;
-  Expect.isFalse(identical(a, b));  // Fails with dart2js.
+  Expect.isFalse(identical(a, b)); // Fails with dart2js.
 }

@@ -54,15 +54,19 @@ Future testNativeExtensions(String snapshotKind) async {
 
     // Copy sample_extension dart files and sample_extension tests to the
     // temporary test directory.
-    for (var file in ['sample_synchronous_extension.dart',
-                      'sample_asynchronous_extension.dart',
-                      'test_sample_synchronous_extension.dart',
-                      'test_sample_asynchronous_extension.dart']) {
+    for (var file in [
+      'sample_synchronous_extension.dart',
+      'sample_asynchronous_extension.dart',
+      'test_sample_synchronous_extension.dart',
+      'test_sample_asynchronous_extension.dart'
+    ]) {
       await copyFileToDirectory(join(sourceDirectory, file), testDirectory);
     }
 
-    for (var test in ['test_sample_synchronous_extension.dart',
-                      'test_sample_asynchronous_extension.dart']) {
+    for (var test in [
+      'test_sample_synchronous_extension.dart',
+      'test_sample_asynchronous_extension.dart'
+    ]) {
       String script = join(testDirectory, test);
       String snapshot;
       if (snapshotKind == null) {
@@ -70,9 +74,7 @@ Future testNativeExtensions(String snapshotKind) async {
       } else {
         snapshot = join(testDirectory, "$test.snapshot");
         await run(Platform.executable,
-                  ['--snapshot=$snapshot',
-                   '--snapshot-kind=$snapshotKind',
-                   script]);
+            ['--snapshot=$snapshot', '--snapshot-kind=$snapshotKind', script]);
       }
 
       await run(Platform.executable, [snapshot]);

@@ -11,7 +11,6 @@ createLink(String dst, String link, void callback()) {
   new Link(link).create(dst).then((_) => callback());
 }
 
-
 testFileExistsCreate() {
   var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
   var x = '${temp.path}${Platform.pathSeparator}x';
@@ -24,9 +23,9 @@ testFileExistsCreate() {
     Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(y));
     Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(x));
     Expect.equals(FileSystemEntityType.LINK,
-                  FileSystemEntity.typeSync(y, followLinks: false));
+        FileSystemEntity.typeSync(y, followLinks: false));
     Expect.equals(FileSystemEntityType.NOT_FOUND,
-                  FileSystemEntity.typeSync(x, followLinks: false));
+        FileSystemEntity.typeSync(x, followLinks: false));
     Expect.equals(x, new Link(y).targetSync());
 
     new File(y).createSync();
@@ -39,9 +38,9 @@ testFileExistsCreate() {
     Expect.equals(FileSystemEntityType.FILE, FileSystemEntity.typeSync(y));
     Expect.equals(FileSystemEntityType.FILE, FileSystemEntity.typeSync(x));
     Expect.equals(FileSystemEntityType.LINK,
-                  FileSystemEntity.typeSync(y, followLinks: false));
+        FileSystemEntity.typeSync(y, followLinks: false));
     Expect.equals(FileSystemEntityType.FILE,
-                  FileSystemEntity.typeSync(x, followLinks: false));
+        FileSystemEntity.typeSync(x, followLinks: false));
     Expect.equals(x, new Link(y).targetSync());
 
     new File(x).deleteSync();
@@ -53,9 +52,9 @@ testFileExistsCreate() {
     Expect.equals(FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(y));
     Expect.equals(FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(x));
     Expect.equals(FileSystemEntityType.LINK,
-                  FileSystemEntity.typeSync(y, followLinks: false));
+        FileSystemEntity.typeSync(y, followLinks: false));
     Expect.equals(FileSystemEntityType.DIRECTORY,
-                  FileSystemEntity.typeSync(x, followLinks: false));
+        FileSystemEntity.typeSync(x, followLinks: false));
     Expect.equals(x, new Link(y).targetSync());
 
     new Link(y).deleteSync();
@@ -68,7 +67,6 @@ testFileExistsCreate() {
     temp.deleteSync(recursive: true);
   });
 }
-
 
 testFileDelete() {
   var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
@@ -92,7 +90,6 @@ testFileDelete() {
   });
 }
 
-
 testFileWriteRead() {
   var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
   var x = '${temp.path}${Platform.pathSeparator}x';
@@ -113,7 +110,6 @@ testFileWriteRead() {
   });
 }
 
-
 testDirectoryExistsCreate() {
   var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
   var x = '${temp.path}${Platform.pathSeparator}x';
@@ -125,7 +121,6 @@ testDirectoryExistsCreate() {
     temp.deleteSync(recursive: true);
   });
 }
-
 
 testDirectoryDelete() {
   var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
@@ -151,7 +146,6 @@ testDirectoryDelete() {
   });
 }
 
-
 testDirectoryListing() {
   asyncStart();
   var temp = Directory.systemTemp.createTempSync('dart_file_system_links');
@@ -162,7 +156,7 @@ testDirectoryListing() {
   createLink(temp2.path, y, () {
     var files = [];
     var dirs = [];
-    for (var entry in temp.listSync(recursive:true)) {
+    for (var entry in temp.listSync(recursive: true)) {
       if (entry is File) {
         files.add(entry.path);
       } else {
@@ -177,27 +171,24 @@ testDirectoryListing() {
 
     files = [];
     dirs = [];
-    var lister = temp.list(recursive: true).listen(
-        (entity) {
-          if (entity is File) {
-            files.add(entity.path);
-          } else {
-            Expect.isTrue(entity is Directory);
-            dirs.add(entity.path);
-          }
-        },
-        onDone: () {
-          Expect.equals(1, files.length);
-          Expect.isTrue(files[0].endsWith('$y${Platform.pathSeparator}x'));
-          Expect.equals(1, dirs.length);
-          Expect.isTrue(dirs[0].endsWith(y));
-          temp.deleteSync(recursive: true);
-          temp2.deleteSync(recursive: true);
-          asyncEnd();
-        });
+    var lister = temp.list(recursive: true).listen((entity) {
+      if (entity is File) {
+        files.add(entity.path);
+      } else {
+        Expect.isTrue(entity is Directory);
+        dirs.add(entity.path);
+      }
+    }, onDone: () {
+      Expect.equals(1, files.length);
+      Expect.isTrue(files[0].endsWith('$y${Platform.pathSeparator}x'));
+      Expect.equals(1, dirs.length);
+      Expect.isTrue(dirs[0].endsWith(y));
+      temp.deleteSync(recursive: true);
+      temp2.deleteSync(recursive: true);
+      asyncEnd();
+    });
   });
 }
-
 
 testDirectoryListingBrokenLink() {
   asyncStart();
@@ -207,7 +198,7 @@ testDirectoryListingBrokenLink() {
   var doesNotExist = 'this_thing_does_not_exist';
   new File(x).createSync();
   createLink(doesNotExist, link, () {
-    temp.listSync(recursive: true);  // No exceptions.
+    temp.listSync(recursive: true); // No exceptions.
     var files = [];
     var dirs = [];
     var links = [];
@@ -236,7 +227,6 @@ testDirectoryListingBrokenLink() {
         });
   });
 }
-
 
 main() {
   // Links on Windows are tested by windows_file_system_[async_]links_test.

@@ -6,4 +6,3 @@
 // correctly. Currently, it just reads void for all functions.
 AppWindowAppWindow current() =>
     new AppWindowAppWindow._proxy(JS('void', '#.current()', this._jsObject));
-

@@ -1,13 +1,9 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
-
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.dart.keyword;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
@@ -15,12 +11,14 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-const ASYNC = 'async';
 const ASYNC_STAR = 'async*';
-const AWAIT = 'await';
+const DEFERRED_AS = 'deferred as';
+const EXPORT_STATEMENT = "export '';";
+const IMPORT_STATEMENT = "import '';";
+const PART_STATEMENT = "part '';";
 const SYNC_STAR = 'sync*';
-const YIELD = 'yield';
 const YIELD_STAR = 'yield*';
 
 /**
@@ -66,7 +64,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         previous = previous.previous;
       }
       if (previous.lexeme == ')') {
-        _addSuggestion2(ASYNC);
+        _addSuggestion(Keyword.ASYNC);
         _addSuggestion2(ASYNC_STAR);
         _addSuggestion2(SYNC_STAR);
       }
@@ -80,7 +78,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   visitAsExpression(AsExpression node) {
     if (identical(entity, node.asOperator) &&
         node.expression is ParenthesizedExpression) {
-      _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion(Keyword.ASYNC, DART_RELEVANCE_HIGH);
       _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
       _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
     }
@@ -91,7 +89,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     Statement prevStmt = OpType.getPreviousStatement(node, entity);
     if (prevStmt is TryStatement) {
       if (prevStmt.finallyBlock == null) {
-        _addSuggestion2('on');
+        _addSuggestion(Keyword.ON);
         _addSuggestion(Keyword.CATCH);
         _addSuggestion(Keyword.FINALLY);
         if (prevStmt.catchClauses.isEmpty) {
@@ -116,7 +114,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         }
         if (previous.type == TokenType.CLOSE_PAREN &&
             next.type == TokenType.OPEN_CURLY_BRACKET) {
-          _addSuggestion2(ASYNC);
+          _addSuggestion(Keyword.ASYNC);
           _addSuggestion2(ASYNC_STAR);
           _addSuggestion2(SYNC_STAR);
         }
@@ -141,7 +139,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       int index = node.members.indexOf(entity);
       ClassMember previous = index > 0 ? node.members[index - 1] : null;
       if (previous is MethodDeclaration && previous.body is EmptyFunctionBody) {
-        _addSuggestion2(ASYNC);
+        _addSuggestion(Keyword.ASYNC);
         _addSuggestion2(ASYNC_STAR);
         _addSuggestion2(SYNC_STAR);
       }
@@ -182,22 +180,36 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
           !node.directives.any((d) => d is LibraryDirective)) {
         _addSuggestions([Keyword.LIBRARY], DART_RELEVANCE_HIGH);
       }
-      _addSuggestion2('${Keyword.IMPORT.syntax} \'\';',
+      _addSuggestion2(IMPORT_STATEMENT,
           offset: 8, relevance: DART_RELEVANCE_HIGH);
-      _addSuggestion2('${Keyword.EXPORT.syntax} \'\';',
+      _addSuggestion2(EXPORT_STATEMENT,
           offset: 8, relevance: DART_RELEVANCE_HIGH);
-      _addSuggestion2('${Keyword.PART.syntax} \'\';',
+      _addSuggestion2(PART_STATEMENT,
           offset: 6, relevance: DART_RELEVANCE_HIGH);
     }
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&
           previousMember.functionExpression is FunctionExpression &&
           previousMember.functionExpression.body is EmptyFunctionBody) {
-        _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.ASYNC, DART_RELEVANCE_HIGH);
         _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
         _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
       }
       _addCompilationUnitKeywords();
+    }
+  }
+
+  @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.initializers.isNotEmpty && node.initializers.last == entity) {
+      _addSuggestion(Keyword.SUPER);
+    }
+  }
+
+  @override
+  visitDefaultFormalParameter(DefaultFormalParameter node) {
+    if (entity == node.defaultValue) {
+      _addExpressionKeywords(node);
     }
   }
 
@@ -269,7 +281,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (entity == node.body) {
       FunctionBody body = node.body;
       if (!body.isAsynchronous) {
-        _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.ASYNC, DART_RELEVANCE_HIGH);
         if (body is! ExpressionFunctionBody) {
           _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
           _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
@@ -341,11 +353,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (entity == node.body) {
       if (node.body is EmptyFunctionBody) {
         _addClassBodyKeywords();
-        _addSuggestion2(ASYNC);
+        _addSuggestion(Keyword.ASYNC);
         _addSuggestion2(ASYNC_STAR);
         _addSuggestion2(SYNC_STAR);
       } else {
-        _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.ASYNC, DART_RELEVANCE_HIGH);
         if (node.body is! ExpressionFunctionBody) {
           _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
           _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
@@ -429,7 +441,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     var obj = entity;
     if (obj is CatchClause ||
         (obj is KeywordToken && obj.value() == Keyword.FINALLY)) {
-      _addSuggestion2('on');
+      _addSuggestion(Keyword.ON);
       _addSuggestion(Keyword.CATCH);
       return null;
     }
@@ -496,7 +508,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       _addSuggestions([Keyword.SUPER, Keyword.THIS]);
     }
     if (_inAsyncMethodOrFunction(node)) {
-      _addSuggestion2(AWAIT);
+      _addSuggestion(Keyword.AWAIT);
     }
   }
 
@@ -508,15 +520,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
     if (!hasDeferredKeyword) {
       if (!hasAsKeyword) {
-        _addSuggestion2('deferred as', relevance: DART_RELEVANCE_HIGH);
+        _addSuggestion2(DEFERRED_AS, relevance: DART_RELEVANCE_HIGH);
       } else if (entity == node.asKeyword) {
         _addSuggestion(Keyword.DEFERRED, DART_RELEVANCE_HIGH);
       }
     }
     if (!hasDeferredKeyword || hasAsKeyword) {
       if (node.combinators.isEmpty) {
-        _addSuggestion2('show', relevance: DART_RELEVANCE_HIGH);
-        _addSuggestion2('hide', relevance: DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.SHOW, DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.HIDE, DART_RELEVANCE_HIGH);
       }
     }
   }
@@ -526,10 +538,10 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       _addSuggestions([Keyword.SUPER, Keyword.THIS]);
     }
     if (_inAsyncMethodOrFunction(node)) {
-      _addSuggestion2(AWAIT);
+      _addSuggestion(Keyword.AWAIT);
     } else if (_inAsyncStarOrSyncStarMethodOrFunction(node)) {
-      _addSuggestion2(AWAIT);
-      _addSuggestion2(YIELD);
+      _addSuggestion(Keyword.AWAIT);
+      _addSuggestion(Keyword.YIELD);
       _addSuggestion2(YIELD_STAR);
     }
     if (_inLoop(node)) {
@@ -561,7 +573,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   void _addSuggestion(Keyword keyword,
       [int relevance = DART_RELEVANCE_KEYWORD]) {
-    _addSuggestion2(keyword.syntax, relevance: relevance);
+    _addSuggestion2(keyword.lexeme, relevance: relevance);
   }
 
   void _addSuggestion2(String completion,

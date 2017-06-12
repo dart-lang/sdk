@@ -4,11 +4,33 @@
 
 packages/*: Skip # Skip packages folder
 
+analyze_test: Slow, Pass
+
 compile_with_empty_libraries_test: Fail # Issue 24223
 
 kernel/*: Slow, Pass
 
 boolified_operator_test: Fail # Issue 8001
+
+# Skip most serialization tests. These are very slow and are no longer a 
+# priority.
+serialization/analysis1_test: Skip
+serialization/analysis3_test: Skip
+serialization/analysis4_test: Skip
+serialization/analysis5_test: Skip
+serialization/compilation_1_test: Skip
+serialization/compilation0_test: Skip
+serialization/compilation1_test: Skip
+serialization/compilation4_test: Skip
+serialization/compilation3_test: Skip
+serialization/compilation5_test: Skip
+serialization/library_test: Skip
+serialization/model_1_test: Skip
+serialization/model1_test: Skip
+serialization/model3_test: Skip
+serialization/model4_test: Skip
+serialization/model5_test: Skip
+serialization/native_data_test: Skip
 
 # Don't mark these tests as failing. Instead, fix the errors/warnings that they
 # report or update the whitelist in the test-files to temporarily allow
@@ -70,6 +92,7 @@ jsinterop/world_test: Pass, Slow
 sourcemaps/stacktrace_test: Pass, Slow
 kernel/visitor_test: Pass, Slow
 output_type_test: Pass, Slow
+preserve_uris_test: Pass, Slow
 
 [ $mode == debug ]
 check_elements_invariants_test: Skip # Slow and only needs to be run in one
@@ -102,3 +125,6 @@ analyze_dart2js_test: Pass, Slow # DON'T CHANGE THIS LINE -- SEE ABOVE.
 
 [ $system == linux ]
 dart2js_batch2_test: Pass, RuntimeError # Issue 29021
+
+[ $use_sdk ]
+kernel/closed_world_from_dill_test: Fail # Issue 29626

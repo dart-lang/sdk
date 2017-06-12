@@ -24,12 +24,18 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:front_end/file_system.dart';
+import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/vm.dart'
-    show CompilationResult, Status, parseScript;
+    show CompilationResult, Status, parseScriptInFileSystem;
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
 
-Future<CompilationResult> _processLoadRequestImpl(String inputFilePathOrUri) {
+const bool strongMode = const bool.fromEnvironment('DFE_STRONG_MODE');
+
+Future<CompilationResult> _processLoadRequestImpl(
+    String inputFilePathOrUri, FileSystem fileSystem) {
   Uri scriptUri = Uri.parse(inputFilePathOrUri);
 
   // Because we serve both Loader and bootstrapping requests we need to
@@ -46,8 +52,8 @@ Future<CompilationResult> _processLoadRequestImpl(String inputFilePathOrUri) {
     return new Future<CompilationResult>.value(new CompilationResult.error(
         "Expected 'file' scheme for a script uri: got ${scriptUri.scheme}"));
   }
-
-  return parseScript(scriptUri, verbose: verbose);
+  return parseScriptInFileSystem(scriptUri, fileSystem,
+      verbose: verbose, strongMode: strongMode);
 }
 
 // Process a request from the runtime. See KernelIsolate::CompileToKernel in
@@ -62,10 +68,13 @@ Future _processLoadRequest(request) async {
   int tag = request[0];
   final SendPort port = request[1];
   final String inputFileUrl = request[2];
+  FileSystem fileSystem = request.length > 3
+      ? _buildMemoryFileSystem(request[3])
+      : PhysicalFileSystem.instance;
 
   CompilationResult result;
   try {
-    result = await _processLoadRequestImpl(inputFileUrl);
+    result = await _processLoadRequestImpl(inputFileUrl, fileSystem);
   } catch (error, stack) {
     result = new CompilationResult.crash(error, stack);
   }
@@ -86,6 +95,20 @@ Future _processLoadRequest(request) async {
     }
     port.send([tag, inputFileUrl, inputFileUrl, null, result.payload]);
   }
+}
+
+// Given namedSources list of interleaved file name string and
+// raw file content Uint8List this function builds up and returns
+// MemoryFileSystem instance that can be used instead of
+// PhysicalFileSystem.instance by the frontend.
+MemoryFileSystem _buildMemoryFileSystem(List namedSources) {
+  MemoryFileSystem fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+  for (int i = 0; i < namedSources.length ~/ 2; i++) {
+    fileSystem
+        .entityForUri(Uri.parse(namedSources[i * 2]))
+        .writeAsBytesSync(namedSources[i * 2 + 1]);
+  }
+  return fileSystem;
 }
 
 train(String scriptUri) {

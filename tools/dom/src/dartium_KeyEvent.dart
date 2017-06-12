@@ -67,42 +67,57 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** Shadows on top of the parent's currentTarget. */
   EventTarget _currentTarget;
 
+  final InputDeviceCapabilities sourceCapabilities;
+
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
-  KeyEvent.wrap(KeyboardEvent parent): super(parent) {
+  KeyEvent.wrap(KeyboardEvent parent) : super(parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
     _shadowKeyCode = _realKeyCode;
-    _currentTarget = _parent.currentTarget == null? window :
-        _parent.currentTarget;
+    _currentTarget =
+        _parent.currentTarget == null ? window : _parent.currentTarget;
   }
 
   /** Programmatically create a new KeyEvent (and KeyboardEvent). */
-   factory KeyEvent(String type,
-      {Window view, bool canBubble: true, bool cancelable: true, int keyCode: 0,
-      int charCode: 0, int keyLocation: 1, bool ctrlKey: false,
-      bool altKey: false, bool shiftKey: false, bool metaKey: false,
-       EventTarget currentTarget}) {
-     var parent = new KeyboardEvent(type, view: view, canBubble: canBubble,
-        cancelable: cancelable, keyLocation: keyLocation, ctrlKey: ctrlKey,
-        altKey: altKey, shiftKey: shiftKey, metaKey: metaKey);
-     var keyEvent = new KeyEvent.wrap(parent);
-     keyEvent._shadowAltKey = altKey;
-     keyEvent._shadowCharCode = charCode;
-     keyEvent._shadowKeyCode = keyCode;
-     keyEvent._currentTarget = currentTarget == null ? window : currentTarget;
-     return keyEvent;
-   }
+  factory KeyEvent(String type,
+      {Window view,
+      bool canBubble: true,
+      bool cancelable: true,
+      int keyCode: 0,
+      int charCode: 0,
+      int keyLocation: 1,
+      bool ctrlKey: false,
+      bool altKey: false,
+      bool shiftKey: false,
+      bool metaKey: false,
+      EventTarget currentTarget}) {
+    var parent = new KeyboardEvent(type,
+        view: view,
+        canBubble: canBubble,
+        cancelable: cancelable,
+        keyLocation: keyLocation,
+        ctrlKey: ctrlKey,
+        altKey: altKey,
+        shiftKey: shiftKey,
+        metaKey: metaKey);
+    var keyEvent = new KeyEvent.wrap(parent);
+    keyEvent._shadowAltKey = altKey;
+    keyEvent._shadowCharCode = charCode;
+    keyEvent._shadowKeyCode = keyCode;
+    keyEvent._currentTarget = currentTarget == null ? window : currentTarget;
+    return keyEvent;
+  }
 
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyDownEvent =
-    new _KeyboardEventHandler('keydown');
+      new _KeyboardEventHandler('keydown');
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyUpEvent =
-    new _KeyboardEventHandler('keyup');
+      new _KeyboardEventHandler('keyup');
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyPressEvent =
-    new _KeyboardEventHandler('keypress');
+      new _KeyboardEventHandler('keypress');
 
   /** The currently registered target for this event. */
   EventTarget get currentTarget => _currentTarget;
@@ -121,10 +136,11 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
   Window get view => _parent.view;
-  void _initUIEvent(String type, bool canBubble, bool cancelable,
-      Window view, int detail) {
+  void _initUIEvent(
+      String type, bool canBubble, bool cancelable, Window view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
+
   String get _shadowKeyIdentifier => _parent._keyIdentifier;
 
   int get _charCode => charCode;
@@ -133,12 +149,22 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   String get _keyIdentifier {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
-  void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
-      bool altKey, bool shiftKey, bool metaKey) {
+
+  void _initKeyboardEvent(
+      String type,
+      bool canBubble,
+      bool cancelable,
+      Window view,
+      String keyIdentifier,
+      int keyLocation,
+      bool ctrlKey,
+      bool altKey,
+      bool shiftKey,
+      bool metaKey) {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
+
   @Experimental() // untriaged
   bool getModifierState(String keyArgument) => throw new UnimplementedError();
   @Experimental() // untriaged

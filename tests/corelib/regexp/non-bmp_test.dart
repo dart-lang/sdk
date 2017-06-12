@@ -26,21 +26,26 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  description(
-  'Tests that regular expressions treat non-BMP characters as two separate characters. '
-  + 'From a Unicode correctness point of view this is wrong, but it is what other browsers do. '
-  + 'And given that we store strings as UTF-16, it is also more efficient to implement. '
-  + 'Also test some other cases related to UTF-8 and UTF-16.'
-  );
+  description('Tests that regular expressions treat non-BMP characters as two separate characters. ' +
+      'From a Unicode correctness point of view this is wrong, but it is what other browsers do. ' +
+      'And given that we store strings as UTF-16, it is also more efficient to implement. ' +
+      'Also test some other cases related to UTF-8 and UTF-16.');
 
-  var surrogatePair = new String.fromCharCode(0xD800) + new String.fromCharCode(0xDC00);
+  var surrogatePair =
+      new String.fromCharCode(0xD800) + new String.fromCharCode(0xDC00);
 
   assertEquals(new RegExp(r".").firstMatch(surrogatePair).group(0).length, 1);
   assertEquals(new RegExp(r"\D").firstMatch(surrogatePair).group(0).length, 1);
   assertEquals(new RegExp(r"\S").firstMatch(surrogatePair).group(0).length, 1);
   assertEquals(new RegExp(r"\W").firstMatch(surrogatePair).group(0).length, 1);
-  assertEquals(new RegExp(r"[^x]").firstMatch(surrogatePair).group(0).length, 1);
+  assertEquals(
+      new RegExp(r"[^x]").firstMatch(surrogatePair).group(0).length, 1);
 
-  assertEquals(new RegExp(r".{1,2}").firstMatch("!!" + new String.fromCharCode(0xA1)).group(0).length, 2);
+  assertEquals(
+      new RegExp(r".{1,2}")
+          .firstMatch("!!" + new String.fromCharCode(0xA1))
+          .group(0)
+          .length,
+      2);
   shouldBeNull(new RegExp(r".").firstMatch(""));
 }

@@ -27,7 +27,9 @@ class A {
 
 class B extends A {
   var b1;
-  B(x) : super(E(1), E(2)), b1 = E(4) {
+  B(x)
+      : super(E(1), E(2)),
+        b1 = E(4) {
     // Implicit super call to A's body happens here.
     Expect.equals(4, b1);
     E(6);

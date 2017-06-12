@@ -143,15 +143,22 @@ abstract class SubtypeTester {
   InterfaceType get rawFunctionType;
   ClassHierarchy get hierarchy;
 
+  /// Determines if the given type is at the bottom of the type hierarchy.  May
+  /// be overridden in subclasses.
+  bool isBottom(DartType type) => type is BottomType;
+
+  /// Determines if the given type is at the top of the type hierarchy.  May be
+  /// overridden in subclasses.
+  bool isTop(DartType type) =>
+      type is DynamicType || type is VoidType || type == objectType;
+
   /// Returns true if [subtype] is a subtype of [supertype].
   bool isSubtypeOf(DartType subtype, DartType supertype) {
+    subtype = subtype.unalias;
+    supertype = supertype.unalias;
     if (identical(subtype, supertype)) return true;
-    if (subtype is BottomType) return true;
-    if (supertype is DynamicType ||
-        supertype is VoidType ||
-        supertype == objectType) {
-      return true;
-    }
+    if (isBottom(subtype)) return true;
+    if (isTop(supertype)) return true;
     if (subtype is InterfaceType && supertype is InterfaceType) {
       var upcastType =
           hierarchy.getTypeAsInstanceOf(subtype, supertype.classNode);

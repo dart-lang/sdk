@@ -8,9 +8,8 @@
 class ListLiteral2NegativeTest<T> {
   test() {
     try {
-      var m = const <T>[0, 1];  // Type parameter is not allowed with const.
-    } on TypeError catch (error) {
-    }
+      var m = const <T>[0, 1]; // Type parameter is not allowed with const.
+    } on TypeError catch (error) {}
   }
 }
 
@@ -18,5 +17,3 @@ main() {
   var t = new ListLiteral2NegativeTest<int>();
   t.test();
 }
-
-

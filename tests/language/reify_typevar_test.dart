@@ -5,12 +5,12 @@
 import "package:expect/expect.dart";
 
 class Foo<T> {
-    reify() {
-        return T;
-    }
+  reify() {
+    return T;
+  }
 }
 
 main() {
-    Expect.equals(int, new Foo<int>().reify());
-    Expect.equals(Foo, new Foo().runtimeType);
+  Expect.equals(int, new Foo<int>().reify());
+  Expect.equals(Foo, new Foo().runtimeType);
 }

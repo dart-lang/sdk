@@ -9,7 +9,11 @@ import 'package:kernel/ast.dart'
 
 import '../errors.dart' show internalError;
 
-import '../kernel/kernel_builder.dart' show Builder, MemberBuilder;
+import '../kernel/kernel_builder.dart'
+    show
+        Builder,
+        MemberBuilder,
+        isRedirectingGenerativeConstructorImplementation;
 
 import '../modifier.dart'
     show abstractMask, constMask, externalMask, finalMask, staticMask;
@@ -30,13 +34,31 @@ class DillMemberBuilder extends MemberBuilder {
 
   bool get isConstructor => member is Constructor;
 
-  bool get isFactory {
-    if (member is Procedure) {
-      Procedure procedure = member;
-      return procedure.kind == ProcedureKind.Factory;
-    } else {
-      return false;
-    }
+  ProcedureKind get kind {
+    final member = this.member;
+    return member is Procedure ? member.kind : null;
+  }
+
+  bool get isRegularMethod => identical(ProcedureKind.Method, kind);
+
+  bool get isGetter => identical(ProcedureKind.Getter, kind);
+
+  bool get isSetter => identical(ProcedureKind.Setter, kind);
+
+  bool get isOperator => identical(ProcedureKind.Operator, kind);
+
+  bool get isFactory => identical(ProcedureKind.Factory, kind);
+
+  bool get isRedirectingGenerativeConstructor {
+    return isConstructor &&
+        isRedirectingGenerativeConstructorImplementation(member);
+  }
+
+  bool get isSynthetic {
+    // TODO(ahe): Kernel should eventually support a synthetic bit.
+    return isConstructor &&
+        name == "" &&
+        (charOffset == parent.charOffset || charOffset == -1);
   }
 }
 

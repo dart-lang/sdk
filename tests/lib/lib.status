@@ -223,11 +223,24 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 
 # 'js' tests import the dart:js library, so they only make sense in
 # a browser environment.
-[ $runtime == vm || $runtime == dart_precompiled ]
+[ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter ]
 js/*: Skip
 
 [ $compiler == app_jit ]
 mirrors/*: Skip # Issue 27929: Triage
+
+[ $runtime == flutter ]
+mirrors/*: Skip # Flutter does not support mirrors.
+async/catch_errors11_test: Skip # Flutter Issue 9113
+async/intercept_schedule_microtask2_test: Skip # Flutter Issue 9113
+async/run_zoned6_test/01: Skip # Flutter Issue 9113
+async/schedule_microtask_test: Skip # Flutter Issue 9113
+async/intercept_schedule_microtask6_test: Skip # Flutter Issue 9113
+async/stream_empty_test: Skip # Flutter Issue 9113
+async/run_zoned9_test/01: Skip # Flutter Issue 9113
+async/intercept_schedule_microtask5_test: Skip # Flutter Issue 9113
+async/stream_event_transformed_test: Skip # Flutter Issue 9113
+math/random_secure_test: RuntimeError # Flutter Issue 9113
 
 [ $compiler == dart2js && $minified ]
 mirrors/mirrors_used_get_name_test: RuntimeError
@@ -262,7 +275,7 @@ typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 [ $runtime == vm ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 
-[ $runtime == vm || $runtime == dart_precompiled ]
+[ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter ]
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
@@ -345,6 +358,13 @@ async/timer_test: Fail, Pass # See Issue 10982
 
 [ $compiler == none && $runtime == drt && $checked ]
 async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24460
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
+# TODO(terry): Failing tests with Dartium 50 roll (NEED TO FIX All)
+# ---------------------------------------------
+mirrors/regress_16321_test/01: Timeout, Pass # Roll 50 crash works on full build
+# ---------------------------------------------
+# TODO(terry): End of Dartium 50 roll failures
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
@@ -458,7 +478,7 @@ mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
 
-[ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
+[ $compiler == dartk || $compiler == dartkp ]
 async/future_or_only_in_async_test/00: MissingRuntimeError
 async/future_or_strong_test: RuntimeError
 async/future_test/01: RuntimeError
@@ -474,9 +494,6 @@ mirrors/constructor_kinds_test/none: RuntimeError
 mirrors/constructor_optional_args_test: Crash # Issue 29201
 mirrors/constructor_private_name_test: RuntimeError
 mirrors/dart2js_mirrors_test: Crash
-mirrors/deferred_mirrors_metadata_test: RuntimeError
-mirrors/deferred_mirrors_metatarget_test: RuntimeError
-mirrors/deferred_mirrors_update_test: RuntimeError
 mirrors/deferred_type_test: RuntimeError
 mirrors/delegate_class_test: RuntimeError
 mirrors/empty_test: Crash
@@ -487,6 +504,8 @@ mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_class_declaration_test: RuntimeError
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
+mirrors/generic_interface_test/01: RuntimeError
+mirrors/generic_interface_test/none: RuntimeError
 mirrors/generic_local_function_test: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
@@ -498,7 +517,6 @@ mirrors/generic_type_mirror_test: RuntimeError
 mirrors/hierarchy_invariants_test: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
-mirrors/immutable_collections_test: RuntimeError
 mirrors/inherited_metadata_test: RuntimeError
 mirrors/inherit_field_test: RuntimeError
 mirrors/initializing_formals_test/03: RuntimeError
@@ -520,10 +538,8 @@ mirrors/invoke_test: RuntimeError
 mirrors/invoke_throws_test: Crash
 mirrors/lazy_static_test: RuntimeError
 mirrors/library_declarations_test/none: RuntimeError
-mirrors/library_enumeration_deferred_loading_test: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError
 mirrors/library_exports_shown_test: RuntimeError
-mirrors/library_import_deferred_loading_test: RuntimeError
 mirrors/library_imports_bad_metadata_test/01: MissingCompileTimeError
 mirrors/library_imports_deferred_test: RuntimeError
 mirrors/library_imports_hidden_test: RuntimeError
@@ -590,14 +606,10 @@ mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
 mirrors/mixin_application_test: RuntimeError
 mirrors/mixin_test: RuntimeError
 mirrors/new_instance_with_type_arguments_test: RuntimeError
-mirrors/operator_test: RuntimeError
 mirrors/other_declarations_location_test: RuntimeError
 mirrors/parameter_annotation_mirror_test: RuntimeError
-mirrors/parameter_is_const_test/01: MissingCompileTimeError
 mirrors/parameter_metadata_test: RuntimeError
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError
-mirrors/parameter_test/01: RuntimeError
-mirrors/parameter_test/none: RuntimeError
 mirrors/private_class_field_test: RuntimeError
 mirrors/private_symbol_mangling_test: RuntimeError
 mirrors/private_symbol_test: RuntimeError
@@ -631,7 +643,6 @@ mirrors/symbol_validation_test/01: RuntimeError
 mirrors/symbol_validation_test/none: RuntimeError
 mirrors/synthetic_accessor_properties_test: RuntimeError
 mirrors/to_string_test: RuntimeError
-mirrors/typedef_deferred_library_test: RuntimeError
 mirrors/typedef_in_signature_test: RuntimeError
 mirrors/typedef_library_test: RuntimeError
 mirrors/typedef_metadata_test: RuntimeError
@@ -643,4 +654,26 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError
 mirrors/type_variable_owner_test/01: RuntimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
 mirrors/variable_is_const_test/none: RuntimeError
-profiler/metrics_num_test: CompileTimeError
+
+[ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
+mirrors/variable_is_const_test/01: Crash
+
+# dartk: checked mode failures
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+mirrors/invocation_fuzz_test/smi: Fail
+mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
+mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
+mirrors/reflected_type_generics_test/02: Pass
+mirrors/regress_16321_test/01: MissingCompileTimeError
+
+# Deferred loading kernel issue 28335.
+[ $compiler == dartk || $compiler == dartkp ]
+mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
+
+[ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
+mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.

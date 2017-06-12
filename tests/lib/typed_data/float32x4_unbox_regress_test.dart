@@ -26,7 +26,7 @@ void testListStoreDeopt() {
     // Without a proper check for SMI in the Float32x4 unbox instruction
     // this might trigger a crash.
     testListStore(list, 0, smi);
-  } catch (_) { }
+  } catch (_) {}
 }
 
 testAdd(a, b) {
@@ -50,7 +50,6 @@ void testAddDeopt() {
   } catch (_) {}
 }
 
-
 testGet(a) {
   var c = a.x + a.y + a.z + a.w;
   Expect.equals(10.0, c);
@@ -65,8 +64,7 @@ void testGetDeopt() {
 
   try {
     testGet(12);
-  } catch (_) {
-  }
+  } catch (_) {}
 
   for (int i = 0; i < 20; i++) {
     testGet(a);
@@ -92,8 +90,7 @@ void testComparisonDeopt() {
 
   try {
     testComparison(a, smi);
-  } catch (_) {
-  }
+  } catch (_) {}
 
   for (int i = 0; i < 20; i++) {
     testComparison(a, b);
@@ -101,8 +98,7 @@ void testComparisonDeopt() {
 
   try {
     testComparison(smi, a);
-  } catch (_) {
-  }
+  } catch (_) {}
 
   for (int i = 0; i < 20; i++) {
     testComparison(a, b);

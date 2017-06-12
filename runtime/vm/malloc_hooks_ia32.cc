@@ -6,7 +6,7 @@
 
 #include "vm/globals.h"
 
-#if defined(TARGET_ARCH_IA32)
+#if defined(HOST_ARCH_IA32)
 
 namespace dart {
 
@@ -14,4 +14,4 @@ const intptr_t kSkipCount = 5;
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_IA32)
+#endif  // defined(HOST_ARCH_IA32)

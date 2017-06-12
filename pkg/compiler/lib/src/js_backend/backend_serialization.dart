@@ -54,7 +54,7 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
   JavaScriptBackendSerializer(this._backend);
 
   NativeBasicDataImpl get nativeBasicData => _backend.nativeBasicData;
-  NativeDataImpl get nativeData => _backend.nativeData;
+  NativeDataBuilderImpl get nativeData => _backend.nativeDataBuilder;
 
   @override
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {
@@ -119,7 +119,7 @@ class JavaScriptBackendDeserializer implements DeserializerPlugin {
 
   NativeBasicDataBuilderImpl get nativeBasicData =>
       _backend.nativeBasicDataBuilder;
-  NativeDataImpl get nativeData => _backend.nativeData;
+  NativeDataBuilderImpl get nativeData => _backend.nativeDataBuilder;
 
   @override
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {

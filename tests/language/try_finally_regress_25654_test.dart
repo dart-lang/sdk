@@ -31,6 +31,3 @@ main() {
   Expect.isTrue(caught);
   Expect.equals(1, count);
 }
-
-
-

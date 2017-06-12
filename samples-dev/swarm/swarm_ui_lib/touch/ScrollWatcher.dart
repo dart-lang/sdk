@@ -27,8 +27,8 @@ class ScrollWatcher {
   Element _scrollerEl;
 
   ScrollWatcher(Scroller scroller)
-      : _scroller = scroller, _listeners = new List<ScrollListener>() {
-  }
+      : _scroller = scroller,
+        _listeners = new List<ScrollListener>() {}
 
   void addListener(ScrollListener listener) {
     _listeners.add(listener);
@@ -38,8 +38,7 @@ class ScrollWatcher {
    * Send the scroll event to all listeners.
    * [decelerating] is true if the offset is changing because of deceleration.
    */
-  void _dispatchScroll(num scrollX, num scrollY,
-                       [bool decelerating = false]) {
+  void _dispatchScroll(num scrollX, num scrollY, [bool decelerating = false]) {
     for (final listener in _listeners) {
       listener.onScrollerMoved(scrollX, scrollY, decelerating);
     }
@@ -51,7 +50,9 @@ class ScrollWatcher {
    */
   void initialize() {
     _scrollerEl = _scroller.getElement();
-    _scroller.onContentMoved.listen((e) { _onContentMoved(e); });
+    _scroller.onContentMoved.listen((e) {
+      _onContentMoved(e);
+    });
   }
 
   /**

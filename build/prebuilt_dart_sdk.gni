@@ -6,7 +6,7 @@ import("executable_suffix.gni")
 
 _dart_root = rebase_path("..")
 
-_prebuilt_dart_exe = "$_dart_root/tools/sdks/$host_os/dart-sdk/bin/dart"
+_prebuilt_dart_exe = "$_dart_root/tools/sdks/$host_os/dart-sdk/bin/dart$executable_suffix"
 
 # Our gn_run_binary swallows output unless there is an error.
 _prebuilt_dart_exe_trial = exec_script("gn_run_binary.py",

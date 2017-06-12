@@ -17,19 +17,15 @@ testFileUri() {
     ["a/b/", "a/b/", "a\\b\\"],
     ["a%20b/c%20d", "a b/c d", "a b\\c d"],
     ["a%20b/c%20d/", "a b/c d/", "a b\\c d\\"],
-
     ["file:///absolute", "/absolute", "\\absolute"],
     ["file:///absolute", "/absolute", "\\absolute"],
     ["file:///a/b", "/a/b", "\\a\\b"],
     ["file:///a/b", "/a/b", "\\a\\b"],
-
     ["file://server/a/b", unsupported, "\\\\server\\a\\b"],
     ["file://server/a/b/", unsupported, "\\\\server\\a\\b\\"],
-
     ["file:///C:/", "/C:/", "C:\\"],
     ["file:///C:/a/b", "/C:/a/b", "C:\\a\\b"],
     ["file:///C:/a/b/", "/C:/a/b/", "C:\\a\\b\\"],
-
     ["http:/a/b", unsupported, unsupported],
     ["https:/a/b", unsupported, unsupported],
     ["urn:a:b", unsupported, unsupported],
@@ -40,14 +36,13 @@ testFileUri() {
     if (filePath is Error) {
       if (filePath is UnsupportedError) {
         Expect.throws(() => uri.toFilePath(windows: windows),
-                      (e) => e is UnsupportedError);
+            (e) => e is UnsupportedError);
       } else {
         Expect.throws(() => uri.toFilePath(windows: windows));
       }
     } else {
       Expect.equals(filePath, uri.toFilePath(windows: windows));
-      Expect.equals(
-          s, new Uri.file(filePath, windows: windows).toString());
+      Expect.equals(s, new Uri.file(filePath, windows: windows).toString());
     }
   }
 
@@ -76,19 +71,15 @@ testFileUriWindowsSlash() {
     ["a/b/", "a/b/", "a\\b\\"],
     ["a%20b/c%20d", "a b/c d", "a b\\c d"],
     ["a%20b/c%20d/", "a b/c d/", "a b\\c d\\"],
-
     ["file:///absolute", "/absolute", "\\absolute"],
     ["file:///absolute", "/absolute", "\\absolute"],
     ["file:///a/b", "/a/b", "\\a\\b"],
     ["file:///a/b", "/a/b", "\\a\\b"],
-
     ["file://server/a/b", "//server/a/b", "\\\\server\\a\\b"],
     ["file://server/a/b/", "//server/a/b/", "\\\\server\\a\\b\\"],
-
     ["file:///C:/", "C:/", "C:\\"],
     ["file:///C:/a/b", "C:/a/b", "C:\\a\\b"],
     ["file:///C:/a/b/", "C:/a/b/", "C:\\a\\b\\"],
-
     ["file:///C:/xxx/yyy", "C:\\xxx\\yyy", "C:\\xxx\\yyy"],
   ];
 
@@ -107,11 +98,13 @@ testFileUriWindowsSlash() {
 
 testFileUriWindowsWin32Namespace() {
   var tests = [
-      ["\\\\?\\C:\\", "file:///C:/", "C:\\"],
-      ["\\\\?\\C:\\", "file:///C:/", "C:\\"],
-      ["\\\\?\\UNC\\server\\share\\file",
-       "file://server/share/file",
-       "\\\\server\\share\\file"],
+    ["\\\\?\\C:\\", "file:///C:/", "C:\\"],
+    ["\\\\?\\C:\\", "file:///C:/", "C:\\"],
+    [
+      "\\\\?\\UNC\\server\\share\\file",
+      "file://server/share/file",
+      "\\\\server\\share\\file"
+    ],
   ];
 
   for (var test in tests) {
@@ -120,14 +113,12 @@ testFileUriWindowsWin32Namespace() {
     Expect.equals(test[2], uri.toFilePath(windows: true));
   }
 
-  Expect.throws(
-      () => new Uri.file("\\\\?\\file", windows: true),
+  Expect.throws(() => new Uri.file("\\\\?\\file", windows: true),
       (e) => e is ArgumentError);
   Expect.throws(
       () => new Uri.file("\\\\?\\UNX\\server\\share\\file", windows: true),
       (e) => e is ArgumentError);
-  Expect.throws(
-      () => new Uri.directory("\\\\?\\file", windows: true),
+  Expect.throws(() => new Uri.directory("\\\\?\\file", windows: true),
       (e) => e is ArgumentError);
   Expect.throws(
       () => new Uri.directory("\\\\?\\UNX\\server\\share\\file", windows: true),
@@ -142,8 +133,8 @@ testFileUriDriveLetter() {
     if (windows != null) {
       Expect.equals(windows, uri.toFilePath(windows: true));
     } else {
-      Expect.throws(() => uri.toFilePath(windows: true),
-                    (e) => e is UnsupportedError);
+      Expect.throws(
+          () => uri.toFilePath(windows: true), (e) => e is UnsupportedError);
     }
   }
 
@@ -152,18 +143,18 @@ testFileUriDriveLetter() {
   check("file:///C:a", "/C:a", null);
   check("file:///C:a/", "/C:a/", null);
 
-  Expect.throws(() => new Uri.file("C:", windows: true),
-                (e) => e is ArgumentError);
-  Expect.throws(() => new Uri.file("C:a", windows: true),
-                (e) => e is ArgumentError);
-  Expect.throws(() => new Uri.file("C:a\b", windows: true),
-                (e) => e is ArgumentError);
-  Expect.throws(() => new Uri.directory("C:", windows: true),
-                (e) => e is ArgumentError);
-  Expect.throws(() => new Uri.directory("C:a", windows: true),
-                (e) => e is ArgumentError);
+  Expect.throws(
+      () => new Uri.file("C:", windows: true), (e) => e is ArgumentError);
+  Expect.throws(
+      () => new Uri.file("C:a", windows: true), (e) => e is ArgumentError);
+  Expect.throws(
+      () => new Uri.file("C:a\b", windows: true), (e) => e is ArgumentError);
+  Expect.throws(
+      () => new Uri.directory("C:", windows: true), (e) => e is ArgumentError);
+  Expect.throws(
+      () => new Uri.directory("C:a", windows: true), (e) => e is ArgumentError);
   Expect.throws(() => new Uri.directory("C:a\b", windows: true),
-                (e) => e is ArgumentError);
+      (e) => e is ArgumentError);
 }
 
 testFileUriResolve() {
@@ -183,8 +174,7 @@ testFileUriResolve() {
   check(String s, String absolute, String relative, bool windows) {
     Uri absoluteUri = new Uri.file(absolute, windows: windows);
     Uri relativeUri = new Uri.file(relative, windows: windows);
-    String relativeString =
-        windows ? relative.replaceAll("\\", "/") : relative;
+    String relativeString = windows ? relative.replaceAll("\\", "/") : relative;
     Expect.equals(s, absoluteUri.resolve(relativeString).toString());
     Expect.equals(s, absoluteUri.resolveUri(relativeUri).toString());
   }
@@ -202,38 +192,46 @@ testFileUriIllegalCharacters() {
   // Slash is an invalid character in file names on both non-Windows
   // and Windows.
   Uri uri = Uri.parse("file:///a%2Fb");
-  Expect.throws(() => uri.toFilePath(windows: false),
-                (e) => e is UnsupportedError);
-  Expect.throws(() => uri.toFilePath(windows: true),
-                (e) => e is UnsupportedError);
+  Expect.throws(
+      () => uri.toFilePath(windows: false), (e) => e is UnsupportedError);
+  Expect.throws(
+      () => uri.toFilePath(windows: true), (e) => e is UnsupportedError);
 
   // Illegal characters in windows file names.
-  var illegalWindowsPaths =
-      ["a<b", "a>b", "a:b", "a\"b", "a|b", "a?b", "a*b", "\\\\?\\c:\\a/b"];
+  var illegalWindowsPaths = [
+    "a<b",
+    "a>b",
+    "a:b",
+    "a\"b",
+    "a|b",
+    "a?b",
+    "a*b",
+    "\\\\?\\c:\\a/b"
+  ];
 
   for (var test in illegalWindowsPaths) {
-    Expect.throws(() => new Uri.file(test, windows: true),
-                  (e) => e is ArgumentError);
+    Expect.throws(
+        () => new Uri.file(test, windows: true), (e) => e is ArgumentError);
     Expect.throws(() => new Uri.file("\\$test", windows: true),
-                  (e) => e is ArgumentError);
+        (e) => e is ArgumentError);
     Expect.throws(() => new Uri.directory(test, windows: true),
-                  (e) => e is ArgumentError);
+        (e) => e is ArgumentError);
     Expect.throws(() => new Uri.directory("\\$test", windows: true),
-                  (e) => e is ArgumentError);
+        (e) => e is ArgumentError);
 
     // It is possible to create non-Windows URIs, but not Windows URIs.
     Uri uri = new Uri.file(test, windows: false);
     Uri absoluteUri = new Uri.file("/$test", windows: false);
     Uri dirUri = new Uri.directory(test, windows: false);
     Uri dirAbsoluteUri = new Uri.directory("/$test", windows: false);
-    Expect.throws(() => new Uri.file(test, windows: true),
-                  (e) => e is ArgumentError);
+    Expect.throws(
+        () => new Uri.file(test, windows: true), (e) => e is ArgumentError);
     Expect.throws(() => new Uri.file("\\$test", windows: true),
-                  (e) => e is ArgumentError);
+        (e) => e is ArgumentError);
     Expect.throws(() => new Uri.directory(test, windows: true),
-                  (e) => e is ArgumentError);
+        (e) => e is ArgumentError);
     Expect.throws(() => new Uri.directory("\\$test", windows: true),
-                  (e) => e is ArgumentError);
+        (e) => e is ArgumentError);
 
     // It is possible to extract non-Windows file path, but not
     // Windows file path.
@@ -241,14 +239,14 @@ testFileUriIllegalCharacters() {
     Expect.equals("/$test", absoluteUri.toFilePath(windows: false));
     Expect.equals("$test/", dirUri.toFilePath(windows: false));
     Expect.equals("/$test/", dirAbsoluteUri.toFilePath(windows: false));
-    Expect.throws(() => uri.toFilePath(windows: true),
-                  (e) => e is UnsupportedError);
+    Expect.throws(
+        () => uri.toFilePath(windows: true), (e) => e is UnsupportedError);
     Expect.throws(() => absoluteUri.toFilePath(windows: true),
-                  (e) => e is UnsupportedError);
-    Expect.throws(() => dirUri.toFilePath(windows: true),
-                  (e) => e is UnsupportedError);
+        (e) => e is UnsupportedError);
+    Expect.throws(
+        () => dirUri.toFilePath(windows: true), (e) => e is UnsupportedError);
     Expect.throws(() => dirAbsoluteUri.toFilePath(windows: true),
-                  (e) => e is UnsupportedError);
+        (e) => e is UnsupportedError);
   }
 
   // Backslash
@@ -269,42 +267,42 @@ testFileUriIllegalCharacters() {
     Expect.equals("/$test", absoluteUri.toFilePath(windows: false));
     Expect.equals("$test/", dirUri.toFilePath(windows: false));
     Expect.equals("/$test/", dirAbsoluteUri.toFilePath(windows: false));
-    Expect.throws(() => uri.toFilePath(windows: true),
-                  (e) => e is UnsupportedError);
+    Expect.throws(
+        () => uri.toFilePath(windows: true), (e) => e is UnsupportedError);
     Expect.throws(() => absoluteUri.toFilePath(windows: true),
-                  (e) => e is UnsupportedError);
-    Expect.throws(() => dirUri.toFilePath(windows: true),
-                  (e) => e is UnsupportedError);
+        (e) => e is UnsupportedError);
+    Expect.throws(
+        () => dirUri.toFilePath(windows: true), (e) => e is UnsupportedError);
     Expect.throws(() => dirAbsoluteUri.toFilePath(windows: true),
-                  (e) => e is UnsupportedError);
+        (e) => e is UnsupportedError);
   }
 }
 
 testFileUriIllegalDriveLetter() {
-  Expect.throws(() => new Uri.file("1:\\", windows: true),
-                (e) => e is ArgumentError);
+  Expect.throws(
+      () => new Uri.file("1:\\", windows: true), (e) => e is ArgumentError);
   Expect.throws(() => new Uri.directory("1:\\", windows: true),
-                (e) => e is ArgumentError);
+      (e) => e is ArgumentError);
   Uri uri = new Uri.file("1:\\", windows: false);
   Uri dirUri = new Uri.directory("1:\\", windows: false);
   Expect.equals("1:\\", uri.toFilePath(windows: false));
   Expect.equals("1:\\/", dirUri.toFilePath(windows: false));
-  Expect.throws(() => uri.toFilePath(windows: true),
-                (e) => e is UnsupportedError);
-  Expect.throws(() => dirUri.toFilePath(windows: true),
-                (e) => e is UnsupportedError);
+  Expect.throws(
+      () => uri.toFilePath(windows: true), (e) => e is UnsupportedError);
+  Expect.throws(
+      () => dirUri.toFilePath(windows: true), (e) => e is UnsupportedError);
 }
 
 testAdditionalComponents() {
   check(String s, {bool windowsOk: false}) {
     Uri uri = Uri.parse(s);
-    Expect.throws(() => uri.toFilePath(windows: false),
-                  (e) => e is UnsupportedError);
+    Expect.throws(
+        () => uri.toFilePath(windows: false), (e) => e is UnsupportedError);
     if (windowsOk) {
       Expect.isTrue(uri.toFilePath(windows: true) is String);
     } else {
-      Expect.throws(() => uri.toFilePath(windows: true),
-                    (e) => e is UnsupportedError);
+      Expect.throws(
+          () => uri.toFilePath(windows: true), (e) => e is UnsupportedError);
     }
   }
 

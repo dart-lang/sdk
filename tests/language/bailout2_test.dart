@@ -22,5 +22,5 @@ class A {
   foo(a) => a[a.length];
 
   int get length => 42;
-  operator[] (index) => 42;
+  operator [](index) => 42;
 }

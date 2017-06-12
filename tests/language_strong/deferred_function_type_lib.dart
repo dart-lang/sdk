@@ -8,7 +8,7 @@ class T {
   A foo(int x) {}
 }
 
-class A{}
+class A {}
 
 typedef A F(int x);
 

@@ -6,16 +6,17 @@ import "package:expect/expect.dart";
 
 // Dart test program to test type-based optimization on fields.
 
-
 class A {
   var x;
   A() : x = 0;
   foo() {
     x++;
   }
+
   toto() {
     x = 99;
   }
+
   bar(y) {
     x = y;
   }
@@ -24,6 +25,7 @@ class A {
 class B {
   operator +(other) => "ok";
 }
+
 main() {
   var a = new A();
   a.foo();

@@ -88,6 +88,7 @@ class Tag {
   static const int FunctionDeclaration = 79;
   static const int AsyncForInStatement = 80;
 
+  static const int TypedefType = 87;
   static const int VectorType = 88;
   static const int BottomType = 89;
   static const int InvalidType = 90;
@@ -107,6 +108,8 @@ class Tag {
   static const int VectorGet = 103;
   static const int VectorSet = 104;
   static const int VectorCopy = 105;
+
+  static const int ClosureCreation = 106;
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000

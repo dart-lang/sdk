@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file
 
 library JsInterop1Test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -21,14 +22,12 @@ main() {
   test('js-to-dart-post-message', () {
     var subscription = null;
     var complete = false;
-    subscription = window.onMessage.listen(expectAsyncUntil(
-        (e) {
-          if (e.data == 'hello') {
-            subscription.cancel();
-            complete = true;
-          }
-        },
-        () => complete));
+    subscription = window.onMessage.listen(expectAsyncUntil((e) {
+      if (e.data == 'hello') {
+        subscription.cancel();
+        complete = true;
+      }
+    }, () => complete));
     injectSource("window.postMessage('hello', '*');");
   });
 }

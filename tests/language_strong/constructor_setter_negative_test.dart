@@ -4,9 +4,9 @@
 // Test that setters are not invokable in the initializer list.
 
 class A {
-  A() : a = 499;  // <==== Error here.
+  A() : a = 499; // <==== Error here.
 
-  set a(val){}
+  set a(val) {}
 }
 
 main() {

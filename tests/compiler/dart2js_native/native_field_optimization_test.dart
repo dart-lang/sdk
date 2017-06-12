@@ -16,7 +16,7 @@ class Foo {
   var ab;
 }
 
-Foo makeFoo() native ;
+Foo makeFoo() native;
 
 void setup() native """
 function Foo() { this.i = 0; }

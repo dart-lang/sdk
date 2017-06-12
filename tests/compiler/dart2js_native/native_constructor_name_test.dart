@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test to see if a Dart class name is confused with dispatch tag.  Both class A
-// and class Z have a JavaScript constuctor named "A".  The dynamic native class
-// dispatch hook on Object.prototype should avoid patching the Dart class A.
-// This could be done by renaming the Dart constructor or by being able to check
-// that objects are Dart classes.
+// and class Z have a JavaScript constructor named "A".  The dynamic native
+// class dispatch hook on Object.prototype should avoid patching the Dart class
+// A.  This could be done by renaming the Dart constructor or by being able to
+// check that objects are Dart classes.
 
 import "native_testing.dart";
 
@@ -17,7 +17,7 @@ class Z {
   foo() => 100;
 }
 
-makeZ() native ;
+makeZ() native;
 
 void setup() native """
 function A(){}

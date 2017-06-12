@@ -40,7 +40,7 @@ doStore2(a, v) {
 
 class StringPlus {
   const StringPlus(String this._val);
-  operator + (right) => new StringPlus("${_val}${right}");
+  operator +(right) => new StringPlus("${_val}${right}");
   toString() => _val;
 
   final String _val;

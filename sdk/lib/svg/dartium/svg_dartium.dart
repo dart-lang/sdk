@@ -104,37 +104,6 @@ final svgBlinkMap = {
   'SVGNumber': () => Number.instanceRuntimeType,
   'SVGNumberList': () => NumberList.instanceRuntimeType,
   'SVGPathElement': () => PathElement.instanceRuntimeType,
-  'SVGPathSeg': () => PathSeg.instanceRuntimeType,
-  'SVGPathSegArcAbs': () => PathSegArcAbs.instanceRuntimeType,
-  'SVGPathSegArcRel': () => PathSegArcRel.instanceRuntimeType,
-  'SVGPathSegClosePath': () => PathSegClosePath.instanceRuntimeType,
-  'SVGPathSegCurvetoCubicAbs': () => PathSegCurvetoCubicAbs.instanceRuntimeType,
-  'SVGPathSegCurvetoCubicRel': () => PathSegCurvetoCubicRel.instanceRuntimeType,
-  'SVGPathSegCurvetoCubicSmoothAbs': () =>
-      PathSegCurvetoCubicSmoothAbs.instanceRuntimeType,
-  'SVGPathSegCurvetoCubicSmoothRel': () =>
-      PathSegCurvetoCubicSmoothRel.instanceRuntimeType,
-  'SVGPathSegCurvetoQuadraticAbs': () =>
-      PathSegCurvetoQuadraticAbs.instanceRuntimeType,
-  'SVGPathSegCurvetoQuadraticRel': () =>
-      PathSegCurvetoQuadraticRel.instanceRuntimeType,
-  'SVGPathSegCurvetoQuadraticSmoothAbs': () =>
-      PathSegCurvetoQuadraticSmoothAbs.instanceRuntimeType,
-  'SVGPathSegCurvetoQuadraticSmoothRel': () =>
-      PathSegCurvetoQuadraticSmoothRel.instanceRuntimeType,
-  'SVGPathSegLinetoAbs': () => PathSegLinetoAbs.instanceRuntimeType,
-  'SVGPathSegLinetoHorizontalAbs': () =>
-      PathSegLinetoHorizontalAbs.instanceRuntimeType,
-  'SVGPathSegLinetoHorizontalRel': () =>
-      PathSegLinetoHorizontalRel.instanceRuntimeType,
-  'SVGPathSegLinetoRel': () => PathSegLinetoRel.instanceRuntimeType,
-  'SVGPathSegLinetoVerticalAbs': () =>
-      PathSegLinetoVerticalAbs.instanceRuntimeType,
-  'SVGPathSegLinetoVerticalRel': () =>
-      PathSegLinetoVerticalRel.instanceRuntimeType,
-  'SVGPathSegList': () => PathSegList.instanceRuntimeType,
-  'SVGPathSegMovetoAbs': () => PathSegMovetoAbs.instanceRuntimeType,
-  'SVGPathSegMovetoRel': () => PathSegMovetoRel.instanceRuntimeType,
   'SVGPatternElement': () => PatternElement.instanceRuntimeType,
   'SVGPoint': () => Point.instanceRuntimeType,
   'SVGPointList': () => PointList.instanceRuntimeType,
@@ -908,12 +877,6 @@ class AnimationElement extends SvgElement implements Tests {
   @DocsEditable()
   StringList get systemLanguage =>
       _blink.BlinkSVGAnimationElement.instance.systemLanguage_Getter_(this);
-
-  @DomName('SVGAnimationElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) =>
-      _blink.BlinkSVGAnimationElement.instance
-          .hasExtension_Callback_1_(this, extension);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3372,13 +3335,6 @@ class GraphicsElement extends SvgElement implements Tests {
   Matrix getScreenCtm() =>
       _blink.BlinkSVGGraphicsElement.instance.getScreenCTM_Callback_0_(this);
 
-  @DomName('SVGGraphicsElement.getTransformToElement')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Matrix getTransformToElement(SvgElement element) =>
-      _blink.BlinkSVGGraphicsElement.instance
-          .getTransformToElement_Callback_1_(this, element);
-
   @DomName('SVGGraphicsElement.requiredExtensions')
   @DocsEditable()
   @Experimental() // untriaged
@@ -3396,12 +3352,6 @@ class GraphicsElement extends SvgElement implements Tests {
   @Experimental() // untriaged
   StringList get systemLanguage =>
       _blink.BlinkSVGGraphicsElement.instance.systemLanguage_Getter_(this);
-
-  @DomName('SVGGraphicsElement.hasExtension')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool hasExtension(String extension) => _blink.BlinkSVGGraphicsElement.instance
-      .hasExtension_Callback_1_(this, extension);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3980,11 +3930,6 @@ class MaskElement extends SvgElement implements Tests {
   @DocsEditable()
   StringList get systemLanguage =>
       _blink.BlinkSVGMaskElement.instance.systemLanguage_Getter_(this);
-
-  @DomName('SVGMaskElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) => _blink.BlinkSVGMaskElement.instance
-      .hasExtension_Callback_1_(this, extension);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4317,159 +4262,10 @@ class PathElement extends GeometryElement {
    */
   PathElement.created() : super.created();
 
-  @DomName('SVGPathElement.animatedNormalizedPathSegList')
-  @DocsEditable()
-  PathSegList get animatedNormalizedPathSegList =>
-      _blink.BlinkSVGPathElement.instance
-          .animatedNormalizedPathSegList_Getter_(this);
-
-  @DomName('SVGPathElement.animatedPathSegList')
-  @DocsEditable()
-  PathSegList get animatedPathSegList =>
-      _blink.BlinkSVGPathElement.instance.animatedPathSegList_Getter_(this);
-
-  @DomName('SVGPathElement.normalizedPathSegList')
-  @DocsEditable()
-  PathSegList get normalizedPathSegList =>
-      _blink.BlinkSVGPathElement.instance.normalizedPathSegList_Getter_(this);
-
   @DomName('SVGPathElement.pathLength')
   @DocsEditable()
   AnimatedNumber get pathLength =>
       _blink.BlinkSVGPathElement.instance.pathLength_Getter_(this);
-
-  @DomName('SVGPathElement.pathSegList')
-  @DocsEditable()
-  PathSegList get pathSegList =>
-      _blink.BlinkSVGPathElement.instance.pathSegList_Getter_(this);
-
-  @DomName('SVGPathElement.createSVGPathSegArcAbs')
-  @DocsEditable()
-  PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle,
-          bool largeArcFlag, bool sweepFlag) =>
-      _blink.BlinkSVGPathElement.instance.createSVGPathSegArcAbs_Callback_7_(
-          this, x, y, r1, r2, angle, largeArcFlag, sweepFlag);
-
-  @DomName('SVGPathElement.createSVGPathSegArcRel')
-  @DocsEditable()
-  PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle,
-          bool largeArcFlag, bool sweepFlag) =>
-      _blink.BlinkSVGPathElement.instance.createSVGPathSegArcRel_Callback_7_(
-          this, x, y, r1, r2, angle, largeArcFlag, sweepFlag);
-
-  @DomName('SVGPathElement.createSVGPathSegClosePath')
-  @DocsEditable()
-  PathSegClosePath createSvgPathSegClosePath() =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegClosePath_Callback_0_(this);
-
-  @DomName('SVGPathElement.createSVGPathSegCurvetoCubicAbs')
-  @DocsEditable()
-  PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(
-          num x, num y, num x1, num y1, num x2, num y2) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegCurvetoCubicAbs_Callback_6_(
-              this, x, y, x1, y1, x2, y2);
-
-  @DomName('SVGPathElement.createSVGPathSegCurvetoCubicRel')
-  @DocsEditable()
-  PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(
-          num x, num y, num x1, num y1, num x2, num y2) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegCurvetoCubicRel_Callback_6_(
-              this, x, y, x1, y1, x2, y2);
-
-  @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs')
-  @DocsEditable()
-  PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(
-          num x, num y, num x2, num y2) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegCurvetoCubicSmoothAbs_Callback_4_(
-              this, x, y, x2, y2);
-
-  @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel')
-  @DocsEditable()
-  PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(
-          num x, num y, num x2, num y2) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegCurvetoCubicSmoothRel_Callback_4_(
-              this, x, y, x2, y2);
-
-  @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticAbs')
-  @DocsEditable()
-  PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(
-          num x, num y, num x1, num y1) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegCurvetoQuadraticAbs_Callback_4_(this, x, y, x1, y1);
-
-  @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticRel')
-  @DocsEditable()
-  PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(
-          num x, num y, num x1, num y1) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegCurvetoQuadraticRel_Callback_4_(this, x, y, x1, y1);
-
-  @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs')
-  @DocsEditable()
-  PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(
-          num x, num y) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegCurvetoQuadraticSmoothAbs_Callback_2_(this, x, y);
-
-  @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel')
-  @DocsEditable()
-  PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(
-          num x, num y) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegCurvetoQuadraticSmoothRel_Callback_2_(this, x, y);
-
-  @DomName('SVGPathElement.createSVGPathSegLinetoAbs')
-  @DocsEditable()
-  PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegLinetoAbs_Callback_2_(this, x, y);
-
-  @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalAbs')
-  @DocsEditable()
-  PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegLinetoHorizontalAbs_Callback_1_(this, x);
-
-  @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalRel')
-  @DocsEditable()
-  PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegLinetoHorizontalRel_Callback_1_(this, x);
-
-  @DomName('SVGPathElement.createSVGPathSegLinetoRel')
-  @DocsEditable()
-  PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegLinetoRel_Callback_2_(this, x, y);
-
-  @DomName('SVGPathElement.createSVGPathSegLinetoVerticalAbs')
-  @DocsEditable()
-  PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegLinetoVerticalAbs_Callback_1_(this, y);
-
-  @DomName('SVGPathElement.createSVGPathSegLinetoVerticalRel')
-  @DocsEditable()
-  PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegLinetoVerticalRel_Callback_1_(this, y);
-
-  @DomName('SVGPathElement.createSVGPathSegMovetoAbs')
-  @DocsEditable()
-  PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegMovetoAbs_Callback_2_(this, x, y);
-
-  @DomName('SVGPathElement.createSVGPathSegMovetoRel')
-  @DocsEditable()
-  PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) =>
-      _blink.BlinkSVGPathElement.instance
-          .createSVGPathSegMovetoRel_Callback_2_(this, x, y);
 
   @DomName('SVGPathElement.getPathSegAtLength')
   @DocsEditable()
@@ -4485,1182 +4281,6 @@ class PathElement extends GeometryElement {
   @DocsEditable()
   num getTotalLength() =>
       _blink.BlinkSVGPathElement.instance.getTotalLength_Callback_0_(this);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSeg')
-@Unstable()
-class PathSeg extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory PathSeg._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSeg.internal_() {}
-
-  @DomName('SVGPathSeg.PATHSEG_ARC_ABS')
-  @DocsEditable()
-  static const int PATHSEG_ARC_ABS = 10;
-
-  @DomName('SVGPathSeg.PATHSEG_ARC_REL')
-  @DocsEditable()
-  static const int PATHSEG_ARC_REL = 11;
-
-  @DomName('SVGPathSeg.PATHSEG_CLOSEPATH')
-  @DocsEditable()
-  static const int PATHSEG_CLOSEPATH = 1;
-
-  @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_ABS')
-  @DocsEditable()
-  static const int PATHSEG_CURVETO_CUBIC_ABS = 6;
-
-  @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_REL')
-  @DocsEditable()
-  static const int PATHSEG_CURVETO_CUBIC_REL = 7;
-
-  @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_SMOOTH_ABS')
-  @DocsEditable()
-  static const int PATHSEG_CURVETO_CUBIC_SMOOTH_ABS = 16;
-
-  @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_SMOOTH_REL')
-  @DocsEditable()
-  static const int PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
-
-  @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_ABS')
-  @DocsEditable()
-  static const int PATHSEG_CURVETO_QUADRATIC_ABS = 8;
-
-  @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_REL')
-  @DocsEditable()
-  static const int PATHSEG_CURVETO_QUADRATIC_REL = 9;
-
-  @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS')
-  @DocsEditable()
-  static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
-
-  @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL')
-  @DocsEditable()
-  static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
-
-  @DomName('SVGPathSeg.PATHSEG_LINETO_ABS')
-  @DocsEditable()
-  static const int PATHSEG_LINETO_ABS = 4;
-
-  @DomName('SVGPathSeg.PATHSEG_LINETO_HORIZONTAL_ABS')
-  @DocsEditable()
-  static const int PATHSEG_LINETO_HORIZONTAL_ABS = 12;
-
-  @DomName('SVGPathSeg.PATHSEG_LINETO_HORIZONTAL_REL')
-  @DocsEditable()
-  static const int PATHSEG_LINETO_HORIZONTAL_REL = 13;
-
-  @DomName('SVGPathSeg.PATHSEG_LINETO_REL')
-  @DocsEditable()
-  static const int PATHSEG_LINETO_REL = 5;
-
-  @DomName('SVGPathSeg.PATHSEG_LINETO_VERTICAL_ABS')
-  @DocsEditable()
-  static const int PATHSEG_LINETO_VERTICAL_ABS = 14;
-
-  @DomName('SVGPathSeg.PATHSEG_LINETO_VERTICAL_REL')
-  @DocsEditable()
-  static const int PATHSEG_LINETO_VERTICAL_REL = 15;
-
-  @DomName('SVGPathSeg.PATHSEG_MOVETO_ABS')
-  @DocsEditable()
-  static const int PATHSEG_MOVETO_ABS = 2;
-
-  @DomName('SVGPathSeg.PATHSEG_MOVETO_REL')
-  @DocsEditable()
-  static const int PATHSEG_MOVETO_REL = 3;
-
-  @DomName('SVGPathSeg.PATHSEG_UNKNOWN')
-  @DocsEditable()
-  static const int PATHSEG_UNKNOWN = 0;
-
-  @DomName('SVGPathSeg.pathSegType')
-  @DocsEditable()
-  int get pathSegType =>
-      _blink.BlinkSVGPathSeg.instance.pathSegType_Getter_(this);
-
-  @DomName('SVGPathSeg.pathSegTypeAsLetter')
-  @DocsEditable()
-  String get pathSegTypeAsLetter =>
-      _blink.BlinkSVGPathSeg.instance.pathSegTypeAsLetter_Getter_(this);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegArcAbs')
-@Unstable()
-class PathSegArcAbs extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegArcAbs._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegArcAbs.internal_() : super.internal_();
-
-  @DomName('SVGPathSegArcAbs.angle')
-  @DocsEditable()
-  num get angle => _blink.BlinkSVGPathSegArcAbs.instance.angle_Getter_(this);
-
-  @DomName('SVGPathSegArcAbs.angle')
-  @DocsEditable()
-  set angle(num value) =>
-      _blink.BlinkSVGPathSegArcAbs.instance.angle_Setter_(this, value);
-
-  @DomName('SVGPathSegArcAbs.largeArcFlag')
-  @DocsEditable()
-  bool get largeArcFlag =>
-      _blink.BlinkSVGPathSegArcAbs.instance.largeArcFlag_Getter_(this);
-
-  @DomName('SVGPathSegArcAbs.largeArcFlag')
-  @DocsEditable()
-  set largeArcFlag(bool value) =>
-      _blink.BlinkSVGPathSegArcAbs.instance.largeArcFlag_Setter_(this, value);
-
-  @DomName('SVGPathSegArcAbs.r1')
-  @DocsEditable()
-  num get r1 => _blink.BlinkSVGPathSegArcAbs.instance.r1_Getter_(this);
-
-  @DomName('SVGPathSegArcAbs.r1')
-  @DocsEditable()
-  set r1(num value) =>
-      _blink.BlinkSVGPathSegArcAbs.instance.r1_Setter_(this, value);
-
-  @DomName('SVGPathSegArcAbs.r2')
-  @DocsEditable()
-  num get r2 => _blink.BlinkSVGPathSegArcAbs.instance.r2_Getter_(this);
-
-  @DomName('SVGPathSegArcAbs.r2')
-  @DocsEditable()
-  set r2(num value) =>
-      _blink.BlinkSVGPathSegArcAbs.instance.r2_Setter_(this, value);
-
-  @DomName('SVGPathSegArcAbs.sweepFlag')
-  @DocsEditable()
-  bool get sweepFlag =>
-      _blink.BlinkSVGPathSegArcAbs.instance.sweepFlag_Getter_(this);
-
-  @DomName('SVGPathSegArcAbs.sweepFlag')
-  @DocsEditable()
-  set sweepFlag(bool value) =>
-      _blink.BlinkSVGPathSegArcAbs.instance.sweepFlag_Setter_(this, value);
-
-  @DomName('SVGPathSegArcAbs.x')
-  @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegArcAbs.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegArcAbs.x')
-  @DocsEditable()
-  set x(num value) =>
-      _blink.BlinkSVGPathSegArcAbs.instance.x_Setter_(this, value);
-
-  @DomName('SVGPathSegArcAbs.y')
-  @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegArcAbs.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegArcAbs.y')
-  @DocsEditable()
-  set y(num value) =>
-      _blink.BlinkSVGPathSegArcAbs.instance.y_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegArcRel')
-@Unstable()
-class PathSegArcRel extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegArcRel._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegArcRel.internal_() : super.internal_();
-
-  @DomName('SVGPathSegArcRel.angle')
-  @DocsEditable()
-  num get angle => _blink.BlinkSVGPathSegArcRel.instance.angle_Getter_(this);
-
-  @DomName('SVGPathSegArcRel.angle')
-  @DocsEditable()
-  set angle(num value) =>
-      _blink.BlinkSVGPathSegArcRel.instance.angle_Setter_(this, value);
-
-  @DomName('SVGPathSegArcRel.largeArcFlag')
-  @DocsEditable()
-  bool get largeArcFlag =>
-      _blink.BlinkSVGPathSegArcRel.instance.largeArcFlag_Getter_(this);
-
-  @DomName('SVGPathSegArcRel.largeArcFlag')
-  @DocsEditable()
-  set largeArcFlag(bool value) =>
-      _blink.BlinkSVGPathSegArcRel.instance.largeArcFlag_Setter_(this, value);
-
-  @DomName('SVGPathSegArcRel.r1')
-  @DocsEditable()
-  num get r1 => _blink.BlinkSVGPathSegArcRel.instance.r1_Getter_(this);
-
-  @DomName('SVGPathSegArcRel.r1')
-  @DocsEditable()
-  set r1(num value) =>
-      _blink.BlinkSVGPathSegArcRel.instance.r1_Setter_(this, value);
-
-  @DomName('SVGPathSegArcRel.r2')
-  @DocsEditable()
-  num get r2 => _blink.BlinkSVGPathSegArcRel.instance.r2_Getter_(this);
-
-  @DomName('SVGPathSegArcRel.r2')
-  @DocsEditable()
-  set r2(num value) =>
-      _blink.BlinkSVGPathSegArcRel.instance.r2_Setter_(this, value);
-
-  @DomName('SVGPathSegArcRel.sweepFlag')
-  @DocsEditable()
-  bool get sweepFlag =>
-      _blink.BlinkSVGPathSegArcRel.instance.sweepFlag_Getter_(this);
-
-  @DomName('SVGPathSegArcRel.sweepFlag')
-  @DocsEditable()
-  set sweepFlag(bool value) =>
-      _blink.BlinkSVGPathSegArcRel.instance.sweepFlag_Setter_(this, value);
-
-  @DomName('SVGPathSegArcRel.x')
-  @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegArcRel.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegArcRel.x')
-  @DocsEditable()
-  set x(num value) =>
-      _blink.BlinkSVGPathSegArcRel.instance.x_Setter_(this, value);
-
-  @DomName('SVGPathSegArcRel.y')
-  @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegArcRel.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegArcRel.y')
-  @DocsEditable()
-  set y(num value) =>
-      _blink.BlinkSVGPathSegArcRel.instance.y_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegClosePath')
-@Unstable()
-class PathSegClosePath extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegClosePath._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegClosePath.internal_() : super.internal_();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegCurvetoCubicAbs')
-@Unstable()
-class PathSegCurvetoCubicAbs extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegCurvetoCubicAbs._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegCurvetoCubicAbs.internal_() : super.internal_();
-
-  @DomName('SVGPathSegCurvetoCubicAbs.x')
-  @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicAbs.x')
-  @DocsEditable()
-  set x(num value) =>
-      _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicAbs.x1')
-  @DocsEditable()
-  num get x1 => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x1_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicAbs.x1')
-  @DocsEditable()
-  set x1(num value) =>
-      _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x1_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicAbs.x2')
-  @DocsEditable()
-  num get x2 => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x2_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicAbs.x2')
-  @DocsEditable()
-  set x2(num value) =>
-      _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x2_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicAbs.y')
-  @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicAbs.y')
-  @DocsEditable()
-  set y(num value) =>
-      _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicAbs.y1')
-  @DocsEditable()
-  num get y1 => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y1_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicAbs.y1')
-  @DocsEditable()
-  set y1(num value) =>
-      _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y1_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicAbs.y2')
-  @DocsEditable()
-  num get y2 => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y2_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicAbs.y2')
-  @DocsEditable()
-  set y2(num value) =>
-      _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y2_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegCurvetoCubicRel')
-@Unstable()
-class PathSegCurvetoCubicRel extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegCurvetoCubicRel._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegCurvetoCubicRel.internal_() : super.internal_();
-
-  @DomName('SVGPathSegCurvetoCubicRel.x')
-  @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicRel.x')
-  @DocsEditable()
-  set x(num value) =>
-      _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicRel.x1')
-  @DocsEditable()
-  num get x1 => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x1_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicRel.x1')
-  @DocsEditable()
-  set x1(num value) =>
-      _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x1_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicRel.x2')
-  @DocsEditable()
-  num get x2 => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x2_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicRel.x2')
-  @DocsEditable()
-  set x2(num value) =>
-      _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x2_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicRel.y')
-  @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicRel.y')
-  @DocsEditable()
-  set y(num value) =>
-      _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicRel.y1')
-  @DocsEditable()
-  num get y1 => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y1_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicRel.y1')
-  @DocsEditable()
-  set y1(num value) =>
-      _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y1_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicRel.y2')
-  @DocsEditable()
-  num get y2 => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y2_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicRel.y2')
-  @DocsEditable()
-  set y2(num value) =>
-      _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y2_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegCurvetoCubicSmoothAbs')
-@Unstable()
-class PathSegCurvetoCubicSmoothAbs extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegCurvetoCubicSmoothAbs._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegCurvetoCubicSmoothAbs.internal_() : super.internal_();
-
-  @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
-  @DocsEditable()
-  num get x =>
-      _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
-  @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance
-      .x_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
-  @DocsEditable()
-  num get x2 =>
-      _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x2_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
-  @DocsEditable()
-  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance
-      .x2_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
-  @DocsEditable()
-  num get y =>
-      _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
-  @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance
-      .y_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
-  @DocsEditable()
-  num get y2 =>
-      _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y2_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
-  @DocsEditable()
-  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance
-      .y2_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegCurvetoCubicSmoothRel')
-@Unstable()
-class PathSegCurvetoCubicSmoothRel extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegCurvetoCubicSmoothRel._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegCurvetoCubicSmoothRel.internal_() : super.internal_();
-
-  @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
-  @DocsEditable()
-  num get x =>
-      _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
-  @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance
-      .x_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
-  @DocsEditable()
-  num get x2 =>
-      _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x2_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
-  @DocsEditable()
-  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance
-      .x2_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
-  @DocsEditable()
-  num get y =>
-      _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
-  @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance
-      .y_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
-  @DocsEditable()
-  num get y2 =>
-      _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y2_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
-  @DocsEditable()
-  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance
-      .y2_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegCurvetoQuadraticAbs')
-@Unstable()
-class PathSegCurvetoQuadraticAbs extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegCurvetoQuadraticAbs._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegCurvetoQuadraticAbs.internal_() : super.internal_();
-
-  @DomName('SVGPathSegCurvetoQuadraticAbs.x')
-  @DocsEditable()
-  num get x =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoQuadraticAbs.x')
-  @DocsEditable()
-  set x(num value) =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
-  @DocsEditable()
-  num get x1 =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x1_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
-  @DocsEditable()
-  set x1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance
-      .x1_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoQuadraticAbs.y')
-  @DocsEditable()
-  num get y =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoQuadraticAbs.y')
-  @DocsEditable()
-  set y(num value) =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
-  @DocsEditable()
-  num get y1 =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y1_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
-  @DocsEditable()
-  set y1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance
-      .y1_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegCurvetoQuadraticRel')
-@Unstable()
-class PathSegCurvetoQuadraticRel extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegCurvetoQuadraticRel._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegCurvetoQuadraticRel.internal_() : super.internal_();
-
-  @DomName('SVGPathSegCurvetoQuadraticRel.x')
-  @DocsEditable()
-  num get x =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoQuadraticRel.x')
-  @DocsEditable()
-  set x(num value) =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoQuadraticRel.x1')
-  @DocsEditable()
-  num get x1 =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x1_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoQuadraticRel.x1')
-  @DocsEditable()
-  set x1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance
-      .x1_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoQuadraticRel.y')
-  @DocsEditable()
-  num get y =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoQuadraticRel.y')
-  @DocsEditable()
-  set y(num value) =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoQuadraticRel.y1')
-  @DocsEditable()
-  num get y1 =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y1_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoQuadraticRel.y1')
-  @DocsEditable()
-  set y1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance
-      .y1_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegCurvetoQuadraticSmoothAbs')
-@Unstable()
-class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegCurvetoQuadraticSmoothAbs._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegCurvetoQuadraticSmoothAbs.internal_() : super.internal_();
-
-  @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
-  @DocsEditable()
-  num get x =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
-  @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance
-      .x_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
-  @DocsEditable()
-  num get y =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
-  @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance
-      .y_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegCurvetoQuadraticSmoothRel')
-@Unstable()
-class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegCurvetoQuadraticSmoothRel._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegCurvetoQuadraticSmoothRel.internal_() : super.internal_();
-
-  @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
-  @DocsEditable()
-  num get x =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
-  @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance
-      .x_Setter_(this, value);
-
-  @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
-  @DocsEditable()
-  num get y =>
-      _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
-  @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance
-      .y_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegLinetoAbs')
-@Unstable()
-class PathSegLinetoAbs extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegLinetoAbs._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegLinetoAbs.internal_() : super.internal_();
-
-  @DomName('SVGPathSegLinetoAbs.x')
-  @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegLinetoAbs.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegLinetoAbs.x')
-  @DocsEditable()
-  set x(num value) =>
-      _blink.BlinkSVGPathSegLinetoAbs.instance.x_Setter_(this, value);
-
-  @DomName('SVGPathSegLinetoAbs.y')
-  @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegLinetoAbs.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegLinetoAbs.y')
-  @DocsEditable()
-  set y(num value) =>
-      _blink.BlinkSVGPathSegLinetoAbs.instance.y_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegLinetoHorizontalAbs')
-@Unstable()
-class PathSegLinetoHorizontalAbs extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegLinetoHorizontalAbs._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegLinetoHorizontalAbs.internal_() : super.internal_();
-
-  @DomName('SVGPathSegLinetoHorizontalAbs.x')
-  @DocsEditable()
-  num get x =>
-      _blink.BlinkSVGPathSegLinetoHorizontalAbs.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegLinetoHorizontalAbs.x')
-  @DocsEditable()
-  set x(num value) =>
-      _blink.BlinkSVGPathSegLinetoHorizontalAbs.instance.x_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegLinetoHorizontalRel')
-@Unstable()
-class PathSegLinetoHorizontalRel extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegLinetoHorizontalRel._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegLinetoHorizontalRel.internal_() : super.internal_();
-
-  @DomName('SVGPathSegLinetoHorizontalRel.x')
-  @DocsEditable()
-  num get x =>
-      _blink.BlinkSVGPathSegLinetoHorizontalRel.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegLinetoHorizontalRel.x')
-  @DocsEditable()
-  set x(num value) =>
-      _blink.BlinkSVGPathSegLinetoHorizontalRel.instance.x_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegLinetoRel')
-@Unstable()
-class PathSegLinetoRel extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegLinetoRel._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegLinetoRel.internal_() : super.internal_();
-
-  @DomName('SVGPathSegLinetoRel.x')
-  @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegLinetoRel.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegLinetoRel.x')
-  @DocsEditable()
-  set x(num value) =>
-      _blink.BlinkSVGPathSegLinetoRel.instance.x_Setter_(this, value);
-
-  @DomName('SVGPathSegLinetoRel.y')
-  @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegLinetoRel.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegLinetoRel.y')
-  @DocsEditable()
-  set y(num value) =>
-      _blink.BlinkSVGPathSegLinetoRel.instance.y_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegLinetoVerticalAbs')
-@Unstable()
-class PathSegLinetoVerticalAbs extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegLinetoVerticalAbs._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegLinetoVerticalAbs.internal_() : super.internal_();
-
-  @DomName('SVGPathSegLinetoVerticalAbs.y')
-  @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegLinetoVerticalAbs.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegLinetoVerticalAbs.y')
-  @DocsEditable()
-  set y(num value) =>
-      _blink.BlinkSVGPathSegLinetoVerticalAbs.instance.y_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegLinetoVerticalRel')
-@Unstable()
-class PathSegLinetoVerticalRel extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegLinetoVerticalRel._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegLinetoVerticalRel.internal_() : super.internal_();
-
-  @DomName('SVGPathSegLinetoVerticalRel.y')
-  @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegLinetoVerticalRel.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegLinetoVerticalRel.y')
-  @DocsEditable()
-  set y(num value) =>
-      _blink.BlinkSVGPathSegLinetoVerticalRel.instance.y_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegList')
-@Unstable()
-class PathSegList extends DartHtmlDomObject
-    with ListMixin<PathSeg>, ImmutableListMixin<PathSeg>
-    implements List<PathSeg> {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegList._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegList.internal_() {}
-
-  @DomName('SVGPathSegList.length')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get length => _blink.BlinkSVGPathSegList.instance.length_Getter_(this);
-
-  @DomName('SVGPathSegList.numberOfItems')
-  @DocsEditable()
-  int get numberOfItems =>
-      _blink.BlinkSVGPathSegList.instance.numberOfItems_Getter_(this);
-
-  PathSeg operator [](int index) {
-    if (index < 0 || index >= length) throw new RangeError.index(index, this);
-    return getItem(index);
-  }
-
-  void operator []=(int index, PathSeg value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<PathSeg> mixins.
-  // PathSeg is the element type.
-
-  set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  PathSeg get first {
-    if (this.length > 0) {
-      return getItem(0);
-    }
-    throw new StateError("No elements");
-  }
-
-  PathSeg get last {
-    int len = this.length;
-    if (len > 0) {
-      return getItem(len - 1);
-    }
-    throw new StateError("No elements");
-  }
-
-  PathSeg get single {
-    int len = this.length;
-    if (len == 1) {
-      return getItem(0);
-    }
-    if (len == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  PathSeg elementAt(int index) => this[index];
-  // -- end List<PathSeg> mixins.
-
-  @DomName('SVGPathSegList.__setter__')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void __setter__(int index, PathSeg newItem) =>
-      _blink.BlinkSVGPathSegList.instance
-          .$__setter___Callback_2_(this, index, newItem);
-
-  @DomName('SVGPathSegList.appendItem')
-  @DocsEditable()
-  PathSeg appendItem(PathSeg newItem) =>
-      _blink.BlinkSVGPathSegList.instance.appendItem_Callback_1_(this, newItem);
-
-  @DomName('SVGPathSegList.clear')
-  @DocsEditable()
-  void clear() => _blink.BlinkSVGPathSegList.instance.clear_Callback_0_(this);
-
-  @DomName('SVGPathSegList.getItem')
-  @DocsEditable()
-  PathSeg getItem(int index) =>
-      _blink.BlinkSVGPathSegList.instance.getItem_Callback_1_(this, index);
-
-  @DomName('SVGPathSegList.initialize')
-  @DocsEditable()
-  PathSeg initialize(PathSeg newItem) =>
-      _blink.BlinkSVGPathSegList.instance.initialize_Callback_1_(this, newItem);
-
-  @DomName('SVGPathSegList.insertItemBefore')
-  @DocsEditable()
-  PathSeg insertItemBefore(PathSeg newItem, int index) =>
-      _blink.BlinkSVGPathSegList.instance
-          .insertItemBefore_Callback_2_(this, newItem, index);
-
-  @DomName('SVGPathSegList.removeItem')
-  @DocsEditable()
-  PathSeg removeItem(int index) =>
-      _blink.BlinkSVGPathSegList.instance.removeItem_Callback_1_(this, index);
-
-  @DomName('SVGPathSegList.replaceItem')
-  @DocsEditable()
-  PathSeg replaceItem(PathSeg newItem, int index) =>
-      _blink.BlinkSVGPathSegList.instance
-          .replaceItem_Callback_2_(this, newItem, index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegMovetoAbs')
-@Unstable()
-class PathSegMovetoAbs extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegMovetoAbs._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegMovetoAbs.internal_() : super.internal_();
-
-  @DomName('SVGPathSegMovetoAbs.x')
-  @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegMovetoAbs.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegMovetoAbs.x')
-  @DocsEditable()
-  set x(num value) =>
-      _blink.BlinkSVGPathSegMovetoAbs.instance.x_Setter_(this, value);
-
-  @DomName('SVGPathSegMovetoAbs.y')
-  @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegMovetoAbs.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegMovetoAbs.y')
-  @DocsEditable()
-  set y(num value) =>
-      _blink.BlinkSVGPathSegMovetoAbs.instance.y_Setter_(this, value);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-@DocsEditable()
-@DomName('SVGPathSegMovetoRel')
-@Unstable()
-class PathSegMovetoRel extends PathSeg {
-  // To suppress missing implicit constructor warnings.
-  factory PathSegMovetoRel._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  PathSegMovetoRel.internal_() : super.internal_();
-
-  @DomName('SVGPathSegMovetoRel.x')
-  @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegMovetoRel.instance.x_Getter_(this);
-
-  @DomName('SVGPathSegMovetoRel.x')
-  @DocsEditable()
-  set x(num value) =>
-      _blink.BlinkSVGPathSegMovetoRel.instance.x_Setter_(this, value);
-
-  @DomName('SVGPathSegMovetoRel.y')
-  @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegMovetoRel.instance.y_Getter_(this);
-
-  @DomName('SVGPathSegMovetoRel.y')
-  @DocsEditable()
-  set y(num value) =>
-      _blink.BlinkSVGPathSegMovetoRel.instance.y_Setter_(this, value);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5755,11 +4375,6 @@ class PatternElement extends SvgElement
   @DocsEditable()
   StringList get systemLanguage =>
       _blink.BlinkSVGPatternElement.instance.systemLanguage_Getter_(this);
-
-  @DomName('SVGPatternElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) => _blink.BlinkSVGPatternElement.instance
-      .hasExtension_Callback_1_(this, extension);
 
   @DomName('SVGPatternElement.href')
   @DocsEditable()
@@ -6564,13 +5179,16 @@ class StyleElement extends SvgElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _AttributeClassSet extends CssClassSetImpl {
+class AttributeClassSet extends CssClassSetImpl {
   final Element _element;
 
-  _AttributeClassSet(this._element);
+  AttributeClassSet(this._element);
 
   Set<String> readClasses() {
     var classname = _element.attributes['class'];
+    if (classname is AnimatedString) {
+      classname = (classname as AnimatedString).baseVal;
+    }
 
     Set<String> s = new LinkedHashSet<String>();
     if (classname == null) {
@@ -6586,7 +5204,7 @@ class _AttributeClassSet extends CssClassSetImpl {
   }
 
   void writeClasses(Set s) {
-    _element.attributes['class'] = s.join(' ');
+    _element.setAttribute('class', s.join(' '));
   }
 }
 
@@ -6615,7 +5233,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
     return fragment.nodes.where((e) => e is SvgElement).single;
   }
 
-  CssClassSet get classes => new _AttributeClassSet(this);
+  CssClassSet get classes => new AttributeClassSet(this);
 
   List<Element> get children => new FilteredElementList(this);
 
@@ -7011,6 +5629,30 @@ class SvgElement extends Element implements GlobalEventHandlers {
   static const EventStreamProvider<Event> timeUpdateEvent =
       const EventStreamProvider<Event>('timeupdate');
 
+  @DomName('SVGElement.touchcancelEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<TouchEvent> touchCancelEvent =
+      const EventStreamProvider<TouchEvent>('touchcancel');
+
+  @DomName('SVGElement.touchendEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<TouchEvent> touchEndEvent =
+      const EventStreamProvider<TouchEvent>('touchend');
+
+  @DomName('SVGElement.touchmoveEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<TouchEvent> touchMoveEvent =
+      const EventStreamProvider<TouchEvent>('touchmove');
+
+  @DomName('SVGElement.touchstartEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<TouchEvent> touchStartEvent =
+      const EventStreamProvider<TouchEvent>('touchstart');
+
   @DomName('SVGElement.volumechangeEvent')
   @DocsEditable()
   @Experimental() // untriaged
@@ -7336,6 +5978,28 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @Experimental() // untriaged
   ElementStream<Event> get onTimeUpdate => timeUpdateEvent.forElement(this);
 
+  @DomName('SVGElement.ontouchcancel')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<TouchEvent> get onTouchCancel =>
+      touchCancelEvent.forElement(this);
+
+  @DomName('SVGElement.ontouchend')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<TouchEvent> get onTouchEnd => touchEndEvent.forElement(this);
+
+  @DomName('SVGElement.ontouchmove')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<TouchEvent> get onTouchMove => touchMoveEvent.forElement(this);
+
+  @DomName('SVGElement.ontouchstart')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<TouchEvent> get onTouchStart =>
+      touchStartEvent.forElement(this);
+
   @DomName('SVGElement.onvolumechange')
   @DocsEditable()
   @Experimental() // untriaged
@@ -7403,26 +6067,6 @@ class SvgSvgElement extends GraphicsElement
   @DocsEditable()
   AnimatedLength get height =>
       _blink.BlinkSVGSVGElement.instance.height_Getter_(this);
-
-  @DomName('SVGSVGElement.pixelUnitToMillimeterX')
-  @DocsEditable()
-  num get pixelUnitToMillimeterX =>
-      _blink.BlinkSVGSVGElement.instance.pixelUnitToMillimeterX_Getter_(this);
-
-  @DomName('SVGSVGElement.pixelUnitToMillimeterY')
-  @DocsEditable()
-  num get pixelUnitToMillimeterY =>
-      _blink.BlinkSVGSVGElement.instance.pixelUnitToMillimeterY_Getter_(this);
-
-  @DomName('SVGSVGElement.screenPixelToMillimeterX')
-  @DocsEditable()
-  num get screenPixelToMillimeterX =>
-      _blink.BlinkSVGSVGElement.instance.screenPixelToMillimeterX_Getter_(this);
-
-  @DomName('SVGSVGElement.screenPixelToMillimeterY')
-  @DocsEditable()
-  num get screenPixelToMillimeterY =>
-      _blink.BlinkSVGSVGElement.instance.screenPixelToMillimeterY_Getter_(this);
 
   @DomName('SVGSVGElement.useCurrentView')
   @DocsEditable()
@@ -7724,10 +6368,6 @@ abstract class Tests extends DartHtmlDomObject {
   @DomName('SVGTests.systemLanguage')
   @DocsEditable()
   StringList get systemLanguage;
-
-  @DomName('SVGTests.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

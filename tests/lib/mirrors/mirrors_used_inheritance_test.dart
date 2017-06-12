@@ -51,7 +51,7 @@ tryField(object, symbol, expected) {
   Expect.equals(result, expected);
 }
 
-main () {
+main() {
   var objects = [new Reflected(), new Subclass()];
 
   // Make sure the subclass methods are alive.
@@ -72,7 +72,6 @@ main () {
   tryField(subclass, #inheritedField, 1);
   tryField(subclass, #overriddenField, 2);
   tryField(subclass, #subclassedField, 4);
-  Expect.throws(() => 
-      reflect(subclass).invoke(#subclassMethod, [11]));
+  Expect.throws(() => reflect(subclass).invoke(#subclassMethod, [11]));
   Expect.throws(() => reflect(subclass).getField(#subclassField));
 }

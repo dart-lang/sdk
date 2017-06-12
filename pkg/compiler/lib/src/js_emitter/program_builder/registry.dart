@@ -4,20 +4,25 @@
 
 part of dart2js.js_emitter.program_builder;
 
-/// Maps [LibraryElement]s to their [Element]s.
+class LibraryContents {
+  final List<ClassEntity> classes = <ClassEntity>[];
+  final List<MemberEntity> members = <MemberEntity>[];
+}
+
+/// Maps [LibraryEntity]s to their [ClassEntity]s and [MemberEntity]s.
 ///
 /// Fundamentally, this class nicely encapsulates a
-/// `Map<LibraryElement, List<Element>>`.
+/// `Map<LibraryElement, Pair<List<ClassElement>, List<MemberElement>>>`.
 ///
 /// There exists exactly one instance per [OutputUnit].
 class LibrariesMap {
-  final Map<LibraryElement, List<Element>> _mapping =
-      <LibraryElement, List<Element>>{};
+  final Map<LibraryEntity, LibraryContents> _mapping =
+      <LibraryEntity, LibraryContents>{};
 
   // It is very common to access the same library multiple times in a row, so
   // we cache the last access.
-  LibraryElement _lastLibrary;
-  List<Element> _lastElements;
+  LibraryEntity _lastLibrary;
+  LibraryContents _lastMapping;
 
   /// A unique name representing this instance.
   final String name;
@@ -29,18 +34,30 @@ class LibrariesMap {
     assert(name != "");
   }
 
-  void add(LibraryElement library, Element element) {
+  LibraryContents _getMapping(LibraryEntity library) {
     if (_lastLibrary != library) {
       _lastLibrary = library;
-      _lastElements = _mapping.putIfAbsent(library, () => <Element>[]);
+      _lastMapping = _mapping.putIfAbsent(library, () => new LibraryContents());
     }
-    _lastElements.add(element);
+    return _lastMapping;
+  }
+
+  void addClass(LibraryEntity library, ClassEntity element) {
+    _getMapping(library).classes.add(element);
+  }
+
+  void addMember(LibraryEntity library, MemberEntity element) {
+    _getMapping(library).members.add(element);
   }
 
   int get length => _mapping.length;
 
-  void forEach(void f(LibraryElement library, List<Element> elements)) {
-    _mapping.forEach(f);
+  void forEach(
+      void f(LibraryEntity library, List<ClassEntity> classes,
+          List<MemberEntity> members)) {
+    _mapping.forEach((LibraryEntity library, LibraryContents mapping) {
+      f(library, mapping.classes, mapping.members);
+    });
   }
 }
 
@@ -51,7 +68,8 @@ class LibrariesMap {
 ///
 /// Registered holders are assigned a name.
 class Registry {
-  final Compiler _compiler;
+  final DeferredLoadTask _deferredLoadTask;
+  final Sorter _sorter;
   final Map<String, Holder> _holdersMap = <String, Holder>{};
   final Map<OutputUnit, LibrariesMap> _deferredLibrariesMap =
       <OutputUnit, LibrariesMap>{};
@@ -60,7 +78,6 @@ class Registry {
   OutputUnit _lastOutputUnit;
   LibrariesMap _lastLibrariesMap;
 
-  DeferredLoadTask get _deferredLoadTask => _compiler.deferredLoadTask;
   Iterable<Holder> get holders => _holdersMap.values;
   Iterable<LibrariesMap> get deferredLibrariesMap =>
       _deferredLibrariesMap.values;
@@ -70,7 +87,7 @@ class Registry {
 
   LibrariesMap mainLibrariesMap;
 
-  Registry(this._compiler);
+  Registry(this._deferredLoadTask, this._sorter);
 
   OutputUnit get _mainOutputUnit => _deferredLoadTask.mainOutputUnit;
 
@@ -102,10 +119,19 @@ class Registry {
 
   /// Adds all elements to their respective libraries in the correct
   /// libraries map.
-  void registerElements(OutputUnit outputUnit, Iterable<Element> elements) {
+  void registerClasses(OutputUnit outputUnit, Iterable<ClassEntity> elements) {
     LibrariesMap targetLibrariesMap = _mapUnitToLibrariesMap(outputUnit);
-    for (Element element in Elements.sortedByPosition(elements)) {
-      targetLibrariesMap.add(element.library, element);
+    for (ClassEntity element in _sorter.sortClasses(elements)) {
+      targetLibrariesMap.addClass(element.library, element);
+    }
+  }
+
+  /// Adds all elements to their respective libraries in the correct
+  /// libraries map.
+  void registerMembers(OutputUnit outputUnit, Iterable<MemberEntity> elements) {
+    LibrariesMap targetLibrariesMap = _mapUnitToLibrariesMap(outputUnit);
+    for (MemberEntity element in _sorter.sortMembers(elements)) {
+      targetLibrariesMap.addMember(element.library, element);
     }
   }
 

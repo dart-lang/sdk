@@ -33,7 +33,7 @@ main() {
   }
 
   // Try with dart2js intercepted types.
-  array =  ['foo', 'bar', [], [], const []];
+  array = ['foo', 'bar', [], [], const []];
   set = new Set.from(array.map((a) => a.indexOf));
   Expect.equals(array.length, set.length);
   set.addAll(array.map((a) => a.indexOf));

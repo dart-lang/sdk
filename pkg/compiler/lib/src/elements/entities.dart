@@ -5,6 +5,7 @@
 library entities;
 
 import '../common.dart';
+import '../universe/call_structure.dart' show CallStructure;
 
 /// Abstract interface for entities.
 ///
@@ -23,7 +24,10 @@ abstract class Entity implements Spannable {
 ///
 /// Currently only [LibraryElement] but later also kernel based Dart classes
 /// and/or Dart-in-JS classes.
-abstract class LibraryEntity extends Entity {}
+abstract class LibraryEntity extends Entity {
+  /// Return the canonical uri that identifies this library.
+  Uri get canonicalUri;
+}
 
 /// Stripped down super interface for class like entities.
 ///
@@ -38,6 +42,9 @@ abstract class ClassEntity extends Entity {
   /// Whether this is a synthesized class for a closurized method or local
   /// function.
   bool get isClosure;
+
+  /// Whether this is an abstract class.
+  bool get isAbstract;
 }
 
 abstract class TypeVariableEntity extends Entity {
@@ -80,10 +87,17 @@ abstract class MemberEntity extends Entity {
   /// Whether this is a setter.
   bool get isSetter;
 
-  /// Whether this member is assignable, i.e. a non-final field.
+  /// Whether this member is assignable, i.e. a non-final, non-const field.
   bool get isAssignable;
 
-  /// The enclosing class if this is a constuctor, instance member or
+  /// Whether this member is constant, i.e. a constant field or constructor.
+  bool get isConst;
+
+  /// Whether this member is abstract, i.e. an abstract method, getter or
+  /// setter.
+  bool get isAbstract;
+
+  /// The enclosing class if this is a constructor, instance member or
   /// static member of a class.
   ClassEntity get enclosingClass;
 
@@ -106,6 +120,9 @@ abstract class FunctionEntity extends MemberEntity {
   /// Whether this function is external, i.e. the body is not defined in terms
   /// of Dart code.
   bool get isExternal;
+
+  /// The structure of the function parameters.
+  ParameterStructure get parameterStructure;
 }
 
 /// Stripped down super interface for constructor like entities.
@@ -144,4 +161,34 @@ abstract class Local extends Entity {
   /// member context is the top level, static or instance member in which it is
   /// defined.
   MemberEntity get memberContext;
+}
+
+/// The structure of function parameters.
+class ParameterStructure {
+  /// The number of required (positional) parameters.
+  final int requiredParameters;
+
+  /// The number of positional parameters.
+  final int positionalParameters;
+
+  /// The named parameters sorted alphabetically.
+  final List<String> namedParameters;
+
+  const ParameterStructure(
+      this.requiredParameters, this.positionalParameters, this.namedParameters);
+
+  const ParameterStructure.getter() : this(0, 0, const <String>[]);
+
+  const ParameterStructure.setter() : this(1, 1, const <String>[]);
+
+  /// The number of optional parameters (positional or named).
+  int get optionalParameters =>
+      positionalParameters - requiredParameters + namedParameters.length;
+
+  /// Returns the [CallStructure] corresponding to a call site passing all
+  /// parameters both required and optional.
+  CallStructure get callStructure {
+    return new CallStructure(
+        positionalParameters + namedParameters.length, namedParameters);
+  }
 }

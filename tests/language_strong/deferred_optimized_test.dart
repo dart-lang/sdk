@@ -23,9 +23,7 @@ main() {
   });
 }
 
-
 heyhey() => barbar();
-
 
 barbar() {
   if (libLoaded) {

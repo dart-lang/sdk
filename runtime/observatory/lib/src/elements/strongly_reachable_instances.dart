@@ -25,7 +25,7 @@ class StronglyReachableInstancesElement extends HtmlElement
   M.IsolateRef _isolate;
   M.ClassRef _cls;
   M.StronglyReachableInstancesRepository _stronglyReachableInstances;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.InstanceSet _result;
   bool _expanded = false;
 
@@ -36,18 +36,18 @@ class StronglyReachableInstancesElement extends HtmlElement
       M.IsolateRef isolate,
       M.ClassRef cls,
       M.StronglyReachableInstancesRepository stronglyReachable,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(cls != null);
     assert(stronglyReachable != null);
-    assert(instances != null);
+    assert(objects != null);
     StronglyReachableInstancesElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
     e._cls = cls;
     e._stronglyReachableInstances = stronglyReachable;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -91,7 +91,7 @@ class StronglyReachableInstancesElement extends HtmlElement
     }
     final content = _result.samples
         .map((sample) => new DivElement()
-          ..children = [anyRef(_isolate, sample, _instances, queue: _r.queue)])
+          ..children = [anyRef(_isolate, sample, _objects, queue: _r.queue)])
         .toList();
     content.add(new DivElement()
       ..children = ([]

@@ -4,6 +4,9 @@
 
 // Regression test for Issue 14304.
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 import "package:expect/expect.dart";
 
@@ -15,6 +18,6 @@ main() {
   ClassMirror a = reflectClass(A);
   TypeVariableMirror t = a.typeVariables[0];
   MethodMirror m = a.declarations[#m];
-  
+
   Expect.equals(t, m.returnType);
 }

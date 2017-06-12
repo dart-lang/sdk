@@ -1,0 +1,10 @@
+library top_level_accessors;
+import self as self;
+import "dart:core" as core;
+
+static set /* from pkg/front_end/testcases/top_level_accessors_part.dart */ exitCode(core::int code) → void
+  ;
+static get /* from pkg/front_end/testcases/top_level_accessors_part.dart */ exitCode() → core::int
+  ;
+static method /* from pkg/front_end/testcases/top_level_accessors_part.dart */ main() → dynamic
+  ;

@@ -34,10 +34,6 @@ body {
   -webkit-font-smoothing: auto;
 }
 
-h1 {
-  text-align: center;
-}
-
 h2, h3, h4, h5 {
   margin-bottom: 0;
 }
@@ -111,6 +107,10 @@ a {
 
 a:focus, a:hover {
   text-decoration: underline;
+}
+
+.deprecated {
+  text-decoration: line-through;
 }
 
 /* Styles for index */
@@ -326,11 +326,13 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     h5(() => write("Requests"));
     element('ul', {}, () {
       for (var request in requests) {
-        element(
-            'li',
-            {},
-            () => link(
-                'request_${request.longMethod}', () => write(request.method)));
+        if (!request.experimental) {
+          element(
+              'li',
+              {},
+              () => link('request_${request.longMethod}',
+                  () => write(request.method)));
+        }
       }
     });
   }
@@ -342,9 +344,11 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       link('types', () => write('\u2191'));
       write(')');
     });
+    List<String> sortedTypes = types.toList();
+    sortedTypes.sort();
     element('div', {'class': 'subindex'}, () {
       element('ul', {}, () {
-        for (var type in types) {
+        for (var type in sortedTypes) {
           element('li', {}, () => link('type_$type', () => write(type)));
         }
       });
@@ -432,7 +436,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             generateIndex();
             break;
           default:
-            if (!specialElements.contains(node.localName)) {
+            if (!ApiReader.specialElements.contains(node.localName)) {
               element(node.localName, node.attributes, () {
                 translateHtml(node, squashParagraphs: squashParagraphs);
               });
@@ -529,6 +533,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitRequest(Request request) {
+    if (request.experimental) {
+      return;
+    }
     dt('request', () {
       anchor('request_${request.longMethod}', () {
         write(request.longMethod);
@@ -650,7 +657,10 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   void visitTypes(Types types) {
     translateHtml(types.html);
     dl(() {
-      super.visitTypes(types);
+      List<TypeDefinition> sortedTypes = types.toList();
+      sortedTypes.sort((TypeDefinition first, TypeDefinition second) =>
+          first.name.compareTo(second.name));
+      sortedTypes.forEach(visitTypeDefinition);
     });
   }
 }

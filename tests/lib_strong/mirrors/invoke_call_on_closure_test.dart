@@ -11,6 +11,7 @@ import 'package:expect/expect.dart';
 class FakeFunctionCall {
   call(x, y) => '1 $x $y';
 }
+
 class FakeFunctionNSM {
   noSuchMethod(msg) => msg.positionalArguments.join(', ');
 }
@@ -35,34 +36,28 @@ main() {
   InstanceMirror im;
 
   im = reflect(c.fakeFunctionCall);
-  Expect.equals('1 5 6',
-                im.invoke(#call, [5, 6]).reflectee);
+  Expect.equals('1 5 6', im.invoke(#call, [5, 6]).reflectee);
 
   im = reflect(c.fakeFunctionNSM);
-  Expect.equals('7, 8',
-                im.invoke(#call, [7, 8]).reflectee);
+  Expect.equals('7, 8', im.invoke(#call, [7, 8]).reflectee);
 
   im = reflect(c.closure);
-  Expect.equals('2 C 9 10',
-                im.invoke(#call, [9, 10]).reflectee);
+  Expect.equals('2 C 9 10', im.invoke(#call, [9, 10]).reflectee);
 
   im = reflect(c.closureOpt);
-  Expect.equals('3 C 11 12 13 null',
-                im.invoke(#call, [11, 12, 13]).reflectee);
+  Expect.equals('3 C 11 12 13 null', im.invoke(#call, [11, 12, 13]).reflectee);
 
   im = reflect(c.closureNamed);
-  Expect.equals('4 C 14 15 null 16',
-                im.invoke(#call, [14, 15], {#w: 16}).reflectee);
+  Expect.equals(
+      '4 C 14 15 null 16', im.invoke(#call, [14, 15], {#w: 16}).reflectee);
 
   im = reflect(c.tearOff);
-  Expect.equals('22 C 9 10',
-                im.invoke(#call, [9, 10]).reflectee);
+  Expect.equals('22 C 9 10', im.invoke(#call, [9, 10]).reflectee);
 
   im = reflect(c.tearOffOpt);
-  Expect.equals('33 C 11 12 13 null',
-                im.invoke(#call, [11, 12, 13]).reflectee);
+  Expect.equals('33 C 11 12 13 null', im.invoke(#call, [11, 12, 13]).reflectee);
 
   im = reflect(c.tearOffNamed);
-  Expect.equals('44 C 14 15 null 16',
-                im.invoke(#call, [14, 15], {#w: 16}).reflectee);
+  Expect.equals(
+      '44 C 14 15 null 16', im.invoke(#call, [14, 15], {#w: 16}).reflectee);
 }

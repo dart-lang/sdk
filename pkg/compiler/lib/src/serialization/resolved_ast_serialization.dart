@@ -410,6 +410,7 @@ class ResolvedAstDeserializer {
     }
 
     /// Computes the [Node] for the element based on the [AstKind].
+    // ignore: MISSING_RETURN
     Node computeNode(AstKind kind) {
       switch (kind) {
         case AstKind.ENUM_INDEX_FIELD:
@@ -535,7 +536,7 @@ class ResolvedAstDeserializer {
             }
           }
           return doParse((parser) {
-            parser.parseFunction(beginToken, getOrSet);
+            parser.parseMember(beginToken);
           });
       }
     }

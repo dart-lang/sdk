@@ -10,6 +10,5 @@ import "package:expect/expect.dart";
 divBy0(a) => a ~/ 0;
 
 main() {
-  Expect.throws(() => divBy0(4),
-                (e) => e is IntegerDivisionByZeroException);
+  Expect.throws(() => divBy0(4), (e) => e is IntegerDivisionByZeroException);
 }

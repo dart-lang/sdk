@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.refactoring.convert_method_to_getter;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
@@ -18,6 +15,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
  * [ConvertMethodToGetterRefactoring] implementation.
@@ -114,7 +112,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     }
     // remove parameters
     {
-      SourceEdit edit = newSourceEdit_range(rangeNode(parameters), '');
+      SourceEdit edit = newSourceEdit_range(range.node(parameters), '');
       doSourceChange_addElementEdit(change, element, edit);
     }
   }
@@ -136,8 +134,8 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       }
       // we need invocation
       if (invocation != null) {
-        SourceRange range = rangeEndEnd(refRange, invocation);
-        SourceEdit edit = newSourceEdit_range(range, '');
+        SourceEdit edit = newSourceEdit_range(
+            range.startOffsetEndOffset(refRange.end, invocation.end), '');
         doSourceChange_addElementEdit(change, refElement, edit);
       }
     }

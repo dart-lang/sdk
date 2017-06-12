@@ -48,7 +48,7 @@ class ForInTest {
 
     count = 0;
     int i = 0;
-    Expect.equals(false, set.contains(i));  // Used to test [i] after loop.
+    Expect.equals(false, set.contains(i)); // Used to test [i] after loop.
     for (i in set) {
       count += i;
     }

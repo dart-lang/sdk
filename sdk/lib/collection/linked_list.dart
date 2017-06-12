@@ -20,8 +20,8 @@ part of dart.collection;
  * list, it must first be removed from its current list (if any).
  *
  * In return, each element knows its own place in the linked list, as well as
- * which list it is in. This allows constant time [LinkedListEntry.addAfter],
- * [LinkedListEntry.addBefore] and [LinkedListEntry.unlink] operations
+ * which list it is in. This allows constant time [LinkedListEntry.insertAfter],
+ * [LinkedListEntry.insertBefore] and [LinkedListEntry.unlink] operations
  * when all you have is the element.
  *
  * A `LinkedList` also allows constant time adding and removing at either end,

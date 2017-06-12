@@ -45,6 +45,11 @@ class Registry extends Object with IterableMixin<LintRule> {
   LintRule operator [](String name) => _ruleMap[name];
 
   /**
+   * Return the lint rule with the given [name].
+   */
+  LintRule getRule(String name) => _ruleMap[name];
+
+  /**
    * Return a list of the lint rules explicitly enabled by the given [config].
    *
    * For example:

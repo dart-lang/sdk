@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 // of nested loops.
 
 class A {
-  operator[] (index) => 42;
+  operator [](index) => 42;
 }
 
 var a = new A();

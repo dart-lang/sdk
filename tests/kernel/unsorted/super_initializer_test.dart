@@ -5,8 +5,13 @@
 import 'package:expect/expect.dart';
 
 String log;
-init() { log = ''; }
-logit(msg) { return log = '$log$msg'; }
+init() {
+  log = '';
+}
+
+logit(msg) {
+  return log = '$log$msg';
+}
 
 class Base {
   var b;
@@ -24,13 +29,22 @@ class Base {
 class Sub extends Base {
   var x;
   var s;
-  Sub.arg0() : x = logit('x'), super.arg0(), s = logit('s') {
+  Sub.arg0()
+      : x = logit('x'),
+        super.arg0(),
+        s = logit('s') {
     logit('S');
   }
-  Sub.arg1(a) : x = logit('x'), super.arg1(logit('1')), s = logit('s') {
+  Sub.arg1(a)
+      : x = logit('x'),
+        super.arg1(logit('1')),
+        s = logit('s') {
     logit('S');
   }
-  Sub.arg2(a, b) : x = logit('x'), super.arg2(logit('1'), logit('2')), s = logit('s') {
+  Sub.arg2(a, b)
+      : x = logit('x'),
+        super.arg2(logit('1'), logit('2')),
+        s = logit('s') {
     logit('S');
   }
 }

@@ -12,33 +12,33 @@ import "native_testing.dart";
 // Version 1: It might be possible to call foo directly.
 @Native("A1")
 class A1 {
-  foo() native ;
+  foo() native;
 }
 
 @Native("B1")
 class B1 extends A1 {
-  foo() native ;
+  foo() native;
 }
 
-makeA1() native ;
-makeB1() native ;
+makeA1() native;
+makeB1() native;
 
 // Version 2: foo needs some kind of trampoline.
 @Native("A2")
 class A2 {
-  foo([a = 99]) native ;
+  foo([a = 99]) native;
 }
 
 @Native("B2")
 class B2 extends A2 {
-  foo([z = 1000]) native ;
+  foo([z = 1000]) native;
 }
 
-makeA2() native ;
-makeB2() native ;
+makeA2() native;
+makeB2() native;
 
 void setup() native """
-// This code is all inside 'setup' and so not accesible from the global scope.
+// This code is all inside 'setup' and so not accessible from the global scope.
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;

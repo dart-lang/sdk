@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
-import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../ssa/builder.dart' show SsaBuilder;
 import '../ssa/nodes.dart' show HInstruction, HForeignCode, HReturn;
@@ -18,11 +16,8 @@ import '../universe/side_effects.dart' show SideEffects;
 final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
 
 void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
-  Compiler compiler = builder.compiler;
   MethodElement element = builder.target;
   NativeEmitter nativeEmitter = builder.nativeEmitter;
-  JavaScriptBackend backend = builder.backend;
-  DiagnosticReporter reporter = compiler.reporter;
 
   HInstruction convertDartClosure(
       ParameterElement parameter, ResolutionFunctionType type) {
@@ -33,7 +28,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
         builder.graph.addConstant(arityConstant, builder.closedWorld);
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.
-    MethodElement helper = backend.helpers.closureConverter;
+    MethodElement helper = builder.commonElements.closureConverter;
     builder.pushInvokeStatic(nativeBody, helper, [local, arity]);
     HInstruction closure = builder.pop();
     return closure;
@@ -47,13 +42,13 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   // 3) foo() native "return 42";
   //      hasBody = true
   bool hasBody = false;
-  assert(backend.nativeData.isNativeMember(element));
-  String nativeMethodName = backend.nativeData.getFixedBackendName(element);
+  assert(builder.nativeData.isNativeMember(element));
+  String nativeMethodName = builder.nativeData.getFixedBackendName(element);
   if (nativeBody != null) {
     LiteralString jsCode = nativeBody.asLiteralString();
     String str = jsCode.dartString.slowToString();
     if (nativeRedirectionRegExp.hasMatch(str)) {
-      reporter.internalError(
+      throw new SpannableAssertionFailure(
           nativeBody, "Deprecated syntax, use @JSName('name') instead.");
     }
     hasBody = true;
@@ -93,8 +88,8 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     } else if (element.kind == ElementKind.SETTER) {
       nativeMethodCall = '$receiver$nativeMethodName = $foreignParameters';
     } else {
-      builder.reporter
-          .internalError(element, 'Unexpected kind: "${element.kind}".');
+      throw new SpannableAssertionFailure(
+          element, 'Unexpected kind: "${element.kind}".');
     }
 
     builder.push(new HForeignCode(
@@ -111,7 +106,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
         .addSuccessor(builder.graph.exit);
   } else {
     if (parameters.parameterCount != 0) {
-      reporter.internalError(
+      throw new SpannableAssertionFailure(
           nativeBody,
           'native "..." syntax is restricted to '
           'functions with zero parameters.');

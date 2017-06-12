@@ -19,8 +19,8 @@ void testDefaultAddresses() {
   Expect.equals(InternetAddressType.IP_V6, loopback6.type);
   Expect.equals("::1", loopback6.host);
   Expect.equals("::1", loopback6.address);
-  Expect.listEquals([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-                    loopback6.rawAddress);
+  Expect.listEquals(
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], loopback6.rawAddress);
 
   var any4 = InternetAddress.ANY_IP_V4;
   Expect.isNotNull(any4);
@@ -68,27 +68,24 @@ void testConstructor() {
   Expect.equals(InternetAddressType.IP_V6, multicast6.type);
   Expect.isTrue(multicast6.isMulticast);
 
-  Expect.throws(() => new InternetAddress("1.2.3"),
-                (e) => e is ArgumentError);
-  Expect.throws(() => new InternetAddress("::FFFF::1"),
-                (e) => e is ArgumentError);
+  Expect.throws(() => new InternetAddress("1.2.3"), (e) => e is ArgumentError);
+  Expect.throws(
+      () => new InternetAddress("::FFFF::1"), (e) => e is ArgumentError);
 }
 
 void testEquality() {
-  Expect.equals(new InternetAddress("127.0.0.1"),
-                new InternetAddress("127.0.0.1"));
-  Expect.equals(new InternetAddress("127.0.0.1"),
-                InternetAddress.LOOPBACK_IP_V4);
-  Expect.equals(new InternetAddress("::1"),
-                new InternetAddress("::1"));
-  Expect.equals(new InternetAddress("::1"),
-                InternetAddress.LOOPBACK_IP_V6);
+  Expect.equals(
+      new InternetAddress("127.0.0.1"), new InternetAddress("127.0.0.1"));
+  Expect.equals(
+      new InternetAddress("127.0.0.1"), InternetAddress.LOOPBACK_IP_V4);
+  Expect.equals(new InternetAddress("::1"), new InternetAddress("::1"));
+  Expect.equals(new InternetAddress("::1"), InternetAddress.LOOPBACK_IP_V6);
   Expect.equals(new InternetAddress("1:2:3:4:5:6:7:8"),
-                new InternetAddress("1:2:3:4:5:6:7:8"));
-  Expect.equals(new InternetAddress("1::2"),
-                new InternetAddress("1:0:0:0:0:0:0:2"));
+      new InternetAddress("1:2:3:4:5:6:7:8"));
+  Expect.equals(
+      new InternetAddress("1::2"), new InternetAddress("1:0:0:0:0:0:0:2"));
   Expect.equals(new InternetAddress("::FFFF:0:0:16.32.48.64"),
-                new InternetAddress("::FFFF:0:0:1020:3040"));
+      new InternetAddress("::FFFF:0:0:1020:3040"));
 
   var set = new Set();
   set.add(new InternetAddress("127.0.0.1"));

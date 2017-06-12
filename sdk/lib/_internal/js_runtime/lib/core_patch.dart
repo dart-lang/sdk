@@ -17,15 +17,12 @@ import 'dart:_js_helper'
         NoInline,
         objectHashCode,
         patch,
-        patch_full,
-        patch_lazy,
-        patch_startup,
         Primitives,
         stringJoinUnchecked,
         getTraceFromException,
         RuntimeError;
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
 import 'dart:_native_typed_data' show NativeUint8List;
 
@@ -33,7 +30,7 @@ import 'dart:async' show StreamController;
 
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
-_symbolMapToStringMap(Map<Symbol, dynamic> map) {
+Map<String, dynamic> _symbolMapToStringMap(Map<Symbol, dynamic> map) {
   if (map == null) return null;
   var result = new Map<String, dynamic>();
   map.forEach((Symbol key, value) {
@@ -76,34 +73,32 @@ class Null {
 // Patch for Function implementation.
 @patch
 class Function {
-  @patch_full
+  @patch
   static apply(Function function, List positionalArguments,
       [Map<Symbol, dynamic> namedArguments]) {
-    return Primitives.applyFunction(function, positionalArguments,
-        namedArguments == null ? null : _toMangledNames(namedArguments));
+    // The lazy and startup emitter use a different implementation. To keep the
+    // method small and inlinable, just select the method.
+    return JS_GET_FLAG("IS_FULL_EMITTER")
+        ? _apply1(function, positionalArguments, namedArguments)
+        : _apply2(function, positionalArguments, namedArguments);
   }
 
-  @patch_lazy
-  static apply(Function function, List positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]) {
-    return Primitives.applyFunction2(function, positionalArguments,
+  static _apply1(function, positionalArguments, namedArguments) {
+    return Primitives.applyFunction(
+        function,
+        positionalArguments,
+        // Use this form so that if namedArguments is always null, we can
+        // tree-shake _symbolMapToStringMap.
         namedArguments == null ? null : _symbolMapToStringMap(namedArguments));
   }
 
-  @patch_startup
-  static apply(Function function, List positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]) {
-    return Primitives.applyFunction2(function, positionalArguments,
+  static _apply2(function, positionalArguments, namedArguments) {
+    return Primitives.applyFunction2(
+        function,
+        positionalArguments,
+        // Use this form so that if namedArguments is always null, we can
+        // tree-shake _symbolMapToStringMap.
         namedArguments == null ? null : _symbolMapToStringMap(namedArguments));
-  }
-
-  static Map<String, dynamic> _toMangledNames(
-      Map<Symbol, dynamic> namedArguments) {
-    Map<String, dynamic> result = {};
-    namedArguments.forEach((symbol, value) {
-      result[_symbolToString(symbol)] = value;
-    });
-    return result;
   }
 }
 

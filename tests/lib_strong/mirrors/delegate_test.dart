@@ -10,13 +10,14 @@ import 'package:expect/expect.dart';
 
 class C {
   method(a, b, c) => "$a-$b-$c";
-  methodWithNamed(a, {b:'B', c}) => "$a-$b-$c";
-  methodWithOpt(a, [b, c='C']) => "$a-$b-$c";
+  methodWithNamed(a, {b: 'B', c}) => "$a-$b-$c";
+  methodWithOpt(a, [b, c = 'C']) => "$a-$b-$c";
   get getter => 'g';
   set setter(x) {
-    field = x*2;
+    field = x * 2;
     return 'unobservable value';
   }
+
   var field;
 }
 

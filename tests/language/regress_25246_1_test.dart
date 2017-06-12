@@ -4,7 +4,7 @@
 
 import 'regress_25246_2.dart';
 
-class ConcreteClass extends Object with MixIn { }
+class ConcreteClass extends Object with MixIn {}
 
 void main() {
   new ConcreteClass().test();

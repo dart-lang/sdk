@@ -5,6 +5,7 @@
 // PackageRoot=none
 
 library package1_test;
+
 import 'package:package1.dart' as p1;
 
 main() {

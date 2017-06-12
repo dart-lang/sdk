@@ -63,9 +63,7 @@ void main() {
         var form = new FormData();
         var blobString =
             'Indescribable... Indestructible! Nothing can stop it!';
-        var blob = new Blob(
-            [blobString],
-            'text/plain');
+        var blob = new Blob([blobString], 'text/plain');
         form.appendBlob('theBlob', blob, 'theBlob.txt');
 
         var xhr = new HttpRequest();

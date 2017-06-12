@@ -5,7 +5,7 @@
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,7 +21,4 @@ class CreateContextTest extends AbstractAnalysisServerIntegrationTest {
         (await sendExecutionCreateContext(sourceDirectory.path)).id;
     expect(contextId, isNotNull);
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -30,9 +30,7 @@ void test(Future<Process> future, int expectedExitCode) {
 
     void readData(data) {
       buffer.addAll(data);
-      for (int i = received;
-           i < min(data.length, buffer.length) - 1;
-           i++) {
+      for (int i = received; i < min(data.length, buffer.length) - 1; i++) {
         Expect.equals(data[i], buffer[i]);
       }
       received = buffer.length;
@@ -55,8 +53,8 @@ void test(Future<Process> future, int expectedExitCode) {
 
 main() {
   // Run the test using the process_test binary.
-  test(Process.start(getProcessTestFileName(),
-                     const ["0", "1", "99", "0"]), 99);
+  test(
+      Process.start(getProcessTestFileName(), const ["0", "1", "99", "0"]), 99);
 
   // Run the test using the dart binary with an echo script.
   // The test runner can be run from either the root or from runtime.

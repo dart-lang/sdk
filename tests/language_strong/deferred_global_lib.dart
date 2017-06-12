@@ -24,5 +24,10 @@ readFinalConstGlobal() => finalConstGlobal;
 readFinalNonConstGlobal() => finalNonConstGlobal;
 readLazyConstGlobal() => lazyConstGlobal;
 readLazyNonConstGlobal() => lazyNonConstGlobal;
-writeLazyConstGlobal(x) { lazyConstGlobal = x; }
-writeLazyNonConstGlobal(x) { lazyNonConstGlobal = x; }
+writeLazyConstGlobal(x) {
+  lazyConstGlobal = x;
+}
+
+writeLazyNonConstGlobal(x) {
+  lazyNonConstGlobal = x;
+}

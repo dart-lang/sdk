@@ -26,6 +26,8 @@ abstract class MemberBuilder extends ModifierBuilder {
 
   bool get isNative => false;
 
+  bool get isRedirectingGenerativeConstructor => false;
+
   @override
   String get fullNameForErrors => name;
 }

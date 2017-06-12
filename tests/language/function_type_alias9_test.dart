@@ -6,7 +6,7 @@
 typedef void F(
     List
                    <G> // //# 00: compile-time error
-    l);
+        l);
 typedef void G(List<F> l);
 
 main() {

@@ -17,8 +17,7 @@ isomain1(replyPort) {
     var controlPort = v[0];
     var killCapability = v[1];
     firstEvent = false;
-    var isolate = new Isolate(controlPort,
-                              terminateCapability: killCapability);
+    var isolate = new Isolate(controlPort, terminateCapability: killCapability);
     isolate.kill(priority: Isolate.IMMEDIATE);
   };
   replyPort.send(port.sendPort);
@@ -26,7 +25,7 @@ isomain1(replyPort) {
 
 void main() {
   asyncStart();
-  var completer = new Completer();  // Completed by first reply from isolate.
+  var completer = new Completer(); // Completed by first reply from isolate.
   RawReceivePort reply = new RawReceivePort(completer.complete);
   Isolate.spawn(isomain1, reply.sendPort).then((Isolate isolate) {
     completer.future.then((isolatePort) {

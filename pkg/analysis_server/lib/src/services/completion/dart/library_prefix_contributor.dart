@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.library_prefix;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -25,7 +23,7 @@ class LibraryPrefixContributor extends DartCompletionContributor {
       return EMPTY_LIST;
     }
 
-    List<ImportElement> imports = await request.resolveImports();
+    List<ImportElement> imports = request.libraryElement.imports;
     if (imports == null) {
       return EMPTY_LIST;
     }

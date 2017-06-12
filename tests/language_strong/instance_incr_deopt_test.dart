@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 
 // Check correct deoptimization of instance field increment.
 
-
 main() {
   var a = new A();
   var aa = new A();
@@ -47,6 +46,7 @@ class A {
   Incr() {
     f++;
   }
+
   var f;
 }
 
@@ -54,4 +54,3 @@ class B {
   B() : f = 0;
   var f;
 }
-

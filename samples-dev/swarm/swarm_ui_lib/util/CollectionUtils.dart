@@ -11,10 +11,9 @@ typedef num NumericValueSelector<T>(T value);
  * TODO(jmesserly): make these top level functions?
  */
 class CollectionUtils {
-
   static void insertAt(List arr, int pos, value) {
-    assert (pos >= 0);
-    assert (pos <= arr.length);
+    assert(pos >= 0);
+    assert(pos <= arr.length);
 
     if (pos == arr.length) {
       arr.add(value);

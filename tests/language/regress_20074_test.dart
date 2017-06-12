@@ -9,6 +9,7 @@ doit() {
   error(error) {
     print(error);
   }
+
   error('foobar');
 }
 

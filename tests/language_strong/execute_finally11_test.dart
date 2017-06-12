@@ -10,7 +10,9 @@ import "package:expect/expect.dart";
 class A {
   var field;
   start() {}
-  stop() { field = 42; }
+  stop() {
+    field = 42;
+  }
 }
 
 class B {
@@ -27,8 +29,7 @@ class B {
         // variable.
         runCompiler.toString();
         runCompiler.toString();
-      } catch (exception) {
-      }
+      } catch (exception) {}
       rethrow;
     } finally {
       totalCompileTime.stop();

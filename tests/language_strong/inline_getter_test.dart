@@ -12,7 +12,7 @@ class A {
   int f;
   A(this.f) {}
   int foo() {
-    return f;  // <-- inline getter for classes 'A' and 'B'.
+    return f; // <-- inline getter for classes 'A' and 'B'.
   }
 }
 
@@ -34,7 +34,7 @@ class InlineGetterTest {
       sum += b.foo();
     }
     var c = new C();
-    sum += c.foo();  // <-- Deoptimizing.
+    sum += c.foo(); // <-- Deoptimizing.
     Expect.equals(70, sum);
   }
 }

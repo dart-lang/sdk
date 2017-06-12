@@ -19,8 +19,8 @@ abstract class IterableMixin<E> implements Iterable<E> {
 
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
-  Iterable<T>
-      expand<T>(Iterable<T> f(E element)) => new ExpandIterable<E, T>(this, f);
+  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
+      new ExpandIterable<E, T>(this, f);
 
   bool contains(Object element) {
     for (E e in this) {

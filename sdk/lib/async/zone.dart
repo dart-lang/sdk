@@ -536,7 +536,7 @@ abstract class Zone {
   /**
    * Intercepts errors when added programatically to a `Future` or `Stream`.
    *
-   * When calling [Completer.completeError], [Stream.addError],
+   * When calling [Completer.completeError], [StreamController.addError],
    * or some [Future] constructors, the current zone is allowed to intercept
    * and replace the error.
    *
@@ -1381,8 +1381,9 @@ class _RootZone extends _Zone {
 
   ZoneUnaryCallback<R, T> registerUnaryCallback<R, T>(R f(T arg)) => f;
 
-  ZoneBinaryCallback<R, T1, T2>
-      registerBinaryCallback<R, T1, T2>(R f(T1 arg1, T2 arg2)) => f;
+  ZoneBinaryCallback<R, T1, T2> registerBinaryCallback<R, T1, T2>(
+          R f(T1 arg1, T2 arg2)) =>
+      f;
 
   AsyncError errorCallback(Object error, StackTrace stackTrace) => null;
 
@@ -1437,7 +1438,8 @@ R runZoned<R>(R body(),
     errorHandler = (Zone self, ZoneDelegate parent, Zone zone, error,
         StackTrace stackTrace) {
       try {
-        if (onError is ZoneBinaryCallback<R, Object, StackTrace>) {
+        // TODO(floitsch): the return type should be 'void'.
+        if (onError is ZoneBinaryCallback<dynamic, Object, StackTrace>) {
           return self.parent.runBinary(onError, error, stackTrace);
         }
         return self.parent.runUnary(onError, error);

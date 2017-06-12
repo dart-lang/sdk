@@ -24,13 +24,13 @@ final hasOwnProperty = JS('', 'Object.prototype.hasOwnProperty');
 /// This error indicates a strong mode specific failure, other than a type
 /// assertion failure (TypeError) or CastError.
 void throwStrongModeError(String message) {
-  if (_trapRuntimeErrors) JS('', 'debugger');
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   JS('', 'throw new #(#);', StrongModeErrorImplementation, message);
 }
 
 /// This error indicates a bug in the runtime or the compiler.
 void throwInternalError(String message) {
-  if (_trapRuntimeErrors) JS('', 'debugger');
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   JS('', 'throw Error(#)', message);
 }
 
@@ -40,7 +40,7 @@ getOwnNamesAndSymbols(obj) {
   return JS('', '#.concat(#)', names, symbols);
 }
 
-safeGetOwnProperty(obj, String name) {
+safeGetOwnProperty(obj, name) {
   var desc = getOwnPropertyDescriptor(obj, name);
   if (desc != null) return JS('', '#.value', desc);
 }
@@ -60,7 +60,7 @@ defineLazyProperty(to, name, desc) => JS(
       value = x;
     }
     function circularInitError() {
-      $throwInternalError('circular initialization for field ' + $name);
+      $throwCyclicInitializationError($name);
     }
     function lazyGetter() {
       if (init == null) return value;
@@ -85,7 +85,7 @@ void defineLazy(to, from) => JS(
   }
 })()''');
 
-defineMemoizedGetter(obj, String name, getter) {
+defineMemoizedGetter(obj, name, getter) {
   return defineLazyProperty(obj, name, JS('', '{get: #}', getter));
 }
 

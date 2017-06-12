@@ -6,7 +6,6 @@
 
 import "package:expect/expect.dart";
 
-
 main() {
   // Prime IC cache.
   noDom(1);
@@ -40,7 +39,7 @@ main() {
   Expect.throws(() => fooTwo2(0), (e) => e is IntegerDivisionByZeroException);
 }
 
-foo(i) => i % 256;  // This will get optimized to AND instruction.
+foo(i) => i % 256; // This will get optimized to AND instruction.
 boo(i) => i % -256;
 hoo(i) => i % 0;
 
@@ -65,7 +64,6 @@ threeOp(a) {
   return x + y + z;
 }
 
-
 fourOp(a) {
   var x0 = a ~/ 10;
   var x1 = a ~/ 12;
@@ -84,7 +82,6 @@ foo2(i) {
   }
   return i % x;
 }
-
 
 fooTwo2(i) {
   // Make sure x has a range computed.

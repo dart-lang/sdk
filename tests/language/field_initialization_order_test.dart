@@ -33,7 +33,9 @@ class TwoFields {
 
   TwoFields.initB() : b = new Mark('bi');
 
-  TwoFields.initBoth() : a = new Mark('ai'), b = new Mark('bi');
+  TwoFields.initBoth()
+      : a = new Mark('ai'),
+        b = new Mark('bi');
 }
 
 class InheritOneField extends OneField {
@@ -41,13 +43,19 @@ class InheritOneField extends OneField {
 
   InheritOneField() : super();
 
-  InheritOneField.init() : b = new Mark('bi'), super();
+  InheritOneField.init()
+      : b = new Mark('bi'),
+        super();
 
   InheritOneField.superWithInit() : super.init();
 
-  InheritOneField.initWithSuperInit() : b = new Mark('bi'), super.init();
+  InheritOneField.initWithSuperInit()
+      : b = new Mark('bi'),
+        super.init();
 
-  InheritOneField.initWithSuperInit2() : super.init(), b = new Mark('bi');
+  InheritOneField.initWithSuperInit2()
+      : super.init(),
+        b = new Mark('bi');
 }
 
 String run(callback) {
@@ -65,14 +73,11 @@ main() {
   Expect.equals('b.a.bi.', run(() => new TwoFields.initB()));
   Expect.equals('b.a.ai.bi.', run(() => new TwoFields.initBoth()));
 
-  Expect.equals('b.a.', run(() =>
-      new InheritOneField()));
-  Expect.equals('b.bi.a.', run(() =>
-      new InheritOneField.init()));
-  Expect.equals('b.a.ai.', run(() =>
-      new InheritOneField.superWithInit()));
-  Expect.equals('b.bi.a.ai.', run(() =>
-      new InheritOneField.initWithSuperInit()));
-  Expect.equals('b.a.ai.bi.', run(() =>
-      new InheritOneField.initWithSuperInit2()));
+  Expect.equals('b.a.', run(() => new InheritOneField()));
+  Expect.equals('b.bi.a.', run(() => new InheritOneField.init()));
+  Expect.equals('b.a.ai.', run(() => new InheritOneField.superWithInit()));
+  Expect.equals(
+      'b.bi.a.ai.', run(() => new InheritOneField.initWithSuperInit()));
+  Expect.equals(
+      'b.a.ai.bi.', run(() => new InheritOneField.initWithSuperInit2()));
 }

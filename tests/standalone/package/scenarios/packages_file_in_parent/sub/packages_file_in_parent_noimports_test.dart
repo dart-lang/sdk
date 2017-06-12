@@ -6,5 +6,4 @@
 
 library packages_file_in_parent_noimports_test;
 
-main() {
-}
+main() {}

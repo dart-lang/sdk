@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library source.caching_pub_package_map_provider;
-
 import 'dart:convert';
 import 'dart:core';
 import 'dart:io' as io;
@@ -125,7 +123,7 @@ class CachingPubPackageMapProvider extends PubPackageMapProvider {
       // has changed while running pub list. This is done
       // by writing to a file rather than getting millisecondsSinceEpoch
       // because file modification time has different granularity
-      // on diferent systems.
+      // on different systems.
       int startStamp;
       try {
         startStamp = _writeFile(_touchFile, 'touch');

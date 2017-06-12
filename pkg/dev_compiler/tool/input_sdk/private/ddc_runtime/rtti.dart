@@ -58,7 +58,7 @@ part of dart._runtime;
 fn(closure, t) {
   if (t == null) {
     // No type arguments, it's all dynamic
-    t = definiteFunctionType(JS('', '#', dynamic),
+    t = fnType(JS('', '#', dynamic),
         JS('', 'Array(#.length).fill(#)', closure, dynamic), JS('', 'void 0'));
   }
   tag(closure, t);
@@ -72,7 +72,6 @@ lazyFn(closure, computeType) {
 
 // TODO(vsm): How should we encode the runtime type?
 final _runtimeType = JS('', 'Symbol("_runtimeType")');
-final isNamedConstructor = JS('', 'Symbol("isNamedConstructor")');
 
 final _moduleName = JS('', 'Symbol("_moduleName")');
 
@@ -112,7 +111,7 @@ _checkPrimitiveType(obj) {
 getFunctionType(obj) {
   // TODO(vsm): Encode this properly on the function for Dart-generated code.
   var args = JS('', 'Array(#.length).fill(#)', obj, dynamic);
-  return definiteFunctionType(bottom, args, JS('', 'void 0'));
+  return fnType(bottom, args, JS('', 'void 0'));
 }
 
 /// Returns the runtime representation of the type of obj.
@@ -188,7 +187,6 @@ lazyAnonymousJSType(name) {
 unwrapType(WrappedType obj) => obj._wrappedType;
 
 _getRuntimeType(value) => JS('', '#[#]', value, _runtimeType);
-getIsNamedConstructor(value) => JS('', '#[#]', value, isNamedConstructor);
 
 /// Return the module name for a raw library object.
 getModuleName(value) => JS('', '#[#]', value, _moduleName);

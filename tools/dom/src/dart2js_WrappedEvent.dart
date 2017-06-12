@@ -21,20 +21,26 @@ class _WrappedEvent implements Event {
 
   EventTarget get currentTarget => wrapped.currentTarget;
 
+  List<EventTarget> deepPath() {
+    return wrapped.deepPath();
+  }
+
   bool get defaultPrevented => wrapped.defaultPrevented;
 
   int get eventPhase => wrapped.eventPhase;
 
+  bool get isTrusted => wrapped.isTrusted;
+
+  bool get scoped => wrapped.scoped;
+
   EventTarget get target => wrapped.target;
 
-  int get timeStamp => wrapped.timeStamp;
+  double get timeStamp => wrapped.timeStamp;
 
   String get type => wrapped.type;
 
-  void _initEvent(String eventTypeArg, bool canBubbleArg,
-      bool cancelableArg) {
-    throw new UnsupportedError(
-        'Cannot initialize this Event.');
+  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) {
+    throw new UnsupportedError('Cannot initialize this Event.');
   }
 
   void preventDefault() {

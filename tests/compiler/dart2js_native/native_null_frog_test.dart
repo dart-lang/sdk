@@ -8,13 +8,13 @@ import "native_testing.dart";
 
 @Native("A")
 class A {
-  returnNull() native ;
-  returnUndefined() native ;
-  returnEmptyString() native ;
-  returnZero() native ;
+  returnNull() native;
+  returnUndefined() native;
+  returnEmptyString() native;
+  returnZero() native;
 }
 
-A makeA() native ;
+A makeA() native;
 
 void setup() native """
 function A() {}

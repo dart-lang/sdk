@@ -22,10 +22,10 @@ import "dart:math" as math;
 import 'android.dart';
 import "browser_controller.dart";
 import 'dependency_graph.dart' as dgraph;
+import "expectation.dart";
 import "path.dart";
 import 'record_and_replay.dart';
 import "runtime_configuration.dart";
-import "status_file_parser.dart";
 import "test_progress.dart";
 import "test_suite.dart";
 import "utils.dart";
@@ -40,10 +40,11 @@ const MESSAGE_FAILED_TO_RUN_COMMAND = 'Failed to run command. return code=1';
 typedef void TestCaseEvent(TestCase testCase);
 typedef void ExitCodeEvent(int exitCode);
 typedef void EnqueueMoreWork(ProcessQueue queue);
+typedef void Action();
 
 // Some IO tests use these variables and get confused if the host environment
 // variables are inherited so they are excluded.
-const List<String> EXCLUDED_ENVIRONMENT_VARIABLES = const [
+const EXCLUDED_ENVIRONMENT_VARIABLES = const [
   'http_proxy',
   'https_proxy',
   'no_proxy',
@@ -78,15 +79,15 @@ class Command {
     return _cachedHashCode;
   }
 
-  operator ==(other) =>
+  operator ==(Object other) =>
       identical(this, other) ||
-      (runtimeType == other.runtimeType && _equal(other));
+      (runtimeType == other.runtimeType && _equal(other as Command));
 
   void _buildHashCode(HashCodeBuilder builder) {
     builder.addJson(displayName);
   }
 
-  bool _equal(Command other) =>
+  bool _equal(covariant Command other) =>
       hashCode == other.hashCode && displayName == other.displayName;
 
   String toString() => reproductionCommand;
@@ -236,8 +237,7 @@ class KernelCompilationCommand extends CompilationCommand {
       List<String> arguments,
       Map<String, String> environmentOverrides)
       : super._(displayName, outputFile, neverSkipCompilation,
-                bootstrapDependencies, executable, arguments,
-                environmentOverrides);
+            bootstrapDependencies, executable, arguments, environmentOverrides);
 
   int get maxNumRetries => 1;
 }
@@ -248,7 +248,7 @@ class AddFlagsKey {
   final Map env;
   AddFlagsKey(this.flags, this.env);
   // Just use object identity for environment map
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       other is AddFlagsKey && flags == other.flags && env == other.env;
   int get hashCode => flags.hashCode ^ env.hashCode;
 }
@@ -266,13 +266,14 @@ class ContentShellCommand extends ProcessCommand {
   // Cache the modified environments in a map from the old environment and
   // the string of Dart flags to the new environment.  Avoid creating new
   // environment object for each command object.
-  static Map<AddFlagsKey, Map> environments = new Map<AddFlagsKey, Map>();
+  static Map<AddFlagsKey, Map> environments = {};
 
-  static Map _getEnvironment(Map env, List<String> dartFlags) {
-    var needDartFlags = dartFlags != null && dartFlags.length > 0;
+  static Map<String, String> _getEnvironment(
+      Map<String, String> env, List<String> dartFlags) {
+    var needDartFlags = dartFlags != null && dartFlags.isNotEmpty;
     if (needDartFlags) {
       if (env == null) {
-        env = const {};
+        env = const <String, String>{};
       }
       var flags = dartFlags.join(' ');
       return environments.putIfAbsent(
@@ -284,7 +285,7 @@ class ContentShellCommand extends ProcessCommand {
   }
 
   static List<String> _getArguments(List<String> options, String htmlFile) {
-    var arguments = new List.from(options);
+    var arguments = options.toList();
     arguments.add(htmlFile);
     return arguments;
   }
@@ -300,8 +301,8 @@ class BrowserTestCommand extends Command {
 
   BrowserTestCommand._(
       String _browser, this.url, this.configuration, this.retry)
-      : super._(_browser),
-        browser = _browser;
+      : browser = _browser,
+        super._(_browser);
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
@@ -374,14 +375,14 @@ class VmBatchCommand extends ProcessCommand implements VmCommand {
   final bool checked;
 
   VmBatchCommand._(String executable, String dartFile, List<String> arguments,
-      Map<String, String> environmentOverrides, {this.checked: true})
+      Map<String, String> environmentOverrides,
+      {this.checked: true})
       : this.dartFile = dartFile,
         super._('vm-batch', executable, arguments, environmentOverrides);
 
   @override
-  List<String> get batchArguments => checked
-      ? ['--checked', dartFile]
-      : [dartFile];
+  List<String> get batchArguments =>
+      checked ? ['--checked', dartFile] : [dartFile];
 
   @override
   bool _equal(VmBatchCommand other) {
@@ -405,11 +406,12 @@ class AdbPrecompilationCommand extends Command {
   final List<String> arguments;
   final bool useBlobs;
 
-  AdbPrecompilationCommand._(this.precompiledRunnerFilename,
-                             this.processTestFilename,
-                             this.precompiledTestDirectory,
-                             this.arguments,
-                             this.useBlobs)
+  AdbPrecompilationCommand._(
+      this.precompiledRunnerFilename,
+      this.processTestFilename,
+      this.precompiledTestDirectory,
+      this.arguments,
+      this.useBlobs)
       : super._("adb_precompilation");
 
   void _buildHashCode(HashCodeBuilder builder) {
@@ -443,13 +445,13 @@ class PubCommand extends ProcessCommand {
 
   PubCommand._(String pubCommand, String pubExecutable,
       String pubspecYamlDirectory, String pubCacheDirectory, List<String> args)
-      : super._(
+      : command = pubCommand,
+        super._(
             'pub_$pubCommand',
             new io.File(pubExecutable).absolute.path,
             [pubCommand]..addAll(args),
             {'PUB_CACHE': pubCacheDirectory},
-            pubspecYamlDirectory),
-        command = pubCommand;
+            pubspecYamlDirectory);
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
@@ -483,7 +485,7 @@ class CleanDirectoryCopyCommand extends ScriptCommand {
     var destination = new io.Directory(_destinationDirectory);
 
     return destination.exists().then((bool exists) {
-      var cleanDirectoryFuture;
+      Future cleanDirectoryFuture;
       if (exists) {
         cleanDirectoryFuture = TestUtils.deleteDirectory(_destinationDirectory);
       } else {
@@ -494,10 +496,10 @@ class CleanDirectoryCopyCommand extends ScriptCommand {
       });
     }).then((_) {
       return new ScriptCommandOutputImpl(
-          this, Expectation.PASS, "", watch.elapsed);
+          this, Expectation.pass, "", watch.elapsed);
     }).catchError((error) {
       return new ScriptCommandOutputImpl(
-          this, Expectation.FAIL, "An error occured: $error.", watch.elapsed);
+          this, Expectation.fail, "An error occured: $error.", watch.elapsed);
     });
   }
 
@@ -539,10 +541,10 @@ class MakeSymlinkCommand extends ScriptCommand {
       }).then((_) => link.create(_target));
     }).then((_) {
       return new ScriptCommandOutputImpl(
-          this, Expectation.PASS, "", watch.elapsed);
+          this, Expectation.pass, "", watch.elapsed);
     }).catchError((error) {
       return new ScriptCommandOutputImpl(
-          this, Expectation.FAIL, "An error occured: $error.", watch.elapsed);
+          this, Expectation.fail, "An error occured: $error.", watch.elapsed);
     });
   }
 
@@ -595,8 +597,8 @@ class CommandBuilder {
 
   CompilationCommand getCompilationCommand(
       String displayName,
-      outputFile,
-      neverSkipCompilation,
+      String outputFile,
+      bool neverSkipCompilation,
       List<Uri> bootstrapDependencies,
       String executable,
       List<String> arguments,
@@ -614,8 +616,8 @@ class CommandBuilder {
 
   CompilationCommand getKernelCompilationCommand(
       String displayName,
-      outputFile,
-      neverSkipCompilation,
+      String outputFile,
+      bool neverSkipCompilation,
       List<Uri> bootstrapDependencies,
       String executable,
       List<String> arguments,
@@ -631,8 +633,8 @@ class CommandBuilder {
     return _getUniqueCommand(command);
   }
 
-  AnalysisCommand getAnalysisCommand(
-      String displayName, executable, arguments, environmentOverrides,
+  AnalysisCommand getAnalysisCommand(String displayName, String executable,
+      List<String> arguments, Map<String, String> environmentOverrides,
       {String flavor: 'dart2analyzer'}) {
     var command = new AnalysisCommand._(
         flavor, displayName, executable, arguments, environmentOverrides);
@@ -648,31 +650,34 @@ class CommandBuilder {
   VmBatchCommand getVmBatchCommand(String executable, String tester,
       List<String> arguments, Map<String, String> environmentOverrides,
       {bool checked: true}) {
-    var command =
-        new VmBatchCommand._(executable, tester, arguments, environmentOverrides,
-            checked: checked);
+    var command = new VmBatchCommand._(
+        executable, tester, arguments, environmentOverrides,
+        checked: checked);
     return _getUniqueCommand(command);
   }
 
-  AdbPrecompilationCommand getAdbPrecompiledCommand(String precompiledRunner,
-                                                    String processTest,
-                                                    String testDirectory,
-                                                    List<String> arguments,
-                                                    bool useBlobs) {
+  AdbPrecompilationCommand getAdbPrecompiledCommand(
+      String precompiledRunner,
+      String processTest,
+      String testDirectory,
+      List<String> arguments,
+      bool useBlobs) {
     var command = new AdbPrecompilationCommand._(
         precompiledRunner, processTest, testDirectory, arguments, useBlobs);
     return _getUniqueCommand(command);
   }
 
-  Command getJSCommandlineCommand(String displayName, executable, arguments,
-      [environment = null]) {
+  Command getJSCommandlineCommand(
+      String displayName, String executable, List<String> arguments,
+      [Map<String, String> environment]) {
     var command = new JSCommandlineCommand._(
         displayName, executable, arguments, environment);
     return _getUniqueCommand(command);
   }
 
-  Command getProcessCommand(String displayName, executable, arguments,
-      [environment = null, workingDirectory = null]) {
+  Command getProcessCommand(
+      String displayName, String executable, List<String> arguments,
+      [Map<String, String> environment, String workingDirectory]) {
     var command = new ProcessCommand._(
         displayName, executable, arguments, environment, workingDirectory);
     return _getUniqueCommand(command);
@@ -687,9 +692,8 @@ class CommandBuilder {
   Command getPubCommand(String pubCommand, String pubExecutable,
       String pubspecYamlDirectory, String pubCacheDirectory,
       {List<String> arguments: const <String>[]}) {
-    var command = new PubCommand._(
-        pubCommand, pubExecutable, pubspecYamlDirectory, pubCacheDirectory,
-        arguments);
+    var command = new PubCommand._(pubCommand, pubExecutable,
+        pubspecYamlDirectory, pubCacheDirectory, arguments);
     return _getUniqueCommand(command);
   }
 
@@ -697,7 +701,7 @@ class CommandBuilder {
     return _getUniqueCommand(new MakeSymlinkCommand._(link, target));
   }
 
-  Command _getUniqueCommand(Command command) {
+  T _getUniqueCommand<T extends Command>(T command) {
     // All Command classes implement hashCode and operator==.
     // We check if this command has already been built.
     //  If so, we return the cached one. Otherwise we
@@ -708,7 +712,7 @@ class CommandBuilder {
     }
     var cachedCommand = _cachedCommands[command];
     if (cachedCommand != null) {
-      return cachedCommand;
+      return cachedCommand as T;
     }
     _cachedCommands[command] = command;
     return command;
@@ -759,7 +763,7 @@ class TestCase extends UniqueObject {
 
   TestCase(this.displayName, this.commands, this.configuration,
       this.expectedOutcomes,
-      {isNegative: false, TestInformation info: null}) {
+      {bool isNegative: false, TestInformation info}) {
     if (isNegative || displayName.contains("negative_test")) {
       _expectations |= IS_NEGATIVE;
     }
@@ -823,7 +827,7 @@ class TestCase extends UniqueObject {
   }
 
   int get timeout {
-    if (expectedOutcomes.contains(Expectation.SLOW)) {
+    if (expectedOutcomes.contains(Expectation.slow)) {
       return configuration['timeout'] * SLOW_TIMEOUT_MULTIPLIER;
     } else {
       return configuration['timeout'];
@@ -845,13 +849,13 @@ class TestCase extends UniqueObject {
   }
 
   bool get isFlaky {
-    if (expectedOutcomes.contains(Expectation.SKIP) ||
-        expectedOutcomes.contains(Expectation.SKIP_BY_DESIGN)) {
+    if (expectedOutcomes.contains(Expectation.skip) ||
+        expectedOutcomes.contains(Expectation.skipByDesign)) {
       return false;
     }
 
     return expectedOutcomes
-            .where((expectation) => !expectation.isMetaExpectation)
+            .where((expectation) => expectation.isOutcome)
             .length >
         1;
   }
@@ -869,8 +873,14 @@ class TestCase extends UniqueObject {
  * If the compilation command fails, then the rest of the test is not run.
  */
 class BrowserTestCase extends TestCase {
-  BrowserTestCase(displayName, commands, configuration, expectedOutcomes, info,
-      isNegative, this._testingUrl)
+  BrowserTestCase(
+      String displayName,
+      List<Command> commands,
+      configuration,
+      Set<Expectation> expectedOutcomes,
+      TestInformation info,
+      bool isNegative,
+      this._testingUrl)
       : super(displayName, commands, configuration, expectedOutcomes,
             isNegative: isNegative, info: info);
 
@@ -893,9 +903,9 @@ class UnittestSuiteMessagesMixin {
     // If this is an asynchronous test and the asynchronous operation didn't
     // complete successfully, it's outcome is Expectation.FAIL.
     // TODO: maybe we should introduce a AsyncIncomplete marker or so
-    if (outcome == Expectation.PASS) {
+    if (outcome == Expectation.pass) {
       if (_isAsyncTest(testOutput) && !_isAsyncTestSuccessful(testOutput)) {
-        return Expectation.FAIL;
+        return Expectation.fail;
       }
     }
     return outcome;
@@ -918,7 +928,7 @@ abstract class CommandOutput {
 
   bool get hasTimedOut;
 
-  bool didFail(testcase);
+  bool didFail(TestCase testCase);
 
   bool hasFailed(TestCase testCase);
 
@@ -972,11 +982,11 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
   }
 
   Expectation result(TestCase testCase) {
-    if (hasCrashed) return Expectation.CRASH;
-    if (hasTimedOut) return Expectation.TIMEOUT;
-    if (hasFailed(testCase)) return Expectation.FAIL;
-    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
-    return Expectation.PASS;
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasFailed(testCase)) return Expectation.fail;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    return Expectation.pass;
   }
 
   bool get hasCrashed {
@@ -1028,11 +1038,11 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
   Expectation _negateOutcomeIfNegativeTest(
       Expectation outcome, bool isNegative) {
     if (!isNegative) return outcome;
-    if (outcome == Expectation.IGNORE) return outcome;
-    if (outcome.canBeOutcomeOf(Expectation.FAIL)) {
-      return Expectation.PASS;
+    if (outcome == Expectation.ignore) return outcome;
+    if (outcome.canBeOutcomeOf(Expectation.fail)) {
+      return Expectation.pass;
     }
-    return Expectation.FAIL;
+    return Expectation.fail;
   }
 }
 
@@ -1040,9 +1050,11 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
   // Although tests are reported as passing, content shell sometimes exits with
   // a nonzero exitcode which makes our dartium builders extremely falky.
   // See: http://dartbug.com/15139.
+  // TODO(rnystrom): Is this still needed? The underlying bug is closed.
   static int WHITELISTED_CONTENTSHELL_EXITCODE = -1073740022;
   static bool isWindows = io.Platform.operatingSystem == 'windows';
-  static bool _failedBecauseOfFlakyInfrastructure(List<int> stderrBytes) {
+  static bool _failedBecauseOfFlakyInfrastructure(
+      Command command, bool timedOut, List<int> stderrBytes) {
     // If the browser test failed, it may have been because content shell
     // and the virtual framebuffer X server didn't hook up, or it crashed with
     // a core dump. Sometimes content shell crashes after it has set the stdout
@@ -1051,7 +1063,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     var zygoteCrash =
         new RegExp(r"ERROR:zygote_linux\.cc\(\d+\)] write: Broken pipe");
     var stderr = decodeUtf8(stderrBytes);
-    // TODO(whesse): Issue: 7564
+    // TODO(7564): See http://dartbug.com/7564
     // This may not be happening anymore.  Test by removing this suppression.
     if (stderr.contains(MESSAGE_CANNOT_OPEN_DISPLAY) ||
         stderr.contains(MESSAGE_FAILED_TO_RUN_COMMAND)) {
@@ -1059,10 +1071,17 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
           "Warning: Failure because of missing XDisplay. Test ignored");
       return true;
     }
-    // Issue 26739
+    // TODO(26739): See http://dartbug.com/26739
     if (zygoteCrash.hasMatch(stderr)) {
       DebugLogger.warning("Warning: Failure because of content_shell "
           "zygote crash. Test ignored");
+      return true;
+    }
+    // TODO(28955): See http://dartbug.com/28955
+    if (timedOut &&
+        command is BrowserTestCommand &&
+        command.browser == "ie11") {
+      DebugLogger.warning("Timeout of ie11 on test page ${command.url}");
       return true;
     }
     return false;
@@ -1071,30 +1090,38 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
   bool _infraFailure;
 
   BrowserCommandOutputImpl(
-      command, exitCode, timedOut, stdout, stderr, time, compilationSkipped)
-      : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped, 0),
-        _infraFailure = _failedBecauseOfFlakyInfrastructure(stderr);
+      Command command,
+      int exitCode,
+      bool timedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped)
+      : _infraFailure =
+            _failedBecauseOfFlakyInfrastructure(command, timedOut, stderr),
+        super(command, exitCode, timedOut, stdout, stderr, time,
+            compilationSkipped, 0);
 
   Expectation result(TestCase testCase) {
-    // Handle crashes and timeouts first
-    if (hasCrashed) return Expectation.CRASH;
-    if (hasTimedOut) return Expectation.TIMEOUT;
-    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
-
     if (_infraFailure) {
-      return Expectation.IGNORE;
+      return Expectation.ignore;
     }
+
+    // Handle crashes and timeouts first
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
     var outcome = _getOutcome();
 
     if (testCase.hasRuntimeError) {
-      if (!outcome.canBeOutcomeOf(Expectation.RUNTIME_ERROR)) {
-        return Expectation.MISSING_RUNTIME_ERROR;
+      if (!outcome.canBeOutcomeOf(Expectation.runtimeError)) {
+        return Expectation.missingRuntimeError;
       }
     }
     if (testCase.isNegative) {
-      if (outcome.canBeOutcomeOf(Expectation.FAIL)) return Expectation.PASS;
-      return Expectation.FAIL;
+      if (outcome.canBeOutcomeOf(Expectation.fail)) return Expectation.pass;
+      return Expectation.fail;
     }
     return outcome;
   }
@@ -1113,9 +1140,9 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
 
   Expectation _getOutcome() {
     if (_browserTestFailure) {
-      return Expectation.RUNTIME_ERROR;
+      return Expectation.runtimeError;
     }
-    return Expectation.PASS;
+    return Expectation.pass;
   }
 
   bool get _rendererCrashed =>
@@ -1177,12 +1204,18 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
 
 class HTMLBrowserCommandOutputImpl extends BrowserCommandOutputImpl {
   HTMLBrowserCommandOutputImpl(
-      command, exitCode, timedOut, stdout, stderr, time, compilationSkipped)
+      Command command,
+      int exitCode,
+      bool timedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped)
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped);
 
   bool didFail(TestCase testCase) {
-    return _getOutcome() != Expectation.PASS;
+    return _getOutcome() != Expectation.pass;
   }
 
   bool get _browserTestFailure {
@@ -1219,9 +1252,8 @@ class BrowserTestJsonResult {
       }
     }
 
-    var events;
     try {
-      events = JSON.decode(content);
+      var events = JSON.decode(content);
       if (events != null) {
         validate("Message must be a List", events is List);
 
@@ -1265,8 +1297,8 @@ class BrowserTestJsonResult {
   }
 
   static Expectation _getOutcome(Map<String, List<String>> messagesByType) {
-    occured(type) => messagesByType[type].length > 0;
-    searchForMsg(types, message) {
+    occured(String type) => messagesByType[type].length > 0;
+    searchForMsg(List<String> types, String message) {
       return types.any((type) => messagesByType[type].contains(message));
     }
 
@@ -1274,17 +1306,17 @@ class BrowserTestJsonResult {
     // test_controller.js: So far I haven't seen anything being reported on
     // "window.compilationerror"
     if (occured('window_compilationerror')) {
-      return Expectation.COMPILETIME_ERROR;
+      return Expectation.compileTimeError;
     }
 
     if (occured('sync_exception') ||
         occured('window_onerror') ||
         occured('script_onerror')) {
-      return Expectation.RUNTIME_ERROR;
+      return Expectation.runtimeError;
     }
 
     if (messagesByType['dom'][0].contains('FAIL')) {
-      return Expectation.RUNTIME_ERROR;
+      return Expectation.runtimeError;
     }
 
     // We search for these messages in 'print' and 'message_received' because
@@ -1299,9 +1331,9 @@ class BrowserTestJsonResult {
 
     if (isAsyncTest) {
       if (isAsyncSuccess) {
-        return Expectation.PASS;
+        return Expectation.pass;
       }
-      return Expectation.RUNTIME_ERROR;
+      return Expectation.runtimeError;
     }
 
     var mainStarted =
@@ -1310,9 +1342,9 @@ class BrowserTestJsonResult {
         searchForMsg(['print', 'message_received'], 'dart-main-done');
 
     if (mainStarted && mainDone) {
-      return Expectation.PASS;
+      return Expectation.pass;
     }
-    return Expectation.FAIL;
+    return Expectation.fail;
   }
 }
 
@@ -1343,11 +1375,11 @@ class BrowserControllerTestOutcome extends CommandOutputImpl
     } else {
       // Old way of determining whether a test failed or passed.
       if (result.lastKnownMessage.contains("FAIL")) {
-        outcome = Expectation.RUNTIME_ERROR;
+        outcome = Expectation.runtimeError;
       } else if (result.lastKnownMessage.contains("PASS")) {
-        outcome = Expectation.PASS;
+        outcome = Expectation.pass;
       } else {
-        outcome = Expectation.RUNTIME_ERROR;
+        outcome = Expectation.runtimeError;
       }
     }
 
@@ -1390,13 +1422,13 @@ class BrowserControllerTestOutcome extends CommandOutputImpl
 
   Expectation result(TestCase testCase) {
     // Handle timeouts first
-    if (_result.didTimeout) return Expectation.TIMEOUT;
-    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
+    if (_result.didTimeout) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     // Multitests are handled specially
     if (testCase.hasRuntimeError) {
-      if (_rawOutcome == Expectation.RUNTIME_ERROR) return Expectation.PASS;
-      return Expectation.MISSING_RUNTIME_ERROR;
+      if (_rawOutcome == Expectation.runtimeError) return Expectation.pass;
+      return Expectation.missingRuntimeError;
     }
 
     return _negateOutcomeIfNegativeTest(_rawOutcome, testCase.isNegative);
@@ -1412,7 +1444,13 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
   final int FORMATTED_ERROR = 7;
 
   AnalysisCommandOutputImpl(
-      command, exitCode, timedOut, stdout, stderr, time, compilationSkipped)
+      Command command,
+      int exitCode,
+      bool timedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped)
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, 0);
 
@@ -1422,9 +1460,9 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     // no errors)
 
     // Handle crashes and timeouts first
-    if (hasCrashed) return Expectation.CRASH;
-    if (hasTimedOut) return Expectation.TIMEOUT;
-    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     // Get the errors/warnings from the analyzer
     List<String> errors = [];
@@ -1434,32 +1472,32 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     // Handle errors / missing errors
     if (testCase.expectCompileError) {
       if (errors.length > 0) {
-        return Expectation.PASS;
+        return Expectation.pass;
       }
-      return Expectation.MISSING_COMPILETIME_ERROR;
+      return Expectation.missingCompileTimeError;
     }
     if (errors.length > 0) {
-      return Expectation.COMPILETIME_ERROR;
+      return Expectation.compileTimeError;
     }
 
     // Handle static warnings / missing static warnings
     if (testCase.hasStaticWarning) {
       if (warnings.length > 0) {
-        return Expectation.PASS;
+        return Expectation.pass;
       }
-      return Expectation.MISSING_STATIC_WARNING;
+      return Expectation.missingStaticWarning;
     }
     if (warnings.length > 0) {
-      return Expectation.STATIC_WARNING;
+      return Expectation.staticWarning;
     }
 
     assert(errors.length == 0 && warnings.length == 0);
     assert(!testCase.hasCompileError && !testCase.hasStaticWarning);
-    return Expectation.PASS;
+    return Expectation.pass;
   }
 
   void parseAnalyzerOutput(List<String> outErrors, List<String> outWarnings) {
-    // Parse a line delimited by the | character using \ as an escape charager
+    // Parse a line delimited by the | character using \ as an escape character
     // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
     List<String> splitMachineError(String line) {
       StringBuffer field = new StringBuffer();
@@ -1511,38 +1549,38 @@ class VmCommandOutputImpl extends CommandOutputImpl
 
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first
-    if (exitCode == DART_VM_EXITCODE_DFE_ERROR) return Expectation.DARTK_CRASH;
-    if (hasCrashed) return Expectation.CRASH;
-    if (hasTimedOut) return Expectation.TIMEOUT;
-    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
+    if (exitCode == DART_VM_EXITCODE_DFE_ERROR) return Expectation.dartkCrash;
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     // Multitests are handled specially
     if (testCase.expectCompileError) {
       if (exitCode == DART_VM_EXITCODE_COMPILE_TIME_ERROR) {
-        return Expectation.PASS;
+        return Expectation.pass;
       }
-      return Expectation.MISSING_COMPILETIME_ERROR;
+      return Expectation.missingCompileTimeError;
     }
     if (testCase.hasRuntimeError) {
       // TODO(kustermann): Do we consider a "runtimeError" only an uncaught
       // exception or does any nonzero exit code fullfil this requirement?
       if (exitCode != 0) {
-        return Expectation.PASS;
+        return Expectation.pass;
       }
-      return Expectation.MISSING_RUNTIME_ERROR;
+      return Expectation.missingRuntimeError;
     }
 
     // The actual outcome depends on the exitCode
     Expectation outcome;
     if (exitCode == DART_VM_EXITCODE_COMPILE_TIME_ERROR) {
-      outcome = Expectation.COMPILETIME_ERROR;
+      outcome = Expectation.compileTimeError;
     } else if (exitCode == DART_VM_EXITCODE_UNCAUGHT_EXCEPTION) {
-      outcome = Expectation.RUNTIME_ERROR;
+      outcome = Expectation.runtimeError;
     } else if (exitCode != 0) {
       // This is a general fail, in case we get an unknown nonzero exitcode.
-      outcome = Expectation.FAIL;
+      outcome = Expectation.fail;
     } else {
-      outcome = Expectation.PASS;
+      outcome = Expectation.pass;
     }
     outcome = _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
     return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
@@ -1565,23 +1603,23 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
 
   Expectation result(TestCase testCase) {
     // Handle general crash/timeout detection.
-    if (hasCrashed) return Expectation.CRASH;
+    if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) {
       bool isWindows = io.Platform.operatingSystem == 'windows';
       bool isBrowserTestCase =
           testCase.commands.any((command) => command is BrowserTestCommand);
       // TODO(26060) Dart2js batch mode hangs on Windows under heavy load.
       return (isWindows && isBrowserTestCase)
-          ? Expectation.IGNORE
-          : Expectation.TIMEOUT;
+          ? Expectation.ignore
+          : Expectation.timeout;
     }
-    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     // Handle dart2js specific crash detection
     if (exitCode == DART2JS_EXITCODE_CRASH ||
         exitCode == VmCommandOutputImpl.DART_VM_EXITCODE_COMPILE_TIME_ERROR ||
         exitCode == VmCommandOutputImpl.DART_VM_EXITCODE_UNCAUGHT_EXCEPTION) {
-      return Expectation.CRASH;
+      return Expectation.crash;
     }
 
     // Multitests are handled specially
@@ -1589,9 +1627,9 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
       // Nonzero exit code of the compiler means compilation failed
       // TODO(kustermann): Do we have a special exit code in that case???
       if (exitCode != 0) {
-        return Expectation.PASS;
+        return Expectation.pass;
       }
-      return Expectation.MISSING_COMPILETIME_ERROR;
+      return Expectation.missingCompileTimeError;
     }
 
     // TODO(kustermann): This is a hack, remove it
@@ -1599,22 +1637,26 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
       // We expected to run the test, but we got an compile time error.
       // If the compilation succeeded, we wouldn't be in here!
       assert(exitCode != 0);
-      return Expectation.COMPILETIME_ERROR;
+      return Expectation.compileTimeError;
     }
 
     Expectation outcome =
-        exitCode == 0 ? Expectation.PASS : Expectation.COMPILETIME_ERROR;
+        exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
     return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
 }
 
 class KernelCompilationCommandOutputImpl extends CompilationCommandOutputImpl {
   KernelCompilationCommandOutputImpl(
-      Command command, int exitCode, bool timedOut,
-      List<int> stdout, List<int> stderr,
-      Duration time, bool compilationSkipped)
+      Command command,
+      int exitCode,
+      bool timedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped)
       : super(command, exitCode, timedOut, stdout, stderr, time,
-              compilationSkipped);
+            compilationSkipped);
 
   bool get canRunDependendCommands {
     // See [BatchRunnerProcess]: 0 means success, 1 means compile-time error.
@@ -1625,12 +1667,12 @@ class KernelCompilationCommandOutputImpl extends CompilationCommandOutputImpl {
 
   Expectation result(TestCase testCase) {
     Expectation result = super.result(testCase);
-    if (result.canBeOutcomeOf(Expectation.CRASH)) {
-      return Expectation.DARTK_CRASH;
-    } else if (result.canBeOutcomeOf(Expectation.TIMEOUT)) {
-      return Expectation.DARTK_TIMEOUT;
-    } else if (result.canBeOutcomeOf(Expectation.COMPILETIME_ERROR)) {
-      return Expectation.DARTK_COMPILETIME_ERROR;
+    if (result.canBeOutcomeOf(Expectation.crash)) {
+      return Expectation.dartkCrash;
+    } else if (result.canBeOutcomeOf(Expectation.timeout)) {
+      return Expectation.dartkTimeout;
+    } else if (result.canBeOutcomeOf(Expectation.compileTimeError)) {
+      return Expectation.dartkCompileTimeError;
     }
     return result;
   }
@@ -1651,16 +1693,16 @@ class JsCommandlineOutputImpl extends CommandOutputImpl
 
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first
-    if (hasCrashed) return Expectation.CRASH;
-    if (hasTimedOut) return Expectation.TIMEOUT;
-    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     if (testCase.hasRuntimeError) {
-      if (exitCode != 0) return Expectation.PASS;
-      return Expectation.MISSING_RUNTIME_ERROR;
+      if (exitCode != 0) return Expectation.pass;
+      return Expectation.missingRuntimeError;
     }
 
-    var outcome = exitCode == 0 ? Expectation.PASS : Expectation.RUNTIME_ERROR;
+    var outcome = exitCode == 0 ? Expectation.pass : Expectation.runtimeError;
     outcome = _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
     return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
@@ -1673,16 +1715,16 @@ class PubCommandOutputImpl extends CommandOutputImpl {
 
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first
-    if (hasCrashed) return Expectation.CRASH;
-    if (hasTimedOut) return Expectation.TIMEOUT;
-    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     if (exitCode == 0) {
-      return Expectation.PASS;
+      return Expectation.pass;
     } else if ((command as PubCommand).command == 'get') {
-      return Expectation.PUB_GET_ERROR;
+      return Expectation.pubGetError;
     } else {
-      return Expectation.FAIL;
+      return Expectation.fail;
     }
   }
 }
@@ -1699,9 +1741,9 @@ class ScriptCommandOutputImpl extends CommandOutputImpl {
 
   Expectation result(TestCase testCase) => _result;
 
-  bool get canRunDependendCommands => _result == Expectation.PASS;
+  bool get canRunDependendCommands => _result == Expectation.pass;
 
-  bool get successful => _result == Expectation.PASS;
+  bool get successful => _result == Expectation.pass;
 }
 
 CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
@@ -1784,16 +1826,16 @@ class OutputLog {
       ? tail.sublist(tail.length - TAIL_LENGTH)
       : tail;
 
-
   void _checkUtf8(List<int> data) {
     try {
       UTF8.decode(data, allowMalformed: false);
-    } on FormatException catch (e) {
+    } on FormatException {
       hasNonUtf8 = true;
       String malformed = UTF8.decode(data, allowMalformed: true);
-      data..clear()
-          ..addAll(UTF8.encode(malformed))
-          ..addAll("""
+      data
+        ..clear()
+        ..addAll(UTF8.encode(malformed))
+        ..addAll("""
 
   *****************************************************************************
 
@@ -1802,10 +1844,9 @@ class OutputLog {
   *****************************************************************************
 
   """
-          .codeUnits);
+            .codeUnits);
     }
   }
-
 
   List<int> toList() {
     if (complete == null) {
@@ -1835,36 +1876,41 @@ test.dart: Data was removed due to excessive length
 
 // Helper to get a list of all child pids for a parent process.
 // The first element of the list is the parent pid.
-Future<List<int>> _getPidList(pid, diagnostics) async {
-  var pid_list = [pid];
-  var lines;
-  var start_line = 0;
+Future<List<int>> _getPidList(int pid, List<String> diagnostics) async {
+  var pids = [pid];
+  List<String> lines;
+  var startLine = 0;
   if (io.Platform.isLinux || io.Platform.isMacOS) {
-    var result = await io.Process.run("pgrep",
-        ["-P", "${pid_list[0]}"],
-        runInShell: true);
+    var result =
+        await io.Process.run("pgrep", ["-P", "${pids[0]}"], runInShell: true);
     lines = result.stdout.split('\n');
   } else if (io.Platform.isWindows) {
-    var result = await io.Process.run("wmic",
-        ["process", "where" , "(ParentProcessId=${pid_list[0]})",
-         "get", "ProcessId"],
+    var result = await io.Process.run(
+        "wmic",
+        [
+          "process",
+          "where",
+          "(ParentProcessId=${pids[0]})",
+          "get",
+          "ProcessId"
+        ],
         runInShell: true);
     lines = result.stdout.split('\n');
     // Skip first line containing header "ProcessId".
-    start_line = 1;
+    startLine = 1;
   } else {
     assert(false);
   }
-  if (lines.length > start_line) {
-    for (int i = start_line; i < lines.length; ++i) {
+  if (lines.length > startLine) {
+    for (var i = startLine; i < lines.length; ++i) {
       var pid = int.parse(lines[i], onError: (source) => null);
-      if (pid != null) pid_list.add(pid);
+      if (pid != null) pids.add(pid);
     }
   } else {
     diagnostics.add("Could not find child pids");
     diagnostics.addAll(lines);
   }
-  return pid_list;
+  return pids;
 }
 
 /**
@@ -1891,9 +1937,7 @@ class RunningProcess {
   Completer<CommandOutput> completer;
   Map configuration;
 
-  RunningProcess(this.command,
-                 this.timeout,
-                 {this.configuration});
+  RunningProcess(this.command, this.timeout, {this.configuration});
 
   Future<CommandOutput> run() {
     completer = new Completer<CommandOutput>();
@@ -1910,8 +1954,7 @@ class RunningProcess {
       } else {
         var processEnvironment = _createProcessEnvironment();
         var args = command.arguments;
-        Future processFuture = io.Process.start(
-            command.executable, args,
+        Future processFuture = io.Process.start(command.executable, args,
             environment: processEnvironment,
             workingDirectory: command.workingDirectory);
         processFuture.then((io.Process process) {
@@ -1920,8 +1963,8 @@ class RunningProcess {
           StreamSubscription stderrSubscription =
               _drainStream(process.stderr, stderr);
 
-          var stdoutCompleter = new Completer();
-          var stderrCompleter = new Completer();
+          var stdoutCompleter = new Completer<Null>();
+          var stderrCompleter = new Completer<Null>();
 
           bool stdoutDone = false;
           bool stderrDone = false;
@@ -1941,6 +1984,7 @@ class RunningProcess {
               }
             }
           }
+
           closeStderr([_]) {
             if (!stderrDone) {
               stderrCompleter.complete();
@@ -1957,7 +2001,7 @@ class RunningProcess {
           timeoutHandler() async {
             timedOut = true;
             if (process != null) {
-              var executable;
+              String executable;
               if (io.Platform.isLinux) {
                 executable = 'eu-stack';
               } else if (io.Platform.isMacOS) {
@@ -1968,24 +2012,26 @@ class RunningProcess {
                 executable = '/usr/bin/sample';
               } else if (io.Platform.isWindows) {
                 bool is_x64 = command.executable.contains("X64") ||
-                              command.executable.contains("SIMARM64");
-                var win_sdk_path = configuration['win_sdk_path'];
-                if (win_sdk_path != null) {
-                  executable = win_sdk_path +
-                      "\\Debuggers\\" + (is_x64 ? "x64" : "x86") + "\\cdb.exe";
+                    command.executable.contains("SIMARM64");
+                var winSdkPath = configuration['win_sdk_path'];
+                if (winSdkPath != null) {
+                  executable = winSdkPath +
+                      "\\Debuggers\\" +
+                      (is_x64 ? "x64" : "x86") +
+                      "\\cdb.exe";
                   diagnostics.add("Using $executable to print stack traces");
                 } else {
                   diagnostics.add("win_sdk path not found");
                 }
               } else {
                 diagnostics.add("Capturing stack traces on"
-                                "${io.Platform.operatingSystem} not supported");
+                    "${io.Platform.operatingSystem} not supported");
               }
               if (executable != null) {
-                var pid_list = await _getPidList(process.pid, diagnostics);
-                diagnostics.add("Process list including children: $pid_list");
-                for (pid in pid_list) {
-                  var arguments;
+                var pids = await _getPidList(process.pid, diagnostics);
+                diagnostics.add("Process list including children: $pids");
+                for (pid in pids) {
+                  List<String> arguments;
                   if (io.Platform.isLinux) {
                     arguments = ['-p $pid'];
                   } else if (io.Platform.isMacOS) {
@@ -2096,20 +2142,24 @@ class RunningProcess {
       environment.remove(excludedEnvironmentVariable);
     }
 
+    // TODO(terry): Needed for roll 50?
+    environment["GLIBCPP_FORCE_NEW"] = "1";
+    environment["GLIBCXX_FORCE_NEW"] = "1";
+
     return environment;
   }
 }
 
-class BatchRunnerProcess  {
+class BatchRunnerProcess {
   Completer<CommandOutput> _completer;
   ProcessCommand _command;
   List<String> _arguments;
   String _runnerType;
 
   io.Process _process;
-  Map _processEnvironmentOverrides;
-  Completer _stdoutCompleter;
-  Completer _stderrCompleter;
+  Map<String, String> _processEnvironmentOverrides;
+  Completer<Null> _stdoutCompleter;
+  Completer<Null> _stderrCompleter;
   StreamSubscription<String> _stdoutSubscription;
   StreamSubscription<String> _stderrSubscription;
   Function _processExitHandler;
@@ -2126,7 +2176,7 @@ class BatchRunnerProcess  {
     assert(_completer == null);
     assert(!_currentlyRunning);
 
-    _completer = new Completer<CommandOutput>();
+    _completer = new Completer();
     bool sameRunnerType = _runnerType == runnerType &&
         _dictEquals(_processEnvironmentOverrides, command.environmentOverrides);
     _runnerType = runnerType;
@@ -2156,9 +2206,9 @@ class BatchRunnerProcess  {
     return _completer.future;
   }
 
-  Future terminate() {
+  Future<bool> terminate() {
     if (_process == null) return new Future.value(true);
-    Completer terminateCompleter = new Completer();
+    Completer terminateCompleter = new Completer<bool>();
     _processExitHandler = (_) {
       terminateCompleter.complete(true);
     };
@@ -2225,6 +2275,7 @@ class BatchRunnerProcess  {
         _process = null;
       }
     }
+
     return handler;
   }
 
@@ -2233,10 +2284,11 @@ class BatchRunnerProcess  {
     _process.kill();
   }
 
-  _startProcess(callback) {
+  void _startProcess(Action callback) {
     assert(_command is ProcessCommand);
     var executable = _command.executable;
-    var arguments = []..addAll(_command.batchArguments)..add('--batch');
+    var arguments = _command.batchArguments.toList();
+    arguments.add('--batch');
     var environment = new Map.from(io.Platform.environment);
     if (_processEnvironmentOverrides != null) {
       for (var key in _processEnvironmentOverrides.keys) {
@@ -2345,14 +2397,14 @@ class TestCaseEnqueuer {
     void newTest(TestCase testCase) {
       remainingTestCases.add(testCase);
 
-      var lastNode;
+      dgraph.Node lastNode;
       for (var command in testCase.commands) {
         // Make exactly *one* node in the dependency graph for every command.
         // This ensures that we never have two commands c1 and c2 in the graph
         // with "c1 == c2".
         var node = command2node[command];
         if (node == null) {
-          var requiredNodes = (lastNode != null) ? [lastNode] : [];
+          var requiredNodes = (lastNode != null) ? [lastNode] : <dgraph.Node>[];
           node = graph.newNode(command, requiredNodes);
           command2node[command] = node;
           command2testCases[command] = <TestCase>[];
@@ -2379,6 +2431,7 @@ class TestCaseEnqueuer {
         iterator.current.forEachTest(newTest, testCache, enqueueNextSuite);
       }
     }
+
     enqueueNextSuite();
   }
 }
@@ -2405,12 +2458,14 @@ class CommandEnqueuer {
   CommandEnqueuer(this._graph) {
     var eventCondition = _graph.events.where;
 
-    eventCondition((e) => e is dgraph.NodeAddedEvent).listen((event) {
+    eventCondition((e) => e is dgraph.NodeAddedEvent).listen((e) {
+      var event = e as dgraph.NodeAddedEvent;
       dgraph.Node node = event.node;
       _changeNodeStateIfNecessary(node);
     });
 
-    eventCondition((e) => e is dgraph.StateChangedEvent).listen((event) {
+    eventCondition((e) => e is dgraph.StateChangedEvent).listen((e) {
+      var event = e as dgraph.StateChangedEvent;
       if ([dgraph.NodeState.Waiting, dgraph.NodeState.Processing]
           .contains(event.from)) {
         if (FINISHED_STATES.contains(event.to)) {
@@ -2469,7 +2524,7 @@ class CommandQueue {
 
   final Queue<Command> _runQueue = new Queue<Command>();
   final _commandOutputStream = new StreamController<CommandOutput>(sync: true);
-  final _completer = new Completer();
+  final _completer = new Completer<Null>();
 
   int _numProcesses = 0;
   int _maxProcesses;
@@ -2481,13 +2536,13 @@ class CommandQueue {
   CommandQueue(this.graph, this.enqueuer, this.executor, this._maxProcesses,
       this._maxBrowserProcesses, this._verbose) {
     var eventCondition = graph.events.where;
-    eventCondition((event) => event is dgraph.StateChangedEvent)
-        .listen((event) {
+    eventCondition((e) => e is dgraph.StateChangedEvent).listen((e) {
+      var event = e as dgraph.StateChangedEvent;
       if (event.to == dgraph.NodeState.Enqueuing) {
         assert(event.from == dgraph.NodeState.Initialized ||
             event.from == dgraph.NodeState.Waiting);
         graph.changeState(event.node, dgraph.NodeState.Processing);
-        var command = event.node.userData;
+        var command = event.node.userData as Command;
         if (event.node.dependencies.length > 0) {
           _runQueue.addFirst(command);
         } else {
@@ -2610,7 +2665,7 @@ abstract class CommandExecutor {
   Future cleanup();
   // TODO(kustermann): The [timeout] parameter should be a property of Command
   Future<CommandOutput> runCommand(
-      dgraph.Node node, Command command, int timeout);
+      dgraph.Node node, covariant Command command, int timeout);
 }
 
 class CommandExecutorImpl implements CommandExecutor {
@@ -2636,7 +2691,7 @@ class CommandExecutorImpl implements CommandExecutor {
     _finishing = true;
 
     Future _terminateBatchRunners() {
-      var futures = [];
+      var futures = <Future>[];
       for (var runners in _batchProcesses.values) {
         futures.addAll(runners.map((runner) => runner.terminate()));
       }
@@ -2669,6 +2724,7 @@ class CommandExecutorImpl implements CommandExecutor {
         }
       });
     }
+
     return runCommand(command.maxNumRetries);
   }
 
@@ -2704,9 +2760,12 @@ class CommandExecutorImpl implements CommandExecutor {
       var name = command.displayName;
       return _getBatchRunner(command.displayName + command.dartFile)
           .runCommand(name, command, timeout, command.arguments);
+    } else if (command is ProcessCommand) {
+      return new RunningProcess(command, timeout,
+              configuration: globalConfiguration)
+          .run();
     } else {
-      return new RunningProcess(
-          command, timeout, configuration: globalConfiguration).run();
+      throw new ArgumentError("Unknown command type ${command.runtimeType}.");
     }
   }
 
@@ -2734,12 +2793,15 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
-    steps.add(() => device.pushCachedData(runner,
-                                          '$devicedir/dart_precompiled_runtime'));
-    steps.add(() => device.pushCachedData(processTest,
-                                          '$devicedir/process_test'));
-    steps.add(() => device.runAdbShellCommand(
-        ['chmod', '777', '$devicedir/dart_precompiled_runtime $devicedir/process_test']));
+    steps.add(() =>
+        device.pushCachedData(runner, '$devicedir/dart_precompiled_runtime'));
+    steps.add(
+        () => device.pushCachedData(processTest, '$devicedir/process_test'));
+    steps.add(() => device.runAdbShellCommand([
+          'chmod',
+          '777',
+          '$devicedir/dart_precompiled_runtime $devicedir/process_test'
+        ]));
 
     for (var file in files) {
       steps.add(() => device
@@ -2920,6 +2982,14 @@ bool shouldRetryCommand(CommandOutput output) {
       return true;
     }
 
+    // As long as we use a legacy version of our custom content_shell (which
+    // became quite flaky after chrome-50 roll) we'll re-run tests on it.
+    // The plan is to use chrome's content_shell instead of our own.
+    // See http://dartbug.com/29655 .
+    if (command is ContentShellCommand) {
+      return true;
+    }
+
     if (io.Platform.operatingSystem == 'linux') {
       decodeOutput();
       // No matter which command we ran: If we get failures due to the
@@ -2928,11 +2998,11 @@ bool shouldRetryCommand(CommandOutput output) {
         return line.contains(MESSAGE_CANNOT_OPEN_DISPLAY) ||
             line.contains(MESSAGE_FAILED_TO_RUN_COMMAND);
       }
+
       if (stdout.any(containsFailureMsg) || stderr.any(containsFailureMsg)) {
         return true;
       }
     }
-
   }
   return false;
 }
@@ -2976,8 +3046,8 @@ class TestCaseCompleter {
 
     // Listen for NodeState.Processing -> NodeState.{Successful,Failed}
     // changes.
-    eventCondition((event) => event is dgraph.StateChangedEvent)
-        .listen((dgraph.StateChangedEvent event) {
+    eventCondition((event) => event is dgraph.StateChangedEvent).listen((e) {
+      var event = e as dgraph.StateChangedEvent;
       if (event.from == dgraph.NodeState.Processing &&
           !finishedRemainingTestCases) {
         var command = event.node.userData;
@@ -2992,8 +3062,7 @@ class TestCaseCompleter {
 
     // Listen also for GraphSealedEvent's. If there is not a single node in the
     // graph, we still want to finish after the graph was sealed.
-    eventCondition((event) => event is dgraph.GraphSealedEvent)
-        .listen((dgraph.GraphSealedEvent event) {
+    eventCondition((event) => event is dgraph.GraphSealedEvent).listen((_) {
       if (!_closed && enqueuer.remainingTestCases.isEmpty) {
         _controller.close();
         _closed = true;
@@ -3048,8 +3117,14 @@ class ProcessQueue {
   final dgraph.Graph _graph = new dgraph.Graph();
   List<EventListener> _eventListener;
 
-  ProcessQueue(this._globalConfiguration, maxProcesses, maxBrowserProcesses,
-      DateTime startTime, testSuites, this._eventListener, this._allDone,
+  ProcessQueue(
+      this._globalConfiguration,
+      int maxProcesses,
+      int maxBrowserProcesses,
+      DateTime startTime,
+      List<TestSuite> testSuites,
+      this._eventListener,
+      this._allDone,
       [bool verbose = false,
       String recordingOutputFile,
       String recordedInputFile,
@@ -3057,8 +3132,8 @@ class ProcessQueue {
     void setupForListing(TestCaseEnqueuer testCaseEnqueuer) {
       _graph.events
           .where((event) => event is dgraph.GraphSealedEvent)
-          .listen((dgraph.GraphSealedEvent event) {
-        var testCases = new List.from(testCaseEnqueuer.remainingTestCases);
+          .listen((_) {
+        var testCases = testCaseEnqueuer.remainingTestCases.toList();
         testCases.sort((a, b) => a.displayName.compareTo(b.displayName));
 
         print("\nGenerating all matching test cases ....\n");
@@ -3073,13 +3148,13 @@ class ProcessQueue {
       });
     }
 
-    var testCaseEnqueuer;
+    TestCaseEnqueuer testCaseEnqueuer;
     CommandQueue commandQueue;
 
     void setupForRunning(TestCaseEnqueuer testCaseEnqueuer) {
       Timer _debugTimer;
       // If we haven't seen a single test finishing during a 10 minute period
-      // something is definitly wrong, so we dump the debugging information.
+      // something is definitely wrong, so we dump the debugging information.
       final debugTimerDuration = const Duration(minutes: 10);
 
       void cancelDebugTimer() {

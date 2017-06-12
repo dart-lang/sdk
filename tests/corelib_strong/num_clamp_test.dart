@@ -16,10 +16,10 @@ testIntClamp() {
   Expect.equals(0, (-1).clamp(0, 0));
   Expect.equals(0, 0.clamp(0, 0));
   Expect.throws(() => 0.clamp(0, -1), (e) => e is ArgumentError);
-  Expect.throws(() => 0.clamp("str", -1),
-                (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => 0.clamp(0, "2"),
-                (e) => e is ArgumentError || e is TypeError);
+  Expect.throws(
+      () => 0.clamp("str", -1), (e) => e is ArgumentError || e is TypeError);
+  Expect.throws(
+      () => 0.clamp(0, "2"), (e) => e is ArgumentError || e is TypeError);
 }
 
 testDoubleClamp() {
@@ -34,9 +34,9 @@ testDoubleClamp() {
   Expect.equals(0.0, 0.0.clamp(0.0, 0.0));
   Expect.throws(() => 0.0.clamp(0.0, -1.0), (e) => e is ArgumentError);
   Expect.throws(() => 0.0.clamp("str", -1.0),
-                (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => 0.0.clamp(0.0, "2"),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
+  Expect.throws(
+      () => 0.0.clamp(0.0, "2"), (e) => e is ArgumentError || e is TypeError);
 }
 
 testDoubleClampInt() {
@@ -57,10 +57,10 @@ testDoubleClampInt() {
   Expect.equals(0.0, 0.0.clamp(0, 0));
   Expect.isTrue(0.0.clamp(0, 0) is double);
   Expect.throws(() => 0.0.clamp(0, -1), (e) => e is ArgumentError);
-  Expect.throws(() => 0.0.clamp("str", -1),
-                (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => 0.0.clamp(0, "2"),
-                (e) => e is ArgumentError || e is TypeError);
+  Expect.throws(
+      () => 0.0.clamp("str", -1), (e) => e is ArgumentError || e is TypeError);
+  Expect.throws(
+      () => 0.0.clamp(0, "2"), (e) => e is ArgumentError || e is TypeError);
 }
 
 testDoubleClampExtremes() {
@@ -68,8 +68,8 @@ testDoubleClampExtremes() {
   Expect.equals(2.0, 2.0.clamp(-double.INFINITY, double.NAN));
   Expect.equals(double.INFINITY, 2.0.clamp(double.INFINITY, double.NAN));
   Expect.isTrue(2.0.clamp(double.NAN, double.NAN).isNaN);
-  Expect.throws(() => 0.0.clamp(double.NAN, double.INFINITY),
-                (e) => e is ArgumentError);
+  Expect.throws(
+      () => 0.0.clamp(double.NAN, double.INFINITY), (e) => e is ArgumentError);
 }
 
 main() {

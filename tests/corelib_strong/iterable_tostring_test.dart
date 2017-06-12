@@ -32,25 +32,25 @@ void main() {
   // Builds string up to 60 characters, then finishes with last two
   // elements.
   Expect.equals(
-     //0123456789012345678901234567890123456789 - 40 characters
+      //0123456789012345678901234567890123456789 - 40 characters
       "(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1"
       "2, 13, 14, 15, 16, 17, 18, ..., 98, 99)",
       mkIt(100));
 
   Expect.equals(
-     //0123456789012345678901234567890123456789
+      //0123456789012345678901234567890123456789
       "(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1"
       "2, 13, 14, 15, 16, 17, 18)",
       mkIt(19));
 
   Expect.equals(
-     //0123456789012345678901234567890123456789
+      //0123456789012345678901234567890123456789
       "(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1"
       "2, 13, 14, 15, 16, 17, 18, 19)",
       mkIt(20));
 
   Expect.equals(
-     //0123456789012345678901234567890123456789
+      //0123456789012345678901234567890123456789
       "(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1"
       "2, 13, 14, 15, 16, 17, 18, 19, 20)",
       mkIt(21));
@@ -58,7 +58,7 @@ void main() {
   // Don't show last two elements if more than 100 elements total
   // (can't be 100 elements in 80 characters including commas).
   Expect.equals(
-     //0123456789012345678901234567890123456789
+      //0123456789012345678901234567890123456789
       "(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1"
       "2, 13, 14, 15, 16, 17, 18, 19, 20, ...)",
       mkIt(101));
@@ -67,39 +67,39 @@ void main() {
   // the previous ones as well.
 
   Expect.equals(
-     //0123456789012345678901234567890123456789
+      //0123456789012345678901234567890123456789
       "(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1"
       "2, 13, ..., 18, xxxxxxxxxxxxxxxxxxxx)",
-      mkIt(20, (x) => x == 19 ? "xxxxxxxxxxxxxxxxxxxx": "$x"));
+      mkIt(20, (x) => x == 19 ? "xxxxxxxxxxxxxxxxxxxx" : "$x"));
 
   // Never drop the first three or the last two.
   Expect.equals(
-     //0123456789012345678901234567890123456789
+      //0123456789012345678901234567890123456789
       "(xxxxxxxxxxxxxxxxx, xxxxxxxxxxxxxxxxx, x"
       "xxxxxxxxxxxxxxxx, ..., 18, xxxxxxxxxxxxx"
       "xxxx)",
-      mkIt(20, (x) => (x < 3 || x == 19) ? "xxxxxxxxxxxxxxxxx": "$x"));
+      mkIt(20, (x) => (x < 3 || x == 19) ? "xxxxxxxxxxxxxxxxx" : "$x"));
 
   // Never drop the first three or the last two.
   Expect.equals(
-     //0123456789012345678901234567890123456789
+      //0123456789012345678901234567890123456789
       "(xxxxxxxxxxxxxxxxx, xxxxxxxxxxxxxxxxx, x"
       "xxxxxxxxxxxxxxxx, ..., xxxxxxxxxxxxxxxxx"
       ", 19)",
-      mkIt(20, (x) => (x < 3 || x == 18) ? "xxxxxxxxxxxxxxxxx": "$x"));
+      mkIt(20, (x) => (x < 3 || x == 18) ? "xxxxxxxxxxxxxxxxx" : "$x"));
 
   // If the first three are very long, always include them anyway.
   Expect.equals(
-     //0123456789012345678901234567890123456789
+      //0123456789012345678901234567890123456789
       "(xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,"
       " xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,"
       " xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,"
       " ..., 98, 99)",
-      mkIt(100, (x) =>
-                    (x < 3 ) ? "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": "$x"));
+      mkIt(100,
+          (x) => (x < 3) ? "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" : "$x"));
 
   Expect.equals(
-     //0123456789012345678901234567890123456789
+      //0123456789012345678901234567890123456789
       "(, , , , , , , , , , , , , , , , , , , ,"
       " , , , , , , , , , , , , , , , ..., , )",
       mkIt(100, (_) => ""));

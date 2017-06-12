@@ -4,13 +4,13 @@
 
 // TODO(sashab): This override is no longer needed once prefixes are removed.
 void create(String url,
-            [AppWindowCreateWindowOptions options,
-            void callback(AppWindowAppWindow created_window)]) {
+    [AppWindowCreateWindowOptions options,
+    void callback(AppWindowAppWindow created_window)]) {
   void __proxy_callback(created_window) {
     if (callback != null)
       callback(new AppWindowAppWindow._proxy(created_window));
   }
-  JS('void', '#.create(#, #, #)', this._jsObject, url, convertArgument(options),
-     convertDartClosureToJS(__proxy_callback, 1));
-}
 
+  JS('void', '#.create(#, #, #)', this._jsObject, url, convertArgument(options),
+      convertDartClosureToJS(__proxy_callback, 1));
+}

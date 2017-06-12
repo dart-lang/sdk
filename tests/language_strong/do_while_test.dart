@@ -7,8 +7,7 @@ import "package:expect/expect.dart";
 
 class Helper {
   static int f1(bool b) {
-    do return 1;
-    while (b);
+    do return 1; while (b);
     return 2;
   }
 
@@ -20,15 +19,12 @@ class Helper {
   }
 
   static int f3(bool b) {
-    do
-      ;
-    while (b);
+    do ; while (b);
     return 2;
   }
 
   static int f4(bool b) {
-    do {
-    } while (b);
+    do {} while (b);
     return 2;
   }
 

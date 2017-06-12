@@ -286,9 +286,9 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Load arguments descriptor in S4.
-  int argument_count = ArgumentCount();
-  const Array& arguments_descriptor = Array::ZoneHandle(
-      ArgumentsDescriptor::New(argument_count, argument_names()));
+  const intptr_t argument_count = ArgumentCount();  // Includes type args.
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(Z, GetArgumentsDescriptor());
   __ LoadObject(S4, arguments_descriptor);
 
   // Load closure function code in T2.
@@ -409,12 +409,13 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumInputs = 2;
+  const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(A0));  // Value.
-  summary->set_in(1, Location::RegisterLocation(A1));  // Type arguments.
+  summary->set_in(1, Location::RegisterLocation(A1));  // Instant. type args.
+  summary->set_in(2, Location::RegisterLocation(A2));  // Function type args.
   summary->set_out(0, Location::RegisterLocation(A0));
   return summary;
 }
@@ -1034,21 +1035,26 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const StubEntry* stub_entry;
   if (link_lazily()) {
-    stub_entry = StubCode::CallBootstrapCFunction_entry();
+    stub_entry = StubCode::CallBootstrapNative_entry();
     entry = NativeEntry::LinkNativeCallEntry();
   } else {
     entry = reinterpret_cast<uword>(native_c_function());
     if (is_bootstrap_native()) {
-      stub_entry = StubCode::CallBootstrapCFunction_entry();
+      stub_entry = StubCode::CallBootstrapNative_entry();
 #if defined(USING_SIMULATOR)
       entry = Simulator::RedirectExternalReference(
           entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
 #endif
+    } else if (is_auto_scope()) {
+      // In the case of non bootstrap native methods the CallNativeCFunction
+      // stub generates the redirection address when running under the simulator
+      // and hence we do not change 'entry' here.
+      stub_entry = StubCode::CallAutoScopeNative_entry();
     } else {
       // In the case of non bootstrap native methods the CallNativeCFunction
       // stub generates the redirection address when running under the simulator
       // and hence we do not change 'entry' here.
-      stub_entry = StubCode::CallNativeCFunction_entry();
+      stub_entry = StubCode::CallNoScopeNative_entry();
     }
   }
   __ LoadImmediate(A1, argc_tag);
@@ -1129,11 +1135,12 @@ LocationSummary* StringInterpolateInstr::MakeLocationSummary(Zone* zone,
 void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register array = locs()->in(0).reg();
   __ Push(array);
+  const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;
   const Array& kNoArgumentNames = Object::null_array();
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), token_pos(), CallFunction(),
-                               kNumberOfArguments, kNoArgumentNames, locs(),
-                               ICData::Handle());
+                               args_info, locs(), ICData::Handle());
   ASSERT(locs()->out(0).reg() == V0);
 }
 
@@ -2230,12 +2237,13 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  const intptr_t kNumInputs = 2;
+  const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(A0));
-  summary->set_in(1, Location::RegisterLocation(A1));
+  summary->set_in(0, Location::RegisterLocation(A0));  // Instance.
+  summary->set_in(1, Location::RegisterLocation(A1));  // Instant. type args.
+  summary->set_in(2, Location::RegisterLocation(A2));  // Function type args.
   summary->set_out(0, Location::RegisterLocation(V0));
   return summary;
 }
@@ -2244,6 +2252,7 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == A0);  // Value.
   ASSERT(locs()->in(1).reg() == A1);  // Instantiator type arguments.
+  ASSERT(locs()->in(2).reg() == A2);  // Function type arguments.
 
   __ Comment("InstanceOfInstr");
   compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
@@ -2450,11 +2459,12 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(T0));
+  locs->set_in(0, Location::RegisterLocation(T0));  // Instant. type args.
+  locs->set_in(1, Location::RegisterLocation(T1));  // Function type args.
   locs->set_out(0, Location::RegisterLocation(T0));
   return locs;
 }
@@ -2462,37 +2472,40 @@ LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
 
 void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Comment("InstantiateTypeInstr");
-  Register instantiator_reg = locs()->in(0).reg();
+  Register instantiator_type_args_reg = locs()->in(0).reg();
+  Register function_type_args_reg = locs()->in(1).reg();
   Register result_reg = locs()->out(0).reg();
 
-  // 'instantiator_reg' is the instantiator TypeArguments object (or null).
+  // 'instantiator_type_args_reg' is a TypeArguments object (or null).
+  // 'function_type_args_reg' is a TypeArguments object (or null).
   // A runtime call to instantiate the type is required.
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ addiu(SP, SP, Immediate(-4 * kWordSize));
   __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 2 * kWordSize));  // Make room for the result.
+  __ sw(TMP, Address(SP, 3 * kWordSize));  // Make room for the result.
   __ LoadObject(TMP, type());
-  __ sw(TMP, Address(SP, 1 * kWordSize));
-  // Push instantiator type arguments.
-  __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
+  __ sw(TMP, Address(SP, 2 * kWordSize));
+  __ sw(instantiator_type_args_reg, Address(SP, 1 * kWordSize));
+  __ sw(function_type_args_reg, Address(SP, 0 * kWordSize));
 
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeRuntimeEntry, 2, locs());
+                                kInstantiateTypeRuntimeEntry, 3, locs());
   // Pop instantiated type.
-  __ lw(result_reg, Address(SP, 2 * kWordSize));
+  __ lw(result_reg, Address(SP, 3 * kWordSize));
+
   // Drop instantiator and uninstantiated type.
-  __ addiu(SP, SP, Immediate(3 * kWordSize));
-  ASSERT(instantiator_reg == result_reg);
+  __ addiu(SP, SP, Immediate(4 * kWordSize));
 }
 
 
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(T0));
+  locs->set_in(0, Location::RegisterLocation(T0));  // Instant. type args.
+  locs->set_in(1, Location::RegisterLocation(T1));  // Function type args.
   locs->set_out(0, Location::RegisterLocation(T0));
   return locs;
 }
@@ -2501,60 +2514,73 @@ LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
 void InstantiateTypeArgumentsInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   __ Comment("InstantiateTypeArgumentsInstr");
-  Register instantiator_reg = locs()->in(0).reg();
+  Register instantiator_type_args_reg = locs()->in(0).reg();
+  Register function_type_args_reg = locs()->in(1).reg();
   Register result_reg = locs()->out(0).reg();
-  ASSERT(instantiator_reg == T0);
-  ASSERT(instantiator_reg == result_reg);
+  ASSERT(instantiator_type_args_reg == T0);
+  ASSERT(instantiator_type_args_reg == result_reg);
 
-  // 'instantiator_reg' is the instantiator TypeArguments object (or null).
+  // 'instantiator_type_args_reg' is a TypeArguments object (or null).
+  // 'function_type_args_reg' is a TypeArguments object (or null).
   ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
          !type_arguments().CanShareInstantiatorTypeArguments(
              instantiator_class()));
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments.
+  // If both the instantiator and function type arguments are null and if the
+  // type argument vector instantiated from null becomes a vector of dynamic,
+  // then use null as the type arguments.
   Label type_arguments_instantiated;
   const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawInstantiatedRaw(len)) {
-    __ BranchEqual(instantiator_reg, Object::null_object(),
+  if (type_arguments().IsRawWhenInstantiatedFromRaw(len)) {
+    Label non_null_type_args;
+    __ BranchNotEqual(instantiator_type_args_reg, Object::null_object(),
+                      &non_null_type_args);
+    __ BranchEqual(function_type_args_reg, Object::null_object(),
                    &type_arguments_instantiated);
+    __ Bind(&non_null_type_args);
   }
 
+  // Lookup cache before calling runtime.
+  // TODO(regis): Consider moving this into a shared stub to reduce
+  // generated code size.
   __ LoadObject(T2, type_arguments());
   __ lw(T2, FieldAddress(T2, TypeArguments::instantiations_offset()));
   __ AddImmediate(T2, Array::data_offset() - kHeapObjectTag);
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  Label loop, found, slow_case;
+  Label loop, next, found, slow_case;
   __ Bind(&loop);
-  __ lw(T1, Address(T2, 0 * kWordSize));  // Cached instantiator.
-  __ beq(T1, T0, &found);
-  __ BranchNotEqual(T1, Immediate(Smi::RawValue(StubCode::kNoInstantiator)),
+  __ lw(T3, Address(T2, 0 * kWordSize));  // Cached instantiator type args.
+  __ bne(T3, T0, &next);
+  __ lw(T4, Address(T2, 1 * kWordSize));  // Cached function type args.
+  __ beq(T4, T1, &found);
+  __ Bind(&next);
+  __ BranchNotEqual(T3, Immediate(Smi::RawValue(StubCode::kNoInstantiator)),
                     &loop);
-  __ delay_slot()->addiu(T2, T2, Immediate(2 * kWordSize));
+  __ delay_slot()->addiu(
+      T2, T2, Immediate(StubCode::kInstantiationSizeInWords * kWordSize));
   __ b(&slow_case);
   __ Bind(&found);
-  __ lw(T0, Address(T2, 1 * kWordSize));  // Cached instantiated args.
+  __ lw(T0, Address(T2, 2 * kWordSize));  // Cached instantiated args.
   __ b(&type_arguments_instantiated);
 
   __ Bind(&slow_case);
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ addiu(SP, SP, Immediate(-4 * kWordSize));
   __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 2 * kWordSize));  // Make room for the result.
+  __ sw(TMP, Address(SP, 3 * kWordSize));  // Make room for the result.
   __ LoadObject(TMP, type_arguments());
-  __ sw(TMP, Address(SP, 1 * kWordSize));
-  // Push instantiator type arguments.
-  __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
+  __ sw(TMP, Address(SP, 2 * kWordSize));
+  __ sw(instantiator_type_args_reg, Address(SP, 1 * kWordSize));
+  __ sw(function_type_args_reg, Address(SP, 0 * kWordSize));
 
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeArgumentsRuntimeEntry, 2,
+                                kInstantiateTypeArgumentsRuntimeEntry, 3,
                                 locs());
   // Pop instantiated type arguments.
-  __ lw(result_reg, Address(SP, 2 * kWordSize));
-  // Drop instantiator and uninstantiated type arguments.
-  __ addiu(SP, SP, Immediate(3 * kWordSize));
+  __ lw(result_reg, Address(SP, 3 * kWordSize));
+  // Drop 2 type argument vectors and uninstantiated type arguments.
+  __ addiu(SP, SP, Immediate(4 * kWordSize));
   __ Bind(&type_arguments_instantiated);
 }
 
@@ -2753,12 +2779,41 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(fp_sp_dist <= 0);
   __ AddImmediate(SP, FP, fp_sp_dist);
 
-  // Restore stack and initialize the two exception variables:
-  // exception and stack trace variables.
-  __ StoreToOffset(kExceptionObjectReg, FP,
-                   exception_var().index() * kWordSize);
-  __ StoreToOffset(kStackTraceObjectReg, FP,
-                   stacktrace_var().index() * kWordSize);
+  // Auxiliary variables introduced by the try catch can be captured if we are
+  // inside a function with yield/resume points. In this case we first need
+  // to restore the context to match the context at entry into the closure.
+  if (should_restore_closure_context()) {
+    const ParsedFunction& parsed_function = compiler->parsed_function();
+    ASSERT(parsed_function.function().IsClosureFunction());
+    LocalScope* scope = parsed_function.node_sequence()->scope();
+
+    LocalVariable* closure_parameter = scope->VariableAt(0);
+    ASSERT(!closure_parameter->is_captured());
+    __ LoadFromOffset(CTX, FP, closure_parameter->index() * kWordSize);
+    __ LoadFieldFromOffset(CTX, CTX, Closure::context_offset());
+
+    const intptr_t context_index =
+        parsed_function.current_context_var()->index();
+    __ StoreToOffset(CTX, FP, context_index * kWordSize);
+  }
+
+  // Initialize exception and stack trace variables.
+  if (exception_var().is_captured()) {
+    ASSERT(stacktrace_var().is_captured());
+    __ StoreIntoObjectOffset(CTX,
+                             Context::variable_offset(exception_var().index()),
+                             kExceptionObjectReg);
+    __ StoreIntoObjectOffset(CTX,
+                             Context::variable_offset(stacktrace_var().index()),
+                             kStackTraceObjectReg);
+  } else {
+    // Restore stack and initialize the two exception variables:
+    // exception and stack trace variables.
+    __ StoreToOffset(kExceptionObjectReg, FP,
+                     exception_var().index() * kWordSize);
+    __ StoreToOffset(kStackTraceObjectReg, FP,
+                     stacktrace_var().index() * kWordSize);
+  }
 }
 
 
@@ -2879,7 +2934,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
   // Right (locs.in(1)) is not constant.
   Register right = locs.in(1).reg();
-  Range* right_range = shift_left->right()->definition()->range();
+  Range* right_range = shift_left->right_range();
   if (shift_left->left()->BindsToConstant() && shift_left->can_overflow()) {
     // TODO(srdjan): Implement code below for is_truncating().
     // If left is constant, we know the maximal allowed size for right.
@@ -2909,9 +2964,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
   if (!shift_left->can_overflow()) {
     if (right_needs_check) {
-      const bool right_may_be_negative =
-          (right_range == NULL) || !right_range->IsPositive();
-      if (right_may_be_negative) {
+      if (!RangeUtils::IsPositive(right_range)) {
         ASSERT(shift_left->CanDeoptimize());
         __ bltz(right, deopt);
       }
@@ -2970,8 +3023,12 @@ class CheckedSmiSlowPath : public SlowPathCode {
     }
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
+    const String& selector =
+        String::Handle(instruction_->call()->ic_data()->target_name());
+    const Array& argument_names =
+        Array::Handle(instruction_->call()->ic_data()->arguments_descriptor());
     compiler->EmitMegamorphicInstanceCall(
-        *instruction_->call()->ic_data(), instruction_->call()->ArgumentCount(),
+        selector, argument_names, instruction_->call()->ArgumentCount(),
         instruction_->call()->deopt_id(), instruction_->call()->token_pos(),
         locs, try_index_,
         /* slow_path_argument_count = */ 2);
@@ -3106,8 +3163,12 @@ class CheckedSmiComparisonSlowPath : public SlowPathCode {
     }
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
+    String& selector =
+        String::Handle(instruction_->call()->ic_data()->target_name());
+    Array& argument_names =
+        Array::Handle(instruction_->call()->ic_data()->arguments_descriptor());
     compiler->EmitMegamorphicInstanceCall(
-        *instruction_->call()->ic_data(), instruction_->call()->ArgumentCount(),
+        selector, argument_names, instruction_->call()->ArgumentCount(),
         instruction_->call()->deopt_id(), instruction_->call()->token_pos(),
         locs, try_index_,
         /* slow_path_argument_count = */ 2);
@@ -3360,7 +3421,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   Register right = locs()->in(1).reg();
-  Range* right_range = this->right()->definition()->range();
   switch (op_kind()) {
     case Token::kADD: {
       if (deopt == NULL) {
@@ -3410,7 +3470,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
         __ beq(right, ZR, deopt);
       }
@@ -3426,7 +3486,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
-      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
         __ beq(right, ZR, deopt);
       }
@@ -3445,14 +3505,14 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       //  }
       Label done;
       __ bgez(result, &done);
-      if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
+      if (RangeUtils::Overlaps(right_range(), -1, 1)) {
         Label subtract;
         __ bltz(right, &subtract);
         __ addu(result, result, TMP);
         __ b(&done);
         __ Bind(&subtract);
         __ subu(result, result, TMP);
-      } else if (right_range->IsPositive()) {
+      } else if (right_range()->IsPositive()) {
         // Right is positive.
         __ addu(result, result, TMP);
       } else {
@@ -3471,8 +3531,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(temp, right);
       // sra operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
-      if ((right_range == NULL) ||
-          !right_range->OnlyLessThanOrEqualTo(kCountLimit)) {
+      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
         Label ok;
         __ BranchSignedLessEqual(temp, Immediate(kCountLimit), &ok);
         __ LoadImmediate(temp, kCountLimit);
@@ -4619,12 +4678,12 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ICData& ic_data = *instance_call()->ic_data();
   ASSERT(ic_data.NumberOfChecksIs(1));
   const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
-
-  const intptr_t kNumberOfArguments = 1;
+  const int kTypeArgsLen = 0;
+  const int kNumberOfArguments = 1;
+  const Array& kNoArgumentNames = Object::null_array();
+  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kNoArgumentNames);
   compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(), target,
-                               kNumberOfArguments,
-                               Object::null_array(),  // No argument names.
-                               locs(), ICData::Handle());
+                               args_info, locs(), ICData::Handle());
   __ Bind(&done);
 }
 
@@ -4897,83 +4956,72 @@ void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* MergedMathInstr::MakeLocationSummary(Zone* zone,
-                                                      bool opt) const {
-  if (kind() == MergedMathInstr::kTruncDivMod) {
-    const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 1;
-    LocationSummary* summary = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RequiresRegister());
-    summary->set_temp(0, Location::RequiresRegister());
-    // Output is a pair of registers.
-    summary->set_out(0, Location::Pair(Location::RequiresRegister(),
-                                       Location::RequiresRegister()));
-    return summary;
-  }
-  UNIMPLEMENTED();
-  return NULL;
+LocationSummary* TruncDivModInstr::MakeLocationSummary(Zone* zone,
+                                                       bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  // Output is a pair of registers.
+  summary->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
+  return summary;
 }
 
 
-void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = NULL;
-  if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
+void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(CanDeoptimize());
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register temp = locs()->temp(0).reg();
+  ASSERT(locs()->out(0).IsPairLocation());
+  PairLocation* pair = locs()->out(0).AsPairLocation();
+  Register result_div = pair->At(0).reg();
+  Register result_mod = pair->At(1).reg();
+  if (RangeUtils::CanBeZero(divisor_range())) {
+    // Handle divide by zero in runtime.
+    __ beq(right, ZR, deopt);
   }
-  if (kind() == MergedMathInstr::kTruncDivMod) {
-    Register left = locs()->in(0).reg();
-    Register right = locs()->in(1).reg();
-    Register temp = locs()->temp(0).reg();
-    ASSERT(locs()->out(0).IsPairLocation());
-    PairLocation* pair = locs()->out(0).AsPairLocation();
-    Register result_div = pair->At(0).reg();
-    Register result_mod = pair->At(1).reg();
-    Range* right_range = InputAt(1)->definition()->range();
-    if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
-      // Handle divide by zero in runtime.
-      __ beq(right, ZR, deopt);
-    }
-    __ SmiUntag(temp, left);
-    __ SmiUntag(TMP, right);
-    __ div(temp, TMP);
-    __ mflo(result_div);
-    __ mfhi(result_mod);
-    // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-    // case we cannot tag the result.
-    __ BranchEqual(result_div, Immediate(0x40000000), deopt);
-    //  res = left % right;
-    //  if (res < 0) {
-    //    if (right < 0) {
-    //      res = res - right;
-    //    } else {
-    //      res = res + right;
-    //    }
-    //  }
-    Label done;
-    __ bgez(result_mod, &done);
-    if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
-      Label subtract;
-      __ bltz(right, &subtract);
-      __ addu(result_mod, result_mod, TMP);
-      __ b(&done);
-      __ Bind(&subtract);
-      __ subu(result_mod, result_mod, TMP);
-    } else if (right_range->IsPositive()) {
-      // Right is positive.
-      __ addu(result_mod, result_mod, TMP);
-    } else {
-      // Right is negative.
-      __ subu(result_mod, result_mod, TMP);
-    }
-    __ Bind(&done);
+  __ SmiUntag(temp, left);
+  __ SmiUntag(TMP, right);
+  __ div(temp, TMP);
+  __ mflo(result_div);
+  __ mfhi(result_mod);
+  // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+  // case we cannot tag the result.
+  __ BranchEqual(result_div, Immediate(0x40000000), deopt);
+  //  res = left % right;
+  //  if (res < 0) {
+  //    if (right < 0) {
+  //      res = res - right;
+  //    } else {
+  //      res = res + right;
+  //    }
+  //  }
+  Label done;
+  __ bgez(result_mod, &done);
+  if (RangeUtils::Overlaps(divisor_range(), -1, 1)) {
+    Label subtract;
+    __ bltz(right, &subtract);
+    __ addu(result_mod, result_mod, TMP);
+    __ b(&done);
+    __ Bind(&subtract);
+    __ subu(result_mod, result_mod, TMP);
+  } else if (divisor_range()->IsPositive()) {
+    // Right is positive.
+    __ addu(result_mod, result_mod, TMP);
+  } else {
+    // Right is negative.
+    __ subu(result_mod, result_mod, TMP);
+  }
+  __ Bind(&done);
 
-    __ SmiTag(result_div);
-    __ SmiTag(result_mod);
-    return;
-  }
-  UNIMPLEMENTED();
+  __ SmiTag(result_div);
+  __ SmiTag(result_mod);
 }
 
 
@@ -5001,7 +5049,7 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckClassInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
-  const bool need_mask_temp = IsDenseSwitch() && !IsDenseMask(ComputeCidMask());
+  const bool need_mask_temp = IsBitTest();
   const intptr_t kNumTemps = !IsNullCheck() ? (need_mask_temp ? 2 : 1) : 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -5016,89 +5064,69 @@ LocationSummary* CheckClassInstr::MakeLocationSummary(Zone* zone,
 }
 
 
-void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
-                                        licm_hoisted_ ? ICData::kHoisted : 0);
-  if (IsNullCheck()) {
-    if (DeoptIfNull()) {
-      __ BranchEqual(locs()->in(0).reg(), Object::null_object(), deopt);
+void CheckClassInstr::EmitNullCheck(FlowGraphCompiler* compiler, Label* deopt) {
+  if (IsDeoptIfNull()) {
+    __ BranchEqual(locs()->in(0).reg(), Object::null_object(), deopt);
+  } else {
+    ASSERT(IsDeoptIfNotNull());
+    __ BranchNotEqual(locs()->in(0).reg(), Object::null_object(), deopt);
+  }
+}
+
+
+void CheckClassInstr::EmitBitTest(FlowGraphCompiler* compiler,
+                                  intptr_t min,
+                                  intptr_t max,
+                                  intptr_t mask,
+                                  Label* deopt) {
+  Register biased_cid = locs()->temp(0).reg();
+  __ LoadImmediate(TMP, min);
+  __ subu(biased_cid, biased_cid, TMP);
+  __ LoadImmediate(TMP, max - min);
+  __ BranchUnsignedGreater(biased_cid, TMP, deopt);
+
+  Register bit_reg = locs()->temp(1).reg();
+  __ LoadImmediate(bit_reg, 1);
+  __ sllv(bit_reg, bit_reg, biased_cid);
+  __ AndImmediate(bit_reg, bit_reg, mask);
+  __ beq(bit_reg, ZR, deopt);
+}
+
+
+int CheckClassInstr::EmitCheckCid(FlowGraphCompiler* compiler,
+                                  int bias,
+                                  intptr_t cid_start,
+                                  intptr_t cid_end,
+                                  bool is_last,
+                                  Label* is_ok,
+                                  Label* deopt,
+                                  bool use_near_jump) {
+  Register biased_cid = locs()->temp(0).reg();
+  if (cid_start == cid_end) {
+    __ LoadImmediate(TMP, cid_start - bias);
+    if (is_last) {
+      __ bne(biased_cid, TMP, deopt);
     } else {
-      ASSERT(DeoptIfNotNull());
-      __ BranchNotEqual(locs()->in(0).reg(), Object::null_object(), deopt);
-    }
-    return;
-  }
-
-  ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
-         (unary_checks().NumberOfChecks() > 1));
-  Register value = locs()->in(0).reg();
-  Register temp = locs()->temp(0).reg();
-  Label is_ok;
-  if (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) {
-    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
-    __ beq(CMPRES1, ZR, &is_ok);
-  } else {
-    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
-    __ beq(CMPRES1, ZR, deopt);
-  }
-  Register biased_cid = temp;
-  __ LoadClassId(biased_cid, value);
-
-  GrowableArray<CidRangeTarget> sorted_ic_data;
-  FlowGraphCompiler::SortICDataByCount(unary_checks(), &sorted_ic_data,
-                                       /* drop_smi = */ true);
-
-  if (IsDenseSwitch()) {
-    ASSERT(cids_[0] < cids_[cids_.length() - 1]);
-    __ LoadImmediate(TMP, cids_[0]);
-    __ subu(biased_cid, biased_cid, TMP);
-    __ LoadImmediate(TMP, cids_[cids_.length() - 1] - cids_[0]);
-    __ BranchUnsignedGreater(biased_cid, TMP, deopt);
-
-    intptr_t mask = ComputeCidMask();
-    if (!IsDenseMask(mask)) {
-      // Only need mask if there are missing numbers in the range.
-      ASSERT(cids_.length() > 2);
-      Register mask_reg = locs()->temp(1).reg();
-      __ LoadImmediate(mask_reg, 1);
-      __ sllv(mask_reg, mask_reg, biased_cid);
-      __ AndImmediate(mask_reg, mask_reg, mask);
-      __ beq(mask_reg, ZR, deopt);
+      __ beq(biased_cid, TMP, is_ok);
     }
   } else {
-    const intptr_t num_checks = sorted_ic_data.length();
-    int bias = 0;
-    for (intptr_t i = 0; i < num_checks; i++) {
-      const intptr_t cid_start = sorted_ic_data[i].cid_start;
-      const intptr_t cid_end = sorted_ic_data[i].cid_end;
-      ASSERT(cid_start > kSmiCid || cid_end < kSmiCid);
-      if (cid_start == cid_end) {
-        __ LoadImmediate(TMP, cid_start - bias);
-        if (i == (num_checks - 1)) {
-          __ bne(biased_cid, TMP, deopt);
-        } else {
-          __ beq(biased_cid, TMP, &is_ok);
-        }
-      } else {
-        // For class ID ranges use a subtract followed by an unsigned
-        // comparison to check both ends of the ranges with one comparison.
-        __ AddImmediate(biased_cid, biased_cid, bias - cid_start);
-        bias = cid_start;
-        // TODO(erikcorry): We should use sltiu instead of the temporary TMP if
-        // the range is small enough.
-        __ LoadImmediate(TMP, cid_end - cid_start);
-        // Reverse comparison so we get 1 if biased_cid > tmp ie cid is out of
-        // range.
-        __ sltu(TMP, TMP, biased_cid);
-        if (i == (num_checks - 1)) {
-          __ bne(TMP, ZR, deopt);
-        } else {
-          __ beq(TMP, ZR, &is_ok);
-        }
-      }
+    // For class ID ranges use a subtract followed by an unsigned
+    // comparison to check both ends of the ranges with one comparison.
+    __ AddImmediate(biased_cid, biased_cid, bias - cid_start);
+    bias = cid_start;
+    // TODO(erikcorry): We should use sltiu instead of the temporary TMP if
+    // the range is small enough.
+    __ LoadImmediate(TMP, cid_end - cid_start);
+    // Reverse comparison so we get 1 if biased_cid > tmp ie cid is out of
+    // range.
+    __ sltu(TMP, TMP, biased_cid);
+    if (is_last) {
+      __ bne(TMP, ZR, deopt);
+    } else {
+      __ beq(TMP, ZR, is_ok);
     }
   }
-  __ Bind(&is_ok);
+  return bias;
 }
 
 
@@ -5128,7 +5156,9 @@ LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(0, cids_.IsSingleCid() ? Location::RequiresRegister()
+                                         : Location::WritableRegister());
+
   return summary;
 }
 
@@ -5136,7 +5166,18 @@ LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,
 void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass);
-  __ BranchNotEqual(value, Immediate(Smi::RawValue(cid_)), deopt);
+  if (cids_.IsSingleCid()) {
+    __ BranchNotEqual(value, Immediate(Smi::RawValue(cids_.cid_start)), deopt);
+  } else {
+    __ AddImmediate(value, value, -Smi::RawValue(cids_.cid_start));
+    // TODO(erikcorry): We should use sltiu instead of the temporary TMP if
+    // the range is small enough.
+    __ LoadImmediate(TMP, cids_.Extent());
+    // Reverse comparison so we get 1 if biased_cid > tmp ie cid is out of
+    // range.
+    __ sltu(TMP, TMP, value);
+    __ bne(TMP, ZR, deopt);
+  }
 }
 
 
@@ -5363,14 +5404,6 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Zone* zone,
   summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
   return summary;
-}
-
-
-static const intptr_t kMintShiftCountLimit = 63;
-
-bool ShiftMintOpInstr::has_shift_count_check() const {
-  return !RangeUtils::IsWithin(right()->definition()->range(), 0,
-                               kMintShiftCountLimit);
 }
 
 

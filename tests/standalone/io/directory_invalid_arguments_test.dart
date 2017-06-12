@@ -10,15 +10,14 @@ import "package:expect/expect.dart";
 void testFailingList(Directory d, var recursive) {
   asyncStart();
   int errors = 0;
-  d.list(recursive: recursive).listen(
-    () => Expect.fail("Unexpected listing result"),
-    onError: (error) {
-      errors += 1;
-    },
-    onDone: () {
-      Expect.equals(1, errors);
-      asyncEnd();
-    });
+  d
+      .list(recursive: recursive)
+      .listen(() => Expect.fail("Unexpected listing result"), onError: (error) {
+    errors += 1;
+  }, onDone: () {
+    Expect.equals(1, errors);
+    asyncEnd();
+  });
   Expect.equals(0, errors);
 }
 
@@ -31,8 +30,7 @@ void testInvalidArguments() {
   }
   Directory d = new Directory(".");
   testFailingList(d, 1);
-  Expect.throws(() => d.listSync(recursive: 1),
-                (e) => e is ArgumentError);
+  Expect.throws(() => d.listSync(recursive: 1), (e) => e is ArgumentError);
 }
 
 main() {

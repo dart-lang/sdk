@@ -41,9 +41,9 @@ void serverListen(RawSocket serverSide) {
         break;
     }
   }
+
   serverSide.listen(serveData);
 }
-
 
 test() async {
   server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
@@ -56,7 +56,6 @@ test() async {
     }
   });
 }
-
 
 void main() {
   test();

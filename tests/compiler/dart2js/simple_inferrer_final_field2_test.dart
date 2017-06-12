@@ -38,8 +38,8 @@ void main() {
         }
 
         checkFieldTypeInClass(
-            'A', 'intField', compiler.backend.backendClasses.uint31Class);
+            'A', 'intField', compiler.commonElements.jsUInt31Class);
         checkFieldTypeInClass(
-            'A', 'stringField', compiler.backend.backendClasses.stringClass);
+            'A', 'stringField', compiler.commonElements.jsStringClass);
       }));
 }

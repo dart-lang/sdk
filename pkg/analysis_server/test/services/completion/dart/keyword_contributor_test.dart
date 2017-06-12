@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.dart.keyword;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,7 +14,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(KeywordContributorTest);
-    defineReflectiveTests(KeywordContributorTest_Driver);
   });
 }
 
@@ -220,7 +217,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Set<String> expectedCompletions = new Set<String>();
     Map<String, int> expectedOffsets = <String, int>{};
     Set<String> actualCompletions = new Set<String>();
-    expectedCompletions.addAll(expectedKeywords.map((k) => k.syntax));
+    expectedCompletions.addAll(expectedKeywords.map((k) => k.lexeme));
     ['import', 'export', 'part'].forEach((s) {
       if (expectedCompletions.contains(s)) {
         expectedCompletions.remove(s);
@@ -251,11 +248,11 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     }
     for (CompletionSuggestion s in suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
-        if (s.completion.startsWith(Keyword.IMPORT.syntax)) {
+        if (s.completion.startsWith(Keyword.IMPORT.lexeme)) {
           int importRelevance = relevance;
           expect(s.relevance, equals(importRelevance), reason: s.completion);
         } else {
-          if (s.completion == Keyword.RETHROW.syntax) {
+          if (s.completion == Keyword.RETHROW.lexeme) {
             expect(s.relevance, equals(relevance - 1), reason: s.completion);
           } else {
             expect(s.relevance, equals(relevance), reason: s.completion);
@@ -1576,6 +1573,34 @@ class A {
     expect(suggestions, isEmpty);
   }
 
+  test_method_param_named_init() async {
+    addTestSource('class A { foo({bool bar: ^}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_method_param_named_init2() async {
+    addTestSource('class A { foo({bool bar: f^}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_method_param_positional_init() async {
+    addTestSource('class A { foo([bool bar = ^]) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_method_param_positional_init2() async {
+    addTestSource('class A { foo([bool bar = f^]) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
   test_named_constructor_invocation() async {
     addTestSource('void main() {new Future.^}');
     await computeSuggestions();
@@ -1776,10 +1801,4 @@ class A {
     if (iter2.any((c) => !iter1.contains(c))) return false;
     return true;
   }
-}
-
-@reflectiveTest
-class KeywordContributorTest_Driver extends KeywordContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

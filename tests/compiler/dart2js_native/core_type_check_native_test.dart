@@ -16,10 +16,10 @@ class C implements Pattern {}
 @Native("D")
 class D implements Pattern, Comparable {}
 
-makeA() native ;
-makeB() native ;
-makeC() native ;
-makeD() native ;
+makeA() native;
+makeB() native;
+makeC() native;
+makeD() native;
 
 void setup() native """
 function A() {};

@@ -1,4 +1,5 @@
 library AudioContextTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -7,7 +8,6 @@ import 'dart:web_audio';
 import 'dart:async';
 
 main() {
-
   useHtmlIndividualConfiguration();
 
   var isAudioContext =
@@ -24,16 +24,16 @@ main() {
     if (AudioContext.supported) {
       context = new AudioContext();
     }
-    
+
     test('constructorTest', () {
-      if(AudioContext.supported) {
+      if (AudioContext.supported) {
         expect(context, isNotNull);
         expect(context, isAudioContext);
       }
     });
 
     test('audioRenames', () {
-      if(AudioContext.supported) {
+      if (AudioContext.supported) {
         GainNode gainNode = context.createGain();
         gainNode.connectNode(context.destination);
         expect(gainNode is GainNode, isTrue);
@@ -43,8 +43,8 @@ main() {
         expect(context.createChannelSplitter() is AudioNode, isTrue);
         expect(context.createOscillator() is OscillatorNode, isTrue);
         expect(context.createPanner() is PannerNode, isTrue);
-        expect(context.createScriptProcessor(4096) is ScriptProcessorNode,
-            isTrue);
+        expect(
+            context.createScriptProcessor(4096) is ScriptProcessorNode, isTrue);
       }
     });
 
@@ -69,7 +69,7 @@ main() {
     */
 
     test('oscillatorTypes', () {
-      if(AudioContext.supported) {
+      if (AudioContext.supported) {
         OscillatorNode oscillator = context.createOscillator();
         oscillator.connectNode(context.destination);
 

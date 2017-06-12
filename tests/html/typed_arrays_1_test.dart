@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library TypedArrays1Test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -33,7 +34,7 @@ main() {
 
     test('aliasTest', () {
       expect(() {
-        var a1 = new Uint8List.fromList([0,0,1,0x45]);
+        var a1 = new Uint8List.fromList([0, 0, 1, 0x45]);
         var a2 = new Float32List.view(a1.buffer);
 
         expect(a1.lengthInBytes, a2.lengthInBytes);

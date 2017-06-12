@@ -61,4 +61,3 @@ expectTorsk(Fisk fisk) {
     throw "$fisk isn't a ${Fisk.torsk}";
   }
 }
-

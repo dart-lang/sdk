@@ -15,20 +15,18 @@ import "dart:isolate";
 Future sendData(List<int> data, int port) {
   return Socket.connect("127.0.0.1", port).then((socket) {
     socket.listen((data) {
-        Expect.fail("No data response was expected");
-      });
+      Expect.fail("No data response was expected");
+    });
     socket.add(data);
-    return socket.close()
-        .then((_) {
-          socket.destroy();
-        });
+    return socket.close().then((_) {
+      socket.destroy();
+    });
   });
 }
 
 class EarlyCloseTest {
   EarlyCloseTest(this.data,
-                 [String this.exception,
-                  bool this.expectRequest = false]);
+      [String this.exception, bool this.expectRequest = false]);
 
   Future execute() {
     return HttpServer.bind("127.0.0.1", 0).then((server) {
@@ -39,40 +37,34 @@ class EarlyCloseTest {
       bool calledOnDone = false;
       ReceivePort port = new ReceivePort();
       var requestCompleter = new Completer();
-      server.listen(
-          (request) {
-            Expect.isTrue(expectRequest);
-            Expect.isFalse(calledOnError);
-            Expect.isFalse(calledOnRequest, "onRequest called multiple times");
-            calledOnRequest = true;
-            request.listen(
-                (_) {},
-                onDone: () {
-                  requestCompleter.complete();
-                },
-                onError: (error) {
-                  Expect.isFalse(calledOnError);
-                  Expect.equals(exception, error.message);
-                  calledOnError = true;
-                  if (exception != null) port.close();
-                });
-          },
-          onDone: () {
-            Expect.equals(expectRequest, calledOnRequest);
-            calledOnDone = true;
-            if (exception == null) port.close();
-            c.complete(null);
-          });
+      server.listen((request) {
+        Expect.isTrue(expectRequest);
+        Expect.isFalse(calledOnError);
+        Expect.isFalse(calledOnRequest, "onRequest called multiple times");
+        calledOnRequest = true;
+        request.listen((_) {}, onDone: () {
+          requestCompleter.complete();
+        }, onError: (error) {
+          Expect.isFalse(calledOnError);
+          Expect.equals(exception, error.message);
+          calledOnError = true;
+          if (exception != null) port.close();
+        });
+      }, onDone: () {
+        Expect.equals(expectRequest, calledOnRequest);
+        calledOnDone = true;
+        if (exception == null) port.close();
+        c.complete(null);
+      });
 
       List<int> d;
       if (data is List<int>) d = data;
       if (data is String) d = data.codeUnits;
       if (d == null) Expect.fail("Invalid data");
-      sendData(d, server.port)
-         .then((_) {
-            if (!expectRequest) requestCompleter.complete();
-            requestCompleter.future.then((_) => server.close());
-          });
+      sendData(d, server.port).then((_) {
+        if (!expectRequest) requestCompleter.complete();
+        requestCompleter.future.then((_) => server.close());
+      });
 
       return c.future;
     });
@@ -98,11 +90,9 @@ void testEarlyClose1() {
 
   // Close while sending content
   add("GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n",
-      "Connection closed while receiving data",
-      true);
+      "Connection closed while receiving data", true);
   add("GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n1",
-      "Connection closed while receiving data",
-      true);
+      "Connection closed while receiving data", true);
 
   void runTest(Iterator it) {
     if (it.moveNext()) {
@@ -111,17 +101,19 @@ void testEarlyClose1() {
       });
     }
   }
+
   runTest(tests.iterator);
 }
 
 testEarlyClose2() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
-    server.listen(
-      (request) {
-        String name = Platform.script.toFilePath();
-        new File(name).openRead().pipe(request.response)
-            .catchError((e) { /* ignore */ });
-      });
+    server.listen((request) {
+      String name = Platform.script.toFilePath();
+      new File(name)
+          .openRead()
+          .pipe(request.response)
+          .catchError((e) {/* ignore */});
+    });
 
     var count = 0;
     makeRequest() {
@@ -139,6 +131,7 @@ testEarlyClose2() {
         });
       });
     }
+
     makeRequest();
   });
 }
@@ -147,24 +140,21 @@ void testEarlyClose3() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       var subscription;
-      subscription = request.listen(
-          (_) {},
-          onError: (error) {
-            // subscription.cancel should not trigger an error.
-            subscription.cancel();
-            server.close();
-          });
+      subscription = request.listen((_) {}, onError: (error) {
+        // subscription.cancel should not trigger an error.
+        subscription.cancel();
+        server.close();
+      });
     });
-    Socket.connect("127.0.0.1", server.port)
-        .then((socket) {
-          socket.write("GET / HTTP/1.1\r\n");
-          socket.write("Content-Length: 10\r\n");
-          socket.write("\r\n");
-          socket.write("data");
-          socket.close();
-          socket.listen((_) {}, onError: (_) {});
-          socket.done.catchError((_) {});
-        });
+    Socket.connect("127.0.0.1", server.port).then((socket) {
+      socket.write("GET / HTTP/1.1\r\n");
+      socket.write("Content-Length: 10\r\n");
+      socket.write("\r\n");
+      socket.write("data");
+      socket.close();
+      socket.listen((_) {}, onError: (_) {});
+      socket.done.catchError((_) {});
+    });
   });
 }
 

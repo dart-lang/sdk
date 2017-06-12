@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.correction.assist;
-
 import 'dart:async';
 import 'dart:collection';
 
@@ -14,7 +12,6 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -24,11 +21,13 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart';
 
 typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
@@ -37,7 +36,10 @@ typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
  * The computer for Dart assists.
  */
 class AssistProcessor {
-  AnalysisContext analysisContext;
+  /**
+   * The analysis driver being used to perform analysis.
+   */
+  AnalysisDriver driver;
 
   Source source;
   String file;
@@ -64,12 +66,14 @@ class AssistProcessor {
 
   SourceChange change = new SourceChange('<message>');
 
+  TypeProvider _typeProvider;
+
   AssistProcessor(DartAssistContext dartContext) {
-    analysisContext = dartContext.analysisContext;
+    driver = dartContext.analysisDriver;
     // source
     source = dartContext.source;
     file = dartContext.source.fullName;
-    fileStamp = analysisContext.getModificationStamp(source);
+    fileStamp = _modificationStamp(file);
     // unit
     unit = dartContext.unit;
     unitElement = dartContext.unit.element;
@@ -90,10 +94,17 @@ class AssistProcessor {
    */
   String get eol => utils.endOfLine;
 
+  TypeProvider get typeProvider {
+    if (_typeProvider == null) {
+      _typeProvider = unitElement.context.typeProvider;
+    }
+    return _typeProvider;
+  }
+
   Future<List<Assist>> compute() async {
     // If the source was changed between the constructor and running
     // this asynchronous method, it is not safe to use the unit.
-    if (analysisContext.getModificationStamp(source) != fileStamp) {
+    if (_modificationStamp(file) != fileStamp) {
       return const <Assist>[];
     }
 
@@ -257,8 +268,7 @@ class AssistProcessor {
     // add edit
     Token keyword = declaredIdentifier.keyword;
     if (keyword.keyword == Keyword.VAR) {
-      SourceRange range = rangeToken(keyword);
-      _addReplaceEdit(range, typeSource);
+      _addReplaceEdit(range.token(keyword), typeSource);
     } else {
       _addInsertEdit(declaredIdentifier.identifier.offset, '$typeSource ');
     }
@@ -280,8 +290,8 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
-    // prepare propagated type
-    DartType type = name.propagatedType;
+    // prepare the type
+    DartType type = parameter.element.type;
     // TODO(scheglov) If the parameter is in a method declaration, and if the
     // method overrides a method that has a type for the corresponding
     // parameter, it would be nice to copy down the type from the overridden
@@ -361,8 +371,7 @@ class AssistProcessor {
     // add edit
     Token keyword = declarationList.keyword;
     if (keyword?.keyword == Keyword.VAR) {
-      SourceRange range = rangeToken(keyword);
-      _addReplaceEdit(range, typeSource);
+      _addReplaceEdit(range.token(keyword), typeSource);
     } else {
       _addInsertEdit(variable.offset, '$typeSource ');
     }
@@ -549,8 +558,7 @@ class AssistProcessor {
         _addInsertEdit,
         _addRemoveEdit,
         _addReplaceEdit,
-        rangeStartLength,
-        rangeNode);
+        range.node);
     _addAssist(DartAssistKind.CONVERT_FLUTTER_CHILD, []);
   }
 
@@ -614,7 +622,7 @@ class AssistProcessor {
         code += ' = ' + _getNodeText(expression);
       }
       code += ';';
-      _addReplaceEdit(rangeStartEnd(beginNodeToReplace, getter), code);
+      _addReplaceEdit(range.startEnd(beginNodeToReplace, getter), code);
       _addAssist(DartAssistKind.CONVERT_INTO_FINAL_FIELD, []);
     }
   }
@@ -659,7 +667,7 @@ class AssistProcessor {
     code += ' ' + _getNodeText(field.name);
     code += ' => ' + _getNodeText(initializer);
     code += ';';
-    _addReplaceEdit(rangeStartEnd(fieldList.keyword, fieldDeclaration), code);
+    _addReplaceEdit(range.startEnd(fieldList.keyword, fieldDeclaration), code);
     _addAssist(DartAssistKind.CONVERT_INTO_GETTER, []);
   }
 
@@ -803,18 +811,18 @@ class AssistProcessor {
       }
       String fieldName = parameterInitializer.fieldName.name;
       // replace parameter
-      _addReplaceEdit(rangeNode(parameter), 'this.$fieldName');
+      _addReplaceEdit(range.node(parameter), 'this.$fieldName');
       // remove initializer
       int initializerIndex = initializers.indexOf(parameterInitializer);
       if (initializers.length == 1) {
-        _addRemoveEdit(rangeEndEnd(parameterList, parameterInitializer));
+        _addRemoveEdit(range.endEnd(parameterList, parameterInitializer));
       } else {
         if (initializerIndex == 0) {
           ConstructorInitializer next = initializers[initializerIndex + 1];
-          _addRemoveEdit(rangeStartStart(parameterInitializer, next));
+          _addRemoveEdit(range.startStart(parameterInitializer, next));
         } else {
           ConstructorInitializer prev = initializers[initializerIndex - 1];
-          _addRemoveEdit(rangeEndEnd(prev, parameterInitializer));
+          _addRemoveEdit(range.endEnd(prev, parameterInitializer));
         }
       }
       // add proposal
@@ -854,7 +862,7 @@ class AssistProcessor {
     // iterable should be List
     {
       DartType iterableType = iterable.bestType;
-      InterfaceType listType = analysisContext.typeProvider.listType;
+      InterfaceType listType = typeProvider.listType;
       if (iterableType is! InterfaceType ||
           iterableType.element != listType.element) {
         _coverageMarker();
@@ -889,7 +897,7 @@ class AssistProcessor {
     int firstBlockLine = utils.getLineContentEnd(body.leftBracket.end);
     // add change
     _addReplaceEdit(
-        rangeStartEnd(forEachStatement, forEachStatement.rightParenthesis),
+        range.startEnd(forEachStatement, forEachStatement.rightParenthesis),
         'for (int $indexName = 0; $indexName < $listName.length; $indexName++)');
     _addInsertEdit(firstBlockLine,
         '$prefix$indent$loopVariable = $listName[$indexName];$eol');
@@ -934,12 +942,12 @@ class AssistProcessor {
     // strip !()
     if (getExpressionParentPrecedence(prefExpression) >=
         TokenClass.RELATIONAL_OPERATOR.precedence) {
-      _addRemoveEdit(rangeToken(prefExpression.operator));
+      _addRemoveEdit(range.token(prefExpression.operator));
     } else {
       _addRemoveEdit(
-          rangeStartEnd(prefExpression, parExpression.leftParenthesis));
+          range.startEnd(prefExpression, parExpression.leftParenthesis));
       _addRemoveEdit(
-          rangeStartEnd(parExpression.rightParenthesis, prefExpression));
+          range.startEnd(parExpression.rightParenthesis, prefExpression));
     }
     _addInsertEdit(isExpression.isOperator.end, '!');
     // add proposal
@@ -983,12 +991,12 @@ class AssistProcessor {
     // strip !()
     if (getExpressionParentPrecedence(prefExpression) >=
         TokenClass.RELATIONAL_OPERATOR.precedence) {
-      _addRemoveEdit(rangeToken(prefExpression.operator));
+      _addRemoveEdit(range.token(prefExpression.operator));
     } else {
       _addRemoveEdit(
-          rangeStartEnd(prefExpression, parExpression.leftParenthesis));
+          range.startEnd(prefExpression, parExpression.leftParenthesis));
       _addRemoveEdit(
-          rangeStartEnd(parExpression.rightParenthesis, prefExpression));
+          range.startEnd(parExpression.rightParenthesis, prefExpression));
     }
     _addInsertEdit(isExpression.isOperator.end, '!');
     // add proposal
@@ -1046,8 +1054,9 @@ class AssistProcessor {
       return;
     }
     // do replace
-    _addRemoveEdit(rangeStartStart(prefixExpression, prefixExpression.operand));
-    _addReplaceEdit(rangeNode(isEmptyIdentifier), 'isNotEmpty');
+    _addRemoveEdit(
+        range.startStart(prefixExpression, prefixExpression.operand));
+    _addReplaceEdit(range.node(isEmptyIdentifier), 'isNotEmpty');
     // add proposal
     _addAssist(DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY, []);
   }
@@ -1068,9 +1077,9 @@ class AssistProcessor {
       String typeCode = utils.getTypeSource(type, librariesToImport);
       // replace parameter
       if (type.isDynamic) {
-        _addReplaceEdit(rangeNode(parameter), name);
+        _addReplaceEdit(range.node(parameter), name);
       } else {
-        _addReplaceEdit(rangeNode(parameter), '$typeCode $name');
+        _addReplaceEdit(range.node(parameter), '$typeCode $name');
       }
       // add field initializer
       List<ConstructorInitializer> initializers = constructor.initializers;
@@ -1129,7 +1138,7 @@ class AssistProcessor {
       return;
     }
     // rename field
-    _addReplaceEdit(rangeNode(nameNode), '_$name');
+    _addReplaceEdit(range.node(nameNode), '_$name');
     // update references in constructors
     ClassDeclaration classDeclaration = fieldDeclaration.parent;
     for (ClassMember member in classDeclaration.members) {
@@ -1138,7 +1147,7 @@ class AssistProcessor {
           ParameterElement parameterElement = parameter.element;
           if (parameterElement is FieldFormalParameterElement &&
               parameterElement.field == fieldElement) {
-            _addReplaceEdit(rangeNode(parameter.identifier), '_$name');
+            _addReplaceEdit(range.node(parameter.identifier), '_$name');
           }
         }
       }
@@ -1186,8 +1195,8 @@ class AssistProcessor {
         binaryExpression = newBinaryExpression;
       }
       // exchange parts of "wide" expression parts
-      SourceRange leftRange = rangeStartEnd(binaryExpression, leftOperand);
-      SourceRange rightRange = rangeStartEnd(rightOperand, binaryExpression);
+      SourceRange leftRange = range.startEnd(binaryExpression, leftOperand);
+      SourceRange rightRange = range.startEnd(rightOperand, binaryExpression);
       _addReplaceEdit(leftRange, _getRangeText(rightRange));
       _addReplaceEdit(rightRange, _getRangeText(leftRange));
       // maybe replace the operator
@@ -1207,7 +1216,7 @@ class AssistProcessor {
         }
         // replace the operator
         if (newOperator != null) {
-          _addReplaceEdit(rangeToken(operator), newOperator);
+          _addReplaceEdit(range.token(operator), newOperator);
         }
       }
     }
@@ -1350,9 +1359,9 @@ class AssistProcessor {
     String thenSource = _getNodeText(thenStatement);
     String elseSource = _getNodeText(elseStatement);
     // do replacements
-    _addReplaceEdit(rangeNode(condition), invertedCondition);
-    _addReplaceEdit(rangeNode(thenStatement), elseSource);
-    _addReplaceEdit(rangeNode(elseStatement), thenSource);
+    _addReplaceEdit(range.node(condition), invertedCondition);
+    _addReplaceEdit(range.node(thenStatement), elseSource);
+    _addReplaceEdit(range.node(elseStatement), thenSource);
     // add proposal
     _addAssist(DartAssistKind.INVERT_IF_STATEMENT, []);
   }
@@ -1410,7 +1419,7 @@ class AssistProcessor {
           utils.getLinesRangeStatements(innerThenStatements);
       String oldSource = utils.getRangeText(lineRanges);
       String newSource = utils.indentSourceLeftRight(oldSource, false);
-      _addReplaceEdit(rangeNode(targetIfStatement),
+      _addReplaceEdit(range.node(targetIfStatement),
           'if ($condition) {$eol$newSource$prefix}');
     }
     // done
@@ -1476,7 +1485,7 @@ class AssistProcessor {
           utils.getLinesRangeStatements(targetThenStatements);
       String oldSource = utils.getRangeText(lineRanges);
       String newSource = utils.indentSourceLeftRight(oldSource, false);
-      _addReplaceEdit(rangeNode(outerIfStatement),
+      _addReplaceEdit(range.node(outerIfStatement),
           'if ($condition) {$eol$newSource$prefix}');
     }
     // done
@@ -1545,10 +1554,7 @@ class AssistProcessor {
       return;
     }
     // add edits
-    {
-      int assignOffset = assignExpression.operator.offset;
-      _addReplaceEdit(rangeEndStart(declNode, assignOffset), ' ');
-    }
+    _addReplaceEdit(range.endStart(declNode, assignExpression.operator), ' ');
     // add proposal
     _addAssist(DartAssistKind.JOIN_VARIABLE_DECLARATION, []);
   }
@@ -1607,10 +1613,7 @@ class AssistProcessor {
       return;
     }
     // add edits
-    {
-      int assignOffset = assignExpression.operator.offset;
-      _addReplaceEdit(rangeEndStart(decl.name, assignOffset), ' ');
-    }
+    _addReplaceEdit(range.endStart(decl.name, assignExpression.operator), ' ');
     // add proposal
     _addAssist(DartAssistKind.JOIN_VARIABLE_DECLARATION, []);
   }
@@ -1709,7 +1712,7 @@ class AssistProcessor {
     }
     // add edit
     Token keyword = declarationList.keyword;
-    SourceRange typeRange = rangeStartStart(typeNode, firstVariable);
+    SourceRange typeRange = range.startStart(typeNode, firstVariable);
     if (keyword != null && keyword.lexeme != 'var') {
       _addReplaceEdit(typeRange, '');
     } else {
@@ -1780,10 +1783,12 @@ class AssistProcessor {
     sb.append('(');
     if (newExprSrc.contains(eol)) {
       int newlineIdx = newExprSrc.lastIndexOf(eol);
-      if (newlineIdx == newExprSrc.length - 1) {
-        newlineIdx -= 1;
+      int eolLen = eol.length;
+      if (newlineIdx == newExprSrc.length - eolLen) {
+        newlineIdx -= eolLen;
       }
-      String indentOld = utils.getLinePrefix(newExpr.offset + 1 + newlineIdx);
+      String indentOld =
+          utils.getLinePrefix(newExpr.offset + eolLen + newlineIdx);
       String indentNew = '$indentOld${utils.getIndent(1)}';
       sb.append(eol);
       sb.append(indentNew);
@@ -1852,7 +1857,7 @@ class AssistProcessor {
     // Type v = Conditional;
     if (inVariable) {
       VariableDeclaration variable = conditional.parent as VariableDeclaration;
-      _addRemoveEdit(rangeEndEnd(variable.name, conditional));
+      _addRemoveEdit(range.endEnd(variable.name, conditional));
       String conditionSrc = _getNodeText(conditional.condition);
       String thenSrc = _getNodeText(conditional.thenExpression);
       String elseSrc = _getNodeText(conditional.elseExpression);
@@ -1863,7 +1868,7 @@ class AssistProcessor {
       src += prefix + '} else {' + eol;
       src += prefix + indent + '$name = $elseSrc;' + eol;
       src += prefix + '}';
-      _addReplaceEdit(rangeEndLength(statement, 0), src);
+      _addReplaceEdit(range.endLength(statement, 0), src);
     }
     // v = Conditional;
     if (inAssignment) {
@@ -1880,7 +1885,7 @@ class AssistProcessor {
       src += prefix + '} else {' + eol;
       src += prefix + indent + '$name = $elseSrc;' + eol;
       src += prefix + '}';
-      _addReplaceEdit(rangeNode(statement), src);
+      _addReplaceEdit(range.node(statement), src);
     }
     // return Conditional;
     if (inReturn) {
@@ -1893,7 +1898,7 @@ class AssistProcessor {
       src += prefix + '} else {' + eol;
       src += prefix + indent + 'return $elseSrc;' + eol;
       src += prefix + '}';
-      _addReplaceEdit(rangeNode(statement), src);
+      _addReplaceEdit(range.node(statement), src);
     }
     // add proposal
     _addAssist(DartAssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE, []);
@@ -1918,8 +1923,8 @@ class AssistProcessor {
       String conditionSrc = _getNodeText(ifStatement.condition);
       String theSrc = _getNodeText(thenStatement.expression);
       String elseSrc = _getNodeText(elseStatement.expression);
-      _addReplaceEdit(
-          rangeNode(ifStatement), 'return $conditionSrc ? $theSrc : $elseSrc;');
+      _addReplaceEdit(range.node(ifStatement),
+          'return $conditionSrc ? $theSrc : $elseSrc;');
     }
     // assignments -> v = Conditional;
     if (thenStatement is ExpressionStatement &&
@@ -1938,7 +1943,7 @@ class AssistProcessor {
           String conditionSrc = _getNodeText(ifStatement.condition);
           String theSrc = _getNodeText(thenAssignment.rightHandSide);
           String elseSrc = _getNodeText(elseAssignment.rightHandSide);
-          _addReplaceEdit(rangeNode(ifStatement),
+          _addReplaceEdit(range.node(ifStatement),
               '$thenTarget = $conditionSrc ? $theSrc : $elseSrc;');
         }
       }
@@ -1995,16 +2000,16 @@ class AssistProcessor {
     String rightConditionSource;
     {
       SourceRange rightConditionRange =
-          rangeStartEnd(binaryExpression.rightOperand, condition);
+          range.startEnd(binaryExpression.rightOperand, condition);
       rightConditionSource = _getRangeText(rightConditionRange);
     }
     // remove "&& rightCondition"
-    _addRemoveEdit(rangeEndEnd(binaryExpression.leftOperand, condition));
+    _addRemoveEdit(range.endEnd(binaryExpression.leftOperand, condition));
     // update "then" statement
     Statement thenStatement = ifStatement.thenStatement;
     if (thenStatement is Block) {
       Block thenBlock = thenStatement;
-      SourceRange thenBlockRange = rangeNode(thenBlock);
+      SourceRange thenBlockRange = range.node(thenBlock);
       // insert inner "if" with right part of "condition"
       {
         String source = '$eol$prefix${indent}if ($rightConditionSource) {';
@@ -2058,12 +2063,12 @@ class AssistProcessor {
       return;
     }
     // remove initializer value
-    _addRemoveEdit(rangeEndStart(variable.name, statement.semicolon));
+    _addRemoveEdit(range.endStart(variable.name, statement.semicolon));
     // add assignment statement
     String indent = utils.getNodePrefix(statement);
     String name = variable.name.name;
     String initSrc = _getNodeText(initializer);
-    SourceRange assignRange = rangeEndLength(statement, 0);
+    SourceRange assignRange = range.endLength(statement, 0);
     _addReplaceEdit(assignRange, eol + indent + name + ' = ' + initSrc + ';');
     // add proposal
     _addAssist(DartAssistKind.SPLIT_VARIABLE_DECLARATION, []);
@@ -2073,8 +2078,7 @@ class AssistProcessor {
     // prepare selected statements
     List<Statement> selectedStatements;
     {
-      SourceRange selection =
-          rangeStartLength(selectionOffset, selectionLength);
+      SourceRange selection = new SourceRange(selectionOffset, selectionLength);
       StatementAnalyzer selectionAnalyzer =
           new StatementAnalyzer(unit, selection);
       unit.accept(selectionAnalyzer);
@@ -2380,7 +2384,7 @@ class AssistProcessor {
    */
   void _insertBuilder(SourceBuilder builder, [int length = 0]) {
     {
-      SourceRange range = rangeStartLength(builder.offset, length);
+      SourceRange range = new SourceRange(builder.offset, length);
       String text = builder.toString();
       _addReplaceEdit(range, text);
     }
@@ -2403,6 +2407,12 @@ class AssistProcessor {
     }
   }
 
+  int _modificationStamp(String filePath) {
+    // TODO(brianwilkerson) We have lost the ability for clients to know whether
+    // it is safe to apply an edit.
+    return driver.fsState.getFileForPath(filePath).exists ? 0 : -1;
+  }
+
   Position _newPosition(int offset) {
     return new Position(file, offset);
   }
@@ -2412,7 +2422,7 @@ class AssistProcessor {
       InstanceCreationExpression exprGoingUp,
       NamedExpression stableChild,
       AssistKind assistKind) {
-    String currentSource = analysisContext.getContents(source).data;
+    String currentSource = unitElement.context.getContents(source).data;
     // TODO(messick) Find a better way to get LineInfo for the source.
     LineInfo lineInfo = new LineInfo.fromContent(currentSource);
     int currLn = lineInfo.getLocation(exprGoingUp.offset).lineNumber;

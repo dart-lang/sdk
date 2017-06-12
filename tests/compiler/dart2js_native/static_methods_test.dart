@@ -16,24 +16,24 @@ typedef int Callback(String s);
 class AA {
   // This name is not an identifier, so completely defines how to access method.
   @JSName('CC.foo')
-  static int foo(String s) native ;
+  static int foo(String s) native;
 
   // This name is not an identifier, so completely defines how to access method.
   @JSName('CC.bar')
-  static int bar(Callback c) native ;
+  static int bar(Callback c) native;
   static int baz(Callback c) {
     return bar(c);
   }
 
   // Compiler should automatically use the tag and the declared name, i.e. call
   // `CC.lepton`.
-  static int lepton(Callback c) native ;
+  static int lepton(Callback c) native;
   static int electron(c) => lepton(c);
 
   // Compiler should automatically use the tag and JSName, i.e. call
   // `CC.baryon`.
   @JSName('baryon')
-  static int _baryon(Callback c) native ;
+  static int _baryon(Callback c) native;
   static int proton(c) => _baryon(c);
 }
 

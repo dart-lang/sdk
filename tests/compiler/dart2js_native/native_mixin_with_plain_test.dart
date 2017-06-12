@@ -37,8 +37,8 @@ class D extends C with M {
   get mm => 'D.mm($cc)';
 }
 
-makeA() native ;
-makeB() native ;
+makeA() native;
+makeB() native;
 
 void setup() native """
 function A() {this.aa = 'aa'}

@@ -5,6 +5,9 @@
 // Ensure that otherwise uninstantiated classes can be instantiated
 // reflectively.
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import "dart:mirrors";
 
 class Foo {

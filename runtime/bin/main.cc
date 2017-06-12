@@ -34,6 +34,8 @@
 #include "zlib/zlib.h"
 #endif
 
+#include "vm/kernel.h"
+
 namespace dart {
 namespace bin {
 
@@ -66,6 +68,11 @@ static const char* snapshot_deps_filename = NULL;
 static bool use_dart_frontend = false;
 
 static const char* frontend_filename = NULL;
+
+// True if the VM should boostrap the SDK from a binary (.dill) file.  The
+// filename points into an argv buffer and does not need to be freed.
+static bool use_platform_binary = false;
+static const char* platform_binary_filename = NULL;
 
 // Value of the --save-feedback flag.
 // (This pointer points into an argv buffer and does not need to be
@@ -107,7 +114,6 @@ static bool trace_loading = false;
 static char* app_script_uri = NULL;
 static const uint8_t* app_isolate_snapshot_data = NULL;
 static const uint8_t* app_isolate_snapshot_instructions = NULL;
-static AppSnapshot* app_snapshot = NULL;
 
 
 static Dart_Isolate main_isolate = NULL;
@@ -329,6 +335,18 @@ static bool ProcessFrontendOption(const char* filename,
   use_dart_frontend = true;
   frontend_filename = filename;
   vm_options->AddArgument("--use-dart-frontend");
+  return true;
+}
+
+
+static bool ProcessPlatformOption(const char* filename,
+                                  CommandLineOptions* vm_options) {
+  ASSERT(filename != NULL);
+  if (filename[0] == '\0') {
+    return false;
+  }
+  use_platform_binary = true;
+  platform_binary_filename = filename;
   return true;
 }
 
@@ -557,6 +575,7 @@ static struct {
     {"--compile_all", ProcessCompileAllOption},
     {"--parse_all", ProcessParseAllOption},
     {"--dfe=", ProcessFrontendOption},
+    {"--platform=", ProcessPlatformOption},
     {"--enable-vm-service", ProcessEnableVmServiceOption},
     {"--disable-service-origin-check", ProcessDisableServiceOriginCheckOption},
     {"--observe", ProcessObserveOption},
@@ -804,8 +823,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
                                                 char** error,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
-  const bool is_service_isolate =
-      strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0;
   const bool is_kernel_isolate =
       strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0;
   if (is_kernel_isolate) {
@@ -819,13 +836,16 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     }
   }
 
+  void* kernel_platform = NULL;
+  void* kernel_program = NULL;
+  AppSnapshot* app_snapshot = NULL;
+
 #if defined(DART_PRECOMPILED_RUNTIME)
   // AOT: All isolates start from the app snapshot.
   bool isolate_run_app_snapshot = true;
   const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       app_isolate_snapshot_instructions;
-  AppSnapshot* app_snapshot = NULL;
 #else
   // JIT: Main isolate starts from the app snapshot, if any. Other isolates
   // use the core libraries snapshot.
@@ -833,7 +853,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       core_isolate_snapshot_instructions;
-  AppSnapshot* app_snapshot = NULL;
   if ((app_isolate_snapshot_data != NULL) &&
       (is_main_isolate || ((app_script_uri != NULL) &&
                            (strcmp(script_uri, app_script_uri) == 0)))) {
@@ -851,13 +870,25 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
           &isolate_snapshot_data, &isolate_snapshot_instructions);
     }
   }
-#endif
-
-  const uint8_t* kernel_file = NULL;
-  intptr_t kernel_length = -1;
-  bool is_kernel = false;
-
+  const bool is_service_isolate =
+      strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0;
   if (!is_kernel_isolate && !is_service_isolate) {
+    const uint8_t* platform_file = NULL;
+    if (use_platform_binary) {
+      intptr_t platform_length = -1;
+      bool success = TryReadKernel(platform_binary_filename, &platform_file,
+                                   &platform_length);
+      if (!success) {
+        *error = strdup("The platform binary is not a valid Dart Kernel file.");
+        *exit_code = kErrorExitCode;
+        return NULL;
+      }
+      kernel_platform = Dart_ReadKernelBinary(platform_file, platform_length);
+    }
+
+    bool is_kernel = false;
+    const uint8_t* kernel_file = NULL;
+    intptr_t kernel_length = -1;
     if (use_dart_frontend) {
       Dart_KernelCompilationResult result = Dart_CompileToKernel(script_uri);
       *error = result.error;  // Copy error message (if any).
@@ -869,38 +900,46 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
           break;
         case Dart_KernelCompilationStatus_Error:
           *exit_code = kCompilationErrorExitCode;
-          return NULL;
+          break;
         case Dart_KernelCompilationStatus_Crash:
           *exit_code = kDartFrontendErrorExitCode;
-          return NULL;
+          break;
         case Dart_KernelCompilationStatus_Unknown:
           *exit_code = kErrorExitCode;
-          return NULL;
+          break;
+      }
+      if (!is_kernel) {
+        free(const_cast<uint8_t*>(platform_file));
+        delete reinterpret_cast<kernel::Program*>(kernel_platform);
+        return NULL;
       }
     } else if (!isolate_run_app_snapshot) {
       is_kernel = TryReadKernel(script_uri, &kernel_file, &kernel_length);
     }
-  }
 
-  void* kernel_program = NULL;
-  if (is_kernel) {
-    kernel_program = Dart_ReadKernelBinary(kernel_file, kernel_length);
-    free(const_cast<uint8_t*>(kernel_file));
+    if (is_kernel) {
+      kernel_program = Dart_ReadKernelBinary(kernel_file, kernel_length);
+    }
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, packages_config, app_snapshot);
   if (is_main_isolate && (snapshot_deps_filename != NULL)) {
     isolate_data->set_dependencies(new MallocGrowableArray<char*>());
   }
-  // If the script is a Kernel binary, then we will try to bootstrap from the
-  // script.
-  Dart_Isolate isolate =
-      is_kernel ? Dart_CreateIsolateFromKernel(script_uri, main, kernel_program,
-                                               flags, isolate_data, error)
-                : Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
-                                     isolate_snapshot_instructions, flags,
-                                     isolate_data, error);
+  Dart_Isolate isolate = NULL;
+  if (kernel_platform != NULL) {
+    isolate = Dart_CreateIsolateFromKernel(script_uri, main, kernel_platform,
+                                           flags, isolate_data, error);
+  } else if (kernel_program != NULL) {
+    isolate = Dart_CreateIsolateFromKernel(script_uri, main, kernel_program,
+                                           flags, isolate_data, error);
+  } else {
+    isolate = Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
+                                 isolate_snapshot_instructions, flags,
+                                 isolate_data, error);
+  }
   if (isolate == NULL) {
     delete isolate_data;
     return NULL;
@@ -912,11 +951,11 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
   CHECK_RESULT(result);
 
-  if (is_kernel) {
+  if (kernel_program != NULL) {
     Dart_Handle result = Dart_LoadKernel(kernel_program);
     CHECK_RESULT(result);
   }
-  if (is_kernel || (isolate_snapshot_data != NULL)) {
+  if ((kernel_platform != NULL) || (isolate_snapshot_data != NULL)) {
     // Setup the native resolver as the snapshot does not carry it.
     Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
     Builtin::SetNativeResolver(Builtin::kIOLibrary);
@@ -986,7 +1025,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     Dart_Handle uri =
         DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
     CHECK_RESULT(uri);
-    if (!is_kernel) {
+    if (kernel_program == NULL) {
       result = Loader::LibraryTagHandler(Dart_kScriptTag, Dart_Null(), uri);
       CHECK_RESULT(result);
     } else {
@@ -1438,6 +1477,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   }
 
   if (snapshot_deps_filename != NULL) {
+    Loader::ResolveDependenciesAsFilePaths();
     IsolateData* isolate_data =
         reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
     ASSERT(isolate_data != NULL);
@@ -1614,7 +1654,7 @@ void main(int argc, char** argv) {
     Platform::Exit(kErrorExitCode);
   }
 
-  app_snapshot = Snapshot::TryReadAppSnapshot(script_name);
+  AppSnapshot* app_snapshot = Snapshot::TryReadAppSnapshot(script_name);
   if (app_snapshot != NULL) {
     vm_run_app_snapshot = true;
     app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,

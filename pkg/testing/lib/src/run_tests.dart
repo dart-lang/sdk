@@ -87,24 +87,24 @@ class CommandLine {
       if (!await new File(configurationPath).exists()) {
         Directory test = new Directory("test");
         if (await test.exists()) {
-          List<FileSystemEntity> candiates = await test
+          List<FileSystemEntity> candidates = await test
               .list(recursive: true, followLinks: false)
               .where((FileSystemEntity entity) {
             return entity is File && entity.uri.path.endsWith("/testing.json");
           }).toList();
-          switch (candiates.length) {
+          switch (candidates.length) {
             case 0:
               return fail("Couldn't locate: '$configurationPath'.");
 
             case 1:
-              configurationPath = candiates.single.path;
+              configurationPath = candidates.single.path;
               break;
 
             default:
               return fail(
                   "Usage: run_tests.dart [$configPrefix=configuration_file]\n"
                   "Where configuration_file is one of:\n  "
-                  "${candiates.map((file) => file.path).join('\n  ')}");
+                  "${candidates.map((file) => file.path).join('\n  ')}");
           }
         }
       }

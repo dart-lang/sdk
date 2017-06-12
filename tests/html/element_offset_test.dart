@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library element_offset_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:async';
@@ -31,8 +32,7 @@ main() {
     var item2 = new LIElement()
       ..classes.add('item-2')
       ..innerHtml = '2';
-    var level3 = new UListElement()
-      ..children.addAll([item1, item2]);
+    var level3 = new UListElement()..children.addAll([item1, item2]);
     var itemb = new LIElement()
       ..classes.add('item-b')
       ..style.position = 'relative'
@@ -46,20 +46,20 @@ main() {
 
     var bar = new DivElement()..classes.add('bar');
     var style = bar.style;
-    style..position = 'absolute'
-         ..top = '8px'
-         ..left = '90px';
+    style
+      ..position = 'absolute'
+      ..top = '8px'
+      ..left = '90px';
     var baz = new DivElement()..classes.add('baz');
     style = baz.style;
-    style..position = 'absolute'
-         ..top = '600px'
-         ..left = '7000px';
+    style
+      ..position = 'absolute'
+      ..top = '600px'
+      ..left = '7000px';
     bar.children.add(baz);
 
     var quux = new DivElement()..classes.add('quux');
-    var qux = new DivElement()
-      ..classes.add('qux')
-      ..children.add(quux);
+    var qux = new DivElement()..classes.add('qux')..children.add(quux);
 
     document.body.append(bar);
     document.body.append(qux);

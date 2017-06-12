@@ -8,14 +8,14 @@ import "package:expect/expect.dart";
 
 class A {
   foo() => 499;
-  fooo() => 4999;  // Implicit closure class can be shared with foo.
+  fooo() => 4999; // Implicit closure class can be shared with foo.
   bar(x, {y: 8, z: 10}) => "1 $x $y $z";
-  gee(x, {y: 9, z: 11}) => "2 $x $y $z";  // Must not be shared with "bar".
-  toto(x, {y: 8, z: 10}) => "3 $x $y $z";  // Could be shared with "bar".
+  gee(x, {y: 9, z: 11}) => "2 $x $y $z"; // Must not be shared with "bar".
+  toto(x, {y: 8, z: 10}) => "3 $x $y $z"; // Could be shared with "bar".
 
   fisk(x, {y: 8, zz: 10}) => "4 $x $y $zz";
-  titi(x, {y: 8, zz: 77}) => "5 $x $y $zz";  // Could be shared with "fisk",
-                                          // because default-val is never used.
+  titi(x, {y: 8, zz: 77}) => "5 $x $y $zz"; // Could be shared with "fisk",
+  // because default-val is never used.
 }
 
 class B {
@@ -29,7 +29,6 @@ class B {
   fisk(x, {y: 8, zz: 10}) => "4B $x $y $zz";
   titi(x, {y: 8, zz: 77}) => "5B $x $y $zz";
 }
-
 
 tearOffFoo(o) => o.foo;
 tearOffFooo(o) => o.fooo;
@@ -66,7 +65,7 @@ main() {
   Expect.equals("2B 35 9 11", geeB(35));
   Expect.equals("3 35 8 10", totoA(35));
   Expect.equals("3B 35 8 10", totoB(35));
-  
+
   Expect.equals("1 35 8 77", barA(35, z: 77));
   Expect.equals("1B 35 8 77", barB(35, z: 77));
   Expect.equals("2 35 9 77", geeA(35, z: 77));

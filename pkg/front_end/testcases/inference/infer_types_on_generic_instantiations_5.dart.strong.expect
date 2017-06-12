@@ -1,0 +1,35 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class I<E extends core::Object> extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method m(dynamic a, (dynamic, self::I::E) → core::String f) → core::String;
+}
+abstract class A<E extends core::Object> extends core::Object implements self::I<self::A::E> {
+  const constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method m(dynamic a, (dynamic, self::A::E) → core::String f) → core::String;
+}
+abstract class M extends core::Object {
+  final field core::int y = 0;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B<E extends core::Object> extends self::A<self::B::E> implements self::M {
+  const constructor •() → void
+    : super self::A::•()
+    ;
+  get y() → core::int
+    return 0;
+  method m(dynamic a, (dynamic, self::B::E) → dynamic f) → dynamic {}
+}
+static method foo() → dynamic {
+  core::int y = new self::B::•<dynamic>().{self::B::m}(null, null);
+  core::String z = new self::B::•<dynamic>().{self::B::m}(null, null);
+}
+static method main() → dynamic {}

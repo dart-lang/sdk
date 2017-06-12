@@ -292,8 +292,7 @@ class GZipCodec extends Codec<List<int>, List<int>> {
  * The [ZLibEncoder] encoder is used by [ZLibCodec] and [GZipCodec] to compress
  * data.
  */
-class ZLibEncoder extends Converter<List<int>, List<int>>
-    implements ChunkedConverter<List<int>, List<int>, List<int>, List<int>> {
+class ZLibEncoder extends Converter<List<int>, List<int>> {
   /**
    * When true, `GZip` frames will be added to the compressed data.
    */

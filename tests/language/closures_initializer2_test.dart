@@ -18,4 +18,3 @@ main() {
     expect(new A<int>().t() is Type, true);
   }
 }
-

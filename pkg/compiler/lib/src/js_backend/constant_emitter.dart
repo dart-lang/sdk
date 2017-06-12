@@ -3,16 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../compiler.dart' show Compiler;
+import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../io/code_output.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import 'backend.dart';
+import '../js_emitter/code_emitter_task.dart';
+import '../options.dart';
 import 'constant_system_javascript.dart';
+import 'js_backend.dart';
 import 'namer.dart';
+import 'runtime_types.dart';
 
 typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);
 
@@ -31,8 +34,12 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   static final RegExp COMMENT_RE =
       new RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''', multiLine: true);
 
-  final Compiler compiler;
-  final Namer namer;
+  final CompilerOptions _options;
+  final CommonElements _commonElements;
+  final RuntimeTypesNeed _rtiNeed;
+  final RuntimeTypesEncoder _rtiEncoder;
+  final Namer _namer;
+  final CodeEmitterTask _task;
   final _ConstantReferenceGenerator constantReferenceGenerator;
   final _ConstantListGenerator makeConstantList;
 
@@ -42,12 +49,16 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
    * can be inlined.
    */
   ConstantEmitter(
-      this.compiler,
-      this.namer,
-      jsAst.Expression this.constantReferenceGenerator(ConstantValue constant),
+      this._options,
+      this._commonElements,
+      this._rtiNeed,
+      this._rtiEncoder,
+      this._namer,
+      this._task,
+      this.constantReferenceGenerator,
       this.makeConstantList);
 
-  DiagnosticReporter get reporter => compiler.reporter;
+  Emitter get _emitter => _task.emitter;
 
   /**
    * Constructs a literal expression that evaluates to the constant. Uses a
@@ -64,9 +75,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitFunction(FunctionConstantValue constant, [_]) {
-    reporter.internalError(NO_LOCATION_SPANNABLE,
+    throw new SpannableAssertionFailure(NO_LOCATION_SPANNABLE,
         "The function constant does not need specific JS code.");
-    return null;
   }
 
   @override
@@ -117,7 +127,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     // digits are lost anyway.
     String representation = primitiveValue.toString();
     String alternative = null;
-    int cutoff = compiler.options.enableMinification ? 10000 : 1e10.toInt();
+    int cutoff = _options.enableMinification ? 10000 : 1e10.toInt();
     if (primitiveValue.abs() >= cutoff) {
       alternative = _shortenExponentialRepresentation(
           primitiveValue.toStringAsExponential());
@@ -145,7 +155,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitBool(BoolConstantValue constant, [_]) {
-    if (compiler.options.enableMinification) {
+    if (_options.enableMinification) {
       if (constant.isTrue) {
         // Use !0 for true.
         return js("!0");
@@ -165,8 +175,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
    */
   @override
   jsAst.Expression visitString(StringConstantValue constant, [_]) {
-    return js.escapedString(constant.primitiveValue.slowToString(),
-        ascii: true);
+    return js.escapedString(constant.primitiveValue, ascii: true);
   }
 
   @override
@@ -234,7 +243,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       } else if (field.name == JavaScriptMapConstant.JS_DATA_NAME) {
         arguments.add(jsGeneralMap());
       } else {
-        reporter.internalError(
+        throw new SpannableAssertionFailure(
             field,
             "Compiler has unexpected field ${field.name} for "
             "${className}.");
@@ -247,38 +256,35 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
             emittedArgumentCount != 4) ||
         (className == JavaScriptMapConstant.DART_GENERAL_CLASS &&
             emittedArgumentCount != 1)) {
-      reporter.internalError(classElement,
+      throw new SpannableAssertionFailure(classElement,
           "Compiler and ${className} disagree on number of fields.");
     }
 
-    if (backend.rtiNeed.classNeedsRtiField(classElement)) {
+    if (_rtiNeed.classNeedsRtiField(classElement)) {
       arguments.add(_reifiedTypeArguments(constant.type));
     }
 
-    jsAst.Expression constructor =
-        backend.emitter.constructorAccess(classElement);
+    jsAst.Expression constructor = _emitter.constructorAccess(classElement);
     jsAst.Expression value = new jsAst.New(constructor, arguments);
     return value;
   }
 
-  JavaScriptBackend get backend => compiler.backend;
-
   jsAst.PropertyAccess getHelperProperty(MethodElement helper) {
-    return backend.emitter.staticFunctionAccess(helper);
+    return _emitter.staticFunctionAccess(helper);
   }
 
   @override
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
     ResolutionDartType type = constant.representedType;
-    jsAst.Name typeName = namer.runtimeTypeName(type.element);
-    return new jsAst.Call(getHelperProperty(backend.helpers.createRuntimeType),
+    jsAst.Name typeName = _namer.runtimeTypeName(type.element);
+    return new jsAst.Call(getHelperProperty(_commonElements.createRuntimeType),
         [js.quoteName(typeName)]);
   }
 
   @override
   jsAst.Expression visitInterceptor(InterceptorConstantValue constant, [_]) {
     ClassElement interceptorClass = constant.cls;
-    return backend.emitter.interceptorPrototypeAccess(interceptorClass);
+    return _task.interceptorPrototypeAccess(interceptorClass);
   }
 
   @override
@@ -291,27 +297,26 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       case SyntheticConstantKind.NAME:
         return constant.payload;
       default:
-        reporter.internalError(NO_LOCATION_SPANNABLE,
+        throw new SpannableAssertionFailure(NO_LOCATION_SPANNABLE,
             "Unexpected DummyConstantKind ${constant.kind}");
-        return null;
     }
   }
 
   @override
   jsAst.Expression visitConstructed(ConstructedConstantValue constant, [_]) {
     ClassElement element = constant.type.element;
-    if (backend.isForeign(element) && element.name == 'JS_CONST') {
+    if (element == _commonElements.jsConstClass) {
       StringConstantValue str = constant.fields.values.single;
-      String value = str.primitiveValue.slowToString();
+      String value = str.primitiveValue;
       return new jsAst.LiteralExpression(stripComments(value));
     }
     jsAst.Expression constructor =
-        backend.emitter.constructorAccess(constant.type.element);
+        _emitter.constructorAccess(constant.type.element);
     List<jsAst.Expression> fields = <jsAst.Expression>[];
     element.forEachInstanceField((_, FieldElement field) {
       fields.add(constantReferenceGenerator(constant.fields[field]));
     }, includeSuperAndInjectedMembers: true);
-    if (backend.rtiNeed.classNeedsRtiField(constant.type.element)) {
+    if (_rtiNeed.classNeedsRtiField(constant.type.element)) {
       fields.add(_reifiedTypeArguments(constant.type));
     }
     jsAst.New instantiation = new jsAst.New(constructor, fields);
@@ -326,9 +331,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       ResolutionInterfaceType type, jsAst.Expression value) {
     if (type is ResolutionInterfaceType &&
         !type.treatAsRaw &&
-        backend.rtiNeed.classNeedsRti(type.element)) {
+        _rtiNeed.classNeedsRti(type.element)) {
       return new jsAst.Call(
-          getHelperProperty(backend.helpers.setRuntimeTypeInfo),
+          getHelperProperty(_commonElements.setRuntimeTypeInfo),
           [value, _reifiedTypeArguments(type)]);
     }
     return value;
@@ -336,17 +341,16 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   jsAst.Expression _reifiedTypeArguments(ResolutionInterfaceType type) {
     jsAst.Expression unexpected(ResolutionTypeVariableType variable) {
-      reporter.internalError(
+      throw new SpannableAssertionFailure(
           NO_LOCATION_SPANNABLE,
           "Unexpected type variable '${variable.getStringAsDeclared(null)}'"
           " in constant type '${type.getStringAsDeclared(null)}'");
-      return null;
     }
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
-    RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
     for (ResolutionDartType argument in type.typeArguments) {
-      arguments.add(rtiEncoder.getTypeRepresentation(argument, unexpected));
+      arguments.add(
+          _rtiEncoder.getTypeRepresentation(_emitter, argument, unexpected));
     }
     return new jsAst.ArrayInitializer(arguments);
   }

@@ -25,10 +25,10 @@ main() {
   final retainedSizes = new RetainedSizeRepositoryMock();
   final inbounds = new InboundReferencesRepositoryMock();
   final paths = new RetainingPathRepositoryMock();
-  final instances = new InstanceRepositoryMock();
+  final objects = new ObjectRepositoryMock();
   test('instantiation', () {
     final e = new ICDataViewElement(vm, isolate, icdata, events, notifs,
-        icdatas, retainedSizes, reachableSizes, inbounds, paths, instances);
+        icdatas, retainedSizes, reachableSizes, inbounds, paths, objects);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.icdata, equals(icdata));
@@ -41,7 +41,7 @@ main() {
       return icdata;
     }, count: 1));
     final e = new ICDataViewElement(vm, isolate, icdata, events, notifs,
-        icdatas, retainedSizes, reachableSizes, inbounds, paths, instances);
+        icdatas, retainedSizes, reachableSizes, inbounds, paths, objects);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

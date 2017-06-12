@@ -15,8 +15,7 @@ class A implements Comparable {
   int compareTo(o) => 0;
 }
 
-class B {
-}
+class B {}
 
 class C implements Pattern {
   matchAsPrefix(String s, [int start = 0]) => null;
@@ -30,8 +29,17 @@ class D implements Pattern, Comparable {
 }
 
 main() {
-  var things = [[], 4, 4.2, 'foo', new Object(), new A(), new B(),
-                new C(), new D()];
+  var things = [
+    [],
+    4,
+    4.2,
+    'foo',
+    new Object(),
+    new A(),
+    new B(),
+    new C(),
+    new D()
+  ];
 
   check(things[inscrutable(0)], false, false); // List
   check(things[inscrutable(1)], true, false); // int

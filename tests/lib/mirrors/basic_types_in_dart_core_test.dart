@@ -4,6 +4,7 @@
 
 library test.basic_types_in_dart_core;
 
+@MirrorsUsed(targets: "dart.core")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

@@ -4,14 +4,16 @@
 
 import "package:expect/expect.dart";
 
-class I<T> { }
+class I<T> {}
 
-class J<T> { }
+class J<T> {}
 
-class S<U extends Set<V>, V> { }
+class S<U extends Set<V>, V> {}
 
 class M<U, V, T extends Map<U, V>> {
-  t() { return T; }
+  t() {
+    return T;
+  }
 }
 
 class A<U, V extends List> = Object with M<U, V, Map<U, V>> implements I<V>;

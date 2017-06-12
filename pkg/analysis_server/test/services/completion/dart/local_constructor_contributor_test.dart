@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.contributor.dart.constructor;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
-    show Element, ElementKind;
-import 'package:analysis_server/plugin/protocol/protocol.dart'
-    hide Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_constructor_contributor.dart';
@@ -19,7 +13,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalConstructorContributorTest);
-    defineReflectiveTests(LocalConstructorContributorTest_Driver);
   });
 }
 
@@ -32,9 +25,9 @@ class LocalConstructorContributorTest extends DartCompletionContributorTest {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.LOCAL_VARIABLE));
+    expect(element.kind, equals(ElementKind.LOCAL_VARIABLE));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType, returnType != null ? returnType : 'dynamic');
@@ -47,9 +40,9 @@ class LocalConstructorContributorTest extends DartCompletionContributorTest {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.PARAMETER));
+    expect(element.kind, equals(ElementKind.PARAMETER));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType,
@@ -60,6 +53,23 @@ class LocalConstructorContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
     return new LocalConstructorContributor();
+  }
+
+  /// Sanity check.  Permutations tested in local_ref_contributor.
+  test_ArgDefaults_cons_with_required_named() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+class A {
+  A(int bar, {bool boo, @required int baz});
+  baz() {
+    new A^
+  }
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: null');
   }
 
   test_ArgumentList() async {
@@ -4145,29 +4155,5 @@ class C {bar(){var f; {var x;} var e = ^ var g}}''');
     assertNotSuggested('f');
     assertNotSuggested('x');
     assertNotSuggested('e');
-  }
-}
-
-@reflectiveTest
-class LocalConstructorContributorTest_Driver
-    extends LocalConstructorContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  /// Sanity check.  Permutations tested in local_ref_contributor.
-  test_ArgDefaults_cons_with_required_named() async {
-    addMetaPackageSource();
-    addTestSource('''
-import 'package:meta/meta.dart';
-
-class A {
-  A(int bar, {bool boo, @required int baz});
-  baz() {
-    new A^
-  }
-}''');
-    await computeSuggestions();
-
-    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: null');
   }
 }

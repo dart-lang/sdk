@@ -1656,89 +1656,13 @@ void main() {
   $downwards<int> t1 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
       (x) async => x ? 2 : await new $upwards<int>.value(3));
   $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) async { // TODO(leafp): Why the duplicate here?
-    return await x ? 2 : new $upwards<int>.value(3);});
+    return /*info:DOWN_CAST_COMPOSITE*/await x ? 2 : new $upwards<int>.value(3);});
   $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE,error:INVALID_CAST_FUNCTION_EXPR*/
       (x) => x ? 2 : new $upwards<int>.value(3));
   $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
       (x) {return /*info:DOWN_CAST_COMPOSITE*/x ? 2 : new $upwards<int>.value(3);});
 }
 ''';
-    await checkFileElement(
-        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
-    await checkFileElement(
-        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
-    await checkFileElement(
-        build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"));
-    await checkFileElement(build(
-        declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
-    await checkFileElement(
-        build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
-    await checkFileElement(
-        build(declared: "Future", downwards: "Future", upwards: "Future"));
-  }
-
-  test_futureThen_conditional_deprecated() async {
-    // Tests the deprecated ad hoc future inference for classes which implement
-    // Future but haven't been updated to use FutureOr
-    String build({String declared, String downwards, String upwards}) => '''
-import 'dart:async';
-class MyFuture<T> implements Future<T> {
-  MyFuture() {}
-  MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
-  MyFuture<S> then<S>(dynamic f(T x), {Function onError}) => null;
-}
-
-void main() {
-  $declared<bool> f;
-  $downwards<int> t1 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
-      (x) async => x ? 2 : await new $upwards<int>.value(3));
-  $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) async { // TODO(leafp): Why the duplicate here?
-    return await x ? 2 : new $upwards<int>.value(3);});
-  $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
-      (x) => x ? 2 : new $upwards<int>.value(3));
-  $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/
-      (x) {return /*info:DOWN_CAST_COMPOSITE*/x ? 2 : new $upwards<int>.value(3);});
-}
-''';
-    await checkFileElement(
-        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
-    await checkFileElement(
-        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
-    await checkFileElement(
-        build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"));
-    await checkFileElement(build(
-        declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
-  }
-
-  test_futureThen_deprecated() async {
-// Tests the deprecated ad hoc future inference for classes which implement
-// Future but haven't been updated to use FutureOr
-    String build({String declared, String downwards, String upwards}) => '''
-import 'dart:async';
-class MyFuture<T> implements Future<T> {
-  MyFuture() {}
-  MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
-  MyFuture<S> then<S>(dynamic f(T x), {Function onError}) => null;
-}
-
-void main() {
-  $declared f;
-  $downwards<int> t1 = f.then((_) async => await new $upwards<int>.value(3));
-  $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {
-     return await new $upwards<int>.value(3);});
-  $downwards<int> t3 = f.then((_) async => 3);
-  $downwards<int> t4 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {
-    return 3;});
-  $downwards<int> t5 = f.then((_) => new $upwards<int>.value(3));
-  $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) {return new $upwards<int>.value(3);});
-  $downwards<int> t7 = f.then((_) async => new $upwards<int>.value(3));
-  $downwards<int> t8 = f.then(/*info:INFERRED_TYPE_CLOSURE*/(_) async {
-    return new $upwards<int>.value(3);});
-}
-''';
-
     await checkFileElement(
         build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
     await checkFileElement(
@@ -1774,7 +1698,7 @@ m1() {
   Future<int> f;
   var x = f.then<Future<List<int>>>(/*info:INFERRED_TYPE_CLOSURE,
                                       error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/
-                                    (x) => /*info:INFERRED_TYPE_LITERAL*/[]);
+                                    (x) => []);
   Future<List<int>> y = x;
 }
 m2() {
@@ -1794,38 +1718,6 @@ class MyFuture<T> implements Future<T> {
   MyFuture.value(T x) {}
   dynamic noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
-}
-
-void main() {
-  var f = foo().then((_) => 2.3);
-  $downwards<int> f2 = /*error:INVALID_ASSIGNMENT*/f;
-
-  // The unnecessary cast is to illustrate that we inferred <double> for
-  // the generic type args, even though we had a return type context.
-  $downwards<num> f3 = /*info:UNNECESSARY_CAST*/foo().then(
-      (_) => 2.3) as $upwards<double>;
-}
-$declared foo() => new $declared<int>.value(1);
-    ''';
-    await checkFileElement(
-        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
-    await checkFileElement(build(
-        declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
-    await checkFileElement(
-        build(declared: "Future", downwards: "Future", upwards: "Future"));
-  }
-
-  test_futureThen_upwards_deprecated() async {
-    // Tests the deprecated ad hoc future inference for classes which implement
-    // Future but haven't been updated to use FutureOr
-    // Regression test for https://github.com/dart-lang/sdk/issues/27088.
-    String build({String declared, String downwards, String upwards}) => '''
-import 'dart:async';
-class MyFuture<T> implements Future<T> {
-  MyFuture() {}
-  MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
-  MyFuture<S> then<S>(dynamic f(T x), {Function onError}) => null;
 }
 
 void main() {
@@ -1872,37 +1764,12 @@ class MyFuture<T> implements Future<T> {
 }
 
 $downwards<int> g1(bool x) async {
-  return x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42); }
+  return /*info:DOWN_CAST_COMPOSITE*/x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42); }
 $downwards<int> g2(bool x) async =>
-  x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
+  /*info:DOWN_CAST_COMPOSITE*/x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
 $downwards<int> g3(bool x) async {
   var y = x ? 42 : new $upwards.value(42);
-  return y;
-}
-    ''';
-    await checkFileElement(build(downwards: "Future", upwards: "Future"));
-    await checkFileElement(build(downwards: "Future", upwards: "MyFuture"));
-  }
-
-  test_futureUnion_asyncConditional_deprecated() async {
-    // Tests the deprecated ad hoc future inference for classes which implement
-    // Future but haven't been updated to use FutureOr
-    String build({String declared, String downwards, String upwards}) => '''
-import 'dart:async';
-class MyFuture<T> implements Future<T> {
-  MyFuture() {}
-  MyFuture.value(x) {}
-  dynamic noSuchMethod(invocation);
-  MyFuture<S> then<S>(dynamic f(T x), {Function onError}) => null;
-}
-
-$downwards<int> g1(bool x) async {
-  return x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42); }
-$downwards<int> g2(bool x) async =>
-  x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
-$downwards<int> g3(bool x) async {
-  var y = x ? 42 : new $upwards.value(42);
-  return y;
+  return /*info:DOWN_CAST_COMPOSITE*/y;
 }
     ''';
     await checkFileElement(build(downwards: "Future", upwards: "Future"));
@@ -1918,43 +1785,6 @@ class MyFuture<T> implements Future<T> {
   MyFuture.value([x]) {}
   dynamic noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
-}
-
-$declared f;
-// Instantiates Future<int>
-$downwards<int> t1 = f.then((_) =>
-   /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value('hi'));
-
-// Instantiates List<int>
-$downwards<List<int>> t2 = f.then((_) => /*info:INFERRED_TYPE_LITERAL*/[3]);
-$downwards<List<int>> g2() async { return /*info:INFERRED_TYPE_LITERAL*/[3]; }
-$downwards<List<int>> g3() async {
-  return /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(
-      /*info:INFERRED_TYPE_LITERAL*/[3]); }
-''';
-    }
-
-    await checkFileElement(
-        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
-    await checkFileElement(
-        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
-    await checkFileElement(
-        build(declared: "Future", downwards: "Future", upwards: "Future"));
-    await checkFileElement(
-        build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
-  }
-
-  test_futureUnion_downwards_deprecated() async {
-    // Tests the deprecated ad hoc future inference for classes which implement
-    // Future but haven't been updated to use FutureOr
-    String build({String declared, String downwards, String upwards}) {
-      return '''
-import 'dart:async';
-class MyFuture<T> implements Future<T> {
-  MyFuture() {}
-  MyFuture.value([x]) {}
-  dynamic noSuchMethod(invocation);
-  MyFuture<S> then<S>(dynamic f(T x), {Function onError}) => null;
 }
 
 $declared f;
@@ -2894,7 +2724,7 @@ var d = <dynamic, dynamic>{'a': 'b'};     // map literals
 var e = new A()..x = 3; // cascades
 var f = 2 + 3;          // binary expressions are OK if the left operand
                         // is from a library in a different strongest
-                        // conected component.
+                        // connected component.
 var g = -3;
 var h = new A() + 3;
 var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/- new A();

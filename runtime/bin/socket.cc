@@ -148,7 +148,6 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
         // socket_object.
         Socket::ReuseSocketIdNativeField(socket_object, os_socket->socketfd,
                                          Socket::kFinalizerListening);
-
         return Dart_True();
       }
     }
@@ -168,7 +167,7 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
     OSError os_error(-1, "Failed to start accept", OSError::kUnknown);
     return DartUtils::NewDartOSError(&os_error);
   }
-  intptr_t allocated_port = Socket::GetPort(fd);
+  intptr_t allocated_port = SocketBase::GetPort(fd);
   ASSERT(allocated_port > 0);
 
   if (allocated_port != port) {
@@ -269,33 +268,6 @@ bool ListeningSocketRegistry::CloseSafe(Socket* socketfd) {
 }
 
 
-void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
-  const char* address =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
-  ASSERT(address != NULL);
-  RawAddr raw;
-  memset(&raw, 0, sizeof(raw));
-  int type = strchr(address, ':') == NULL ? SocketAddress::TYPE_IPV4
-                                          : SocketAddress::TYPE_IPV6;
-  if (type == SocketAddress::TYPE_IPV4) {
-    raw.addr.sa_family = AF_INET;
-  } else {
-    raw.addr.sa_family = AF_INET6;
-  }
-  bool ok = Socket::ParseAddress(type, address, &raw);
-  if (!ok) {
-    Dart_SetReturnValue(args, Dart_Null());
-  } else {
-    Dart_SetReturnValue(args, SocketAddress::ToTypedData(raw));
-  }
-}
-
-
-void FUNCTION_NAME(NetworkInterface_ListSupported)(Dart_NativeArguments args) {
-  Dart_SetReturnValue(args, Dart_NewBoolean(Socket::ListInterfacesSupported()));
-}
-
-
 void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   RawAddr addr;
   SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
@@ -333,12 +305,6 @@ void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
   }
 }
 
-void FUNCTION_NAME(Socket_IsBindError)(Dart_NativeArguments args) {
-  intptr_t error_number =
-      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
-  bool is_bind_error = Socket::IsBindError(error_number);
-  Dart_SetReturnValue(args, is_bind_error ? Dart_True() : Dart_False());
-}
 
 void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
   RawAddr addr;
@@ -362,7 +328,7 @@ void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
-  intptr_t available = Socket::Available(socket->fd());
+  intptr_t available = SocketBase::Available(socket->fd());
   if (available >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(available));
   } else {
@@ -387,7 +353,8 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
       Dart_PropagateError(result);
     }
     ASSERT(buffer != NULL);
-    intptr_t bytes_read = Socket::Read(socket->fd(), buffer, length);
+    intptr_t bytes_read =
+        SocketBase::Read(socket->fd(), buffer, length, SocketBase::kAsync);
     if (bytes_read == length) {
       Dart_SetReturnValue(args, result);
     } else if (bytes_read > 0) {
@@ -427,8 +394,9 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
         reinterpret_cast<uint8_t*>(malloc(65536));
   }
   RawAddr addr;
-  intptr_t bytes_read = Socket::RecvFrom(
-      socket->fd(), isolate_data->udp_receive_buffer, 65536, &addr);
+  intptr_t bytes_read =
+      SocketBase::RecvFrom(socket->fd(), isolate_data->udp_receive_buffer,
+                           65536, &addr, SocketBase::kAsync);
   if (bytes_read == 0) {
     Dart_SetReturnValue(args, Dart_Null());
     return;
@@ -458,7 +426,7 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   }
   // Format the address to a string using the numeric format.
   char numeric_address[INET6_ADDRSTRLEN];
-  Socket::FormatNumericAddress(addr, numeric_address, INET6_ADDRSTRLEN);
+  SocketBase::FormatNumericAddress(addr, numeric_address, INET6_ADDRSTRLEN);
 
   // Create a Datagram object with the data and sender address and port.
   const int kNumArgs = 4;
@@ -508,7 +476,8 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   }
   ASSERT((offset + length) <= len);
   buffer += offset;
-  intptr_t bytes_written = Socket::Write(socket->fd(), buffer, length);
+  intptr_t bytes_written =
+      SocketBase::Write(socket->fd(), buffer, length, SocketBase::kAsync);
   if (bytes_written >= 0) {
     Dart_TypedDataReleaseData(buffer_obj);
     if (short_write) {
@@ -550,7 +519,8 @@ void FUNCTION_NAME(Socket_SendTo)(Dart_NativeArguments args) {
   }
   ASSERT((offset + length) <= len);
   buffer += offset;
-  intptr_t bytes_written = Socket::SendTo(socket->fd(), buffer, length, addr);
+  intptr_t bytes_written = SocketBase::SendTo(socket->fd(), buffer, length,
+                                              addr, SocketBase::kAsync);
   if (bytes_written >= 0) {
     Dart_TypedDataReleaseData(buffer_obj);
     Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
@@ -567,7 +537,7 @@ void FUNCTION_NAME(Socket_GetPort)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   OSError os_error;
-  intptr_t port = Socket::GetPort(socket->fd());
+  intptr_t port = SocketBase::GetPort(socket->fd());
   if (port > 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(port));
   } else {
@@ -581,7 +551,7 @@ void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   OSError os_error;
   intptr_t port = 0;
-  SocketAddress* addr = Socket::GetRemotePeer(socket->fd(), &port);
+  SocketAddress* addr = SocketBase::GetRemotePeer(socket->fd(), &port);
   if (addr != NULL) {
     Dart_Handle list = Dart_NewList(2);
 
@@ -606,7 +576,7 @@ void FUNCTION_NAME(Socket_GetError)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   OSError os_error;
-  Socket::GetError(socket->fd(), &os_error);
+  SocketBase::GetError(socket->fd(), &os_error);
   Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
 }
 
@@ -615,7 +585,7 @@ void FUNCTION_NAME(Socket_GetType)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   OSError os_error;
-  intptr_t type = Socket::GetType(socket->fd());
+  intptr_t type = SocketBase::GetType(socket->fd());
   if (type >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(type));
   } else {
@@ -627,7 +597,7 @@ void FUNCTION_NAME(Socket_GetType)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Socket_GetStdioHandle)(Dart_NativeArguments args) {
   int64_t num =
       DartUtils::GetInt64ValueCheckRange(Dart_GetNativeArgument(args, 1), 0, 2);
-  intptr_t socket = Socket::GetStdioHandle(num);
+  intptr_t socket = SocketBase::GetStdioHandle(num);
   Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket,
                                  Socket::kFinalizerStdio);
   Dart_SetReturnValue(args, Dart_NewBoolean(socket >= 0));
@@ -691,7 +661,7 @@ CObject* Socket::LookupRequest(const CObjectArray& request) {
     CObject* result = NULL;
     OSError* os_error = NULL;
     AddressList<SocketAddress>* addresses =
-        Socket::LookupAddress(host.CString(), type.Value(), &os_error);
+        SocketBase::LookupAddress(host.CString(), type.Value(), &os_error);
     if (addresses != NULL) {
       CObjectArray* array =
           new CObjectArray(CObject::NewArray(addresses->count() + 1));
@@ -746,7 +716,7 @@ CObject* Socket::ReverseLookupRequest(const CObjectArray& request) {
     OSError* os_error = NULL;
     const intptr_t kMaxHostLength = 1025;
     char host[kMaxHostLength];
-    if (Socket::ReverseLookup(addr, host, kMaxHostLength, &os_error)) {
+    if (SocketBase::ReverseLookup(addr, host, kMaxHostLength, &os_error)) {
       return new CObjectString(CObject::NewString(host));
     } else {
       CObject* result = CObject::NewOSError(os_error);
@@ -764,7 +734,7 @@ CObject* Socket::ListInterfacesRequest(const CObjectArray& request) {
     CObject* result = NULL;
     OSError* os_error = NULL;
     AddressList<InterfaceSocketAddress>* addresses =
-        Socket::ListInterfaces(type.Value(), &os_error);
+        SocketBase::ListInterfaces(type.Value(), &os_error);
     if (addresses != NULL) {
       CObjectArray* array =
           new CObjectArray(CObject::NewArray(addresses->count() + 1));
@@ -818,7 +788,7 @@ void FUNCTION_NAME(Socket_GetOption)(Dart_NativeArguments args) {
   switch (option) {
     case 0: {  // TCP_NODELAY.
       bool enabled;
-      ok = Socket::GetNoDelay(socket->fd(), &enabled);
+      ok = SocketBase::GetNoDelay(socket->fd(), &enabled);
       if (ok) {
         Dart_SetReturnValue(args, enabled ? Dart_True() : Dart_False());
       }
@@ -826,7 +796,7 @@ void FUNCTION_NAME(Socket_GetOption)(Dart_NativeArguments args) {
     }
     case 1: {  // IP_MULTICAST_LOOP.
       bool enabled;
-      ok = Socket::GetMulticastLoop(socket->fd(), protocol, &enabled);
+      ok = SocketBase::GetMulticastLoop(socket->fd(), protocol, &enabled);
       if (ok) {
         Dart_SetReturnValue(args, enabled ? Dart_True() : Dart_False());
       }
@@ -834,7 +804,7 @@ void FUNCTION_NAME(Socket_GetOption)(Dart_NativeArguments args) {
     }
     case 2: {  // IP_MULTICAST_TTL.
       int value;
-      ok = Socket::GetMulticastHops(socket->fd(), protocol, &value);
+      ok = SocketBase::GetMulticastHops(socket->fd(), protocol, &value);
       if (ok) {
         Dart_SetReturnValue(args, Dart_NewInteger(value));
       }
@@ -846,7 +816,7 @@ void FUNCTION_NAME(Socket_GetOption)(Dart_NativeArguments args) {
     }
     case 4: {  // IP_BROADCAST.
       bool enabled;
-      ok = Socket::GetBroadcast(socket->fd(), &enabled);
+      ok = SocketBase::GetBroadcast(socket->fd(), &enabled);
       if (ok) {
         Dart_SetReturnValue(args, enabled ? Dart_True() : Dart_False());
       }
@@ -873,17 +843,17 @@ void FUNCTION_NAME(Socket_SetOption)(Dart_NativeArguments args) {
       SocketAddress::TYPE_IPV6);
   switch (option) {
     case 0:  // TCP_NODELAY.
-      result = Socket::SetNoDelay(
+      result = SocketBase::SetNoDelay(
           socket->fd(),
           DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3)));
       break;
     case 1:  // IP_MULTICAST_LOOP.
-      result = Socket::SetMulticastLoop(
+      result = SocketBase::SetMulticastLoop(
           socket->fd(), protocol,
           DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3)));
       break;
     case 2:  // IP_MULTICAST_TTL.
-      result = Socket::SetMulticastHops(
+      result = SocketBase::SetMulticastHops(
           socket->fd(), protocol,
           DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3)));
       break;
@@ -892,7 +862,7 @@ void FUNCTION_NAME(Socket_SetOption)(Dart_NativeArguments args) {
       break;
     }
     case 4:  // IP_BROADCAST.
-      result = Socket::SetBroadcast(
+      result = SocketBase::SetBroadcast(
           socket->fd(),
           DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3)));
       break;
@@ -919,7 +889,8 @@ void FUNCTION_NAME(Socket_JoinMulticast)(Dart_NativeArguments args) {
   }
   int interfaceIndex =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  if (Socket::JoinMulticast(socket->fd(), addr, interface, interfaceIndex)) {
+  if (SocketBase::JoinMulticast(socket->fd(), addr, interface,
+                                interfaceIndex)) {
     Dart_SetReturnValue(args, Dart_Null());
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
@@ -938,7 +909,8 @@ void FUNCTION_NAME(Socket_LeaveMulticast)(Dart_NativeArguments args) {
   }
   int interfaceIndex =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
-  if (Socket::LeaveMulticast(socket->fd(), addr, interface, interfaceIndex)) {
+  if (SocketBase::LeaveMulticast(socket->fd(), addr, interface,
+                                 interfaceIndex)) {
     Dart_SetReturnValue(args, Dart_Null());
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());

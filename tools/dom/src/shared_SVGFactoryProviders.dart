@@ -7,7 +7,7 @@ part of dart.dom.svg;
 class _SvgElementFactoryProvider {
   static SvgElement createSvgElement_tag(String tag) {
     final Element temp =
-      document.createElementNS("http://www.w3.org/2000/svg", tag);
+        document.createElementNS("http://www.w3.org/2000/svg", tag);
     return temp;
   }
 }

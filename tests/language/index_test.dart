@@ -27,7 +27,7 @@ class IndexTest {
     }
     a[ID_IDLE] = Helper.fibonacci(0);
     for (int i = 2; i < a.length; i++) {
-      Expect.equals(a[i-2] + a[i-1], a[i]);
+      Expect.equals(a[i - 2] + a[i - 1], a[i]);
     }
     Expect.equals(515, a[3] = 515);
   }

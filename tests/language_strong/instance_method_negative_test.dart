@@ -5,13 +5,13 @@
 // Dart test to check that we correctly flag the use of an
 // instance method from a static method.
 
-
 class Goofy {
   String instMethod() {
     return "woof";
   }
+
   static String bark() {
-    return instMethod();  // Should get error here.
+    return instMethod(); // Should get error here.
   }
 }
 
@@ -20,7 +20,6 @@ class InstanceMethodNegativeTest {
     var s = Goofy.bark();
   }
 }
-
 
 main() {
   InstanceMethodNegativeTest.testMain();

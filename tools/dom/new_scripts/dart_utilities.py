@@ -148,7 +148,6 @@ DartUtilities.activity_logging_world_list = _activity_logging_world_list
 DartUtilities.bool_to_cpp = _bool_to_cpp
 DartUtilities.call_with_arguments = _call_with_arguments
 DartUtilities.capitalize = v8_utilities.capitalize
-DartUtilities.conditional_string = v8_utilities.conditional_string
 DartUtilities.cpp_name = v8_utilities.cpp_name
 DartUtilities.deprecate_as = _deprecate_as
 DartUtilities.extended_attribute_value_contains = v8_utilities.extended_attribute_value_contains

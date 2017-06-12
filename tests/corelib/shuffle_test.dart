@@ -4,6 +4,7 @@
 
 // Dart test for List.shuffle.
 library shuffle_test;
+
 import "dart:typed_data";
 import "dart:math" show Random;
 import "package:expect/expect.dart";
@@ -27,11 +28,12 @@ main() {
 
   // Check that it actually can keep the same list (regression test).
   List l = [1, 2];
-  success: {
+  success:
+  {
     for (int i = 0; i < 266; i++) {
       int first = l.first;
       l.shuffle();
-      if (l.first == first) break success;  // List didn't change.
+      if (l.first == first) break success; // List didn't change.
     }
     // Chance of changing 266 times in a row should be < 1:1e80.
     Expect.fail("List changes every time.");
@@ -55,7 +57,7 @@ void testShuffle(list) {
   }
   for (var e in copy) {
     int remaining = seen[e];
-    remaining -= 1;  // Throws if e was not in map at all.
+    remaining -= 1; // Throws if e was not in map at all.
     if (remaining == 0) {
       seen.remove(e);
     } else {
@@ -78,7 +80,9 @@ void testShuffle(list) {
     }
     return false;
   }
-  if (list.length < 59) {  // 59! > 1e80.
+
+  if (list.length < 59) {
+    // 59! > 1e80.
     double limit = 1e80;
     double fact = 1.0;
     for (int i = 2; i < list.length; i++) fact *= i;
@@ -93,7 +97,6 @@ void testShuffle(list) {
     Expect.fail("Didn't shuffle at all, p < 1:1e80: $list");
   }
 }
-
 
 // Checks that the "random" argument to shuffle is used.
 testRandom() {

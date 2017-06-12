@@ -13,10 +13,8 @@ main([args, port]) async {
     return;
   }
   var p = new RawReceivePort();
-  Isolate.spawnUri(Platform.script,
-                   [],
-                   p.sendPort,
-                   packageConfig: Uri.parse(SPAWN_PACKAGE_CONFIG));
+  Isolate.spawnUri(Platform.script, [], p.sendPort,
+      packageConfig: Uri.parse(SPAWN_PACKAGE_CONFIG));
   p.handler = (msg) {
     p.close();
     if (msg[0] != SPAWN_PACKAGE_CONFIG) {

@@ -12,7 +12,8 @@ import 'package:js/js.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
-@JS() @anonymous
+@JS()
+@anonymous
 class Literal {
   external factory Literal({int x, String y, num z});
 
@@ -24,7 +25,7 @@ class Literal {
 main() {
   useHtmlConfiguration();
   test('nothing to do', () {
-    // This test is empty, but it is a regression for Issue# 24974: dartjs
+    // This test is empty, but it is a regression for Issue# 24974: dart2js
     // would crash trying to compile code that used @anonymous and that was
     // not reachable from main.
   });

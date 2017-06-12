@@ -8,6 +8,7 @@ class View {
   addChild(View v) {}
   transform(View fn(View v)) {}
 }
+
 class MyView extends View {
   addChild(covariant MyView v) {}
   transform(covariant MyView fn(Object v)) {}
@@ -16,7 +17,7 @@ class MyView extends View {
 main() {
   dynamic mv = new MyView();
   dynamic v = new View();
-  
+
   mv.addChild(mv);
   Expect.throws(() => mv.addChild(v));
 

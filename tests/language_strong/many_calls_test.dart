@@ -7,56 +7,167 @@ import "package:expect/expect.dart";
 
 class A {
   A() {}
-  f1() { return 1; }
-  f2() { return 2; }
-  f3() { return 3; }
-  f4() { return 4; }
-  f5() { return 5; }
-  f6() { return 6; }
-  f7() { return 7; }
-  f8() { return 8; }
-  f9() { return 9; }
-  f11() { return 11; }
-  f12() { return 12; }
-  f13() { return 13; }
-  f14() { return 14; }
-  f15() { return 15; }
-  f16() { return 16; }
-  f17() { return 17; }
-  f18() { return 18; }
-  f19() { return 19; }
-  f20() { return 20; }
-  f21() { return 21; }
-  f22() { return 22; }
-  f23() { return 23; }
-  f24() { return 24; }
-  f25() { return 25; }
-  f26() { return 26; }
-  f27() { return 27; }
-  f28() { return 28; }
-  f29() { return 29; }
-  f30() { return 30; }
-  f31() { return 31; }
-  f32() { return 32; }
-  f33() { return 33; }
-  f34() { return 34; }
-  f35() { return 35; }
-  f36() { return 36; }
-  f37() { return 37; }
-  f38() { return 38; }
-  f39() { return 39; }
-}
+  f1() {
+    return 1;
+  }
 
+  f2() {
+    return 2;
+  }
+
+  f3() {
+    return 3;
+  }
+
+  f4() {
+    return 4;
+  }
+
+  f5() {
+    return 5;
+  }
+
+  f6() {
+    return 6;
+  }
+
+  f7() {
+    return 7;
+  }
+
+  f8() {
+    return 8;
+  }
+
+  f9() {
+    return 9;
+  }
+
+  f11() {
+    return 11;
+  }
+
+  f12() {
+    return 12;
+  }
+
+  f13() {
+    return 13;
+  }
+
+  f14() {
+    return 14;
+  }
+
+  f15() {
+    return 15;
+  }
+
+  f16() {
+    return 16;
+  }
+
+  f17() {
+    return 17;
+  }
+
+  f18() {
+    return 18;
+  }
+
+  f19() {
+    return 19;
+  }
+
+  f20() {
+    return 20;
+  }
+
+  f21() {
+    return 21;
+  }
+
+  f22() {
+    return 22;
+  }
+
+  f23() {
+    return 23;
+  }
+
+  f24() {
+    return 24;
+  }
+
+  f25() {
+    return 25;
+  }
+
+  f26() {
+    return 26;
+  }
+
+  f27() {
+    return 27;
+  }
+
+  f28() {
+    return 28;
+  }
+
+  f29() {
+    return 29;
+  }
+
+  f30() {
+    return 30;
+  }
+
+  f31() {
+    return 31;
+  }
+
+  f32() {
+    return 32;
+  }
+
+  f33() {
+    return 33;
+  }
+
+  f34() {
+    return 34;
+  }
+
+  f35() {
+    return 35;
+  }
+
+  f36() {
+    return 36;
+  }
+
+  f37() {
+    return 37;
+  }
+
+  f38() {
+    return 38;
+  }
+
+  f39() {
+    return 39;
+  }
+}
 
 class B extends A {
   B() : super() {}
 }
 
-
 class ManyCallsTest {
   static testMain() {
     var list = new List(10);
-    for (int i = 0; i < (list.length ~/ 2) ; i++) {
+    for (int i = 0; i < (list.length ~/ 2); i++) {
       list[i] = new A();
     }
     for (int i = (list.length ~/ 2); i < list.length; i++) {

@@ -41,7 +41,7 @@ void checkAnnotation(String name, String declaration,
     annotation.ensureResolved(compiler.resolution);
     PrimitiveConstantValue value =
         compiler.constants.getConstantValue(annotation.constant);
-    Expect.stringEquals('xyz', value.primitiveValue.slowToString());
+    Expect.stringEquals('xyz', value.primitiveValue);
 
     checkPosition(
         annotation, annotation.cachedNode, source1, compiler.reporter);
@@ -69,8 +69,8 @@ void checkAnnotation(String name, String declaration,
     PrimitiveConstantValue value2 =
         compiler.constants.getConstantValue(annotation2.constant);
     Expect.identical(value1, value2, 'expected same compile-time constant');
-    Expect.stringEquals('xyz', value1.primitiveValue.slowToString());
-    Expect.stringEquals('xyz', value2.primitiveValue.slowToString());
+    Expect.stringEquals('xyz', value1.primitiveValue);
+    Expect.stringEquals('xyz', value2.primitiveValue);
 
     checkPosition(
         annotation1, annotation1.cachedNode, source2, compiler.reporter);
@@ -100,7 +100,7 @@ void checkAnnotation(String name, String declaration,
     annotation.ensureResolved(compiler.resolution);
     PrimitiveConstantValue value =
         compiler.constants.getConstantValue(annotation.constant);
-    Expect.stringEquals('xyz', value.primitiveValue.slowToString());
+    Expect.stringEquals('xyz', value.primitiveValue);
 
     checkPosition(
         annotation, annotation.cachedNode, source3, compiler.reporter);
@@ -134,8 +134,8 @@ void checkAnnotation(String name, String declaration,
     PrimitiveConstantValue value2 =
         compiler.constants.getConstantValue(annotation2.constant);
     Expect.identical(value1, value2, 'expected same compile-time constant');
-    Expect.stringEquals('xyz', value1.primitiveValue.slowToString());
-    Expect.stringEquals('xyz', value2.primitiveValue.slowToString());
+    Expect.stringEquals('xyz', value1.primitiveValue);
+    Expect.stringEquals('xyz', value2.primitiveValue);
 
     checkPosition(
         annotation1, annotation1.cachedNode, source4, compiler.reporter);
@@ -184,7 +184,7 @@ void testLibraryTags() {
           annotation.ensureResolved(compiler.resolution);
           PrimitiveConstantValue value =
               compiler.constants.getConstantValue(annotation.constant);
-          Expect.stringEquals('xyz', value.primitiveValue.slowToString());
+          Expect.stringEquals('xyz', value.primitiveValue);
 
           checkPosition(
               annotation, annotation.cachedNode, source, compiler.reporter);

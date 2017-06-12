@@ -10,6 +10,5 @@ oneLineCRLF(x) => x;
 multiLineCRLF(y) {
   return y + 1;
 }
-c
-(){
-}
+
+c() {}

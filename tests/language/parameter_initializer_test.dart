@@ -5,9 +5,7 @@
 import "package:expect/expect.dart";
 
 class ParameterInitializerTest {
-
   static testMain() {
-
     var obj = new Foo.untyped(1);
     Expect.equals(1, obj.x);
 
@@ -50,7 +48,9 @@ class Foo {
 }
 
 class SubFoo extends Foo {
-  SubFoo(num y) : super(y), x_ = 0 {
+  SubFoo(num y)
+      : super(y),
+        x_ = 0 {
     // Subfoo.setter of x has been invoked in the Foo constructor.
     Expect.equals(x, 1);
     Expect.equals(x_, 1);

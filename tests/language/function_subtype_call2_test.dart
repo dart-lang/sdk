@@ -27,8 +27,8 @@ class D2<S, T> extends C2<T> {}
 main() {
   Expect.isTrue(new D1<String, bool>() is Foo, 'new D1<String, bool>() is Foo');
   Expect.isTrue(new D1<String, bool>() is Bar, 'new D1<String, bool>() is Bar');
-  Expect.isFalse(new D1<String, bool>() is Baz,
-                 'new D1<String, bool>() is Baz');
+  Expect.isFalse(
+      new D1<String, bool>() is Baz, 'new D1<String, bool>() is Baz');
   Expect.isTrue(new D1<String, bool>() is Boz, 'new D1<String, bool>() is Boz');
 
   Expect.isFalse(new D1<bool, int>() is Foo, 'new D1<bool, int>() is Foo');
@@ -41,10 +41,10 @@ main() {
   Expect.isFalse(new D1() is Baz, 'new D1() is Baz');
   Expect.isTrue(new D1() is Boz, 'new D1() is Boz');
 
-  Expect.isFalse(new D2<String, bool>() is Foo,
-                 'new D2<String, bool>() is Foo');
-  Expect.isFalse(new D2<String, bool>() is Bar,
-                 'new D2<String, bool>() is Bar');
+  Expect.isFalse(
+      new D2<String, bool>() is Foo, 'new D2<String, bool>() is Foo');
+  Expect.isFalse(
+      new D2<String, bool>() is Bar, 'new D2<String, bool>() is Bar');
   Expect.isTrue(new D2<String, bool>() is Baz, 'new D2<String, bool>() is Baz');
   Expect.isTrue(new D2<String, bool>() is Boz, 'new D2<String, bool>() is Boz');
 

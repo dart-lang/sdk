@@ -11,9 +11,15 @@ main() {
   list.setRange(0, 0, const [], 1);
   list.setRange(0, 0, [], 1);
   Expect.equals(0, list.length);
-  expectIOORE(() { list.setRange(0, 1, []); });
-  expectIOORE(() { list.setRange(0, 1, [], 1); });
-  expectIOORE(() { list.setRange(0, 1, [1], 0); });
+  expectIOORE(() {
+    list.setRange(0, 1, []);
+  });
+  expectIOORE(() {
+    list.setRange(0, 1, [], 1);
+  });
+  expectIOORE(() {
+    list.setRange(0, 1, [1], 0);
+  });
 
   list.add(1);
   list.setRange(0, 0, [], 0);
@@ -23,11 +29,15 @@ main() {
   Expect.equals(1, list.length);
   Expect.equals(1, list[0]);
 
-  expectIOORE(() { list.setRange(0, 2, [1, 2]); });
+  expectIOORE(() {
+    list.setRange(0, 2, [1, 2]);
+  });
   Expect.equals(1, list.length);
   Expect.equals(1, list[0]);
 
-  expectSE(() { list.setRange(0, 1, [1, 2], 2); });
+  expectSE(() {
+    list.setRange(0, 1, [1, 2], 2);
+  });
   Expect.equals(1, list.length);
   Expect.equals(1, list[0]);
 
@@ -47,7 +57,9 @@ main() {
   list.setRange(2, 4, [5, 6, 7, 8]);
   Expect.listEquals([1, 2, 5, 6], list);
 
-  expectIOORE(() { list.setRange(4, 5, [5, 6, 7, 8]); });
+  expectIOORE(() {
+    list.setRange(4, 5, [5, 6, 7, 8]);
+  });
   Expect.listEquals([1, 2, 5, 6], list);
 
   list.setRange(1, 3, [9, 10, 11, 12]);
@@ -72,16 +84,26 @@ void expectAE(Function f) {
 
 void testNegativeIndices() {
   var list = [1, 2];
-  expectIOORE(() { list.setRange(-1, 1, [1]); });
-  expectAE(() { list.setRange(0, 1, [1], -1); });
+  expectIOORE(() {
+    list.setRange(-1, 1, [1]);
+  });
+  expectAE(() {
+    list.setRange(0, 1, [1], -1);
+  });
 
   // A negative length throws an ArgumentError.
-  expectIOORE(() { list.setRange(2, 1, [1]); });
+  expectIOORE(() {
+    list.setRange(2, 1, [1]);
+  });
 
-  expectAE(() { list.setRange(-1, -2, [1], -1); });
+  expectAE(() {
+    list.setRange(-1, -2, [1], -1);
+  });
   Expect.listEquals([1, 2], list);
 
-  expectIOORE(() { list.setRange(-1, -1, [1]); });
+  expectIOORE(() {
+    list.setRange(-1, -1, [1]);
+  });
   Expect.listEquals([1, 2], list);
 
   // The skipCount is only used if the length is not 0.

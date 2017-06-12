@@ -556,29 +556,12 @@ class UriResolverIsolateScope {
 Dart_Isolate UriResolverIsolateScope::isolate = NULL;
 
 
-static char* ResolveAsFilePath(const char* uri_string) {
-  UriResolverIsolateScope scope;
-  uint8_t* scoped_file_path = NULL;
-  intptr_t scoped_file_path_length = -1;
-  Dart_Handle uri = Dart_NewStringFromCString(uri_string);
-  ASSERT(!Dart_IsError(uri));
-  Dart_Handle result = Loader::ResolveAsFilePath(uri, &scoped_file_path,
-                                                 &scoped_file_path_length);
-  if (Dart_IsError(result)) {
-    Log::Print("Error resolving dependency: %s\n", Dart_GetError(result));
-    exit(kErrorExitCode);
-  }
-  return StringUtils::StrNDup(reinterpret_cast<const char*>(scoped_file_path),
-                              scoped_file_path_length);
-}
-
-
 static void AddDependency(const char* uri_string) {
   IsolateData* isolate_data =
       reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
   MallocGrowableArray<char*>* dependencies = isolate_data->dependencies();
   if (dependencies != NULL) {
-    dependencies->Add(ResolveAsFilePath(uri_string));
+    dependencies->Add(strdup(uri_string));
   }
 }
 
@@ -681,6 +664,8 @@ static void CreateAndWriteDependenciesFile() {
   if (dependencies == NULL) {
     return;
   }
+
+  Loader::ResolveDependenciesAsFilePaths();
 
   ASSERT((dependencies_filename != NULL) || print_dependencies);
   bool success = true;
@@ -913,7 +898,7 @@ static void PrintUsage() {
 " program. The format of this manifest is as follows. Each line in the       \n"
 " manifest is a comma separated list of three elements. The first entry is   \n"
 " the library URI, the second entry is the class name and the final entry    \n"
-" the function name. The file must be terminated with a newline charater.    \n"
+" the function name. The file must be terminated with a newline character.   \n"
 "                                                                            \n"
 "   Example:                                                                 \n"
 "     dart:something,SomeClass,doSomething                                   \n"
@@ -1550,8 +1535,6 @@ int main(int argc, char** argv) {
   result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
 
-  ASSERT(vm_snapshot_data_filename != NULL);
-  ASSERT(isolate_snapshot_data_filename != NULL);
   // Load up the script before a snapshot is created.
   if (app_script_name != NULL) {
     // This is the case of a custom embedder (e.g: dartium) trying to
@@ -1582,7 +1565,8 @@ int main(int argc, char** argv) {
 
     // Now we create an isolate into which we load all the code that needs to
     // be in the snapshot.
-    isolate_data = new IsolateData(NULL, NULL, NULL, NULL);
+    isolate_data = new IsolateData(app_script_name, commandline_package_root,
+                                   commandline_packages_file, NULL);
     const uint8_t* kernel = NULL;
     intptr_t kernel_length = 0;
     const bool is_kernel_file =

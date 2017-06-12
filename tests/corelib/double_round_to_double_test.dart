@@ -30,8 +30,8 @@ main() {
   Expect.equals(-double.MAX_FINITE, (-double.MAX_FINITE).roundToDouble());
 
   Expect.equals(double.INFINITY, double.INFINITY.roundToDouble());
-  Expect.equals(double.NEGATIVE_INFINITY,
-                double.NEGATIVE_INFINITY.roundToDouble());
+  Expect.equals(
+      double.NEGATIVE_INFINITY, double.NEGATIVE_INFINITY.roundToDouble());
   Expect.isTrue(double.NAN.roundToDouble().isNaN);
 
   Expect.isTrue(0.0.roundToDouble() is double);

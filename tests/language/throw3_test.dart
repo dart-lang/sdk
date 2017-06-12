@@ -37,7 +37,7 @@ class Helper {
       }
     } on MyException catch (ex) {
       print(ex.message_);
-      rethrow;  // Rethrow the exception.
+      rethrow; // Rethrow the exception.
     }
     return 10;
   }

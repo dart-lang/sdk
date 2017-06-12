@@ -14,6 +14,9 @@ This package contains the Dart part of the implementation and contains:
 - A frontend based on the analyzer
 - Serialization of kernel code
 
+_Note:_ The APIs in this package are in an early state; developers should be
+careful about depending on this package.
+
 Getting Kernel
 ------------
 
@@ -27,7 +30,7 @@ pub get
 Command-Line Tool
 -----------------
 
-Run `bin/dartk.dart` from the command-line to convert between .dart files
+Run `tool/dartk.dart` from the command-line to convert between .dart files
 and the serialized binary and textual formats.
 
 `dartk` expects the `.dill` extension for files in the binary format.

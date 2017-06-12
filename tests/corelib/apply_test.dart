@@ -35,22 +35,25 @@ main() {
     Expect.equals(res, Function.apply(func, null, map));
     Expect.equals(res, Function.apply(func, [], map));
   }
+
   testList(res, func, list) {
     Expect.equals(res, Function.apply(func, list));
     Expect.equals(res, Function.apply(func, list, null));
     Expect.equals(res, Function.apply(func, list, new Map<Symbol, dynamic>()));
   }
+
   test(res, func, list, map) {
     map = symbolMapToStringMap(map);
     Expect.equals(res, Function.apply(func, list, map));
   }
+
   testList(42, test0, null);
   testList(42, test0, []);
   testMap(42, test0a, {"a": 5});
   testList(42, test1, [41]);
   test(42, test1a, [20], {"a": 22});
   testList(42, test2, [20, 22]);
-  test(42, test2a, [10, 15], {"a" : 17});
+  test(42, test2a, [10, 15], {"a": 17});
 
   // Test that "this" is correct when calling closurized functions.
   var cfoo = new C().foo;
@@ -61,7 +64,12 @@ main() {
   Expect.equals(42, app(test2, [22, 20]));
 
   // Test that apply can itself be applied.
-  Expect.equals(42, Function.apply(Function.apply, [test2, [17, 25]]));
+  Expect.equals(
+      42,
+      Function.apply(Function.apply, [
+        test2,
+        [17, 25]
+      ]));
 
   // Test that apply works on callable objects.
   testList(42, new Callable(), [13, 29]);

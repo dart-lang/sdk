@@ -294,8 +294,6 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
       return "kSweeperTask";
     case kMarkerTask:
       return "kMarkerTask";
-    case kFinalizerTask:
-      return "kFinalizerTask";
     default:
       UNREACHABLE();
       return "";
@@ -455,7 +453,7 @@ uword Thread::GetCurrentStackPointer() {
 #endif
 // But for performance (and to support simulators), we normally use a local.
 #if defined(__has_feature)
-#if __has_feature(address_sanitizer)
+#if __has_feature(address_sanitizer) || __has_feature(safe_stack)
   uword current_sp = func();
   return current_sp;
 #else
@@ -711,8 +709,26 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
     scope = scope->previous();
   }
 
+  // The MarkTask, which calls this method, can run on a different thread.  We
+  // therefore assume the mutator is at a safepoint and we can iterate it's
+  // stack.
+  // TODO(vm-team): It would be beneficial to be able to ask the mutator thread
+  // whether it is in fact blocked at the moment (at a "safepoint") so we can
+  // safely iterate it's stack.
+  //
+  // Unfortunately we cannot use `this->IsAtSafepoint()` here because that will
+  // return `false` even though the mutator thread is waiting for mark tasks
+  // (which iterate it's stack) to finish.
+  const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
+      StackFrameIterator::kAllowCrossThreadIteration;
+
+  const StackFrameIterator::ValidationPolicy validation_policy =
+      validate_frames ? StackFrameIterator::kValidateFrames
+                      : StackFrameIterator::kDontValidateFrames;
+
   // Iterate over all the stack frames and visit objects on the stack.
-  StackFrameIterator frames_iterator(top_exit_frame_info(), validate_frames);
+  StackFrameIterator frames_iterator(top_exit_frame_info(), validation_policy,
+                                     this, cross_thread_policy);
   StackFrame* frame = frames_iterator.NextFrame();
   while (frame != NULL) {
     frame->VisitObjectPointers(visitor);

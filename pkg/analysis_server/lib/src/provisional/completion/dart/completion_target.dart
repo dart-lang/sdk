@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.provisional.completion.dart.completion_target;
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -389,8 +387,7 @@ class CompletionTarget {
     // If the node's first token is a keyword or identifier, then the node is a
     // candidate entity if its first token is.
     Token beginToken = node.beginToken;
-    if (beginToken.type == TokenType.KEYWORD ||
-        beginToken.type == TokenType.IDENTIFIER) {
+    if (beginToken.type.isKeyword || beginToken.type == TokenType.IDENTIFIER) {
       return _isCandidateToken(beginToken, offset);
     }
 
@@ -413,7 +410,7 @@ class CompletionTarget {
     if (offset < token.end) {
       return true;
     } else if (offset == token.end) {
-      return token.type == TokenType.KEYWORD ||
+      return token.type.isKeyword ||
           token.type == TokenType.IDENTIFIER ||
           token.length == 0;
     } else if (!token.isSynthetic) {
@@ -425,8 +422,7 @@ class CompletionTarget {
     if (offset < previous.end) {
       return true;
     } else if (offset == previous.end) {
-      return token.type == TokenType.KEYWORD ||
-          previous.type == TokenType.IDENTIFIER;
+      return token.type.isKeyword || previous.type == TokenType.IDENTIFIER;
     } else {
       return false;
     }

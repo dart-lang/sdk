@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.refactoring.extract_local;
-
 import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -24,6 +21,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 const String _TOKEN_SEPARATOR = "\uFFFF";
 
@@ -324,7 +322,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     // single node selected
     if (rootExpression != null) {
       singleExpression = rootExpression;
-      selectionRange = rangeNode(singleExpression);
+      selectionRange = range.node(singleExpression);
       wholeStatementExpression = singleExpression.parent is ExpressionStatement;
       return new RefactoringStatus();
     }
@@ -608,7 +606,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitExpression(Expression node) {
-    if (ref._isExtractable(rangeNode(node))) {
+    if (ref._isExtractable(range.node(node))) {
       _tryToFindOccurrence(node);
     }
     return super.visitExpression(node);
@@ -627,7 +625,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
         }
         lastIndex = index + length;
         int start = node.offset + index;
-        SourceRange range = rangeStartLength(start, length);
+        SourceRange range = new SourceRange(start, length);
         occurrences.add(range);
       }
       return null;
@@ -654,8 +652,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
     List<Token> nodeTokens = TokenUtils.getTokens(nodeSource);
     nodeSource = ref._encodeExpressionTokens(node, nodeTokens);
     if (nodeSource == selectionSource) {
-      SourceRange range = rangeNode(node);
-      _addOccurrence(range);
+      _addOccurrence(range.node(node));
     }
   }
 
@@ -683,8 +680,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
       // add occurrence range
       int start = nodeOffset + startToken.offset;
       int end = nodeOffset + endToken.end;
-      SourceRange range = rangeStartEnd(start, end);
-      _addOccurrence(range);
+      _addOccurrence(range.startOffsetEndOffset(start, end));
     }
   }
 }

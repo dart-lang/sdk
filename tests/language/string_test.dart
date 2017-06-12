@@ -6,7 +6,6 @@
 import "package:expect/expect.dart";
 
 class StringTest {
-
   static testMain() {
     testCodePoints();
     testNoSuchMethod();
@@ -34,7 +33,7 @@ class StringTest {
     String a = "Hello";
     bool exception_caught = false;
     try {
-      a[1] = 12;  // Throw exception.
+      a[1] = 12; // Throw exception.
     } on NoSuchMethodError catch (e) {
       exception_caught = true;
     }

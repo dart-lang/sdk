@@ -22,6 +22,8 @@ main() {
         expect(options.buildAnalysisOutput, isNull);
         expect(options.buildSummaryInputs, isEmpty);
         expect(options.buildSummaryOnly, isFalse);
+        expect(options.buildSummaryOnlyDiet, isFalse);
+        expect(options.buildSummaryOnlyUnlinked, isFalse);
         expect(options.buildSummaryOutput, isNull);
         expect(options.buildSummaryOutputSemantic, isNull);
         expect(options.buildSuppressExitCode, isFalse);
@@ -33,7 +35,8 @@ main() {
         expect(options.enableStrictCallChecks, isFalse);
         expect(options.enableSuperMixins, isFalse);
         expect(options.enableTypeChecks, isFalse);
-        expect(options.hintsAreFatal, isFalse);
+        expect(options.enableAssertInitializer, isNull);
+        expect(options.infosAreFatal, isFalse);
         expect(options.ignoreUnrecognizedFlags, isFalse);
         expect(options.log, isFalse);
         expect(options.machineFormat, isFalse);
@@ -84,10 +87,22 @@ main() {
         expect(options.enableTypeChecks, isTrue);
       });
 
+      test('enable assert initializers', () {
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--enable-assert-initializers', 'foo.dart']);
+        expect(options.enableAssertInitializer, isTrue);
+      });
+
       test('hintsAreFatal', () {
         CommandLineOptions options = CommandLineOptions
             .parse(['--dart-sdk', '.', '--fatal-hints', 'foo.dart']);
-        expect(options.hintsAreFatal, isTrue);
+        expect(options.infosAreFatal, isTrue);
+      });
+
+      test('infosAreFatal', () {
+        CommandLineOptions options = CommandLineOptions
+            .parse(['--dart-sdk', '.', '--fatal-infos', 'foo.dart']);
+        expect(options.infosAreFatal, isTrue);
       });
 
       test('log', () {
@@ -304,6 +319,32 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     ]);
     expect(options.buildMode, isTrue);
     expect(options.buildSummaryOnly, isTrue);
+  }
+
+  test_buildSummaryOnlyDiet() {
+    _parse([
+      '--build-mode',
+      '--build-summary-output=/path/to/aaa.sum',
+      '--build-summary-only',
+      '--build-summary-only-diet',
+      'package:p/foo.dart|/path/to/p/lib/foo.dart'
+    ]);
+    expect(options.buildMode, isTrue);
+    expect(options.buildSummaryOnly, isTrue);
+    expect(options.buildSummaryOnlyDiet, isTrue);
+  }
+
+  test_buildSummaryOnlyUnlinked() {
+    _parse([
+      '--build-mode',
+      '--build-summary-output=/path/to/aaa.sum',
+      '--build-summary-only',
+      '--build-summary-only-unlinked',
+      'package:p/foo.dart|/path/to/p/lib/foo.dart'
+    ]);
+    expect(options.buildMode, isTrue);
+    expect(options.buildSummaryOnly, isTrue);
+    expect(options.buildSummaryOnlyUnlinked, isTrue);
   }
 
   test_buildSummaryOutput() {

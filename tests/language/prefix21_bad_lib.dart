@@ -5,7 +5,7 @@
 library Prefix21Bad;
 
 int badFunction(int x) {
-  return x<<1;
+  return x << 1;
 }
 
 Function get getValue {

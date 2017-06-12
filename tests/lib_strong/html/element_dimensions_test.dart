@@ -18,23 +18,25 @@ main() {
 
   void initDiv() {
     var style = div.style;
-    style..padding = '4px'
-         ..border = '0px solid #fff'
-         ..margin = '6px'
-         ..height = '10px'
-         ..width = '11px'
-         ..boxSizing = 'content-box'
-         ..overflow = 'visible';
+    style
+      ..padding = '4px'
+      ..border = '0px solid #fff'
+      ..margin = '6px'
+      ..height = '10px'
+      ..width = '11px'
+      ..boxSizing = 'content-box'
+      ..overflow = 'visible';
   }
 
   div.nodes.addAll([
-      new DivElement(),
-      new CanvasElement(),
-      new DivElement(),
-      new Text('Hello'),
-      new DivElement(),
-      new Text('World'),
-      new CanvasElement()]);
+    new DivElement(),
+    new CanvasElement(),
+    new DivElement(),
+    new Text('Hello'),
+    new DivElement(),
+    new Text('World'),
+    new CanvasElement()
+  ]);
 
   group('dimensions', () {
     setUp(initDiv);
@@ -106,7 +108,6 @@ main() {
       expect(all1.contentEdge.width, 0);
       div.style.border = '2px solid #fff';
       expect(all1.contentEdge.width, 0);
-
     });
 
     test('paddingEdge.height', () {
@@ -179,7 +180,6 @@ main() {
       expect(all1.marginEdge.height, 666);
     });
 
-
     test('borderEdge.height and marginEdge.height with border-box', () {
       var all1 = queryAll('#test');
       div.style.boxSizing = 'border-box';
@@ -230,8 +230,8 @@ main() {
       expect(all1.borderEdge.left, all1[0].getBoundingClientRect().left);
       expect(all1.borderEdge.top, all1[0].getBoundingClientRect().top);
 
-      expect(all1.contentEdge.left,
-          all1[0].getBoundingClientRect().left + 1 + 5);
+      expect(
+          all1.contentEdge.left, all1[0].getBoundingClientRect().left + 1 + 5);
       expect(all1.contentEdge.top, all1[0].getBoundingClientRect().top + 1 + 4);
 
       expect(all1.marginEdge.left, all1[0].getBoundingClientRect().left - 7);

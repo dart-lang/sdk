@@ -15,6 +15,8 @@ bool inCheckedMode() {
 
 main() {
   if (inCheckedMode()) {
-    Expect.throws(() { List<int> t = new List<String>(); });
+    Expect.throws(() {
+      List<int> t = new List<String>();
+    });
   }
 }

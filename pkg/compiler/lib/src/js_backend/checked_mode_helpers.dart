@@ -14,7 +14,6 @@ import '../ssa/codegen.dart' show SsaCodeGenerator;
 import '../ssa/nodes.dart' show HTypeConversion;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse;
-import 'backend_helpers.dart';
 import 'namer.dart' show Namer;
 
 class CheckedModeHelper {
@@ -22,11 +21,11 @@ class CheckedModeHelper {
 
   const CheckedModeHelper(String this.name);
 
-  StaticUse getStaticUse(BackendHelpers helpers) {
+  StaticUse getStaticUse(CommonElements commonElements) {
     // TODO(johnniwinther): Refactor this to avoid looking up directly in the
-    // js helper library but instead access helpers directly on backend helpers.
+    // js helper library but instead access commonElements.
     return new StaticUse.staticInvoke(
-        helpers.findHelperFunction(name), callStructure);
+        commonElements.findHelperFunction(name), callStructure);
   }
 
   CallStructure get callStructure => CallStructure.ONE_ARG;
@@ -112,14 +111,12 @@ class SubtypeCheckedModeHelper extends CheckedModeHelper {
 
 class CheckedModeHelpers {
   final CommonElements _commonElements;
-  final BackendHelpers _helpers;
 
-  CheckedModeHelpers(this._commonElements, this._helpers);
+  CheckedModeHelpers(this._commonElements);
 
   /// All the checked mode helpers.
   static const List<CheckedModeHelper> helpers = const <CheckedModeHelper>[
     const MalformedCheckedModeHelper('checkMalformedType'),
-    const CheckedModeHelper('voidTypeCheck'),
     const CheckedModeHelper('stringTypeCast'),
     const CheckedModeHelper('stringTypeCheck'),
     const CheckedModeHelper('doubleTypeCast'),
@@ -205,12 +202,6 @@ class CheckedModeHelpers {
       return 'checkMalformedType';
     }
 
-    if (type.isVoid) {
-      assert(!typeCast); // Cannot cast to void.
-      if (nativeCheckOnly) return null;
-      return 'voidTypeCheck';
-    }
-
     if (type.isTypeVariable) {
       return typeCast
           ? 'subtypeOfRuntimeTypeCast'
@@ -232,35 +223,35 @@ class CheckedModeHelpers {
     //  nativeCheckOnly || emitter.nativeEmitter.requiresNativeIsCheck(element);
 
     var suffix = typeCast ? 'TypeCast' : 'TypeCheck';
-    if (element == _helpers.jsStringClass ||
+    if (element == _commonElements.jsStringClass ||
         element == _commonElements.stringClass) {
       if (nativeCheckOnly) return null;
       return 'string$suffix';
     }
 
-    if (element == _helpers.jsDoubleClass ||
+    if (element == _commonElements.jsDoubleClass ||
         element == _commonElements.doubleClass) {
       if (nativeCheckOnly) return null;
       return 'double$suffix';
     }
 
-    if (element == _helpers.jsNumberClass ||
+    if (element == _commonElements.jsNumberClass ||
         element == _commonElements.numClass) {
       if (nativeCheckOnly) return null;
       return 'num$suffix';
     }
 
-    if (element == _helpers.jsBoolClass ||
+    if (element == _commonElements.jsBoolClass ||
         element == _commonElements.boolClass) {
       if (nativeCheckOnly) return null;
       return 'bool$suffix';
     }
 
-    if (element == _helpers.jsIntClass ||
+    if (element == _commonElements.jsIntClass ||
         element == _commonElements.intClass ||
-        element == _helpers.jsUInt32Class ||
-        element == _helpers.jsUInt31Class ||
-        element == _helpers.jsPositiveIntClass) {
+        element == _commonElements.jsUInt32Class ||
+        element == _commonElements.jsUInt31Class ||
+        element == _commonElements.jsPositiveIntClass) {
       if (nativeCheckOnly) return null;
       return 'int$suffix';
     }
@@ -276,7 +267,7 @@ class CheckedModeHelpers {
     }
 
     if ((element == _commonElements.listClass ||
-            element == _helpers.jsArrayClass) &&
+            element == _commonElements.jsArrayClass) &&
         type.treatAsRaw) {
       if (nativeCheckOnly) return null;
       return 'list$suffix';

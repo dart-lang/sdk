@@ -34,10 +34,10 @@ class Checks<T> {
   }
 }
 
-makeB() native ;
+makeB() native;
 
 @Creates('=Object')
-getBPrototype() native ;
+getBPrototype() native;
 
 void setup() native r"""
 function B() {}

@@ -13,7 +13,9 @@ class A {
   // when it created the call to the constructor body.
   A.withClosure(Map a) {
     var c;
-    var f = () { return c = 42; };
+    var f = () {
+      return c = 42;
+    };
     b = f();
     Expect.equals(42, b);
     Expect.equals(42, c);

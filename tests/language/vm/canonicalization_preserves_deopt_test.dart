@@ -6,7 +6,7 @@
 import "package:expect/expect.dart";
 
 class X {
-  operator * (other) => "NaNNaNNaNNaNBatman";
+  operator *(other) => "NaNNaNNaNNaNBatman";
 }
 
 foo(x) => (x * 1.0) is double;
@@ -38,4 +38,3 @@ main() {
   });
   Expect.isFalse(baz(new X()));
 }
-

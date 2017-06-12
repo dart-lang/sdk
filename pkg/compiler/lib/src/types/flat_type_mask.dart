@@ -114,25 +114,25 @@ class FlatTypeMask implements TypeMask {
     // The general optimization is to realize there is only one class that
     // implements [base] and [base] is not instantiated. We however do
     // not track correctly the list of truly instantiated classes.
-    BackendClasses backendClasses = closedWorld.backendClasses;
+    CommonElements commonElements = closedWorld.commonElements;
     if (containsOnlyString(closedWorld)) {
       return cls == closedWorld.commonElements.stringClass ||
-          cls == backendClasses.stringClass;
+          cls == commonElements.jsStringClass;
     }
     if (containsOnlyBool(closedWorld)) {
       return cls == closedWorld.commonElements.boolClass ||
-          cls == backendClasses.boolClass;
+          cls == commonElements.jsBoolClass;
     }
     if (containsOnlyInt(closedWorld)) {
       return cls == closedWorld.commonElements.intClass ||
-          cls == backendClasses.intClass ||
-          cls == backendClasses.positiveIntClass ||
-          cls == backendClasses.uint32Class ||
-          cls == backendClasses.uint31Class;
+          cls == commonElements.jsIntClass ||
+          cls == commonElements.jsPositiveIntClass ||
+          cls == commonElements.jsUInt32Class ||
+          cls == commonElements.jsUInt31Class;
     }
     if (containsOnlyDouble(closedWorld)) {
       return cls == closedWorld.commonElements.doubleClass ||
-          cls == backendClasses.doubleClass;
+          cls == commonElements.jsDoubleClass;
     }
     return false;
   }
@@ -175,38 +175,34 @@ class FlatTypeMask implements TypeMask {
   }
 
   bool containsOnlyInt(ClosedWorld closedWorld) {
-    BackendClasses backendClasses = closedWorld.backendClasses;
+    CommonElements commonElements = closedWorld.commonElements;
     return base == closedWorld.commonElements.intClass ||
-        base == backendClasses.intClass ||
-        base == backendClasses.positiveIntClass ||
-        base == backendClasses.uint31Class ||
-        base == backendClasses.uint32Class;
+        base == commonElements.jsIntClass ||
+        base == commonElements.jsPositiveIntClass ||
+        base == commonElements.jsUInt31Class ||
+        base == commonElements.jsUInt32Class;
   }
 
   bool containsOnlyDouble(ClosedWorld closedWorld) {
-    BackendClasses backendClasses = closedWorld.backendClasses;
     return base == closedWorld.commonElements.doubleClass ||
-        base == backendClasses.doubleClass;
+        base == closedWorld.commonElements.jsDoubleClass;
   }
 
   bool containsOnlyNum(ClosedWorld closedWorld) {
-    BackendClasses backendClasses = closedWorld.backendClasses;
     return containsOnlyInt(closedWorld) ||
         containsOnlyDouble(closedWorld) ||
         base == closedWorld.commonElements.numClass ||
-        base == backendClasses.numClass;
+        base == closedWorld.commonElements.jsNumberClass;
   }
 
   bool containsOnlyBool(ClosedWorld closedWorld) {
-    BackendClasses backendClasses = closedWorld.backendClasses;
     return base == closedWorld.commonElements.boolClass ||
-        base == backendClasses.boolClass;
+        base == closedWorld.commonElements.jsBoolClass;
   }
 
   bool containsOnlyString(ClosedWorld closedWorld) {
-    BackendClasses backendClasses = closedWorld.backendClasses;
     return base == closedWorld.commonElements.stringClass ||
-        base == backendClasses.stringClass;
+        base == closedWorld.commonElements.jsStringClass;
   }
 
   bool containsOnly(ClassEntity cls) {
@@ -496,16 +492,16 @@ class FlatTypeMask implements TypeMask {
    */
   bool canHit(
       MemberEntity element, Selector selector, ClosedWorld closedWorld) {
-    BackendClasses backendClasses = closedWorld.backendClasses;
+    CommonElements commonElements = closedWorld.commonElements;
     assert(element.name == selector.name);
     if (isEmpty) return false;
     if (isNull) {
       return closedWorld.hasElementIn(
-          backendClasses.nullClass, selector, element);
+          commonElements.jsNullClass, selector, element);
     }
 
     ClassEntity other = element.enclosingClass;
-    if (other == backendClasses.nullClass) {
+    if (other == commonElements.jsNullClass) {
       return isNullable;
     } else if (isExact) {
       return closedWorld.hasElementIn(base, selector, element);
@@ -545,8 +541,7 @@ class FlatTypeMask implements TypeMask {
 
   MemberEntity locateSingleElement(Selector selector, ClosedWorld closedWorld) {
     if (isEmptyOrNull) return null;
-    Iterable<MemberEntity> targets =
-        closedWorld.allFunctions.filter(selector, this);
+    Iterable<MemberEntity> targets = closedWorld.locateMembers(selector, this);
     if (targets.length != 1) return null;
     MemberEntity result = targets.first;
     ClassEntity enclosing = result.enclosingClass;

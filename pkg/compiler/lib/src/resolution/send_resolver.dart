@@ -94,6 +94,7 @@ class FunctionDeclStructure<R, A> extends DeclStructure<R, A> {
 
   FunctionDeclStructure(this.kind, FunctionElement function) : super(function);
 
+  // ignore: MISSING_RETURN
   R dispatch(SemanticDeclarationVisitor<R, A> visitor, FunctionExpression node,
       A arg) {
     switch (kind) {

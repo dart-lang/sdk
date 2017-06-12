@@ -546,7 +546,9 @@ class LinkedHashMap<K, V> {
 
   // Private factory static function called by generated code for map literals.
   // This version is for map literals without type parameters.
+  @NoThrows()
   @NoInline()
+  @NoSideEffects()
   static _makeEmpty() => new JsLinkedHashMap();
 
   // Private factory static function called by generated code for map literals.

@@ -142,7 +142,7 @@ class _BuildJsonListener extends _JsonListener {
 
   void beginObject() {
     pushContainer();
-    currentContainer = {};
+    currentContainer = <String, dynamic>{};
   }
 
   void propertyName() {
@@ -1191,7 +1191,7 @@ abstract class _ChunkedJsonParser {
     buffer.length = newCount;
   }
 
-  // Continues an already chunked number accross an entire chunk.
+  // Continues an already chunked number across an entire chunk.
   int continueChunkNumber(int state, int start, _NumberBuffer buffer) {
     int end = chunkEnd;
     addNumberChunk(buffer, start, end, _NumberBuffer.kDefaultOverhead);

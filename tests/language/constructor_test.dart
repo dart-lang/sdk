@@ -6,20 +6,20 @@
 import "package:expect/expect.dart";
 
 class A extends B {
-  A(x, y) : super(y), a = x { }
+  A(x, y)
+      : super(y),
+        a = x {}
 
   var a;
 }
 
-
 class B {
   var b;
 
-  B(x) : b = x { }
+  B(x) : b = x {}
 
   B.namedB(var x) : b = x {}
 }
-
 
 // Test the order of initialization: first the instance variable then
 // the super constructor.
@@ -31,7 +31,9 @@ abstract class Alpha {
 }
 
 class Beta extends Alpha {
-  Beta(v) : super(v), b = 1 {}
+  Beta(v)
+      : super(v),
+        b = 1 {}
 
   foo(v) {
     // Check that 'b' was initialized.

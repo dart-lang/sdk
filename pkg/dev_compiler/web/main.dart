@@ -23,13 +23,13 @@ main() {
   // Avoid race condition when users try to call $setUpDartDevCompilerInBrowser
   // before it is ready by installing the method immediately and making the body
   // of the method async.
-  setUpCompilerInBrowser = allowInterop((String summaryRoot,
-      String sdkUrl,
-      List<String> summaryUrls,
+  setUpCompilerInBrowser = allowInterop((String sdkUrl,
+      JSMap<String, String> summaryMap,
       Function onCompileReady,
-      Function onError) async {
+      Function onError,
+      [Function onProgress]) async {
     (await _setUpCompilerInBrowser)(
-        summaryRoot, sdkUrl, summaryUrls, onCompileReady, onError);
+        sdkUrl, summaryMap, onCompileReady, onError, onProgress);
   });
   _runCommand(args);
 }

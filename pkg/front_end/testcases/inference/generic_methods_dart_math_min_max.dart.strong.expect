@@ -1,0 +1,25 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:math" as math;
+
+static method printInt(core::int x) → void
+  return core::print(x);
+static method printDouble(core::double x) → void
+  return core::print(x);
+static method myMax(core::num x, core::num y) → core::num
+  return math::max<core::num>(x, y);
+static method f() → dynamic {
+  self::printInt(math::max<core::int>(1, 2));
+  self::printInt(math::min<core::int>(1, 2));
+  self::printDouble(math::max<core::double>(1.0, 2.0));
+  self::printDouble(math::min<core::double>(1.0, 2.0));
+  self::printInt(self::myMax(1, 2));
+  self::printInt(self::myMax(1, 2) as core::int);
+  self::printInt(math::max<core::int>(1, 2.0));
+  self::printInt(math::min<core::int>(1, 2.0));
+  self::printDouble(math::max<core::double>(1, 2.0));
+  self::printDouble(math::min<core::double>(1, 2.0));
+  self::printInt(math::min<core::int>("hi", "there"));
+}
+static method main() → dynamic {}

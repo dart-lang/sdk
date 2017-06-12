@@ -4,6 +4,7 @@
 
 library test.metadata_constructed_constant_test;
 
+@MirrorsUsed(targets: "test.metadata_constructed_constant_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -20,7 +21,6 @@ class Foo {
 }
 
 main() {
-  var value =
-      reflectClass(Foo).declarations[#m].metadata.single.reflectee;
+  var value = reflectClass(Foo).declarations[#m].metadata.single.reflectee;
   Expect.stringEquals('ConstructedConstant($StateError)', '$value');
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
@@ -42,15 +42,10 @@ fi
 
 if [[ `uname` == 'Darwin' ]];
 then
-  if [[ $GYP_GENERATORS == 'ninja' ]];
-  then
-    BUILD_DIR="${ROOT_DIR}/out/$DART_CONFIGURATION"
-  else
-    BUILD_DIR="${ROOT_DIR}/xcodebuild/$DART_CONFIGURATION"
-  fi
+  BUILD_DIR="${ROOT_DIR}/xcodebuild/$DART_CONFIGURATION"
 fi
 
-PKG_FILE="${ROOT_DIR}/pkg/analysis_server/.packages"
+PKG_FILE="${ROOT_DIR}/.packages"
 if [[ !(-e $PKG_FILE) ]];
 then
   PKG_FILE="${ROOT_DIR}/.packages"
@@ -62,7 +57,5 @@ declare -a VM_OPTIONS
 VM_OPTIONS+=("--checked")
 VM_OPTIONS+=("--packages=${PKG_FILE}")
 
-echo "${SCRIPT_DIR}"
-echo "${DART}" "${VM_OPTIONS[@]}" "generate_all.dart"
 cd "${SCRIPT_DIR}"
 "${DART}" "${VM_OPTIONS[@]}" "generate_all.dart"

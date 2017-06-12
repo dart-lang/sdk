@@ -2,31 +2,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Closure#main#function extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#main#function::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#main#function::context};
-    return #contextParameter[0][1] = #contextParameter[1];
-  }
-}
-class Closure#main#function#1 extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#main#function#1::context = context
-    ;
-  method call() → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#main#function#1::context};
-    if(!(#contextParameter[0][1]).==(self::max.-(1)))
-      throw "last: ${#contextParameter[0][1]} != ${self::max.-(1)}";
-  }
-}
 static const field core::int max = 100;
 static method main() → dynamic {
   dynamic closures = <dynamic>[];
@@ -38,8 +13,8 @@ static method main() → dynamic {
     #context[0] = #context;
     #context[1] = 0;
     for (; (#context[1]).<(self::max); #context = CopyVector(#context), #context[1] = (#context[1]).+(1)) {
-      closures.add(new self::Closure#main#function::•(#context));
-      closures2.add(new self::Closure#main#function#1::•(#context));
+      closures.add(MakeClosure<() → dynamic>(self::closure#main#function, #context));
+      closures2.add(MakeClosure<() → dynamic>(self::closure#main#function#1, #context));
     }
   }
   core::int sum = 0;
@@ -53,4 +28,11 @@ static method main() → dynamic {
   if(!expectedSum.==(sum)) {
     throw core::Exception::•("Unexpected sum = ${sum} != ${expectedSum}");
   }
+}
+static method closure#main#function(Vector #contextParameter) → dynamic {
+  return #contextParameter[0][1] = #contextParameter[1];
+}
+static method closure#main#function#1(Vector #contextParameter) → dynamic {
+  if(!(#contextParameter[0][1]).==(self::max.-(1)))
+    throw "last: ${#contextParameter[0][1]} != ${self::max.-(1)}";
 }

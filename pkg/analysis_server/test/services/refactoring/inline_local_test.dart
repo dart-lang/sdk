@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring.inline_local;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,7 +14,6 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineLocalTest);
-    defineReflectiveTests(InlineLocalTest_Driver);
   });
 }
 
@@ -639,10 +636,4 @@ main() {
     refactoring =
         new InlineLocalRefactoring(searchEngine, astProvider, testUnit, offset);
   }
-}
-
-@reflectiveTest
-class InlineLocalTest_Driver extends InlineLocalTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -27,15 +27,20 @@ rethrowString() async {
 
 testThrow() {
   Future f = throwString();
-  f.then((v) { Expect.fail("Exception not thrown"); },
-      onError: (e) { Expect.equals(exceptionString, e);});
+  f.then((v) {
+    Expect.fail("Exception not thrown");
+  }, onError: (e) {
+    Expect.equals(exceptionString, e);
+  });
 }
-
 
 testRethrow() {
   Future f = rethrowString();
-  f.then((v) { Expect.fail("Exception not thrown"); },
-      onError: (e) { Expect.equals(exceptionString, e);});
+  f.then((v) {
+    Expect.fail("Exception not thrown");
+  }, onError: (e) {
+    Expect.equals(exceptionString, e);
+  });
 }
 
 main() {

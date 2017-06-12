@@ -24,13 +24,14 @@ List<int> readBytesFromFileSync(Uri uri) {
   return list;
 }
 
-Future<List<int>> readBytesFromFile(Uri uri) async {
+Future<List<int>> readBytesFromFile(Uri uri,
+    {bool ensureZeroTermination: true}) async {
   RandomAccessFile file = await new File.fromUri(uri).open();
   Uint8List list;
   try {
     int length = await file.length();
     // +1 to have a 0 terminated list, see [Scanner].
-    list = new Uint8List(length + 1);
+    list = new Uint8List(ensureZeroTermination ? length + 1 : length);
     int read = await file.readInto(list);
     if (read != length) {
       throw "Error reading file: ${uri}";

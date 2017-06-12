@@ -16,18 +16,20 @@ void main() {
 void doSwitch(int target, List expect) {
   List list = [];
   switch (target) {
-  case 0:
-    list.add(0);
-    continue case2;
-  case1: case 1:
-    list.add(1);
-    break;
-  case2: case 2:
-    list.add(2);
-    break;
-  case 3:
-    list.add(3);
-    continue case1;
+    case 0:
+      list.add(0);
+      continue case2;
+    case1:
+    case 1:
+      list.add(1);
+      break;
+    case2:
+    case 2:
+      list.add(2);
+      break;
+    case 3:
+      list.add(3);
+      continue case1;
   }
   Expect.listEquals(expect, list);
 }

@@ -20,14 +20,14 @@ var nonAsciiStrings = [
 
 void main() {
   // Build longer versions of the example strings.
-  for (int i = 0, n = asciiStrings.length; i < n ; i++) {
+  for (int i = 0, n = asciiStrings.length; i < n; i++) {
     var string = asciiStrings[i];
     while (string.length < 1024) {
       string += string;
     }
     asciiStrings.add(string);
   }
-  for (int i = 0, n = nonAsciiStrings.length; i < n ; i++) {
+  for (int i = 0, n = nonAsciiStrings.length; i < n; i++) {
     var string = nonAsciiStrings[i];
     while (string.length < 1024) {
       string += string;
@@ -59,23 +59,47 @@ void testDirectConversions() {
     Expect.listEquals([0x42, 0x43, 0x44], encode("ABCDE", 1, 4));
     Expect.listEquals([0x42, 0x43, 0x44, 0x45], encode("ABCDE", 1));
     Expect.listEquals([0x42, 0x43, 0x44], encode("\xffBCD\xff", 1, 4));
-    Expect.throws(() { encode("\xffBCD\xff", 0, 4); });
-    Expect.throws(() { encode("\xffBCD\xff", 1); });
-    Expect.throws(() { encode("\xffBCD\xff", 1, 5); });
-    Expect.throws(() { encode("\xffBCD\xff", -1, 4); });
-    Expect.throws(() { encode("\xffBCD\xff", 1, -1); });
-    Expect.throws(() { encode("\xffBCD\xff", 3, 2); });
+    Expect.throws(() {
+      encode("\xffBCD\xff", 0, 4);
+    });
+    Expect.throws(() {
+      encode("\xffBCD\xff", 1);
+    });
+    Expect.throws(() {
+      encode("\xffBCD\xff", 1, 5);
+    });
+    Expect.throws(() {
+      encode("\xffBCD\xff", -1, 4);
+    });
+    Expect.throws(() {
+      encode("\xffBCD\xff", 1, -1);
+    });
+    Expect.throws(() {
+      encode("\xffBCD\xff", 3, 2);
+    });
 
     var decode = codec.decoder.convert;
     Expect.equals("BCD", decode([0x41, 0x42, 0x43, 0x44, 0x45], 1, 4));
     Expect.equals("BCDE", decode([0x41, 0x42, 0x43, 0x44, 0x45], 1));
     Expect.equals("BCD", decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 1, 4));
-    Expect.throws(() { decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 0, 4); });
-    Expect.throws(() { decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 1); });
-    Expect.throws(() { decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 1, 5); });
-    Expect.throws(() { decode([0xFF, 0x42, 0x43, 0x44, 0xFF], -1, 4); });
-    Expect.throws(() { decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 1, -1); });
-    Expect.throws(() { decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 3, 2); });
+    Expect.throws(() {
+      decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 0, 4);
+    });
+    Expect.throws(() {
+      decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 1);
+    });
+    Expect.throws(() {
+      decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 1, 5);
+    });
+    Expect.throws(() {
+      decode([0xFF, 0x42, 0x43, 0x44, 0xFF], -1, 4);
+    });
+    Expect.throws(() {
+      decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 1, -1);
+    });
+    Expect.throws(() {
+      decode([0xFF, 0x42, 0x43, 0x44, 0xFF], 3, 2);
+    });
   }
 
   var allowInvalidCodec = new AsciiCodec(allowInvalid: true);
@@ -88,8 +112,8 @@ void testDirectConversions() {
   Expect.equals("\x00\x01\uFFFD\uFFFD\x00", decoded);
 }
 
-List<int> encode(String str, int chunkSize,
-                 Converter<String, List<int>> converter) {
+List<int> encode(
+    String str, int chunkSize, Converter<String, List<int>> converter) {
   List<int> bytes = <int>[];
   var byteSink = new ByteConversionSink.withCallback(bytes.addAll);
   var stringConversionSink = converter.startChunkedConversion(byteSink);
@@ -104,11 +128,10 @@ List<int> encode(String str, int chunkSize,
   return bytes;
 }
 
-String decode(List<int> bytes, int chunkSize,
-              Converter<List<int>, String> converter) {
+String decode(
+    List<int> bytes, int chunkSize, Converter<List<int>, String> converter) {
   StringBuffer buf = new StringBuffer();
-  var stringSink =
-      new StringConversionSink.fromStringSink(buf);
+  var stringSink = new StringConversionSink.fromStringSink(buf);
   var byteConversionSink = converter.startChunkedConversion(stringSink);
   for (int i = 0; i < bytes.length; i += chunkSize) {
     if (i + chunkSize <= bytes.length) {
@@ -123,9 +146,11 @@ String decode(List<int> bytes, int chunkSize,
 
 void testChunkedConversions() {
   // Check encoding.
-  for (var converter in [ASCII.encoder,
-                         new AsciiCodec().encoder,
-                         new AsciiEncoder()]) {
+  for (var converter in [
+    ASCII.encoder,
+    new AsciiCodec().encoder,
+    new AsciiEncoder()
+  ]) {
     for (int chunkSize in [1, 2, 5, 50]) {
       for (var asciiString in asciiStrings) {
         var units = asciiString.codeUnits.toList();
@@ -140,9 +165,11 @@ void testChunkedConversions() {
     }
   }
   // Check decoding.
-  for (var converter in [ASCII.decoder,
-                         new AsciiCodec().decoder,
-                         new AsciiDecoder()]) {
+  for (var converter in [
+    ASCII.decoder,
+    new AsciiCodec().decoder,
+    new AsciiDecoder()
+  ]) {
     for (int chunkSize in [1, 2, 5, 50]) {
       for (var asciiString in asciiStrings) {
         var units = asciiString.codeUnits.toList();

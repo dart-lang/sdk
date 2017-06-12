@@ -22,19 +22,17 @@ import 'deferred_load.dart' as deferred_load;
 import 'diagnostics/source_span.dart' as diagnostics;
 import 'elements/elements.dart' as elements;
 import 'elements/modelx.dart' as modelx;
+import 'elements/names.dart' as names;
+import 'elements/operators.dart' as operators;
 import 'elements/visitor.dart' as elements_visitor;
 import 'filenames.dart' as filenames;
 import 'inferrer/type_graph_inferrer.dart' as type_graph_inferrer;
-import 'io/line_column_provider.dart' as io;
+import 'io/location_provider.dart' as io;
 import 'io/source_map_builder.dart' as io;
 import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
-import 'js_emitter/full_emitter/emitter.dart' as full;
-import 'js_emitter/js_emitter.dart' as js_emitter;
-import 'js_emitter/program_builder/program_builder.dart' as program_builder;
 import 'parser/partial_elements.dart'
     show PartialClassElement, PartialFunctionElement;
-import 'resolution/operators.dart' as operators;
 import 'resolution/semantic_visitor.dart' as semantic_visitor;
 import 'script.dart';
 import 'source_file_provider.dart' as source_file_provider;
@@ -50,7 +48,7 @@ class ElementVisitor extends elements_visitor.BaseElementVisitor {
 void main(List<String> arguments) {
   useApi(null);
   dart2js.main(arguments);
-  elements.Name.isPublicName(null);
+  names.Name.isPublicName(null);
   useConstant();
   useNode(null);
   useUtil(null);
@@ -99,7 +97,7 @@ void useConstant(
     constants.ConstantExpression expression,
     constants.ConstructedConstantExpression constructedConstant,
     constants.ConstantSystem cs,
-    constants.Environment env]) {
+    constants.EvaluationEnvironment env]) {
   constant.isObject;
   cs.isBool(constant);
   constructedConstant.computeInstanceType(null);
@@ -233,13 +231,12 @@ useSsa(ssa.HInstruction instruction) {
   new ssa.HStatementSequenceInformation(null);
 }
 
-useIo([io.LineColumnMap map, io.LineColumnProvider provider]) {
+useIo([io.LineColumnMap map, io.LocationProvider provider]) {
   map
     ..addFirst(null, null, null)
     ..forEachLine(null)
     ..getFirstElementsInLine(null)
     ..forEachColumn(null, null);
-  provider.getOffset(null, null);
 }
 
 usedByTests() {
@@ -257,12 +254,11 @@ usedByTests() {
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
   new dart_types.Types(null).copy(null);
-  sourceFileProvider.readStringFromUri(null);
 }
 
 useElements(
     [elements.ClassElement e,
-    elements.Name n,
+    names.Name n,
     modelx.FieldElementX f,
     PartialClassElement pce,
     PartialFunctionElement pfe,

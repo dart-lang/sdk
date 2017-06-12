@@ -1,4 +1,5 @@
 library CanvasTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -9,15 +10,14 @@ main() {
   int width = 100;
   int height = 100;
 
-  canvas = new CanvasElement(width:width, height:height);
+  canvas = new CanvasElement(width: width, height: height);
   document.body.append(canvas);
 
   context = canvas.context2D;
 
   useHtmlConfiguration();
   test('CreateImageData', () {
-    ImageData image = context.createImageData(canvas.width,
-                                              canvas.height);
+    ImageData image = context.createImageData(canvas.width, canvas.height);
     List<int> data = image.data;
 
     expect(data, hasLength(40000));
@@ -47,8 +47,7 @@ main() {
   });
 }
 
-void checkPixel(List<int> data, int offset, List<int> rgba)
-{
+void checkPixel(List<int> data, int offset, List<int> rgba) {
   offset *= 4;
   for (var i = 0; i < 4; ++i) {
     expect(data[offset + i], equals(rgba[i]));

@@ -52,6 +52,7 @@ class UnknownObjectRefElement extends HtmlElement implements Renderable {
   void render() {
     children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _obj))
+        ..classes = ['emphasize']
         ..text = _obj.vmType
     ];
   }

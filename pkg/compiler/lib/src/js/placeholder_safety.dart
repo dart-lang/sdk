@@ -125,7 +125,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
 
   int visitAccess(js.PropertyAccess node) {
     int first = visit(node.receiver);
-    int second = visit(node.selector);
+    visit(node.selector);
     // TODO(sra): If the JS is annotated as never throwing, we can avoid this.
     if (canBeNull(first)) safe = false;
     return UNKNOWN_VALUE;
@@ -162,12 +162,12 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
       // "a.b.x = c.y" gives a TypeError for null values in this order: `a`,
       // `c`, `a.b`.
       int receiver = visit(left.receiver);
-      int selector = visit(left.selector);
+      visit(left.selector);
       int value = visit(right);
       if (canBeNull(receiver)) safe = false;
       return value;
     }
-    // Be conserative with unrecognized LHS expressions.
+    // Be conservative with unrecognized LHS expressions.
     safe = false;
     return leftToRight();
   }
@@ -210,27 +210,27 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
       case "&":
       case "^":
       case "|":
-        int left = visit(node.left);
-        int right = visit(node.right);
+        visit(node.left);
+        visit(node.right);
         return NONNULL_VALUE; // Number, String, Boolean.
 
       case ',':
-        int left = visit(node.left);
+        visit(node.left);
         int right = visit(node.right);
         return right;
 
       case "&&":
       case "||":
-        int left = visit(node.left);
+        visit(node.left);
         // TODO(sra): Might be safe, e.g.  "x || 0".
         safe = false;
-        int right = visit(node.right);
+        visit(node.right);
         return UNKNOWN_VALUE;
 
       case "instanceof":
       case "in":
-        int left = visit(node.left);
-        int right = visit(node.right);
+        visit(node.left);
+        visit(node.right);
         return UNKNOWN_VALUE;
 
       default:
@@ -239,11 +239,11 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   }
 
   int visitConditional(js.Conditional node) {
-    int cond = visit(node.condition);
+    visit(node.condition);
     // TODO(sra): Might be safe, e.g.  "# ? 1 : 2".
     safe = false;
-    int thenValue = visit(node.then);
-    int elseValue = visit(node.otherwise);
+    visit(node.then);
+    visit(node.otherwise);
     return UNKNOWN_VALUE;
   }
 

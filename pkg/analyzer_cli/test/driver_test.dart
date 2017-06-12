@@ -14,10 +14,11 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:yaml/src/yaml_node.dart';
@@ -65,7 +66,7 @@ main() {
     group('exit codes', () {
       test('fatal hints', () async {
         await drive('data/file_with_hint.dart', args: ['--fatal-hints']);
-        expect(exitCode, 3);
+        expect(exitCode, 1);
       });
 
       test('not fatal hints', () async {
@@ -85,7 +86,13 @@ main() {
 
       test('fatal warnings', () async {
         await drive('data/file_with_warning.dart', args: ['--fatal-warnings']);
-        expect(exitCode, 3);
+        expect(exitCode, 2);
+      });
+
+      test('not parse enableAssertInitializer', () async {
+        await drive('data/file_with_assert_initializers.dart',
+            args: ['--enable-assert-initializers']);
+        expect(exitCode, 0);
       });
 
       test('missing options file', () async {
@@ -126,7 +133,7 @@ main() {
         // Copy to temp dir so that existing analysis options
         // in the test directory hierarchy do not interfere
         await withTempDirAsync((String tempDirPath) async {
-          String dartSdkPath = path.absolute(getSdkDir(<String>[]).path);
+          String dartSdkPath = path.absolute(getSdkPath());
           await recursiveCopy(
               new Directory(path.join(testDirectory, 'data', 'bazel')),
               tempDirPath);
@@ -351,7 +358,7 @@ linter:
             '--packages',
             path.join(testDir, '_packages'),
           ],
-          options: path.join(testDir, '.analysis_options'),
+          options: path.join(testDir, 'analysis_options.yaml'),
         );
         expect(exitCode, 3);
         expect(outSink.toString(),
@@ -411,6 +418,44 @@ linter:
           await doDrive(path.join('data', 'file_with_error.dart'),
               additionalArgs: ['--build-suppress-exit-code']);
           expect(exitCode, 0);
+        });
+
+        test('Linked summary', () async {
+          await withTempDirAsync((tempDir) async {
+            var outputPath = path.join(tempDir, 'test_file.dart.sum');
+            await doDrive(path.join('data', 'test_file.dart'), additionalArgs: [
+              '--build-summary-only',
+              '--build-summary-output=$outputPath'
+            ]);
+            var output = new File(outputPath);
+            expect(output.existsSync(), isTrue);
+            PackageBundle bundle =
+                new PackageBundle.fromBuffer(await output.readAsBytes());
+            var testFileUri = 'file:///test_file.dart';
+            expect(bundle.unlinkedUnitUris, equals([testFileUri]));
+            expect(bundle.linkedLibraryUris, equals([testFileUri]));
+            expect(exitCode, 0);
+          });
+        });
+
+        test('Unlinked summary only', () async {
+          await withTempDirAsync((tempDir) async {
+            var outputPath = path.join(tempDir, 'test_file.dart.sum');
+            await doDrive(path.join('data', 'test_file.dart'), additionalArgs: [
+              '--build-summary-only',
+              '--build-summary-only-unlinked',
+              '--build-summary-output=$outputPath'
+            ]);
+            var output = new File(outputPath);
+            expect(output.existsSync(), isTrue);
+            PackageBundle bundle =
+                new PackageBundle.fromBuffer(await output.readAsBytes());
+            var testFileUri = 'file:///test_file.dart';
+            expect(bundle.unlinkedUnits.length, 1);
+            expect(bundle.unlinkedUnitUris, equals([testFileUri]));
+            expect(bundle.linkedLibraryUris, isEmpty);
+            expect(exitCode, 0);
+          });
         });
       });
     }

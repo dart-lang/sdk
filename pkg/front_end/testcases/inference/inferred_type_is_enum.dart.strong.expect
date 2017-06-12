@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class E extends core::Object {
+  final field core::int index;
+  static const field core::List<self::E> values = const <self::E>[self::E::v1];
+  static const field self::E v1 = const self::E::•(0);
+  const constructor •(core::int index) → void
+    : self::E::index = index, super core::Object::•()
+    ;
+  method toString() → core::String
+    return const <core::int, core::String>{0: "E.v1"}.[](this.{=self::E::index});
+}
+static final field self::E x = self::E::v1;
+static method main() → dynamic {
+  self::x;
+}

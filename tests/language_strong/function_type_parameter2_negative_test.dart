@@ -5,7 +5,6 @@
 // a compile time constant.
 
 class FunctionTypeParameterNegativeTest {
-
   static var formatter;
 
   static SetFormatter([String fmt(int i) = (i) => "$i"]) {

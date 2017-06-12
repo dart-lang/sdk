@@ -12,7 +12,6 @@ import '../transformations/insert_covariance_checks.dart';
 import '../transformations/insert_type_checks.dart';
 import '../transformations/mixin_full_resolution.dart' as mix;
 import '../transformations/sanitize_for_vm.dart';
-import '../transformations/setup_builtin_library.dart' as setup_builtin_library;
 import '../transformations/treeshaker.dart';
 import 'targets.dart';
 
@@ -58,7 +57,7 @@ class VmTarget extends Target {
   ClassHierarchy _hierarchy;
 
   void performModularTransformations(Program program) {
-    var mixins = new mix.MixinFullResolution()..transform(program);
+    var mixins = new mix.MixinFullResolution(this)..transform(program);
 
     _hierarchy = mixins.hierarchy;
   }
@@ -78,9 +77,6 @@ class VmTarget extends Target {
     }
 
     cont.transformProgram(program);
-
-    // Repair `_getMainClosure()` function in dart:_builtin.
-    setup_builtin_library.transformProgram(program);
 
     if (strongMode) {
       performErasure(program);
@@ -102,5 +98,69 @@ class VmTarget extends Target {
 
   void performErasure(Program program) {
     new Erasure().transform(program);
+  }
+
+  @override
+  Expression instantiateInvocation(Member target, Expression receiver,
+      String name, Arguments arguments, int offset, bool isSuper) {
+    // See [_InvocationMirror]
+    // (../../../../runtime/lib/invocation_mirror_patch.dart).
+    // The _InvocationMirror constructor takes the following arguments:
+    // * Method name (a string).
+    // * An arguments descriptor - a list consisting of:
+    //   - length of passed type argument vector, 0 if none passed.
+    //   - number of arguments (including receiver).
+    //   - number of positional arguments (including receiver).
+    //   - pairs (2 entries in the list) of
+    //     * named arguments name.
+    //     * index of named argument in arguments list.
+    // * A list of arguments, where the first ones are the positional arguments.
+    // * Whether it's a super invocation or not.
+
+    int typeArgsLen = 0; // TODO(regis): Type arguments of generic function.
+    int numPositionalArguments = arguments.positional.length;
+    numPositionalArguments++; // Include the receiver.
+    int numArguments = numPositionalArguments + arguments.named.length;
+    List<Expression> argumentsDescriptor = [
+      new IntLiteral(typeArgsLen)..fileOffset = offset,
+      new IntLiteral(numArguments)..fileOffset = offset,
+      new IntLiteral(numPositionalArguments)..fileOffset = offset,
+    ];
+
+    List<Expression> argumentsList = <Expression>[receiver];
+    argumentsList.addAll(arguments.positional);
+
+    for (NamedExpression argument in arguments.named) {
+      argumentsDescriptor.add(
+          new StringLiteral(argument.name)..fileOffset = argument.fileOffset);
+      argumentsDescriptor.add(new IntLiteral(argumentsList.length)
+        ..fileOffset = argument.fileOffset);
+      argumentsList.add(argument.value);
+    }
+
+    Arguments constructorArguments = new Arguments([
+      new StringLiteral(name)..fileOffset = offset,
+      _fixedLengthList(argumentsDescriptor, arguments.fileOffset),
+      _fixedLengthList(argumentsList, arguments.fileOffset),
+      new BoolLiteral(isSuper)..fileOffset = arguments.fileOffset,
+    ]);
+
+    return (target is Constructor
+        ? new ConstructorInvocation(target, constructorArguments)
+        : new StaticInvocation(target, constructorArguments))
+      ..fileOffset = offset;
+  }
+
+  Expression _fixedLengthList(List<Expression> elements, int charOffset) {
+    // TODO(ahe): It's possible that it would be better to create a fixed-length
+    // list first, and then populate it. That would create fewer objects. But as
+    // this is currently only used in (statically resolved) no-such-method
+    // handling, the current approach seems sufficient.
+    return new MethodInvocation(
+        new ListLiteral(elements)..fileOffset = charOffset,
+        new Name("toList"),
+        new Arguments(<Expression>[], named: <NamedExpression>[
+          new NamedExpression("growable", new BoolLiteral(false))
+        ]));
   }
 }

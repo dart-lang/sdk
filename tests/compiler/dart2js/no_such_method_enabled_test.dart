@@ -3,12 +3,52 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/js_backend/no_such_method_registry.dart';
+import 'package:compiler/src/world.dart';
+import 'package:expect/expect.dart';
+import 'kernel/compiler_helper.dart';
 import 'compiler_helper.dart';
 
-Future dummyImplTest() async {
-  String source = """
+class NoSuchMethodInfo {
+  final String className;
+  final String superClassName;
+  final bool hasThrowingSyntax;
+  final bool hasForwardingSyntax;
+  final bool isThrowing;
+  final bool isDefault;
+  final bool isOther;
+  final bool isNotApplicable;
+  final bool isComplexNoReturn;
+  final bool isComplexReturn;
+
+  const NoSuchMethodInfo(this.className,
+      {this.superClassName,
+      this.hasThrowingSyntax: false,
+      this.hasForwardingSyntax: false,
+      this.isThrowing: false,
+      this.isDefault: false,
+      this.isOther: false,
+      this.isNotApplicable: false,
+      this.isComplexNoReturn: false,
+      this.isComplexReturn: false});
+}
+
+class NoSuchMethodTest {
+  final String code;
+  final List<NoSuchMethodInfo> methods;
+  final bool isNoSuchMethodUsed;
+
+  const NoSuchMethodTest(this.code, this.methods,
+      {this.isNoSuchMethodUsed: false});
+}
+
+const List<NoSuchMethodTest> TESTS = const <NoSuchMethodTest>[
+  const NoSuchMethodTest(
+      """
 class A {
   foo() => 3;
   noSuchMethod(x) => super.noSuchMethod(x);
@@ -16,18 +56,12 @@ class A {
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-}
-
-Future dummyImplTest2() async {
-  String source = """
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+      ]),
+  const NoSuchMethodTest(
+      """
 class A extends B {
   foo() => 3;
   noSuchMethod(x) => super.noSuchMethod(x);
@@ -36,18 +70,12 @@ class B {}
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-}
-
-Future dummyImplTest3() async {
-  String source = """
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+      ]),
+  const NoSuchMethodTest(
+      """
 class A extends B {
   foo() => 3;
   noSuchMethod(x) {
@@ -58,18 +86,12 @@ class B {}
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-}
-
-Future dummyImplTest4() async {
-  String source = """
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+      ]),
+  const NoSuchMethodTest(
+      """
 class A extends B {
   foo() => 3;
   noSuchMethod(x) => super.noSuchMethod(x);
@@ -80,21 +102,14 @@ class B {
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-  ClassElement clsB = findElement(compiler, 'B');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
-      .contains(clsB.lookupMember('noSuchMethod')));
-}
-
-Future dummyImplTest5() async {
-  String source = """
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A',
+            superClassName: 'B', hasForwardingSyntax: true, isDefault: true),
+        const NoSuchMethodInfo('B', hasForwardingSyntax: true, isDefault: true),
+      ]),
+  const NoSuchMethodTest(
+      """
 class A extends B {
   foo() => 3;
   noSuchMethod(x) => super.noSuchMethod(x);
@@ -105,93 +120,66 @@ class B {
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isTrue(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.throwingImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-  ClassElement clsB = findElement(compiler, 'B');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.throwingImpls
-      .contains(clsB.lookupMember('noSuchMethod')));
-}
-
-Future dummyImplTest6() async {
-  String source = """
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A',
+            superClassName: 'B', hasForwardingSyntax: true, isThrowing: true),
+        const NoSuchMethodInfo('B', hasThrowingSyntax: true, isThrowing: true),
+      ],
+      isNoSuchMethodUsed: true),
+  const NoSuchMethodTest(
+      """
 class A {
   noSuchMethod(x) => 3;
 }
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isTrue(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.otherImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-}
-
-Future dummyImplTest7() async {
-  String source = """
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
+      ],
+      isNoSuchMethodUsed: true),
+  const NoSuchMethodTest(
+      """
 class A {
   noSuchMethod(x, [y]) => super.noSuchMethod(x);
 }
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-}
-
-Future dummyImplTest8() async {
-  String source = """
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+      ]),
+  const NoSuchMethodTest(
+      """
 class A {
   noSuchMethod(x, [y]) => super.noSuchMethod(x, y);
 }
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isTrue(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.otherImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-}
-
-Future dummyImplTest9() async {
-  String source = """
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
+      ],
+      isNoSuchMethodUsed: true),
+  const NoSuchMethodTest(
+      """
 class A {
   noSuchMethod(x, y) => super.noSuchMethod(x);
 }
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.notApplicableImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-}
-
-Future dummyImplTest10() async {
-  String source = """
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A',
+            hasForwardingSyntax: true, isNotApplicable: true),
+      ]),
+  const NoSuchMethodTest(
+      """
 class A {
   noSuchMethod(Invocation x) {
     throw new UnsupportedException();
@@ -200,18 +188,13 @@ class A {
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isTrue(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.throwingImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-}
-
-Future dummyImplTest11() async {
-  String source = """
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A', hasThrowingSyntax: true, isThrowing: true),
+      ],
+      isNoSuchMethodUsed: true),
+  const NoSuchMethodTest(
+      """
 class A {
   noSuchMethod(Invocation x) {
     print('foo');
@@ -221,20 +204,13 @@ class A {
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isTrue(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.otherImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.complexNoReturnImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-}
-
-Future dummyImplTest12() async {
-  String source = """
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
+      ],
+      isNoSuchMethodUsed: true),
+  const NoSuchMethodTest(
+      """
 class A {
   noSuchMethod(Invocation x) {
     return toString();
@@ -243,50 +219,136 @@ class A {
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isTrue(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.otherImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.complexReturningImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-}
-
-Future dummyImplTest13() async {
-  String source = """
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
+      ],
+      isNoSuchMethodUsed: true),
+  const NoSuchMethodTest(
+      """
 class A {
   noSuchMethod(x) => super.noSuchMethod(x) as dynamic;
 }
 main() {
   print(new A().foo());
 }
-""";
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(source, uri);
-  await compiler.run(uri);
-  Expect.isFalse(compiler.backend.backendUsage.isNoSuchMethodUsed);
-  ClassElement clsA = findElement(compiler, 'A');
-  Expect.isTrue(compiler.backend.noSuchMethodRegistry.defaultImpls
-      .contains(clsA.lookupMember('noSuchMethod')));
-}
+""",
+      const <NoSuchMethodInfo>[
+        const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
+      ]),
+];
 
 main() {
   asyncTest(() async {
-    await dummyImplTest();
-    await dummyImplTest2();
-    await dummyImplTest3();
-    await dummyImplTest4();
-    await dummyImplTest5();
-    await dummyImplTest6();
-    await dummyImplTest7();
-    await dummyImplTest8();
-    await dummyImplTest9();
-    await dummyImplTest10();
-    await dummyImplTest11();
-    await dummyImplTest12();
-    await dummyImplTest13();
+    for (NoSuchMethodTest test in TESTS) {
+      print('---- testing -------------------------------------------------');
+      print(test.code);
+      Uri uri = new Uri(scheme: 'source');
+      Compiler compiler = compilerFor(test.code, uri);
+      await compiler.run(uri);
+      checkTest(compiler, test, testComplexReturns: true);
+    }
+
+    List<String> sources = <String>[];
+    for (NoSuchMethodTest test in TESTS) {
+      sources.add(test.code);
+    }
+
+    print('---- preparing for kernel tests ----------------------------------');
+    List<CompileFunction> results = await compileMultiple(sources);
+    for (int index = 0; index < results.length; index++) {
+      print('---- testing with kernel --------------------------------------');
+      print(sources[index]);
+      Compiler compiler = await results[index]();
+      compiler.resolutionWorldBuilder.closeWorld();
+      // Complex returns are computed during inference.
+      checkTest(compiler, TESTS[index], testComplexReturns: false);
+    }
   });
+}
+
+checkTest(Compiler compiler, NoSuchMethodTest test, {bool testComplexReturns}) {
+  ElementEnvironment elementEnvironment = compiler.elementEnvironment;
+  NoSuchMethodRegistry registry = compiler.backend.noSuchMethodRegistry;
+  NoSuchMethodResolver resolver = registry.internalResolverForTesting;
+  FunctionEntity ObjectNSM = elementEnvironment.lookupClassMember(
+      compiler.commonElements.objectClass, 'noSuchMethod');
+  ClosedWorld closedWorld =
+      compiler.resolutionWorldBuilder.closedWorldForTesting;
+
+  // Test [NoSuchMethodResolver] results for each method.
+  for (NoSuchMethodInfo info in test.methods) {
+    ClassEntity cls =
+        elementEnvironment.lookupClass(compiler.mainApp, info.className);
+    Expect.isNotNull(cls, "Class ${info.className} not found.");
+    FunctionEntity noSuchMethod =
+        elementEnvironment.lookupClassMember(cls, 'noSuchMethod');
+    Expect.isNotNull(noSuchMethod, "noSuchMethod not found in $cls.");
+
+    if (info.superClassName == null) {
+      Expect.equals(ObjectNSM, resolver.getSuperNoSuchMethod(noSuchMethod));
+    } else {
+      ClassEntity superclass =
+          elementEnvironment.lookupClass(compiler.mainApp, info.superClassName);
+      Expect.isNotNull(
+          superclass, "Superclass ${info.superClassName} not found.");
+      FunctionEntity superNoSuchMethod =
+          elementEnvironment.lookupClassMember(superclass, 'noSuchMethod');
+      Expect.isNotNull(
+          superNoSuchMethod, "noSuchMethod not found in $superclass.");
+      Expect.equals(
+          superNoSuchMethod,
+          resolver.getSuperNoSuchMethod(noSuchMethod),
+          "Unexpected super noSuchMethod for $noSuchMethod.");
+    }
+
+    Expect.equals(
+        info.hasForwardingSyntax,
+        resolver.hasForwardingSyntax(noSuchMethod),
+        "Unexpected hasForwardSyntax result on $noSuchMethod.");
+    Expect.equals(
+        info.hasThrowingSyntax,
+        resolver.hasThrowingSyntax(noSuchMethod),
+        "Unexpected hasThrowingSyntax result on $noSuchMethod.");
+  }
+
+  // Test [NoSuchMethodRegistry] results for each method. These are based on
+  // the [NoSuchMethodResolver] results which are therefore tested for all
+  // methods first.
+  for (NoSuchMethodInfo info in test.methods) {
+    ClassEntity cls =
+        elementEnvironment.lookupClass(compiler.mainApp, info.className);
+    Expect.isNotNull(cls, "Class ${info.className} not found.");
+    FunctionEntity noSuchMethod =
+        elementEnvironment.lookupClassMember(cls, 'noSuchMethod');
+    Expect.isNotNull(noSuchMethod, "noSuchMethod not found in $cls.");
+
+    Expect.equals(info.isDefault, registry.defaultImpls.contains(noSuchMethod),
+        "Unexpected isDefault result on $noSuchMethod.");
+    Expect.equals(
+        info.isThrowing,
+        registry.throwingImpls.contains(noSuchMethod),
+        "Unexpected isThrowing result on $noSuchMethod.");
+    Expect.equals(info.isOther, registry.otherImpls.contains(noSuchMethod),
+        "Unexpected isOther result on $noSuchMethod.");
+    Expect.equals(
+        info.isNotApplicable,
+        registry.notApplicableImpls.contains(noSuchMethod),
+        "Unexpected isNotApplicable result on $noSuchMethod.");
+    if (testComplexReturns) {
+      Expect.equals(
+          info.isComplexNoReturn,
+          registry.complexNoReturnImpls.contains(noSuchMethod),
+          "Unexpected isComplexNoReturn result on $noSuchMethod.");
+      Expect.equals(
+          info.isComplexReturn,
+          registry.complexReturningImpls.contains(noSuchMethod),
+          "Unexpected isComplexReturn result on $noSuchMethod.");
+    }
+  }
+
+  Expect.equals(
+      test.isNoSuchMethodUsed,
+      closedWorld.backendUsage.isNoSuchMethodUsed,
+      "Unexpected isNoSuchMethodUsed result.");
 }

@@ -210,6 +210,12 @@ class Printer extends Visitor<Null> {
     return '$library::$name';
   }
 
+  String getTypedefReference(Typedef node) {
+    if (node == null) return '<No Typedef>';
+    String library = getLibraryReference(node.enclosingLibrary);
+    return '$library::${node.name}';
+  }
+
   static final String emptyNameString = '•';
   static final Name emptyName = new Name(emptyNameString);
 
@@ -259,6 +265,7 @@ class Printer extends Visitor<Null> {
   }
 
   void writeLibraryFile(Library library) {
+    writeAnnotationList(library.annotations);
     writeWord('library');
     if (library.name != null) {
       writeWord(library.name);
@@ -276,11 +283,13 @@ class Printer extends Visitor<Null> {
         endLine('import "$importPath" as $prefix;');
       }
     }
-    for (var import in library.deferredImports) {
+    for (var import in library.dependencies) {
       import.accept(this);
     }
     endLine();
     var inner = new Printer._inner(this, imports);
+    library.dependencies.forEach(inner.writeNode);
+    library.typedefs.forEach(inner.writeNode);
     library.classes.forEach(inner.writeNode);
     library.fields.forEach(inner.writeNode);
     library.procedures.forEach(inner.writeNode);
@@ -300,6 +309,7 @@ class Printer extends Visitor<Null> {
         }
         writeWord('external');
       }
+      writeAnnotationList(library.annotations);
       writeWord('library');
       if (library.name != null) {
         writeWord(library.name);
@@ -313,6 +323,8 @@ class Printer extends Visitor<Null> {
       writeWord(prefix);
       endLine(' {');
       ++inner.indentation;
+      library.dependencies.forEach(inner.writeNode);
+      library.typedefs.forEach(inner.writeNode);
       library.classes.forEach(inner.writeNode);
       library.fields.forEach(inner.writeNode);
       library.procedures.forEach(inner.writeNode);
@@ -427,6 +439,15 @@ class Printer extends Visitor<Null> {
 
   visitVectorType(VectorType type) {
     writeWord('Vector');
+  }
+
+  visitTypedefType(TypedefType type) {
+    writeTypedefReference(type.typedefNode);
+    if (type.typeArguments.isNotEmpty) {
+      writeSymbol('<');
+      writeList(type.typeArguments, writeType);
+      writeSymbol('>');
+    }
   }
 
   void writeModifier(bool isThere, String name) {
@@ -610,6 +631,10 @@ class Printer extends Visitor<Null> {
     writeWord(getClassReference(classNode));
   }
 
+  void writeTypedefReference(Typedef typedefNode) {
+    writeWord(getTypedefReference(typedefNode));
+  }
+
   void writeLibraryReference(Library library) {
     writeWord(getLibraryReference(library));
   }
@@ -712,6 +737,7 @@ class Printer extends Visitor<Null> {
     writeIndentation();
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isConst, 'const');
+    writeModifier(node.isSyntheticDefault, 'default');
     writeWord('constructor');
     writeFunction(node.function,
         name: node.name, initializers: node.initializers);
@@ -749,6 +775,16 @@ class Printer extends Visitor<Null> {
     --indentation;
     writeIndentation();
     endLine('}');
+  }
+
+  visitTypedef(Typedef node) {
+    writeIndentation();
+    writeWord('typedef');
+    writeWord(node.name);
+    writeTypeParameterList(node.typeParameters);
+    writeSpaced('=');
+    writeNode(node.type);
+    endLine(';');
   }
 
   visitInvalidExpression(InvalidExpression node) {
@@ -1021,11 +1057,30 @@ class Printer extends Visitor<Null> {
     writeSymbol(')');
   }
 
-  visitDeferredImport(DeferredImport node) {
-    write('import "');
-    write('${node.importedLibrary.importUri}');
-    write('" deferred as ');
-    write(node.name);
+  visitClosureCreation(ClosureCreation node) {
+    writeWord('MakeClosure');
+    writeSymbol('<');
+    writeNode(node.functionType);
+    writeSymbol('>');
+    writeSymbol('(');
+    writeMemberReference(node.topLevelFunction);
+    writeComma();
+    writeExpression(node.contextVector);
+    writeSymbol(')');
+  }
+
+  visitLibraryDependency(LibraryDependency node) {
+    writeIndentation();
+    writeWord(node.isImport ? 'import' : 'export');
+    var uriString = '${node.targetLibrary.importUri}';
+    writeWord('"$uriString"');
+    if (node.isDeferred) {
+      writeWord('deferred');
+    }
+    if (node.name != null) {
+      writeWord('as');
+      writeWord(node.name);
+    }
     endLine(';');
   }
 

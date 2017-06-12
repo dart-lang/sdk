@@ -26,7 +26,8 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  description('Test regexp compiling to make sure it doens\'t crash like bug <a href="https://bugs.webkit.org/show_bug.cgi?id=16127">16127</a>');
+  description(
+      'Test regexp compiling to make sure it doens\'t crash like bug <a href="https://bugs.webkit.org/show_bug.cgi?id=16127">16127</a>');
 
   shouldBeTrue(new RegExp(r"\)[;\s]+") != null);
   assertThrows(() => new RegExp(r"["));

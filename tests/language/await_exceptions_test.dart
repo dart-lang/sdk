@@ -34,7 +34,7 @@ test1_2() async {
   try {
     await test1_1();
   } catch (e) {
-    throw e+1;
+    throw e + 1;
   }
 }
 
@@ -92,8 +92,8 @@ awaitFoo() async {
 
 main() {
   asyncStart();
-  test().then((_) => awaitFoo().then(
-          (_) => Expect.fail("Should have thrown"),
+  test()
+      .then((_) => awaitFoo().then((_) => Expect.fail("Should have thrown"),
           onError: (error) => Expect.equals("Error", error)))
       .whenComplete(asyncEnd);
 }

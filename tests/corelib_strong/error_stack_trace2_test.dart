@@ -9,7 +9,7 @@ class A {
 }
 
 var a = new A();
-var cyclicStatic = (() => a.foo + 1)();
+dynamic cyclicStatic = (() => a.foo + 1)();
 
 cyclicInitialization() {
   return cyclicStatic;
@@ -19,11 +19,11 @@ main() {
   bool hasThrown = false;
   try {
     cyclicStatic + 1;
-  } catch(e2) {
+  } catch (e2) {
     var e = e2;
     hasThrown = true;
-    Expect.isTrue(e.stackTrace is StackTrace,
-                  "$e doesn't have a non-null stack trace");
+    Expect.isTrue(
+        e.stackTrace is StackTrace, "$e doesn't have a non-null stack trace");
   }
   Expect.isTrue(hasThrown);
 }

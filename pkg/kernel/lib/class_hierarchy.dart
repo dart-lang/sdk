@@ -6,6 +6,7 @@ library kernel.class_hierarchy;
 import 'ast.dart';
 import 'dart:math';
 import 'dart:typed_data';
+import 'src/heap.dart';
 import 'type_algebra.dart';
 
 /// Data structure for answering various subclassing queries.
@@ -60,6 +61,155 @@ class ClassHierarchy {
   /// True if the given class is used in an `implements` clause.
   bool isUsedAsSuperInterface(Class class_) {
     return _infoFor[class_].directImplementers.isNotEmpty;
+  }
+
+  /// Returns the number of steps in the longest inheritance path from [class_]
+  /// to [rootClass].
+  int getClassDepth(Class class_) => _infoFor[class_].depth;
+
+  /// Returns a list of classes appropriate for use in calculating a least upper
+  /// bound.
+  ///
+  /// The returned list is a list of all classes that [class_] is a subtype of
+  /// (including itself), sorted first by depth (deepest first) and then by
+  /// class index.
+  List<Class> getRankedSuperclasses(Class class_) {
+    return _getRankedSuperclassInfos(_infoFor[class_])
+        .map((info) => info.classNode)
+        .toList();
+  }
+
+  List<_ClassInfo> _getRankedSuperclassInfos(_ClassInfo info) {
+    if (info.leastUpperBoundInfos != null) return info.leastUpperBoundInfos;
+    var heap = new _LubHeap()..add(info);
+    var chain = <_ClassInfo>[];
+    info.leastUpperBoundInfos = chain;
+    _ClassInfo lastInfo = null;
+    while (heap.isNotEmpty) {
+      var nextInfo = heap.remove();
+      if (identical(nextInfo, lastInfo)) continue;
+      chain.add(nextInfo);
+      lastInfo = nextInfo;
+      var classNode = nextInfo.classNode;
+      void addToHeap(Supertype supertype) {
+        heap.add(_infoFor[supertype.classNode]);
+      }
+
+      if (classNode.supertype != null) addToHeap(classNode.supertype);
+      if (classNode.mixedInType != null) addToHeap(classNode.mixedInType);
+      classNode.implementedTypes.forEach(addToHeap);
+    }
+    return chain;
+  }
+
+  /// Returns the least upper bound of two interface types, as defined by Dart
+  /// 1.0.
+  ///
+  /// Given two interfaces I and J, let S_I be the set of superinterfaces of I,
+  /// let S_J be the set of superinterfaces of J, and let
+  /// S = (I union S_I) intersect (J union S_J).  Furthermore, we define
+  /// S_n = {T | T in S and depth(T) = n} for any finite n where depth(T) is
+  /// the number of steps in the longest inheritance path from T to Object.  Let
+  /// q be the largest number such that S_q has cardinality one.  The least
+  /// upper bound of I and J is the sole element of S_q.
+  ///
+  /// This is called the "classic" least upper bound to distinguish it from the
+  /// strong mode least upper bound, which has special behaviors in the case
+  /// where one type is a subtype of the other, or where both types are based on
+  /// the same class.
+  InterfaceType getClassicLeastUpperBound(
+      InterfaceType type1, InterfaceType type2) {
+    // The algorithm is: first we compute a list of superclasses for both types,
+    // ordered from greatest to least depth, and ordered by topological sort
+    // index within each depth.  Due to the sort order, we can find the
+    // intersection of these lists by a simple walk.
+    //
+    // Then, for each class in the intersection, determine the exact type that
+    // is implemented by type1 and type2.  If the types match, that type is a
+    // candidate (it's a member of S_n).  As soon as we find a candidate which
+    // is unique for its depth, we return it.
+    //
+    // As an optimization, if the class for I is a subtype of the class for J,
+    // then we know that the list of superclasses of J is a subset of the list
+    // of superclasses for I; therefore it is sufficient to compute just the
+    // list of superclasses for J.  To avoid complicating the code below (which
+    // intersects the two lists), we set both lists equal to the list of
+    // superclasses for J.  And vice versa with the role of I and J swapped.
+
+    // Compute the list of superclasses for both types, with the above
+    // optimization.
+    _ClassInfo info1 = _infoFor[type1.classNode];
+    _ClassInfo info2 = _infoFor[type2.classNode];
+    List<_ClassInfo> classes1;
+    List<_ClassInfo> classes2;
+    if (identical(info1, info2) || info1.isSubtypeOf(info2)) {
+      classes1 = classes2 = _getRankedSuperclassInfos(info2);
+    } else if (info2.isSubtypeOf(info1)) {
+      classes1 = classes2 = _getRankedSuperclassInfos(info1);
+    } else {
+      classes1 = _getRankedSuperclassInfos(info1);
+      classes2 = _getRankedSuperclassInfos(info2);
+    }
+
+    // Walk the lists finding their intersection, looking for a depth that has a
+    // single candidate.
+    int i1 = 0;
+    int i2 = 0;
+    InterfaceType candidate = null;
+    int currentDepth = -1;
+    int numCandidatesAtThisDepth = 0;
+    while (true) {
+      _ClassInfo next = classes1[i1];
+      _ClassInfo next2 = classes2[i2];
+      if (!identical(next, next2)) {
+        if (_LubHeap.sortsBeforeStatic(next, next2)) {
+          ++i1;
+        } else {
+          ++i2;
+        }
+        continue;
+      }
+      ++i2;
+      ++i1;
+      if (next.depth != currentDepth) {
+        if (numCandidatesAtThisDepth == 1) return candidate;
+        currentDepth = next.depth;
+        numCandidatesAtThisDepth = 0;
+        candidate = null;
+      } else if (numCandidatesAtThisDepth > 1) {
+        continue;
+      }
+
+      // For each class in the intersection, find the exact type that is
+      // implemented by type1 and type2.  If they match, it's a candidate.
+      //
+      // Two additional optimizations:
+      //
+      // - If this class lacks type parameters, we know there is a match without
+      //   needing to substitute.
+      //
+      // - If the depth is 0, we have reached Object, so we can return it
+      //   immediately.  Since all interface types are subtypes of Object, this
+      //   ensures the loop terminates.
+      if (next.classNode.typeParameters.isEmpty) {
+        candidate = next.classNode.rawType;
+        if (currentDepth == 0) return candidate;
+        ++numCandidatesAtThisDepth;
+      } else {
+        var superType1 = identical(info1, next)
+            ? type1
+            : Substitution.fromInterfaceType(type1).substituteType(
+                info1.genericSuperTypes[next.classNode].asInterfaceType);
+        var superType2 = identical(info2, next)
+            ? type2
+            : Substitution.fromInterfaceType(type2).substituteType(
+                info2.genericSuperTypes[next.classNode].asInterfaceType);
+        if (superType1 == superType2) {
+          candidate = superType1;
+          ++numCandidatesAtThisDepth;
+        }
+      }
+    }
   }
 
   /// Returns the instantiation of [superclass] that is implemented by [class_],
@@ -286,27 +436,33 @@ class ClassHierarchy {
 
   /// Upwards traversal of the class hierarchy that orders classes so super
   /// types before their subtypes.
+  ///
+  /// Returns the depth of the visited class (the number of steps in the longest
+  /// inheritance path to the root class).
   int _topSortIndex = 0;
-  void _topologicalSortVisit(Class classNode) {
+  int _topologicalSortVisit(Class classNode) {
     var info = _infoFor[classNode];
     if (info != null) {
       if (info.isBeingVisited) {
         throw 'Cyclic inheritance involving ${info.classNode.name}';
       }
-      return; // Already built.
+      return info.depth; // Already built.
     }
+    int superDepth = -1;
     _infoFor[classNode] = info = new _ClassInfo(classNode);
     info.isBeingVisited = true;
     if (classNode.supertype != null) {
-      _topologicalSortVisit(classNode.supertype.classNode);
+      superDepth =
+          max(superDepth, _topologicalSortVisit(classNode.supertype.classNode));
       _recordSuperTypes(info, classNode.supertype);
     }
     if (classNode.mixedInType != null) {
-      _topologicalSortVisit(classNode.mixedInType.classNode);
+      superDepth = max(
+          superDepth, _topologicalSortVisit(classNode.mixedInType.classNode));
       _recordSuperTypes(info, classNode.mixedInType);
     }
     for (var supertype in classNode.implementedTypes) {
-      _topologicalSortVisit(supertype.classNode);
+      superDepth = max(superDepth, _topologicalSortVisit(supertype.classNode));
       _recordSuperTypes(info, supertype);
     }
     _buildDeclaredMembers(classNode, info);
@@ -315,6 +471,7 @@ class ClassHierarchy {
     info.topologicalIndex = id;
     classes[id] = info.classNode;
     info.isBeingVisited = false;
+    return info.depth = superDepth + 1;
   }
 
   void _buildDeclaredMembers(Class classNode, _ClassInfo info) {
@@ -401,8 +558,8 @@ class ClassHierarchy {
   static List<Member> _inheritMembers(
       List<Member> declared, List<Member> inherited,
       {bool skipAbstractMembers: false}) {
-    List<Member> result = <Member>[]
-      ..length = declared.length + inherited.length;
+    List<Member> result = <Member>[]..length =
+        declared.length + inherited.length;
     // Since both lists are sorted, we can fuse them like in merge sort.
     int storeIndex = 0;
     int i = 0, j = 0;
@@ -666,7 +823,7 @@ class _IntervalListBuilder {
     }
   }
 
-  List<int> buildIntervalList() {
+  Uint32List buildIntervalList() {
     // Sort the event points and sweep left to right while tracking how many
     // intervals we are currently inside.  Record an interval end point when the
     // number of intervals drop to zero or increase from zero to one.
@@ -791,6 +948,7 @@ class _ClassInfo {
   int topologicalIndex = 0;
   int topDownIndex = -1;
   bool isBeingVisited = false;
+  int depth = 0;
 
   // Super types must always occur before subtypes in these lists.
   // For example:
@@ -809,6 +967,8 @@ class _ClassInfo {
   Uint32List subclassIntervalList;
   Uint32List submixtureIntervalList;
   Uint32List subtypeIntervalList;
+
+  List<_ClassInfo> leastUpperBoundInfos;
 
   bool isSubclassOf(_ClassInfo other) {
     return _intervalListContains(other.subclassIntervalList, topDownIndex);
@@ -898,5 +1058,21 @@ class ClassSet {
     builder.addIntervalList(_intervalList);
     builder.addIntervalList(other._intervalList);
     return new ClassSet(_hierarchy, builder.buildIntervalList());
+  }
+}
+
+/// Heap for use in computing least upper bounds.
+///
+/// The heap is sorted such that classes that are deepest in the hierarchy
+/// are removed first; in the case of ties, classes with lower topological sort
+/// index are removed first.
+class _LubHeap extends Heap<_ClassInfo> {
+  @override
+  bool sortsBefore(_ClassInfo a, _ClassInfo b) => sortsBeforeStatic(a, b);
+
+  static bool sortsBeforeStatic(_ClassInfo a, _ClassInfo b) {
+    if (a.depth > b.depth) return true;
+    if (a.depth < b.depth) return false;
+    return a.topologicalIndex < b.topologicalIndex;
   }
 }

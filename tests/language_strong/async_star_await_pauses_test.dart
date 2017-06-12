@@ -16,6 +16,7 @@ main() {
       sc.add(i++);
     }
   }
+
   sc = new StreamController(onListen: send, onResume: send);
 
   f(s) async {

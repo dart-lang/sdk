@@ -15,7 +15,7 @@ main() {
   test('TimeStamp', () {
     Event event = new Event('test');
 
-    int timeStamp = event.timeStamp;
+    num timeStamp = event.timeStamp;
     expect(timeStamp, greaterThan(0));
   });
 
@@ -76,7 +76,7 @@ main() {
     // The logic for html events which ensures identical handlers are added only
     // once is therefor muted by the wrapped handlers.
     // Hence, we get different behavior depending on the current zone.
-    if(Zone.current == Zone.ROOT) {
+    if (Zone.current == Zone.ROOT) {
       expect(invocationCounter, 1);
     } else {
       expect(invocationCounter, 2);

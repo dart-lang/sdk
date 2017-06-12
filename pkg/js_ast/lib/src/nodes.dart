@@ -233,6 +233,8 @@ abstract class Node {
   Statement toStatement() {
     throw new UnsupportedError('toStatement');
   }
+
+  String debugPrint() => DebugPrint(this);
 }
 
 class Program extends Node {

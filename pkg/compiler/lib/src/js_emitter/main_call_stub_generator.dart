@@ -6,45 +6,44 @@ library dart2js.js_emitter.main_call_stub_generator;
 
 import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 
+import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/backend_helpers.dart' show BackendHelpers;
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../js_backend/backend_usage.dart' show BackendUsage;
 
-import 'code_emitter_task.dart' show CodeEmitterTask;
+import 'code_emitter_task.dart' show Emitter;
 
 class MainCallStubGenerator {
-  final JavaScriptBackend backend;
-  final CodeEmitterTask emitterTask;
+  final CommonElements _commonElements;
+  final Emitter _emitter;
+  final BackendUsage _backendUsage;
 
-  MainCallStubGenerator(this.backend, this.emitterTask);
-
-  BackendHelpers get helpers => backend.helpers;
+  MainCallStubGenerator(
+      this._commonElements, this._emitter, this._backendUsage);
 
   /// Returns the code equivalent to:
   ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
   jsAst.Expression _buildIsolateSetupClosure(
       FunctionEntity appMain, FunctionEntity isolateMain) {
-    jsAst.Expression mainAccess =
-        emitterTask.isolateStaticClosureAccess(appMain);
+    jsAst.Expression mainAccess = _emitter.isolateStaticClosureAccess(appMain);
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
     return js('function(a){ #(#, a); }',
-        [emitterTask.staticFunctionAccess(isolateMain), mainAccess]);
+        [_emitter.staticFunctionAccess(isolateMain), mainAccess]);
   }
 
   jsAst.Statement generateInvokeMain(FunctionEntity main) {
     jsAst.Expression mainCallClosure = null;
-    if (backend.backendUsage.isIsolateInUse) {
-      FunctionEntity isolateMain = helpers.startRootIsolate;
+    if (_backendUsage.isIsolateInUse) {
+      FunctionEntity isolateMain = _commonElements.startRootIsolate;
       mainCallClosure = _buildIsolateSetupClosure(main, isolateMain);
     } else {
-      mainCallClosure = emitterTask.staticFunctionAccess(main);
+      mainCallClosure = _emitter.staticFunctionAccess(main);
     }
 
     jsAst.Expression currentScriptAccess =
-        emitterTask.generateEmbeddedGlobalAccess(embeddedNames.CURRENT_SCRIPT);
+        _emitter.generateEmbeddedGlobalAccess(embeddedNames.CURRENT_SCRIPT);
 
     // This code finds the currently executing script by listening to the
     // onload event of all script tags and getting the first script which

@@ -26,4 +26,3 @@ main() {
   implementsTypedData();
   implementsList();
 }
-

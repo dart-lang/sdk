@@ -26,15 +26,15 @@ part of touch;
  * -webkit-transform style property.
  */
 abstract class Momentum {
-
-  factory Momentum(MomentumDelegate delegate, [num defaultDecelerationFactor = 1])
-      => new TimeoutMomentum(delegate, defaultDecelerationFactor);
+  factory Momentum(MomentumDelegate delegate,
+          [num defaultDecelerationFactor = 1]) =>
+      new TimeoutMomentum(delegate, defaultDecelerationFactor);
 
   bool get decelerating;
 
   num get decelerationFactor;
 
- /**
+  /**
   * Transition end handler. This function must be invoked after any transition
   * that occurred as a result of a call to the delegate's onDecelerate callback.
   */
@@ -49,14 +49,15 @@ abstract class Momentum {
    * Returns true if deceleration has been initiated.
    */
   bool start(Coordinate velocity, Coordinate minCoord, Coordinate maxCoord,
-             Coordinate initialOffset, [num decelerationFactor]);
+      Coordinate initialOffset,
+      [num decelerationFactor]);
 
   /**
    * Calculate the velocity required to transition between coordinates [start]
    * and [target] optionally specifying a custom [decelerationFactor].
    */
   Coordinate calculateVelocity(Coordinate start, Coordinate target,
-                               [num decelerationFactor]);
+      [num decelerationFactor]);
 
   /** Stop decelerating and return the current velocity. */
   Coordinate stop();
@@ -111,9 +112,8 @@ class _Move {
  * class at all.
  */
 class Solver {
-
   static num solve(num fn(num), num targetY, num startX,
-                   [int maxIterations = 50]) {
+      [int maxIterations = 50]) {
     num lastX = 0;
     num lastY = fn(lastX);
     num deltaX;
@@ -123,7 +123,7 @@ class Solver {
     num x = startX;
     num delta = startX;
     for (int i = 0; i < maxIterations; i++) {
-      num y  = fn(x);
+      num y = fn(x);
       if (y.round() == targetY.round()) {
         return x;
       }
@@ -141,11 +141,10 @@ class Solver {
       // Avoid divide by zero and as a hack just repeat the previous delta.
       // Obviously this is a little dangerous and we might not converge.
       if (deltaY != 0) {
-         delta = errorY * deltaX / deltaY;
+        delta = errorY * deltaX / deltaY;
       }
       x += delta;
-      if (minX != null && maxX != null
-        && (x > minX || x < maxX)) {
+      if (minX != null && maxX != null && (x > minX || x < maxX)) {
         // Fall back to binary search.
         x = (minX + maxX) / 2;
       }
@@ -194,7 +193,6 @@ class SingleDimensionPhysics {
    */
   static const _DECELERATION_FACTOR = 0.97;
 
-
   static const _MAX_VELOCITY_STATIC_FRICTION = 0.08 * _MS_PER_FRAME;
   static const _DECELERATION_FACTOR_STATIC_FRICTION = 0.92;
 
@@ -228,7 +226,6 @@ class SingleDimensionPhysics {
   /** The bouncing state. */
   int _bouncingState;
 
-
   num velocity;
   num _currentOffset;
 
@@ -239,12 +236,10 @@ class SingleDimensionPhysics {
    */
   static const _VELOCITY_GUESS = 20;
 
-  SingleDimensionPhysics() : _bouncingState = BouncingState.NOT_BOUNCING {
-  }
+  SingleDimensionPhysics() : _bouncingState = BouncingState.NOT_BOUNCING {}
 
-  void configure(num minCoord, num maxCoord,
-            num initialOffset, num customDecelerationFactor_,
-            num velocity_) {
+  void configure(num minCoord, num maxCoord, num initialOffset,
+      num customDecelerationFactor_, num velocity_) {
     _bouncingState = BouncingState.NOT_BOUNCING;
     _minCoord = minCoord;
     _maxCoord = maxCoord;
@@ -253,23 +248,22 @@ class SingleDimensionPhysics {
     _adjustInitialVelocityAndBouncingState(velocity_);
   }
 
-  num solve(num initialOffset, num targetOffset,
-            num customDecelerationFactor_) {
+  num solve(
+      num initialOffset, num targetOffset, num customDecelerationFactor_) {
     initialOffset = initialOffset.round();
     targetOffset = targetOffset.round();
     if (initialOffset == targetOffset) {
       return 0;
     }
     return Solver.solve((num velocity_) {
-        // Don't specify min and max coordinates as we don't need to bother
-        // with the simulating bouncing off the edges.
-        configure(null, null, initialOffset.round(),
-                  customDecelerationFactor_, velocity_);
-        stepAll();
-        return _currentOffset;
-      },
-      targetOffset,
-      targetOffset > initialOffset ? _VELOCITY_GUESS : -_VELOCITY_GUESS);
+      // Don't specify min and max coordinates as we don't need to bother
+      // with the simulating bouncing off the edges.
+      configure(null, null, initialOffset.round(), customDecelerationFactor_,
+          velocity_);
+      stepAll();
+      return _currentOffset;
+    }, targetOffset,
+        targetOffset > initialOffset ? _VELOCITY_GUESS : -_VELOCITY_GUESS);
   }
 
   /**
@@ -318,16 +312,17 @@ class SingleDimensionPhysics {
     }
     if (stretchDistance != null) {
       if (stretchDistance * velocity < 0) {
-        _bouncingState = _bouncingState == BouncingState.BOUNCING_BACK ?
-            BouncingState.NOT_BOUNCING : BouncingState.BOUNCING_AWAY;
+        _bouncingState = _bouncingState == BouncingState.BOUNCING_BACK
+            ? BouncingState.NOT_BOUNCING
+            : BouncingState.BOUNCING_AWAY;
         velocity += stretchDistance * _PRE_BOUNCE_COEFFICIENT;
       } else {
         _bouncingState = BouncingState.BOUNCING_BACK;
-        velocity = stretchDistance > 0 ?
-            Math.max(stretchDistance * _POST_BOUNCE_COEFFICIENT,
-                     _MIN_STEP_VELOCITY) :
-            Math.min(stretchDistance * _POST_BOUNCE_COEFFICIENT,
-                     -_MIN_STEP_VELOCITY);
+        velocity = stretchDistance > 0
+            ? Math.max(
+                stretchDistance * _POST_BOUNCE_COEFFICIENT, _MIN_STEP_VELOCITY)
+            : Math.min(stretchDistance * _POST_BOUNCE_COEFFICIENT,
+                -_MIN_STEP_VELOCITY);
       }
     } else {
       _bouncingState = BouncingState.NOT_BOUNCING;
@@ -344,7 +339,7 @@ class SingleDimensionPhysics {
   }
 
   void stepAll() {
-    while(!isDone()) {
+    while (!isDone()) {
       step();
     }
   }
@@ -368,7 +363,6 @@ class SingleDimensionPhysics {
  * and timeouts.
  */
 class TimeoutMomentum implements Momentum {
-
   SingleDimensionPhysics physicsX;
   SingleDimensionPhysics physicsY;
   Coordinate _previousOffset;
@@ -384,11 +378,11 @@ class TimeoutMomentum implements Momentum {
   num _defaultDecelerationFactor;
 
   TimeoutMomentum(this._delegate, [num defaultDecelerationFactor = 1])
-    : _defaultDecelerationFactor = defaultDecelerationFactor,
-      _decelerating = false,
-      _moves = new Queue<_Move>(),
-      physicsX = new SingleDimensionPhysics(),
-      physicsY = new SingleDimensionPhysics();
+      : _defaultDecelerationFactor = defaultDecelerationFactor,
+        _decelerating = false,
+        _moves = new Queue<_Move>(),
+        physicsX = new SingleDimensionPhysics(),
+        physicsY = new SingleDimensionPhysics();
 
   /**
    * Calculate and return the moves for the deceleration motion.
@@ -400,9 +394,8 @@ class TimeoutMomentum implements Momentum {
       _stepWithoutAnimation();
       time += SingleDimensionPhysics._MS_PER_FRAME;
       if (_isStepNecessary()) {
-        _moves.add(new _Move(_nextX, _nextY,
-                            physicsX.velocity,
-                            physicsY.velocity, time));
+        _moves.add(new _Move(
+            _nextX, _nextY, physicsX.velocity, physicsY.velocity, time));
         _previousOffset.y = _nextY;
         _previousOffset.x = _nextX;
       }
@@ -426,18 +419,18 @@ class TimeoutMomentum implements Momentum {
    * The [TouchHandler] requires this function but we don't need to do
    * anything here.
    */
-  void onTransitionEnd() {
-  }
+  void onTransitionEnd() {}
 
   Coordinate calculateVelocity(Coordinate start_, Coordinate target,
-                               [num decelerationFactor = null]) {
+      [num decelerationFactor = null]) {
     return new Coordinate(
         physicsX.solve(start_.x, target.x, decelerationFactor),
         physicsY.solve(start_.y, target.y, decelerationFactor));
   }
 
   bool start(Coordinate velocity, Coordinate minCoord, Coordinate maxCoord,
-             Coordinate initialOffset, [num decelerationFactor = null]) {
+      Coordinate initialOffset,
+      [num decelerationFactor = null]) {
     _customDecelerationFactor = _defaultDecelerationFactor;
     if (decelerationFactor != null) {
       _customDecelerationFactor = decelerationFactor;
@@ -448,20 +441,19 @@ class TimeoutMomentum implements Momentum {
       _stepTimeout = null;
     }
 
-    assert (_stepTimeout == null);
+    assert(_stepTimeout == null);
     assert(minCoord.x <= maxCoord.x);
     assert(minCoord.y <= maxCoord.y);
     _previousOffset = initialOffset.clone();
     physicsX.configure(minCoord.x, maxCoord.x, initialOffset.x,
-                       _customDecelerationFactor, velocity.x);
+        _customDecelerationFactor, velocity.x);
     physicsY.configure(minCoord.y, maxCoord.y, initialOffset.y,
-                       _customDecelerationFactor, velocity.y);
+        _customDecelerationFactor, velocity.y);
     if (!physicsX.isDone() || !physicsY.isDone()) {
       _calculateMoves();
       if (!_moves.isEmpty) {
         num firstTime = _moves.first.time;
-        _stepTimeout = Env.requestAnimationFrame(
-            _step, null, firstTime);
+        _stepTimeout = Env.requestAnimationFrame(_step, null, firstTime);
         _decelerating = true;
         return true;
       }
@@ -492,8 +484,9 @@ class TimeoutMomentum implements Momentum {
     // Prune moves that are more than 1 frame behind when we have more
     // available moves.
     num lastEpoch = timestamp - SingleDimensionPhysics._MS_PER_FRAME;
-    while (!_moves.isEmpty && !identical(_moves.first, _moves.last)
-        && _moves.first.time < lastEpoch) {
+    while (!_moves.isEmpty &&
+        !identical(_moves.first, _moves.last) &&
+        _moves.first.time < lastEpoch) {
       _moves.removeFirst();
     }
 
@@ -529,8 +522,8 @@ class TimeoutMomentum implements Momentum {
       // passed a velocity in to this Momentum implementation.
       num velocityScale = SingleDimensionPhysics._MS_PER_FRAME *
           SingleDimensionPhysics._INITIAL_VELOCITY_BOOST_FACTOR;
-      velocity = new Coordinate(
-          move.vx / velocityScale, move.vy / velocityScale);
+      velocity =
+          new Coordinate(move.vx / velocityScale, move.vy / velocityScale);
     } else {
       velocity = new Coordinate(0, 0);
     }

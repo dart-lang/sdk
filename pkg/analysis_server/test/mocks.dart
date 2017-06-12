@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library mocks;
-
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
-    hide Element, ElementKind;
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/operation/operation.dart';
@@ -249,8 +247,8 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   Future<Response> waitForResponse(Request request) {
     String id = request.id;
-    return new Future<Response>(() =>
-        responseController.stream.firstWhere((response) => response.id == id));
+    return new Future<Response>(() => responseController.stream
+        .firstWhere((response) => response.id == id) as Future<Response>);
   }
 }
 

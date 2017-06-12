@@ -8,7 +8,9 @@
 import "package:expect/expect.dart";
 
 main() {
-  var c = () { throw 42; };
+  var c = () {
+    throw 42;
+  };
   () {
     // dart2js would not seen this initialization and therefore think
     // that the argument passed to a is a list of nulls.

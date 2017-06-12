@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.search.element_references;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,13 +15,15 @@ import 'abstract_search_domain.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementReferencesTest);
-    defineReflectiveTests(_NoSearchEngine);
   });
 }
 
 @reflectiveTest
 class ElementReferencesTest extends AbstractSearchDomainTest {
   Element searchElement;
+
+  @override
+  bool get enableNewAnalysisDriver => false;
 
   void assertHasRef(SearchResultKind kind, String search, bool isPotential) {
     assertHasResult(kind, search);
@@ -671,27 +672,5 @@ class A<T> {
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, 'T f;');
     assertHasResult(SearchResultKind.REFERENCE, 'T m()');
-  }
-}
-
-@reflectiveTest
-class _NoSearchEngine extends AbstractSearchDomainTest {
-  @override
-  Index createIndex() {
-    return null;
-  }
-
-  test_requestError_noSearchEngine() async {
-    addTestFile('''
-main() {
-  var vvv = 1;
-  print(vvv);
-}
-''');
-    Request request = new SearchFindElementReferencesParams(testFile, 0, false)
-        .toRequest('0');
-    Response response = await waitResponse(request);
-    expect(response.error, isNotNull);
-    expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);
   }
 }

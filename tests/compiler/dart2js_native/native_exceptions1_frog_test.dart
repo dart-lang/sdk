@@ -18,7 +18,7 @@ import 'native_testing.dart';
 // The exception type.
 @Native("E")
 class E {
-  E._used() native ; // Bogus native constructor, called only from fake body.
+  E._used() native; // Bogus native constructor, called only from fake body.
 
   final int code;
 }
@@ -29,7 +29,7 @@ class A {
   // Exception class E is created.
   @Creates("E")
   @Returns('int')
-  op(int x) native ;
+  op(int x) native;
 }
 
 // This class is here just so that a dynamic context is polymorphic.
@@ -38,7 +38,7 @@ class B {
   op(String x) => 123;
 }
 
-makeA() native ;
+makeA() native;
 
 void setup1() native """
 // Ensure we are not relying on global names 'A' and 'E'.
@@ -47,7 +47,7 @@ E = null;
 """;
 
 void setup2() native """
-// This code is all inside 'setup2' and so not accesible from the global scope.
+// This code is all inside 'setup2' and so not accessible from the global scope.
 function E(x){ this.code = x; }
 
 function A(){}

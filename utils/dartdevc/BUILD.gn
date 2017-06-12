@@ -11,10 +11,70 @@ application_snapshot("dartdevc") {
     rebase_path("../../sdk"),
     "--dart-sdk-summary",
     rebase_path("../../pkg/dev_compiler/lib/sdk/ddc_sdk.sum"),
-    "--help",
+    "--library-root",
+    rebase_path("../../pkg/dev_compiler"),
+    "-o",
+    "dartdevc.js",
+    "--unsafe-force-compile",
+    rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
   inputs = exec_script("../../tools/list_dart_files.py",
                        [ "absolute",
                          rebase_path("../../pkg/dev_compiler/bin") ],
                        "list lines")
+}
+
+sdk_lib_files = exec_script(
+    "../../tools/list_dart_files.py",
+    [ "absolute", rebase_path("../../sdk/lib") ],
+    "list lines")
+
+compiler_files = exec_script(
+    "../../tools/list_dart_files.py",
+    [ "absolute", rebase_path("../../pkg/compiler") ],
+    "list lines")
+
+dev_compiler_files = exec_script(
+    "../../tools/list_dart_files.py",
+    [ "absolute", rebase_path("../../pkg/dev_compiler") ],
+    "list lines")
+
+template("dart2js_compile") {
+  assert(defined(invoker.main), "Must specify the main file")
+  main = invoker.main
+  assert(defined(invoker.out), "Must specify the out file")
+  out = invoker.out
+  abs_main = rebase_path(main)
+  abs_output = rebase_path(out)
+
+  compiled_action(target_name) {
+    tool = "../../runtime/bin:dart"
+    inputs = sdk_lib_files + compiler_files + dev_compiler_files
+    outputs = [
+      out,
+    ]
+
+    dot_packages = rebase_path("../../.packages")
+    compiler =
+        rebase_path("../../pkg/compiler/lib/src/dart2js.dart")
+
+    args = [
+      "--packages=$dot_packages",
+      compiler,
+      "--packages=$dot_packages",
+      "$abs_main",
+      "-m",
+      "-o$abs_output",
+    ]
+  }
+}
+
+dart2js_compile("dartdevc_web") {
+  main = rebase_path("../../pkg/dev_compiler/web/main.dart")
+  out = "$root_out_dir/dev_compiler/build/web/ddc_web_compiler.js"
+}
+
+dart2js_compile("stack_trace_mapper") {
+  main = rebase_path("../../pkg/dev_compiler/web/stack_trace_mapper.dart")
+  out = "$root_out_dir/dev_compiler/build/web/dart_stack_trace_mapper.js"
 }

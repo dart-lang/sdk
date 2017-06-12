@@ -25,10 +25,10 @@ main() {
   final retainedSizes = new RetainedSizeRepositoryMock();
   final inbounds = new InboundReferencesRepositoryMock();
   final paths = new RetainingPathRepositoryMock();
-  final instances = new InstanceRepositoryMock();
+  final objects = new ObjectRepositoryMock();
   test('instantiation', () {
     final e = new ObjectPoolViewElement(vm, isolate, pool, events, notifs,
-        pools, retainedSizes, reachableSizes, inbounds, paths, instances);
+        pools, retainedSizes, reachableSizes, inbounds, paths, objects);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.pool, equals(pool));
@@ -41,7 +41,7 @@ main() {
       return pool;
     }, count: 1));
     final e = new ObjectPoolViewElement(vm, isolate, pool, events, notifs,
-        pools, retainedSizes, reachableSizes, inbounds, paths, instances);
+        pools, retainedSizes, reachableSizes, inbounds, paths, objects);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

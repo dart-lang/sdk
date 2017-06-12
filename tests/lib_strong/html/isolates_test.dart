@@ -1,4 +1,5 @@
 library IsolatesTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:async';
@@ -47,7 +48,7 @@ main() {
     port.close();
   });
   test('NonDOMIsolates', () {
-    var callback = expectAsync((){});
+    var callback = expectAsync(() {});
     var response = new isolate.ReceivePort();
     var remote = isolate.Isolate.spawn(isolateEntry, response.sendPort);
     response.first.then((port) {

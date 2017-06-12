@@ -32,8 +32,7 @@ void main() {
     backend.constants.compiledConstants.forEach(addConstantWithDependendencies);
     for (String stringValue in ["cA", "cB", "cC"]) {
       ConstantValue constant = allConstants.firstWhere((constant) {
-        return constant.isString &&
-            constant.primitiveValue.slowToString() == stringValue;
+        return constant.isString && constant.primitiveValue == stringValue;
       });
       Expect.notEquals(null, outputUnitForConstant(constant),
           "Constant value ${constant.toStructuredText()} has no output unit.");

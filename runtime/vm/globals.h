@@ -44,6 +44,10 @@ const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
    static_cast<intptr_t>(!(sizeof(array) % sizeof(*(array)))))  // NOLINT
 
 
+#if defined(ARCH_IS_64_BIT)
+#define HASH_IN_OBJECT_HEADER 1
+#endif
+
 // The expression OFFSET_OF(type, field) computes the byte-offset of
 // the specified field relative to the containing type.
 //
@@ -79,7 +83,7 @@ typedef uword cpp_vtable;
 
 
 // When using GCC we can use GCC attributes to ensure that certain
-// contants are 8 or 16 byte aligned.
+// constants are 8 or 16 byte aligned.
 #if defined(HOST_OS_WINDOWS)
 #define ALIGN8 __declspec(align(8))
 #define ALIGN16 __declspec(align(16))
@@ -116,24 +120,9 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 
 #else  // !defined(HOST_OS_WINDOWS))
 
-// Assume GCC-like inline syntax is valid.
-#if defined(HOST_ARCH_IA32)
-#define COPY_FP_REGISTER(fp) asm volatile("movl %%ebp, %0" : "=r"(fp));
-#elif defined(HOST_ARCH_X64)
-#define COPY_FP_REGISTER(fp) asm volatile("movq %%rbp, %0" : "=r"(fp));
-#elif defined(HOST_ARCH_ARM)
-#if defined(HOST_OS_MAC)
-#define COPY_FP_REGISTER(fp) asm volatile("mov %0, r7" : "=r"(fp));
-#else
-#define COPY_FP_REGISTER(fp) asm volatile("mov %0, r11" : "=r"(fp));
-#endif
-#elif defined(HOST_ARCH_ARM64)
-#define COPY_FP_REGISTER(fp) asm volatile("mov %0, x29" : "=r"(fp));
-#elif defined(HOST_ARCH_MIPS)
-#define COPY_FP_REGISTER(fp) asm volatile("move %0, $fp" : "=r"(fp));
-#else
-#error Unknown host architecture.
-#endif
+// Assume GCC-compatible builtins.
+#define COPY_FP_REGISTER(fp)                                                   \
+  fp = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
 
 #endif  // !defined(HOST_OS_WINDOWS))
 

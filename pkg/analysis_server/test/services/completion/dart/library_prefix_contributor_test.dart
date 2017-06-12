@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.contributor.dart.library_prefix;
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
@@ -15,7 +13,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryPrefixContributorTest);
-    defineReflectiveTests(LibraryPrefixContributorTest_Driver);
   });
 }
 
@@ -375,10 +372,4 @@ main() {new ^ String x = "hello";}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
-}
-
-@reflectiveTest
-class LibraryPrefixContributorTest_Driver extends LibraryPrefixContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

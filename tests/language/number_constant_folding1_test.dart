@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 // On frogsh constant folded hex literals of large magnitude were truncated on
 // constant folding - Issue 636 is 'fixed', remaining concerns at Issue 638.
 
-
 highDigitTruncationTest() {
   Expect.equals(0x12345678A, 0x123456789 + 1);
 
@@ -25,7 +24,6 @@ highDigitTruncationTest() {
   Expect.equals(0xfffffffff0, 0xfffffffff * 16);
   Expect.equals(0xffffffffff0, 0xffffffffff * 16);
 }
-
 
 main() {
   highDigitTruncationTest();

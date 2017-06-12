@@ -6,5 +6,4 @@
 
 library invalid_utf8_test;
 
-main() {
-}
+main() {}

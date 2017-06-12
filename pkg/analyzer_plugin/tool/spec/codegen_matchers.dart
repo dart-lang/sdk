@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -106,7 +106,10 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     writeln();
     writeln("import 'integration_tests.dart';");
     writeln();
-    for (ImpliedType impliedType in computeImpliedTypes(api).values) {
+    List<ImpliedType> impliedTypes = computeImpliedTypes(api).values.toList();
+    impliedTypes.sort((ImpliedType first, ImpliedType second) =>
+        first.camelName.compareTo(second.camelName));
+    for (ImpliedType impliedType in impliedTypes) {
       makeMatcher(impliedType);
     }
   }

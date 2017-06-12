@@ -9,9 +9,10 @@ class A {
   bar(x) {
     if (foo == 3) return;
     var t = x;
-    if (x == 0 ) t = foo;
+    if (x == 0) t = foo;
     foo = t;
   }
+
   toto(x) => x;
   titi() {
     foo = 0;

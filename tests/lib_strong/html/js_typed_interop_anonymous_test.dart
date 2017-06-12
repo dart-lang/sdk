@@ -11,7 +11,8 @@ import 'dart:js' as js;
 import 'package:js/js.dart';
 import 'package:expect/minitest.dart';
 
-@JS() @anonymous
+@JS()
+@anonymous
 class Literal {
   external factory Literal({int x, String y, num z});
 

@@ -4,11 +4,11 @@
 // Dart test error for overriding method with field.
 
 class A {
-  foo() { }
+  foo() {}
 }
 
 class B extends A {
-  var foo;  // Field cannot override method.
+  var foo; // Field cannot override method.
 }
 
 class OverrideFieldMethod4NegativeTest {

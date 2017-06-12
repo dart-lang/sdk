@@ -4,6 +4,9 @@
 
 library fasta.verifier;
 
+import 'package:front_end/src/fasta/type_inference/type_schema.dart'
+    show TypeSchemaVisitor, UnknownType;
+
 import 'package:kernel/ast.dart'
     show
         InvalidExpression,
@@ -30,7 +33,8 @@ List<VerificationError> verifyProgram(Program program,
   return verifier.errors;
 }
 
-class FastaVerifyingVisitor extends VerifyingVisitor {
+class FastaVerifyingVisitor extends VerifyingVisitor
+    implements TypeSchemaVisitor {
   final List<VerificationError> errors = <VerificationError>[];
 
   String fileUri;
@@ -40,9 +44,12 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   }
 
   @override
-  problem(TreeNode node, String details) {
+  problem(TreeNode node, String details, {TreeNode context}) {
+    context ??= this.context;
     VerificationError error = new VerificationError(context, node, details);
-    printUnexpected(Uri.parse(fileUri), node.fileOffset, "$error");
+    var uri = fileUri != null ? Uri.parse(fileUri) : null;
+    var offset = (uri != null && node != null) ? node.fileOffset : -1;
+    printUnexpected(uri, offset, "$error");
     errors.add(error);
   }
 
@@ -92,5 +99,11 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   @override
   visitInvalidInitializer(InvalidInitializer node) {
     problem(node, "Invalid initializer.");
+  }
+
+  @override
+  visitUnknownType(UnknownType node) {
+    // Note: we can't pass [node] to [problem] because it's not a [TreeNode].
+    problem(null, "Unexpected appearance of the unknown type.");
   }
 }

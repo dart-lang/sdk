@@ -7,7 +7,9 @@ abstract class Link<T> {
 }
 
 class LinkFactory<T> implements Link<T> {
-  factory LinkFactory.create() { return null; }
+  factory LinkFactory.create() {
+    return null;
+  }
 }
 
 main() {

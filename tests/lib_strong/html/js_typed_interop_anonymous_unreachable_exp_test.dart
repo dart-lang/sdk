@@ -15,7 +15,8 @@ import 'dart:js' as js;
 import 'package:js/js.dart';
 import 'package:expect/minitest.dart';
 
-@JS() @anonymous
+@JS()
+@anonymous
 class Literal {
   external factory Literal({int x, String y, num z});
 
@@ -26,7 +27,7 @@ class Literal {
 
 main() {
   test('nothing to do', () {
-    // This test is empty, but it is a regression for Issue# 24974: dartjs
+    // This test is empty, but it is a regression for Issue# 24974: dart2js
     // would crash trying to compile code that used @anonymous and that was
     // not reachable from main.
   });

@@ -17,8 +17,8 @@ concat(a, b) async* {
 }
 
 test() async {
-  Expect.listEquals([1, 2, 3, 11, 12, 13],
-                    await concat(range(1, 4), range(11, 14)).toList());
+  Expect.listEquals(
+      [1, 2, 3, 11, 12, 13], await concat(range(1, 4), range(11, 14)).toList());
 }
 
 main() {

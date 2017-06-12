@@ -18,15 +18,15 @@ checkClass(classMirror) {
   Expect.isTrue(classMirror.owner is LibraryMirror);
   if (!isAnonymousMixinApplication(classMirror)) {
     Expect.equals(classMirror.originalDeclaration,
-                  classMirror.owner.declarations[classMirror.simpleName]);
+        classMirror.owner.declarations[classMirror.simpleName]);
   } else {
     Expect.isNull(classMirror.owner.declarations[classMirror.simpleName]);
   }
   Expect.isTrue(classMirror.superinterfaces is List);
   if (classMirror.superclass == null) {
     Expect.isTrue(classMirror == reflectClass(Object) ||
-                  // Type FutureOr is mapped to dynamic in the VM.
-                  classMirror.toString() == "ClassMirror on 'FutureOr'");
+        // Type FutureOr is mapped to dynamic in the VM.
+        classMirror.toString() == "ClassMirror on 'FutureOr'");
   } else {
     checkClass(classMirror.superclass);
   }

@@ -21,7 +21,7 @@ class TypeBuilder {
 
   /// Create an instruction to simply trust the provided type.
   HInstruction _trustType(HInstruction original, ResolutionDartType type) {
-    assert(builder.compiler.options.trustTypeAnnotations);
+    assert(builder.options.trustTypeAnnotations);
     assert(type != null);
     type = builder.localsHandler.substInContext(type);
     type = type.unaliased;
@@ -38,7 +38,7 @@ class TypeBuilder {
   /// by attempting a type conversion.
   HInstruction _checkType(
       HInstruction original, ResolutionDartType type, int kind) {
-    assert(builder.compiler.options.enableTypeAssertions);
+    assert(builder.options.enableTypeAssertions);
     assert(type != null);
     type = builder.localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
@@ -59,9 +59,9 @@ class TypeBuilder {
       {int kind: HTypeConversion.CHECKED_MODE_CHECK}) {
     if (type == null) return original;
     HInstruction checkedOrTrusted = original;
-    if (builder.compiler.options.trustTypeAnnotations) {
+    if (builder.options.trustTypeAnnotations) {
       checkedOrTrusted = _trustType(original, type);
-    } else if (builder.compiler.options.enableTypeAssertions) {
+    } else if (builder.options.enableTypeAssertions) {
       checkedOrTrusted = _checkType(original, type, kind);
     }
     if (checkedOrTrusted == original) return original;
@@ -124,7 +124,7 @@ class TypeBuilder {
       return readTypeVariable(type, member,
           sourceInformation: sourceInformation);
     } else {
-      builder.compiler.reporter.internalError(
+      builder.reporter.internalError(
           type.element, 'Unexpected type variable in static context.');
       return null;
     }
@@ -165,6 +165,7 @@ class TypeBuilder {
   /// Check that [type] is valid in the context of `localsHandler.contextClass`.
   /// This should only be called in assertions.
   bool assertTypeInContext(ResolutionDartType type, [Spannable spannable]) {
+    if (builder.compiler.options.useKernel) return true;
     return invariant(spannable == null ? CURRENT_ELEMENT_SPANNABLE : spannable,
         () {
       ClassElement contextClass = Types.getClassContext(type);
@@ -200,7 +201,8 @@ class TypeBuilder {
         TypeInfoExpressionKind.COMPLETE,
         argument,
         inputs,
-        builder.commonMasks.dynamicType)..sourceInformation = sourceInformation;
+        builder.commonMasks.dynamicType)
+      ..sourceInformation = sourceInformation;
     builder.add(result);
     return result;
   }
@@ -218,8 +220,8 @@ class TypeBuilder {
   }
 
   bool get checkOrTrustTypes =>
-      builder.compiler.options.enableTypeAssertions ||
-      builder.compiler.options.trustTypeAnnotations;
+      builder.options.enableTypeAssertions ||
+      builder.options.trustTypeAnnotations;
 
   /// Build a [HTypeConversion] for converting [original] to type [type].
   ///

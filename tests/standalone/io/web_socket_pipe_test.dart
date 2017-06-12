@@ -12,20 +12,20 @@ import "dart:async";
 import "dart:io";
 
 createReverseStringTransformer() {
-  return new StreamTransformer.fromHandlers(
-      handleData: (String data, sink) {
-        var sb = new StringBuffer();
-        for (int i = data.length - 1; i >= 0; i--) sb.write(data[i]);
-        sink.add(sb.toString());
-      });
+  return new StreamTransformer.fromHandlers(handleData: (String data, sink) {
+    var sb = new StringBuffer();
+    for (int i = data.length - 1; i >= 0; i--) sb.write(data[i]);
+    sink.add(sb.toString());
+  });
 }
 
 testPipe({int messages, bool transform}) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       WebSocketTransformer.upgrade(request).then((websocket) {
-        (transform ? websocket.transform(createReverseStringTransformer())
-                   : websocket)
+        (transform
+                ? websocket.transform(createReverseStringTransformer())
+                : websocket)
             .pipe(websocket)
             .then((_) => server.close());
       });
@@ -40,17 +40,15 @@ testPipe({int messages, bool transform}) {
         }
       }
 
-      client.listen(
-          (data) {
-            count++;
-            if (transform) {
-              Expect.equals("olleH", data);
-            } else {
-              Expect.equals("Hello", data);
-            }
-            next();
-          },
-          onDone: () => print("Client received close"));
+      client.listen((data) {
+        count++;
+        if (transform) {
+          Expect.equals("olleH", data);
+        } else {
+          Expect.equals("Hello", data);
+        }
+        next();
+      }, onDone: () => print("Client received close"));
 
       next();
     });

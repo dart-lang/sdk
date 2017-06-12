@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:analyzer/src/codegen/tools.dart';
 import 'package:front_end/src/codegen/tools.dart';
 import 'package:html/dom.dart' as dom;
+import 'package:path/path.dart' as path;
 
 import 'api.dart';
 import 'codegen_dart.dart';
@@ -27,11 +28,14 @@ const Map<String, String> specialElementFlags = const {
   'deprecated': '0x20'
 };
 
-final GeneratedFile target =
-    new GeneratedFile('lib/protocol/protocol_generated.dart', (String pkgPath) {
-  CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(readApi(pkgPath));
-  return visitor.collectCode(visitor.visitApi);
-});
+GeneratedFile target(bool responseRequiresRequestTime) {
+  return new GeneratedFile('lib/protocol/protocol_generated.dart',
+      (String pkgPath) {
+    CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(
+        path.basename(pkgPath), responseRequiresRequestTime, readApi(pkgPath));
+    return visitor.collectCode(visitor.visitApi);
+  });
+}
 
 /**
  * Callback type used to represent arbitrary code generation.
@@ -66,6 +70,17 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       'Clients may not extend, implement or mix-in this class.';
 
   /**
+   * The name of the package into which code is being generated.
+   */
+  final String packageName;
+
+  /**
+   * A flag indicating whether the class [Response] requires a `requestTime`
+   * parameter.
+   */
+  final bool responseRequiresRequestTime;
+
+  /**
    * Visitor used to produce doc comments.
    */
   final ToHtmlVisitor toHtmlVisitor;
@@ -77,7 +92,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    */
   final Map<String, ImpliedType> impliedTypes;
 
-  CodegenProtocolVisitor(Api api)
+  CodegenProtocolVisitor(
+      this.packageName, this.responseRequiresRequestTime, Api api)
       : toHtmlVisitor = new ToHtmlVisitor(api),
         impliedTypes = computeImpliedTypes(api),
         super(api) {
@@ -112,12 +128,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 
   /**
-   * Translate each type implied by the API to a class.
+   * Translate each of the given [types] implied by the API to a class.
    */
-  void emitClasses() {
-    List<ImpliedType> types = impliedTypes.values.toList();
-    types.sort((first, second) =>
-        capitalize(first.camelName).compareTo(capitalize(second.camelName)));
+  void emitClasses(List<ImpliedType> types) {
     for (ImpliedType impliedType in types) {
       TypeDecl type = impliedType.type;
       String dartTypeName = capitalize(impliedType.camelName);
@@ -386,6 +399,20 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           'throw jsonDecoder.mismatch(jsonPath, $humanReadableNameString, json);');
     });
     writeln('}');
+  }
+
+  void emitImports() {
+    writeln("import 'dart:convert' hide JsonDecoder;");
+    writeln();
+    writeln("import 'package:analyzer/src/generated/utilities_general.dart';");
+    writeln("import 'package:$packageName/protocol/protocol.dart';");
+    writeln(
+        "import 'package:$packageName/src/protocol/protocol_internal.dart';");
+    for (String uri in api.types.importUris) {
+      write("import '");
+      write(uri);
+      writeln("';");
+    }
   }
 
   /**
@@ -937,10 +964,18 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   bool emitToResponseMember(ImpliedType impliedType) {
     if (impliedType.kind == 'requestResult') {
       writeln('@override');
-      writeln('Response toResponse(String id) {');
+      if (responseRequiresRequestTime) {
+        writeln('Response toResponse(String id, int requestTime) {');
+      } else {
+        writeln('Response toResponse(String id) {');
+      }
       indent(() {
         String jsonPart = impliedType.type != null ? 'toJson()' : 'null';
-        writeln('return new Response(id, result: $jsonPart);');
+        if (responseRequiresRequestTime) {
+          writeln('return new Response(id, requestTime, result: $jsonPart);');
+        } else {
+          writeln('return new Response(id, result: $jsonPart);');
+        }
       });
       writeln('}');
       return true;
@@ -1045,6 +1080,19 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 
   /**
+   * Return a list of the classes to be emitted.
+   */
+  List<ImpliedType> getClassesToEmit() {
+    List<ImpliedType> types = impliedTypes.values.where((ImpliedType type) {
+      ApiNode node = type.apiNode;
+      return !(node is TypeDefinition && node.isExternal);
+    }).toList();
+    types.sort((first, second) =>
+        capitalize(first.camelName).compareTo(capitalize(second.camelName)));
+    return types;
+  }
+
+  /**
    * True if the constructor argument for the given field should be optional.
    */
   bool isOptionalConstructorArg(String className, TypeObjectField field) {
@@ -1124,13 +1172,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   visitApi() {
     outputHeader(year: '2017');
     writeln();
-    writeln("import 'dart:convert' hide JsonDecoder;");
-    writeln();
-    writeln("import 'package:analyzer/src/generated/utilities_general.dart';");
-    writeln("import 'package:analyzer_plugin/protocol/protocol.dart';");
-    writeln(
-        "import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';");
-    emitClasses();
+    emitImports();
+    emitClasses(getClassesToEmit());
   }
 }
 

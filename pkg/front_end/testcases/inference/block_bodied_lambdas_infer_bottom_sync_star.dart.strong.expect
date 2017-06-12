@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  () → core::Iterable<core::Null> f = () → core::Iterable<core::Null> /* originally sync* */ {
+    dynamic :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :sync_op(core::Iterator<dynamic> :iterator) → core::bool yielding {
+      {
+        {
+          :iterator._current = null;
+          [yield] true;
+        }
+      }
+      return false;
+    }
+    return new core::_SyncIterable::•(:sync_op);
+  };
+  core::Iterable<dynamic> y = f.call();
+  core::Iterable<core::String> z = f.call();
+  core::String s = f.call().first;
+}

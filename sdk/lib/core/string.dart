@@ -143,6 +143,12 @@ abstract class String implements Comparable<String>, Pattern {
    *
    *     var isDeclared = const String.fromEnvironment("maybeDeclared") != null;
    */
+  // The .fromEnvironment() constructors are special in that we do not want
+  // users to call them using "new". We prohibit that by giving them bodies
+  // that throw, even though const constructors are not allowed to have bodies.
+  // Disable those static errors.
+  //ignore: const_constructor_with_body
+  //ignore: const_factory
   external const factory String.fromEnvironment(String name,
       {String defaultValue});
 
@@ -251,7 +257,7 @@ abstract class String implements Comparable<String>, Pattern {
    *
    *     string.indexOf(new RegExp(r'dart'));       // -1
    *
-   * [start] must not be negative or greater than [length].
+   * [start] must be non-negative and not greater than [length].
    */
   int indexOf(Pattern pattern, [int start]);
 
@@ -263,11 +269,11 @@ abstract class String implements Comparable<String>, Pattern {
    *     string.lastIndexOf('a');                    // 6
    *     string.lastIndexOf(new RegExp(r'a(r|n)'));  // 6
    *
-   * Returns -1 if [other] could not be found.
+   * Returns -1 if [pattern] could not be found in this string.
    *
    *     string.lastIndexOf(new RegExp(r'DART'));    // -1
    *
-   * [start] must not be negative or greater than [length].
+   * The [start] must be non-negative and not greater than [length].
    */
   int lastIndexOf(Pattern pattern, [int start]);
 
@@ -425,7 +431,7 @@ abstract class String implements Comparable<String>, Pattern {
    * Replace the first occurrence of [from] in this string.
    *
    * Returns a new string, which is this string
-   * except that the first match of [pattern], starting from [startIndex],
+   * except that the first match of [from], starting from [startIndex],
    * is replaced by the result of calling [replace] with the match object.
    *
    * The optional [startIndex] is by default set to 0. If provided, it must be

@@ -32,7 +32,8 @@ testOutOfRange() {
             break;
           case RawSocketEvent.CLOSED:
             break;
-          default: throw "Unexpected event $event";
+          default:
+            throw "Unexpected event $event";
         }
       });
     });
@@ -77,10 +78,10 @@ testOutOfRange() {
             break;
           case RawSocketEvent.CLOSED:
             break;
-          default: throw "Unexpected event $event";
+          default:
+            throw "Unexpected event $event";
         }
-      },
-      onDone: asyncEnd);
+      }, onDone: asyncEnd);
     });
   });
 }
@@ -157,13 +158,14 @@ void testSimpleReadWrite() {
                 client.shutdown(SocketDirection.SEND);
               }
             }
-          break;
+            break;
           case RawSocketEvent.READ_CLOSED:
             server.close();
             break;
           case RawSocketEvent.CLOSED:
             break;
-          default: throw "Unexpected event $event";
+          default:
+            throw "Unexpected event $event";
         }
       });
     });
@@ -204,10 +206,10 @@ void testSimpleReadWrite() {
             break;
           case RawSocketEvent.CLOSED:
             break;
-          default: throw "Unexpected event $event";
+          default:
+            throw "Unexpected event $event";
         }
-      },
-      onDone: asyncEnd);
+      }, onDone: asyncEnd);
     });
   });
 }

@@ -6,11 +6,10 @@
 
 import "package:expect/expect.dart";
 
-class A<T extends B<T>> { }
+class A<T extends B<T>> {}
 
-class B<T> extends A<T> { }
+class B<T> extends A<T> {}
 
 main() {
   Expect.equals("B<B>", new B<B>().runtimeType.toString());
 }
-

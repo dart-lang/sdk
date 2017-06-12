@@ -23,18 +23,13 @@ void main() {
 void testEncodeSlice() {
   var encoder = UTF8.encoder;
   String ascii = "ABCDE";
-  Expect.listEquals([0x41, 0x42, 0x43, 0x44, 0x45],
-                    encoder.convert(ascii));
-  Expect.listEquals([0x41, 0x42, 0x43, 0x44, 0x45],
-                    encoder.convert(ascii, 0));
-  Expect.listEquals([0x41, 0x42, 0x43, 0x44, 0x45],
-                    encoder.convert(ascii, 0, 5));
-  Expect.listEquals([0x42, 0x43, 0x44, 0x45],
-                    encoder.convert(ascii, 1));
-  Expect.listEquals([0x41, 0x42, 0x43, 0x44],
-                    encoder.convert(ascii, 0, 4));
-  Expect.listEquals([0x42, 0x43, 0x44],
-                    encoder.convert(ascii, 1, 4));
+  Expect.listEquals([0x41, 0x42, 0x43, 0x44, 0x45], encoder.convert(ascii));
+  Expect.listEquals([0x41, 0x42, 0x43, 0x44, 0x45], encoder.convert(ascii, 0));
+  Expect
+      .listEquals([0x41, 0x42, 0x43, 0x44, 0x45], encoder.convert(ascii, 0, 5));
+  Expect.listEquals([0x42, 0x43, 0x44, 0x45], encoder.convert(ascii, 1));
+  Expect.listEquals([0x41, 0x42, 0x43, 0x44], encoder.convert(ascii, 0, 4));
+  Expect.listEquals([0x42, 0x43, 0x44], encoder.convert(ascii, 1, 4));
 
   Expect.throws(() => encoder.convert(ascii, -1)); //    start < 0.
   Expect.throws(() => encoder.convert(ascii, 6)); //     start > length
@@ -44,19 +39,17 @@ void testEncodeSlice() {
 
   var unicode = "\u0081\u0082\u1041\u{10101}";
 
-  Expect.listEquals([0xc2, 0x81, 0xc2, 0x82, 0xe1, 0x81, 0x81,
-                     0xf0, 0x90, 0x84, 0x81],
-                    encoder.convert(unicode));
-  Expect.listEquals([0xc2, 0x81, 0xc2, 0x82, 0xe1, 0x81, 0x81,
-                     0xf0, 0x90, 0x84, 0x81],
-                    encoder.convert(unicode, 0, unicode.length));
-  Expect.listEquals([0xc2, 0x82, 0xe1, 0x81, 0x81,
-                     0xf0, 0x90, 0x84, 0x81],
-                    encoder.convert(unicode, 1));
-  Expect.listEquals([0xc2, 0x82, 0xe1, 0x81, 0x81],
-                    encoder.convert(unicode, 1, 3));
+  Expect.listEquals(
+      [0xc2, 0x81, 0xc2, 0x82, 0xe1, 0x81, 0x81, 0xf0, 0x90, 0x84, 0x81],
+      encoder.convert(unicode));
+  Expect.listEquals(
+      [0xc2, 0x81, 0xc2, 0x82, 0xe1, 0x81, 0x81, 0xf0, 0x90, 0x84, 0x81],
+      encoder.convert(unicode, 0, unicode.length));
+  Expect.listEquals([0xc2, 0x82, 0xe1, 0x81, 0x81, 0xf0, 0x90, 0x84, 0x81],
+      encoder.convert(unicode, 1));
+  Expect.listEquals(
+      [0xc2, 0x82, 0xe1, 0x81, 0x81], encoder.convert(unicode, 1, 3));
   // Split in the middle of a surrogate pair.
-  Expect.listEquals([0xc2, 0x82, 0xe1, 0x81, 0x81,
-                     0xed, 0xa0, 0x80],
-                    encoder.convert(unicode, 1, 4));
+  Expect.listEquals([0xc2, 0x82, 0xe1, 0x81, 0x81, 0xed, 0xa0, 0x80],
+      encoder.convert(unicode, 1, 4));
 }

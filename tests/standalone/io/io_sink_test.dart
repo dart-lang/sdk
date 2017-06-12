@@ -16,17 +16,15 @@ class TestConsumer implements StreamConsumer {
   bool expectClose;
 
   TestConsumer(this.expected,
-               {this.expectClose: true,
-                this.expcetedAddStreamCount: -1}) {
+      {this.expectClose: true, this.expcetedAddStreamCount: -1}) {
     if (expectClose) asyncStart();
   }
 
   Future addStream(Stream stream) {
     addStreamCount++;
-    var sub = stream
-      .listen((v) {
-        received.addAll(v);
-      });
+    var sub = stream.listen((v) {
+      received.addAll(v);
+    });
     sub.pause();
     scheduleMicrotask(sub.resume);
     return sub.asFuture();
@@ -37,14 +35,13 @@ class TestConsumer implements StreamConsumer {
   }
 
   Future close() {
-    return new Future.value()
-      .then((_) {
-        if (expectClose) asyncEnd();
-        Expect.listEquals(expected, received);
-        if (expcetedAddStreamCount >= 0) {
-          Expect.equals(expcetedAddStreamCount, addStreamCount);
-        }
-      });
+    return new Future.value().then((_) {
+      if (expectClose) asyncEnd();
+      Expect.listEquals(expected, received);
+      if (expcetedAddStreamCount >= 0) {
+        Expect.equals(expcetedAddStreamCount, addStreamCount);
+      }
+    });
   }
 }
 
@@ -65,7 +62,6 @@ void testAddClose() {
   sink.close();
 }
 
-
 void testAddFlush() {
   var consumer = new TestConsumer([0, 1, 2]);
   var sink = new IOSink(consumer);
@@ -81,25 +77,22 @@ void testAddFlush() {
   });
 }
 
-
 void testAddStreamClose() {
   {
     var sink = new IOSink(new TestConsumer([0]));
     var controller = new StreamController(sync: true);
-    sink.addStream(controller.stream)
-        .then((_) {
-          sink.close();
-        });
+    sink.addStream(controller.stream).then((_) {
+      sink.close();
+    });
     controller.add([0]);
     controller.close();
   }
   {
     var sink = new IOSink(new TestConsumer([0, 1, 2]));
     var controller = new StreamController(sync: true);
-    sink.addStream(controller.stream)
-        .then((_) {
-          sink.close();
-        });
+    sink.addStream(controller.stream).then((_) {
+      sink.close();
+    });
     controller.add([0]);
     controller.add([1]);
     controller.add([2]);
@@ -111,11 +104,10 @@ void testAddStreamAddClose() {
   {
     var sink = new IOSink(new TestConsumer([0, 1]));
     var controller = new StreamController(sync: true);
-    sink.addStream(controller.stream)
-        .then((_) {
-          sink.add([1]);
-          sink.close();
-        });
+    sink.addStream(controller.stream).then((_) {
+      sink.add([1]);
+      sink.close();
+    });
     controller.add([0]);
     controller.close();
   }

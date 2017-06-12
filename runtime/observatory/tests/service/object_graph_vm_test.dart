@@ -32,7 +32,7 @@ void script() {
   lst = new List(2);
   lst[0] = lst; // Self-loop.
   // Larger than any other fixed-size list in a fresh heap.
-  lst[1] = new List(123456);
+  lst[1] = new List(1234569);
 }
 
 int fooId;

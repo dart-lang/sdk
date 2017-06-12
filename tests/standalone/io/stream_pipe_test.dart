@@ -19,12 +19,8 @@ import "package:expect/expect.dart";
 String getDataFilename(String path) =>
     Platform.script.resolve(path).toFilePath();
 
-
-bool compareFileContent(String fileName1,
-                        String fileName2,
-                        {int file1Offset: 0,
-                         int file2Offset: 0,
-                         int count}) {
+bool compareFileContent(String fileName1, String fileName2,
+    {int file1Offset: 0, int file2Offset: 0, int count}) {
   var file1 = new File(fileName1).openSync();
   var file2 = new File(fileName2).openSync();
   var length1 = file1.lengthSync();
@@ -57,7 +53,6 @@ bool compareFileContent(String fileName1,
   return true;
 }
 
-
 // Test piping from one file to another and closing both streams
 // after wards.
 testFileToFilePipe1() {
@@ -65,8 +60,7 @@ testFileToFilePipe1() {
   // not called.
   asyncStart();
 
-  String srcFileName =
-      getDataFilename("readline_test1.dat");
+  String srcFileName = getDataFilename("readline_test1.dat");
   var srcStream = new File(srcFileName).openRead();
 
   var tempDir = Directory.systemTemp.createTempSync('dart_stream_pipe');
@@ -82,7 +76,6 @@ testFileToFilePipe1() {
   });
 }
 
-
 // Test piping from one file to another and write additional data to
 // the output stream after piping finished.
 testFileToFilePipe2() {
@@ -90,8 +83,7 @@ testFileToFilePipe2() {
   // not called.
   asyncStart();
 
-  String srcFileName =
-      getDataFilename("readline_test1.dat");
+  String srcFileName = getDataFilename("readline_test1.dat");
   var srcFile = new File(srcFileName);
   var srcStream = srcFile.openRead();
 
@@ -109,9 +101,8 @@ testFileToFilePipe2() {
       var srcLength = src.lengthSync();
       var dstLength = dst.lengthSync();
       Expect.equals(srcLength + 1, dstLength);
-      Expect.isTrue(compareFileContent(srcFileName,
-                                       dstFileName,
-                                       count: srcLength));
+      Expect.isTrue(
+          compareFileContent(srcFileName, dstFileName, count: srcLength));
       dst.setPositionSync(srcLength);
       var data = new List<int>(1);
       var read2 = dst.readIntoSync(data, 0, 1);
@@ -125,15 +116,13 @@ testFileToFilePipe2() {
   });
 }
 
-
 // Test piping two copies of one file to another.
 testFileToFilePipe3() {
   // Force test to timeout if one of the handlers is
   // not called.
   asyncStart();
 
-  String srcFileName =
-      getDataFilename("readline_test1.dat");
+  String srcFileName = getDataFilename("readline_test1.dat");
   var srcFile = new File(srcFileName);
   var srcStream = srcFile.openRead();
 
@@ -152,13 +141,10 @@ testFileToFilePipe3() {
         var srcLength = src.lengthSync();
         var dstLength = dst.lengthSync();
         Expect.equals(srcLength * 2, dstLength);
-        Expect.isTrue(compareFileContent(srcFileName,
-                                         dstFileName,
-                                         count: srcLength));
-        Expect.isTrue(compareFileContent(srcFileName,
-                                         dstFileName,
-                                         file2Offset: srcLength,
-                                         count: srcLength));
+        Expect.isTrue(
+            compareFileContent(srcFileName, dstFileName, count: srcLength));
+        Expect.isTrue(compareFileContent(srcFileName, dstFileName,
+            file2Offset: srcLength, count: srcLength));
         src.closeSync();
         dst.closeSync();
         dstFile.deleteSync();
@@ -168,7 +154,6 @@ testFileToFilePipe3() {
     });
   });
 }
-
 
 main() {
   testFileToFilePipe1();

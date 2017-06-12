@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring.rename_constructor;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,7 +15,6 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameConstructorTest);
-    defineReflectiveTests(RenameConstructorTest_Driver);
   });
 }
 
@@ -103,10 +100,10 @@ class A {
     await indexTestUnit('''
 class A {
   A() {} // marker
+  factory A._() = A;
 }
 class B extends A {
   B() : super() {}
-  factory B._() = A;
 }
 main() {
   new A();
@@ -122,10 +119,10 @@ main() {
     return assertSuccessfulRefactoring('''
 class A {
   A.newName() {} // marker
+  factory A._() = A.newName;
 }
 class B extends A {
   B() : super.newName() {}
-  factory B._() = A.newName;
 }
 main() {
   new A.newName();
@@ -139,7 +136,6 @@ class A {
 }
 class B extends A {
   B() : super() {}
-  factory B._() = A;
 }
 main() {
   new A();
@@ -158,7 +154,6 @@ class A {
 }
 class B extends A {
   B() : super.newName() {}
-  factory B._() = A.newName;
 }
 main() {
   new A.newName();
@@ -170,10 +165,10 @@ main() {
     await indexTestUnit('''
 class A {
   A.test() {} // marker
+  factory A._() = A.test;
 }
 class B extends A {
   B() : super.test() {}
-  factory B._() = A.test;
 }
 main() {
   new A.test();
@@ -189,10 +184,10 @@ main() {
     return assertSuccessfulRefactoring('''
 class A {
   A.newName() {} // marker
+  factory A._() = A.newName;
 }
 class B extends A {
   B() : super.newName() {}
-  factory B._() = A.newName;
 }
 main() {
   new A.newName();
@@ -204,10 +199,10 @@ main() {
     await indexTestUnit('''
 class A {
   A.test() {} // marker
+  factory A._() = A.test;
 }
 class B extends A {
   B() : super.test() {}
-  factory B._() = A.test;
 }
 main() {
   new A.test();
@@ -223,10 +218,10 @@ main() {
     return assertSuccessfulRefactoring('''
 class A {
   A() {} // marker
+  factory A._() = A;
 }
 class B extends A {
   B() : super() {}
-  factory B._() = A;
 }
 main() {
   new A();
@@ -251,10 +246,4 @@ main() {
         search, (node) => node is InstanceCreationExpression);
     createRenameRefactoringForElement(element);
   }
-}
-
-@reflectiveTest
-class RenameConstructorTest_Driver extends RenameConstructorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

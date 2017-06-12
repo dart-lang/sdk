@@ -10,8 +10,7 @@ class A {
   foo() => this;
 }
 
-class B extends A {
-}
+class B extends A {}
 
 main() {
   Expect.isTrue(new B().foo() is B);

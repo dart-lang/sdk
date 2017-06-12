@@ -66,8 +66,8 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   /** Return a stream for KeyEvents for the specified target. */
   // Note: this actually functions like a factory constructor.
   CustomStream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    var handler = new _KeyboardEventHandler.initializeAllEventListeners(
-        _type, e);
+    var handler =
+        new _KeyboardEventHandler.initializeAllEventListeners(_type, e);
     return handler._stream;
   }
 
@@ -75,22 +75,26 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventHandler(this._type):
-      _stream = new _CustomKeyEventStreamImpl('event'), _target = null,
-      super(_EVENT_TYPE);
+  _KeyboardEventHandler(this._type)
+      : _stream = new _CustomKeyEventStreamImpl('event'),
+        _target = null,
+        super(_EVENT_TYPE);
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes
    * and charcodes when they are not provided.
    */
-  _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) :
-      super(_EVENT_TYPE) {
-    Element.keyDownEvent.forTarget(_target, useCapture: true).listen(
-        processKeyDown);
-    Element.keyPressEvent.forTarget(_target, useCapture: true).listen(
-        processKeyPress);
-    Element.keyUpEvent.forTarget(_target, useCapture: true).listen(
-        processKeyUp);
+  _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target)
+      : super(_EVENT_TYPE) {
+    Element.keyDownEvent
+        .forTarget(_target, useCapture: true)
+        .listen(processKeyDown);
+    Element.keyPressEvent
+        .forTarget(_target, useCapture: true)
+        .listen(processKeyPress);
+    Element.keyUpEvent
+        .forTarget(_target, useCapture: true)
+        .listen(processKeyUp);
     _stream = new _CustomKeyEventStreamImpl(_type);
   }
 
@@ -112,9 +116,11 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       if (prevEvent._shadowCharCode == event.charCode) {
         return prevEvent.keyCode;
       }
-      if ((event.shiftKey || _capsLockOn) && event.charCode >= "A".codeUnits[0]
-          && event.charCode <= "Z".codeUnits[0] && event.charCode +
-          _ROMAN_ALPHABET_OFFSET == prevEvent._shadowCharCode) {
+      if ((event.shiftKey || _capsLockOn) &&
+          event.charCode >= "A".codeUnits[0] &&
+          event.charCode <= "Z".codeUnits[0] &&
+          event.charCode + _ROMAN_ALPHABET_OFFSET ==
+              prevEvent._shadowCharCode) {
         return prevEvent.keyCode;
       }
     }
@@ -122,13 +128,14 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   }
 
   /**
-   * Given the charater code returned from a keyDown [event], try to ascertain
+   * Given the character code returned from a keyDown [event], try to ascertain
    * and return the corresponding charCode for the character that was pressed.
    * This information is not shown to the user, but used to help polyfill
    * keypress events.
    */
   int _findCharCodeKeyDown(KeyboardEvent event) {
-    if (event.keyLocation == 3) { // Numpad keys.
+    if (event.location == 3) {
+      // Numpad keys.
       switch (event.keyCode) {
         case KeyCode.NUM_ZERO:
           // Even though this function returns _charCodes_, for some cases the
@@ -170,7 +177,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       // keyCode locations and other information during the keyPress event.
       return event.keyCode + _ROMAN_ALPHABET_OFFSET;
     }
-    switch(event.keyCode) {
+    switch (event.keyCode) {
       case KeyCode.SEMICOLON:
         return KeyCode.FF_SEMICOLON;
       case KeyCode.EQUALS:
@@ -217,23 +224,28 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
     // Saves Ctrl or Alt + key for IE and WebKit, which won't fire keypress.
     if (!event.shiftKey &&
         (_keyDownList.last.keyCode == KeyCode.CTRL ||
-         _keyDownList.last.keyCode == KeyCode.ALT ||
-         Device.userAgent.contains('Mac') &&
-         _keyDownList.last.keyCode == KeyCode.META)) {
+            _keyDownList.last.keyCode == KeyCode.ALT ||
+            Device.userAgent.contains('Mac') &&
+                _keyDownList.last.keyCode == KeyCode.META)) {
       return false;
     }
 
     // Some keys with Ctrl/Shift do not issue keypress in WebKit.
-    if (Device.isWebKit && event.ctrlKey && event.shiftKey && (
-        event.keyCode == KeyCode.BACKSLASH ||
-        event.keyCode == KeyCode.OPEN_SQUARE_BRACKET ||
-        event.keyCode == KeyCode.CLOSE_SQUARE_BRACKET ||
-        event.keyCode == KeyCode.TILDE ||
-        event.keyCode == KeyCode.SEMICOLON || event.keyCode == KeyCode.DASH ||
-        event.keyCode == KeyCode.EQUALS || event.keyCode == KeyCode.COMMA ||
-        event.keyCode == KeyCode.PERIOD || event.keyCode == KeyCode.SLASH ||
-        event.keyCode == KeyCode.APOSTROPHE ||
-        event.keyCode == KeyCode.SINGLE_QUOTE)) {
+    if (Device.isWebKit &&
+        event.ctrlKey &&
+        event.shiftKey &&
+        (event.keyCode == KeyCode.BACKSLASH ||
+            event.keyCode == KeyCode.OPEN_SQUARE_BRACKET ||
+            event.keyCode == KeyCode.CLOSE_SQUARE_BRACKET ||
+            event.keyCode == KeyCode.TILDE ||
+            event.keyCode == KeyCode.SEMICOLON ||
+            event.keyCode == KeyCode.DASH ||
+            event.keyCode == KeyCode.EQUALS ||
+            event.keyCode == KeyCode.COMMA ||
+            event.keyCode == KeyCode.PERIOD ||
+            event.keyCode == KeyCode.SLASH ||
+            event.keyCode == KeyCode.APOSTROPHE ||
+            event.keyCode == KeyCode.SINGLE_QUOTE)) {
       return false;
     }
 
@@ -255,7 +267,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   int _normalizeKeyCodes(KeyboardEvent event) {
     // Note: This may change once we get input about non-US keyboards.
     if (Device.isFirefox) {
-      switch(event.keyCode) {
+      switch (event.keyCode) {
         case KeyCode.FF_EQUALS:
           return KeyCode.EQUALS;
         case KeyCode.FF_SEMICOLON:
@@ -276,9 +288,10 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
     // we reset the state.
     if (_keyDownList.length > 0 &&
         (_keyDownList.last.keyCode == KeyCode.CTRL && !e.ctrlKey ||
-         _keyDownList.last.keyCode == KeyCode.ALT && !e.altKey ||
-         Device.userAgent.contains('Mac') &&
-         _keyDownList.last.keyCode == KeyCode.META && !e.metaKey)) {
+            _keyDownList.last.keyCode == KeyCode.ALT && !e.altKey ||
+            Device.userAgent.contains('Mac') &&
+                _keyDownList.last.keyCode == KeyCode.META &&
+                !e.metaKey)) {
       _keyDownList.clear();
     }
 
@@ -289,7 +302,8 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
     // as much information as possible on keypress about keycode and also
     // charCode.
     event._shadowCharCode = _findCharCodeKeyDown(event);
-    if (_keyDownList.length > 0 && event.keyCode != _keyDownList.last.keyCode &&
+    if (_keyDownList.length > 0 &&
+        event.keyCode != _keyDownList.last.keyCode &&
         !_firesKeyPressEvent(event)) {
       // Some browsers have quirks not firing keypress events where all other
       // browsers do. This makes them more consistent.
@@ -350,7 +364,6 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   }
 }
 
-
 /**
  * Records KeyboardEvents that occur on a particular element, and provides a
  * stream of outgoing KeyEvents with cross-browser consistent keyCode and
@@ -367,7 +380,6 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
  * possible. Bugs welcome!
  */
 class KeyboardEventStream {
-
   /** Named constructor to produce a stream for onKeyPress events. */
   static CustomStream<KeyEvent> onKeyPress(EventTarget target) =>
       new _KeyboardEventHandler('keypress').forTarget(target);

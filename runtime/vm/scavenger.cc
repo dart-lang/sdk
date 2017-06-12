@@ -197,12 +197,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
-  ScavengerWeakVisitor(Thread* thread,
-                       Scavenger* scavenger,
-                       FinalizationQueue* finalization_queue)
-      : HandleVisitor(thread),
-        scavenger_(scavenger),
-        queue_(finalization_queue) {
+  ScavengerWeakVisitor(Thread* thread, Scavenger* scavenger)
+      : HandleVisitor(thread), scavenger_(scavenger) {
     ASSERT(scavenger->heap_->isolate() == thread->isolate());
   }
 
@@ -211,7 +207,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject** p = handle->raw_addr();
     if (scavenger_->IsUnreachable(p)) {
-      handle->UpdateUnreachable(thread()->isolate(), queue_);
+      handle->UpdateUnreachable(thread()->isolate());
     } else {
       handle->UpdateRelocated(thread()->isolate());
     }
@@ -219,7 +215,6 @@ class ScavengerWeakVisitor : public HandleVisitor {
 
  private:
   Scavenger* scavenger_;
-  FinalizationQueue* queue_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
@@ -517,6 +512,7 @@ void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
   heap_->RecordData(kToKBAfterStoreBuffer, RoundWordsToKB(UsedInWords()));
   heap_->RecordTime(kVisitIsolateRoots, middle - start);
   heap_->RecordTime(kIterateStoreBuffers, end - middle);
+  heap_->RecordTime(kDummyScavengeTime, 0);
 }
 
 
@@ -781,6 +777,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // will continue with its scavenge after waiting for the winner to complete.
   // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
   // logic to avoid needless collections.
+
+  int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
+
   Thread* thread = Thread::Current();
   SafepointOperationScope safepoint_scope(thread);
 
@@ -790,6 +789,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
 
   PageSpace* page_space = heap_->old_space();
   NoSafepointScope no_safepoints;
+
+  int64_t post_safe_point = OS::GetCurrentMonotonicMicros();
+  heap_->RecordTime(kSafePoint, post_safe_point - pre_safe_point);
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
@@ -816,19 +818,8 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     int64_t middle = OS::GetCurrentMonotonicMicros();
     {
       TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
-      if (FLAG_background_finalization) {
-        FinalizationQueue* queue = new FinalizationQueue();
-        ScavengerWeakVisitor weak_visitor(thread, this, queue);
-        IterateWeakRoots(isolate, &weak_visitor);
-        if (queue->length() > 0) {
-          Dart::thread_pool()->Run(new BackgroundFinalizer(isolate, queue));
-        } else {
-          delete queue;
-        }
-      } else {
-        ScavengerWeakVisitor weak_visitor(thread, this, NULL);
-        IterateWeakRoots(isolate, &weak_visitor);
-      }
+      ScavengerWeakVisitor weak_visitor(thread, this);
+      IterateWeakRoots(isolate, &weak_visitor);
     }
     ProcessWeakReferences();
     page_space->ReleaseDataLock();

@@ -85,4 +85,4 @@ void main() {
 }
 
 _typeOf(compiler, parameter) =>
-    compiler.globalInference.results.resultOf(parameter).type;
+    compiler.globalInference.results.resultOfParameter(parameter).type;

@@ -30,7 +30,7 @@ makeA = function() { return new A; };
 self.nativeConstructor(A);
 """;
 
-makeA() native ;
+makeA() native;
 
 main() {
   nativeTesting();

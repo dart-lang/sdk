@@ -4,15 +4,12 @@
 
 import 'dart:io';
 
-import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../tool/spec/api.dart';
 import '../../tool/spec/from_html.dart';
-
-// TODO(devoncarew): Several of the analysis domain methods are covered, but
-// they aren't using the below file name pattern.
 
 /// Define tests to fail if there's no mention in the coverage file.
 main() {

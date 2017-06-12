@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.delgate_function_invocation;
+library test.delegate_function_invocation;
 
+@MirrorsUsed(targets: "test.delegate_function_invocation")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

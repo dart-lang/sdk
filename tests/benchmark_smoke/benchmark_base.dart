@@ -30,7 +30,7 @@ class BenchmarkBase {
    * The benchmark code.
    * This function is not used, if both [warmup] and [exercise] are overwritten.
    */
-  void run() { }
+  void run() {}
 
   /** Runs a short version of the benchmark. By default invokes [run] once. */
   void warmup() {
@@ -45,10 +45,10 @@ class BenchmarkBase {
   }
 
   /** Not measured setup code executed prior to the benchmark runs. */
-  void setup() { }
+  void setup() {}
 
-  /** Not measures teardown code executed after the benchark runs. */
-  void teardown() { }
+  /** Not measures teardown code executed after the benchmark runs. */
+  void teardown() {}
 
   /**
    * Measures the score for this benchmark by executing it repeately until
@@ -75,9 +75,13 @@ class BenchmarkBase {
   double measure() {
     setup();
     // Warmup for at least 1000ms. Discard result.
-    measureFor(() { this.warmup(); }, 1000);
+    measureFor(() {
+      this.warmup();
+    }, 1000);
     // Run the benchmark for at least 1000ms.
-    double result = measureFor(() { this.exercise(); }, 1000);
+    double result = measureFor(() {
+      this.exercise();
+    }, 1000);
     teardown();
     return result;
   }
@@ -118,7 +122,7 @@ class BenchmarkSuite {
     runBenchmarksHelper(benchmarks);
   }
 
-   /**
+  /**
    * Run the remaining benchmarks in our list. We chain the calls providing
    * little breaks for the main page to gain control, so we don't force the
    * entire page to hang the whole time.
@@ -157,7 +161,6 @@ class BenchmarkSuite {
 
 /** Controls how results are displayed to the user, by updating the HTML. */
 class BenchmarkView {
-
   /** The number of benchmarks that have finished executing. */
   int numCompleted = 0;
 
@@ -170,8 +173,8 @@ class BenchmarkView {
   setScore(num score) {
     String newScore = formatScore(score * 100.0);
     Element body = document.queryAll("body")[0];
-    body.nodes.add(
-        new Element.html("<p id='testResultScore'>Score: $newScore</p>"));
+    body.nodes
+        .add(new Element.html("<p id='testResultScore'>Score: $newScore</p>"));
   }
 
   /**

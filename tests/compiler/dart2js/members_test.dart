@@ -9,7 +9,8 @@ import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import "package:compiler/src/elements/elements.dart"
-    show Element, ClassElement, MemberSignature, Name, PublicName, Member;
+    show ClassElement, MemberSignature;
+import "package:compiler/src/elements/names.dart";
 import "package:compiler/src/resolution/class_members.dart"
     show MembersCreator, DeclaredMember, ErroneousMember, SyntheticMember;
 

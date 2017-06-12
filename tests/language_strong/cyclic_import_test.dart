@@ -1,4 +1,5 @@
 library CyclicImportTest;
+
 import 'sub/sub.dart';
 
 var value = 42;

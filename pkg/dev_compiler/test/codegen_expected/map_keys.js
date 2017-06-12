@@ -5,7 +5,7 @@ define(['dart_sdk'], function(dart_sdk) {
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const map_keys = Object.create(null);
-  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
+  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
   map_keys.main = function() {
     core.print(dart.map({'1': 2, '3': 4, '5': 6}, core.String, core.int));
     core.print(dart.map([1, 2, 3, 4, 5, 6], core.int, core.int));
@@ -15,7 +15,9 @@ define(['dart_sdk'], function(dart_sdk) {
     core.print(dart.map(['1', 2, null, 4, '5', 6], core.String, core.int));
   };
   dart.fn(map_keys.main, VoidTodynamic());
-  dart.trackLibraries("map_keys", {"map_keys.dart": map_keys}, null);
+  dart.trackLibraries("map_keys", {
+    "map_keys.dart": map_keys
+  }, null);
   // Exports:
   return {
     map_keys: map_keys

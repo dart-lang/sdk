@@ -39,11 +39,11 @@ void emptyMapTest() {
 }
 
 void fewerValuesIterableTest() {
-  Expect.throws(() => new Map.fromIterables([1,2], [0]));
+  Expect.throws(() => new Map.fromIterables([1, 2], [0]));
 }
 
 void fewerKeysIterableTest() {
-  Expect.throws(() => new Map.fromIterables([1], [0,2]));
+  Expect.throws(() => new Map.fromIterables([1], [0, 2]));
 }
 
 void equalElementsTest() {
@@ -59,10 +59,9 @@ void equalElementsTest() {
   Expect.equals("three", map[2]);
 }
 
-
 void genericTypeTest() {
-  var map = new Map<int, String>.fromIterables(
-      [1, 2, 3], ["one", "two", "three"]);
+  var map =
+      new Map<int, String>.fromIterables([1, 2, 3], ["one", "two", "three"]);
   Expect.isTrue(map is Map<int, String>);
 
   // Make sure it is not just Map<dynamic, dynamic>.

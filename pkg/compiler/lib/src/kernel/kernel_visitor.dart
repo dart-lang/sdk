@@ -31,8 +31,6 @@ import '../constants/expressions.dart'
         IntFromEnvironmentConstantExpression,
         StringFromEnvironmentConstantExpression,
         TypeConstantExpression;
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionInterfaceType;
 import '../diagnostics/spannable.dart' show Spannable;
 import '../elements/elements.dart'
     show
@@ -52,12 +50,14 @@ import '../elements/elements.dart'
         LocalFunctionElement,
         LocalVariableElement,
         MethodElement,
-        Name,
         ParameterElement,
         PrefixElement,
         TypeVariableElement;
-import '../resolution/operators.dart'
+import '../elements/names.dart' show Name;
+import '../elements/operators.dart'
     show AssignmentOperator, BinaryOperator, IncDecOperator, UnaryOperator;
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import '../resolution/semantic_visitor.dart'
     show
         BaseImplementationOfCompoundsMixin,
@@ -209,8 +209,8 @@ class KernelVisitor extends Object
   // object, via the prefix name (aka "bar" in
   // "import foo.dart deferred as bar"). LibraryElement corresponds to the
   // imported library element.
-  final Map<LibraryElement, Map<String, ir.DeferredImport>> deferredImports =
-      <LibraryElement, Map<String, ir.DeferredImport>>{};
+  final Map<LibraryElement, Map<String, ir.LibraryDependency>> deferredImports =
+      <LibraryElement, Map<String, ir.LibraryDependency>>{};
 
   ir.Node associateElement(ir.Node node, Element element) {
     kernel.nodeToElement[node] = element;
@@ -226,7 +226,7 @@ class KernelVisitor extends Object
 
   /// If non-null, reference to a deferred library that a subsequent getter is
   /// using.
-  ir.DeferredImport _deferredLibrary;
+  ir.LibraryDependency _deferredLibrary;
 
   KernelVisitor(this.currentElement, this.elements, this.kernel);
 
@@ -257,7 +257,8 @@ class KernelVisitor extends Object
   ir.TreeNode visitWithCurrentContext(Expression node) => node?.accept(this);
 
   withCurrentElement(AstElement element, f()) {
-    assert(element.library == kernel.compiler.currentElement.library);
+    assert(
+        element.library == (kernel.compiler.currentElement as Element).library);
     Element previousElement = currentElement;
     currentElement = element;
     try {
@@ -353,6 +354,7 @@ class KernelVisitor extends Object
   }
 
   @override
+  // ignore: INVALID_METHOD_OVERRIDE_RETURN_TYPE
   ir.Expression visitIdentifier(Identifier node) {
     // TODO(ahe): Shouldn't have to override this method, but
     // [SemanticSendResolvedMixin.visitIdentifier] may return `null` on errors.
@@ -1806,6 +1808,7 @@ class KernelVisitor extends Object
     return buildLocalGet(element);
   }
 
+  // ignore: MISSING_RETURN
   ir.Expression buildCompound(
       Accessor accessor, CompoundRhs rhs, SendSet node) {
     ir.Name name = kernel.irName(rhs.operator.selectorName, currentElement);
@@ -2283,11 +2286,11 @@ class KernelVisitor extends Object
     return buildIrFunction(ir.ProcedureKind.Getter, getter, body);
   }
 
-  ir.DeferredImport getDeferredImport(PrefixElement prefix) {
+  ir.LibraryDependency getDeferredImport(PrefixElement prefix) {
     var map = deferredImports[prefix.deferredImport.importedLibrary] ??=
-        <String, ir.DeferredImport>{};
+        <String, ir.LibraryDependency>{};
     return map[prefix.name] ??= associateElement(
-        new ir.DeferredImport(
+        new ir.LibraryDependency.deferredImport(
             kernel.libraries[prefix.deferredImport.importedLibrary],
             prefix.name),
         prefix);
@@ -2752,7 +2755,7 @@ class KernelVisitor extends Object
   /// deferredImport is null, then the function returned is the identity
   /// expression. Otherwise, it inserts a CheckLibraryIsLoaded call before
   /// evaluating the expression.
-  _createCheckLibraryLoadedFuncIfNeeded(ir.DeferredImport deferredImport) {
+  _createCheckLibraryLoadedFuncIfNeeded(ir.LibraryDependency deferredImport) {
     if (deferredImport != null) {
       return (ir.Expression inputExpression) => new ir.Let(
           makeOrReuseVariable(new ir.CheckLibraryIsLoaded(deferredImport)),
@@ -2875,6 +2878,7 @@ class KernelVisitor extends Object
   }
 
   @override
+  // ignore: INVALID_METHOD_OVERRIDE_RETURN_TYPE
   ir.Node visitVariableDefinitions(VariableDefinitions definitions) {
     // TODO(ahe): This method is copied from [SemanticDeclarationResolvedMixin]
     // and modified. Perhaps we can find a way to avoid code duplication.

@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.edit.fixes;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -47,6 +51,24 @@ main() {
     expect(fixes, hasLength(2));
     expect(fixes[0].message, matches('Import library'));
     expect(fixes[1].message, matches('Create class'));
+  }
+
+  test_fromPlugins() async {
+    PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
+    plugin.AnalysisErrorFixes fixes = new plugin.AnalysisErrorFixes(
+        new AnalysisError(AnalysisErrorSeverity.ERROR, AnalysisErrorType.HINT,
+            new Location('', 0, 0, 0, 0), 'message', 'code'));
+    plugin.EditGetFixesResult result =
+        new plugin.EditGetFixesResult(<plugin.AnalysisErrorFixes>[fixes]);
+    pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
+      info: new Future.value(result.toResponse('-', 1))
+    };
+
+    createProject();
+    addTestFile('main() {}');
+    await waitForTasksFinished();
+    List<AnalysisErrorFixes> errorFixes = await _getFixesAt('in(');
+    expect(errorFixes, hasLength(1));
   }
 
   test_hasFixes() async {

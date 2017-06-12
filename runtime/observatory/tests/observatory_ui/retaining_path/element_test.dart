@@ -18,9 +18,9 @@ main() {
   const isolate = const IsolateRefMock();
   const object = const InstanceRefMock();
   final paths = new RetainingPathRepositoryMock();
-  final instances = new InstanceRepositoryMock();
+  final objects = new ObjectRepositoryMock();
   test('instantiation', () {
-    final e = new RetainingPathElement(isolate, object, paths, instances);
+    final e = new RetainingPathElement(isolate, object, paths, objects);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.object, equals(object));
@@ -37,8 +37,8 @@ main() {
       invoked = true;
       return path;
     }, count: 1));
-    final instances = new InstanceRepositoryMock();
-    final e = new RetainingPathElement(isolate, object, paths, instances);
+    final objects = new ObjectRepositoryMock();
+    final e = new RetainingPathElement(isolate, object, paths, objects);
     document.body.append(e);
     await e.onRendered.first;
     expect(invoked, isFalse);

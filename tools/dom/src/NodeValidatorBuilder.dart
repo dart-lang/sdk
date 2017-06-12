@@ -154,9 +154,9 @@ class NodeValidatorBuilder implements NodeValidator {
       Iterable<String> uriAttributes}) {
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
-        ?.map /*<String>*/ ((name) => '$tagNameUpper::${name.toLowerCase()}');
+        ?.map/*<String>*/((name) => '$tagNameUpper::${name.toLowerCase()}');
     var uriAttrs = uriAttributes
-        ?.map /*<String>*/ ((name) => '$tagNameUpper::${name.toLowerCase()}');
+        ?.map/*<String>*/((name) => '$tagNameUpper::${name.toLowerCase()}');
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
@@ -180,9 +180,9 @@ class NodeValidatorBuilder implements NodeValidator {
     var baseNameUpper = baseName.toUpperCase();
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
-        ?.map /*<String>*/ ((name) => '$baseNameUpper::${name.toLowerCase()}');
+        ?.map/*<String>*/((name) => '$baseNameUpper::${name.toLowerCase()}');
     var uriAttrs = uriAttributes
-        ?.map /*<String>*/ ((name) => '$baseNameUpper::${name.toLowerCase()}');
+        ?.map/*<String>*/((name) => '$baseNameUpper::${name.toLowerCase()}');
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }

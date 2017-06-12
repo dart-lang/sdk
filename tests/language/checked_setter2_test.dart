@@ -10,11 +10,9 @@ class A {
   C<int> c;
 }
 
-class B extends A {
-}
+class B extends A {}
 
-class C<T> {
-}
+class C<T> {}
 
 var array = [new B()];
 

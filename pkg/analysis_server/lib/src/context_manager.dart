@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library context.directory.manager;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:core';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
@@ -279,6 +278,19 @@ abstract class ContextManager {
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot);
 
   /**
+   * Like [getDriverFor] and [getContextFor], but returns the [Folder] which
+   * allows plugins to create & manage their own tree of drivers just like using
+   * [getDriverFor].
+   *
+   * This folder should be the root of analysis context, not just the containing
+   * folder of the path (like basename), as this is NOT just a file API.
+   *
+   * This exists at least temporarily, for plugin support until the new API is
+   * ready.
+   */
+  Folder getContextFolderFor(String path);
+
+  /**
    * Return the [AnalysisContext] for the "innermost" context whose associated
    * folder is or contains the given path.  ("innermost" refers to the nesting
    * of contexts, so if there is a context for path /foo and a context for
@@ -299,19 +311,6 @@ abstract class ContextManager {
    * If no driver contains the given path, `null` is returned.
    */
   AnalysisDriver getDriverFor(String path);
-
-  /**
-   * Like [getDriverFor] and [getContextFor], but returns the [Folder] which
-   * allows plugins to create & manage their own tree of drivers just like using
-   * [getDriverFor].
-   *
-   * This folder should be the root of analysis context, not just the containing
-   * folder of the path (like basename), as this is NOT just a file API.
-   *
-   * This exists at least temporarily, for plugin support until the new API is
-   * ready.
-   */
-  Folder getContextFolderFor(String path);
 
   /**
    * Return a list of all of the analysis drivers reachable from the given
@@ -363,7 +362,8 @@ abstract class ContextManagerCallbacks {
    * Create and return a new analysis driver rooted at the given [folder], with
    * the given analysis [options].
    */
-  AnalysisDriver addAnalysisDriver(Folder folder, AnalysisOptions options);
+  AnalysisDriver addAnalysisDriver(
+      Folder folder, ContextRoot contextRoot, AnalysisOptions options);
 
   /**
    * Create and return a new analysis context rooted at the given [folder], with
@@ -382,6 +382,11 @@ abstract class ContextManagerCallbacks {
    * The given [file] was removed from the folder analyzed in the [driver].
    */
   void applyFileRemoved(AnalysisDriver driver, String file);
+
+  /**
+   * Sent the given watch [event] to any interested plugins.
+   */
+  void broadcastWatchEvent(WatchEvent event);
 
   /**
    * Signals that the context manager has started to compute a package map (if
@@ -606,6 +611,10 @@ class ContextManagerImpl implements ContextManager {
    */
   bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
 
+  Folder getContextFolderFor(String path) {
+    return _getInnermostContextInfoFor(path)?.folder;
+  }
+
   @override
   AnalysisContext getContextFor(String path) {
     return _getInnermostContextInfoFor(path)?.context;
@@ -625,10 +634,6 @@ class ContextManagerImpl implements ContextManager {
   @override
   AnalysisDriver getDriverFor(String path) {
     return _getInnermostContextInfoFor(path)?.analysisDriver;
-  }
-
-  Folder getContextFolderFor(String path) {
-    return _getInnermostContextInfoFor(path)?.folder;
   }
 
   @override
@@ -884,7 +889,7 @@ class ContextManagerImpl implements ContextManager {
         ContextInfo parent = _getParentForNewContext(includedPath);
         changeSubscriptions[includedFolder] =
             includedFolder.changes.listen(_handleWatchEvent);
-        _createContexts(parent, includedFolder, false);
+        _createContexts(parent, includedFolder, excludedPaths, false);
       }
     }
     // remove newly excluded sources
@@ -1166,14 +1171,14 @@ class ContextManagerImpl implements ContextManager {
 
   /**
    * Create a new empty context associated with [folder], having parent
-   * [parent] and using [packagespecFile] to resolve package URI's.
+   * [parent] and using [packagesFile] to resolve package URI's.
    */
-  ContextInfo _createContext(
-      ContextInfo parent, Folder folder, File packagespecFile) {
+  ContextInfo _createContext(ContextInfo parent, Folder folder,
+      List<String> excludedPaths, File packagesFile) {
     List<String> dependencies = <String>[];
     FolderDisposition disposition =
-        _computeFolderDisposition(folder, dependencies.add, packagespecFile);
-    ContextInfo info = new ContextInfo(this, parent, folder, packagespecFile,
+        _computeFolderDisposition(folder, dependencies.add, packagesFile);
+    ContextInfo info = new ContextInfo(this, parent, folder, packagesFile,
         normalizedPackageRoots[folder.path], disposition);
 
     Map<String, Object> optionMap =
@@ -1184,8 +1189,14 @@ class ContextManagerImpl implements ContextManager {
 
     info.setDependencies(dependencies);
     if (enableNewAnalysisDriver) {
+      String includedPath = folder.path;
+      List<String> containedExcludedPaths = excludedPaths
+          .where((String excludedPath) =>
+              pathContext.isWithin(includedPath, excludedPath))
+          .toList();
       processOptionsForDriver(info, options, optionMap);
-      info.analysisDriver = callbacks.addAnalysisDriver(folder, options);
+      info.analysisDriver = callbacks.addAnalysisDriver(folder,
+          new ContextRoot(folder.path, containedExcludedPaths), options);
     } else {
       info.context = callbacks.addContext(folder, options);
       _folderMap[folder] = info.context;
@@ -1208,8 +1219,8 @@ class ContextManagerImpl implements ContextManager {
    *
    * [parent] should be the parent of any contexts that are created.
    */
-  void _createContexts(
-      ContextInfo parent, Folder folder, bool withPackageSpecOnly) {
+  void _createContexts(ContextInfo parent, Folder folder,
+      List<String> excludedPaths, bool withPackageSpecOnly) {
     if (_isExcluded(folder.path) ||
         folder.shortName.startsWith('.') ||
         folder.shortName == 'packages') {
@@ -1227,7 +1238,7 @@ class ContextManagerImpl implements ContextManager {
       createContext = false;
     }
     if (createContext) {
-      parent = _createContext(parent, folder, packageSpec);
+      parent = _createContext(parent, folder, excludedPaths, packageSpec);
     }
 
     // Try to find subfolders with pubspecs or .packages files.
@@ -1235,7 +1246,7 @@ class ContextManagerImpl implements ContextManager {
       for (Resource child in folder.getChildren()) {
         if (child is Folder) {
           if (!parent.ignored(child.path)) {
-            _createContexts(parent, child, true);
+            _createContexts(parent, child, excludedPaths, true);
           }
         }
       }
@@ -1278,7 +1289,8 @@ class ContextManagerImpl implements ContextManager {
    */
   void _extractContext(ContextInfo oldInfo, File packagespecFile) {
     Folder newFolder = packagespecFile.parent;
-    ContextInfo newInfo = _createContext(oldInfo, newFolder, packagespecFile);
+    ContextInfo newInfo =
+        _createContext(oldInfo, newFolder, excludedPaths, packagespecFile);
     // prepare sources to extract
     Map<String, Source> extractedSources = new HashMap<String, Source>();
     oldInfo.sources.forEach((path, source) {
@@ -1386,7 +1398,10 @@ class ContextManagerImpl implements ContextManager {
     // but implicitly referenced in another context, we will only send a
     // changeSet to the context that explicitly includes the file (because
     // that's the only context that's watching the file).
-    ContextInfo info = _getInnermostContextInfoFor(event.path);
+    callbacks.broadcastWatchEvent(event);
+    String path = event.path;
+    ChangeType type = event.type;
+    ContextInfo info = _getInnermostContextInfoFor(path);
     if (info == null) {
       // This event doesn't apply to any context.  This could happen due to a
       // race condition (e.g. a context was removed while one of its events was
@@ -1394,8 +1409,7 @@ class ContextManagerImpl implements ContextManager {
       return;
     }
     _instrumentationService.logWatchEvent(
-        info.folder.path, event.path, event.type.toString());
-    String path = event.path;
+        info.folder.path, path, type.toString());
     // First handle changes that affect folderDisposition (since these need to
     // be processed regardless of whether they are part of an excluded/ignored
     // path).
@@ -1417,7 +1431,7 @@ class ContextManagerImpl implements ContextManager {
       return;
     }
     // handle the change
-    switch (event.type) {
+    switch (type) {
       case ChangeType.ADD:
         Resource resource = resourceProvider.getResource(path);
 
@@ -1534,7 +1548,7 @@ class ContextManagerImpl implements ContextManager {
         break;
     }
     _checkForPackagespecUpdate(path, info, info.folder);
-    _checkForAnalysisOptionsUpdate(path, info, event.type);
+    _checkForAnalysisOptionsUpdate(path, info, type);
   }
 
   /**

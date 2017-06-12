@@ -23,12 +23,14 @@ _callAttached(receiver) {
 _callDetached(receiver) {
   return receiver.detached();
 }
- _callAttributeChanged(receiver, name, oldValue, newValue) {
+
+_callAttributeChanged(receiver, name, oldValue, newValue) {
   return receiver.attributeChanged(name, oldValue, newValue);
 }
 
 _makeCallbackMethod(callback) {
-  return JS('',
+  return JS(
+      '',
       '''((function(invokeCallback) {
              return function() {
                return invokeCallback(this);
@@ -38,7 +40,8 @@ _makeCallbackMethod(callback) {
 }
 
 _makeCallbackMethod3(callback) {
-  return JS('',
+  return JS(
+      '',
       '''((function(invokeCallback) {
              return function(arg1, arg2, arg3) {
                return invokeCallback(this, arg1, arg2, arg3);
@@ -57,13 +60,14 @@ void _checkExtendsNativeClassOrTemplate(
     Element element, String extendsTag, String baseClassName) {
   if (!JS('bool', '(# instanceof window[#])', element, baseClassName) &&
       !((extendsTag == 'template' &&
-       JS('bool', '(# instanceof window["HTMLUnknownElement"])', element)))) {
+          JS('bool', '(# instanceof window["HTMLUnknownElement"])',
+              element)))) {
     throw new UnsupportedError('extendsTag does not match base native class');
   }
 }
 
-void _registerCustomElement(context, document, String tag, Type type,
-    String extendsTagName) {
+void _registerCustomElement(
+    context, document, String tag, Type type, String extendsTagName) {
   // Function follows the same pattern as the following JavaScript code for
   // registering a custom element.
   //
@@ -113,7 +117,10 @@ void _registerCustomElement(context, document, String tag, Type type,
 
   var properties = JS('=Object', '{}');
 
-  JS('void', '#.createdCallback = #', properties,
+  JS(
+      'void',
+      '#.createdCallback = #',
+      properties,
       JS('=Object', '{value: #}',
           _makeCallbackMethod(_callConstructor(constructor, interceptor))));
   JS('void', '#.attachedCallback = #', properties,

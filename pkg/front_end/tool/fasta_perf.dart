@@ -9,16 +9,19 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/src/fasta/ast_builder.dart';
+import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
-import 'package:front_end/src/fasta/source/scope_listener.dart' show Scope;
+import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/fasta/parser/dart_vm_native.dart'
+    show skipNativeClause;
 
 /// Cumulative total number of chars scanned.
 int inputSize = 0;
@@ -81,7 +84,7 @@ Future setup(Uri entryUri) async {
   // sdk directly.
   var sdkRoot =
       Uri.base.resolve(Platform.resolvedExecutable).resolve('patched_sdk/');
-  uriResolver = await TranslateUri.parse(sdkRoot);
+  uriResolver = await TranslateUri.parse(PhysicalFileSystem.instance, sdkRoot);
 }
 
 /// Scan [contents] and return the first token produced by the scanner.
@@ -157,51 +160,17 @@ Future<Null> collectSources(Uri start, Map<Uri, List<int>> files) async {
 /// Parse [contents] as a Dart program and return the URIs that appear in its
 /// import, export, and part directives.
 Set<String> extractDirectiveUris(List<int> contents) {
-  var listener = new DirectiveListener();
-  new DirectiveParser(listener).parseUnit(tokenize(contents));
-  return listener.uris;
+  var listener = new DirectiveListenerWithNative();
+  new TopLevelParser(listener).parseUnit(tokenize(contents));
+  return new Set<String>()
+    ..addAll(listener.imports.map((directive) => directive.uri))
+    ..addAll(listener.exports.map((directive) => directive.uri))
+    ..addAll(listener.parts);
 }
 
-/// Diet parser that stops eagerly at the first sign that we have seen all the
-/// import, export, and part directives.
-class DirectiveParser extends ClassMemberParser {
-  DirectiveParser(listener) : super(listener);
-
-  static final _endToken = new SymbolToken.eof(-1);
-
-  Token parseClassOrNamedMixinApplication(Token token) => _endToken;
-  Token parseEnum(Token token) => _endToken;
-  parseTypedef(token) => _endToken;
-  parseTopLevelMember(Token token) => _endToken;
-}
-
-/// Listener that records the URIs from imports, exports, and part directives.
-class DirectiveListener extends Listener {
-  bool _inDirective = false;
-  Set<String> uris = new Set<String>();
-
-  void _enterDirective() {
-    _inDirective = true;
-  }
-
-  void _exitDirective() {
-    _inDirective = false;
-  }
-
-  beginImport(_) => _enterDirective();
-  beginExport(_) => _enterDirective();
-  beginPart(_) => _enterDirective();
-
-  endExport(export, semicolon) => _exitDirective();
-  endImport(import, deferred, asKeyword, semicolon) => _exitDirective();
-  endPart(part, semicolon) => _exitDirective();
-
-  void beginLiteralString(Token token) {
-    if (_inDirective) {
-      var quotedString = token.lexeme;
-      uris.add(quotedString.substring(1, quotedString.length - 1));
-    }
-  }
+class DirectiveListenerWithNative extends DirectiveListener {
+  @override
+  Token handleNativeClause(Token token) => skipNativeClause(token);
 }
 
 /// Parses every file in [files] and reports the time spent doing so.
@@ -225,15 +194,10 @@ parseFull(Uri uri, List<int> source) {
   parser.parseUnit(tokens);
 }
 
-class _EmptyScope extends Scope {
-  _EmptyScope() : super({}, null);
-}
-
 // Note: AstBuilder doesn't build compilation-units or classes, only method
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
-  _PartialAstBuilder(Uri uri)
-      : super(null, null, null, null, new _EmptyScope(), uri);
+  _PartialAstBuilder(Uri uri) : super(null, null, null, null, null, uri);
 
   // Note: this method converts the body to kernel, so we skip that here.
   @override
@@ -241,16 +205,18 @@ class _PartialAstBuilder extends AstBuilder {
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]
-// TODO(sigmund): update to uyse the frontend api once fasta is beind hit.
-generateKernel(Uri entryUri, {bool compileSdk: true}) async {
+// TODO(sigmund): update to use the frontend api once fasta is being hit.
+generateKernel(Uri entryUri,
+    {bool compileSdk: true, bool strongMode: false}) async {
   // TODO(sigmund): this is here only to compute the input size,
   // we should extract the input size from the frontend instead.
   scanReachableFiles(entryUri);
 
   var timer = new Stopwatch()..start();
   final Ticker ticker = new Ticker();
-  final DillTarget dillTarget = new DillTarget(ticker, uriResolver);
-  final KernelTarget kernelTarget = new KernelTarget(dillTarget, uriResolver);
+  final DillTarget dillTarget = new DillTarget(ticker, uriResolver, "vm");
+  final KernelTarget kernelTarget = new KernelTarget(
+      PhysicalFileSystem.instance, dillTarget, uriResolver, strongMode);
   var entrypoints = [
     entryUri,
     // These extra libraries are added to match the same set of libraries
@@ -273,9 +239,9 @@ generateKernel(Uri entryUri, {bool compileSdk: true}) async {
     dillTarget.read(
         Uri.base.resolve(Platform.resolvedExecutable).resolve('platform.dill'));
   }
-  await dillTarget.writeOutline(null);
-  var program = await kernelTarget.writeOutline(null);
-  program = await kernelTarget.writeProgram(null);
+  await dillTarget.buildOutlines();
+  await kernelTarget.buildOutlines();
+  var program = await kernelTarget.buildProgram();
   if (kernelTarget.errors.isNotEmpty) {
     throw kernelTarget.errors.first;
   }

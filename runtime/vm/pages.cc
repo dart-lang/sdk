@@ -849,6 +849,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   Isolate* isolate = heap_->isolate();
   ASSERT(isolate == Isolate::Current());
 
+  const int64_t pre_wait_for_sweepers = OS::GetCurrentMonotonicMicros();
+
   // Wait for pending tasks to complete and then account for the driver task.
   {
     MonitorLocker locker(tasks_lock());
@@ -857,12 +859,17 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     }
     set_tasks(1);
   }
+
+  const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
+
   // Ensure that all threads for this isolate are at a safepoint (either
   // stopped or in native code). We have guards around Newgen GC and oldgen GC
   // to ensure that if two threads are racing to collect at the same time the
   // loser skips collection and goes straight to allocation.
   {
     SafepointOperationScope safepoint_scope(thread);
+
+    const int64_t start = OS::GetCurrentMonotonicMicros();
 
     // Perform various cleanup that relies on no tasks interfering.
     isolate->class_table()->FreeOldTables();
@@ -881,8 +888,6 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
       heap_->VerifyGC();
       OS::PrintErr(" done.\n");
     }
-
-    const int64_t start = OS::GetCurrentMonotonicMicros();
 
     // Make code pages writable.
     WriteProtectCode(false);
@@ -991,6 +996,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     page_space_controller_.EvaluateGarbageCollection(
         usage_before, GetCurrentUsage(), start, end);
 
+    heap_->RecordTime(kConcurrentSweep, pre_safe_point - pre_wait_for_sweepers);
+    heap_->RecordTime(kSafePoint, start - pre_safe_point);
     heap_->RecordTime(kMarkObjects, mid1 - start);
     heap_->RecordTime(kResetFreeLists, mid2 - mid1);
     heap_->RecordTime(kSweepPages, mid3 - mid2);
@@ -1210,7 +1217,11 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   if (allocated_since_previous_gc > 0) {
     const intptr_t garbage = before.used_in_words - after.used_in_words;
     ASSERT(garbage >= 0);
-    const double k = garbage / static_cast<double>(allocated_since_previous_gc);
+    // It makes no sense to expect that each kb allocated will cause more than
+    // one kb of garbage, so we clamp k at 1.0.
+    const double k = Utils::Minimum(
+        1.0, garbage / static_cast<double>(allocated_since_previous_gc));
+
     const int garbage_ratio = static_cast<int>(k * 100);
     heap_->RecordData(PageSpace::kGarbageRatio, garbage_ratio);
 
@@ -1240,7 +1251,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       while (min < max) {
         local_grow_heap = (max + min) / 2;
         const intptr_t limit = after.capacity_in_words +
-                               (grow_heap_ * PageSpace::kPageSizeInWords);
+                               (local_grow_heap * PageSpace::kPageSizeInWords);
         const intptr_t allocated_before_next_gc = limit - after.used_in_words;
         const double estimated_garbage = k * allocated_before_next_gc;
         if (t <= estimated_garbage / limit) {
@@ -1249,12 +1260,13 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
           min = local_grow_heap + 1;
         }
       }
+      local_grow_heap = (max + min) / 2;
       grow_heap_ = local_grow_heap;
       ASSERT(grow_heap_ >= 0);
       // If we are going to grow by heap_grow_max_ then ensure that we
       // will be growing the heap at least by the growth ratio heuristics.
-      if ((grow_heap_ == heap_growth_max_) && (grow_ratio > grow_heap_)) {
-        grow_heap_ = grow_ratio;
+      if (grow_heap_ >= heap_growth_max_) {
+        grow_heap_ = Utils::Maximum(grow_ratio, grow_heap_);
       }
     }
   } else {

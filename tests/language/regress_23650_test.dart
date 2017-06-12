@@ -11,8 +11,7 @@ class C<T> {
   factory C() {
     try {
       return new C<T>.foo();
-    } finally {
-    }
+    } finally {}
   }
 }
 

@@ -4,21 +4,21 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetTypeHierarchyTest);
-    defineReflectiveTests(GetTypeHierarchyTest_Driver);
   });
 }
 
-class AbstractGetTypeHierarchyTest
-    extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class GetTypeHierarchyTest extends AbstractAnalysisServerIntegrationTest {
   /**
    * Pathname of the main file to run tests in.
    */
@@ -227,15 +227,6 @@ class Pivot /* target */ extends Base2 {}
       return new HierarchyResults(result.hierarchyItems);
     }
   }
-}
-
-@reflectiveTest
-class GetTypeHierarchyTest extends AbstractGetTypeHierarchyTest {}
-
-@reflectiveTest
-class GetTypeHierarchyTest_Driver extends AbstractGetTypeHierarchyTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
 
 /**

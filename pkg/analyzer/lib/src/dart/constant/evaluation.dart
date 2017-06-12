@@ -550,7 +550,35 @@ class ConstantEvaluationEngine {
     }
 
     var fieldMap = new HashMap<String, DartObjectImpl>();
-    var fieldInitVisitor = new ConstantVisitor(this, errorReporter,
+
+    // The errors reported while computing values for field initializers, or
+    // default values for the constructor parameters, cannot be reported
+    // into the current ErrorReporter, because they usually happen in a
+    // different source. But they still should cause a constant evaluation
+    // error for the current node.
+    var externalErrorListener = new RecordingErrorListener();
+    var externalErrorReporter =
+        new ErrorReporter(externalErrorListener, constructor.source);
+
+    void reportLocalErrorForRecordedExternalErrors() {
+      ErrorCode errorCode;
+      for (AnalysisError error in externalErrorListener.errors) {
+        if (error.errorCode is CompileTimeErrorCode) {
+          errorCode = CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION;
+          break;
+        }
+        if (error.errorCode is CheckedModeCompileTimeErrorCode) {
+          errorCode =
+              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION;
+          break;
+        }
+      }
+      if (errorCode != null) {
+        errorReporter.reportErrorForNode(errorCode, node);
+      }
+    }
+
+    var fieldInitVisitor = new ConstantVisitor(this, externalErrorReporter,
         lexicalEnvironment: typeArgumentMap);
     // Start with final fields that are initialized at their declaration site.
     List<FieldElement> fields = constructor.enclosingElement.fields;
@@ -673,7 +701,7 @@ class ConstantEvaluationEngine {
       }
     }
     ConstantVisitor initializerVisitor = new ConstantVisitor(
-        this, errorReporter,
+        this, externalErrorReporter,
         lexicalEnvironment: parameterMap);
     String superName = null;
     NodeList<Expression> superArguments = null;
@@ -712,13 +740,18 @@ class ConstantEvaluationEngine {
         // it redirects to.
         ConstructorElement constructor = initializer.staticElement;
         if (constructor != null && constructor.isConst) {
-          return evaluateConstructorCall(
+          // Instantiate the constructor with the in-scope type arguments.
+          constructor = ConstructorMember.from(constructor, definingClass);
+
+          DartObjectImpl result = evaluateConstructorCall(
               node,
               initializer.argumentList.arguments,
               constructor,
               initializerVisitor,
-              errorReporter,
+              externalErrorReporter,
               invocation: invocation);
+          reportLocalErrorForRecordedExternalErrors();
+          return result;
         }
       }
     }
@@ -733,9 +766,10 @@ class ConstantEvaluationEngine {
         }
 
         evaluateSuperConstructorCall(node, fieldMap, superConstructor,
-            superArguments, initializerVisitor, errorReporter);
+            superArguments, initializerVisitor, externalErrorReporter);
       }
     }
+    reportLocalErrorForRecordedExternalErrors();
     return new DartObjectImpl(
         definingClass, new GenericState(fieldMap, invocation: invocation));
   }

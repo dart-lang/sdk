@@ -763,10 +763,12 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
     if (value.IsInstance()) {
       const Instance& instance = Instance::Cast(value);
       const AbstractType& checked_type = instr->type();
-      if (instr->instantiator_type_arguments()->BindsToConstantNull()) {
+      if (instr->instantiator_type_arguments()->BindsToConstantNull() &&
+          instr->function_type_arguments()->BindsToConstantNull()) {
         Error& bound_error = Error::Handle();
-        bool is_instance = instance.IsInstanceOf(
-            checked_type, Object::null_type_arguments(), &bound_error);
+        bool is_instance =
+            instance.IsInstanceOf(checked_type, Object::null_type_arguments(),
+                                  Object::null_type_arguments(), &bound_error);
         // Can only have bound error with generics.
         ASSERT(bound_error.IsNull());
         SetValue(instr, Bool::Get(is_instance));
@@ -829,30 +831,33 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
     }
   }
 
-  if (instr->IsImmutableLengthLoad()) {
-    ConstantInstr* constant =
-        instance->definition()->OriginalDefinition()->AsConstant();
-    if (constant != NULL) {
-      if (constant->value().IsString()) {
+  const Object& constant = instance->definition()->constant_value();
+  if (IsConstant(constant)) {
+    if (instr->IsImmutableLengthLoad()) {
+      if (constant.IsString()) {
         SetValue(instr,
-                 Smi::ZoneHandle(
-                     Z, Smi::New(String::Cast(constant->value()).Length())));
+                 Smi::ZoneHandle(Z, Smi::New(String::Cast(constant).Length())));
         return;
       }
-      if (constant->value().IsArray()) {
+      if (constant.IsArray()) {
         SetValue(instr,
-                 Smi::ZoneHandle(
-                     Z, Smi::New(Array::Cast(constant->value()).Length())));
+                 Smi::ZoneHandle(Z, Smi::New(Array::Cast(constant).Length())));
         return;
       }
-      if (constant->value().IsTypedData()) {
-        SetValue(instr,
-                 Smi::ZoneHandle(
-                     Z, Smi::New(TypedData::Cast(constant->value()).Length())));
+      if (constant.IsTypedData()) {
+        SetValue(instr, Smi::ZoneHandle(
+                            Z, Smi::New(TypedData::Cast(constant).Length())));
+        return;
+      }
+    } else {
+      Object& value = Object::Handle();
+      if (instr->Evaluate(constant, &value)) {
+        SetValue(instr, Object::ZoneHandle(Z, value.raw()));
         return;
       }
     }
   }
+
   SetValue(instr, non_constant_);
 }
 
@@ -860,13 +865,13 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
 void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
   const Object& object =
       instr->instantiator_type_arguments()->definition()->constant_value();
-  // TODO(regis): Check function type arguments.
   if (IsNonConstant(object)) {
     SetValue(instr, non_constant_);
     return;
   }
   if (IsConstant(object)) {
-    if (instr->type().IsTypeParameter()) {
+    if (instr->type().IsTypeParameter() &&
+        TypeParameter::Cast(instr->type()).IsClassTypeParameter()) {
       if (object.IsNull()) {
         SetValue(instr, Object::dynamic_type());
         return;
@@ -876,32 +881,46 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
     }
     SetValue(instr, non_constant_);
   }
+  // TODO(regis): We can do the same as above for a function type parameter.
+  // Better: If both instantiator type arguments and function type arguments are
+  // constant, instantiate the type if no bound error is reported.
 }
 
 
 void ConstantPropagator::VisitInstantiateTypeArguments(
     InstantiateTypeArgumentsInstr* instr) {
-  const Object& object =
+  const Object& instantiator_type_args =
       instr->instantiator_type_arguments()->definition()->constant_value();
-  // TODO(regis): Check function type arguments.
-  if (IsNonConstant(object)) {
+  const Object& function_type_args =
+      instr->function_type_arguments()->definition()->constant_value();
+  if (IsNonConstant(instantiator_type_args) ||
+      IsNonConstant(function_type_args)) {
     SetValue(instr, non_constant_);
     return;
   }
-  if (IsConstant(object)) {
-    const intptr_t len = instr->type_arguments().Length();
-    if (instr->type_arguments().IsRawInstantiatedRaw(len) && object.IsNull()) {
-      SetValue(instr, object);
-      return;
+  if (IsConstant(instantiator_type_args) && IsConstant(function_type_args)) {
+    if (instantiator_type_args.IsNull() && function_type_args.IsNull()) {
+      const intptr_t len = instr->type_arguments().Length();
+      if (instr->type_arguments().IsRawWhenInstantiatedFromRaw(len)) {
+        SetValue(instr, instantiator_type_args);
+        return;
+      }
     }
     if (instr->type_arguments().IsUninstantiatedIdentity() ||
         instr->type_arguments().CanShareInstantiatorTypeArguments(
             instr->instantiator_class())) {
-      SetValue(instr, object);
+      SetValue(instr, instantiator_type_args);
       return;
     }
     SetValue(instr, non_constant_);
   }
+  // TODO(regis): If both instantiator type arguments and function type
+  // arguments are constant, instantiate the type arguments if no bound error
+  // is reported.
+  // TODO(regis): If either instantiator type arguments or function type
+  // arguments are constant null, check
+  // type_arguments().IsRawWhenInstantiatedFromRaw() separately for each
+  // genericity.
 }
 
 
@@ -1103,7 +1122,7 @@ void ConstantPropagator::VisitInvokeMathCFunction(
 }
 
 
-void ConstantPropagator::VisitMergedMath(MergedMathInstr* instr) {
+void ConstantPropagator::VisitTruncDivMod(TruncDivModInstr* instr) {
   // TODO(srdjan): Handle merged instruction.
   SetValue(instr, non_constant_);
 }

@@ -1090,10 +1090,11 @@ class Primitives {
 
   static int getTimeZoneOffsetInMinutes(DateTime receiver) {
     // Note that JS and Dart disagree on the sign of the offset.
-    return -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
+    // Subtract to avoid -0.0
+    return 0 - JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
-  static valueFromDecomposedDate(
+  static int valueFromDecomposedDate(
       years, month, day, hours, minutes, seconds, milliseconds, isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
@@ -1105,6 +1106,14 @@ class Primitives {
     checkInt(milliseconds);
     checkBool(isUtc);
     var jsMonth = month - 1;
+    // The JavaScript Date constructor 'corrects' year NN to 19NN. Sidestep that
+    // correction by adjusting years out of that range and compensating with an
+    // adjustment of months. This hack should not be sensitive to leap years but
+    // use 400 just in case.
+    if (0 <= years && years < 100) {
+      years += 400;
+      jsMonth -= 400 * 12;
+    }
     var value;
     if (isUtc) {
       value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
@@ -1118,18 +1127,7 @@ class Primitives {
         value > MAX_MILLISECONDS_SINCE_EPOCH) {
       return null;
     }
-    if (years <= 0 || years < 100) return patchUpY2K(value, years, isUtc);
-    return value;
-  }
-
-  static patchUpY2K(value, years, isUtc) {
-    var date = JS('', r'new Date(#)', value);
-    if (isUtc) {
-      JS('num', r'#.setUTCFullYear(#)', date, years);
-    } else {
-      JS('num', r'#.setFullYear(#)', date, years);
-    }
-    return JS('num', r'#.valueOf()', date);
+    return JS('int', '#', value);
   }
 
   // Lazily keep a JS Date stored in the JS object.
@@ -1144,43 +1142,74 @@ class Primitives {
   // The getters for date and time parts below add a positive integer to ensure
   // that the result is really an integer, because the JavaScript implementation
   // may return -0.0 instead of 0.
+  //
+  // They are marked as @NoThrows() because `receiver` comes from a receiver of
+  // a method on DateTime (i.e. is not `null`).
 
+  // TODO(sra): These methods are GVN-able. dart2js should implement an
+  // annotation for that.
+
+  // TODO(sra): These methods often occur in groups (e.g. day, month and
+  // year). Is it possible to factor them so that the `Date` is visible and can
+  // be GVN-ed without a lot of code bloat?
+
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getYear(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getMonth(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'#.getMonth() + 1', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getDay(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getHours(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getMinutes(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getSeconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS(
@@ -1188,6 +1217,9 @@ class Primitives {
         : JS('JSUInt31', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
+  @NoSideEffects()
+  @NoThrows()
+  @NoInline()
   static getWeekday(DateTime receiver) {
     int weekday = (receiver.isUtc)
         ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
@@ -1707,6 +1739,7 @@ checkNull(object) {
   return object;
 }
 
+@NoInline()
 checkNum(value) {
   if (value is! num) throw argumentErrorValue(value);
   return value;
@@ -2317,7 +2350,7 @@ unwrapException(ex) {
     // argument to a function that does not allow a range that includes that
     // number. Translate to a Dart ArgumentError with the same message.
     // TODO(sra): Translate to RangeError.
-    String message = tryStringifyException(ex);
+    message = tryStringifyException(ex);
     if (message is String) {
       message = JS('String', r'#.replace(/^RangeError:\s*/, "")', message);
     }
@@ -3138,7 +3171,7 @@ class Returns {
  * This example declares a Dart field + getter + setter called `$dom_title` that
  * corresponds to the JavaScript property `title`.
  *
- *     class Docmument native "*Foo" {
+ *     class Document native "*Foo" {
  *       @JSName('title')
  *       String $dom_title;
  *     }
@@ -3383,11 +3416,6 @@ listSuperNativeTypeCast(value, property) {
   propertyTypeCastError(value, property);
 }
 
-voidTypeCheck(value) {
-  if (value == null) return value;
-  throw new TypeErrorImplementation(value, 'void');
-}
-
 extractFunctionTypeObjectFrom(o) {
   var interceptor = getInterceptor(o);
   var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
@@ -3625,27 +3653,32 @@ Future<Null> loadDeferredLibrary(String loadId) {
   // list of hashes. These are stored in the app-global scope.
   var urisMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_URIS);
   List<String> uris = JS('JSExtendableArray|Null', '#[#]', urisMap, loadId);
+  if (uris == null) return new Future.value(null);
+
   var hashesMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_HASHES);
   List<String> hashes = JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId);
-  if (uris == null) return new Future.value(null);
-  // The indices into `uris` and `hashes` that we want to load.
-  List<int> indices = new List.generate(uris.length, (i) => i);
+
+  List<String> urisToLoad = <String>[];
+
   var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
-  var isHunkInitialized = JS_EMBEDDED_GLOBAL('', IS_HUNK_INITIALIZED);
-  // Filter away indices for hunks that have already been loaded.
-  List<int> indicesToLoad = indices
-      .where((int i) => !JS('bool', '#(#)', isHunkLoaded, hashes[i]))
-      .toList();
-  return Future
-      .wait(indicesToLoad.map((int i) => _loadHunk(uris[i])))
-      .then((_) {
+  for (int i = 0; i < uris.length; ++i) {
+    if (JS('bool', '#(#)', isHunkLoaded, hashes[i])) continue;
+    urisToLoad.add(uris[i]);
+  }
+
+  return Future.wait(urisToLoad.map(_loadHunk)).then((_) {
     // Now all hunks have been loaded, we run the needed initializers.
-    List<int> indicesToInitialize = indices
-        .where((int i) => !JS('bool', '#(#)', isHunkInitialized, hashes[i]))
-        .toList(); // Load the needed hunks.
-    for (int i in indicesToInitialize) {
-      var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
-      JS('void', '#(#)', initializer, hashes[i]);
+    var isHunkInitialized = JS_EMBEDDED_GLOBAL('', IS_HUNK_INITIALIZED);
+    var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
+    for (String hash in hashes) {
+      // It is possible for a hash to be repeated. This happens when two
+      // different parts both end up empty. Checking in the loop rather than
+      // pre-filtering prevents duplicate hashes leading to duplicated
+      // initializations.
+      // TODO(29572): Merge small parts.
+      // TODO(29635): Remove duplicate parts from tables and output files.
+      if (JS('bool', '#(#)', isHunkInitialized, hash)) continue;
+      JS('void', '#(#)', initializer, hash);
     }
     bool updated = _loadedLibraries.add(loadId);
     if (updated && deferredLoadHook != null) {

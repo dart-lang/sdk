@@ -9,7 +9,8 @@ import '../../common/names.dart' show Names;
 import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
-    show ClassElement, Element, FieldElement, MemberElement, Name;
+    show ClassElement, FieldElement, MemberElement;
+import '../../elements/names.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../../js_backend/js_backend.dart' show CompoundName, Namer;
@@ -25,9 +26,9 @@ class ClassEmitter extends CodeEmitterHelper {
 
   ClassEmitter(this.closedWorld);
 
-  ClassStubGenerator get _stubGenerator =>
-      new ClassStubGenerator(namer, backend, codegenWorldBuilder, closedWorld,
-          enableMinification: compiler.options.enableMinification);
+  ClassStubGenerator get _stubGenerator => new ClassStubGenerator(task.emitter,
+      compiler.commonElements, namer, codegenWorldBuilder, closedWorld,
+      enableMinification: compiler.options.enableMinification);
 
   /**
    * Documentation wanted -- johnniwinther
@@ -35,7 +36,7 @@ class ClassEmitter extends CodeEmitterHelper {
   void emitClass(Class cls, ClassBuilder enclosingBuilder, Fragment fragment) {
     ClassElement classElement = cls.element;
 
-    assert(invariant(classElement, classElement.isDeclaration));
+    assert(classElement.isDeclaration, failedAt(classElement));
 
     emitter.needsClassSupport = true;
 
@@ -66,7 +67,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitRuntimeTypeInformation(cls, builder);
     emitNativeInfo(cls, builder);
 
-    if (classElement == backend.helpers.closureClass) {
+    if (classElement == backend.commonElements.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
       jsAst.Fun function = js('function() { return this; }');
@@ -140,7 +141,7 @@ class ClassEmitter extends CodeEmitterHelper {
       bool needsFieldsForConstructor = !emitStatics && !classIsNative;
       if (needsFieldsForConstructor || needsAccessor) {
         var metadata =
-            task.metadataCollector.buildMetadataFunction(fieldElement);
+            task.metadataCollector.buildFieldMetadataFunction(fieldElement);
         if (metadata != null) {
           hasMetadata = true;
         } else {
@@ -187,11 +188,11 @@ class ClassEmitter extends CodeEmitterHelper {
         // However, set/get operations can be performed on them, so they are
         // reflectable in some sense, which leads to [isAccessibleByReflection]
         // reporting `true`.
-        if (backend.mirrorsData.isAccessibleByReflection(fieldElement)) {
+        if (backend.mirrorsData.isMemberAccessibleByReflection(fieldElement)) {
           fieldNameParts.add(new jsAst.LiteralString('-'));
           if (fieldElement.isTopLevel ||
               backend.mirrorsData
-                  .isAccessibleByReflection(fieldElement.enclosingClass)) {
+                  .isClassAccessibleByReflection(fieldElement.enclosingClass)) {
             ResolutionDartType type = fieldElement.type;
             fieldNameParts.add(task.metadataCollector.reifyType(type));
           }
@@ -257,7 +258,7 @@ class ClassEmitter extends CodeEmitterHelper {
    */
   void emitInstanceMembers(Class cls, ClassBuilder builder) {
     ClassElement classElement = cls.element;
-    assert(invariant(classElement, classElement.isDeclaration));
+    assert(classElement.isDeclaration, failedAt(classElement));
 
     if (cls.onlyForRti || cls.isMixinApplication) return;
 
@@ -267,11 +268,11 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     for (Method method in cls.methods) {
-      assert(invariant(classElement, method.element.isInstanceMember));
+      assert(method.element.isInstanceMember, failedAt(classElement));
       emitter.containerBuilder.addMemberMethod(method, builder);
     }
 
-    if (classElement.isObject && backend.backendUsage.isNoSuchMethodUsed) {
+    if (classElement.isObject && closedWorld.backendUsage.isNoSuchMethodUsed) {
       // Emit the noSuchMethod handlers on the Object prototype now,
       // so that the code in the dynamicFunction helper can find
       // them. Note that this helper is invoked before analyzing the
@@ -304,12 +305,13 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassElement classElement = cls.element;
     jsAst.Name className = cls.name;
 
-    var metadata = task.metadataCollector.buildMetadataFunction(classElement);
+    var metadata =
+        task.metadataCollector.buildClassMetadataFunction(classElement);
     if (metadata != null) {
       classBuilder.addPropertyByName("@", metadata);
     }
 
-    if (backend.mirrorsData.isAccessibleByReflection(classElement)) {
+    if (backend.mirrorsData.isClassAccessibleByReflection(classElement)) {
       List<ResolutionDartType> typeVars = classElement.typeVariables;
       Iterable typeVariableProperties =
           emitter.typeVariableCodegenAnalysis.typeVariablesOf(classElement);
@@ -356,7 +358,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     String reflectionName = emitter.getReflectionName(classElement, className);
     if (reflectionName != null) {
-      if (!backend.mirrorsData.isAccessibleByReflection(classElement) ||
+      if (!backend.mirrorsData.isClassAccessibleByReflection(classElement) ||
           cls.onlyForRti) {
         // TODO(herhut): Fix use of reflection name here.
         enclosingBuilder.addPropertyByName("+$reflectionName", js.number(0));
@@ -376,7 +378,7 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   void recordMangledField(
-      Element member, jsAst.Name accessorName, String memberName) {
+      FieldElement member, jsAst.Name accessorName, String memberName) {
     if (!backend.mirrorsData.shouldRetainGetter(member)) return;
     String previousName;
     if (member.isInstanceMember) {
@@ -386,8 +388,8 @@ class ClassEmitter extends CodeEmitterHelper {
       previousName = emitter.mangledGlobalFieldNames
           .putIfAbsent(accessorName, () => memberName);
     }
-    assert(invariant(member, previousName == memberName,
-        message: '$previousName != ${memberName}'));
+    assert(previousName == memberName,
+        failedAt(member, '$previousName != ${memberName}'));
   }
 
   void emitGetterForCSP(FieldElement member, jsAst.Name fieldName,
@@ -403,7 +405,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, getterName, function]));
-    if (backend.mirrorsData.isAccessibleByReflection(member)) {
+    if (backend.mirrorsData.isMemberAccessibleByReflection(member)) {
       emitter.cspPrecompiledFunctionFor(outputUnit).add(js(
           '#.prototype.#.${namer.reflectableField} = 1',
           [className, getterName]));
@@ -423,7 +425,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, setterName, function]));
-    if (backend.mirrorsData.isAccessibleByReflection(member)) {
+    if (backend.mirrorsData.isMemberAccessibleByReflection(member)) {
       emitter.cspPrecompiledFunctionFor(outputUnit).add(js(
           '#.prototype.#.${namer.reflectableField} = 1',
           [className, setterName]));
@@ -431,7 +433,7 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   void generateReflectionDataForFieldGetterOrSetter(
-      Element member, jsAst.Name name, ClassBuilder builder,
+      MemberElement member, jsAst.Name name, ClassBuilder builder,
       {bool isGetter}) {
     Selector selector = isGetter
         ? new Selector.getter(new Name(member.name, member.library))
@@ -439,8 +441,10 @@ class ClassEmitter extends CodeEmitterHelper {
             new Name(member.name, member.library, isSetter: true));
     String reflectionName = emitter.getReflectionName(selector, name);
     if (reflectionName != null) {
-      var reflectable =
-          js(backend.mirrorsData.isAccessibleByReflection(member) ? '1' : '0');
+      var reflectable = js(
+          backend.mirrorsData.isMemberAccessibleByReflection(member)
+              ? '1'
+              : '0');
       builder.addPropertyByName('+$reflectionName', reflectable);
     }
   }

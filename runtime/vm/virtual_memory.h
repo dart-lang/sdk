@@ -94,7 +94,7 @@ class VirtualMemory {
   static uword page_size_;
 
   // False for a part of a snapshot added directly to the Dart heap, which
-  // belongs to the the embedder and must not be deallocated or have its
+  // belongs to the embedder and must not be deallocated or have its
   // protection status changed by the VM.
   bool vm_owns_region_;
 

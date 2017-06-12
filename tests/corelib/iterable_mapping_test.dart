@@ -47,5 +47,4 @@ main() {
   mapped = mapped.map((x) => x + 1);
   Expect.isFalse(mapped is List);
   Expect.listEquals([], mapped.toList());
-
 }

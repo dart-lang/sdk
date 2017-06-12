@@ -4,6 +4,7 @@
 
 library test.generic_f_bounded;
 
+@MirrorsUsed(targets: "test.generic_f_bounded")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -11,48 +12,54 @@ import 'package:expect/expect.dart';
 import 'generics_helper.dart';
 
 class Collection<C> {}
+
 class Serializable<S> {}
 
-class OrderedCollection<V>
-    extends Collection<V>
+class OrderedCollection<V> extends Collection<V>
     with Serializable<OrderedCollection<V>> {}
 
-class AbstractOrderedCollection<W>
-    = Collection<W>
+class AbstractOrderedCollection<W> = Collection<W>
     with Serializable<AbstractOrderedCollection<W>>;
 
-class CustomOrderedCollection<Z>
-    extends AbstractOrderedCollection<Z> {}
+class CustomOrderedCollection<Z> extends AbstractOrderedCollection<Z> {}
 
-class OrderedIntegerCollection
-    extends OrderedCollection<int> {}
+class OrderedIntegerCollection extends OrderedCollection<int> {}
 
-class CustomOrderedIntegerCollection
-    extends CustomOrderedCollection<int> {}
+class CustomOrderedIntegerCollection extends CustomOrderedCollection<int> {}
 
 class Serializer<R extends Serializable<R>> {}
+
 class CollectionSerializer extends Serializer<Collection> {}
+
 class OrderedCollectionSerializer extends Serializer<OrderedCollection> {}
 
 main() {
   ClassMirror collectionDecl = reflectClass(Collection);
   ClassMirror serializableDecl = reflectClass(Serializable);
   ClassMirror orderedCollectionDecl = reflectClass(OrderedCollection);
-  ClassMirror abstractOrderedCollectionDecl = reflectClass(AbstractOrderedCollection);
-  ClassMirror customOrderedCollectionDecl = reflectClass(CustomOrderedCollection);
+  ClassMirror abstractOrderedCollectionDecl =
+      reflectClass(AbstractOrderedCollection);
+  ClassMirror customOrderedCollectionDecl =
+      reflectClass(CustomOrderedCollection);
   ClassMirror orderedIntegerCollection = reflectClass(OrderedIntegerCollection);
-  ClassMirror customOrderedIntegerCollection = reflectClass(CustomOrderedIntegerCollection);
+  ClassMirror customOrderedIntegerCollection =
+      reflectClass(CustomOrderedIntegerCollection);
   ClassMirror serializerDecl = reflectClass(Serializer);
   ClassMirror collectionSerializerDecl = reflectClass(CollectionSerializer);
-  ClassMirror orderedCollectionSerializerDecl = reflectClass(OrderedCollectionSerializer);
+  ClassMirror orderedCollectionSerializerDecl =
+      reflectClass(OrderedCollectionSerializer);
 
   ClassMirror orderedCollectionOfInt = orderedIntegerCollection.superclass;
-  ClassMirror customOrderedCollectionOfInt = customOrderedIntegerCollection.superclass;
+  ClassMirror customOrderedCollectionOfInt =
+      customOrderedIntegerCollection.superclass;
   ClassMirror serializerOfCollection = collectionSerializerDecl.superclass;
-  ClassMirror serializerOfOrderedCollection = orderedCollectionSerializerDecl.superclass;
+  ClassMirror serializerOfOrderedCollection =
+      orderedCollectionSerializerDecl.superclass;
   ClassMirror collectionOfDynamic = reflect(new Collection()).type;
-  ClassMirror orderedCollectionOfDynamic = reflect(new OrderedCollection()).type;
-  ClassMirror collectionWithSerializableOfOrderedCollection = orderedCollectionDecl.superclass;
+  ClassMirror orderedCollectionOfDynamic =
+      reflect(new OrderedCollection()).type;
+  ClassMirror collectionWithSerializableOfOrderedCollection =
+      orderedCollectionDecl.superclass;
 
   Expect.isTrue(collectionDecl.isOriginalDeclaration);
   Expect.isTrue(serializableDecl.isOriginalDeclaration);
@@ -70,7 +77,8 @@ main() {
   Expect.isFalse(serializerOfCollection.isOriginalDeclaration);
   Expect.isFalse(serializerOfOrderedCollection.isOriginalDeclaration);
   Expect.isFalse(collectionOfDynamic.isOriginalDeclaration);
-  Expect.isFalse(collectionWithSerializableOfOrderedCollection.isOriginalDeclaration);
+  Expect.isFalse(
+      collectionWithSerializableOfOrderedCollection.isOriginalDeclaration);
 
   TypeVariableMirror rFromSerializer = serializerDecl.typeVariables.single;
   ClassMirror serializableOfR = rFromSerializer.upperBound;

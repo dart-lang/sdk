@@ -73,6 +73,9 @@ config("common_linker_setup") {
     #   exceeds maximum allowable size (80000000)
     # which started happening more regularly after VS2013 Update 4.
     "/maxilksize:2147483647",
+
+    # Force the creation of a .lib file for all executable() targets.
+    "/EXPORT:main",
   ]
 
   # ASLR makes debugging with windbg difficult because Chrome.exe and
@@ -158,7 +161,7 @@ config("unicode") {
 
 # Some third party code might not compile with WIN32_LEAN_AND_MEAN so we have
 # to have a separate config for it. Remove this config from your target to
-# get the "bloaty and accomodating" version of windows.h.
+# get the "bloaty and accommodating" version of windows.h.
 config("lean_and_mean") {
   defines = [ "WIN32_LEAN_AND_MEAN" ]
 }

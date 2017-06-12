@@ -24,7 +24,7 @@ testAll() {
     bool got_type_error = false;
     var x = null;
     try {
-      Expect.isTrue(x is UndeclaredType);  // x is null.
+      Expect.isTrue(x is UndeclaredType); // x is null.
     } on TypeError catch (error) {
       got_type_error = true;
     }
@@ -35,7 +35,7 @@ testAll() {
     bool got_type_error = false;
     var x = 1;
     try {
-      Expect.isTrue(x is UndeclaredType);  // x is not null.
+      Expect.isTrue(x is UndeclaredType); // x is not null.
     } on TypeError catch (error) {
       got_type_error = true;
     }
@@ -46,7 +46,7 @@ testAll() {
     bool got_type_error = false;
     var x = null;
     try {
-      Expect.isFalse(x is List<UndeclaredType>);  // x is null.
+      Expect.isFalse(x is List<UndeclaredType>); // x is null.
     } on TypeError catch (error) {
       got_type_error = true;
     }
@@ -57,7 +57,7 @@ testAll() {
     bool got_type_error = false;
     var x = 1;
     try {
-      Expect.isFalse(x is List<UndeclaredType>);  // x is not a List.
+      Expect.isFalse(x is List<UndeclaredType>); // x is not a List.
     } on TypeError catch (error) {
       got_type_error = true;
     }
@@ -68,7 +68,7 @@ testAll() {
     bool got_type_error = false;
     var x = new List();
     try {
-      Expect.isTrue(x is List<UndeclaredType>);  // x is a List<dynamic>.
+      Expect.isTrue(x is List<UndeclaredType>); // x is a List<dynamic>.
     } on TypeError catch (error) {
       got_type_error = true;
     }
@@ -79,7 +79,7 @@ testAll() {
     bool got_type_error = false;
     var x = new List<int>();
     try {
-      Expect.isTrue(x is List<UndeclaredType>);  // x is a List<int>.
+      Expect.isTrue(x is List<UndeclaredType>); // x is a List<int>.
     } on TypeError catch (error) {
       got_type_error = true;
     }

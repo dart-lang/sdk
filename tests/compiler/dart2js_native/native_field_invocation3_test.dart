@@ -4,7 +4,7 @@
 
 import "native_testing.dart";
 
-makeCC() native ;
+makeCC() native;
 
 void setup() native """
 function CC() {}

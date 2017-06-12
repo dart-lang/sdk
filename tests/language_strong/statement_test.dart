@@ -6,7 +6,6 @@ import "package:expect/expect.dart";
 
 // Tests all statement types. Not an exhaustive test of all statement semantics.
 class StatementTest {
-
   StatementTest() {}
 
   static testMain() {
@@ -63,13 +62,13 @@ class StatementTest {
     Expect.equals(10, count2);
 
     // For loop with no increment.
-    for (count = 0; count < 5; ) {
+    for (count = 0; count < 5;) {
       ++count;
     }
     Expect.equals(5, count);
 
     // For loop with no test.
-    for (count = 0; ; ++count) {
+    for (count = 0;; ++count) {
       if (count == 10) {
         break;
       }
@@ -108,9 +107,15 @@ class StatementTest {
     bool hit0, hit1, hitDefault;
     for (int x = 0; x < 3; ++x) {
       switch (x) {
-        case 0:  hit0 = true;       break;
-        case 1:  hit1 = true;       break;
-        default: hitDefault = true; break;
+        case 0:
+          hit0 = true;
+          break;
+        case 1:
+          hit1 = true;
+          break;
+        default:
+          hitDefault = true;
+          break;
       }
     }
     Expect.equals(true, hit0);
@@ -123,9 +128,15 @@ class StatementTest {
     hitDefault = false;
     for (int x = 0; x < 3; ++x) {
       switch (strings[x]) {
-        case 'a': hitA = true;       break;
-        case 'b': hitB = true;       break;
-        default:  hitDefault = true; break;
+        case 'a':
+          hitA = true;
+          break;
+        case 'b':
+          hitB = true;
+          break;
+        default:
+          hitDefault = true;
+          break;
       }
     }
     Expect.equals(true, hitA);
@@ -151,14 +162,14 @@ class StatementTest {
 
   testBreak() {
     var ints = [
-      [ 32, 87, 3, 589 ],
-      [ 12, 1076, 2000, 8 ],
-      [ 622, 127, 77, 955 ]
+      [32, 87, 3, 589],
+      [12, 1076, 2000, 8],
+      [622, 127, 77, 955]
     ];
     int i, j = 0;
     bool foundIt = false;
 
-  search:
+    search:
     for (i = 0; i < ints.length; i++) {
       for (j = 0; j < ints[i].length; j++) {
         if (ints[i][j] == 12) {
@@ -176,7 +187,7 @@ class StatementTest {
     bool foundIt = false;
     int max = searchMe.length - substring.length;
 
-  test:
+    test:
     for (int i = 0; i <= max; i++) {
       int n = substring.length;
       int j = i;
@@ -195,6 +206,7 @@ class StatementTest {
     int foo() {
       return 42;
     }
+
     Expect.equals(42, foo());
   }
 

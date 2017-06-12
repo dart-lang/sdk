@@ -92,6 +92,25 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('NodeList|HtmlCollection')",
     ],
 
+    # querysSelectorAll never returns `null`.
+    'Document.querySelectorAll': [
+      "@Creates('NodeList')",
+      "@Returns('NodeList')",
+    ],
+    'DocumentFragment.querySelectorAll': [
+      "@Creates('NodeList')",
+      "@Returns('NodeList')",
+    ],
+    'Element.querySelectorAll': [
+      "@Creates('NodeList')",
+      "@Returns('NodeList')",
+    ],
+
+    'Element.getBoundingClientRect': [
+        "@Creates('_ClientRect')",
+        "@Returns('_ClientRect|Null')", # TODO(sra): Verify and remove Null.
+    ],
+
     # Methods returning Window can return a local window, or a cross-frame
     # window (=Object) that needs wrapping.
     'Window': [
@@ -144,6 +163,21 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('EventTarget|=Object')",
     ],
 
+    # TODO(sra): Investigate how ExtendableMessageEvent.data is different from
+    # MessageEvent.data. It might be necessary to put in a method to translate
+    # the JavaScript wire type into a Dart type.
+    'ExtendableMessageEvent.data': [
+      "@annotation_Creates_SerializedScriptValue",
+      "@annotation_Returns_SerializedScriptValue",
+    ],
+
+    # TODO(sra): We could determine the following by parsing the compound IDL
+    # type.
+    'ExtendableMessageEvent.source': [
+      "@Creates('Client|_ServiceWorker|MessagePort')",
+      "@Returns('Client|_ServiceWorker|MessagePort|Null')",
+    ],
+
     'File.lastModifiedDate': [
       "@Creates('Null')", # JS date object.
     ],
@@ -158,8 +192,8 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     ],
 
     'HTMLCanvasElement.getContext': [
-      "@Creates('CanvasRenderingContext2D|RenderingContext')",
-      "@Returns('CanvasRenderingContext2D|RenderingContext|Null')",
+      "@Creates('CanvasRenderingContext2D|RenderingContext|RenderingContext2')",
+      "@Returns('CanvasRenderingContext2D|RenderingContext|RenderingContext2|Null')",
     ],
 
     'HTMLInputElement.valueAsDate': [

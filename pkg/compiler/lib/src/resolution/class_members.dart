@@ -16,8 +16,8 @@ import '../elements/elements.dart'
         Member,
         MemberElement,
         MemberSignature,
-        MixinApplicationElement,
-        Name;
+        MixinApplicationElement;
+import '../elements/names.dart';
 import '../util/util.dart';
 
 part 'member_impl.dart';
@@ -597,8 +597,8 @@ class InterfaceMembersCreator extends MembersCreator {
   Map<Name, Setlet<Member>> computeSuperInterfaceMembers(
       String name, Setlet<Name> names) {
     ResolutionInterfaceType supertype = cls.supertype;
-    assert(invariant(cls, supertype != null,
-        message: "Interface members computed for $cls."));
+    assert(supertype != null,
+        failedAt(cls, "Interface members computed for $cls."));
     ClassElement superclass = supertype.element;
 
     Map<Name, Setlet<Member>> inheritedInterfaceMembers =
@@ -721,9 +721,10 @@ class InterfaceMembersCreator extends MembersCreator {
             if (inherited.isMethod) {
               kind = MessageKind.INHERITED_METHOD;
             } else {
-              assert(invariant(cls, inherited.isGetter,
-                  message: 'Conflicting member is neither a method nor a '
-                      'getter.'));
+              assert(
+                  inherited.isGetter,
+                  failedAt(cls,
+                      'Conflicting member is neither a method nor a getter.'));
               if (inherited.isDeclaredByField) {
                 kind = MessageKind.INHERITED_IMPLICIT_GETTER;
               } else {
@@ -915,7 +916,7 @@ abstract class ClassMemberMixin implements ClassElement {
     MembersCreator creator = _prepareCreator(resolution);
     creator.computeAllMembers();
     computedMemberNames = null;
-    assert(invariant(this, areAllMembersComputed()));
+    assert(areAllMembersComputed(), failedAt(this));
   }
 
   bool areAllMembersComputed() {
@@ -931,20 +932,20 @@ abstract class ClassMemberMixin implements ClassElement {
   }
 
   Member lookupClassMember(Name name) {
-    assert(invariant(this, isMemberComputed(name.text),
-        message: "Member ${name} has not been computed for $this."));
+    assert(isMemberComputed(name.text),
+        failedAt(this, "Member ${name} has not been computed for $this."));
     return classMembers[name];
   }
 
   void forEachClassMember(f(Member member)) {
-    assert(invariant(this, areAllMembersComputed(),
-        message: "Members have not been fully computed for $this."));
+    assert(areAllMembersComputed(),
+        failedAt(this, "Members have not been fully computed for $this."));
     classMembers.forEach((_, member) => f(member));
   }
 
   MemberSignature lookupInterfaceMember(Name name) {
-    assert(invariant(this, isMemberComputed(name.text),
-        message: "Member ${name.text} has not been computed for $this."));
+    assert(isMemberComputed(name.text),
+        failedAt(this, "Member ${name.text} has not been computed for $this."));
     if (interfaceMembersAreClassMembers) {
       Member member = classMembers[name];
       if (member != null && member.isStatic) return null;
@@ -954,8 +955,8 @@ abstract class ClassMemberMixin implements ClassElement {
   }
 
   void forEachInterfaceMember(f(MemberSignature member)) {
-    assert(invariant(this, areAllMembersComputed(),
-        message: "Members have not been fully computed for $this."));
+    assert(areAllMembersComputed(),
+        failedAt(this, "Members have not been fully computed for $this."));
     if (interfaceMembersAreClassMembers) {
       classMembers.forEach((_, member) {
         if (!member.isStatic) f(member);

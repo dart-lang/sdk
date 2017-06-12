@@ -24,8 +24,6 @@
  *       ...
  *     }
  */
-library analysis_server.src.provisional.completion.core;
-
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:plugin/plugin.dart';
 

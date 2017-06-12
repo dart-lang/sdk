@@ -18,7 +18,6 @@ class B {
 
 test(obj) => obj.foo == null ? "null" : "other";
 
-
 class C {
   C(this.x, this.y);
   final x;
@@ -30,8 +29,7 @@ test_deopt(a, b) {
   return c.x + c.y;
 }
 
-
-create_error (x) {
+create_error(x) {
   return x as int;
 }
 
@@ -47,11 +45,12 @@ test_stacktrace() {
     create_error("bar");
   } catch (e) {
     Expect.equals("OK", check_stacktrace(e));
-    for (var i=0; i<20; i++) { check_stacktrace(e); }
+    for (var i = 0; i < 20; i++) {
+      check_stacktrace(e);
+    }
     Expect.equals("OK", check_stacktrace(e));
   }
 }
-
 
 class D {
   final List f;
@@ -59,7 +58,6 @@ class D {
   D(this.f, this.g);
   D.named(this.f, this.g);
 }
-
 
 test_guarded_length() {
   var a = new D(new List(5), new Uint8List(5));
@@ -69,7 +67,6 @@ test_guarded_length() {
   Expect.equals(5, a.g.length);
   Expect.equals(5, b.g.length);
 }
-
 
 main() {
   var a = new A();
@@ -89,7 +86,9 @@ main() {
 
   // Test guarded fields with allocation sinking and deoptimization.
   Expect.equals(43, test_deopt(42, 1));
-  for (var i = 0; i < 20; i++) { test_deopt(42, 1); }
+  for (var i = 0; i < 20; i++) {
+    test_deopt(42, 1);
+  }
   Expect.equals(43, test_deopt(42, 1));
   Expect.equals("aaabbb", test_deopt("aaa", "bbb"));
 

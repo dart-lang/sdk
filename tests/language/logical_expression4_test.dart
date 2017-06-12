@@ -17,7 +17,7 @@ int confuse(x) {
 }
 
 main() {
-  var o = [ "foo", 499 ][confuse(0)];
+  var o = ["foo", 499][confuse(0)];
 
   // The is-checks in the '!' must not be propagated to the if-body.
   // This was a bug in dart2js.

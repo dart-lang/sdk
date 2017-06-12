@@ -27,7 +27,7 @@ make_t() {
     } else {
       return new T();
     }
-  } catch (e) { }
+  } catch (e) {}
 }
 
 bla() {
@@ -35,7 +35,6 @@ bla() {
   x.test(make_t());
   return x.fld.m();
 }
-
 
 class X {
   T fld = new T();
@@ -47,4 +46,3 @@ class X {
     }
   }
 }
-

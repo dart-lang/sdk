@@ -9,7 +9,7 @@ import 'package:expect/minitest.dart';
 
 Node makeNode() => new Element.tag('div');
 Element makeNodeWithChildren() =>
-  new Element.html("<div>Foo<br/><!--baz--></div>");
+    new Element.html("<div>Foo<br/><!--baz--></div>");
 
 void testUnsupported(String name, void f()) {
   test(name, () {
@@ -78,11 +78,7 @@ main() {
     test('insertAllBefore', () {
       var node = makeNodeWithChildren();
       var b = new DivElement();
-      b.nodes.addAll([
-        new HRElement(),
-        new ImageElement(),
-        new InputElement()
-      ]);
+      b.nodes.addAll([new HRElement(), new ImageElement(), new InputElement()]);
       node.insertAllBefore(b.nodes, node.nodes[1]);
       expect(node.nodes[0], isText);
       expect(node.nodes[1], isHRElement);
@@ -91,11 +87,7 @@ main() {
       expect(node.nodes[4], isBRElement);
       expect(node.nodes[5], isComment);
 
-      var nodes = [
-        new HRElement(),
-        new ImageElement(),
-        new InputElement()
-      ];
+      var nodes = [new HRElement(), new ImageElement(), new InputElement()];
       node.insertAllBefore(nodes, node.nodes[5]);
 
       expect(node.nodes[0], isText);
@@ -284,11 +276,7 @@ main() {
     test('insertAll', () {
       var node = makeNodeWithChildren();
       var b = new DivElement();
-      b.nodes.addAll([
-        new HRElement(),
-        new ImageElement(),
-        new InputElement()
-      ]);
+      b.nodes.addAll([new HRElement(), new ImageElement(), new InputElement()]);
       node.nodes.insertAll(1, b.nodes);
       expect(node.nodes[0], isText);
       expect(node.nodes[1], isHRElement);
@@ -297,11 +285,7 @@ main() {
       expect(node.nodes[4], isBRElement);
       expect(node.nodes[5], isComment);
 
-      var nodes = [
-        new HRElement(),
-        new ImageElement(),
-        new InputElement()
-      ];
+      var nodes = [new HRElement(), new ImageElement(), new InputElement()];
       node.nodes.insertAll(5, nodes);
 
       expect(node.nodes[0], isText);

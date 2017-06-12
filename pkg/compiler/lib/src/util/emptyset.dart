@@ -18,17 +18,17 @@ class ImmutableEmptySet<E> extends IterableBase<E> implements Set<E> {
   bool add(E element) => _immutableError;
   void addAll(Iterable<E> elements) => _immutableError;
 
-  E lookup(E element) => null;
-  bool remove(E element) => false;
-  void removeAll(Iterable<E> elements) {}
+  E lookup(Object element) => null;
+  bool remove(Object element) => false;
+  void removeAll(Iterable<Object> elements) {}
   void removeWhere(bool test(E element)) {}
-  void retainAll(Iterable<E> elements) {}
+  void retainAll(Iterable<Object> elements) {}
   void retainWhere(bool test(E element)) {}
   void forEach(void action(E element)) {}
   void clear() {}
 
-  bool contains(E element) => false;
-  bool containsAll(Iterable<E> other) => other.isEmpty;
+  bool contains(Object element) => false;
+  bool containsAll(Iterable<Object> other) => other.isEmpty;
 
   Set<E> union(Set<E> other) => new Set.from(other);
   Set<E> intersection(Set<E> other) => this;

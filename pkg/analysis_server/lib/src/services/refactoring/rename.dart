@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.refactoring.rename;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -17,6 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
@@ -132,8 +130,6 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   final AnalysisContext context;
   final String elementKindName;
   final String oldName;
-  Element get element => _element;
-
   SourceChange change;
 
   String newName;
@@ -145,13 +141,15 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
         elementKindName = element.kind.displayName,
         oldName = _getDisplayName(element);
 
+  Element get element => _element;
+
   /**
    * Adds a [SourceEdit] to update [element] name to [change].
    */
   void addDeclarationEdit(Element element) {
     if (element != null) {
-      SourceRange range = rangeElementName(element);
-      SourceEdit edit = newSourceEdit_range(range, newName);
+      SourceEdit edit =
+          newSourceEdit_range(range.elementName(element), newName);
       doSourceChange_addElementEdit(change, element, edit);
     }
   }

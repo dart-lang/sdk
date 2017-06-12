@@ -82,7 +82,7 @@ intptr_t ReferenceCounted<Derived>::instances_ = 0;
 #endif
 
 // Creates a scope at the end of which a reference counted object is
-// Released. This is useful for reference counted objects recieved by the IO
+// Released. This is useful for reference counted objects received by the IO
 // Service, which have already been Retained E.g.:
 //
 // CObject* Foo::FooRequest(const CObjectArray& request) {

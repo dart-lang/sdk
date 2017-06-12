@@ -22,8 +22,8 @@ class Expect {
 }
 
 main(List<String> arguments) {
-  Expect.isTrue(Platform.script.path.endsWith(
-      'process_check_arguments_script.dart'));
+  Expect.isTrue(
+      Platform.script.path.endsWith('process_check_arguments_script.dart'));
   var expected_num_args = int.parse(arguments[0]);
   var contains_quote = int.parse(arguments[1]);
   Expect.equals(expected_num_args, arguments.length);

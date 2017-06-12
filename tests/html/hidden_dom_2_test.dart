@@ -1,4 +1,5 @@
 library HiddenDom2Test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -18,19 +19,22 @@ Hello World!
     Element e2 = new Element.html(r"<div id='xx'>XX</div>");
     expect(e, isNotNull);
 
-    checkNoSuchMethod(() { confuse(e).appendChild(e2); });
-
+    checkNoSuchMethod(() {
+      confuse(e).appendChild(e2);
+    });
   });
 }
 
 class Decoy {
-  void appendChild(x) { throw 'dead code'; }
+  void appendChild(x) {
+    throw 'dead code';
+  }
 }
 
 confuse(x) => opaqueTrue() ? x : (opaqueTrue() ? new Object() : new Decoy());
 
 /** Returns [:true:], but in a way that confuses the compiler. */
-opaqueTrue() => true;  // Expand as needed.
+opaqueTrue() => true; // Expand as needed.
 
 checkNoSuchMethod(action()) {
   var ex = null;

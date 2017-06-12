@@ -8,24 +8,24 @@ import 'dart:_js_helper' show patch, checkNum;
 import 'dart:typed_data' show ByteData;
 
 @patch
-num/*=T*/ min/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) =>
-    JS('num', r'Math.min(#, #)', checkNum(a), checkNum(b)) as num/*=T*/;
+T min<T extends num>(T a, T b) =>
+    JS('num', r'Math.min(#, #)', checkNum(a), checkNum(b)) as T;
 
 @patch
-num/*=T*/ max/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) =>
-    JS('num', r'Math.max(#, #)', checkNum(a), checkNum(b)) as num/*=T*/;
+T max<T extends num>(T a, T b) =>
+    JS('num', r'Math.max(#, #)', checkNum(a), checkNum(b)) as T;
 
 @patch
 double sqrt(num x) => JS('num', r'Math.sqrt(#)', checkNum(x));
 
 @patch
-double sin(num x) => JS('num', r'Math.sin(#)', checkNum(x));
+double sin(num radians) => JS('num', r'Math.sin(#)', checkNum(radians));
 
 @patch
-double cos(num x) => JS('num', r'Math.cos(#)', checkNum(x));
+double cos(num radians) => JS('num', r'Math.cos(#)', checkNum(radians));
 
 @patch
-double tan(num x) => JS('num', r'Math.tan(#)', checkNum(x));
+double tan(num radians) => JS('num', r'Math.tan(#)', checkNum(radians));
 
 @patch
 double acos(num x) => JS('num', r'Math.acos(#)', checkNum(x));

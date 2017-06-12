@@ -12,4 +12,3 @@ void main() {
     failedElem.style.visibility = 'inline';
   }
 }
-

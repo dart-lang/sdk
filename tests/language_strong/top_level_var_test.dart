@@ -5,9 +5,7 @@
 
 import "package:expect/expect.dart";
 
-
 var a, b;
-
 
 class TopLevelVarTest {
   static testMain() {
@@ -23,11 +21,9 @@ class TopLevelVarTest {
   }
 }
 
-
 // Ensure that initializers work for both const and non-const variables.
 const int x = 2 * 55 + 1;
 int y = x + 1;
-
 
 main() {
   TopLevelVarTest.testMain();

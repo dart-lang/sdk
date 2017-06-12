@@ -6,13 +6,23 @@
 import "package:expect/expect.dart";
 
 class A {
-  static staticCall() { return 4; }
-  dynamicCall() { return 5; }
-  ovrDynamicCall() { return 6; }
+  static staticCall() {
+    return 4;
+  }
+
+  dynamicCall() {
+    return 5;
+  }
+
+  ovrDynamicCall() {
+    return 6;
+  }
 }
 
 class B extends A {
-  ovrDynamicCall() { return -6; }
+  ovrDynamicCall() {
+    return -6;
+  }
 }
 
 class ResolveTest {

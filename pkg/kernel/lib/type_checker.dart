@@ -497,19 +497,13 @@ class TypeCheckingVisitor
     }
     for (int i = 0; i < arguments.named.length; ++i) {
       var argument = arguments.named[i];
-      bool found = false;
-      for (int j = 0; j < function.namedParameters.length; ++j) {
-        if (argument.name == function.namedParameters[j].name) {
-          var expectedType = instantiation.substituteType(
-              function.namedParameters[j].type,
-              contravariant: true);
-          argument.value =
-              checkAndDowncastExpression(argument.value, expectedType);
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
+      var parameterType = function.getNamedParameter(argument.name);
+      if (parameterType != null) {
+        var expectedType =
+            instantiation.substituteType(parameterType, contravariant: true);
+        argument.value =
+            checkAndDowncastExpression(argument.value, expectedType);
+      } else {
         fail(argument.value, 'Unexpected named parameter: ${argument.name}');
         return const BottomType();
       }
@@ -690,6 +684,11 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitVectorCreation(VectorCreation node) {
+    return const VectorType();
+  }
+
+  @override
   DartType visitVectorGet(VectorGet node) {
     var type = visitExpression(node.vectorExpression);
     if (type is! VectorType) {
@@ -726,8 +725,15 @@ class TypeCheckingVisitor
   }
 
   @override
-  DartType visitVectorCreation(VectorCreation node) {
-    return const VectorType();
+  visitClosureCreation(ClosureCreation node) {
+    var contextType = visitExpression(node.contextVector);
+    if (contextType is! VectorType) {
+      fail(
+          node.contextVector,
+          "The second child of 'ClosureConversion' node is supposed to be a "
+          "Vector, but $contextType found.");
+    }
+    return node.functionType;
   }
 
   @override

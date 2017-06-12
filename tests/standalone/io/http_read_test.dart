@@ -28,8 +28,10 @@ class IsolatedHttpServer {
 
       if (chunkedEncoding) {
         // Send chunked encoding message to the server.
-        port.send([new IsolatedHttpServerCommand.chunkedEncoding(),
-                   _statusPort.sendPort]);
+        port.send([
+          new IsolatedHttpServerCommand.chunkedEncoding(),
+          _statusPort.sendPort
+        ]);
       }
 
       // Send server start message to the server.
@@ -47,16 +49,15 @@ class IsolatedHttpServer {
 
   void shutdown() {
     // Send server stop message to the server.
-    _serverPort.send([new IsolatedHttpServerCommand.stop(),
-                     _statusPort.sendPort]);
+    _serverPort
+        .send([new IsolatedHttpServerCommand.stop(), _statusPort.sendPort]);
     _statusPort.close();
   }
 
-  ReceivePort _statusPort;  // Port for receiving messages from the server.
-  SendPort _serverPort;  // Port for sending messages to the server.
+  ReceivePort _statusPort; // Port for receiving messages from the server.
+  SendPort _serverPort; // Port for sending messages to the server.
   var _startedCallback;
 }
-
 
 class IsolatedHttpServerCommand {
   static const START = 0;
@@ -73,7 +74,6 @@ class IsolatedHttpServerCommand {
 
   int _command;
 }
-
 
 class IsolatedHttpServerStatus {
   static const STARTED = 0;
@@ -93,7 +93,6 @@ class IsolatedHttpServerStatus {
   int _state;
   int _port;
 }
-
 
 void startIsolatedHttpServer(SendPort replyTo) {
   var server = new TestServer();
@@ -118,7 +117,6 @@ class TestServer {
     response.write("Page not found");
     response.close();
   }
-
 
   void init() {
     // Setup request handlers.
@@ -153,7 +151,7 @@ class TestServer {
   }
 
   void _requestReceivedHandler(HttpRequest request) {
-    var requestHandler =_requestHandlers[request.uri.path];
+    var requestHandler = _requestHandlers[request.uri.path];
     if (requestHandler != null) {
       requestHandler(request);
     } else {
@@ -161,7 +159,7 @@ class TestServer {
     }
   }
 
-  HttpServer _server;  // HTTP server instance.
+  HttpServer _server; // HTTP server instance.
   ReceivePort _dispatchPort;
   Map _requestHandlers;
   bool _chunkedEncoding = false;
@@ -177,34 +175,31 @@ void testRead(bool chunkedEncoding) {
     int count = 0;
     HttpClient httpClient = new HttpClient();
     void sendRequest() {
-      httpClient.post("127.0.0.1", port, "/echo")
-          .then((request) {
-            if (chunkedEncoding) {
-              request.write(data.substring(0, 10));
-              request.write(data.substring(10, data.length));
-            } else {
-              request.contentLength = data.length;
-              request.add(data.codeUnits);
-            }
-            return request.close();
-          })
-          .then((response) {
-            Expect.equals(HttpStatus.OK, response.statusCode);
-            List<int> body = new List<int>();
-            response.listen(
-                body.addAll,
-                onDone: () {
-                  Expect.equals(data, new String.fromCharCodes(body));
-                  count++;
-                  if (count < kMessageCount) {
-                    sendRequest();
-                  } else {
-                    httpClient.close();
-                    server.shutdown();
-                  }
-                });
-          });
+      httpClient.post("127.0.0.1", port, "/echo").then((request) {
+        if (chunkedEncoding) {
+          request.write(data.substring(0, 10));
+          request.write(data.substring(10, data.length));
+        } else {
+          request.contentLength = data.length;
+          request.add(data.codeUnits);
+        }
+        return request.close();
+      }).then((response) {
+        Expect.equals(HttpStatus.OK, response.statusCode);
+        List<int> body = new List<int>();
+        response.listen(body.addAll, onDone: () {
+          Expect.equals(data, new String.fromCharCodes(body));
+          count++;
+          if (count < kMessageCount) {
+            sendRequest();
+          } else {
+            httpClient.close();
+            server.shutdown();
+          }
+        });
+      });
     }
+
     sendRequest();
   }
 

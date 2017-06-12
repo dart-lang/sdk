@@ -17,7 +17,6 @@ main() {
   Expect.stringEquals("hello world", r);
 }
 
-
 String interpolIt(v) {
   // String interpolation will be constant folded.
   return "hello ${v.foo()}";

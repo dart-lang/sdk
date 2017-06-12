@@ -1443,23 +1443,33 @@ class TemplateString extends Expression {
    *
    *     `foo${1 + 2} bar ${'hi'}`
    *
-   * would be represented by:
+   * would be represented by [strings]:
    *
-   *     ['foo', new JS.Binary('+', js.number(1), js.number(2)),
-   *      ' bar ', new JS.LiteralString("'hi'")]
+   *     ['foo', ' bar ', '']
+   *
+   * and [interpolations]:
+   *
+   *     [new JS.Binary('+', js.number(1), js.number(2)),
+   *      new JS.LiteralString("'hi'")]
+   *
+   * There should be exactly one more string than interpolation expression.
    */
-  final List elements;
-  TemplateString(this.elements);
+  final List<String> strings;
+  final List<Expression> interpolations;
+
+  TemplateString(this.strings, this.interpolations) {
+    assert(strings.length == interpolations.length + 1);
+  }
 
   accept(NodeVisitor visitor) => visitor.visitTemplateString(this);
 
   void visitChildren(NodeVisitor visitor) {
-    for (var element in elements) {
-      if (element is Expression) element.accept(visitor);
+    for (var element in interpolations) {
+      element.accept(visitor);
     }
   }
 
-  TemplateString _clone() => new TemplateString(elements);
+  TemplateString _clone() => new TemplateString(strings, interpolations);
 
   int get precedenceLevel => PRIMARY;
 }

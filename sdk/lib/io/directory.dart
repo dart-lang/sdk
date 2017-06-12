@@ -8,7 +8,7 @@ part of dart.io;
  * A reference to a directory (or _folder_) on the file system.
  *
  * A Directory instance is an object holding a [path] on which operations can
- * be performed. The path to the directory can be [absolute] or [relative].
+ * be performed. The path to the directory can be [absolute] or relative.
  * You can get the parent directory using the getter [parent],
  * a property inherited from [FileSystemEntity].
  *

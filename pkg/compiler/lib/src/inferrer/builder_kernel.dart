@@ -11,7 +11,6 @@ import '../elements/entities.dart';
 import '../kernel/kernel.dart';
 import '../ssa/kernel_ast_adapter.dart';
 import '../tree/tree.dart' as ast;
-import '../types/types.dart' show TypeMask;
 import '../universe/side_effects.dart' show SideEffects;
 import 'inferrer_engine.dart';
 import 'locals_handler.dart';

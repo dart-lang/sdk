@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 // Dart test program for testing named parameters with various values that might
 // be implemented as 'falsy' values in a JavaScript implementation.
 
-
 class TestClass {
   TestClass();
 

@@ -19,8 +19,9 @@ Stream makeStream(int n) async* {
 main() {
   fivePartialSums(Stream s) async* {
     var r = 0;
-    await for(var v in s.take(5)) yield r += v;
+    await for (var v in s.take(5)) yield r += v;
   }
+
   asyncStart();
   expectList(fivePartialSums(makeStream(10)), [0, 1, 3, 6, 10])
       .then(asyncSuccess);

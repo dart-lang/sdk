@@ -33,7 +33,6 @@ class A {
   }
 }
 
-
 void main() {
   global = [2];
   for (int i = 0; i < 2; i++) {

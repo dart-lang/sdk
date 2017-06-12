@@ -11,6 +11,7 @@ import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/resolution/semantic_visitor.dart';
 import 'package:compiler/src/tree/tree.dart';
@@ -423,7 +424,7 @@ class RelatedTypesChecker
 
 /// Computes the [ClassElement] implied by a type.
 // TODO(johnniwinther): Handle type variables, function types and typedefs.
-class ClassFinder extends BaseDartTypeVisitor<ClassElement, dynamic> {
+class ClassFinder extends BaseResolutionDartTypeVisitor<ClassElement, dynamic> {
   const ClassFinder();
 
   ClassElement findClass(ResolutionDartType type) => type.accept(this, null);

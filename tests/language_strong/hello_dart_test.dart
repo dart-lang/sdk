@@ -11,7 +11,6 @@ class HelloDartTest {
   }
 }
 
-
 main() {
   HelloDartTest.testMain();
 }

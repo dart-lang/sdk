@@ -285,7 +285,14 @@ static intptr_t CidForRepresentation(Representation rep) {
 class BlockBuilder : public ValueObject {
  public:
   BlockBuilder(FlowGraph* flow_graph, TargetEntryInstr* entry)
-      : flow_graph_(flow_graph), entry_(entry), current_(entry) {}
+      : flow_graph_(flow_graph),
+        entry_(entry),
+        current_(entry),
+        fall_through_env_(new Environment(0,
+                                          0,
+                                          Thread::kNoDeoptId,
+                                          flow_graph->parsed_function(),
+                                          NULL)) {}
 
   Definition* AddToInitialDefinitions(Definition* def) {
     def->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
@@ -295,11 +302,17 @@ class BlockBuilder : public ValueObject {
 
   Definition* AddDefinition(Definition* def) {
     def->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
-    current_ = current_->AppendInstruction(def);
+    AddInstruction(def);
     return def;
   }
 
   Instruction* AddInstruction(Instruction* instr) {
+    if (instr->ComputeCanDeoptimize()) {
+      // Since we use the presence of an environment to determine if an
+      // instructions can deoptimize, we need an empty environment for
+      // instructions that "deoptimize" to the intrinsic fall-through code.
+      instr->SetEnvironment(fall_through_env_);
+    }
     current_ = current_->AppendInstruction(instr);
     return instr;
   }
@@ -360,6 +373,7 @@ class BlockBuilder : public ValueObject {
   FlowGraph* flow_graph_;
   BlockEntryInstr* entry_;
   Instruction* current_;
+  Environment* fall_through_env_;
 };
 
 
@@ -518,15 +532,11 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
           // Float32/Float64 case already handled.
           break;
       }
-      const ICData& value_check = ICData::ZoneHandle(
-          ICData::New(flow_graph->function(),
-                      Symbols::Empty(),       // Dummy function name.
-                      Object::empty_array(),  // Dummy args. descr.
-                      Thread::kNoDeoptId, 1, false));
-      value_check.AddReceiverCheck(value_check_cid, flow_graph->function());
+      Zone* zone = flow_graph->zone();
+      Cids* value_check = Cids::CreateMonomorphic(zone, value_check_cid);
       builder.AddInstruction(
-          new CheckClassInstr(new Value(value), Thread::kNoDeoptId, value_check,
-                              builder.TokenPos()));
+          new CheckClassInstr(new Value(value), Thread::kNoDeoptId,
+                              *value_check, builder.TokenPos()));
       value = builder.AddUnboxInstr(rep, new Value(value),
                                     /* is_checked = */ true);
       if (array_cid == kTypedDataFloat32ArrayCid) {
@@ -716,6 +726,7 @@ bool Intrinsifier::Build_ExternalTwoByteStringCodeUnitAt(
 static bool BuildBinaryFloat32x4Op(FlowGraph* flow_graph, Token::Kind kind) {
   if (!FlowGraphCompiler::SupportsUnboxedSimd128()) return false;
 
+  Zone* zone = flow_graph->zone();
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
@@ -723,14 +734,10 @@ static bool BuildBinaryFloat32x4Op(FlowGraph* flow_graph, Token::Kind kind) {
   Definition* right = builder.AddParameter(1);
   Definition* left = builder.AddParameter(2);
 
-  const ICData& value_check = ICData::ZoneHandle(ICData::New(
-      flow_graph->function(), String::Handle(flow_graph->function().name()),
-      Object::empty_array(),  // Dummy args. descr.
-      Thread::kNoDeoptId, 1, false));
-  value_check.AddReceiverCheck(kFloat32x4Cid, flow_graph->function());
+  Cids* value_check = Cids::CreateMonomorphic(zone, kFloat32x4Cid);
   // Check argument. Receiver (left) is known to be a Float32x4.
   builder.AddInstruction(new CheckClassInstr(
-      new Value(right), Thread::kNoDeoptId, value_check, builder.TokenPos()));
+      new Value(right), Thread::kNoDeoptId, *value_check, builder.TokenPos()));
   Definition* left_simd =
       builder.AddUnboxInstr(kUnboxedFloat32x4, new Value(left),
                             /* is_checked = */ true);
@@ -932,14 +939,11 @@ bool Intrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
 
   Definition* data = builder.AddParameter(1);
   Definition* growable_array = builder.AddParameter(2);
+  Zone* zone = flow_graph->zone();
 
-  const ICData& value_check = ICData::ZoneHandle(ICData::New(
-      flow_graph->function(), String::Handle(flow_graph->function().name()),
-      Object::empty_array(),  // Dummy args. descr.
-      Thread::kNoDeoptId, 1, false));
-  value_check.AddReceiverCheck(kArrayCid, flow_graph->function());
+  Cids* value_check = Cids::CreateMonomorphic(zone, kArrayCid);
   builder.AddInstruction(new CheckClassInstr(
-      new Value(data), Thread::kNoDeoptId, value_check, builder.TokenPos()));
+      new Value(data), Thread::kNoDeoptId, *value_check, builder.TokenPos()));
 
   builder.AddInstruction(new StoreInstanceFieldInstr(
       GrowableObjectArray::data_offset(), new Value(growable_array),

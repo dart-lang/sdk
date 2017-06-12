@@ -22,6 +22,7 @@ import 'package:compiler/src/elements/elements.dart'
 import 'package:compiler/src/io/source_file.dart' show SourceFile;
 import 'package:compiler/src/io/source_information.dart'
     show computeElementNameForSourceMaps;
+import 'package:kernel/ast.dart' show Location;
 
 validateSourceMap(Uri targetUri,
     {Uri mainUri, Position mainPosition, CompilerImpl compiler}) {
@@ -132,8 +133,9 @@ checkNames(
         SourceFile sourceFile = compilationUnit.script.file;
 
         Position positionFromOffset(int offset) {
-          int line = sourceFile.getLine(offset);
-          int column = sourceFile.getColumn(line, offset);
+          Location location = sourceFile.getLocation(offset);
+          int line = location.line - 1;
+          int column = location.column - 1;
           return new Position(line, column);
         }
 

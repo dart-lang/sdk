@@ -10,6 +10,7 @@ import 'package:expect/expect.dart';
 class C<T> {}
 
 class I {}
+
 class J extends I {}
 
 typedef J f1();

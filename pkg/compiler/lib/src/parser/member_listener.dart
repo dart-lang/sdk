@@ -116,10 +116,9 @@ class MemberListener extends NodeListener {
   }
 
   @override
-  void endFields(
-      int count, Token covariantKeyword, Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
     bool hasParseError = memberErrors.head;
-    super.endFields(count, covariantKeyword, beginToken, endToken);
+    super.endFields(count, beginToken, endToken);
     VariableDefinitions variableDefinitions = popNode();
     Modifiers modifiers = variableDefinitions.modifiers;
     pushNode(null);
@@ -133,10 +132,10 @@ class MemberListener extends NodeListener {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator) {
+  void endFieldInitializer(Token assignmentOperator, Token token) {
     pushNode(null); // Super expects an expression, but
     // ClassElementParser just skips expressions.
-    super.endFieldInitializer(assignmentOperator);
+    super.endFieldInitializer(assignmentOperator, token);
   }
 
   @override

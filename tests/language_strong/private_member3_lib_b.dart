@@ -7,5 +7,7 @@ library PrivateMemberLibB;
 import 'private_member3_negative_test.dart';
 
 class B extends A {
-  bool _fun() { return true; }
+  bool _fun() {
+    return true;
+  }
 }

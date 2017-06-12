@@ -65,7 +65,7 @@ class LibraryViewElement extends HtmlElement implements Renderable {
   M.InboundReferencesRepository _references;
   M.RetainingPathRepository _retainingPaths;
   M.ScriptRepository _scripts;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.EvalRepository _eval;
   Iterable<M.Field> _variables;
 
@@ -87,7 +87,7 @@ class LibraryViewElement extends HtmlElement implements Renderable {
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
       M.ScriptRepository scripts,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       M.EvalRepository eval,
       {RenderingQueue queue}) {
     assert(vm != null);
@@ -102,7 +102,7 @@ class LibraryViewElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(retainingPaths != null);
     assert(scripts != null);
-    assert(instances != null);
+    assert(objects != null);
     assert(eval != null);
     LibraryViewElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
@@ -118,7 +118,7 @@ class LibraryViewElement extends HtmlElement implements Renderable {
     e._references = references;
     e._retainingPaths = retainingPaths;
     e._scripts = scripts;
-    e._instances = instances;
+    e._objects = objects;
     e._eval = eval;
     return e;
   }
@@ -159,7 +159,7 @@ class LibraryViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'Library',
           new HRElement(),
           new ObjectCommonElement(_isolate, _library, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _instances,
+              _reachableSizes, _references, _retainingPaths, _objects,
               queue: _r.queue),
           new DivElement()
             ..classes = ['memberList']
@@ -186,7 +186,7 @@ class LibraryViewElement extends HtmlElement implements Renderable {
                 ]
             ],
           new HRElement(),
-          new EvalBoxElement(_isolate, _library, _instances, _eval,
+          new EvalBoxElement(_isolate, _library, _objects, _eval,
               queue: _r.queue),
           new HRElement(),
           _createDependencies(),
@@ -200,7 +200,7 @@ class LibraryViewElement extends HtmlElement implements Renderable {
           _createFunctions(),
           new HRElement(),
           new ScriptInsetElement(
-              _isolate, _library.rootScript, _scripts, _instances, _events,
+              _isolate, _library.rootScript, _scripts, _objects, _events,
               queue: _r.queue),
           new HRElement(),
           new ViewFooterElement(queue: _r.queue)
@@ -299,14 +299,14 @@ class LibraryViewElement extends HtmlElement implements Renderable {
                           new DivElement()
                             ..classes = ['memberName']
                             ..children = [
-                              new FieldRefElement(_isolate, f, _instances,
+                              new FieldRefElement(_isolate, f, _objects,
                                   queue: _r.queue)
                             ],
                           new DivElement()
                             ..classes = ['memberValue']
                             ..children = [
                               new SpanElement()..text = ' = ',
-                              anyRef(_isolate, f.staticValue, _instances,
+                              anyRef(_isolate, f.staticValue, _objects,
                                   queue: _r.queue)
                             ]
                         ])

@@ -24,7 +24,7 @@ class BranchesTest {
     for (int i = 0; i < 2; i++) {
       if (i == 0) {
         checkPoint1 += checkPointCounter++;
-        if (true ||  // Test branch-if-true.
+        if (true || // Test branch-if-true.
             f() ||
             f() ||
             f() ||
@@ -81,64 +81,65 @@ class BranchesTest {
             f()) {
           checkPoint2 += checkPointCounter++;
         }
-      } else {  // Test branch (jumping over the else branch).
+      } else {
+        // Test branch (jumping over the else branch).
         checkPoint3 += checkPointCounter++;
         if (false) {
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
-          checkPoint4 = checkPointCounter++;  // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
+          checkPoint4 = checkPointCounter++; // Never reached.
         }
       }
       checkPoint5 += checkPointCounter++;

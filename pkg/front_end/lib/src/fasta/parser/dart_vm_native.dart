@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Implements support for Dart VM native method bodies on this form:
+/// Implements support for Dart VM native method bodies of this form:
 ///
 ///     native STRING
 ///
@@ -11,7 +11,7 @@
 /// term and replace it with annotations as in `dart2js`.
 library fasta.parser.dart_vm_native;
 
-import '../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show Token;
 
 import '../scanner/token_constants.dart' show STRING_TOKEN;
 

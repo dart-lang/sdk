@@ -7,8 +7,8 @@ import 'dart:io';
 Future<String> getVersion(var rootPath) {
   var suffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
   var printVersionScript = rootPath.resolve("tools/print_version.py");
-  return Process.run("python$suffix",
-                     [printVersionScript.toFilePath()]).then((result) {
+  return Process
+      .run("python$suffix", [printVersionScript.toFilePath()]).then((result) {
     if (result.exitCode != 0) {
       throw "Could not generate version";
     }
@@ -19,8 +19,7 @@ Future<String> getVersion(var rootPath) {
 Future<String> getSnapshotGenerationFile(var args, var rootPath) {
   var dart2js = rootPath.resolve(args["dart2js_main"]);
   return getVersion(rootPath).then((version) {
-    var snapshotGenerationText =
-"""
+    var snapshotGenerationText = """
 import '${dart2js.toFilePath(windows: false)}' as dart2jsMain;
 import 'dart:io';
 
@@ -41,8 +40,7 @@ void main(List<String> arguments) {
 Future<String> getDart2jsSnapshotGenerationFile(var args, var rootPath) {
   var dart2js = rootPath.resolve(args["dart2js_main"]);
   return getVersion(rootPath).then((version) {
-    var snapshotGenerationText =
-"""
+    var snapshotGenerationText = """
 import '${dart2js.toFilePath(windows: false)}' as dart2jsMain;
 
 void main(List<String> arguments) {
@@ -55,10 +53,10 @@ void main(List<String> arguments) {
 }
 
 void writeSnapshotFile(var path, var content) {
-    File file = new File(path);
-    var writer = file.openSync(mode: FileMode.WRITE);
-    writer.writeStringSync(content);
-    writer.close();
+  File file = new File(path);
+  var writer = file.openSync(mode: FileMode.WRITE);
+  writer.writeStringSync(content);
+  writer.close();
 }
 
 /**

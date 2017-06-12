@@ -5,7 +5,7 @@
 //
 // Dart test program testing generic type allocations and generic type tests.
 
-class A<E> { }
+class A<E> {}
 
 class Pair<P, Q> extends A /* i.e. extends A<dynamic> */ {
   final P fst;
@@ -14,7 +14,6 @@ class Pair<P, Q> extends A /* i.e. extends A<dynamic> */ {
 }
 
 main() {
-  print(new Pair<int,int>(1, 2));
-  print(new Pair<String,int>("1", 2));
+  print(new Pair<int, int>(1, 2));
+  print(new Pair<String, int>("1", 2));
 }
-

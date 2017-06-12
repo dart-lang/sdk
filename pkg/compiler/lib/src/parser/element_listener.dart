@@ -27,16 +27,15 @@ import '../id_generator.dart';
 import '../native/native.dart' as native;
 import '../string_validator.dart' show StringValidator;
 import 'package:front_end/src/fasta/scanner.dart'
-    show Keyword, BeginGroupToken, ErrorToken, KeywordToken, StringToken, Token;
+    show BeginGroupToken, ErrorToken, StringToken, Token;
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
-import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
-    show IDENTIFIER_INFO;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'package:front_end/src/fasta/parser.dart'
     show Listener, ParserError, optional;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
+import 'package:front_end/src/scanner/token.dart' show KeywordToken, TokenType;
 import 'partial_elements.dart'
     show
         PartialClassElement,
@@ -300,9 +299,9 @@ class ElementListener extends Listener {
 
   void rejectBuiltInIdentifier(Identifier name) {
     if (name.token is KeywordToken) {
-      Keyword keyword = (name.token as KeywordToken).keyword;
-      if (!keyword.isPseudo) {
-        recoverableError(name, "Illegal name '${keyword.syntax}'.");
+      TokenType type = name.token.type;
+      if (!type.isPseudo) {
+        recoverableError(name, "Illegal name '${type.lexeme}'.");
       }
     }
   }
@@ -707,6 +706,9 @@ class ElementListener extends Listener {
 
       case "FASTA_IGNORED":
         return null; // Ignored. This error is already implemented elsewhere.
+
+      default:
+        throw "Unexpected message code: ${message.code}";
     }
     SourceSpan span = reporter.spanFromToken(token);
     reportError(span, errorCode, arguments);
@@ -773,8 +775,8 @@ class ElementListener extends Listener {
   /// Finds the preceding token via the begin token of the last AST node pushed
   /// on the [nodes] stack.
   Token synthesizeIdentifier(Token token) {
-    Token synthesizedToken = new StringToken.fromString(
-        Precedence.IDENTIFIER_INFO, '?', token.charOffset);
+    Token synthesizedToken =
+        new StringToken.fromString(TokenType.IDENTIFIER, '?', token.charOffset);
     synthesizedToken.next = token.next;
     return synthesizedToken;
   }

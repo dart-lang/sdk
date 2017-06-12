@@ -130,38 +130,49 @@ class Timer {
   }
 }
 
-/// Runtime support for async-await transformation.
+/// Initiates the computation of an `async` function.
 ///
-/// This function is called by a transformed function on each await and return
-/// in the untransformed function, and before starting.
+/// Used as part of the runtime support for the async/await transformation.
 ///
-/// If [object] is not a future it will be wrapped in a `new Future.value`.
-///
-/// If [asyncBody] is [async_error_codes.SUCCESS]/[async_error_codes.ERROR] it
-/// indicates a return or throw from the async function, and
-/// complete/completeError is called on [completer] with [object].
-///
-/// Otherwise [asyncBody] is set up to be called when the future is completed
-/// with a code [async_error_codes.SUCCESS]/[async_error_codes.ERROR] depending
-/// on the success of the future.
-///
-/// Returns the future of the completer for convenience of the first call.
-dynamic _asyncHelper(
-    dynamic object,
-    dynamic /* int | _WrappedAsyncBody */ bodyFunctionOrErrorCode,
-    Completer completer) {
-  if (identical(bodyFunctionOrErrorCode, async_error_codes.SUCCESS)) {
-    completer.complete(object);
-    return;
-  } else if (identical(bodyFunctionOrErrorCode, async_error_codes.ERROR)) {
-    // The error is a js-error.
-    completer.completeError(
-        unwrapException(object), getTraceFromException(object));
-    return;
-  }
-
-  _awaitOnObject(object, bodyFunctionOrErrorCode);
+/// This function sets up the first call into the transformed [bodyFunction].
+/// Independently, it takes the [completer] and returns the future of the
+/// completer for convenience of the transformed code.
+dynamic _asyncStart(_WrappedAsyncBody bodyFunction, Completer completer) {
+  // TODO(sra): Specialize this implementation of `await null`.
+  _awaitOnObject(null, bodyFunction);
   return completer.future;
+}
+
+/// Performs the `await` operation of an `async` function.
+///
+/// Used as part of the runtime support for the async/await transformation.
+///
+/// Arranges for [bodyFunction] to be called when the future or value [object]
+/// is completed with a code [async_error_codes.SUCCESS] or
+/// [async_error_codes.ERROR] depending on the success of the future.
+dynamic _asyncAwait(dynamic object, _WrappedAsyncBody bodyFunction) {
+  _awaitOnObject(object, bodyFunction);
+}
+
+/// Completes the future of an `async` function.
+///
+/// Used as part of the runtime support for the async/await transformation.
+///
+/// This function is used when the `async` function returns (explicitly or
+/// implicitly).
+dynamic _asyncReturn(dynamic object, Completer completer) {
+  completer.complete(object);
+}
+
+/// Completes the future of an `async` function with an error.
+///
+/// Used as part of the runtime support for the async/await transformation.
+///
+/// This function is used when the `async` function re-throws an exception.
+dynamic _asyncRethrow(dynamic object, Completer completer) {
+  // The error is a js-error.
+  completer.completeError(
+      unwrapException(object), getTraceFromException(object));
 }
 
 /// Awaits on the given [object].

@@ -15,12 +15,19 @@ import 'dart:collection';
 import 'dart:_internal';
 import 'dart:html';
 import 'dart:html_common';
-import 'dart:_js_helper' show convertDartClosureToJS, Creates, JSName, Native;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:audio library.
+
+import 'dart:_js_helper'
+    show
+        convertDartClosureToJS,
+        Creates,
+        JSName,
+        Native,
+        JavaScriptIndexingBehavior;
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -108,19 +115,19 @@ class SqlDatabase extends Interceptor {
   void changeVersion(String oldVersion, String newVersion,
       [SqlTransactionCallback callback,
       SqlTransactionErrorCallback errorCallback,
-      VoidCallback successCallback]) native ;
+      VoidCallback successCallback]) native;
 
   @DomName('Database.readTransaction')
   @DocsEditable()
   void readTransaction(SqlTransactionCallback callback,
       [SqlTransactionErrorCallback errorCallback,
-      VoidCallback successCallback]) native ;
+      VoidCallback successCallback]) native;
 
   @DomName('Database.transaction')
   @DocsEditable()
   void transaction(SqlTransactionCallback callback,
       [SqlTransactionErrorCallback errorCallback,
-      VoidCallback successCallback]) native ;
+      VoidCallback successCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -270,7 +277,6 @@ class SqlResultSetRowList extends Interceptor
 
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
-  @Creates('=Object')
   Map item(int index) {
     return convertNativeToDart_Dictionary(_item_1(index));
   }
@@ -278,8 +284,7 @@ class SqlResultSetRowList extends Interceptor
   @JSName('item')
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
-  @Creates('=Object')
-  _item_1(index) native ;
+  _item_1(index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -301,7 +306,8 @@ class SqlTransaction extends Interceptor {
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
-  void executeSql(String sqlStatement, List<Object> arguments,
-      [SqlStatementCallback callback,
-      SqlStatementErrorCallback errorCallback]) native ;
+  void executeSql(String sqlStatement,
+      [List arguments,
+      SqlStatementCallback callback,
+      SqlStatementErrorCallback errorCallback]) native;
 }

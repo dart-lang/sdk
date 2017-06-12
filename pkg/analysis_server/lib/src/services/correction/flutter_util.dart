@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.correction.flutter_util;
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 const _FLUTTER_WIDGET_NAME = "Widget";
 const _FLUTTER_WIDGET_URI = "package:flutter/src/widgets/framework.dart";
@@ -22,7 +21,6 @@ void convertFlutterChildToChildren(
     Function _addInsertEdit,
     Function _addRemoveEdit,
     Function _addReplaceEdit,
-    Function rangeStartLength,
     Function rangeNode) {
   int childLoc = namedExp.offset + 'child'.length;
   _addInsertEdit(childLoc, 'ren');
@@ -44,7 +42,7 @@ void convertFlutterChildToChildren(
     String prefix = separator.contains(eol) ? "" : "$eol$indentNew";
     if (prefix.isEmpty) {
       _addInsertEdit(namedExp.offset + 'child:'.length, ' <Widget>[');
-      _addRemoveEdit(rangeStartLength(childArg.offset - 2, 2));
+      _addRemoveEdit(new SourceRange(childArg.offset - 2, 2));
     } else {
       _addInsertEdit(listLoc, '<Widget>[');
     }

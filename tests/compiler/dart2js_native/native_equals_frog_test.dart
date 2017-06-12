@@ -8,17 +8,19 @@ import 'native_testing.dart';
 class A {}
 
 int calls = 0;
+
 @Native("B")
 class B {
-  bool operator==(other) {
+  bool operator ==(other) {
     ++calls;
     return other is B;
   }
+
   int get hashCode => 1;
 }
 
-makeA() native ;
-makeB() native ;
+makeA() native;
+makeB() native;
 
 void setup() native """
 function A() {}

@@ -6,7 +6,6 @@
 import "package:expect/expect.dart";
 
 class ExpectTest {
-
   static testEquals(a) {
     try {
       Expect.equals("AB", a, "within testEquals");
@@ -71,7 +70,6 @@ class ExpectTest {
     testIdentical("A");
     testFail();
   }
-
 }
 
 main() {

@@ -37,7 +37,7 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
     subscription = server.listen((client) {
       client.writeEventsEnabled = false;
       client.listen((event) {
-        switch(event) {
+        switch (event) {
           case RawSocketEvent.READ:
             client.read();
             break;
@@ -70,7 +70,7 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
         bool done = false;
         var subscription;
         subscription = socket.listen((event) {
-          switch(event) {
+          switch (event) {
             case RawSocketEvent.READ:
               Expect.fail("No read event expected");
               break;
@@ -82,18 +82,16 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
             case RawSocketEvent.WRITE:
               // We don't care if this write succeeds, so we don't check
               // the return value (number of bytes written).
-              socket.write([1,2,3]);
+              socket.write([1, 2, 3]);
               socket.shutdown(SocketDirection.SEND);
               break;
           }
-        },
-        onDone: () {
+        }, onDone: () {
           if (!done) {
             doneCount++;
             checkDone();
           }
-        },
-        onError: (e) {
+        }, onError: (e) {
           // "Connection reset by peer" errors are handled here.
           errorCount++;
           checkDone();

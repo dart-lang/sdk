@@ -178,6 +178,8 @@ class FlowGraphBuilder : public ValueObject {
     return await_token_positions_;
   }
 
+  static bool SimpleInstanceOfType(const AbstractType& type);
+
  private:
   friend class NestedStatement;  // Explicit access to nesting_stack_.
   friend class Intrinsifier;
@@ -314,6 +316,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
                                           StoreBarrierType emit_store_barrier);
 
   // Helpers for translating parts of the AST.
+  void BuildPushTypeArguments(const ArgumentListNode& node,
+                              ZoneGrowableArray<PushArgumentInstr*>* values);
   void BuildPushArguments(const ArgumentListNode& node,
                           ZoneGrowableArray<PushArgumentInstr*>* values);
 
@@ -413,6 +417,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildClosureCall(ClosureCallNode* node, bool result_needed);
 
   Value* BuildNullValue(TokenPosition token_pos);
+  Value* BuildEmptyTypeArguments(TokenPosition token_pos);
 
   // Returns true if the run-time type check can be eliminated.
   bool CanSkipTypeCheck(TokenPosition token_pos,

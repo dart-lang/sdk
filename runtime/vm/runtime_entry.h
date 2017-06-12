@@ -80,7 +80,7 @@ class RuntimeEntry : public ValueObject {
 #ifndef PRODUCT
 #define TRACE_RUNTIME_CALL(format, name)                                       \
   if (FLAG_trace_runtime_calls) {                                              \
-    OS::Print("Runtime call: " format "\n", name);                             \
+    THR_Print("Runtime call: " format "\n", name);                             \
   }
 #else
 #define TRACE_RUNTIME_CALL(format, name)                                       \
@@ -146,11 +146,6 @@ RUNTIME_ENTRY_LIST(DECLARE_RUNTIME_ENTRY)
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 
 
-// Declare all runtime functions here.
-RUNTIME_ENTRY_LIST(DECLARE_RUNTIME_ENTRY)
-LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
-
-
 uword RuntimeEntry::AddressFromId(RuntimeFunctionId id) {
   switch (id) {
 #define DEFINE_RUNTIME_CASE(name)                                              \
@@ -183,6 +178,13 @@ RuntimeFunctionId RuntimeEntry::RuntimeFunctionIdFromAddress(uword address) {
 #undef CHECK_LEAF_RUNTIME_ADDRESS
   return kNoRuntimeFunctionId;
 }
+
+const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
+
+void DeoptimizeAt(const Code& optimized_code, StackFrame* frame);
+void DeoptimizeFunctionsOnStack();
+
+double DartModulo(double a, double b);
 
 }  // namespace dart
 

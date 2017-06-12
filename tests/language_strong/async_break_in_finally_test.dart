@@ -6,7 +6,8 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
 then43() async {
-  label: try {
+  label:
+  try {
     return await 42;
   } finally {
     break label;
@@ -15,15 +16,16 @@ then43() async {
 }
 
 then42() async {
-  label: try {
+  label:
+  try {
     return await 42;
-  } finally {
-  }
+  } finally {}
   return await 43;
 }
 
 now43() {
-  label: try {
+  label:
+  try {
     return 42;
   } finally {
     break label;
@@ -32,10 +34,10 @@ now43() {
 }
 
 now42() {
-  label: try {
+  label:
+  try {
     return 42;
-  } finally {
-  }
+  } finally {}
   return 43;
 }
 

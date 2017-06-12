@@ -20,16 +20,16 @@ class AdbCommandResult {
   final int exitCode;
   final bool timedOut;
 
-  AdbCommandResult(this.command, this.stdout, this.stderr, this.exitCode,
-                   this.timedOut);
+  AdbCommandResult(
+      this.command, this.stdout, this.stderr, this.exitCode, this.timedOut);
 
   void throwIfFailed() {
     if (exitCode != 0) {
       var error = "Running: $command failed:"
-                  "stdout:\n  ${stdout.trim()}\n"
-                  "stderr:\n  ${stderr.trim()}\n"
-                  "exitCode: $exitCode\n"
-                  "timedOut: $timedOut";
+          "stdout:\n  ${stdout.trim()}\n"
+          "stderr:\n  ${stderr.trim()}\n"
+          "exitCode: $exitCode\n"
+          "timedOut: $timedOut";
       throw new Exception(error);
     }
   }
@@ -42,8 +42,7 @@ class AdbCommandResult {
  * If the exit code of the process was nonzero it will complete with an error.
  * If starting the process failed, it will complete with an error as well.
  */
-Future<AdbCommandResult> _executeCommand(
-    String executable, List<String> args,
+Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
     {String stdin, Duration timeout}) {
   Future<String> getOutput(Stream<List<int>> stream) {
     return stream
@@ -70,9 +69,9 @@ Future<AdbCommandResult> _executeCommand(
     }
 
     var results = await Future.wait([
-        getOutput(process.stdout),
-        getOutput(process.stderr),
-        process.exitCode
+      getOutput(process.stdout),
+      getOutput(process.stderr),
+      process.exitCode
     ]);
     if (timer != null) timer.cancel();
 
@@ -146,7 +145,7 @@ class AndroidEmulator {
   }
 
   Future<bool> kill() {
-    var completer = new Completer();
+    var completer = new Completer<bool>();
     if (_emulatorProcess.kill()) {
       _emulatorProcess.exitCode.then((exitCode) {
         // TODO: Should we use exitCode to do something clever?
@@ -210,22 +209,22 @@ class AdbDevice {
    * Polls the 'sys.boot_completed' property. Returns as soon as the property is
    * 1.
    */
-  Future waitForBootCompleted() async {
+  Future<Null> waitForBootCompleted() async {
     while (true) {
       try {
         AdbCommandResult result =
             await _adbCommand(['shell', 'getprop', 'sys.boot_completed']);
         if (result.stdout.trim() == '1') return;
-      } catch (_) { }
-      await new Future.delayed(const Duration(seconds: 2));
+      } catch (_) {}
+      await new Future<Null>.delayed(const Duration(seconds: 2));
     }
   }
 
   /**
    * Put adb in root mode.
    */
-  Future adbRoot() {
-    var adbRootCompleter = new Completer();
+  Future<bool> adbRoot() {
+    var adbRootCompleter = new Completer<bool>();
     _adbCommand(['root']).then((_) {
       // TODO: Figure out a way to wait until the adb daemon was restarted in
       // 'root mode' on the device.
@@ -254,8 +253,8 @@ class AdbDevice {
    */
   Future pushCachedData(String local, String remote) {
     if (_cachedData[remote] == local) {
-      return new Future.value(new AdbCommandResult(
-          "Skipped cached push", "", "", 0, false));
+      return new Future.value(
+          new AdbCommandResult("Skipped cached push", "", "", 0, false));
     }
     _cachedData[remote] = local;
     return _adbCommand(['push', local, remote]);
@@ -321,33 +320,33 @@ class AdbDevice {
   }
 
   Future<AdbCommandResult> runAdbCommand(List<String> adbArgs,
-                                         {Duration timeout}) {
-    return _executeCommand(
-        "adb", _deviceSpecificArgs(adbArgs), timeout: timeout);
+      {Duration timeout}) {
+    return _executeCommand("adb", _deviceSpecificArgs(adbArgs),
+        timeout: timeout);
   }
 
   Future<AdbCommandResult> runAdbShellCommand(List<String> shellArgs,
-                                              {Duration timeout}) async {
+      {Duration timeout}) async {
     const MARKER = 'AdbShellExitCode: ';
 
     // The exitcode of 'adb shell ...' can be 0 even though the command failed
     // with a non-zero exit code. We therefore explicitly print it to stdout and
     // search for it.
 
-    var args = ['shell',
-                "${shellArgs.join(' ')} ; echo $MARKER \$?"];
+    var args = ['shell', "${shellArgs.join(' ')} ; echo $MARKER \$?"];
     AdbCommandResult result = await _executeCommand(
-        "adb", _deviceSpecificArgs(args), timeout: timeout);
+        "adb", _deviceSpecificArgs(args),
+        timeout: timeout);
     int exitCode = result.exitCode;
-    var lines = result
-        .stdout.split('\n')
+    var lines = result.stdout
+        .split('\n')
         .where((line) => line.trim().length > 0)
         .toList();
     if (lines.length > 0) {
       int index = lines.last.indexOf(MARKER);
       if (index >= 0) {
-        exitCode = int.parse(
-            lines.last.substring(index + MARKER.length).trim());
+        exitCode =
+            int.parse(lines.last.substring(index + MARKER.length).trim());
         if (exitCode > 128 && exitCode <= 128 + 31) {
           // Return negative exit codes for signals 1..31 (128+N for signal N)
           exitCode = 128 - exitCode;
@@ -357,9 +356,8 @@ class AdbDevice {
         assert(result.exitCode != 0);
       }
     }
-    return new AdbCommandResult(
-        result.command, result.stdout, result.stderr, exitCode,
-        result.timedOut);
+    return new AdbCommandResult(result.command, result.stdout, result.stderr,
+        exitCode, result.timedOut);
   }
 
   Future<AdbCommandResult> _adbCommand(List<String> adbArgs) async {
@@ -426,8 +424,7 @@ class AdbDevicePool {
     var names = await AdbHelper.listDevices();
     var devices = names.map((id) => new AdbDevice(id)).toList();
     if (devices.length == 0) {
-      throw new Exception(
-          'No android devices found. '
+      throw new Exception('No android devices found. '
           'Please make sure "adb devices" shows your device!');
     }
     print("Found ${devices.length} Android devices.");
@@ -438,7 +435,7 @@ class AdbDevicePool {
     if (_idleDevices.length > 0) {
       return _idleDevices.removeFirst();
     } else {
-      var completer = new Completer();
+      var completer = new Completer<AdbDevice>();
       _waiter.add(completer);
       return completer.future;
     }

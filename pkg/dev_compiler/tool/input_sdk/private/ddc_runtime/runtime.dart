@@ -7,6 +7,7 @@ library dart._runtime;
 import 'dart:async';
 import 'dart:collection';
 
+import 'dart:_debugger' show stackTraceMapper;
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper'
@@ -29,6 +30,7 @@ part 'types.dart';
 part 'errors.dart';
 part 'generators.dart';
 part 'operations.dart';
+part 'profile.dart';
 part 'utils.dart';
 
 // TODO(vsm): Move polyfill code to dart:html.
@@ -86,10 +88,35 @@ final global_ = JS(
       if (typeof SourceBufferList == "undefined") {
         window.SourceBufferList = new MediaSource().sourceBuffers.constructor;
       }
+      if (typeof SpeechRecognition == "undefined") {
+        window.SpeechRecognition = window.webkitSpeechRecognition;
+        window.SpeechRecognitionError = window.webkitSpeechRecognitionError;
+        window.SpeechRecognitionEvent = window.webkitSpeechRecognitionEvent;
+      }
     }
+
     var globalState = (typeof window != "undefined") ? window
       : (typeof global != "undefined") ? global
       : (typeof self != "undefined") ? self : {};
+
+    // These settings must be configured before the application starts so that
+    // user code runs with the correct configuration.
+    let settings = 'ddcSettings' in globalState ? globalState.ddcSettings : {};
+    $trapRuntimeErrors(
+        'trapRuntimeErrors' in settings ? settings.trapRuntimeErrors : true);
+    $ignoreWhitelistedErrors(
+        'ignoreWhitelistedErrors' in settings ?
+            settings.ignoreWhitelistedErrors : true);
+
+    $ignoreAllErrors(
+        'ignoreAllErrors' in settings ?settings.ignoreAllErrors : false);
+
+    $failForWeakModeIsChecks(
+        'failForWeakModeIsChecks' in settings ?
+            settings.failForWeakModeIsChecks : true);
+    $trackProfile(
+        'trackProfile' in settings ? settings.trackProfile : false);
+
     return globalState;
   }()
 ''');

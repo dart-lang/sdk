@@ -11,7 +11,9 @@ class A {
   static int c;
   static int d;
 
-  A(int x, int y) : a = x, b = y {
+  A(int x, int y)
+      : a = x,
+        b = y {
     A.c = x;
     A.d = y;
   }
@@ -24,7 +26,6 @@ class NewStatementTest {
     Expect.equals(20, A.d);
   }
 }
-
 
 main() {
   NewStatementTest.testMain();

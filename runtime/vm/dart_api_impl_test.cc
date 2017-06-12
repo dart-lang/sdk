@@ -2067,7 +2067,7 @@ static void TestDirectAccess(Dart_Handle lib,
     dataP[i] += 10;
   }
 
-  // Release direct accesss to the typed data object.
+  // Release direct access to the typed data object.
   result = Dart_TypedDataReleaseData(array);
   EXPECT_VALID(result);
 

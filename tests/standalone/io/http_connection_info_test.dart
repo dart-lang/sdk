@@ -18,31 +18,26 @@ void testHttpConnectionInfo() {
       Expect.isNotNull(clientPort);
       Expect.equals(request.connectionInfo.remotePort, clientPort);
       Expect.equals(response.connectionInfo.remotePort, clientPort);
-      request.listen(
-          (_) { },
-          onDone: ()  { request.response.close(); });
+      request.listen((_) {}, onDone: () {
+        request.response.close();
+      });
     });
 
     HttpClient client = new HttpClient();
-    client.get("127.0.0.1", server.port, "/")
-        .then((request) {
-          Expect.isTrue(
-              request.connectionInfo.remoteAddress is InternetAddress);
-          Expect.equals(request.connectionInfo.remotePort, server.port);
-          clientPort = request.connectionInfo.localPort;
-          return request.close();
-        })
-        .then((response) {
-            Expect.equals(server.port, response.connectionInfo.remotePort);
-            Expect.equals(clientPort, response.connectionInfo.localPort);
-            response.listen(
-                (_) { },
-                onDone: () {
-                  client.close();
-                  server.close();
-                });
-        });
+    client.get("127.0.0.1", server.port, "/").then((request) {
+      Expect.isTrue(request.connectionInfo.remoteAddress is InternetAddress);
+      Expect.equals(request.connectionInfo.remotePort, server.port);
+      clientPort = request.connectionInfo.localPort;
+      return request.close();
+    }).then((response) {
+      Expect.equals(server.port, response.connectionInfo.remotePort);
+      Expect.equals(clientPort, response.connectionInfo.localPort);
+      response.listen((_) {}, onDone: () {
+        client.close();
+        server.close();
+      });
     });
+  });
 }
 
 void main() {

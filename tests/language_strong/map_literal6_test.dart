@@ -11,6 +11,7 @@ import "package:expect/expect.dart";
 class A {
   const A();
 }
+
 class B {
   final a;
   const B(this.a);

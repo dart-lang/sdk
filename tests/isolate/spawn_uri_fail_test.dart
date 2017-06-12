@@ -32,7 +32,8 @@ main() async {
   }
   try {
     var i = await Isolate.spawnUri(Platform.script, [], null,
-        packageRoot: pkgRoot, packageConfig: pkgConfig,
+        packageRoot: pkgRoot,
+        packageConfig: pkgConfig,
         automaticPackageResolution: true);
   } catch (e) {
     print(e);

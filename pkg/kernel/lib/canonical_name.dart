@@ -104,6 +104,10 @@ class CanonicalName {
         .getChildFromQualifiedName(member.name);
   }
 
+  CanonicalName getChildFromTypedef(Typedef typedef_) {
+    return getChild('@typedefs').getChild(typedef_.name);
+  }
+
   void bindTo(Reference target) {
     if (reference == target) return;
     if (reference != null) {

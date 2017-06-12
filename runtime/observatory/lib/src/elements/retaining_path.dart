@@ -22,7 +22,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
   M.IsolateRef _isolate;
   M.ObjectRef _object;
   M.RetainingPathRepository _retainingPaths;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.RetainingPath _path;
   bool _expanded = false;
 
@@ -30,18 +30,18 @@ class RetainingPathElement extends HtmlElement implements Renderable {
   M.ObjectRef get object => _object;
 
   factory RetainingPathElement(M.IsolateRef isolate, M.ObjectRef object,
-      M.RetainingPathRepository retainingPaths, M.InstanceRepository instances,
+      M.RetainingPathRepository retainingPaths, M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(object != null);
     assert(retainingPaths != null);
-    assert(instances != null);
+    assert(objects != null);
     RetainingPathElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
     e._object = object;
     e._retainingPaths = retainingPaths;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -85,33 +85,49 @@ class RetainingPathElement extends HtmlElement implements Renderable {
     if (_path == null) {
       return [new SpanElement()..text = 'Loading'];
     }
-    return _path.elements.map(_createItem).toList();
+
+    var elements = new List();
+    bool first = true;
+    for (var item in _path.elements) {
+      elements.add(_createItem(item, first));
+      first = false;
+    }
+    elements.add(_createGCRootItem());
+    return elements;
   }
 
-  Element _createItem(M.RetainingPathItem item) {
+  Element _createItem(M.RetainingPathItem item, bool first) {
     final content = <Element>[];
 
-    if (item.parentField != null) {
+    if (first) {
+      // No prefix.
+    } else if (item.parentField != null) {
       content.add(new SpanElement()
         ..children = [
-          new SpanElement()..text = 'from ',
-          anyRef(_isolate, item.parentField, _instances, queue: _r.queue),
+          new SpanElement()..text = 'retained by ',
+          anyRef(_isolate, item.parentField, _objects, queue: _r.queue),
           new SpanElement()..text = ' of ',
         ]);
     } else if (item.parentListIndex != null) {
-      content.add(
-          new SpanElement()..text = 'from [ ${item.parentListIndex} ] of ');
+      content.add(new SpanElement()
+        ..text = 'retained by [ ${item.parentListIndex} ] of ');
     } else if (item.parentWordOffset != null) {
       content.add(new SpanElement()
-        ..text = 'from word [ ${item.parentWordOffset} ] of ');
+        ..text = 'retained by offset ${item.parentWordOffset} of ');
     } else {
-      content.add(new SpanElement()..text = 'from ');
+      content.add(new SpanElement()..text = 'retained by ');
     }
 
-    content.add(anyRef(_isolate, item.source, _instances, queue: _r.queue));
+    content.add(anyRef(_isolate, item.source, _objects, queue: _r.queue));
 
     return new DivElement()
       ..classes = ['indent']
       ..children = content;
+  }
+
+  Element _createGCRootItem() {
+    return new DivElement()
+      ..classes = ['indent']
+      ..text = 'retained by a GC root';
   }
 }

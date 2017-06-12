@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.domain_diagnostic;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/context/cache.dart';
@@ -96,6 +95,19 @@ class DiagnosticDomainHandler implements RequestHandler {
         knownFileCount - explicitFileCount, driver.numberOfFilesToAnalyze, []);
   }
 
+  /// Answer the `diagnostic.getServerPort` request.
+  Future handleGetServerPort(Request request) async {
+    try {
+      // Open a port (or return the existing one).
+      int port = await server.diagnosticServer.getServerPort();
+      server.sendResponse(
+          new DiagnosticGetServerPortResult(port).toResponse(request.id));
+    } catch (error) {
+      server
+          .sendResponse(new Response.debugPortCouldNotBeOpened(request, error));
+    }
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
@@ -110,18 +122,5 @@ class DiagnosticDomainHandler implements RequestHandler {
       return exception.response;
     }
     return null;
-  }
-
-  /// Answer the `diagnostic.getServerPort` request.
-  Future handleGetServerPort(Request request) async {
-    try {
-      // Open a port (or return the existing one).
-      int port = await server.diagnosticServer.getServerPort();
-      server.sendResponse(
-          new DiagnosticGetServerPortResult(port).toResponse(request.id));
-    } catch (error) {
-      server
-          .sendResponse(new Response.debugPortCouldNotBeOpened(request, error));
-    }
   }
 }

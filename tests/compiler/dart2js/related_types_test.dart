@@ -283,7 +283,8 @@ main(List<String> arguments) {
           "for $member.");
     }
 
-    compiler.mainApp.forEachLocalMember((Element element) {
+    LibraryElement mainApp = compiler.mainApp;
+    mainApp.forEachLocalMember((Element element) {
       if (element.isClass) {
         ClassElement cls = element;
         cls.forEachLocalMember(checkMember);

@@ -6,9 +6,7 @@
 part of Private3Test.dart;
 
 class PrivateOther {
-
   final _myPrecious;
 
   const PrivateOther() : this._myPrecious = "Another Ring";
-
 }

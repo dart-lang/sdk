@@ -478,7 +478,10 @@ class AssemblerTest {
     COMPILE_ASSERT(!is_double<Arg3Type>::value);
     const Object& arg1obj = Object::Handle(reinterpret_cast<RawObject*>(arg1));
     const Object& arg2obj = Object::Handle(reinterpret_cast<RawObject*>(arg2));
-    const Array& argdesc = Array::Handle(ArgumentsDescriptor::New(2));
+    const intptr_t kTypeArgsLen = 0;
+    const intptr_t kNumArgs = 2;
+    const Array& argdesc =
+        Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs));
     const Array& arguments = Array::Handle(Array::New(2));
     arguments.SetAt(0, arg1obj);
     arguments.SetAt(1, arg2obj);

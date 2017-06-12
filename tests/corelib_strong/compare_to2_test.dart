@@ -19,7 +19,7 @@ main() {
   var maxNonIntFloorAsDouble = maxNonIntFloorAsInt.toDouble();
   var maxExactIntAsDouble = 9007199254740992.0;
   var maxExactIntAsInt = 9007199254740992;
-  var two53 = 1 << 53;  // Same as maxExactIntAsInt.
+  var two53 = 1 << 53; // Same as maxExactIntAsInt.
   var two53p1 = two53 + 1;
   var maxFiniteAsDouble = 1.7976931348623157e+308;
   var maxFiniteAsInt = maxFiniteAsDouble.truncate();
@@ -29,54 +29,56 @@ main() {
   var nan = double.NAN;
   var mnan = negate(nan);
   var matrix = [
-      -inf,
-      -hugeP1,
-      -huge,
-      [-maxFiniteAsDouble, -maxFiniteAsInt],
-      -two53p1,
-      [-two53, -maxExactIntAsInt, -maxExactIntAsDouble],
-      -maxNonInt,
-      [-maxNonIntFloorAsDouble, -maxNonIntFloorAsInt],
-      [-499.0, -499],
-      -minAbove1,
-      [-1.0, -1],
-      -maxFraction,
-      -minNormal,
-      -maxDenormal,
-      -minNonZero,
-      -0.0,
-      [0,0, 0],
-      minNonZero,
-      maxDenormal,
-      minNormal,
-      maxFraction,
-      [1.0, 1],
-      minAbove1,
-      [499.0, 499],
-      [maxNonIntFloorAsDouble, maxNonIntFloorAsInt],
-      maxNonInt,
-      [two53, maxExactIntAsInt, maxExactIntAsDouble],
-      two53p1,
-      [maxFiniteAsDouble, maxFiniteAsInt],
-      huge,
-      hugeP1,
-      inf,
-      [nan, mnan],
-    ];
+    -inf,
+    -hugeP1,
+    -huge,
+    [-maxFiniteAsDouble, -maxFiniteAsInt],
+    -two53p1,
+    [-two53, -maxExactIntAsInt, -maxExactIntAsDouble],
+    -maxNonInt,
+    [-maxNonIntFloorAsDouble, -maxNonIntFloorAsInt],
+    [-499.0, -499],
+    -minAbove1,
+    [-1.0, -1],
+    -maxFraction,
+    -minNormal,
+    -maxDenormal,
+    -minNonZero,
+    -0.0,
+    [0, 0, 0],
+    minNonZero,
+    maxDenormal,
+    minNormal,
+    maxFraction,
+    [1.0, 1],
+    minAbove1,
+    [499.0, 499],
+    [maxNonIntFloorAsDouble, maxNonIntFloorAsInt],
+    maxNonInt,
+    [two53, maxExactIntAsInt, maxExactIntAsDouble],
+    two53p1,
+    [maxFiniteAsDouble, maxFiniteAsInt],
+    huge,
+    hugeP1,
+    inf,
+    [nan, mnan],
+  ];
 
   check(left, right, expectedResult) {
     if (left is List) {
-      for(var x in left) check(x, right, expectedResult);
+      for (var x in left) check(x, right, expectedResult);
       return;
     }
     if (right is List) {
-      for(var x in right) check(left, x, expectedResult);
+      for (var x in right) check(left, x, expectedResult);
       return;
     }
     int actual = left.compareTo(right);
-    Expect.equals(expectedResult, actual,
-                  "($left).compareTo($right) failed "
-                  "(should have been $expectedResult, was $actual");
+    Expect.equals(
+        expectedResult,
+        actual,
+        "($left).compareTo($right) failed "
+        "(should have been $expectedResult, was $actual");
   }
 
   for (int i = 0; i < matrix.length; i++) {

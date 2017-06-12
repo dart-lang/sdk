@@ -22,7 +22,6 @@ main() {
     testPosix();
     Directory.current = '/';
     testPosix();
-
   }
 }
 
@@ -36,8 +35,12 @@ testWindows() {
     }
     Expect.isTrue(new File(relative).absolute.isAbsolute);
   }
-  for (String absolute in ['c:/abd', 'D:\\rf', '\\\\a_share\\folder',
-                           '\\\\?\\c:\\prefixed\path\\']) {
+  for (String absolute in [
+    'c:/abd',
+    'D:\\rf',
+    '\\\\a_share\\folder',
+    '\\\\?\\c:\\prefixed\path\\'
+  ]) {
     Expect.isTrue(new File(absolute).absolute.path == absolute);
     Expect.isTrue(new File(absolute).absolute.isAbsolute);
   }
@@ -54,7 +57,7 @@ testPosix() {
     }
     Expect.isTrue(new File(relative).absolute.isAbsolute);
     Expect.equals(new Directory(relative).absolute.path,
-                  new Link(relative).absolute.path);
+        new Link(relative).absolute.path);
     Expect.isTrue(new File(relative).absolute is File);
     Expect.isTrue(new Directory(relative).absolute is Directory);
     Expect.isTrue(new Link(relative).absolute is Link);

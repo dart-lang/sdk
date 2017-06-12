@@ -43,7 +43,6 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
-import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
@@ -675,14 +674,6 @@ final ResultDescriptor<bool> READY_LIBRARY_ELEMENT7 =
  */
 final ResultDescriptor<bool> READY_RESOLVED_UNIT =
     new ResultDescriptor<bool>('READY_RESOLVED_UNIT', false);
-
-/**
- * The names (resolved and not) referenced by a unit.
- *
- * The result is only available for [Source]s representing a compilation unit.
- */
-final ResultDescriptor<ReferencedNames> REFERENCED_NAMES =
-    new ResultDescriptor<ReferencedNames>('REFERENCED_NAMES', null);
 
 /**
  * The sources of the Dart files that a library references.
@@ -2466,338 +2457,6 @@ class ContainingLibrariesTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * The description for a change in a Dart source.
- */
-class DartDelta extends Delta {
-  final Set<String> changedNames = new Set<String>();
-  final Map<Source, Set<String>> changedPrivateNames = <Source, Set<String>>{};
-
-  final Map<String, ClassElementDelta> changedClasses =
-      <String, ClassElementDelta>{};
-
-  /**
-   * The cache of libraries in which all results are invalid.
-   */
-  final Set<Source> librariesWithAllInvalidResults = new Set<Source>();
-
-  /**
-   * The cache of libraries in which all results are valid.
-   */
-  final Set<Source> librariesWithAllValidResults = new Set<Source>();
-
-  /**
-   * The cache of libraries with all, but [HINTS] and [VERIFY_ERRORS] results
-   * are valid.
-   */
-  final Set<Source> libraryWithInvalidErrors = new Set<Source>();
-
-  /**
-   * This set is cleared in every [gatherEnd], and [gatherChanges] uses it
-   * to find changes in every source only once per visit process.
-   */
-  final Set<Source> currentVisitUnits = new Set<Source>();
-
-  DartDelta(Source source) : super(source);
-
-  @override
-  bool get shouldGatherChanges => true;
-
-  /**
-   * Add names that are changed in the given [references].
-   * Return `true` if any change was added.
-   */
-  bool addChangedElements(ReferencedNames references, Source refLibrary) {
-    int numberOfChanges = 0;
-    int lastNumberOfChange = -1;
-    while (numberOfChanges != lastNumberOfChange) {
-      lastNumberOfChange = numberOfChanges;
-      // Classes that extend changed classes are also changed.
-      // If there is a delta for a superclass, use it for the subclass.
-      // Otherwise mark the subclass as "general name change".
-      references.superToSubs.forEach((String superName, Set<String> subNames) {
-        ClassElementDelta superDelta = changedClasses[superName];
-        for (String subName in subNames) {
-          if (superDelta != null) {
-            ClassElementDelta subDelta = changedClasses.putIfAbsent(subName,
-                () => new ClassElementDelta(null, refLibrary, subName));
-            _log(() => '$subName in $refLibrary has delta because of its '
-                'superclass $superName has delta');
-            if (subDelta.superDeltas.add(superDelta)) {
-              numberOfChanges++;
-            }
-          } else if (isChanged(refLibrary, superName)) {
-            if (nameChanged(refLibrary, subName)) {
-              _log(() => '$subName in $refLibrary is changed because its '
-                  'superclass $superName is changed');
-              numberOfChanges++;
-            }
-          }
-        }
-      });
-      // If a user element uses a changed top-level element, then the user is
-      // also changed. Note that if a changed class with delta is used, this
-      // does not make the user changed - classes with delta keep their
-      // original elements, so resolution of their names does not change.
-      references.userToDependsOn.forEach((user, dependencies) {
-        for (String dependency in dependencies) {
-          if (isChangedOrClassMember(refLibrary, dependency)) {
-            if (nameChanged(refLibrary, user)) {
-              _log(() => '$user in $refLibrary is changed because '
-                  'of $dependency in $dependencies');
-              numberOfChanges++;
-            }
-          }
-        }
-      });
-    }
-    return numberOfChanges != 0;
-  }
-
-  void classChanged(ClassElementDelta classDelta) {
-    changedClasses[classDelta.name] = classDelta;
-  }
-
-  void elementChanged(Element element) {
-    Source librarySource = element.library.source;
-    nameChanged(librarySource, element.name);
-  }
-
-  @override
-  bool gatherChanges(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor, Object value) {
-    // Prepare target source.
-    Source targetUnit = target.source;
-    Source targetLibrary = target.librarySource;
-    if (target is Source) {
-      if (context.getKindOf(target) == SourceKind.LIBRARY) {
-        targetLibrary = target;
-      }
-    }
-    // We don't know what to do with the given target.
-    if (targetUnit == null || targetUnit != targetLibrary) {
-      return false;
-    }
-    // Attempt to find new changed names for the unit only once.
-    if (!currentVisitUnits.add(targetUnit)) {
-      return false;
-    }
-    // Add changes.
-    ReferencedNames referencedNames =
-        context.getResult(targetUnit, REFERENCED_NAMES);
-    if (referencedNames == null) {
-      return false;
-    }
-    return addChangedElements(referencedNames, targetLibrary);
-  }
-
-  @override
-  void gatherEnd() {
-    currentVisitUnits.clear();
-  }
-
-  bool hasAffectedHintsVerifyErrors(
-      ReferencedNames references, Source refLibrary) {
-    for (String superName in references.superToSubs.keys) {
-      if (isChangedOrClass(refLibrary, superName)) {
-        _log(() => '$refLibrary hints/verify errors are affected because '
-            '${references.superToSubs[superName]} subclasses $superName');
-        return true;
-      }
-    }
-    for (String name in references.names) {
-      ClassElementDelta classDelta = changedClasses[name];
-      if (classDelta != null && classDelta.hasAnnotationChanges) {
-        _log(() => '$refLibrary hints/verify errors are  affected because '
-            '$name has a class delta with annotation changes');
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool hasAffectedReferences(ReferencedNames references, Source refLibrary) {
-    // Resolution must be performed when a referenced element changes.
-    for (String name in references.names) {
-      if (isChangedOrClassMember(refLibrary, name)) {
-        _log(() => '$refLibrary is affected by $name');
-        return true;
-      }
-    }
-    // Resolution must be performed when the unnamed constructor of
-    // an instantiated class is added/changed/removed.
-    // TODO(scheglov) Use only instantiations with default constructor.
-    for (String name in references.instantiatedNames) {
-      for (ClassElementDelta classDelta in changedClasses.values) {
-        if (classDelta.name == name && classDelta.hasUnnamedConstructorChange) {
-          _log(() =>
-              '$refLibrary is affected by the default constructor of $name');
-          return true;
-        }
-      }
-    }
-    for (String name in references.extendedUsedUnnamedConstructorNames) {
-      for (ClassElementDelta classDelta in changedClasses.values) {
-        if (classDelta.name == name && classDelta.hasUnnamedConstructorChange) {
-          _log(() =>
-              '$refLibrary is affected by the default constructor of $name');
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Return `true` if the given [name], used in a unit of the [librarySource],
-   * is affected by a changed top-level element, excluding classes.
-   */
-  bool isChanged(Source librarySource, String name) {
-    if (_isPrivateName(name)) {
-      if (changedPrivateNames[librarySource]?.contains(name) ?? false) {
-        return true;
-      }
-    }
-    return changedNames.contains(name);
-  }
-
-  /**
-   * Return `true` if the given [name], used in a unit of the [librarySource],
-   * is affected by a changed top-level element or a class.
-   */
-  bool isChangedOrClass(Source librarySource, String name) {
-    if (isChanged(librarySource, name)) {
-      return true;
-    }
-    return changedClasses[name] != null;
-  }
-
-  /**
-   * Return `true` if the given [name], used in a unit of the [librarySource],
-   * is affected by a changed top-level element or a class member.
-   */
-  bool isChangedOrClassMember(Source librarySource, String name) {
-    if (isChanged(librarySource, name)) {
-      return true;
-    }
-    // TODO(scheglov) Optimize this.
-    for (ClassElementDelta classDelta in changedClasses.values) {
-      if (classDelta.hasChanges(librarySource, name)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Register the fact that the given [name], defined in the [librarySource]
-   * is changed.  Return `true` if the [name] is a new name, not yet registered.
-   */
-  bool nameChanged(Source librarySource, String name) {
-    if (_isPrivateName(name)) {
-      return changedPrivateNames
-          .putIfAbsent(librarySource, () => new Set<String>())
-          .add(name);
-    } else {
-      return changedNames.add(name);
-    }
-  }
-
-  @override
-  DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor, Object value) {
-    // Always invalidate compounding results.
-    if (descriptor == LIBRARY_ELEMENT4 ||
-        descriptor == READY_LIBRARY_ELEMENT6 ||
-        descriptor == READY_LIBRARY_ELEMENT7) {
-      return DeltaResult.INVALIDATE_KEEP_DEPENDENCIES;
-    }
-    // Prepare target source.
-    Source targetUnit = target.source;
-    Source targetLibrary = target.librarySource;
-    if (target is Source) {
-      if (context.getKindOf(target) == SourceKind.LIBRARY) {
-        targetLibrary = target;
-      }
-    }
-    // We don't know what to do with the given target, invalidate it.
-    if (targetUnit == null || targetUnit != targetLibrary) {
-      return DeltaResult.INVALIDATE;
-    }
-    // Keep results that don't change: any library.
-    if (_isTaskResult(ScanDartTask.DESCRIPTOR, descriptor) ||
-        _isTaskResult(ParseDartTask.DESCRIPTOR, descriptor) ||
-        _isTaskResult(BuildCompilationUnitElementTask.DESCRIPTOR, descriptor) ||
-        _isTaskResult(BuildLibraryElementTask.DESCRIPTOR, descriptor) ||
-        _isTaskResult(BuildDirectiveElementsTask.DESCRIPTOR, descriptor) ||
-        _isTaskResult(ResolveDirectiveElementsTask.DESCRIPTOR, descriptor) ||
-        _isTaskResult(BuildEnumMemberElementsTask.DESCRIPTOR, descriptor) ||
-        _isTaskResult(BuildSourceExportClosureTask.DESCRIPTOR, descriptor) ||
-        _isTaskResult(ReadyLibraryElement2Task.DESCRIPTOR, descriptor) ||
-        _isTaskResult(ComputeLibraryCycleTask.DESCRIPTOR, descriptor)) {
-      return DeltaResult.KEEP_CONTINUE;
-    }
-    // Keep results that don't change: changed library.
-    if (targetUnit == source) {
-      return DeltaResult.INVALIDATE;
-    }
-    // Keep results that don't change: dependent library.
-    if (targetUnit != source) {
-      if (_isTaskResult(BuildPublicNamespaceTask.DESCRIPTOR, descriptor)) {
-        return DeltaResult.KEEP_CONTINUE;
-      }
-    }
-    // Handle in-library results only for now.
-    if (targetLibrary != null) {
-      // Use cached library results.
-      if (librariesWithAllInvalidResults.contains(targetLibrary)) {
-        return DeltaResult.INVALIDATE;
-      }
-      if (librariesWithAllValidResults.contains(targetLibrary)) {
-        return DeltaResult.KEEP_CONTINUE;
-      }
-      // The library is almost, but not completely valid.
-      // Some error results are invalid.
-      if (libraryWithInvalidErrors.contains(targetLibrary)) {
-        if (descriptor == HINTS || descriptor == VERIFY_ERRORS) {
-          return DeltaResult.INVALIDATE_NO_DELTA;
-        }
-        return DeltaResult.KEEP_CONTINUE;
-      }
-      // Compute the library result.
-      ReferencedNames referencedNames =
-          context.getResult(targetUnit, REFERENCED_NAMES);
-      if (referencedNames == null) {
-        return DeltaResult.INVALIDATE_NO_DELTA;
-      }
-      if (hasAffectedReferences(referencedNames, targetLibrary)) {
-        librariesWithAllInvalidResults.add(targetLibrary);
-        return DeltaResult.INVALIDATE;
-      }
-      if (hasAffectedHintsVerifyErrors(referencedNames, targetLibrary)) {
-        libraryWithInvalidErrors.add(targetLibrary);
-        return DeltaResult.KEEP_CONTINUE;
-      }
-      librariesWithAllValidResults.add(targetLibrary);
-      return DeltaResult.KEEP_CONTINUE;
-    }
-    // We don't know what to do with the given target, invalidate it.
-    return DeltaResult.INVALIDATE;
-  }
-
-  void _log(String getMessage()) {
-//    String message = getMessage();
-//    print(message);
-  }
-
-  static bool _isPrivateName(String name) => name.startsWith('_');
-
-  static bool _isTaskResult(
-      TaskDescriptor taskDescriptor, ResultDescriptor result) {
-    return taskDescriptor.results.contains(result);
-  }
-}
-
-/**
  * A task that merges all of the errors for a single source into a single list
  * of errors.
  */
@@ -3346,7 +3005,8 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * Information about analysis `//ignore:` comments within a source file.
+ * Information about analysis `//ignore:` and `//ignore_for_file` comments
+ * within a source file.
  */
 class IgnoreInfo {
   /**
@@ -3365,17 +3025,35 @@ class IgnoreInfo {
   static final RegExp _IGNORE_MATCHER =
       new RegExp(r'//[ ]*ignore:(.*)$', multiLine: true);
 
+  /**
+   * A regular expression for matching 'ignore_for_file' comments.  Produces
+   * matches containing 2 groups.  For example:
+   *
+   *     * ['//ignore_for_file: error_code', 'error_code']
+   *
+   * Resulting codes may be in a list ('error_code_1,error_code2').
+   */
+  static final RegExp _IGNORE_FOR_FILE_MATCHER =
+      new RegExp(r'//[ ]*ignore_for_file:(.*)$', multiLine: true);
+
   final Map<int, List<String>> _ignoreMap = new HashMap<int, List<String>>();
+
+  final Set<String> _ignoreForFileSet = new HashSet<String>();
 
   /**
    * Whether this info object defines any ignores.
    */
-  bool get hasIgnores => ignores.isNotEmpty;
+  bool get hasIgnores => ignores.isNotEmpty || _ignoreForFileSet.isNotEmpty;
 
   /**
    * Map of line numbers to associated ignored error codes.
    */
   Map<int, Iterable<String>> get ignores => _ignoreMap;
+
+  /**
+   * Iterable of error codes ignored for the whole file.
+   */
+  Iterable<String> get ignoreForFiles => _ignoreForFileSet;
 
   /**
    * Ignore this [errorCode] at [line].
@@ -3392,9 +3070,17 @@ class IgnoreInfo {
   }
 
   /**
+   * Ignore these [errorCodes] in the whole file.
+   */
+  void addAllForFile(Iterable<String> errorCodes) {
+    _ignoreForFileSet.addAll(errorCodes);
+  }
+
+  /**
    * Test whether this [errorCode] is ignored at the given [line].
    */
   bool ignoredAt(String errorCode, int line) =>
+      _ignoreForFileSet.contains(errorCode) ||
       _ignoreMap[line]?.contains(errorCode) == true;
 
   /**
@@ -3402,7 +3088,8 @@ class IgnoreInfo {
    */
   static IgnoreInfo calculateIgnores(String content, LineInfo info) {
     Iterable<Match> matches = _IGNORE_MATCHER.allMatches(content);
-    if (matches.isEmpty) {
+    Iterable<Match> fileMatches = _IGNORE_FOR_FILE_MATCHER.allMatches(content);
+    if (matches.isEmpty && fileMatches.isEmpty) {
       return _EMPTY_INFO;
     }
 
@@ -3414,6 +3101,13 @@ class IgnoreInfo {
           .split(',')
           .map((String code) => code.trim().toLowerCase());
       ignoreInfo.addAll(info.getLocation(match.start).lineNumber, codes);
+    }
+    for (Match match in fileMatches) {
+      Iterable<String> codes = match
+          .group(1)
+          .split(',')
+          .map((String code) => code.trim().toLowerCase());
+      ignoreInfo.addAllForFile(codes);
     }
     return ignoreInfo;
   }
@@ -3490,11 +3184,10 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     // Infer instance members.
     //
     if (context.analysisOptions.strongMode) {
+      var inheritanceManager = new InheritanceManager(
+          resolutionMap.elementDeclaredByCompilationUnit(unit).library);
       InstanceMemberInferrer inferrer = new InstanceMemberInferrer(
-          typeProvider,
-          new InheritanceManager(
-              resolutionMap.elementDeclaredByCompilationUnit(unit).library),
-          fieldsWithDisabledInference,
+          typeProvider, (_) => inheritanceManager, fieldsWithDisabledInference,
           typeSystem: context.typeSystem);
       inferrer.inferCompilationUnit(unit.element);
     }
@@ -4069,7 +3762,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     LIBRARY_SPECIFIC_UNITS,
     PARSE_ERRORS,
     PARSED_UNIT,
-    REFERENCED_NAMES,
     REFERENCED_SOURCES,
     SOURCE_KIND,
     UNITS,
@@ -4185,11 +3877,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
       sourceKind = SourceKind.PART;
     }
     //
-    // Compute referenced names.
-    //
-    ReferencedNames referencedNames = new ReferencedNames(_source);
-    new ReferencedNamesBuilder(referencedNames).build(unit);
-    //
     // Compute source lists.
     //
     List<Source> explicitlyImportedSources =
@@ -4226,7 +3913,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     outputs[LIBRARY_SPECIFIC_UNITS] = librarySpecificUnits;
     outputs[PARSE_ERRORS] = parseErrors;
     outputs[PARSED_UNIT] = unit;
-    outputs[REFERENCED_NAMES] = referencedNames;
     outputs[REFERENCED_SOURCES] = referencedSources.toList();
     outputs[SOURCE_KIND] = sourceKind;
     outputs[UNITS] = unitSources;
@@ -4596,408 +4282,6 @@ class ReadyResolvedUnitTask extends SourceBasedAnalysisTask {
   static ReadyResolvedUnitTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ReadyResolvedUnitTask(context, target);
-  }
-}
-
-/**
- * Information about a Dart [source] - which names it uses, which names it
- * defines with their externally visible dependencies.
- */
-class ReferencedNames {
-  final Source source;
-
-  /**
-   * The mapping from the name of a class to the set of names of other classes
-   * that extend, mix-in, or implement it.
-   *
-   * If the set of member of a class is changed, these changes might change
-   * the list of unimplemented inherited members in the class and classes that
-   * extend, mix-in, or implement it. So, we might need to report (or stop
-   * reporting) the corresponding warning.
-   */
-  final Map<String, Set<String>> superToSubs = <String, Set<String>>{};
-
-  /**
-   * The names of extended classes for which the unnamed constructor is
-   * invoked. Because we cannot use the name of the constructor to identify
-   * whether the unit is affected, we need to use the class name.
-   */
-  final Set<String> extendedUsedUnnamedConstructorNames = new Set<String>();
-
-  /**
-   * The names of instantiated classes.
-   *
-   * If one of these classes changes its set of members, it might change
-   * its list of unimplemented inherited members. So, we might need to report
-   * (or stop reporting) the corresponding warning.
-   */
-  final Set<String> instantiatedNames = new Set<String>();
-
-  /**
-   * The set of names that are referenced by the library, both inside and
-   * outside of method bodies.
-   */
-  final Set<String> names = new Set<String>();
-
-  /**
-   * The mapping from the name of a top-level element to the set of names that
-   * the element uses in a way that is visible outside of the element, e.g.
-   * the return type, or a parameter type.
-   */
-  final Map<String, Set<String>> userToDependsOn = <String, Set<String>>{};
-
-  ReferencedNames(this.source);
-
-  void addSubclass(String subName, String superName) {
-    superToSubs.putIfAbsent(superName, () => new Set<String>()).add(subName);
-  }
-}
-
-/**
- * A builder for creating [ReferencedNames].
- */
-class ReferencedNamesBuilder extends GeneralizingAstVisitor {
-  final Set<String> importPrefixNames = new Set<String>();
-  final ReferencedNames names;
-
-  String enclosingSuperClassName;
-  ReferencedNamesScope scope = new ReferencedNamesScope(null);
-
-  int localLevel = 0;
-  Set<String> dependsOn;
-
-  ReferencedNamesBuilder(this.names);
-
-  ReferencedNames build(CompilationUnit unit) {
-    unit.accept(this);
-    return names;
-  }
-
-  @override
-  visitBlock(Block node) {
-    ReferencedNamesScope outerScope = scope;
-    try {
-      scope = new ReferencedNamesScope.forBlock(scope, node);
-      super.visitBlock(node);
-    } finally {
-      scope = outerScope;
-    }
-  }
-
-  @override
-  visitClassDeclaration(ClassDeclaration node) {
-    ReferencedNamesScope outerScope = scope;
-    try {
-      scope = new ReferencedNamesScope.forClass(scope, node);
-      dependsOn = new Set<String>();
-      enclosingSuperClassName =
-          _getSimpleName(node.extendsClause?.superclass?.name);
-      super.visitClassDeclaration(node);
-      String className = node.name.name;
-      names.userToDependsOn[className] = dependsOn;
-      _addSuperName(className, node.extendsClause?.superclass);
-      _addSuperNames(className, node.withClause?.mixinTypes);
-      _addSuperNames(className, node.implementsClause?.interfaces);
-    } finally {
-      enclosingSuperClassName = null;
-      dependsOn = null;
-      scope = outerScope;
-    }
-  }
-
-  @override
-  visitClassTypeAlias(ClassTypeAlias node) {
-    ReferencedNamesScope outerScope = scope;
-    try {
-      scope = new ReferencedNamesScope.forClassTypeAlias(scope, node);
-      dependsOn = new Set<String>();
-      super.visitClassTypeAlias(node);
-      String className = node.name.name;
-      names.userToDependsOn[className] = dependsOn;
-      _addSuperName(className, node.superclass);
-      _addSuperNames(className, node.withClause?.mixinTypes);
-      _addSuperNames(className, node.implementsClause?.interfaces);
-    } finally {
-      dependsOn = null;
-      scope = outerScope;
-    }
-  }
-
-  @override
-  visitComment(Comment node) {
-    try {
-      localLevel++;
-      super.visitComment(node);
-    } finally {
-      localLevel--;
-    }
-  }
-
-  @override
-  visitConstructorName(ConstructorName node) {
-    if (node.parent is! ConstructorDeclaration) {
-      super.visitConstructorName(node);
-    }
-  }
-
-  @override
-  visitFunctionBody(FunctionBody node) {
-    try {
-      localLevel++;
-      super.visitFunctionBody(node);
-    } finally {
-      localLevel--;
-    }
-  }
-
-  @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    if (localLevel == 0) {
-      ReferencedNamesScope outerScope = scope;
-      try {
-        scope = new ReferencedNamesScope.forFunction(scope, node);
-        dependsOn = new Set<String>();
-        super.visitFunctionDeclaration(node);
-        names.userToDependsOn[node.name.name] = dependsOn;
-      } finally {
-        dependsOn = null;
-        scope = outerScope;
-      }
-    } else {
-      super.visitFunctionDeclaration(node);
-    }
-  }
-
-  @override
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (localLevel == 0) {
-      ReferencedNamesScope outerScope = scope;
-      try {
-        scope = new ReferencedNamesScope.forFunctionTypeAlias(scope, node);
-        dependsOn = new Set<String>();
-        super.visitFunctionTypeAlias(node);
-        names.userToDependsOn[node.name.name] = dependsOn;
-      } finally {
-        dependsOn = null;
-        scope = outerScope;
-      }
-    } else {
-      super.visitFunctionTypeAlias(node);
-    }
-  }
-
-  @override
-  visitImportDirective(ImportDirective node) {
-    if (node.prefix != null) {
-      importPrefixNames.add(node.prefix.name);
-    }
-    super.visitImportDirective(node);
-  }
-
-  @override
-  visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ConstructorName constructorName = node.constructorName;
-    Identifier typeName = constructorName.type.name;
-    if (typeName is SimpleIdentifier) {
-      names.instantiatedNames.add(typeName.name);
-    }
-    if (typeName is PrefixedIdentifier) {
-      String prefixName = typeName.prefix.name;
-      if (importPrefixNames.contains(prefixName)) {
-        names.instantiatedNames.add(typeName.identifier.name);
-      } else {
-        names.instantiatedNames.add(prefixName);
-      }
-    }
-    super.visitInstanceCreationExpression(node);
-  }
-
-  @override
-  visitMethodDeclaration(MethodDeclaration node) {
-    ReferencedNamesScope outerScope = scope;
-    try {
-      scope = new ReferencedNamesScope.forMethod(scope, node);
-      super.visitMethodDeclaration(node);
-    } finally {
-      scope = outerScope;
-    }
-  }
-
-  @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    // Ignore all declarations.
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    // Ignore class names references from constructors.
-    AstNode parent = node.parent;
-    if (parent is ConstructorDeclaration && parent.returnType == node) {
-      return;
-    }
-    // Prepare name.
-    String name = node.name;
-    // Ignore unqualified names shadowed by local elements.
-    if (!node.isQualified) {
-      if (scope.contains(name)) {
-        return;
-      }
-      if (importPrefixNames.contains(name)) {
-        return;
-      }
-    }
-    // Do add the dependency.
-    names.names.add(name);
-    if (dependsOn != null && localLevel == 0) {
-      dependsOn.add(name);
-    }
-  }
-
-  @override
-  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    if (node.constructorName == null && enclosingSuperClassName != null) {
-      names.extendedUsedUnnamedConstructorNames.add(enclosingSuperClassName);
-    }
-    super.visitSuperConstructorInvocation(node);
-  }
-
-  @override
-  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    VariableDeclarationList variableList = node.variables;
-    // Prepare type dependencies.
-    Set<String> typeDependencies = new Set<String>();
-    dependsOn = typeDependencies;
-    variableList.type?.accept(this);
-    // Combine individual variable dependencies with the type dependencies.
-    for (VariableDeclaration variable in variableList.variables) {
-      dependsOn = new Set<String>();
-      variable.accept(this);
-      dependsOn.addAll(typeDependencies);
-      names.userToDependsOn[variable.name.name] = dependsOn;
-    }
-    dependsOn = null;
-  }
-
-  void _addSuperName(String className, TypeName type) {
-    if (type != null) {
-      Identifier typeName = type.name;
-      if (typeName is SimpleIdentifier) {
-        names.addSubclass(className, typeName.name);
-      }
-      if (typeName is PrefixedIdentifier) {
-        names.addSubclass(className, typeName.identifier.name);
-      }
-    }
-  }
-
-  void _addSuperNames(String className, List<TypeName> types) {
-    types?.forEach((type) => _addSuperName(className, type));
-  }
-
-  static String _getSimpleName(Identifier identifier) {
-    if (identifier is SimpleIdentifier) {
-      return identifier.name;
-    }
-    if (identifier is PrefixedIdentifier) {
-      return identifier.identifier.name;
-    }
-    return null;
-  }
-}
-
-class ReferencedNamesScope {
-  final ReferencedNamesScope enclosing;
-  Set<String> names;
-
-  ReferencedNamesScope(this.enclosing);
-
-  factory ReferencedNamesScope.forBlock(
-      ReferencedNamesScope enclosing, Block node) {
-    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
-    for (Statement statement in node.statements) {
-      if (statement is FunctionDeclarationStatement) {
-        scope.add(statement.functionDeclaration.name.name);
-      } else if (statement is VariableDeclarationStatement) {
-        for (VariableDeclaration variable in statement.variables.variables) {
-          scope.add(variable.name.name);
-        }
-      }
-    }
-    return scope;
-  }
-
-  factory ReferencedNamesScope.forClass(
-      ReferencedNamesScope enclosing, ClassDeclaration node) {
-    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
-    scope._addTypeParameters(node.typeParameters);
-    for (ClassMember member in node.members) {
-      if (member is FieldDeclaration) {
-        for (VariableDeclaration variable in member.fields.variables) {
-          scope.add(variable.name.name);
-        }
-      } else if (member is MethodDeclaration) {
-        scope.add(member.name.name);
-      }
-    }
-    return scope;
-  }
-
-  factory ReferencedNamesScope.forClassTypeAlias(
-      ReferencedNamesScope enclosing, ClassTypeAlias node) {
-    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
-    scope._addTypeParameters(node.typeParameters);
-    return scope;
-  }
-
-  factory ReferencedNamesScope.forFunction(
-      ReferencedNamesScope enclosing, FunctionDeclaration node) {
-    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
-    scope._addTypeParameters(node.functionExpression.typeParameters);
-    scope._addFormalParameters(node.functionExpression.parameters);
-    return scope;
-  }
-
-  factory ReferencedNamesScope.forFunctionTypeAlias(
-      ReferencedNamesScope enclosing, FunctionTypeAlias node) {
-    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
-    scope._addTypeParameters(node.typeParameters);
-    return scope;
-  }
-
-  factory ReferencedNamesScope.forMethod(
-      ReferencedNamesScope enclosing, MethodDeclaration node) {
-    ReferencedNamesScope scope = new ReferencedNamesScope(enclosing);
-    scope._addTypeParameters(node.typeParameters);
-    scope._addFormalParameters(node.parameters);
-    return scope;
-  }
-
-  void add(String name) {
-    names ??= new Set<String>();
-    names.add(name);
-  }
-
-  bool contains(String name) {
-    if (names != null && names.contains(name)) {
-      return true;
-    }
-    if (enclosing != null) {
-      return enclosing.contains(name);
-    }
-    return false;
-  }
-
-  void _addFormalParameters(FormalParameterList parameterList) {
-    if (parameterList != null) {
-      parameterList.parameters
-          .map((p) => p is NormalFormalParameter ? p.identifier.name : '')
-          .forEach(add);
-    }
-  }
-
-  void _addTypeParameters(TypeParameterList typeParameterList) {
-    if (typeParameterList != null) {
-      typeParameterList.typeParameters.map((p) => p.name.name).forEach(add);
-    }
   }
 }
 

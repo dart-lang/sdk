@@ -1,9 +1,0 @@
-library;
-import self as self;
-
-static method foo() → dynamic
-  ;
-static method bar() → dynamic async 
-  ;
-static method main() → dynamic
-  ;

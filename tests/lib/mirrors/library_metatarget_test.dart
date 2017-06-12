@@ -9,7 +9,7 @@ library topLib;
 import 'library_metatarget_test_lib.dart';
 import 'library_metatarget_test_annotations_lib.dart';
 
-@MirrorsUsed(metaTargets:const [Reflectable])
+@MirrorsUsed(metaTargets: const [Reflectable])
 import 'dart:mirrors';
 
 void main() {

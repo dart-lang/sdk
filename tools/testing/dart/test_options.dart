@@ -43,7 +43,7 @@ class _TestOptionSpecification {
   String description;
   List<String> keys;
   List<String> values;
-  var defaultValue;
+  Object defaultValue;
   String type;
 }
 
@@ -63,24 +63,28 @@ class TestOptionsParser {
           '''Specify any compilation step (if needed).
 
    none: Do not compile the Dart code (run native Dart code on the VM).
-         (only valid with the following runtimes: vm, flutter, drt)
+          (only valid with the following runtimes: vm, flutter, drt)
+
+   precompiler: Compile into AOT snapshot before running the test.
+          (only valid with the dart_precompiled runtime)
 
    dart2js: Compile dart code to JavaScript by running dart2js.
-         (only valid with the following runtimes: d8, drt, chrome,
-         safari, ie9, ie10, ie11, firefox, opera, chromeOnAndroid,
-         none (compile only)),
+          (only valid with the following runtimes: d8, drt, chrome,
+          safari, ie9, ie10, ie11, firefox, opera, chromeOnAndroid,
+          none (compile only)),
 
    dart2analyzer: Perform static analysis on Dart code by running the analyzer
           (only valid with the following runtimes: none)
 
-   dart2app:
-   dart2appjit: Compile the Dart code into an app snapshot before running test
+   app_jit: Compile the Dart code into an app snapshot before running test
           (only valid with dart_app runtime)
 
    dartk: Compile the Dart source into Kernel before running test.
 
    dartkp: Compiler the Dart source into Kernel and then Kernel into AOT
-   snapshot before running the test.''',
+          snapshot before running the test.
+          (only valid with the dart_precompiled runtime)
+          ''',
           ['-c', '--compiler'],
           [
             'none',
@@ -297,8 +301,8 @@ class TestOptionsParser {
       new _TestOptionSpecification(
           'verify-ir', 'Verify kernel IR', ['--verify-ir'], [], false,
           type: 'bool'),
-      new _TestOptionSpecification(
-          'no-tree-shake', 'Disable kernel IR tree shaking', ['--no-tree-shake'], [], false,
+      new _TestOptionSpecification('no-tree-shake',
+          'Disable kernel IR tree shaking', ['--no-tree-shake'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
           'list', 'List tests only, do not run them', ['--list'], [], false,
@@ -372,7 +376,7 @@ Note: currently only implemented for dart2js.''',
       new _TestOptionSpecification(
           'write_test_outcome_log',
           'Write the outcome of all tests executed to a '
-          '"${TestUtils.testOutcomeFileName()}" file.',
+          '"${TestUtils.testOutcomeFileName}" file.',
           ['--write-test-outcome-log'],
           [],
           false,
@@ -556,8 +560,7 @@ Note: currently only implemented for dart2js.''',
         // The argument does not start with '-' or '--' and is
         // therefore not an option. We use it as a test selection
         // pattern.
-        configuration.putIfAbsent('selectors', () => []);
-        var patterns = configuration['selectors'];
+        var patterns = configuration.putIfAbsent('selectors', () => <String>[]);
         patterns.add(arg);
         continue;
       }
@@ -614,7 +617,7 @@ Note: currently only implemented for dart2js.''',
 
   // For printing out reproducing command lines, we don't want to add these
   // options.
-  Set<String> _blacklistedOptions = new Set<String>.from([
+  final _blacklistedOptions = [
     'append_logs',
     'build_directory',
     'chrome',
@@ -638,7 +641,7 @@ Note: currently only implemented for dart2js.''',
     'verbose',
     'write_debug_log',
     'write_test_outcome_log',
-  ]);
+  ].toSet();
 
   List<String> _constructReproducingCommandArguments(Map config) {
     var arguments = new List<String>();
@@ -809,13 +812,13 @@ Note: currently only implemented for dart2js.''',
           var suite_path = new Path(configuration['suite_dir']);
           selectors = [suite_path.filename];
         } else {
-          selectors = new List.from(defaultTestSelectors);
+          selectors = defaultTestSelectors.toList();
         }
 
-        var exclude_suites = configuration['exclude_suite'] != null
+        var excludeSuites = configuration['exclude_suite'] != null
             ? configuration['exclude_suite'].split(',')
             : [];
-        for (var exclude in exclude_suites) {
+        for (var exclude in excludeSuites) {
           if (selectors.contains(exclude)) {
             selectors.remove(exclude);
           } else {
@@ -823,7 +826,7 @@ Note: currently only implemented for dart2js.''',
           }
         }
       }
-      Map<String, RegExp> selectorMap = new Map<String, RegExp>();
+      var selectorMap = <String, RegExp>{};
       for (var i = 0; i < selectors.length; i++) {
         var pattern = selectors[i];
         var suite = pattern;

@@ -4,11 +4,9 @@
 
 import "package:expect/expect.dart";
 
-abstract class Mixin1<T> {
-}
+abstract class Mixin1<T> {}
 
-abstract class Mixin2<T> {
-}
+abstract class Mixin2<T> {}
 
 class A {
   A(foo);

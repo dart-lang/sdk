@@ -4,11 +4,13 @@
 
 library test.reflected_type_type_variables;
 
+@MirrorsUsed(targets: "test.reflected_type_type_variables")
 import 'dart:mirrors';
 
 import 'reflected_type_helper.dart';
 
 class Class<T> {}
+
 typedef bool Predicate<S>(S t);
 
 main() {

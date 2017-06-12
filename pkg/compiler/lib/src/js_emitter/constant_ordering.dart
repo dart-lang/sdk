@@ -9,9 +9,8 @@ import '../elements/elements.dart' show Elements;
 import '../elements/entities.dart' show Entity, FieldEntity;
 import '../elements/resolution_types.dart';
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
-import '../tree/dartstring.dart' show DartString;
 
-/// A canonical but arbrary ordering of constants. The ordering is 'stable'
+/// A canonical but arbitrary ordering of constants. The ordering is 'stable'
 /// under perturbation of the source.
 int deepCompareConstants(ConstantValue a, ConstantValue b) {
   return _CompareVisitor.compareValues(a, b);
@@ -95,11 +94,9 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
   }
 
   int visitString(StringConstantValue a, StringConstantValue b) {
-    DartString aString = a.primitiveValue;
-    DartString bString = b.primitiveValue;
-    int r = aString.length.compareTo(bString.length);
-    if (r != 0) return r;
-    return aString.slowToString().compareTo(bString.slowToString());
+    String aString = a.primitiveValue;
+    String bString = b.primitiveValue;
+    return aString.compareTo(bString);
   }
 
   int visitList(ListConstantValue a, ListConstantValue b) {

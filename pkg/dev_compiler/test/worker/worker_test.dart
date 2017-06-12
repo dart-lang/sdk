@@ -10,15 +10,19 @@ import 'package:bazel_worker/bazel_worker.dart';
 // TODO(jakemac): Remove once this is a part of the testing library.
 import 'package:bazel_worker/src/async_message_grouper.dart';
 import 'package:bazel_worker/testing.dart';
+import 'package:path/path.dart' show join, joinAll;
 import 'package:test/test.dart';
 
+File file(String path) => new File(joinAll(path.split('/'))).absolute;
+
 main() {
+  var dartdevc = join('bin', 'dartdevc.dart');
   group('Hello World', () {
-    final argsFile = new File('test/worker/hello_world.args').absolute;
-    final inputDartFile = new File('test/worker/hello_world.dart').absolute;
-    final outputJsFile = new File('test/worker/out/hello_world.js').absolute;
-    final dartSdkSummary = new File('lib/sdk/ddc_sdk.sum').absolute;
-    final executableArgs = ['bin/dartdevc.dart'];
+    final argsFile = file('test/worker/hello_world.args');
+    final inputDartFile = file('test/worker/hello_world.dart');
+    final outputJsFile = file('test/worker/out/hello_world.js');
+    final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+    final executableArgs = [dartdevc];
     final compilerArgs = [
       '--no-source-map',
       '--no-summarize',
@@ -125,12 +129,15 @@ main() {
   });
 
   group('Hello World with Summaries', () {
-    final greetingDart = new File('test/worker/greeting.dart').absolute;
-    final helloDart = new File('test/worker/hello.dart').absolute;
+    final greetingDart = file('test/worker/greeting.dart');
+    final helloDart = file('test/worker/hello.dart');
 
-    final greetingJS = new File('test/worker/greeting.js').absolute;
-    final greetingSummary = new File('test/worker/greeting.api.ds').absolute;
-    final helloJS = new File('test/worker/hello_world.js').absolute;
+    final greetingJS = file('test/worker/greeting.js');
+    final greetingSummary = file('test/worker/greeting.api.ds');
+    final helloJS = file('test/worker/hello_world.js');
+
+    final greeting2JS = file('test/worker/greeting2.js');
+    final greeting2Summary = file('test/worker/greeting2.api.ds');
 
     setUp(() {
       greetingDart.writeAsStringSync('String greeting = "hello";');
@@ -143,13 +150,15 @@ main() {
       if (helloDart.existsSync()) helloDart.deleteSync();
       if (greetingJS.existsSync()) greetingJS.deleteSync();
       if (greetingSummary.existsSync()) greetingSummary.deleteSync();
+      if (greeting2JS.existsSync()) greeting2JS.deleteSync();
+      if (greeting2Summary.existsSync()) greeting2Summary.deleteSync();
       if (helloJS.existsSync()) helloJS.deleteSync();
     });
 
     test('can compile in basic mode', () {
-      final dartSdkSummary = new File('lib/sdk/ddc_sdk.sum').absolute;
+      final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
       var result = Process.runSync(Platform.executable, [
-        'bin/dartdevc.dart',
+        dartdevc,
         '--summary-extension=api.ds',
         '--no-source-map',
         '--dart-sdk-summary',
@@ -165,7 +174,7 @@ main() {
       expect(greetingSummary.existsSync(), isTrue);
 
       result = Process.runSync(Platform.executable, [
-        'bin/dartdevc.dart',
+        dartdevc,
         '--no-source-map',
         '--no-summarize',
         '--dart-sdk-summary',
@@ -182,12 +191,69 @@ main() {
       expect(result.stderr, isEmpty);
       expect(helloJS.existsSync(), isTrue);
     });
+
+    test('reports error on overlapping summaries', () {
+      final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+      var result = Process.runSync(Platform.executable, [
+        dartdevc,
+        '--summary-extension=api.ds',
+        '--no-source-map',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
+        '-o',
+        greetingJS.path,
+        greetingDart.path,
+      ]);
+      expect(result.exitCode, EXIT_CODE_OK);
+      expect(result.stdout, isEmpty);
+      expect(result.stderr, isEmpty);
+      expect(greetingJS.existsSync(), isTrue);
+      expect(greetingSummary.existsSync(), isTrue);
+
+      result = Process.runSync(Platform.executable, [
+        dartdevc,
+        '--summary-extension=api.ds',
+        '--no-source-map',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
+        '-o',
+        greeting2JS.path,
+        greetingDart.path,
+      ]);
+      expect(result.exitCode, EXIT_CODE_OK);
+      expect(result.stdout, isEmpty);
+      expect(result.stderr, isEmpty);
+      expect(greeting2JS.existsSync(), isTrue);
+      expect(greeting2Summary.existsSync(), isTrue);
+
+      result = Process.runSync(Platform.executable, [
+        dartdevc,
+        '--no-source-map',
+        '--no-summarize',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
+        '--summary-extension=api.ds',
+        '-s',
+        greetingSummary.path,
+        '-s',
+        greeting2Summary.path,
+        '-o',
+        helloJS.path,
+        helloDart.path,
+      ]);
+      // TODO(vsm): Re-enable when we turn this check back on.
+      expect(result.exitCode, 0);
+      // expect(result.exitCode, 65);
+      // expect(result.stdout, contains("conflict"));
+      // expect(result.stdout, contains('${toUri(greetingDart.path)}'));
+      // expect(helloJS.existsSync(), isFalse);
+    });
   });
 
   group('Error handling', () {
-    final dartSdkSummary = new File('lib/sdk/ddc_sdk.sum').absolute;
-    final badFileDart = new File('test/worker/bad.dart').absolute;
-    final badFileJs = new File('test/worker/bad.js').absolute;
+    final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+    final badFileDart = file('test/worker/bad.dart');
+    final badFileJs = file('test/worker/bad.js');
 
     tearDown(() {
       if (badFileDart.existsSync()) badFileDart.deleteSync();
@@ -196,7 +262,7 @@ main() {
 
     test('incorrect usage', () {
       var result = Process.runSync(Platform.executable, [
-        'bin/dartdevc.dart',
+        dartdevc,
         '--dart-sdk-summary',
         dartSdkSummary.path,
         'oops',
@@ -210,7 +276,7 @@ main() {
     test('compile errors', () {
       badFileDart.writeAsStringSync('main() => "hello world"');
       var result = Process.runSync(Platform.executable, [
-        'bin/dartdevc.dart',
+        dartdevc,
         '--no-source-map',
         '--dart-sdk-summary',
         dartSdkSummary.path,
@@ -224,11 +290,11 @@ main() {
   });
 
   group('Parts', () {
-    final dartSdkSummary = new File('lib/sdk/ddc_sdk.sum').absolute;
-    final partFile = new File('test/worker/greeting.dart').absolute;
-    final libraryFile = new File('test/worker/hello.dart').absolute;
+    final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+    final partFile = file('test/worker/greeting.dart');
+    final libraryFile = file('test/worker/hello.dart');
 
-    final outJS = new File('test/worker/output.js').absolute;
+    final outJS = file('test/worker/output.js');
 
     setUp(() {
       partFile.writeAsStringSync('part of hello;\n'
@@ -246,7 +312,7 @@ main() {
 
     test('works if part and library supplied', () {
       var result = Process.runSync(Platform.executable, [
-        'bin/dartdevc.dart',
+        dartdevc,
         '--no-summarize',
         '--no-source-map',
         '--dart-sdk-summary',
@@ -264,7 +330,7 @@ main() {
 
     test('works if part is not supplied', () {
       var result = Process.runSync(Platform.executable, [
-        'bin/dartdevc.dart',
+        dartdevc,
         '--no-summarize',
         '--no-source-map',
         '--dart-sdk-summary',
@@ -281,7 +347,7 @@ main() {
 
     test('part without library is silently ignored', () {
       var result = Process.runSync(Platform.executable, [
-        'bin/dartdevc.dart',
+        dartdevc,
         '--no-summarize',
         '--no-source-map',
         '--dart-sdk-summary',

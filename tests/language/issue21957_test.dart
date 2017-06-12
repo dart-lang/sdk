@@ -14,4 +14,3 @@ main() {
 class A {
   var a = 1.0;
 }
-

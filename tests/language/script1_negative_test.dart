@@ -5,6 +5,7 @@
 // Imported library has wrong order of import and source tags.
 
 library Script1NegativeTest.dart;
+
 import "script1_negative_lib.dart";
 
 main() {

@@ -11,5 +11,3 @@ class C {
 main() {
   Expect.throws(() => new C().foo, (e) => e is Error);
 }
-
-

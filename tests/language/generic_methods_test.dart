@@ -19,8 +19,9 @@ class BinaryTreeNode<K extends Comparable<K>, V> {
   final BinaryTreeNode<K, V> _right;
 
   BinaryTreeNode(this._key, this._value,
-      {BinaryTreeNode<K, V> left: null, BinaryTreeNode<K, V> right: null}) :
-          _left = left, _right = right;
+      {BinaryTreeNode<K, V> left: null, BinaryTreeNode<K, V> right: null})
+      : _left = left,
+        _right = right;
 
   // Use fresh type variables.
   static BinaryTreeNode<K2, V2> insertOpt<K2 extends Comparable<K2>, V2>(
@@ -44,18 +45,15 @@ class BinaryTreeNode<K extends Comparable<K>, V> {
   }
 
   // Reuse type variables [K], [V] to test shadowing.
-  static BinaryTreeNode<K, U> mapOpt<K extends Comparable<K>, V, U>
-      (BinaryTreeNode<K, V> t, U f(V x)) {
+  static BinaryTreeNode<K, U> mapOpt<K extends Comparable<K>, V, U>(
+      BinaryTreeNode<K, V> t, U f(V x)) {
     return (t == null) ? null : t.map<U>(f);
   }
 
-  BinaryTreeNode<K, U> map<U>(U f(V x)){
+  BinaryTreeNode<K, U> map<U>(U f(V x)) {
     var _map = (BinaryTreeNode<K, V> t, U f(V x)) => mapOpt<K, V, U>(t, f);
-    return new BinaryTreeNode<K, U>(
-        _key,
-        f(_value),
-        left: _map(_left, f),
-        right: _map(_right, f));
+    return new BinaryTreeNode<K, U>(_key, f(_value),
+        left: _map(_left, f), right: _map(_right, f));
   }
 
   // Use fresh [K2], shadowing [V].

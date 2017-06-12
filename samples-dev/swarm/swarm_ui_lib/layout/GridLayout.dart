@@ -14,7 +14,7 @@ part of layout;
  */
 // TODO(jmesserly): the DOM integration still needs work:
 //  - The grid assumes it is absolutely positioned in its container.
-//    Becasue of that, the grid doesn't work right unless it has at least one
+//    Because of that, the grid doesn't work right unless it has at least one
 //    fractional size in each dimension. In other words, only "top down" grids
 //    work at the moment, because the grid can't determine its own size.
 //    The core algorithm supports computing min breadth; the issue is about how
@@ -43,7 +43,6 @@ part of layout;
 //  - Optimize for the case of no content sized tracks
 //  - Optimize for the "incremental update" cases
 class GridLayout extends ViewLayout {
-
   /** Configuration parameters defined in CSS. */
   final GridTrackList rows;
   final GridTrackList columns;
@@ -72,21 +71,17 @@ class GridLayout extends ViewLayout {
   Dimension _dimension;
 
   GridLayout(Positionable view)
-    : super(view),
-      rows = _GridTrackParser.parse(view.customStyle['grid-rows']),
-      columns = _GridTrackParser.parse(view.customStyle['grid-columns']),
-      template = _GridTemplateParser.parse(view.customStyle['grid-template']),
-
-      rowSizing = _GridTrackParser.parseTrackSizing(
-          view.customStyle['grid-row-sizing']),
-
-      columnSizing = _GridTrackParser.parseTrackSizing(
-          view.customStyle['grid-column-sizing']) {
-
+      : super(view),
+        rows = _GridTrackParser.parse(view.customStyle['grid-rows']),
+        columns = _GridTrackParser.parse(view.customStyle['grid-columns']),
+        template = _GridTemplateParser.parse(view.customStyle['grid-template']),
+        rowSizing = _GridTrackParser
+            .parseTrackSizing(view.customStyle['grid-row-sizing']),
+        columnSizing = _GridTrackParser
+            .parseTrackSizing(view.customStyle['grid-column-sizing']) {
     _rowTracks = rows != null ? rows.tracks : new List<GridTrack>();
     _columnTracks = columns != null ? columns.tracks : new List<GridTrack>();
   }
-
 
   int get currentWidth => _gridWidth;
   int get currentHeight => _gridHeight;
@@ -152,11 +147,8 @@ class GridLayout extends ViewLayout {
    */
   // Note: spec does not correctly doc all the parameters to this function.
   void _computeUsedBreadthOfTracks(List<GridTrack> tracks) {
-
     // TODO(jmesserly): as a performance optimization we could cache this
-    final items = view.childViews
-        .map((view_) => view_.layout)
-        .toList();
+    final items = view.childViews.map((view_) => view_.layout).toList();
     CollectionUtils.sortBy(items, (item) => _getSpanCount(item));
 
     // 1. Initialize per Grid Track variables
@@ -192,8 +184,8 @@ class GridLayout extends ViewLayout {
     //    maxBreadth value until RemainingSpace is exhausted.
     // Note: it's not spec'd what to pass as the accumulator, but usedBreadth
     // seems right.
-    _distributeSpaceToTracks(tracks, _getRemainingSpace(tracks),
-        USED_BREADTH, false);
+    _distributeSpaceToTracks(
+        tracks, _getRemainingSpace(tracks), USED_BREADTH, false);
 
     // Spec wording is confusing about which direction this assignment happens,
     // but this is the way that makes sense.
@@ -204,8 +196,8 @@ class GridLayout extends ViewLayout {
     // 6. Grow all Grid Tracks having a fraction as their maxSizing
     final tempBreadth = _calcNormalizedFractionBreadth(tracks);
     for (final t in tracks) {
-      t.usedBreadth = Math.max(t.usedBreadth,
-          tempBreadth * t.maxSizing.fractionValue);
+      t.usedBreadth =
+          Math.max(t.usedBreadth, tempBreadth * t.maxSizing.fractionValue);
     }
 
     _computeTrackPositions(tracks);
@@ -255,7 +247,6 @@ class GridLayout extends ViewLayout {
    * freeSpace less the sum of the current UsedBreadths.
    */
   num _calcNormalizedFractionBreadth(List<GridTrack> tracks) {
-
     final fractionTracks = tracks.where((t) => t.maxSizing.isFraction).toList();
 
     // Note: the spec has various bugs in this function, such as mismatched
@@ -295,11 +286,10 @@ class GridLayout extends ViewLayout {
    */
   void _distributeSpaceToTracks(List<GridTrack> tracks, num freeSpace,
       _BreadthAccumulator breadth, bool ignoreMaxBreadth) {
-
     // TODO(jmesserly): in some cases it would be safe to sort the passed in
     // list in place. Not always though.
-    tracks = CollectionUtils.orderBy(tracks,
-        (t) => t.maxBreadth - breadth.getSize(t));
+    tracks = CollectionUtils.orderBy(
+        tracks, (t) => t.maxBreadth - breadth.getSize(t));
 
     // Give each Grid Track an equal share of the space, but without exceeding
     // their maxBreadth values. Because there are different MaxBreadths
@@ -341,9 +331,10 @@ class GridLayout extends ViewLayout {
    */
   void _distributeSpaceBySpanCount(List<ViewLayout> items,
       ContentSizeMode sizeMode, _BreadthAccumulator breadth) {
-
-    items = items.where((item) =>
-        _hasContentSizedTracks(_getTracks(item), sizeMode, breadth)).toList();
+    items = items
+        .where((item) =>
+            _hasContentSizedTracks(_getTracks(item), sizeMode, breadth))
+        .toList();
 
     var tracks = [];
 
@@ -368,8 +359,7 @@ class GridLayout extends ViewLayout {
 
       if (spanCountFinished) {
         for (final t in tracks) {
-          breadth.setSize(t,
-            Math.max(breadth.getSize(t), t.updatedBreadth));
+          breadth.setSize(t, Math.max(breadth.getSize(t), t.updatedBreadth));
         }
         tracks = [];
       }
@@ -382,12 +372,10 @@ class GridLayout extends ViewLayout {
    */
   static bool _hasContentSizedTracks(Iterable<GridTrack> tracks,
       ContentSizeMode sizeMode, _BreadthAccumulator breadth) {
-
     for (final t in tracks) {
       final fn = breadth.getSizingFunction(t);
       if (sizeMode == ContentSizeMode.MAX && fn.isMaxContentSized ||
           sizeMode == ContentSizeMode.MIN && fn.isContentSized) {
-
         // Make sure we don't cross a fractional track
         return tracks.length == 1 || !tracks.any((t_) => t_.isFractional);
       }
@@ -396,8 +384,8 @@ class GridLayout extends ViewLayout {
   }
 
   /** Ensures that the numbered track exists. */
-  void _ensureTrack(List<GridTrack> tracks, TrackSizing sizing,
-      int start, int span) {
+  void _ensureTrack(
+      List<GridTrack> tracks, TrackSizing sizing, int start, int span) {
     // Start is 1-based. Make it 0-based.
     start -= 1;
 
@@ -515,7 +503,8 @@ class GridLayout extends ViewLayout {
 
   int _getSpanCount(ViewLayout item) {
     GridLayoutParams childLayout = item.layoutParams;
-    return (_dimension == Dimension.WIDTH ?
-        childLayout.columnSpan : childLayout.rowSpan);
+    return (_dimension == Dimension.WIDTH
+        ? childLayout.columnSpan
+        : childLayout.rowSpan);
   }
 }

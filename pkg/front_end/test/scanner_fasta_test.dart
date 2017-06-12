@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/fasta/token_utils.dart';
 import 'package:front_end/src/fasta/scanner/error_token.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/keyword.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token_constants.dart' as fasta;
@@ -29,34 +28,13 @@ class ScannerTest_Fasta extends ScannerTestBase {
   Token scanWithListener(String source, ErrorListener listener,
       {bool genericMethodComments: false,
       bool lazyAssignmentOperators: false}) {
-    if (genericMethodComments) {
-      // Fasta doesn't support generic method comments.
-      // TODO(paulberry): once the analyzer toolchain no longer needs generic
-      // method comments, remove tests that exercise them.
-      fail('No generic method comment support in Fasta');
-    }
-    // Note: Fasta always supports lazy assignment operators (`&&=` and `||=`),
-    // so we can ignore the `lazyAssignmentOperators` flag.
-    // TODO(paulberry): once lazyAssignmentOperators are fully supported by
-    // Dart, remove this flag.
-    var scanner = new fasta.StringScanner(source, includeComments: true);
+    var scanner = new fasta.StringScanner(source,
+        includeComments: true,
+        scanGenericMethodComments: genericMethodComments,
+        scanLazyAssignmentOperators: lazyAssignmentOperators);
     var token = scanner.tokenize();
     return new ToAnalyzerTokenStreamConverter_WithListener(listener)
         .convertTokens(token);
-  }
-
-  @override
-  @failingTest
-  void test_ampersand_ampersand_eq() {
-    // TODO(paulberry,ahe): Fasta doesn't support `&&=` yet
-    super.test_ampersand_ampersand_eq();
-  }
-
-  @override
-  @failingTest
-  void test_bar_bar_eq() {
-    // TODO(paulberry,ahe): Fasta doesn't support `||=` yet
-    super.test_bar_bar_eq();
   }
 
   void test_comments() {
@@ -77,18 +55,18 @@ class ScannerTest_Fasta extends ScannerTestBase {
        } // EOF comment
     ''';
 
-    fasta.Token scanSource({bool includeComments}) {
+    Token scanSource({bool includeComments}) {
       return new fasta.StringScanner(source, includeComments: includeComments)
           .tokenize();
     }
 
     int tokenCount = 0;
-    fasta.Token token = scanSource(includeComments: false);
+    Token token = scanSource(includeComments: false);
     while (!token.isEof) {
       ++tokenCount;
       // Assert no comments
       expect(token.precedingComments, isNull);
-      expect(token.info.kind, isNot(fasta.COMMENT_TOKEN));
+      expect(token.type.kind, isNot(fasta.COMMENT_TOKEN));
       token = token.next;
     }
     expect(token.precedingComments, isNull);
@@ -105,12 +83,12 @@ class ScannerTest_Fasta extends ScannerTestBase {
       fasta.CommentToken comment = token.precedingComments;
       while (comment != null) {
         ++commentTokenCount;
-        expect(comment.info.kind, fasta.COMMENT_TOKEN);
+        expect(comment.type.kind, fasta.COMMENT_TOKEN);
         expect(comment.charOffset, greaterThanOrEqualTo(previousEnd));
         previousEnd = comment.charOffset + comment.charCount;
         comment = comment.next;
       }
-      expect(token.info.kind, isNot(fasta.COMMENT_TOKEN));
+      expect(token.type.kind, isNot(fasta.COMMENT_TOKEN));
       expect(token.charOffset, greaterThanOrEqualTo(previousEnd));
       previousEnd = token.charOffset + token.charCount;
 
@@ -141,18 +119,72 @@ class ScannerTest_Fasta extends ScannerTestBase {
     expect(token.precedingComments?.lexeme, '// EOF comment');
   }
 
-  @override
-  @failingTest
-  void test_comment_generic_method_type_assign() {
-    // TODO(paulberry,ahe): Fasta doesn't support generic method comment syntax.
-    super.test_comment_generic_method_type_assign();
+  void test_CommentToken_remove() {
+    const code = '''
+/// aaa
+/// bbbb
+/// ccccc
+main() {}
+''';
+
+    Token token;
+    fasta.CommentToken c1;
+    fasta.CommentToken c2;
+    fasta.CommentToken c3;
+
+    void prepareTokens() {
+      token = new fasta.StringScanner(code, includeComments: true).tokenize();
+
+      expect(token.type.kind, fasta.IDENTIFIER_TOKEN);
+
+      c1 = token.precedingComments;
+      c2 = c1.next;
+      c3 = c2.next;
+      expect(c3.next, isNull);
+
+      expect(c1.parent, token);
+      expect(c2.parent, token);
+      expect(c3.parent, token);
+
+      expect(c1.lexeme, '/// aaa');
+      expect(c2.lexeme, '/// bbbb');
+      expect(c3.lexeme, '/// ccccc');
+    }
+
+    // Remove the first token.
+    {
+      prepareTokens();
+      c1.remove();
+      expect(token.precedingComments, c2);
+      expect(c2.next, c3);
+      expect(c3.next, isNull);
+    }
+
+    // Remove the second token.
+    {
+      prepareTokens();
+      c2.remove();
+      expect(token.precedingComments, c1);
+      expect(c1.next, c3);
+      expect(c3.next, isNull);
+    }
+
+    // Remove the last token.
+    {
+      prepareTokens();
+      c3.remove();
+      expect(token.precedingComments, c1);
+      expect(c1.next, c2);
+      expect(c2.next, isNull);
+    }
   }
 
   @override
   @failingTest
-  void test_comment_generic_method_type_list() {
-    // TODO(paulberry,ahe): Fasta doesn't support generic method comment syntax.
-    super.test_comment_generic_method_type_list();
+  void test_incomplete_string_interpolation() {
+    // TODO(danrubel): fix ToAnalyzerTokenStreamConverter_WithListener
+    // to handle synthetic closers in token stream
+    super.test_incomplete_string_interpolation();
   }
 
   @override
@@ -169,31 +201,6 @@ class ScannerTest_Fasta extends ScannerTestBase {
     // TODO(paulberry,ahe): Fasta and analyzer recover this error differently.
     // Figure out which recovery technique we want the front end to use.
     super.test_mismatched_opener();
-  }
-
-  void test_next_previous() {
-    const source = 'int a; /*1*/ /*2*/ /*3*/ B f(){if (a < 2) {}}';
-    fasta.Token token =
-        new fasta.StringScanner(source, includeComments: true).tokenize();
-    while (!token.isEof) {
-      expect(token.next.previousToken, token);
-      fasta.CommentToken commentToken = token.precedingComments;
-      while (commentToken != null) {
-        if (commentToken.next != null) {
-          expect(commentToken.next.previousToken, commentToken);
-        }
-        commentToken = commentToken.next;
-      }
-      token = token.next;
-    }
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_string_interpolation() {
-    // TODO(danrubel): fix ToAnalyzerTokenStreamConverter_WithListener
-    // to handle synthetic closers in token stream
-    super.test_incomplete_string_interpolation();
   }
 
   @override
@@ -218,6 +225,23 @@ class ScannerTest_Fasta extends ScannerTestBase {
     expect(openParen1.endToken, same(closeParen1));
     expect(openBrace.endToken, same(closeBrace));
     expect(openParen2.endToken, same(closeParen2));
+  }
+
+  void test_next_previous() {
+    const source = 'int a; /*1*/ /*2*/ /*3*/ B f(){if (a < 2) {}}';
+    Token token =
+        new fasta.StringScanner(source, includeComments: true).tokenize();
+    while (!token.isEof) {
+      expect(token.next.previous, token);
+      fasta.CommentToken commentToken = token.precedingComments;
+      while (commentToken != null) {
+        if (commentToken.next != null) {
+          expect(commentToken.next.previous, commentToken);
+        }
+        commentToken = commentToken.next;
+      }
+      token = token.next;
+    }
   }
 
   @override
@@ -318,7 +342,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
 
 /// Base class for scanner tests that examine the token stream in Fasta format.
 abstract class ScannerTest_Fasta_Base {
-  fasta.Token scan(String source);
+  Token scan(String source);
 
   void test_match_angle_brackets() {
     var x = scan('x<y>');
@@ -477,7 +501,7 @@ abstract class ScannerTest_Fasta_Base {
 @reflectiveTest
 class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
   @override
-  fasta.Token scan(String source) {
+  Token scan(String source) {
     var scanner = new fasta.StringScanner(source, includeComments: true);
     return scanner.tokenize();
   }
@@ -489,7 +513,7 @@ class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
 @reflectiveTest
 class ScannerTest_Fasta_Roundtrip extends ScannerTest_Fasta_Base {
   @override
-  fasta.Token scan(String source) {
+  Token scan(String source) {
     var scanner = new fasta.StringScanner(source, includeComments: true);
     var fastaTokenStream = scanner.tokenize();
     var analyzerTokenStream = new ToAnalyzerTokenStreamConverter_NoErrors()

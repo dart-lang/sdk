@@ -88,7 +88,11 @@ class ModuleCompiler {
 
     // Read the summaries.
     summaryData ??= new SummaryDataStore(options.summaryPaths,
-        resourceProvider: resourceProvider, recordDependencyInfo: true);
+        resourceProvider: resourceProvider,
+        recordDependencyInfo: true,
+        // TODO(vsm): Reset this to true once we cleanup internal build rules.
+        disallowOverlappingSummaries: false);
+
     var sdkSummaryBundle = sdk.getLinkedBundle();
     if (sdkSummaryBundle != null) {
       summaryData.addBundle(null, sdkSummaryBundle);
@@ -153,13 +157,11 @@ class ModuleCompiler {
 
     var compilingSdk = false;
     for (var sourcePath in unit.sources) {
-      var sourceUri = Uri.parse(sourcePath);
-      if (sourceUri.scheme == '') {
-        sourceUri = path.toUri(path.absolute(sourcePath));
-      } else if (sourceUri.scheme == 'dart') {
+      var sourceUri = _sourceToUri(sourcePath);
+      if (sourceUri.scheme == "dart") {
         compilingSdk = true;
       }
-      Source source = context.sourceFactory.forUri2(sourceUri);
+      var source = context.sourceFactory.forUri2(sourceUri);
 
       var fileUsage = 'You need to pass at least one existing .dart file as an'
           ' argument.';
@@ -213,9 +215,20 @@ class ModuleCompiler {
         errors.any((e) => _isFatalError(e, options))) {
       return new JSModuleFile.invalid(unit.name, messages, options);
     }
-    var codeGenerator =
-        new CodeGenerator(context, summaryData, options, _extensionTypes);
-    return codeGenerator.compile(unit, trees, messages);
+
+    try {
+      var codeGenerator =
+          new CodeGenerator(context, summaryData, options, _extensionTypes);
+      return codeGenerator.compile(unit, trees, messages);
+    } catch (e) {
+      if (errors.any((e) => _isFatalError(e, options))) {
+        // Force compilation failed.  Suppress the exception and report
+        // the static errors instead.
+        assert(options.unsafeForceCompile);
+        return new JSModuleFile.invalid(unit.name, messages, options);
+      }
+      rethrow;
+    }
   }
 }
 
@@ -424,7 +437,9 @@ class BuildUnit {
   // build units.
   final Func1<Source, String> libraryToModule;
 
-  BuildUnit(this.name, this.libraryRoot, this.sources, this.libraryToModule);
+  BuildUnit(
+      String modulePath, this.libraryRoot, this.sources, this.libraryToModule)
+      : name = '${path.toUri(modulePath)}';
 }
 
 /// The output of Dart->JS compilation.
@@ -498,14 +513,10 @@ class JSModuleFile {
     if (options.sourceMap && sourceMap != null) {
       builtMap =
           placeSourceMap(sourceMap.build(jsUrl), mapUrl, options.bazelMapping);
-      if (name == 'dart_sdk') {
-        builtMap = cleanupSdkSourcemap(builtMap);
-      }
       if (options.sourceMapComment) {
-        var relativeMapUrl = path
-            .toUri(
-                path.relative(path.fromUri(mapUrl), from: path.dirname(jsUrl)))
-            .toString();
+        var jsDir = path.dirname(path.fromUri(jsUrl));
+        var relative = path.relative(path.fromUri(mapUrl), from: jsDir);
+        var relativeMapUrl = path.toUri(relative).toString();
         assert(path.dirname(jsUrl) == path.dirname(mapUrl));
         printer.emit('\n//# sourceMappingURL=');
         printer.emit(relativeMapUrl);
@@ -529,7 +540,9 @@ class JSModuleFile {
   void writeCodeSync(ModuleFormat format, String jsPath,
       {bool singleOutFile: false}) {
     String mapPath = jsPath + '.map';
-    var code = getCode(format, jsPath, mapPath, singleOutFile: singleOutFile);
+    var code = getCode(
+        format, path.toUri(jsPath).toString(), path.toUri(mapPath).toString(),
+        singleOutFile: singleOutFile);
     var c = code.code;
     if (singleOutFile) {
       // In singleOutFile mode we wrap each module in an eval statement to
@@ -577,38 +590,56 @@ class JSModuleCode {
 }
 
 /// Adjusts the source paths in [sourceMap] to be relative to [sourceMapPath],
-/// and returns the new map.
+/// and returns the new map.  Relative paths are in terms of URIs ('/'), not
+/// local OS paths (e.g., windows '\').
 // TODO(jmesserly): find a new home for this.
 Map placeSourceMap(
     Map sourceMap, String sourceMapPath, Map<String, String> bazelMappings) {
-  var dir = path.dirname(sourceMapPath);
   var map = new Map.from(sourceMap);
+  // Convert to a local file path if it's not.
+  sourceMapPath = path.fromUri(_sourceToUri(sourceMapPath));
+  var sourceMapDir = path.dirname(path.absolute(sourceMapPath));
   var list = new List.from(map['sources']);
   map['sources'] = list;
-  String transformUri(String uri) {
-    var match = bazelMappings[path.absolute(uri)];
+
+  String makeRelative(String sourcePath) {
+    var uri = _sourceToUri(sourcePath);
+    if (uri.scheme == 'dart' || uri.scheme == 'package') return sourcePath;
+
+    // Convert to a local file path if it's not.
+    sourcePath = path.absolute(path.fromUri(uri));
+
+    // Allow bazel mappings to override.
+    var match = bazelMappings[sourcePath];
     if (match != null) return match;
 
-    // Fall back to a relative path.
-    return path.toUri(path.relative(path.fromUri(uri), from: dir)).toString();
+    // Fall back to a relative path against the source map itself.
+    sourcePath = path.relative(sourcePath, from: sourceMapDir);
+
+    // Convert from relative local path to relative URI.
+    return path.toUri(sourcePath).path;
   }
 
   for (int i = 0; i < list.length; i++) {
-    list[i] = transformUri(list[i]);
+    list[i] = makeRelative(list[i]);
   }
-  map['file'] = transformUri(map['file']);
+  map['file'] = makeRelative(map['file']);
   return map;
 }
 
-/// Cleanup the dart_sdk source map.
-///
-/// Strip out files that should not be included in the sdk sourcemap as they
-/// are implementation details that would just confuse users.
-/// Normalize sdk urls to use "dart:" for more understandable stack traces.
-Map cleanupSdkSourcemap(Map sourceMap) {
-  var map = new Map.from(sourceMap);
-  map['sources'] = map['sources']
-      .map((url) => url.contains('/_internal/') ? null : url)
-      .toList();
-  return map;
+// Convert a source string to a Uri.  The [source] may be a Dart URI, a file
+// URI, or a local win/mac/linux path.
+Uri _sourceToUri(String source) {
+  var uri = Uri.parse(source);
+  var scheme = uri.scheme;
+  switch (scheme) {
+    case "dart":
+    case "package":
+    case "file":
+      // A valid URI.
+      return uri;
+    default:
+      // Assume a file path.
+      return new Uri.file(path.absolute(source));
+  }
 }

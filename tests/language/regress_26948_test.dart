@@ -11,8 +11,8 @@ void check(Function f) {
 }
 
 Future doSync() async {
-   try {
-     await 123;
+  try {
+    await 123;
   } finally {
     var next = 5.0;
     check(() => next == 5.0);

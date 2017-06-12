@@ -1,0 +1,11 @@
+library;
+import self as self;
+
+static field dynamic color;
+static field dynamic thing;
+static field dynamic phrase;
+static field dynamic adjacent;
+static field dynamic linebreaks;
+static field dynamic other;
+static method main() → dynamic
+  ;

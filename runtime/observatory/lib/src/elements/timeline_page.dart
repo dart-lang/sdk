@@ -196,7 +196,7 @@ class TimelinePageElement extends HtmlElement implements Renderable {
       case _Profile.custom:
         return 'Custom';
     }
-    throw new Exception('Unkown Profile ${profile}');
+    throw new Exception('Unknown Profile ${profile}');
   }
 
   Future _refresh() async {

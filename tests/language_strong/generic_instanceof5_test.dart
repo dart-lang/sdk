@@ -5,11 +5,9 @@
 
 import "package:expect/expect.dart";
 
-class A {
-}
+class A {}
 
-class B<T, S> {
-}
+class B<T, S> {}
 
 class C<U, V> extends A with B<V, U> {}
 
@@ -18,7 +16,7 @@ class D<T> {
     // Avoid inlining.
     if (new DateTime.now().millisecondsSinceEpoch == 42) foo(x);
     return x is T;
-    return true;  // Avoid inlining.
+    return true; // Avoid inlining.
   }
 }
 

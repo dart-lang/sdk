@@ -19,10 +19,9 @@ main() {
   const isolate = const IsolateRefMock();
   const object = const InstanceRefMock();
   final inbounds = new InboundReferencesRepositoryMock();
-  final instances = new InstanceRepositoryMock();
+  final objects = new ObjectRepositoryMock();
   test('instantiation', () {
-    final e =
-        new InboundReferencesElement(isolate, object, inbounds, instances);
+    final e = new InboundReferencesElement(isolate, object, inbounds, objects);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.object, equals(object));
@@ -39,9 +38,8 @@ main() {
       invoked = true;
       return references;
     }, count: 1));
-    final instances = new InstanceRepositoryMock();
-    final e =
-        new InboundReferencesElement(isolate, object, inbounds, instances);
+    final objects = new ObjectRepositoryMock();
+    final e = new InboundReferencesElement(isolate, object, inbounds, objects);
     document.body.append(e);
     await e.onRendered.first;
     expect(invoked, isFalse);

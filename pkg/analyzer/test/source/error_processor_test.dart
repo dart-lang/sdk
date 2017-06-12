@@ -45,6 +45,11 @@ main() {
     ['x']
   ]);
 
+  // We in-line a lint code here in order to avoid adding a dependency on the
+  // linter package.
+  AnalysisError annotate_overrides = new AnalysisError(
+      new TestSource(), 0, 1, new LintCode('annotate_overrides', ''));
+
   oneTimeSetup();
 
   setUp(() {
@@ -116,6 +121,7 @@ analyzer:
             orElse: () => null);
         expect(invalidAssignmentProcessor, isNull);
       });
+
       test('string map', () {
         var options = {
           'invalid_assignment': 'unsupported_action', // should be skipped
@@ -141,6 +147,18 @@ analyzer:
             orElse: () => null);
         expect(invalidAssignmentProcessor, isNull);
       });
+    });
+
+    test('configure lints', () {
+      var options = optionsProvider.getOptionsFromString(
+          'analyzer:\n  errors:\n    annotate_overrides: warning\n');
+      var errorConfig =
+          new ErrorConfig((options['analyzer'] as YamlMap)['errors']);
+      expect(errorConfig.processors, hasLength(1));
+
+      ErrorProcessor processor = errorConfig.processors.first;
+      expect(processor.appliesTo(annotate_overrides), true);
+      expect(processor.severity, ErrorSeverity.WARNING);
     });
   });
 }

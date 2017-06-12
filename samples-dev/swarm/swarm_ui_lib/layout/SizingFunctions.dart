@@ -42,8 +42,8 @@ class FixedSizing extends SizingFunction {
   bool _contentSized;
 
   FixedSizing(this.length, [this.units = 'px'])
-    : super(),
-      _contentSized = false {
+      : super(),
+        _contentSized = false {
     if (units != 'px' && units != '%') {
       // TODO(jmesserly): support other unit types
       throw new UnsupportedError('Units other than px and %');
@@ -73,7 +73,6 @@ class FixedSizing extends SizingFunction {
   String toString() => 'FixedSizing: ${length}${units} $_contentSized';
 }
 
-
 /**
  * Fraction is a non-negative floating-point number followed by 'fr'. Each
  * fraction value takes a share of the remaining space proportional to its
@@ -99,7 +98,9 @@ class MinContentSizing extends SizingFunction {
 class MaxContentSizing extends SizingFunction {
   const MaxContentSizing() : super();
 
-  bool get isMaxContentSized { return true; }
+  bool get isMaxContentSized {
+    return true;
+  }
 
   String toString() => 'MaxContentSizing';
 }
@@ -113,8 +114,8 @@ class TrackSizing {
   final SizingFunction max;
 
   const TrackSizing.auto()
-    : min = const MinContentSizing(),
-      max = const MaxContentSizing();
+      : min = const MinContentSizing(),
+        max = const MaxContentSizing();
 
   TrackSizing(this.min, this.max) {}
 
@@ -134,7 +135,10 @@ abstract class _BreadthAccumulator {
 class _UsedBreadthAccumulator implements _BreadthAccumulator {
   const _UsedBreadthAccumulator();
 
-  void setSize(GridTrack t, num value) { t.usedBreadth = value; }
+  void setSize(GridTrack t, num value) {
+    t.usedBreadth = value;
+  }
+
   num getSize(GridTrack t) => t.usedBreadth;
 
   SizingFunction getSizingFunction(GridTrack t) => t.minSizing;
@@ -143,9 +147,11 @@ class _UsedBreadthAccumulator implements _BreadthAccumulator {
 class _MaxBreadthAccumulator implements _BreadthAccumulator {
   const _MaxBreadthAccumulator();
 
-  void setSize(GridTrack t, num value) { t.maxBreadth = value; }
+  void setSize(GridTrack t, num value) {
+    t.maxBreadth = value;
+  }
+
   num getSize(GridTrack t) => t.maxBreadth;
 
   SizingFunction getSizingFunction(GridTrack t) => t.maxSizing;
 }
-

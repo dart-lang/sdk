@@ -10,19 +10,19 @@ class A {
 
   foo(x) {
     -a;
-    if(x) return true;
+    if (x) return true;
     return false;
   }
 
   loop1(x) {
     -a;
-    while(x) return true;
+    while (x) return true;
     return false;
   }
 
   loop2(x) {
     -a;
-    for(;x;) return true;
+    for (; x;) return true;
     return false;
   }
 
@@ -31,7 +31,7 @@ class A {
     var i = 0;
     do {
       if (i++ == 1) return false;
-    } while(!x);
+    } while (!x);
     return true;
   }
 }

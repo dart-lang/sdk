@@ -6,7 +6,6 @@ import "package:expect/expect.dart";
 
 // Test Parameter Intializer.
 
-
 class ParameterInitializer2Test {
   static testMain() {
     var a = new A(123);
@@ -24,22 +23,20 @@ class ParameterInitializer2Test {
     var e = new E(1);
     Expect.equals(4, e.x);
 
-    var f = new F(1,2,3,4);
+    var f = new F(1, 2, 3, 4);
     Expect.equals(4, f.z);
   }
 }
 
 // untyped
 class A {
-  A(this.x) {
-  }
+  A(this.x) {}
   int x;
 }
 
 // typed
 class B {
-  B(int this.x) {
-  }
+  B(int this.x) {}
   int x;
 }
 
@@ -66,18 +63,18 @@ class E {
   int x;
 }
 
-
 // mixed
 class F {
-  F(x, this.y_, int w, int this.z) : x_ = x, w_ = w { }
-  F.foobar(this.z, int this.x_, int this.az_) { }
+  F(x, this.y_, int w, int this.z)
+      : x_ = x,
+        w_ = w {}
+  F.foobar(this.z, int this.x_, int this.az_) {}
   int x_;
   int y_;
   int w_;
   int z;
   int az_;
 }
-
 
 main() {
   ParameterInitializer2Test.testMain();

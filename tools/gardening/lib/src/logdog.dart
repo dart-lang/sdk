@@ -6,6 +6,8 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:collection';
 
+final String cit = Platform.isWindows ? 'cit.bat' : 'cit';
+
 class LogdogException implements Exception {
   final int errorCode;
   final String stdout;
@@ -22,7 +24,7 @@ bool logdogCheckDone = false;
 
 void checkLogdog({bool tryToInstall: true}) {
   if (logdogCheckDone) return;
-  var result = Process.runSync("cit", []);
+  var result = Process.runSync(cit, []);
   if (result.exitCode != 0) {
     print("cit (from depot_tools) must be in the path.");
     throw new StateError("cit not accessible");
@@ -34,7 +36,7 @@ void checkLogdog({bool tryToInstall: true}) {
   }
   if (tryToInstall) {
     print("logdog isn't yet installed. Installation might take some time");
-    result = Process.runSync("cit", ["logdog"]);
+    result = Process.runSync(cit, ["logdog"]);
     checkLogdog(tryToInstall: false);
   } else {
     print("Couldn't install logdog");
@@ -45,13 +47,20 @@ void checkLogdog({bool tryToInstall: true}) {
 String logdog(List<String> args) {
   checkLogdog();
   args = args.toList()..insert(0, "logdog");
-  var result = Process.runSync("cit", args);
+  var result = Process.runSync(cit, args);
   if (result.exitCode == 0) return result.stdout;
   throw new LogdogException.fromProcessResult(result);
 }
 
 String cat(String log) {
   return logdog(["cat", "-raw", log]);
+}
+
+/// Returns the content for [path], for instance the available build numbers
+/// for 'dart2js-linux-chromeff-1-4-be' using the path
+/// `chromium/bb/client.dart/dart2js-linux-chromeff-1-4-be`.
+String ls(String path) {
+  return logdog(["ls", path]);
 }
 
 class LogResult<T> {
@@ -80,11 +89,11 @@ Stream<LogResult<String>> catN(Iterable<String> logs) async* {
     var log = it.current;
     queue.add(new Future.sync(() async {
       var logPath = log.substring(0, log.lastIndexOf("/"));
-      var lsResult = await Process.run("cit", ["logdog", "ls", logPath]);
+      var lsResult = await Process.run(cit, ["logdog", "ls", logPath]);
       if (lsResult.exitCode != 0) return new LogResult(log, lsResult);
       if (lsResult.stdout == "") return new LogResult(log, null);
       return new LogResult(
-          log, await Process.run("cit", ["logdog", "cat", "-raw", log]));
+          log, await Process.run(cit, ["logdog", "cat", "-raw", log]));
     }));
     return true;
   }

@@ -27,8 +27,7 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  'Test that covers capturing brackets, and was adapted from a part of an early version of Acid3.'
-  );
+      'Test that covers capturing brackets, and was adapted from a part of an early version of Acid3.');
 
   // JS regexps aren't like Perl regexps, if their character
   // classes start with a ] that means they're empty. So this

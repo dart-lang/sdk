@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.refactoring.inline_method;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -23,6 +20,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
  * Returns the [SourceRange] to find conflicting locals in.
@@ -31,14 +29,12 @@ SourceRange _getLocalsConflictingRange(AstNode node) {
   // maybe Block
   Block block = node.getAncestor((node) => node is Block);
   if (block != null) {
-    int offset = node.offset;
-    int endOffset = block.end;
-    return rangeStartEnd(offset, endOffset);
+    return range.startEnd(node, block);
   }
   // maybe whole executable
   AstNode executableNode = getEnclosingExecutableNode(node);
   if (executableNode != null) {
-    return rangeNode(executableNode);
+    return range.node(executableNode);
   }
   // not a part of a declaration with locals
   return SourceRange.EMPTY;
@@ -270,7 +266,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     // delete method
     if (deleteSource && inlineAll) {
-      SourceRange methodRange = rangeNode(_methodNode);
+      SourceRange methodRange = range.node(_methodNode);
       SourceRange linesRange =
           _methodUtils.getLinesRange(methodRange, skipLeadingEmptyLines: true);
       doSourceChange_addElementEdit(
@@ -414,7 +410,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     if (_methodBody is ExpressionFunctionBody) {
       ExpressionFunctionBody body = _methodBody as ExpressionFunctionBody;
       _methodExpression = body.expression;
-      SourceRange methodExpressionRange = rangeNode(_methodExpression);
+      SourceRange methodExpressionRange = range.node(_methodExpression);
       _methodExpressionPart = _createSourcePart(methodExpressionRange);
     } else if (_methodBody is BlockFunctionBody) {
       Block body = (_methodBody as BlockFunctionBody).block;
@@ -424,7 +420,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
         // "return" statement requires special handling
         if (lastStatement is ReturnStatement) {
           _methodExpression = lastStatement.expression;
-          SourceRange methodExpressionRange = rangeNode(_methodExpression);
+          SourceRange methodExpressionRange = range.node(_methodExpression);
           _methodExpressionPart = _createSourcePart(methodExpressionRange);
           // exclude "return" statement from statements
           statements = statements.sublist(0, statements.length - 1);
@@ -545,8 +541,8 @@ class _ReferenceProcessor {
         source = _refUtils.replaceSourceIndent(
             source, ref._methodStatementsPart._prefix, _refPrefix);
         // do insert
-        SourceRange range = rangeStartLength(_refLineRange, 0);
-        SourceEdit edit = newSourceEdit_range(range, source);
+        SourceEdit edit = newSourceEdit_range(
+            new SourceRange(_refLineRange.offset, 0), source);
         _addRefEdit(edit);
       }
       // replace invocation with return expression
@@ -559,7 +555,7 @@ class _ReferenceProcessor {
           source = "($source)";
         }
         // do replace
-        SourceRange methodUsageRange = rangeNode(usage);
+        SourceRange methodUsageRange = range.node(usage);
         SourceEdit edit = newSourceEdit_range(methodUsageRange, source);
         _addRefEdit(edit);
       } else {
@@ -571,7 +567,7 @@ class _ReferenceProcessor {
     // inline as closure invocation
     String source;
     {
-      source = ref._methodUtils.getRangeText(rangeStartEnd(
+      source = ref._methodUtils.getRangeText(range.startEnd(
           ref._methodParameters.leftParenthesis, ref._methodNode));
       String methodPrefix =
           ref._methodUtils.getLinePrefix(ref._methodNode.offset);
@@ -579,8 +575,7 @@ class _ReferenceProcessor {
       source = source.trim();
     }
     // do insert
-    SourceRange range = rangeNode(_node);
-    SourceEdit edit = newSourceEdit_range(range, source);
+    SourceEdit edit = newSourceEdit_range(range.node(_node), source);
     _addRefEdit(edit);
   }
 
@@ -611,7 +606,7 @@ class _ReferenceProcessor {
             }
           }
           if (ref._alreadyMadeAsync.add(body)) {
-            SourceRange bodyStart = rangeStartLength(body.offset, 0);
+            SourceRange bodyStart = range.startLength(body, 0);
             _addRefEdit(newSourceEdit_range(bodyStart, 'async '));
           }
         }
@@ -662,7 +657,7 @@ class _ReferenceProcessor {
       // not invocation, just reference to function
       String source;
       {
-        source = ref._methodUtils.getRangeText(rangeStartEnd(
+        source = ref._methodUtils.getRangeText(range.startEnd(
             ref._methodParameters.leftParenthesis, ref._methodNode));
         String methodPrefix =
             ref._methodUtils.getLinePrefix(ref._methodNode.offset);
@@ -672,15 +667,14 @@ class _ReferenceProcessor {
         source = removeEnd(source, ';');
       }
       // do insert
-      SourceRange range = rangeNode(_node);
-      SourceEdit edit = newSourceEdit_range(range, source);
+      SourceEdit edit = newSourceEdit_range(range.node(_node), source);
       _addRefEdit(edit);
     }
   }
 
   bool _shouldProcess() {
     if (!ref.inlineAll) {
-      SourceRange parentRange = rangeNode(_node);
+      SourceRange parentRange = range.node(_node);
       return parentRange.contains(ref.offset);
     }
     return true;
@@ -766,26 +760,26 @@ class _SourcePart {
   }
 
   void addParameterOccurrence(
-      ParameterElement parameter, SourceRange range, int precedence) {
+      ParameterElement parameter, SourceRange identifierRange, int precedence) {
     if (parameter != null) {
       List<_ParameterOccurrence> occurrences = _parameters[parameter];
       if (occurrences == null) {
         occurrences = [];
         _parameters[parameter] = occurrences;
       }
-      range = rangeFromBase(range, _base);
-      occurrences.add(new _ParameterOccurrence(precedence, range));
+      identifierRange = range.offsetBy(identifierRange, -_base);
+      occurrences.add(new _ParameterOccurrence(precedence, identifierRange));
     }
   }
 
-  void addVariable(VariableElement element, SourceRange range) {
+  void addVariable(VariableElement element, SourceRange identifierRange) {
     List<SourceRange> ranges = _variables[element];
     if (ranges == null) {
       ranges = [];
       _variables[element] = ranges;
     }
-    range = rangeFromBase(range, _base);
-    ranges.add(range);
+    identifierRange = range.offsetBy(identifierRange, -_base);
+    ranges.add(identifierRange);
   }
 }
 
@@ -814,7 +808,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
 
   @override
   visitNode(AstNode node) {
-    SourceRange nodeRange = rangeNode(node);
+    SourceRange nodeRange = range.node(node);
     if (!bodyRange.intersects(nodeRange)) {
       return null;
     }
@@ -823,7 +817,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    SourceRange nodeRange = rangeNode(node);
+    SourceRange nodeRange = range.node(node);
     if (bodyRange.covers(nodeRange)) {
       _addMemberQualifier(node);
       _addParameter(node);
@@ -875,7 +869,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
       return;
     }
     // OK, add occurrence
-    SourceRange nodeRange = rangeNode(node);
+    SourceRange nodeRange = range.node(node);
     int parentPrecedence = getExpressionParentPrecedence(node);
     result.addParameterOccurrence(
         parameterElement, nodeRange, parentPrecedence);
@@ -884,7 +878,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
   void _addVariable(SimpleIdentifier node) {
     VariableElement variableElement = getLocalVariableElement(node);
     if (variableElement != null) {
-      SourceRange nodeRange = rangeNode(node);
+      SourceRange nodeRange = range.node(node);
       result.addVariable(variableElement, nodeRange);
     }
   }

@@ -5,6 +5,7 @@
 // Imported library has source file with library tags.
 
 library Script2NegativeLib;
+
 import "script_lib.dart";
 part "script2_negative_source.dart";
 

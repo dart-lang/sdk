@@ -7,7 +7,6 @@
 part of gardening.shard2group;
 
 const Map<String, List<String>> shardGroups = const {
-
   'vm': const <String>[
     'vm-mac-debug-simdbc64-be',
     'vm-mac-release-simdbc64-be',
@@ -96,6 +95,7 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-dump-info-be',
   ],
   'analyzer': const <String>[
+    'analyze-linux-be',
     'analyzer-mac10.11-release-be',
     'analyzer-linux-release-be',
     'analyzer-win7-release-be',
@@ -107,7 +107,6 @@ const Map<String, List<String>> shardGroups = const {
     'dart-sdk-linux-be',
     'dart-sdk-windows-be',
     'dart-sdk-mac-be',
-    'sdk-trigger-be',
   ],
   'dartium-inc': const <String>[
     'dartium-linux-x64-inc-be',
@@ -131,15 +130,15 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-mac10.11-safari-2-3-be',
     'dart2js-mac10.11-safari-3-3-be',
   ],
-  'ie': const <String>[
-    'dart2js-win8-ie10-be',
-    'dart2js-win8-ie11-be',
-  ],
   'dart2js-windows': const <String>[
-    'dart2js-win7-ie10chrome-1-4-be',
-    'dart2js-win7-ie10chrome-2-4-be',
-    'dart2js-win7-ie10chrome-3-4-be',
-    'dart2js-win7-ie10chrome-4-4-be',
+    'dart2js-win8-ie11-1-4-be',
+    'dart2js-win8-ie11-2-4-be',
+    'dart2js-win8-ie11-3-4-be',
+    'dart2js-win8-ie11-4-4-be',
+    'dart2js-win7-chrome-1-4-be',
+    'dart2js-win7-chrome-2-4-be',
+    'dart2js-win7-chrome-3-4-be',
+    'dart2js-win7-chrome-4-4-be',
     'dart2js-win7-ie11ff-1-4-be',
     'dart2js-win7-ie11ff-2-4-be',
     'dart2js-win7-ie11ff-3-4-be',
@@ -249,6 +248,7 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-dump-info-dev',
   ],
   'analyzer-dev': const <String>[
+    'analyze-linux-dev',
     'analyzer-mac10.11-release-dev',
     'analyzer-linux-release-dev',
     'analyzer-win7-release-dev',
@@ -260,7 +260,6 @@ const Map<String, List<String>> shardGroups = const {
     'dart-sdk-linux-dev',
     'dart-sdk-windows-dev',
     'dart-sdk-mac-dev',
-    'sdk-trigger-dev',
   ],
   'dart2js-linux-dev': const <String>[
     'dart2js-linux-chromeff-1-4-dev',
@@ -279,15 +278,15 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-mac10.11-safari-2-3-dev',
     'dart2js-mac10.11-safari-3-3-dev',
   ],
-  'ie-dev': const <String>[
-    'dart2js-win8-ie10-dev',
-    'dart2js-win8-ie11-dev',
-  ],
   'dart2js-windows-dev': const <String>[
-    'dart2js-win7-ie10chrome-1-4-dev',
-    'dart2js-win7-ie10chrome-2-4-dev',
-    'dart2js-win7-ie10chrome-3-4-dev',
-    'dart2js-win7-ie10chrome-4-4-dev',
+    'dart2js-win8-ie11-1-4-dev',
+    'dart2js-win8-ie11-2-4-dev',
+    'dart2js-win8-ie11-3-4-dev',
+    'dart2js-win8-ie11-4-4-dev',
+    'dart2js-win7-chrome-1-4-dev',
+    'dart2js-win7-chrome-2-4-dev',
+    'dart2js-win7-chrome-3-4-dev',
+    'dart2js-win7-chrome-4-4-dev',
     'dart2js-win7-ie11ff-1-4-dev',
     'dart2js-win7-ie11ff-2-4-dev',
     'dart2js-win7-ie11ff-3-4-dev',
@@ -397,6 +396,7 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-dump-info-stable',
   ],
   'analyzer-stable': const <String>[
+    'analyze-linux-stable',
     'analyzer-mac10.11-release-stable',
     'analyzer-linux-release-stable',
     'analyzer-win7-release-stable',
@@ -408,7 +408,6 @@ const Map<String, List<String>> shardGroups = const {
     'dart-sdk-linux-stable',
     'dart-sdk-windows-stable',
     'dart-sdk-mac-stable',
-    'sdk-trigger-stable',
   ],
   'dart2js-linux-stable': const <String>[
     'dart2js-linux-chromeff-1-4-stable',
@@ -427,15 +426,15 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-mac10.11-safari-2-3-stable',
     'dart2js-mac10.11-safari-3-3-stable',
   ],
-  'ie-stable': const <String>[
-    'dart2js-win8-ie10-stable',
-    'dart2js-win8-ie11-stable',
-  ],
   'dart2js-windows-stable': const <String>[
-    'dart2js-win7-ie10chrome-1-4-stable',
-    'dart2js-win7-ie10chrome-2-4-stable',
-    'dart2js-win7-ie10chrome-3-4-stable',
-    'dart2js-win7-ie10chrome-4-4-stable',
+    'dart2js-win8-ie11-1-4-stable',
+    'dart2js-win8-ie11-2-4-stable',
+    'dart2js-win8-ie11-3-4-stable',
+    'dart2js-win8-ie11-4-4-stable',
+    'dart2js-win7-chrome-1-4-stable',
+    'dart2js-win7-chrome-2-4-stable',
+    'dart2js-win7-chrome-3-4-stable',
+    'dart2js-win7-chrome-4-4-stable',
     'dart2js-win7-ie11ff-1-4-stable',
     'dart2js-win7-ie11ff-2-4-stable',
     'dart2js-win7-ie11ff-3-4-stable',

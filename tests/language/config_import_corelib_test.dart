@@ -5,9 +5,8 @@
 import 'package:expect/expect.dart';
 
 import 'config_import_corelib_general.dart'
-  if (dart.library.io) 'config_import_corelib_io.dart'
-  if (dart.library.http) 'config_import_corelib_http.dart'
-  as lib;
+    if (dart.library.io) 'config_import_corelib_io.dart'
+    if (dart.library.http) 'config_import_corelib_http.dart' as lib;
 
 class SubClassy extends lib.Classy {
   String get superName => super.name;
@@ -27,15 +26,23 @@ main() {
     Expect.isTrue(lib.ioSpecific());
     Expect.equals("classy io", cy.ioSpecific());
 
-    Expect.throws(() { lib.httpSpecific(); });
-    Expect.throws(() { cy.httpSpecific(); });
+    Expect.throws(() {
+      lib.httpSpecific();
+    });
+    Expect.throws(() {
+      cy.httpSpecific();
+    });
   } else if (http) {
     Expect.isTrue(lib.general());
     Expect.equals("http", lib.name);
     Expect.equals("classy http", cy.name);
 
-    Expect.throws(() { lib.ioSpecific(); });
-    Expect.throws(() { cy.ioSpecific(); });
+    Expect.throws(() {
+      lib.ioSpecific();
+    });
+    Expect.throws(() {
+      cy.ioSpecific();
+    });
 
     Expect.isTrue(lib.httpSpecific());
     Expect.equals("classy http", cy.httpSpecific());
@@ -44,10 +51,18 @@ main() {
     Expect.equals("general", lib.name);
     Expect.equals("classy general", cy.name);
 
-    Expect.throws(() { lib.ioSpecific(); });
-    Expect.throws(() { cy.ioSpecific(); });
+    Expect.throws(() {
+      lib.ioSpecific();
+    });
+    Expect.throws(() {
+      cy.ioSpecific();
+    });
 
-    Expect.throws(() { lib.httpSpecific(); });
-    Expect.throws(() { cy.httpSpecific(); });
+    Expect.throws(() {
+      lib.httpSpecific();
+    });
+    Expect.throws(() {
+      cy.httpSpecific();
+    });
   }
 }

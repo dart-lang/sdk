@@ -31,7 +31,7 @@ main() {
     check('iframe', () => new IFrameElement() is IFrameElement);
     check('img', () => new ImageElement() is ImageElement);
     check('input', () => new InputElement() is InputElement);
-    check('keygen',
-        () => new KeygenElement() is KeygenElement, KeygenElement.supported);
+    check('keygen', () => new KeygenElement() is KeygenElement,
+        KeygenElement.supported);
   });
 }

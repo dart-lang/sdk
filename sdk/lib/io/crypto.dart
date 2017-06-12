@@ -6,8 +6,8 @@ part of dart.io;
 
 class _CryptoUtils {
   static const int PAD = 61; // '='
-  static const int CR = 13;  // '\r'
-  static const int LF = 10;  // '\n'
+  static const int CR = 13; // '\r'
+  static const int LF = 10; // '\n'
   static const int LINE_LENGTH = 76;
 
   static const String _encodeTable =
@@ -21,23 +21,24 @@ class _CryptoUtils {
   // -1 : '\r' or '\n'
   //  0 : = (Padding character).
   // >0 : Base 64 alphabet index of given byte.
-  static const List<int> _decodeTable =
-      const [ -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -2, -2, -1, -2, -2,
-              -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-              -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, 62, -2, 62, -2, 63,
-              52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -2, -2, -2,  0, -2, -2,
-              -2,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
-              15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -2, -2, -2, -2, 63,
-              -2, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-              41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -2, -2, -2, -2, -2,
-              -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-              -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-              -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-              -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-              -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-              -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-              -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-              -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2 ];
+  static const List<int> _decodeTable = const [
+    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -2, -2, -1, -2, -2, //
+    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
+    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, 62, -2, 62, -2, 63, //
+    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -2, -2, -2, 00, -2, -2, //
+    -2, 00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, //
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -2, -2, -2, -2, 63, //
+    -2, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, //
+    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -2, -2, -2, -2, -2, //
+    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
+    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
+    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
+    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
+    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
+    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
+    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
+    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2
+  ];
 
   static String bytesToHex(List<int> bytes) {
     var result = new StringBuffer();
@@ -48,8 +49,7 @@ class _CryptoUtils {
   }
 
   static String bytesToBase64(List<int> bytes,
-                              [bool urlSafe = false,
-                               bool addLineSeparator = false]) {
+      [bool urlSafe = false, bool addLineSeparator = false]) {
     int len = bytes.length;
     if (len == 0) {
       return "";
@@ -70,17 +70,17 @@ class _CryptoUtils {
     int j = 0, i = 0, c = 0;
     while (i < chunkLength) {
       int x = ((bytes[i++] << 16) & 0xFFFFFF) |
-              ((bytes[i++] << 8) & 0xFFFFFF) |
-                bytes[i++];
+          ((bytes[i++] << 8) & 0xFFFFFF) |
+          bytes[i++];
       out[j++] = lookup.codeUnitAt(x >> 18);
       out[j++] = lookup.codeUnitAt((x >> 12) & 0x3F);
-      out[j++] = lookup.codeUnitAt((x >> 6)  & 0x3F);
+      out[j++] = lookup.codeUnitAt((x >> 6) & 0x3F);
       out[j++] = lookup.codeUnitAt(x & 0x3f);
       // Add optional line separator for each 76 char output.
       if (addLineSeparator && ++c == 19 && j < outputLen - 2) {
-          out[j++] = CR;
-          out[j++] = LF;
-          c = 0;
+        out[j++] = CR;
+        out[j++] = LF;
+        c = 0;
       }
     }
 
@@ -105,7 +105,7 @@ class _CryptoUtils {
   }
 
   static List<int> base64StringToBytes(String input,
-                                       [bool ignoreInvalidCharacters = true]) {
+      [bool ignoreInvalidCharacters = true]) {
     int len = input.length;
     if (len == 0) {
       return new List<int>(0);
@@ -118,7 +118,7 @@ class _CryptoUtils {
       int c = _decodeTable[input.codeUnitAt(i)];
       if (c < 0) {
         extrasLen++;
-        if(c == -2 && !ignoreInvalidCharacters) {
+        if (c == -2 && !ignoreInvalidCharacters) {
           throw new FormatException('Invalid character: ${input[i]}');
         }
       }
@@ -157,7 +157,6 @@ class _CryptoUtils {
     }
     return out;
   }
-
 }
 
 // Constants.
@@ -179,9 +178,8 @@ abstract class _HashBase {
   List<int> _h;
   bool _digestCalled = false;
 
-  _HashBase(this._chunkSizeInWords,
-            this._digestSizeInWords,
-            this._bigEndianWords)
+  _HashBase(
+      this._chunkSizeInWords, this._digestSizeInWords, this._bigEndianWords)
       : _pendingData = [] {
     _currentChunk = new List(_chunkSizeInWords);
     _h = new List(_digestSizeInWords);
@@ -231,7 +229,6 @@ abstract class _HashBase {
     return ((val << mod_shift) & _MASK_32) |
         ((val & _MASK_32) >> (32 - mod_shift));
   }
-
 
   // Compute the final result as a list of bytes from the hash words.
   List<int> _resultAsBytes() {
@@ -323,23 +320,25 @@ class _MD5 extends _HashBase {
   }
 
   static const _k = const [
-    0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf, 0x4787c62a,
-    0xa8304613, 0xfd469501, 0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
-    0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821, 0xf61e2562, 0xc040b340,
-    0x265e5a51, 0xe9b6c7aa, 0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8,
-    0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed, 0xa9e3e905, 0xfcefa3f8,
-    0x676f02d9, 0x8d2a4c8a, 0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c,
-    0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70, 0x289b7ec6, 0xeaa127fa,
-    0xd4ef3085, 0x04881d05, 0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665,
-    0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039, 0x655b59c3, 0x8f0ccc92,
-    0xffeff47d, 0x85845dd1, 0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1,
-    0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391 ];
+    0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf, 0x4787c62a, //
+    0xa8304613, 0xfd469501, 0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be, //
+    0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821, 0xf61e2562, 0xc040b340, //
+    0x265e5a51, 0xe9b6c7aa, 0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8, //
+    0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed, 0xa9e3e905, 0xfcefa3f8, //
+    0x676f02d9, 0x8d2a4c8a, 0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c, //
+    0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70, 0x289b7ec6, 0xeaa127fa, //
+    0xd4ef3085, 0x04881d05, 0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665, //
+    0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039, 0x655b59c3, 0x8f0ccc92, //
+    0xffeff47d, 0x85845dd1, 0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1, //
+    0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
+  ];
 
   static const _r = const [
-    7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5,  9, 14,
-    20, 5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20, 4, 11, 16, 23, 4, 11,
-    16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10, 15, 21, 6, 10, 15, 21, 6,
-    10, 15, 21, 6, 10, 15, 21 ];
+    7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, //
+    20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, //
+    16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10, 15, 21, 6, 10, 15, 21, 6, //
+    10, 15, 21, 6, 10, 15, 21
+  ];
 
   // Compute one iteration of the MD5 algorithm with a chunk of
   // 16 32-bit pieces.
@@ -372,9 +371,8 @@ class _MD5 extends _HashBase {
       var temp = d;
       d = c;
       c = b;
-      b = _add32(b, _rotl32(_add32(_add32(a, t0),
-                                   _add32(_k[i], m[t1])),
-                            _r[i]));
+      b = _add32(
+          b, _rotl32(_add32(_add32(a, t0), _add32(_k[i], m[t1])), _r[i]));
       a = temp;
     }
 
@@ -388,7 +386,9 @@ class _MD5 extends _HashBase {
 // The SHA1 hasher is used to compute an SHA1 message digest.
 class _SHA1 extends _HashBase {
   // Construct a SHA1 hasher object.
-  _SHA1() : _w = new List(80), super(16, 5, true) {
+  _SHA1()
+      : _w = new List(80),
+        super(16, 5, true) {
     _h[0] = 0x67452301;
     _h[1] = 0xEFCDAB89;
     _h[2] = 0x98BADCFE;

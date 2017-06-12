@@ -11,8 +11,7 @@ class A<T> {
   var c = new List<T>();
 }
 
-class B<T> extends A<T> {
-}
+class B<T> extends A<T> {}
 
 main() {
   Expect.isTrue(new B<int>().c is List<int>);

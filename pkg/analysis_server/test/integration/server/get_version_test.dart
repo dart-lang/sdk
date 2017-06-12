@@ -4,26 +4,17 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetVersionTest);
-    defineReflectiveTests(GetVersionTest_Driver);
   });
 }
 
-class AbstractGetVersionTest extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class GetVersionTest extends AbstractAnalysisServerIntegrationTest {
   test_getVersion() {
     return sendServerGetVersion();
   }
-}
-
-@reflectiveTest
-class GetVersionTest extends AbstractGetVersionTest {}
-
-@reflectiveTest
-class GetVersionTest_Driver extends AbstractGetVersionTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

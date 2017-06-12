@@ -66,8 +66,8 @@ class Dimension {
       _unit = cssValue.substring(cssValue.length - 2);
     }
     if (cssValue.contains('.')) {
-      _value = double.parse(cssValue.substring(0,
-          cssValue.length - _unit.length));
+      _value =
+          double.parse(cssValue.substring(0, cssValue.length - _unit.length));
     } else {
       _value = int.parse(cssValue.substring(0, cssValue.length - _unit.length));
     }

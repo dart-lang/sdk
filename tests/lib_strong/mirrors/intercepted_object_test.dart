@@ -30,7 +30,7 @@ checkImplements(object, String name) {
       return;
     }
   }
- 
+
   // A class implements itself, even if not explicitly declared.
   if (symName == stringify(cls.simpleName)) {
     checkClassMirrorMethods(cls);

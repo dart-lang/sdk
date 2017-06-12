@@ -36,6 +36,7 @@
     'socket.dart',
     'stdio.dart',
     'string_transformer.dart',
+    'sync_socket.dart',
     'websocket.dart',
     'websocket_impl.dart',
   ],

@@ -631,11 +631,24 @@ class SimpleIdentifierTest extends ParserTestCase {
     expect(identifier.inGetterContext(), isFalse);
   }
 
+  void test_inGetterContext_fieldFormalParameter() {
+    FieldFormalParameter parameter =
+        AstTestFactory.fieldFormalParameter2('test');
+    SimpleIdentifier identifier = parameter.identifier;
+    expect(identifier.inGetterContext(), isFalse);
+  }
+
   void test_inGetterContext_forEachLoop() {
     SimpleIdentifier identifier = AstTestFactory.identifier3("a");
     Expression iterator = AstTestFactory.listLiteral();
     Statement body = AstTestFactory.block();
     AstTestFactory.forEachStatement2(identifier, iterator, body);
+    expect(identifier.inGetterContext(), isFalse);
+  }
+
+  void test_inGetterContext_variableDeclaration() {
+    VariableDeclaration variable = AstTestFactory.variableDeclaration('test');
+    SimpleIdentifier identifier = variable.name;
     expect(identifier.inGetterContext(), isFalse);
   }
 

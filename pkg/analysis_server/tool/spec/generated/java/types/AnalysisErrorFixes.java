@@ -32,7 +32,7 @@ import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * A list of fixes associated with a specific error
+ * A list of fixes associated with a specific error.
  *
  * @coverage dart.server.generated.types
  */

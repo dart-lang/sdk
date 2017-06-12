@@ -6,9 +6,10 @@ library fe.stack_listener;
 
 import 'dart:collection' show Queue;
 
-import 'package:front_end/src/fasta/parser/identifier_context.dart';
-import 'package:front_end/src/fasta/parser/listener.dart';
-import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/fasta/parser.dart'
+    show IdentifierContext, Listener, MemberKind;
+
+import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
 
 enum NullValue {
   Arguments,
@@ -65,7 +66,7 @@ abstract class StackListener extends Listener {
     push(NullValue.Arguments);
   }
 
-  void handleNoFormalParameters(Token token) {
+  void handleNoFormalParameters(Token token, MemberKind kind) {
     debugEvent("NoFormalParameters");
     push(NullValue.FormalParameters);
   }

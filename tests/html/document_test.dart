@@ -1,4 +1,5 @@
 library DocumentTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -28,11 +29,12 @@ main() {
 
     test('Document.query', () {
       Document doc = new DomParser().parseFromString(
-      '''<ResultSet>
+          '''<ResultSet>
            <Row>A</Row>
            <Row>B</Row>
            <Row>C</Row>
-         </ResultSet>''','text/xml');
+         </ResultSet>''',
+          'text/xml');
 
       var rs = doc.query('ResultSet');
       expect(rs, isNotNull);

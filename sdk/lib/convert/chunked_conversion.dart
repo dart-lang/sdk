@@ -6,16 +6,6 @@ part of dart.convert;
 
 typedef void _ChunkedConversionCallback<T>(T accumulated);
 
-/// This class is deprecated. Extend [Converter] directly.
-@deprecated
-abstract class ChunkedConverter<S, T, S2, T2> extends Converter<S, T> {
-  const ChunkedConverter() : super();
-
-  dynamic bind(dynamic other) => super.bind(other);
-  dynamic startChunkedConversion(dynamic sink) =>
-      super.startChunkedConversion(sink);
-}
-
 /**
  * A [ChunkedConversionSink] is used to transmit data more efficiently between
  * two converters during chunked conversions.

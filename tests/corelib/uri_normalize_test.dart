@@ -14,8 +14,8 @@ testNormalizePath() {
   }
 
   var unreserved = "-._~0123456789"
-                   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                   "abcdefghijklmnopqrstuvwxyz";
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyz";
 
   test("A", "%41");
   test("AB", "%41%42");
@@ -35,7 +35,7 @@ testNormalizePath() {
     }
   }
   Expect.equals(x.toString().toUpperCase(),
-                new Uri(path: x.toString()).toString().toUpperCase());
+      new Uri(path: x.toString()).toString().toUpperCase());
 
   // Normalized paths.
 

@@ -48,7 +48,7 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
   M.EventRepository _events;
   M.NotificationRepository _notifications;
   M.PersistentHandlesRepository _repository;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.PersistentHandles _handles;
   _SortingField _sortingField = _SortingField.externalSize;
   _SortingDirection _sortingDirection = _SortingDirection.descending;
@@ -63,14 +63,14 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.PersistentHandlesRepository repository,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
     assert(notifications != null);
     assert(repository != null);
-    assert(instances != null);
+    assert(objects != null);
     PersistentHandlesPageElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
@@ -78,7 +78,7 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
     e._events = events;
     e._notifications = notifications;
     e._repository = repository;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -231,7 +231,7 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
   void _updateWeakLine(Element e, M.WeakPersistentHandle item, index) {
     e.children[0].text = Utils.formatSize(_getExternalSize(item));
     e.children[1].text = '${_getPeer(item)}';
-    e.children[2] = anyRef(_isolate, item.object, _instances, queue: _r.queue)
+    e.children[2] = anyRef(_isolate, item.object, _objects, queue: _r.queue)
       ..classes = ['object'];
     e.children[3]
       ..text = '${_getFinalizerCallback(item)}'
@@ -240,7 +240,7 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
 
   void _updateLine(Element e, M.PersistentHandle item, index) {
     e.children = [
-      anyRef(_isolate, item.object, _instances, queue: _r.queue)
+      anyRef(_isolate, item.object, _objects, queue: _r.queue)
         ..classes = ['object']
     ];
   }

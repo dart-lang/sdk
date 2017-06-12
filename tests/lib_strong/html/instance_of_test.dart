@@ -10,15 +10,14 @@ main() {
   canvas.attributes['height'] = '100';
   document.body.append(canvas);
 
-  var isCanvasRenderingContext = predicate((x) => x is CanvasRenderingContext,
-      'is a CanvasRenderingContext');
-  var isNotCanvasRenderingContext = predicate((x) => x is! CanvasRenderingContext,
-      'is not a CanvasRenderingContext');
-  var isCanvasRenderingContext2D =
-      predicate((x) => x is CanvasRenderingContext2D,
-      'is a CanvasRenderingContext2D');
-  var isNotCanvasRenderingContext2D =
-      predicate((x) => x is! CanvasRenderingContext2D,
+  var isCanvasRenderingContext = predicate(
+      (x) => x is CanvasRenderingContext, 'is a CanvasRenderingContext');
+  var isNotCanvasRenderingContext = predicate(
+      (x) => x is! CanvasRenderingContext, 'is not a CanvasRenderingContext');
+  var isCanvasRenderingContext2D = predicate(
+      (x) => x is CanvasRenderingContext2D, 'is a CanvasRenderingContext2D');
+  var isNotCanvasRenderingContext2D = predicate(
+      (x) => x is! CanvasRenderingContext2D,
       'is not a CanvasRenderingContext2D');
   var isElement = predicate((x) => x is Element, 'is an Element');
   var isNotElement = predicate((x) => x is! Element, 'is not an Element');
@@ -30,8 +29,7 @@ main() {
   var isNotImageData = predicate((x) => x is! ImageData, 'is not an ImageData');
   //var isUint8ClampedArray =
   //  predicate((x) => x is Uint8ClampedArray, 'is a Uint8ClampedArray');
-  var isIntList =
-      predicate((x) => x is List<int>, 'is a List<int>');
+  var isIntList = predicate((x) => x is List<int>, 'is a List<int>');
 
   test('Instanceof', () {
     expect(canvas, isNotCanvasRenderingContext);
@@ -50,8 +48,8 @@ main() {
     // expect(context, isNot(isCanvasPixelArray));
 
     // FIXME(b/5286633): Interface injection type check workaround.
-    var image = context.createImageData(canvas.width as dynamic,
-                                        canvas.height as dynamic);
+    var image = context.createImageData(
+        canvas.width as dynamic, canvas.height as dynamic);
     expect(image, isNotCanvasRenderingContext);
     expect(image, isNotCanvasRenderingContext2D);
     expect(image, isNotElement);

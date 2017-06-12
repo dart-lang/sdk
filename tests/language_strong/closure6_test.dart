@@ -14,6 +14,7 @@ class A {
     var f = () => length() + box_0 + x + bar();
     return f();
   }
+
   bar() => 42;
 }
 

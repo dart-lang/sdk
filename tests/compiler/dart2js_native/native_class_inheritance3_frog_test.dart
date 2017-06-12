@@ -14,24 +14,24 @@ class A1 {}
 @Native("B1")
 class B1 extends A1 {}
 
-makeA1() native ;
-makeB1() native ;
+makeA1() native;
+makeB1() native;
 
 @Native("A2")
 class A2 {
-  foo([a = 99]) native ;
+  foo([a = 99]) native;
 }
 
 @Native("B2")
 class B2 extends A2 {}
 
-makeA2() native ;
-makeB2() native ;
+makeA2() native;
+makeB2() native;
 
-makeObject() native ;
+makeObject() native;
 
 void setup() native """
-// This code is all inside 'setup' and so not accesible from the global scope.
+// This code is all inside 'setup' and so not accessible from the global scope.
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;

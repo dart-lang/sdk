@@ -11,11 +11,11 @@ class Override {
 
   int foo() => hash; //   Just some function that can be closurized.
 
-  bool operator==(Object other) =>
+  bool operator ==(Object other) =>
       other is Override && (other as Override).hash == hash;
 }
 
-int bar() => 42;  // Some global function.
+int bar() => 42; // Some global function.
 
 main() {
   var o = new Object();

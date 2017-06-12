@@ -20,7 +20,7 @@ main() {
   test("Deferred loading in isolate", () {
     ReceivePort port = new ReceivePort();
     port.first.then(expectAsync((msg) {
-       expect(msg, equals("hi"));
+      expect(msg, equals("hi"));
     }));
     Isolate.spawn(loadDeferred, port.sendPort);
   });

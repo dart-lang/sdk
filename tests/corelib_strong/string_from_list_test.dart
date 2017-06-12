@@ -41,36 +41,33 @@ void main() {
     Expect.equals(len, long.length);
   }
 
-
   // Should work with iterables and non-default-lists (http://dartbug.com/8922)
   Expect.equals("CBA", new String.fromCharCodes([65, 66, 67].reversed));
-  Expect.equals("BCD",
-                new String.fromCharCodes([65, 66, 67].map((x) => x + 1)));
-  Expect.equals("AC",
-                new String.fromCharCodes([0x41, 0x42, 0x43].where(
-                    (x) => x.isOdd)));
-  Expect.equals("CE",
-                new String.fromCharCodes(
-                     [0x41, 0x42, 0x43].where((x) => x.isOdd)
-                                       .map((x) => x + 2)));
-  Expect.equals("ABC", new String.fromCharCodes(
-                           new Iterable.generate(3, (x) => 65 + x)));
+  Expect.equals(
+      "BCD", new String.fromCharCodes([65, 66, 67].map((x) => x + 1)));
+  Expect.equals(
+      "AC", new String.fromCharCodes([0x41, 0x42, 0x43].where((x) => x.isOdd)));
+  Expect.equals(
+      "CE",
+      new String.fromCharCodes(
+          [0x41, 0x42, 0x43].where((x) => x.isOdd).map((x) => x + 2)));
+  Expect.equals(
+      "ABC", new String.fromCharCodes(new Iterable.generate(3, (x) => 65 + x)));
   Expect.equals("ABC", new String.fromCharCodes("ABC".codeUnits));
-  Expect.equals("BCD",
-                new String.fromCharCodes("ABC".codeUnits.map((x) => x + 1)));
-  Expect.equals("BCD",
-                new String.fromCharCodes("ABC".runes.map((x) => x + 1)));
+  Expect.equals(
+      "BCD", new String.fromCharCodes("ABC".codeUnits.map((x) => x + 1)));
+  Expect.equals("BCD", new String.fromCharCodes("ABC".runes.map((x) => x + 1)));
 
   var nonBmpCharCodes = [0, 0xD812, 0xDC34, 0x14834, 0xDC34, 0xD812];
   var nonBmp = new String.fromCharCodes(nonBmpCharCodes);
   Expect.equals(7, nonBmp.length);
   Expect.equals(0, nonBmp.codeUnitAt(0));
-  Expect.equals(0xD812, nonBmp.codeUnitAt(1));  // Separated surrogate pair
+  Expect.equals(0xD812, nonBmp.codeUnitAt(1)); // Separated surrogate pair
   Expect.equals(0xDC34, nonBmp.codeUnitAt(2));
-  Expect.equals(0xD812, nonBmp.codeUnitAt(3));  // Single non-BMP code point.
+  Expect.equals(0xD812, nonBmp.codeUnitAt(3)); // Single non-BMP code point.
   Expect.equals(0xDC34, nonBmp.codeUnitAt(4));
-  Expect.equals(0xDC34, nonBmp.codeUnitAt(5));  // Unmatched surrogate.
-  Expect.equals(0xD812, nonBmp.codeUnitAt(6));  // Unmatched surrogate.
+  Expect.equals(0xDC34, nonBmp.codeUnitAt(5)); // Unmatched surrogate.
+  Expect.equals(0xD812, nonBmp.codeUnitAt(6)); // Unmatched surrogate.
 
   var reversedNonBmp = new String.fromCharCodes(nonBmpCharCodes.reversed);
   Expect.equals(7, reversedNonBmp.length);

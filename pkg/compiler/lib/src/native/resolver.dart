@@ -7,6 +7,7 @@ import 'package:front_end/src/fasta/scanner.dart'
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
 
 import '../common.dart';
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../common/backend_api.dart';
 import '../common/resolution.dart';
 import '../compiler.dart' show Compiler;
@@ -16,29 +17,30 @@ import '../elements/elements.dart'
         ClassElement,
         Element,
         FieldElement,
-        LibraryElement,
         MemberElement,
         MetadataAnnotation,
         MethodElement;
 import '../elements/entities.dart';
 import '../elements/modelx.dart' show FunctionElementX, MetadataAnnotationX;
 import '../elements/resolution_types.dart' show ResolutionDartType;
-import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart';
 import '../js_backend/native_data.dart';
 import '../patch_parser.dart';
 import '../tree/tree.dart';
 import 'behavior.dart';
 
-/// Interface for computing native members and [NativeBehavior]s in member code
-/// based on the AST.
-abstract class NativeDataResolver {
-  /// Returns `true` if [element] is a JsInterop member.
-  bool isJsInteropMember(MemberElement element);
-
+/// Interface for computing native members.
+abstract class NativeMemberResolver {
   /// Computes whether [element] is native or JsInterop and, if so, registers
   /// its [NativeBehavior]s to [registry].
-  void resolveNativeMember(MemberElement element, NativeRegistry registry);
+  void resolveNativeMember(MemberEntity element, [NativeRegistry registry]);
+}
+
+/// Interface for computing native members and [NativeBehavior]s in member code
+/// based on the AST.
+abstract class NativeDataResolver implements NativeMemberResolver {
+  /// Returns `true` if [element] is a JsInterop member.
+  bool isJsInteropMember(MemberElement element);
 
   /// Computes the [NativeBehavior] for a `JS` call, which can be an
   /// instantiation point for types.
@@ -70,81 +72,65 @@ abstract class NativeDataResolver {
   NativeBehavior resolveJsBuiltinCall(Send node, ForeignResolver resolver);
 }
 
-class NativeDataResolverImpl implements NativeDataResolver {
+abstract class NativeMemberResolverBase implements NativeMemberResolver {
   static final RegExp _identifier = new RegExp(r'^[a-zA-Z_$][a-zA-Z0-9_$]*$');
 
-  final Compiler _compiler;
+  ElementEnvironment get elementEnvironment;
+  CommonElements get commonElements;
+  NativeBasicData get nativeBasicData;
+  NativeDataBuilder get nativeDataBuilder;
 
-  NativeDataResolverImpl(this._compiler);
+  bool isJsInteropMember(MemberEntity element);
+  bool isNativeMethod(FunctionEntity element);
 
-  JavaScriptBackend get _backend => _compiler.backend;
-  DiagnosticReporter get _reporter => _compiler.reporter;
-  NativeBasicData get _nativeBasicData => _backend.nativeBasicData;
-  NativeDataBuilder get _nativeDataBuilder => _backend.nativeDataBuilder;
+  NativeBehavior computeNativeMethodBehavior(FunctionEntity function,
+      {bool isJsInterop});
+  NativeBehavior computeNativeFieldLoadBehavior(FieldEntity field,
+      {bool isJsInterop});
+  NativeBehavior computeNativeFieldStoreBehavior(FieldEntity field);
 
   @override
-  bool isJsInteropMember(MemberElement element) {
-    // TODO(johnniwinther): Avoid computing this twice for external function;
-    // once from JavaScriptBackendTarget.resolveExternalFunction and once
-    // through JavaScriptBackendTarget.resolveNativeMember.
-    bool isJsInterop =
-        checkJsInteropMemberAnnotations(_compiler, element, _nativeDataBuilder);
-    // TODO(johnniwinther): Avoid this duplication of logic from
-    // NativeData.isJsInterop.
-    if (!isJsInterop && element is MethodElement && element.isExternal) {
-      if (element.enclosingClass != null) {
-        isJsInterop = _nativeBasicData.isJsInteropClass(element.enclosingClass);
-      } else {
-        isJsInterop = _nativeBasicData.isJsInteropLibrary(element.library);
-      }
-    }
-    return isJsInterop;
-  }
-
-  void resolveNativeMember(MemberElement element, NativeRegistry registry) {
+  void resolveNativeMember(MemberEntity element, [NativeRegistry registry]) {
     bool isJsInterop = isJsInteropMember(element);
     if (element.isFunction ||
         element.isConstructor ||
         element.isGetter ||
         element.isSetter) {
-      MethodElement method = element;
+      FunctionEntity method = element;
       bool isNative = _processMethodAnnotations(method);
       if (isNative || isJsInterop) {
-        NativeBehavior behavior = NativeBehavior
-            .ofMethodElement(method, _compiler, isJsInterop: isJsInterop);
-        _nativeDataBuilder.setNativeMethodBehavior(method, behavior);
-        registry.registerNativeData(behavior);
+        NativeBehavior behavior =
+            computeNativeMethodBehavior(method, isJsInterop: isJsInterop);
+        nativeDataBuilder.setNativeMethodBehavior(method, behavior);
+        registry?.registerNativeData(behavior);
       }
     } else if (element.isField) {
-      FieldElement field = element;
+      FieldEntity field = element;
       bool isNative = _processFieldAnnotations(field);
       if (isNative || isJsInterop) {
-        NativeBehavior fieldLoadBehavior = NativeBehavior
-            .ofFieldElementLoad(field, _compiler, isJsInterop: isJsInterop);
+        NativeBehavior fieldLoadBehavior =
+            computeNativeFieldLoadBehavior(field, isJsInterop: isJsInterop);
         NativeBehavior fieldStoreBehavior =
-            NativeBehavior.ofFieldElementStore(field, _compiler);
-        _nativeDataBuilder.setNativeFieldLoadBehavior(field, fieldLoadBehavior);
-        _nativeDataBuilder.setNativeFieldStoreBehavior(
+            computeNativeFieldStoreBehavior(field);
+        nativeDataBuilder.setNativeFieldLoadBehavior(field, fieldLoadBehavior);
+        nativeDataBuilder.setNativeFieldStoreBehavior(
             field, fieldStoreBehavior);
 
         // TODO(sra): Process fields for storing separately.
         // We have to handle both loading and storing to the field because we
         // only get one look at each member and there might be a load or store
         // we have not seen yet.
-        registry.registerNativeData(fieldLoadBehavior);
-        registry.registerNativeData(fieldStoreBehavior);
+        registry?.registerNativeData(fieldLoadBehavior);
+        registry?.registerNativeData(fieldStoreBehavior);
       }
     }
   }
 
   /// Process the potentially native [field]. Adds information from metadata
   /// attributes. Returns `true` of [method] is native.
-  bool _processFieldAnnotations(Element element) {
-    if (_compiler.serialization.isDeserialized(element)) {
-      return false;
-    }
+  bool _processFieldAnnotations(FieldEntity element) {
     if (element.isInstanceMember &&
-        _backend.nativeBasicData.isNativeClass(element.enclosingClass)) {
+        nativeBasicData.isNativeClass(element.enclosingClass)) {
       // Exclude non-instance (static) fields - they are not really native and
       // are compiled as isolate globals.  Access of a property of a constructor
       // function or a non-method property in the prototype chain, must be coded
@@ -157,11 +143,8 @@ class NativeDataResolverImpl implements NativeDataResolver {
 
   /// Process the potentially native [method]. Adds information from metadata
   /// attributes. Returns `true` of [method] is native.
-  bool _processMethodAnnotations(Element method) {
-    if (_compiler.serialization.isDeserialized(method)) {
-      return false;
-    }
-    if (_isNativeMethod(method)) {
+  bool _processMethodAnnotations(FunctionEntity method) {
+    if (isNativeMethod(method)) {
       if (method.isStatic) {
         _setNativeNameForStaticMethod(method);
       } else {
@@ -174,10 +157,10 @@ class NativeDataResolverImpl implements NativeDataResolver {
 
   /// Sets the native name of [element], either from an annotation, or
   /// defaulting to the Dart name.
-  void _setNativeName(MemberElement element) {
+  void _setNativeName(MemberEntity element) {
     String name = _findJsNameFromAnnotation(element);
     if (name == null) name = element.name;
-    _nativeDataBuilder.setNativeMemberName(element, name);
+    nativeDataBuilder.setNativeMemberName(element, name);
   }
 
   /// Sets the native name of the static native method [element], using the
@@ -188,28 +171,97 @@ class NativeDataResolverImpl implements NativeDataResolver {
   ///    use the declared @JSName as the expression
   /// 3. If [element] does not have a @JSName annotation, qualify the name of
   ///    the method with the @Native name of the enclosing class.
-  void _setNativeNameForStaticMethod(MethodElement element) {
+  void _setNativeNameForStaticMethod(FunctionEntity element) {
     String name = _findJsNameFromAnnotation(element);
     if (name == null) name = element.name;
     if (_isIdentifier(name)) {
       List<String> nativeNames =
-          _nativeBasicData.getNativeTagsOfClass(element.enclosingClass);
+          nativeBasicData.getNativeTagsOfClass(element.enclosingClass);
       if (nativeNames.length != 1) {
-        _reporter.internalError(
+        throw new SpannableAssertionFailure(
             element,
             'Unable to determine a native name for the enclosing class, '
             'options: $nativeNames');
       }
-      _nativeDataBuilder.setNativeMemberName(
-          element, '${nativeNames[0]}.$name');
+      nativeDataBuilder.setNativeMemberName(element, '${nativeNames[0]}.$name');
     } else {
-      _nativeDataBuilder.setNativeMemberName(element, name);
+      nativeDataBuilder.setNativeMemberName(element, name);
     }
   }
 
   bool _isIdentifier(String s) => _identifier.hasMatch(s);
 
-  bool _isNativeMethod(FunctionElementX element) {
+  /// Returns the JSName annotation string or `null` if no JSName annotation is
+  /// present.
+  String _findJsNameFromAnnotation(MemberEntity element) {
+    String jsName = null;
+    for (ConstantValue value in elementEnvironment.getMemberMetadata(element)) {
+      String name = readAnnotationName(
+          element, value, commonElements.annotationJSNameClass);
+      if (jsName == null) {
+        jsName = name;
+      } else if (name != null) {
+        throw new SpannableAssertionFailure(
+            element, 'Too many JSName annotations: ${value.toDartText()}');
+      }
+    }
+    return jsName;
+  }
+}
+
+class NativeDataResolverImpl extends NativeMemberResolverBase
+    implements NativeDataResolver {
+  final Compiler _compiler;
+
+  NativeDataResolverImpl(this._compiler);
+
+  JavaScriptBackend get _backend => _compiler.backend;
+  DiagnosticReporter get _reporter => _compiler.reporter;
+  ElementEnvironment get elementEnvironment => _compiler.elementEnvironment;
+  CommonElements get commonElements => _compiler.commonElements;
+  NativeBasicData get nativeBasicData => _backend.nativeBasicData;
+  NativeDataBuilder get nativeDataBuilder => _backend.nativeDataBuilder;
+
+  @override
+  bool isJsInteropMember(MemberElement element) {
+    // TODO(johnniwinther): Avoid computing this twice for external function;
+    // once from JavaScriptBackendTarget.resolveExternalFunction and once
+    // through JavaScriptBackendTarget.resolveNativeMember.
+    bool isJsInterop =
+        checkJsInteropMemberAnnotations(_compiler, element, nativeDataBuilder);
+    // TODO(johnniwinther): Avoid this duplication of logic from
+    // NativeData.isJsInterop.
+    if (!isJsInterop && element is MethodElement && element.isExternal) {
+      if (element.enclosingClass != null) {
+        isJsInterop = nativeBasicData.isJsInteropClass(element.enclosingClass);
+      } else {
+        isJsInterop = nativeBasicData.isJsInteropLibrary(element.library);
+      }
+    }
+    return isJsInterop;
+  }
+
+  @override
+  NativeBehavior computeNativeMethodBehavior(MethodElement function,
+      {bool isJsInterop}) {
+    return NativeBehavior.ofMethodElement(function, _compiler,
+        isJsInterop: isJsInterop);
+  }
+
+  @override
+  NativeBehavior computeNativeFieldLoadBehavior(FieldElement field,
+      {bool isJsInterop}) {
+    return NativeBehavior.ofFieldElementLoad(field, _compiler,
+        isJsInterop: isJsInterop);
+  }
+
+  @override
+  NativeBehavior computeNativeFieldStoreBehavior(FieldElement field) {
+    return NativeBehavior.ofFieldElementStore(field, _compiler);
+  }
+
+  @override
+  bool isNativeMethod(FunctionElementX element) {
     if (!_backend.canLibraryUseNative(element.library)) return false;
     // Native method?
     return _reporter.withCurrentElement(element, () {
@@ -223,35 +275,20 @@ class NativeDataResolverImpl implements NativeDataResolver {
     });
   }
 
-  /// Returns the JSName annotation string or `null` if no JSName annotation is
-  /// present.
-  String _findJsNameFromAnnotation(Element element) {
-    String name = null;
-    ClassElement annotationClass = _backend.helpers.annotationJSNameClass;
-    for (MetadataAnnotation annotation in element.implementation.metadata) {
-      annotation.ensureResolved(_compiler.resolution);
-      ConstantValue value =
-          _compiler.constants.getConstantValue(annotation.constant);
-      if (!value.isConstructedObject) continue;
-      ConstructedConstantValue constructedObject = value;
-      if (constructedObject.type.element != annotationClass) continue;
-
-      Iterable<ConstantValue> fields = constructedObject.fields.values;
-      // TODO(sra): Better validation of the constant.
-      if (fields.length != 1 || fields.single is! StringConstantValue) {
-        _reporter.internalError(
-            annotation, 'Annotations needs one string: ${annotation}');
-      }
-      StringConstantValue specStringConstant = fields.single;
-      String specString = specStringConstant.toDartString().slowToString();
-      if (name == null) {
-        name = specString;
-      } else {
-        _reporter.internalError(
-            annotation, 'Too many JSName annotations: ${annotation}');
-      }
+  @override
+  bool _processMethodAnnotations(MethodElement method) {
+    if (_compiler.serialization.isDeserialized(method)) {
+      return false;
     }
-    return name;
+    return super._processMethodAnnotations(method);
+  }
+
+  @override
+  bool _processFieldAnnotations(FieldElement element) {
+    if (_compiler.serialization.isDeserialized(element)) {
+      return false;
+    }
+    return super._processFieldAnnotations(element);
   }
 
   @override
@@ -272,14 +309,6 @@ class NativeDataResolverImpl implements NativeDataResolver {
     return NativeBehavior.ofJsBuiltinCallSend(
         node, _reporter, _compiler.commonElements, resolver);
   }
-}
-
-/// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
-/// native name from the annotation.
-checkNativeAnnotation(Compiler compiler, ClassElement cls,
-    NativeBasicDataBuilder nativeBasicDataBuilder) {
-  EagerAnnotationHandler.checkAnnotation(
-      compiler, cls, new NativeAnnotationHandler(nativeBasicDataBuilder));
 }
 
 /// Annotation handler for pre-resolution detection of `@Native(...)`
@@ -307,7 +336,8 @@ class NativeAnnotationHandler extends EagerAnnotationHandler<String> {
       ClassElement cls = element;
       String native = getNativeAnnotation(annotation);
       if (native != null) {
-        _nativeBasicDataBuilder.setNativeClassTagInfo(cls, native);
+        String tagText = native.substring(1, native.length - 1);
+        _nativeBasicDataBuilder.setNativeClassTagInfo(cls, tagText);
         return native;
       }
     }
@@ -319,31 +349,11 @@ class NativeAnnotationHandler extends EagerAnnotationHandler<String> {
     ResolutionDartType annotationType =
         constant.getType(compiler.commonElements);
     if (annotationType.element !=
-        compiler.backend.helpers.nativeAnnotationClass) {
+        compiler.commonElements.nativeAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
       reporter.internalError(annotation, 'Invalid @Native(...) annotation.');
     }
   }
-}
-
-void checkJsInteropClassAnnotations(Compiler compiler, LibraryElement library,
-    NativeBasicDataBuilder nativeBasicDataBuilder) {
-  bool checkJsInteropAnnotation(Element element) {
-    return EagerAnnotationHandler.checkAnnotation(
-        compiler, element, const JsInteropAnnotationHandler());
-  }
-
-  if (checkJsInteropAnnotation(library)) {
-    nativeBasicDataBuilder.markAsJsInteropLibrary(library);
-  }
-  library.forEachLocalMember((Element element) {
-    if (element.isClass) {
-      ClassElement cls = element;
-      if (checkJsInteropAnnotation(element)) {
-        nativeBasicDataBuilder.markAsJsInteropClass(cls);
-      }
-    }
-  });
 }
 
 bool checkJsInteropMemberAnnotations(Compiler compiler, MemberElement element,
@@ -373,9 +383,8 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   @override
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
-    JavaScriptBackend backend = compiler.backend;
     ResolutionDartType type = constant.getType(compiler.commonElements);
-    if (type.element != backend.helpers.jsAnnotationClass) {
+    if (type.element != compiler.commonElements.jsAnnotationClass) {
       compiler.reporter
           .internalError(annotation, 'Invalid @JS(...) annotation.');
     }
@@ -384,89 +393,94 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   bool get defaultResult => false;
 }
 
-/// Interface for computing all native classes in a set of libraries.
-abstract class NativeClassResolver {
+/// Determines all native classes in a set of libraries.
+abstract class NativeClassFinder {
+  /// Returns the set of all native classes declared in [libraries].
   Iterable<ClassEntity> computeNativeClasses(Iterable<LibraryEntity> libraries);
 }
 
-class NativeClassResolverImpl implements NativeClassResolver {
-  final DiagnosticReporter _reporter;
-  final Resolution _resolution;
-  final BackendHelpers _helpers;
+class BaseNativeClassFinder implements NativeClassFinder {
+  final ElementEnvironment _elementEnvironment;
+  final CommonElements _commonElements;
   final NativeBasicData _nativeBasicData;
 
-  Map<String, ClassElement> _tagOwner = new Map<String, ClassElement>();
+  Map<String, ClassEntity> _tagOwner = new Map<String, ClassEntity>();
 
-  NativeClassResolverImpl(
-      this._resolution, this._reporter, this._helpers, this._nativeBasicData);
+  BaseNativeClassFinder(
+      this._elementEnvironment, this._commonElements, this._nativeBasicData);
 
-  Iterable<ClassElement> computeNativeClasses(
-      Iterable<LibraryElement> libraries) {
-    Set<ClassElement> nativeClasses = new Set<ClassElement>();
+  Iterable<ClassEntity> computeNativeClasses(
+      Iterable<LibraryEntity> libraries) {
+    Set<ClassEntity> nativeClasses = new Set<ClassEntity>();
     libraries.forEach((l) => _processNativeClassesInLibrary(l, nativeClasses));
-    if (_helpers.isolateHelperLibrary != null) {
+    if (_commonElements.isolateHelperLibrary != null) {
       _processNativeClassesInLibrary(
-          _helpers.isolateHelperLibrary, nativeClasses);
+          _commonElements.isolateHelperLibrary, nativeClasses);
     }
     _processSubclassesOfNativeClasses(libraries, nativeClasses);
     return nativeClasses;
   }
 
+  /// Adds all directly native classes declared in [library] to [nativeClasses].
   void _processNativeClassesInLibrary(
-      LibraryElement library, Set<ClassElement> nativeClasses) {
-    // Use implementation to ensure the inclusion of injected members.
-    library.implementation.forEachLocalMember((Element element) {
-      if (element.isClass) {
-        ClassElement cls = element;
-        if (_nativeBasicData.isNativeClass(cls)) {
-          _processNativeClass(element, nativeClasses);
-        }
+      LibraryEntity library, Set<ClassEntity> nativeClasses) {
+    _elementEnvironment.forEachClass(library, (ClassEntity cls) {
+      if (_nativeBasicData.isNativeClass(cls)) {
+        _processNativeClass(cls, nativeClasses);
       }
     });
   }
 
-  void _processNativeClass(
-      ClassElement classElement, Set<ClassElement> nativeClasses) {
-    nativeClasses.add(classElement);
-    // Resolve class to ensure the class has valid inheritance info.
-    classElement.ensureResolved(_resolution);
+  /// Adds [cls] to [nativeClasses] and performs further processing of [cls],
+  /// if necessary.
+  void _processNativeClass(ClassEntity cls, Set<ClassEntity> nativeClasses) {
+    nativeClasses.add(cls);
     // Js Interop interfaces do not have tags.
-    if (_nativeBasicData.isJsInteropClass(classElement)) return;
+    if (_nativeBasicData.isJsInteropClass(cls)) return;
     // Since we map from dispatch tags to classes, a dispatch tag must be used
     // on only one native class.
-    for (String tag in _nativeBasicData.getNativeTagsOfClass(classElement)) {
-      ClassElement owner = _tagOwner[tag];
+    for (String tag in _nativeBasicData.getNativeTagsOfClass(cls)) {
+      ClassEntity owner = _tagOwner[tag];
       if (owner != null) {
-        if (owner != classElement) {
-          _reporter.internalError(
-              classElement, "Tag '$tag' already in use by '${owner.name}'");
+        if (owner != cls) {
+          throw new SpannableAssertionFailure(
+              cls, "Tag '$tag' already in use by '${owner.name}'");
         }
       } else {
-        _tagOwner[tag] = classElement;
+        _tagOwner[tag] = cls;
       }
     }
   }
 
+  /// Returns the name of the super class of [cls] or `null` of [cls] has
+  /// no explicit superclass.
+  String _findExtendsNameOfClass(ClassEntity cls) {
+    return _elementEnvironment
+        .getSuperClass(cls, skipUnnamedMixinApplications: true)
+        ?.name;
+  }
+
+  /// Adds all subclasses of [nativeClasses] found in [libraries] to
+  /// [nativeClasses].
   void _processSubclassesOfNativeClasses(
-      Iterable<LibraryElement> libraries, Set<ClassElement> nativeClasses) {
-    Set<ClassElement> nativeClassesAndSubclasses = new Set<ClassElement>();
+      Iterable<LibraryEntity> libraries, Set<ClassEntity> nativeClasses) {
+    Set<ClassEntity> nativeClassesAndSubclasses = new Set<ClassEntity>();
     // Collect potential subclasses, e.g.
     //
     //     class B extends foo.A {}
     //
     // String "A" has a potential subclass B.
 
-    var potentialExtends = new Map<String, Set<ClassElement>>();
+    Map<String, Set<ClassEntity>> potentialExtends =
+        <String, Set<ClassEntity>>{};
 
-    libraries.forEach((library) {
-      library.implementation.forEachLocalMember((element) {
-        if (element.isClass) {
-          String extendsName = _findExtendsNameOfClass(element);
-          if (extendsName != null) {
-            Set<ClassElement> potentialSubclasses = potentialExtends
-                .putIfAbsent(extendsName, () => new Set<ClassElement>());
-            potentialSubclasses.add(element);
-          }
+    libraries.forEach((LibraryEntity library) {
+      _elementEnvironment.forEachClass(library, (ClassEntity cls) {
+        String extendsName = _findExtendsNameOfClass(cls);
+        if (extendsName != null) {
+          Set<ClassEntity> potentialSubclasses = potentialExtends.putIfAbsent(
+              extendsName, () => new Set<ClassEntity>());
+          potentialSubclasses.add(cls);
         }
       });
     });
@@ -475,19 +489,19 @@ class NativeClassResolverImpl implements NativeClassResolver {
     // [potentialExtends], and then check that the properly resolved class is in
     // fact a subclass of a native class.
 
-    ClassElement nativeSuperclassOf(ClassElement classElement) {
-      if (_nativeBasicData.isNativeClass(classElement)) return classElement;
-      if (classElement.superclass == null) return null;
-      return nativeSuperclassOf(classElement.superclass);
+    ClassEntity nativeSuperclassOf(ClassEntity cls) {
+      if (_nativeBasicData.isNativeClass(cls)) return cls;
+      ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
+      if (superclass == null) return null;
+      return nativeSuperclassOf(superclass);
     }
 
-    void walkPotentialSubclasses(ClassElement element) {
+    void walkPotentialSubclasses(ClassEntity element) {
       if (nativeClassesAndSubclasses.contains(element)) return;
-      element.ensureResolved(_resolution);
-      ClassElement nativeSuperclass = nativeSuperclassOf(element);
+      ClassEntity nativeSuperclass = nativeSuperclassOf(element);
       if (nativeSuperclass != null) {
         nativeClassesAndSubclasses.add(element);
-        Set<ClassElement> potentialSubclasses = potentialExtends[element.name];
+        Set<ClassEntity> potentialSubclasses = potentialExtends[element.name];
         if (potentialSubclasses != null) {
           potentialSubclasses.forEach(walkPotentialSubclasses);
         }
@@ -496,6 +510,28 @@ class NativeClassResolverImpl implements NativeClassResolver {
 
     nativeClasses.forEach(walkPotentialSubclasses);
     nativeClasses.addAll(nativeClassesAndSubclasses);
+  }
+}
+
+/// Native class finder that extends [BaseNativeClassFinder] to handle
+/// unresolved classes encountered during the native classes computation.
+class ResolutionNativeClassFinder extends BaseNativeClassFinder {
+  final DiagnosticReporter _reporter;
+  final Resolution _resolution;
+
+  ResolutionNativeClassFinder(
+      this._resolution,
+      this._reporter,
+      ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
+      NativeBasicData nativeBasicData)
+      : super(elementEnvironment, commonElements, nativeBasicData);
+
+  void _processNativeClass(
+      ClassElement classElement, Set<ClassEntity> nativeClasses) {
+    // Resolve class to ensure the class has valid inheritance info.
+    classElement.ensureResolved(_resolution);
+    super._processNativeClass(classElement, nativeClasses);
   }
 
   /**
@@ -543,7 +579,7 @@ class NativeClassResolverImpl implements NativeClassResolver {
       if (token.stringValue == 'abstract') token = token.next;
       if (token.stringValue != 'class') return null;
       token = token.next;
-      if (!token.isIdentifier()) return null;
+      if (!token.isIdentifier) return null;
       token = token.next;
       //  class F<X extends B<X>> extends ...
       if (token.stringValue == '<') {
@@ -556,7 +592,7 @@ class NativeClassResolverImpl implements NativeClassResolver {
         token = token.next;
         if (token.stringValue != '.') break;
         token = token.next;
-        if (!token.isIdentifier()) return null;
+        if (!token.isIdentifier) return null;
         id = token;
       }
       // Should be at '{', 'with', 'implements', '<' or 'native'.
@@ -567,4 +603,22 @@ class NativeClassResolverImpl implements NativeClassResolver {
       return scanForExtendsName(classElement.position);
     });
   }
+}
+
+/// Extracts the name if [value] is a named annotation based on
+/// [annotationClass], otherwise returns `null`.
+String readAnnotationName(
+    Spannable spannable, ConstantValue value, ClassEntity annotationClass) {
+  if (!value.isConstructedObject) return null;
+  ConstructedConstantValue constructedObject = value;
+  if (constructedObject.type.element != annotationClass) return null;
+
+  Iterable<ConstantValue> fields = constructedObject.fields.values;
+  // TODO(sra): Better validation of the constant.
+  if (fields.length != 1 || fields.single is! StringConstantValue) {
+    throw new SpannableAssertionFailure(
+        spannable, 'Annotations needs one string: ${value.toStructuredText()}');
+  }
+  StringConstantValue specStringConstant = fields.single;
+  return specStringConstant.primitiveValue;
 }

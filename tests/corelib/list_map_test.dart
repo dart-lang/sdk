@@ -49,7 +49,6 @@ void testOperations() {
   Expect.listEquals(subr,
       reversed.skip(2).toList().reversed.skip(2).toList().reversed.toList());
 
-
   void testList(List list) {
     var throws = const ThrowMarker();
     List mappedList = new List(list.length);
@@ -70,8 +69,8 @@ void testOperations() {
           index++;
         }
         if (i2.moveNext()) {
-          Expect.fail(
-              "Too many actual values. Actual[$index] == ${i2.current}");
+          Expect
+              .fail("Too many actual values. Actual[$index] == ${i2.current}");
         }
       } else {
         Expect.equals(v1, v2, path);
@@ -93,6 +92,7 @@ void testOperations() {
       }
       testEquals(expect, actual, "$name: $list");
     }
+
     testOp((i) => i.first, "first");
     testOp((i) => i.last, "last");
     testOp((i) => i.single, "single");

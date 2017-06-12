@@ -24,9 +24,21 @@ main() {
       await nextMicrotask();
       log.add("$i!");
     }
-    expect(log, ["0-", "0?", "0!", "0+",
-                 "1-", "1?", "1!", "1+",
-                 "2-", "2?", "2!", "2+"]);
+    expect(log, [
+      "0-",
+      "0?",
+      "0!",
+      "0+",
+      "1-",
+      "1?",
+      "1!",
+      "1+",
+      "2-",
+      "2?",
+      "2!",
+      "2+"
+    ]);
   });
 }
-Future nextMicrotask() => new Future.microtask((){});
+
+Future nextMicrotask() => new Future.microtask(() {});

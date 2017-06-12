@@ -37,7 +37,7 @@ abstract class Loader<L> {
 
   Ticker get ticker => target.ticker;
 
-  /// Look up a library builder by the the name [uri], or if such doesn't
+  /// Look up a library builder by the name [uri], or if such doesn't
   /// exist, create one. The canonical URI of the library is [uri], and its
   /// actual location is [fileUri].
   ///

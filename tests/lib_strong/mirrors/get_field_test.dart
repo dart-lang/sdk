@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 
 class A {
   foo(y, [x]) => y;
-  operator+(other) => null;
+  operator +(other) => null;
   get bar => 499;
   operator$foo([optional = 499]) => optional;
 }

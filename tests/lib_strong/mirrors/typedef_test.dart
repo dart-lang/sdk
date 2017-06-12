@@ -28,6 +28,7 @@ check(t) {
     sb.write(o);
     sb.write('\n');
   }
+
   writeln(t);
   t = t.referent;
   writeln(t);
@@ -103,8 +104,8 @@ Symbol(\"$y\")
 ClassMirror on 'num'
 """,
       check(reflectType(Bar)));
-  type = ft('(dart.core.int, [dart.core.num, dart.core.num])',
-            'dart.core.String');
+  type =
+      ft('(dart.core.int, [dart.core.num, dart.core.num])', 'dart.core.String');
   Expect.stringEquals(
       """
 TypedefMirror on 'Bar2'
@@ -133,7 +134,7 @@ ClassMirror on 'num'
 """,
       check(reflectType(Baz)));
   type = ft('(dart.core.int, {y: dart.core.num, z: dart.core.num})',
-            'dart.core.String');
+      'dart.core.String');
   Expect.stringEquals(
       """
 TypedefMirror on 'Baz2'

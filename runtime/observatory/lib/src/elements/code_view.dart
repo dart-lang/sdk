@@ -64,7 +64,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
   M.ReachableSizeRepository _reachableSizes;
   M.InboundReferencesRepository _references;
   M.RetainingPathRepository _retainingPaths;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   DisassemblyTable disassemblyTable;
   InlineTable inlineTable;
 
@@ -85,14 +85,14 @@ class CodeViewElement extends HtmlElement implements Renderable {
       M.ReachableSizeRepository reachableSizes,
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
     assert(notifications != null);
     assert(code != null);
-    assert(instances != null);
+    assert(objects != null);
     assert(retainedSizes != null);
     assert(reachableSizes != null);
     assert(references != null);
@@ -104,7 +104,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
     e._events = events;
     e._notifications = notifications;
     e._code = code;
-    e._instances = instances;
+    e._objects = objects;
     e._retainedSizes = retainedSizes;
     e._reachableSizes = reachableSizes;
     e._references = references;
@@ -225,7 +225,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
                 : 'Code for ${_code.name}',
           new HRElement(),
           new ObjectCommonElement(_isolate, _code, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _instances,
+              _reachableSizes, _references, _retainingPaths, _objects,
               queue: _r.queue),
           new BRElement(),
           new DivElement()
@@ -429,7 +429,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
     return '$pcent (${tick.exclusiveTicks})';
   }
 
-  void _updateDiasssemblyTable() {
+  void _updateDisassemblyTable() {
     S.Code code = _code as S.Code;
     disassemblyTable.clearRows();
     if (code == null) {
@@ -476,9 +476,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
       final cell = tr.children[i];
       final content = row.values[i];
       if (content is S.HeapObject) {
-        cell.children = [
-          anyRef(_isolate, content, _instances, queue: _r.queue)
-        ];
+        cell.children = [anyRef(_isolate, content, _objects, queue: _r.queue)];
       } else if (content != null) {
         String text = '$content';
         if (i == kDisassemblyColumnIndex) {
@@ -530,7 +528,7 @@ class CodeViewElement extends HtmlElement implements Renderable {
   }
 
   void _updateDisassembly() {
-    _updateDiasssemblyTable();
+    _updateDisassemblyTable();
     _updateDisassemblyDOMTable();
   }
 
@@ -644,6 +642,6 @@ class CodeViewElement extends HtmlElement implements Renderable {
       case M.CodeKind.collected:
         return 'collected';
     }
-    throw new Exception('Unkown CodeKind ($kind)');
+    throw new Exception('Unknown CodeKind ($kind)');
   }
 }

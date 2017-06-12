@@ -43,13 +43,8 @@ part "../../../sdk/lib/io/socket.dart";
 void testParseHttpCookieDate() {
   Expect.throws(() => HttpDate._parseCookieDate(""));
 
-  test(int year,
-       int month,
-       int day,
-       int hours,
-       int minutes,
-       int seconds,
-       String formatted) {
+  test(int year, int month, int day, int hours, int minutes, int seconds,
+      String formatted) {
     DateTime date =
         new DateTime.utc(year, month, day, hours, minutes, seconds, 0);
     Expect.equals(date, HttpDate._parseCookieDate(formatted));

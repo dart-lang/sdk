@@ -5,8 +5,6 @@
 /**
  * Code for enumerating the set of types implied by the API.
  */
-library html.tools;
-
 import 'package:analyzer/src/codegen/tools.dart';
 
 import 'api.dart';

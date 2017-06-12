@@ -23,7 +23,7 @@ class B {
   factory B.bar(@m3 @m2 int z, x) {}
 
   baz(@m1 final int x, @m2 int y, @m3 final int z) {}
-  qux(int x, [@m3 @m2 @m1 int y= 3 + 1]) {}
+  qux(int x, [@m3 @m2 @m1 int y = 3 + 1]) {}
   quux(int x, {String str: "foo"}) {}
   corge({@m1 int x: 3 * 17, @m2 String str: "bar"}) {}
 

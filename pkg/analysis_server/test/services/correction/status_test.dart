@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.correction.status;
-
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,6 +24,9 @@ main() {
 
 @reflectiveTest
 class RefactoringLocationTest extends AbstractSingleUnitTest {
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   test_createLocation_forElement() async {
     await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
@@ -41,20 +42,20 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
   test_createLocation_forMatch() async {
     await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
-    SourceRange range = rangeElementName(element);
+    SourceRange sourceRange = range.elementName(element);
     SearchMatch match = new SearchMatchImpl(
-        context,
+        element.context,
         element.library.source.uri.toString(),
         element.source.uri.toString(),
         null,
-        range,
+        sourceRange,
         true,
         false);
     // check
     Location location = newLocation_fromMatch(match);
     expect(location.file, '/test.dart');
-    expect(location.offset, range.offset);
-    expect(location.length, range.length);
+    expect(location.offset, sourceRange.offset);
+    expect(location.length, sourceRange.length);
   }
 
   test_createLocation_forNode() async {
@@ -72,12 +73,12 @@ main() {
 
   test_createLocation_forUnit() async {
     await resolveTestUnit('');
-    SourceRange range = rangeStartLength(10, 20);
+    SourceRange sourceRange = new SourceRange(10, 20);
     // check
-    Location location = newLocation_fromUnit(testUnit, range);
+    Location location = newLocation_fromUnit(testUnit, sourceRange);
     expect(location.file, '/test.dart');
-    expect(location.offset, range.offset);
-    expect(location.length, range.length);
+    expect(location.offset, sourceRange.offset);
+    expect(location.length, sourceRange.length);
   }
 }
 

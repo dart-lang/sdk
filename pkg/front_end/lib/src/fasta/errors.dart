@@ -51,6 +51,9 @@ dynamic internalError(Object error, [Uri uri, int charOffset = -1]) {
 /// handled correctly, the user will never see a stack trace that says "user
 /// error".
 dynamic inputError(Uri uri, int charOffset, Object error) {
+  if (errorsAreFatal && isVerbose) {
+    print(StackTrace.current);
+  }
   throw new InputError(uri, charOffset, error);
 }
 

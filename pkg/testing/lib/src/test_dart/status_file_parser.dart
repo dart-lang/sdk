@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library status_file_parser;
+library test_dart_copy.status_file_parser;
 
 import "dart:async";
 import "dart:convert" show LineSplitter, UTF8;

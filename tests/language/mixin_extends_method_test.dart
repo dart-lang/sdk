@@ -20,9 +20,11 @@ class M2 {
   fez() => "M2-fez";
 }
 
-class C extends S with M1 { }
-class D extends S with M1, M2 { }
-class E extends S with M2, M1 { }
+class C extends S with M1 {}
+
+class D extends S with M1, M2 {}
+
+class E extends S with M2, M1 {}
 
 class F extends E {
   fez() => "F-fez";

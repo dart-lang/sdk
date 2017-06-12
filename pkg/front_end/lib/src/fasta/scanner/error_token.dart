@@ -4,6 +4,8 @@
 
 library dart_scanner.error_token;
 
+import '../../scanner/token.dart' show TokenType, TokenWithComment;
+
 import '../fasta_codes.dart'
     show
         FastaCode,
@@ -21,8 +23,6 @@ import '../fasta_codes.dart'
 
 import '../scanner.dart'
     show BeginGroupToken, Token, unicodeReplacementCharacter;
-
-import 'precedence.dart' show BAD_INPUT_INFO, PrecedenceInfo;
 
 ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
   if (character < 0x1f) {
@@ -66,16 +66,15 @@ ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
 ///
 /// It's considered an implementation error to access [lexeme] of an
 /// [ErrorToken].
-abstract class ErrorToken extends Token {
-  ErrorToken(int charOffset) : super(charOffset);
+abstract class ErrorToken extends TokenWithComment {
+  ErrorToken(int offset) : super(TokenType.BAD_INPUT, offset, null);
 
-  PrecedenceInfo get info => BAD_INPUT_INFO;
+  /// This is a token that wraps around an error message. Return 1
+  /// instead of the size of the length of the error message.
+  @override
+  int get length => 1;
 
   String get lexeme => throw assertionMessage;
-
-  String get stringValue => null;
-
-  bool isIdentifier() => false;
 
   String get assertionMessage;
 
@@ -90,7 +89,7 @@ abstract class ErrorToken extends Token {
   BeginGroupToken get begin => null;
 
   @override
-  Token copyWithoutComments() {
+  Token copy() {
     throw 'unsupported operation';
   }
 }

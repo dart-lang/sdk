@@ -17,7 +17,9 @@ class C {
   }
 
   nonInlinable2() {
-    var a = () { b = 42; };
+    var a = () {
+      b = 42;
+    };
     a();
   }
 }

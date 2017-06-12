@@ -281,7 +281,7 @@ function scriptTagOnErrorCallback(e) {
 //   dart-calling-main:  signals that the dart [main] function will be invoked
 //   dart-main-done:  signals that the dart [main] function has finished
 //   unittest-suite-wait-for-done:  signals the start of an asynchronous test
-//   unittest-suite-success:  signals the end of an asynchrounous test
+//   unittest-suite-success:  signals the end of an asynchronous test
 //   unittest-suite-fail:  signals that the asynchronous test failed
 //   unittest-suite-done:  signals the end of an asynchronous test, the outcome
 //                         is unknown

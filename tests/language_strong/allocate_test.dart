@@ -6,7 +6,10 @@ import "package:expect/expect.dart";
 
 class MyAllocate {
   const MyAllocate([int value = 0]) : value_ = value;
-  int getValue() { return value_; }
+  int getValue() {
+    return value_;
+  }
+
   final int value_;
 }
 

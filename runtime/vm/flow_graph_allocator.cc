@@ -663,6 +663,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
 #if defined(TARGET_ARCH_DBC)
   if (block->IsCatchBlockEntry()) {
     if (defn->IsParameter()) {
+      // This must be in sync with FlowGraphCompiler::CatchEntryRegForVariable.
       ParameterInstr* param = defn->AsParameter();
       intptr_t slot_index = param->index();
       AssignSafepoints(defn, range);
@@ -1742,7 +1743,7 @@ UsePosition* AllocationFinger::FirstRegisterBeneficialUse(intptr_t after) {
 UsePosition* AllocationFinger::FirstInterferingUse(intptr_t after) {
   if (IsInstructionEndPosition(after)) {
     // If after is a position at the end of the instruction disregard
-    // any use occuring at it.
+    // any use occurring at it.
     after += 1;
   }
   return FirstRegisterUse(after);

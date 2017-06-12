@@ -337,10 +337,9 @@ class BackRefNode : public ValueObject {
 };
 
 
-class InstructionsReader : public ZoneAllocated {
+class ImageReader : public ZoneAllocated {
  public:
-  InstructionsReader(const uint8_t* instructions_buffer,
-                     const uint8_t* data_buffer)
+  ImageReader(const uint8_t* instructions_buffer, const uint8_t* data_buffer)
       : instructions_buffer_(instructions_buffer), data_buffer_(data_buffer) {
     ASSERT(instructions_buffer != NULL);
     ASSERT(data_buffer != NULL);
@@ -355,7 +354,7 @@ class InstructionsReader : public ZoneAllocated {
   const uint8_t* instructions_buffer_;
   const uint8_t* data_buffer_;
 
-  DISALLOW_COPY_AND_ASSIGN(InstructionsReader);
+  DISALLOW_COPY_AND_ASSIGN(ImageReader);
 };
 
 
@@ -715,8 +714,8 @@ class ImageWriter : public ZoneAllocated {
     instructions_.Clear();
     objects_.Clear();
   }
-  int32_t GetOffsetFor(RawInstructions* instructions, RawCode* code);
-  int32_t GetObjectOffsetFor(RawObject* raw_object);
+  int32_t GetTextOffsetFor(RawInstructions* instructions, RawCode* code);
+  int32_t GetDataOffsetFor(RawObject* raw_object);
 
   void Write(WriteStream* clustered_stream, bool vm);
   virtual intptr_t text_size() = 0;

@@ -6,9 +6,7 @@
 
 import "package:expect/expect.dart";
 
-
 bool isInt(x) => x is int;
-
 
 int isIntRes(x) {
   if (x is int) {
@@ -18,7 +16,6 @@ int isIntRes(x) {
   }
 }
 
-
 int isNotIntRes(x) {
   if (x is! int) {
     return 1;
@@ -27,15 +24,11 @@ int isNotIntRes(x) {
   }
 }
 
-
 int isIfThenElseIntRes(x) {
-  return x is int ?  1 : 0;
+  return x is int ? 1 : 0;
 }
 
-
-
 bool isString(x) => x is String;
-
 
 int isStringRes(x) {
   if (x is String) {
@@ -45,7 +38,6 @@ int isStringRes(x) {
   }
 }
 
-
 int isNotStringRes(x) {
   if (x is! String) {
     return 1;
@@ -54,12 +46,11 @@ int isNotStringRes(x) {
   }
 }
 
-
 main() {
   for (int i = 0; i < 20; i++) {
     Expect.isFalse(isInt(3.2));
     Expect.isTrue(isInt(3));
-    Expect.isTrue(isInt(17179869184));  // Mint on ia32.
+    Expect.isTrue(isInt(17179869184)); // Mint on ia32.
     Expect.isFalse(isString(2.0));
     Expect.isTrue(isString("Morgan"));
   }
@@ -69,7 +60,7 @@ main() {
   for (int i = 0; i < 20; i++) {
     Expect.isFalse(isInt(3.2));
     Expect.isTrue(isInt(3));
-    Expect.isTrue(isInt(17179869184));  // Mint on ia32.
+    Expect.isTrue(isInt(17179869184)); // Mint on ia32.
     Expect.isFalse(isInt("hu"));
     Expect.isFalse(isString(2.0));
     Expect.isTrue(isString("Morgan"));

@@ -17,41 +17,30 @@ void testValue(var o) {
   test(false, () => o as List<Unresolved>, "$o as List<Unresolved>");
 
   test(false, () {
-    try {
-    } on Unresolved catch (e) {
-    } catch (e) {
-    }
+    try {} on Unresolved catch (e) {} catch (e) {}
   }, "on Unresolved catch: Nothing thrown.");
   test(true, () {
     try {
       throw o;
-    } on Unresolved catch (e) {
-    } catch (e) {
-    }
+    } on Unresolved catch (e) {} catch (e) {}
   }, "on Unresolved catch ($o)");
   test(false, () {
     try {
       throw o;
-    } on List<String> catch (e) {
-    } on NullThrownError catch (e) {
-    } on Unresolved catch (e) {
-    } catch (e) {
-    }
+    } on List<
+        String> catch (e) {} on NullThrownError catch (e) {} on Unresolved catch (e) {} catch (e) {}
   }, "on List<String>/NullThrowError catch ($o)");
   test(false, () {
     try {
       throw o;
-    } on List<Unresolved> catch (e) {
-    } on NullThrownError catch (e) {
-    } on Unresolved catch (e) {
-    } catch (e) {
-    }
+    } on List<
+        Unresolved> catch (e) {} on NullThrownError catch (e) {} on Unresolved catch (e) {} catch (e) {}
   }, "on List<Unresolved>/NullThrowError catch ($o)");
 
-  test(o != null && inCheckedMode(),
-       () { Unresolved u = o; },
-       "Unresolved u = $o;");
-  test(false,
-       () { List<Unresolved> u = o; },
-       "List<Unresolved> u = $o;");
+  test(o != null && inCheckedMode(), () {
+    Unresolved u = o;
+  }, "Unresolved u = $o;");
+  test(false, () {
+    List<Unresolved> u = o;
+  }, "List<Unresolved> u = $o;");
 }

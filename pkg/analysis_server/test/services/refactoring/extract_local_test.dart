@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring.extract_local;
-
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +17,6 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractLocalTest);
-    defineReflectiveTests(ExtractLocalTest_Driver);
   });
 }
 
@@ -1346,10 +1343,4 @@ main() {
     }
     return subExpressions;
   }
-}
-
-@reflectiveTest
-class ExtractLocalTest_Driver extends ExtractLocalTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -113,7 +113,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
   CHECK_OFFSET(Thread::stack_limit_offset(), 8);
   CHECK_OFFSET(Thread::object_null_offset(), 80);
-  CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 28);
+  CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 26);
   CHECK_OFFSET(Isolate::object_store_offset(), 56);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 208));
 #endif

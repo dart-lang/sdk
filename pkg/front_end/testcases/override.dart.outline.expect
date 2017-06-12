@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •() → void
+    ;
+}
+class Bar extends self::Foo {
+  constructor •() → void
+    ;
+}
+class Base extends core::Object {
+  constructor •() → void
+    ;
+  method method() → self::Foo
+    ;
+}
+class Sub extends self::Base {
+  constructor •() → void
+    ;
+  method method() → self::Foo
+    ;
+}
+static method main(core::List<core::String> args) → dynamic
+  ;

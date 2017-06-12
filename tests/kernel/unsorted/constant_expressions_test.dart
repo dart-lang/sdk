@@ -8,7 +8,7 @@ const int42 = 40 + 2;
 const stringAB = 'a' + 'b';
 const stringAB2 = 'a' + 'b';
 const list123 = const [1, 2, 3];
-const mapABC = const {'a' : 'b', 'b': 'c'};
+const mapABC = const {'a': 'b', 'b': 'c'};
 
 const boxInt42 = const Box(int42);
 const boxStringAB = const Box(stringAB);
@@ -24,20 +24,24 @@ returnNamed({a: const Box('nam' + 'ed')}) => a;
 
 returnSwitchCasedValue(value) {
   switch (value) {
-    case const Box(42): return 42;
-    case const Box('abc'): return 'abc';
-    case const Box(const Box('abc')): return const Box('abc');
-    default: return 'default';
+    case const Box(42):
+      return 42;
+    case const Box('abc'):
+      return 'abc';
+    case const Box(const Box('abc')):
+      return const Box('abc');
+    default:
+      return 'default';
   }
 }
 
 testConstantExpressions() {
   Expect.isTrue(identical(const Box(40 + 2), const Box(40 + 2)));
   Expect.isTrue(identical(const Box('a' + 'b'), const Box('ab')));
-  Expect.isTrue(identical(const Box(const Box(40 + 2)),
-                          const Box(const Box(42))));
-  Expect.isTrue(identical(const Box(const Box('a' + 'b')),
-                          const Box(const Box('ab'))));
+  Expect.isTrue(
+      identical(const Box(const Box(40 + 2)), const Box(const Box(42))));
+  Expect.isTrue(
+      identical(const Box(const Box('a' + 'b')), const Box(const Box('ab'))));
 }
 
 testConstantFieldValues() {
@@ -50,19 +54,18 @@ testConstantFieldValues() {
 testConstantFunctionParameters() {
   Expect.isTrue(identical(const Box('positional'), returnPositional()));
   Expect.isTrue(identical(const Box('named'), returnNamed()));
-  Expect.isTrue(identical(const Box('abc'),
-                          returnPositional(const Box('abc'))));
-  Expect.isTrue(identical(const Box('def'),
-                          returnNamed(a: const Box('def'))));
+  Expect
+      .isTrue(identical(const Box('abc'), returnPositional(const Box('abc'))));
+  Expect.isTrue(identical(const Box('def'), returnNamed(a: const Box('def'))));
 }
 
 testConstantSwitchExpressions() {
   Expect.isTrue(returnSwitchCasedValue(const Box(42)) == 42);
   Expect.isTrue(returnSwitchCasedValue(const Box('abc')) == 'abc');
-  Expect.isTrue(returnSwitchCasedValue(const Box(const Box('abc')))
-                == const Box('abc'));
-  Expect.isTrue(returnSwitchCasedValue(const Box('go-to-default'))
-                == 'default');
+  Expect.isTrue(
+      returnSwitchCasedValue(const Box(const Box('abc'))) == const Box('abc'));
+  Expect
+      .isTrue(returnSwitchCasedValue(const Box('go-to-default')) == 'default');
 }
 
 testConstantLocalVariables() {
@@ -76,7 +79,8 @@ testConstantLocalVariables() {
 testComplextConstLiterals() {
   Expect.isTrue(identical(const [1, 2, 3], const [1, 2, 3]));
   Expect.isTrue(identical(const [1, 2, 3], list123));
-  Expect.isTrue(identical(const {'a': 'b', 'b': 'c'}, const {'a': 'b', 'b': 'c'}));
+  Expect.isTrue(
+      identical(const {'a': 'b', 'b': 'c'}, const {'a': 'b', 'b': 'c'}));
   Expect.isTrue(identical(const {'a': 'b', 'b': 'c'}, mapABC));
 
   Expect.isTrue(mapABC['a'] == 'b');

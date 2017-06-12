@@ -2,25 +2,16 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Closure#main#function extends core::Object implements core::Function {
-  field core::String note = "This is temporary. The VM doesn't need closure classes.";
-  field Vector context;
-  constructor •(final Vector context) → dynamic
-    : self::Closure#main#function::context = context
-    ;
-  method call(dynamic x) → dynamic {
-    "This is a temporary solution. In the VM, this will become an additional parameter.";
-    final Vector #contextParameter = this.{self::Closure#main#function::context};
-    return (#contextParameter[1]).[](x);
-  }
-}
-static field dynamic f = null;
+static field dynamic f;
 static method foo() → dynamic {
   core::print(self::f.call(0));
 }
 static method main(dynamic arguments) → dynamic {
   final Vector #context = MakeVector(2);
   #context[1] = arguments;
-  self::f = new self::Closure#main#function::•(#context);
+  self::f = MakeClosure<(dynamic) → dynamic>(self::closure#main#function, #context);
   self::foo();
+}
+static method closure#main#function(Vector #contextParameter, dynamic x) → dynamic {
+  return (#contextParameter[1]).[](x);
 }

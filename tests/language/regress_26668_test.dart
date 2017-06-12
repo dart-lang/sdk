@@ -14,4 +14,3 @@ class CustomClass<T> {
     return 0;
   }
 }
-

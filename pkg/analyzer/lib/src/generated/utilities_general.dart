@@ -23,7 +23,7 @@ bool isTrue(Object value) =>
 
 /**
  * Safely convert the given [value] to a bool value, or return `null` if the
- * value coult not be converted.
+ * value could not be converted.
  */
 bool toBool(Object value) {
   if (value is bool) {

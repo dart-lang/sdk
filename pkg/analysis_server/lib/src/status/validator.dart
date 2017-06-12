@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.status.validator;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -1509,8 +1507,6 @@ class ValueComparison {
       return _compareLibrarySpecificUnits(expected, actual, buffer);
     } else if (actual is LineInfo) {
       return _compareLineInfos(expected, actual, buffer);
-    } else if (actual is ReferencedNames) {
-      return _compareReferencedNames(expected, actual, buffer);
     } else if (actual is Source) {
       return _compareSources(expected, actual, buffer);
     } else if (actual is SourceKind) {
@@ -1544,116 +1540,6 @@ class ValueComparison {
       buffer.write(actual);
     }
     return false;
-  }
-
-  bool _compareReferencedNames(
-      ReferencedNames expected, ReferencedNames actual, StringBuffer buffer) {
-    Set<String> expectedNames = expected.names;
-    Map<String, Set<String>> expectedUserToDependsOn = expected.userToDependsOn;
-    Set<String> expectedKeys = expectedUserToDependsOn.keys.toSet();
-
-    Set<String> actualNames = actual.names;
-    Map<String, Set<String>> actualUserToDependsOn = actual.userToDependsOn;
-    Set<String> actualKeys = actualUserToDependsOn.keys.toSet();
-
-    Set<String> missingNames = expectedNames.difference(actualNames);
-    Set<String> extraNames = actualNames.difference(expectedNames);
-    Set<String> missingKeys = expectedKeys.difference(actualKeys);
-    Set<String> extraKeys = actualKeys.difference(expectedKeys);
-    Map<String, List<Set<String>>> mismatchedDependencies =
-        new HashMap<String, List<Set<String>>>();
-    Set<String> commonKeys = expectedKeys.intersection(actualKeys);
-    for (String key in commonKeys) {
-      Set<String> expectedDependencies = expectedUserToDependsOn[key];
-      Set<String> actualDependencies = actualUserToDependsOn[key];
-      Set<String> missingDependencies =
-          expectedDependencies.difference(actualDependencies);
-      Set<String> extraDependencies =
-          actualDependencies.difference(expectedDependencies);
-      if (missingDependencies.isNotEmpty || extraDependencies.isNotEmpty) {
-        mismatchedDependencies[key] = [missingDependencies, extraDependencies];
-      }
-    }
-
-    if (missingNames.isEmpty &&
-        extraNames.isEmpty &&
-        missingKeys.isEmpty &&
-        extraKeys.isEmpty &&
-        mismatchedDependencies.isEmpty) {
-      return true;
-    }
-    if (buffer != null) {
-      void write(String title, Set<String> names) {
-        buffer.write(names.length);
-        buffer.write(' ');
-        buffer.write(title);
-        buffer.write(': {');
-        bool first = true;
-        for (String name in names) {
-          if (first) {
-            first = false;
-          } else {
-            buffer.write(', ');
-          }
-          buffer.write(name);
-        }
-        buffer.write('}');
-      }
-
-      bool needsNewline = false;
-      if (missingNames.isNotEmpty) {
-        buffer.write('Has ');
-        write('missing names', missingNames);
-        needsNewline = true;
-      }
-      if (extraNames.isNotEmpty) {
-        if (needsNewline) {
-          buffer.write('</p><p>');
-        }
-        buffer.write('Has ');
-        write('extra names', extraNames);
-        needsNewline = true;
-      }
-      if (missingKeys.isNotEmpty) {
-        if (needsNewline) {
-          buffer.write('</p><p>');
-        }
-        buffer.write('Has ');
-        write('missing keys', missingKeys);
-        needsNewline = true;
-      }
-      if (extraKeys.isNotEmpty) {
-        if (needsNewline) {
-          buffer.write('</p><p>');
-        }
-        buffer.write('Has ');
-        write('extra keys', extraKeys);
-        needsNewline = true;
-      }
-      mismatchedDependencies.forEach((String key, List<Set<String>> value) {
-        Set<String> missingDependencies = value[0];
-        Set<String> extraDependencies = value[1];
-        if (needsNewline) {
-          buffer.write('</p><p>');
-        }
-        buffer.write('The key ');
-        buffer.write(key);
-        buffer.write(' has ');
-        bool needsConjunction = false;
-        if (missingNames.isNotEmpty) {
-          write('missing dependencies', missingDependencies);
-          needsConjunction = true;
-        }
-        if (extraNames.isNotEmpty) {
-          if (needsConjunction) {
-            buffer.write(' and ');
-          }
-          write('extra dependencies', extraDependencies);
-        }
-        needsNewline = true;
-      });
-    }
-    return true;
   }
 
   bool _compareSources(Source expected, Source actual, StringBuffer buffer) {

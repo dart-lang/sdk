@@ -84,8 +84,13 @@ testRetainWhere(base, bool test(value)) {
 
 void main() {
   var collections = [
-    [], [1], [2], [1, 2], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-    [1, 3, 5, 7, 9], [2, 4, 6, 8, 10]
+    [],
+    [1],
+    [2],
+    [1, 2],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    [1, 3, 5, 7, 9],
+    [2, 4, 6, 8, 10]
   ];
   for (var base in collections) {
     for (var delta in collections) {
@@ -94,8 +99,7 @@ void main() {
 
       var deltaSet = delta.toSet();
       testRemoveWhere(base.toList(), deltaSet.contains);
-      testRetainWhere(base.toList(),
-                      (e) => !deltaSet.contains(e));
+      testRetainWhere(base.toList(), (e) => !deltaSet.contains(e));
 
       testRemoveAll(base.toSet(), delta);
       testRemoveAll(base.toSet(), deltaSet);
@@ -106,9 +110,7 @@ void main() {
 
       // Test the ListBase class's List implementation.
       testRemoveWhere(new MyList(base.toList()), deltaSet.contains);
-      testRetainWhere(new MyList(base.toList()),
-                      (e) => !deltaSet.contains(e));
-
+      testRetainWhere(new MyList(base.toList()), (e) => !deltaSet.contains(e));
     }
   }
 }
@@ -117,7 +119,12 @@ class MyList<E> extends ListBase<E> {
   List<E> _source;
   MyList(this._source);
   int get length => _source.length;
-  void set length(int length) { _source.length = length; }
-  E operator[](int index) => _source[index];
-  void operator[]=(int index, E value) { _source[index] = value; }
+  void set length(int length) {
+    _source.length = length;
+  }
+
+  E operator [](int index) => _source[index];
+  void operator []=(int index, E value) {
+    _source[index] = value;
+  }
 }

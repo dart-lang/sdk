@@ -499,7 +499,7 @@ class _IsolateContext implements IsolateContext {
   }
 
   /**
-   * Handle messages comming in on the control port.
+   * Handle messages coming in on the control port.
    *
    * These events do not go through the event queue.
    * The `_globalState.currentContext` context is not set to this context

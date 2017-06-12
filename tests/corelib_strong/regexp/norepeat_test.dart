@@ -26,9 +26,7 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  description(
-  'Test for https://bugs.webkit.org/show_bug.cgi?id=46077'
-  );
+  description('Test for https://bugs.webkit.org/show_bug.cgi?id=46077');
 
   var re = new RegExp(r"^b|^cd");
   var str = "abcd";

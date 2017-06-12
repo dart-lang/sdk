@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.dependencies.library;
-
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -18,6 +16,9 @@ main() {
 
 @reflectiveTest
 class LibraryDependenciesTest extends AbstractContextTest {
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   test_LibraryDependencies() {
     addSource('/lib1.dart', 'import "lib2.dart";');
     addSource('/lib2.dart', 'import "lib1.dart";');

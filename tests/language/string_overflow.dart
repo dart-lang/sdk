@@ -7,11 +7,9 @@
 
 import "package:expect/expect.dart";
 
-main()
-{
+main() {
   String a = "a";
-  for( ; a.length < 256 * 1024 * 1024 ; )
-    a = a + a;
+  for (; a.length < 256 * 1024 * 1024;) a = a + a;
 
   var exception_thrown = false;
   try {
@@ -21,4 +19,3 @@ main()
   }
   Expect.isTrue(exception_thrown);
 }
-

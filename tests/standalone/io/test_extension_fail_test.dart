@@ -41,8 +41,8 @@ bool checkExitCode(int code) {
 
 bool checkStdError(String err) {
   return err.contains("Unhandled exception:") ||
-         err.contains(
-            "Native extension path must be absolute, or simply the file name");
+      err.contains(
+          "Native extension path must be absolute, or simply the file name");
 }
 
 // name is either "extension" or "relative_extension"
@@ -55,8 +55,8 @@ Future test(String name, bool checkForBall) {
 
   // Copy test_extension shared library, test_extension.dart and
   // test_extension_fail_tester.dart to the temporary test directory.
-  copyFileToDirectory(getExtensionPath(buildDirectory),
-                      testDirectory).then((_) {
+  copyFileToDirectory(getExtensionPath(buildDirectory), testDirectory)
+      .then((_) {
     var extensionDartFile = join(scriptDirectory, 'test_${name}.dart');
     return copyFileToDirectory(extensionDartFile, testDirectory);
   }).then((_) {

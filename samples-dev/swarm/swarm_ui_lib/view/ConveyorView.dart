@@ -26,9 +26,8 @@ class ConveyorView extends CompositeView {
   Timer animationTimer;
 
   ConveyorView()
-  : super('conveyor-view', true),
-    animationTimer = null {
-  }
+      : super('conveyor-view', true),
+        animationTimer = null {}
 
   Element render() {
     final result = super.render();
@@ -63,8 +62,9 @@ class ConveyorView extends CompositeView {
 
     if (animate) {
       animationTimer = new Timer(
-          new Duration(milliseconds: ((durationSeconds * 1000).toInt())),
-          () { _onAnimationEnd(); });
+          new Duration(milliseconds: ((durationSeconds * 1000).toInt())), () {
+        _onAnimationEnd();
+      });
     }
     // TODO(mattsh), we should set the visibility to hide everything but the
     // selected view.

@@ -17,13 +17,18 @@ class A {
 class B implements A {
   final _x, _y, _z;
 
-  B([x = 'x', y = 'y']) : _x = x, _y = y, _z = null;
+  B([x = 'x', y = 'y'])
+      : _x = x,
+        _y = y,
+        _z = null;
 
-  B.more([x = 'x', y = 'y', z = 'z']) : _x = x, _y = y, _z = z;
+  B.more([x = 'x', y = 'y', z = 'z'])
+      : _x = x,
+        _y = y,
+        _z = z;
 
   toString() => 'B(x=$_x, y=$_y, z=$_z)';
 }
-
 
 main() {
   var d1 = new A(1);

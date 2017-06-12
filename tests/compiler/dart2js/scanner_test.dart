@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/characters.dart';
-import 'package:front_end/src/fasta/scanner/precedence.dart';
+import 'package:front_end/src/scanner/token.dart' show TokenType;
 import 'dart:typed_data';
 
 Token scan(List<int> bytes) {
@@ -184,7 +184,7 @@ main() {
   // Regression test for issue 1761.
   // "#!"
   token = scan([0x23, 0x21]);
-  Expect.equals(token.info, SCRIPT_INFO); // Treated as a comment.
+  Expect.equals(token.type, TokenType.SCRIPT_TAG); // Treated as a comment.
 
   // Regression test for issue 1761.
   // "#! Hello, World!"
@@ -206,5 +206,5 @@ main() {
     0x64,
     0x21
   ]);
-  Expect.equals(token.info, SCRIPT_INFO); // Treated as a comment.
+  Expect.equals(token.type, TokenType.SCRIPT_TAG); // Treated as a comment.
 }

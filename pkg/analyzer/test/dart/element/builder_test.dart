@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -1150,6 +1151,43 @@ main() {
     FunctionElement f = main.functions[0];
     expect(f.parameters, hasLength(1));
     expect(f.parameters[0].initializer, isNotNull);
+  }
+
+  void test_visitFieldFormalParameter() {
+    CompilationUnit unit = parseCompilationUnit(
+        r'''
+main() {
+  f(a, this.b) {}
+}
+''',
+        [ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
+    var main = unit.declarations[0] as FunctionDeclaration;
+    var mainBody = main.functionExpression.body as BlockFunctionBody;
+    var mainBlock = mainBody.block;
+    var statement = mainBlock.statements[0] as FunctionDeclarationStatement;
+    FunctionDeclaration f = statement.functionDeclaration;
+
+    // Build API elements.
+    {
+      ElementHolder holder = new ElementHolder();
+      unit.accept(new ApiElementBuilder(holder, compilationUnitElement));
+    }
+
+    // Build local elements.
+    ElementHolder holder = new ElementHolder();
+    var builder = new LocalElementBuilder(holder, compilationUnitElement);
+    f.accept(builder);
+
+    List<FormalParameter> parameters =
+        f.functionExpression.parameters.parameters;
+
+    ParameterElement a = parameters[0].element;
+    expect(a, isNotNull);
+    expect(a.name, 'a');
+
+    ParameterElement b = parameters[1].element;
+    expect(b, isNotNull);
+    expect(b.name, 'b');
   }
 
   void test_visitVariableDeclaration_local() {

@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/fasta/errors.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/scanner/token.dart' show Token;
 
 /// Provides the capability of inserting tokens into a token stream by rewriting
 /// the previous token to point to the inserted token.
@@ -26,8 +27,8 @@ class TokenStreamRewriter {
   /// Creates a [TokenStreamRewriter] which is prepared to rewrite the token
   /// stream whose first token is [firstToken].
   TokenStreamRewriter(Token firstToken)
-      : _head = firstToken.previousToken ??
-            (new SymbolToken.eof(-1)..next = firstToken);
+      : _head =
+            firstToken.previous ?? (new SymbolToken.eof(-1)..next = firstToken);
 
   /// Gets the first token in the stream (which may not be the same token that
   /// was passed to the constructor, if something was inserted before it).
@@ -47,8 +48,8 @@ class TokenStreamRewriter {
       // Note: even though previousToken is deprecated, we need to hook it up in
       // case any uses of it remain.  Once previousToken is removed it should be
       // safe to remove this block of code.
-      insertionPoint.previousToken = newToken;
-      newToken.previousToken = previous;
+      insertionPoint.previous = newToken;
+      newToken.previous = previous;
     }
   }
 
@@ -59,8 +60,8 @@ class TokenStreamRewriter {
     // we're accessing the deprecated member previousToken here, because we have
     // a fallback if it is not available.  Once previousToken is removed, we can
     // remove the "if" test below, and always use the fallback code.
-    if (target.previousToken != null) {
-      return target.previousToken;
+    if (target.previous != null) {
+      return target.previous;
     }
 
     // Look for the previous token by scanning forward from [lastPreviousToken],

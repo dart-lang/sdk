@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 // Test overriding a getter property with a field.
 class A {
-  int get v;  // Abstract.
+  int get v; // Abstract.
 
   int a() {
     return v - 1;

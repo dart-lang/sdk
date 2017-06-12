@@ -6,10 +6,10 @@ library dart2js.serialization.constants;
 
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart'
     show ConstructorElement, FieldElement, LocalVariableElement, MethodElement;
-import '../resolution/operators.dart';
+import '../elements/operators.dart';
+import '../elements/resolution_types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import 'keys.dart';
 import 'serialization.dart';
@@ -366,6 +366,7 @@ class ConstantConstructorDeserializer {
   /// needs deserialization. The [ObjectDecoder] ensures that any [Element],
   /// [ResolutionDartType], and [ConstantExpression] that the deserialized
   /// [ConstantConstructor] depends upon are available.
+  // ignore: MISSING_RETURN
   static ConstantConstructor deserialize(ObjectDecoder decoder) {
     ConstantConstructorKind kind =
         decoder.getEnum(Key.KIND, ConstantConstructorKind.values);

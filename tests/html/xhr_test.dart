@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library XHRTest;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
@@ -86,13 +87,13 @@ main() {
     });
 
     test('XHR.request No file', () {
-      HttpRequest.request('NonExistingFile').then(
-        (_) { fail('Request should not have succeeded.'); },
-        onError: expectAsync((error) {
-          var xhr = error.target;
-          expect(xhr.readyState, equals(HttpRequest.DONE));
-          validate404(xhr);
-        }));
+      HttpRequest.request('NonExistingFile').then((_) {
+        fail('Request should not have succeeded.');
+      }, onError: expectAsync((error) {
+        var xhr = error.target;
+        expect(xhr.readyState, equals(HttpRequest.DONE));
+        validate404(xhr);
+      }));
     });
 
     test('XHR.request file', () {
@@ -104,25 +105,23 @@ main() {
 
     test('XHR.request onProgress', () {
       var progressCalled = false;
-      HttpRequest.request(url,
-        onProgress: (_) {
-          progressCalled = true;
-        }).then(expectAsync(
-          (xhr) {
-            expect(xhr.readyState, equals(HttpRequest.DONE));
-            expect(progressCalled, HttpRequest.supportsProgressEvent);
-            validate200Response(xhr);
-          }));
+      HttpRequest.request(url, onProgress: (_) {
+        progressCalled = true;
+      }).then(expectAsync((xhr) {
+        expect(xhr.readyState, equals(HttpRequest.DONE));
+        expect(progressCalled, HttpRequest.supportsProgressEvent);
+        validate200Response(xhr);
+      }));
     });
 
     test('XHR.request withCredentials No file', () {
-      HttpRequest.request('NonExistingFile', withCredentials: true).then(
-        (_) { fail('Request should not have succeeded.'); },
-        onError: expectAsync((error) {
-          var xhr = error.target;
-          expect(xhr.readyState, equals(HttpRequest.DONE));
-          validate404(xhr);
-        }));
+      HttpRequest.request('NonExistingFile', withCredentials: true).then((_) {
+        fail('Request should not have succeeded.');
+      }, onError: expectAsync((error) {
+        var xhr = error.target;
+        expect(xhr.readyState, equals(HttpRequest.DONE));
+        validate404(xhr);
+      }));
     });
 
     test('XHR.request withCredentials file', () {
@@ -137,23 +136,23 @@ main() {
     });
 
     test('XHR.getString No file', () {
-      HttpRequest.getString('NonExistingFile').then(
-        (_) { fail('Succeeded for non-existing file.'); },
-        onError: expectAsync((error) {
-          validate404(error.target);
-        }));
+      HttpRequest.getString('NonExistingFile').then((_) {
+        fail('Succeeded for non-existing file.');
+      }, onError: expectAsync((error) {
+        validate404(error.target);
+      }));
     });
 
     test('XHR.request responseType arraybuffer', () {
       if (Platform.supportsTypedData) {
-        HttpRequest.request(url, responseType: 'arraybuffer',
-          requestHeaders: {'Content-Type': 'text/xml'}).then(
-          expectAsync((xhr) {
-            expect(xhr.status, equals(200));
-            var byteBuffer = xhr.response;
-            expect(byteBuffer, new isInstanceOf<ByteBuffer>());
-            expect(byteBuffer, isNotNull);
-          }));
+        HttpRequest.request(url, responseType: 'arraybuffer', requestHeaders: {
+          'Content-Type': 'text/xml'
+        }).then(expectAsync((xhr) {
+          expect(xhr.status, equals(200));
+          var byteBuffer = xhr.response;
+          expect(byteBuffer, new isInstanceOf<ByteBuffer>());
+          expect(byteBuffer, isNotNull);
+        }));
       }
     });
 
@@ -175,7 +174,7 @@ main() {
         });
 
         xhr.open('POST',
-              '${window.location.protocol}//${window.location.host}/echo');
+            '${window.location.protocol}//${window.location.host}/echo');
 
         // 10MB of payload data w/ a bit of data to make sure it
         // doesn't get compressed to nil.
@@ -192,33 +191,33 @@ main() {
     }
 
     test('xhr postFormData', () {
-      var data = { 'name': 'John', 'time': '2 pm' };
+      var data = {'name': 'John', 'time': '2 pm'};
 
       var parts = [];
       for (var key in data.keys) {
         parts.add('${Uri.encodeQueryComponent(key)}='
-          '${Uri.encodeQueryComponent(data[key])}');
+            '${Uri.encodeQueryComponent(data[key])}');
       }
       var encodedData = parts.join('&');
 
-      return HttpRequest.postFormData(
-          '${window.location.protocol}//${window.location.host}/echo', data)
+      return HttpRequest
+          .postFormData(
+              '${window.location.protocol}//${window.location.host}/echo', data)
           .then((xhr) {
-          expect(xhr.responseText, encodedData);
-        });
+        expect(xhr.responseText, encodedData);
+      });
     });
   });
 
   group('xhr_requestBlob', () {
     test('XHR.request responseType blob', () {
       if (Platform.supportsTypedData) {
-        return HttpRequest.request(url, responseType: 'blob').then(
-          (xhr) {
-            expect(xhr.status, equals(200));
-            var blob = xhr.response;
-            expect(blob is Blob, isTrue);
-            expect(blob, isNotNull);
-          });
+        return HttpRequest.request(url, responseType: 'blob').then((xhr) {
+          expect(xhr.status, equals(200));
+          var blob = xhr.response;
+          expect(blob is Blob, isTrue);
+          expect(blob, isNotNull);
+        });
       }
     });
   });
@@ -232,28 +231,26 @@ main() {
         'one': 2,
       };
 
-      HttpRequest.request(url,
-          method: 'POST',
-          sendData: JSON.encode(data),
-          responseType: 'json').then(
-          expectAsync((xhr) {
-            expect(xhr.status, equals(200));
-            var json = xhr.response;
-            expect(json, equals(data));
-          }));
+      HttpRequest
+          .request(url,
+              method: 'POST', sendData: JSON.encode(data), responseType: 'json')
+          .then(expectAsync((xhr) {
+        expect(xhr.status, equals(200));
+        var json = xhr.response;
+        expect(json, equals(data));
+      }));
     });
   });
 
   group('headers', () {
     test('xhr responseHeaders', () {
-      return HttpRequest.request(url).then(
-        (xhr) {
-          var contentTypeHeader = xhr.responseHeaders['content-type'];
-          expect(contentTypeHeader, isNotNull);
-          // Should be like: 'text/plain; charset=utf-8'
-          expect(contentTypeHeader.contains('text/plain'), isTrue);
-          expect(contentTypeHeader.contains('charset=utf-8'), isTrue);
-        });
+      return HttpRequest.request(url).then((xhr) {
+        var contentTypeHeader = xhr.responseHeaders['content-type'];
+        expect(contentTypeHeader, isNotNull);
+        // Should be like: 'text/plain; charset=utf-8'
+        expect(contentTypeHeader.contains('text/plain'), isTrue);
+        expect(contentTypeHeader.contains('charset=utf-8'), isTrue);
+      });
     });
   });
 }

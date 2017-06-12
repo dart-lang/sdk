@@ -55,10 +55,10 @@ class B extends A {
   get increment => 20;
 }
 
-makeB() native ;
+makeB() native;
 
 @Creates('=Object')
-getBPrototype() native ;
+getBPrototype() native;
 
 void setup() native r"""
 function B() { this.a2 = 102; }

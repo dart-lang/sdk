@@ -11,6 +11,7 @@ class A {
 
 main() {
   switch (new List(1)[0]) {
-    case const A(): throw 'Test failed';
+    case const A():
+      throw 'Test failed';
   }
 }

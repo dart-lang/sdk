@@ -13,23 +13,28 @@ main() {
   LibraryMirror thisLibrary =
       currentMirrorSystem().findLibrary(#test.invoke_import_test);
 
-  Expect.throws(() => thisLibrary.invoke(#topLevelMethod, []),
-                (e) => e is NoSuchMethodError,
-                'Should not invoke imported method #topLevelMethod');
+  Expect.throws(
+      () => thisLibrary.invoke(#topLevelMethod, []),
+      (e) => e is NoSuchMethodError,
+      'Should not invoke imported method #topLevelMethod');
 
-  Expect.throws(() => thisLibrary.getField(#topLevelGetter),
-                (e) => e is NoSuchMethodError,
-                'Should not invoke imported getter #topLevelGetter');
+  Expect.throws(
+      () => thisLibrary.getField(#topLevelGetter),
+      (e) => e is NoSuchMethodError,
+      'Should not invoke imported getter #topLevelGetter');
 
-  Expect.throws(() => thisLibrary.getField(#topLevelField),
-                (e) => e is NoSuchMethodError,
-                'Should not invoke imported field #topLevelField');
+  Expect.throws(
+      () => thisLibrary.getField(#topLevelField),
+      (e) => e is NoSuchMethodError,
+      'Should not invoke imported field #topLevelField');
 
-  Expect.throws(() => thisLibrary.setField(#topLevelSetter, 23),
-                (e) => e is NoSuchMethodError,
-                'Should not invoke imported setter #topLevelSetter');
+  Expect.throws(
+      () => thisLibrary.setField(#topLevelSetter, 23),
+      (e) => e is NoSuchMethodError,
+      'Should not invoke imported setter #topLevelSetter');
 
-  Expect.throws(() => thisLibrary.setField(#topLevelField, 23),
-                (e) => e is NoSuchMethodError,
-                'Should not invoke imported field #topLevelField');
+  Expect.throws(
+      () => thisLibrary.setField(#topLevelField, 23),
+      (e) => e is NoSuchMethodError,
+      'Should not invoke imported field #topLevelField');
 }

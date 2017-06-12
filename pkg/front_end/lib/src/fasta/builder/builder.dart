@@ -24,8 +24,6 @@ export 'type_variable_builder.dart' show TypeVariableBuilder;
 
 export 'function_type_alias_builder.dart' show FunctionTypeAliasBuilder;
 
-export 'named_mixin_application_builder.dart' show NamedMixinApplicationBuilder;
-
 export 'mixin_application_builder.dart' show MixinApplicationBuilder;
 
 export 'enum_builder.dart' show EnumBuilder;
@@ -46,9 +44,7 @@ export 'prefix_builder.dart' show PrefixBuilder;
 
 export 'invalid_type_builder.dart' show InvalidTypeBuilder;
 
-export 'mixed_accessor.dart' show MixedAccessor;
-
-export 'scope.dart' show AccessErrorBuilder;
+export '../scope.dart' show AccessErrorBuilder, Scope, ScopeBuilder;
 
 export 'builtin_type_builder.dart' show BuiltinTypeBuilder;
 
@@ -59,6 +55,12 @@ export 'void_type_builder.dart' show VoidTypeBuilder;
 export 'function_type_builder.dart' show FunctionTypeBuilder;
 
 import 'library_builder.dart' show LibraryBuilder;
+
+import 'package:front_end/src/fasta/builder/class_builder.dart'
+    show ClassBuilder;
+
+import 'package:front_end/src/fasta/source/source_library_builder.dart'
+    show SourceLibraryBuilder;
 
 abstract class Builder {
   /// Used when multiple things with the same name are declared within the same
@@ -88,7 +90,7 @@ abstract class Builder {
 
   /// Resolve constructors (lookup names in scope) recorded in this builder and
   /// return the number of constructors resolved.
-  int resolveConstructors(covariant Builder parent) => 0;
+  int resolveConstructors(LibraryBuilder parent) => 0;
 
   Builder get parent => null;
 
@@ -120,6 +122,8 @@ abstract class Builder {
 
   bool get isConst => false;
 
+  bool get isSynthetic => false;
+
   get target => internalError("Unsupported operation $runtimeType.");
 
   bool get hasProblem => false;
@@ -134,4 +138,7 @@ abstract class Builder {
     } while (builder != null);
     return internalError("No library parent.");
   }
+
+  void prepareInitializerInference(
+      SourceLibraryBuilder library, ClassBuilder currentClass) {}
 }

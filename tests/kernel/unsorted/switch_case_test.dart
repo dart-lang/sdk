@@ -9,7 +9,7 @@ mkTwo() => 2;
 
 testNormal() {
   int result;
-  switch(mkOne()) {
+  switch (mkOne()) {
     case 0:
       result = 0;
       break;
@@ -28,7 +28,7 @@ testNormal() {
 
 testDefault() {
   int result;
-  switch(null) {
+  switch (null) {
     case 0:
       result = 0;
       break;
@@ -47,7 +47,7 @@ testDefault() {
 
 testFallThrough() {
   int result;
-  switch(mkOne()) {
+  switch (mkOne()) {
     case 0:
       result = 0;
       break;
@@ -64,7 +64,7 @@ testFallThrough() {
 
 testContinue() {
   int result;
-  switch(mkTwo()) {
+  switch (mkTwo()) {
     case 0:
       result = 0;
       break;
@@ -88,7 +88,7 @@ testContinue() {
 
 testOnlyDefault() {
   int result;
-  switch(mkTwo()) {
+  switch (mkTwo()) {
     default:
       result = 42;
   }
@@ -97,7 +97,7 @@ testOnlyDefault() {
 
 testOnlyDefaultWithBreak() {
   int result;
-  switch(mkTwo()) {
+  switch (mkTwo()) {
     default:
       result = 42;
   }
@@ -105,10 +105,13 @@ testOnlyDefaultWithBreak() {
 }
 
 String testReturn() {
-  switch(mkOne()) {
-    case 0: return "bad";
-    case 1: return "good";
-    default: return "bad";
+  switch (mkOne()) {
+    case 0:
+      return "bad";
+    case 1:
+      return "good";
+    default:
+      return "bad";
   }
 }
 
@@ -155,6 +158,7 @@ regressionTest3() {
     }
     throw new UnsupportedError("Unexpected constant kind.");
   }
+
   Expect.isTrue(f(1) == 2);
 }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library futures_test;
+
 import 'package:async_helper/async_helper.dart';
 import "package:expect/expect.dart";
 import 'dart:async';
@@ -96,7 +97,7 @@ Future testWaitWithMultipleErrorsEager() {
 StackTrace get currentStackTrace {
   try {
     throw 0;
-  } catch(e, st) {
+  } catch (e, st) {
     return st;
   }
   return null;
@@ -155,17 +156,22 @@ Future testWaitWithMultipleErrorsWithStackTraceEager() {
 
 Future testEagerWait() {
   var st;
-  try { throw 0; } catch (e, s) { st = s; }
+  try {
+    throw 0;
+  } catch (e, s) {
+    st = s;
+  }
   Completer c1 = new Completer();
   Completer c2 = new Completer();
   List<Future> futures = <Future>[c1.future, c2.future];
   Future waited = Future.wait(futures, eagerError: true);
-  var result = waited.then((v) { throw "should not be called"; },
-                           onError: (e, s) {
-                             Expect.equals(e, 42);
-                             Expect.identical(st, s);
-                             return true;
-                           });
+  var result = waited.then((v) {
+    throw "should not be called";
+  }, onError: (e, s) {
+    Expect.equals(e, 42);
+    Expect.identical(st, s);
+    return true;
+  });
   c1.completeError(42, st);
   return result;
 }
@@ -186,8 +192,8 @@ Future testForEach() {
 
 Future testForEachSync() {
   var seen = <int>[];
-  return Future.forEach([1, 2, 3, 4, 5], seen.add)
-      .then((_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
+  return Future.forEach([1, 2, 3, 4, 5], seen.add).then(
+      (_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
 }
 
 Future testForEachWithException() {
@@ -232,6 +238,30 @@ Future testDoWhileWithException() {
   });
 }
 
+Future testDoWhileManyFutures() {
+  int n = 100000;
+  var ftrue = new Future.value(false);
+  var ffalse = new Future.value(false);
+  return Future.doWhile(() {
+    return (--n > 0) ? ftrue : ffalse;
+  }).then((_) {
+    // Success
+  }, onError: (e, s) {
+    Expect.fail("$e\n$s");
+  });
+}
+
+Future testDoWhileManyValues() {
+  int n = 100000;
+  return Future.doWhile(() {
+    return (--n > 0);
+  }).then((_) {
+    // Success
+  }, onError: (e, s) {
+    Expect.fail("$e\n$s");
+  });
+}
+
 main() {
   List<Future> futures = new List<Future>();
 
@@ -253,10 +283,12 @@ main() {
   futures.add(testDoWhile());
   futures.add(testDoWhileSync());
   futures.add(testDoWhileWithException());
+  futures.add(testDoWhileManyFutures());
+  futures.add(testDoWhileManyValues());
 
   asyncStart();
   Future.wait(futures).then((List list) {
-    Expect.equals(18, list.length);
+    Expect.equals(20, list.length);
     asyncEnd();
   });
 }

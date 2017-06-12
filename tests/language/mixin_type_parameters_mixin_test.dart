@@ -37,8 +37,7 @@ class M<T> {
   }
 }
 
-class S {
-}
+class S {}
 
 class C0<T> = S with M;
 class C1<T> = S with M<T>;

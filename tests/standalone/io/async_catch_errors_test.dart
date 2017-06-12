@@ -40,11 +40,8 @@ main() {
   // We keep a ReceivePort open until all tests are done. This way the VM will
   // hang if the callbacks are not invoked and the test will time out.
   asyncStart();
-  testSocketException()
-    .then((_) => testFileSystemException())
-    .then((_) {
-      asyncEnd();
-      Expect.listEquals(["SocketException", "FileSystemException"],
-                        events);
-    });
+  testSocketException().then((_) => testFileSystemException()).then((_) {
+    asyncEnd();
+    Expect.listEquals(["SocketException", "FileSystemException"], events);
+  });
 }

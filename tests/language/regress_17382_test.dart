@@ -8,13 +8,14 @@ import 'package:expect/expect.dart';
 
 var mCalled = false;
 
-m(x) { mCalled = true; return x; }
+m(x) {
+  mCalled = true;
+  return x;
+}
 
 main() {
   try {
     tl(m(0));
-  } catch (e) {
-  }
+  } catch (e) {}
   Expect.isTrue(mCalled);
 }
-

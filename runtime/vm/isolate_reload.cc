@@ -6,7 +6,7 @@
 
 #include "vm/become.h"
 #include "vm/bit_vector.h"
-#include "vm/code_generator.h"
+#include "vm/runtime_entry.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/hash_table.h"
@@ -772,7 +772,9 @@ void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
 
 void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
   TIMELINE_SCOPE(EnsuredUnoptimizedCodeForStack);
-  StackFrameIterator it(StackFrameIterator::kDontValidateFrames);
+  StackFrameIterator it(StackFrameIterator::kDontValidateFrames,
+                        Thread::Current(),
+                        StackFrameIterator::kNoCrossThreadIteration);
 
   Function& func = Function::Handle();
   while (it.HasNextFrame()) {
@@ -1555,7 +1557,8 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
 
   Code& code = Code::Handle(zone);
   Function& function = Function::Handle(zone);
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   while (frame != NULL) {
     code = frame->LookupDartCode();

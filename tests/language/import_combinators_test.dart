@@ -5,6 +5,7 @@
 // Dart test program importing with show/hide combinators.
 
 library importCombinatorsTest;
+
 import "package:expect/expect.dart";
 import "import1_lib.dart" show hide, show hide ugly;
 import "export1_lib.dart";

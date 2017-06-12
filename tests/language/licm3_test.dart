@@ -15,17 +15,15 @@ foo(o) {
   return r;
 }
 
-
 class A {
   var z = 3;
 }
 
 main() {
   var a = new A();
-  for(var i = 0; i < 10000; i++) foo(a);
+  for (var i = 0; i < 10000; i++) foo(a);
   Expect.equals(9, foo(a));
   Expect.throws(() => foo(42));
-  for(var i = 0; i < 10000; i++) foo(a);
+  for (var i = 0; i < 10000; i++) foo(a);
   Expect.throws(() => foo(42));
 }
-

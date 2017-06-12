@@ -234,8 +234,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   }
 
   if (is_optimizing()) {
-    __ Push(locs->in(0).reg());
-    __ Push(locs->in(1).reg());
+    __ Push(locs->in(0).reg());  // Instance.
+    __ Push(locs->in(1).reg());  // Instantiator type arguments.
+    __ Push(locs->in(2).reg());  // Function type arguments.
   }
   __ PushConstant(dst_type);
   __ PushConstant(dst_name);
@@ -400,20 +401,25 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
 
   if (function.IsClosureFunction()) {
-    Register reg =
+    // In optimized mode the register allocator expects CurrentContext in the
+    // flow_graph_.num_copied_params() register at function entry.
+    // (see FlowGraphAllocator::ProcessInitialDefinition)
+    Register context_reg =
         is_optimizing() ? flow_graph_.num_copied_params() : context_index;
-    Register closure_reg = reg;
     LocalScope* scope = parsed_function().node_sequence()->scope();
     LocalVariable* local = scope->VariableAt(0);
+
+    Register closure_reg;
     if (local->index() > 0) {
-      __ Move(reg, -local->index());
+      __ Move(context_reg, -local->index());
+      closure_reg = context_reg;
     } else {
       closure_reg = -local->index() - 1;
     }
-    __ LoadField(reg, closure_reg, Closure::context_offset() / kWordSize);
+    __ LoadField(context_reg, closure_reg,
+                 Closure::context_offset() / kWordSize);
   } else if (has_optional_params && !is_optimizing()) {
-    __ LoadConstant(context_index,
-                    Object::Handle(isolate()->object_store()->empty_context()));
+    __ LoadConstant(context_index, Object::empty_context());
   }
 }
 
@@ -438,6 +444,14 @@ uint16_t FlowGraphCompiler::ToEmbeddableCid(intptr_t cid,
     UNREACHABLE();
   }
   return static_cast<uint16_t>(cid);
+}
+
+
+intptr_t FlowGraphCompiler::CatchEntryRegForVariable(const LocalVariable& var) {
+  ASSERT(is_optimizing());
+  ASSERT(var.index() <= 0);
+  return kNumberOfCpuRegisters -
+         (flow_graph().num_non_copied_params() - var.index());
 }
 
 

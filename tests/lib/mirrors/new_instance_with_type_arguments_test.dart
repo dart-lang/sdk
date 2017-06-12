@@ -4,6 +4,7 @@
 
 library test.new_instance_with_type_arguments_test;
 
+@MirrorsUsed(targets: "test.new_instance_with_type_arguments_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -11,7 +12,9 @@ import 'package:expect/expect.dart';
 class A<T> {
   Type get t => T;
 }
+
 class B extends A<int> {}
+
 class C<S> extends A<num> {
   Type get s => S;
 }
@@ -38,12 +41,9 @@ main() {
 
   var reflective_a_int =
       cmB.superclass.newInstance(const Symbol(''), []).reflectee;
-  var reflective_a_dynamic =
-      cmA.newInstance(const Symbol(''), []).reflectee;
-  var reflective_b =
-      cmB.newInstance(const Symbol(''), []).reflectee;
-  var reflective_c_dynamic =
-      cmC.newInstance(const Symbol(''), []).reflectee;
+  var reflective_a_dynamic = cmA.newInstance(const Symbol(''), []).reflectee;
+  var reflective_b = cmB.newInstance(const Symbol(''), []).reflectee;
+  var reflective_c_dynamic = cmC.newInstance(const Symbol(''), []).reflectee;
 
   Expect.equals(int, reflective_a_int.t);
   Expect.equals(dynamic, reflective_a_dynamic.t);

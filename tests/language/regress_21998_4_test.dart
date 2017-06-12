@@ -16,7 +16,7 @@ class C {
   max(a) => a;
 
   m() {
-    return max(Math.max(
-               lib3_max(0, lib2_max(1, 2)), lib1.max('a', 'b', 'cd').length));
+    return max(
+        Math.max(lib3_max(0, lib2_max(1, 2)), lib1.max('a', 'b', 'cd').length));
   }
 }

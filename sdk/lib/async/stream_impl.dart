@@ -500,7 +500,8 @@ class _GeneratedStreamImpl<T> extends _StreamImpl<T> {
     if (_isUsed) throw new StateError("Stream has already been listened to.");
     _isUsed = true;
     return new _BufferingStreamSubscription<T>(
-        onData, onError, onDone, cancelOnError).._setPendingEvents(_pending());
+        onData, onError, onDone, cancelOnError)
+      .._setPendingEvents(_pending());
   }
 }
 

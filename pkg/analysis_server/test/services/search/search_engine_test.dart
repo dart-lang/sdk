@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.src.search.search_engine_internal;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/services/index/index.dart';
@@ -68,6 +66,9 @@ class ExpectedMatch {
 class SearchEngineImplTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
+
+  @override
+  bool get enableNewAnalysisDriver => false;
 
   void setUp() {
     super.setUp();

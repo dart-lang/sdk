@@ -9,6 +9,7 @@ import 'dart:mirrors';
 import 'reflected_type_helper.dart';
 
 class Class<T> {}
+
 typedef bool Predicate<S>(S t);
 
 main() {

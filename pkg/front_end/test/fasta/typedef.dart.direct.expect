@@ -1,9 +1,0 @@
-library;
-import self as self;
-import "dart:core" as core;
-
-static method main() → dynamic {
-  core::print(self::main is () → dynamic);
-  core::print(self::main is (dynamic) → dynamic);
-  core::print(self::main is (dynamic, dynamic) → dynamic);
-}

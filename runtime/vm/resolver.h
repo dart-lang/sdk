@@ -50,6 +50,7 @@ class Resolver : public AllStatic {
   static RawFunction* ResolveStatic(const Library& library,
                                     const String& cls_name,
                                     const String& function_name,
+                                    intptr_t type_args_len,
                                     intptr_t num_arguments,
                                     const Array& argument_names);
 
@@ -57,6 +58,7 @@ class Resolver : public AllStatic {
   // public functions.
   static RawFunction* ResolveStatic(const Class& cls,
                                     const String& function_name,
+                                    intptr_t type_args_len,
                                     intptr_t num_arguments,
                                     const Array& argument_names);
 
@@ -64,6 +66,7 @@ class Resolver : public AllStatic {
   // public and private functions.
   static RawFunction* ResolveStaticAllowPrivate(const Class& cls,
                                                 const String& function_name,
+                                                intptr_t type_args_len,
                                                 intptr_t num_arguments,
                                                 const Array& argument_names);
 };

@@ -5,7 +5,11 @@
 // Regression test for dart2js that used to not resolve instance
 // fields when a class is only instantiated through mirrors.
 
+library lib;
+
 import "package:expect/expect.dart";
+
+@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 class A {
@@ -15,7 +19,7 @@ class A {
 }
 
 main() {
-  var mirrors = currentMirrorSystem();  
+  var mirrors = currentMirrorSystem();
   var classMirror = reflectClass(A);
   var instanceMirror = classMirror.newInstance(const Symbol(''), []);
   Expect.equals(A._STATE_INITIAL, instanceMirror.reflectee._state);

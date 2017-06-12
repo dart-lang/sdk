@@ -6,18 +6,24 @@
 typedef Handler(bool e);
 
 class Hello {
- Hello() {}
- void handler2(bool e) { print('handler2'); }
- static void handler1(bool e) { print('handler1'); }
- void addEventListener(String s, Handler handler, bool status) {
-   handler(status);
- }
+  Hello() {}
+  void handler2(bool e) {
+    print('handler2');
+  }
 
- static void main() {
-   final h = new Hello();
-   h.addEventListener('click', handler1, false);
-   h.addEventListener('click', h.handler2, false);
- }
+  static void handler1(bool e) {
+    print('handler1');
+  }
+
+  void addEventListener(String s, Handler handler, bool status) {
+    handler(status);
+  }
+
+  static void main() {
+    final h = new Hello();
+    h.addEventListener('click', handler1, false);
+    h.addEventListener('click', h.handler2, false);
+  }
 }
 
 main() {

@@ -67,10 +67,20 @@ abstract class StreamController<T> implements StreamSink<T> {
    *
    * If [sync] is true, the returned stream controller is a
    * [SynchronousStreamController], and must be used with the care
-   * and attention necessary to not break the [Stream] contract.
-   * See [Completer.sync] for some explanations on when a synchronous
-   * dispatching can be used.
-   * If in doubt, keep the controller non-sync.
+   * and attention necessary to not break the [Stream] contract. If in doubt,
+   * use the non-sync version.
+   *
+   * Using an asynchronous controller will never give the wrong
+   * behavior, but using a synchronous controller incorrectly can cause
+   * otherwise correct programs to break.
+   *
+   * A synchronous controller is only intended for optimizing event
+   * propagation when one asynchronous event immediately triggers another.
+   * It should not be used unless the calls to [add] or [addError]
+   * are guaranteed to occur in places where it won't break `Stream` invariants.
+   *
+   * Use synchronous controllers only to forward (potentially transformed)
+   * events from another stream or a future.
    *
    * A Stream should be inert until a subscriber starts listening on it (using
    * the [onListen] callback to start producing events). Streams should not
@@ -235,11 +245,40 @@ abstract class StreamController<T> implements StreamSink<T> {
   bool get hasListener;
 
   /**
-   * Send or enqueue an error event.
+   * Sends a data [event].
+   *
+   * Listeners receive this event in a later microtask.
+   *
+   * Note that a synchronous controller (created by passing true to the `sync`
+   * parameter of the `StreamController` constructor) delivers events
+   * immediately. Since this behavior violates the contract mentioned here,
+   * synchronous controllers should only be used as described in the
+   * documentation to ensure that the delivered events always *appear* as if
+   * they were delivered in a separate microtask.
+   */
+  void add(T event);
+
+  /**
+   * Sends or enqueues an error event.
    *
    * If [error] is `null`, it is replaced by a [NullThrownError].
+   *
+   * Listeners receive this event at a later microtask. This behavior can be
+   * overridden by using `sync` controllers. Note, however, that sync
+   * controllers have to satisfy the preconditions mentioned in the
+   * documentation of the constructors.
    */
   void addError(Object error, [StackTrace stackTrace]);
+
+  /**
+   * Closes the stream.
+   *
+   * Listeners receive the done event at a later microtask. This behavior can be
+   * overridden by using `sync` controllers. Note, however, that sync
+   * controllers have to satisfy the preconditions mentioned in the
+   * documentation of the constructors.
+   */
+  Future close();
 
   /**
    * Receives events from [source] and puts them into this controller's stream.
@@ -284,7 +323,7 @@ abstract class StreamController<T> implements StreamSink<T> {
  * accidentally break other code.
  *
  * Adding events to a synchronous controller should only happen as the
- * very last part of a the handling of the original event.
+ * very last part of the handling of the original event.
  * At that point, adding an event to the stream is equivalent to
  * returning to the event loop and adding the event in the next microtask.
  *

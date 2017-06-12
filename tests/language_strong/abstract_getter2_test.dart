@@ -12,7 +12,9 @@ abstract class B extends A {
   int _x;
 
   int get x;
-  set x(int v) { _x = v; }
+  set x(int v) {
+    _x = v;
+  }
 }
 
 class C extends B {

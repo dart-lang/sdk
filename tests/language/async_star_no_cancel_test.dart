@@ -30,7 +30,7 @@ ticker() async* {
 void main() {
   asyncStart();
   events.add("main");
-  final subscription = ticker().listen((val) { });
+  final subscription = ticker().listen((val) {});
 
   bool cancelFinished = false;
   // Cancel the subscription.

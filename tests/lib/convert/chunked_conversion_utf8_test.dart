@@ -26,7 +26,6 @@ String decode(List<int> bytes, int chunkSize) {
   return buffer.toString();
 }
 
-
 main() {
   for (var test in UNICODE_TESTS) {
     var bytes = test[0];

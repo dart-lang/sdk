@@ -42,23 +42,23 @@ class IsolatedHttpServer {
 
   void shutdown() {
     // Send server stop message to the server.
-    _serverPort.send([new IsolatedHttpServerCommand.stop(),
-                      _statusPort.sendPort]);
+    _serverPort
+        .send([new IsolatedHttpServerCommand.stop(), _statusPort.sendPort]);
     _statusPort.close();
   }
 
   void chunkedEncoding() {
     // Send chunked encoding message to the server.
     _serverPort.send([
-        new IsolatedHttpServerCommand.chunkedEncoding(),
-        _statusPort.sendPort]);
+      new IsolatedHttpServerCommand.chunkedEncoding(),
+      _statusPort.sendPort
+    ]);
   }
 
-  ReceivePort _statusPort;  // Port for receiving messages from the server.
-  SendPort _serverPort;  // Port for sending messages to the server.
+  ReceivePort _statusPort; // Port for receiving messages from the server.
+  SendPort _serverPort; // Port for sending messages to the server.
   var _startedCallback;
 }
-
 
 class IsolatedHttpServerCommand {
   static const START = 0;
@@ -75,7 +75,6 @@ class IsolatedHttpServerCommand {
 
   int _command;
 }
-
 
 class IsolatedHttpServerStatus {
   static const STARTED = 0;
@@ -96,13 +95,11 @@ class IsolatedHttpServerStatus {
   int _port;
 }
 
-
 void startIsolatedHttpServer(SendPort replyTo) {
   var server = new TestServer();
   server.init();
   replyTo.send(server.dispatchSendPort);
 }
-
 
 class TestServer {
   // Return a 404.
@@ -162,8 +159,8 @@ class TestServer {
     Expect.equals("html", request.headers.contentType.subType);
     Expect.equals("utf-8", request.headers.contentType.parameters["charset"]);
 
-    response.headers.set(HttpHeaders.CONTENT_TYPE,
-                         "text/html;  charset = utf-8");
+    response.headers
+        .set(HttpHeaders.CONTENT_TYPE, "text/html;  charset = utf-8");
     response.close();
   }
 
@@ -234,7 +231,7 @@ class TestServer {
   }
 
   void _requestReceivedHandler(HttpRequest request) {
-    var requestHandler =_requestHandlers[request.uri.path];
+    var requestHandler = _requestHandlers[request.uri.path];
     if (requestHandler != null) {
       requestHandler(request);
     } else {
@@ -242,7 +239,7 @@ class TestServer {
     }
   }
 
-  HttpServer _server;  // HTTP server instance.
+  HttpServer _server; // HTTP server instance.
   ReceivePort _dispatchPort;
   Map _requestHandlers;
   bool _chunkedEncoding = false;
@@ -253,40 +250,36 @@ Future testHost() {
   IsolatedHttpServer server = new IsolatedHttpServer();
   server.setServerStartedHandler((int port) {
     HttpClient httpClient = new HttpClient();
-    httpClient.get("127.0.0.1", port, "/host")
-        .then((request) {
-          Expect.equals("127.0.0.1:$port", request.headers["host"][0]);
-          request.headers.host = "www.dartlang.com";
-          Expect.equals("www.dartlang.com:$port", request.headers["host"][0]);
-          Expect.equals("www.dartlang.com", request.headers.host);
-          Expect.equals(port, request.headers.port);
-          request.headers.port = 1234;
-          Expect.equals("www.dartlang.com:1234", request.headers["host"][0]);
-          Expect.equals(1234, request.headers.port);
-          request.headers.port = HttpClient.DEFAULT_HTTP_PORT;
-          Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.headers.port);
-          Expect.equals("www.dartlang.com", request.headers["host"][0]);
-          request.headers.set("Host", "www.dartlang.org");
-          Expect.equals("www.dartlang.org", request.headers.host);
-          Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.headers.port);
-          request.headers.set("Host", "www.dartlang.org:");
-          Expect.equals("www.dartlang.org", request.headers.host);
-          Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.headers.port);
-          request.headers.set("Host", "www.dartlang.org:1234");
-          Expect.equals("www.dartlang.org", request.headers.host);
-          Expect.equals(1234, request.headers.port);
-          return request.close();
-        })
-        .then((response) {
-          Expect.equals(HttpStatus.OK, response.statusCode);
-          response.listen(
-              (_) { },
-              onDone: () {
-                httpClient.close();
-                server.shutdown();
-                completer.complete(true);
-              });
-        });
+    httpClient.get("127.0.0.1", port, "/host").then((request) {
+      Expect.equals("127.0.0.1:$port", request.headers["host"][0]);
+      request.headers.host = "www.dartlang.com";
+      Expect.equals("www.dartlang.com:$port", request.headers["host"][0]);
+      Expect.equals("www.dartlang.com", request.headers.host);
+      Expect.equals(port, request.headers.port);
+      request.headers.port = 1234;
+      Expect.equals("www.dartlang.com:1234", request.headers["host"][0]);
+      Expect.equals(1234, request.headers.port);
+      request.headers.port = HttpClient.DEFAULT_HTTP_PORT;
+      Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.headers.port);
+      Expect.equals("www.dartlang.com", request.headers["host"][0]);
+      request.headers.set("Host", "www.dartlang.org");
+      Expect.equals("www.dartlang.org", request.headers.host);
+      Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.headers.port);
+      request.headers.set("Host", "www.dartlang.org:");
+      Expect.equals("www.dartlang.org", request.headers.host);
+      Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.headers.port);
+      request.headers.set("Host", "www.dartlang.org:1234");
+      Expect.equals("www.dartlang.org", request.headers.host);
+      Expect.equals(1234, request.headers.port);
+      return request.close();
+    }).then((response) {
+      Expect.equals(HttpStatus.OK, response.statusCode);
+      response.listen((_) {}, onDone: () {
+        httpClient.close();
+        server.shutdown();
+        completer.complete(true);
+      });
+    });
   });
   server.start();
   return completer.future;
@@ -301,25 +294,26 @@ Future testExpires() {
 
     void processResponse(HttpClientResponse response) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      Expect.equals("Fri, 11 Jun 1999 18:46:53 GMT",
-                    response.headers["expires"][0]);
+      Expect.equals(
+          "Fri, 11 Jun 1999 18:46:53 GMT", response.headers["expires"][0]);
       Expect.equals(new DateTime.utc(1999, DateTime.JUNE, 11, 18, 46, 53, 0),
-                    response.headers.expires);
-      response.listen((_) { },
-                      onDone: () {
-                        responses++;
-                        if (responses == 2) {
-                          httpClient.close();
-                          server.shutdown();
-                          completer.complete(true);
-                        }
-                      });
+          response.headers.expires);
+      response.listen((_) {}, onDone: () {
+        responses++;
+        if (responses == 2) {
+          httpClient.close();
+          server.shutdown();
+          completer.complete(true);
+        }
+      });
     }
 
-    httpClient.get("127.0.0.1", port, "/expires1")
+    httpClient
+        .get("127.0.0.1", port, "/expires1")
         .then((request) => request.close())
         .then(processResponse);
-    httpClient.get("127.0.0.1", port, "/expires2")
+    httpClient
+        .get("127.0.0.1", port, "/expires2")
         .then((request) => request.close())
         .then(processResponse);
   });
@@ -336,40 +330,34 @@ Future testContentType() {
 
     void processResponse(HttpClientResponse response) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      Expect.equals("text/html; charset=utf-8",
-                    response.headers.contentType.toString());
+      Expect.equals(
+          "text/html; charset=utf-8", response.headers.contentType.toString());
       Expect.equals("text/html", response.headers.contentType.value);
       Expect.equals("text", response.headers.contentType.primaryType);
       Expect.equals("html", response.headers.contentType.subType);
-      Expect.equals("utf-8",
-                    response.headers.contentType.parameters["charset"]);
-      response.listen(
-          (_) { },
-          onDone: () {
-            responses++;
-            if (responses == 2) {
-              httpClient.close();
-              server.shutdown();
-              completer.complete(true);
-            }
-          });
+      Expect.equals(
+          "utf-8", response.headers.contentType.parameters["charset"]);
+      response.listen((_) {}, onDone: () {
+        responses++;
+        if (responses == 2) {
+          httpClient.close();
+          server.shutdown();
+          completer.complete(true);
+        }
+      });
     }
 
-    httpClient.get("127.0.0.1", port, "/contenttype1")
-        .then((request) {
-          request.headers.contentType =
-              new ContentType("text", "html", charset: "utf-8");
-          return request.close();
-        })
-        .then(processResponse);
+    httpClient.get("127.0.0.1", port, "/contenttype1").then((request) {
+      request.headers.contentType =
+          new ContentType("text", "html", charset: "utf-8");
+      return request.close();
+    }).then(processResponse);
 
-    httpClient.get("127.0.0.1", port, "/contenttype2")
-        .then((request) {
-          request.headers.set(HttpHeaders.CONTENT_TYPE,
-                              "text/html;  charset = utf-8");
-          return request.close();
-        })
-        .then(processResponse);
+    httpClient.get("127.0.0.1", port, "/contenttype2").then((request) {
+      request.headers
+          .set(HttpHeaders.CONTENT_TYPE, "text/html;  charset = utf-8");
+      return request.close();
+    }).then(processResponse);
   });
   server.start();
   return completer.future;
@@ -382,48 +370,43 @@ Future testCookies() {
     int responses = 0;
     HttpClient httpClient = new HttpClient();
 
-    httpClient.get("127.0.0.1", port, "/cookie1")
+    httpClient
+        .get("127.0.0.1", port, "/cookie1")
         .then((request) => request.close())
         .then((response) {
-          Expect.equals(2, response.cookies.length);
-          response.cookies.forEach((cookie) {
-            if (cookie.name == "name1") {
-              Expect.equals("value1", cookie.value);
-              DateTime date =
-                  new DateTime.utc(2014, DateTime.JANUARY, 5, 23, 59, 59, 0);
-              Expect.equals(date, cookie.expires);
-              Expect.equals("www.example.com", cookie.domain);
-              Expect.isTrue(cookie.httpOnly);
-            } else if (cookie.name == "name2") {
-              Expect.equals("value2", cookie.value);
-              Expect.equals(100, cookie.maxAge);
-              Expect.equals(".example.com", cookie.domain);
-              Expect.equals("/shop", cookie.path);
-            } else {
-              Expect.fail("Unexpected cookie");
-            }
-          });
+      Expect.equals(2, response.cookies.length);
+      response.cookies.forEach((cookie) {
+        if (cookie.name == "name1") {
+          Expect.equals("value1", cookie.value);
+          DateTime date =
+              new DateTime.utc(2014, DateTime.JANUARY, 5, 23, 59, 59, 0);
+          Expect.equals(date, cookie.expires);
+          Expect.equals("www.example.com", cookie.domain);
+          Expect.isTrue(cookie.httpOnly);
+        } else if (cookie.name == "name2") {
+          Expect.equals("value2", cookie.value);
+          Expect.equals(100, cookie.maxAge);
+          Expect.equals(".example.com", cookie.domain);
+          Expect.equals("/shop", cookie.path);
+        } else {
+          Expect.fail("Unexpected cookie");
+        }
+      });
 
-          response.listen(
-              (_) { },
-              onDone: () {
-                httpClient.get("127.0.0.1", port, "/cookie2")
-                    .then((request) {
-                      request.cookies.add(response.cookies[0]);
-                      request.cookies.add(response.cookies[1]);
-                      return request.close();
-                    })
-                    .then((response) {
-                      response.listen(
-                          (_) { },
-                          onDone: () {
-                            httpClient.close();
-                            server.shutdown();
-                            completer.complete(true);
-                          });
-                    });
-              });
+      response.listen((_) {}, onDone: () {
+        httpClient.get("127.0.0.1", port, "/cookie2").then((request) {
+          request.cookies.add(response.cookies[0]);
+          request.cookies.add(response.cookies[1]);
+          return request.close();
+        }).then((response) {
+          response.listen((_) {}, onDone: () {
+            httpClient.close();
+            server.shutdown();
+            completer.complete(true);
+          });
         });
+      });
+    });
   });
   server.start();
   return completer.future;

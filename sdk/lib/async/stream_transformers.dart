@@ -209,12 +209,29 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   final _TransformDoneHandler<T> _handleDone;
 
   /// The output sink where the handlers should send their data into.
-  final EventSink<T> _sink;
+  EventSink<T> _sink;
 
   _HandlerEventSink(
-      this._handleData, this._handleError, this._handleDone, this._sink);
+      this._handleData, this._handleError, this._handleDone, this._sink) {
+    if (_sink == null) {
+      throw new ArgumentError("The provided sink must not be null.");
+    }
+  }
+
+  bool get _isClosed => _sink == null;
+
+  _reportClosedSink() {
+    // TODO(29554): throw a StateError, and don't just report the problem.
+    Zone.ROOT
+      ..print("Sink is closed and adding to it is an error.")
+      ..print("  See http://dartbug.com/29554.")
+      ..print(StackTrace.current.toString());
+  }
 
   void add(S data) {
+    if (_isClosed) {
+      _reportClosedSink();
+    }
     if (_handleData != null) {
       _handleData(data, _sink);
     } else {
@@ -223,6 +240,9 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
+    if (_isClosed) {
+      _reportClosedSink();
+    }
     if (_handleError != null) {
       _handleError(error, stackTrace, _sink);
     } else {
@@ -231,10 +251,13 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   }
 
   void close() {
+    if (_isClosed) return;
+    var sink = _sink;
+    _sink = null;
     if (_handleDone != null) {
-      _handleDone(_sink);
+      _handleDone(sink);
     } else {
-      _sink.close();
+      sink.close();
     }
   }
 }
@@ -276,31 +299,31 @@ typedef StreamSubscription<T> _SubscriptionTransformer<S, T>(
  * fully general.
  */
 class _StreamSubscriptionTransformer<S, T> implements StreamTransformer<S, T> {
-  final _SubscriptionTransformer<S, T> _transformer;
+  final _SubscriptionTransformer<S, T> _onListen;
 
-  const _StreamSubscriptionTransformer(this._transformer);
+  const _StreamSubscriptionTransformer(this._onListen);
 
   Stream<T> bind(Stream<S> stream) =>
-      new _BoundSubscriptionStream<S, T>(stream, _transformer);
+      new _BoundSubscriptionStream<S, T>(stream, _onListen);
 }
 
 /**
  * A stream transformed by a [_StreamSubscriptionTransformer].
  *
- * When this stream is listened to it invokes the [_transformer] function with
+ * When this stream is listened to it invokes the [_onListen] function with
  * the stored [_stream]. Usually the transformer starts listening at this
  * moment.
  */
 class _BoundSubscriptionStream<S, T> extends Stream<T> {
-  final _SubscriptionTransformer<S, T> _transformer;
+  final _SubscriptionTransformer<S, T> _onListen;
   final Stream<S> _stream;
 
-  _BoundSubscriptionStream(this._stream, this._transformer);
+  _BoundSubscriptionStream(this._stream, this._onListen);
 
   StreamSubscription<T> listen(void onData(T event),
       {Function onError, void onDone(), bool cancelOnError}) {
     cancelOnError = identical(true, cancelOnError);
-    StreamSubscription<T> result = _transformer(_stream, cancelOnError);
+    StreamSubscription<T> result = _onListen(_stream, cancelOnError);
     result.onData(onData);
     result.onError(onError);
     result.onDone(onDone);

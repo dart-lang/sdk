@@ -13,11 +13,10 @@ import 'utils.dart';
 class CustomElement extends HtmlElement {
   factory CustomElement() => new Element.tag('x-custom');
 
-  CustomElement.created() : super.created() {
-  }
+  CustomElement.created() : super.created() {}
 
   // Try to clash with native 'appendChild' method.
-  void appendChild() { 
+  void appendChild() {
     throw 'Gotcha!';
   }
 }
@@ -34,12 +33,12 @@ main() {
       document.body.children.add(custom);
 
       // Will call appendChild in JS.
-      custom.children.add(new DivElement()..text = 'Hello world!'); 
+      custom.children.add(new DivElement()..text = 'Hello world!');
 
       try {
         custom.appendChild(); // Make sure method is not tree shaken.
         fail('appendChild did not throw');
-      } catch(e) {
+      } catch (e) {
         expect(e, equals('Gotcha!'));
       }
     });

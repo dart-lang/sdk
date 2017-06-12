@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 // map.values).
 
 main() {
-  var map1 = <int, String>{ 1: "42", 2: "499" };
+  var map1 = <int, String>{1: "42", 2: "499"};
   Expect.isTrue(map1.values is Iterable<String>);
   Expect.isFalse(map1.values is Iterable<bool>);
 }

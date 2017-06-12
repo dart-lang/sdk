@@ -9,7 +9,7 @@ import "dart:io";
 String getPlatformExecutableExtension() {
   var os = Platform.operatingSystem;
   if (os == 'windows') return '.exe';
-  return '';  // Linux and Mac OS.
+  return ''; // Linux and Mac OS.
 }
 
 String getProcessTestFileName() {

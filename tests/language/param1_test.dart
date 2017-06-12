@@ -8,9 +8,10 @@ class Param1Test {
   // avoid a type error with --enable_type_checks, the type of i below is
   // changed from int to String.
   // static int testMain(String s, int i) { return i; }
-  static int testMain() { return 0; }
+  static int testMain() {
+    return 0;
+  }
 }
-
 
 main() {
   Param1Test.testMain();

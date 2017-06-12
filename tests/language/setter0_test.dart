@@ -7,14 +7,14 @@
 import "package:expect/expect.dart";
 
 class First {
-  First(int val) : a_ = val { }
+  First(int val) : a_ = val {}
   int a_;
 }
 
 class Second extends First {
   static int c;
 
-  Second(int val) : super(val) { }
+  Second(int val) : super(val) {}
 
   static void testStaticMethod() {
     int i;
@@ -25,6 +25,7 @@ class Second extends First {
   void set instance_a(int value) {
     a_ = a_ + value;
   }
+
   int get instance_a {
     return a_;
   }
@@ -50,7 +51,6 @@ class Setter0Test {
     Expect.equals(20, Second.static_d);
   }
 }
-
 
 main() {
   Setter0Test.testMain();

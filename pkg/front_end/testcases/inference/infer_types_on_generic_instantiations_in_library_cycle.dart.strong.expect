@@ -1,0 +1,30 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "./infer_types_on_generic_instantiations_in_library_cycle_a.dart" as inf;
+
+abstract class A<E extends core::Object> extends core::Object implements inf::I<self::A::E> {
+  final field self::A::E value = null;
+  const constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class M extends core::Object {
+  final field core::int y = 0;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B<E extends core::Object> extends self::A<self::B::E> implements self::M {
+  const constructor •() → void
+    : super self::A::•()
+    ;
+  get y() → core::int
+    return 0;
+  method m(dynamic a, dynamic f) → dynamic {}
+}
+static method foo() → dynamic {
+  core::int y = new self::B::•<core::String>().m(null, null).value;
+  core::String z = new self::B::•<core::String>().m(null, null).value;
+}
+static method main() → dynamic {}

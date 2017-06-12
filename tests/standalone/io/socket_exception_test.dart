@@ -11,7 +11,6 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 class SocketExceptionTest {
-
   static void serverSocketExceptionTest() {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
@@ -21,7 +20,7 @@ class SocketExceptionTest {
       server.close();
       try {
         server.close();
-      } on SocketException catch(ex) {
+      } on SocketException catch (ex) {
         exceptionCaught = true;
       } catch (ex) {
         wrongExceptionCaught = true;
@@ -30,9 +29,10 @@ class SocketExceptionTest {
       Expect.equals(true, !wrongExceptionCaught);
 
       // Test invalid host.
-      ServerSocket.bind("__INVALID_HOST__", 0)
-        .then((server) { })
-        .catchError((e) => e is SocketException);
+      ServerSocket
+          .bind("__INVALID_HOST__", 0)
+          .then((server) {})
+          .catchError((e) => e is SocketException);
     });
   }
 
@@ -42,9 +42,8 @@ class SocketExceptionTest {
       Socket.connect("127.0.0.1", server.port).then((socket) {
         socket.destroy();
         server.close();
-        server.listen(
-          (incoming) => Expect.fail("Unexpected socket"),
-          onDone: asyncEnd);
+        server.listen((incoming) => Expect.fail("Unexpected socket"),
+            onDone: asyncEnd);
       });
     });
   }
@@ -53,12 +52,11 @@ class SocketExceptionTest {
     asyncStart();
     ServerSocket.bind("127.0.0.1", 0).then((server) {
       Socket.connect("127.0.0.1", server.port).then((socket) {
-        server.listen(
-          (incoming) {
-            incoming.destroy();
-            socket.destroy();
-            server.close();
-          }, onDone: asyncEnd);
+        server.listen((incoming) {
+          incoming.destroy();
+          socket.destroy();
+          server.close();
+        }, onDone: asyncEnd);
       });
     });
   }
@@ -69,14 +67,14 @@ class SocketExceptionTest {
 
     ServerSocket.bind("127.0.0.1", 0).then((server) {
       Expect.isNotNull(server);
-     int port = server.port;
+      int port = server.port;
       Socket.connect("127.0.0.1", port).then((client) {
         Expect.isNotNull(client);
         client.close();
         // First calls for which exceptions are note expected.
         try {
           client.close();
-        } on SocketException catch(ex) {
+        } on SocketException catch (ex) {
           exceptionCaught = true;
         } catch (ex) {
           wrongExceptionCaught = true;
@@ -85,7 +83,7 @@ class SocketExceptionTest {
         Expect.isFalse(wrongExceptionCaught);
         try {
           client.destroy();
-        } on SocketException catch(ex) {
+        } on SocketException catch (ex) {
           exceptionCaught = true;
         } catch (ex) {
           wrongExceptionCaught = true;
@@ -107,7 +105,7 @@ class SocketExceptionTest {
         exceptionCaught = false;
         try {
           client.port;
-        } on SocketException catch(ex) {
+        } on SocketException catch (ex) {
           exceptionCaught = true;
         } catch (ex) {
           wrongExceptionCaught = true;
@@ -117,7 +115,7 @@ class SocketExceptionTest {
         exceptionCaught = false;
         try {
           client.remotePort;
-        } on SocketException catch(ex) {
+        } on SocketException catch (ex) {
           exceptionCaught = true;
         } catch (ex) {
           wrongExceptionCaught = true;
@@ -127,7 +125,7 @@ class SocketExceptionTest {
         exceptionCaught = false;
         try {
           client.address;
-        } on SocketException catch(ex) {
+        } on SocketException catch (ex) {
           exceptionCaught = true;
         } catch (ex) {
           wrongExceptionCaught = true;
@@ -137,7 +135,7 @@ class SocketExceptionTest {
         exceptionCaught = false;
         try {
           client.remoteAddress;
-        } on SocketException catch(ex) {
+        } on SocketException catch (ex) {
           exceptionCaught = true;
         } catch (ex) {
           wrongExceptionCaught = true;
@@ -185,12 +183,10 @@ class SocketExceptionTest {
       Socket.connect("127.0.0.1", server.port).then((client) {
         const int SIZE = 1024 * 1024;
         int count = 0;
-        client.listen(
-            (data) => count += data.length,
-            onDone: () {
-              Expect.equals(SIZE, count);
-              server.close();
-            });
+        client.listen((data) => count += data.length, onDone: () {
+          Expect.equals(SIZE, count);
+          server.close();
+        });
         client.add(new List.filled(SIZE, 0));
         client.close();
         // Start piping now.
@@ -209,31 +205,27 @@ class SocketExceptionTest {
       Socket.connect("127.0.0.1", server.port).then((client) {
         const int SIZE = 1024 * 1024;
         int errors = 0;
-        client.listen(
-            (data) => Expect.fail("Unexpected data"),
+        client.listen((data) => Expect.fail("Unexpected data"),
             onError: (error) {
-              Expect.isTrue(error is SocketException);
-              errors++;
-            },
-            onDone: () {
-              // We get either a close or an error followed by a close
-              // on the socket.  Whether we get both depends on
-              // whether the system notices the error for the read
-              // event or only for the write event.
-              Expect.isTrue(errors <= 1);
-              server.close();
-            });
+          Expect.isTrue(error is SocketException);
+          errors++;
+        }, onDone: () {
+          // We get either a close or an error followed by a close
+          // on the socket.  Whether we get both depends on
+          // whether the system notices the error for the read
+          // event or only for the write event.
+          Expect.isTrue(errors <= 1);
+          server.close();
+        });
         client.add(new List.filled(SIZE, 0));
         // Destroy other socket now.
         completer.complete(null);
-        client.done.then(
-            (_) {
-              Expect.fail("Expected error");
-            },
-            onError: (error) {
-              Expect.isTrue(error is SocketException);
-              asyncEnd();
-            });
+        client.done.then((_) {
+          Expect.fail("Expected error");
+        }, onError: (error) {
+          Expect.isTrue(error is SocketException);
+          asyncEnd();
+        });
       });
     });
   }
@@ -249,11 +241,9 @@ class SocketExceptionTest {
         int errors = 0;
         client.add(new List.filled(SIZE, 0));
         client.close();
-        client.done
-            .catchError((_) {})
-            .whenComplete(() {
-              server.close();
-            });
+        client.done.catchError((_) {}).whenComplete(() {
+          server.close();
+        });
         // Destroy other socket now.
         completer.complete(null);
       });
@@ -262,10 +252,10 @@ class SocketExceptionTest {
 
   static void unknownHostTest() {
     asyncStart();
-    Socket.connect("hede.hule.hest", 1234)
+    Socket
+        .connect("hede.hule.hest", 1234)
         .then((socket) => Expect.fail("Connection completed"))
         .catchError((e) => asyncEnd(), test: (e) => e is SocketException);
-
   }
 
   static void testMain() {
@@ -287,4 +277,3 @@ main() {
   SocketExceptionTest.testMain();
   asyncEnd();
 }
-

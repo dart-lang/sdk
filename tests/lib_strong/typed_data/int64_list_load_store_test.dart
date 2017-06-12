@@ -31,7 +31,7 @@ main() {
   // Deopt.
   try {
     testStoreLoad(l, zBad);
-  } catch (_) { }
+  } catch (_) {}
   for (var i = 0; i < 40; i++) {
     testStoreLoad(l, zGood);
   }

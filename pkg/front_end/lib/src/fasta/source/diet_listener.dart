@@ -4,6 +4,15 @@
 
 library fasta.diet_listener;
 
+import 'package:front_end/src/fasta/kernel/kernel_ast_factory.dart'
+    show KernelAstFactory;
+
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
+    show TypeInferenceEngine;
+
+import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
+    show TypeInferenceListener;
+
 import 'package:kernel/ast.dart' show AsyncMarker;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -12,12 +21,13 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
 
-import '../parser/parser.dart' show Parser, optional;
+import '../parser/parser.dart' show MemberKind, Parser, optional;
 
-import '../scanner/token.dart' show BeginGroupToken, Token;
+import '../scanner/token.dart' show BeginGroupToken;
 
-import '../parser/dart_vm_native.dart'
-    show removeNativeClause, skipNativeClause;
+import '../../scanner/token.dart' show Token;
+
+import '../parser/dart_vm_native.dart' show removeNativeClause;
 
 import '../util/link.dart' show Link;
 
@@ -29,11 +39,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../builder/builder.dart';
 
-import '../builder/scope.dart' show Scope;
-
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-
-import '../kernel/kernel_library_builder.dart' show isConstructorName;
 
 class DietListener extends StackListener {
   final SourceLibraryBuilder library;
@@ -44,6 +50,8 @@ class DietListener extends StackListener {
 
   final bool isDartLibrary;
 
+  final TypeInferenceEngine typeInferenceEngine;
+
   ClassBuilder currentClass;
 
   /// For top-level declarations, this is the library scope. For class members,
@@ -53,7 +61,8 @@ class DietListener extends StackListener {
   @override
   Uri uri;
 
-  DietListener(SourceLibraryBuilder library, this.hierarchy, this.coreTypes)
+  DietListener(SourceLibraryBuilder library, this.hierarchy, this.coreTypes,
+      this.typeInferenceEngine)
       : library = library,
         uri = library.fileUri,
         memberScope = library.scope,
@@ -130,7 +139,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFieldInitializer(Token assignmentOperator) {
+  void endFieldInitializer(Token assignmentOperator, Token token) {
     debugEvent("FieldInitializer");
   }
 
@@ -145,10 +154,13 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFormalParameters(int count, Token beginToken, Token endToken) {
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
     assert(count == 0); // Count is always 0 as the diet parser skips formals.
-    if (identical(peek(), "-") && identical(beginToken.next, endToken)) {
+    if (kind != MemberKind.GeneralizedFunctionType &&
+        identical(peek(), "-") &&
+        identical(beginToken.next, endToken)) {
       pop();
       push("unary-");
     }
@@ -156,7 +168,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void handleNoFormalParameters(Token token) {
+  void handleNoFormalParameters(Token token, MemberKind kind) {
     debugEvent("NoFormalParameters");
     if (identical(peek(), "-")) {
       pop();
@@ -168,15 +180,15 @@ class DietListener extends StackListener {
   @override
   void handleFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
+    discard(1);
   }
 
   @override
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("FunctionTypeAlias");
-    if (stack.length == 1) {
-      // TODO(ahe): This happens when recovering from `typedef I = A;`. Find a
-      // different way to track tokens of formal parameters.
+    if (equals != null) {
+      // This is a `typedef NAME = TYPE`.
       discard(1); // Name.
     } else {
       discard(2); // Name + endToken.
@@ -185,8 +197,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFields(
-      int count, Token covariantToken, Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     List<String> names = popList(count);
     Builder builder = lookupBuilder(beginToken, null, names.first);
@@ -204,7 +215,8 @@ class DietListener extends StackListener {
     Token bodyToken = pop();
     String name = pop();
     checkEmpty(beginToken.charOffset);
-    buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name));
+    buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name),
+        MemberKind.TopLevelMethod);
   }
 
   @override
@@ -364,7 +376,8 @@ class DietListener extends StackListener {
     if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
       return;
     }
-    buildFunctionBody(bodyToken, lookupBuilder(beginToken, null, name));
+    buildFunctionBody(
+        bodyToken, lookupBuilder(beginToken, null, name), MemberKind.Factory);
   }
 
   @override
@@ -382,17 +395,38 @@ class DietListener extends StackListener {
     if (bodyToken == null) {
       return;
     }
-    buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name));
+    ProcedureBuilder builder = lookupBuilder(beginToken, getOrSet, name);
+    buildFunctionBody(
+        bodyToken,
+        builder,
+        builder.isStatic
+            ? MemberKind.StaticMethod
+            : MemberKind.NonStaticMethod);
   }
 
   StackListener createListener(
       MemberBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope]) {
-    return new BodyBuilder(library, builder, memberScope, formalParameterScope,
-        hierarchy, coreTypes, currentClass, isInstanceMember, uri);
+    var listener = new TypeInferenceListener();
+    var typeInferrer =
+        typeInferenceEngine.createLocalTypeInferrer(uri, listener);
+    return new BodyBuilder(
+        library,
+        builder,
+        memberScope,
+        formalParameterScope,
+        hierarchy,
+        coreTypes,
+        currentClass,
+        isInstanceMember,
+        uri,
+        typeInferrer,
+        new KernelAstFactory())
+      ..constantExpressionRequired = builder.isConstructor && builder.isConst;
   }
 
-  void buildFunctionBody(Token token, ProcedureBuilder builder) {
+  void buildFunctionBody(
+      Token token, ProcedureBuilder builder, MemberKind kind) {
     Scope typeParameterScope = builder.computeTypeParameterScope(memberScope);
     Scope formalParameterScope =
         builder.computeFormalParameterScope(typeParameterScope);
@@ -401,10 +435,13 @@ class DietListener extends StackListener {
     parseFunctionBody(
         createListener(builder, typeParameterScope, builder.isInstanceMember,
             formalParameterScope),
-        token);
+        token,
+        kind);
   }
 
   void buildFields(Token token, bool isTopLevel, MemberBuilder builder) {
+    // TODO(paulberry): don't re-parse the field if we've already parsed it
+    // for type inference.
     parseFields(createListener(builder, memberScope, builder.isInstanceMember),
         token, isTopLevel);
   }
@@ -422,7 +459,7 @@ class DietListener extends StackListener {
     assert(currentClass == null);
     currentClass = lookupBuilder(token, null, name);
     assert(memberScope == library.scope);
-    memberScope = currentClass.computeInstanceScope(memberScope);
+    memberScope = currentClass.scope;
   }
 
   @override
@@ -464,11 +501,8 @@ class DietListener extends StackListener {
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
     if (isDartLibrary && message.code == codeExpectedBlockToSkip) {
-      Token recover = skipNativeClause(token);
-      if (recover != null) {
-        assert(isTargetingDartVm);
-        return recover;
-      }
+      Token recover = library.loader.target.skipNativeClause(token);
+      if (recover != null) return recover;
     }
     return super.handleUnrecoverableError(token, message);
   }
@@ -481,10 +515,10 @@ class DietListener extends StackListener {
 
   AsyncMarker getAsyncMarker(StackListener listener) => listener.pop();
 
-  void parseFunctionBody(StackListener listener, Token token) {
+  void parseFunctionBody(StackListener listener, Token token, MemberKind kind) {
     try {
       Parser parser = new Parser(listener);
-      token = parser.parseFormalParametersOpt(token);
+      token = parser.parseFormalParametersOpt(token, kind);
       var formals = listener.pop();
       listener.checkEmpty(token.charOffset);
       listener.prepareInitializers();
@@ -495,8 +529,9 @@ class DietListener extends StackListener {
       bool allowAbstract = asyncModifier == AsyncMarker.Sync;
       parser.parseFunctionBody(token, isExpression, allowAbstract);
       var body = listener.pop();
-      if (listener.stack.length == 1) {
+      if (listener.stack.length == 2) {
         listener.pop(); // constructor initializers
+        listener.pop(); // separator before constructor initializers
       }
       listener.checkEmpty(token.charOffset);
       listener.finishFunction(formals, asyncModifier, body);
@@ -518,44 +553,35 @@ class DietListener extends StackListener {
   }
 
   Builder lookupBuilder(Token token, Token getOrSet, String name) {
+    // TODO(ahe): Can I move this to Scope or ScopeBuilder?
     Builder builder;
     if (currentClass != null) {
-      builder = currentClass.members[name];
-      if (builder == null && isConstructorName(name, currentClass.name)) {
-        int index = name.indexOf(".");
-        name = index == -1 ? "" : name.substring(index + 1);
-        builder = currentClass.members[name];
+      if (getOrSet != null && optional("set", getOrSet)) {
+        builder = currentClass.scope.setters[name];
+      } else {
+        builder = currentClass.scope.local[name];
       }
+      if (builder == null) {
+        if (name == currentClass.name) {
+          name = "";
+        } else {
+          int index = name.indexOf(".");
+          name = name.substring(index + 1);
+        }
+        builder = currentClass.constructors.local[name];
+      }
+    } else if (getOrSet != null && optional("set", getOrSet)) {
+      builder = library.scope.setters[name];
     } else {
-      builder = library.members[name];
+      builder = library.scopeBuilder[name];
     }
     if (builder == null) {
       return internalError("Builder not found: $name", uri, token.charOffset);
     }
     if (builder.next != null) {
-      Builder getterBuilder;
-      Builder setterBuilder;
-      Builder current = builder;
-      while (current != null) {
-        if (current.isGetter && getterBuilder == null) {
-          getterBuilder = current;
-        } else if (current.isSetter && setterBuilder == null) {
-          setterBuilder = current;
-        } else {
-          return inputError(uri, token.charOffset, "Duplicated name: $name");
-        }
-        current = current.next;
-      }
-      assert(getOrSet != null);
-      if (optional("get", getOrSet)) return getterBuilder;
-      if (optional("set", getOrSet)) return setterBuilder;
+      return inputError(uri, token.charOffset, "Duplicated name: $name");
     }
     return builder;
-  }
-
-  bool get isTargetingDartVm {
-    // TODO(ahe): Find a more reliable way to check if this is the Dart VM.
-    return !coreTypes.containsLibrary("dart:_js_helper");
   }
 
   @override

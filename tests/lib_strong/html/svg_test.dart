@@ -14,11 +14,13 @@ main() {
     test('simpleRect', () {
       var div = new Element.tag('div');
       document.body.append(div);
-      div.setInnerHtml(r'''
+      div.setInnerHtml(
+          r'''
 <svg id='svg1' width='200' height='100'>
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>
-''', validator: new NodeValidatorBuilder()..allowSvg());
+''',
+          validator: new NodeValidatorBuilder()..allowSvg());
 
       var e = document.query('#svg1');
       expect(e, isNotNull);
@@ -48,15 +50,16 @@ main() {
     // only, see SVGTest3 for behavioural tests).
     insertTestDiv() {
       var element = new Element.tag('div');
-      element.setInnerHtml(r'''
+      element.setInnerHtml(
+          r'''
 <svg id='svg1' width='200' height='100'>
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>
-''', validator: new NodeValidatorBuilder()..allowSvg());
+''',
+          validator: new NodeValidatorBuilder()..allowSvg());
       document.body.append(element);
       return element;
     }
-
 
     var isElement = predicate((x) => x is Element, 'is an Element');
     var isSvgElement = predicate((x) => x is svg.SvgElement, 'is a SvgElement');
@@ -66,27 +69,28 @@ main() {
         predicate((x) => x is! svg.SvgSvgElement, 'is not a SvgSvgElement');
     var isNode = predicate((x) => x is Node, 'is a Node');
     var isSvgNumber = predicate((x) => x is svg.Number, 'is a svg.Number');
-    var isNotSvgNumber = predicate((x) => x is! svg.Number, 'is not a svg.Number');
+    var isNotSvgNumber =
+        predicate((x) => x is! svg.Number, 'is not a svg.Number');
     var isSvgRect = predicate((x) => x is svg.Rect, 'is a svg.Rect');
     var isNotSvgRect = predicate((x) => x is! svg.Rect, 'is not a svg.Rect');
 
     test('rect_isChecks', () {
-        var div = insertTestDiv();
-        var r = document.query('#rect1');
+      var div = insertTestDiv();
+      var r = document.query('#rect1');
 
-        // Direct inheritance chain
-        expect(r, isSvgElement);
-        expect(r, isElement);
-        expect(r, isNode);
+      // Direct inheritance chain
+      expect(r, isSvgElement);
+      expect(r, isElement);
+      expect(r, isNode);
 
-        // Interfaces not implemented.
-        expect(r, isNotSvgNumber);
-        expect(r, isNotSvgRect);
-        expect(r, isNotSvgSvgElement);
+      // Interfaces not implemented.
+      expect(r, isNotSvgNumber);
+      expect(r, isNotSvgRect);
+      expect(r, isNotSvgSvgElement);
 
-        div.remove();
-      });
+      div.remove();
     });
+  });
 
   insertTestDiv() {
     var element = new Element.tag('div');
@@ -100,7 +104,6 @@ main() {
   }
 
   group('svgBehavioral', () {
-
     // Test that SVG elements have the operations advertised through all the IDL
     // interfaces.  This is a 'duck typing' test, and does not explicitly use
     // 'is' checks on the expected interfaces (that is in the test group above).
@@ -113,12 +116,11 @@ main() {
     var isSvgAnimatedString =
         predicate((x) => x is svg.AnimatedString, 'is an svg.AnimatedString');
     var isSvgRect = predicate((x) => x is svg.Rect, 'is a svg.Rect');
-    var isSvgAnimatedTransformList =
-        predicate((x) => x is svg.AnimatedTransformList,
-            'is an svg.AnimatedTransformList');
+    var isSvgAnimatedTransformList = predicate(
+        (x) => x is svg.AnimatedTransformList,
+        'is an svg.AnimatedTransformList');
     var isCssStyleDeclaration =
         predicate((x) => x is CssStyleDeclaration, 'is a CssStyleDeclaration');
-
 
     testRect(name, checker) {
       test(name, () {
@@ -129,5 +131,4 @@ main() {
       });
     }
   });
-
 }

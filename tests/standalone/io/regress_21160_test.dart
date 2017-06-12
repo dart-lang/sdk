@@ -19,22 +19,22 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+      password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 // 10 KiB of i%256 data.
-Uint8List DATA = new Uint8List.fromList(
-    new List.generate(10 * 1024, (i) => i % 256));
+Uint8List DATA =
+    new Uint8List.fromList(new List.generate(10 * 1024, (i) => i % 256));
 
 Future<SecureServerSocket> startServer() {
-  return SecureServerSocket.bind("localhost",
-                                 0,
-                                 serverContext).then((server) {
+  return SecureServerSocket.bind("localhost", 0, serverContext).then((server) {
     server.listen((SecureSocket request) async {
       await request.drain();
-      request..add(DATA)..close();
+      request
+        ..add(DATA)
+        ..close();
     });
     return server;
   });
@@ -45,12 +45,13 @@ main() async {
   var server = await SecureServerSocket.bind("localhost", 0, serverContext);
   server.listen((SecureSocket request) async {
     await request.drain();
-    request..add(DATA)..close();
+    request
+      ..add(DATA)
+      ..close();
   });
 
-  var socket = await RawSecureSocket.connect("localhost",
-                                             server.port,
-                                             context: clientContext);
+  var socket = await RawSecureSocket.connect("localhost", server.port,
+      context: clientContext);
   List<int> body = <int>[];
   // Close our end, since we're not sending data.
   socket.shutdown(SocketDirection.SEND);
@@ -69,7 +70,8 @@ main() async {
         break;
       case RawSocketEvent.READ_CLOSED:
         break;
-      default: throw "Unexpected event $event";
+      default:
+        throw "Unexpected event $event";
     }
   }, onError: (e, _) {
     Expect.fail('Unexpected error: $e');

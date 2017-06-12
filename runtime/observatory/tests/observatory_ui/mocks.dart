@@ -59,6 +59,7 @@ part 'mocks/repositories/instance.dart';
 part 'mocks/repositories/library.dart';
 part 'mocks/repositories/megamorphiccache.dart';
 part 'mocks/repositories/notification.dart';
+part 'mocks/repositories/object.dart';
 part 'mocks/repositories/objectpool.dart';
 part 'mocks/repositories/objectstore.dart';
 part 'mocks/repositories/ports.dart';

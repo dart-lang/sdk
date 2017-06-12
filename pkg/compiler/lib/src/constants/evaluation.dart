@@ -5,7 +5,6 @@
 library dart2js.constants.evaluation;
 
 import '../common.dart';
-import '../common/backend_api.dart' show BackendClasses;
 import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -14,12 +13,8 @@ import 'constructors.dart';
 import 'expressions.dart';
 
 /// Environment used for evaluating constant expressions.
-abstract class Environment {
-  // TODO(johnniwinther): Replace this with [CommonElements] and maybe
-  // [Backend].
+abstract class EvaluationEnvironment {
   CommonElements get commonElements;
-
-  BackendClasses get backendClasses;
 
   /// Read environments string passed in using the '-Dname=value' option.
   String readFromEnvironment(String name);
@@ -53,14 +48,18 @@ class NormalizedArguments {
     int index = callStructure.namedArguments.indexOf(name);
     if (index == -1) {
       // The named argument is not provided.
-      invariant(CURRENT_ELEMENT_SPANNABLE, defaultValues[name] != null,
-          message: "No default value for named argument '$name' in $this.");
+      assert(
+          defaultValues[name] != null,
+          failedAt(CURRENT_ELEMENT_SPANNABLE,
+              "No default value for named argument '$name' in $this."));
       return defaultValues[name];
     }
     ConstantExpression value =
         arguments[index + callStructure.positionalArgumentCount];
-    invariant(CURRENT_ELEMENT_SPANNABLE, value != null,
-        message: "No value for named argument '$name' in $this.");
+    assert(
+        value != null,
+        failedAt(CURRENT_ELEMENT_SPANNABLE,
+            "No value for named argument '$name' in $this."));
     return value;
   }
 
@@ -68,13 +67,17 @@ class NormalizedArguments {
   ConstantExpression getPositionalArgument(int index) {
     if (index >= callStructure.positionalArgumentCount) {
       // The positional argument is not provided.
-      invariant(CURRENT_ELEMENT_SPANNABLE, defaultValues[index] != null,
-          message: "No default value for positional argument $index in $this.");
+      assert(
+          defaultValues[index] != null,
+          failedAt(CURRENT_ELEMENT_SPANNABLE,
+              "No default value for positional argument $index in $this."));
       return defaultValues[index];
     }
     ConstantExpression value = arguments[index];
-    invariant(CURRENT_ELEMENT_SPANNABLE, value != null,
-        message: "No value for positional argument $index in $this.");
+    assert(
+        value != null,
+        failedAt(CURRENT_ELEMENT_SPANNABLE,
+            "No value for positional argument $index in $this."));
     return value;
   }
 

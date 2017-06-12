@@ -23,8 +23,7 @@ main() {
 }
 
 Rectangle createRectangle(List<num> a) {
-  return a != null ? new Rectangle(a[0], a[1], a[2] - a[0], a[3] - a[1])
-      : null;
+  return a != null ? new Rectangle(a[0], a[1], a[2] - a[0], a[3] - a[1]) : null;
 }
 
 testConstruction() {
@@ -42,10 +41,27 @@ testConstruction() {
 
 testIntersection() {
   var tests = [
-      [[10, 10, 20, 20], [15, 15, 25, 25], [15, 15, 20, 20]],
-      [[10, 10, 20, 20], [20, 0, 30, 10], [20, 10, 20, 10]],
-      [[0, 0, 1, 1], [10, 11, 12, 13], null],
-      [[11, 12, 98, 99], [22, 23, 34, 35], [22, 23, 34, 35]]];
+    [
+      [10, 10, 20, 20],
+      [15, 15, 25, 25],
+      [15, 15, 20, 20]
+    ],
+    [
+      [10, 10, 20, 20],
+      [20, 0, 30, 10],
+      [20, 10, 20, 10]
+    ],
+    [
+      [0, 0, 1, 1],
+      [10, 11, 12, 13],
+      null
+    ],
+    [
+      [11, 12, 98, 99],
+      [22, 23, 34, 35],
+      [22, 23, 34, 35]
+    ]
+  ];
 
   for (var test in tests) {
     var r0 = createRectangle(test[0]);
@@ -71,10 +87,27 @@ testIntersects() {
 
 testBoundingBox() {
   var tests = [
-      [[10, 10, 20, 20], [15, 15, 25, 25], [10, 10, 25, 25]],
-      [[10, 10, 20, 20], [20, 0, 30, 10], [10, 0, 30, 20]],
-      [[0, 0, 1, 1], [10, 11, 12, 13], [0, 0, 12, 13]],
-      [[11, 12, 98, 99], [22, 23, 34, 35], [11, 12, 98, 99]]];
+    [
+      [10, 10, 20, 20],
+      [15, 15, 25, 25],
+      [10, 10, 25, 25]
+    ],
+    [
+      [10, 10, 20, 20],
+      [20, 0, 30, 10],
+      [10, 0, 30, 20]
+    ],
+    [
+      [0, 0, 1, 1],
+      [10, 11, 12, 13],
+      [0, 0, 12, 13]
+    ],
+    [
+      [11, 12, 98, 99],
+      [22, 23, 34, 35],
+      [11, 12, 98, 99]
+    ]
+  ];
 
   for (var test in tests) {
     var r0 = createRectangle(test[0]);
@@ -145,9 +178,9 @@ testHashCode() {
 
 testEdgeCases() {
   edgeTest(double a, double l) {
-      var r = new Rectangle(a, a, l, l);
-      Expect.equals(r, r.boundingBox(r));
-      Expect.equals(r, r.intersection(r));
+    var r = new Rectangle(a, a, l, l);
+    Expect.equals(r, r.boundingBox(r));
+    Expect.equals(r, r.intersection(r));
   }
 
   var bignum1 = 0x20000000000000 + 0.0;
@@ -176,8 +209,7 @@ testEquality() {
 testNegativeLengths() {
   // Constructor allows negative lengths, but clamps them to zero.
   Expect.equals(new Rectangle(4, 4, 0, 0), new Rectangle(4, 4, -2, -2));
-  Expect.equals(new Rectangle(4, 4, 0, 0),
-      new MutableRectangle(4, 4, -2, -2));
+  Expect.equals(new Rectangle(4, 4, 0, 0), new MutableRectangle(4, 4, -2, -2));
 
   // Setters clamp negative lengths to zero.
   var mutable = new MutableRectangle(0, 0, 1, 1);
@@ -206,6 +238,7 @@ testNaNLeft() {
     Expect.isTrue(r.right.isNaN);
   }
 }
+
 testNaNTop() {
   var rectangles = [
     const Rectangle(0, double.NAN, 2, 3),

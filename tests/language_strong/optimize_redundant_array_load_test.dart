@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 
 // Test optimization of redundant array loads.
 
-var A = [0,2,3];
+var A = [0, 2, 3];
 
 test1(a) {
   int x = a[0];
@@ -16,11 +16,9 @@ test1(a) {
   return a[0] + y + a[2];
 }
 
-
 int test2(a) {
   return a[2] + a[2];
 }
-
 
 main() {
   for (int i = 0; i < 20; i++) {

@@ -136,7 +136,7 @@ MockSubtypeTester makeSubtypeTester(Map<String, List<String>> testcase) {
       }
     }
   }
-  var program = new Program([environment.dummyLibrary]);
+  var program = new Program(libraries: [environment.dummyLibrary]);
   var hierarchy = new ClassHierarchy(program);
   return new MockSubtypeTester(
       hierarchy, objectClass.rawType, functionClass.rawType, environment);

@@ -8,7 +8,7 @@ class A {
   num x;
   A() : this.x = 0;
 
-  void bar(){
+  void bar() {
     // dart2js hoisted the this.x out of the loop, and missed that setX would
     // change the value.
     for (int i = 1; i < 3; i++) {
@@ -17,6 +17,7 @@ class A {
       break;
     }
   }
+
   setX(x) => this.x = x;
 }
 

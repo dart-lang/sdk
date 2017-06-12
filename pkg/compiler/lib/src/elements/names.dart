@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of elements;
+library dart2js.elements.names;
+
+import 'package:front_end/src/fasta/scanner/characters.dart' show $_;
+import 'entities.dart' show LibraryEntity;
 
 /// A [Name] represents the abstraction of a Dart identifier which takes privacy
 /// and setter into account.
@@ -98,7 +101,7 @@ class PrivateName extends PublicName {
     return isSetter ? this : new PrivateName(text, library, isSetter: true);
   }
 
-  bool isAccessibleFrom(LibraryElement element) => library == element;
+  bool isAccessibleFrom(LibraryEntity element) => library == element;
 
   bool get isPrivate => true;
 

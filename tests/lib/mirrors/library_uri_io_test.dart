@@ -10,8 +10,7 @@ import 'dart:mirrors';
 import 'dart:io';
 import 'package:unittest/unittest.dart';
 
-class Class {
-}
+class Class {}
 
 testLibraryUri(var value, Uri expectedUri) {
   var valueMirror = reflect(value);

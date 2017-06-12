@@ -10,7 +10,7 @@ main(List<String> args) {
   File file = new File(args[0]);
   int start = null;
   int end = null;
-  var  mode = FileLock.EXCLUSIVE;
+  var mode = FileLock.EXCLUSIVE;
   if (args[1] == 'SHARED') {
     mode = FileLock.SHARED;
   }

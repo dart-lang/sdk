@@ -14,6 +14,7 @@ import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart' show ClosedWorld;
 import 'full_emitter/emitter.dart' as full_js_emitter;
 import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
@@ -23,6 +24,7 @@ import 'startup_emitter/emitter.dart' as startup_js_emitter;
 import 'metadata_collector.dart' show MetadataCollector;
 import 'native_emitter.dart' show NativeEmitter;
 import 'type_test_registry.dart' show TypeTestRegistry;
+import 'sorter.dart';
 
 const USE_LAZY_EMITTER = const bool.fromEnvironment("dart2js.use.lazy.emitter");
 
@@ -34,7 +36,7 @@ const USE_LAZY_EMITTER = const bool.fromEnvironment("dart2js.use.lazy.emitter");
  */
 class CodeEmitterTask extends CompilerTask {
   TypeTestRegistry typeTestRegistry;
-  NativeEmitter nativeEmitter;
+  NativeEmitter _nativeEmitter;
   MetadataCollector metadataCollector;
   EmitterFactory _emitterFactory;
   Emitter _emitter;
@@ -53,7 +55,6 @@ class CodeEmitterTask extends CompilerTask {
       Compiler compiler, bool generateSourceMap, bool useStartupEmitter)
       : compiler = compiler,
         super(compiler.measurer) {
-    nativeEmitter = new NativeEmitter(this);
     if (USE_LAZY_EMITTER) {
       _emitterFactory = new lazy_js_emitter.EmitterFactory();
     } else if (useStartupEmitter) {
@@ -65,17 +66,26 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
+  NativeEmitter get nativeEmitter {
+    assert(
+        _nativeEmitter != null,
+        failedAt(
+            NO_LOCATION_SPANNABLE, "NativeEmitter has not been created yet."));
+    return _nativeEmitter;
+  }
+
   Emitter get emitter {
-    assert(invariant(NO_LOCATION_SPANNABLE, _emitter != null,
-        message: "Emitter has not been created yet."));
+    assert(_emitter != null,
+        failedAt(NO_LOCATION_SPANNABLE, "Emitter has not been created yet."));
     return _emitter;
   }
 
-  String get name => 'Code emitter';
+  /// Returns the [Sorter] use for ordering elements in the generated
+  /// JavaScript.
+  // TODO(johnniwinther): Switch this based on the used entity model.
+  Sorter get sorter => const ElementSorter();
 
-  /// Returns the string that is used to find library patches that are
-  /// specialized for the emitter.
-  String get patchVersion => _emitterFactory.patchVersion;
+  String get name => 'Code emitter';
 
   /// Returns true, if the emitter supports reflection.
   bool get supportsReflection => _emitterFactory.supportsReflection;
@@ -147,28 +157,69 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.templateForBuiltin(builtin);
   }
 
-  Set<ClassEntity> _finalizeRti() {
+  void _finalizeRti() {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
-    typeTestRegistry.computeRequiredTypeChecks();
+    typeTestRegistry.computeRequiredTypeChecks(backend.rtiChecksBuilder);
     // Compute the classes needed by RTI.
-    return typeTestRegistry.computeRtiNeededClasses();
+    typeTestRegistry.computeRtiNeededClasses(backend.rtiSubstitutions,
+        backend.mirrorsData, backend.generatedCode.keys);
   }
 
   /// Creates the [Emitter] for this task.
-  void createEmitter(Namer namer, ClosedWorld closedWorld) {
+  void createEmitter(Namer namer, ClosedWorld closedWorld,
+      CodegenWorldBuilder codegenWorldBuilder) {
     measure(() {
+      _nativeEmitter = new NativeEmitter(this, closedWorld, codegenWorldBuilder,
+          backend.nativeCodegenEnqueuer);
       _emitter = _emitterFactory.createEmitter(this, namer, closedWorld);
-      metadataCollector = new MetadataCollector(compiler, _emitter);
-      typeTestRegistry = new TypeTestRegistry(compiler, closedWorld);
+      metadataCollector = new MetadataCollector(
+          compiler.options,
+          compiler.reporter,
+          compiler.deferredLoadTask,
+          _emitter,
+          backend.constants,
+          backend.typeVariableCodegenAnalysis,
+          backend.mirrorsData,
+          backend.rtiEncoder);
+      typeTestRegistry = new TypeTestRegistry(
+          codegenWorldBuilder, closedWorld, compiler.elementEnvironment);
     });
   }
 
   int assembleProgram(Namer namer, ClosedWorld closedWorld) {
     return measure(() {
-      Set<ClassEntity> rtiNeededClasses = _finalizeRti();
+      _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
-          compiler, namer, this, emitter, closedWorld, rtiNeededClasses);
+          compiler.options,
+          compiler.reporter,
+          compiler.elementEnvironment,
+          compiler.commonElements,
+          compiler.types,
+          compiler.deferredLoadTask,
+          compiler.closureToClassMapper,
+          compiler.codegenWorldBuilder,
+          backend.nativeCodegenEnqueuer,
+          closedWorld.backendUsage,
+          backend.constants,
+          closedWorld.nativeData,
+          backend.rtiNeed,
+          backend.mirrorsData,
+          closedWorld.interceptorData,
+          backend.superMemberData,
+          typeTestRegistry.rtiChecks,
+          backend.rtiEncoder,
+          backend.rtiSubstitutions,
+          backend.jsInteropAnalysis,
+          backend.oneShotInterceptorData,
+          backend.customElementsCodegenAnalysis,
+          backend.generatedCode,
+          namer,
+          this,
+          closedWorld,
+          typeTestRegistry.rtiNeededClasses,
+          compiler.mainFunction,
+          isMockCompilation: compiler.isMockCompilation);
       int size = emitter.emitProgram(programBuilder);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;
@@ -178,10 +229,6 @@ class CodeEmitterTask extends CompilerTask {
 }
 
 abstract class EmitterFactory {
-  /// Returns the string that is used to find library patches that are
-  /// specialized for this emitter.
-  String get patchVersion;
-
   /// Returns true, if the emitter supports reflection.
   bool get supportsReflection;
 

@@ -22,25 +22,37 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   // Collection APIs
 
-  void add(E element) { _list.add(element); }
+  void add(E element) {
+    _list.add(element);
+  }
 
   bool remove(Object element) => _list.remove(element);
 
-  void clear() { _list.clear(); }
+  void clear() {
+    _list.clear();
+  }
 
   // List APIs
 
   E operator [](int index) => _downcast/*<Node, E>*/(_list[index]);
 
-  void operator []=(int index, E value) { _list[index] = value; }
+  void operator []=(int index, E value) {
+    _list[index] = value;
+  }
 
-  set length(int newLength) { _list.length = newLength; }
+  set length(int newLength) {
+    _list.length = newLength;
+  }
 
-  void sort([int compare(E a, E b)]) { _list.sort((Node a, Node b) => compare(_downcast/*<Node, E>*/(a), _downcast/*<Node, E>*/(b))); }
+  void sort([int compare(E a, E b)]) {
+    _list.sort((Node a, Node b) =>
+        compare(_downcast/*<Node, E>*/(a), _downcast/*<Node, E>*/(b)));
+  }
 
   int indexOf(Object element, [int start = 0]) => _list.indexOf(element, start);
 
-  int lastIndexOf(Object element, [int start]) => _list.lastIndexOf(element, start);
+  int lastIndexOf(Object element, [int start]) =>
+      _list.lastIndexOf(element, start);
 
   void insert(int index, E element) => _list.insert(index, element);
 
@@ -50,7 +62,9 @@ class _WrappedList<E extends Node> extends ListBase<E>
     _list.setRange(start, end, iterable, skipCount);
   }
 
-  void removeRange(int start, int end) { _list.removeRange(start, end); }
+  void removeRange(int start, int end) {
+    _list.removeRange(start, end);
+  }
 
   void replaceRange(int start, int end, Iterable<E> iterable) {
     _list.replaceRange(start, end, iterable);
@@ -79,4 +93,4 @@ class _WrappedIterator<E extends Node> implements Iterator<E> {
 }
 
 // ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
-/*=To*/ _downcast/*<From, To extends From>*/(dynamic /*=From*/ x) => x;
+/*=To*/ _downcast/*<From, To extends From>*/(dynamic/*=From*/ x) => x;

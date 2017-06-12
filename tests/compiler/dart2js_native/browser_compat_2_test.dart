@@ -10,31 +10,31 @@ import "native_testing.dart";
 
 @Native("T1A")
 class T1A {
-  foo() native ;
+  foo() native;
 }
 
 @Native("T1B")
 class T1B {
-  foo() native ;
+  foo() native;
 }
 
 @Native("T1C")
 class T1C {
-  foo() native ;
+  foo() native;
 }
 
 @Native("T1D")
 class T1D {
-  foo() native ;
+  foo() native;
 }
 
-makeT1A() native ;
-makeT1B() native ;
-makeT1C() native ;
-makeT1D() native ;
+makeT1A() native;
+makeT1B() native;
+makeT1C() native;
+makeT1D() native;
 
-int getTagCallCount() native ;
-void clearTagCallCount() native ;
+int getTagCallCount() native;
+void clearTagCallCount() native;
 
 void setup() native r'''
 function T1A() { this.v = "a"; }

@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.local_ref;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
-    show Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind, Location;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -25,6 +21,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
+    show Element, ElementKind;
 
 /**
  * A contributor for calculating suggestions for declarations in the local
@@ -35,25 +33,19 @@ class LocalReferenceContributor extends DartCompletionContributor {
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
     OpType optype = (request as DartCompletionRequestImpl).opType;
+    AstNode node = request.target.containingNode;
+
+    // Suggest local fields for constructor initializers
+    bool suggestLocalFields = node is ConstructorDeclaration &&
+        node.initializers.contains(request.target.entity);
 
     // Collect suggestions from the specific child [AstNode] that contains
     // the completion offset and all of its parents recursively.
     if (!optype.isPrefixed) {
       if (optype.includeReturnValueSuggestions ||
           optype.includeTypeNameSuggestions ||
-          optype.includeVoidReturnSuggestions) {
-        // If the target is in an expression
-        // then resolve the outermost/entire expression
-        AstNode node = request.target.containingNode;
-
-        if (node is Expression) {
-          await request.resolveContainingExpression(node);
-
-          // Discard any cached target information
-          // because it may have changed as a result of the resolution
-          node = request.target.containingNode;
-        }
-
+          optype.includeVoidReturnSuggestions ||
+          suggestLocalFields) {
         // Do not suggest local vars within the current expression
         while (node is Expression) {
           node = node.parent;
@@ -65,8 +57,9 @@ class LocalReferenceContributor extends DartCompletionContributor {
           node = node.parent;
         }
 
-        _LocalVisitor visitor =
-            new _LocalVisitor(request, request.offset, optype);
+        _LocalVisitor visitor = new _LocalVisitor(
+            request, request.offset, optype,
+            suggestLocalFields: suggestLocalFields);
         visitor.visit(node);
         return visitor.suggestions;
       }
@@ -82,12 +75,15 @@ class LocalReferenceContributor extends DartCompletionContributor {
 class _LocalVisitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
   final OpType optype;
+  final bool suggestLocalFields;
   final Map<String, CompletionSuggestion> suggestionMap =
       <String, CompletionSuggestion>{};
   int privateMemberRelevance = DART_RELEVANCE_DEFAULT;
   bool targetIsFunctionalArgument;
 
-  _LocalVisitor(this.request, int offset, this.optype) : super(offset) {
+  _LocalVisitor(this.request, int offset, this.optype,
+      {this.suggestLocalFields})
+      : super(offset) {
     // Suggestions for inherited members provided by InheritedReferenceContributor
     targetIsFunctionalArgument = request.target.isFunctionalArgument();
 
@@ -163,8 +159,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-    if (optype.includeReturnValueSuggestions &&
-        (!optype.inStaticMethodBody || fieldDecl.isStatic)) {
+    if ((optype.includeReturnValueSuggestions &&
+            (!optype.inStaticMethodBody || fieldDecl.isStatic)) ||
+        suggestLocalFields) {
       bool deprecated = isDeprecated(fieldDecl) || isDeprecated(varDecl);
       TypeAnnotation typeName = fieldDecl.fields.type;
       _addLocalSuggestion_includeReturnValueSuggestions(
@@ -343,7 +340,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       EnumDeclaration enumDeclaration,
       {bool isAbstract: false,
       bool isDeprecated: false,
-      ClassDeclaration classDecl,
       int relevance: DART_RELEVANCE_DEFAULT}) {
     String completion =
         '${enumDeclaration.name.name}.${constantDeclaration.name.name}';

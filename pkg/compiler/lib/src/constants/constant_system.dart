@@ -4,12 +4,9 @@
 
 library dart2js.constant_system;
 
-import '../common/backend_api.dart' show BackendClasses;
 import '../common_elements.dart' show CommonElements;
-import '../elements/resolution_types.dart' show DartTypes;
+import '../elements/operators.dart';
 import '../elements/types.dart';
-import '../resolution/operators.dart';
-import '../tree/dartstring.dart' show DartString;
 import 'values.dart';
 
 abstract class Operation {
@@ -63,20 +60,14 @@ abstract class ConstantSystem {
 
   ConstantValue createInt(int i);
   ConstantValue createDouble(double d);
-  ConstantValue createString(DartString string);
+  ConstantValue createString(String string);
   ConstantValue createBool(bool value);
   ConstantValue createNull();
   ConstantValue createList(InterfaceType type, List<ConstantValue> values);
-  ConstantValue createMap(
-      CommonElements commonElements,
-      BackendClasses backendClasses,
-      InterfaceType type,
-      List<ConstantValue> keys,
-      List<ConstantValue> values);
-  ConstantValue createType(CommonElements commonElements,
-      BackendClasses backendClasses, DartType type);
-  ConstantValue createSymbol(CommonElements commonElements,
-      BackendClasses backendClasses, String text);
+  ConstantValue createMap(CommonElements commonElements, InterfaceType type,
+      List<ConstantValue> keys, List<ConstantValue> values);
+  ConstantValue createType(CommonElements commonElements, DartType type);
+  ConstantValue createSymbol(CommonElements commonElements, String text);
 
   // We need to special case the subtype check for JavaScript constant
   // system because an int is a double at runtime.

@@ -19,7 +19,6 @@ part 'MeasureText.dart';
 part 'PagedViews.dart';
 part 'SliderMenu.dart';
 
-
 // TODO(rnystrom): Note! This class is undergoing heavy construction. It will
 // temporary support both some old and some new ways of doing things until all
 // subclasses are refactored to use the new way. There will be some scaffolding
@@ -43,15 +42,13 @@ class View implements Positionable {
   // object instead, and integrating with built in CSS properties.
   final Map<String, String> customStyle;
 
-  View()
-    : customStyle = new Map<String, String>();
+  View() : customStyle = new Map<String, String>();
 
-  View.fromNode(Element this._node)
-    : customStyle = new Map<String, String>();
+  View.fromNode(Element this._node) : customStyle = new Map<String, String>();
 
   View.html(String html)
-    : customStyle = new Map<String, String>(),
-      _node = new Element.html(html);
+      : customStyle = new Map<String, String>(),
+        _node = new Element.html(html);
 
   // TODO(rnystrom): Get rid of this when all views are refactored to not use
   // it.
@@ -111,9 +108,9 @@ class View implements Positionable {
    * document or not.
    */
   bool get isInDocument {
-    return _node != null
-        && node.ownerDocument is HtmlDocument
-        && (node.ownerDocument as HtmlDocument).body.contains(node);
+    return _node != null &&
+        node.ownerDocument is HtmlDocument &&
+        (node.ownerDocument as HtmlDocument).body.contains(node);
   }
 
   /**
@@ -142,7 +139,9 @@ class View implements Positionable {
    * Override this to generate the DOM structure for the view.
    */
   // TODO(rnystrom): make this method abstract, see b/5015671
-  Element render() { throw 'abstract'; }
+  Element render() {
+    throw 'abstract';
+  }
 
   /**
    * Override this to perform initialization behavior that requires access to
@@ -310,7 +309,6 @@ class View implements Positionable {
       _resizeSubscription = window.onResize.listen(handler);
     }
 
-
     // Trigger the initial layout.
     doLayout();
   }
@@ -358,8 +356,8 @@ class View implements Positionable {
       // TODO(10459): code should not use Completer.sync.
       Completer sizeCompleter = new Completer<Size>.sync();
       scheduleMicrotask(() {
-        sizeCompleter.complete(
-            new Size(_node.client.width, _node.client.height));
+        sizeCompleter
+            .complete(new Size(_node.client.width, _node.client.height));
       });
       layout.measureLayout(sizeCompleter.future, changed);
     } else {

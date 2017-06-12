@@ -24,7 +24,7 @@ class DebugLogger {
   /**
    * If [path] was null, the DebugLogger will write messages to stdout.
    */
-  static init(Path path, {append: false}) {
+  static void init(Path path, {bool append: false}) {
     if (path != null) {
       var mode = append ? FileMode.APPEND : FileMode.WRITE;
       _sink = new File(path.toNativePath()).openWrite(mode: mode);
@@ -115,6 +115,7 @@ String prettifyJson(Object json, {int startIndentation: 0, int shiftWidth: 6}) {
       addString("$obj", indentation: indentation, newLine: newLine);
     }
   }
+
   prettifyJsonInternal(json);
   return buffer.toString();
 }
@@ -179,7 +180,7 @@ String decodeUtf8(List<int> bytes) {
 
 class Locations {
   static String getBrowserLocation(
-      String browserName, Map globalConfiguration) {
+      String browserName, Map<String, String> globalConfiguration) {
     var location = globalConfiguration[browserName];
     if (location != null && location != '') {
       return location;
@@ -305,7 +306,8 @@ class UniqueObject {
   final int _hashCode;
 
   int get hashCode => _hashCode;
-  operator ==(other) => other is UniqueObject && _hashCode == other._hashCode;
+  operator ==(Object other) =>
+      other is UniqueObject && _hashCode == other._hashCode;
 
   UniqueObject() : _hashCode = ++_nextId;
 }

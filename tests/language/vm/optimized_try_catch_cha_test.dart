@@ -13,7 +13,7 @@ bar(i) {
 
 class A {
   var f = 42;
-  
+
   foo(i) {
     do {
       try {
@@ -26,16 +26,14 @@ class A {
   }
 }
 
-class B extends A {
-
-}
+class B extends A {}
 
 main() {
   var result;
   for (var i = 0; i < 200; i++) {
     try {
       result = new B().foo(i);
-    } catch (e) { }
+    } catch (e) {}
   }
   Expect.equals(42, result);
 }

@@ -10,8 +10,9 @@ import '../elements/resolution_types.dart';
 import '../diagnostics/messages.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show WrappedMessage;
+import '../elements/names.dart';
+import '../elements/operators.dart';
 import '../resolution/access_semantics.dart';
-import '../resolution/operators.dart';
 import '../resolution/send_structure.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
@@ -191,6 +192,7 @@ void serializeSendStructure(
 }
 
 /// Deserialize a [SendStructure] from [decoder].
+// ignore: MISSING_RETURN
 SendStructure deserializeSendStructure(ObjectDecoder decoder) {
   SendStructureKind kind = decoder.getEnum(Key.KIND, SendStructureKind.values);
   switch (kind) {
@@ -341,6 +343,7 @@ void serializeNewStructure(NewStructure newStructure, ObjectEncoder encoder) {
 }
 
 /// Deserialize a [NewStructure] from [decoder].
+// ignore: MISSING_RETURN
 NewStructure deserializeNewStructure(ObjectDecoder decoder) {
   NewStructureKind kind = decoder.getEnum(Key.KIND, NewStructureKind.values);
   switch (kind) {
@@ -421,6 +424,7 @@ void serializeAccessSemantics(
 }
 
 /// Deserialize a [AccessSemantics] from [decoder].
+// ignore: MISSING_RETURN
 AccessSemantics deserializeAccessSemantics(ObjectDecoder decoder) {
   AccessKind kind = decoder.getEnum(Key.KIND, AccessKind.values);
   switch (kind) {

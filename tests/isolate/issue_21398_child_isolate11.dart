@@ -13,16 +13,13 @@ main(List<String> args, message) {
   var receivePort = new ReceivePort();
   var sendPort = message;
   sendPort.send(receivePort.sendPort);
-  receivePort.listen(
-    (msg) {
-      Expect.isTrue(msg is SendPort);
-      try {
-        msg.send(new FromChildIsolate());
-      } catch(error) {
-        Expect.isTrue(error is ArgumentError);
-        msg.send("Invalid Argument(s).");
-      }
-    },
-    onError: (e) => print('$e')
-  );
+  receivePort.listen((msg) {
+    Expect.isTrue(msg is SendPort);
+    try {
+      msg.send(new FromChildIsolate());
+    } catch (error) {
+      Expect.isTrue(error is ArgumentError);
+      msg.send("Invalid Argument(s).");
+    }
+  }, onError: (e) => print('$e'));
 }

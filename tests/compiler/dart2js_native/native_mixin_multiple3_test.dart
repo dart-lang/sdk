@@ -34,9 +34,9 @@ class C extends B {
   foo() => 'C.foo';
 }
 
-makeA() native ;
-makeB() native ;
-makeC() native ;
+makeA() native;
+makeB() native;
+makeC() native;
 
 void setup() native """
 function A() {}

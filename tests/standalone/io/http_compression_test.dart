@@ -21,30 +21,28 @@ void testServerCompress({bool clientAutoUncompress: true}) {
       });
       var client = new HttpClient();
       client.autoUncompress = clientAutoUncompress;
-      client.get("127.0.0.1", server.port, "/")
-          .then((request) {
-            request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip,deflate");
-            return request.close();
-          })
-          .then((response) {
-            Expect.equals("gzip",
-                          response.headers.value(HttpHeaders.CONTENT_ENCODING));
-            response
-                .fold([], (list, b) {
-                  list.addAll(b);
-                  return list;
-                }).then((list) {
-                  if (clientAutoUncompress) {
-                    Expect.listEquals(data, list);
-                  } else {
-                    Expect.listEquals(data, GZIP.decode(list));
-                  }
-                  server.close();
-                  client.close();
-                });
-          });
+      client.get("127.0.0.1", server.port, "/").then((request) {
+        request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip,deflate");
+        return request.close();
+      }).then((response) {
+        Expect.equals(
+            "gzip", response.headers.value(HttpHeaders.CONTENT_ENCODING));
+        response.fold([], (list, b) {
+          list.addAll(b);
+          return list;
+        }).then((list) {
+          if (clientAutoUncompress) {
+            Expect.listEquals(data, list);
+          } else {
+            Expect.listEquals(data, GZIP.decode(list));
+          }
+          server.close();
+          client.close();
+        });
+      });
     });
   }
+
   test("My raw server provided data".codeUnits);
   var longBuffer = new Uint8List(1024 * 1024);
   for (int i = 0; i < longBuffer.length; i++) {
@@ -62,24 +60,20 @@ void testAcceptEncodingHeader() {
         request.response.close();
       });
       var client = new HttpClient();
-      client.get("127.0.0.1", server.port, "/")
-          .then((request) {
-            request.headers.set(HttpHeaders.ACCEPT_ENCODING, encoding);
-            return request.close();
-          })
-          .then((response) {
-            Expect.equals(
-              valid,
-              ("gzip" == response.headers.value(HttpHeaders.CONTENT_ENCODING)));
-            response.listen(
-                (_) {},
-                onDone: () {
-                  server.close();
-                  client.close();
-                });
-          });
+      client.get("127.0.0.1", server.port, "/").then((request) {
+        request.headers.set(HttpHeaders.ACCEPT_ENCODING, encoding);
+        return request.close();
+      }).then((response) {
+        Expect.equals(valid,
+            ("gzip" == response.headers.value(HttpHeaders.CONTENT_ENCODING)));
+        response.listen((_) {}, onDone: () {
+          server.close();
+          client.close();
+        });
+      });
     });
   }
+
   test('gzip', true);
   test('deflate', false);
   test('gzip, deflate', true);
@@ -103,18 +97,16 @@ void testDisableCompressTest() {
       request.response.close();
     });
     var client = new HttpClient();
-    client.get("127.0.0.1", server.port, "/")
+    client
+        .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((response) {
-          Expect.equals(null,
-                        response.headers.value(HttpHeaders.CONTENT_ENCODING));
-          response.listen(
-              (_) {},
-              onDone: () {
-                server.close();
-                client.close();
-              });
-        });
+      Expect.equals(null, response.headers.value(HttpHeaders.CONTENT_ENCODING));
+      response.listen((_) {}, onDone: () {
+        server.close();
+        client.close();
+      });
+    });
   });
 }
 

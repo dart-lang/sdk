@@ -12,7 +12,9 @@ class A {
 }
 
 class B extends A {
-  B() { Expect.equals(499, a); }
+  B() {
+    Expect.equals(499, a);
+  }
 }
 
 main() {

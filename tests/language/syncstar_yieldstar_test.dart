@@ -20,6 +20,6 @@ foo() sync* {
   yield* bar();
 }
 
-main () async {
+main() async {
   Expect.listEquals([1, 2, 3, null, 1, 1, 2, 3, 5], foo().take(9).toList());
 }

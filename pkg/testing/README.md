@@ -123,7 +123,7 @@ Here is an example of a suite that runs tests on the Dart VM:
 import 'testing.dart';
 
 Future<ChainContext> createContext(
-    Chain suite, Map<String, String> enviroment) async {
+    Chain suite, Map<String, String> environment) async {
   return new VmContext();
 }
 

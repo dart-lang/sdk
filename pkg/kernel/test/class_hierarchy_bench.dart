@@ -18,7 +18,7 @@ ArgParser argParser = new ArgParser()
       defaultsTo: '1');
 
 String usage = '''
-Usage: class_hierarchy_bench [options] FILE.dart
+Usage: class_hierarchy_bench [options] FILE.dill
 
 Options:
 ${argParser.usage}

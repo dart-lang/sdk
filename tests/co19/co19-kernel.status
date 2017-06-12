@@ -2,11 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Disable tests globally for kernel.
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/non_final_instance_variable_t02: MissingCompileTimeError
-Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t02: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/superinitializer_t01: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/superinitializer_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeError
@@ -25,7 +23,6 @@ Language/Classes/Constructors/Generative_Constructors/execution_t07: MissingComp
 Language/Classes/Constructors/Generative_Constructors/execution_t09: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t12: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/formal_parameter_t02: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/formal_parameter_t08: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/initializers_t12: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: RuntimeError # Dartk Issue 28566
 Language/Classes/Constructors/Generative_Constructors/redirection_t02: MissingCompileTimeError
@@ -33,23 +30,19 @@ Language/Classes/Constructors/Generative_Constructors/redirection_t03: MissingCo
 Language/Classes/Constructors/Generative_Constructors/redirection_t07: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/redirection_t08: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/redirection_t09: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t03: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t05: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t06: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/syntax_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/syntax_t04: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/syntax_t05: MissingCompileTimeError
-Language/Classes/Getters/static_getter_t02: CompileTimeError
 Language/Classes/Getters/syntax_t02: MissingCompileTimeError
 Language/Classes/Getters/syntax_t03: MissingCompileTimeError
 Language/Classes/Getters/syntax_t04: MissingCompileTimeError
 Language/Classes/Getters/syntax_t05: MissingCompileTimeError
 Language/Classes/Getters/syntax_t07: MissingCompileTimeError
 Language/Classes/Instance_Methods/Operators/syntax_t04: MissingCompileTimeError
-Language/Classes/Instance_Methods/same_name_setter_t01: CompileTimeError
 Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError
-Language/Classes/Setters/name_t01: CompileTimeError
-Language/Classes/Setters/name_t02: CompileTimeError
-Language/Classes/Setters/name_t07: CompileTimeError
 Language/Classes/Setters/parameter_t01: MissingCompileTimeError
 Language/Classes/Setters/parameter_t02: MissingCompileTimeError
 Language/Classes/Setters/parameter_t03: MissingCompileTimeError
@@ -58,43 +51,24 @@ Language/Classes/Setters/parameter_t06: MissingCompileTimeError
 Language/Classes/Setters/parameter_t08: MissingCompileTimeError
 Language/Classes/Setters/syntax_t03: MissingCompileTimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
-Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
-Language/Classes/Superinterfaces/wrong_type_t04: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
 Language/Classes/declarations_t02: MissingCompileTimeError
 Language/Classes/declarations_t03: MissingCompileTimeError
 Language/Classes/declarations_t04: MissingCompileTimeError
 Language/Classes/declarations_t06: MissingCompileTimeError
 Language/Classes/declarations_t08: MissingCompileTimeError
+Language/Classes/declarations_t25: MissingCompileTimeError
+Language/Classes/declarations_t26: MissingCompileTimeError
+Language/Classes/declarations_t27: MissingCompileTimeError
+Language/Classes/declarations_t28: MissingCompileTimeError
 Language/Classes/declarations_t33: MissingCompileTimeError
+Language/Classes/definition_t23: CompileTimeError
 Language/Classes/same_name_member_and_class_t01: MissingCompileTimeError
 Language/Classes/same_name_member_and_class_t03: MissingCompileTimeError
-Language/Classes/same_name_type_variable_t01: MissingCompileTimeError
-Language/Classes/same_name_type_variable_t02: MissingCompileTimeError
-Language/Classes/same_name_type_variable_t03: MissingCompileTimeError
-Language/Classes/same_name_type_variable_t05: MissingCompileTimeError
-Language/Classes/same_name_type_variable_t06: MissingCompileTimeError
-Language/Classes/same_name_type_variable_t08: MissingCompileTimeError
-Language/Classes/same_name_type_variable_t09: MissingCompileTimeError
-Language/Enums/restrictions_t02: MissingCompileTimeError
-Language/Enums/restrictions_t03: MissingCompileTimeError
-Language/Enums/restrictions_t04: MissingCompileTimeError
-Language/Enums/restrictions_t05: MissingCompileTimeError
-Language/Enums/restrictions_t06: MissingCompileTimeError
-Language/Enums/restrictions_t07: MissingCompileTimeError
 Language/Enums/restrictions_t08: MissingCompileTimeError
 Language/Expressions/Assignment/expression_assignment_failed_t03: CompileTimeError
 Language/Expressions/Assignment/expression_assignment_t07: CompileTimeError
-Language/Expressions/Assignment/no_such_method_t01: CompileTimeError
-Language/Expressions/Assignment/no_such_method_t02: CompileTimeError
-Language/Expressions/Assignment/no_such_method_t03: CompileTimeError
-Language/Expressions/Assignment/no_such_method_t04: CompileTimeError
-Language/Expressions/Assignment/no_such_method_t05: CompileTimeError
-Language/Expressions/Assignment/no_such_method_t06: CompileTimeError
-Language/Expressions/Assignment/no_such_method_t07: CompileTimeError
-Language/Expressions/Assignment/no_such_method_t08: CompileTimeError
-Language/Expressions/Assignment/no_such_method_t09: CompileTimeError
 Language/Expressions/Assignment/static_type_t06: CompileTimeError
 Language/Expressions/Assignment/super_assignment_failed_t01: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t02: RuntimeError
@@ -102,28 +76,18 @@ Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError
 Language/Expressions/Constants/bitwise_operators_t02: Crash
 Language/Expressions/Constants/bitwise_operators_t03: Crash
 Language/Expressions/Constants/bitwise_operators_t04: Crash
-Language/Expressions/Constants/bitwise_operators_t05: Crash
 Language/Expressions/Constants/bitwise_operators_t06: Crash
-Language/Expressions/Constants/constant_constructor_t03: MissingCompileTimeError
 Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError
 Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Constants/equals_expression_t03: MissingCompileTimeError
-Language/Expressions/Constants/exception_t01: Crash
-Language/Expressions/Constants/exception_t02: Crash
-Language/Expressions/Constants/exception_t03: Crash
 Language/Expressions/Constants/exception_t04: MissingCompileTimeError
-Language/Expressions/Constants/identical_t02: Crash
-Language/Expressions/Constants/identifier_denotes_a_constant_t06: MissingCompileTimeError
-Language/Expressions/Constants/identifier_denotes_a_constant_t07: MissingCompileTimeError
 Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError
 Language/Expressions/Constants/literal_string_t04: Crash
 Language/Expressions/Constants/literal_string_t05: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t02: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
 Language/Expressions/Constants/logical_expression_t04: MissingCompileTimeError
-Language/Expressions/Constants/math_operators_t02: Crash
-Language/Expressions/Constants/math_operators_t03: Crash
 Language/Expressions/Constants/math_operators_t04: Crash
 Language/Expressions/Constants/math_operators_t05: Crash
 Language/Expressions/Constants/no_other_constant_expressions_t10: MissingCompileTimeError
@@ -131,38 +95,20 @@ Language/Expressions/Constants/no_other_constant_expressions_t11: Crash
 Language/Expressions/Constants/no_other_constant_expressions_t14: Crash
 Language/Expressions/Constants/no_other_constant_expressions_t15: Crash
 Language/Expressions/Constants/no_other_constant_expressions_t17: Crash
-Language/Expressions/Constants/static_constant_t06: MissingCompileTimeError
-Language/Expressions/Constants/static_constant_t07: MissingCompileTimeError
-Language/Expressions/Constants/static_method_t02: Crash
 Language/Expressions/Constants/string_length_t03: MissingCompileTimeError
 Language/Expressions/Constants/ternary_operator_t02: MissingCompileTimeError
 Language/Expressions/Constants/top_level_function_t01: Crash
 Language/Expressions/Constants/top_level_function_t02: Crash
-Language/Expressions/Constants/top_level_function_t04: MissingCompileTimeError
-Language/Expressions/Constants/top_level_function_t05: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Binding_Actuals_to_Formals/same_name_arguments_t01: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/built_in_not_dynamic_t01: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/built_in_not_dynamic_t12: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/built_in_not_dynamic_t15: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/syntax_built_in_t01: CompileTimeError
 Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/constant_constructor_name_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/constant_constructor_same_name_as_class_t02: MissingCompileTimeError
-Language/Expressions/Instance_Creation/Const/deferred_type_t01: MissingCompileTimeError
-Language/Expressions/Instance_Creation/Const/deferred_type_t02: MissingCompileTimeError
-Language/Expressions/Instance_Creation/Const/exception_t01: Crash
 Language/Expressions/Instance_Creation/New/evaluation_t06: RuntimeError
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Kernel Issue 28335 (deferred libraries)
-Language/Expressions/Lists/constant_list_t01: MissingCompileTimeError
-Language/Expressions/Lists/constant_list_t02: Crash
-Language/Expressions/Maps/constant_map_key_value_t01: Crash
-Language/Expressions/Maps/constant_map_key_value_t03: MissingCompileTimeError
-Language/Expressions/Maps/constant_map_t01: Crash
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
-Language/Expressions/Maps/constant_map_type_t01: MissingCompileTimeError
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t07: RuntimeError # Dartk Issue 28562
 Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t17: RuntimeError
@@ -187,15 +133,10 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t02: RuntimeError
 Language/Expressions/This/placement_t04: MissingCompileTimeError
-Language/Expressions/Throw/no_catch_clause_t01: Crash
-Language/Expressions/Throw/no_catch_clause_t02: Crash
-Language/Expressions/Throw/no_catch_clause_t03: Crash
-Language/Expressions/Throw/no_catch_clause_t04: Crash
-Language/Expressions/Throw/no_catch_clause_t05: Crash
-Language/Expressions/Throw/no_catch_clause_t06: Crash
 Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
 Language/Expressions/Type_Cast/evaluation_t04: RuntimeError
 Language/Expressions/Type_Cast/evaluation_t05: RuntimeError
+Language/Expressions/Type_Cast/syntax_t01: RuntimeError
 Language/Expressions/Type_Test/evaluation_t03: RuntimeError
 Language/Expressions/Type_Test/evaluation_t04: RuntimeError
 Language/Expressions/Type_Test/evaluation_t10: RuntimeError # Kernel Issue 28335 (deferred libraries)
@@ -206,32 +147,17 @@ Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: Missing
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/name_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/name_t02: MissingCompileTimeError
-Language/Functions/Formal_Parameters/Optional_Formals/syntax_t14: Pass
-Language/Functions/Formal_Parameters/Required_Formals/syntax_t03: MissingCompileTimeError
-Language/Functions/Formal_Parameters/Required_Formals/syntax_t04: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Required_Formals/syntax_t06: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Required_Formals/syntax_t07: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Required_Formals/syntax_t08: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Required_Formals/syntax_t09: MissingCompileTimeError
-Language/Functions/Formal_Parameters/declare_as_constant_t01: MissingCompileTimeError
-Language/Functions/Formal_Parameters/declare_as_constant_t02: MissingCompileTimeError
-Language/Functions/Formal_Parameters/declare_as_constant_t03: MissingCompileTimeError
-Language/Functions/Formal_Parameters/declare_as_constant_t04: MissingCompileTimeError
-Language/Functions/Formal_Parameters/declare_as_constant_t05: MissingCompileTimeError
-Language/Functions/Formal_Parameters/declare_as_constant_t06: MissingCompileTimeError
 Language/Functions/Function_Declarations/external_function_t01: MissingCompileTimeError
 Language/Functions/Function_Declarations/external_function_t02: MissingCompileTimeError
 Language/Functions/syntax_t05: MissingCompileTimeError
-Language/Functions/syntax_t31: MissingCompileTimeError
 Language/Generics/malformed_t01: RuntimeError
-Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Pass # OK
-Language/Libraries_and_Scripts/Exports/reexport_t01: Pass
-Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError # Kernel Issue 28335 (deferred libraries)
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError # Kernel Issue 28335 (deferred libraries)
+Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
-Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Pass # OK
-Language/Libraries_and_Scripts/Imports/namespace_changes_t27: CompileTimeError
 Language/Libraries_and_Scripts/Imports/same_name_t02/01: MissingRuntimeError
 Language/Libraries_and_Scripts/Imports/same_name_t05: RuntimeError
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
@@ -242,15 +168,13 @@ Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for de
 Language/Libraries_and_Scripts/Imports/syntax_t41: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/compilation_t11: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/syntax_t01: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/syntax_t06: Pass # OK
 Language/Libraries_and_Scripts/Scripts/syntax_t05: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t06: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t08: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t10: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t14: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Crash
-Language/Libraries_and_Scripts/Scripts/top_level_main_t02: Crash
+Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
 Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError
@@ -286,22 +210,8 @@ Language/Metadata/compilation_t10: MissingCompileTimeError
 Language/Metadata/compilation_t11: MissingCompileTimeError
 Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
-Language/Mixins/Mixin_Application/wrong_mixin_type_t01: MissingCompileTimeError
-Language/Mixins/Mixin_Application/wrong_mixin_type_t02: MissingCompileTimeError
-Language/Mixins/Mixin_Application/wrong_mixin_type_t07: MissingCompileTimeError
-Language/Mixins/Mixin_Application/wrong_type_t01: MissingCompileTimeError
-Language/Mixins/Mixin_Application/wrong_type_t05: MissingCompileTimeError
-Language/Mixins/declaring_constructor_t01: MissingCompileTimeError
-Language/Mixins/declaring_constructor_t02: MissingCompileTimeError
-Language/Mixins/declaring_constructor_t03: MissingCompileTimeError
-Language/Mixins/declaring_constructor_t04: MissingCompileTimeError
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
-Language/Mixins/declaring_constructor_t07: MissingCompileTimeError
-Language/Mixins/declaring_constructor_t08: MissingCompileTimeError
-Language/Mixins/declaring_constructor_t09: MissingCompileTimeError
-Language/Mixins/declaring_constructor_t10: MissingCompileTimeError
-Language/Overview/Privacy/private_and_public_t04: CompileTimeError
 Language/Overview/Privacy/private_and_public_t06: RuntimeError
 Language/Overview/Privacy/private_and_public_t09: RuntimeError
 Language/Overview/Privacy/private_and_public_t10: RuntimeError
@@ -316,7 +226,6 @@ Language/Overview/Scoping/conflicting_names_t27: Crash
 Language/Overview/Scoping/conflicting_names_t31: MissingCompileTimeError
 Language/Overview/Scoping/conflicting_names_t32: MissingCompileTimeError
 Language/Overview/Scoping/conflicting_names_t33: MissingCompileTimeError
-Language/Overview/Scoping/conflicting_names_t34: MissingCompileTimeError
 Language/Overview/Scoping/conflicting_names_t35: MissingCompileTimeError
 Language/Overview/Scoping/conflicting_names_t37: Crash
 Language/Overview/Scoping/conflicting_names_t38: Crash
@@ -324,34 +233,22 @@ Language/Overview/Scoping/conflicting_names_t39: MissingCompileTimeError
 Language/Overview/Scoping/conflicting_names_t40: MissingCompileTimeError
 Language/Overview/Scoping/conflicting_names_t41: MissingCompileTimeError
 Language/Overview/Scoping/conflicting_names_t44: Crash
-Language/Overview/Scoping/hiding_declaration_t16: Crash
+Language/Reference/Lexical_Rules/Reserved_Words/void_t05: DartkCrash
 Language/Statements/Continue/label_t06: MissingCompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError
 Language/Statements/Continue/label_t08: MissingCompileTimeError
 Language/Statements/Continue/label_t09: MissingCompileTimeError
 Language/Statements/Continue/label_t10: MissingCompileTimeError
 Language/Statements/Continue/label_t11: MissingCompileTimeError
-Language/Statements/Do/execution_t04: Crash
-Language/Statements/For/syntax_t07: CompileTimeError
 Language/Statements/For/syntax_t12: MissingCompileTimeError
 Language/Statements/For/syntax_t13: MissingCompileTimeError
 Language/Statements/For/syntax_t19: MissingCompileTimeError
 Language/Statements/For/syntax_t20: MissingCompileTimeError
-Language/Statements/If/execution_t03: Crash
-Language/Statements/Labels/scope_t01: CompileTimeError
 Language/Statements/Labels/scope_t05: MissingCompileTimeError
-Language/Statements/Labels/scope_t07: CompileTimeError
-Language/Statements/Labels/syntax_t03: Pass # OK
 Language/Statements/Local_Function_Declaration/reference_before_declaration_t01: MissingCompileTimeError
 Language/Statements/Local_Function_Declaration/reference_before_declaration_t03: MissingCompileTimeError
-Language/Statements/Local_Variable_Declaration/syntax_t05: CompileTimeError
-Language/Statements/Local_Variable_Declaration/syntax_t06: CompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t11: MissingCompileTimeError
-Language/Statements/Local_Variable_Declaration/syntax_t18: CompileTimeError
-Language/Statements/Local_Variable_Declaration/syntax_t19: CompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t20: MissingCompileTimeError
-Language/Statements/Rethrow/on_catch_clause_t01: Crash
-Language/Statements/Rethrow/on_catch_clause_t02: Crash
 Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError
 Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError
 Language/Statements/Switch/expressions_t01: MissingCompileTimeError
@@ -359,13 +256,11 @@ Language/Statements/Switch/expressions_t02: MissingCompileTimeError
 Language/Statements/Switch/expressions_t03: MissingCompileTimeError
 Language/Statements/Switch/expressions_t04: MissingCompileTimeError
 Language/Statements/Switch/labels_constants_t01: MissingCompileTimeError
-Language/Statements/Switch/syntax_t02: Pass # OK
 Language/Statements/Switch/syntax_t16: MissingCompileTimeError
 Language/Statements/Switch/syntax_t17: MissingCompileTimeError
 Language/Statements/Try/malformed_type_t04: RuntimeError
 Language/Statements/Try/syntax_t13: MissingCompileTimeError
 Language/Statements/Try/syntax_t15: Crash
-Language/Statements/While/execution_t03: Crash
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
@@ -402,12 +297,6 @@ Language/Variables/final_t07: MissingCompileTimeError
 Language/Variables/local_variable_t01: MissingCompileTimeError
 Language/Variables/local_variable_t04: MissingCompileTimeError
 Language/Variables/local_variable_t05: MissingCompileTimeError
-Language/Variables/syntax_t04: MissingCompileTimeError
-Language/Variables/syntax_t05: MissingCompileTimeError
-Language/Variables/syntax_t08: MissingCompileTimeError
-Language/Variables/syntax_t12: MissingCompileTimeError
-Language/Variables/syntax_t13: MissingCompileTimeError
-Language/Variables/syntax_t14: MissingCompileTimeError
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
 LibTest/core/Invocation/isAccessor_A01_t01: RuntimeError
 LibTest/core/Invocation/isAccessor_A01_t02: RuntimeError
@@ -423,10 +312,9 @@ LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError
 LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
-Language/Classes/Constructors/Constant_Constructors/syntax_t03: Crash
 Language/Classes/Instance_Variables/constant_t01: Crash
-Language/Expressions/Lists/constant_list_t01: Crash
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
+Language/Statements/Labels/scope_t01: Crash
+Language/Statements/Labels/scope_t07: Crash
 Language/Statements/Switch/syntax_t16: Crash
 Language/Statements/Switch/syntax_t17: Crash
 
@@ -466,8 +354,6 @@ LibTest/isolate/Isolate/spawnUri_A01_t03: Pass, Timeout
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $mode == debug ]
 Language/Overview/Scoping/conflicting_names_t43: Crash
-Language/Overview/Scoping/hiding_declaration_t11: Crash
-Language/Overview/Scoping/hiding_declaration_t12: Crash
 LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 
 # dartk: precompilation failures
@@ -484,3 +370,41 @@ Language/Overview/Scoping/hiding_declaration_t12: Crash
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
 Language/Functions/External_Functions/not_connected_to_a_body_t01: Crash
+
+# dartk: checked mode failures
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+Language/Classes/Constructors/Factories/arguments_type_t01: RuntimeError
+Language/Classes/Constructors/Factories/function_type_t02: RuntimeError
+Language/Classes/Constructors/Factories/return_wrong_type_t01: RuntimeError
+Language/Classes/Constructors/Factories/return_wrong_type_t02: RuntimeError
+Language/Classes/Constructors/Factories/return_wrong_type_t03: RuntimeError
+Language/Classes/Constructors/Factories/return_wrong_type_t04: RuntimeError
+Language/Expressions/Constants/exception_t04: Pass
+Language/Expressions/Constants/logical_expression_t02: Pass
+Language/Expressions/Constants/logical_expression_t04: Pass
+Language/Expressions/Constants/ternary_operator_t02: Pass
+Language/Generics/malformed_t02: RuntimeError
+Language/Statements/Return/runtime_type_t04: RuntimeError
+Language/Statements/Switch/execution_t01: RuntimeError
+Language/Statements/Switch/type_t01: RuntimeError
+Language/Types/Dynamic_Type_System/malbounded_type_error_t01: RuntimeError
+Language/Types/Parameterized_Types/malbounded_t06: RuntimeError
+LibTest/collection/DoubleLinkedQueue/forEach_A01_t03: RuntimeError
+LibTest/collection/DoubleLinkedQueue/forEachEntry_A01_t03: RuntimeError
+LibTest/collection/HashMap/HashMap_class_A01_t01: RuntimeError
+LibTest/collection/LinkedHashMap/LinkedHashMap_class_A01_t01: RuntimeError
+LibTest/collection/MapBase/MapBase_class_A01_t01: RuntimeError
+LibTest/collection/MapMixin/MapMixin_class_A01_t01: RuntimeError
+LibTest/collection/Maps/putIfAbsent_A01_t07: RuntimeError
+LibTest/collection/Maps/putIfAbsent_A01_t08: RuntimeError
+LibTest/collection/MapView/MapView_class_A01_t01: RuntimeError
+LibTest/collection/SplayTreeMap/inherited_tests_A01_t01: RuntimeError
+LibTest/isolate/Isolate/spawn_A02_t04: RuntimeError
+LibTest/isolate/Isolate/spawn_A02_t05: RuntimeError
+LibTest/isolate/Isolate/spawn_A02_t06: RuntimeError
+LibTest/isolate/Isolate/spawn_A02_t07: RuntimeError
+
+# Deferred loading kernel issue 28335.
+[ $compiler == dartk || $compiler == dartkp ]
+Language/Libraries_and_Scripts/Imports/deferred_import_t01: CompileTimeError # Deferred loading kernel issue 28335.
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: CompileTimeError # Deferred loading kernel issue 28335.

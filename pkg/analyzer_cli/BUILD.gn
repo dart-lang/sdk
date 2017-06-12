@@ -7,7 +7,7 @@ import("//build/dart/dart_package.gni")
 dart_package("analyzer_cli") {
   package_name = "analyzer_cli"
 
-  source_dir = "lib"
+  disable_analysis = true
 
   deps = [
     "//dart/pkg/analyzer",

@@ -11,15 +11,17 @@ import 'stringify.dart';
 import 'library_imports_metadata.dart';
 
 main() {
-  LibraryMirror lib = currentMirrorSystem().findLibrary(#library_imports_metadata);
+  LibraryMirror lib =
+      currentMirrorSystem().findLibrary(#library_imports_metadata);
 
   LibraryMirror core = currentMirrorSystem().findLibrary(#dart.core);
   LibraryMirror mirrors = currentMirrorSystem().findLibrary(#dart.mirrors);
-  LibraryMirror collection = currentMirrorSystem().findLibrary(#dart.collection);
+  LibraryMirror collection =
+      currentMirrorSystem().findLibrary(#dart.collection);
   LibraryMirror async = currentMirrorSystem().findLibrary(#dart.async);
 
   Expect.setEquals([core, mirrors, collection, async],
-                   lib.libraryDependencies.map((dep) => dep.targetLibrary));
+      lib.libraryDependencies.map((dep) => dep.targetLibrary));
 
   Expect.stringEquals(
       'import dart.async\n'
@@ -31,20 +33,24 @@ main() {
   Expect.listEquals(
       [].map(reflect).toList(),
       lib.libraryDependencies
-          .singleWhere((dep) => dep.targetLibrary == core).metadata);
+          .singleWhere((dep) => dep.targetLibrary == core)
+          .metadata);
 
   Expect.listEquals(
       [m1].map(reflect).toList(),
       lib.libraryDependencies
-          .singleWhere((dep) => dep.targetLibrary == mirrors).metadata);
+          .singleWhere((dep) => dep.targetLibrary == mirrors)
+          .metadata);
 
   Expect.listEquals(
       [m2, m3].map(reflect).toList(),
       lib.libraryDependencies
-          .singleWhere((dep) => dep.targetLibrary == collection).metadata);
+          .singleWhere((dep) => dep.targetLibrary == collection)
+          .metadata);
 
   Expect.listEquals(
       [].map(reflect).toList(),
       lib.libraryDependencies
-          .singleWhere((dep) => dep.targetLibrary == async).metadata);
+          .singleWhere((dep) => dep.targetLibrary == async)
+          .metadata);
 }

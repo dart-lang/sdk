@@ -18,10 +18,8 @@ main([args, port]) async {
     return;
   }
   var p = new RawReceivePort();
-  Isolate.spawnUri(Platform.script,
-                   [],
-                   p.sendPort,
-                   packageRoot: Uri.parse(CONFIG_URI));
+  Isolate.spawnUri(Platform.script, [], p.sendPort,
+      packageRoot: Uri.parse(CONFIG_URI));
   p.handler = (msg) {
     p.close();
     if (msg is! List) {
@@ -30,11 +28,11 @@ main([args, port]) async {
     }
     if (msg[0] != "Foo") {
       throw "Bad package config in child isolate: ${msg[0]}\n"
-            "Expected: 'Foo'";
+          "Expected: 'Foo'";
     }
     if (msg[1] != "Bar2") {
       throw "Package path not matching: ${msg[1]}\n"
-            "Expected: 'Bar2'";
+          "Expected: 'Bar2'";
     }
     print("SUCCESS");
   };
@@ -42,7 +40,7 @@ main([args, port]) async {
     throw "Spawning isolate package:bar invalid.";
   }
   print("Spawned isolate resolved $CONFIG_URI to: "
-        "${await Isolate.resolvePackageUri(Uri.parse(CONFIG_URI))}");
+      "${await Isolate.resolvePackageUri(Uri.parse(CONFIG_URI))}");
 }
 
 testCorrectBarPackage(port) async {

@@ -27,8 +27,7 @@ main() {
 
   group('basic', () {
     test('CreateImageData', () {
-      ImageData image = context.createImageData(canvas.width,
-                                                canvas.height);
+      ImageData image = context.createImageData(canvas.width, canvas.height);
       List<int> data = image.data;
       // It is legal for the dart2js compiler to believe the type of the native
       //   ImageData.data and elides the check, so check the type explicitly:
@@ -72,7 +71,7 @@ main() {
       // Static and dynamic values consistent?  Type inference should be able to
       // constant-fold 'data is Uint8ClampedList' to 'true'.
       expect(inscrutable(data) is Uint8ClampedList == data is Uint8ClampedList,
-             isTrue);
+          isTrue);
     });
 
     // TODO(sra): Why does this fail on Dartium? There are two types with the

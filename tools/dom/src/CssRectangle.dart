@@ -9,14 +9,13 @@ part of html;
  * [box model](http://www.w3.org/TR/CSS2/box.html).
  */
 class _ContentCssRect extends CssRect {
-
   _ContentCssRect(Element element) : super(element);
 
-  num get height => _element.offsetHeight +
-      _addOrSubtractToBoxModel(_HEIGHT, _CONTENT);
+  num get height =>
+      _element.offsetHeight + _addOrSubtractToBoxModel(_HEIGHT, _CONTENT);
 
-  num get width => _element.offsetWidth +
-      _addOrSubtractToBoxModel(_WIDTH, _CONTENT);
+  num get width =>
+      _element.offsetWidth + _addOrSubtractToBoxModel(_WIDTH, _CONTENT);
 
   /**
    * Set the height to `newHeight`.
@@ -27,7 +26,7 @@ class _ContentCssRect extends CssRect {
    * `height` function in jQuery and the calculated `height` CSS value,
    * converted to a num in pixels.
    */
-  set height(newHeight) {
+  set height(dynamic newHeight) {
     if (newHeight is Dimension) {
       if (newHeight.value < 0) newHeight = new Dimension.px(0);
       _element.style.height = newHeight.toString();
@@ -47,7 +46,7 @@ class _ContentCssRect extends CssRect {
    * and the calculated
    * `width` CSS value, converted to a dimensionless num in pixels.
    */
-  set width(newWidth) {
+  set width(dynamic newWidth) {
     if (newWidth is Dimension) {
       if (newWidth.value < 0) newWidth = new Dimension.px(0);
       _element.style.width = newWidth.toString();
@@ -59,9 +58,11 @@ class _ContentCssRect extends CssRect {
     }
   }
 
-  num get left => _element.getBoundingClientRect().left -
+  num get left =>
+      _element.getBoundingClientRect().left -
       _addOrSubtractToBoxModel(['left'], _CONTENT);
-  num get top => _element.getBoundingClientRect().top -
+  num get top =>
+      _element.getBoundingClientRect().top -
       _addOrSubtractToBoxModel(['top'], _CONTENT);
 }
 
@@ -106,14 +107,16 @@ class _ContentCssListRect extends _ContentCssRect {
  */
 class _PaddingCssRect extends CssRect {
   _PaddingCssRect(element) : super(element);
-  num get height => _element.offsetHeight +
-      _addOrSubtractToBoxModel(_HEIGHT, _PADDING);
-  num get width => _element.offsetWidth +
-      _addOrSubtractToBoxModel(_WIDTH, _PADDING);
+  num get height =>
+      _element.offsetHeight + _addOrSubtractToBoxModel(_HEIGHT, _PADDING);
+  num get width =>
+      _element.offsetWidth + _addOrSubtractToBoxModel(_WIDTH, _PADDING);
 
-  num get left => _element.getBoundingClientRect().left -
+  num get left =>
+      _element.getBoundingClientRect().left -
       _addOrSubtractToBoxModel(['left'], _PADDING);
-  num get top => _element.getBoundingClientRect().top -
+  num get top =>
+      _element.getBoundingClientRect().top -
       _addOrSubtractToBoxModel(['top'], _PADDING);
 }
 
@@ -138,14 +141,16 @@ class _BorderCssRect extends CssRect {
  */
 class _MarginCssRect extends CssRect {
   _MarginCssRect(element) : super(element);
-  num get height => _element.offsetHeight +
-      _addOrSubtractToBoxModel(_HEIGHT, _MARGIN);
+  num get height =>
+      _element.offsetHeight + _addOrSubtractToBoxModel(_HEIGHT, _MARGIN);
   num get width =>
       _element.offsetWidth + _addOrSubtractToBoxModel(_WIDTH, _MARGIN);
 
-  num get left => _element.getBoundingClientRect().left -
+  num get left =>
+      _element.getBoundingClientRect().left -
       _addOrSubtractToBoxModel(['left'], _MARGIN);
-  num get top => _element.getBoundingClientRect().top -
+  num get top =>
+      _element.getBoundingClientRect().top -
       _addOrSubtractToBoxModel(['top'], _MARGIN);
 }
 
@@ -201,7 +206,7 @@ abstract class CssRect implements Rectangle<num> {
    *
    * Note that only the content height can actually be set via this method.
    */
-  set height(newHeight) {
+  set height(dynamic newHeight) {
     throw new UnsupportedError("Can only set height for content rect.");
   }
 
@@ -215,7 +220,7 @@ abstract class CssRect implements Rectangle<num> {
    *
    * Note that only the content width can be set via this method.
    */
-  set width(newWidth) {
+  set width(dynamic newWidth) {
     throw new UnsupportedError("Can only set width for content rect.");
   }
 
@@ -225,8 +230,8 @@ abstract class CssRect implements Rectangle<num> {
    * to augmentingMeasurement, we may need to add or subtract margin, padding,
    * or border values, depending on the measurement we're trying to obtain.
    */
-  num _addOrSubtractToBoxModel(List<String> dimensions,
-      String augmentingMeasurement) {
+  num _addOrSubtractToBoxModel(
+      List<String> dimensions, String augmentingMeasurement) {
     // getComputedStyle always returns pixel values (hence, computed), so we're
     // always dealing with pixels in this method.
     var styles = _element.getComputedStyle();
@@ -237,22 +242,25 @@ abstract class CssRect implements Rectangle<num> {
       // The border-box and default box model both exclude margin in the regular
       // height/width calculation, so add it if we want it for this measurement.
       if (augmentingMeasurement == _MARGIN) {
-        val += new Dimension.css(styles.getPropertyValue(
-            '$augmentingMeasurement-$measurement')).value;
+        val += new Dimension.css(
+                styles.getPropertyValue('$augmentingMeasurement-$measurement'))
+            .value;
       }
 
       // The border-box includes padding and border, so remove it if we want
       // just the content itself.
       if (augmentingMeasurement == _CONTENT) {
-      	val -= new Dimension.css(
-            styles.getPropertyValue('${_PADDING}-$measurement')).value;
+        val -= new Dimension.css(
+                styles.getPropertyValue('${_PADDING}-$measurement'))
+            .value;
       }
 
       // At this point, we don't wan't to augment with border or margin,
       // so remove border.
       if (augmentingMeasurement != _MARGIN) {
-	      val -= new Dimension.css(styles.getPropertyValue(
-            'border-${measurement}-width')).value;
+        val -= new Dimension.css(
+                styles.getPropertyValue('border-${measurement}-width'))
+            .value;
       }
     }
     return val;
@@ -271,13 +279,15 @@ abstract class CssRect implements Rectangle<num> {
   }
 
   bool operator ==(other) {
-    if (other is !Rectangle) return false;
-    return left == other.left && top == other.top && right == other.right &&
+    if (other is! Rectangle) return false;
+    return left == other.left &&
+        top == other.top &&
+        right == other.right &&
         bottom == other.bottom;
   }
 
-  int get hashCode => _JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
-      right.hashCode, bottom.hashCode);
+  int get hashCode => _JenkinsSmiHash.hash4(
+      left.hashCode, top.hashCode, right.hashCode, bottom.hashCode);
 
   /**
    * Computes the intersection of `this` and [other].
@@ -302,7 +312,6 @@ abstract class CssRect implements Rectangle<num> {
     }
     return null;
   }
-
 
   /**
    * Returns true if `this` intersects [other].
@@ -332,9 +341,9 @@ abstract class CssRect implements Rectangle<num> {
    */
   bool containsRectangle(Rectangle<num> another) {
     return left <= another.left &&
-           left + width >= another.left + another.width &&
-           top <= another.top &&
-           top + height >= another.top + another.height;
+        left + width >= another.left + another.width &&
+        top <= another.top &&
+        top + height >= another.top + another.height;
   }
 
   /**
@@ -342,17 +351,17 @@ abstract class CssRect implements Rectangle<num> {
    */
   bool containsPoint(Point<num> another) {
     return another.x >= left &&
-           another.x <= left + width &&
-           another.y >= top &&
-           another.y <= top + height;
+        another.x <= left + width &&
+        another.y >= top &&
+        another.y <= top + height;
   }
 
   Point<num> get topLeft => new Point<num>(this.left, this.top);
   Point<num> get topRight => new Point<num>(this.left + this.width, this.top);
-  Point<num> get bottomRight => new Point<num>(this.left + this.width,
-      this.top + this.height);
-  Point<num> get bottomLeft => new Point<num>(this.left,
-      this.top + this.height);
+  Point<num> get bottomRight =>
+      new Point<num>(this.left + this.width, this.top + this.height);
+  Point<num> get bottomLeft =>
+      new Point<num>(this.left, this.top + this.height);
 }
 
 final _HEIGHT = ['top', 'bottom'];

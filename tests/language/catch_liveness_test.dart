@@ -4,24 +4,26 @@
 
 import "package:expect/expect.dart";
 
-@AssumeDynamic() @NoInline()
+@AssumeDynamic()
+@NoInline()
 foo() => 1;
 
-@AssumeDynamic() @NoInline()
+@AssumeDynamic()
+@NoInline()
 throwException() => throw 'x';
 
 main() {
-	var x = 10;
-	var e2 = null;
-	try {
-		var t = foo();
-		throwException();
-		print(t);
-		x = 3;
-	} catch(e) {
-		Expect.equals(10, x);
-		e2 = e;
-	}
-	Expect.equals(10, x);
-	Expect.equals('x', e2);
+  var x = 10;
+  var e2 = null;
+  try {
+    var t = foo();
+    throwException();
+    print(t);
+    x = 3;
+  } catch (e) {
+    Expect.equals(10, x);
+    e2 = e;
+  }
+  Expect.equals(10, x);
+  Expect.equals('x', e2);
 }

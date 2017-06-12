@@ -287,6 +287,8 @@ executable("gen_snapshot") {
     "address_sanitizer.cc",
     "builtin.cc",
     "builtin.h",
+    "loader.cc",
+    "loader.h",
 
     # Very limited native resolver provided.
     "builtin_common.cc",
@@ -319,7 +321,7 @@ executable("gen_snapshot") {
     ]
   }
 
-  if (defined(is_fuchsia) && is_fuchsia) {
+  if (is_fuchsia) {
     libs = [ "launchpad" ]
   }
 }
@@ -367,16 +369,6 @@ source_set("gen_snapshot_dart_io") {
   ]
 }
 
-source_set("libdart_embedder_noio") {
-  configs += [
-    "..:dart_config",
-    "..:dart_maybe_product_config",
-  ]
-  deps = [
-    "..:libdart",
-  ]
-}
-
 # A source set for the implementation of 'dart:io' library.
 template("dart_io") {
   extra_sources = []
@@ -404,6 +396,9 @@ template("dart_io") {
     set_sources_assignment_filter(custom_sources_filter)
 
     defines = []
+    deps = [
+      "$dart_zlib_path",
+    ]
     if (is_mac || is_ios) {
       libs = [
         "CoreFoundation.framework",
@@ -414,12 +409,10 @@ template("dart_io") {
         libs += [ "CoreServices.framework" ]
       }
     } else {
-      deps = [
-        "//third_party/boringssl",
-      ]
+      deps += [ "//third_party/boringssl" ]
     }
 
-    if (defined(is_fuchsia) && is_fuchsia) {
+    if (is_fuchsia) {
       libs = [ "launchpad" ]
     }
 
@@ -435,7 +428,7 @@ template("dart_io") {
                  "log.h",
                ] + extra_sources
 
-    if (is_linux || is_win || (defined(is_fuchsia) && is_fuchsia)) {
+    if (is_linux || is_win || is_fuchsia) {
       if (dart_use_fallback_root_certificates) {
         sources += [ "//third_party/root_certificates/root_certificates.cc" ]
       } else {
@@ -615,7 +608,7 @@ template("dart_executable") {
       ]
     }
 
-    if (defined(is_fuchsia) && is_fuchsia) {
+    if (is_fuchsia) {
       libs = [ "launchpad" ]
     }
   }
@@ -623,11 +616,15 @@ template("dart_executable") {
 
 dart_executable("dart") {
   extra_deps = [
-    "..:libdart",
+    "..:libdart_jit",
     ":dart_snapshot_cc",
     "../observatory:standalone_observatory_archive",
   ]
-  extra_sources = [ "builtin_nolib.cc" ]
+  extra_sources = [
+    "builtin_nolib.cc",
+    "loader.cc",
+    "loader.h",
+  ]
 }
 
 dart_executable("dart_precompiled_runtime") {
@@ -639,6 +636,8 @@ dart_executable("dart_precompiled_runtime") {
   extra_sources = [
     "builtin_nolib.cc",
     "snapshot_empty.cc",
+    "loader.cc",
+    "loader.h",
   ]
 }
 
@@ -669,6 +668,8 @@ dart_executable("dart_bootstrap") {
   extra_sources = [
     "builtin.cc",
     "builtin.h",
+    "loader.cc",
+    "loader.h",
     "observatory_assets_empty.cc",
     "snapshot_empty.cc",
 
@@ -691,7 +692,7 @@ dart_executable("dart_bootstrap") {
   ]
 }
 
-if (defined(is_fuchsia) && is_fuchsia) {
+if (is_fuchsia) {
   hello_fuchsia_source = rebase_path("../tests/vm/dart/hello_fuchsia_test.dart")
 
   copy("hello_fuchsia") {
@@ -770,7 +771,7 @@ action("generate_snapshot_test_dat_file") {
 }
 
 executable("run_vm_tests") {
-  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+  if (is_fuchsia || is_fuchsia_host) {
     testonly = true
   }
 
@@ -785,7 +786,7 @@ executable("run_vm_tests") {
     ":libdart_builtin",
     ":standalone_dart_io",
     "$dart_zlib_path",
-    "..:libdart",
+    "..:libdart_jit",
   ]
   include_dirs = [
     "..",
@@ -803,6 +804,10 @@ executable("run_vm_tests") {
   vm_tests = rebase_path(vm_tests_list, ".", "../vm")
 
   sources = [
+              "error_exit.cc",
+              "error_exit.h",
+              "snapshot_utils.cc",
+              "snapshot_utils.h",
               "builtin_nolib.cc",
               "run_vm_tests.cc",
             ] + builtin_impl_tests_list + vm_tests

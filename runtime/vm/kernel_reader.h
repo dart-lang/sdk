@@ -23,18 +23,18 @@ class BuildingTranslationHelper : public TranslationHelper {
       : TranslationHelper(thread), reader_(reader) {}
   virtual ~BuildingTranslationHelper() {}
 
-  virtual RawLibrary* LookupLibraryByKernelLibrary(CanonicalName* library);
-  virtual RawClass* LookupClassByKernelClass(CanonicalName* klass);
+  virtual RawLibrary* LookupLibraryByKernelLibrary(NameIndex library);
+  virtual RawClass* LookupClassByKernelClass(NameIndex klass);
 
  private:
   KernelReader* reader_;
 };
 
-template <typename KernelType, typename VmType>
+template <typename VmType>
 class Mapping {
  public:
-  bool Lookup(KernelType* node, VmType** handle) {
-    typename MapType::Pair* pair = map_.LookupPair(node);
+  bool Lookup(intptr_t canonical_name, VmType** handle) {
+    typename MapType::Pair* pair = map_.LookupPair(canonical_name);
     if (pair != NULL) {
       *handle = pair->value;
       return true;
@@ -42,10 +42,12 @@ class Mapping {
     return false;
   }
 
-  void Insert(KernelType* node, VmType* object) { map_.Insert(node, object); }
+  void Insert(intptr_t canonical_name, VmType* object) {
+    map_.Insert(canonical_name, object);
+  }
 
  private:
-  typedef MallocMap<KernelType, VmType*> MapType;
+  typedef IntMap<VmType*> MapType;
   MapType map_;
 };
 
@@ -53,7 +55,8 @@ class KernelReader {
  public:
   explicit KernelReader(Program* program);
 
-  // Returns either a library or a failure object.
+  // Returns the library containing the main procedure, null if there
+  // was no main procedure, or a failure object if there was an error.
   dart::Object& ReadProgram();
 
   static void SetupFunctionParameters(TranslationHelper translation_helper_,
@@ -65,6 +68,12 @@ class KernelReader {
                                       bool is_closure);
 
   void ReadLibrary(Library* kernel_library);
+
+  const dart::String& DartSymbol(StringIndex index) {
+    return translation_helper_.DartSymbol(index);
+  }
+
+  uint8_t CharacterAt(StringIndex string_index, intptr_t index);
 
  private:
   friend class BuildingTranslationHelper;
@@ -85,7 +94,8 @@ class KernelReader {
   // Otherwise return klass.
   const Object& ClassForScriptAt(const dart::Class& klass,
                                  intptr_t source_uri_index);
-  Script& ScriptAt(intptr_t source_uri_index, String* import_uri = NULL);
+  Script& ScriptAt(intptr_t source_uri_index,
+                   StringIndex import_uri = StringIndex());
 
   void GenerateFieldAccessors(const dart::Class& klass,
                               const dart::Field& field,
@@ -94,8 +104,8 @@ class KernelReader {
   void SetupFieldAccessorFunction(const dart::Class& klass,
                                   const dart::Function& function);
 
-  dart::Library& LookupLibrary(CanonicalName* library);
-  dart::Class& LookupClass(CanonicalName* klass);
+  dart::Library& LookupLibrary(NameIndex library);
+  dart::Class& LookupClass(NameIndex klass);
 
   dart::RawFunction::Kind GetFunctionType(Procedure* kernel_procedure);
 
@@ -109,8 +119,8 @@ class KernelReader {
   BuildingTranslationHelper translation_helper_;
   DartTypeTranslator type_translator_;
 
-  Mapping<CanonicalName, dart::Library> libraries_;
-  Mapping<CanonicalName, dart::Class> classes_;
+  Mapping<dart::Library> libraries_;
+  Mapping<dart::Class> classes_;
 
   GrowableArray<const dart::Function*> functions_;
   GrowableArray<const dart::Field*> fields_;

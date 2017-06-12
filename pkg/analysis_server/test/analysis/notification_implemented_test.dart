@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.analysis.notification.implemented;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,6 +24,9 @@ main() {
 class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   List<ImplementedClass> implementedClasses;
   List<ImplementedMember> implementedMembers;
+
+  @override
+  bool get enableNewAnalysisDriver => false;
 
   /**
    * Validates that there is an [ImplementedClass] at the offset of [search].

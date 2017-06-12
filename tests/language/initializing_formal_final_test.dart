@@ -8,7 +8,10 @@ class A {
   var x, y;
   // This should cause a warning because `x` is final when
   // accessed as an initializing formal.
-  A(this.x) : y = (() { x = 3; });
+  A(this.x)
+      : y = (() {
+          x = 3;
+        });
 }
 
 main() {

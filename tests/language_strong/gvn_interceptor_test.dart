@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 foo(a, index) {
   if (a.length < index) {
-   for (int i = a.length; i <= index; i++) a.add(i);
+    for (int i = a.length; i <= index; i++) a.add(i);
   }
   // dart2js was reusing the a.length from above.
   return a[a.length - 1];

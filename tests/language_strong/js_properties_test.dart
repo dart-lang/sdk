@@ -25,13 +25,23 @@ class Hello {
 }
 
 class __defineGetter__ extends Hello {}
+
 class __defineSetter__ extends Hello {}
+
 class __lookupGetter__ extends Hello {}
+
 class __lookupSetter__ extends Hello {}
+
 class constructor extends Hello {}
+
 class hasOwnProperty extends Hello {}
+
 class isPrototypeOf extends Hello {}
+
 class propertyIsEnumerable extends Hello {}
+
 class toLocaleString extends Hello {}
+
 class toString extends Hello {}
+
 class valueOf extends Hello {}

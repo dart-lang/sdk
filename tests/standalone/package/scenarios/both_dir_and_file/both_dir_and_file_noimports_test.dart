@@ -6,5 +6,4 @@
 
 library both_dir_and_file_noimports_test;
 
-main() {
-}
+main() {}

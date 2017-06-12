@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library ElementTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:collection';
@@ -15,13 +16,12 @@ Element makeElementWithClasses() =>
 
 Set<String> makeClassSet() => makeElementWithClasses().classes;
 
-Element makeListElement() =>
-    new Element.html('<ul class="foo bar baz">'
-        '<li class="quux qux">'
-        '<li class="meta">'
-        '<li class="classy lassy">'
-        '<li class="qux lassy">'
-        '</ul>');
+Element makeListElement() => new Element.html('<ul class="foo bar baz">'
+    '<li class="quux qux">'
+    '<li class="meta">'
+    '<li class="classy lassy">'
+    '<li class="qux lassy">'
+    '</ul>');
 
 Element listElement;
 
@@ -53,7 +53,6 @@ main() {
     final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHtml);
     return new LinkedHashSet.from(match[1].split(' '));
   }
-
 
   test('affects the "class" attribute', () {
     final el = makeElementWithClasses();
@@ -220,7 +219,7 @@ main() {
     classes.toggleAll(['bar', 'foo'], true);
     expect(classes, orderedEquals(['baz', 'qux', 'quux', 'bar', 'foo']));
     classes.toggleAll(['baz', 'quux'], false);
-    expect(classes, orderedEquals(['qux','bar', 'foo']));
+    expect(classes, orderedEquals(['qux', 'bar', 'foo']));
   });
 
   test('retainAll', () {
@@ -277,12 +276,12 @@ main() {
     // Test that the 'view' helper function is behaving.
     var elements = listElementSetup();
     expect(view(elements.classes), '[classy, lassy, meta, quux, qux]');
-    expect(view(elements),
-        '[[quux, qux], [meta], [classy, lassy], [lassy, qux]]');
+    expect(
+        view(elements), '[[quux, qux], [meta], [classy, lassy], [lassy, qux]]');
   });
 
   test('listClasses=', () {
-    var elements =  listElementSetup();
+    var elements = listElementSetup();
     elements.classes = ['foo', 'qux'];
     elements = document.queryAll('li');
     for (Element e in elements) {
@@ -307,14 +306,14 @@ main() {
     expect(elements.classes.contains('foo'), isFalse);
   });
 
-
   test('listAdd', () {
-    var elements =  listElementSetup();
+    var elements = listElementSetup();
     var added = elements.classes.add('lassie');
     expect(added, isNull);
 
     expect(view(elements.classes), '[classy, lassie, lassy, meta, quux, qux]');
-    expect(view(elements),
+    expect(
+        view(elements),
         '[[lassie, quux, qux], [lassie, meta], [classy, lassie, lassy], '
         '[lassie, lassy, qux]]');
   });
@@ -323,8 +322,8 @@ main() {
     var elements = listElementSetup();
     expect(elements.classes.remove('lassi'), isFalse);
     expect(view(elements.classes), '[classy, lassy, meta, quux, qux]');
-    expect(view(elements),
-        '[[quux, qux], [meta], [classy, lassy], [lassy, qux]]');
+    expect(
+        view(elements), '[[quux, qux], [meta], [classy, lassy], [lassy, qux]]');
 
     expect(elements.classes.remove('qux'), isTrue);
     expect(view(elements.classes), '[classy, lassy, meta, quux]');
@@ -335,8 +334,8 @@ main() {
     var elements = listElementSetup();
     elements.classes.toggle('qux');
     expect(view(elements.classes), '[classy, lassy, meta, quux, qux]');
-    expect(view(elements),
-        '[[quux], [meta, qux], [classy, lassy, qux], [lassy]]');
+    expect(
+        view(elements), '[[quux], [meta, qux], [classy, lassy, qux], [lassy]]');
   });
 
   test('listAddAll', () {
@@ -344,7 +343,8 @@ main() {
     elements.classes.addAll(['qux', 'lassi', 'sassy']);
     expect(view(elements.classes),
         '[classy, lassi, lassy, meta, quux, qux, sassy]');
-    expect(view(elements),
+    expect(
+        view(elements),
         '[[lassi, quux, qux, sassy], [lassi, meta, qux, sassy], '
         '[classy, lassi, lassy, qux, sassy], [lassi, lassy, qux, sassy]]');
   });
@@ -354,17 +354,16 @@ main() {
     elements.classes.removeAll(['qux', 'lassy', 'meta']);
     expect(view(elements.classes), '[classy, quux]');
     expect(view(elements), '[[quux], [], [classy], []]');
-
   });
 
   test('listToggleAll', () {
     var elements = listElementSetup();
     elements.classes.toggleAll(['qux', 'meta', 'mornin']);
     expect(view(elements.classes), '[classy, lassy, meta, mornin, quux, qux]');
-    expect(view(elements),
+    expect(
+        view(elements),
         '[[meta, mornin, quux], [mornin, qux], '
         '[classy, lassy, meta, mornin, qux], [lassy, meta, mornin]]');
-
   });
 
   test('listRetainAll', () {
@@ -378,8 +377,7 @@ main() {
     var elements = listElementSetup();
     elements.classes.removeWhere((s) => s.startsWith('q'));
     expect(view(elements.classes), '[classy, lassy, meta]');
-    expect(view(elements),
-        '[[], [meta], [classy, lassy], [lassy]]');
+    expect(view(elements), '[[], [meta], [classy, lassy], [lassy]]');
   });
 
   test('listRetainWhere', () {

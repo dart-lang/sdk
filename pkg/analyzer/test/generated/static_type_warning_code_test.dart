@@ -1121,9 +1121,8 @@ class A {
         [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  test_returnOfInvalidType_expressionFunctionBody_void() async {
-    await assertErrorsInCode(
-        "void f() => 42;", [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+  test_returnOfInvalidType_not_issued_for_expressionFunctionBody_void() async {
+    await assertNoErrorsInCode("void f() => 42;");
   }
 
   test_returnOfInvalidType_function() async {

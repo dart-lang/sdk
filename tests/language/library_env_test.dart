@@ -59,7 +59,7 @@ main() {
 
   if (hasIoSupport != null) {
     // Dartium overrides 'dart.library.io' to return "false".
-    // We don't test for the non-existance, but just make sure that
+    // We don't test for the non-existence, but just make sure that
     // dart.library.io is not set to true.
     Expect.equals(hasIoSupport,
         const bool.fromEnvironment("dart.library.io", defaultValue: false));

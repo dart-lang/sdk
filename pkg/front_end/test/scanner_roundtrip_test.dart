@@ -44,22 +44,6 @@ class ScannerTest_RoundTrip extends ScannerTest {
 
   @override
   @failingTest
-  void test_ampersand_ampersand_eq() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support lazy assignment
-    // operators.
-    super.test_ampersand_ampersand_eq();
-  }
-
-  @override
-  @failingTest
-  void test_bar_bar_eq() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support lazy assignment
-    // operators.
-    super.test_bar_bar_eq();
-  }
-
-  @override
-  @failingTest
   void test_comment_generic_method_type_assign() {
     // TODO(paulberry,ahe): Fasta scanner doesn't support generic comment
     // syntax.
@@ -76,7 +60,7 @@ class ScannerTest_RoundTrip extends ScannerTest {
 }
 
 class TestScanner extends analyzer.Scanner {
-  TestScanner(analyzer.CharacterReader reader) : super(reader);
+  TestScanner(analyzer.CharacterReader reader) : super.create(reader);
 
   @override
   void reportError(

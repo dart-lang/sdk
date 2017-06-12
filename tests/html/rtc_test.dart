@@ -1,8 +1,9 @@
- // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 library RealTimeCommunicationTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -24,8 +25,11 @@ main() {
     // interactive_test.dart.
     if (RtcPeerConnection.supported) {
       test('peer connection', () {
-        var pc = new RtcPeerConnection(
-            {'iceServers': [ {'url':'stun:216.93.246.18:3478'}]});
+        var pc = new RtcPeerConnection({
+          'iceServers': [
+            {'url': 'stun:216.93.246.18:3478'}
+          ]
+        });
         expect(pc is RtcPeerConnection, isTrue);
         // TODO(efortuna): Uncomment this test when RTCPeerConnection correctly
         // implements EventListener in Firefox (works correctly in nightly, so
@@ -34,14 +38,14 @@ main() {
       });
 
       test('ice candidate', () {
-        var candidate = new RtcIceCandidate({'sdpMLineIndex' : 1,
-                                             'candidate' : 'hello'});
+        var candidate =
+            new RtcIceCandidate({'sdpMLineIndex': 1, 'candidate': 'hello'});
         expect(candidate is RtcIceCandidate, isTrue);
       });
 
       test('session description', () {
-        var description = new RtcSessionDescription({'sdp': 'foo',
-                                                     'type': 'offer'});
+        var description =
+            new RtcSessionDescription({'sdp': 'foo', 'type': 'offer'});
         expect(description is RtcSessionDescription, isTrue);
       });
     }

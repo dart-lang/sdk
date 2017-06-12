@@ -14,12 +14,10 @@ testMessage() {
   try {
     call_bar(5);
   } catch (e) {
-    Expect.isTrue(e.toString().indexOf("has no instance method 'bar'") != -1);
+    Expect.isTrue(e.toString().contains("has no instance method 'bar'"));
   }
 }
-
 
 main() {
   for (var i = 0; i < 20; i++) testMessage();
 }
-

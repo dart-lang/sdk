@@ -15,4 +15,3 @@ void main() {
   print(new lib.Exported());
   print(new lib.ReExported());
 }
-

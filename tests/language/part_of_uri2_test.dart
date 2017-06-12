@@ -4,8 +4,8 @@
 
 library part_of_uri2;
 
-part "part_of_uri2_part.dart";  // declares bar1, baz1, uses URI.
-part "part_of_uri2_part2.dart";  // declares bar2, baz2, uses id.
+part "part_of_uri2_part.dart"; // declares bar1, baz1, uses URI.
+part "part_of_uri2_part2.dart"; // declares bar2, baz2, uses id.
 
 const foo = 'foo';
 const qux = "$baz1$baz2";

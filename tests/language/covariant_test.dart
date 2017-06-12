@@ -44,7 +44,7 @@ covariant // //# 04: compile-time error
 void set x5(
     int
     covariant //# 05: compile-time error
-    val) {}
+        val) {}
 
 // Same without types.
 
@@ -85,7 +85,7 @@ int f12(
 int f13(
         int
     covariant //# 13: compile-time error
-        x) =>
+            x) =>
     499;
 
 // Covariant should not work on top-level methods.
@@ -99,7 +99,7 @@ int f14(
 int f15(
         final
     covariant //# 15: compile-time error
-        x) =>
+            x) =>
     499;
 
 // Covariant should not work on top-level methods.
@@ -113,7 +113,8 @@ int f16(
 int f17(
         final
     covariant //# 17: compile-time error
-        int x) =>
+            int
+            x) =>
     499;
 
 // On its own, `covariant` is just a parameter name.
@@ -162,7 +163,7 @@ class A {
   static void set x25(
       int
     covariant //# 25: compile-time error
-      val) {}
+          val) {}
 
   // Since `covariant` is a built-in identifier, it is not allowed here.
   static covariant x26; //# 26: compile-time error
@@ -212,7 +213,7 @@ class A {
   static int f33(
           int
       covariant //# 33: compile-time error
-          x) =>
+              x) =>
       499;
 
   // Covariant should not work on top-level methods.
@@ -226,7 +227,7 @@ class A {
   static int f35(
           final
       covariant //# 35: compile-time error
-          x) =>
+              x) =>
       499;
 
   // Covariant should not work on top-level methods.
@@ -240,7 +241,8 @@ class A {
   static int f37(
           final
       covariant //# 37: compile-time error
-          int x) =>
+              int
+              x) =>
       499;
 
   // `Covariant` on its own is just a parameter name.
@@ -280,7 +282,7 @@ class B {
   void set x45(
       int
     covariant //# 45: compile-time error
-      val) {}
+          val) {}
 
   // Since `covariant` is a built-in identifier, it is not allowed here.
   covariant x46; //# 46: compile-time error
@@ -314,7 +316,7 @@ class B {
   int f53(
           int
       covariant //# 53: compile-time error
-          x) =>
+              x) =>
       499;
 
   int f54(
@@ -326,7 +328,7 @@ class B {
   int f55(
           final
       covariant //# 55: compile-time error
-          x) =>
+              x) =>
       499;
 
   int f56(
@@ -338,7 +340,8 @@ class B {
   int f57(
           final
       covariant //# 57: compile-time error
-          int x) =>
+              int
+              x) =>
       499;
 
   // `Covariant` on its own is just a parameter name.

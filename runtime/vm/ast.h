@@ -285,12 +285,45 @@ class CloneContextNode : public AstNode {
 class ArgumentListNode : public AstNode {
  public:
   explicit ArgumentListNode(TokenPosition token_pos)
-      : AstNode(token_pos), nodes_(4), names_(Array::ZoneHandle()) {}
+      : AstNode(token_pos),
+        type_args_var_(NULL),
+        type_arguments_(TypeArguments::ZoneHandle()),
+        type_args_len_(0),
+        nodes_(4),
+        names_(Array::ZoneHandle()) {}
+
+  ArgumentListNode(TokenPosition token_pos, const TypeArguments& type_arguments)
+      : AstNode(token_pos),
+        type_args_var_(NULL),
+        type_arguments_(type_arguments),
+        type_args_len_(type_arguments.Length()),
+        nodes_(4),
+        names_(Array::ZoneHandle()) {
+    ASSERT(type_arguments_.IsZoneHandle());
+  }
+
+  ArgumentListNode(TokenPosition token_pos,
+                   LocalVariable* type_args_var,
+                   intptr_t type_args_len)
+      : AstNode(token_pos),
+        type_args_var_(type_args_var),
+        type_arguments_(TypeArguments::ZoneHandle()),
+        type_args_len_(type_args_len),
+        nodes_(4),
+        names_(Array::ZoneHandle()) {
+    ASSERT((type_args_var_ == NULL) == (type_args_len_ == 0));
+  }
 
   void VisitChildren(AstNodeVisitor* visitor) const;
 
+  LocalVariable* type_args_var() const { return type_args_var_; }
+  const TypeArguments& type_arguments() const { return type_arguments_; }
+  intptr_t type_args_len() const { return type_args_len_; }
   void Add(AstNode* node) { nodes_.Add(node); }
   intptr_t length() const { return nodes_.length(); }
+  intptr_t LengthWithTypeArgs() const {
+    return length() + (type_args_len() > 0 ? 1 : 0);
+  }
   AstNode* NodeAt(intptr_t index) const { return nodes_[index]; }
   void SetNodeAt(intptr_t index, AstNode* node) { nodes_[index] = node; }
   const Array& names() const { return names_; }
@@ -300,6 +333,10 @@ class ArgumentListNode : public AstNode {
   DECLARE_COMMON_NODE_FUNCTIONS(ArgumentListNode);
 
  private:
+  // At most one of type_args_var_ and type_arguments_ can be set, not both.
+  LocalVariable* type_args_var_;
+  const TypeArguments& type_arguments_;
+  intptr_t type_args_len_;
   GrowableArray<AstNode*> nodes_;
   Array& names_;
 

@@ -252,6 +252,7 @@ class OSThread : public BaseThread {
   friend class Isolate;  // to access set_thread(Thread*).
   friend class OSThreadIterator;
   friend class ThreadInterrupterWin;
+  friend class ThreadInterrupterFuchsia;
 };
 
 

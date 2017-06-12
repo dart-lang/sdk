@@ -27,7 +27,8 @@ foo(o, value) {
 
 const NeverInline = 'NeverInline';
 
-@NeverInline baz(x, y, z) => z;
+@NeverInline
+baz(x, y, z) => z;
 
 bar(o) {
   var value = 0x100000000 + o.inc;
@@ -39,4 +40,3 @@ main() {
   for (var i = 0; i < 100; i++) bar(o);
   bar(new A(100000, 1));
 }
-

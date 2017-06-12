@@ -23,8 +23,7 @@ class TestIterableBase extends Iterable<int> {
   // call [callback] if generating callbackIndex.
   final int callbackIndex;
   final Function callback;
-  TestIterableBase(this.length, this.count,
-                   this.callbackIndex, this.callback);
+  TestIterableBase(this.length, this.count, this.callbackIndex, this.callback);
   Iterator<int> get iterator => new CallbackIterator(this);
 }
 
@@ -35,8 +34,7 @@ class TestIterable extends TestIterableBase {
 }
 
 // Implement Set for private EfficientLength interface.
-class EfficientTestIterable extends TestIterableBase
-                            implements Set<int> {
+class EfficientTestIterable extends TestIterableBase implements Set<int> {
   EfficientTestIterable(length, count, [callbackIndex = -1, callback])
       : super(length, count, callbackIndex, callback);
   // Avoid warnings because we don't actually implement Set.
@@ -60,6 +58,7 @@ class CallbackIterator implements Iterator<int> {
     }
     return true;
   }
+
   int get current => _current;
 }
 
@@ -76,31 +75,36 @@ void testConstructor() {
   testFixedLength(list) {
     Expect.isTrue(list is List<int>);
     int length = list.length;
-    Expect.throws(() { list.add(42); }, null, "adding to fixed-length list");
+    Expect.throws(() {
+      list.add(42);
+    }, null, "adding to fixed-length list");
     Expect.equals(length, list.length);
   }
 
   bool checked = false;
   assert((checked = true));
   testThrowsOrTypeError(fn, test, [name]) {
-    Expect.throws(fn, checked ? null : test,
-                      checked ? name : "$name w/ TypeError");
+    Expect.throws(
+        fn, checked ? null : test, checked ? name : "$name w/ TypeError");
   }
+
   testFixedLength(new List<int>(0));
   testFixedLength(new List<int>(5));
-  testFixedLength(new List<int>.filled(5, null));  // default growable: false.
+  testFixedLength(new List<int>.filled(5, null)); // default growable: false.
   testGrowable(new List<int>());
   testGrowable(new List<int>()..length = 5);
   testGrowable(new List<int>.filled(5, null, growable: true));
   Expect.throws(() => new List<int>(-1), (e) => e is ArgumentError, "-1");
   // There must be limits. Fix this test if we ever allow 10^30 elements.
   Expect.throws(() => new List<int>(0x1000000000000000000000000000000),
-                (e) => e is ArgumentError, "bignum");
+      (e) => e is ArgumentError, "bignum");
   Expect.throws(() => new List<int>(null), (e) => e is ArgumentError, "null");
-  testThrowsOrTypeError(() => new List([] as Object),  // Cast to avoid warning.
-                        (e) => e is ArgumentError, 'list');
-  testThrowsOrTypeError(() => new List([42] as Object),
-                        (e) => e is ArgumentError, "list2");
+  testThrowsOrTypeError(
+      () => new List([] as Object), // Cast to avoid warning.
+      (e) => e is ArgumentError,
+      'list');
+  testThrowsOrTypeError(
+      () => new List([42] as Object), (e) => e is ArgumentError, "list2");
 }
 
 void testConcurrentModification() {
@@ -154,7 +158,7 @@ void testConcurrentModification() {
     var l = [];
     var ci = new EfficientTestIterable(500, 250);
     l.addAll(ci);
-    Expect.listEquals(new List.generate(250, (x)=>x), l, "cm5");
+    Expect.listEquals(new List.generate(250, (x) => x), l, "cm5");
   }
 
   {
@@ -162,21 +166,22 @@ void testConcurrentModification() {
     var l = [];
     var ci = new EfficientTestIterable(250, 500);
     l.addAll(ci);
-    Expect.listEquals(new List.generate(500, (x)=>x), l, "cm6");
+    Expect.listEquals(new List.generate(500, (x) => x), l, "cm6");
   }
 
   {
     // Adding to yourself.
     var l = [1];
-    Expect.throws(() { l.addAll(l); },
-                  (e) => e is ConcurrentModificationError, "cm7");
+    Expect.throws(() {
+      l.addAll(l);
+    }, (e) => e is ConcurrentModificationError, "cm7");
   }
 
   {
     // Adding to yourself.
     var l = [1, 2, 3];
-    Expect.throws(() { l.addAll(l); },
-                  (e) => e is ConcurrentModificationError, "cm8");
+    Expect.throws(() {
+      l.addAll(l);
+    }, (e) => e is ConcurrentModificationError, "cm8");
   }
 }
-

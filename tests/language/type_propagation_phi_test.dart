@@ -13,8 +13,8 @@ foo(b) {
   var x = bar();
   var x2 = x;
   if (b) x2 = bar2();
-  var x3 = 9 + x;  // Guarantees that x is a number. Dart2js propagated the
-                   // type information back to the phi (for x2).
+  var x3 = 9 + x; // Guarantees that x is a number. Dart2js propagated the
+  // type information back to the phi (for x2).
   return x2 + x3;
 }
 

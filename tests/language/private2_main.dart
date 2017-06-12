@@ -8,7 +8,9 @@ part of Private2Test;
 class A {
   var _f;
   var g;
-  A() : _f = 42, g = 43;
+  A()
+      : _f = 42,
+        g = 43;
 }
 
 class C extends B {
@@ -20,6 +22,6 @@ main() {
   print(a.g);
   print(a._f);
   var o = new C();
-  print(o.g);  // Access to public field in A.
-  print(o._f);  // Access to private field in A is allowed.
+  print(o.g); // Access to public field in A.
+  print(o._f); // Access to private field in A is allowed.
 }

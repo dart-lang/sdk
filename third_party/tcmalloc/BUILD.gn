@@ -32,6 +32,9 @@ config("internal_config") {
   if (is_clang) {
     cflags += [ "-Wno-unused-const-variable" ]
   }
+  if (current_cpu == "arm" && !is_clang) {
+    cflags += [ "-Wno-psabi" ]
+  }
 }
 
 config("link_config") {
@@ -101,7 +104,7 @@ source_set("tcmalloc") {
     "-fpermissive",
   ]
 
-  if (!is_clang && current_cpu == "x86") {
+  if (!is_clang) {
     cflags += [ "-Wno-format" ]
   }
 

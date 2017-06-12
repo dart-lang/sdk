@@ -4,7 +4,9 @@
 // VMOptions=--enable_type_checks
 
 class A {
-  static func() { return "class A"; }
+  static func() {
+    return "class A";
+  }
 }
 
 class B<T> {
@@ -17,6 +19,5 @@ main() {
   try {
     var buf = new B<A>().doFunc();
     print(buf);
-  } on NoSuchMethodError catch (e) {
-  }
+  } on NoSuchMethodError catch (e) {}
 }

@@ -312,7 +312,7 @@ class NoSuchMethodError {
                   .writeln("The $type_str '$memberName' was called on null.");
             }
           } else {
-            if (_receiver is Function) {
+            if (_receiver is _Closure) {
               msg_buf.writeln("Closure call with mismatched arguments: "
                   "function '$memberName'");
             } else if (_receiver is _Type && memberName == "call") {
@@ -394,4 +394,22 @@ class _CompileTimeError extends Error {
   final String _errorMsg;
   _CompileTimeError(this._errorMsg);
   String toString() => _errorMsg;
+}
+
+dynamic _classRangeAssert(int position, dynamic instance, _Type type, int cid,
+    int lowerLimit, int upperLimit) {
+  if ((cid < lowerLimit || cid > upperLimit) && instance != null) {
+    _TypeError._throwNew(position, instance, type, " in type cast", null);
+  }
+
+  return instance;
+}
+
+dynamic _classIdEqualsAssert(
+    int position, dynamic instance, _Type type, int cid, int otherCid) {
+  if (cid != otherCid && instance != null) {
+    _TypeError._throwNew(position, instance, type, " in type cast", null);
+  }
+
+  return instance;
 }

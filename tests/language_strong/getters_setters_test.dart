@@ -6,7 +6,6 @@ import "package:expect/expect.dart";
 import "package:meta/meta.dart" show virtual;
 
 class GettersSettersTest {
-
   static int foo;
 
   static testMain() {
@@ -62,7 +61,8 @@ class GettersSettersTest {
 }
 
 class A {
-  @virtual int x_;
+  @virtual
+  int x_;
   static int foo;
 
   static get bar {
@@ -98,7 +98,7 @@ class A {
   }
 }
 
-class B extends A { }
+class B extends A {}
 
 class C extends A {
   int y_;
@@ -139,11 +139,11 @@ class OverrideField extends A {
 
 class ReferenceField extends A {
   setIt(a) {
-     super.x_ = a;
+    super.x_ = a;
   }
 
   int getIt() {
-     return super.x_;
+    return super.x_;
   }
 }
 

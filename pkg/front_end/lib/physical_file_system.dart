@@ -7,8 +7,6 @@ library front_end.physical_file_system;
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:path/path.dart' as p;
-
 import 'file_system.dart';
 
 /// Concrete implementation of [FileSystem] which performs its operations using
@@ -19,9 +17,6 @@ class PhysicalFileSystem implements FileSystem {
   static final PhysicalFileSystem instance = new PhysicalFileSystem._();
 
   PhysicalFileSystem._();
-
-  @override
-  p.Context get context => p.context;
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
@@ -48,8 +43,50 @@ class _PhysicalFileSystemEntity implements FileSystemEntity {
       other is _PhysicalFileSystemEntity && other.uri == uri;
 
   @override
-  Future<List<int>> readAsBytes() => new io.File.fromUri(uri).readAsBytes();
+  Future<bool> exists() async {
+    if (await io.FileSystemEntity.isFile(uri.toFilePath())) {
+      return new io.File.fromUri(uri).exists();
+    } else {
+      return new io.Directory.fromUri(uri).exists();
+    }
+  }
 
   @override
-  Future<String> readAsString() => new io.File.fromUri(uri).readAsString();
+  Future<DateTime> lastModified() async {
+    try {
+      return await new io.File.fromUri(uri).lastModified();
+    } on io.FileSystemException catch (exception) {
+      throw _toFileSystemException(exception);
+    }
+  }
+
+  @override
+  Future<List<int>> readAsBytes() async {
+    try {
+      return await new io.File.fromUri(uri).readAsBytes();
+    } on io.FileSystemException catch (exception) {
+      throw _toFileSystemException(exception);
+    }
+  }
+
+  @override
+  Future<String> readAsString() async {
+    try {
+      return await new io.File.fromUri(uri).readAsString();
+    } on io.FileSystemException catch (exception) {
+      throw _toFileSystemException(exception);
+    }
+  }
+
+  /**
+   * Return the [FileSystemException] for the given I/O exception.
+   */
+  FileSystemException _toFileSystemException(io.FileSystemException exception) {
+    String message = exception.message;
+    String osMessage = exception.osError?.message;
+    if (osMessage != null && osMessage.isNotEmpty) {
+      message = osMessage;
+    }
+    return new FileSystemException(uri, message);
+  }
 }

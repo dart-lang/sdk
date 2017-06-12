@@ -6,11 +6,9 @@
 
 import "package:expect/expect.dart";
 
-class A<T extends B<T>> {
-}
+class A<T extends B<T>> {}
 
-class B<T extends A<T>> {
-}
+class B<T extends A<T>> {}
 
 isCheckedMode() {
   try {
@@ -35,4 +33,3 @@ main() {
   // Type error expected in checked mode only.
   Expect.isTrue(got_type_error == isCheckedMode());
 }
-

@@ -12,8 +12,8 @@ import 'dart:math';
 
 main() {
   var results = [];
-  for(var i = 60; i < 80; i++) {
-    var rng = new Random(1<<i);
+  for (var i = 60; i < 80; i++) {
+    var rng = new Random(1 << i);
     var val = rng.nextInt(100000);
     print("$i: $val");
     Expect.isFalse(results.contains(val));

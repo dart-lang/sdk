@@ -5,13 +5,13 @@
 // Same as MultiPassTest, except that the file order is reversed.
 
 library MultiPassTest.dart;
+
 import "package:expect/expect.dart";
 part "multi_pass_a.dart";
 part "multi_pass_b.dart";
 
-
 class Base {
-  Base(this.value) { }
+  Base(this.value) {}
   var value;
 }
 

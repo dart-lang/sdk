@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -32,19 +32,18 @@ class Foo {
 ''');
     standardAnalysisSetup();
 
+    // ignore: deprecated_member_use
     await sendAnalysisUpdateOptions(
         new AnalysisOptions()..generateHints = false);
     await sendAnalysisReanalyze();
     await analysisFinished;
     expect(getErrors(pathname), isEmpty);
 
+    // ignore: deprecated_member_use
     await sendAnalysisUpdateOptions(
         new AnalysisOptions()..generateHints = true);
     await sendAnalysisReanalyze();
     await analysisFinished;
     expect(getErrors(pathname), hasLength(1));
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

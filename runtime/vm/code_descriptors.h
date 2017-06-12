@@ -6,12 +6,12 @@
 #define RUNTIME_VM_CODE_DESCRIPTORS_H_
 
 #include "vm/ast.h"
-#include "vm/code_generator.h"
 #include "vm/datastream.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
-#include "vm/object.h"
 #include "vm/log.h"
+#include "vm/object.h"
+#include "vm/runtime_entry.h"
 
 namespace dart {
 

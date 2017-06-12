@@ -18,7 +18,7 @@ main() {
     expect(bd.lengthInBytes, 100);
     expect(bd.offsetInBytes, 0);
 
-    var a1 = new Uint8List.fromList([1,2,3,4,5,6,7,8]);
+    var a1 = new Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]);
 
     var bd2 = new ByteData.view(a1.buffer);
     expect(bd2.lengthInBytes, 8);
@@ -34,7 +34,7 @@ main() {
   });
 
   test('access8', () {
-    var a1 = new Uint8List.fromList([0,0,3,255,0,0,0,0,0,0]);
+    var a1 = new Uint8List.fromList([0, 0, 3, 255, 0, 0, 0, 0, 0, 0]);
 
     var bd = new ByteData.view(a1.buffer, 2, 6);
 
@@ -53,7 +53,7 @@ main() {
   });
 
   test('access16', () {
-    var a1 = new Uint8List.fromList([0,0,3,255,0,0,0,0,0,0]);
+    var a1 = new Uint8List.fromList([0, 0, 3, 255, 0, 0, 0, 0, 0, 0]);
 
     var bd = new ByteData.view(a1.buffer, 2);
 
@@ -73,7 +73,7 @@ main() {
   });
 
   test('access32', () {
-    var a1 = new Uint8List.fromList([0,0,3,255,0,0,0,0,0,0]);
+    var a1 = new Uint8List.fromList([0, 0, 3, 255, 0, 0, 0, 0, 0, 0]);
 
     var bd = new ByteData.view(a1.buffer);
 
@@ -85,5 +85,4 @@ main() {
     expect(bd.getUint32(0, Endianness.BIG_ENDIAN), equals(1023));
     expect(bd.getUint32(0, Endianness.LITTLE_ENDIAN), equals(0xFF030000));
   });
-
 }

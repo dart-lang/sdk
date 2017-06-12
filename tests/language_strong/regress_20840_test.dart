@@ -22,4 +22,3 @@ class SomeClass {
 void main() {
   new SomeClass();
 }
-

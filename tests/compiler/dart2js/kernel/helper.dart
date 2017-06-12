@@ -5,7 +5,8 @@
 import 'dart:async';
 
 import 'package:compiler/src/compiler.dart' show Compiler;
-import 'package:compiler/src/elements/elements.dart' show Element;
+import 'package:compiler/src/elements/elements.dart'
+    show Element, LibraryElement;
 import 'package:compiler/src/js_backend/backend.dart' as js
     show JavaScriptBackend;
 import 'package:compiler/src/commandline_options.dart' show Flags;
@@ -32,9 +33,10 @@ Future<String> compile(String code,
       memorySourceFiles: {'main.dart': code}, options: options);
   expect(result.isSuccess, isTrue);
   Compiler compiler = result.compiler;
+  LibraryElement mainApp = compiler.mainApp;
   Element element;
   if (lookup is String) {
-    element = compiler.mainApp.find(lookup);
+    element = mainApp.find(lookup);
   } else {
     element = lookup(compiler);
   }

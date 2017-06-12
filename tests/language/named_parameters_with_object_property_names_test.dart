@@ -8,7 +8,6 @@ import "package:expect/expect.dart";
 // 'Object'.  For such a NAME, foo.NAME may exist in an empty map, i.e.
 //    'toString' in {} --> true.
 
-
 main() {
   // Test properties found on instances of Object in Chrome 15 and Firefox 6.
   test_constructor();
@@ -29,6 +28,7 @@ class TestClass_constructor {
   method({constructor}) => constructor;
   static staticMethod({constructor}) => constructor;
 }
+
 globalMethod_constructor({constructor}) => constructor;
 
 test_constructor() {
@@ -50,6 +50,7 @@ class TestClass_hasOwnProperty {
   method({hasOwnProperty}) => hasOwnProperty;
   static staticMethod({hasOwnProperty}) => hasOwnProperty;
 }
+
 globalMethod_hasOwnProperty({hasOwnProperty}) => hasOwnProperty;
 
 test_hasOwnProperty() {
@@ -71,6 +72,7 @@ class TestClass_isPrototypeOf {
   method({isPrototypeOf}) => isPrototypeOf;
   static staticMethod({isPrototypeOf}) => isPrototypeOf;
 }
+
 globalMethod_isPrototypeOf({isPrototypeOf}) => isPrototypeOf;
 
 test_isPrototypeOf() {
@@ -92,7 +94,9 @@ class TestClass_propertyIsEnumerable {
   method({propertyIsEnumerable}) => propertyIsEnumerable;
   static staticMethod({propertyIsEnumerable}) => propertyIsEnumerable;
 }
-globalMethod_propertyIsEnumerable({propertyIsEnumerable}) => propertyIsEnumerable;
+
+globalMethod_propertyIsEnumerable({propertyIsEnumerable}) =>
+    propertyIsEnumerable;
 
 test_propertyIsEnumerable() {
   var obj = new TestClass_propertyIsEnumerable();
@@ -101,7 +105,8 @@ test_propertyIsEnumerable() {
   Expect.equals(0, obj.method(propertyIsEnumerable: 0));
 
   Expect.equals(null, TestClass_propertyIsEnumerable.staticMethod());
-  Expect.equals(0, TestClass_propertyIsEnumerable.staticMethod(propertyIsEnumerable: 0));
+  Expect.equals(
+      0, TestClass_propertyIsEnumerable.staticMethod(propertyIsEnumerable: 0));
 
   Expect.equals(null, globalMethod_propertyIsEnumerable());
   Expect.equals(0, globalMethod_propertyIsEnumerable(propertyIsEnumerable: 0));
@@ -113,6 +118,7 @@ class TestClass_toSource {
   method({toSource}) => toSource;
   static staticMethod({toSource}) => toSource;
 }
+
 globalMethod_toSource({toSource}) => toSource;
 
 test_toSource() {
@@ -134,6 +140,7 @@ class TestClass_toLocaleString {
   method({toLocaleString}) => toLocaleString;
   static staticMethod({toLocaleString}) => toLocaleString;
 }
+
 globalMethod_toLocaleString({toLocaleString}) => toLocaleString;
 
 test_toLocaleString() {
@@ -155,6 +162,7 @@ class TestClass_toString {
   method({toString}) => toString;
   static staticMethod({toString}) => toString;
 }
+
 globalMethod_toString({toString}) => toString;
 
 test_toString() {
@@ -176,6 +184,7 @@ class TestClass_unwatch {
   method({unwatch}) => unwatch;
   static staticMethod({unwatch}) => unwatch;
 }
+
 globalMethod_unwatch({unwatch}) => unwatch;
 
 test_unwatch() {
@@ -197,6 +206,7 @@ class TestClass_valueOf {
   method({valueOf}) => valueOf;
   static staticMethod({valueOf}) => valueOf;
 }
+
 globalMethod_valueOf({valueOf}) => valueOf;
 
 test_valueOf() {
@@ -218,6 +228,7 @@ class TestClass_watch {
   method({watch}) => watch;
   static staticMethod({watch}) => watch;
 }
+
 globalMethod_watch({watch}) => watch;
 
 test_watch() {

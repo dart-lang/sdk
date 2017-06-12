@@ -102,7 +102,7 @@ void test(String code, void check(CompilerImpl compiler)) {
 
 void testHasRuntimeType(String code) {
   test(code, (compiler) {
-    var element = compiler.backend.helpers.createRuntimeType;
+    var element = compiler.commonElements.createRuntimeType;
     Expect.isTrue(
         compiler.enqueuer.resolution.processedEntities.contains(element));
   });
@@ -110,7 +110,7 @@ void testHasRuntimeType(String code) {
 
 main() {
   test(NO_RUNTIME_TYPE, (compiler) {
-    var element = compiler.backend.helpers.createRuntimeType;
+    var element = compiler.commonElements.createRuntimeType;
     Expect.isFalse(
         compiler.enqueuer.resolution.processedEntities.contains(element));
   });

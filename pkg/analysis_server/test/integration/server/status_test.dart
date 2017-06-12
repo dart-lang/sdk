@@ -4,20 +4,20 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StatusTest);
-    defineReflectiveTests(StatusTest_Driver);
   });
 }
 
-class AbstractStatusTest extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class StatusTest extends AbstractAnalysisServerIntegrationTest {
   test_status() {
     // After we kick off analysis, we should get one server.status message with
     // analyzing=true, and another server.status message after that with
@@ -49,13 +49,4 @@ main() {
       return analysisFinished.future;
     });
   }
-}
-
-@reflectiveTest
-class StatusTest extends AbstractStatusTest {}
-
-@reflectiveTest
-class StatusTest_Driver extends AbstractStatusTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

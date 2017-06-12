@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' as server;
+import 'package:analysis_server/protocol/protocol.dart' as server;
+import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -41,46 +43,36 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_handlePluginNotification_errors() {
     manager.setAnalysisRoots([testDir], []);
-    plugin.AnalysisError pluginError1 = pluginAnalysisError(0, 0, file: fileA);
-    plugin.AnalysisError pluginError2 = pluginAnalysisError(3, 4, file: fileA);
+    AnalysisError error1 = analysisError(0, 0, file: fileA);
+    AnalysisError error2 = analysisError(3, 4, file: fileA);
     plugin.AnalysisErrorsParams params =
-        new plugin.AnalysisErrorsParams(fileA, [pluginError1, pluginError2]);
+        new plugin.AnalysisErrorsParams(fileA, [error1, error2]);
     manager.handlePluginNotification('a', params.toNotification());
-
-    server.AnalysisError serverError1 = serverAnalysisError(0, 0, file: fileA);
-    server.AnalysisError serverError2 = serverAnalysisError(3, 4, file: fileA);
-    _verifyErrors(fileA, [serverError1, serverError2]);
+    _verifyErrors(fileA, [error1, error2]);
   }
 
   void test_handlePluginNotification_folding() {
     manager.setSubscriptions({
       server.AnalysisService.FOLDING: new Set.from([fileA, fileB])
     });
-    plugin.FoldingRegion pluginRegion1 = pluginFoldingRegion(10, 3);
-    plugin.FoldingRegion pluginRegion2 = pluginFoldingRegion(20, 6);
+    FoldingRegion region1 = foldingRegion(10, 3);
+    FoldingRegion region2 = foldingRegion(20, 6);
     plugin.AnalysisFoldingParams params =
-        new plugin.AnalysisFoldingParams(fileA, [pluginRegion1, pluginRegion2]);
+        new plugin.AnalysisFoldingParams(fileA, [region1, region2]);
     manager.handlePluginNotification('a', params.toNotification());
-
-    server.FoldingRegion serverRegion1 = serverFoldingRegion(10, 3);
-    server.FoldingRegion serverRegion2 = serverFoldingRegion(20, 6);
-    _verifyFoldingRegions(fileA, [serverRegion1, serverRegion2]);
+    _verifyFoldingRegions(fileA, [region1, region2]);
   }
 
   void test_handlePluginNotification_highlights() {
     manager.setSubscriptions({
       server.AnalysisService.HIGHLIGHTS: new Set.from([fileA, fileB])
     });
-    plugin.HighlightRegion pluginRegion1 = pluginHighlightRegion(10, 3);
-    plugin.HighlightRegion pluginRegion2 = pluginHighlightRegion(20, 6);
+    HighlightRegion region1 = highlightRegion(10, 3);
+    HighlightRegion region2 = highlightRegion(20, 6);
     plugin.AnalysisHighlightsParams params =
-        new plugin.AnalysisHighlightsParams(
-            fileA, [pluginRegion1, pluginRegion2]);
-
-    server.HighlightRegion serverRegion1 = serverHighlightRegion(10, 3);
-    server.HighlightRegion serverRegion2 = serverHighlightRegion(20, 6);
+        new plugin.AnalysisHighlightsParams(fileA, [region1, region2]);
     manager.handlePluginNotification('a', params.toNotification());
-    _verifyHighlightRegions(fileA, [serverRegion1, serverRegion2]);
+    _verifyHighlightRegions(fileA, [region1, region2]);
   }
 
   void test_handlePluginNotification_naviation() {
@@ -100,33 +92,40 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     manager.setSubscriptions({
       server.AnalysisService.OCCURRENCES: new Set.from([fileA, fileB])
     });
-    plugin.Occurrences pluginOccurrences1 = pluginOccurrences(0, 0);
-    plugin.Occurrences pluginOccurrences2 = pluginOccurrences(5, 7);
+    Occurrences occurrences1 = occurrences(0, 0);
+    Occurrences occurrences2 = occurrences(5, 7);
     plugin.AnalysisOccurrencesParams params =
         new plugin.AnalysisOccurrencesParams(
-            fileA, [pluginOccurrences1, pluginOccurrences2]);
+            fileA, [occurrences1, occurrences2]);
 
-    server.Occurrences serverOccurrences1 = serverOccurrences(0, 0);
-    server.Occurrences serverOccurrences2 = serverOccurrences(5, 7);
     manager.handlePluginNotification('a', params.toNotification());
-    _verifyOccurrences(fileA, [serverOccurrences1, serverOccurrences2]);
+    _verifyOccurrences(fileA, [occurrences1, occurrences2]);
   }
 
   void test_handlePluginNotification_outline() {
     manager.setSubscriptions({
       server.AnalysisService.OUTLINE: new Set.from([fileA, fileB])
     });
-    plugin.Outline pluginOutline1 = pluginOutline(0, 0);
+    Outline outline1 = outline(0, 0);
     plugin.AnalysisOutlineParams params =
-        new plugin.AnalysisOutlineParams(fileA, [pluginOutline1]);
+        new plugin.AnalysisOutlineParams(fileA, [outline1]);
     manager.handlePluginNotification('a', params.toNotification());
 
-    server.Outline serverOutline1 = serverOutline(0, 0);
-    _verifyOutlines(fileA, serverOutline1);
+    _verifyOutlines(fileA, outline1);
+  }
+
+  void test_handlePluginNotification_pluginError() {
+    bool isFatal = false;
+    String message = 'message';
+    String stackTrace = 'stackTrace';
+    plugin.PluginErrorParams params =
+        new plugin.PluginErrorParams(isFatal, message, stackTrace);
+    manager.handlePluginNotification('a', params.toNotification());
+    _verifyPluginError(isFatal, message, stackTrace);
   }
 
   void test_recordAnalysisErrors_noSubscription() {
-    server.AnalysisError error = serverAnalysisError(0, 0, file: fileA);
+    AnalysisError error = analysisError(0, 0, file: fileA);
     manager.recordAnalysisErrors('a', fileA, [error]);
     expect(channel.sentNotification, isNull);
   }
@@ -136,34 +135,34 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     // Errors should be reported when they are recorded.
     //
-    server.AnalysisError error1 = serverAnalysisError(0, 0, file: fileA);
-    server.AnalysisError error2 = serverAnalysisError(3, 4, file: fileA);
+    AnalysisError error1 = analysisError(0, 0, file: fileA);
+    AnalysisError error2 = analysisError(3, 4, file: fileA);
     manager.recordAnalysisErrors('a', fileA, [error1, error2]);
     _verifyErrors(fileA, [error1, error2]);
     //
     // Errors from different plugins should be cumulative.
     //
-    server.AnalysisError error3 = serverAnalysisError(6, 8, file: fileA);
+    AnalysisError error3 = analysisError(6, 8, file: fileA);
     manager.recordAnalysisErrors('b', fileA, [error3]);
     _verifyErrors(fileA, [error1, error2, error3]);
     //
     // Overwriting errors from one plugin should not affect errors from other
     // plugins.
     //
-    server.AnalysisError error4 = serverAnalysisError(9, 12, file: fileA);
+    AnalysisError error4 = analysisError(9, 12, file: fileA);
     manager.recordAnalysisErrors('a', fileA, [error4]);
     _verifyErrors(fileA, [error4, error3]);
     //
     // Recording errors against a file should not affect the errors for other
     // files.
     //
-    server.AnalysisError error5 = serverAnalysisError(12, 16, file: fileB);
+    AnalysisError error5 = analysisError(12, 16, file: fileB);
     manager.recordAnalysisErrors('a', fileB, [error5]);
     _verifyErrors(fileB, [error5]);
   }
 
   void test_recordFoldingRegions_noSubscription() {
-    server.FoldingRegion region = serverFoldingRegion(10, 5);
+    FoldingRegion region = foldingRegion(10, 5);
     manager.recordFoldingRegions('a', fileA, [region]);
     expect(channel.sentNotification, isNull);
   }
@@ -175,34 +174,34 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     // Regions should be reported when they are recorded.
     //
-    server.FoldingRegion region1 = serverFoldingRegion(10, 3);
-    server.FoldingRegion region2 = serverFoldingRegion(20, 6);
+    FoldingRegion region1 = foldingRegion(10, 3);
+    FoldingRegion region2 = foldingRegion(20, 6);
     manager.recordFoldingRegions('a', fileA, [region1, region2]);
     _verifyFoldingRegions(fileA, [region1, region2]);
     //
     // Regions from different plugins should be cumulative.
     //
-    server.FoldingRegion region3 = serverFoldingRegion(30, 5);
+    FoldingRegion region3 = foldingRegion(30, 5);
     manager.recordFoldingRegions('b', fileA, [region3]);
     _verifyFoldingRegions(fileA, [region1, region2, region3]);
     //
     // Overwriting regions from one plugin should not affect regions from other
     // plugins.
     //
-    server.FoldingRegion region4 = serverFoldingRegion(40, 2);
+    FoldingRegion region4 = foldingRegion(40, 2);
     manager.recordFoldingRegions('a', fileA, [region4]);
     _verifyFoldingRegions(fileA, [region4, region3]);
     //
     // Recording regions against a file should not affect the regions for other
     // files.
     //
-    server.FoldingRegion region5 = serverFoldingRegion(50, 7);
+    FoldingRegion region5 = foldingRegion(50, 7);
     manager.recordFoldingRegions('a', fileB, [region5]);
     _verifyFoldingRegions(fileB, [region5]);
   }
 
   void test_recordHighlightRegions_noSubscription() {
-    server.HighlightRegion region = serverHighlightRegion(10, 5);
+    HighlightRegion region = highlightRegion(10, 5);
     manager.recordHighlightRegions('a', fileA, [region]);
     expect(channel.sentNotification, isNull);
   }
@@ -214,28 +213,28 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     // Regions should be reported when they are recorded.
     //
-    server.HighlightRegion region1 = serverHighlightRegion(10, 3);
-    server.HighlightRegion region2 = serverHighlightRegion(20, 6);
+    HighlightRegion region1 = highlightRegion(10, 3);
+    HighlightRegion region2 = highlightRegion(20, 6);
     manager.recordHighlightRegions('a', fileA, [region1, region2]);
     _verifyHighlightRegions(fileA, [region1, region2]);
     //
     // Regions from different plugins should be cumulative.
     //
-    server.HighlightRegion region3 = serverHighlightRegion(30, 5);
+    HighlightRegion region3 = highlightRegion(30, 5);
     manager.recordHighlightRegions('b', fileA, [region3]);
     _verifyHighlightRegions(fileA, [region1, region2, region3]);
     //
     // Overwriting regions from one plugin should not affect regions from other
     // plugins.
     //
-    server.HighlightRegion region4 = serverHighlightRegion(40, 2);
+    HighlightRegion region4 = highlightRegion(40, 2);
     manager.recordHighlightRegions('a', fileA, [region4]);
     _verifyHighlightRegions(fileA, [region4, region3]);
     //
     // Recording regions against a file should not affect the regions for other
     // files.
     //
-    server.HighlightRegion region5 = serverHighlightRegion(50, 7);
+    HighlightRegion region5 = highlightRegion(50, 7);
     manager.recordHighlightRegions('a', fileB, [region5]);
     _verifyHighlightRegions(fileB, [region5]);
   }
@@ -265,12 +264,12 @@ class NotificationManagerTest extends ProtocolTestUtilities {
         serverNavigationParams(2, 4, file: fileA);
     manager.recordNavigationParams('b', fileA, params2);
     server.AnalysisNavigationParams params1and2 =
-        new server.AnalysisNavigationParams(fileA, <server.NavigationRegion>[
-      new server.NavigationRegion(0, 2, <int>[0]),
-      new server.NavigationRegion(4, 2, <int>[1])
-    ], <server.NavigationTarget>[
-      new server.NavigationTarget(server.ElementKind.FIELD, 0, 1, 2, 2, 3),
-      new server.NavigationTarget(server.ElementKind.FIELD, 2, 5, 2, 6, 7)
+        new server.AnalysisNavigationParams(fileA, <NavigationRegion>[
+      new NavigationRegion(0, 2, <int>[0]),
+      new NavigationRegion(4, 2, <int>[1])
+    ], <NavigationTarget>[
+      new NavigationTarget(ElementKind.FIELD, 0, 1, 2, 2, 3),
+      new NavigationTarget(ElementKind.FIELD, 2, 5, 2, 6, 7)
     ], <String>[
       'aa',
       'ab',
@@ -286,12 +285,12 @@ class NotificationManagerTest extends ProtocolTestUtilities {
         serverNavigationParams(4, 8, file: fileA);
     manager.recordNavigationParams('a', fileA, params3);
     server.AnalysisNavigationParams params3and2 =
-        new server.AnalysisNavigationParams(fileA, <server.NavigationRegion>[
-      new server.NavigationRegion(8, 2, <int>[0]),
-      new server.NavigationRegion(4, 2, <int>[1])
-    ], <server.NavigationTarget>[
-      new server.NavigationTarget(server.ElementKind.FIELD, 0, 9, 2, 10, 11),
-      new server.NavigationTarget(server.ElementKind.FIELD, 2, 5, 2, 6, 7)
+        new server.AnalysisNavigationParams(fileA, <NavigationRegion>[
+      new NavigationRegion(8, 2, <int>[0]),
+      new NavigationRegion(4, 2, <int>[1])
+    ], <NavigationTarget>[
+      new NavigationTarget(ElementKind.FIELD, 0, 9, 2, 10, 11),
+      new NavigationTarget(ElementKind.FIELD, 2, 5, 2, 6, 7)
     ], <String>[
       'ae',
       'af',
@@ -310,8 +309,8 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void test_recordOccurrences_noSubscription() {
-    server.Occurrences occurrences = serverOccurrences(0, 0);
-    manager.recordOccurrences('a', fileA, [occurrences]);
+    Occurrences occurrences1 = occurrences(0, 0);
+    manager.recordOccurrences('a', fileA, [occurrences1]);
     expect(channel.sentNotification, isNull);
   }
 
@@ -322,35 +321,35 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     // Occurrences should be reported when they are recorded.
     //
-    server.Occurrences occurrences1 = serverOccurrences(0, 0);
-    server.Occurrences occurrences2 = serverOccurrences(5, 7);
+    Occurrences occurrences1 = occurrences(0, 0);
+    Occurrences occurrences2 = occurrences(5, 7);
     manager.recordOccurrences('a', fileA, [occurrences1, occurrences2]);
     _verifyOccurrences(fileA, [occurrences1, occurrences2]);
     //
     // Occurrences from different plugins should be cumulative.
     //
-    server.Occurrences occurrences3 = serverOccurrences(10, 14);
+    Occurrences occurrences3 = occurrences(10, 14);
     manager.recordOccurrences('b', fileA, [occurrences3]);
     _verifyOccurrences(fileA, [occurrences1, occurrences2, occurrences3]);
     //
     // Overwriting occurrences from one plugin should not affect occurrences
     // from other plugins.
     //
-    server.Occurrences occurrences4 = serverOccurrences(15, 21);
+    Occurrences occurrences4 = occurrences(15, 21);
     manager.recordOccurrences('a', fileA, [occurrences4]);
     _verifyOccurrences(fileA, [occurrences4, occurrences3]);
     //
     // Recording occurrences against a file should not affect the occurrences
     // for other files.
     //
-    server.Occurrences occurrences5 = serverOccurrences(20, 28);
+    Occurrences occurrences5 = occurrences(20, 28);
     manager.recordOccurrences('a', fileB, [occurrences5]);
     _verifyOccurrences(fileB, [occurrences5]);
   }
 
   void test_recordOutlines_noSubscription() {
-    server.Outline outline = serverOutline(0, 0);
-    manager.recordOutlines('a', fileA, [outline]);
+    Outline outline1 = outline(0, 0);
+    manager.recordOutlines('a', fileA, [outline1]);
     expect(channel.sentNotification, isNull);
   }
 
@@ -365,15 +364,15 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     // Outlines should be reported when they are recorded.
     //
-    server.Outline outline1 = serverOutline(0, 0);
-    server.Outline outline2 = serverOutline(5, 7);
+    Outline outline1 = outline(0, 0);
+    Outline outline2 = outline(5, 7);
     manager.recordOutlines('a', fileA, [outline1, outline2]);
     // TODO(brianwilkerson) Figure out how to test this.
 //    _verifyOutlines(fileA, [outline1, outline2]);
     //
     // Outlines from different plugins should be cumulative.
     //
-    server.Outline outline3 = serverOutline(10, 14);
+    Outline outline3 = outline(10, 14);
     manager.recordOutlines('b', fileA, [outline3]);
     // TODO(brianwilkerson) Figure out how to test this.
 //    _verifyOutlines(fileA, [outline1, outline2, outline3]);
@@ -381,7 +380,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     // Overwriting outlines from one plugin should not affect outlines from
     // other plugins.
     //
-    server.Outline outline4 = serverOutline(15, 21);
+    Outline outline4 = outline(15, 21);
     manager.recordOutlines('a', fileA, [outline4]);
     // TODO(brianwilkerson) Figure out how to test this.
 //    _verifyOutlines(fileA, [outline4, outline3]);
@@ -389,14 +388,13 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     // Recording outlines against a file should not affect the outlines for
     // other files.
     //
-    server.Outline outline5 = serverOutline(20, 28);
+    Outline outline5 = outline(20, 28);
     manager.recordOutlines('a', fileB, [outline5]);
     // TODO(brianwilkerson) Figure out how to test this.
 //    _verifyOutlines(fileB, [outline5]);
   }
 
-  void _verifyErrors(
-      String fileName, List<server.AnalysisError> expectedErrors) {
+  void _verifyErrors(String fileName, List<AnalysisError> expectedErrors) {
     server.Notification notification = channel.sentNotification;
     expect(notification, isNotNull);
     expect(notification.event, 'analysis.errors');
@@ -409,7 +407,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void _verifyFoldingRegions(
-      String fileName, List<server.FoldingRegion> expectedRegions) {
+      String fileName, List<FoldingRegion> expectedRegions) {
     server.Notification notification = channel.sentNotification;
     expect(notification, isNotNull);
     expect(notification.event, 'analysis.folding');
@@ -422,7 +420,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void _verifyHighlightRegions(
-      String fileName, List<server.HighlightRegion> expectedRegions) {
+      String fileName, List<HighlightRegion> expectedRegions) {
     server.Notification notification = channel.sentNotification;
     expect(notification, isNotNull);
     expect(notification.event, 'analysis.highlights');
@@ -449,7 +447,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void _verifyOccurrences(
-      String fileName, List<server.Occurrences> expectedOccurrences) {
+      String fileName, List<Occurrences> expectedOccurrences) {
     server.Notification notification = channel.sentNotification;
     expect(notification, isNotNull);
     expect(notification.event, 'analysis.occurrences');
@@ -461,7 +459,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     channel.sentNotification = null;
   }
 
-  void _verifyOutlines(String fileName, server.Outline expectedOutline) {
+  void _verifyOutlines(String fileName, Outline expectedOutline) {
     server.Notification notification = channel.sentNotification;
     expect(notification, isNotNull);
     expect(notification.event, 'analysis.outline');
@@ -470,6 +468,19 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     expect(params, isNotNull);
     expect(params.file, fileName);
     expect(params.outline, equals(expectedOutline));
+    channel.sentNotification = null;
+  }
+
+  void _verifyPluginError(bool isFatal, String message, String stackTrace) {
+    server.Notification notification = channel.sentNotification;
+    expect(notification, isNotNull);
+    expect(notification.event, 'server.error');
+    server.ServerErrorParams params =
+        new server.ServerErrorParams.fromNotification(notification);
+    expect(params, isNotNull);
+    expect(params.isFatal, isFatal);
+    expect(params.message, message);
+    expect(params.stackTrace, stackTrace);
     channel.sentNotification = null;
   }
 }

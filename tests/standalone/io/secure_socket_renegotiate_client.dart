@@ -23,13 +23,11 @@ class ExpectException implements Exception {
   String message;
 }
 
-
 void expectEquals(expected, actual) {
   if (actual != expected) {
     throw new ExpectException('Expected $expected, found $actual');
   }
 }
-
 
 void expect(condition) {
   if (!condition) {
@@ -37,45 +35,38 @@ void expect(condition) {
   }
 }
 
-
 void runClient(int port) {
-  SecureSocket.connect(HOST_NAME,
-                       port,
-                       context: clientContext)
-    .then((SecureSocket socket) {
+  SecureSocket
+      .connect(HOST_NAME, port, context: clientContext)
+      .then((SecureSocket socket) {
+    X509Certificate certificate = socket.peerCertificate;
+    expect(certificate != null);
+    expectEquals('CN=localhost', certificate.subject);
+    expectEquals('CN=myauthority', certificate.issuer);
+    StreamIterator<String> input = new StreamIterator(
+        socket.transform(UTF8.decoder).transform(new LineSplitter()));
+    socket.writeln('first');
+    input.moveNext().then((success) {
+      expect(success);
+      expectEquals('first reply', input.current);
+      socket.renegotiate();
+      socket.writeln('renegotiated');
+      return input.moveNext();
+    }).then((success) {
+      expect(success);
+      expectEquals('server renegotiated', input.current);
       X509Certificate certificate = socket.peerCertificate;
       expect(certificate != null);
-      expectEquals('CN=localhost', certificate.subject);
-      expectEquals('CN=myauthority', certificate.issuer);
-      StreamIterator<String> input = new StreamIterator(socket
-          .transform(UTF8.decoder)
-          .transform(new LineSplitter()));
-      socket.writeln('first');
-      input.moveNext()
-        .then((success) {
-          expect(success);
-          expectEquals('first reply', input.current);
-          socket.renegotiate();
-          socket.writeln('renegotiated');
-          return input.moveNext();
-        })
-        .then((success) {
-          expect(success);
-          expectEquals('server renegotiated', input.current);
-          X509Certificate certificate = socket.peerCertificate;
-          expect(certificate != null);
-          expectEquals("CN=localhost", certificate.subject);
-          expectEquals("CN=myauthority", certificate.issuer);
-          socket.writeln('second');
-          return input.moveNext();
-        })
-        .then((success) {
-          expect(success != true);
-          socket.close();
-        });
+      expectEquals("CN=localhost", certificate.subject);
+      expectEquals("CN=myauthority", certificate.issuer);
+      socket.writeln('second');
+      return input.moveNext();
+    }).then((success) {
+      expect(success != true);
+      socket.close();
     });
+  });
 }
-
 
 void main(List<String> args) {
   runClient(int.parse(args[0]));

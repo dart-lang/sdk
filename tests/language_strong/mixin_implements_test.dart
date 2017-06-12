@@ -12,8 +12,7 @@ abstract class I1 {
   bar();
 }
 
-abstract class I2 implements I0, I1 {
-}
+abstract class I2 implements I0, I1 {}
 
 class M {
   foo() => 42;

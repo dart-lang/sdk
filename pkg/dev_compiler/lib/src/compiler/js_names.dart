@@ -178,12 +178,8 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   }
 
   void _finishNames() {
-    var allNames = new Set<String>();
     pendingRenames.forEach((id, scopes) {
-      allNames.clear();
-      for (var s in scopes) allNames.addAll(s.used);
-
-      var name = _findName(id, allNames);
+      var name = _findName(id, scopes);
       for (var s in scopes) {
         s.used.add(name);
         s.renames[id] = name;
@@ -191,7 +187,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     });
   }
 
-  static String _findName(Object id, Set<String> usedNames) {
+  static String _findName(Object id, Set<_FunctionScope> scopes) {
     String name;
     bool valid;
     if (id is TemporaryId) {
@@ -204,7 +200,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
 
     // Try to use the temp's name, otherwise rename.
     String candidate;
-    if (valid && !usedNames.contains(name)) {
+    if (valid && !scopes.any((scope) => scope.used.contains(name))) {
       candidate = name;
     } else {
       // This assumes that collisions are rare, hence linear search.
@@ -212,7 +208,9 @@ class _RenameVisitor extends VariableDeclarationVisitor {
       // TODO(jmesserly): what's the most readable scheme here? Maybe 1-letter
       // names in some cases?
       candidate = name == 'function' ? 'func' : '${name}\$';
-      for (int i = 0; usedNames.contains(candidate); i++) {
+      for (int i = 0;
+          scopes.any((scope) => scope.used.contains(candidate));
+          i++) {
         candidate = '${name}\$$i';
       }
     }

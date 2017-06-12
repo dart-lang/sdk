@@ -21,7 +21,7 @@ main() {
   Expect.isTrue(thisLibrary.declarations[#Foo] is TypedefMirror,
       'TypedefMirror expected, found $fooMirror');
 
-  // The following code does not currenty work on the VM, because it does not
+  // The following code does not currently work on the VM, because it does not
   // support MirrorsUsed (see dartbug.com/16048).
   Mirror barMirror = thisLibrary.declarations[#Bar]; //             //# 01: ok
   Expect.isTrue(barMirror == null, //                               //# 01: continued

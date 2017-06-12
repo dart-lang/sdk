@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.named_constructor;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /**
  * A contributor for calculating named constructor suggestions
@@ -22,27 +20,6 @@ class NamedConstructorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // Determine if the target looks like a named constructor.
-    AstNode parsedNode = request.target.containingNode;
-    SimpleIdentifier targetId;
-    if (parsedNode is ConstructorName) {
-      TypeName type = parsedNode.type;
-      if (type != null) {
-        targetId = type.name;
-      }
-    } else if (parsedNode is PrefixedIdentifier) {
-      // Some PrefixedIdentifier nodes are transformed into
-      // ConstructorName nodes during the resolution process.
-      targetId = parsedNode.prefix;
-    }
-    if (targetId == null) {
-      return EMPTY_LIST;
-    }
-
-    // Resolve the target to determine the type
-    await request.resolveContainingExpression(targetId);
-
-    // Recompute the target since resolution may have changed it
     AstNode node = request.target.containingNode;
     LibraryElement libElem = request.libraryElement;
     if (libElem == null) {

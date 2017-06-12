@@ -160,7 +160,7 @@ testSameDVI(String tmpDirPath) {
   if (dartExecutable == "") throw "dart executable not available";
 
   // actions to take; rely on having latex and dvi2tty in PATH
-  runLatex(fileName,workingDirectory) =>
+  runLatex(fileName, workingDirectory) =>
       Process.runSync("latex", [fileName], workingDirectory: workingDirectory);
 
   runAddHash() {
@@ -187,7 +187,7 @@ testSameDVI(String tmpDirPath) {
       .writeAsStringSync(renewLMHashCmd, mode: FileMode.APPEND);
   new File(specPath).copySync(tmpSpecPath);
 
-  checkAction(runAddHash(),"addlatexhash.dart failed");
+  checkAction(runAddHash(), "addlatexhash.dart failed");
   for (var i = 0; i < 5; i++) {
     checkAction(runLatex(specName, tmpDirPath), "LaTeX on spec failed");
   }
@@ -203,12 +203,10 @@ runWithTempDir(void test(String tempDir)) {
   final tempDir = Directory.systemTemp.createTempSync("addlatexhash_test");
   try {
     test(tempDir.path);
-  }
-  finally {
+  } finally {
     tempDir.delete(recursive: true);
   }
 }
-
 
 main([args]) {
   testCutMatch();

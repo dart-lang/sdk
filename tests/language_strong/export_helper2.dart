@@ -4,6 +4,4 @@
 
 library export_helper2;
 
-class ReExported {
-
-}
+class ReExported {}

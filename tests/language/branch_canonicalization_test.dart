@@ -16,6 +16,7 @@ barDouble(a, b) {
   sideEffect = !sideEffect;
   return result;
 }
+
 fooDouble(a, b) => barDouble(a, b) ? 1 : 0;
 
 barMint(a, b) {
@@ -24,17 +25,16 @@ barMint(a, b) {
   sideEffect = !sideEffect;
   return result;
 }
+
 fooMint(a, b) => barMint(a, b) ? 1 : 0;
 
 class A {
-  operator == (other) => identical(this, other);
+  operator ==(other) => identical(this, other);
 }
 
-class B extends A {
-}
+class B extends A {}
 
-class C extends A {
-}
+class C extends A {}
 
 barPoly(a, b) {
   sideEffect = false;
@@ -45,7 +45,7 @@ barPoly(a, b) {
 
 fooPoly(a, b) => barPoly(a, b) ? 1 : 0;
 
-main () {
+main() {
   final a = 1.0;
   final b = 1 << 62;
   final x = new A(), y = new B(), z = new C();

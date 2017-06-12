@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 import 'dart:collection';
 
 class Crash extends Expando<String> {
-  Crash(): super();
+  Crash() : super();
 }
 
 void main() {

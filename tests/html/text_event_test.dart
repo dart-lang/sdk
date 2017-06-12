@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library text_event_test;
+
 import "package:expect/expect.dart";
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
@@ -14,5 +15,7 @@ main() {
   useHtmlConfiguration();
 
   eventTest('TextEvent', () => new TextEvent('foo', view: window, data: 'data'),
-      (ev) { expect(ev.data, 'data'); });
+      (ev) {
+    expect(ev.data, 'data');
+  });
 }

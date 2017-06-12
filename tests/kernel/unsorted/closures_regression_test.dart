@@ -5,6 +5,7 @@
 import 'package:expect/expect.dart';
 
 f(fun) => fun();
+
 class A {
   identity(arg) {
     return f(() {

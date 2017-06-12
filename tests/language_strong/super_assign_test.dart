@@ -9,12 +9,14 @@ class A {
 }
 
 class C extends A {
-  void setX(int value) { super.x = value; }
+  void setX(int value) {
+    super.x = value;
+  }
 }
 
 main() {
- A a = new C();
- a.x = 37;
- a.setX(42);
- Expect.equals(42, a.x);
+  A a = new C();
+  a.x = 37;
+  a.setX(42);
+  Expect.equals(42, a.x);
 }

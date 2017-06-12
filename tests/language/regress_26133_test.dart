@@ -22,13 +22,9 @@ Future<int> foo() async {
 }
 
 main() {
-  foo().then(
-    (_) {
-      Expect.isFalse(isCheckedMode());
-    },
-    onError: (e) {
-      Expect.isTrue(isCheckedMode() && (e is TypeError));
-    }
-  );
+  foo().then((_) {
+    Expect.isFalse(isCheckedMode());
+  }, onError: (e) {
+    Expect.isTrue(isCheckedMode() && (e is TypeError));
+  });
 }
-

@@ -382,7 +382,7 @@ class ActiveInfo extends Interceptor {
 @DocsEditable()
 @DomName('ANGLEInstancedArrays')
 @Experimental() // untriaged
-@Native("ANGLEInstancedArrays")
+@Native("ANGLEInstancedArrays,ANGLE_instanced_arrays")
 class AngleInstancedArrays extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory AngleInstancedArrays._() {
@@ -399,20 +399,20 @@ class AngleInstancedArrays extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   void drawArraysInstancedAngle(int mode, int first, int count, int primcount)
-      native ;
+      native;
 
   @JSName('drawElementsInstancedANGLE')
   @DomName('ANGLEInstancedArrays.drawElementsInstancedANGLE')
   @DocsEditable()
   @Experimental() // untriaged
   void drawElementsInstancedAngle(
-      int mode, int count, int type, int offset, int primcount) native ;
+      int mode, int count, int type, int offset, int primcount) native;
 
   @JSName('vertexAttribDivisorANGLE')
   @DomName('ANGLEInstancedArrays.vertexAttribDivisorANGLE')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttribDivisorAngle(int index, int divisor) native ;
+  void vertexAttribDivisorAngle(int index, int divisor) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -433,10 +433,231 @@ class Buffer extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @DocsEditable()
+@DomName('CHROMIUMSubscribeUniform')
+@Experimental() // untriaged
+@Native("CHROMIUMSubscribeUniform")
+class ChromiumSubscribeUniform extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ChromiumSubscribeUniform._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('CHROMIUMSubscribeUniform.MOUSE_POSITION_CHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MOUSE_POSITION_CHROMIUM = 0x924C;
+
+  @DomName('CHROMIUMSubscribeUniform.SUBSCRIBED_VALUES_BUFFER_CHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SUBSCRIBED_VALUES_BUFFER_CHROMIUM = 0x924B;
+
+  @JSName('bindValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.bindValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindValuebufferChromium(int target, ChromiumValuebuffer buffer) native;
+
+  @JSName('createValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.createValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ChromiumValuebuffer createValuebufferChromium() native;
+
+  @JSName('deleteValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.deleteValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteValuebufferChromium(ChromiumValuebuffer buffer) native;
+
+  @JSName('isValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.isValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isValuebufferChromium(ChromiumValuebuffer buffer) native;
+
+  @JSName('populateSubscribedValuesCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.populateSubscribedValuesCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void populateSubscribedValuesChromium(int target) native;
+
+  @JSName('subscribeValueCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.subscribeValueCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void subscribeValueChromium(int target, int subscriptions) native;
+
+  @JSName('uniformValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.uniformValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformValuebufferChromium(
+      UniformLocation location, int target, int subscription) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('WebGLCompressedTextureASTC')
+@Experimental() // untriaged
+@Native("WebGLCompressedTextureASTC")
+class CompressedTextureAstc extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory CompressedTextureAstc._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_10x10_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_10x10_KHR = 0x93BB;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_10x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_10x5_KHR = 0x93B8;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_10x6_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_10x6_KHR = 0x93B9;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_10x8_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_10x8_KHR = 0x93BA;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_12x10_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_12x10_KHR = 0x93BC;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_12x12_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_12x12_KHR = 0x93BD;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_4x4_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_4x4_KHR = 0x93B0;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_5x4_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_5x4_KHR = 0x93B1;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_5x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_5x5_KHR = 0x93B2;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_6x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_6x5_KHR = 0x93B3;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_6x6_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_6x6_KHR = 0x93B4;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_8x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_8x5_KHR = 0x93B5;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_8x6_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_8x6_KHR = 0x93B6;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_8x8_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_8x8_KHR = 0x93B7;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR = 0x93DB;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR = 0x93D8;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR = 0x93D9;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR = 0x93DA;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR = 0x93DC;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR = 0x93DD;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR = 0x93D0;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR = 0x93D1;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR = 0x93D2;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR = 0x93D3;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR = 0x93D4;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR = 0x93D5;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR = 0x93D6;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR = 0x93D7;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
 @DomName('WebGLCompressedTextureATC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_atc/
 @Experimental()
-@Native("WebGLCompressedTextureATC")
+@Native("WebGLCompressedTextureATC,WEBGL_compressed_texture_atc")
 class CompressedTextureAtc extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureAtc._() {
@@ -463,7 +684,7 @@ class CompressedTextureAtc extends Interceptor {
 @DocsEditable()
 @DomName('WebGLCompressedTextureETC1')
 @Experimental() // untriaged
-@Native("WebGLCompressedTextureETC1")
+@Native("WebGLCompressedTextureETC1,WEBGL_compressed_texture_etc1")
 class CompressedTextureETC1 extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureETC1._() {
@@ -483,7 +704,7 @@ class CompressedTextureETC1 extends Interceptor {
 @DomName('WebGLCompressedTexturePVRTC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_pvrtc/
 @Experimental() // experimental
-@Native("WebGLCompressedTexturePVRTC")
+@Native("WebGLCompressedTexturePVRTC,WEBGL_compressed_texture_pvrtc")
 class CompressedTexturePvrtc extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CompressedTexturePvrtc._() {
@@ -514,7 +735,7 @@ class CompressedTexturePvrtc extends Interceptor {
 @DomName('WebGLCompressedTextureS3TC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_s3tc/
 @Experimental() // experimental
-@Native("WebGLCompressedTextureS3TC")
+@Native("WebGLCompressedTextureS3TC,WEBGL_compressed_texture_s3tc")
 class CompressedTextureS3TC extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureS3TC._() {
@@ -542,71 +763,6 @@ class CompressedTextureS3TC extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @DocsEditable()
-/**
- * The properties of a WebGL rendering context.
- *
- * If [alpha] is `true`, then the context has an alpha channel.
- *
- * If [antialias] is `true`, then antialiasing is performed by the browser, but
- * only if the browser's implementation of WebGL supports antialiasing.
- *
- * If [depth] is `true`, then the context has a depth buffer of at least 16
- * bits.
- *
- * If [premultipliedAlpha] is `true`, then the context's colors are assumed to
- * be premultiplied. This means that color values are assumed to have  been
- * multiplied by their alpha values. If [alpha] is `false`, then this flag is
- * ignored.
- *
- * If [preserveDrawingBuffer] is `false`, then all contents of the context are
- * cleared. If `true`, then all values will remain until changed or cleared.
- *
- * If [stencil] is `true`, then the context has a stencil buffer of at least 8
- * bits.
- */
-@DomName('WebGLContextAttributes')
-@Unstable()
-@Native("WebGLContextAttributes")
-class ContextAttributes extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory ContextAttributes._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('WebGLContextAttributes.alpha')
-  @DocsEditable()
-  bool alpha;
-
-  @DomName('WebGLContextAttributes.antialias')
-  @DocsEditable()
-  bool antialias;
-
-  @DomName('WebGLContextAttributes.depth')
-  @DocsEditable()
-  bool depth;
-
-  @DomName('WebGLContextAttributes.failIfMajorPerformanceCaveat')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool failIfMajorPerformanceCaveat;
-
-  @DomName('WebGLContextAttributes.premultipliedAlpha')
-  @DocsEditable()
-  bool premultipliedAlpha;
-
-  @DomName('WebGLContextAttributes.preserveDrawingBuffer')
-  @DocsEditable()
-  bool preserveDrawingBuffer;
-
-  @DomName('WebGLContextAttributes.stencil')
-  @DocsEditable()
-  bool stencil;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
 @DomName('WebGLContextEvent')
 @Unstable()
 @Native("WebGLContextEvent")
@@ -615,6 +771,20 @@ class ContextEvent extends Event {
   factory ContextEvent._() {
     throw new UnsupportedError("Not supported");
   }
+
+  @DomName('WebGLContextEvent.WebGLContextEvent')
+  @DocsEditable()
+  factory ContextEvent(String type, [Map eventInit]) {
+    if (eventInit != null) {
+      var eventInit_1 = convertDartToNative_Dictionary(eventInit);
+      return ContextEvent._create_1(type, eventInit_1);
+    }
+    return ContextEvent._create_2(type);
+  }
+  static ContextEvent _create_1(type, eventInit) =>
+      JS('ContextEvent', 'new WebGLContextEvent(#,#)', type, eventInit);
+  static ContextEvent _create_2(type) =>
+      JS('ContextEvent', 'new WebGLContextEvent(#)', type);
 
   @DomName('WebGLContextEvent.statusMessage')
   @DocsEditable()
@@ -628,7 +798,7 @@ class ContextEvent extends Event {
 @DomName('WebGLDebugRendererInfo')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_renderer_info/
 @Experimental() // experimental
-@Native("WebGLDebugRendererInfo")
+@Native("WebGLDebugRendererInfo,WEBGL_debug_renderer_info")
 class DebugRendererInfo extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DebugRendererInfo._() {
@@ -651,7 +821,7 @@ class DebugRendererInfo extends Interceptor {
 @DomName('WebGLDebugShaders')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_shaders/
 @Experimental() // experimental
-@Native("WebGLDebugShaders")
+@Native("WebGLDebugShaders,WEBGL_debug_shaders")
 class DebugShaders extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DebugShaders._() {
@@ -660,7 +830,7 @@ class DebugShaders extends Interceptor {
 
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   @DocsEditable()
-  String getTranslatedShaderSource(Shader shader) native ;
+  String getTranslatedShaderSource(Shader shader) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -670,7 +840,7 @@ class DebugShaders extends Interceptor {
 @DomName('WebGLDepthTexture')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/
 @Experimental() // experimental
-@Native("WebGLDepthTexture")
+@Native("WebGLDepthTexture,WEBGL_depth_texture")
 class DepthTexture extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DepthTexture._() {
@@ -689,7 +859,7 @@ class DepthTexture extends Interceptor {
 @DomName('WebGLDrawBuffers')
 // http://www.khronos.org/registry/webgl/specs/latest/
 @Experimental() // stable
-@Native("WebGLDrawBuffers")
+@Native("WebGLDrawBuffers,WEBGL_draw_buffers")
 class DrawBuffers extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DrawBuffers._() {
@@ -835,7 +1005,41 @@ class DrawBuffers extends Interceptor {
   @JSName('drawBuffersWEBGL')
   @DomName('WebGLDrawBuffers.drawBuffersWEBGL')
   @DocsEditable()
-  void drawBuffersWebgl(List<int> buffers) native ;
+  void drawBuffersWebgl(List<int> buffers) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('EXTsRGB')
+@Experimental() // untriaged
+@Native("EXTsRGB,EXT_sRGB")
+class EXTsRgb extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory EXTsRgb._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('EXTsRGB.FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING_EXT = 0x8210;
+
+  @DomName('EXTsRGB.SRGB8_ALPHA8_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SRGB8_ALPHA8_EXT = 0x8C43;
+
+  @DomName('EXTsRGB.SRGB_ALPHA_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SRGB_ALPHA_EXT = 0x8C42;
+
+  @DomName('EXTsRGB.SRGB_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SRGB_EXT = 0x8C40;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -844,7 +1048,7 @@ class DrawBuffers extends Interceptor {
 @DocsEditable()
 @DomName('EXTBlendMinMax')
 @Experimental() // untriaged
-@Native("EXTBlendMinMax")
+@Native("EXTBlendMinMax,EXT_blend_minmax")
 class ExtBlendMinMax extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ExtBlendMinMax._() {
@@ -866,10 +1070,121 @@ class ExtBlendMinMax extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @DocsEditable()
+@DomName('EXTColorBufferFloat')
+@Experimental() // untriaged
+@Native("EXTColorBufferFloat")
+class ExtColorBufferFloat extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ExtColorBufferFloat._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('EXTDisjointTimerQuery')
+@Experimental() // untriaged
+@Native("EXTDisjointTimerQuery")
+class ExtDisjointTimerQuery extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ExtDisjointTimerQuery._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('EXTDisjointTimerQuery.CURRENT_QUERY_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CURRENT_QUERY_EXT = 0x8865;
+
+  @DomName('EXTDisjointTimerQuery.GPU_DISJOINT_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int GPU_DISJOINT_EXT = 0x8FBB;
+
+  @DomName('EXTDisjointTimerQuery.QUERY_COUNTER_BITS_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int QUERY_COUNTER_BITS_EXT = 0x8864;
+
+  @DomName('EXTDisjointTimerQuery.QUERY_RESULT_AVAILABLE_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int QUERY_RESULT_AVAILABLE_EXT = 0x8867;
+
+  @DomName('EXTDisjointTimerQuery.QUERY_RESULT_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int QUERY_RESULT_EXT = 0x8866;
+
+  @DomName('EXTDisjointTimerQuery.TIMESTAMP_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TIMESTAMP_EXT = 0x8E28;
+
+  @DomName('EXTDisjointTimerQuery.TIME_ELAPSED_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TIME_ELAPSED_EXT = 0x88BF;
+
+  @JSName('beginQueryEXT')
+  @DomName('EXTDisjointTimerQuery.beginQueryEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void beginQueryExt(int target, TimerQueryExt query) native;
+
+  @JSName('createQueryEXT')
+  @DomName('EXTDisjointTimerQuery.createQueryEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  TimerQueryExt createQueryExt() native;
+
+  @JSName('deleteQueryEXT')
+  @DomName('EXTDisjointTimerQuery.deleteQueryEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteQueryExt(TimerQueryExt query) native;
+
+  @JSName('endQueryEXT')
+  @DomName('EXTDisjointTimerQuery.endQueryEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void endQueryExt(int target) native;
+
+  @JSName('getQueryEXT')
+  @DomName('EXTDisjointTimerQuery.getQueryEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getQueryExt(int target, int pname) native;
+
+  @JSName('getQueryObjectEXT')
+  @DomName('EXTDisjointTimerQuery.getQueryObjectEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getQueryObjectExt(TimerQueryExt query, int pname) native;
+
+  @JSName('isQueryEXT')
+  @DomName('EXTDisjointTimerQuery.isQueryEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isQueryExt(TimerQueryExt query) native;
+
+  @JSName('queryCounterEXT')
+  @DomName('EXTDisjointTimerQuery.queryCounterEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void queryCounterExt(TimerQueryExt query, int target) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
 @DomName('EXTFragDepth')
 // http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/
 @Experimental()
-@Native("EXTFragDepth")
+@Native("EXTFragDepth,EXT_frag_depth")
 class ExtFragDepth extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ExtFragDepth._() {
@@ -883,7 +1198,7 @@ class ExtFragDepth extends Interceptor {
 @DocsEditable()
 @DomName('EXTShaderTextureLOD')
 @Experimental() // untriaged
-@Native("EXTShaderTextureLOD")
+@Native("EXTShaderTextureLOD,EXT_shader_texture_lod")
 class ExtShaderTextureLod extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ExtShaderTextureLod._() {
@@ -898,7 +1213,7 @@ class ExtShaderTextureLod extends Interceptor {
 @DomName('EXTTextureFilterAnisotropic')
 // http://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic/
 @Experimental()
-@Native("EXTTextureFilterAnisotropic")
+@Native("EXTTextureFilterAnisotropic,EXT_texture_filter_anisotropic")
 class ExtTextureFilterAnisotropic extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ExtTextureFilterAnisotropic._() {
@@ -935,7 +1250,7 @@ class Framebuffer extends Interceptor {
 @DomName('WebGLLoseContext')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
 @Experimental()
-@Native("WebGLLoseContext,WebGLExtensionLoseContext")
+@Native("WebGLLoseContext,WebGLExtensionLoseContext,WEBGL_lose_context")
 class LoseContext extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory LoseContext._() {
@@ -944,11 +1259,11 @@ class LoseContext extends Interceptor {
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable()
-  void loseContext() native ;
+  void loseContext() native;
 
   @DomName('WebGLLoseContext.restoreContext')
   @DocsEditable()
-  void restoreContext() native ;
+  void restoreContext() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -958,7 +1273,7 @@ class LoseContext extends Interceptor {
 @DomName('OESElementIndexUint')
 // http://www.khronos.org/registry/webgl/extensions/OES_element_index_uint/
 @Experimental() // experimental
-@Native("OESElementIndexUint")
+@Native("OESElementIndexUint,OES_element_index_uint")
 class OesElementIndexUint extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesElementIndexUint._() {
@@ -973,7 +1288,7 @@ class OesElementIndexUint extends Interceptor {
 @DomName('OESStandardDerivatives')
 // http://www.khronos.org/registry/webgl/extensions/OES_standard_derivatives/
 @Experimental() // experimental
-@Native("OESStandardDerivatives")
+@Native("OESStandardDerivatives,OES_standard_derivatives")
 class OesStandardDerivatives extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesStandardDerivatives._() {
@@ -992,7 +1307,7 @@ class OesStandardDerivatives extends Interceptor {
 @DomName('OESTextureFloat')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float/
 @Experimental() // experimental
-@Native("OESTextureFloat")
+@Native("OESTextureFloat,OES_texture_float")
 class OesTextureFloat extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesTextureFloat._() {
@@ -1007,7 +1322,7 @@ class OesTextureFloat extends Interceptor {
 @DomName('OESTextureFloatLinear')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float_linear/
 @Experimental()
-@Native("OESTextureFloatLinear")
+@Native("OESTextureFloatLinear,OES_texture_float_linear")
 class OesTextureFloatLinear extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesTextureFloatLinear._() {
@@ -1022,7 +1337,7 @@ class OesTextureFloatLinear extends Interceptor {
 @DomName('OESTextureHalfFloat')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float/
 @Experimental() // experimental
-@Native("OESTextureHalfFloat")
+@Native("OESTextureHalfFloat,OES_texture_half_float")
 class OesTextureHalfFloat extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesTextureHalfFloat._() {
@@ -1041,7 +1356,7 @@ class OesTextureHalfFloat extends Interceptor {
 @DomName('OESTextureHalfFloatLinear')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float_linear/
 @Experimental()
-@Native("OESTextureHalfFloatLinear")
+@Native("OESTextureHalfFloatLinear,OES_texture_half_float_linear")
 class OesTextureHalfFloatLinear extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesTextureHalfFloatLinear._() {
@@ -1056,7 +1371,7 @@ class OesTextureHalfFloatLinear extends Interceptor {
 @DomName('OESVertexArrayObject')
 // http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
 @Experimental() // experimental
-@Native("OESVertexArrayObject")
+@Native("OESVertexArrayObject,OES_vertex_array_object")
 class OesVertexArrayObject extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesVertexArrayObject._() {
@@ -1070,22 +1385,22 @@ class OesVertexArrayObject extends Interceptor {
   @JSName('bindVertexArrayOES')
   @DomName('OESVertexArrayObject.bindVertexArrayOES')
   @DocsEditable()
-  void bindVertexArray(VertexArrayObject arrayObject) native ;
+  void bindVertexArray(VertexArrayObjectOes arrayObject) native;
 
   @JSName('createVertexArrayOES')
   @DomName('OESVertexArrayObject.createVertexArrayOES')
   @DocsEditable()
-  VertexArrayObject createVertexArray() native ;
+  VertexArrayObjectOes createVertexArray() native;
 
   @JSName('deleteVertexArrayOES')
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   @DocsEditable()
-  void deleteVertexArray(VertexArrayObject arrayObject) native ;
+  void deleteVertexArray(VertexArrayObjectOes arrayObject) native;
 
   @JSName('isVertexArrayOES')
   @DomName('OESVertexArrayObject.isVertexArrayOES')
   @DocsEditable()
-  bool isVertexArray(VertexArrayObject arrayObject) native ;
+  bool isVertexArray(VertexArrayObjectOes arrayObject) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1098,6 +1413,20 @@ class OesVertexArrayObject extends Interceptor {
 class Program extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Program._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('WebGLQuery')
+@Experimental() // untriaged
+@Native("WebGLQuery")
+class Query extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory Query._() {
     throw new UnsupportedError("Not supported");
   }
 }
@@ -2341,338 +2670,276 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.activeTexture')
   @DocsEditable()
-  void activeTexture(int texture) native ;
+  void activeTexture(int texture) native;
 
   @DomName('WebGLRenderingContext.attachShader')
   @DocsEditable()
-  void attachShader(Program program, Shader shader) native ;
+  void attachShader(Program program, Shader shader) native;
 
   @DomName('WebGLRenderingContext.bindAttribLocation')
   @DocsEditable()
-  void bindAttribLocation(Program program, int index, String name) native ;
+  void bindAttribLocation(Program program, int index, String name) native;
 
   @DomName('WebGLRenderingContext.bindBuffer')
   @DocsEditable()
-  void bindBuffer(int target, Buffer buffer) native ;
+  void bindBuffer(int target, Buffer buffer) native;
 
   @DomName('WebGLRenderingContext.bindFramebuffer')
   @DocsEditable()
-  void bindFramebuffer(int target, Framebuffer framebuffer) native ;
+  void bindFramebuffer(int target, Framebuffer framebuffer) native;
 
   @DomName('WebGLRenderingContext.bindRenderbuffer')
   @DocsEditable()
-  void bindRenderbuffer(int target, Renderbuffer renderbuffer) native ;
+  void bindRenderbuffer(int target, Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.bindTexture')
   @DocsEditable()
-  void bindTexture(int target, Texture texture) native ;
+  void bindTexture(int target, Texture texture) native;
 
   @DomName('WebGLRenderingContext.blendColor')
   @DocsEditable()
-  void blendColor(num red, num green, num blue, num alpha) native ;
+  void blendColor(num red, num green, num blue, num alpha) native;
 
   @DomName('WebGLRenderingContext.blendEquation')
   @DocsEditable()
-  void blendEquation(int mode) native ;
+  void blendEquation(int mode) native;
 
   @DomName('WebGLRenderingContext.blendEquationSeparate')
   @DocsEditable()
-  void blendEquationSeparate(int modeRGB, int modeAlpha) native ;
+  void blendEquationSeparate(int modeRGB, int modeAlpha) native;
 
   @DomName('WebGLRenderingContext.blendFunc')
   @DocsEditable()
-  void blendFunc(int sfactor, int dfactor) native ;
+  void blendFunc(int sfactor, int dfactor) native;
 
   @DomName('WebGLRenderingContext.blendFuncSeparate')
   @DocsEditable()
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
-      native ;
+      native;
 
-  @JSName('bufferData')
-  /**
-   * Buffers the specified data.
-   *
-   * The [bufferData] method is provided for WebGL API compatibility reasons, but
-   * it is highly recommended that you use [bufferDataTyped] or [bufferByteData]
-   * depending on your purposes.
-   */
   @DomName('WebGLRenderingContext.bufferData')
   @DocsEditable()
-  void bufferByteData(int target, ByteBuffer data, int usage) native ;
+  void bufferData(int target, data_OR_size, int usage) native;
 
-  /**
-   * Buffers the specified data.
-   *
-   * The [bufferData] method is provided for WebGL API compatibility reasons, but
-   * it is highly recommended that you use [bufferDataTyped] or [bufferByteData]
-   * depending on your purposes.
-   */
-  @DomName('WebGLRenderingContext.bufferData')
-  @DocsEditable()
-  void bufferData(int target, data_OR_size, int usage) native ;
-
-  @JSName('bufferData')
-  /**
-   * Buffers the specified data.
-   *
-   * The [bufferData] method is provided for WebGL API compatibility reasons, but
-   * it is highly recommended that you use [bufferDataTyped] or [bufferByteData]
-   * depending on your purposes.
-   */
-  @DomName('WebGLRenderingContext.bufferData')
-  @DocsEditable()
-  void bufferDataTyped(int target, TypedData data, int usage) native ;
-
-  @JSName('bufferSubData')
-  /**
-   * Buffers the specified subset of data.
-   *
-   * The [bufferSubData] method is provided for WebGL API compatibility reasons, but
-   * it is highly recommended that you use [bufferSubDataTyped] or [bufferSubByteData]
-   * depending on your purposes.
-   */
   @DomName('WebGLRenderingContext.bufferSubData')
   @DocsEditable()
-  void bufferSubByteData(int target, int offset, ByteBuffer data) native ;
-
-  /**
-   * Buffers the specified subset of data.
-   *
-   * The [bufferSubData] method is provided for WebGL API compatibility reasons, but
-   * it is highly recommended that you use [bufferSubDataTyped] or [bufferSubByteData]
-   * depending on your purposes.
-   */
-  @DomName('WebGLRenderingContext.bufferSubData')
-  @DocsEditable()
-  void bufferSubData(int target, int offset, data) native ;
-
-  @JSName('bufferSubData')
-  /**
-   * Buffers the specified subset of data.
-   *
-   * The [bufferSubData] method is provided for WebGL API compatibility reasons, but
-   * it is highly recommended that you use [bufferSubDataTyped] or [bufferSubByteData]
-   * depending on your purposes.
-   */
-  @DomName('WebGLRenderingContext.bufferSubData')
-  @DocsEditable()
-  void bufferSubDataTyped(int target, int offset, TypedData data) native ;
+  void bufferSubData(int target, int offset, data) native;
 
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
   @DocsEditable()
-  int checkFramebufferStatus(int target) native ;
+  int checkFramebufferStatus(int target) native;
 
   @DomName('WebGLRenderingContext.clear')
   @DocsEditable()
-  void clear(int mask) native ;
+  void clear(int mask) native;
 
   @DomName('WebGLRenderingContext.clearColor')
   @DocsEditable()
-  void clearColor(num red, num green, num blue, num alpha) native ;
+  void clearColor(num red, num green, num blue, num alpha) native;
 
   @DomName('WebGLRenderingContext.clearDepth')
   @DocsEditable()
-  void clearDepth(num depth) native ;
+  void clearDepth(num depth) native;
 
   @DomName('WebGLRenderingContext.clearStencil')
   @DocsEditable()
-  void clearStencil(int s) native ;
+  void clearStencil(int s) native;
 
   @DomName('WebGLRenderingContext.colorMask')
   @DocsEditable()
-  void colorMask(bool red, bool green, bool blue, bool alpha) native ;
+  void colorMask(bool red, bool green, bool blue, bool alpha) native;
 
   @DomName('WebGLRenderingContext.compileShader')
   @DocsEditable()
-  void compileShader(Shader shader) native ;
+  void compileShader(Shader shader) native;
 
   @DomName('WebGLRenderingContext.compressedTexImage2D')
   @DocsEditable()
   void compressedTexImage2D(int target, int level, int internalformat,
-      int width, int height, int border, TypedData data) native ;
+      int width, int height, int border, TypedData data) native;
 
   @DomName('WebGLRenderingContext.compressedTexSubImage2D')
   @DocsEditable()
   void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset,
-      int width, int height, int format, TypedData data) native ;
+      int width, int height, int format, TypedData data) native;
 
   @DomName('WebGLRenderingContext.copyTexImage2D')
   @DocsEditable()
   void copyTexImage2D(int target, int level, int internalformat, int x, int y,
-      int width, int height, int border) native ;
+      int width, int height, int border) native;
 
   @DomName('WebGLRenderingContext.copyTexSubImage2D')
   @DocsEditable()
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x,
-      int y, int width, int height) native ;
+      int y, int width, int height) native;
 
   @DomName('WebGLRenderingContext.createBuffer')
   @DocsEditable()
-  Buffer createBuffer() native ;
+  Buffer createBuffer() native;
 
   @DomName('WebGLRenderingContext.createFramebuffer')
   @DocsEditable()
-  Framebuffer createFramebuffer() native ;
+  Framebuffer createFramebuffer() native;
 
   @DomName('WebGLRenderingContext.createProgram')
   @DocsEditable()
-  Program createProgram() native ;
+  Program createProgram() native;
 
   @DomName('WebGLRenderingContext.createRenderbuffer')
   @DocsEditable()
-  Renderbuffer createRenderbuffer() native ;
+  Renderbuffer createRenderbuffer() native;
 
   @DomName('WebGLRenderingContext.createShader')
   @DocsEditable()
-  Shader createShader(int type) native ;
+  Shader createShader(int type) native;
 
   @DomName('WebGLRenderingContext.createTexture')
   @DocsEditable()
-  Texture createTexture() native ;
+  Texture createTexture() native;
 
   @DomName('WebGLRenderingContext.cullFace')
   @DocsEditable()
-  void cullFace(int mode) native ;
+  void cullFace(int mode) native;
 
   @DomName('WebGLRenderingContext.deleteBuffer')
   @DocsEditable()
-  void deleteBuffer(Buffer buffer) native ;
+  void deleteBuffer(Buffer buffer) native;
 
   @DomName('WebGLRenderingContext.deleteFramebuffer')
   @DocsEditable()
-  void deleteFramebuffer(Framebuffer framebuffer) native ;
+  void deleteFramebuffer(Framebuffer framebuffer) native;
 
   @DomName('WebGLRenderingContext.deleteProgram')
   @DocsEditable()
-  void deleteProgram(Program program) native ;
+  void deleteProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.deleteRenderbuffer')
   @DocsEditable()
-  void deleteRenderbuffer(Renderbuffer renderbuffer) native ;
+  void deleteRenderbuffer(Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.deleteShader')
   @DocsEditable()
-  void deleteShader(Shader shader) native ;
+  void deleteShader(Shader shader) native;
 
   @DomName('WebGLRenderingContext.deleteTexture')
   @DocsEditable()
-  void deleteTexture(Texture texture) native ;
+  void deleteTexture(Texture texture) native;
 
   @DomName('WebGLRenderingContext.depthFunc')
   @DocsEditable()
-  void depthFunc(int func) native ;
+  void depthFunc(int func) native;
 
   @DomName('WebGLRenderingContext.depthMask')
   @DocsEditable()
-  void depthMask(bool flag) native ;
+  void depthMask(bool flag) native;
 
   @DomName('WebGLRenderingContext.depthRange')
   @DocsEditable()
-  void depthRange(num zNear, num zFar) native ;
+  void depthRange(num zNear, num zFar) native;
 
   @DomName('WebGLRenderingContext.detachShader')
   @DocsEditable()
-  void detachShader(Program program, Shader shader) native ;
+  void detachShader(Program program, Shader shader) native;
 
   @DomName('WebGLRenderingContext.disable')
   @DocsEditable()
-  void disable(int cap) native ;
+  void disable(int cap) native;
 
   @DomName('WebGLRenderingContext.disableVertexAttribArray')
   @DocsEditable()
-  void disableVertexAttribArray(int index) native ;
+  void disableVertexAttribArray(int index) native;
 
   @DomName('WebGLRenderingContext.drawArrays')
   @DocsEditable()
-  void drawArrays(int mode, int first, int count) native ;
+  void drawArrays(int mode, int first, int count) native;
 
   @DomName('WebGLRenderingContext.drawElements')
   @DocsEditable()
-  void drawElements(int mode, int count, int type, int offset) native ;
+  void drawElements(int mode, int count, int type, int offset) native;
 
   @DomName('WebGLRenderingContext.enable')
   @DocsEditable()
-  void enable(int cap) native ;
+  void enable(int cap) native;
 
   @DomName('WebGLRenderingContext.enableVertexAttribArray')
   @DocsEditable()
-  void enableVertexAttribArray(int index) native ;
+  void enableVertexAttribArray(int index) native;
 
   @DomName('WebGLRenderingContext.finish')
   @DocsEditable()
-  void finish() native ;
+  void finish() native;
 
   @DomName('WebGLRenderingContext.flush')
   @DocsEditable()
-  void flush() native ;
+  void flush() native;
 
   @DomName('WebGLRenderingContext.framebufferRenderbuffer')
   @DocsEditable()
   void framebufferRenderbuffer(int target, int attachment,
-      int renderbuffertarget, Renderbuffer renderbuffer) native ;
+      int renderbuffertarget, Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.framebufferTexture2D')
   @DocsEditable()
   void framebufferTexture2D(int target, int attachment, int textarget,
-      Texture texture, int level) native ;
+      Texture texture, int level) native;
 
   @DomName('WebGLRenderingContext.frontFace')
   @DocsEditable()
-  void frontFace(int mode) native ;
+  void frontFace(int mode) native;
 
   @DomName('WebGLRenderingContext.generateMipmap')
   @DocsEditable()
-  void generateMipmap(int target) native ;
+  void generateMipmap(int target) native;
 
   @DomName('WebGLRenderingContext.getActiveAttrib')
   @DocsEditable()
-  ActiveInfo getActiveAttrib(Program program, int index) native ;
+  ActiveInfo getActiveAttrib(Program program, int index) native;
 
   @DomName('WebGLRenderingContext.getActiveUniform')
   @DocsEditable()
-  ActiveInfo getActiveUniform(Program program, int index) native ;
+  ActiveInfo getActiveUniform(Program program, int index) native;
 
   @DomName('WebGLRenderingContext.getAttachedShaders')
   @DocsEditable()
-  List<Shader> getAttachedShaders(Program program) native ;
+  List<Shader> getAttachedShaders(Program program) native;
 
   @DomName('WebGLRenderingContext.getAttribLocation')
   @DocsEditable()
-  int getAttribLocation(Program program, String name) native ;
+  int getAttribLocation(Program program, String name) native;
 
   @DomName('WebGLRenderingContext.getBufferParameter')
   @DocsEditable()
   @Creates('int|Null')
   @Returns('int|Null')
-  Object getBufferParameter(int target, int pname) native ;
+  Object getBufferParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getContextAttributes')
   @DocsEditable()
-  @Creates('ContextAttributes|=Object')
-  ContextAttributes getContextAttributes() {
-    return convertNativeToDart_ContextAttributes(_getContextAttributes_1());
+  @Creates('ContextAttributes|Null')
+  Map getContextAttributes() {
+    return convertNativeToDart_Dictionary(_getContextAttributes_1());
   }
 
   @JSName('getContextAttributes')
   @DomName('WebGLRenderingContext.getContextAttributes')
   @DocsEditable()
-  @Creates('ContextAttributes|=Object')
-  _getContextAttributes_1() native ;
+  @Creates('ContextAttributes|Null')
+  _getContextAttributes_1() native;
 
   @DomName('WebGLRenderingContext.getError')
   @DocsEditable()
-  int getError() native ;
+  int getError() native;
 
   @DomName('WebGLRenderingContext.getExtension')
   @DocsEditable()
-  Object getExtension(String name) native ;
+  Object getExtension(String name) native;
 
   @DomName('WebGLRenderingContext.getFramebufferAttachmentParameter')
   @DocsEditable()
   @Creates('int|Renderbuffer|Texture|Null')
   @Returns('int|Renderbuffer|Texture|Null')
   Object getFramebufferAttachmentParameter(
-      int target, int attachment, int pname) native ;
+      int target, int attachment, int pname) native;
 
   @DomName('WebGLRenderingContext.getParameter')
   @DocsEditable()
@@ -2680,52 +2947,52 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture')
   @Returns(
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture')
-  Object getParameter(int pname) native ;
+  Object getParameter(int pname) native;
 
   @DomName('WebGLRenderingContext.getProgramInfoLog')
   @DocsEditable()
-  String getProgramInfoLog(Program program) native ;
+  String getProgramInfoLog(Program program) native;
 
   @DomName('WebGLRenderingContext.getProgramParameter')
   @DocsEditable()
   @Creates('int|bool|Null')
   @Returns('int|bool|Null')
-  Object getProgramParameter(Program program, int pname) native ;
+  Object getProgramParameter(Program program, int pname) native;
 
   @DomName('WebGLRenderingContext.getRenderbufferParameter')
   @DocsEditable()
   @Creates('int|Null')
   @Returns('int|Null')
-  Object getRenderbufferParameter(int target, int pname) native ;
+  Object getRenderbufferParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getShaderInfoLog')
   @DocsEditable()
-  String getShaderInfoLog(Shader shader) native ;
+  String getShaderInfoLog(Shader shader) native;
 
   @DomName('WebGLRenderingContext.getShaderParameter')
   @DocsEditable()
   @Creates('int|bool|Null')
   @Returns('int|bool|Null')
-  Object getShaderParameter(Shader shader, int pname) native ;
+  Object getShaderParameter(Shader shader, int pname) native;
 
   @DomName('WebGLRenderingContext.getShaderPrecisionFormat')
   @DocsEditable()
   ShaderPrecisionFormat getShaderPrecisionFormat(
-      int shadertype, int precisiontype) native ;
+      int shadertype, int precisiontype) native;
 
   @DomName('WebGLRenderingContext.getShaderSource')
   @DocsEditable()
-  String getShaderSource(Shader shader) native ;
+  String getShaderSource(Shader shader) native;
 
   @DomName('WebGLRenderingContext.getSupportedExtensions')
   @DocsEditable()
-  List<String> getSupportedExtensions() native ;
+  List<String> getSupportedExtensions() native;
 
   @DomName('WebGLRenderingContext.getTexParameter')
   @DocsEditable()
   @Creates('int|Null')
   @Returns('int|Null')
-  Object getTexParameter(int target, int pname) native ;
+  Object getTexParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getUniform')
   @DocsEditable()
@@ -2733,128 +3000,120 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List')
   @Returns(
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List')
-  Object getUniform(Program program, UniformLocation location) native ;
+  Object getUniform(Program program, UniformLocation location) native;
 
   @DomName('WebGLRenderingContext.getUniformLocation')
   @DocsEditable()
-  UniformLocation getUniformLocation(Program program, String name) native ;
+  UniformLocation getUniformLocation(Program program, String name) native;
 
   @DomName('WebGLRenderingContext.getVertexAttrib')
   @DocsEditable()
   @Creates('Null|num|bool|NativeFloat32List|Buffer')
   @Returns('Null|num|bool|NativeFloat32List|Buffer')
-  Object getVertexAttrib(int index, int pname) native ;
+  Object getVertexAttrib(int index, int pname) native;
 
   @DomName('WebGLRenderingContext.getVertexAttribOffset')
   @DocsEditable()
-  int getVertexAttribOffset(int index, int pname) native ;
+  int getVertexAttribOffset(int index, int pname) native;
 
   @DomName('WebGLRenderingContext.hint')
   @DocsEditable()
-  void hint(int target, int mode) native ;
+  void hint(int target, int mode) native;
 
   @DomName('WebGLRenderingContext.isBuffer')
   @DocsEditable()
-  bool isBuffer(Buffer buffer) native ;
+  bool isBuffer(Buffer buffer) native;
 
   @DomName('WebGLRenderingContext.isContextLost')
   @DocsEditable()
-  bool isContextLost() native ;
+  bool isContextLost() native;
 
   @DomName('WebGLRenderingContext.isEnabled')
   @DocsEditable()
-  bool isEnabled(int cap) native ;
+  bool isEnabled(int cap) native;
 
   @DomName('WebGLRenderingContext.isFramebuffer')
   @DocsEditable()
-  bool isFramebuffer(Framebuffer framebuffer) native ;
+  bool isFramebuffer(Framebuffer framebuffer) native;
 
   @DomName('WebGLRenderingContext.isProgram')
   @DocsEditable()
-  bool isProgram(Program program) native ;
+  bool isProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.isRenderbuffer')
   @DocsEditable()
-  bool isRenderbuffer(Renderbuffer renderbuffer) native ;
+  bool isRenderbuffer(Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.isShader')
   @DocsEditable()
-  bool isShader(Shader shader) native ;
+  bool isShader(Shader shader) native;
 
   @DomName('WebGLRenderingContext.isTexture')
   @DocsEditable()
-  bool isTexture(Texture texture) native ;
+  bool isTexture(Texture texture) native;
 
   @DomName('WebGLRenderingContext.lineWidth')
   @DocsEditable()
-  void lineWidth(num width) native ;
+  void lineWidth(num width) native;
 
   @DomName('WebGLRenderingContext.linkProgram')
   @DocsEditable()
-  void linkProgram(Program program) native ;
+  void linkProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.pixelStorei')
   @DocsEditable()
-  void pixelStorei(int pname, int param) native ;
+  void pixelStorei(int pname, int param) native;
 
   @DomName('WebGLRenderingContext.polygonOffset')
   @DocsEditable()
-  void polygonOffset(num factor, num units) native ;
+  void polygonOffset(num factor, num units) native;
 
   @DomName('WebGLRenderingContext.readPixels')
   @DocsEditable()
   void readPixels(int x, int y, int width, int height, int format, int type,
-      TypedData pixels) native ;
+      TypedData pixels) native;
 
   @DomName('WebGLRenderingContext.renderbufferStorage')
   @DocsEditable()
   void renderbufferStorage(
-      int target, int internalformat, int width, int height) native ;
+      int target, int internalformat, int width, int height) native;
 
   @DomName('WebGLRenderingContext.sampleCoverage')
   @DocsEditable()
-  void sampleCoverage(num value, bool invert) native ;
+  void sampleCoverage(num value, bool invert) native;
 
   @DomName('WebGLRenderingContext.scissor')
   @DocsEditable()
-  void scissor(int x, int y, int width, int height) native ;
+  void scissor(int x, int y, int width, int height) native;
 
   @DomName('WebGLRenderingContext.shaderSource')
   @DocsEditable()
-  void shaderSource(Shader shader, String string) native ;
+  void shaderSource(Shader shader, String string) native;
 
   @DomName('WebGLRenderingContext.stencilFunc')
   @DocsEditable()
-  void stencilFunc(int func, int ref, int mask) native ;
+  void stencilFunc(int func, int ref, int mask) native;
 
   @DomName('WebGLRenderingContext.stencilFuncSeparate')
   @DocsEditable()
-  void stencilFuncSeparate(int face, int func, int ref, int mask) native ;
+  void stencilFuncSeparate(int face, int func, int ref, int mask) native;
 
   @DomName('WebGLRenderingContext.stencilMask')
   @DocsEditable()
-  void stencilMask(int mask) native ;
+  void stencilMask(int mask) native;
 
   @DomName('WebGLRenderingContext.stencilMaskSeparate')
   @DocsEditable()
-  void stencilMaskSeparate(int face, int mask) native ;
+  void stencilMaskSeparate(int face, int mask) native;
 
   @DomName('WebGLRenderingContext.stencilOp')
   @DocsEditable()
-  void stencilOp(int fail, int zfail, int zpass) native ;
+  void stencilOp(int fail, int zfail, int zpass) native;
 
   @DomName('WebGLRenderingContext.stencilOpSeparate')
   @DocsEditable()
-  void stencilOpSeparate(int face, int fail, int zfail, int zpass) native ;
+  void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void texImage2D(
@@ -2863,220 +3122,134 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       int internalformat,
       int format_OR_width,
       int height_OR_type,
-      border_OR_canvas_OR_image_OR_pixels_OR_video,
+      bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
       [int format,
       int type,
       TypedData pixels]) {
-    if (pixels != null &&
-        type != null &&
+    if (type != null &&
         format != null &&
-        (border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
+        (bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
       _texImage2D_1(
           target,
           level,
           internalformat,
           format_OR_width,
           height_OR_type,
-          border_OR_canvas_OR_image_OR_pixels_OR_video,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
           format,
           type,
           pixels);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData ||
-            border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData ||
+            bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         format == null &&
         type == null &&
         pixels == null) {
       var pixels_1 = convertDartToNative_ImageData(
-          border_OR_canvas_OR_image_OR_pixels_OR_video);
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
       _texImage2D_2(target, level, internalformat, format_OR_width,
           height_OR_type, pixels_1);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement) &&
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is ImageElement) &&
         format == null &&
         type == null &&
         pixels == null) {
-      _texImage2D_3(target, level, internalformat, format_OR_width,
-          height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_3(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement) &&
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is CanvasElement) &&
         format == null &&
         type == null &&
         pixels == null) {
-      _texImage2D_4(target, level, internalformat, format_OR_width,
-          height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_4(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement) &&
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is VideoElement) &&
         format == null &&
         type == null &&
         pixels == null) {
-      _texImage2D_5(target, level, internalformat, format_OR_width,
-          height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_5(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is ImageBitmap) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      _texImage2D_6(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_1(target, level, internalformat, width, height, int border,
-      format, type, TypedData pixels) native ;
+      format, type, TypedData pixels) native;
   @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_2(target, level, internalformat, format, type, pixels)
-      native ;
+      native;
   @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_3(
-      target, level, internalformat, format, type, ImageElement image) native ;
+      target, level, internalformat, format, type, ImageElement image) native;
   @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
-  void _texImage2D_4(target, level, internalformat, format, type,
-      CanvasElement canvas) native ;
+  void _texImage2D_4(
+      target, level, internalformat, format, type, CanvasElement canvas) native;
   @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_5(
-      target, level, internalformat, format, type, VideoElement video) native ;
-
+      target, level, internalformat, format, type, VideoElement video) native;
   @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
-  void texImage2DCanvas(int target, int level, int internalformat, int format,
-      int type, CanvasElement canvas) native ;
-
-  @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
-  @DomName('WebGLRenderingContext.texImage2D')
-  @DocsEditable()
-  void texImage2DImage(int target, int level, int internalformat, int format,
-      int type, ImageElement image) native ;
-
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
-  @DomName('WebGLRenderingContext.texImage2D')
-  @DocsEditable()
-  void texImage2DImageData(int target, int level, int internalformat,
-      int format, int type, ImageData pixels) {
-    var pixels_1 = convertDartToNative_ImageData(pixels);
-    _texImage2DImageData_1(
-        target, level, internalformat, format, type, pixels_1);
-    return;
-  }
-
-  @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
-  @DomName('WebGLRenderingContext.texImage2D')
-  @DocsEditable()
-  void _texImage2DImageData_1(
-      target, level, internalformat, format, type, pixels) native ;
-
-  @JSName('texImage2D')
-  /**
-   * Updates the currently bound texture to [data].
-   *
-   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
-   * (or for more specificity, the more specialized [texImage2DImageData],
-   * [texImage2DCanvas], [texImage2DVideo]).
-   */
-  @DomName('WebGLRenderingContext.texImage2D')
-  @DocsEditable()
-  void texImage2DVideo(int target, int level, int internalformat, int format,
-      int type, VideoElement video) native ;
+  void _texImage2D_6(
+      target, level, internalformat, format, type, ImageBitmap bitmap) native;
 
   @DomName('WebGLRenderingContext.texParameterf')
   @DocsEditable()
-  void texParameterf(int target, int pname, num param) native ;
+  void texParameterf(int target, int pname, num param) native;
 
   @DomName('WebGLRenderingContext.texParameteri')
   @DocsEditable()
-  void texParameteri(int target, int pname, int param) native ;
+  void texParameteri(int target, int pname, int param) native;
 
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void texSubImage2D(
@@ -3086,12 +3259,11 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       int yoffset,
       int format_OR_width,
       int height_OR_type,
-      canvas_OR_format_OR_image_OR_pixels_OR_video,
+      bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
       [int type,
       TypedData pixels]) {
-    if (pixels != null &&
-        type != null &&
-        (canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
+    if (type != null &&
+        (bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
       _texSubImage2D_1(
           target,
           level,
@@ -3099,358 +3271,281 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
           yoffset,
           format_OR_width,
           height_OR_type,
-          canvas_OR_format_OR_image_OR_pixels_OR_video,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
           type,
           pixels);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData ||
-            canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData ||
+            bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         type == null &&
         pixels == null) {
       var pixels_1 = convertDartToNative_ImageData(
-          canvas_OR_format_OR_image_OR_pixels_OR_video);
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
       _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width,
           height_OR_type, pixels_1);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement) &&
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is ImageElement) &&
         type == null &&
         pixels == null) {
-      _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width,
-          height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_3(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement) &&
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is CanvasElement) &&
         type == null &&
         pixels == null) {
-      _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width,
-          height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_4(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement) &&
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is VideoElement) &&
         type == null &&
         pixels == null) {
-      _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width,
-          height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_5(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is ImageBitmap) &&
+        type == null &&
+        pixels == null) {
+      _texSubImage2D_6(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_1(target, level, xoffset, yoffset, width, height,
-      int format, type, TypedData pixels) native ;
+      int format, type, TypedData pixels) native;
   @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels)
-      native ;
+      native;
   @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void _texSubImage2D_3(target, level, xoffset, yoffset, format, type,
-      ImageElement image) native ;
+  void _texSubImage2D_3(
+      target, level, xoffset, yoffset, format, type, ImageElement image) native;
   @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_4(target, level, xoffset, yoffset, format, type,
-      CanvasElement canvas) native ;
+      CanvasElement canvas) native;
   @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void _texSubImage2D_5(target, level, xoffset, yoffset, format, type,
-      VideoElement video) native ;
-
+  void _texSubImage2D_5(
+      target, level, xoffset, yoffset, format, type, VideoElement video) native;
   @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void texSubImage2DCanvas(int target, int level, int xoffset, int yoffset,
-      int format, int type, CanvasElement canvas) native ;
-
-  @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
-  @DomName('WebGLRenderingContext.texSubImage2D')
-  @DocsEditable()
-  void texSubImage2DImage(int target, int level, int xoffset, int yoffset,
-      int format, int type, ImageElement image) native ;
-
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
-  @DomName('WebGLRenderingContext.texSubImage2D')
-  @DocsEditable()
-  void texSubImage2DImageData(int target, int level, int xoffset, int yoffset,
-      int format, int type, ImageData pixels) {
-    var pixels_1 = convertDartToNative_ImageData(pixels);
-    _texSubImage2DImageData_1(
-        target, level, xoffset, yoffset, format, type, pixels_1);
-    return;
-  }
-
-  @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
-  @DomName('WebGLRenderingContext.texSubImage2D')
-  @DocsEditable()
-  void _texSubImage2DImageData_1(
-      target, level, xoffset, yoffset, format, type, pixels) native ;
-
-  @JSName('texSubImage2D')
-  /**
-   * Updates a sub-rectangle of the currently bound texture to [data].
-   *
-   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
-   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
-   * (or for more specificity, the more specialized [texSubImage2DImageData],
-   * [texSubImage2DCanvas], [texSubImage2DVideo]).
-   */
-  @DomName('WebGLRenderingContext.texSubImage2D')
-  @DocsEditable()
-  void texSubImage2DVideo(int target, int level, int xoffset, int yoffset,
-      int format, int type, VideoElement video) native ;
+  void _texSubImage2D_6(
+      target, level, xoffset, yoffset, format, type, ImageBitmap bitmap) native;
 
   @DomName('WebGLRenderingContext.uniform1f')
   @DocsEditable()
-  void uniform1f(UniformLocation location, num x) native ;
+  void uniform1f(UniformLocation location, num x) native;
 
   @DomName('WebGLRenderingContext.uniform1fv')
   @DocsEditable()
-  void uniform1fv(UniformLocation location, Float32List v) native ;
+  void uniform1fv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform1i')
   @DocsEditable()
-  void uniform1i(UniformLocation location, int x) native ;
+  void uniform1i(UniformLocation location, int x) native;
 
   @DomName('WebGLRenderingContext.uniform1iv')
   @DocsEditable()
-  void uniform1iv(UniformLocation location, Int32List v) native ;
+  void uniform1iv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform2f')
   @DocsEditable()
-  void uniform2f(UniformLocation location, num x, num y) native ;
+  void uniform2f(UniformLocation location, num x, num y) native;
 
   @DomName('WebGLRenderingContext.uniform2fv')
   @DocsEditable()
-  void uniform2fv(UniformLocation location, Float32List v) native ;
+  void uniform2fv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform2i')
   @DocsEditable()
-  void uniform2i(UniformLocation location, int x, int y) native ;
+  void uniform2i(UniformLocation location, int x, int y) native;
 
   @DomName('WebGLRenderingContext.uniform2iv')
   @DocsEditable()
-  void uniform2iv(UniformLocation location, Int32List v) native ;
+  void uniform2iv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform3f')
   @DocsEditable()
-  void uniform3f(UniformLocation location, num x, num y, num z) native ;
+  void uniform3f(UniformLocation location, num x, num y, num z) native;
 
   @DomName('WebGLRenderingContext.uniform3fv')
   @DocsEditable()
-  void uniform3fv(UniformLocation location, Float32List v) native ;
+  void uniform3fv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform3i')
   @DocsEditable()
-  void uniform3i(UniformLocation location, int x, int y, int z) native ;
+  void uniform3i(UniformLocation location, int x, int y, int z) native;
 
   @DomName('WebGLRenderingContext.uniform3iv')
   @DocsEditable()
-  void uniform3iv(UniformLocation location, Int32List v) native ;
+  void uniform3iv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform4f')
   @DocsEditable()
-  void uniform4f(UniformLocation location, num x, num y, num z, num w) native ;
+  void uniform4f(UniformLocation location, num x, num y, num z, num w) native;
 
   @DomName('WebGLRenderingContext.uniform4fv')
   @DocsEditable()
-  void uniform4fv(UniformLocation location, Float32List v) native ;
+  void uniform4fv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform4i')
   @DocsEditable()
-  void uniform4i(UniformLocation location, int x, int y, int z, int w) native ;
+  void uniform4i(UniformLocation location, int x, int y, int z, int w) native;
 
   @DomName('WebGLRenderingContext.uniform4iv')
   @DocsEditable()
-  void uniform4iv(UniformLocation location, Int32List v) native ;
+  void uniform4iv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix2fv')
   @DocsEditable()
-  void uniformMatrix2fv(
-      UniformLocation location, bool transpose, Float32List array) native ;
+  void uniformMatrix2fv(UniformLocation location, bool transpose, array) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix3fv')
   @DocsEditable()
-  void uniformMatrix3fv(
-      UniformLocation location, bool transpose, Float32List array) native ;
+  void uniformMatrix3fv(UniformLocation location, bool transpose, array) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix4fv')
   @DocsEditable()
-  void uniformMatrix4fv(
-      UniformLocation location, bool transpose, Float32List array) native ;
+  void uniformMatrix4fv(UniformLocation location, bool transpose, array) native;
 
   @DomName('WebGLRenderingContext.useProgram')
   @DocsEditable()
-  void useProgram(Program program) native ;
+  void useProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.validateProgram')
   @DocsEditable()
-  void validateProgram(Program program) native ;
+  void validateProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib1f')
   @DocsEditable()
-  void vertexAttrib1f(int indx, num x) native ;
+  void vertexAttrib1f(int indx, num x) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib1fv')
   @DocsEditable()
-  void vertexAttrib1fv(int indx, Float32List values) native ;
+  void vertexAttrib1fv(int indx, values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib2f')
   @DocsEditable()
-  void vertexAttrib2f(int indx, num x, num y) native ;
+  void vertexAttrib2f(int indx, num x, num y) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib2fv')
   @DocsEditable()
-  void vertexAttrib2fv(int indx, Float32List values) native ;
+  void vertexAttrib2fv(int indx, values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib3f')
   @DocsEditable()
-  void vertexAttrib3f(int indx, num x, num y, num z) native ;
+  void vertexAttrib3f(int indx, num x, num y, num z) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib3fv')
   @DocsEditable()
-  void vertexAttrib3fv(int indx, Float32List values) native ;
+  void vertexAttrib3fv(int indx, values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib4f')
   @DocsEditable()
-  void vertexAttrib4f(int indx, num x, num y, num z, num w) native ;
+  void vertexAttrib4f(int indx, num x, num y, num z, num w) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib4fv')
   @DocsEditable()
-  void vertexAttrib4fv(int indx, Float32List values) native ;
+  void vertexAttrib4fv(int indx, values) native;
 
   @DomName('WebGLRenderingContext.vertexAttribPointer')
   @DocsEditable()
   void vertexAttribPointer(int indx, int size, int type, bool normalized,
-      int stride, int offset) native ;
+      int stride, int offset) native;
 
   @DomName('WebGLRenderingContext.viewport')
   @DocsEditable()
-  void viewport(int x, int y, int width, int height) native ;
+  void viewport(int x, int y, int width, int height) native;
 
   /**
    * Sets the currently bound texture to [data].
    *
    * [data] can be either an [ImageElement], a
-   * [CanvasElement], a [VideoElement], or an [ImageData] object.
+   * [CanvasElement], a [VideoElement], [TypedData] or an [ImageData] object.
    *
-   * To use [texImage2d] with a TypedData object, use [texImage2dTyped].
-   *
+   * This is deprecated in favor of [texImage2D].
    */
-  @JSName('texImage2D')
+  @Deprecated("Use texImage2D")
   void texImage2DUntyped(int targetTexture, int levelOfDetail,
-      int internalFormat, int format, int type, data) native ;
+      int internalFormat, int format, int type, data) {
+    texImage2D(
+        targetTexture, levelOfDetail, internalFormat, format, type, data);
+  }
 
   /**
    * Sets the currently bound texture to [data].
+   *
+   * This is deprecated in favour of [texImage2D].
    */
-  @JSName('texImage2D')
-  void texImage2DTyped(
-      int targetTexture,
-      int levelOfDetail,
-      int internalFormat,
-      int width,
-      int height,
-      int border,
-      int format,
-      int type,
-      TypedData data) native ;
+  @Deprecated("Use texImage2D")
+  void texImage2DTyped(int targetTexture, int levelOfDetail, int internalFormat,
+      int width, int height, int border, int format, int type, TypedData data) {
+    texImage2D(targetTexture, levelOfDetail, internalFormat, width, height,
+        border, format, type, data);
+  }
 
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
    * [data] can be either an [ImageElement], a
-   * [CanvasElement], a [VideoElement], or an [ImageData] object.
-   *
-   * To use [texSubImage2d] with a TypedData object, use [texSubImage2dTyped].
+   * [CanvasElement], a [VideoElement], [TypedData] or an [ImageData] object.
    *
    */
-  @JSName('texSubImage2D')
+  @Deprecated("Use texSubImage2D")
   void texSubImage2DUntyped(int targetTexture, int levelOfDetail, int xOffset,
-      int yOffset, int format, int type, data) native ;
+      int yOffset, int format, int type, data) {
+    texSubImage2D(
+        targetTexture, levelOfDetail, xOffset, yOffset, format, type, data);
+  }
 
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    */
-  @JSName('texSubImage2D')
+  @Deprecated("Use texSubImage2D")
   void texSubImage2DTyped(
       int targetTexture,
       int levelOfDetail,
@@ -3461,7 +3556,3181 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       int border,
       int format,
       int type,
-      TypedData data) native ;
+      TypedData data) {
+    texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset, width, height,
+        format, type, data);
+  }
+
+  /**
+   * Set the bufferData to [data].
+   */
+  @Deprecated("Use bufferData")
+  void bufferDataTyped(int target, TypedData data, int usage) {
+    bufferData(target, data, usage);
+  }
+
+  /**
+   * Set the bufferSubData to [data].
+   */
+  @Deprecated("Use bufferSubData")
+  void bufferSubDataTyped(int target, int offset, TypedData data) {
+    bufferSubData(target, offset, data);
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('WebGL2RenderingContext')
+@Experimental() // untriaged
+@Native("WebGL2RenderingContext")
+class RenderingContext2 extends Interceptor
+    implements _WebGL2RenderingContextBase, _WebGLRenderingContextBase {
+  // To suppress missing implicit constructor warnings.
+  factory RenderingContext2._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('WebGL2RenderingContext.ACTIVE_ATTRIBUTES')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ACTIVE_ATTRIBUTES = 0x8B89;
+
+  @DomName('WebGL2RenderingContext.ACTIVE_TEXTURE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ACTIVE_TEXTURE = 0x84E0;
+
+  @DomName('WebGL2RenderingContext.ACTIVE_UNIFORMS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ACTIVE_UNIFORMS = 0x8B86;
+
+  @DomName('WebGL2RenderingContext.ALIASED_LINE_WIDTH_RANGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ALIASED_LINE_WIDTH_RANGE = 0x846E;
+
+  @DomName('WebGL2RenderingContext.ALIASED_POINT_SIZE_RANGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ALIASED_POINT_SIZE_RANGE = 0x846D;
+
+  @DomName('WebGL2RenderingContext.ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ALPHA = 0x1906;
+
+  @DomName('WebGL2RenderingContext.ALPHA_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ALPHA_BITS = 0x0D55;
+
+  @DomName('WebGL2RenderingContext.ALWAYS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ALWAYS = 0x0207;
+
+  @DomName('WebGL2RenderingContext.ARRAY_BUFFER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ARRAY_BUFFER = 0x8892;
+
+  @DomName('WebGL2RenderingContext.ARRAY_BUFFER_BINDING')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ARRAY_BUFFER_BINDING = 0x8894;
+
+  @DomName('WebGL2RenderingContext.ATTACHED_SHADERS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ATTACHED_SHADERS = 0x8B85;
+
+  @DomName('WebGL2RenderingContext.BACK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BACK = 0x0405;
+
+  @DomName('WebGL2RenderingContext.BLEND')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND = 0x0BE2;
+
+  @DomName('WebGL2RenderingContext.BLEND_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_COLOR = 0x8005;
+
+  @DomName('WebGL2RenderingContext.BLEND_DST_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_DST_ALPHA = 0x80CA;
+
+  @DomName('WebGL2RenderingContext.BLEND_DST_RGB')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_DST_RGB = 0x80C8;
+
+  @DomName('WebGL2RenderingContext.BLEND_EQUATION')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_EQUATION = 0x8009;
+
+  @DomName('WebGL2RenderingContext.BLEND_EQUATION_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_EQUATION_ALPHA = 0x883D;
+
+  @DomName('WebGL2RenderingContext.BLEND_EQUATION_RGB')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_EQUATION_RGB = 0x8009;
+
+  @DomName('WebGL2RenderingContext.BLEND_SRC_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_SRC_ALPHA = 0x80CB;
+
+  @DomName('WebGL2RenderingContext.BLEND_SRC_RGB')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_SRC_RGB = 0x80C9;
+
+  @DomName('WebGL2RenderingContext.BLUE_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLUE_BITS = 0x0D54;
+
+  @DomName('WebGL2RenderingContext.BOOL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BOOL = 0x8B56;
+
+  @DomName('WebGL2RenderingContext.BOOL_VEC2')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BOOL_VEC2 = 0x8B57;
+
+  @DomName('WebGL2RenderingContext.BOOL_VEC3')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BOOL_VEC3 = 0x8B58;
+
+  @DomName('WebGL2RenderingContext.BOOL_VEC4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BOOL_VEC4 = 0x8B59;
+
+  @DomName('WebGL2RenderingContext.BROWSER_DEFAULT_WEBGL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BROWSER_DEFAULT_WEBGL = 0x9244;
+
+  @DomName('WebGL2RenderingContext.BUFFER_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BUFFER_SIZE = 0x8764;
+
+  @DomName('WebGL2RenderingContext.BUFFER_USAGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BUFFER_USAGE = 0x8765;
+
+  @DomName('WebGL2RenderingContext.BYTE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BYTE = 0x1400;
+
+  @DomName('WebGL2RenderingContext.CCW')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CCW = 0x0901;
+
+  @DomName('WebGL2RenderingContext.CLAMP_TO_EDGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CLAMP_TO_EDGE = 0x812F;
+
+  @DomName('WebGL2RenderingContext.COLOR_ATTACHMENT0')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COLOR_ATTACHMENT0 = 0x8CE0;
+
+  @DomName('WebGL2RenderingContext.COLOR_BUFFER_BIT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COLOR_BUFFER_BIT = 0x00004000;
+
+  @DomName('WebGL2RenderingContext.COLOR_CLEAR_VALUE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COLOR_CLEAR_VALUE = 0x0C22;
+
+  @DomName('WebGL2RenderingContext.COLOR_WRITEMASK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COLOR_WRITEMASK = 0x0C23;
+
+  @DomName('WebGL2RenderingContext.COMPILE_STATUS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPILE_STATUS = 0x8B81;
+
+  @DomName('WebGL2RenderingContext.COMPRESSED_TEXTURE_FORMATS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_TEXTURE_FORMATS = 0x86A3;
+
+  @DomName('WebGL2RenderingContext.CONSTANT_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CONSTANT_ALPHA = 0x8003;
+
+  @DomName('WebGL2RenderingContext.CONSTANT_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CONSTANT_COLOR = 0x8001;
+
+  @DomName('WebGL2RenderingContext.CONTEXT_LOST_WEBGL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CONTEXT_LOST_WEBGL = 0x9242;
+
+  @DomName('WebGL2RenderingContext.CULL_FACE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CULL_FACE = 0x0B44;
+
+  @DomName('WebGL2RenderingContext.CULL_FACE_MODE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CULL_FACE_MODE = 0x0B45;
+
+  @DomName('WebGL2RenderingContext.CURRENT_PROGRAM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CURRENT_PROGRAM = 0x8B8D;
+
+  @DomName('WebGL2RenderingContext.CURRENT_VERTEX_ATTRIB')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CURRENT_VERTEX_ATTRIB = 0x8626;
+
+  @DomName('WebGL2RenderingContext.CW')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CW = 0x0900;
+
+  @DomName('WebGL2RenderingContext.DECR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DECR = 0x1E03;
+
+  @DomName('WebGL2RenderingContext.DECR_WRAP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DECR_WRAP = 0x8508;
+
+  @DomName('WebGL2RenderingContext.DELETE_STATUS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DELETE_STATUS = 0x8B80;
+
+  @DomName('WebGL2RenderingContext.DEPTH_ATTACHMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_ATTACHMENT = 0x8D00;
+
+  @DomName('WebGL2RenderingContext.DEPTH_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_BITS = 0x0D56;
+
+  @DomName('WebGL2RenderingContext.DEPTH_BUFFER_BIT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_BUFFER_BIT = 0x00000100;
+
+  @DomName('WebGL2RenderingContext.DEPTH_CLEAR_VALUE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_CLEAR_VALUE = 0x0B73;
+
+  @DomName('WebGL2RenderingContext.DEPTH_COMPONENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_COMPONENT = 0x1902;
+
+  @DomName('WebGL2RenderingContext.DEPTH_COMPONENT16')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_COMPONENT16 = 0x81A5;
+
+  @DomName('WebGL2RenderingContext.DEPTH_FUNC')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_FUNC = 0x0B74;
+
+  @DomName('WebGL2RenderingContext.DEPTH_RANGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_RANGE = 0x0B70;
+
+  @DomName('WebGL2RenderingContext.DEPTH_STENCIL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_STENCIL = 0x84F9;
+
+  @DomName('WebGL2RenderingContext.DEPTH_STENCIL_ATTACHMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_STENCIL_ATTACHMENT = 0x821A;
+
+  @DomName('WebGL2RenderingContext.DEPTH_TEST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_TEST = 0x0B71;
+
+  @DomName('WebGL2RenderingContext.DEPTH_WRITEMASK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_WRITEMASK = 0x0B72;
+
+  @DomName('WebGL2RenderingContext.DITHER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DITHER = 0x0BD0;
+
+  @DomName('WebGL2RenderingContext.DONT_CARE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DONT_CARE = 0x1100;
+
+  @DomName('WebGL2RenderingContext.DST_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DST_ALPHA = 0x0304;
+
+  @DomName('WebGL2RenderingContext.DST_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DST_COLOR = 0x0306;
+
+  @DomName('WebGL2RenderingContext.DYNAMIC_DRAW')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DYNAMIC_DRAW = 0x88E8;
+
+  @DomName('WebGL2RenderingContext.ELEMENT_ARRAY_BUFFER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ELEMENT_ARRAY_BUFFER = 0x8893;
+
+  @DomName('WebGL2RenderingContext.ELEMENT_ARRAY_BUFFER_BINDING')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
+
+  @DomName('WebGL2RenderingContext.EQUAL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int EQUAL = 0x0202;
+
+  @DomName('WebGL2RenderingContext.FASTEST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FASTEST = 0x1101;
+
+  @DomName('WebGL2RenderingContext.FLOAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT = 0x1406;
+
+  @DomName('WebGL2RenderingContext.FLOAT_MAT2')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT_MAT2 = 0x8B5A;
+
+  @DomName('WebGL2RenderingContext.FLOAT_MAT3')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT_MAT3 = 0x8B5B;
+
+  @DomName('WebGL2RenderingContext.FLOAT_MAT4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT_MAT4 = 0x8B5C;
+
+  @DomName('WebGL2RenderingContext.FLOAT_VEC2')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT_VEC2 = 0x8B50;
+
+  @DomName('WebGL2RenderingContext.FLOAT_VEC3')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT_VEC3 = 0x8B51;
+
+  @DomName('WebGL2RenderingContext.FLOAT_VEC4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT_VEC4 = 0x8B52;
+
+  @DomName('WebGL2RenderingContext.FRAGMENT_SHADER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAGMENT_SHADER = 0x8B30;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER = 0x8D40;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_ATTACHMENT_OBJECT_NAME')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
+
+  @DomName(
+      'WebGL2RenderingContext.FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_BINDING')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_BINDING = 0x8CA6;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_COMPLETE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_COMPLETE = 0x8CD5;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_ATTACHMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_DIMENSIONS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 0x8CD9;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_UNSUPPORTED')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
+
+  @DomName('WebGL2RenderingContext.FRONT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRONT = 0x0404;
+
+  @DomName('WebGL2RenderingContext.FRONT_AND_BACK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRONT_AND_BACK = 0x0408;
+
+  @DomName('WebGL2RenderingContext.FRONT_FACE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRONT_FACE = 0x0B46;
+
+  @DomName('WebGL2RenderingContext.FUNC_ADD')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FUNC_ADD = 0x8006;
+
+  @DomName('WebGL2RenderingContext.FUNC_REVERSE_SUBTRACT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FUNC_REVERSE_SUBTRACT = 0x800B;
+
+  @DomName('WebGL2RenderingContext.FUNC_SUBTRACT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FUNC_SUBTRACT = 0x800A;
+
+  @DomName('WebGL2RenderingContext.GENERATE_MIPMAP_HINT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int GENERATE_MIPMAP_HINT = 0x8192;
+
+  @DomName('WebGL2RenderingContext.GEQUAL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int GEQUAL = 0x0206;
+
+  @DomName('WebGL2RenderingContext.GREATER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int GREATER = 0x0204;
+
+  @DomName('WebGL2RenderingContext.GREEN_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int GREEN_BITS = 0x0D53;
+
+  @DomName('WebGL2RenderingContext.HIGH_FLOAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int HIGH_FLOAT = 0x8DF2;
+
+  @DomName('WebGL2RenderingContext.HIGH_INT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int HIGH_INT = 0x8DF5;
+
+  @DomName('WebGL2RenderingContext.IMPLEMENTATION_COLOR_READ_FORMAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int IMPLEMENTATION_COLOR_READ_FORMAT = 0x8B9B;
+
+  @DomName('WebGL2RenderingContext.IMPLEMENTATION_COLOR_READ_TYPE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int IMPLEMENTATION_COLOR_READ_TYPE = 0x8B9A;
+
+  @DomName('WebGL2RenderingContext.INCR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INCR = 0x1E02;
+
+  @DomName('WebGL2RenderingContext.INCR_WRAP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INCR_WRAP = 0x8507;
+
+  @DomName('WebGL2RenderingContext.INT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INT = 0x1404;
+
+  @DomName('WebGL2RenderingContext.INT_VEC2')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INT_VEC2 = 0x8B53;
+
+  @DomName('WebGL2RenderingContext.INT_VEC3')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INT_VEC3 = 0x8B54;
+
+  @DomName('WebGL2RenderingContext.INT_VEC4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INT_VEC4 = 0x8B55;
+
+  @DomName('WebGL2RenderingContext.INVALID_ENUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INVALID_ENUM = 0x0500;
+
+  @DomName('WebGL2RenderingContext.INVALID_FRAMEBUFFER_OPERATION')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INVALID_FRAMEBUFFER_OPERATION = 0x0506;
+
+  @DomName('WebGL2RenderingContext.INVALID_OPERATION')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INVALID_OPERATION = 0x0502;
+
+  @DomName('WebGL2RenderingContext.INVALID_VALUE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INVALID_VALUE = 0x0501;
+
+  @DomName('WebGL2RenderingContext.INVERT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INVERT = 0x150A;
+
+  @DomName('WebGL2RenderingContext.KEEP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int KEEP = 0x1E00;
+
+  @DomName('WebGL2RenderingContext.LEQUAL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LEQUAL = 0x0203;
+
+  @DomName('WebGL2RenderingContext.LESS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LESS = 0x0201;
+
+  @DomName('WebGL2RenderingContext.LINEAR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINEAR = 0x2601;
+
+  @DomName('WebGL2RenderingContext.LINEAR_MIPMAP_LINEAR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINEAR_MIPMAP_LINEAR = 0x2703;
+
+  @DomName('WebGL2RenderingContext.LINEAR_MIPMAP_NEAREST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINEAR_MIPMAP_NEAREST = 0x2701;
+
+  @DomName('WebGL2RenderingContext.LINES')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINES = 0x0001;
+
+  @DomName('WebGL2RenderingContext.LINE_LOOP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINE_LOOP = 0x0002;
+
+  @DomName('WebGL2RenderingContext.LINE_STRIP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINE_STRIP = 0x0003;
+
+  @DomName('WebGL2RenderingContext.LINE_WIDTH')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINE_WIDTH = 0x0B21;
+
+  @DomName('WebGL2RenderingContext.LINK_STATUS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINK_STATUS = 0x8B82;
+
+  @DomName('WebGL2RenderingContext.LOW_FLOAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LOW_FLOAT = 0x8DF0;
+
+  @DomName('WebGL2RenderingContext.LOW_INT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LOW_INT = 0x8DF3;
+
+  @DomName('WebGL2RenderingContext.LUMINANCE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LUMINANCE = 0x1909;
+
+  @DomName('WebGL2RenderingContext.LUMINANCE_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LUMINANCE_ALPHA = 0x190A;
+
+  @DomName('WebGL2RenderingContext.MAX_COMBINED_TEXTURE_IMAGE_UNITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
+
+  @DomName('WebGL2RenderingContext.MAX_CUBE_MAP_TEXTURE_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
+
+  @DomName('WebGL2RenderingContext.MAX_FRAGMENT_UNIFORM_VECTORS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
+
+  @DomName('WebGL2RenderingContext.MAX_RENDERBUFFER_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_RENDERBUFFER_SIZE = 0x84E8;
+
+  @DomName('WebGL2RenderingContext.MAX_TEXTURE_IMAGE_UNITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_TEXTURE_IMAGE_UNITS = 0x8872;
+
+  @DomName('WebGL2RenderingContext.MAX_TEXTURE_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_TEXTURE_SIZE = 0x0D33;
+
+  @DomName('WebGL2RenderingContext.MAX_VARYING_VECTORS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_VARYING_VECTORS = 0x8DFC;
+
+  @DomName('WebGL2RenderingContext.MAX_VERTEX_ATTRIBS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_VERTEX_ATTRIBS = 0x8869;
+
+  @DomName('WebGL2RenderingContext.MAX_VERTEX_TEXTURE_IMAGE_UNITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
+
+  @DomName('WebGL2RenderingContext.MAX_VERTEX_UNIFORM_VECTORS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
+
+  @DomName('WebGL2RenderingContext.MAX_VIEWPORT_DIMS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_VIEWPORT_DIMS = 0x0D3A;
+
+  @DomName('WebGL2RenderingContext.MEDIUM_FLOAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MEDIUM_FLOAT = 0x8DF1;
+
+  @DomName('WebGL2RenderingContext.MEDIUM_INT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MEDIUM_INT = 0x8DF4;
+
+  @DomName('WebGL2RenderingContext.MIRRORED_REPEAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MIRRORED_REPEAT = 0x8370;
+
+  @DomName('WebGL2RenderingContext.NEAREST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NEAREST = 0x2600;
+
+  @DomName('WebGL2RenderingContext.NEAREST_MIPMAP_LINEAR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NEAREST_MIPMAP_LINEAR = 0x2702;
+
+  @DomName('WebGL2RenderingContext.NEAREST_MIPMAP_NEAREST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NEAREST_MIPMAP_NEAREST = 0x2700;
+
+  @DomName('WebGL2RenderingContext.NEVER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NEVER = 0x0200;
+
+  @DomName('WebGL2RenderingContext.NICEST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NICEST = 0x1102;
+
+  @DomName('WebGL2RenderingContext.NONE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NONE = 0;
+
+  @DomName('WebGL2RenderingContext.NOTEQUAL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NOTEQUAL = 0x0205;
+
+  @DomName('WebGL2RenderingContext.NO_ERROR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NO_ERROR = 0;
+
+  @DomName('WebGL2RenderingContext.ONE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE = 1;
+
+  @DomName('WebGL2RenderingContext.ONE_MINUS_CONSTANT_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE_MINUS_CONSTANT_ALPHA = 0x8004;
+
+  @DomName('WebGL2RenderingContext.ONE_MINUS_CONSTANT_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE_MINUS_CONSTANT_COLOR = 0x8002;
+
+  @DomName('WebGL2RenderingContext.ONE_MINUS_DST_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE_MINUS_DST_ALPHA = 0x0305;
+
+  @DomName('WebGL2RenderingContext.ONE_MINUS_DST_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE_MINUS_DST_COLOR = 0x0307;
+
+  @DomName('WebGL2RenderingContext.ONE_MINUS_SRC_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE_MINUS_SRC_ALPHA = 0x0303;
+
+  @DomName('WebGL2RenderingContext.ONE_MINUS_SRC_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE_MINUS_SRC_COLOR = 0x0301;
+
+  @DomName('WebGL2RenderingContext.OUT_OF_MEMORY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int OUT_OF_MEMORY = 0x0505;
+
+  @DomName('WebGL2RenderingContext.PACK_ALIGNMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int PACK_ALIGNMENT = 0x0D05;
+
+  @DomName('WebGL2RenderingContext.POINTS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int POINTS = 0x0000;
+
+  @DomName('WebGL2RenderingContext.POLYGON_OFFSET_FACTOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int POLYGON_OFFSET_FACTOR = 0x8038;
+
+  @DomName('WebGL2RenderingContext.POLYGON_OFFSET_FILL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int POLYGON_OFFSET_FILL = 0x8037;
+
+  @DomName('WebGL2RenderingContext.POLYGON_OFFSET_UNITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int POLYGON_OFFSET_UNITS = 0x2A00;
+
+  @DomName('WebGL2RenderingContext.RED_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RED_BITS = 0x0D52;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER = 0x8D41;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_ALPHA_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_ALPHA_SIZE = 0x8D53;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_BINDING')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_BINDING = 0x8CA7;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_BLUE_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_BLUE_SIZE = 0x8D52;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_DEPTH_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_DEPTH_SIZE = 0x8D54;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_GREEN_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_GREEN_SIZE = 0x8D51;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_HEIGHT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_HEIGHT = 0x8D43;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_INTERNAL_FORMAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_INTERNAL_FORMAT = 0x8D44;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_RED_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_RED_SIZE = 0x8D50;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_STENCIL_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_STENCIL_SIZE = 0x8D55;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_WIDTH')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_WIDTH = 0x8D42;
+
+  @DomName('WebGL2RenderingContext.RENDERER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERER = 0x1F01;
+
+  @DomName('WebGL2RenderingContext.REPEAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int REPEAT = 0x2901;
+
+  @DomName('WebGL2RenderingContext.REPLACE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int REPLACE = 0x1E01;
+
+  @DomName('WebGL2RenderingContext.RGB')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RGB = 0x1907;
+
+  @DomName('WebGL2RenderingContext.RGB565')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RGB565 = 0x8D62;
+
+  @DomName('WebGL2RenderingContext.RGB5_A1')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RGB5_A1 = 0x8057;
+
+  @DomName('WebGL2RenderingContext.RGBA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RGBA = 0x1908;
+
+  @DomName('WebGL2RenderingContext.RGBA4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RGBA4 = 0x8056;
+
+  @DomName('WebGL2RenderingContext.SAMPLER_2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLER_2D = 0x8B5E;
+
+  @DomName('WebGL2RenderingContext.SAMPLER_CUBE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLER_CUBE = 0x8B60;
+
+  @DomName('WebGL2RenderingContext.SAMPLES')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLES = 0x80A9;
+
+  @DomName('WebGL2RenderingContext.SAMPLE_ALPHA_TO_COVERAGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
+
+  @DomName('WebGL2RenderingContext.SAMPLE_BUFFERS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLE_BUFFERS = 0x80A8;
+
+  @DomName('WebGL2RenderingContext.SAMPLE_COVERAGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLE_COVERAGE = 0x80A0;
+
+  @DomName('WebGL2RenderingContext.SAMPLE_COVERAGE_INVERT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLE_COVERAGE_INVERT = 0x80AB;
+
+  @DomName('WebGL2RenderingContext.SAMPLE_COVERAGE_VALUE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLE_COVERAGE_VALUE = 0x80AA;
+
+  @DomName('WebGL2RenderingContext.SCISSOR_BOX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SCISSOR_BOX = 0x0C10;
+
+  @DomName('WebGL2RenderingContext.SCISSOR_TEST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SCISSOR_TEST = 0x0C11;
+
+  @DomName('WebGL2RenderingContext.SHADER_TYPE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SHADER_TYPE = 0x8B4F;
+
+  @DomName('WebGL2RenderingContext.SHADING_LANGUAGE_VERSION')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SHADING_LANGUAGE_VERSION = 0x8B8C;
+
+  @DomName('WebGL2RenderingContext.SHORT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SHORT = 0x1402;
+
+  @DomName('WebGL2RenderingContext.SRC_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SRC_ALPHA = 0x0302;
+
+  @DomName('WebGL2RenderingContext.SRC_ALPHA_SATURATE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SRC_ALPHA_SATURATE = 0x0308;
+
+  @DomName('WebGL2RenderingContext.SRC_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SRC_COLOR = 0x0300;
+
+  @DomName('WebGL2RenderingContext.STATIC_DRAW')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STATIC_DRAW = 0x88E4;
+
+  @DomName('WebGL2RenderingContext.STENCIL_ATTACHMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_ATTACHMENT = 0x8D20;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_FAIL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_FAIL = 0x8801;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_FUNC')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_FUNC = 0x8800;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_PASS_DEPTH_FAIL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_PASS_DEPTH_PASS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_REF')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_REF = 0x8CA3;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_VALUE_MASK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_VALUE_MASK = 0x8CA4;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_WRITEMASK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_WRITEMASK = 0x8CA5;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BITS = 0x0D57;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BUFFER_BIT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BUFFER_BIT = 0x00000400;
+
+  @DomName('WebGL2RenderingContext.STENCIL_CLEAR_VALUE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_CLEAR_VALUE = 0x0B91;
+
+  @DomName('WebGL2RenderingContext.STENCIL_FAIL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_FAIL = 0x0B94;
+
+  @DomName('WebGL2RenderingContext.STENCIL_FUNC')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_FUNC = 0x0B92;
+
+  @DomName('WebGL2RenderingContext.STENCIL_INDEX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_INDEX = 0x1901;
+
+  @DomName('WebGL2RenderingContext.STENCIL_INDEX8')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_INDEX8 = 0x8D48;
+
+  @DomName('WebGL2RenderingContext.STENCIL_PASS_DEPTH_FAIL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_PASS_DEPTH_FAIL = 0x0B95;
+
+  @DomName('WebGL2RenderingContext.STENCIL_PASS_DEPTH_PASS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_PASS_DEPTH_PASS = 0x0B96;
+
+  @DomName('WebGL2RenderingContext.STENCIL_REF')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_REF = 0x0B97;
+
+  @DomName('WebGL2RenderingContext.STENCIL_TEST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_TEST = 0x0B90;
+
+  @DomName('WebGL2RenderingContext.STENCIL_VALUE_MASK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_VALUE_MASK = 0x0B93;
+
+  @DomName('WebGL2RenderingContext.STENCIL_WRITEMASK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_WRITEMASK = 0x0B98;
+
+  @DomName('WebGL2RenderingContext.STREAM_DRAW')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STREAM_DRAW = 0x88E0;
+
+  @DomName('WebGL2RenderingContext.SUBPIXEL_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SUBPIXEL_BITS = 0x0D50;
+
+  @DomName('WebGL2RenderingContext.TEXTURE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE = 0x1702;
+
+  @DomName('WebGL2RenderingContext.TEXTURE0')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE0 = 0x84C0;
+
+  @DomName('WebGL2RenderingContext.TEXTURE1')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE1 = 0x84C1;
+
+  @DomName('WebGL2RenderingContext.TEXTURE10')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE10 = 0x84CA;
+
+  @DomName('WebGL2RenderingContext.TEXTURE11')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE11 = 0x84CB;
+
+  @DomName('WebGL2RenderingContext.TEXTURE12')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE12 = 0x84CC;
+
+  @DomName('WebGL2RenderingContext.TEXTURE13')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE13 = 0x84CD;
+
+  @DomName('WebGL2RenderingContext.TEXTURE14')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE14 = 0x84CE;
+
+  @DomName('WebGL2RenderingContext.TEXTURE15')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE15 = 0x84CF;
+
+  @DomName('WebGL2RenderingContext.TEXTURE16')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE16 = 0x84D0;
+
+  @DomName('WebGL2RenderingContext.TEXTURE17')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE17 = 0x84D1;
+
+  @DomName('WebGL2RenderingContext.TEXTURE18')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE18 = 0x84D2;
+
+  @DomName('WebGL2RenderingContext.TEXTURE19')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE19 = 0x84D3;
+
+  @DomName('WebGL2RenderingContext.TEXTURE2')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE2 = 0x84C2;
+
+  @DomName('WebGL2RenderingContext.TEXTURE20')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE20 = 0x84D4;
+
+  @DomName('WebGL2RenderingContext.TEXTURE21')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE21 = 0x84D5;
+
+  @DomName('WebGL2RenderingContext.TEXTURE22')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE22 = 0x84D6;
+
+  @DomName('WebGL2RenderingContext.TEXTURE23')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE23 = 0x84D7;
+
+  @DomName('WebGL2RenderingContext.TEXTURE24')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE24 = 0x84D8;
+
+  @DomName('WebGL2RenderingContext.TEXTURE25')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE25 = 0x84D9;
+
+  @DomName('WebGL2RenderingContext.TEXTURE26')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE26 = 0x84DA;
+
+  @DomName('WebGL2RenderingContext.TEXTURE27')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE27 = 0x84DB;
+
+  @DomName('WebGL2RenderingContext.TEXTURE28')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE28 = 0x84DC;
+
+  @DomName('WebGL2RenderingContext.TEXTURE29')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE29 = 0x84DD;
+
+  @DomName('WebGL2RenderingContext.TEXTURE3')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE3 = 0x84C3;
+
+  @DomName('WebGL2RenderingContext.TEXTURE30')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE30 = 0x84DE;
+
+  @DomName('WebGL2RenderingContext.TEXTURE31')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE31 = 0x84DF;
+
+  @DomName('WebGL2RenderingContext.TEXTURE4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE4 = 0x84C4;
+
+  @DomName('WebGL2RenderingContext.TEXTURE5')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE5 = 0x84C5;
+
+  @DomName('WebGL2RenderingContext.TEXTURE6')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE6 = 0x84C6;
+
+  @DomName('WebGL2RenderingContext.TEXTURE7')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE7 = 0x84C7;
+
+  @DomName('WebGL2RenderingContext.TEXTURE8')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE8 = 0x84C8;
+
+  @DomName('WebGL2RenderingContext.TEXTURE9')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE9 = 0x84C9;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_2D = 0x0DE1;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_BINDING_2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_BINDING_2D = 0x8069;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_BINDING_CUBE_MAP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_BINDING_CUBE_MAP = 0x8514;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP = 0x8513;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_X')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_Y')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_Z')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP_POSITIVE_X')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP_POSITIVE_Y')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP_POSITIVE_Z')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_MAG_FILTER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_MAG_FILTER = 0x2800;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_MIN_FILTER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_MIN_FILTER = 0x2801;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_WRAP_S')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_WRAP_S = 0x2802;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_WRAP_T')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_WRAP_T = 0x2803;
+
+  @DomName('WebGL2RenderingContext.TRIANGLES')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TRIANGLES = 0x0004;
+
+  @DomName('WebGL2RenderingContext.TRIANGLE_FAN')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TRIANGLE_FAN = 0x0006;
+
+  @DomName('WebGL2RenderingContext.TRIANGLE_STRIP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TRIANGLE_STRIP = 0x0005;
+
+  @DomName('WebGL2RenderingContext.UNPACK_ALIGNMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNPACK_ALIGNMENT = 0x0CF5;
+
+  @DomName('WebGL2RenderingContext.UNPACK_COLORSPACE_CONVERSION_WEBGL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
+
+  @DomName('WebGL2RenderingContext.UNPACK_FLIP_Y_WEBGL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNPACK_FLIP_Y_WEBGL = 0x9240;
+
+  @DomName('WebGL2RenderingContext.UNPACK_PREMULTIPLY_ALPHA_WEBGL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241;
+
+  @DomName('WebGL2RenderingContext.UNSIGNED_BYTE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNSIGNED_BYTE = 0x1401;
+
+  @DomName('WebGL2RenderingContext.UNSIGNED_INT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNSIGNED_INT = 0x1405;
+
+  @DomName('WebGL2RenderingContext.UNSIGNED_SHORT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNSIGNED_SHORT = 0x1403;
+
+  @DomName('WebGL2RenderingContext.UNSIGNED_SHORT_4_4_4_4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNSIGNED_SHORT_4_4_4_4 = 0x8033;
+
+  @DomName('WebGL2RenderingContext.UNSIGNED_SHORT_5_5_5_1')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNSIGNED_SHORT_5_5_5_1 = 0x8034;
+
+  @DomName('WebGL2RenderingContext.UNSIGNED_SHORT_5_6_5')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNSIGNED_SHORT_5_6_5 = 0x8363;
+
+  @DomName('WebGL2RenderingContext.VALIDATE_STATUS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VALIDATE_STATUS = 0x8B83;
+
+  @DomName('WebGL2RenderingContext.VENDOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VENDOR = 0x1F00;
+
+  @DomName('WebGL2RenderingContext.VERSION')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERSION = 0x1F02;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_ENABLED')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_NORMALIZED')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_POINTER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_STRIDE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_TYPE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
+
+  @DomName('WebGL2RenderingContext.VERTEX_SHADER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_SHADER = 0x8B31;
+
+  @DomName('WebGL2RenderingContext.VIEWPORT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VIEWPORT = 0x0BA2;
+
+  @DomName('WebGL2RenderingContext.ZERO')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ZERO = 0;
+
+  // From WebGL2RenderingContextBase
+
+  @DomName('WebGL2RenderingContext.beginQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void beginQuery(int target, Query query) native;
+
+  @DomName('WebGL2RenderingContext.beginTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void beginTransformFeedback(int primitiveMode) native;
+
+  @DomName('WebGL2RenderingContext.bindBufferBase')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindBufferBase(int target, int index, Buffer buffer) native;
+
+  @DomName('WebGL2RenderingContext.bindBufferRange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindBufferRange(
+      int target, int index, Buffer buffer, int offset, int size) native;
+
+  @DomName('WebGL2RenderingContext.bindSampler')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindSampler(int unit, Sampler sampler) native;
+
+  @DomName('WebGL2RenderingContext.bindTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindTransformFeedback(int target, TransformFeedback feedback) native;
+
+  @DomName('WebGL2RenderingContext.bindVertexArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindVertexArray(VertexArrayObject vertexArray) native;
+
+  @DomName('WebGL2RenderingContext.blitFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0,
+      int dstY0, int dstX1, int dstY1, int mask, int filter) native;
+
+  @DomName('WebGL2RenderingContext.clearBufferfi')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearBufferfi(int buffer, int drawbuffer, num depth, int stencil) native;
+
+  @DomName('WebGL2RenderingContext.clearBufferfv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearBufferfv(int buffer, int drawbuffer, value) native;
+
+  @DomName('WebGL2RenderingContext.clearBufferiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearBufferiv(int buffer, int drawbuffer, value) native;
+
+  @DomName('WebGL2RenderingContext.clearBufferuiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearBufferuiv(int buffer, int drawbuffer, value) native;
+
+  @DomName('WebGL2RenderingContext.clientWaitSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int clientWaitSync(Sync sync, int flags, int timeout) native;
+
+  @DomName('WebGL2RenderingContext.compressedTexImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void compressedTexImage3D(int target, int level, int internalformat,
+      int width, int height, int depth, int border, TypedData data) native;
+
+  @DomName('WebGL2RenderingContext.compressedTexSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void compressedTexSubImage3D(
+      int target,
+      int level,
+      int xoffset,
+      int yoffset,
+      int zoffset,
+      int width,
+      int height,
+      int depth,
+      int format,
+      TypedData data) native;
+
+  @DomName('WebGL2RenderingContext.copyBufferSubData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void copyBufferSubData(int readTarget, int writeTarget, int readOffset,
+      int writeOffset, int size) native;
+
+  @DomName('WebGL2RenderingContext.copyTexSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void copyTexSubImage3D(int target, int level, int xoffset, int yoffset,
+      int zoffset, int x, int y, int width, int height) native;
+
+  @DomName('WebGL2RenderingContext.createQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Query createQuery() native;
+
+  @DomName('WebGL2RenderingContext.createSampler')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Sampler createSampler() native;
+
+  @DomName('WebGL2RenderingContext.createTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  TransformFeedback createTransformFeedback() native;
+
+  @DomName('WebGL2RenderingContext.createVertexArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  VertexArrayObject createVertexArray() native;
+
+  @DomName('WebGL2RenderingContext.deleteQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteQuery(Query query) native;
+
+  @DomName('WebGL2RenderingContext.deleteSampler')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteSampler(Sampler sampler) native;
+
+  @DomName('WebGL2RenderingContext.deleteSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteSync(Sync sync) native;
+
+  @DomName('WebGL2RenderingContext.deleteTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteTransformFeedback(TransformFeedback feedback) native;
+
+  @DomName('WebGL2RenderingContext.deleteVertexArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteVertexArray(VertexArrayObject vertexArray) native;
+
+  @DomName('WebGL2RenderingContext.drawArraysInstanced')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawArraysInstanced(int mode, int first, int count, int instanceCount)
+      native;
+
+  @DomName('WebGL2RenderingContext.drawBuffers')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawBuffers(List<int> buffers) native;
+
+  @DomName('WebGL2RenderingContext.drawElementsInstanced')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawElementsInstanced(
+      int mode, int count, int type, int offset, int instanceCount) native;
+
+  @DomName('WebGL2RenderingContext.drawRangeElements')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawRangeElements(
+      int mode, int start, int end, int count, int type, int offset) native;
+
+  @DomName('WebGL2RenderingContext.endQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void endQuery(int target) native;
+
+  @DomName('WebGL2RenderingContext.endTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void endTransformFeedback() native;
+
+  @DomName('WebGL2RenderingContext.fenceSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Sync fenceSync(int condition, int flags) native;
+
+  @DomName('WebGL2RenderingContext.framebufferTextureLayer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void framebufferTextureLayer(
+      int target, int attachment, Texture texture, int level, int layer) native;
+
+  @DomName('WebGL2RenderingContext.getActiveUniformBlockName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String getActiveUniformBlockName(Program program, int uniformBlockIndex)
+      native;
+
+  @DomName('WebGL2RenderingContext.getActiveUniformBlockParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getActiveUniformBlockParameter(
+      Program program, int uniformBlockIndex, int pname) native;
+
+  @DomName('WebGL2RenderingContext.getActiveUniforms')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getActiveUniforms(Program program, List<int> uniformIndices, int pname)
+      native;
+
+  @DomName('WebGL2RenderingContext.getBufferSubData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void getBufferSubData(int target, int offset, ByteBuffer returnedData) native;
+
+  @DomName('WebGL2RenderingContext.getFragDataLocation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int getFragDataLocation(Program program, String name) native;
+
+  @DomName('WebGL2RenderingContext.getIndexedParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getIndexedParameter(int target, int index) native;
+
+  @DomName('WebGL2RenderingContext.getInternalformatParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getInternalformatParameter(int target, int internalformat, int pname)
+      native;
+
+  @DomName('WebGL2RenderingContext.getQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Query getQuery(int target, int pname) native;
+
+  @DomName('WebGL2RenderingContext.getQueryParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getQueryParameter(Query query, int pname) native;
+
+  @DomName('WebGL2RenderingContext.getSamplerParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getSamplerParameter(Sampler sampler, int pname) native;
+
+  @DomName('WebGL2RenderingContext.getSyncParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getSyncParameter(Sync sync, int pname) native;
+
+  @DomName('WebGL2RenderingContext.getTransformFeedbackVarying')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ActiveInfo getTransformFeedbackVarying(Program program, int index) native;
+
+  @DomName('WebGL2RenderingContext.getUniformBlockIndex')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int getUniformBlockIndex(Program program, String uniformBlockName) native;
+
+  @DomName('WebGL2RenderingContext.getUniformIndices')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<int> getUniformIndices(Program program, List<String> uniformNames) {
+    List uniformNames_1 = convertDartToNative_StringArray(uniformNames);
+    return _getUniformIndices_1(program, uniformNames_1);
+  }
+
+  @JSName('getUniformIndices')
+  @DomName('WebGL2RenderingContext.getUniformIndices')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<int> _getUniformIndices_1(Program program, List uniformNames) native;
+
+  @DomName('WebGL2RenderingContext.invalidateFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void invalidateFramebuffer(int target, List<int> attachments) native;
+
+  @DomName('WebGL2RenderingContext.invalidateSubFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void invalidateSubFramebuffer(int target, List<int> attachments, int x, int y,
+      int width, int height) native;
+
+  @DomName('WebGL2RenderingContext.isQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isQuery(Query query) native;
+
+  @DomName('WebGL2RenderingContext.isSampler')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isSampler(Sampler sampler) native;
+
+  @DomName('WebGL2RenderingContext.isSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isSync(Sync sync) native;
+
+  @DomName('WebGL2RenderingContext.isTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isTransformFeedback(TransformFeedback feedback) native;
+
+  @DomName('WebGL2RenderingContext.isVertexArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isVertexArray(VertexArrayObject vertexArray) native;
+
+  @DomName('WebGL2RenderingContext.pauseTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void pauseTransformFeedback() native;
+
+  @DomName('WebGL2RenderingContext.readBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void readBuffer(int mode) native;
+
+  @JSName('readPixels')
+  @DomName('WebGL2RenderingContext.readPixels')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void readPixels2(int x, int y, int width, int height, int format, int type,
+      int offset) native;
+
+  @DomName('WebGL2RenderingContext.renderbufferStorageMultisample')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void renderbufferStorageMultisample(int target, int samples,
+      int internalformat, int width, int height) native;
+
+  @DomName('WebGL2RenderingContext.resumeTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void resumeTransformFeedback() native;
+
+  @DomName('WebGL2RenderingContext.samplerParameterf')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void samplerParameterf(Sampler sampler, int pname, num param) native;
+
+  @DomName('WebGL2RenderingContext.samplerParameteri')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void samplerParameteri(Sampler sampler, int pname, int param) native;
+
+  @JSName('texImage2D')
+  @DomName('WebGL2RenderingContext.texImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texImage2D2(int target, int level, int internalformat, int width,
+      int height, int border, int format, int type, int offset) native;
+
+  @DomName('WebGL2RenderingContext.texImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texImage3D(
+      int target,
+      int level,
+      int internalformat,
+      int width,
+      int height,
+      int depth,
+      int border,
+      int format,
+      int type,
+      offset_OR_pixels) native;
+
+  @DomName('WebGL2RenderingContext.texStorage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texStorage2D(
+      int target, int levels, int internalformat, int width, int height) native;
+
+  @DomName('WebGL2RenderingContext.texStorage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texStorage3D(int target, int levels, int internalformat, int width,
+      int height, int depth) native;
+
+  @DomName('WebGL2RenderingContext.texSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texSubImage3D(
+      int target,
+      int level,
+      int xoffset,
+      int yoffset,
+      int zoffset,
+      int format_OR_width,
+      int height_OR_type,
+      bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video,
+      [int format,
+      int type,
+      TypedData pixels]) {
+    if (type != null &&
+        format != null &&
+        (bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video is int)) {
+      _texSubImage3D_1(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          zoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video,
+          format,
+          type,
+          pixels);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video is ImageData ||
+            bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      var data_1 = convertDartToNative_ImageData(
+          bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video);
+      _texSubImage3D_2(target, level, xoffset, yoffset, zoffset,
+          format_OR_width, height_OR_type, data_1);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video is ImageElement ||
+            bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      _texSubImage3D_3(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          zoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video is CanvasElement ||
+            bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      _texSubImage3D_4(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          zoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video is VideoElement ||
+            bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      _texSubImage3D_5(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          zoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video is ImageBitmap ||
+            bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      _texSubImage3D_6(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          zoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @JSName('texSubImage3D')
+  @DomName('WebGL2RenderingContext.texSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage3D_1(target, level, xoffset, yoffset, zoffset, width, height,
+      int depth, format, type, TypedData pixels) native;
+  @JSName('texSubImage3D')
+  @DomName('WebGL2RenderingContext.texSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage3D_2(
+      target, level, xoffset, yoffset, zoffset, format, type, data) native;
+  @JSName('texSubImage3D')
+  @DomName('WebGL2RenderingContext.texSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage3D_3(target, level, xoffset, yoffset, zoffset, format, type,
+      ImageElement image) native;
+  @JSName('texSubImage3D')
+  @DomName('WebGL2RenderingContext.texSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage3D_4(target, level, xoffset, yoffset, zoffset, format, type,
+      CanvasElement canvas) native;
+  @JSName('texSubImage3D')
+  @DomName('WebGL2RenderingContext.texSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage3D_5(target, level, xoffset, yoffset, zoffset, format, type,
+      VideoElement video) native;
+  @JSName('texSubImage3D')
+  @DomName('WebGL2RenderingContext.texSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage3D_6(target, level, xoffset, yoffset, zoffset, format, type,
+      ImageBitmap bitmap) native;
+
+  @DomName('WebGL2RenderingContext.transformFeedbackVaryings')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void transformFeedbackVaryings(
+      Program program, List<String> varyings, int bufferMode) {
+    List varyings_1 = convertDartToNative_StringArray(varyings);
+    _transformFeedbackVaryings_1(program, varyings_1, bufferMode);
+    return;
+  }
+
+  @JSName('transformFeedbackVaryings')
+  @DomName('WebGL2RenderingContext.transformFeedbackVaryings')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _transformFeedbackVaryings_1(Program program, List varyings, bufferMode)
+      native;
+
+  @DomName('WebGL2RenderingContext.uniform1ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform1ui(UniformLocation location, int v0) native;
+
+  @DomName('WebGL2RenderingContext.uniform1uiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform1uiv(UniformLocation location, v) native;
+
+  @DomName('WebGL2RenderingContext.uniform2ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform2ui(UniformLocation location, int v0, int v1) native;
+
+  @DomName('WebGL2RenderingContext.uniform2uiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform2uiv(UniformLocation location, v) native;
+
+  @DomName('WebGL2RenderingContext.uniform3ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform3ui(UniformLocation location, int v0, int v1, int v2) native;
+
+  @DomName('WebGL2RenderingContext.uniform3uiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform3uiv(UniformLocation location, v) native;
+
+  @DomName('WebGL2RenderingContext.uniform4ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform4ui(UniformLocation location, int v0, int v1, int v2, int v3)
+      native;
+
+  @DomName('WebGL2RenderingContext.uniform4uiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform4uiv(UniformLocation location, v) native;
+
+  @DomName('WebGL2RenderingContext.uniformBlockBinding')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformBlockBinding(
+      Program program, int uniformBlockIndex, int uniformBlockBinding) native;
+
+  @DomName('WebGL2RenderingContext.uniformMatrix2x3fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix2x3fv(UniformLocation location, bool transpose, value)
+      native;
+
+  @DomName('WebGL2RenderingContext.uniformMatrix2x4fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix2x4fv(UniformLocation location, bool transpose, value)
+      native;
+
+  @DomName('WebGL2RenderingContext.uniformMatrix3x2fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix3x2fv(UniformLocation location, bool transpose, value)
+      native;
+
+  @DomName('WebGL2RenderingContext.uniformMatrix3x4fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix3x4fv(UniformLocation location, bool transpose, value)
+      native;
+
+  @DomName('WebGL2RenderingContext.uniformMatrix4x2fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix4x2fv(UniformLocation location, bool transpose, value)
+      native;
+
+  @DomName('WebGL2RenderingContext.uniformMatrix4x3fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix4x3fv(UniformLocation location, bool transpose, value)
+      native;
+
+  @DomName('WebGL2RenderingContext.vertexAttribDivisor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribDivisor(int index, int divisor) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttribI4i')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribI4i(int index, int x, int y, int z, int w) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttribI4iv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribI4iv(int index, v) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttribI4ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribI4ui(int index, int x, int y, int z, int w) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttribI4uiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribI4uiv(int index, v) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttribIPointer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribIPointer(
+      int index, int size, int type, int stride, int offset) native;
+
+  @DomName('WebGL2RenderingContext.waitSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void waitSync(Sync sync, int flags, int timeout) native;
+
+  // From WebGLRenderingContextBase
+
+  @DomName('WebGL2RenderingContext.canvas')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final CanvasElement canvas;
+
+  @DomName('WebGL2RenderingContext.drawingBufferHeight')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int drawingBufferHeight;
+
+  @DomName('WebGL2RenderingContext.drawingBufferWidth')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int drawingBufferWidth;
+
+  @DomName('WebGL2RenderingContext.activeTexture')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void activeTexture(int texture) native;
+
+  @DomName('WebGL2RenderingContext.attachShader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void attachShader(Program program, Shader shader) native;
+
+  @DomName('WebGL2RenderingContext.bindAttribLocation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindAttribLocation(Program program, int index, String name) native;
+
+  @DomName('WebGL2RenderingContext.bindBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindBuffer(int target, Buffer buffer) native;
+
+  @DomName('WebGL2RenderingContext.bindFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindFramebuffer(int target, Framebuffer framebuffer) native;
+
+  @DomName('WebGL2RenderingContext.bindRenderbuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindRenderbuffer(int target, Renderbuffer renderbuffer) native;
+
+  @DomName('WebGL2RenderingContext.bindTexture')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindTexture(int target, Texture texture) native;
+
+  @DomName('WebGL2RenderingContext.blendColor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blendColor(num red, num green, num blue, num alpha) native;
+
+  @DomName('WebGL2RenderingContext.blendEquation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blendEquation(int mode) native;
+
+  @DomName('WebGL2RenderingContext.blendEquationSeparate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blendEquationSeparate(int modeRGB, int modeAlpha) native;
+
+  @DomName('WebGL2RenderingContext.blendFunc')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blendFunc(int sfactor, int dfactor) native;
+
+  @DomName('WebGL2RenderingContext.blendFuncSeparate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
+      native;
+
+  @DomName('WebGL2RenderingContext.bufferData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bufferData(int target, data_OR_size, int usage) native;
+
+  @DomName('WebGL2RenderingContext.bufferSubData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bufferSubData(int target, int offset, data) native;
+
+  @DomName('WebGL2RenderingContext.checkFramebufferStatus')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int checkFramebufferStatus(int target) native;
+
+  @DomName('WebGL2RenderingContext.clear')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clear(int mask) native;
+
+  @DomName('WebGL2RenderingContext.clearColor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearColor(num red, num green, num blue, num alpha) native;
+
+  @DomName('WebGL2RenderingContext.clearDepth')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearDepth(num depth) native;
+
+  @DomName('WebGL2RenderingContext.clearStencil')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearStencil(int s) native;
+
+  @DomName('WebGL2RenderingContext.colorMask')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void colorMask(bool red, bool green, bool blue, bool alpha) native;
+
+  @DomName('WebGL2RenderingContext.compileShader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void compileShader(Shader shader) native;
+
+  @DomName('WebGL2RenderingContext.compressedTexImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void compressedTexImage2D(int target, int level, int internalformat,
+      int width, int height, int border, TypedData data) native;
+
+  @DomName('WebGL2RenderingContext.compressedTexSubImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset,
+      int width, int height, int format, TypedData data) native;
+
+  @DomName('WebGL2RenderingContext.copyTexImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void copyTexImage2D(int target, int level, int internalformat, int x, int y,
+      int width, int height, int border) native;
+
+  @DomName('WebGL2RenderingContext.copyTexSubImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x,
+      int y, int width, int height) native;
+
+  @DomName('WebGL2RenderingContext.createBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Buffer createBuffer() native;
+
+  @DomName('WebGL2RenderingContext.createFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Framebuffer createFramebuffer() native;
+
+  @DomName('WebGL2RenderingContext.createProgram')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Program createProgram() native;
+
+  @DomName('WebGL2RenderingContext.createRenderbuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Renderbuffer createRenderbuffer() native;
+
+  @DomName('WebGL2RenderingContext.createShader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Shader createShader(int type) native;
+
+  @DomName('WebGL2RenderingContext.createTexture')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Texture createTexture() native;
+
+  @DomName('WebGL2RenderingContext.cullFace')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void cullFace(int mode) native;
+
+  @DomName('WebGL2RenderingContext.deleteBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteBuffer(Buffer buffer) native;
+
+  @DomName('WebGL2RenderingContext.deleteFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteFramebuffer(Framebuffer framebuffer) native;
+
+  @DomName('WebGL2RenderingContext.deleteProgram')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteProgram(Program program) native;
+
+  @DomName('WebGL2RenderingContext.deleteRenderbuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteRenderbuffer(Renderbuffer renderbuffer) native;
+
+  @DomName('WebGL2RenderingContext.deleteShader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteShader(Shader shader) native;
+
+  @DomName('WebGL2RenderingContext.deleteTexture')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteTexture(Texture texture) native;
+
+  @DomName('WebGL2RenderingContext.depthFunc')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void depthFunc(int func) native;
+
+  @DomName('WebGL2RenderingContext.depthMask')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void depthMask(bool flag) native;
+
+  @DomName('WebGL2RenderingContext.depthRange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void depthRange(num zNear, num zFar) native;
+
+  @DomName('WebGL2RenderingContext.detachShader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void detachShader(Program program, Shader shader) native;
+
+  @DomName('WebGL2RenderingContext.disable')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void disable(int cap) native;
+
+  @DomName('WebGL2RenderingContext.disableVertexAttribArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void disableVertexAttribArray(int index) native;
+
+  @DomName('WebGL2RenderingContext.drawArrays')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawArrays(int mode, int first, int count) native;
+
+  @DomName('WebGL2RenderingContext.drawElements')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawElements(int mode, int count, int type, int offset) native;
+
+  @DomName('WebGL2RenderingContext.enable')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void enable(int cap) native;
+
+  @DomName('WebGL2RenderingContext.enableVertexAttribArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void enableVertexAttribArray(int index) native;
+
+  @DomName('WebGL2RenderingContext.finish')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void finish() native;
+
+  @DomName('WebGL2RenderingContext.flush')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void flush() native;
+
+  @DomName('WebGL2RenderingContext.framebufferRenderbuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void framebufferRenderbuffer(int target, int attachment,
+      int renderbuffertarget, Renderbuffer renderbuffer) native;
+
+  @DomName('WebGL2RenderingContext.framebufferTexture2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void framebufferTexture2D(int target, int attachment, int textarget,
+      Texture texture, int level) native;
+
+  @DomName('WebGL2RenderingContext.frontFace')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void frontFace(int mode) native;
+
+  @DomName('WebGL2RenderingContext.generateMipmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void generateMipmap(int target) native;
+
+  @DomName('WebGL2RenderingContext.getActiveAttrib')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ActiveInfo getActiveAttrib(Program program, int index) native;
+
+  @DomName('WebGL2RenderingContext.getActiveUniform')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ActiveInfo getActiveUniform(Program program, int index) native;
+
+  @DomName('WebGL2RenderingContext.getAttachedShaders')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<Shader> getAttachedShaders(Program program) native;
+
+  @DomName('WebGL2RenderingContext.getAttribLocation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int getAttribLocation(Program program, String name) native;
+
+  @DomName('WebGL2RenderingContext.getBufferParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getBufferParameter(int target, int pname) native;
+
+  @DomName('WebGL2RenderingContext.getContextAttributes')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Map getContextAttributes() {
+    return convertNativeToDart_Dictionary(_getContextAttributes_1());
+  }
+
+  @JSName('getContextAttributes')
+  @DomName('WebGL2RenderingContext.getContextAttributes')
+  @DocsEditable()
+  @Experimental() // untriaged
+  _getContextAttributes_1() native;
+
+  @DomName('WebGL2RenderingContext.getError')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int getError() native;
+
+  @DomName('WebGL2RenderingContext.getExtension')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getExtension(String name) native;
+
+  @DomName('WebGL2RenderingContext.getFramebufferAttachmentParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getFramebufferAttachmentParameter(
+      int target, int attachment, int pname) native;
+
+  @DomName('WebGL2RenderingContext.getParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getParameter(int pname) native;
+
+  @DomName('WebGL2RenderingContext.getProgramInfoLog')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String getProgramInfoLog(Program program) native;
+
+  @DomName('WebGL2RenderingContext.getProgramParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getProgramParameter(Program program, int pname) native;
+
+  @DomName('WebGL2RenderingContext.getRenderbufferParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getRenderbufferParameter(int target, int pname) native;
+
+  @DomName('WebGL2RenderingContext.getShaderInfoLog')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String getShaderInfoLog(Shader shader) native;
+
+  @DomName('WebGL2RenderingContext.getShaderParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getShaderParameter(Shader shader, int pname) native;
+
+  @DomName('WebGL2RenderingContext.getShaderPrecisionFormat')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ShaderPrecisionFormat getShaderPrecisionFormat(
+      int shadertype, int precisiontype) native;
+
+  @DomName('WebGL2RenderingContext.getShaderSource')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String getShaderSource(Shader shader) native;
+
+  @DomName('WebGL2RenderingContext.getSupportedExtensions')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<String> getSupportedExtensions() native;
+
+  @DomName('WebGL2RenderingContext.getTexParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getTexParameter(int target, int pname) native;
+
+  @DomName('WebGL2RenderingContext.getUniform')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getUniform(Program program, UniformLocation location) native;
+
+  @DomName('WebGL2RenderingContext.getUniformLocation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  UniformLocation getUniformLocation(Program program, String name) native;
+
+  @DomName('WebGL2RenderingContext.getVertexAttrib')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getVertexAttrib(int index, int pname) native;
+
+  @DomName('WebGL2RenderingContext.getVertexAttribOffset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int getVertexAttribOffset(int index, int pname) native;
+
+  @DomName('WebGL2RenderingContext.hint')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void hint(int target, int mode) native;
+
+  @DomName('WebGL2RenderingContext.isBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isBuffer(Buffer buffer) native;
+
+  @DomName('WebGL2RenderingContext.isContextLost')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isContextLost() native;
+
+  @DomName('WebGL2RenderingContext.isEnabled')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isEnabled(int cap) native;
+
+  @DomName('WebGL2RenderingContext.isFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isFramebuffer(Framebuffer framebuffer) native;
+
+  @DomName('WebGL2RenderingContext.isProgram')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isProgram(Program program) native;
+
+  @DomName('WebGL2RenderingContext.isRenderbuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isRenderbuffer(Renderbuffer renderbuffer) native;
+
+  @DomName('WebGL2RenderingContext.isShader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isShader(Shader shader) native;
+
+  @DomName('WebGL2RenderingContext.isTexture')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isTexture(Texture texture) native;
+
+  @DomName('WebGL2RenderingContext.lineWidth')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void lineWidth(num width) native;
+
+  @DomName('WebGL2RenderingContext.linkProgram')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void linkProgram(Program program) native;
+
+  @DomName('WebGL2RenderingContext.pixelStorei')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void pixelStorei(int pname, int param) native;
+
+  @DomName('WebGL2RenderingContext.polygonOffset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void polygonOffset(num factor, num units) native;
+
+  @DomName('WebGL2RenderingContext.readPixels')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void readPixels(int x, int y, int width, int height, int format, int type,
+      TypedData pixels) native;
+
+  @DomName('WebGL2RenderingContext.renderbufferStorage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void renderbufferStorage(
+      int target, int internalformat, int width, int height) native;
+
+  @DomName('WebGL2RenderingContext.sampleCoverage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void sampleCoverage(num value, bool invert) native;
+
+  @DomName('WebGL2RenderingContext.scissor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void scissor(int x, int y, int width, int height) native;
+
+  @DomName('WebGL2RenderingContext.shaderSource')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void shaderSource(Shader shader, String string) native;
+
+  @DomName('WebGL2RenderingContext.stencilFunc')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stencilFunc(int func, int ref, int mask) native;
+
+  @DomName('WebGL2RenderingContext.stencilFuncSeparate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stencilFuncSeparate(int face, int func, int ref, int mask) native;
+
+  @DomName('WebGL2RenderingContext.stencilMask')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stencilMask(int mask) native;
+
+  @DomName('WebGL2RenderingContext.stencilMaskSeparate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stencilMaskSeparate(int face, int mask) native;
+
+  @DomName('WebGL2RenderingContext.stencilOp')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stencilOp(int fail, int zfail, int zpass) native;
+
+  @DomName('WebGL2RenderingContext.stencilOpSeparate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
+
+  @DomName('WebGL2RenderingContext.texImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texImage2D(
+      int target,
+      int level,
+      int internalformat,
+      int format_OR_width,
+      int height_OR_type,
+      bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+      [int format,
+      int type,
+      TypedData pixels]) {
+    if (type != null &&
+        format != null &&
+        (bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
+      _texImage2D_1(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+          format,
+          type,
+          pixels);
+      return;
+    }
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData ||
+            bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      var pixels_1 = convertDartToNative_ImageData(
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_2(target, level, internalformat, format_OR_width,
+          height_OR_type, pixels_1);
+      return;
+    }
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is ImageElement) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      _texImage2D_3(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is CanvasElement) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      _texImage2D_4(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is VideoElement) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      _texImage2D_5(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is ImageBitmap) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      _texImage2D_6(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @JSName('texImage2D')
+  @DomName('WebGL2RenderingContext.texImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texImage2D_1(target, level, internalformat, width, height, int border,
+      format, type, TypedData pixels) native;
+  @JSName('texImage2D')
+  @DomName('WebGL2RenderingContext.texImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texImage2D_2(target, level, internalformat, format, type, pixels)
+      native;
+  @JSName('texImage2D')
+  @DomName('WebGL2RenderingContext.texImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texImage2D_3(
+      target, level, internalformat, format, type, ImageElement image) native;
+  @JSName('texImage2D')
+  @DomName('WebGL2RenderingContext.texImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texImage2D_4(
+      target, level, internalformat, format, type, CanvasElement canvas) native;
+  @JSName('texImage2D')
+  @DomName('WebGL2RenderingContext.texImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texImage2D_5(
+      target, level, internalformat, format, type, VideoElement video) native;
+  @JSName('texImage2D')
+  @DomName('WebGL2RenderingContext.texImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texImage2D_6(
+      target, level, internalformat, format, type, ImageBitmap bitmap) native;
+
+  @DomName('WebGL2RenderingContext.texParameterf')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texParameterf(int target, int pname, num param) native;
+
+  @DomName('WebGL2RenderingContext.texParameteri')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texParameteri(int target, int pname, int param) native;
+
+  @DomName('WebGL2RenderingContext.texSubImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texSubImage2D(
+      int target,
+      int level,
+      int xoffset,
+      int yoffset,
+      int format_OR_width,
+      int height_OR_type,
+      bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+      [int type,
+      TypedData pixels]) {
+    if (type != null &&
+        (bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
+      _texSubImage2D_1(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+          type,
+          pixels);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData ||
+            bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+        type == null &&
+        pixels == null) {
+      var pixels_1 = convertDartToNative_ImageData(
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width,
+          height_OR_type, pixels_1);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is ImageElement) &&
+        type == null &&
+        pixels == null) {
+      _texSubImage2D_3(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is CanvasElement) &&
+        type == null &&
+        pixels == null) {
+      _texSubImage2D_4(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is VideoElement) &&
+        type == null &&
+        pixels == null) {
+      _texSubImage2D_5(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is ImageBitmap) &&
+        type == null &&
+        pixels == null) {
+      _texSubImage2D_6(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @JSName('texSubImage2D')
+  @DomName('WebGL2RenderingContext.texSubImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height,
+      int format, type, TypedData pixels) native;
+  @JSName('texSubImage2D')
+  @DomName('WebGL2RenderingContext.texSubImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels)
+      native;
+  @JSName('texSubImage2D')
+  @DomName('WebGL2RenderingContext.texSubImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage2D_3(
+      target, level, xoffset, yoffset, format, type, ImageElement image) native;
+  @JSName('texSubImage2D')
+  @DomName('WebGL2RenderingContext.texSubImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage2D_4(target, level, xoffset, yoffset, format, type,
+      CanvasElement canvas) native;
+  @JSName('texSubImage2D')
+  @DomName('WebGL2RenderingContext.texSubImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage2D_5(
+      target, level, xoffset, yoffset, format, type, VideoElement video) native;
+  @JSName('texSubImage2D')
+  @DomName('WebGL2RenderingContext.texSubImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage2D_6(
+      target, level, xoffset, yoffset, format, type, ImageBitmap bitmap) native;
+
+  @DomName('WebGL2RenderingContext.uniform1f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform1f(UniformLocation location, num x) native;
+
+  @DomName('WebGL2RenderingContext.uniform1fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform1fv(UniformLocation location, v) native;
+
+  @DomName('WebGL2RenderingContext.uniform1i')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform1i(UniformLocation location, int x) native;
+
+  @DomName('WebGL2RenderingContext.uniform1iv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform1iv(UniformLocation location, v) native;
+
+  @DomName('WebGL2RenderingContext.uniform2f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform2f(UniformLocation location, num x, num y) native;
+
+  @DomName('WebGL2RenderingContext.uniform2fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform2fv(UniformLocation location, v) native;
+
+  @DomName('WebGL2RenderingContext.uniform2i')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform2i(UniformLocation location, int x, int y) native;
+
+  @DomName('WebGL2RenderingContext.uniform2iv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform2iv(UniformLocation location, v) native;
+
+  @DomName('WebGL2RenderingContext.uniform3f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform3f(UniformLocation location, num x, num y, num z) native;
+
+  @DomName('WebGL2RenderingContext.uniform3fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform3fv(UniformLocation location, v) native;
+
+  @DomName('WebGL2RenderingContext.uniform3i')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform3i(UniformLocation location, int x, int y, int z) native;
+
+  @DomName('WebGL2RenderingContext.uniform3iv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform3iv(UniformLocation location, v) native;
+
+  @DomName('WebGL2RenderingContext.uniform4f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform4f(UniformLocation location, num x, num y, num z, num w) native;
+
+  @DomName('WebGL2RenderingContext.uniform4fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform4fv(UniformLocation location, v) native;
+
+  @DomName('WebGL2RenderingContext.uniform4i')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform4i(UniformLocation location, int x, int y, int z, int w) native;
+
+  @DomName('WebGL2RenderingContext.uniform4iv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform4iv(UniformLocation location, v) native;
+
+  @DomName('WebGL2RenderingContext.uniformMatrix2fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix2fv(UniformLocation location, bool transpose, array) native;
+
+  @DomName('WebGL2RenderingContext.uniformMatrix3fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix3fv(UniformLocation location, bool transpose, array) native;
+
+  @DomName('WebGL2RenderingContext.uniformMatrix4fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix4fv(UniformLocation location, bool transpose, array) native;
+
+  @DomName('WebGL2RenderingContext.useProgram')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void useProgram(Program program) native;
+
+  @DomName('WebGL2RenderingContext.validateProgram')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void validateProgram(Program program) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttrib1f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttrib1f(int indx, num x) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttrib1fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttrib1fv(int indx, values) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttrib2f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttrib2f(int indx, num x, num y) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttrib2fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttrib2fv(int indx, values) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttrib3f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttrib3f(int indx, num x, num y, num z) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttrib3fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttrib3fv(int indx, values) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttrib4f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttrib4f(int indx, num x, num y, num z, num w) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttrib4fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttrib4fv(int indx, values) native;
+
+  @DomName('WebGL2RenderingContext.vertexAttribPointer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribPointer(int indx, int size, int type, bool normalized,
+      int stride, int offset) native;
+
+  @DomName('WebGL2RenderingContext.viewport')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void viewport(int x, int y, int width, int height) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('WebGLSampler')
+@Experimental() // untriaged
+@Native("WebGLSampler")
+class Sampler extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory Sampler._() {
+    throw new UnsupportedError("Not supported");
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3506,11 +6775,53 @@ class ShaderPrecisionFormat extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @DocsEditable()
+@DomName('WebGLSync')
+@Experimental() // untriaged
+@Native("WebGLSync")
+class Sync extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory Sync._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
 @DomName('WebGLTexture')
 @Native("WebGLTexture")
 class Texture extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Texture._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('WebGLTimerQueryEXT')
+@Experimental() // untriaged
+@Native("WebGLTimerQueryEXT")
+class TimerQueryExt extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory TimerQueryExt._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('WebGLTransformFeedback')
+@Experimental() // untriaged
+@Native("WebGLTransformFeedback")
+class TransformFeedback extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory TransformFeedback._() {
     throw new UnsupportedError("Not supported");
   }
 }
@@ -3532,15 +6843,46 @@ class UniformLocation extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @DocsEditable()
-@DomName('WebGLVertexArrayObjectOES')
-// http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
-@Experimental() // experimental
-@Native("WebGLVertexArrayObjectOES")
+@DomName('WebGLVertexArrayObject')
+@Experimental() // untriaged
+@Native("WebGLVertexArrayObject")
 class VertexArrayObject extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory VertexArrayObject._() {
     throw new UnsupportedError("Not supported");
   }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('WebGLVertexArrayObjectOES')
+// http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
+@Experimental() // experimental
+@Native("WebGLVertexArrayObjectOES")
+class VertexArrayObjectOes extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory VertexArrayObjectOes._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('WebGL2RenderingContextBase')
+@Experimental() // untriaged
+@Native("WebGL2RenderingContextBase")
+abstract class _WebGL2RenderingContextBase extends Interceptor
+    implements _WebGLRenderingContextBase {
+  // To suppress missing implicit constructor warnings.
+  factory _WebGL2RenderingContextBase._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  // From WebGLRenderingContextBase
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

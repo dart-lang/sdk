@@ -101,12 +101,11 @@ void equalElementsTest() {
 }
 
 void genericTypeTest() {
-  var map = new HashMap<String, String>.fromIterable(
-      <int>[1, 2, 3], key: (x) => '$x', value: (x) => '$x');
+  var map = new HashMap<String, String>.fromIterable(<int>[1, 2, 3],
+      key: (x) => '$x', value: (x) => '$x');
   Expect.isTrue(map is Map<String, String>);
 
   // Make sure it is not just Map<dynamic, dynamic>.
   Expect.isFalse(map is Map<int, dynamic>);
   Expect.isFalse(map is Map<dynamic, int>);
 }
-

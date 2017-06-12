@@ -4,10 +4,14 @@
 
 library mylib;
 
-class A { }
-class B { }
-class C { }
-class D { }
-class E { }
-class T { }
+class A {}
 
+class B {}
+
+class C {}
+
+class D {}
+
+class E {}
+
+class T {}

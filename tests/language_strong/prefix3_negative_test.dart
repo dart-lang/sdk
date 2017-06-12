@@ -8,9 +8,9 @@
 // results in a duplicate definition error.
 
 library Prefix3NegativeTest.dart;
-import "library1.dart" as lib2;  // defines 'foo'.
-import "library2.dart" as lib2;  // also defines 'foo'.
 
+import "library1.dart" as lib2; // defines 'foo'.
+import "library2.dart" as lib2; // also defines 'foo'.
 
 main() {
   lib2.foo = 1;

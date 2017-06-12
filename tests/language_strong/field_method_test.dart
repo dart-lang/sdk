@@ -6,10 +6,10 @@
 class A {
   var foo;
   A() {
-    foo = () { };
+    foo = () {};
   }
   void bar() {
-    foo();  // <= foo is a field, but can still be invoked without parenthesis.
+    foo(); // <= foo is a field, but can still be invoked without parenthesis.
   }
 }
 

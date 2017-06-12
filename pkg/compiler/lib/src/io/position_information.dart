@@ -69,12 +69,12 @@ class PositionSourceInformation extends SourceInformation {
     sb.write('$uriText:');
     // Use 1-based line/column info to match usual dart tool output.
     if (startPosition != null) {
-      sb.write('[${startPosition.line + 1},'
-          '${startPosition.column + 1}]');
+      sb.write('[${startPosition.line},'
+          '${startPosition.column}]');
     }
     if (closingPosition != null) {
-      sb.write('-[${closingPosition.line + 1},'
-          '${closingPosition.column + 1}]');
+      sb.write('-[${closingPosition.line},'
+          '${closingPosition.column}]');
     }
     return sb.toString();
   }
@@ -305,6 +305,7 @@ class CodePosition {
 
   CodePosition(this.startPosition, this.endPosition, this.closingPosition);
 
+  // ignore: MISSING_RETURN
   int getPosition(CodePositionKind kind) {
     switch (kind) {
       case CodePositionKind.START:
@@ -379,6 +380,7 @@ enum SourcePositionKind {
   INNER,
 }
 
+// ignore: MISSING_RETURN
 SourceLocation getSourceLocation(SourceInformation sourceInformation,
     [SourcePositionKind sourcePositionKind = SourcePositionKind.START]) {
   if (sourceInformation == null) return null;
@@ -692,7 +694,7 @@ class Offset {
   final int subexpressionOffset;
 
   /// The `left-to-right` offset of the step. This is like [subexpressionOffset]
-  /// bute restricted so that the offset of each subexpression in execution
+  /// but restricted so that the offset of each subexpression in execution
   /// order is monotonically increasing.
   ///
   /// For instance:

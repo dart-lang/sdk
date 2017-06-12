@@ -168,8 +168,7 @@ testNestedFinally() {
     events = '$events|outer-finally';
   }
   Expect.equals(
-      events,
-      '|start|start-catch|inner|middle|outer-catch|outer-finally');
+      events, '|start|start-catch|inner|middle|outer-catch|outer-finally');
 }
 
 main() {

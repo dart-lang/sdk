@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 abstract //# 01: static type warning
-    class Abstract {
+class Abstract {
   Abstract(_);
 }
 

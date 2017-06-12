@@ -11,6 +11,7 @@ class A {
   int a() {
     return 1;
   }
+
   void set a(var val) {
     i = val;
   }

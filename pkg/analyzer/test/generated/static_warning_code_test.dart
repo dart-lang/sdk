@@ -1328,6 +1328,29 @@ main() {
     verify([source]);
   }
 
+  test_extraPositionalArgumentsCouldBeNamed() async {
+    Source source = addSource(r'''
+f({x, y}) {}
+main() {
+  f(0, 1, '2');
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
+    verify([source]);
+  }
+
+  test_extraPositionalArgumentsCouldBeNamed_functionExpression() async {
+    Source source = addSource(r'''
+main() {
+  (int x, {int y}) {} (0, 1);
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
+    verify([source]);
+  }
+
   test_fieldInitializedInInitializerAndDeclaration_final() async {
     Source source = addSource(r'''
 class A {
@@ -1498,6 +1521,53 @@ abstract class A implements Function {
 }
 class B implements A {
 }''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
+
+  test_functionWithoutCall_mixin_implements() async {
+    Source source = addSource(r'''
+abstract class A implements Function {}
+class B extends Object with A {}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
+
+  test_functionWithoutCall_direct_typeAlias() async {
+    Source source = addSource(r'''
+class M {}
+class A = Object with M implements Function;''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
+
+  test_functionWithoutCall_indirect_extends_typeAlias() async {
+    Source source = addSource(r'''
+abstract class A implements Function {}
+class M {}
+class B = A with M;''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
+
+  test_functionWithoutCall_indirect_implements_typeAlias() async {
+    Source source = addSource(r'''
+abstract class A implements Function {}
+class M {}
+class B = Object with M implements A;''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
+
+  test_functionWithoutCall_mixin_implements_typeAlias() async {
+    Source source = addSource(r'''
+abstract class A implements Function {}
+class B = Object with A;''');
     await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
     verify([source]);
@@ -3062,16 +3132,6 @@ class B {
     verify([source]);
   }
 
-  test_returnWithoutValue_Null() async {
-    // Test that block bodied functions with return type Null and an empty
-    // return cause a static warning.
-    Source source = addSource(r'''
-Null f() {return;}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
-  }
-
   test_returnWithoutValue_async() async {
     Source source = addSource('''
 import 'dart:async';
@@ -3118,6 +3178,16 @@ int f(int x) {
     await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
     verify([source]);
+  }
+
+  test_returnWithoutValue_Null() async {
+    // Test that block bodied functions with return type Null and an empty
+    // return cause a static warning.
+    Source source = addSource(r'''
+Null f() {return;}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
   }
 
   test_staticAccessToInstanceMember_method_invocation() async {

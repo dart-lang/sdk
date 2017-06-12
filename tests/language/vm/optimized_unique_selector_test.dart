@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  _uniqueSelector() { }
+  _uniqueSelector() {}
   final uniqueField = 10;
 }
 
@@ -13,7 +13,7 @@ test1(obj) {
   var res = 0;
   for (var i = 0; i < 2; i++) {
     obj._uniqueSelector();
-    res += obj.uniqueField;  // This load must not be hoisted out of the loop.
+    res += obj.uniqueField; // This load must not be hoisted out of the loop.
   }
   return res;
 }
@@ -24,14 +24,15 @@ test2(obj) {
   var res = 0;
   for (var i = 0; i < 2; i++) {
     obj._uniqueSelector();
-    res += objAlias.uniqueField;  // This load must not be hoisted out of the loop.
+    res +=
+        objAlias.uniqueField; // This load must not be hoisted out of the loop.
   }
   return res;
 }
 
 var foofoo_ = test1;
 
-main () {
+main() {
   Expect.equals(20, foofoo_(new A()));
   Expect.throws(() => foofoo_(0));
 

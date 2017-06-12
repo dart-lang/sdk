@@ -22,7 +22,7 @@ get bar {
   } catch (e) {
     trace.add(e is CyclicInitializationError);
   }
-  return 42;  
+  return 42;
 }
 
 void testTopLevel() {
@@ -34,7 +34,6 @@ void testTopLevel() {
   result = foo;
   Expect.equals(42, result);
   Expect.equals('', trace.join(','));
-
 }
 
 class X {
@@ -52,7 +51,7 @@ class X {
     } catch (e) {
       trace.add(e is CyclicInitializationError);
     }
-    return 49;  
+    return 49;
   }
 }
 

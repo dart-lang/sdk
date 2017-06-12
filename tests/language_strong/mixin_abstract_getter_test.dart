@@ -18,7 +18,6 @@ class D extends C with B {
   D(this.x);
 }
 
-
 class C2 {
   int get x => 42;
 }
@@ -32,7 +31,6 @@ class D2 extends B2 {
 
   D2(this.x);
 }
-
 
 void main() {
   var d = new D(17);

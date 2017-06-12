@@ -10,9 +10,10 @@ class ComparableMixin<E> {
   }
 }
 
-class KUID extends Object with ComparableMixin<KUID> { }
+class KUID extends Object with ComparableMixin<KUID> {}
 
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 dyn(x) => x;
 
 main() {

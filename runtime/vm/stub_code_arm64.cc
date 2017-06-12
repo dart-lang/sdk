@@ -6,13 +6,13 @@
 #if defined(TARGET_ARCH_ARM64)
 
 #include "vm/assembler.h"
-#include "vm/code_generator.h"
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
+#include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/tags.h"
@@ -87,7 +87,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ add(R2, ZR, Operand(R4, LSL, 3));
   __ add(R2, FP, Operand(R2));  // Compute argv.
   // Set argv in NativeArguments.
-  __ AddImmediate(R2, R2, kParamEndSlotFromFp * kWordSize);
+  __ AddImmediate(R2, kParamEndSlotFromFp * kWordSize);
 
   ASSERT(retval_offset == 3 * kWordSize);
   __ AddImmediate(R3, R2, kWordSize);
@@ -142,7 +142,8 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   R5 : address of the native function to call.
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
+static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
+                                              Address wrapper) {
   const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
@@ -211,7 +212,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ mov(R1, R5);  // Pass the function entrypoint to call.
 
   // Call native function invocation wrapper or redirection via simulator.
-  __ ldr(LR, Address(THR, Thread::native_call_wrapper_entry_point_offset()));
+  __ ldr(LR, wrapper);
   __ blr(LR);
 
   // Restore SP and CSP.
@@ -230,13 +231,27 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateCallNoScopeNativeStub(Assembler* assembler) {
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR, Thread::no_scope_native_wrapper_entry_point_offset()));
+}
+
+
+void StubCode::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR, Thread::auto_scope_native_wrapper_entry_point_offset()));
+}
+
+
 // Input parameters:
 //   LR : return address.
 //   SP : address of return value.
 //   R5 : address of the native function to call.
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
+void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
@@ -402,7 +417,7 @@ static void PushArgumentsArray(Assembler* assembler) {
   // R2: smi-tagged argument count, may be zero (was preserved by the stub).
   __ Push(R0);  // Array is in R0 and on top of stack.
   __ add(R1, FP, Operand(R2, LSL, 2));
-  __ AddImmediate(R1, R1, kParamEndSlotFromFp * kWordSize);
+  __ AddImmediate(R1, kParamEndSlotFromFp * kWordSize);
   __ AddImmediate(R3, R0, Array::data_offset() - kHeapObjectTag);
   // R1: address of first argument on stack.
   // R3: address of first argument in array.
@@ -412,8 +427,8 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ b(&loop_exit, LE);
   __ Bind(&loop);
   __ ldr(R7, Address(R1));
-  __ AddImmediate(R1, R1, -kWordSize);
-  __ AddImmediate(R3, R3, kWordSize);
+  __ AddImmediate(R1, -kWordSize);
+  __ AddImmediate(R3, kWordSize);
   __ AddImmediateSetFlags(R2, R2, -Smi::RawValue(1));
   __ str(R7, Address(R3, -kWordSize));
   __ b(&loop, GE);
@@ -612,6 +627,13 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ Push(R6);  // Receiver.
   __ Push(R5);  // ICData/MegamorphicCache.
   __ Push(R4);  // Arguments descriptor.
+
+  // Adjust arguments count.
+  __ LoadFieldFromOffset(R3, R4, ArgumentsDescriptor::type_args_len_offset());
+  __ AddImmediate(TMP, R2, Smi::RawValue(1));  // Include the type arguments.
+  __ cmp(R3, Operand(0));
+  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP.
+
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
   const intptr_t kNumArgs = 4;
@@ -708,8 +730,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R2: array length as Smi.
   // R8: heap.
   __ LoadFromOffset(R0, R8, Heap::TopOffset(space));
-  intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ LoadImmediate(R3, fixed_size);
+  intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawArray) + kObjectAlignment - 1;
+  __ LoadImmediate(R3, fixed_size_plus_alignment_padding);
   __ add(R3, R3, Operand(R2, LSL, 2));  // R2 is Smi.
   ASSERT(kSmiTagShift == 1);
   __ andi(R3, R3, Immediate(~(kObjectAlignment - 1)));
@@ -782,7 +805,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ CompareRegisters(R1, R7);
   __ b(&done, CS);
   __ str(TMP, Address(R1));  // Store if unsigned lower.
-  __ AddImmediate(R1, R1, kWordSize);
+  __ AddImmediate(R1, kWordSize);
   __ b(&loop);  // Loop until R1 == R7.
   __ Bind(&done);
 
@@ -879,7 +902,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Compute address of 'arguments array' data area into R2.
   __ LoadFromOffset(R2, R2, VMHandles::kOffsetOfRawPtrInHandle);
-  __ AddImmediate(R2, R2, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R2, Array::data_offset() - kHeapObjectTag);
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -954,8 +977,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label slow_case;
     // First compute the rounded instance size.
     // R1: number of context variables.
-    intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
-    __ LoadImmediate(R2, fixed_size);
+    intptr_t fixed_size_plus_alignment_padding =
+        sizeof(RawContext) + kObjectAlignment - 1;
+    __ LoadImmediate(R2, fixed_size_plus_alignment_padding);
     __ add(R2, R2, Operand(R1, LSL, 3));
     ASSERT(kSmiTagShift == 1);
     __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));
@@ -1207,7 +1231,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ CompareRegisters(R4, R3);
       __ b(&done, CS);
       __ str(R0, Address(R4));
-      __ AddImmediate(R4, R4, kWordSize);
+      __ AddImmediate(R4, kWordSize);
       __ b(&init_loop);
       __ Bind(&done);
     }
@@ -1270,6 +1294,12 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ Push(R6);
   __ Push(R4);
 
+  // Adjust arguments count.
+  __ LoadFieldFromOffset(R3, R4, ArgumentsDescriptor::type_args_len_offset());
+  __ AddImmediate(TMP, R2, Smi::RawValue(1));  // Include the type arguments.
+  __ cmp(R3, Operand(0));
+  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP.
+
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
 
@@ -1316,7 +1346,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
     __ LoadFieldFromOffset(func_reg, ic_reg, ICData::owner_offset());
     __ LoadFieldFromOffset(R7, func_reg, Function::usage_counter_offset(),
                            kWord);
-    __ AddImmediate(R7, R7, 1);
+    __ AddImmediate(R7, 1);
     __ StoreFieldToOffset(R7, func_reg, Function::usage_counter_offset(),
                           kWord);
   }
@@ -1362,7 +1392,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   // R5: IC data object (preserved).
   __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset());
   // R6: ic_data_array with check entries: classes and target functions.
-  __ AddImmediate(R6, R6, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R6, Array::data_offset() - kHeapObjectTag);
 // R6: points directly to the first ic data array element.
 #if defined(DEBUG)
   // Check that first entry is for Smi/Smi.
@@ -1447,7 +1477,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // R5: IC data object (preserved).
   __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset());
   // R6: ic_data_array with check entries: classes and target functions.
-  __ AddImmediate(R6, R6, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R6, Array::data_offset() - kHeapObjectTag);
   // R6: points directly to the first ic data array element.
 
   // Get the receiver's class ID (first read number of arguments from
@@ -1488,7 +1518,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
     const intptr_t entry_size =
         ICData::TestEntryLengthFor(num_args) * kWordSize;
-    __ AddImmediate(R6, R6, entry_size);  // Next entry.
+    __ AddImmediate(R6, entry_size);  // Next entry.
 
     __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));  // Done?
     if (unroll == 0) {
@@ -1667,7 +1697,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // R5: IC data object (preserved).
   __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset());
   // R6: ic_data_array with entries: target functions and count.
-  __ AddImmediate(R6, R6, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R6, Array::data_offset() - kHeapObjectTag);
   // R6: points directly to the first ic data array element.
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
@@ -1784,55 +1814,59 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: instantiator type arguments or NULL.
-// R2: cache array.
+// R1: instantiator type arguments (only if n == 4, can be raw_null).
+// R2: function type arguments (only if n == 4, can be raw_null).
+// R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT((1 <= n) && (n <= 3));
+  ASSERT((n == 1) || (n == 2) || (n == 4));
   if (n > 1) {
-    // Get instance type arguments.
-    __ LoadClass(R3, R0);
+    __ LoadClass(R6, R0);
     // Compute instance type arguments into R4.
     Label has_no_type_arguments;
     __ LoadObject(R4, Object::null_object());
     __ LoadFieldFromOffset(
-        R5, R3, Class::type_arguments_field_offset_in_words_offset(), kWord);
+        R5, R6, Class::type_arguments_field_offset_in_words_offset(), kWord);
     __ CompareImmediate(R5, Class::kNoTypeArguments);
     __ b(&has_no_type_arguments, EQ);
     __ add(R5, R0, Operand(R5, LSL, 3));
     __ LoadFieldFromOffset(R4, R5, 0);
     __ Bind(&has_no_type_arguments);
   }
-  __ LoadClassId(R3, R0);
+  __ LoadClassId(R6, R0);
   // R0: instance.
-  // R1: instantiator type arguments or NULL.
-  // R2: SubtypeTestCache.
-  // R3: instance class id.
+  // R1: instantiator type arguments (only if n == 4, can be raw_null).
+  // R2: function type arguments (only if n == 4, can be raw_null).
+  // R3: SubtypeTestCache.
+  // R6: instance class id.
   // R4: instance type arguments (null if none), used only if n > 1.
-  __ LoadFieldFromOffset(R2, R2, SubtypeTestCache::cache_offset());
-  __ AddImmediate(R2, R2, Array::data_offset() - kHeapObjectTag);
+  __ LoadFieldFromOffset(R3, R3, SubtypeTestCache::cache_offset());
+  __ AddImmediate(R3, Array::data_offset() - kHeapObjectTag);
 
   Label loop, found, not_found, next_iteration;
-  // R2: entry start.
-  // R3: instance class id.
+  // R3: entry start.
+  // R6: instance class id.
   // R4: instance type arguments (still null if closure).
-  __ SmiTag(R3);
-  __ CompareImmediate(R3, Smi::RawValue(kClosureCid));
+  __ SmiTag(R6);
+  __ CompareImmediate(R6, Smi::RawValue(kClosureCid));
   __ b(&loop, NE);
-  __ LoadFieldFromOffset(R4, R0, Closure::instantiator_offset());
-  __ LoadFieldFromOffset(R3, R0, Closure::function_offset());
-  // R3: instance class id as Smi or function.
+  __ LoadFieldFromOffset(R4, R0, Closure::function_type_arguments_offset());
+  __ CompareObject(R4, Object::null_object());
+  __ b(&not_found, NE);  // Cache cannot be used for generic closures.
+  __ LoadFieldFromOffset(R4, R0, Closure::instantiator_type_arguments_offset());
+  __ LoadFieldFromOffset(R6, R0, Closure::function_offset());
+  // R6: instance class id as Smi or function.
   __ Bind(&loop);
-  __ LoadFromOffset(R5, R2,
+  __ LoadFromOffset(R5, R3,
                     kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction);
   __ CompareObject(R5, Object::null_object());
   __ b(&not_found, EQ);
-  __ CompareRegisters(R5, R3);
+  __ CompareRegisters(R5, R6);
   if (n == 1) {
     __ b(&found, EQ);
   } else {
     __ b(&next_iteration, NE);
-    __ LoadFromOffset(R5, R2,
+    __ LoadFromOffset(R5, R3,
                       kWordSize * SubtypeTestCache::kInstanceTypeArguments);
     __ CompareRegisters(R5, R4);
     if (n == 2) {
@@ -1840,13 +1874,17 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     } else {
       __ b(&next_iteration, NE);
       __ LoadFromOffset(
-          R5, R2, kWordSize * SubtypeTestCache::kInstantiatorTypeArguments);
+          R5, R3, kWordSize * SubtypeTestCache::kInstantiatorTypeArguments);
       __ CompareRegisters(R5, R1);
+      __ b(&next_iteration, NE);
+      __ LoadFromOffset(R5, R3,
+                        kWordSize * SubtypeTestCache::kFunctionTypeArguments);
+      __ CompareRegisters(R5, R2);
       __ b(&found, EQ);
     }
   }
   __ Bind(&next_iteration);
-  __ AddImmediate(R2, R2, kWordSize * SubtypeTestCache::kTestEntryLength);
+  __ AddImmediate(R3, kWordSize * SubtypeTestCache::kTestEntryLength);
   __ b(&loop);
   // Fall through to not found.
   __ Bind(&not_found);
@@ -1854,17 +1892,18 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ ret();
 
   __ Bind(&found);
-  __ LoadFromOffset(R1, R2, kWordSize * SubtypeTestCache::kTestResult);
+  __ LoadFromOffset(R1, R3, kWordSize * SubtypeTestCache::kTestResult);
   __ ret();
 }
 
 
 // Used to check class and type arguments. Arguments passed on stack:
-// TOS + 0: return address.
-// TOS + 1: instantiator type arguments or NULL.
-// TOS + 2: instance.
-// TOS + 3: cache array.
-// Result in RCX: null -> not found, otherwise result (true or false).
+// LR: return address.
+// R0: instance (must be preserved).
+// R1: unused.
+// R2: unused.
+// R3: SubtypeTestCache.
+// Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 1);
 }
@@ -1873,8 +1912,9 @@ void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: instantiator type arguments or NULL.
-// R2: cache array.
+// R1: unused.
+// R2: unused.
+// R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 2);
@@ -1882,13 +1922,14 @@ void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
 
 
 // Used to check class and type arguments. Arguments passed on stack:
-// TOS + 0: return address.
-// TOS + 1: instantiator type arguments.
-// TOS + 2: instance.
-// TOS + 3: cache array.
-// Result in RCX: null -> not found, otherwise result (true or false).
-void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
+// LR: return address.
+// R0: instance (must be preserved).
+// R1: instantiator type arguments (can be raw_null).
+// R2: function type arguments (can be raw_null).
+// R3: SubtypeTestCache.
+// Result in R1: null -> not found, otherwise result (true or false).
+void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 4);
 }
 
 
@@ -2158,7 +2199,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ b(&load_target, EQ);  // branch if miss.
 
   // Try next extry in the table.
-  __ AddImmediate(R3, R3, Smi::RawValue(1));
+  __ AddImmediate(R3, Smi::RawValue(1));
   __ b(&loop);
 
   // Load cid for the Smi case.
@@ -2178,7 +2219,7 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
   // R1: receiver cid as Smi
@@ -2191,7 +2232,7 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   __ b(&miss, EQ);
 
   const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
-  __ AddImmediate(R8, R8, entry_length);  // Next entry.
+  __ AddImmediate(R8, entry_length);  // Next entry.
   __ b(&loop);
 
   __ Bind(&found);
@@ -2213,7 +2254,7 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
   // R1: receiver cid as Smi
@@ -2226,7 +2267,7 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ b(&miss, EQ);
 
   const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
-  __ AddImmediate(R8, R8, entry_length);  // Next entry.
+  __ AddImmediate(R8, entry_length);  // Next entry.
   __ b(&loop);
 
   __ Bind(&found);
@@ -2276,9 +2317,9 @@ void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
   Label miss;
   __ LoadClassIdMayBeSmi(R1, R0);
   __ ldr(R2, FieldAddress(R5, SingleTargetCache::lower_limit_offset()),
-         kUnsignedWord);
+         kUnsignedHalfword);
   __ ldr(R3, FieldAddress(R5, SingleTargetCache::upper_limit_offset()),
-         kUnsignedWord);
+         kUnsignedHalfword);
 
   __ cmp(R1, Operand(R2));
   __ b(&miss, LT);

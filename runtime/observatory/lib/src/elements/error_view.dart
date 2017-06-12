@@ -89,6 +89,6 @@ class ErrorViewElement extends HtmlElement implements Renderable {
       case M.ErrorKind.terminationError:
         return 'Termination Error';
     }
-    throw new Exception('Unkown M.ErrorKind ($kind)');
+    throw new Exception('Unknown M.ErrorKind ($kind)');
   }
 }

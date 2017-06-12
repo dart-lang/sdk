@@ -6,7 +6,7 @@ library fasta.stack_listener;
 
 import '../fasta_codes.dart' show FastaMessage;
 
-import '../parser.dart' show Listener;
+import '../parser.dart' show Listener, MemberKind;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
@@ -28,6 +28,7 @@ enum NullValue {
   Combinators,
   Comments,
   ConditionalUris,
+  ConstructorInitializerSeparator,
   ConstructorInitializers,
   ConstructorReferenceContinuationAfterTypeArguments,
   ContinueTarget,
@@ -179,7 +180,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleNoFormalParameters(Token token) {
+  void handleNoFormalParameters(Token token, MemberKind kind) {
     debugEvent("NoFormalParameters");
     push(NullValue.FormalParameters);
   }

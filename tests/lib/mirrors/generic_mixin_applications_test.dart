@@ -4,6 +4,7 @@
 
 library test.generic_mixin_applications;
 
+@MirrorsUsed(targets: "test.generic_mixin_applications")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -11,7 +12,9 @@ import 'package:expect/expect.dart';
 import 'generics_helper.dart';
 
 class Super<S> {}
+
 class Mixin<M> {}
+
 class Nixim<N> {}
 
 class NonGenericMixinApplication1 = Super with Mixin;
@@ -21,9 +24,11 @@ class GenericMixinApplication1<MA> = Super<MA> with Mixin<MA>;
 class GenericMixinApplication2<MA> = Super<num> with Mixin<String>;
 
 class NonGenericClass1 extends Super with Mixin {}
+
 class NonGenericClass2 extends Super<num> with Mixin<String> {}
 
 class GenericClass1<C> extends Super<C> with Mixin<C> {}
+
 class GenericClass2<C> extends Super<num> with Mixin<String> {}
 
 class GenericMultipleMixins<A, B, C> extends Super<A> with Mixin<B>, Nixim<C> {}
@@ -57,11 +62,12 @@ main() {
   typeArguments(reflectClass(GenericClass2), []);
   typeArguments(reflectClass(GenericMultipleMixins), []);
   // Anonymous mixin applications have no type parameters or type arguments.
-  typeArguments(reflectClass(NonGenericClass1).superclass.originalDeclaration, []);
-  typeArguments(reflectClass(NonGenericClass2).superclass.originalDeclaration, []);
+  typeArguments(
+      reflectClass(NonGenericClass1).superclass.originalDeclaration, []);
+  typeArguments(
+      reflectClass(NonGenericClass2).superclass.originalDeclaration, []);
   typeArguments(reflectClass(GenericClass1).superclass.originalDeclaration, []);
   typeArguments(reflectClass(GenericClass2).superclass.originalDeclaration, []);
-
 
   // Instantiations.
   typeParameters(reflect(new NonGenericMixinApplication1()).type, []);
@@ -72,7 +78,8 @@ main() {
   typeParameters(reflect(new NonGenericClass2()).type, []);
   typeParameters(reflect(new GenericClass1<bool>()).type, [#C]);
   typeParameters(reflect(new GenericClass2<bool>()).type, [#C]);
-  typeParameters(reflect(new GenericMultipleMixins<bool, String, int>()).type, [#A, #B, #C]);
+  typeParameters(reflect(new GenericMultipleMixins<bool, String, int>()).type,
+      [#A, #B, #C]);
   // Anonymous mixin applications have no type parameters or type arguments.
   typeParameters(reflect(new NonGenericClass1()).type.superclass, []);
   typeParameters(reflect(new NonGenericClass2()).type.superclass, []);
@@ -81,13 +88,16 @@ main() {
 
   typeArguments(reflect(new NonGenericMixinApplication1()).type, []);
   typeArguments(reflect(new NonGenericMixinApplication2()).type, []);
-  typeArguments(reflect(new GenericMixinApplication1<bool>()).type, [reflectClass(bool)]);
-  typeArguments(reflect(new GenericMixinApplication2<bool>()).type, [reflectClass(bool)]);
+  typeArguments(
+      reflect(new GenericMixinApplication1<bool>()).type, [reflectClass(bool)]);
+  typeArguments(
+      reflect(new GenericMixinApplication2<bool>()).type, [reflectClass(bool)]);
   typeArguments(reflect(new NonGenericClass1()).type, []);
   typeArguments(reflect(new NonGenericClass2()).type, []);
   typeArguments(reflect(new GenericClass1<bool>()).type, [reflectClass(bool)]);
   typeArguments(reflect(new GenericClass2<bool>()).type, [reflectClass(bool)]);
-  typeArguments(reflect(new GenericMultipleMixins<bool, String, int>()).type, [reflectClass(bool), reflectClass(String), reflectClass(int)]);
+  typeArguments(reflect(new GenericMultipleMixins<bool, String, int>()).type,
+      [reflectClass(bool), reflectClass(String), reflectClass(int)]);
   // Anonymous mixin applications have no type parameters or type arguments.
   typeArguments(reflect(new NonGenericClass1()).type.superclass, []);
   typeArguments(reflect(new NonGenericClass2()).type.superclass, []);

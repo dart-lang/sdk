@@ -4,22 +4,29 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetSubscriptionsTest);
-    defineReflectiveTests(SetSubscriptionsTest_Driver);
   });
 }
 
-class AbstractSetSubscriptionsTest
-    extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
+  @failingTest
   test_setSubscriptions() {
+    // This test times out on the bots and has been disabled to keep them green.
+    // We need to discover the cause and re-enable it.
+
+    fail(
+        'This test times out on the bots and has been disabled to keep them green.'
+        'We need to discover the cause and re-enable it.');
+
     bool statusReceived = false;
     Completer analysisBegun = new Completer();
     onServerStatus.listen((_) {
@@ -57,22 +64,5 @@ main() {
         });
       });
     });
-  }
-}
-
-@reflectiveTest
-class SetSubscriptionsTest extends AbstractSetSubscriptionsTest {}
-
-@reflectiveTest
-class SetSubscriptionsTest_Driver extends AbstractSetSubscriptionsTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_setSubscriptions() {
-    // This test times out on the bots and has been disabled to keep them green.
-    // We need to discover the cause and re-enable it.
-    fail('Timed out');
   }
 }

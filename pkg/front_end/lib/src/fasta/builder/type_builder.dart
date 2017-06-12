@@ -5,9 +5,12 @@
 library fasta.type_builder;
 
 import 'builder.dart'
-    show Builder, LibraryBuilder, TypeDeclarationBuilder, TypeVariableBuilder;
-
-import 'scope.dart' show Scope;
+    show
+        Builder,
+        LibraryBuilder,
+        Scope,
+        TypeDeclarationBuilder,
+        TypeVariableBuilder;
 
 // TODO(ahe): Make const class.
 abstract class TypeBuilder extends Builder {

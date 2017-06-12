@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring.rename_import;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,7 +12,6 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameImportTest);
-    defineReflectiveTests(RenameImportTest_Driver);
   });
 }
 
@@ -230,10 +227,4 @@ main() {
         findNodeAtString(search, (node) => node is ImportDirective);
     createRenameRefactoringForElement(directive.element);
   }
-}
-
-@reflectiveTest
-class RenameImportTest_Driver extends RenameImportTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -17,6 +17,7 @@ import 'package:test/test.dart';
 
 import 'integration_tests.dart';
 import 'protocol_matchers.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /**
  * Convenience methods for running integration tests
@@ -34,6 +35,11 @@ abstract class IntegrationTestMixin {
    *
    *   The path to the directory containing the on-disk byte store that is to
    *   be used by any analysis drivers that are created.
+   *
+   * sdkPath (String)
+   *
+   *   The path to the directory containing the SDK that is to be used by any
+   *   analysis drivers that are created.
    *
    * version (String)
    *
@@ -71,8 +77,9 @@ abstract class IntegrationTestMixin {
    *   should be notified of changes.
    */
   Future<PluginVersionCheckResult> sendPluginVersionCheck(
-      String byteStorePath, String version) async {
-    var params = new PluginVersionCheckParams(byteStorePath, version).toJson();
+      String byteStorePath, String sdkPath, String version) async {
+    var params =
+        new PluginVersionCheckParams(byteStorePath, sdkPath, version).toJson();
     var result = await server.send("plugin.versionCheck", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new PluginVersionCheckResult.fromJson(decoder, 'result', result);

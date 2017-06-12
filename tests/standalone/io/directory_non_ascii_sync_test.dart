@@ -17,12 +17,12 @@ main() {
   nonAsciiDir.createSync();
   Expect.isTrue(nonAsciiDir.existsSync());
   var temp = new Directory("${tempDir.path}/æøå").createTempSync('tempdir');
-  Expect.isTrue(temp.path.contains(precomposed) ||
-                temp.path.contains(decomposed));
+  Expect.isTrue(
+      temp.path.contains(precomposed) || temp.path.contains(decomposed));
   temp.deleteSync();
   temp = tempDir.createTempSync('æøå');
-  Expect.isTrue(temp.path.contains(precomposed) ||
-                temp.path.contains(decomposed));
+  Expect.isTrue(
+      temp.path.contains(precomposed) || temp.path.contains(decomposed));
   temp.deleteSync();
   tempDir.deleteSync(recursive: true);
   Expect.isFalse(nonAsciiDir.existsSync());

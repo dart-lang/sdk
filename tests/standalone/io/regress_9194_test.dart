@@ -7,21 +7,19 @@ import 'dart:io';
 
 void main() {
   HttpServer.bind('127.0.0.1', 0).then((server) {
-      server.listen((request) {
-        request.response
-            ..reasonPhrase = ''
-            ..close();
-      });
-
-      HttpClient client = new HttpClient();
-      client.get("127.0.0.1", server.port, "/")
-          .then((HttpClientRequest request) {
-            return request.close();
-          })
-          .then((HttpClientResponse response) {
-            Expect.equals("", response.reasonPhrase);
-            server.close();
-            client.close();
-          });
+    server.listen((request) {
+      request.response
+        ..reasonPhrase = ''
+        ..close();
     });
+
+    HttpClient client = new HttpClient();
+    client.get("127.0.0.1", server.port, "/").then((HttpClientRequest request) {
+      return request.close();
+    }).then((HttpClientResponse response) {
+      Expect.equals("", response.reasonPhrase);
+      server.close();
+      client.close();
+    });
+  });
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.dependencies.import_collector;
-
 import 'package:analysis_server/src/services/dependencies/reachable_source_collector.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
@@ -19,6 +17,9 @@ main() {
 
 @reflectiveTest
 class ReachableSourceCollectorTest extends AbstractContextTest {
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   Map<String, List<String>> importsFor(Source source) =>
       new ReachableSourceCollector(source, context).collectSources();
 

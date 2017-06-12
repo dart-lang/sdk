@@ -4,8 +4,7 @@
 
 import "package:expect/expect.dart";
 
-void testInvalidArguments() {
-}
+void testInvalidArguments() {}
 
 void testEncodeQueryComponent() {
   // This exact data is from posting a form in Chrome 26 with the one
@@ -27,7 +26,9 @@ void testQueryParameters() {
       Expect.equals("?$normalizedQuery", uri.toString());
       if (parameters.containsValue(null)) {
         var map = new Map.from(parameters);
-        map.forEach((k, v) { if (v == null) map[k] = ""; });
+        map.forEach((k, v) {
+          if (v == null) map[k] = "";
+        });
         Expect.mapEquals(map, uri.queryParameters);
       } else {
         Expect.mapEquals(parameters, uri.queryParameters);
@@ -48,7 +49,9 @@ void testQueryParameters() {
     if (query != "") Expect.equals(uri2, uri3);
     if (parameters.containsValue(null)) {
       var map = new Map.from(parameters);
-      map.forEach((k, v) { if (v == null) map[k] = ""; });
+      map.forEach((k, v) {
+        if (v == null) map[k] = "";
+      });
       Expect.mapEquals(map, Uri.splitQueryString(query));
     } else {
       Expect.mapEquals(parameters, Uri.splitQueryString(query));
@@ -75,8 +78,8 @@ void testQueryParameters() {
   test("%41=%61&%42=%62", {"A": "a", "B": "b"}, "A=a&B=b");
 
   var unreserved = "-._~0123456789"
-                   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                   "abcdefghijklmnopqrstuvwxyz";
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyz";
   var encoded = new StringBuffer();
   var allEncoded = new StringBuffer();
   var unencoded = new StringBuffer();
@@ -123,8 +126,7 @@ testInvalidQueryParameters() {
       } else {
         Expect.equals("?$query", uri.toString());
       }
-      if (parameters.containsValue(null)) {
-      } else {
+      if (parameters.containsValue(null)) {} else {
         Expect.mapEquals(parameters, uri.queryParameters);
       }
     }

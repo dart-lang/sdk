@@ -11,7 +11,9 @@ class ConstCounter {
 
   final nextValue_;
 
-  int nextValue() { return nextValue_(); }
+  int nextValue() {
+    return nextValue_();
+  }
 }
 
 class ConstCounterNegativeTest {

@@ -20,14 +20,12 @@ testJunctionTypeDelete() {
     Expect.isFalse(FileSystemEntity.isLinkSync(x));
     Expect.isTrue(FileSystemEntity.isDirectorySync(y));
     Expect.isTrue(FileSystemEntity.isDirectorySync(x));
-    Expect.equals(FileSystemEntityType.DIRECTORY,
-                  FileSystemEntity.typeSync(y));
-    Expect.equals(FileSystemEntityType.DIRECTORY,
-                  FileSystemEntity.typeSync(x));
+    Expect.equals(FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(y));
+    Expect.equals(FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(x));
     Expect.equals(FileSystemEntityType.LINK,
-                  FileSystemEntity.typeSync(y, followLinks: false));
+        FileSystemEntity.typeSync(y, followLinks: false));
     Expect.equals(FileSystemEntityType.DIRECTORY,
-                  FileSystemEntity.typeSync(x, followLinks: false));
+        FileSystemEntity.typeSync(x, followLinks: false));
     Expect.equals(x, new Link(y).targetSync());
 
     // Test Junction pointing to a missing directory.
@@ -38,48 +36,44 @@ testJunctionTypeDelete() {
     Expect.isFalse(FileSystemEntity.isLinkSync(x));
     Expect.isFalse(FileSystemEntity.isDirectorySync(y));
     Expect.isFalse(FileSystemEntity.isDirectorySync(x));
+    Expect.equals(FileSystemEntityType.LINK, FileSystemEntity.typeSync(y));
+    Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(x));
     Expect.equals(FileSystemEntityType.LINK,
-                  FileSystemEntity.typeSync(y));
+        FileSystemEntity.typeSync(y, followLinks: false));
     Expect.equals(FileSystemEntityType.NOT_FOUND,
-                  FileSystemEntity.typeSync(x));
-    Expect.equals(FileSystemEntityType.LINK,
-                  FileSystemEntity.typeSync(y, followLinks: false));
-    Expect.equals(FileSystemEntityType.NOT_FOUND,
-                  FileSystemEntity.typeSync(x, followLinks: false));
+        FileSystemEntity.typeSync(x, followLinks: false));
     Expect.equals(x, new Link(y).targetSync());
 
     // Delete Junction pointing to a missing directory.
     new Link(y).deleteSync();
     Expect.isFalse(FileSystemEntity.isLinkSync(y));
-    Expect.equals(FileSystemEntityType.NOT_FOUND,
-                  FileSystemEntity.typeSync(y));
+    Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(y));
     Expect.throws(() => new Link(y).targetSync());
 
     new Directory(x).createSync();
     new Link(y).create(x).then((_) {
       Expect.equals(FileSystemEntityType.LINK,
-                    FileSystemEntity.typeSync(y, followLinks: false));
+          FileSystemEntity.typeSync(y, followLinks: false));
       Expect.equals(FileSystemEntityType.DIRECTORY,
-                    FileSystemEntity.typeSync(x, followLinks: false));
+          FileSystemEntity.typeSync(x, followLinks: false));
       Expect.equals(x, new Link(y).targetSync());
 
       // Delete Junction pointing to an existing directory.
       new Directory(y).deleteSync();
+      Expect.equals(
+          FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(y));
       Expect.equals(FileSystemEntityType.NOT_FOUND,
-                    FileSystemEntity.typeSync(y));
-      Expect.equals(FileSystemEntityType.NOT_FOUND,
-                    FileSystemEntity.typeSync(y, followLinks: false));
+          FileSystemEntity.typeSync(y, followLinks: false));
+      Expect.equals(
+          FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(x));
       Expect.equals(FileSystemEntityType.DIRECTORY,
-                    FileSystemEntity.typeSync(x));
-      Expect.equals(FileSystemEntityType.DIRECTORY,
-                    FileSystemEntity.typeSync(x, followLinks: false));
+          FileSystemEntity.typeSync(x, followLinks: false));
       Expect.throws(() => new Link(y).targetSync());
 
       temp.deleteSync(recursive: true);
     });
   });
 }
-
 
 main() {
   // Links on other platforms are tested by file_system_[async_]links_test.

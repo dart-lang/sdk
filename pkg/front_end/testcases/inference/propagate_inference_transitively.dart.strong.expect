@@ -1,0 +1,17 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int x = 2;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method test5() → dynamic {
+  self::A a1 = new self::A::•();
+  a1.x = "hi";
+  self::A a2 = new self::A::•();
+  a2.x = "hi";
+}
+static method main() → dynamic {}

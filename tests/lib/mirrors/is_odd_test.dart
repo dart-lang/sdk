@@ -6,6 +6,7 @@
 /// was a bug in dart2js.
 library test.is_odd_test;
 
+@MirrorsUsed(targets: const ["test.is_odd_test", "isOdd", "int"])
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

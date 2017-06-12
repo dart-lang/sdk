@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.src.options;
-
 import 'dart:io';
 
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
-import 'package:cli_util/cli_util.dart' show getSdkDir;
 
 const _binaryName = 'dartanalyzer';
 
@@ -36,6 +34,10 @@ typedef void ExitHandler(int code);
 class CommandLineOptions {
   final bool enableNewAnalysisDriver = true;
 
+  /// Return `true` if the parser is to parse asserts in the initializer list of
+  /// a constructor.
+  final bool enableAssertInitializer;
+
   /// The path to output analysis results when in build mode.
   final String buildAnalysisOutput;
 
@@ -48,12 +50,19 @@ class CommandLineOptions {
   /// List of summary file paths to use in build mode.
   final List<String> buildSummaryInputs;
 
+  /// List of unlinked summary file paths to use in build mode.
+  final List<String> buildSummaryUnlinkedInputs;
+
   /// Whether to skip analysis when creating summaries in build mode.
   final bool buildSummaryOnly;
 
   /// Whether to use diet parsing, i.e. skip function bodies. We don't need to
   /// analyze function bodies to use summaries during future compilation steps.
   final bool buildSummaryOnlyDiet;
+
+  /// Whether to only produce unlinked summaries instead of linked summaries.
+  /// Must be used in combination with `buildSummaryOnly`.
+  final bool buildSummaryOnlyUnlinked;
 
   /// The path to output the summary when creating summaries in build mode.
   final String buildSummaryOutput;
@@ -89,9 +98,6 @@ class CommandLineOptions {
   /// errors.
   final bool enableTypeChecks;
 
-  /// Whether to treat hints as fatal
-  final bool hintsAreFatal;
-
   /// Whether to ignore unrecognized flags
   final bool ignoreUnrecognizedFlags;
 
@@ -126,6 +132,9 @@ class CommandLineOptions {
   /// Whether to treat warnings as fatal
   final bool warningsAreFatal;
 
+  /// Whether to treat info level items as fatal
+  final bool infosAreFatal;
+
   /// Whether to use strong static checking.
   final bool strongMode;
 
@@ -135,6 +144,7 @@ class CommandLineOptions {
   /// Whether implicit dynamic is enabled (mainly for strong mode users)
   final bool implicitDynamic;
 
+  // TODO(devoncarew): Deprecate and remove this flag.
   /// Whether to treat lints as fatal
   final bool lintsAreFatal;
 
@@ -153,8 +163,11 @@ class CommandLineOptions {
         buildMode = args['build-mode'],
         buildModePersistentWorker = args['persistent_worker'],
         buildSummaryInputs = args['build-summary-input'] as List<String>,
+        buildSummaryUnlinkedInputs =
+            args['build-summary-unlinked-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
+        buildSummaryOnlyUnlinked = args['build-summary-only-unlinked'],
         buildSummaryOutput = args['build-summary-output'],
         buildSummaryOutputSemantic = args['build-summary-output-semantic'],
         buildSuppressExitCode = args['build-suppress-exit-code'],
@@ -165,7 +178,7 @@ class CommandLineOptions {
         disableHints = args['no-hints'],
         displayVersion = args['version'],
         enableTypeChecks = args['enable_type_checks'],
-        hintsAreFatal = args['fatal-hints'],
+        enableAssertInitializer = args['enable-assert-initializers'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
         lints = args[lintsFlag],
         log = args['log'],
@@ -178,11 +191,12 @@ class CommandLineOptions {
         showPackageWarningsPrefix = args['x-package-warnings-prefix'],
         showSdkWarnings = args['sdk-warnings'],
         _sourceFiles = args.rest,
+        infosAreFatal = args['fatal-infos'] || args['fatal-hints'],
         warningsAreFatal = args['fatal-warnings'],
+        lintsAreFatal = args['fatal-lints'],
         strongMode = args['strong'],
         implicitCasts = !args['no-implicit-casts'],
         implicitDynamic = !args['no-implicit-dynamic'],
-        lintsAreFatal = args['fatal-lints'],
         useAnalysisDriverMemoryByteStore =
             args['use-analysis-driver-memory-byte-store'],
         verbose = args['verbose'],
@@ -212,6 +226,14 @@ class CommandLineOptions {
   String get packageRootPath =>
       contextBuilderOptions.defaultPackagesDirectoryPath;
 
+  /// The source files to analyze
+  List<String> get sourceFiles => _sourceFiles;
+
+  /// Replace the sourceFiles parsed from the command line.
+  void rewriteSourceFiles(List<String> newSourceFiles) {
+    _sourceFiles = newSourceFiles;
+  }
+
   /// Parse [args] into [CommandLineOptions] describing the specified
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
@@ -221,12 +243,7 @@ class CommandLineOptions {
     // Check SDK.
     if (!options.buildModePersistentWorker) {
       // Infer if unspecified.
-      if (options.dartSdkPath == null) {
-        Directory sdkDir = getSdkDir(args);
-        if (sdkDir != null) {
-          options.dartSdkPath = sdkDir.path;
-        }
-      }
+      options.dartSdkPath ??= getSdkPath(args);
 
       String sdkPath = options.dartSdkPath;
 
@@ -263,15 +280,22 @@ class CommandLineOptions {
       return null; // Only reachable in testing.
     }
 
+    if (options.buildSummaryOnlyUnlinked) {
+      if (!options.buildSummaryOnly) {
+        printAndFail(
+            'The option --build-summary-only-unlinked can be used only '
+            'together with --build-summary-only.');
+        return null; // Only reachable in testing.
+      }
+      if (options.buildSummaryInputs.isNotEmpty ||
+          options.buildSummaryUnlinkedInputs.isNotEmpty) {
+        printAndFail('No summaries should be provided in combination with '
+            '--build-summary-only-unlinked, they aren\'t needed.');
+        return null; // Only reachable in testing.
+      }
+    }
+
     return options;
-  }
-
-  /// The source files to analyze
-  List<String> get sourceFiles => _sourceFiles;
-
-  /// Replace the sourceFiles parsed from the command line.
-  void rewriteSourceFiles(List<String> newSourceFiles) {
-    _sourceFiles = newSourceFiles;
   }
 
   static String _getVersion() {
@@ -316,16 +340,10 @@ class CommandLineOptions {
           help: 'Do not show hint results.',
           defaultsTo: false,
           negatable: false)
-      ..addFlag('fatal-hints',
-          help: 'Treat hints as fatal.', defaultsTo: false, negatable: false)
+      ..addFlag('fatal-infos',
+          help: 'Treat infos as fatal.', defaultsTo: false, negatable: false)
       ..addFlag('fatal-warnings',
           help: 'Treat non-type warnings as fatal.',
-          defaultsTo: false,
-          negatable: false)
-      ..addFlag('fatal-lints',
-          help: 'Treat lints as fatal.', defaultsTo: false, negatable: false)
-      ..addFlag('package-warnings',
-          help: 'Show warnings from package: imports.',
           defaultsTo: false,
           negatable: false)
       ..addFlag('help',
@@ -362,8 +380,13 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addOption('build-summary-input',
-          help: 'Path to a summary file that contains information from a '
-              'previous analysis run; may be specified multiple times.',
+          help: 'Path to a linked summary file that contains information from '
+              'a previous analysis run; may be specified multiple times.',
+          allowMultiple: true,
+          hide: hide)
+      ..addOption('build-summary-unlinked-input',
+          help: 'Path to an unlinked summary file that contains information '
+              'from a previous analysis run; may be specified multiple times.',
           allowMultiple: true,
           hide: hide)
       ..addOption('build-summary-output',
@@ -384,13 +407,18 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
+      ..addFlag('build-summary-only-unlinked',
+          help: 'Only output the unlinked summary.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
       ..addFlag('build-suppress-exit-code',
           help: 'Exit with code 0 even if errors are found.',
           defaultsTo: false,
           negatable: false,
           hide: hide)
       ..addFlag('color',
-          help: 'Use asni colors when printing messages.',
+          help: 'Use ansi colors when printing messages.',
           defaultsTo: ansi.terminalSupportsAnsi(),
           hide: hide);
 
@@ -444,8 +472,28 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
+      ..addFlag('enable-assert-initializers',
+          help: 'Enable parsing of asserts in constructor initializers.',
+          defaultsTo: null,
+          negatable: false,
+          hide: hide)
       ..addFlag('use-analysis-driver-memory-byte-store',
           help: 'Use memory byte store, not the file system cache.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addFlag('fatal-hints',
+          help: 'Treat hints as fatal (deprecated: use --fatal-infos).',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addFlag('fatal-lints',
+          help: 'Treat lints as fatal.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addFlag('package-warnings',
+          help: 'Show warnings from package: imports.',
           defaultsTo: false,
           negatable: false,
           hide: hide)

@@ -204,7 +204,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * Setting the height or width properties will set the height or width
    * property for all elements in the list. This returns a rectangle with the
-   * dimenions actually available for content
+   * dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Getting the height or width returns the height or width of the
    * first Element in this list.
@@ -219,7 +219,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    * Access dimensions and position of the first Element's content + padding box
    * in this list.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
@@ -234,7 +234,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    * Access dimensions and position of the first Element's content + padding +
    * border box in this list.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
@@ -247,7 +247,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    * Access dimensions and position of the first Element's content + padding +
    * border + margin box in this list.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
@@ -1168,7 +1168,7 @@ $endif
   /**
    * Access this element's content position.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not.
@@ -1184,7 +1184,7 @@ $endif
   /**
    * Access the dimensions and position of this element's content + padding box.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
@@ -1205,7 +1205,7 @@ $endif
    * Access the dimensions and position of this element's content + padding +
    * border box.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
@@ -1224,7 +1224,7 @@ $endif
    * Access the dimensions and position of this element's content + padding +
    * border + margin box.
    *
-   * This returns a rectangle with the dimenions actually available for content
+   * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
    * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not. This
@@ -1341,6 +1341,12 @@ $endif
       base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
+
+    // TODO(terry): Fixes Chromium 50 change no body after createHtmlDocument()
+    if (_parseDocument.body == null) {
+      _parseDocument.body = _parseDocument.createElement("body");
+    }
+
     var contextElement;
     if (this is BodyElement) {
       contextElement = _parseDocument.body;
@@ -1593,23 +1599,23 @@ $else
 
   @DomName('Element.offsetParent')
   @DocsEditable()
-  Element get offsetParent => _blink.BlinkElement.instance.offsetParent_Getter_(this);
+  Element get offsetParent => _blink.BlinkHTMLElement.instance.offsetParent_Getter_(this);
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(this);
+  int get offsetHeight => _blink.BlinkHTMLElement.instance.offsetHeight_Getter_(this);
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  int get offsetLeft => _blink.BlinkElement.instance.offsetLeft_Getter_(this);
+  int get offsetLeft => _blink.BlinkHTMLElement.instance.offsetLeft_Getter_(this);
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  int get offsetTop => _blink.BlinkElement.instance.offsetTop_Getter_(this);
+  int get offsetTop => _blink.BlinkHTMLElement.instance.offsetTop_Getter_(this);
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  int get offsetWidth => _blink.BlinkElement.instance.offsetWidth_Getter_(this);
+  int get offsetWidth => _blink.BlinkHTMLElement.instance.offsetWidth_Getter_(this);
 
   @DomName('Element.scrollHeight')
   @DocsEditable()

@@ -199,6 +199,171 @@ main() {
     test.enclosingClass.addMember(constructor);
     return new ConstructorInvocation(constructor, new Arguments.empty());
   });
+  positiveTest('Valid typedef Foo = `(C) => void`', (TestHarness test) {
+    var typedef_ = new Typedef(
+        'Foo', new FunctionType([test.otherClass.rawType], const VoidType()));
+    test.enclosingLibrary.addTypedef(typedef_);
+  });
+  positiveTest('Valid typedef Foo = C<dynamic>', (TestHarness test) {
+    var typedef_ = new Typedef(
+        'Foo', new InterfaceType(test.otherClass, [const DynamicType()]));
+    test.enclosingLibrary.addTypedef(typedef_);
+  });
+  positiveTest('Valid typedefs Foo = Bar, Bar = C', (TestHarness test) {
+    var foo = new Typedef('Foo', null);
+    var bar = new Typedef('Bar', null);
+    foo.type = new TypedefType(bar);
+    bar.type = test.otherClass.rawType;
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+  });
+  positiveTest('Valid typedefs Foo = C<Bar>, Bar = C', (TestHarness test) {
+    var foo = new Typedef('Foo', null);
+    var bar = new Typedef('Bar', null);
+    foo.type = new InterfaceType(test.otherClass, [new TypedefType(bar)]);
+    bar.type = test.otherClass.rawType;
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+  });
+  positiveTest('Valid typedef type in field', (TestHarness test) {
+    var typedef_ = new Typedef(
+        'Foo', new FunctionType([test.otherClass.rawType], const VoidType()));
+    var field = new Field(new Name('field'), type: new TypedefType(typedef_));
+    test.enclosingLibrary.addTypedef(typedef_);
+    test.enclosingLibrary.addMember(field);
+  });
+  negativeTest('Invalid typedef Foo = Foo', (TestHarness test) {
+    var typedef_ = new Typedef('Foo', null);
+    typedef_.type = new TypedefType(typedef_);
+    test.enclosingLibrary.addTypedef(typedef_);
+  });
+  negativeTest('Invalid typedef Foo = `(Foo) => void`', (TestHarness test) {
+    var typedef_ = new Typedef('Foo', null);
+    typedef_.type =
+        new FunctionType([new TypedefType(typedef_)], const VoidType());
+    test.enclosingLibrary.addTypedef(typedef_);
+  });
+  negativeTest('Invalid typedef Foo = `() => Foo`', (TestHarness test) {
+    var typedef_ = new Typedef('Foo', null);
+    typedef_.type = new FunctionType([], new TypedefType(typedef_));
+    test.enclosingLibrary.addTypedef(typedef_);
+  });
+  negativeTest('Invalid typedef Foo = C<Foo>', (TestHarness test) {
+    var typedef_ = new Typedef('Foo', null);
+    typedef_.type =
+        new InterfaceType(test.otherClass, [new TypedefType(typedef_)]);
+    test.enclosingLibrary.addTypedef(typedef_);
+  });
+  negativeTest('Invalid typedefs Foo = Bar, Bar = Foo', (TestHarness test) {
+    var foo = new Typedef('Foo', null);
+    var bar = new Typedef('Bar', null);
+    foo.type = new TypedefType(bar);
+    bar.type = new TypedefType(foo);
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+  });
+  negativeTest('Invalid typedefs Foo = Bar, Bar = C<Foo>', (TestHarness test) {
+    var foo = new Typedef('Foo', null);
+    var bar = new Typedef('Bar', null);
+    foo.type = new TypedefType(bar);
+    bar.type = new InterfaceType(test.otherClass, [new TypedefType(foo)]);
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+  });
+  negativeTest('Invalid typedefs Foo = C<Bar>, Bar = C<Foo>',
+      (TestHarness test) {
+    var foo = new Typedef('Foo', null);
+    var bar = new Typedef('Bar', null);
+    foo.type = new InterfaceType(test.otherClass, [new TypedefType(bar)]);
+    bar.type = new InterfaceType(test.otherClass, [new TypedefType(foo)]);
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+  });
+  positiveTest('Valid long typedefs C20 = C19 = ... = C1 = C0 = dynamic',
+      (TestHarness test) {
+    var typedef_ = new Typedef('C0', const DynamicType());
+    test.enclosingLibrary.addTypedef(typedef_);
+    for (int i = 1; i < 20; ++i) {
+      typedef_ = new Typedef('C$i', new TypedefType(typedef_));
+      test.enclosingLibrary.addTypedef(typedef_);
+    }
+  });
+  negativeTest('Invalid long typedefs C20 = C19 = ... = C1 = C0 = C20',
+      (TestHarness test) {
+    var typedef_ = new Typedef('C0', null);
+    test.enclosingLibrary.addTypedef(typedef_);
+    var first = typedef_;
+    for (int i = 1; i < 20; ++i) {
+      typedef_ = new Typedef('C$i', new TypedefType(typedef_));
+      test.enclosingLibrary.addTypedef(typedef_);
+    }
+    first.type = new TypedefType(typedef_);
+  });
+  positiveTest('Valid typedef Foo<T extends C> = C<T>', (TestHarness test) {
+    var param = new TypeParameter('T', test.otherClass.rawType);
+    var foo = new Typedef('Foo',
+        new InterfaceType(test.otherClass, [new TypeParameterType(param)]),
+        typeParameters: [param]);
+    test.enclosingLibrary.addTypedef(foo);
+  });
+  positiveTest('Valid typedef Foo<T extends C<T>> = C<T>', (TestHarness test) {
+    var param = new TypeParameter('T', test.otherClass.rawType);
+    param.bound =
+        new InterfaceType(test.otherClass, [new TypeParameterType(param)]);
+    var foo = new Typedef('Foo',
+        new InterfaceType(test.otherClass, [new TypeParameterType(param)]),
+        typeParameters: [param]);
+    test.enclosingLibrary.addTypedef(foo);
+  });
+  positiveTest('Valid typedef Foo<T> = dynamic, Bar<T extends Foo<T>> = C<T>',
+      (TestHarness test) {
+    var fooParam = test.makeTypeParameter('T');
+    var foo =
+        new Typedef('Foo', const DynamicType(), typeParameters: [fooParam]);
+    var barParam = new TypeParameter('T', null);
+    barParam.bound = new TypedefType(foo, [new TypeParameterType(barParam)]);
+    var bar = new Typedef('Bar',
+        new InterfaceType(test.otherClass, [new TypeParameterType(barParam)]),
+        typeParameters: [barParam]);
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+  });
+  negativeTest('Invalid typedefs Foo<T extends Bar<T>>, Bar<T extends Foo<T>>',
+      (TestHarness test) {
+    var fooParam = test.makeTypeParameter('T');
+    var foo =
+        new Typedef('Foo', const DynamicType(), typeParameters: [fooParam]);
+    var barParam = new TypeParameter('T', null);
+    barParam.bound = new TypedefType(foo, [new TypeParameterType(barParam)]);
+    var bar = new Typedef('Bar',
+        new InterfaceType(test.otherClass, [new TypeParameterType(barParam)]),
+        typeParameters: [barParam]);
+    fooParam.bound = new TypedefType(bar, [new TypeParameterType(fooParam)]);
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+  });
+  negativeTest('Invalid typedef Foo<T extends Foo<dynamic> = C<T>',
+      (TestHarness test) {
+    var param = new TypeParameter('T', null);
+    var foo = new Typedef('Foo',
+        new InterfaceType(test.otherClass, [new TypeParameterType(param)]),
+        typeParameters: [param]);
+    param.bound = new TypedefType(foo, [const DynamicType()]);
+    test.enclosingLibrary.addTypedef(foo);
+  });
+  negativeTest('Typedef arity error', (TestHarness test) {
+    var param = test.makeTypeParameter('T');
+    var foo =
+        new Typedef('Foo', test.otherClass.rawType, typeParameters: [param]);
+    var field = new Field(new Name('field'), type: new TypedefType(foo, []));
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addMember(field);
+  });
+  negativeTest('Dangling typedef reference', (TestHarness test) {
+    var foo = new Typedef('Foo', test.otherClass.rawType, typeParameters: []);
+    var field = new Field(new Name('field'), type: new TypedefType(foo, []));
+    test.enclosingLibrary.addMember(field);
+  });
 }
 
 checkHasError(Program program) {

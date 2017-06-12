@@ -4,8 +4,6 @@
 
 import 'dart:convert' show UTF8;
 
-import 'package:front_end/src/fasta/scanner/precedence.dart'
-    show BAD_INPUT_INFO, EOF_INFO;
 import 'package:front_end/src/fasta/scanner/recover.dart'
     show defaultRecoveryStrategy;
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
@@ -37,23 +35,15 @@ class ScannerTest_Replacement extends ScannerTest {
   analyzer.Token scanWithListener(String source, ErrorListener listener,
       {bool genericMethodComments: false,
       bool lazyAssignmentOperators: false}) {
-    if (genericMethodComments) {
-      // Fasta doesn't support generic method comments.
-      // TODO(danrubel): once the analyzer toolchain no longer needs generic
-      // method comments, remove tests that exercise them.
-      fail('No generic method comment support in Fasta');
-    }
-    // Note: Fasta always supports lazy assignment operators (`&&=` and `||=`),
-    // so we can ignore the `lazyAssignmentOperators` flag.
-    // TODO(danrubel): once lazyAssignmentOperators are fully supported by
-    // Dart, remove this flag.
     fasta.ScannerResult result = fasta.scanString(source,
         includeComments: true,
+        scanGenericMethodComments: genericMethodComments,
+        scanLazyAssignmentOperators: lazyAssignmentOperators,
         recover: ((List<int> bytes, fasta.Token tokens, List<int> lineStarts) {
-          // perform recovery as a separate step
-          // so that the token stream can be validated before and after recovery
-          return tokens;
-        }));
+      // perform recovery as a separate step
+      // so that the token stream can be validated before and after recovery
+      return tokens;
+    }));
     fasta.Token tokens = result.tokens;
     assertValidTokenStream(tokens);
     assertValidBeginTokens(tokens);
@@ -63,38 +53,6 @@ class ScannerTest_Replacement extends ScannerTest {
       assertValidTokenStream(tokens, errorsFirst: true);
     }
     return extractErrors(tokens, listener);
-  }
-
-  @override
-  @failingTest
-  void test_ampersand_ampersand_eq() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support lazy assignment
-    // operators.
-    super.test_ampersand_ampersand_eq();
-  }
-
-  @override
-  @failingTest
-  void test_bar_bar_eq() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support lazy assignment
-    // operators.
-    super.test_bar_bar_eq();
-  }
-
-  @override
-  @failingTest
-  void test_comment_generic_method_type_assign() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support generic comment
-    // syntax.
-    super.test_comment_generic_method_type_assign();
-  }
-
-  @override
-  @failingTest
-  void test_comment_generic_method_type_list() {
-    // TODO(paulberry,ahe): Fasta scanner doesn't support generic comment
-    // syntax.
-    super.test_comment_generic_method_type_list();
   }
 
   void _assertOpenClosePair(String source) {
@@ -336,15 +294,15 @@ class ScannerTest_Replacement extends ScannerTest {
     var token = firstToken;
     // The default recovery strategy used by scanString
     // places all error tokens at the head of the stream.
-    while (token.info == BAD_INPUT_INFO) {
+    while (token.type == analyzer.TokenType.BAD_INPUT) {
       translateErrorToken(token,
           (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
         listener.errors.add(new TestError(offset, errorCode, arguments));
       });
       token = token.next;
     }
-    if (!token.previousToken.isEof) {
-      var head = new fasta.SymbolToken(EOF_INFO, -1);
+    if (!token.previous.isEof) {
+      var head = new fasta.SymbolToken(analyzer.TokenType.EOF, -1);
       token.previous = head;
       head.next = token;
     }
@@ -355,7 +313,7 @@ class ScannerTest_Replacement extends ScannerTest {
   void assertValidTokenStream(fasta.Token firstToken,
       {bool errorsFirst: false}) {
     fasta.Token token = firstToken;
-    fasta.Token previous = token.previousToken;
+    fasta.Token previous = token.previous;
     expect(previous.isEof, isTrue, reason: 'Missing leading EOF');
     expect(previous.next, token, reason: 'Invalid leading EOF');
     expect(previous.previous, previous, reason: 'Invalid leading EOF');

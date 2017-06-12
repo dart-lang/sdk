@@ -4,14 +4,19 @@
 
 import "package:expect/expect.dart";
 
-class A { const A(); }
-class B extends A { const B(); }
+class A {
+  const A();
+}
+
+class B extends A {
+  const B();
+}
 
 main() {
   var map1 = new Map<B, B>();
   map1[const B()] = const B();
   var map2 = new Map<B, B>();
-  var list = <B>[ const B() ];
+  var list = <B>[const B()];
   Map<int, B> map3 = list.asMap();
 
   var maps = [map1, map2, map3];

@@ -27,9 +27,11 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  'Tests some regular expressions that were doing the wrong thing with the "find first asserted" optimization.'
-  );
+      'Tests some regular expressions that were doing the wrong thing with the "find first asserted" optimization.');
 
-  shouldBe(new RegExp(r".*<body>(.*)</body>.*").firstMatch("foo<body>bar</body>baz"), ["foo<body>bar</body>baz", "bar"]);
-  shouldBe(new RegExp(r"\s*<!--([\s\S]*)//\s*-->\s*").firstMatch("<!--// -->"), ["<!--// -->", ""]);
+  shouldBe(
+      new RegExp(r".*<body>(.*)</body>.*").firstMatch("foo<body>bar</body>baz"),
+      ["foo<body>bar</body>baz", "bar"]);
+  shouldBe(new RegExp(r"\s*<!--([\s\S]*)//\s*-->\s*").firstMatch("<!--// -->"),
+      ["<!--// -->", ""]);
 }

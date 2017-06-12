@@ -5,7 +5,6 @@
 
 library Interface_Lib;
 
-class InterfA { }
+class InterfA {}
 
-class InterfB { }
-
+class InterfB {}

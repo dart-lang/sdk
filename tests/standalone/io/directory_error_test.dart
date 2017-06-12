@@ -14,7 +14,6 @@ Directory tempDir() {
   return Directory.systemTemp.createTempSync('dart_directory_error');
 }
 
-
 bool checkCreateInNonExistentFileSystemException(e) {
   Expect.isTrue(e is FileSystemException);
   Expect.isTrue(e.osError != null);
@@ -30,18 +29,16 @@ bool checkCreateInNonExistentFileSystemException(e) {
   return true;
 }
 
-
 void testCreateInNonExistent(Directory temp, Function done) {
   Directory inNonExistent = new Directory("${temp.path}/nonExistent/xxx");
   Expect.throws(() => inNonExistent.createSync(),
-                (e) => checkCreateInNonExistentFileSystemException(e));
+      (e) => checkCreateInNonExistentFileSystemException(e));
 
   inNonExistent.create().catchError((error) {
     checkCreateInNonExistentFileSystemException(error);
     done();
   });
 }
-
 
 bool checkCreateTempInNonExistentFileSystemException(e) {
   Expect.isTrue(e is FileSystemException);
@@ -57,18 +54,16 @@ bool checkCreateTempInNonExistentFileSystemException(e) {
   return true;
 }
 
-
 void testCreateTempInNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent/xxx");
   Expect.throws(() => nonExistent.createTempSync('tempdir'),
-                (e) => checkCreateTempInNonExistentFileSystemException(e));
+      (e) => checkCreateTempInNonExistentFileSystemException(e));
 
   nonExistent.createTemp('tempdir').catchError((error) {
     checkCreateTempInNonExistentFileSystemException(error);
     done();
   });
 }
-
 
 bool checkDeleteNonExistentFileSystemException(e) {
   Expect.isTrue(e is FileSystemException);
@@ -79,18 +74,16 @@ bool checkDeleteNonExistentFileSystemException(e) {
   return true;
 }
 
-
 void testDeleteNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent");
   Expect.throws(() => nonExistent.deleteSync(),
-                (e) => checkDeleteNonExistentFileSystemException(e));
+      (e) => checkDeleteNonExistentFileSystemException(e));
 
   nonExistent.delete().catchError((error) {
     checkDeleteNonExistentFileSystemException(error);
     done();
   });
 }
-
 
 bool checkDeleteRecursivelyNonExistentFileSystemException(e) {
   Expect.isTrue(e is FileSystemException);
@@ -102,18 +95,16 @@ bool checkDeleteRecursivelyNonExistentFileSystemException(e) {
   return true;
 }
 
-
 void testDeleteRecursivelyNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent");
   Expect.throws(() => nonExistent.deleteSync(recursive: true),
-                (e) => checkDeleteRecursivelyNonExistentFileSystemException(e));
+      (e) => checkDeleteRecursivelyNonExistentFileSystemException(e));
 
   nonExistent.delete(recursive: true).catchError((error) {
     checkDeleteRecursivelyNonExistentFileSystemException(error);
     done();
   });
 }
-
 
 bool checkListNonExistentFileSystemException(e) {
   Expect.isTrue(e is FileSystemException);
@@ -130,69 +121,64 @@ bool checkListNonExistentFileSystemException(e) {
   return true;
 }
 
-
 bool checkAsyncListNonExistentFileSystemException(error) {
   return checkListNonExistentFileSystemException(error);
 }
 
-
 void testListNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent");
   Expect.throws(() => nonExistent.listSync(), (e) => e is FileSystemException);
-  nonExistent.list().listen(
-      (_) => Expect.fail("listing should not succeed"),
+  nonExistent.list().listen((_) => Expect.fail("listing should not succeed"),
       onError: (e) {
-        checkAsyncListNonExistentFileSystemException(e);
-        done();
-      });
+    checkAsyncListNonExistentFileSystemException(e);
+    done();
+  });
 }
-
 
 void testRenameNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent");
   var newPath = "${temp.path}/nonExistent2";
-  Expect.throws(() => nonExistent.renameSync(newPath),
-                (e) => e is FileSystemException);
+  Expect.throws(
+      () => nonExistent.renameSync(newPath), (e) => e is FileSystemException);
   var renameDone = nonExistent.rename(newPath);
-  renameDone.then((ignore) => Expect.fail('rename non existent'))
-            .catchError((error) {
-              Expect.isTrue(error is FileSystemException);
-            done();
+  renameDone
+      .then((ignore) => Expect.fail('rename non existent'))
+      .catchError((error) {
+    Expect.isTrue(error is FileSystemException);
+    done();
   });
 }
-
 
 void testRenameFileAsDirectory(Directory temp, Function done) {
   File f = new File("${temp.path}/file");
   var newPath = "${temp.path}/file2";
   f.createSync();
   var d = new Directory(f.path);
-  Expect.throws(() => d.renameSync(newPath),
-                (e) => e is FileSystemException);
+  Expect.throws(() => d.renameSync(newPath), (e) => e is FileSystemException);
   var renameDone = d.rename(newPath);
-  renameDone.then((ignore) => Expect.fail('rename file as directory'))
-            .catchError((error) {
-              Expect.isTrue(error is FileSystemException);
-              done();
-            });
+  renameDone
+      .then((ignore) => Expect.fail('rename file as directory'))
+      .catchError((error) {
+    Expect.isTrue(error is FileSystemException);
+    done();
+  });
 }
-
 
 testRenameOverwriteFile(Directory temp, Function done) {
   var temp1 = Directory.systemTemp.createTempSync('dart_directory_error');
   var fileName = '${temp.path}/x';
   new File(fileName).createSync();
-  Expect.throws(() => temp1.renameSync(fileName),
-                (e) => e is FileSystemException);
+  Expect.throws(
+      () => temp1.renameSync(fileName), (e) => e is FileSystemException);
   var renameDone = temp1.rename(fileName);
-  renameDone.then((ignore) => Expect.fail('rename dir overwrite file'))
-            .catchError((error) {
-              Expect.isTrue(error is FileSystemException);
-              temp1.deleteSync(recursive: true);
-              done();
-            });
+  renameDone
+      .then((ignore) => Expect.fail('rename dir overwrite file'))
+      .catchError((error) {
+    Expect.isTrue(error is FileSystemException);
+    temp1.deleteSync(recursive: true);
+    done();
+  });
 }
-
 
 void runTest(Function test) {
   // Create a temporary directory for the test.
@@ -207,7 +193,6 @@ void runTest(Function test) {
     asyncEnd();
   });
 }
-
 
 main() {
   runTest(testCreateInNonExistent);

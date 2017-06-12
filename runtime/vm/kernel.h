@@ -19,12 +19,16 @@
   M(InvalidType)                                                               \
   M(DynamicType)                                                               \
   M(VoidType)                                                                  \
+  M(BottomType)                                                                \
   M(InterfaceType)                                                             \
   M(FunctionType)                                                              \
-  M(TypeParameterType)
+  M(TypeParameterType)                                                         \
+  M(VectorType)                                                                \
+  M(TypedefType)
 
 #define KERNEL_TREE_NODES_DO(M)                                                \
   M(Library)                                                                   \
+  M(Typedef)                                                                   \
   M(Class)                                                                     \
   M(NormalClass)                                                               \
   M(MixinClass)                                                                \
@@ -79,6 +83,11 @@
   M(AwaitExpression)                                                           \
   M(FunctionExpression)                                                        \
   M(Let)                                                                       \
+  M(VectorCreation)                                                            \
+  M(VectorGet)                                                                 \
+  M(VectorSet)                                                                 \
+  M(VectorCopy)                                                                \
+  M(ClosureCreation)                                                           \
   M(Statement)                                                                 \
   M(InvalidStatement)                                                          \
   M(ExpressionStatement)                                                       \
@@ -181,6 +190,7 @@ class Ref {
 };
 
 
+// A list of pointers that are each deleted when the list is destroyed.
 template <typename T>
 class List {
  public:
@@ -221,11 +231,49 @@ class List {
 
   T** raw_array() { return array_; }
 
+  bool CanStream() {
+    for (intptr_t i = 0; i < length_; ++i) {
+      if (!array_[i]->can_stream()) return false;
+    }
+    return true;
+  }
+
  private:
   T** array_;
   int length_;
 
   DISALLOW_COPY_AND_ASSIGN(List);
+};
+
+
+// A list that cannot be resized and which, unlike List<T>, does not enforce
+// its members to be pointers and does not `delete` its members on destruction.
+template <typename T>
+class RawList {
+ public:
+  RawList() : pointer_(NULL) {}
+
+  ~RawList() {
+    if (pointer_ != NULL) {
+      delete[] pointer_;
+    }
+  }
+
+  void Initialize(int length) {
+    ASSERT(pointer_ == NULL);
+    pointer_ = new T[length];
+    length_ = length;
+  }
+
+  T& operator[](int index) { return pointer_[index]; }
+
+  int length() { return length_; }
+
+ private:
+  int length_;
+  T* pointer_;
+
+  DISALLOW_COPY_AND_ASSIGN(RawList);
 };
 
 
@@ -235,99 +283,79 @@ class TypeParameterList : public List<TypeParameter> {
 };
 
 
-template <typename A, typename B>
-class Tuple {
+class Source {
  public:
-  static Tuple<A, B>* ReadFrom(Reader* reader);
-
-  Tuple(A* a, B* b) : first_(a), second_(b) {}
-
-  A* first() { return first_; }
-  B* second() { return second_; }
+  ~Source();
 
  private:
-  Tuple() {}
+  uint8_t* uri_;               // UTF-8 encoded.
+  intptr_t uri_size_;          // In bytes.
+  uint8_t* source_code_;       // UTF-8 encoded.
+  intptr_t source_code_size_;  // In bytes.
+  intptr_t* line_starts_;
+  intptr_t line_count_;
 
-  Ref<A> first_;
-  Child<B> second_;
-
-  DISALLOW_COPY_AND_ASSIGN(Tuple);
-};
-
-
-class String {
- public:
-  static String* ReadFrom(Reader* reader);
-  static String* ReadFromImpl(Reader* reader);
-
-  String(const uint8_t* utf8, int length) {
-    buffer_ = new uint8_t[length];
-    size_ = length;
-    memmove(buffer_, utf8, length);
-  }
-  ~String() { delete[] buffer_; }
-
-  uint8_t* buffer() { return buffer_; }
-  int size() { return size_; }
-
-  bool is_empty() { return size_ == 0; }
-
- private:
-  uint8_t* buffer_;
-  int size_;
-
-  DISALLOW_COPY_AND_ASSIGN(String);
-};
-
-
-class StringTable {
- public:
-  void ReadFrom(Reader* reader);
-
-  List<String>& strings() { return strings_; }
-
- private:
-  StringTable() {}
-
-  friend class Program;
-
-  List<String> strings_;
-
-  DISALLOW_COPY_AND_ASSIGN(StringTable);
+  friend class SourceTable;
 };
 
 
 class SourceTable {
  public:
+  ~SourceTable();
+
   void ReadFrom(Reader* reader);
-  ~SourceTable() {
-    for (intptr_t i = 0; i < size_; ++i) {
-      delete source_code_[i];
-      delete[] line_starts_[i];
-    }
-    delete[] source_code_;
-    delete[] line_starts_;
-    delete[] line_count_;
-  }
 
   intptr_t size() { return size_; }
-  String* SourceFor(intptr_t i) { return source_code_[i]; }
-  intptr_t* LineStartsFor(intptr_t i) { return line_starts_[i]; }
-  intptr_t LineCountFor(intptr_t i) { return line_count_[i]; }
+
+  uint8_t* UriFor(intptr_t i) { return sources_[i].uri_; }
+  intptr_t UriSizeFor(intptr_t i) { return sources_[i].uri_size_; }
+
+  uint8_t* SourceCodeFor(intptr_t i) { return sources_[i].source_code_; }
+  intptr_t SourceCodeSizeFor(intptr_t i) {
+    return sources_[i].source_code_size_;
+  }
+
+  intptr_t* LineStartsFor(intptr_t i) { return sources_[i].line_starts_; }
+  intptr_t LineCountFor(intptr_t i) { return sources_[i].line_count_; }
 
  private:
-  SourceTable()
-      : source_code_(NULL), line_starts_(NULL), line_count_(NULL), size_(0) {}
+  SourceTable() : size_(0), sources_(NULL) {}
 
   friend class Program;
 
-  String** source_code_;
-  intptr_t** line_starts_;
-  intptr_t* line_count_;
+  // The number of entries in the table.
   intptr_t size_;
+
+  // An array of sources.
+  Source* sources_;
 
   DISALLOW_COPY_AND_ASSIGN(SourceTable);
 };
+
+
+class StringIndex {
+ public:
+  StringIndex() : value_(-1) {}
+  explicit StringIndex(int value) : value_(value) {}
+
+  operator int() const { return value_; }
+
+ private:
+  int value_;
+};
+
+
+class NameIndex {
+ public:
+  NameIndex() : value_(-1) {}
+  explicit NameIndex(int value) : value_(value) {}
+
+  operator int() const { return value_; }
+
+ private:
+  int value_;
+};
+
 
 // Forward declare all classes.
 #define DO(name) class name;
@@ -354,57 +382,16 @@ KERNEL_VISITORS_DO(DO)
   DEFINE_IS_OPERATION(TreeNode)                                                \
   KERNEL_TREE_NODES_DO(DEFINE_IS_OPERATION)
 
+class Typedef;
 class Class;
 class Constructor;
 class Field;
 class Library;
+class LibraryDependency;
+class Combinator;
 class LinkedNode;
 class Member;
 class Procedure;
-
-class CanonicalName {
- public:
-  ~CanonicalName();
-
-  String* name() { return name_; }
-  CanonicalName* parent() { return parent_; }
-  bool is_referenced() { return is_referenced_; }
-  void set_referenced(bool referenced) { is_referenced_ = referenced; }
-
-  CanonicalName* AddChild(String* name);
-
-  bool IsAdministrative();
-  bool IsPrivate();
-
-  bool IsRoot();
-  bool IsLibrary();
-  bool IsClass();
-  bool IsMember();
-  bool IsField();
-  bool IsConstructor();
-  bool IsProcedure();
-  bool IsMethod();
-  bool IsGetter();
-  bool IsSetter();
-  bool IsFactory();
-
-  // For a member (field, constructor, or procedure) return the canonical name
-  // of the enclosing class or library.
-  CanonicalName* EnclosingName();
-
-  static CanonicalName* NewRoot();
-
- private:
-  CanonicalName();
-
-  bool is_referenced_;
-  Ref<CanonicalName> parent_;
-  Ref<String> name_;
-  MallocGrowableArray<CanonicalName*> children_;
-
-  DISALLOW_COPY_AND_ASSIGN(CanonicalName);
-};
-
 
 class Node {
  public:
@@ -440,14 +427,17 @@ class TreeNode : public Node {
 
   virtual void AcceptVisitor(Visitor* visitor);
   virtual void AcceptTreeVisitor(TreeVisitor* visitor) = 0;
-  intptr_t kernel_offset() { return kernel_offset_; }
+  intptr_t kernel_offset() const { return kernel_offset_; }
+  bool can_stream() { return can_stream_; }
 
  protected:
-  TreeNode() : kernel_offset_(-1) {}
+  TreeNode() : kernel_offset_(-1), can_stream_(true) {}
 
   // Offset for this node in the kernel-binary. If this node has a tag the
   // offset includes the tag. Can be -1 to indicate "unknown" or invalid offset.
   intptr_t kernel_offset_;
+
+  bool can_stream_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TreeNode);
@@ -458,16 +448,14 @@ class LinkedNode : public TreeNode {
  public:
   virtual ~LinkedNode();
 
-  CanonicalName* canonical_name() { return canonical_name_; }
+  NameIndex canonical_name() { return canonical_name_; }
 
  protected:
   LinkedNode() {}
 
-  Ref<CanonicalName> canonical_name_;
+  NameIndex canonical_name_;
 
  private:
-  friend class CanonicalName;
-
   DISALLOW_COPY_AND_ASSIGN(LinkedNode);
 };
 
@@ -483,49 +471,122 @@ class Library : public LinkedNode {
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  String* import_uri() { return import_uri_; }
+  StringIndex import_uri() { return import_uri_index_; }
   intptr_t source_uri_index() { return source_uri_index_; }
-  String* name() { return name_; }
+  StringIndex name() { return name_index_; }
+  List<Expression>& annotations() { return annotations_; }
+  List<LibraryDependency>& dependencies() { return dependency_; }
+  List<Typedef>& typedefs() { return typedefs_; }
   List<Class>& classes() { return classes_; }
   List<Field>& fields() { return fields_; }
   List<Procedure>& procedures() { return procedures_; }
 
-  bool IsCorelibrary() {
-    static const char* dart_library = "dart:";
-    static intptr_t dart_library_length = strlen(dart_library);
-    static const char* patch_library = "dart:_patch";
-    static intptr_t patch_library_length = strlen(patch_library);
-
-    if (name_->size() < 5) return false;
-
-    // Check for dart: prefix.
-    char* buffer = reinterpret_cast<char*>(import_uri_->buffer());
-    if (strncmp(buffer, dart_library, dart_library_length) != 0) {
-      return false;
-    }
-
-    // Rasta emits dart:_patch and we should treat it as a user library.
-    if (name_->size() == patch_library_length &&
-        strncmp(buffer, patch_library, patch_library_length) == 0) {
-      return false;
-    }
-    return true;
-  }
+  const uint8_t* kernel_data() { return kernel_data_; }
+  intptr_t kernel_data_size() { return kernel_data_size_; }
 
  private:
-  Library() : name_(NULL) {}
+  Library() : kernel_data_(NULL), kernel_data_size_(-1) {}
 
   template <typename T>
   friend class List;
 
-  Ref<String> name_;
-  Ref<String> import_uri_;
+  StringIndex name_index_;
+  StringIndex import_uri_index_;
   intptr_t source_uri_index_;
+  List<Expression> annotations_;
+  List<LibraryDependency> dependency_;
+  List<Typedef> typedefs_;
   List<Class> classes_;
   List<Field> fields_;
   List<Procedure> procedures_;
+  const uint8_t* kernel_data_;
+  intptr_t kernel_data_size_;
 
   DISALLOW_COPY_AND_ASSIGN(Library);
+};
+
+
+class LibraryDependency {
+ public:
+  enum Flags {
+    kFlagExport = 1 << 0,
+    kFlagDeferred = 1 << 1,
+  };
+
+  static LibraryDependency* ReadFrom(Reader* reader);
+
+  virtual ~LibraryDependency();
+
+  bool is_export() { return (flags_ & kFlagExport) != 0; }
+  bool is_import() { return (flags_ & kFlagExport) == 0; }
+  bool is_deferred() { return (flags_ & kFlagDeferred) != 0; }
+  List<Expression>& annotations() { return annotations_; }
+  NameIndex target() { return target_reference_; }
+  StringIndex name() { return name_index_; }
+
+ private:
+  LibraryDependency() {}
+
+  word flags_;
+  List<Expression> annotations_;
+  NameIndex target_reference_;
+  StringIndex name_index_;
+  List<Combinator> combinators_;
+
+  DISALLOW_COPY_AND_ASSIGN(LibraryDependency);
+};
+
+
+class Combinator {
+ public:
+  static Combinator* ReadFrom(Reader* reader);
+
+  virtual ~Combinator();
+
+  bool is_show() { return is_show_; }
+  RawList<intptr_t>& names() { return name_indices_; }
+
+ private:
+  Combinator() {}
+
+  bool is_show_;
+  RawList<intptr_t> name_indices_;
+
+  DISALLOW_COPY_AND_ASSIGN(Combinator);
+};
+
+
+class Typedef : public LinkedNode {
+ public:
+  Typedef* ReadFrom(Reader* reader);
+
+  virtual ~Typedef();
+
+  DEFINE_CASTING_OPERATIONS(Typedef);
+
+  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  Library* parent() { return parent_; }
+  StringIndex name() { return name_index_; }
+  intptr_t source_uri_index() { return source_uri_index_; }
+  TokenPosition position() { return position_; }
+  TypeParameterList& type_parameters() { return type_parameters_; }
+  DartType* type() { return type_; }
+
+ protected:
+  Typedef() : position_(TokenPosition::kNoSource) {}
+
+ private:
+  template <typename T>
+  friend class List;
+
+  StringIndex name_index_;
+  Ref<Library> parent_;
+  intptr_t source_uri_index_;
+  TokenPosition position_;
+  TypeParameterList type_parameters_;
+  Child<DartType> type_;
 };
 
 
@@ -541,7 +602,7 @@ class Class : public LinkedNode {
   virtual void AcceptClassVisitor(ClassVisitor* visitor) = 0;
 
   Library* parent() { return parent_; }
-  String* name() { return name_; }
+  StringIndex name() { return name_index_; }
   intptr_t source_uri_index() { return source_uri_index_; }
   bool is_abstract() { return is_abstract_; }
   List<Expression>& annotations() { return annotations_; }
@@ -560,8 +621,8 @@ class Class : public LinkedNode {
   template <typename T>
   friend class List;
 
+  StringIndex name_index_;
   Ref<Library> parent_;
-  Ref<String> name_;
   intptr_t source_uri_index_;
   bool is_abstract_;
   List<Expression> annotations_;
@@ -859,13 +920,13 @@ class FieldInitializer : public Initializer {
   virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* field() { return field_reference_; }
+  NameIndex field() { return field_reference_; }
   Expression* value() { return value_; }
 
  private:
   FieldInitializer() {}
 
-  Ref<CanonicalName> field_reference_;  // Field.
+  NameIndex field_reference_;  // Field canonical name.
   Child<Expression> value_;
 
   DISALLOW_COPY_AND_ASSIGN(FieldInitializer);
@@ -883,13 +944,13 @@ class SuperInitializer : public Initializer {
   virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
  private:
   SuperInitializer() {}
 
-  Ref<CanonicalName> target_reference_;  // Constructor.
+  NameIndex target_reference_;  // Constructor canonical name.
   Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(SuperInitializer);
@@ -907,13 +968,13 @@ class RedirectingInitializer : public Initializer {
   virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
  private:
   RedirectingInitializer() {}
 
-  Ref<CanonicalName> target_reference_;  // Constructor.
+  NameIndex target_reference_;  // Constructor canonical name.
   Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(RedirectingInitializer);
@@ -970,7 +1031,10 @@ class FunctionNode : public TreeNode {
   }
   List<VariableDeclaration>& named_parameters() { return named_parameters_; }
   DartType* return_type() { return return_type_; }
+
   Statement* body() { return body_; }
+  void ReplaceBody(Statement* body);
+
   TokenPosition position() { return position_; }
   TokenPosition end_position() { return end_position_; }
 
@@ -1052,6 +1116,7 @@ class VariableGet : public Expression {
   VariableGet() {}
 
   Ref<VariableDeclaration> variable_;
+  intptr_t variable_kernel_offset_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableGet);
 };
@@ -1076,6 +1141,7 @@ class VariableSet : public Expression {
   VariableSet() {}
 
   Ref<VariableDeclaration> variable_;
+  intptr_t variable_kernel_offset_;
   Child<Expression> expression_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableSet);
@@ -1099,9 +1165,9 @@ class PropertyGet : public Expression {
  private:
   PropertyGet() {}
 
+  NameIndex interface_target_reference_;
   Child<Expression> receiver_;
   Child<Name> name_;
-  Ref<CanonicalName> interface_target_reference_;
 
   DISALLOW_COPY_AND_ASSIGN(PropertyGet);
 };
@@ -1125,10 +1191,10 @@ class PropertySet : public Expression {
  private:
   PropertySet() {}
 
+  NameIndex interface_target_reference_;
   Child<Expression> receiver_;
   Child<Name> name_;
   Child<Expression> value_;
-  Ref<CanonicalName> interface_target_reference_;
 
   DISALLOW_COPY_AND_ASSIGN(PropertySet);
 };
@@ -1146,13 +1212,13 @@ class DirectPropertyGet : public Expression {
   virtual void VisitChildren(Visitor* visitor);
 
   Expression* receiver() { return receiver_; }
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
 
  private:
   DirectPropertyGet() {}
 
+  NameIndex target_reference_;  // Member canonical name.
   Child<Expression> receiver_;
-  Ref<CanonicalName> target_reference_;  // Member.
 
   DISALLOW_COPY_AND_ASSIGN(DirectPropertyGet);
 };
@@ -1169,15 +1235,15 @@ class DirectPropertySet : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
+  NameIndex target() { return target_reference_; }
   Expression* receiver() { return receiver_; }
-  CanonicalName* target() { return target_reference_; }
   Expression* value() { return value_; }
 
  private:
   DirectPropertySet() {}
 
+  NameIndex target_reference_;  // Member canonical name.
   Child<Expression> receiver_;
-  Ref<CanonicalName> target_reference_;  // Member.
   Child<Expression> value_;
 
   DISALLOW_COPY_AND_ASSIGN(DirectPropertySet);
@@ -1186,6 +1252,10 @@ class DirectPropertySet : public Expression {
 
 class StaticGet : public Expression {
  public:
+  StaticGet(NameIndex target, bool can_stream) : target_reference_(target) {
+    can_stream_ = can_stream;
+  }
+
   static StaticGet* ReadFrom(Reader* reader);
 
   virtual ~StaticGet();
@@ -1195,12 +1265,12 @@ class StaticGet : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
 
  private:
   StaticGet() {}
 
-  Ref<CanonicalName> target_reference_;  // Member.
+  NameIndex target_reference_;  // Member canonical name.
 
   DISALLOW_COPY_AND_ASSIGN(StaticGet);
 };
@@ -1217,13 +1287,13 @@ class StaticSet : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
   Expression* expression() { return expression_; }
 
  private:
   StaticSet() {}
 
-  Ref<CanonicalName> target_reference_;  // Member.
+  NameIndex target_reference_;  // Member canonical name.
   Child<Expression> expression_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticSet);
@@ -1241,6 +1311,7 @@ class Arguments : public TreeNode {
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
+  // TODO(regis): Support type arguments of generic functions.
   List<DartType>& types() { return types_; }
   List<Expression>& positional() { return positional_; }
   List<NamedExpression>& named() { return named_; }
@@ -1262,8 +1333,8 @@ class NamedExpression : public TreeNode {
  public:
   static NamedExpression* ReadFrom(Reader* reader);
 
-  NamedExpression(String* name, Expression* expr)
-      : name_(name), expression_(expr) {}
+  NamedExpression(StringIndex name_index, Expression* expr)
+      : name_index_(name_index), expression_(expr) {}
   virtual ~NamedExpression();
 
   DEFINE_CASTING_OPERATIONS(NamedExpression);
@@ -1271,13 +1342,13 @@ class NamedExpression : public TreeNode {
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  String* name() { return name_; }
+  StringIndex name() { return name_index_; }
   Expression* expression() { return expression_; }
 
  private:
   NamedExpression() {}
 
-  Ref<String> name_;
+  StringIndex name_index_;
   Child<Expression> expression_;
 
   DISALLOW_COPY_AND_ASSIGN(NamedExpression);
@@ -1302,10 +1373,10 @@ class MethodInvocation : public Expression {
  private:
   MethodInvocation() {}
 
+  NameIndex interface_target_reference_;
   Child<Expression> receiver_;
   Child<Name> name_;
   Child<Arguments> arguments_;
-  Ref<CanonicalName> interface_target_reference_;
 
   DISALLOW_COPY_AND_ASSIGN(MethodInvocation);
 };
@@ -1323,14 +1394,14 @@ class DirectMethodInvocation : public Expression {
   virtual void VisitChildren(Visitor* visitor);
 
   Expression* receiver() { return receiver_; }
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
  private:
   DirectMethodInvocation() {}
 
+  NameIndex target_reference_;  // Procedure canonical name.
   Child<Expression> receiver_;
-  Ref<CanonicalName> target_reference_;  // Procedure.
   Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(DirectMethodInvocation);
@@ -1342,19 +1413,21 @@ class StaticInvocation : public Expression {
   static StaticInvocation* ReadFrom(Reader* reader, bool is_const);
   ~StaticInvocation();
 
+  DEFINE_CASTING_OPERATIONS(StaticInvocation);
+
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* procedure() { return procedure_reference_; }
+  NameIndex procedure() { return procedure_reference_; }
   Arguments* arguments() { return arguments_; }
   bool is_const() { return is_const_; }
 
  private:
   StaticInvocation() {}
 
-  Ref<CanonicalName> procedure_reference_;  // Procedure.
-  Child<Arguments> arguments_;
+  NameIndex procedure_reference_;  // Procedure canonical name.
   bool is_const_;
+  Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticInvocation);
 };
@@ -1372,14 +1445,14 @@ class ConstructorInvocation : public Expression {
   virtual void VisitChildren(Visitor* visitor);
 
   bool is_const() { return is_const_; }
-  CanonicalName* target() { return target_reference_; }
+  NameIndex target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
  private:
   ConstructorInvocation() {}
 
   bool is_const_;
-  Ref<CanonicalName> target_reference_;  // Constructor.
+  NameIndex target_reference_;  // Constructor canonical name.
   Child<Arguments> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstructorInvocation);
@@ -1548,17 +1621,18 @@ class StringLiteral : public BasicLiteral {
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
-  explicit StringLiteral(String* string) : value_(string) {}
+  explicit StringLiteral(StringIndex string_index)
+      : value_index_(string_index) {}
   virtual ~StringLiteral();
 
   DEFINE_CASTING_OPERATIONS(StringLiteral);
 
-  String* value() { return value_; }
+  StringIndex value() { return value_index_; }
 
  protected:
   StringLiteral() {}
 
-  Ref<String> value_;
+  StringIndex value_index_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(StringLiteral);
@@ -1571,7 +1645,8 @@ class BigintLiteral : public StringLiteral {
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
-  explicit BigintLiteral(String* string) : StringLiteral(string) {}
+  explicit BigintLiteral(StringIndex string_index)
+      : StringLiteral(string_index) {}
   virtual ~BigintLiteral();
 
   DEFINE_CASTING_OPERATIONS(BigintLiteral);
@@ -1615,12 +1690,12 @@ class DoubleLiteral : public BasicLiteral {
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
-  String* value() { return value_; }
+  StringIndex value() { return value_index_; }
 
  private:
   DoubleLiteral() {}
 
-  Ref<String> value_;
+  StringIndex value_index_;
 
   DISALLOW_COPY_AND_ASSIGN(DoubleLiteral);
 };
@@ -1675,12 +1750,12 @@ class SymbolLiteral : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  String* value() { return value_; }
+  StringIndex value() { return value_index_; }
 
  private:
   SymbolLiteral() {}
 
-  Ref<String> value_;
+  StringIndex value_index_;
 
   DISALLOW_COPY_AND_ASSIGN(SymbolLiteral);
 };
@@ -1921,6 +1996,126 @@ class Let : public Expression {
 };
 
 
+class VectorCreation : public Expression {
+ public:
+  static VectorCreation* ReadFrom(Reader* reader);
+
+  virtual ~VectorCreation();
+
+  DEFINE_CASTING_OPERATIONS(VectorCreation);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  intptr_t value() { return value_; }
+
+ private:
+  VectorCreation() {}
+
+  intptr_t value_;
+
+  DISALLOW_COPY_AND_ASSIGN(VectorCreation);
+};
+
+
+class VectorGet : public Expression {
+ public:
+  static VectorGet* ReadFrom(Reader* reader);
+
+  virtual ~VectorGet();
+
+  DEFINE_CASTING_OPERATIONS(VectorGet);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  Expression* vector_expression() { return vector_expression_; }
+  intptr_t index() { return index_; }
+
+ private:
+  VectorGet() {}
+
+  Child<Expression> vector_expression_;
+  intptr_t index_;
+
+  DISALLOW_COPY_AND_ASSIGN(VectorGet);
+};
+
+
+class VectorSet : public Expression {
+ public:
+  static VectorSet* ReadFrom(Reader* reader);
+
+  virtual ~VectorSet();
+
+  DEFINE_CASTING_OPERATIONS(VectorSet);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  Expression* vector_expression() { return vector_expression_; }
+  intptr_t index() { return index_; }
+  Expression* value() { return value_; }
+
+ private:
+  VectorSet() {}
+
+  Child<Expression> vector_expression_;
+  intptr_t index_;
+  Child<Expression> value_;
+
+  DISALLOW_COPY_AND_ASSIGN(VectorSet);
+};
+
+
+class VectorCopy : public Expression {
+ public:
+  static VectorCopy* ReadFrom(Reader* reader);
+
+  virtual ~VectorCopy();
+
+  DEFINE_CASTING_OPERATIONS(VectorCopy);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  Expression* vector_expression() { return vector_expression_; }
+
+ private:
+  VectorCopy() {}
+
+  Child<Expression> vector_expression_;
+
+  DISALLOW_COPY_AND_ASSIGN(VectorCopy);
+};
+
+
+class ClosureCreation : public Expression {
+ public:
+  static ClosureCreation* ReadFrom(Reader* reader);
+
+  virtual ~ClosureCreation();
+
+  DEFINE_CASTING_OPERATIONS(ClosureCreation);
+
+  virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  NameIndex top_level_function() { return top_level_function_reference_; }
+  Expression* context_vector() { return context_vector_; }
+  FunctionType* function_type() { return function_type_; }
+
+ private:
+  ClosureCreation() {}
+
+  NameIndex top_level_function_reference_;  // Procedure canonical name.
+  Child<Expression> context_vector_;
+  Child<FunctionType> function_type_;
+
+  DISALLOW_COPY_AND_ASSIGN(ClosureCreation);
+};
+
+
 class Statement : public TreeNode {
  public:
   static Statement* ReadFrom(Reader* reader);
@@ -2082,12 +2277,12 @@ class BreakStatement : public Statement {
   virtual void AcceptStatementVisitor(StatementVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  LabeledStatement* target() { return target_; }
+  intptr_t target_index() { return target_index_; }
 
  private:
   BreakStatement() {}
 
-  Ref<LabeledStatement> target_;
+  intptr_t target_index_;
 
   DISALLOW_COPY_AND_ASSIGN(BreakStatement);
 };
@@ -2273,12 +2468,12 @@ class ContinueSwitchStatement : public Statement {
   virtual void AcceptStatementVisitor(StatementVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  SwitchCase* target() { return target_; }
+  intptr_t target_index() { return target_index_; }
 
  private:
   ContinueSwitchStatement() {}
 
-  Ref<SwitchCase> target_;
+  intptr_t target_index_;
 
   DISALLOW_COPY_AND_ASSIGN(ContinueSwitchStatement);
 };
@@ -2312,6 +2507,11 @@ class IfStatement : public Statement {
 
 class ReturnStatement : public Statement {
  public:
+  ReturnStatement(Expression* expression, bool can_stream)
+      : expression_(expression) {
+    can_stream_ = can_stream;
+  }
+
   static ReturnStatement* ReadFrom(Reader* reader);
 
   virtual ~ReturnStatement();
@@ -2466,7 +2666,7 @@ class VariableDeclaration : public Statement {
   bool IsConst() { return (flags_ & kFlagConst) == kFlagConst; }
   bool IsFinal() { return (flags_ & kFlagFinal) == kFlagFinal; }
 
-  String* name() { return name_; }
+  StringIndex name() { return name_index_; }
   DartType* type() { return type_; }
   Expression* initializer() { return initializer_; }
   TokenPosition equals_position() { return equals_position_; }
@@ -2481,8 +2681,8 @@ class VariableDeclaration : public Statement {
   template <typename T>
   friend class List;
 
+  StringIndex name_index_;
   word flags_;
-  Ref<String> name_;
   Child<DartType> type_;
   Child<Expression> initializer_;
   TokenPosition equals_position_;
@@ -2527,15 +2727,16 @@ class Name : public Node {
   virtual void AcceptVisitor(Visitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  String* string() { return string_; }
-  CanonicalName* library() { return library_reference_; }
+  StringIndex string_index() { return string_index_; }
+  NameIndex library() { return library_reference_; }
 
  private:
-  Name(String* string, CanonicalName* library_reference)
-      : string_(string), library_reference_(library_reference) {}  // NOLINT
+  Name(intptr_t string_index, intptr_t library_reference)
+      : string_index_(string_index),
+        library_reference_(library_reference) {}  // NOLINT
 
-  Ref<String> string_;
-  Ref<CanonicalName> library_reference_;  // Library.
+  StringIndex string_index_;
+  NameIndex library_reference_;  // Library canonical name.
 
   DISALLOW_COPY_AND_ASSIGN(Name);
 };
@@ -2614,12 +2815,30 @@ class VoidType : public DartType {
 };
 
 
+class BottomType : public DartType {
+ public:
+  static BottomType* ReadFrom(Reader* reader);
+
+  virtual ~BottomType();
+
+  DEFINE_CASTING_OPERATIONS(BottomType);
+
+  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+ private:
+  BottomType() {}
+
+  DISALLOW_COPY_AND_ASSIGN(BottomType);
+};
+
+
 class InterfaceType : public DartType {
  public:
   static InterfaceType* ReadFrom(Reader* reader);
   static InterfaceType* ReadFrom(Reader* reader, bool _without_type_arguments_);
 
-  explicit InterfaceType(CanonicalName* class_reference)
+  explicit InterfaceType(NameIndex class_reference)
       : class_reference_(class_reference) {}
   virtual ~InterfaceType();
 
@@ -2628,16 +2847,62 @@ class InterfaceType : public DartType {
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  CanonicalName* klass() { return class_reference_; }
+  NameIndex klass() { return class_reference_; }
   List<DartType>& type_arguments() { return type_arguments_; }
 
  private:
   InterfaceType() {}
 
-  Ref<CanonicalName> class_reference_;  // Class.
+  NameIndex class_reference_;  // Class canonical name.
   List<DartType> type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(InterfaceType);
+};
+
+
+class TypedefType : public DartType {
+ public:
+  static TypedefType* ReadFrom(Reader* reader);
+
+  explicit TypedefType(NameIndex class_reference)
+      : typedef_reference_(class_reference) {}
+  virtual ~TypedefType();
+
+  DEFINE_CASTING_OPERATIONS(TypedefType);
+
+  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+  NameIndex typedef_reference() { return typedef_reference_; }
+  List<DartType>& type_arguments() { return type_arguments_; }
+
+ private:
+  TypedefType() {}
+
+  NameIndex typedef_reference_;  // Typedef canonical name.
+  List<DartType> type_arguments_;
+
+  DISALLOW_COPY_AND_ASSIGN(TypedefType);
+};
+
+
+class NamedParameter {
+ public:
+  static NamedParameter* ReadFrom(Reader* reader);
+
+  NamedParameter(StringIndex name_index, DartType* type)
+      : name_index_(name_index), type_(type) {}
+
+  StringIndex name() { return name_index_; }
+  DartType* type() { return type_; }
+
+ private:
+  NamedParameter() {}
+
+  StringIndex name_index_;
+  Child<DartType> type_;
+
+  DISALLOW_COPY_AND_ASSIGN(NamedParameter);
 };
 
 
@@ -2656,9 +2921,7 @@ class FunctionType : public DartType {
   TypeParameterList& type_parameters() { return type_parameters_; }
   int required_parameter_count() { return required_parameter_count_; }
   List<DartType>& positional_parameters() { return positional_parameters_; }
-  List<Tuple<String, DartType> >& named_parameters() {
-    return named_parameters_;
-  }
+  List<NamedParameter>& named_parameters() { return named_parameters_; }
   DartType* return_type() { return return_type_; }
 
  private:
@@ -2667,7 +2930,7 @@ class FunctionType : public DartType {
   TypeParameterList type_parameters_;
   int required_parameter_count_;
   List<DartType> positional_parameters_;
-  List<Tuple<String, DartType> > named_parameters_;
+  List<NamedParameter> named_parameters_;
   Child<DartType> return_type_;
 
   DISALLOW_COPY_AND_ASSIGN(FunctionType);
@@ -2696,6 +2959,24 @@ class TypeParameterType : public DartType {
 };
 
 
+class VectorType : public DartType {
+ public:
+  static VectorType* ReadFrom(Reader* reader);
+
+  virtual ~VectorType();
+
+  DEFINE_CASTING_OPERATIONS(VectorType);
+
+  virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
+  virtual void VisitChildren(Visitor* visitor);
+
+ private:
+  VectorType() {}
+
+  DISALLOW_COPY_AND_ASSIGN(VectorType);
+};
+
+
 class TypeParameter : public TreeNode {
  public:
   TypeParameter* ReadFrom(Reader* reader);
@@ -2707,7 +2988,7 @@ class TypeParameter : public TreeNode {
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  String* name() { return name_; }
+  StringIndex name() { return name_index_; }
   DartType* bound() { return bound_; }
 
  private:
@@ -2717,7 +2998,7 @@ class TypeParameter : public TreeNode {
   friend class List;
   friend class TypeParameterList;
 
-  Ref<String> name_;
+  StringIndex name_index_;
   Child<DartType> bound_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeParameter);
@@ -2735,24 +3016,26 @@ class Program : public TreeNode {
   virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void VisitChildren(Visitor* visitor);
 
-  StringTable& string_table() { return string_table_; }
-  StringTable& source_uri_table() { return source_uri_table_; }
   SourceTable& source_table() { return source_table_; }
   List<Library>& libraries() { return libraries_; }
-  CanonicalName* main_method() { return main_method_reference_; }
-  CanonicalName* canonical_name_root() { return canonical_name_root_; }
+  NameIndex main_method() { return main_method_reference_; }
   MallocGrowableArray<MallocGrowableArray<intptr_t>*> valid_token_positions;
   MallocGrowableArray<MallocGrowableArray<intptr_t>*> yield_token_positions;
+  intptr_t string_table_offset() { return string_table_offset_; }
+  intptr_t name_table_offset() { return name_table_offset_; }
 
  private:
   Program() {}
 
-  Child<CanonicalName> canonical_name_root_;
+  NameIndex main_method_reference_;  // Procedure.
   List<Library> libraries_;
-  Ref<CanonicalName> main_method_reference_;  // Procedure.
-  StringTable string_table_;
-  StringTable source_uri_table_;
   SourceTable source_table_;
+
+  // The offset from the start of the binary to the start of the string table.
+  intptr_t string_table_offset_;
+
+  // The offset from the start of the binary to the canonical name table.
+  intptr_t name_table_offset_;
 
   DISALLOW_COPY_AND_ASSIGN(Program);
 };
@@ -2760,11 +3043,11 @@ class Program : public TreeNode {
 
 class Reference : public AllStatic {
  public:
-  static CanonicalName* ReadMemberFrom(Reader* reader, bool allow_null = false);
-
-  static CanonicalName* ReadClassFrom(Reader* reader, bool allow_null = false);
-
-  static String* ReadStringFrom(Reader* reader);
+  // Read canonical name references.
+  static NameIndex ReadMemberFrom(Reader* reader, bool allow_null = false);
+  static NameIndex ReadClassFrom(Reader* reader, bool allow_null = false);
+  static NameIndex ReadTypedefFrom(Reader* reader);
+  static NameIndex ReadLibraryFrom(Reader* reader);
 };
 
 
@@ -2869,6 +3152,17 @@ class ExpressionVisitor {
     VisitDefaultBasicLiteral(node);
   }
   virtual void VisitLet(Let* node) { VisitDefaultExpression(node); }
+  virtual void VisitVectorCreation(VectorCreation* node) {
+    VisitDefaultExpression(node);
+  }
+  virtual void VisitVectorGet(VectorGet* node) { VisitDefaultExpression(node); }
+  virtual void VisitVectorSet(VectorSet* node) { VisitDefaultExpression(node); }
+  virtual void VisitVectorCopy(VectorCopy* node) {
+    VisitDefaultExpression(node);
+  }
+  virtual void VisitClosureCreation(ClosureCreation* node) {
+    VisitDefaultExpression(node);
+  }
 };
 
 
@@ -2992,6 +3286,7 @@ class DartTypeVisitor {
     VisitDefaultDartType(node);
   }
   virtual void VisitVoidType(VoidType* node) { VisitDefaultDartType(node); }
+  virtual void VisitBottomType(BottomType* node) { VisitDefaultDartType(node); }
   virtual void VisitInterfaceType(InterfaceType* node) {
     VisitDefaultDartType(node);
   }
@@ -2999,6 +3294,10 @@ class DartTypeVisitor {
     VisitDefaultDartType(node);
   }
   virtual void VisitTypeParameterType(TypeParameterType* node) {
+    VisitDefaultDartType(node);
+  }
+  virtual void VisitVectorType(VectorType* node) { VisitDefaultDartType(node); }
+  virtual void VisitTypedefType(TypedefType* node) {
     VisitDefaultDartType(node);
   }
 };
@@ -3040,6 +3339,7 @@ class TreeVisitor : public ExpressionVisitor,
   virtual void VisitCatch(Catch* node) { VisitDefaultTreeNode(node); }
   virtual void VisitMapEntry(MapEntry* node) { VisitDefaultTreeNode(node); }
   virtual void VisitProgram(Program* node) { VisitDefaultTreeNode(node); }
+  virtual void VisitTypedef(Typedef* node) { VisitDefaultTreeNode(node); }
 };
 
 
@@ -3144,7 +3444,6 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
 
 kernel::Program* ReadPrecompiledKernelFromBuffer(const uint8_t* buffer,
                                                  intptr_t buffer_length);
-
 
 
 }  // namespace dart

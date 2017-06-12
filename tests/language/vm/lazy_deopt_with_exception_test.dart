@@ -13,7 +13,6 @@ class C {
   var x = 42;
 }
 
-
 const NeverInline = "NeverInline";
 
 @NeverInline
@@ -28,11 +27,9 @@ AA(C c, bool b) {
 T1(C c, bool b) {
   try {
     AA(c, b);
-  } on dynamic {
-  }
+  } on dynamic {}
   return c.x + 1;
 }
-
 
 @NeverInline
 T2(C c, bool b) {
@@ -40,14 +37,13 @@ T2(C c, bool b) {
     AA(c, b);
   } on String {
     Expect.isTrue(false);
-  } on int catch(e) {
+  } on int catch (e) {
     Expect.equals(e, 123);
     Expect.equals(b, true);
     Expect.equals(c.x, 2.5);
   }
   return c.x + 1;
 }
-
 
 main() {
   var c = new C();
@@ -60,5 +56,3 @@ main() {
   Expect.equals(3.5, T1(c, true));
   Expect.equals(3.5, T2(c, true));
 }
-
-

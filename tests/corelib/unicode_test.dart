@@ -5,10 +5,8 @@
 import "package:expect/expect.dart";
 
 class UnicodeTest {
-
   static testMain() {
-    var lowerStrasse =
-        new String.fromCharCodes([115, 116, 114, 97, 223, 101]);
+    var lowerStrasse = new String.fromCharCodes([115, 116, 114, 97, 223, 101]);
     Expect.equals("STRASSE", lowerStrasse.toUpperCase());
   }
 }

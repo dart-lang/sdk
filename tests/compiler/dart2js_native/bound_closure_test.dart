@@ -13,19 +13,19 @@ class AA {
 
 @Native("BB")
 class BB {
-  foo(a, [b = 'B']) native ;
+  foo(a, [b = 'B']) native;
 }
 
 @Native("CC")
 class CC extends BB {
-  foo(a, [b = 'C']) native ;
+  foo(a, [b = 'C']) native;
 
   get superfoo => super.foo;
 }
 
-makeBB() native ;
-makeCC() native ;
-inscrutable(a) native ;
+makeBB() native;
+makeCC() native;
+inscrutable(a) native;
 
 void setup() native r"""
 function BB() {}

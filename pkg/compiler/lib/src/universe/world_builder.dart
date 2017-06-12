@@ -16,14 +16,17 @@ import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
+import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
 import '../js_backend/constant_handler_javascript.dart'
     show JavaScriptConstantCompiler;
-import '../js_backend/native_data.dart' show NativeBasicData;
+import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
+import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
 import '../universe/class_set.dart';
 import '../universe/function_set.dart' show FunctionSetBuilder;
 import '../util/enumset.dart';
 import '../util/util.dart';
-import '../world.dart' show World, ClosedWorld, ClosedWorldImpl, OpenWorld;
+import '../world.dart'
+    show World, ClosedWorld, ClosedWorldImpl, KernelClosedWorld, OpenWorld;
 import 'selector.dart' show Selector;
 import 'use.dart'
     show
@@ -35,6 +38,7 @@ import 'use.dart'
         StaticUseKind;
 
 part 'codegen_world_builder.dart';
+part 'element_world_builder.dart';
 part 'member_usage.dart';
 part 'resolution_world_builder.dart';
 
@@ -94,7 +98,7 @@ abstract class SelectorConstraints {
   ///
   /// Ideally the selector constraints for calls `foo` with two positional
   /// arguments apply to `A.foo` but `B.foo`.
-  bool applies(MemberElement element, Selector selector, World world);
+  bool applies(MemberEntity element, Selector selector, World world);
 
   /// Returns `true` if at least one of the receivers matching these constraints
   /// in the closed [world] have no implementation matching [selector].
@@ -137,7 +141,7 @@ class OpenWorldConstraints extends UniverseSelectorConstraints {
   bool isAll = false;
 
   @override
-  bool applies(Element element, Selector selector, World world) => isAll;
+  bool applies(MemberEntity element, Selector selector, World world) => isAll;
 
   @override
   bool needsNoSuchMethodHandling(Selector selector, World world) => isAll;

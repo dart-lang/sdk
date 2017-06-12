@@ -15,8 +15,7 @@ class Sections extends IterableBase<Section> {
 
   int get length => _sections.length;
 
-  List<String> get sectionTitles =>
-    _sections.map((s) => s.title).toList();
+  List<String> get sectionTitles => _sections.map((s) => s.title).toList();
 
   void refresh() {
     // TODO(jimhug): http://b/issue?id=5351067
@@ -50,24 +49,25 @@ class Sections extends IterableBase<Section> {
     int nSections = decoder.readInt();
     final sections = new List<Section>();
 
-    for (int i=0; i < nSections; i++) {
+    for (int i = 0; i < nSections; i++) {
       sections.add(Section.decode(decoder));
     }
     callback(new Sections(sections));
   }
 
-  static void initializeFromUrl(bool useCannedData,
-                                void callback(Sections sections)) {
+  static void initializeFromUrl(
+      bool useCannedData, void callback(Sections sections)) {
     if (Sections.runningFromFile || useCannedData) {
       initializeFromData(CannedData.data['user.data'], callback);
     } else {
       // TODO(jmesserly): display an error if we fail here! Silent failure bad.
-      HttpRequest.getString('data/user.data').then(
-          EventBatch.wrap((responseText) {
-            // TODO(jimhug): Nice response if get error back from server.
-            // TODO(jimhug): Might be more efficient to parse request
-            // in sections.
-            initializeFromData(responseText, callback);
+      HttpRequest
+          .getString('data/user.data')
+          .then(EventBatch.wrap((responseText) {
+        // TODO(jimhug): Nice response if get error back from server.
+        // TODO(jimhug): Might be more efficient to parse request
+        // in sections.
+        initializeFromData(responseText, callback);
       }));
     }
   }
@@ -94,7 +94,6 @@ class Sections extends IterableBase<Section> {
   bool get isEmpty => length == 0;
 }
 
-
 /** A collection of data sources representing a page in the UI. */
 class Section {
   final String id;
@@ -116,7 +115,7 @@ class Section {
 
     final nSources = decoder.readInt();
     final feeds = new ObservableList<Feed>();
-    for (int j=0; j < nSources; j++) {
+    for (int j = 0; j < nSources; j++) {
       feeds.add(Feed.decode(decoder));
     }
     return new Section(sectionId, sectionTitle, feeds);
@@ -137,8 +136,8 @@ class Feed {
   ObservableValue<bool> error; // TODO(jimhug): Check if dead code.
 
   Feed(this.id, this.title, this.iconUrl, {this.description: ''})
-    : articles = new ObservableList<Article>(),
-      error = new ObservableValue<bool>(false);
+      : articles = new ObservableList<Article>(),
+        error = new ObservableValue<bool>(false);
 
   static Feed decode(Decoder decoder) {
     final sourceId = decoder.readString();
@@ -147,7 +146,7 @@ class Feed {
     final feed = new Feed(sourceId, sourceTitle, sourceIcon);
     final nItems = decoder.readInt();
 
-    for (int i=0; i < nItems; i++) {
+    for (int i = 0; i < nItems; i++) {
       feed.articles.add(Article.decodeHeader(feed, decoder));
     }
     return feed;
@@ -160,7 +159,6 @@ class Feed {
   void refresh() {}
 }
 
-
 /** A single article or posting to display. */
 class Article {
   final String id;
@@ -168,7 +166,7 @@ class Article {
   final String title;
   final String author;
   final bool hasThumbnail;
-  String textBody; // TODO(jimhug): rename to snipppet.
+  String textBody; // TODO(jimhug): rename to snippet.
   final Feed dataSource; // TODO(jimhug): rename to feed.
   String _htmlBody;
   String srcUrl;
@@ -179,7 +177,8 @@ class Article {
   Article(this.dataSource, this.id, this.date, this.title, this.author,
       this.srcUrl, this.hasThumbnail, this.textBody,
       {htmlBody: null, bool unread: true, this.error: false})
-    : unread = new ObservableValue<bool>(unread), this._htmlBody = htmlBody;
+      : unread = new ObservableValue<bool>(unread),
+        this._htmlBody = htmlBody;
 
   String get htmlBody {
     _ensureLoaded();
@@ -187,8 +186,10 @@ class Article {
   }
 
   String get dataUri {
-    return SwarmUri.encodeComponent(id).replaceAll('%2F', '/').
-        replaceAll('%253A', '%3A');
+    return SwarmUri
+        .encodeComponent(id)
+        .replaceAll('%2F', '/')
+        .replaceAll('%253A', '%3A');
   }
 
   String get thumbUrl {
@@ -232,9 +233,9 @@ class Article {
     final author = decoder.readString();
     final dateInSeconds = decoder.readInt();
     final snippet = decoder.readString();
-    final date =
-        new DateTime.fromMillisecondsSinceEpoch(dateInSeconds*1000, isUtc: true);
-    return new Article(source, id, date, title, author, srcUrl, hasThumbnail,
-        snippet);
+    final date = new DateTime.fromMillisecondsSinceEpoch(dateInSeconds * 1000,
+        isUtc: true);
+    return new Article(
+        source, id, date, title, author, srcUrl, hasThumbnail, snippet);
   }
 }

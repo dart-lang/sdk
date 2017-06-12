@@ -1064,7 +1064,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   nativeCreateConnect(List<int> addr, int port) native "Socket_CreateConnect";
   nativeCreateBindConnect(List<int> addr, int port, List<int> sourceAddr)
       native "Socket_CreateBindConnect";
-  bool isBindError(int errorNumber) native "Socket_IsBindError";
+  bool isBindError(int errorNumber) native "SocketBase_IsBindError";
   nativeCreateBindListen(List<int> addr, int port, int backlog, bool v6Only,
       bool shared) native "ServerSocket_CreateBindListen";
   nativeCreateBindDatagram(List<int> addr, int port, bool reuseAddress)

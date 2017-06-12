@@ -86,6 +86,7 @@ main(List<String> arguments) {
     'language',
     'corelib',
     path.join('corelib', 'regexp'),
+    path.join('lib', 'async'),
     path.join('lib', 'collection'),
     path.join('lib', 'convert'),
     path.join('lib', 'html'),
@@ -156,18 +157,27 @@ main(List<String> arguments) {
         compiler = new ModuleCompiler(analyzerOptions);
       }
       JSModuleFile module = null;
+      var exception, stackTrace;
       try {
         module = compiler.compile(unit, options);
-      } catch (e) {}
+      } catch (e, st) {
+        exception = e;
+        stackTrace = st;
+      }
 
-      bool expectedCompileTimeError =
-          contents.contains(': compile-time error\n');
+      bool expectedCompileTimeError = contents.contains(': compile-time error');
       bool notStrong = notYetStrongTests.contains(name);
       bool crashing = _crashingTests.contains(name);
+      bool inconsistent = _inconsistentTests.contains(name);
 
       if (module == null) {
         expect(crashing, isTrue,
-            reason: "test $name crashes during compilation.");
+            reason: "test $name crashes during compilation.\n"
+                "$exception\n$stackTrace");
+      } else if (inconsistent) {
+        // An inconsistent test will only compile on some platforms (see
+        // comment below).  It should not crash however.
+        expect(crashing, isFalse, reason: "test $name no longer crashes.");
       } else if (module.isValid) {
         _writeModule(
             path.join(codegenOutputDir, name),
@@ -183,9 +193,10 @@ main(List<String> arguments) {
             reason: "test $name expected strong mode errors, but compiled.");
       } else {
         expect(crashing, isFalse, reason: "test $name no longer crashes.");
-        var reason =
-            expectedCompileTimeError ? "expected" : "untriaged strong mode";
-        expect(expectedCompileTimeError || notStrong, isTrue,
+        var reason = expectedCompileTimeError
+            ? "expected"
+            : inconsistent ? "platform consistency" : "untriaged strong mode";
+        expect(expectedCompileTimeError || inconsistent || notStrong, isTrue,
             reason: "test $name failed to compile due to $reason errors:"
                 "\n\n${module.errors.join('\n')}.");
       }
@@ -265,7 +276,8 @@ List<String> _setUpTests(List<String> testDirs) {
     var dirParts = path.split(testDir);
     var sdkTestDir =
         path.join(dirParts[0] + "_strong", path.joinAll(dirParts.skip(1)));
-    var inputPath = path.join(testDirectory, '../../../tests/', sdkTestDir);
+    var inputPath =
+        path.join(testDirectory, '..', '..', '..', 'tests', sdkTestDir);
 
     for (var file in _listFiles(inputPath, recursive: true)) {
       var relativePath = path.relative(file, from: inputPath);
@@ -380,13 +392,14 @@ String _resolveDirective(UriBasedDirective directive) {
       : null;
 }
 
-final _crashingTests = new Set<String>.from([
-  'language/generic_methods_generic_class_tearoff_test',
-  'language/generic_methods_named_parameters_test',
-  'language/generic_methods_optional_parameters_test',
-  'language/generic_methods_tearoff_specialization_test',
-  'language/generic_methods_unused_parameter_test',
+/// Tests that, due to bugs, are strong-mode clean only on some platforms.
+final _inconsistentTests = new Set<String>.from([
+  // This test is clean on windows, but not linux/mac due to newline encoding.
+  // See: https://github.com/dart-lang/sdk/issues/27224
+  'language/multiline_newline_test_02_multi',
+].map((p) => p.replaceAll('/', path.separator)));
 
+final _crashingTests = new Set<String>.from([
   // TODO(vsm): Fix these - they import files from a different directory
   // - this triggers an invalid library root build error.
   'lib/html/custom/attribute_changed_callback_test',
@@ -395,4 +408,4 @@ final _crashingTests = new Set<String>.from([
   'lib/html/custom/js_custom_test',
   'lib/html/custom/mirrors_test',
   'lib/html/custom/regress_194523002_test',
-]);
+].map((p) => p.replaceAll('/', path.separator)));

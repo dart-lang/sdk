@@ -9,11 +9,10 @@ import "dart:io";
 import "process_test_util.dart";
 
 void main() {
-  var fp = Process.start(getProcessTestFileName(),
-                         const ["0", "0", "0", "0"]);
+  var fp = Process.start(getProcessTestFileName(), const ["0", "0", "0", "0"]);
   fp.then((p) {
     p.exitCode.then((int s) {
-      print(a.toString());  // Should cause a compilation error here.
+      print(a.toString()); // Should cause a compilation error here.
     });
     // Drain stdout and stderr.
     p.stdout.listen((_) {});

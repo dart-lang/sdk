@@ -11,14 +11,15 @@ import 'builder.dart'
         Builder,
         ConstructorReferenceBuilder,
         LibraryBuilder,
+        MemberBuilder,
         MetadataBuilder,
         MixinApplicationBuilder,
         NamedTypeBuilder,
+        Scope,
+        ScopeBuilder,
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder;
-
-import 'scope.dart' show AccessErrorBuilder, AmbiguousBuilder, Scope;
 
 abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
@@ -28,7 +29,13 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
 
   List<T> interfaces;
 
-  final Map<String, Builder> members;
+  final Scope scope;
+
+  final Scope constructors;
+
+  final ScopeBuilder scopeBuilder;
+
+  final ScopeBuilder constructorScopeBuilder;
 
   ClassBuilder(
       List<MetadataBuilder> metadata,
@@ -37,93 +44,54 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
       this.typeVariables,
       this.supertype,
       this.interfaces,
-      this.members,
+      this.scope,
+      this.constructors,
       LibraryBuilder parent,
       int charOffset)
-      : super(metadata, modifiers, name, parent, charOffset);
+      : scopeBuilder = new ScopeBuilder(scope),
+        constructorScopeBuilder = new ScopeBuilder(constructors),
+        super(metadata, modifiers, name, parent, charOffset);
 
   /// Returns true if this class is the result of applying a mixin to its
   /// superclass.
   bool get isMixinApplication => mixedInType != null;
 
+  bool get isNamedMixinApplication {
+    return isMixinApplication && super.isNamedMixinApplication;
+  }
+
   T get mixedInType;
 
+  void set mixedInType(T mixin);
+
   List<ConstructorReferenceBuilder> get constructorReferences => null;
-
-  Map<String, Builder> get constructors;
-
-  Map<String, Builder> get membersInScope => members;
 
   LibraryBuilder get library {
     LibraryBuilder library = parent;
     return library.partOfLibrary ?? library;
   }
 
+  @override
   int resolveConstructors(LibraryBuilder library) {
     if (constructorReferences == null) return 0;
-    Scope scope = computeInstanceScope(library.scope);
     for (ConstructorReferenceBuilder ref in constructorReferences) {
       ref.resolveIn(scope);
     }
     return constructorReferences.length;
   }
 
-  Scope computeInstanceScope(Scope parent) {
-    if (typeVariables != null) {
-      Map<String, Builder> local = <String, Builder>{};
-      for (TypeVariableBuilder t in typeVariables) {
-        local[t.name] = t;
-      }
-      parent = new Scope(local, parent, isModifiable: false);
-    }
-    return new Scope(membersInScope, parent, isModifiable: false);
-  }
-
   /// Used to lookup a static member of this class.
   Builder findStaticBuilder(String name, int charOffset, Uri fileUri,
       {bool isSetter: false}) {
-    Builder builder = members[name];
-    if (builder?.next != null) {
-      Builder getterBuilder;
-      Builder setterBuilder;
-      Builder current = builder;
-      while (current != null) {
-        if (current.isGetter && getterBuilder == null) {
-          getterBuilder = current;
-        } else if (current.isSetter && setterBuilder == null) {
-          setterBuilder = current;
-        } else {
-          return new AmbiguousBuilder(name, builder, charOffset, fileUri);
-        }
-        current = current.next;
-      }
-      if (getterBuilder?.isInstanceMember ?? false) {
-        getterBuilder = null;
-      }
-      if (setterBuilder?.isInstanceMember ?? false) {
-        setterBuilder = null;
-      }
-      builder = isSetter ? setterBuilder : getterBuilder;
-      if (builder == null) {
-        if (isSetter && getterBuilder != null) {
-          return new AccessErrorBuilder(
-              name, getterBuilder, charOffset, fileUri);
-        } else if (!isSetter && setterBuilder != null) {
-          return new AccessErrorBuilder(
-              name, setterBuilder, charOffset, fileUri);
-        }
-      }
-    }
-    if (builder == null) {
-      return null;
-    } else if (isSetter && builder.isGetter) {
-      return null;
-    } else {
-      return builder.isInstanceMember ? null : builder;
-    }
+    Builder builder = isSetter
+        ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
+        : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
+    return builder;
   }
 
-  Builder findConstructorOrFactory(String name);
+  Builder findConstructorOrFactory(String name, int charOffset, Uri uri) {
+    return constructors.lookup(name, charOffset, uri);
+  }
 
   /// Returns a map which maps the type variables of [superclass] to their
   /// respective values as defined by the superclass clause of this class (and
@@ -153,30 +121,52 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     List arguments;
     List variables;
     Builder builder;
-    while (builder != superclass) {
-      if (supertype is NamedTypeBuilder) {
-        NamedTypeBuilder t = supertype;
-        builder = t.builder;
-        arguments = t.arguments;
-        if (builder is ClassBuilder) {
-          variables = builder.typeVariables;
-          if (builder != superclass) {
-            supertype = builder.supertype;
-          }
+
+    /// If [application] is mixing in [superclass] directly or via other named
+    /// mixin applications, return it.
+    NamedTypeBuilder findSuperclass(MixinApplicationBuilder application) {
+      for (TypeBuilder t in application.mixins) {
+        if (t is NamedTypeBuilder) {
+          if (t.builder == superclass) return t;
+        } else if (t is MixinApplicationBuilder) {
+          NamedTypeBuilder s = findSuperclass(t);
+          if (s != null) return s;
         }
+      }
+      return null;
+    }
+
+    void handleNamedTypeBuilder(NamedTypeBuilder t) {
+      builder = t.builder;
+      arguments = t.arguments ?? const [];
+      if (builder is ClassBuilder) {
+        ClassBuilder cls = builder;
+        variables = cls.typeVariables;
+        supertype = cls.supertype;
+      }
+    }
+
+    while (builder != superclass) {
+      variables = null;
+      if (supertype is NamedTypeBuilder) {
+        handleNamedTypeBuilder(supertype);
       } else if (supertype is MixinApplicationBuilder) {
         MixinApplicationBuilder t = supertype;
+        NamedTypeBuilder s = findSuperclass(t);
+        if (s != null) {
+          handleNamedTypeBuilder(s);
+        }
         supertype = t.supertype;
       } else {
-        internalError("Superclass not found.", fileUri, charOffset);
+        internalError("Superclass not found '${superclass.fullNameForErrors}'.",
+            fileUri, charOffset);
       }
       if (variables != null) {
         Map<TypeVariableBuilder, TypeBuilder> directSubstitutionMap =
             <TypeVariableBuilder, TypeBuilder>{};
-        arguments ??= const [];
         for (int i = 0; i < variables.length; i++) {
           TypeBuilder argument =
-              arguments.length < i ? arguments[i] : dynamicType;
+              i < arguments.length ? arguments[i] : dynamicType;
           if (substitutionMap != null) {
             argument = argument.subst(substitutionMap);
           }
@@ -186,6 +176,17 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
       }
     }
     return substitutionMap;
+  }
+
+  void forEach(void f(String name, MemberBuilder builder)) {
+    scope.forEach(f);
+  }
+
+  /// Don't use for scope lookup. Only use when an element is known to exist
+  /// (and isn't a setter).
+  MemberBuilder operator [](String name) {
+    // TODO(ahe): Rename this to getLocalMember.
+    return scope.local[name] ?? internalError("Not found: '$name'.");
   }
 
   void addCompileTimeError(int charOffset, String message) {

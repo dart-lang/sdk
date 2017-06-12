@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 
 // Test that optimized code does not silently convert integers to doubles.
 
-
 main() {
   // Optimize add-op
   for (int i = 0; i < 20; i++) {

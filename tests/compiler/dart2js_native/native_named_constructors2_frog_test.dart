@@ -19,13 +19,13 @@ class A {
     return makeA(v);
   }
 
-  foo() native ;
+  foo() native;
 }
 
-makeA(v) native ;
+makeA(v) native;
 
 void setup() native """
-// This code is all inside 'setup' and so not accesible from the global scope.
+// This code is all inside 'setup' and so not accessible from the global scope.
 function A(arg) { this._x = arg; }
 A.prototype.foo = function() { return this._x; };
 makeA = function(arg) { return new A(arg); }

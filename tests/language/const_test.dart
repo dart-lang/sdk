@@ -7,20 +7,23 @@
 import "package:expect/expect.dart";
 
 class AConst {
-  const AConst() : b_ = 3 ;
+  const AConst() : b_ = 3;
   final int b_;
 }
-
 
 class BConst {
   const BConst();
   set foo(value) {}
-  get foo { return 5; }
+  get foo {
+    return 5;
+  }
 
-  operator [](ix) { return ix; }
+  operator [](ix) {
+    return ix;
+  }
+
   operator []=(ix, value) {}
 }
-
 
 testMain() {
   var o = const AConst();
@@ -32,7 +35,6 @@ testMain() {
   var y = (const BConst())[5]++;
   Expect.equals(5, y);
 }
-
 
 main() {
   for (int i = 0; i < 20; i++) {

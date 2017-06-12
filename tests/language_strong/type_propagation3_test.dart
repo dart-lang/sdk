@@ -46,7 +46,8 @@ main() {
   // (1, 5)
 
   var b = a;
-  while (b.isEmpty) { // (4, 6)
+  while (b.isEmpty) {
+    // (4, 6)
     b.foo(); // (3, 7)
     b.bar(); // (8)
     b = b.doIt(); // (2)

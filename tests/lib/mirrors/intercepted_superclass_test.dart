@@ -7,7 +7,7 @@ library test.intercepted_superclass_test;
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
-check(ClassMirror cm){
+check(ClassMirror cm) {
   Expect.isTrue(cm is ClassMirror);
   Expect.isNotNull(cm);
 }

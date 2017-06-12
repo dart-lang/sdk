@@ -10,6 +10,10 @@ pause_on_start_and_exit_test: Pass, RuntimeError # Issue 28624
 pause_on_start_then_step_test: Pass, RuntimeError # Issue 28624
 isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
 field_script_test: Pass, RuntimeError
+get_isolate_rpc_test: Pass, RuntimeError # Issue 29324
+
+[ $system == windows && $mode == debug && $checked ]
+async_scope_test: Pass, Slow
 
 [$runtime == vm && $compiler == none && $system == fuchsia]
 *: Skip  # Not yet triaged.
@@ -23,6 +27,9 @@ async_generator_breakpoint_test: Skip # Issue 29145
 ### Skip kernel specific versions.
 ###
 add_breakpoint_rpc_kernel_test: SkipByDesign # kernel specific version of add_breakpoint_rpc_test
+
+[ $compiler == dartk ]
+next_through_simple_async_test: Pass, Fail # Issue 29145
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) ]
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
@@ -67,7 +74,7 @@ evaluate_activation_test/scope: RuntimeError # Issue 27806
 get_object_rpc_test: RuntimeError # Issue 27806
 get_source_report_test: RuntimeError # Issue 27806
 set_name_rpc_test: RuntimeError # Issue 27806
-pause_on_unhandled_async_exceptions2_test: Pass, RuntimeError, Timeout # Issue 29178
+pause_on_unhandled_async_exceptions2_test: Pass, RuntimeError, Timeout, Crash # Issue 29178
 
 debugger_location_second_test: Skip # Issue 28180
 
@@ -104,7 +111,7 @@ step_through_getter_test: RuntimeError
 dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
 dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in paths
 
-[ $system != linux && ($arch != x64 || $arch != ia32) ]
+[ $system != linux || ($arch != x64 || $arch != ia32) ]
 get_native_allocation_samples_test: Skip # Unsupported.
 
 # Service protocol is not supported in product mode.

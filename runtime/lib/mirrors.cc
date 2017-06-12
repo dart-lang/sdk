@@ -95,14 +95,7 @@ static void EnsureConstructorsAreCompiled(const Function& func) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
   }
-  if (!func.HasCode()) {
-    const Error& error =
-        Error::Handle(zone, Compiler::CompileFunction(thread, func));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-      UNREACHABLE();
-    }
-  }
+  func.EnsureHasCode();
 }
 
 static RawInstance* CreateParameterMirrorList(const Function& func,
@@ -152,11 +145,8 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     // * Whether a parameters has been declared as final.
     // * Any metadata associated with the parameter.
     Object& result = Object::Handle();
-
-    kernel::TreeNode* kernel_node =
-        reinterpret_cast<kernel::TreeNode*>(func.kernel_function());
-    if (kernel_node != NULL) {
-      result = kernel::BuildParameterDescriptor(kernel_node);
+    if (func.kernel_function() != NULL) {
+      result = kernel::BuildParameterDescriptor(func);
     } else {
       result = Parser::ParseFunctionParameters(func);
     }
@@ -761,7 +751,13 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsCanonical() || type.IsTypeParameter() || type.IsBoundedType());
 
+  // TODO(regis): Support uninstantiated type referring to function type params.
+  if (!type.IsInstantiated(kFunctions)) {
+    UNIMPLEMENTED();
+  }
+
   if (type.IsInstantiated() || instantiator.IsNull()) {
+    // TODO(regis): Shouldn't type parameters be replaced by dynamic?
     return type.Canonicalize();
   }
 
@@ -769,11 +765,12 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   ASSERT(instantiator.IsFinalized());
   PROPAGATE_IF_MALFORMED(instantiator);
 
-  const TypeArguments& type_args =
+  const TypeArguments& instantiator_type_args =
       TypeArguments::Handle(instantiator.arguments());
   Error& bound_error = Error::Handle();
-  AbstractType& result = AbstractType::Handle(
-      type.InstantiateFrom(type_args, &bound_error, NULL, NULL, Heap::kOld));
+  AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
+      instantiator_type_args, Object::null_type_arguments(), &bound_error, NULL,
+      NULL, Heap::kOld));
   if (!bound_error.IsNull()) {
     Exceptions::PropagateError(bound_error);
     UNREACHABLE();
@@ -973,14 +970,13 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_parameters, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 2) {
+DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, instantiator,
-                               arguments->NativeArgAt(1));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
   ASSERT(!func.IsNull());
   AbstractType& type = AbstractType::Handle(func.result_type());
-  return InstantiateType(type, instantiator);
+  // Signatures of function types are instantiated, but not canonical.
+  return type.Canonicalize();
 }
 
 
@@ -1347,8 +1343,10 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
   Function& function = Function::Handle(
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
 
-  const Array& args_descriptor =
-      Array::Handle(zone, ArgumentsDescriptor::New(args.Length(), arg_names));
+  // TODO(regis): Support invocation of generic functions with type arguments.
+  const int kTypeArgsLen = 0;
+  const Array& args_descriptor = Array::Handle(
+      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
 
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
@@ -1361,8 +1359,8 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
       const int kNumArgs = 1;
       const Array& getter_args = Array::Handle(zone, Array::New(kNumArgs));
       getter_args.SetAt(0, reflectee);
-      const Array& getter_args_descriptor =
-          Array::Handle(zone, ArgumentsDescriptor::New(getter_args.Length()));
+      const Array& getter_args_descriptor = Array::Handle(
+          zone, ArgumentsDescriptor::New(kTypeArgsLen, getter_args.Length()));
       const Instance& getter_result = Instance::Handle(
           zone, InvokeDynamicFunction(reflectee, function, getter_name,
                                       getter_args, getter_args_descriptor));
@@ -1408,11 +1406,12 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
     }
   }
 
+  const int kTypeArgsLen = 0;
   const int kNumArgs = 1;
   const Array& args = Array::Handle(zone, Array::New(kNumArgs));
   args.SetAt(0, reflectee);
-  const Array& args_descriptor =
-      Array::Handle(zone, ArgumentsDescriptor::New(args.Length()));
+  const Array& args_descriptor = Array::Handle(
+      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
 
   // InvokeDynamic invokes NoSuchMethod if the provided function is null.
   return InvokeDynamicFunction(reflectee, function, internal_getter_name, args,
@@ -1434,12 +1433,13 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
   const Function& setter = Function::Handle(
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_setter_name));
 
+  const int kTypeArgsLen = 0;
   const int kNumArgs = 2;
   const Array& args = Array::Handle(zone, Array::New(kNumArgs));
   args.SetAt(0, reflectee);
   args.SetAt(1, value);
-  const Array& args_descriptor =
-      Array::Handle(zone, ArgumentsDescriptor::New(args.Length()));
+  const Array& args_descriptor = Array::Handle(
+      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
 
   return InvokeDynamicFunction(reflectee, setter, internal_setter_name, args,
                                args_descriptor);
@@ -1472,8 +1472,12 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
 
     Type& instantiator = Type::Handle();
     if (closure.IsClosure()) {
-      const TypeArguments& arguments =
-          TypeArguments::Handle(Closure::Cast(closure).instantiator());
+      const TypeArguments& arguments = TypeArguments::Handle(
+          Closure::Cast(closure).instantiator_type_arguments());
+      // TODO(regis): Mirrors need work to properly support generic functions.
+      // The 'instantiator' created below should not be a type, but two type
+      // argument vectors: instantiator_type_arguments and
+      // function_type_arguments.
       const Class& cls =
           Class::Handle(Isolate::Current()->object_store()->object_class());
       instantiator = Type::New(cls, arguments, TokenPosition::kNoSource);
@@ -1497,6 +1501,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
+  // TODO(regis): Support invocation of generic functions with type arguments.
+  const int kTypeArgsLen = 0;
   const Error& error = Error::Handle(zone, klass.EnsureIsFinalized(thread));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
@@ -1520,16 +1526,17 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
         UNREACHABLE();
       }
       // Make room for the closure (receiver) in the argument list.
-      intptr_t numArgs = args.Length();
-      const Array& call_args = Array::Handle(Array::New(numArgs + 1));
+      const intptr_t num_args = args.Length();
+      const Array& call_args = Array::Handle(Array::New(num_args + 1));
       Object& temp = Object::Handle();
-      for (int i = 0; i < numArgs; i++) {
+      for (int i = 0; i < num_args; i++) {
         temp = args.At(i);
         call_args.SetAt(i + 1, temp);
       }
       call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array = Array::Handle(
-          ArgumentsDescriptor::New(call_args.Length(), arg_names));
+      const Array& call_args_descriptor_array =
+          Array::Handle(ArgumentsDescriptor::New(
+              kTypeArgsLen, call_args.Length(), arg_names));
       // Call the closure.
       const Object& call_result = Object::Handle(
           DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
@@ -1541,8 +1548,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
     }
   }
 
-  const Array& args_descriptor_array =
-      Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
+  const Array& args_descriptor_array = Array::Handle(
+      ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
 
@@ -1711,9 +1718,11 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
     if (!redirect_type.IsInstantiated()) {
       // The type arguments of the redirection type are instantiated from the
       // type arguments of the type reflected by the class mirror.
+      ASSERT(redirect_type.IsInstantiated(kFunctions));
       Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, &bound_error, NULL, NULL, Heap::kOld);
+          type_arguments, Object::null_type_arguments(), &bound_error, NULL,
+          NULL, Heap::kOld);
       if (!bound_error.IsNull()) {
         Exceptions::PropagateError(bound_error);
         UNREACHABLE();
@@ -1741,8 +1750,9 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
     args.SetAt(i + num_implicit_args, explicit_argument);
   }
 
-  const Array& args_descriptor_array =
-      Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
+  const int kTypeArgsLen = 0;
+  const Array& args_descriptor_array = Array::Handle(
+      ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (!redirected_constructor.AreValidArguments(args_descriptor, NULL)) {
@@ -1802,6 +1812,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
+  // TODO(regis): Support invocation of generic functions with type arguments.
+  const int kTypeArgsLen = 0;
   Function& function =
       Function::Handle(library.LookupLocalFunction(function_name));
 
@@ -1819,8 +1831,9 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
         call_args.SetAt(i + 1, temp);
       }
       call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array = Array::Handle(
-          ArgumentsDescriptor::New(call_args.Length(), arg_names));
+      const Array& call_args_descriptor_array =
+          Array::Handle(ArgumentsDescriptor::New(
+              kTypeArgsLen, call_args.Length(), arg_names));
       // Call closure.
       const Object& call_result = Object::Handle(
           DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
@@ -1832,8 +1845,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
     }
   }
 
-  const Array& args_descriptor_array =
-      Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
+  const Array& args_descriptor_array = Array::Handle(
+      ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
 
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
@@ -1954,7 +1967,8 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 2) {
   GET_NATIVE_ARGUMENT(AbstractType, instantiator, arguments->NativeArgAt(1));
   // We handle constructors in Dart code.
   ASSERT(!func.IsGenerativeConstructor());
-  const AbstractType& type = AbstractType::Handle(func.result_type());
+  AbstractType& type = AbstractType::Handle(func.result_type());
+  type ^= type.Canonicalize();  // Instantiated signatures are not canonical.
   return InstantiateType(type, instantiator);
 }
 
@@ -2078,8 +2092,9 @@ DEFINE_NATIVE_ENTRY(ParameterMirror_type, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, pos, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(AbstractType, instantiator, arguments->NativeArgAt(2));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
-  const AbstractType& type = AbstractType::Handle(
+  AbstractType& type = AbstractType::Handle(
       func.ParameterTypeAt(func.NumImplicitParameters() + pos.Value()));
+  type ^= type.Canonicalize();  // Instantiated signatures are not canonical.
   return InstantiateType(type, instantiator);
 }
 

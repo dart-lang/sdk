@@ -27,7 +27,7 @@ make_array() {
     } else {
       return [new A(), new B(), new C(), new D(), new E(), new T()];
     }
-  } catch (e) { }
+  } catch (e) {}
 }
 
 bla() {

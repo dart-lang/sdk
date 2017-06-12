@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.dart.manager;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -11,7 +9,6 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:test/test.dart';
@@ -22,7 +19,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionManagerTest);
-    defineReflectiveTests(CompletionManagerTest_Driver);
   });
 }
 
@@ -44,7 +40,7 @@ library libA;
 /// Longer description.
 class A {}
 ''');
-    var libSource = addSource(
+    addSource(
         '/libB.dart',
         '''
 library libB;
@@ -53,17 +49,10 @@ part '$testFile';
 ''');
     addTestSource('part of libB; main() {^}');
 
-    // Associate part with library
-    if (!enableNewAnalysisDriver) {
-      context.computeResult(libSource, LIBRARY_CYCLE_UNITS);
-    }
-
     // Build the request
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        enableNewAnalysisDriver ? await driver.getResult(testFile) : null,
-        enableNewAnalysisDriver ? null : context,
+        await driver.getResult(testFile),
         provider,
-        searchEngine,
         testSource,
         completionOffset,
         new CompletionPerformance(),
@@ -77,21 +66,9 @@ part '$testFile';
     });
     request = await performAnalysis(200, requestCompleter);
 
-    // Get the unresolved directives
     var directives = request.target.unit.directives;
 
-    // Assert that the import does not have an export namespace
-    if (!enableNewAnalysisDriver) {
-      Element element = resolutionMap.elementDeclaredByDirective(directives[0]);
-      expect(element?.library?.exportNamespace, isNull);
-    }
-
-    // Resolve directives
-    var importCompleter = new Completer<List<ImportElement>>();
-    request.resolveImports().then((List<ImportElement> elements) {
-      importCompleter.complete(elements);
-    });
-    List<ImportElement> imports = await performAnalysis(200, importCompleter);
+    List<ImportElement> imports = request.libraryElement.imports;
     expect(imports, hasLength(directives.length + 1));
 
     ImportElement importNamed(String expectedUri) {
@@ -110,10 +87,4 @@ part '$testFile';
     assertImportedLib(null /* dart:core */);
     assertImportedLib('/libA.dart');
   }
-}
-
-@reflectiveTest
-class CompletionManagerTest_Driver extends CompletionManagerTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

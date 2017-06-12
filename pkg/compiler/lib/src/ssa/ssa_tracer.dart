@@ -205,6 +205,10 @@ class HInstructionStringifier implements HVisitor<String> {
     return handleGenericInvoke("Create", "${node.element.name}", node.inputs);
   }
 
+  String visitCreateBox(HCreateBox node) {
+    return handleGenericInvoke("CreateBox", "", node.inputs);
+  }
+
   String visitDivide(HDivide node) => handleInvokeBinary(node, 'Divide');
 
   String visitExit(HExit node) => "Exit";

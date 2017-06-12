@@ -16,6 +16,7 @@ class Is<T> {
   expect(x, part) {
     Expect.isTrue(check(x), '($part: ${x.runtimeType}) is $name');
   }
+
   expectNot(x, part) {
     Expect.isFalse(check(x), '($part: ${x.runtimeType}) is! $name');
   }
@@ -41,7 +42,6 @@ void testSublistType(input, positive, all) {
   for (var check in negative) check.expectNot(sub2, 'empty sublist');
 }
 
-
 void testTypes() {
   var isFloat32list = new Is<Float32List>('Float32List');
   var isFloat64list = new Is<Float64List>('Float64List');
@@ -60,10 +60,17 @@ void testTypes() {
   var isDoubleList = new Is<List<double>>('List<double>');
   var isNumList = new Is<List<num>>('List<num>');
 
-  var allChecks = [isFloat32list, isFloat64list,
-      isInt8List, isInt16List, isInt32List,
-      isUint8List, isUint16List, isUint32List,
-      isUint8ClampedList];
+  var allChecks = [
+    isFloat32list,
+    isFloat64list,
+    isInt8List,
+    isInt16List,
+    isInt32List,
+    isUint8List,
+    isUint16List,
+    isUint32List,
+    isUint8ClampedList
+  ];
 
   testInt(list, check) {
     testSublistType(list, [check, isIntList, isNumList], allChecks);

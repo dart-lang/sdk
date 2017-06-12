@@ -106,9 +106,7 @@ class MapLiteralTest {
         }["alpha"]["gamma"]);
 
     // Map literals at beginning of statement.
-    <
-        String,
-        num>{"pink": 100};
+    <String, num>{"pink": 100};
     const <String, num>{"floyd": 100};
   }
 }

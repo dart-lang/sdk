@@ -4,7 +4,6 @@
 
 // Check possibly still unresolved upper bounds of default factory class.
 
-
 abstract class A<T extends Foo> {
   factory A() = _AImpl<T>;
 }
@@ -16,7 +15,7 @@ class Foo extends Bar {}
 class Bar {}
 
 class _AImpl<T extends Foo> implements A<T> {
-   factory _AImpl(){}
+  factory _AImpl() {}
 }
 
 main() {

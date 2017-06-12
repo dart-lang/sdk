@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Issue4295001Test {
- String foo;
- Issue4295001Test(String s) : this.foo = s {
-  var f = () => s;
- }
+  String foo;
+  Issue4295001Test(String s) : this.foo = s {
+    var f = () => s;
+  }
 
- static void testMain() {
+  static void testMain() {
     var d = new Issue4295001Test("Hello");
- }
+  }
 }
 
 main() {

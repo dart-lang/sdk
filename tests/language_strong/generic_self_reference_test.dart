@@ -4,11 +4,9 @@
 
 import "package:expect/expect.dart";
 
-class Bar<T> {
-}
+class Bar<T> {}
 
-class Foo<T> extends Bar<Foo<T>> {
-}
+class Foo<T> extends Bar<Foo<T>> {}
 
 void main() {
   print(new Foo<int>());

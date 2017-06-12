@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 
 test(name, action) {
   print(name);
-  Expect.throws(action, (e)=>true, name);
+  Expect.throws(action, (e) => true, name);
   print("done");
 }
 

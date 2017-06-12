@@ -4,15 +4,16 @@
 // Illegal to reference a labeled case stmt with break
 
 class Switch7NegativeTest {
-
   static testMain() {
-     var x = 1;
-     L: while (true) {
-       switch (x) {
-         L: case 1: // Shadowing another label is OK.
-            break L;  // illegal, can't reference labeled case stmt from break
-       }
-     }
+    var x = 1;
+    L:
+    while (true) {
+      switch (x) {
+        L:
+        case 1: // Shadowing another label is OK.
+          break L; // illegal, can't reference labeled case stmt from break
+      }
+    }
   }
 }
 

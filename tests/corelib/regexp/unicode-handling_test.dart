@@ -27,49 +27,49 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  'Test for proper handling of Unicode RegExps and <a href="http://bugzilla.webkit.org/show_bug.cgi?id=7445">bug 7445</a>: Gmail puts wrong subject in replies.'
-  );
+      'Test for proper handling of Unicode RegExps and <a href="http://bugzilla.webkit.org/show_bug.cgi?id=7445">bug 7445</a>: Gmail puts wrong subject in replies.');
 
   // Regex to match Re in various languanges straight from Gmail source
-  var I3=new RegExp(r"^\s*(fwd|re|aw|antw|antwort|wg|sv|ang|odp|betreff|betr|transf|reenv\.|reenv|in|res|resp|resp\.|enc|\u8f6c\u53d1|\u56DE\u590D|\u041F\u0435\u0440\u0435\u0441\u043B|\u041E\u0442\u0432\u0435\u0442):\s*(.*)$", caseSensitive: false);
+  var I3 = new RegExp(
+      r"^\s*(fwd|re|aw|antw|antwort|wg|sv|ang|odp|betreff|betr|transf|reenv\.|reenv|in|res|resp|resp\.|enc|\u8f6c\u53d1|\u56DE\u590D|\u041F\u0435\u0440\u0435\u0441\u043B|\u041E\u0442\u0432\u0435\u0442):\s*(.*)$",
+      caseSensitive: false);
 
   // Other RegExs from Gmail source
-  var Ci=new RegExp(r"\s+");
-  var BC=new RegExp(r"^ ");
-  var BG=new RegExp(r" $");
+  var Ci = new RegExp(r"\s+");
+  var BC = new RegExp(r"^ ");
+  var BG = new RegExp(r" $");
 
   // This function replaces consecutive whitespace with a single space
   // then removes a leading and trailing space if they exist. (From Gmail)
   dynamic Gn(a) {
-      return a.replaceAll(Ci, " ").replaceAll(BC, "").replaceAll(BG, "");
+    return a.replaceAll(Ci, " ").replaceAll(BC, "").replaceAll(BG, "");
   }
 
   // Strips leading Re or similar (from Gmail source)
   dynamic cy(a) {
-      //var b = I3.firstMatch(a);
-      var b = I3.firstMatch(a);
+    //var b = I3.firstMatch(a);
+    var b = I3.firstMatch(a);
 
-      if (b != null) {
-          a = b.group(2);
-      }
+    if (b != null) {
+      a = b.group(2);
+    }
 
-      return Gn(a);
+    return Gn(a);
   }
 
   assertEquals(cy('Re: Moose'), 'Moose');
   assertEquals(cy('\u8f6c\u53d1: Moose'), 'Moose');
 
   // Test handling of \u2820 (skull and crossbones)
-  var sample="sample bm\u2820p cm\\u2820p";
+  var sample = "sample bm\u2820p cm\\u2820p";
 
-  var inlineRe=new RegExp(r".m\u2820p");
+  var inlineRe = new RegExp(r".m\u2820p");
   assertEquals(inlineRe.firstMatch(sample).group(0), 'bm\u2820p');
 
-
   // Test handling of \u007c "|"
-  var bsample="sample bm\u007cp cm\\u007cp";
+  var bsample = "sample bm\u007cp cm\\u007cp";
 
-  var binlineRe=new RegExp(r".m\u007cp");
+  var binlineRe = new RegExp(r".m\u007cp");
 
   assertEquals(binlineRe.firstMatch(bsample).group(0), 'bm|p');
 }

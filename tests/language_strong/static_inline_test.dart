@@ -17,8 +17,8 @@ class StringScanner {
     return charAt(++byteOffset);
   }
 
-  static int charAt(index)
-      => (string.length > index) ? string.codeUnitAt(index) : -1;
+  static int charAt(index) =>
+      (string.length > index) ? string.codeUnitAt(index) : -1;
 }
 
 void main() {

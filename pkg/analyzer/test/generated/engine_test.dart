@@ -49,7 +49,6 @@ class AnalysisOptionsImplTest {
     modifiedOptions.enableUriInPartOf = true;
     modifiedOptions.errorProcessors = [null];
     modifiedOptions.excludePatterns = ['a'];
-    modifiedOptions.finerGrainedInvalidation = true;
     modifiedOptions.generateImplicitErrors = false;
     modifiedOptions.generateSdkErrors = true;
     modifiedOptions.hint = false;
@@ -81,8 +80,6 @@ class AnalysisOptionsImplTest {
     expect(modifiedOptions.enableUriInPartOf, defaultOptions.enableUriInPartOf);
     expect(modifiedOptions.errorProcessors, defaultOptions.errorProcessors);
     expect(modifiedOptions.excludePatterns, defaultOptions.excludePatterns);
-    expect(modifiedOptions.finerGrainedInvalidation,
-        defaultOptions.finerGrainedInvalidation);
     expect(modifiedOptions.generateImplicitErrors,
         defaultOptions.generateImplicitErrors);
     expect(modifiedOptions.generateSdkErrors, defaultOptions.generateSdkErrors);

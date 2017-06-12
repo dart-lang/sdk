@@ -4,7 +4,7 @@
 
 library dart2js.cmdline;
 
-import 'dart:async' show EventSink, Future;
+import 'dart:async' show Future;
 import 'dart:convert' show UTF8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 
@@ -104,6 +104,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
 FormattingDiagnosticHandler diagnosticHandler;
 
 Future<api.CompilationResult> compile(List<String> argv) {
+  Stopwatch wallclock = new Stopwatch()..start();
   stackTraceFilePrefix = '$currentDirectory';
   Uri libraryRoot = currentDirectory;
   Uri out = currentDirectory.resolve('out.js');
@@ -200,7 +201,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     passThrough(argument);
   }
 
-  String getDepsOutput(Map<Uri, SourceFile> sourceFiles) {
+  String getDepsOutput(Map<Uri, api.Input> sourceFiles) {
     var filenames = sourceFiles.keys.map((uri) => '$uri').toList();
     filenames.sort();
     return filenames.join("\n");
@@ -328,6 +329,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     // implemented.
     new OptionHandler(Flags.kernelGlobalInference, passThrough),
     new OptionHandler(Flags.useKernel, passThrough),
+    new OptionHandler(Flags.loadFromDill, passThrough),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
@@ -401,6 +403,14 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.useMultiSourceInfo, passThrough),
     new OptionHandler(Flags.useNewSourceInfo, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
+
+    // Experimental features.
+    // We don't provide documentation for these yet.
+    // TODO(29574): provide documentation when this feature is supported.
+    // TODO(29574): provide a warning/hint/error, when profile-based data is
+    // used without `--fast-startup`.
+    new OptionHandler(Flags.experimentalTrackAllocations, passThrough),
+    new OptionHandler("${Flags.experimentalAllocationsPath}=.+", passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),
@@ -530,11 +540,21 @@ Future<api.CompilationResult> compile(List<String> argv) {
     }
     writeString(
         Uri.parse('$out.deps'), getDepsOutput(inputProvider.sourceFiles));
-    diagnosticHandler
-        .info('Compiled ${inputProvider.dartCharactersRead} characters Dart '
-            '-> ${outputProvider.totalCharactersWritten} characters '
-            'JavaScript in '
-            '${relativize(currentDirectory, out, Platform.isWindows)}');
+    int dartCharactersRead = inputProvider.dartCharactersRead;
+    int jsCharactersWritten = outputProvider.totalCharactersWrittenJavaScript;
+    int jsCharactersPrimary = outputProvider.totalCharactersWrittenPrimary;
+
+    print('Compiled '
+        '${_formatCharacterCount(dartCharactersRead)} characters Dart'
+        ' to '
+        '${_formatCharacterCount(jsCharactersWritten)} characters JavaScript'
+        ' in '
+        '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
+
+    diagnosticHandler.info(
+        '${_formatCharacterCount(jsCharactersPrimary)} characters JavaScript'
+        ' in '
+        '${relativize(currentDirectory, out, Platform.isWindows)}');
     if (diagnosticHandler.verbose) {
       String input = uriPathToNative(arguments[0]);
       print('Dart file ($input) compiled to JavaScript.');
@@ -564,6 +584,28 @@ Future<api.CompilationResult> compile(List<String> argv) {
   return compileFunc(
           compilerOptions, inputProvider, diagnosticHandler, outputProvider)
       .then(compilationDone);
+}
+
+/// Returns the non-negative integer formatted with a thousands separator.
+String _formatCharacterCount(int value, [String separator = ',']) {
+  String text = '$value';
+  // 'Insert' separators right-to-left. Inefficient, but used just a few times.
+  for (int position = text.length - 3; position > 0; position -= 3) {
+    text = text.substring(0, position) + separator + text.substring(position);
+  }
+  return text;
+}
+
+/// Formats [duration] in seconds in fixed-point format, preferring to keep the
+/// result at to below [width] characters.
+String _formatDurationAsSeconds(Duration duration, [int width = 4]) {
+  num seconds = duration.inMilliseconds / 1000.0;
+  String text;
+  for (int digits = 3; digits >= 0; digits--) {
+    text = seconds.toStringAsFixed(digits);
+    if (text.length <= width) return text;
+  }
+  return text;
 }
 
 class AbortLeg {
@@ -995,12 +1037,13 @@ class _CompilerInput implements api.CompilerInput {
   _CompilerInput(this._input, this._data);
 
   @override
-  Future readFromUri(Uri uri) {
+  Future<api.Input> readFromUri(Uri uri,
+      {api.InputKind inputKind: api.InputKind.utf8}) {
     String data = _data[uri];
     if (data != null) {
-      return new Future.value(data);
+      return new Future.value(new StringSourceFile.fromUri(uri, data));
     }
-    return _input.readFromUri(uri);
+    return _input.readFromUri(uri, inputKind: inputKind);
   }
 }
 

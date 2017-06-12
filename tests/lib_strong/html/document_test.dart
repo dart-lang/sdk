@@ -25,11 +25,12 @@ main() {
 
     test('Document.query', () {
       Document doc = new DomParser().parseFromString(
-      '''<ResultSet>
+          '''<ResultSet>
            <Row>A</Row>
            <Row>B</Row>
            <Row>C</Row>
-         </ResultSet>''','text/xml');
+         </ResultSet>''',
+          'text/xml');
 
       var rs = doc.query('ResultSet');
       expect(rs, isNotNull);

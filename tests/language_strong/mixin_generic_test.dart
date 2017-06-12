@@ -5,18 +5,24 @@
 import "package:expect/expect.dart";
 
 class S<T> {
-  s() { return T; }
+  s() {
+    return T;
+  }
 }
 
 class M<T> {
-  m() { return T; }
+  m() {
+    return T;
+  }
 }
 
 class N<T> {
-  n() { return T; }
+  n() {
+    return T;
+  }
 }
 
-class C<U, V> extends S<Map<U, V>> with M<List<U>>, N<Set<V>> { }
+class C<U, V> extends S<Map<U, V>> with M<List<U>>, N<Set<V>> {}
 
 main() {
   var c = new C<int, bool>();

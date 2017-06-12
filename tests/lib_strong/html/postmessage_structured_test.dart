@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file
 
 library postmessage_js_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
-import 'dart:collection';  // SplayTreeMap
+import 'dart:collection'; // SplayTreeMap
 import 'dart:typed_data';
 import 'utils.dart';
 
@@ -20,11 +21,10 @@ injectSource(code) {
 main() {
   useHtmlIndividualConfiguration();
 
-  go(testName, value) =>
-      test(testName, () {
-          // Round-trip graph from Dart to JavaScript and back.
+  go(testName, value) => test(testName, () {
+        // Round-trip graph from Dart to JavaScript and back.
 
-          final JS_CODE = """
+        final JS_CODE = """
             window.addEventListener('message', handler);
             function handler(e) {
               var data = e.data;
@@ -36,24 +36,22 @@ main() {
               window.postMessage(response, '*');
             }
             """;
-          var completed = false;
-          var subscription = null;
-          subscription = window.onMessage.listen(expectAsyncUntil(
-            (e) {
-              var data = e.data;
-              if (data is String) return; // Messages from unit test protocol.
-              if (data['recipient'] != 'DART') return;  // Not for me.
-              completed = true;
-              subscription.cancel();
-              expect(data, isMap);
-              var returnedValue = data['data'];
-              expect(returnedValue, isNot(same(value)));
-              verifyGraph(value, returnedValue);
-            },
-            () => completed));
-          injectSource(JS_CODE);
-          window.postMessage({'recipient': 'JS', 'data': value}, '*');
-        });
+        var completed = false;
+        var subscription = null;
+        subscription = window.onMessage.listen(expectAsyncUntil((e) {
+          var data = e.data;
+          if (data is String) return; // Messages from unit test protocol.
+          if (data['recipient'] != 'DART') return; // Not for me.
+          completed = true;
+          subscription.cancel();
+          expect(data, isMap);
+          var returnedValue = data['data'];
+          expect(returnedValue, isNot(same(value)));
+          verifyGraph(value, returnedValue);
+        }, () => completed));
+        injectSource(JS_CODE);
+        window.postMessage({'recipient': 'JS', 'data': value}, '*');
+      });
 
   group('primitives', () {
     test('js-to-dart-postmessage', () {
@@ -65,16 +63,14 @@ main() {
         """;
       var completed = false;
       var subscription = null;
-      subscription = window.onMessage.listen(expectAsyncUntil(
-        (e) {
-          var data = e.data;
-          if (data is String) return; //    Messages from unit test protocol.
-          completed = true;
-          subscription.cancel();
-          expect(data, isMap);
-          expect(data['eggs'], equals(3));
-        },
-        () => completed));
+      subscription = window.onMessage.listen(expectAsyncUntil((e) {
+        var data = e.data;
+        if (data is String) return; //    Messages from unit test protocol.
+        completed = true;
+        subscription.cancel();
+        expect(data, isMap);
+        expect(data['eggs'], equals(3));
+      }, () => completed));
       injectSource(JS_CODE);
     });
 
@@ -95,29 +91,27 @@ main() {
         """;
       var completed = false;
       var subscription = null;
-      subscription = window.onMessage.listen(expectAsyncUntil(
-        (e) {
-          var data = e.data;
-          if (data is String) return; //    Messages from unit test protocol.
-          if (data['recipient'] != 'DART') return;  // Hearing the sent message.
-          completed = true;
-          subscription.cancel();
-          expect(data, isMap);
-          expect(data['peas'], equals(50));
-        },
-        () => completed));
+      subscription = window.onMessage.listen(expectAsyncUntil((e) {
+        var data = e.data;
+        if (data is String) return; //    Messages from unit test protocol.
+        if (data['recipient'] != 'DART') return; // Hearing the sent message.
+        completed = true;
+        subscription.cancel();
+        expect(data, isMap);
+        expect(data['peas'], equals(50));
+      }, () => completed));
       injectSource(JS_CODE);
       window.postMessage({'recipient': 'JS', 'curry': 'peas'}, '*');
     });
 
     var obj1 = {'a': 100, 'b': 's'};
-    var obj2 = {'x': obj1, 'y': obj1};  // DAG.
+    var obj2 = {'x': obj1, 'y': obj1}; // DAG.
 
     var obj3 = {};
     obj3['a'] = 100;
-    obj3['b'] = obj3;  // Cycle.
+    obj3['b'] = obj3; // Cycle.
 
-    var obj4 = new SplayTreeMap<String, dynamic>();  // Different implementation.
+    var obj4 = new SplayTreeMap<String, dynamic>(); // Different implementation.
     obj4['a'] = 100;
     obj4['b'] = 's';
 
@@ -129,10 +123,22 @@ main() {
     go('test_DAG', obj2);
     go('test_cycle', obj3);
     go('test_simple_splay', obj4);
-    go('const_array_1', const [const [1], const [2]]);
-    go('const_array_dag', const [const [1], const [1]]);
-    go('array_deferred_copy', [1,2,3, obj3, obj3, 6]);
-    go('array_deferred_copy_2', [1,2,3, [4, 5, obj3], [obj3, 6]]);
+    go('const_array_1', const [
+      const [1],
+      const [2]
+    ]);
+    go('const_array_dag', const [
+      const [1],
+      const [1]
+    ]);
+    go('array_deferred_copy', [1, 2, 3, obj3, obj3, 6]);
+    go('array_deferred_copy_2', [
+      1,
+      2,
+      3,
+      [4, 5, obj3],
+      [obj3, 6]
+    ]);
     go('cyclic_list', cyclic_list);
   });
 
@@ -151,16 +157,15 @@ main() {
       """;
       var completed = false;
       var subscription = null;
-      subscription = window.on['stuff'].listen(expectAsyncUntil(
-          (MessageEvent e) {
-            var data = e.data;
-            if (data is String) return; //    Messages from unit test protocol.
-            completed = true;
-            subscription.cancel();
-            expect(data, isMap);
-            expect(data['eggs'], equals(3));
-          },
-          () => completed));
+      subscription =
+          window.on['stuff'].listen(expectAsyncUntil((MessageEvent e) {
+        var data = e.data;
+        if (data is String) return; //    Messages from unit test protocol.
+        completed = true;
+        subscription.cancel();
+        expect(data, isMap);
+        expect(data['eggs'], equals(3));
+      }, () => completed));
       injectSource(JS_CODE);
     });
   });
@@ -182,7 +187,7 @@ main() {
     test('postMessage clones data', () {
       var iframe = new IFrameElement();
       var future = iframe.onLoad.first.then((_) {
-        iframe.contentWindow.postMessage(new HashMap<String,num>(), '*');
+        iframe.contentWindow.postMessage(new HashMap<String, num>(), '*');
       });
       iframe.src = 'about:blank';
       document.body.append(iframe);
@@ -190,5 +195,4 @@ main() {
       return future;
     });
   });
-
 }

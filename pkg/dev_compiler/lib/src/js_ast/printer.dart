@@ -1072,15 +1072,14 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitTemplateString(TemplateString node) {
     out('`');
-    for (var element in node.elements) {
-      if (element is String) {
-        out(element);
-      } else {
-        out(r'${');
-        visit(element);
-        out('}');
-      }
+    int len = node.interpolations.length;
+    for (var i = 0; i < len; i++) {
+      out(node.strings[i]);
+      out(r'${');
+      visit(node.interpolations[i]);
+      out('}');
     }
+    out(node.strings[len]);
     out('`');
   }
 

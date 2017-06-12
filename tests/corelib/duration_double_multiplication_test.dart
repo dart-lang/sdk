@@ -16,5 +16,4 @@ main() {
   Expect.equals(1000 * -0.005, d.inMicroseconds);
   d = d1 * 0.0015;
   Expect.equals((1000 * 0.0015).round(), d.inMicroseconds);
-
 }

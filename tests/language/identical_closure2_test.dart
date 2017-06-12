@@ -13,10 +13,8 @@ class Point {
 
 main() {
   // Bigint (2^76).
-  Expect.isTrue(myIdentical(75557863725914323419136,
-                            75557863725914323419136));
-  Expect.isFalse(myIdentical(75557863725914323419136,
-                             75557863725914323419137));
+  Expect.isTrue(myIdentical(75557863725914323419136, 75557863725914323419136));
+  Expect.isFalse(myIdentical(75557863725914323419136, 75557863725914323419137));
 
   // Different types.
   Expect.isFalse(myIdentical(42, 42.0));

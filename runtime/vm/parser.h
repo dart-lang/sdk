@@ -96,7 +96,8 @@ class ParsedFunction : public ZoneAllocated {
         node_sequence_(NULL),
         regexp_compile_data_(NULL),
         instantiator_(NULL),
-        function_instantiator_(NULL),
+        function_type_arguments_(NULL),
+        parent_type_arguments_(NULL),
         current_context_var_(NULL),
         expression_temp_var_(NULL),
         finally_return_temp_var_(NULL),
@@ -134,12 +135,19 @@ class ParsedFunction : public ZoneAllocated {
     ASSERT(instantiator != NULL);
     instantiator_ = instantiator;
   }
-  LocalVariable* function_instantiator() const {
-    return function_instantiator_;
+  LocalVariable* function_type_arguments() const {
+    return function_type_arguments_;
   }
-  void set_function_instantiator(LocalVariable* function_instantiator) {
-    ASSERT(function_instantiator != NULL);
-    function_instantiator_ = function_instantiator;
+  void set_function_type_arguments(LocalVariable* function_type_arguments) {
+    ASSERT(function_type_arguments != NULL);
+    function_type_arguments_ = function_type_arguments;
+  }
+  LocalVariable* parent_type_arguments() const {
+    return parent_type_arguments_;
+  }
+  void set_parent_type_arguments(LocalVariable* parent_type_arguments) {
+    ASSERT(parent_type_arguments != NULL);
+    parent_type_arguments_ = parent_type_arguments;
   }
 
   void set_default_parameter_values(ZoneGrowableArray<const Instance*>* list) {
@@ -232,7 +240,8 @@ class ParsedFunction : public ZoneAllocated {
   SequenceNode* node_sequence_;
   RegExpCompileData* regexp_compile_data_;
   LocalVariable* instantiator_;
-  LocalVariable* function_instantiator_;
+  LocalVariable* function_type_arguments_;
+  LocalVariable* parent_type_arguments_;
   LocalVariable* current_context_var_;
   LocalVariable* expression_temp_var_;
   LocalVariable* finally_return_temp_var_;
@@ -607,7 +616,8 @@ class Parser : public ValueObject {
                                 ArgumentListNode* arguments,
                                 bool resolve_getter,
                                 bool* is_no_such_method);
-  AstNode* ParseSuperCall(const String& function_name);
+  AstNode* ParseSuperCall(const String& function_name,
+                          const TypeArguments& func_type_args);
   AstNode* ParseSuperFieldAccess(const String& field_name,
                                  TokenPosition field_pos);
   AstNode* ParseSuperOperator();
@@ -681,7 +691,7 @@ class Parser : public ValueObject {
   LocalVariable* LookupTypeArgumentsParameter(LocalScope* from_scope,
                                               bool test_only);
   void CaptureInstantiator();
-  void CaptureFunctionInstantiators();
+  void CaptureFunctionTypeArguments();
   void CaptureAllInstantiators();
   AstNode* LoadReceiver(TokenPosition token_pos);
   AstNode* LoadFieldIfUnresolved(AstNode* node);
@@ -824,16 +834,20 @@ class Parser : public ValueObject {
 
   // An implicit argument, if non-null, is prepended to the returned list.
   ArgumentListNode* ParseActualParameters(ArgumentListNode* implicit_arguments,
+                                          const TypeArguments& func_type_args,
                                           bool require_const);
   AstNode* ParseStaticCall(const Class& cls,
                            const String& method_name,
                            TokenPosition ident_pos,
+                           const TypeArguments& func_type_args,
                            const LibraryPrefix* prefix = NULL);
   AstNode* ParseInstanceCall(AstNode* receiver,
                              const String& method_name,
                              TokenPosition ident_pos,
+                             const TypeArguments& func_type_args,
                              bool is_conditional);
-  AstNode* ParseClosureCall(AstNode* closure);
+  AstNode* ParseClosureCall(AstNode* closure,
+                            const TypeArguments& func_type_args);
   AstNode* GenerateStaticFieldLookup(const Field& field,
                                      TokenPosition ident_pos);
   AstNode* GenerateStaticFieldAccess(const Class& cls,
@@ -846,7 +860,6 @@ class Parser : public ValueObject {
   bool ParsingStaticMember() const;
   const AbstractType* ReceiverType(const Class& cls);
   bool IsInstantiatorRequired() const;
-  bool AreFunctionInstantiatorsRequired() const;
   bool InGenericFunctionScope() const;
   bool ResolveIdentInLocalScope(TokenPosition ident_pos,
                                 const String& ident,

@@ -4,11 +4,15 @@
 
 class A {
   A() {}
-  imethod() { return 0; }
+  imethod() {
+    return 0;
+  }
 }
 
 main() {
   var a = new A();
   // Illegal, can't change a member method
-  a.imethod = () { return 1; };
+  a.imethod = () {
+    return 1;
+  };
 }

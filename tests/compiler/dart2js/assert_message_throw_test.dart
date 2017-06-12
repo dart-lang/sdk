@@ -63,9 +63,10 @@ main() {
         compiler.resolutionWorldBuilder.closedWorldForTesting;
 
     void check(String methodName, TypeMask expectedReturnType) {
-      Element element = compiler.mainApp.find(methodName);
+      LibraryElement mainApp = compiler.mainApp;
+      MemberElement element = mainApp.find(methodName);
       TypeMask typeMask = simplify(
-          compiler.globalInference.results.resultOf(element).returnType,
+          compiler.globalInference.results.resultOfMember(element).returnType,
           closedWorld);
       Expect.equals(expectedReturnType, typeMask,
           "Unexpected return type on method '$methodName'.");

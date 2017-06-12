@@ -14,7 +14,7 @@ class B {
   foo() => 42;
 }
 
-makeA() native ;
+makeA() native;
 
 setup() native """
   function A() {}

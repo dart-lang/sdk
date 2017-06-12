@@ -12,16 +12,32 @@ var g;
 setupPlain() {
   int j = 1000;
   // Two closures sharing variable 'j'; j initially is 1000.
-  f = (int x) { var q = j; j = x; return q;};
-  g = (int x) { var q = j; j = x; return q;};
+  f = (int x) {
+    var q = j;
+    j = x;
+    return q;
+  };
+  g = (int x) {
+    var q = j;
+    j = x;
+    return q;
+  };
 }
 
 setupLoop() {
   for (int i = 0; i < 2; i++) {
-    int j = i * 1000;  // The last stored closure has j initially 1000.
+    int j = i * 1000; // The last stored closure has j initially 1000.
     // Two closures sharing variable 'j'.
-    f = (int x) { var q = j; j = x; return q;};
-    g = (int x) { var q = j; j = x; return q;};
+    f = (int x) {
+      var q = j;
+      j = x;
+      return q;
+    };
+    g = (int x) {
+      var q = j;
+      j = x;
+      return q;
+    };
   }
 }
 
@@ -30,8 +46,16 @@ setupNestedLoop() {
     int j = outer * 1000;
     for (int i = 0; i < 2; i++) {
       // Two closures sharing variable 'j' in a loop at different nesting.
-      f = (int x) { var q = j; j = x; return q;};
-      g = (int x) { var q = j; j = x; return q;};
+      f = (int x) {
+        var q = j;
+        j = x;
+        return q;
+      };
+      g = (int x) {
+        var q = j;
+        j = x;
+        return q;
+      };
     }
   }
 }
@@ -44,7 +68,6 @@ test(setup) {
   Expect.equals(300, g(400));
   Expect.equals(400, g(500));
 }
-
 
 main() {
   test(setupPlain);

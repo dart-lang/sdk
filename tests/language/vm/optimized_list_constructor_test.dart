@@ -11,11 +11,11 @@ import "package:expect/expect.dart";
 test() {
   try {
     var r = new List<int>(-1);
-    Expect.isTrue(false);  // Unreachable.
+    Expect.isTrue(false); // Unreachable.
   } on RangeError {
     return true;
   }
-  Expect.isTrue(false);  // Unreachable.
+  Expect.isTrue(false); // Unreachable.
 }
 
 main() {
@@ -23,4 +23,3 @@ main() {
     Expect.isTrue(test());
   }
 }
-

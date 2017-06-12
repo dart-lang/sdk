@@ -51,8 +51,14 @@ class PluginLocator {
    * associated with the package.
    *
    * This will look first in the `pubspec.yaml` file in the package root for a
-   * key indicating where the plugin is located. If such a key is not defined,
-   * then it will fall back to a well known location within the package.
+   * top-level key (`analysis_plugin`) indicating where the plugin is located.
+   * The value associated with the key is expected to be the path of the plugin
+   * relative to the package root. If the directory exists, the it is returned.
+   *
+   * If the key is not defined in the `pubspec.yaml` file, or if the directory
+   * given does not exist, then this method will look for the directory
+   * `tools/analysis_plugin` relative to the package root. If the directory
+   * exists, then it is returned.
    *
    * This method does not validate the content of the plugin directory before
    * returning it.

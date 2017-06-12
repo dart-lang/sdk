@@ -25,6 +25,9 @@ main() {
 class IndexTest extends AbstractSingleUnitTest {
   Index index = createMemoryIndex();
 
+  @override
+  bool get enableNewAnalysisDriver => false;
+
   /**
    * Return the [Location] with given properties, or fail.
    */

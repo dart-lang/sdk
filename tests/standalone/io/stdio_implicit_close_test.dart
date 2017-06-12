@@ -16,20 +16,20 @@ void test({bool closeStdout, bool closeStderr}) {
   // Relying on these flags to print something specific on stdout and stderr
   // is brittle, but otherwise we would need to add our own flag.
   var arguments = [
-      "--print-metrics",  // Prints on stderr.
-      "--timing", //         Prints on stdout.
-      script,
+    "--print-metrics", // Prints on stderr.
+    "--timing", //         Prints on stdout.
+    script,
   ];
   if (closeStdout) arguments.add("stdout");
   if (closeStderr) arguments.add("stderr");
 
   asyncStart();
-  Process.run(Platform.executable,
-              arguments,
-              stdoutEncoding: ASCII,
-              stderrEncoding: ASCII).then((result) {
-                  print(result.stdout);
-                  print(result.stderr);
+  Process
+      .run(Platform.executable, arguments,
+          stdoutEncoding: ASCII, stderrEncoding: ASCII)
+      .then((result) {
+    print(result.stdout);
+    print(result.stderr);
     Expect.equals(0, result.exitCode);
 
     if (closeStdout) {

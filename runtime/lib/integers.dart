@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This marker interface represents 64-bit integers in the compiler for type
+// propagation and range analysis.  It is implemented by _Smi and _Mint.
+abstract class _int64 implements int {}
+
 abstract class _IntegerImplementation {
   // The Dart class _Bigint extending _IntegerImplementation requires a
   // default constructor.
@@ -454,7 +458,7 @@ abstract class _IntegerImplementation {
   }
 }
 
-class _Smi extends _IntegerImplementation implements int {
+class _Smi extends _IntegerImplementation implements int, _int64 {
   factory _Smi._uninstantiable() {
     throw new UnsupportedError("_Smi can only be allocated by the VM");
   }
@@ -654,7 +658,7 @@ class _Smi extends _IntegerImplementation implements int {
 }
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
-class _Mint extends _IntegerImplementation implements int {
+class _Mint extends _IntegerImplementation implements int, _int64 {
   factory _Mint._uninstantiable() {
     throw new UnsupportedError("_Mint can only be allocated by the VM");
   }

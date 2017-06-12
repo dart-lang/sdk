@@ -61,7 +61,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
   M.ScriptRepository _scripts;
   M.FunctionRepository _functions;
   M.LibraryRepository _libraries;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.EvalRepository _eval;
   M.Function _function;
   M.ScriptRef _rootScript;
@@ -80,7 +80,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
       M.ScriptRepository scripts,
       M.FunctionRepository functions,
       M.LibraryRepository libraries,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       M.EvalRepository eval,
       {RenderingQueue queue}) {
     assert(vm != null);
@@ -90,7 +90,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
     assert(isolates != null);
     assert(scripts != null);
     assert(functions != null);
-    assert(instances != null);
+    assert(objects != null);
     assert(eval != null);
     assert(libraries != null);
     IsolateViewElement e = document.createElement(tag.name);
@@ -102,7 +102,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
     e._isolates = isolates;
     e._scripts = scripts;
     e._functions = functions;
-    e._instances = instances;
+    e._objects = objects;
     e._eval = eval;
     e._libraries = libraries;
     return e;
@@ -181,10 +181,11 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                 ? [
                     new BRElement(),
                     new SourceInsetElement(_isolate, _function.location,
-                        _scripts, _instances, _events,
+                        _scripts, _objects, _events,
                         currentPos:
                             M.topFrame(isolate.pauseEvent).location.tokenPos,
-                        queue: _r.queue)..classes = ['header_inset']
+                        queue: _r.queue)
+                      ..classes = ['header_inset']
                   ]
                 : const [],
           new HRElement(),
@@ -345,14 +346,14 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                 ]
             ],
           new HRElement(),
-          new EvalBoxElement(_isolate, _isolate.rootLibrary, _instances, _eval,
+          new EvalBoxElement(_isolate, _isolate.rootLibrary, _objects, _eval,
               queue: _r.queue),
           new DivElement()
             ..children = _rootScript != null
                 ? [
                     new HRElement(),
                     new ScriptInsetElement(
-                        _isolate, _rootScript, _scripts, _instances, _events,
+                        _isolate, _rootScript, _scripts, _objects, _events,
                         queue: _r.queue)
                   ]
                 : const [],

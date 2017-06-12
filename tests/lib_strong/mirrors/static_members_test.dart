@@ -18,24 +18,23 @@ main() {
   ClassMirror cm = reflectClass(declarations_model.Class);
   LibraryMirror lm = cm.owner;
 
-  Expect.setEquals(
-    [#staticVariable,
-     const Symbol('staticVariable='),
-     #staticGetter,
-     const Symbol('staticSetter='),
-     #staticMethod,
-     MirrorSystem.getSymbol('_staticVariable', lm),
-     MirrorSystem.getSymbol('_staticVariable=', lm),
-     MirrorSystem.getSymbol('_staticGetter', lm),
-     MirrorSystem.getSymbol('_staticSetter=', lm),
-     MirrorSystem.getSymbol('_staticMethod', lm),
-     ],
-    selectKeys(cm.staticMembers, (dm) => true));
+  Expect.setEquals([
+    #staticVariable,
+    const Symbol('staticVariable='),
+    #staticGetter,
+    const Symbol('staticSetter='),
+    #staticMethod,
+    MirrorSystem.getSymbol('_staticVariable', lm),
+    MirrorSystem.getSymbol('_staticVariable=', lm),
+    MirrorSystem.getSymbol('_staticGetter', lm),
+    MirrorSystem.getSymbol('_staticSetter=', lm),
+    MirrorSystem.getSymbol('_staticMethod', lm),
+  ], selectKeys(cm.staticMembers, (dm) => true));
 
-  Expect.setEquals(
-    [#staticVariable,
-     const Symbol('staticVariable='),
-     MirrorSystem.getSymbol('_staticVariable', lm),
-     MirrorSystem.getSymbol('_staticVariable=', lm)],
-    selectKeys(cm.staticMembers, (dm) => dm.isSynthetic));
+  Expect.setEquals([
+    #staticVariable,
+    const Symbol('staticVariable='),
+    MirrorSystem.getSymbol('_staticVariable', lm),
+    MirrorSystem.getSymbol('_staticVariable=', lm)
+  ], selectKeys(cm.staticMembers, (dm) => dm.isSynthetic));
 }

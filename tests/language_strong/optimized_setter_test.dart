@@ -10,9 +10,7 @@ class A {
   int field = 0;
 }
 
-class B extends A {
-}
-
+class B extends A {}
 
 void sameImplicitSetter() {
   oneTarget(var a, var v) {
@@ -37,7 +35,6 @@ void sameImplicitSetter() {
   oneTarget(b, 8);
   Expect.equals(8, b.field);
 }
-
 
 // Deoptimize when no feedback exists.
 void setterNoFeedback() {
@@ -67,7 +64,10 @@ void setterNoFeedback() {
 // Check non-implicit setter
 class X {
   int pField = 0;
-  set field(v) { pField = v; }
+  set field(v) {
+    pField = v;
+  }
+
   get field => 10;
 }
 
@@ -97,7 +97,6 @@ class Y {
   int field = 0;
 }
 
-
 multiImplicitSetter() {
   oneTarget(var a, var v) {
     return a.field = v;
@@ -118,7 +117,10 @@ multiImplicitSetter() {
 
 class Z {
   int pField = 0;
-  set field(v) { pField = v; }
+  set field(v) {
+    pField = v;
+  }
+
   get field => 10;
 }
 

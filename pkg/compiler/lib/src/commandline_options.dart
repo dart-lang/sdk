@@ -23,6 +23,10 @@ class Flags {
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String enableExperimentalMirrors =
       '--enable-experimental-mirrors';
+  static const String experimentalTrackAllocations =
+      '--experimental-track-allocations';
+  static const String experimentalAllocationsPath =
+      '--experimental-allocations-path';
   static const String fastStartup = '--fast-startup';
   static const String fatalWarnings = '--fatal-warnings';
   static const String generateCodeWithCompileTimeErrors =
@@ -30,6 +34,9 @@ class Flags {
   // Temporary flag to also integrate Kernel into global type inference.
   // TODO(efortuna): Remove when fully implemented and simply use "useKernel".
   static const String kernelGlobalInference = '--kernel-global-inference';
+  // Read input from a .dill file rather than a .dart input (use only in
+  // conjunction with --use-kernel=true).
+  static const String loadFromDill = '--read-dill';
   static const String minify = '--minify';
   static const String noFrequencyBasedMinification =
       '--no-frequency-based-minification';

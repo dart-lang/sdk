@@ -14,7 +14,7 @@ class X {
     return new X();
   }
 
-  set c (value) {
+  set c(value) {
     trace.add('set c');
   }
 
@@ -33,7 +33,7 @@ class X {
     return new X();
   }
 
-  operator [] (index) {
+  operator [](index) {
     trace.add('index');
     return 42;
   }
@@ -81,7 +81,13 @@ main() {
 
   trace = [];
   x.b.c = x.d.c = '$x';
-  Expect.listEquals(['get b', 'get d', 'toString', 'set c', 'set c',], trace);
+  Expect.listEquals([
+    'get b',
+    'get d',
+    'toString',
+    'set c',
+    'set c',
+  ], trace);
 
   trace = [];
   x.b.c = x.d[42] *= '$x'.hashCode;

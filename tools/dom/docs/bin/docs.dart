@@ -20,9 +20,8 @@ final String lib_uri = Platform.script.resolve('../../../../sdk').toString();
 main() {
   print('Converting HTML docs from $lib_uri to $json_path.');
 
-  convert(lib_uri, json_path)
-    .then((bool anyErrors) {
-      print('Converted HTML docs ${anyErrors ? "with": "without"}'
+  convert(lib_uri, json_path).then((bool anyErrors) {
+    print('Converted HTML docs ${anyErrors ? "with": "without"}'
         ' errors.');
-    });
+  });
 }

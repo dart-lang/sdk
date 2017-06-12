@@ -4,7 +4,7 @@
 
 library Issue1363;
 
-class C { }
+class C {}
 
 class Cup<T> {
   var foo;

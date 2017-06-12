@@ -4,9 +4,10 @@
 // First dart test program.
 
 class FirstTest {
-  static testMain() { return 42; }
+  static testMain() {
+    return 42;
+  }
 }
-
 
 main() {
   FirstTest.testMain();

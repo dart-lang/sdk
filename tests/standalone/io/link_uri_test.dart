@@ -38,9 +38,9 @@ void testFromUriUnsupported() {
       () => new Link.fromUri(Uri.parse('http://localhost:8080/index.html')),
       (e) => e is UnsupportedError);
   Expect.throws(() => new Link.fromUri(Uri.parse('ftp://localhost/tmp/xxx')),
-                (e) => e is UnsupportedError);
+      (e) => e is UnsupportedError);
   Expect.throws(() => new Link.fromUri(Uri.parse('name#fragment')),
-                (e) => e is UnsupportedError);
+      (e) => e is UnsupportedError);
 }
 
 void main() {

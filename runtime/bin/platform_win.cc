@@ -78,10 +78,16 @@ class PlatformWin {
     // Set both the input and output code pages to UTF8.
     ASSERT(saved_output_cp_ == -1);
     ASSERT(saved_input_cp_ == -1);
-    saved_output_cp_ = GetConsoleOutputCP();
-    saved_input_cp_ = GetConsoleCP();
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
+    const int output_cp = GetConsoleOutputCP();
+    const int input_cp = GetConsoleCP();
+    if (output_cp != CP_UTF8) {
+      SetConsoleOutputCP(CP_UTF8);
+      saved_output_cp_ = output_cp;
+    }
+    if (input_cp != CP_UTF8) {
+      SetConsoleCP(CP_UTF8);
+      saved_input_cp_ = input_cp;
+    }
 
     // Try to set the bits for ANSI support, but swallow any failures.
     HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -198,11 +204,21 @@ const char* Platform::LibraryExtension() {
 }
 
 
+const char* Platform::LocaleName() {
+  wchar_t locale_name[LOCALE_NAME_MAX_LENGTH];
+  int result = GetUserDefaultLocaleName(locale_name, LOCALE_NAME_MAX_LENGTH);
+  if (result == 0) {
+    return NULL;
+  }
+  return StringUtilsWin::WideToUtf8(locale_name);
+}
+
+
 bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
 #if defined(DART_IO_DISABLED) || defined(PLATFORM_DISABLE_SOCKET)
   return false;
 #else
-  if (!Socket::Initialize()) {
+  if (!SocketBase::Initialize()) {
     return false;
   }
   return gethostname(buffer, buffer_length) == 0;

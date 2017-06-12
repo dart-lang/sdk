@@ -19,7 +19,7 @@ void main() {
 }
 
 void testDecodeSlice() {
-  var decoder = UTF8.decoder;  // Doesn't allow malformed.
+  var decoder = UTF8.decoder; // Doesn't allow malformed.
   var ascii = [0x41, 0x42, 0x43, 0x44, 0x45];
   Expect.equals("ABCDE", decoder.convert(ascii));
   Expect.equals("ABCDE", decoder.convert(ascii, 0));

@@ -8,10 +8,15 @@ import "package:expect/expect.dart";
 // not generate an interceptor forwarder when a getter call and a
 // method call on an intercepted method were both used.
 
-class A { get iterator => () => 499; }
+class A {
+  get iterator => () => 499;
+}
 
 main() {
-  var a = [new A(), [1, 1]];
+  var a = [
+    new A(),
+    [1, 1]
+  ];
   Expect.equals(499, a[0].iterator());
   Expect.equals(499, (a[0].iterator)());
   for (var i in a[1]) {

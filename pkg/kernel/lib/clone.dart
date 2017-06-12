@@ -227,6 +227,30 @@ class CloneVisitor extends TreeVisitor {
     return new Let(newVariable, clone(node.body));
   }
 
+  visitVectorCreation(VectorCreation node) {
+    return new VectorCreation(node.length);
+  }
+
+  visitClosureCreation(ClosureCreation node) {
+    return new ClosureCreation.byReference(
+        node.topLevelFunctionReference,
+        cloneOptional(node.contextVector),
+        visitOptionalType(node.functionType));
+  }
+
+  visitVectorSet(VectorSet node) {
+    return new VectorSet(
+        clone(node.vectorExpression), node.index, clone(node.value));
+  }
+
+  visitVectorGet(VectorGet node) {
+    return new VectorGet(clone(node.vectorExpression), node.index);
+  }
+
+  visitVectorCopy(VectorCopy node) {
+    return new VectorCopy(clone(node.vectorExpression));
+  }
+
   // Statements
   visitInvalidStatement(InvalidStatement node) {
     return new InvalidStatement();
@@ -360,7 +384,8 @@ class CloneVisitor extends TreeVisitor {
         isExternal: node.isExternal,
         isConst: node.isConst,
         transformerFlags: node.transformerFlags,
-        fileUri: node.fileUri)..fileEndOffset = node.fileEndOffset;
+        fileUri: node.fileUri)
+      ..fileEndOffset = node.fileEndOffset;
   }
 
   visitField(Field node) {
@@ -373,7 +398,8 @@ class CloneVisitor extends TreeVisitor {
         hasImplicitGetter: node.hasImplicitGetter,
         hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags,
-        fileUri: node.fileUri)..fileEndOffset = node.fileEndOffset;
+        fileUri: node.fileUri)
+      ..fileEndOffset = node.fileEndOffset;
   }
 
   visitTypeParameter(TypeParameter node) {

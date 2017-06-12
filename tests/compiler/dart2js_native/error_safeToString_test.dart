@@ -24,14 +24,14 @@ class Rascal {
   toString() => 'RRRRRRRR';
 }
 
-makeA() native ;
-makeB() native ;
-makeC() native ;
-makeD() native ;
-makeE() native ;
-makeP() native ;
-makeQ() native ;
-makeR() native ;
+makeA() native;
+makeB() native;
+makeC() native;
+makeD() native;
+makeE() native;
+makeP() native;
+makeQ() native;
+makeR() native;
 
 void setup() native r"""
 makeA = function(){return {hello: 123};};

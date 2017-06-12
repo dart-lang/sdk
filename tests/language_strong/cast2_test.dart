@@ -11,7 +11,9 @@ class C {
   final int foo = 42;
 
   int val = 0;
-  void inc() { ++val; }
+  void inc() {
+    ++val;
+  }
 }
 
 class D extends C {

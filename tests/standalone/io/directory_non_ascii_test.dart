@@ -17,7 +17,8 @@ main() {
 
   Directory.systemTemp.createTemp('dart_directory_non_ascii').then((tempDir) {
     var nonAsciiDir = new Directory("${tempDir.path}/æøå");
-    nonAsciiDir.exists()
+    nonAsciiDir
+        .exists()
         .then((e) => Expect.isFalse(e))
         .then((_) => nonAsciiDir.create())
         .then((_) => nonAsciiDir.exists())
@@ -25,14 +26,16 @@ main() {
         .then((_) => new Directory("${tempDir.path}/æøå").createTemp('temp'))
         .then((temp) {
           Expect.isTrue(temp.path.contains(precomposed) ||
-                        temp.path.contains(decomposed));
+              temp.path.contains(decomposed));
           return temp.delete();
-        }).then((_) => tempDir.createTemp('æøå'))
+        })
+        .then((_) => tempDir.createTemp('æøå'))
         .then((temp) {
           Expect.isTrue(temp.path.contains(precomposed) ||
-                        temp.path.contains(decomposed));
+              temp.path.contains(decomposed));
           return temp.delete();
-        }).then((temp) => Expect.isFalse(temp.existsSync()))
+        })
+        .then((temp) => Expect.isFalse(temp.existsSync()))
         .then((_) => tempDir.delete(recursive: true))
         .then((_) {
           Expect.isFalse(nonAsciiDir.existsSync());

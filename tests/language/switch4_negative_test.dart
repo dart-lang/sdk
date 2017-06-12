@@ -4,14 +4,18 @@
 // Discover unresolved case labels.
 
 class Switch4NegativeTest {
-
   static testMain() {
     var a = 5;
     var x;
     switch (a) {
-      case 1: x = 1; continue L; // unresolved forward reference
-      case 6: x = 2; break;
-      case 8:  break;
+      case 1:
+        x = 1;
+        continue L; // unresolved forward reference
+      case 6:
+        x = 2;
+        break;
+      case 8:
+        break;
     }
     return a;
   }

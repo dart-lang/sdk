@@ -5,7 +5,7 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-[ ($runtime == vm || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
+[ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
 
 # These test entries will be valid for vm/dartium (with and without kernel).
@@ -43,6 +43,9 @@ cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
 
+# Skipped temporarily until fixed
+vm/regress_29145_test: Skip # Issue 29145
+
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 multiline_strings_test: Fail # Issue 23020
@@ -62,7 +65,7 @@ generic_local_functions_test: Pass # Issue 25869
 generic_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
@@ -70,10 +73,10 @@ vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter || $runtime == drt || $runtime == dartium) ]
 export_ambiguous_main_negative_test: Fail # Issue 14763
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit || $compiler == dartk || $compiler == dartkp) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium) ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit || $compiler == dartk || $compiler == dartkp) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium || $runtime == flutter) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478
 
 [ $compiler == none && $runtime == dartium && $unchecked ]
@@ -89,7 +92,7 @@ positional_parameters_type_test/02: Fail # Issue 14651.
 type_checks_in_factory_method_test: Fail # Issue 14651.
 vm/type_vm_test: Fail # Issue 14651.
 
-[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
+[ $compiler == none && ($runtime == dartium || $runtime == drt)]
 abstract_beats_arguments2_test/01: Skip # Issue 29171
 # Other issues.
 issue13474_test: Pass, Fail # Issue 14651.
@@ -137,7 +140,7 @@ disassemble_test: Pass, Fail # Issue 18122
 [ ($runtime == vm || $runtime == dart_precompiled) && $arch == mips && $mode == debug ]
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
-[ ($runtime == vm || $runtime == dart_precompiled) && $arch == arm64 ]
+[ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) && $mode == debug ]
@@ -157,6 +160,9 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 vm/regress_27671_test: Skip # Unsupported
+
+[ $compiler == precompiler && $runtime == dart_precompiled && $mode == debug ]
+regress_29025_test: Crash  # Issue dartbug.com/29331
 
 [ $runtime == dart_precompiled || $mode == product ]
 # Imports dart:mirrors
@@ -227,6 +233,7 @@ map_literal4_test: SkipByDesign # Requires checked mode.
 
 vm/type_vm_test: Fail,OK  # Expects exact type name.
 
+stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $browser ]
 # The following tests are supposed to fail.
@@ -285,11 +292,8 @@ regress_22443_test: Crash # Requires deferred libraries
 regress_28278_test: Crash # Requires deferred libraries
 conditional_import_test: Crash # Requires deferred libraries
 conditional_import_string_test: Crash # Requires deferred libraries
-override_field_method1_negative_test: Pass, Crash # Issue 27835
-override_field_method2_negative_test: Pass, Crash # Issue 27835
-override_field_method4_negative_test: Pass, Crash # Issue 27835
-override_field_method5_negative_test: Pass, Crash # Issue 27835
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
+vm/optimized_stacktrace_test: Pass, Slow
 
 [$runtime != vm || $compiler != none]
 assert_initializer_test: SKIP  # not implemented yet, experiment is VM only.
@@ -298,12 +302,12 @@ assert_initializer_test: SKIP  # not implemented yet, experiment is VM only.
 assert_initializer_test/*: MissingCompileTimeError, OK  # asserts shouldn't fail in unchecked mode.
 assert_initializer_test/none: pass
 
-[$runtime == vm && $compiler == none && $checked]
+[($runtime == vm || $runtime == flutter) && $compiler == none && $checked]
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.
 assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
 
-[$runtime == vm && $compiler == none]
+[($runtime == vm || $runtime == flutter) && $compiler == none]
 duplicate_part_test/01: MissingCompileTimeError # Issue 27516
 
 [$runtime == vm && $compiler == none && $system == windows && $arch == ia32]
@@ -322,5 +326,252 @@ closure_cycles_test: Pass, Crash
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 config_import_corelib_test: StaticWarning, OK
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dartium || $runtime == drt) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
+[ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled || $runtime == dartium || $runtime == drt) && ($compiler == none || $compiler == app_jit || $compiler == precompiler) ]
 await_for_test: RuntimeError # issue 28974
+
+# flutter uses --error_on_bad_type, --error_on_bad_override
+# and --await_is_keyword so # the following tests fail with
+# a Compilation Error
+[ $runtime == flutter ]
+await_backwards_compatibility_test/none: CompileTimeError
+await_test: CompileTimeError
+async_await_test: CompileTimeError
+async_await_syntax_test/a05c: CompileTimeError
+async_await_syntax_test/a05e: CompileTimeError
+async_await_syntax_test/d08c: CompileTimeError
+static_initializer_type_error_test: CompileTimeError
+new_expression_type_args_test/02: CompileTimeError
+super_getter_setter_test: CompileTimeError
+malformed_test/none: CompileTimeError
+malbounded_type_test_test/02: CompileTimeError
+factory6_test/00: CompileTimeError
+method_override2_test/01: CompileTimeError
+regress_22438_test: CompileTimeError
+regress_13462_1_test: CompileTimeError
+instance_creation_in_function_annotation_test: CompileTimeError
+type_variable_scope_test/none: CompileTimeError
+type_variable_scope_test/00: CompileTimeError
+type_variable_scope_test/01: CompileTimeError
+type_variable_scope_test/03: CompileTimeError
+type_variable_scope_test/02: CompileTimeError
+type_variable_scope_test/04: CompileTimeError
+type_variable_scope_test/05: CompileTimeError
+invocation_mirror_invoke_on_test: CompileTimeError
+method_override3_test/00: CompileTimeError
+method_override3_test/01: CompileTimeError
+method_override3_test/02: CompileTimeError
+type_variable_bounds_test/00: CompileTimeError
+type_variable_bounds_test/06: CompileTimeError
+type_variable_bounds_test/07: CompileTimeError
+type_variable_bounds_test/09: CompileTimeError
+type_variable_bounds_test/10: CompileTimeError
+type_variable_bounds_test/08: CompileTimeError
+factory4_test: CompileTimeError
+factory2_test: CompileTimeError
+regress_18535_test: CompileTimeError
+prefix22_test: CompileTimeError
+regress_28255_test: CompileTimeError
+enum_mirror_test: CompileTimeError
+field_override_test/01: CompileTimeError
+override_inheritance_field_test/05: CompileTimeError
+override_inheritance_field_test/07: CompileTimeError
+override_inheritance_field_test/06: CompileTimeError
+override_inheritance_field_test/08: CompileTimeError
+override_inheritance_field_test/28: CompileTimeError
+override_inheritance_field_test/29: CompileTimeError
+override_inheritance_field_test/30: CompileTimeError
+override_inheritance_field_test/31: CompileTimeError
+override_inheritance_field_test/44: CompileTimeError
+override_inheritance_field_test/45: CompileTimeError
+override_inheritance_field_test/48: CompileTimeError
+override_inheritance_field_test/47: CompileTimeError
+override_inheritance_field_test/53: CompileTimeError
+override_inheritance_field_test/10: CompileTimeError
+override_inheritance_field_test/54: CompileTimeError
+override_inheritance_field_test/09: CompileTimeError
+override_inheritance_field_test/33a: CompileTimeError
+override_inheritance_field_test/34: CompileTimeError
+override_inheritance_field_test/32: CompileTimeError
+override_inheritance_field_test/11: CompileTimeError
+override_inheritance_field_test/33: CompileTimeError
+issue_25671b_test/01: CompileTimeError
+mixin_super_bound2_test/01: CompileTimeError
+override_inheritance_method_test/04: CompileTimeError
+override_inheritance_method_test/06: CompileTimeError
+override_inheritance_method_test/11: CompileTimeError
+override_inheritance_method_test/12: CompileTimeError
+override_inheritance_method_test/13: CompileTimeError
+override_inheritance_method_test/14: CompileTimeError
+override_inheritance_method_test/19: CompileTimeError
+override_inheritance_method_test/20: CompileTimeError
+override_inheritance_method_test/21: CompileTimeError
+override_inheritance_method_test/27: CompileTimeError
+override_inheritance_method_test/28: CompileTimeError
+override_inheritance_method_test/29: CompileTimeError
+override_inheritance_method_test/05: CompileTimeError
+override_inheritance_method_test/31: CompileTimeError
+override_inheritance_method_test/33: CompileTimeError
+override_inheritance_method_test/32: CompileTimeError
+override_inheritance_method_test/30: CompileTimeError
+redirecting_factory_reflection_test: CompileTimeError
+method_override6_test: CompileTimeError
+try_catch_syntax_test/08: CompileTimeError
+async_return_types_test/tooManyTypeParameters: CompileTimeError
+method_override4_test: CompileTimeError
+super_call4_test: CompileTimeError
+wrong_number_type_arguments_test/00: CompileTimeError
+wrong_number_type_arguments_test/02: CompileTimeError
+wrong_number_type_arguments_test/01: CompileTimeError
+is_malformed_type_test/97: CompileTimeError
+class_keyword_test/02: CompileTimeError
+is_malformed_type_test/98: CompileTimeError
+is_malformed_type_test/99: CompileTimeError
+is_malformed_type_test/95: CompileTimeError
+is_malformed_type_test/96: CompileTimeError
+is_malformed_type_test/94: CompileTimeError
+field_increment_bailout_test: CompileTimeError
+on_catch_malformed_type_test: CompileTimeError
+f_bounded_quantification_test/01: CompileTimeError
+f_bounded_quantification_test/02: CompileTimeError
+mixin_type_parameters_errors_test/02: CompileTimeError
+mixin_type_parameters_errors_test/05: CompileTimeError
+mixin_type_parameters_errors_test/01: CompileTimeError
+mixin_type_parameters_errors_test/03: CompileTimeError
+mixin_type_parameters_errors_test/04: CompileTimeError
+issue21079_test: CompileTimeError
+f_bounded_quantification5_test: CompileTimeError
+malformed_type_test: CompileTimeError
+issue_25671a_test/01: CompileTimeError
+regress_13462_0_test: CompileTimeError
+overridden_no_such_method_test: CompileTimeError
+deferred_constraints_type_annotation_test/new_before_load: CompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_null: CompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic2: CompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic3: CompileTimeError
+deferred_constraints_type_annotation_test/new: CompileTimeError
+deferred_constraints_type_annotation_test/new_generic1: CompileTimeError
+deferred_constraints_type_annotation_test/new_generic2: CompileTimeError
+deferred_constraints_type_annotation_test/new_generic3: CompileTimeError
+deferred_constraints_type_annotation_test/is_check: CompileTimeError
+deferred_constraints_type_annotation_test/as_operation: CompileTimeError
+deferred_constraints_type_annotation_test/catch_check: CompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_top_level: CompileTimeError
+deferred_constraints_constants_test/none: CompileTimeError
+deferred_constraints_constants_test/reference_after_load: CompileTimeError
+no_such_method_test: CompileTimeError
+conditional_import_string_test: CompileTimeError
+try_catch_on_syntax_test/07: CompileTimeError
+non_parameterized_factory_test: CompileTimeError
+instanceof3_test: CompileTimeError
+malbounded_redirecting_factory_test/none: CompileTimeError
+malbounded_redirecting_factory_test/01: CompileTimeError
+null_test/none: CompileTimeError
+check_method_override_test/01: CompileTimeError
+check_method_override_test/02: CompileTimeError
+malformed_inheritance_test/02: CompileTimeError
+malformed_inheritance_test/04: CompileTimeError
+malformed_inheritance_test/06: CompileTimeError
+call_constructor_on_unresolvable_class_test/01: CompileTimeError
+call_constructor_on_unresolvable_class_test/03: CompileTimeError
+call_constructor_on_unresolvable_class_test/02: CompileTimeError
+call_constructor_on_unresolvable_class_test/07: CompileTimeError
+unicode_bom_test: CompileTimeError
+prefix16_test: CompileTimeError
+deferred_not_loaded_check_test: CompileTimeError
+regress_23408_test: CompileTimeError
+redirecting_factory_incompatible_signature_test: CompileTimeError
+malbounded_instantiation_test/01: CompileTimeError
+const_evaluation_test/none: CompileTimeError
+mixin_invalid_bound_test/01: CompileTimeError
+const_evaluation_test/01: CompileTimeError
+mixin_invalid_bound_test/none: CompileTimeError
+mixin_invalid_bound_test/05: CompileTimeError
+mixin_invalid_bound_test/03: CompileTimeError
+malformed2_test/00: CompileTimeError
+conditional_import_test: CompileTimeError
+non_parameterized_factory2_test: CompileTimeError
+private_access_test/03: CompileTimeError
+private_access_test/04: CompileTimeError
+function_malformed_result_type_test: CompileTimeError
+mixin_invalid_bound2_test/none: CompileTimeError
+mixin_invalid_bound2_test/01: CompileTimeError
+mixin_invalid_bound2_test/04: CompileTimeError
+mixin_invalid_bound2_test/07: CompileTimeError
+deferred_super_dependency_test/01: CompileTimeError
+method_override5_test: CompileTimeError
+deferred_static_seperate_test: CompileTimeError
+default_factory_test/01: CompileTimeError
+internal_library_test/01: CompileTimeError
+internal_library_test/02: CompileTimeError
+type_variable_scope2_test: CompileTimeError
+mixin_super_bound_test: CompileTimeError
+bad_override_test/06: CompileTimeError
+invocation_mirror2_test: CompileTimeError
+deferred_inheritance_constraints_test/redirecting_constructor: CompileTimeError
+deferred_no_such_method_test: CompileTimeError
+malbounded_type_literal_test: CompileTimeError
+deferred_mixin_test: CompileTimeError
+many_overridden_no_such_method_test: CompileTimeError
+malbounded_redirecting_factory2_test/none: CompileTimeError
+malbounded_redirecting_factory2_test/01: CompileTimeError
+malbounded_type_cast_test: CompileTimeError
+type_parameter_test/none: CompileTimeError
+list_literal_syntax_test/03: CompileTimeError
+list_literal_syntax_test/01: CompileTimeError
+list_literal_syntax_test/02: CompileTimeError
+vm/reflect_core_vm_test: CompileTimeError
+vm/debug_break_enabled_vm_test/01: CompileTimeError
+vm/debug_break_enabled_vm_test/none: CompileTimeError
+generic_function_typedef2_test/04: CompileTimeError
+class_override_test/00: CompileTimeError
+const_types_test/01: CompileTimeError
+const_types_test/02: CompileTimeError
+const_types_test/03: CompileTimeError
+const_types_test/04: CompileTimeError
+const_types_test/05: CompileTimeError
+const_types_test/06: CompileTimeError
+const_types_test/13: CompileTimeError
+const_types_test/35: CompileTimeError
+const_types_test/40: CompileTimeError
+regress_12561_test: CompileTimeError
+invocation_mirror_invoke_on2_test: CompileTimeError
+
+isnot_malformed_type_test: RuntimeError
+is_not_class2_test: RuntimeError
+
+# No mirrors support in Flutter.
+library_env_test/has_no_mirror_support: Pass
+library_env_test/has_mirror_support: RuntimeError, Ok
+
+internal_library_test/01: MissingCompileTimeError
+internal_library_test/02: MissingCompileTimeError
+
+# deferred loading is not supported by Flutter
+deferred_type_dependency_test/is: Skip # Timeout
+deferred_type_dependency_test/none: Skip # Timeout
+deferred_type_dependency_test/as: Skip # Timeout
+deferred_type_dependency_test/type_annotation: Skip # Timeout
+deferred_closurize_load_library_test: Skip # Timeout
+deferred_constraints_type_annotation_test/none: Skip # Timeout
+deferred_constraints_type_annotation_test/static_method: Skip # Timeout
+deferred_shared_and_unshared_classes_test: Skip # Timeout
+deferred_constant_list_test: Skip # Timeout
+deferred_redirecting_factory_test: Skip # Timeout
+deferred_shadow_load_library_test: Skip # Timeout
+deferred_global_test: Skip # Timeout
+
+# Look like bugs.
+config_import_test: RuntimeError # Flutter Issue 9110
+vm/no_such_method_error_message_callable_vm_test: RuntimeError # Flutter Issue 9110
+vm/regress_27201_test: Fail # Flutter Issue 9110
+async_return_types_test/nestedFuture: Skip # Flutter Issue 9110
+async_return_types_test/wrongTypeParameter: Skip # Flutter Issue 9110
+async_return_types_test/wrongReturnType: Skip # Flutter Issue 9110
+async_return_types_test/return_value_sync_star: Skip # Flutter Issue 9110
+asyncstar_yield_test: Skip # Flutter Issue 9110
+async_star_no_cancel_test: Skip # Flutter Issue 9110
+async_star_cancel_while_paused_test: Skip # Flutter Issue 9110
+await_for_test: Skip # Flutter Issue 9110
+await_for_cancel_test: Skip # Flutter Issue 9110
+
+

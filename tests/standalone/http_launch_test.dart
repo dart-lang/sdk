@@ -37,9 +37,9 @@ handleRequest(HttpRequest request) {
   final File file = new File(requestPath.toFilePath());
   file.exists().then((bool found) {
     if (found) {
-      file.openRead()
-          .pipe(request.response)
-          .catchError((e) { _sendNotFound(request.response); });
+      file.openRead().pipe(request.response).catchError((e) {
+        _sendNotFound(request.response);
+      });
     } else {
       _sendNotFound(request.response);
     }
@@ -49,22 +49,18 @@ handleRequest(HttpRequest request) {
 serverRunning(HttpServer server) {
   port = server.port;
   server.listen(handleRequest);
-  Future<ProcessResult> no_http_run =
-    Process.run(pathToExecutable,
-                [pathOfData.resolve('http_launch_main.dart').toFilePath()]);
-  Future<ProcessResult> http_run =
-    Process.run(pathToExecutable,
-                ['http://127.0.0.1:$port/http_launch_main.dart']);
-  Future<ProcessResult> http_pkg_root_run =
-    Process.run(pathToExecutable,
-                ['--package-root=http://127.0.0.1:$port/packages/',
-                'http://127.0.0.1:$port/http_launch_main.dart']);
-  Future<ProcessResult> isolate_run =
-    Process.run(pathToExecutable,
-                ['http://127.0.0.1:$port/http_spawn_main.dart', '$port']);
-  Future<List<ProcessResult>> results = Future.wait([no_http_run, http_run,
-                                                     http_pkg_root_run,
-                                                     isolate_run]);
+  Future<ProcessResult> no_http_run = Process.run(pathToExecutable,
+      [pathOfData.resolve('http_launch_main.dart').toFilePath()]);
+  Future<ProcessResult> http_run = Process
+      .run(pathToExecutable, ['http://127.0.0.1:$port/http_launch_main.dart']);
+  Future<ProcessResult> http_pkg_root_run = Process.run(pathToExecutable, [
+    '--package-root=http://127.0.0.1:$port/packages/',
+    'http://127.0.0.1:$port/http_launch_main.dart'
+  ]);
+  Future<ProcessResult> isolate_run = Process.run(pathToExecutable,
+      ['http://127.0.0.1:$port/http_spawn_main.dart', '$port']);
+  Future<List<ProcessResult>> results =
+      Future.wait([no_http_run, http_run, http_pkg_root_run, isolate_run]);
   results.then((results) {
     // Close server.
     server.close();

@@ -13,11 +13,15 @@ abstract class AxesObject {
 String result = '';
 
 class Point2DObject extends AxesObject {
-  Update() { result += 'P'; }
+  Update() {
+    result += 'P';
+  }
 }
 
 class BestFitObject extends AxesObject {
-  Update() { result += 'B'; }
+  Update() {
+    result += 'B';
+  }
 }
 
 class Foo {
@@ -35,6 +39,7 @@ class Foo {
       a.Update();
     }
   }
+
   AddAxesObject2(type) {
     AxesObject a = null;
     if (type == 100) {

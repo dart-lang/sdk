@@ -13,13 +13,14 @@ class A extends B {
     return s;
   }
 
-  A(x, y) : super(y), a = x { }
+  A(x, y)
+      : super(y),
+        a = x {}
 
   value() {
     return a + b + foo();
   }
 }
-
 
 class B {
   var b;
@@ -38,7 +39,6 @@ class B {
   }
 }
 
-
 class ThirdTest {
   static testMain() {
     var a = new A(1, 2);
@@ -46,7 +46,7 @@ class ThirdTest {
     A.s = 4;
     B.s = 5;
     Expect.equals(26, a.value() + b.value());
- }
+  }
 }
 
 main() {

@@ -9,6 +9,7 @@ class ScannerTest {
     return s;
   }
 }
+
 main() {
   ScannerTest.testMain();
 }

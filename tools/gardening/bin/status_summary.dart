@@ -9,11 +9,17 @@ import 'dart:async';
 import 'dart:math' hide log;
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:gardening/src/util.dart';
 
 main(List<String> args) async {
-  if (args.length == 0) {
-    print('Usage: status_summary <test-name1> [<test-name2> ...]');
+  ArgParser argParser = createArgParser();
+  ArgResults argResults = argParser.parse(args);
+  processArgResults(argResults);
+  if (argResults.rest.length == 0) {
+    print('Usage: status_summary [options] <test-name1> [<test-name2> ...]');
+    print('where options are:');
+    print(argParser.usage);
     exit(1);
   }
   int maxStatusWidth = 0;
@@ -43,7 +49,7 @@ main(List<String> args) async {
             comment = '';
           }
 
-          for (String arg in args) {
+          for (String arg in argResults.rest) {
             if (testName.contains(arg) || arg.contains(testName)) {
               StatusFile statusFile =
                   currentMap.putIfAbsent(testName, () => new StatusFile(uri));

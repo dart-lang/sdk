@@ -12,7 +12,9 @@ class A {
 
 class B extends A {
   final y;
-  const B(val) : super(), y = val;
+  const B(val)
+      : super(),
+        y = val;
 }
 
 class UnboundGetterTest {

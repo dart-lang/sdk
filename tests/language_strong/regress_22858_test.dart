@@ -10,14 +10,18 @@ main() {
   f1() {
     {
       var bad = "bad";
-      f2() { bad; }
+      f2() {
+        bad;
+      }
     }
 
     Expect.equals("good", good);
     do {
       Expect.equals("good", good);
       int ugly = 0;
-      f3() { ugly; }
+      f3() {
+        ugly;
+      }
     } while (false);
   }
 

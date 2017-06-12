@@ -11,13 +11,14 @@ import 'stringify.dart';
 import 'library_imports_prefixed_show_hide.dart';
 
 test(MirrorSystem mirrors) {
-  LibraryMirror prefixed_show_hide = mirrors.findLibrary(#library_imports_prefixed_show_hide);
+  LibraryMirror prefixed_show_hide =
+      mirrors.findLibrary(#library_imports_prefixed_show_hide);
   LibraryMirror a = mirrors.findLibrary(#library_imports_a);
   LibraryMirror b = mirrors.findLibrary(#library_imports_b);
   LibraryMirror core = mirrors.findLibrary(#dart.core);
 
   Expect.setEquals([a, b, core],
-                   prefixed_show_hide.libraryDependencies.map((dep) => dep.targetLibrary));
+      prefixed_show_hide.libraryDependencies.map((dep) => dep.targetLibrary));
 
   Expect.stringEquals(
       'import dart.core\n'

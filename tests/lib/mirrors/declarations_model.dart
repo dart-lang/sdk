@@ -89,23 +89,24 @@ class Superclass<S> {
 
   Superclass.inheritedGenerativeConstructor(this.inheritedInstanceVariable);
   Superclass.inheritedRedirectingConstructor(x)
-      : this.inheritedGenerativeConstructor(x*2);
-  factory Superclass.inheritedNormalFactory(y)
-      => new Superclass.inheritedRedirectingConstructor(y*3);
-  factory Superclass.inheritedRedirectingFactory(z)
-      = Superclass.inheritedNormalFactory;
+      : this.inheritedGenerativeConstructor(x * 2);
+  factory Superclass.inheritedNormalFactory(y) =>
+      new Superclass.inheritedRedirectingConstructor(y * 3);
+  factory Superclass.inheritedRedirectingFactory(z) =
+      Superclass.inheritedNormalFactory;
 
   Superclass._inheritedGenerativeConstructor(this._inheritedInstanceVariable);
   Superclass._inheritedRedirectingConstructor(x)
-      : this._inheritedGenerativeConstructor(x*2);
-  factory Superclass._inheritedNormalFactory(y)
-      => new Superclass._inheritedRedirectingConstructor(y*3);
-  factory Superclass._inheritedRedirectingFactory(z)
-      = Superclass._inheritedNormalFactory;
+      : this._inheritedGenerativeConstructor(x * 2);
+  factory Superclass._inheritedNormalFactory(y) =>
+      new Superclass._inheritedRedirectingConstructor(y * 3);
+  factory Superclass._inheritedRedirectingFactory(z) =
+      Superclass._inheritedNormalFactory;
 }
 
-abstract class Class<C>
-    extends Superclass<C> with Mixin<C> implements Interface<C> {
+abstract class Class<C> extends Superclass<C>
+    with Mixin<C>
+    implements Interface<C> {
   operator +(x) => null;
 
   abstractMethod();
@@ -132,15 +133,14 @@ abstract class Class<C>
 
   Class.generativeConstructor(this.instanceVariable)
       : super.inheritedGenerativeConstructor(0);
-  Class.redirectingConstructor(x)
-      : this.generativeConstructor(x*2);
-  factory Class.normalFactory(y) => new ConcreteClass(y*3);
+  Class.redirectingConstructor(x) : this.generativeConstructor(x * 2);
+  factory Class.normalFactory(y) => new ConcreteClass(y * 3);
   factory Class.redirectingFactory(z) = Class.normalFactory;
 
   Class._generativeConstructor(this._instanceVariable)
       : super._inheritedGenerativeConstructor(0);
-  Class._redirectingConstructor(x) : this._generativeConstructor(x*2);
-  factory Class._normalFactory(y) => new ConcreteClass(y*3);
+  Class._redirectingConstructor(x) : this._generativeConstructor(x * 2);
+  factory Class._normalFactory(y) => new ConcreteClass(y * 3);
   factory Class._redirectingFactory(z) = Class._normalFactory;
 }
 

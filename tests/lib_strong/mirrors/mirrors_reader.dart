@@ -18,6 +18,7 @@ class ReadError {
 class MirrorsReader extends MirrorsVisitor {
   /// Produce verbose output.
   final bool verbose;
+
   /// Include stack trace in the error report.
   final bool includeStackTrace;
 
@@ -52,7 +53,7 @@ class MirrorsReader extends MirrorsVisitor {
     if (fatalError) return true;
     if (mirror is TypeMirror) {
       if (mirror.isOriginalDeclaration) {
-        // Visit the declation once.
+        // Visit the declaration once.
         return !declarations.add(mirror);
       } else {
         // Visit only one instantiation.
@@ -67,9 +68,8 @@ class MirrorsReader extends MirrorsVisitor {
     errors.add(new ReadError(errorTag, exception, stackTrace));
   }
 
-  visitUnsupported(var receiver, String tag,
-                   UnsupportedError exception,
-                   StackTrace stackTrace) {
+  visitUnsupported(var receiver, String tag, UnsupportedError exception,
+      StackTrace stackTrace) {
     if (verbose) print('visitUnsupported:$receiver.$tag:$exception');
     if (!expectUnsupported(receiver, tag, exception) &&
         !allowUnsupported(receiver, tag, exception)) {
@@ -78,12 +78,13 @@ class MirrorsReader extends MirrorsVisitor {
   }
 
   /// Override to specify that access is expected to be unsupported.
-  bool expectUnsupported(var receiver, String tag,
-                         UnsupportedError exception) => false;
+  bool expectUnsupported(
+          var receiver, String tag, UnsupportedError exception) =>
+      false;
 
   /// Override to allow unsupported access.
-  bool allowUnsupported(var receiver, String tag,
-                        UnsupportedError exception) => false;
+  bool allowUnsupported(var receiver, String tag, UnsupportedError exception) =>
+      false;
 
   /// Evaluates the function [f]. Subclasses can override this to handle
   /// specific exceptions.
@@ -200,14 +201,13 @@ class MirrorsReader extends MirrorsVisitor {
     visit(mirror, 'isAbstract', () => mirror.isAbstract);
     visit(mirror, 'isConstConstructor', () => mirror.isConstConstructor);
     visit(mirror, 'isConstructor', () => mirror.isConstructor);
-    visit(mirror, 'isFactoryConstructor',
-          () => mirror.isFactoryConstructor);
+    visit(mirror, 'isFactoryConstructor', () => mirror.isFactoryConstructor);
     visit(mirror, 'isGenerativeConstructor',
-          () => mirror.isGenerativeConstructor);
+        () => mirror.isGenerativeConstructor);
     visit(mirror, 'isGetter', () => mirror.isGetter);
     visit(mirror, 'isOperator', () => mirror.isOperator);
     visit(mirror, 'isRedirectingConstructor',
-          () => mirror.isRedirectingConstructor);
+        () => mirror.isRedirectingConstructor);
     visit(mirror, 'isRegularMethod', () => mirror.isRegularMethod);
     visit(mirror, 'isSetter', () => mirror.isSetter);
     visit(mirror, 'isStatic', () => mirror.isStatic);
@@ -229,9 +229,7 @@ class MirrorsReader extends MirrorsVisitor {
     visit(mirror, 'type', () => mirror.type);
   }
 
-  visitSourceLocation(SourceLocation location) {
-
-  }
+  visitSourceLocation(SourceLocation location) {}
 
   visitTypedefMirror(TypedefMirror mirror) {
     super.visitTypedefMirror(mirror);
@@ -240,8 +238,7 @@ class MirrorsReader extends MirrorsVisitor {
 
   visitTypeMirror(TypeMirror mirror) {
     super.visitTypeMirror(mirror);
-    visit(mirror, 'isOriginalDeclaration',
-          () => mirror.isOriginalDeclaration);
+    visit(mirror, 'isOriginalDeclaration', () => mirror.isOriginalDeclaration);
     visit(mirror, 'originalDeclaration', () => mirror.originalDeclaration);
     visit(mirror, 'typeArguments', () => mirror.typeArguments);
     visit(mirror, 'typeVariables', () => mirror.typeVariables);

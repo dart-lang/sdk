@@ -31,8 +31,7 @@ import 'package:expect/expect.dart';
 
 void main() {
   // Long string to trigger caching.
-  var string =
-  """Friends, Romans, countrymen, lend me your ears!  
+  var string = """Friends, Romans, countrymen, lend me your ears!  
   I come to bury Caesar, not to praise him.        
   The evil that men do lives after them,           
   The good is oft interred with their bones;       
@@ -70,8 +69,7 @@ void main() {
 
   var replaced = string.replaceAll(new RegExp(r"\b\w+\b"), "foo");
   for (var i = 0; i < 3; i++) {
-    assertEquals(replaced,
-                string.replaceAll(new RegExp(r"\b\w+\b"), "foo"));
+    assertEquals(replaced, string.replaceAll(new RegExp(r"\b\w+\b"), "foo"));
   }
 
   // Check that the result is in a COW array.

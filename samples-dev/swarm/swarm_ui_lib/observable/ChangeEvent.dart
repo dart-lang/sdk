@@ -6,7 +6,7 @@ part of observable;
 
 /** A change to an observable instance. */
 class ChangeEvent {
-  // TODO(sigmund): capture language issues around enums & create a cannonical
+  // TODO(sigmund): capture language issues around enums & create a canonical
   // Dart enum design.
   /** Type denoting an in-place update event. */
   static const UPDATE = 0;
@@ -47,16 +47,21 @@ class ChangeEvent {
   /** Factory constructor for property change events. */
   ChangeEvent.property(
       this.target, this.propertyName, this.newValue, this.oldValue)
-    : type = UPDATE, index = null;
+      : type = UPDATE,
+        index = null;
 
   /** Factory constructor for list change events. */
   ChangeEvent.list(
       this.target, this.type, this.index, this.newValue, this.oldValue)
-    : propertyName = null;
+      : propertyName = null;
 
   /** Factory constructor for [GLOBAL] change events. */
   ChangeEvent.global(this.target)
-    : type = GLOBAL, newValue = null, oldValue = null, propertyName = null, index = null;
+      : type = GLOBAL,
+        newValue = null,
+        oldValue = null,
+        propertyName = null,
+        index = null;
 }
 
 /** A collection of change events on a single observable instance. */

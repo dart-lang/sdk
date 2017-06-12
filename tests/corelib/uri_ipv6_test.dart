@@ -4,7 +4,6 @@
 
 import 'package:expect/expect.dart';
 
-
 void testValidIpv6Uri() {
   var path = 'http://[::1]:1234/path?query=5#now';
   var uri = Uri.parse(path);
@@ -31,7 +30,7 @@ void testValidIpv6Uri() {
   Expect.equals(80, uri.port);
   Expect.equals('/index.html', uri.path);
   Expect.equals('http://[fedc:ba98:7654:3210:fedc:ba98:7654:3210]/index.html',
-                uri.toString());
+      uri.toString());
 
   path = 'https://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:443/index.html';
   uri = Uri.parse(path);
@@ -40,7 +39,7 @@ void testValidIpv6Uri() {
   Expect.equals(443, uri.port);
   Expect.equals('/index.html', uri.path);
   Expect.equals('https://[fedc:ba98:7654:3210:fedc:ba98:7654:3210]/index.html',
-                uri.toString());
+      uri.toString());
 
   path = 'http://[1080:0:0:0:8:800:200C:417A]/index.html';
   uri = Uri.parse(path);
@@ -107,14 +106,14 @@ void testValidIpv6Uri() {
   Expect.equals(path.toLowerCase(), uri.toString());
 }
 
-
 void testParseIPv6Address() {
   void pass(String host, List<int> expected) {
     Expect.listEquals(expected, Uri.parseIPv6Address(host));
   }
+
   void fail(String host) {
-    Expect.throws(() => Uri.parseIPv6Address(host),
-                  (e) => e is FormatException);
+    Expect.throws(
+        () => Uri.parseIPv6Address(host), (e) => e is FormatException);
   }
 
   pass('::127.0.0.1', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]);
@@ -134,18 +133,16 @@ void testParseIPv6Address() {
   fail('0::127.0.0');
   pass('0::1111', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 17]);
   pass('2010:836B:4179::836B:4179',
-       [32, 16, 131, 107, 65, 121, 0, 0, 0, 0, 0, 0, 131, 107, 65, 121] );
+      [32, 16, 131, 107, 65, 121, 0, 0, 0, 0, 0, 0, 131, 107, 65, 121]);
   fail('2010:836B:4179:0000:127.0.0.1');
   fail('2010:836B:4179:0000:0000:127.0.0.1');
   fail('2010:836B:4179:0000:0000:0000::127.0.0.1');
   fail('2010:836B:4179:0000:0000:0000:0000:127.0.0.1');
   pass('2010:836B:4179:0000:0000:0000:127.0.0.1',
-       [32, 16, 131, 107, 65, 121, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1] );
+      [32, 16, 131, 107, 65, 121, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]);
 }
-
 
 void main() {
   testValidIpv6Uri();
   testParseIPv6Address();
 }
-

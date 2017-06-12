@@ -11,7 +11,9 @@ class A {
   final finalField;
   final otherFinalField;
 
-  A() : finalField = 42, otherFinalField = 54;
+  A()
+      : finalField = 42,
+        otherFinalField = 54;
 
   expectFinalField(arg1, arg2) {
     Expect.equals(arg1, arg2);

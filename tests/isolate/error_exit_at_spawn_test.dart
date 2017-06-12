@@ -27,7 +27,7 @@ isomain(replyPort) {
   replyPort.send(port.sendPort);
 }
 
-main(){
+main() {
   asyncStart();
   // Setup the port for communication with the newly spawned isolate.
   RawReceivePort reply = new RawReceivePort(null);
@@ -66,7 +66,7 @@ main(){
         throw "Bad state for error: $state: $error";
     }
   };
-  
+
   // Get exit notifications from other isolate as raw messages.
   RawReceivePort exitPort = new RawReceivePort();
   exitPort.handler = (message) {
@@ -78,11 +78,10 @@ main(){
     exitPort.close();
     asyncEnd();
   };
-  
-  Isolate.spawn(isomain,
-                reply.sendPort,
-                // Setup handlers as part of spawn.
-                errorsAreFatal: false,
-                onError: errorPort.sendPort,
-                onExit: exitPort.sendPort);
+
+  Isolate.spawn(isomain, reply.sendPort,
+      // Setup handlers as part of spawn.
+      errorsAreFatal: false,
+      onError: errorPort.sendPort,
+      onExit: exitPort.sendPort);
 }

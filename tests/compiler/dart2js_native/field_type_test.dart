@@ -35,7 +35,7 @@ class Node {
   }
 }
 
-makeNode(parent) native ;
+makeNode(parent) native;
 
 class ModelSource {
   var name;
@@ -44,7 +44,7 @@ class ModelSource {
 }
 
 void setup() native """
-// This code is all inside 'setup' and so not accesible from the global scope.
+// This code is all inside 'setup' and so not accessible from the global scope.
 function Node(parent){ this.parentNode = parent; }
 makeNode = function(p){return new Node(p);};
 self.nativeConstructor(Node);

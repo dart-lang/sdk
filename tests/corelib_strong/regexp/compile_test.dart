@@ -26,9 +26,7 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  description(
-  'Test RegExp.compile method.'
-  );
+  description('Test RegExp.compile method.');
 
   var re = new RegExp("a", caseSensitive: false);
   shouldBeTrue(re.hasMatch('A'));

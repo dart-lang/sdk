@@ -18,7 +18,8 @@ Future testErrorHandling() {
   MockCompiler compiler = new MockCompiler.internal();
   return compiler.init().then((_) {
     compiler.parseScript('NoSuchPrefix.NoSuchType foo() {}');
-    FunctionElement foo = compiler.mainApp.find('foo');
+    LibraryElement mainApp = compiler.mainApp;
+    FunctionElement foo = mainApp.find('foo');
     compiler.diagnosticHandler = new LegacyCompilerDiagnostics(
         (Uri uri, int begin, int end, String message, Diagnostic kind) {
       if (kind == Diagnostic.WARNING) {

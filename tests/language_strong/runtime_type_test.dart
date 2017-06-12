@@ -4,11 +4,9 @@
 
 import "package:expect/expect.dart";
 
-class A {
-}
+class A {}
 
-class B {
-}
+class B {}
 
 main() {
   var a = new A();

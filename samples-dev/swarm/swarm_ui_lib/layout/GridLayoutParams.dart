@@ -24,44 +24,41 @@ class GridLayoutParams extends LayoutParams {
   GridItemAlignment rowAlign;
   GridItemAlignment columnAlign;
 
-  GridLayoutParams(Positionable view, GridLayout layout)
-    : super(view.node) {
-
+  GridLayoutParams(Positionable view, GridLayout layout) : super(view.node) {
     // TODO(jmesserly): this can be cleaned up a lot by just passing "view"
     // into the parsers.
 
-    rowAlign = new GridItemAlignment.fromString(
-        view.customStyle['grid-row-align']);
-    columnAlign = new GridItemAlignment.fromString(
-        view.customStyle['grid-column-align']);
+    rowAlign =
+        new GridItemAlignment.fromString(view.customStyle['grid-row-align']);
+    columnAlign =
+        new GridItemAlignment.fromString(view.customStyle['grid-column-align']);
 
     layer = StringUtils.parseInt(view.customStyle['grid-layer'], 0);
 
     rowSpan = StringUtils.parseInt(view.customStyle['grid-row-span']);
     columnSpan = StringUtils.parseInt(view.customStyle['grid-column-span']);
 
-    var line = _GridItemParser.parse(
-        view.customStyle['grid-row'], layout.rows);
+    var line = _GridItemParser.parse(view.customStyle['grid-row'], layout.rows);
     if (line != null) {
       row = line.start;
       if (line.length != null) {
         if (rowSpan != null) {
           throw new UnsupportedError(
-            'grid-row-span cannot be with grid-row that defines an end');
+              'grid-row-span cannot be with grid-row that defines an end');
         }
         rowSpan = line.length;
       }
     }
 
-    line = _GridItemParser.parse(
-        view.customStyle['grid-column'], layout.columns);
+    line =
+        _GridItemParser.parse(view.customStyle['grid-column'], layout.columns);
 
     if (line != null) {
       column = line.start;
       if (line.length != null) {
         if (columnSpan != null) {
           throw new UnsupportedError(
-            'grid-column-span cannot be with grid-column that defines an end');
+              'grid-column-span cannot be with grid-column that defines an end');
         }
         columnSpan = line.length;
       }
@@ -73,8 +70,10 @@ class GridLayoutParams extends LayoutParams {
       // error handling. For now, throw an error on a misconfigured view.
       // CSS is designed to be a permissive language, though, so we should do
       // better and resolve conflicts more intelligently.
-      if (row != null || column != null ||
-          rowSpan != null || columnSpan != null) {
+      if (row != null ||
+          column != null ||
+          rowSpan != null ||
+          columnSpan != null) {
         throw new UnsupportedError(
             'grid-cell cannot be used with grid-row and grid-column');
       }
@@ -89,15 +88,14 @@ class GridLayoutParams extends LayoutParams {
       column = rect.column;
       rowSpan = rect.rowSpan;
       columnSpan = rect.columnSpan;
-
     } else {
       // Apply default row, column span values.
       if (rowSpan == null) rowSpan = 1;
       if (columnSpan == null) columnSpan = 1;
 
       if (row == null && column == null) {
-        throw new  UnsupportedError('grid-flow is not implemented'
-            + ' so at least one row or one column must be defined');
+        throw new UnsupportedError('grid-flow is not implemented' +
+            ' so at least one row or one column must be defined');
       }
 
       if (row == null) row = 1;

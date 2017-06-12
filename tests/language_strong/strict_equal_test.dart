@@ -43,7 +43,6 @@ main() {
   }
 }
 
-
 test1(a) {
   return identical(a, 3);
 }
@@ -52,16 +51,13 @@ test2(a) {
   return !identical(a, 3);
 }
 
-
 test2r(a) {
   return !identical(3, a);
 }
 
-
 test3() {
   return identical(get5(), 5);
 }
-
 
 test4(a) {
   if (identical(a, 3)) {
@@ -71,7 +67,6 @@ test4(a) {
   }
 }
 
-
 test5(a) {
   if (!identical(a, 3)) {
     return 1;
@@ -79,7 +74,6 @@ test5(a) {
     return 2;
   }
 }
-
 
 test6() {
   if (identical(get5(), 5)) {
@@ -97,7 +91,6 @@ test7() {
   return null != null;
 }
 
-
 test8() {
   if (null != null) {
     return 1;
@@ -106,16 +99,13 @@ test8() {
   }
 }
 
-
 test9(a) {
   return identical(a, 0);
 }
 
-
 test9r(a) {
   return identical(0, a);
 }
-
 
 test10(a) {
   return !identical(a, 0);

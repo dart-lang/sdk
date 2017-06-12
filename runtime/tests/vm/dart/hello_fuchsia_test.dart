@@ -474,6 +474,18 @@ Future testRecursiveDelete() async {
   assert(!await tmp0.exists());
 }
 
+bool testFileOpenDirectoryFails() {
+  File dir = new File(Directory.systemTemp.path);
+  try {
+    dir.openSync();
+  } on FileSystemException catch (e) {
+    return true;
+  } catch (e) {
+    print("Unexpected Exception: $e");
+    return false;
+  }
+}
+
 main(List<String> args) async {
   if (args.length >= 1) {
     if (args[0] == "infinite-loop") {
@@ -538,6 +550,14 @@ main(List<String> args) async {
   print("testRecursiveDelete");
   await testRecursiveDelete();
   print("testRecursiveDelete done");
+
+  print("testFileOpenDirectoryFails");
+  bool result = testFileOpenDirectoryFails();
+  if (result) {
+    print("testFileOpenDirectoryFails done");
+  } else {
+    print("testFileOpenDirectoryFails FAILED");
+  }
 
   print("Goodbyte, Fuchsia!");
 }

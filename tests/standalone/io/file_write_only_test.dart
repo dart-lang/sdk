@@ -29,10 +29,8 @@ void withTempDirSync(String prefix, void test(Directory dir)) {
 }
 
 Future expectThrowsAsync(Future future, String message) {
-  return future.then((r) => Expect.fail(message))
-               .catchError((e) {});
+  return future.then((r) => Expect.fail(message)).catchError((e) {});
 }
-
 
 Future write(Directory dir) async {
   var f = new File("${dir.path}${Platform.pathSeparator}write");

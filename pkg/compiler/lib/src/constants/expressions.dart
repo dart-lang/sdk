@@ -7,10 +7,9 @@ library dart2js.constants.expressions;
 import '../common.dart';
 import '../constants/constant_system.dart';
 import '../common_elements.dart';
-import '../elements/types.dart';
 import '../elements/entities.dart';
-import '../resolution/operators.dart';
-import '../tree/dartstring.dart' show DartString;
+import '../elements/operators.dart';
+import '../elements/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import 'constructors.dart';
 import 'evaluation.dart';
@@ -72,7 +71,7 @@ abstract class ConstantExpression {
   /// Compute the [ConstantValue] for this expression using the [environment]
   /// and the [constantSystem].
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem);
+      EvaluationEnvironment environment, ConstantSystem constantSystem);
 
   /// Returns the type of this constant expression, if it is independent of the
   /// environment values.
@@ -142,7 +141,7 @@ class ErroneousConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     // TODO(johnniwinther): Use non-constant values for errors.
     return new NonConstantValue();
   }
@@ -167,7 +166,7 @@ class SyntheticConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return value;
   }
 
@@ -196,7 +195,7 @@ class SyntheticConstantExpression extends ConstantExpression {
 
 /// A boolean, int, double, string, or null constant.
 abstract class PrimitiveConstantExpression extends ConstantExpression {
-  /// The primitive value of this contant expression.
+  /// The primitive value of this constant expression.
   get primitiveValue;
 }
 
@@ -219,7 +218,7 @@ class BoolConstantExpression extends PrimitiveConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return constantSystem.createBool(primitiveValue);
   }
 
@@ -255,7 +254,7 @@ class IntConstantExpression extends PrimitiveConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return constantSystem.createInt(primitiveValue);
   }
 
@@ -291,7 +290,7 @@ class DoubleConstantExpression extends PrimitiveConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return constantSystem.createDouble(primitiveValue);
   }
 
@@ -327,8 +326,8 @@ class StringConstantExpression extends PrimitiveConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
-    return constantSystem.createString(new DartString.literal(primitiveValue));
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    return constantSystem.createString(primitiveValue);
   }
 
   @override
@@ -361,7 +360,7 @@ class NullConstantExpression extends PrimitiveConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return constantSystem.createNull();
   }
 
@@ -405,7 +404,7 @@ class ListConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return constantSystem.createList(type,
         values.map((v) => v.evaluate(environment, constantSystem)).toList());
   }
@@ -474,7 +473,7 @@ class MapConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     Map<ConstantValue, ConstantValue> valueMap =
         <ConstantValue, ConstantValue>{};
     for (int index = 0; index < keys.length; index++) {
@@ -482,12 +481,8 @@ class MapConstantExpression extends ConstantExpression {
       ConstantValue value = values[index].evaluate(environment, constantSystem);
       valueMap[key] = value;
     }
-    return constantSystem.createMap(
-        environment.commonElements,
-        environment.backendClasses,
-        type,
-        valueMap.keys.toList(),
-        valueMap.values.toList());
+    return constantSystem.createMap(environment.commonElements, type,
+        valueMap.keys.toList(), valueMap.values.toList());
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -562,16 +557,16 @@ class ConstructedConstantExpression extends ConstantExpression {
   }
 
   Map<FieldEntity, ConstantExpression> computeInstanceFields(
-      Environment environment) {
+      EvaluationEnvironment environment) {
     ConstantConstructor constantConstructor =
         environment.getConstructorConstant(target);
-    assert(invariant(target, constantConstructor != null,
-        message: "No constant constructor computed for $target."));
+    assert(constantConstructor != null,
+        failedAt(target, "No constant constructor computed for $target."));
     return constantConstructor.computeInstanceFields(
         environment, arguments, callStructure);
   }
 
-  InterfaceType computeInstanceType(Environment environment) {
+  InterfaceType computeInstanceType(EvaluationEnvironment environment) {
     return environment
         .getConstructorConstant(target)
         .computeInstanceType(environment, type);
@@ -584,7 +579,7 @@ class ConstructedConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     Map<FieldEntity, ConstantValue> fieldValues =
         <FieldEntity, ConstantValue>{};
     computeInstanceFields(environment)
@@ -656,30 +651,20 @@ class ConcatenateConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
-    DartString accumulator;
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    StringBuffer sb = new StringBuffer();
     for (ConstantExpression expression in expressions) {
       ConstantValue value = expression.evaluate(environment, constantSystem);
-      DartString valueString;
-      if (value.isNum || value.isBool || value.isNull) {
+      if (value.isPrimitive) {
         PrimitiveConstantValue primitive = value;
-        valueString =
-            new DartString.literal(primitive.primitiveValue.toString());
-      } else if (value.isString) {
-        PrimitiveConstantValue primitive = value;
-        valueString = primitive.primitiveValue;
+        sb.write(primitive.primitiveValue);
       } else {
         // TODO(johnniwinther): Specialize message to indicated that the problem
         // is not constness but the types of the const expressions.
         return new NonConstantValue();
       }
-      if (accumulator == null) {
-        accumulator = valueString;
-      } else {
-        accumulator = new DartString.concat(accumulator, valueString);
-      }
     }
-    return constantSystem.createString(accumulator);
+    return constantSystem.createString(sb.toString());
   }
 
   @override
@@ -737,9 +722,8 @@ class SymbolConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
-    return constantSystem.createSymbol(
-        environment.commonElements, environment.backendClasses, name);
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    return constantSystem.createSymbol(environment.commonElements, name);
   }
 
   @override
@@ -773,9 +757,8 @@ class TypeConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
-    return constantSystem.createType(
-        environment.commonElements, environment.backendClasses, type);
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    return constantSystem.createType(environment.commonElements, type);
   }
 
   @override
@@ -810,7 +793,7 @@ class FieldConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     ConstantExpression constant = environment.getFieldConstant(element);
     return constant.evaluate(environment, constantSystem);
   }
@@ -843,7 +826,7 @@ class LocalVariableConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     ConstantExpression constant = environment.getLocalConstant(element);
     return constant.evaluate(environment, constantSystem);
   }
@@ -877,7 +860,7 @@ class FunctionConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return new FunctionConstantValue(element, type);
   }
 
@@ -921,7 +904,7 @@ class BinaryConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     ConstantValue leftValue = left.evaluate(environment, constantSystem);
     ConstantValue rightValue = right.evaluate(environment, constantSystem);
     switch (operator.kind) {
@@ -941,6 +924,7 @@ class BinaryConstantExpression extends ConstantExpression {
         left.apply(arguments), operator, right.apply(arguments));
   }
 
+  // ignore: MISSING_RETURN
   InterfaceType getKnownType(CommonElements commonElements) {
     DartType knownLeftType = left.getKnownType(commonElements);
     DartType knownRightType = right.getKnownType(commonElements);
@@ -1059,7 +1043,7 @@ class IdenticalConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return constantSystem.identity.fold(
         left.evaluate(environment, constantSystem),
         right.evaluate(environment, constantSystem));
@@ -1116,7 +1100,7 @@ class UnaryConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return constantSystem
         .lookupUnary(operator)
         .fold(expression.evaluate(environment, constantSystem));
@@ -1176,7 +1160,7 @@ class StringLengthConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     ConstantValue value = expression.evaluate(environment, constantSystem);
     if (value.isString) {
       StringConstantValue stringValue = value;
@@ -1259,7 +1243,7 @@ class ConditionalConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     ConstantValue conditionValue =
         condition.evaluate(environment, constantSystem);
     ConstantValue trueValue = trueExp.evaluate(environment, constantSystem);
@@ -1320,7 +1304,7 @@ class PositionalArgumentReference extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     throw new UnsupportedError('PositionalArgumentReference.evaluate');
   }
 
@@ -1359,7 +1343,7 @@ class NamedArgumentReference extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     throw new UnsupportedError('NamedArgumentReference.evaluate');
   }
 
@@ -1425,7 +1409,7 @@ class BoolFromEnvironmentConstantExpression
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     ConstantValue nameConstantValue =
         name.evaluate(environment, constantSystem);
     ConstantValue defaultConstantValue;
@@ -1438,8 +1422,8 @@ class BoolFromEnvironmentConstantExpression
       return new NonConstantValue();
     }
     StringConstantValue nameStringConstantValue = nameConstantValue;
-    String text = environment.readFromEnvironment(
-        nameStringConstantValue.primitiveValue.slowToString());
+    String text =
+        environment.readFromEnvironment(nameStringConstantValue.primitiveValue);
     if (text == 'true') {
       return constantSystem.createBool(true);
     } else if (text == 'false') {
@@ -1489,7 +1473,7 @@ class IntFromEnvironmentConstantExpression
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     ConstantValue nameConstantValue =
         name.evaluate(environment, constantSystem);
     ConstantValue defaultConstantValue;
@@ -1502,8 +1486,8 @@ class IntFromEnvironmentConstantExpression
       return new NonConstantValue();
     }
     StringConstantValue nameStringConstantValue = nameConstantValue;
-    String text = environment.readFromEnvironment(
-        nameStringConstantValue.primitiveValue.slowToString());
+    String text =
+        environment.readFromEnvironment(nameStringConstantValue.primitiveValue);
     int value;
     if (text != null) {
       value = int.parse(text, onError: (_) => null);
@@ -1555,7 +1539,7 @@ class StringFromEnvironmentConstantExpression
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     ConstantValue nameConstantValue =
         name.evaluate(environment, constantSystem);
     ConstantValue defaultConstantValue;
@@ -1568,12 +1552,12 @@ class StringFromEnvironmentConstantExpression
       return new NonConstantValue();
     }
     StringConstantValue nameStringConstantValue = nameConstantValue;
-    String text = environment.readFromEnvironment(
-        nameStringConstantValue.primitiveValue.slowToString());
+    String text =
+        environment.readFromEnvironment(nameStringConstantValue.primitiveValue);
     if (text == null) {
       return defaultConstantValue;
     } else {
-      return constantSystem.createString(new DartString.literal(text));
+      return constantSystem.createString(text);
     }
   }
 
@@ -1606,7 +1590,7 @@ class DeferredConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(
-      Environment environment, ConstantSystem constantSystem) {
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return new DeferredConstantValue(
         expression.evaluate(environment, constantSystem), prefix);
   }

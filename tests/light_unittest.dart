@@ -21,7 +21,9 @@ test(name, f) {
     print(e);
     print(trace);
     asyncStart();
-    Timer.run(() { throw new StateError('FAILED: $name.\n$e\n$trace'); });
+    Timer.run(() {
+      throw new StateError('FAILED: $name.\n$e\n$trace');
+    });
   }
 }
 

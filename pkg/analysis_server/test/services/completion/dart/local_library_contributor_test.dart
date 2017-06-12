@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.contributor.dart.local_lib;
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:test/test.dart';
@@ -14,7 +12,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalLibraryContributorTest);
-    defineReflectiveTests(LocalLibraryContributorTest_Driver);
   });
 }
 
@@ -306,10 +303,4 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('z');
     assertNotSuggested('m');
   }
-}
-
-@reflectiveTest
-class LocalLibraryContributorTest_Driver extends LocalLibraryContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -3155,6 +3155,15 @@ DART_EXPORT Dart_Port Dart_KernelPort();
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileToKernel(const char* script_uri);
 
+typedef struct {
+  const char* uri;
+  const char* source;
+} Dart_SourceFile;
+DART_EXPORT Dart_KernelCompilationResult
+Dart_CompileSourcesToKernel(const char* script_uri,
+                            int source_files_count,
+                            Dart_SourceFile source_files[]);
+
 #define DART_KERNEL_ISOLATE_NAME "kernel-service"
 
 /*

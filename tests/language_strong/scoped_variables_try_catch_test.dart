@@ -10,16 +10,14 @@ main() {
   var a = bar();
   try {
     a = bar();
-  } catch (e) {
-  }
+  } catch (e) {}
   Expect.equals(42, a);
 
   {
     var a = foo();
     try {
       a = foo();
-    } catch (e) {
-    }
+    } catch (e) {}
     Expect.equals(54, a);
   }
 

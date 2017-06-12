@@ -4,7 +4,6 @@
 library kernel.analyzer.ast_from_analyzer;
 
 import 'package:kernel/ast.dart' as ast;
-import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/frontend/super_initializers.dart';
 import 'package:kernel/log.dart';
 import 'package:kernel/type_algebra.dart';
@@ -18,6 +17,7 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:kernel/frontend/accessors.dart';
 
 /// Provides reference-level access to libraries, classes, and members.
 ///
@@ -484,7 +484,8 @@ class TypeScope extends ReferenceScope {
         positionalParameters: positional,
         namedParameters: named,
         requiredParameterCount: requiredParameterCount,
-        returnType: returnType)..fileOffset = element.nameOffset;
+        returnType: returnType)
+      ..fileOffset = element.nameOffset;
   }
 }
 
@@ -655,8 +656,8 @@ class ExpressionScope extends TypeScope {
   ast.VariableDeclaration getVariableReference(LocalElement element) {
     return localVariables.putIfAbsent(element, () {
       return new ast.VariableDeclaration(element.name,
-          isFinal: isFinal(element),
-          isConst: isConst(element))..fileOffset = element.nameOffset;
+          isFinal: isFinal(element), isConst: isConst(element))
+        ..fileOffset = element.nameOffset;
     });
   }
 
@@ -728,7 +729,7 @@ class ExpressionScope extends TypeScope {
   /// Throws a NoSuchMethodError corresponding to a call to [memberName] on
   /// [receiver] with the given [arguments].
   ///
-  /// If provided, [candiateTarget] provides the expected arity and argument
+  /// If provided, [candidateTarget] provides the expected arity and argument
   /// names for the best candidate target.
   ast.Expression buildThrowNoSuchMethodError(
       ast.Expression receiver, String memberName, ast.Arguments arguments,
@@ -1279,7 +1280,8 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
         variable,
         scope.buildExpression(node.iterable),
         makeBreakTarget(body, continueNode),
-        isAsync: node.awaitKeyword != null)..fileOffset = node.offset;
+        isAsync: node.awaitKeyword != null)
+      ..fileOffset = node.offset;
     return makeBreakTarget(loop, breakNode);
   }
 
@@ -1357,7 +1359,8 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
             typeParameters: scope.buildOptionalTypeParameterList(
                 expression.typeParameters,
                 strongModeOnly: true),
-            returnType: declaration.returnType))..fileOffset = node.offset;
+            returnType: declaration.returnType))
+      ..fileOffset = node.offset;
   }
 
   @override
@@ -2001,7 +2004,8 @@ class ExpressionBuilder
                   new ast.VariableGet(receiver),
                   scope.buildName(node.methodName),
                   buildArgumentsForInvocation(node),
-                  element)..fileOffset = node.methodName.offset,
+                  element)
+                ..fileOffset = node.methodName.offset,
               scope.buildType(node.staticType)));
     } else {
       return buildDecomposableMethodInvocation(
@@ -2637,7 +2641,8 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
           new ast.FieldInitializer(
               nameField, new ast.VariableGet(nameParameter)),
           new ast.SuperInitializer(superConstructor, new ast.Arguments.empty())
-        ])..fileOffset = element.nameOffset;
+        ])
+      ..fileOffset = element.nameOffset;
     classNode.addMember(constructor);
 
     int index = 0;
@@ -2650,7 +2655,8 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
             new ast.IntLiteral(index),
             new ast.StringLiteral('${classNode.name}.${field.name.name}')
           ]),
-          isConst: true)..parent = field;
+          isConst: true)
+        ..parent = field;
       field.type = classNode.rawType;
       classNode.addMember(field);
       ++index;
@@ -2666,7 +2672,8 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     valuesField.initializer = new ast.ListLiteral(
         enumConstantFields.map(_makeStaticGet).toList(),
         isConst: true,
-        typeArgument: enumType)..parent = valuesField;
+        typeArgument: enumType)
+      ..parent = valuesField;
     classNode.addMember(valuesField);
 
     // Add the 'toString()' method.
@@ -2784,7 +2791,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     addAnnotations(node.metadata);
     ast.Constructor constructor = currentMember;
     constructor.function = scope.buildFunctionNode(node.parameters, node.body,
-        inferredReturnType: const ast.VoidType())..parent = constructor;
+        inferredReturnType: const ast.VoidType())
+      ..parent = constructor;
     handleNativeBody(node.body);
     if (node.body is EmptyFunctionBody && !constructor.isExternal) {
       var function = constructor.function;
@@ -2902,9 +2910,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         if (constructorsField == null) {
           ast.ListLiteral literal = new ast.ListLiteral(<ast.Expression>[]);
           constructorsField = new ast.Field(constructors,
-              isStatic: true,
-              initializer: literal,
-              fileUri: classNode.fileUri)..fileOffset = classNode.fileOffset;
+              isStatic: true, initializer: literal, fileUri: classNode.fileUri)
+            ..fileOffset = classNode.fileOffset;
           classNode.addMember(constructorsField);
         }
         ast.ListLiteral literal = constructorsField.initializer;
@@ -2933,7 +2940,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
             resolutionMap.elementDeclaredByMethodDeclaration(node).returnType),
         typeParameters: scope.buildOptionalTypeParameterList(
             node.typeParameters,
-            strongModeOnly: true))..parent = procedure;
+            strongModeOnly: true))
+      ..parent = procedure;
     handleNativeBody(node.body);
   }
 
@@ -2961,7 +2969,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         returnType: node.returnType,
         typeParameters: scope.buildOptionalTypeParameterList(
             function.typeParameters,
-            strongModeOnly: true))..parent = procedure;
+            strongModeOnly: true))
+      ..parent = procedure;
     handleNativeBody(function.body);
   }
 

@@ -2,6 +2,7 @@
 
 /// Converts block-style Doc comments in Dart code to line style.
 library line_doc_comments;
+
 import 'dart:io';
 
 import '../pkg/path/lib/path.dart' as path;
@@ -21,14 +22,13 @@ main(List<String> args) {
   }
 
   var dir = new Directory(args[0]);
-  dir.list(recursive: true, followLinks: false).listen(
-      (entity) {
-        if (entity is File) {
-          var file = entity.path;
-          if (path.extension(file) != '.dart') return;
-          fixFile(file);
-        }
-      });
+  dir.list(recursive: true, followLinks: false).listen((entity) {
+    if (entity is File) {
+      var file = entity.path;
+      if (path.extension(file) != '.dart') return;
+      fixFile(file);
+    }
+  });
 }
 
 void fixFile(String path) {

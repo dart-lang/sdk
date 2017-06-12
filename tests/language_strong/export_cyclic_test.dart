@@ -24,4 +24,3 @@ void main() {
   print(new C());
   print(new D());
 }
-

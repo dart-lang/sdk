@@ -14,7 +14,8 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/utils.dart';
 
 class InstanceRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<InstanceRefElement>('instance-ref');
+  static const tag = const Tag<InstanceRefElement>('instance-ref',
+      dependencies: const [CurlyBlockElement.tag]);
 
   RenderingScheduler<InstanceRefElement> _r;
 
@@ -22,24 +23,24 @@ class InstanceRefElement extends HtmlElement implements Renderable {
 
   M.IsolateRef _isolate;
   M.InstanceRef _instance;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.Instance _loadedInstance;
   bool _expanded = false;
 
   M.IsolateRef get isolate => _isolate;
   M.InstanceRef get instance => _instance;
 
-  factory InstanceRefElement(M.IsolateRef isolate, M.InstanceRef instance,
-      M.InstanceRepository instances,
+  factory InstanceRefElement(
+      M.IsolateRef isolate, M.InstanceRef instance, M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(instance != null);
-    assert(instances != null);
+    assert(objects != null);
     InstanceRefElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
     e._instance = instance;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -85,7 +86,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
   }
 
   Future _refresh() async {
-    _loadedInstance = await _instances.get(_isolate, _instance.id);
+    _loadedInstance = await _objects.get(_isolate, _instance.id);
     _r.dirty();
   }
 
@@ -98,7 +99,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
     button.onClick.listen((_) async {
       button.disabled = true;
       _loadedInstance =
-          await _instances.get(_isolate, _instance.id, count: count * 2);
+          await _objects.get(_isolate, _instance.id, count: count * 2);
       _r.dirty();
     });
     return [button];
@@ -138,7 +139,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
               new SpanElement()
                 ..classes = ['emphasize']
                 ..text = 'Closure',
-              new SpanElement()..text = _instance.closureFunction.name
+              new SpanElement()..text = ' (${_instance.closureFunction.name})'
             ]
         ];
       case M.InstanceKind.regExp:
@@ -148,18 +149,16 @@ class InstanceRefElement extends HtmlElement implements Renderable {
               new SpanElement()
                 ..classes = ['emphasize']
                 ..text = _instance.clazz.name,
-              new SpanElement()..text = _instance.pattern.name
+              new SpanElement()..text = ' (${_instance.pattern.valueAsString})'
             ]
         ];
       case M.InstanceKind.stackTrace:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..text = _instance.clazz.name,
-          new CurlyBlockElement(queue: _r.queue)
-            ..content = [
-              new DivElement()
-                ..classes = ['stackTraceBox']
-                ..text = _instance.valueAsString
+            ..children = [
+              new SpanElement()
+                ..classes = ['emphasize']
+                ..text = _instance.clazz.name,
             ]
         ];
       case M.InstanceKind.plainInstance:
@@ -206,13 +205,15 @@ class InstanceRefElement extends HtmlElement implements Renderable {
             ..text = _instance.clazz.name
         ];
     }
-    throw new Exception('Unkown InstanceKind: ${_instance.kind}');
+    throw new Exception('Unknown InstanceKind: ${_instance.kind}');
   }
 
   bool _hasValue() {
     switch (_instance.kind) {
+      case M.InstanceKind.closure:
       case M.InstanceKind.plainInstance:
       case M.InstanceKind.mirrorReference:
+      case M.InstanceKind.stackTrace:
       case M.InstanceKind.weakProperty:
         return true;
       case M.InstanceKind.list:
@@ -242,14 +243,29 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       return [new SpanElement()..text = 'Loading...'];
     }
     switch (_instance.kind) {
+      case M.InstanceKind.closure:
+        return [
+          new DivElement()
+            ..children = [
+              new SpanElement()..text = 'function = ',
+              anyRef(_isolate, _loadedInstance.closureFunction, _objects,
+                  queue: _r.queue)
+            ],
+          new DivElement()
+            ..children = [
+              new SpanElement()..text = 'context = ',
+              anyRef(_isolate, _loadedInstance.closureContext, _objects,
+                  queue: _r.queue)
+            ],
+        ];
       case M.InstanceKind.plainInstance:
         return _loadedInstance.fields
             .map((f) => new DivElement()
               ..children = [
-                new FieldRefElement(_isolate, f.decl, _instances,
+                new FieldRefElement(_isolate, f.decl, _objects,
                     queue: _r.queue),
                 new SpanElement()..text = ' = ',
-                anyRef(_isolate, f.value, _instances, queue: _r.queue)
+                anyRef(_isolate, f.value, _objects, queue: _r.queue)
               ])
             .toList();
       case M.InstanceKind.list:
@@ -258,19 +274,21 @@ class InstanceRefElement extends HtmlElement implements Renderable {
             .map((element) => new DivElement()
               ..children = [
                 new SpanElement()..text = '[ ${index++} ] : ',
-                anyRef(_isolate, element, _instances, queue: _r.queue)
+                anyRef(_isolate, element, _objects, queue: _r.queue)
               ])
-            .toList()..addAll(_createShowMoreButton());
+            .toList()
+              ..addAll(_createShowMoreButton());
       case M.InstanceKind.map:
         return _loadedInstance.associations
             .map((association) => new DivElement()
               ..children = [
                 new SpanElement()..text = '[ ',
-                anyRef(_isolate, association.key, _instances, queue: _r.queue),
+                anyRef(_isolate, association.key, _objects, queue: _r.queue),
                 new SpanElement()..text = ' ] : ',
-                anyRef(_isolate, association.value, _instances, queue: _r.queue)
+                anyRef(_isolate, association.value, _objects, queue: _r.queue)
               ])
-            .toList()..addAll(_createShowMoreButton());
+            .toList()
+              ..addAll(_createShowMoreButton());
       case M.InstanceKind.uint8ClampedList:
       case M.InstanceKind.uint8List:
       case M.InstanceKind.uint16List:
@@ -288,21 +306,27 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         var index = 0;
         return _loadedInstance.typedElements
             .map((e) => new DivElement()..text = '[ ${index++} ] : $e')
-            .toList()..addAll(_createShowMoreButton());
+            .toList()
+              ..addAll(_createShowMoreButton());
       case M.InstanceKind.mirrorReference:
         return [
           new SpanElement()..text = '<referent> : ',
-          new InstanceRefElement(_isolate, _loadedInstance.referent, _instances,
-              queue: _r.queue)
+          anyRef(_isolate, _loadedInstance.referent, _objects, queue: _r.queue)
+        ];
+      case M.InstanceKind.stackTrace:
+        return [
+          new DivElement()
+            ..classes = ['stackTraceBox']
+            ..text = _instance.valueAsString
         ];
       case M.InstanceKind.weakProperty:
         return [
           new SpanElement()..text = '<key> : ',
-          new InstanceRefElement(_isolate, _loadedInstance.key, _instances,
+          new InstanceRefElement(_isolate, _loadedInstance.key, _objects,
               queue: _r.queue),
           new BRElement(),
           new SpanElement()..text = '<value> : ',
-          new InstanceRefElement(_isolate, _loadedInstance.value, _instances,
+          new InstanceRefElement(_isolate, _loadedInstance.value, _objects,
               queue: _r.queue),
         ];
       default:

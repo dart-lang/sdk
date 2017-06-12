@@ -55,7 +55,7 @@ var tests = [
     expect(prop.key, isNull);
     expect(prop.value, isNull);
     Instance loadedProp = await prop.load();
-    // Object ids are not cannonicalized, so we rely on the key and value
+    // Object ids are not canonicalized, so we rely on the key and value
     // being the sole instances of their classes to test we got the objects
     // we expect.
     expect(loadedProp.key, isNotNull);

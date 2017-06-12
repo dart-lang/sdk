@@ -34,7 +34,16 @@ main(List<String> arguments) {
         ||
         name == 'UNUSED_METHOD' ||
         name == 'UNUSED_CLASS' ||
-        name == 'UNUSED_TYPEDEF') continue;
+        name == 'UNUSED_TYPEDEF' ||
+
+        // Fasta no longer generates EXTRANEOUS_MODIFIER_REPLACE.
+        name == 'EXTRANEOUS_MODIFIER_REPLACE' ||
+
+        // Fasta just reports EXTRANEOUS_MODIFIER.
+        name == 'FORMAL_DECLARED_STATIC' ||
+
+        // Additional warning from dart2js.
+        name == 'VOID_NOT_ALLOWED') continue;
     if (template.examples != null) {
       examples.add(template);
     } else {

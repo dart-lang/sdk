@@ -10,11 +10,11 @@ import "dart:io";
 main() async {
   try {
     await Socket.connect("localhost", 0);
-    Expect.isTrue(false);  // Unreachable.
+    Expect.isTrue(false); // Unreachable.
   } catch (e, s) {
     Expect.isTrue(e is SocketException);
     Expect.isTrue(s.toString().contains("regress_28325_test.dart"));
     print(s);
-    Expect.isTrue(s.toString().contains(":12"));  // Line number of "await".
+    Expect.isTrue(s.toString().contains(":12")); // Line number of "await".
   }
 }

@@ -5,11 +5,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -34,7 +34,4 @@ class GetServerPortTest extends AbstractAnalysisServerIntegrationTest {
     String responseBody = await UTF8.decodeStream(response);
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

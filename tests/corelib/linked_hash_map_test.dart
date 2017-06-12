@@ -4,6 +4,7 @@
 
 // Dart test for linked hash-maps.
 library linkedHashMap.test;
+
 import "package:expect/expect.dart";
 import 'dart:collection' show LinkedHashMap;
 
@@ -77,7 +78,6 @@ class LinkedHashMapTest {
     map["b"] = 6;
     final keysAfterBMove = const ["a", "c", "d", "e", "b"];
     final valuesAfterBMove = const [1, 3, 4, 5, 6];
-
 
     clear();
     map.forEach(testForEachMap);

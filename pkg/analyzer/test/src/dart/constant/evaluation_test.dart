@@ -724,6 +724,68 @@ const A a = const A();
     _assertValidNull(await _check_fromEnvironment_string(null, "null"));
   }
 
+  test_getConstructor_redirectingFactory() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
+class A {
+  factory const A() = B;
+}
+
+class B implements A {
+  const B();
+}
+
+class C {
+  @A()
+  f() {}
+}
+''');
+    EvaluationResultImpl result =
+        _evaluateAnnotation(compilationUnit, "C", "f");
+    expect(result.value.getInvocation().constructor.isFactory, isTrue);
+  }
+
+  test_getConstructor_withArgs() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
+class A {
+  final int i;
+  const A(this.i);
+}
+
+class C {
+  @A(5)
+  f() {}
+}
+''');
+    EvaluationResultImpl result =
+        _evaluateAnnotation(compilationUnit, "C", "f");
+    ConstructorInvocation invocation = result.value.getInvocation();
+    expect(invocation.constructor, isNotNull);
+    expect(invocation.positionalArguments, hasLength(1));
+    expect(invocation.positionalArguments.single.toIntValue(), 5);
+    expect(invocation.namedArguments, isEmpty);
+  }
+
+  test_getConstructor_withNamedArgs() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
+class A {
+  final int i;
+  const A({this.i});
+}
+
+class C {
+  @A(i: 5)
+  f() {}
+}
+''');
+    EvaluationResultImpl result =
+        _evaluateAnnotation(compilationUnit, "C", "f");
+    ConstructorInvocation invocation = result.value.getInvocation();
+    expect(invocation.constructor, isNotNull);
+    expect(invocation.positionalArguments, isEmpty);
+    expect(invocation.namedArguments, isNotEmpty);
+    expect(invocation.namedArguments['i'].toIntValue(), 5);
+  }
+
   test_instanceCreationExpression_computedField() async {
     CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A(4, 5);
@@ -1005,6 +1067,17 @@ class A {
     _assertValidUnknown(_evaluateTopLevelVariable(compilationUnit, "foo"));
   }
 
+  test_instanceCreationExpression_redirect_generic() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
+const foo = const A<int>();
+class A<T> {
+  const A() : this._();
+  const A._();
+}
+''');
+    _assertType(_evaluateTopLevelVariable(compilationUnit, 'foo'), 'A<int>');
+  }
+
   test_instanceCreationExpression_redirect_nonConst() async {
     // It is an error for a const factory constructor redirect to a non-const
     // constructor; however, we need to make sure that even if the error
@@ -1179,68 +1252,6 @@ const A a = const A();
     DartObjectImpl value = voidSymbolResult.value;
     expect(value.type, typeProvider.symbolType);
     expect(value.toSymbolValue(), "void");
-  }
-
-  test_getConstructor_withArgs() async {
-    CompilationUnit compilationUnit = await resolveSource(r'''
-class A {
-  final int i;
-  const A(this.i);
-}
-
-class C {
-  @A(5)
-  f() {}
-}
-''');
-    EvaluationResultImpl result =
-        _evaluateAnnotation(compilationUnit, "C", "f");
-    ConstructorInvocation invocation = result.value.getInvocation();
-    expect(invocation.constructor, isNotNull);
-    expect(invocation.positionalArguments, hasLength(1));
-    expect(invocation.positionalArguments.single.toIntValue(), 5);
-    expect(invocation.namedArguments, isEmpty);
-  }
-
-  test_getConstructor_withNamedArgs() async {
-    CompilationUnit compilationUnit = await resolveSource(r'''
-class A {
-  final int i;
-  const A({this.i});
-}
-
-class C {
-  @A(i: 5)
-  f() {}
-}
-''');
-    EvaluationResultImpl result =
-        _evaluateAnnotation(compilationUnit, "C", "f");
-    ConstructorInvocation invocation = result.value.getInvocation();
-    expect(invocation.constructor, isNotNull);
-    expect(invocation.positionalArguments, isEmpty);
-    expect(invocation.namedArguments, isNotEmpty);
-    expect(invocation.namedArguments['i'].toIntValue(), 5);
-  }
-
-  test_getConstructor_redirectingFactory() async {
-    CompilationUnit compilationUnit = await resolveSource(r'''
-class A {
-  factory const A() = B;
-}
-
-class B implements A {
-  const B();
-}
-
-class C {
-  @A()
-  f() {}
-}
-''');
-    EvaluationResultImpl result =
-        _evaluateAnnotation(compilationUnit, "C", "f");
-    expect(result.value.getInvocation().constructor.isFactory, isTrue);
   }
 
   Map<String, DartObjectImpl> _assertFieldType(

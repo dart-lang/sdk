@@ -12,5 +12,4 @@ library empty_package_dir_test;
 
 import 'package:foo/foo.dart';
 
-main() {
-}
+main() {}

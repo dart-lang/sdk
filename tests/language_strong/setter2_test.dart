@@ -6,7 +6,7 @@
 import "package:expect/expect.dart";
 
 class Nested {
-  Nested(int val) : a = val { }
+  Nested(int val) : a = val {}
   int a;
   int foo(int i) {
     return i;
@@ -17,7 +17,7 @@ class Second {
   int a;
   static Nested obj;
 
-  Second(int val) { }
+  Second(int val) {}
 
   void bar(int value) {
     a = value;

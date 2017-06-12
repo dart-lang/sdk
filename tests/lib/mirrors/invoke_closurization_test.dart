@@ -4,6 +4,7 @@
 
 library test.invoke_closurization_test;
 
+@MirrorsUsed(targets: "test.invoke_closurization_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -12,6 +13,7 @@ class C {
   instanceMethod(x, y, z) => '$x+$y+$z';
   static staticFunction(x, y, z) => '$x-$y-$z';
 }
+
 libraryFunction(x, y, z) => '$x:$y:$z';
 
 testSync() {

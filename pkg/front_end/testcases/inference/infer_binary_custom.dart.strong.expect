@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → core::int
+    return 1;
+  operator -(dynamic other) → core::double
+    return 2.0;
+}
+static field core::int v_add = new self::A::•().+("foo");
+static field core::double v_minus = new self::A::•().-("bar");
+static method main() → dynamic {
+  self::v_add;
+  self::v_minus;
+}

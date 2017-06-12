@@ -4,6 +4,7 @@
 
 library test.generic_function_typedef;
 
+@MirrorsUsed(targets: "test.generic_function_typedef")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -20,7 +21,9 @@ class C<T> {
     enclosing() {
       T closure2(T t) {}
       return closure2;
-    };
+    }
+
+    ;
     return enclosing();
   }
 }

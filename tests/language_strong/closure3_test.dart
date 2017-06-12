@@ -8,9 +8,13 @@ import "package:expect/expect.dart";
 // seems to be free of side-effects.
 
 test(x, y) {
-  (() { x - y; })();
+  (() {
+    x - y;
+  })();
 }
 
 main() {
-  Expect.throws(() { test(null, 2); }, (e) => e is NoSuchMethodError);
+  Expect.throws(() {
+    test(null, 2);
+  }, (e) => e is NoSuchMethodError);
 }

@@ -501,7 +501,7 @@ abstract class ByteData implements TypedData {
    * the specified [byteOffset] in this object, in two's complement binary
    * form.
    *
-   * The return value will be between 2<sup>15</sup> and 2<sup>15</sup> - 1,
+   * The return value will be between -2<sup>15</sup> and 2<sup>15</sup> - 1,
    * inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -515,7 +515,7 @@ abstract class ByteData implements TypedData {
    * [value], which must fit in two bytes.
    *
    * In other words, [value] must lie
-   * between 2<sup>15</sup> and 2<sup>15</sup> - 1, inclusive.
+   * between -2<sup>15</sup> and 2<sup>15</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
@@ -554,7 +554,7 @@ abstract class ByteData implements TypedData {
    * the specified [byteOffset] in this object, in two's complement binary
    * form.
    *
-   * The return value will be between 2<sup>31</sup> and 2<sup>31</sup> - 1,
+   * The return value will be between -2<sup>31</sup> and 2<sup>31</sup> - 1,
    * inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -568,7 +568,7 @@ abstract class ByteData implements TypedData {
    * [value], which must fit in four bytes.
    *
    * In other words, [value] must lie
-   * between 2<sup>31</sup> and 2<sup>31</sup> - 1, inclusive.
+   * between -2<sup>31</sup> and 2<sup>31</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
@@ -607,7 +607,7 @@ abstract class ByteData implements TypedData {
    * the specified [byteOffset] in this object, in two's complement binary
    * form.
    *
-   * The return value will be between 2<sup>63</sup> and 2<sup>63</sup> - 1,
+   * The return value will be between -2<sup>63</sup> and 2<sup>63</sup> - 1,
    * inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -621,7 +621,7 @@ abstract class ByteData implements TypedData {
    * [value], which must fit in eight bytes.
    *
    * In other words, [value] must lie
-   * between 2<sup>63</sup> and 2<sup>63</sup> - 1, inclusive.
+   * between -2<sup>63</sup> and 2<sup>63</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.

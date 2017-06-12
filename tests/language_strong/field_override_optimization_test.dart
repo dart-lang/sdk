@@ -6,8 +6,10 @@ import "package:expect/expect.dart";
 import "package:meta/meta.dart";
 
 class A {
-  @virtual final bool flag = true;
-  @virtual final int x = 42;
+  @virtual
+  final bool flag = true;
+  @virtual
+  final int x = 42;
 }
 
 class B extends A {
@@ -24,10 +26,9 @@ void main() {
     } else {
       Expect.fail('This should also be unreachable');
     }
-  } on AssertionError catch(e) {
+  } on AssertionError catch (e) {
     exception = e;
   }
   Expect.isTrue(exception is AssertionError);
   Expect.throws(() => a.x + 8);
 }
-

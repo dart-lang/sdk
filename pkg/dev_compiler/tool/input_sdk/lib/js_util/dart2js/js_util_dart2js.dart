@@ -109,7 +109,7 @@ callConstructor(Function constr, List arguments) {
   // the arguments list passed to apply().
   // After that, use the JavaScript 'new' operator which overrides any binding
   // of 'this' with the new instance.
-  var args = [null]..addAll(arguments);
+  var args = <dynamic>[null]..addAll(arguments);
   var factoryFunction = JS('', '#.bind.apply(#, #)', constr, constr, args);
   // Without this line, calling factoryFunction as a constructor throws
   JS('String', 'String(#)', factoryFunction);

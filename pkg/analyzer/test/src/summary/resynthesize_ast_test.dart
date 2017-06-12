@@ -247,6 +247,8 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
     with _AstResynthesizeTestMixin {
   bool get isStrongMode;
 
+  bool get shouldCompareLibraryElements;
+
   @override
   LibraryElementImpl checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) {
@@ -259,7 +261,9 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
         fail('Analysis errors: $errors');
       }
     }
-    checkLibraryElements(original, resynthesized);
+    if (shouldCompareLibraryElements) {
+      checkLibraryElements(original, resynthesized);
+    }
     return resynthesized;
   }
 

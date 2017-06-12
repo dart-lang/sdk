@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method f<S extends core::Object, T extends core::Object>(self::f::S s) → self::f::T
+  return null;
+static method main() → dynamic {
+  core::String x = self::f<core::int, core::String>(42);
+  core::String y = self::f.call(42);
+}

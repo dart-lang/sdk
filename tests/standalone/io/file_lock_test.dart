@@ -16,33 +16,34 @@ check(String path, int start, int end, FileLock mode, {bool locked}) {
   // Client process returns either 'LOCK FAILED' or 'LOCK SUCCEEDED'.
   var expected = locked ? 'LOCK FAILED' : 'LOCK SUCCEEDED';
   var arguments = []
-      ..addAll(Platform.executableArguments)
-      ..add(Platform.script.resolve('file_lock_script.dart').toFilePath())
-      ..add(path)
-      ..add(mode == FileLock.EXCLUSIVE ? 'EXCLUSIVE' : 'SHARED')
-      ..add('$start')
-      ..add('$end');
-    return Process.run(Platform.executable, arguments)
-        .then((ProcessResult result) {
-          if (result.exitCode != 0 || !result.stdout.contains(expected)) {
-            print("Client failed, exit code ${result.exitCode}");
-            print("  stdout:");
-            print(result.stdout);
-            print("  stderr:");
-            print(result.stderr);
-            print("  arguments:");
-            print(arguments);
-            Expect.fail('Client subprocess exit code: ${result.exitCode}');
-          }
-   });
+    ..addAll(Platform.executableArguments)
+    ..add(Platform.script.resolve('file_lock_script.dart').toFilePath())
+    ..add(path)
+    ..add(mode == FileLock.EXCLUSIVE ? 'EXCLUSIVE' : 'SHARED')
+    ..add('$start')
+    ..add('$end');
+  return Process
+      .run(Platform.executable, arguments)
+      .then((ProcessResult result) {
+    if (result.exitCode != 0 || !result.stdout.contains(expected)) {
+      print("Client failed, exit code ${result.exitCode}");
+      print("  stdout:");
+      print(result.stdout);
+      print("  stderr:");
+      print(result.stderr);
+      print("  arguments:");
+      print(arguments);
+      Expect.fail('Client subprocess exit code: ${result.exitCode}');
+    }
+  });
 }
 
 checkLocked(String path,
-    [int start = 0, int end = -1, FileLock mode = FileLock.EXCLUSIVE]) =>
+        [int start = 0, int end = -1, FileLock mode = FileLock.EXCLUSIVE]) =>
     check(path, start, end, mode, locked: true);
 
 checkNotLocked(String path,
-    [int start = 0, int end = -1, FileLock mode = FileLock.EXCLUSIVE]) =>
+        [int start = 0, int end = -1, FileLock mode = FileLock.EXCLUSIVE]) =>
     check(path, start, end, mode, locked: false);
 
 void testLockWholeFile() {
@@ -55,8 +56,7 @@ void testLockWholeFile() {
   checkLocked(file.path).then((_) {
     return checkLocked(file.path, 0, 2).then((_) {
       raf.unlockSync();
-      return checkNotLocked(file.path).then((_) {
-      });
+      return checkNotLocked(file.path).then((_) {});
     });
   }).whenComplete(() {
     raf.closeSync();
@@ -72,16 +72,15 @@ void testLockWholeFileAsync() {
   var raf = file.openSync(mode: WRITE);
   asyncStart();
   Future.forEach([
-      () => raf.lock(),
-      () => checkLocked(file.path, 0, 2),
-      () => checkLocked(file.path),
-      () => raf.unlock(),
-      () => checkNotLocked(file.path),
-    ],
-    (f) => f()).whenComplete(() {
-      raf.closeSync();
-      directory.deleteSync(recursive: true);
-      asyncEnd();
+    () => raf.lock(),
+    () => checkLocked(file.path, 0, 2),
+    () => checkLocked(file.path),
+    () => raf.unlock(),
+    () => checkNotLocked(file.path),
+  ], (f) => f()).whenComplete(() {
+    raf.closeSync();
+    directory.deleteSync(recursive: true);
+    asyncEnd();
   });
 }
 
@@ -93,42 +92,40 @@ void testLockRange() {
   var raf2 = file.openSync(mode: WRITE);
   asyncStart();
   var tests = [
-      () => raf1.lockSync(FileLock.EXCLUSIVE, 2, 3),
-      () => raf2.lockSync(FileLock.EXCLUSIVE, 5, 7),
-      () => checkNotLocked(file.path, 0, 2),
-      () => checkLocked(file.path, 0, 3),
-      () => checkNotLocked(file.path, 4, 5),
-      () => checkLocked(file.path, 4, 6),
-      () => checkLocked(file.path, 6),
-      () => checkNotLocked(file.path, 7),
-      () => raf1.unlockSync(2, 3),
-      () => checkNotLocked(file.path, 0, 5),
-      () => checkLocked(file.path, 4, 6),
-      () => checkLocked(file.path, 6),
-      () => checkNotLocked(file.path, 7),
-    ];
+    () => raf1.lockSync(FileLock.EXCLUSIVE, 2, 3),
+    () => raf2.lockSync(FileLock.EXCLUSIVE, 5, 7),
+    () => checkNotLocked(file.path, 0, 2),
+    () => checkLocked(file.path, 0, 3),
+    () => checkNotLocked(file.path, 4, 5),
+    () => checkLocked(file.path, 4, 6),
+    () => checkLocked(file.path, 6),
+    () => checkNotLocked(file.path, 7),
+    () => raf1.unlockSync(2, 3),
+    () => checkNotLocked(file.path, 0, 5),
+    () => checkLocked(file.path, 4, 6),
+    () => checkLocked(file.path, 6),
+    () => checkNotLocked(file.path, 7),
+  ];
   // On Windows regions unlocked must match regions locked.
   if (!Platform.isWindows) {
     tests.addAll([
-        () => raf1.unlockSync(5, 6),
-        () => checkNotLocked(file.path, 0, 6),
-        () => checkLocked(file.path, 6),
-        () => checkNotLocked(file.path, 7),
-        () => raf2.unlockSync(6, 7),
-        () => checkNotLocked(file.path)
-      ]);
+      () => raf1.unlockSync(5, 6),
+      () => checkNotLocked(file.path, 0, 6),
+      () => checkLocked(file.path, 6),
+      () => checkNotLocked(file.path, 7),
+      () => raf2.unlockSync(6, 7),
+      () => checkNotLocked(file.path)
+    ]);
   } else {
-    tests.addAll([
-        () => raf2.unlockSync(5, 7),
-        () => checkNotLocked(file.path)
-      ]);
+    tests
+        .addAll([() => raf2.unlockSync(5, 7), () => checkNotLocked(file.path)]);
   }
   Future.forEach(tests, (f) => f()).whenComplete(() {
-      raf1.closeSync();
-      raf2.closeSync();
-      directory.deleteSync(recursive: true);
-      asyncEnd();
-    });
+    raf1.closeSync();
+    raf2.closeSync();
+    directory.deleteSync(recursive: true);
+    asyncEnd();
+  });
 }
 
 void testLockRangeAsync() {
@@ -139,42 +136,39 @@ void testLockRangeAsync() {
   var raf2 = file.openSync(mode: WRITE);
   asyncStart();
   var tests = [
-      () => raf1.lock(FileLock.EXCLUSIVE, 2, 3),
-      () => raf2.lock(FileLock.EXCLUSIVE, 5, 7),
-      () => checkNotLocked(file.path, 0, 2),
-      () => checkLocked(file.path, 0, 3),
-      () => checkNotLocked(file.path, 4, 5),
-      () => checkLocked(file.path, 4, 6),
-      () => checkLocked(file.path, 6),
-      () => checkNotLocked(file.path, 7),
-      () => raf1.unlock(2, 3),
-      () => checkNotLocked(file.path, 0, 5),
-      () => checkLocked(file.path, 4, 6),
-      () => checkLocked(file.path, 6),
-      () => checkNotLocked(file.path, 7),
-    ];
+    () => raf1.lock(FileLock.EXCLUSIVE, 2, 3),
+    () => raf2.lock(FileLock.EXCLUSIVE, 5, 7),
+    () => checkNotLocked(file.path, 0, 2),
+    () => checkLocked(file.path, 0, 3),
+    () => checkNotLocked(file.path, 4, 5),
+    () => checkLocked(file.path, 4, 6),
+    () => checkLocked(file.path, 6),
+    () => checkNotLocked(file.path, 7),
+    () => raf1.unlock(2, 3),
+    () => checkNotLocked(file.path, 0, 5),
+    () => checkLocked(file.path, 4, 6),
+    () => checkLocked(file.path, 6),
+    () => checkNotLocked(file.path, 7),
+  ];
   // On Windows regions unlocked must match regions locked.
   if (!Platform.isWindows) {
     tests.addAll([
-        () => raf1.unlock(5, 6),
-        () => checkNotLocked(file.path, 0, 6),
-        () => checkLocked(file.path, 6),
-        () => checkNotLocked(file.path, 7),
-        () => raf2.unlock(6, 7),
-        () => checkNotLocked(file.path)
-      ]);
+      () => raf1.unlock(5, 6),
+      () => checkNotLocked(file.path, 0, 6),
+      () => checkLocked(file.path, 6),
+      () => checkNotLocked(file.path, 7),
+      () => raf2.unlock(6, 7),
+      () => checkNotLocked(file.path)
+    ]);
   } else {
-    tests.addAll([
-        () => raf2.unlock(5, 7),
-        () => checkNotLocked(file.path)
-      ]);
+    tests.addAll([() => raf2.unlock(5, 7), () => checkNotLocked(file.path)]);
   }
   Future.forEach(tests, (f) => f()).whenComplete(() {
-      raf1.closeSync();
-      raf2.closeSync();
-      directory.deleteSync(recursive: true);
-      asyncEnd();
-    });
+    raf1.closeSync();
+    raf2.closeSync();
+    directory.deleteSync(recursive: true);
+    asyncEnd();
+  });
 }
 
 void testLockEnd() {
@@ -184,21 +178,20 @@ void testLockEnd() {
   var raf = file.openSync(mode: APPEND);
   asyncStart();
   Future.forEach([
-      () => raf.lockSync(FileLock.EXCLUSIVE, 2),
-      () => checkNotLocked(file.path, 0, 2),
-      () => checkLocked(file.path, 0, 3),
-      () => checkLocked(file.path, 9),
-      () => raf.writeFromSync(new List.filled(10, 0)),
-      () => checkLocked(file.path, 10),
-      () => checkLocked(file.path, 19),
-      () => raf.unlockSync(2),
-      () => checkNotLocked(file.path)
-    ],
-    (f) => f()).whenComplete(() {
-      raf.closeSync();
-      directory.deleteSync(recursive: true);
-      asyncEnd();
-    });
+    () => raf.lockSync(FileLock.EXCLUSIVE, 2),
+    () => checkNotLocked(file.path, 0, 2),
+    () => checkLocked(file.path, 0, 3),
+    () => checkLocked(file.path, 9),
+    () => raf.writeFromSync(new List.filled(10, 0)),
+    () => checkLocked(file.path, 10),
+    () => checkLocked(file.path, 19),
+    () => raf.unlockSync(2),
+    () => checkNotLocked(file.path)
+  ], (f) => f()).whenComplete(() {
+    raf.closeSync();
+    directory.deleteSync(recursive: true);
+    asyncEnd();
+  });
 }
 
 void testLockEndAsync() {
@@ -208,21 +201,20 @@ void testLockEndAsync() {
   var raf = file.openSync(mode: APPEND);
   asyncStart();
   Future.forEach([
-      () => raf.lock(FileLock.EXCLUSIVE, 2),
-      () => checkNotLocked(file.path, 0, 2),
-      () => checkLocked(file.path, 0, 3),
-      () => checkLocked(file.path, 9),
-      () => raf.writeFromSync(new List.filled(10, 0)),
-      () => checkLocked(file.path, 10),
-      () => checkLocked(file.path, 19),
-      () => raf.unlock(2),
-      () => checkNotLocked(file.path)
-    ],
-    (f) => f()).whenComplete(() {
-      raf.closeSync();
-      directory.deleteSync(recursive: true);
-      asyncEnd();
-    });
+    () => raf.lock(FileLock.EXCLUSIVE, 2),
+    () => checkNotLocked(file.path, 0, 2),
+    () => checkLocked(file.path, 0, 3),
+    () => checkLocked(file.path, 9),
+    () => raf.writeFromSync(new List.filled(10, 0)),
+    () => checkLocked(file.path, 10),
+    () => checkLocked(file.path, 19),
+    () => raf.unlock(2),
+    () => checkNotLocked(file.path)
+  ], (f) => f()).whenComplete(() {
+    raf.closeSync();
+    directory.deleteSync(recursive: true);
+    asyncEnd();
+  });
 }
 
 void testLockShared() {
@@ -232,16 +224,15 @@ void testLockShared() {
   var raf = file.openSync();
   asyncStart();
   Future.forEach([
-      () => raf.lock(FileLock.SHARED),
-      () => checkLocked(file.path),
-      () => checkLocked(file.path, 0, 2),
-      () => checkNotLocked(file.path, 0, 2, FileLock.SHARED)
-    ],
-    (f) => f()).then((_) {
-      raf.closeSync();
-      directory.deleteSync(recursive: true);
-      asyncEnd();
-    });
+    () => raf.lock(FileLock.SHARED),
+    () => checkLocked(file.path),
+    () => checkLocked(file.path, 0, 2),
+    () => checkNotLocked(file.path, 0, 2, FileLock.SHARED)
+  ], (f) => f()).then((_) {
+    raf.closeSync();
+    directory.deleteSync(recursive: true);
+    asyncEnd();
+  });
 }
 
 void testLockSharedAsync() {
@@ -251,16 +242,15 @@ void testLockSharedAsync() {
   var raf = file.openSync();
   asyncStart();
   Future.forEach([
-      () => raf.lock(FileLock.SHARED),
-      () => checkLocked(file.path),
-      () => checkLocked(file.path, 0, 2),
-      () => checkNotLocked(file.path, 0, 2, FileLock.SHARED)
-    ],
-    (f) => f()).whenComplete(() {
-      raf.closeSync();
-      directory.deleteSync(recursive: true);
-      asyncEnd();
-    });
+    () => raf.lock(FileLock.SHARED),
+    () => checkLocked(file.path),
+    () => checkLocked(file.path, 0, 2),
+    () => checkNotLocked(file.path, 0, 2, FileLock.SHARED)
+  ], (f) => f()).whenComplete(() {
+    raf.closeSync();
+    directory.deleteSync(recursive: true);
+    asyncEnd();
+  });
 }
 
 void testLockAfterLength() {
@@ -270,22 +260,21 @@ void testLockAfterLength() {
   var raf = file.openSync(mode: APPEND);
   asyncStart();
   Future.forEach([
-      () => raf.lockSync(FileLock.EXCLUSIVE, 2, 15),
-      () => checkNotLocked(file.path, 0, 2),
-      () => checkLocked(file.path, 0, 3),
-      () => checkLocked(file.path, 9),
-      () => checkLocked(file.path, 14),
-      () => raf.writeFromSync(new List.filled(10, 0)),
-      () => checkLocked(file.path, 10),
-      () => checkNotLocked(file.path, 15),
-      () => raf.unlockSync(2, 15),
-      () => checkNotLocked(file.path)
-    ],
-    (f) => f()).whenComplete(() {
-      raf.closeSync();
-      directory.deleteSync(recursive: true);
-      asyncEnd();
-    });
+    () => raf.lockSync(FileLock.EXCLUSIVE, 2, 15),
+    () => checkNotLocked(file.path, 0, 2),
+    () => checkLocked(file.path, 0, 3),
+    () => checkLocked(file.path, 9),
+    () => checkLocked(file.path, 14),
+    () => raf.writeFromSync(new List.filled(10, 0)),
+    () => checkLocked(file.path, 10),
+    () => checkNotLocked(file.path, 15),
+    () => raf.unlockSync(2, 15),
+    () => checkNotLocked(file.path)
+  ], (f) => f()).whenComplete(() {
+    raf.closeSync();
+    directory.deleteSync(recursive: true);
+    asyncEnd();
+  });
 }
 
 void testLockAfterLengthAsync() {
@@ -295,22 +284,21 @@ void testLockAfterLengthAsync() {
   var raf = file.openSync(mode: APPEND);
   asyncStart();
   Future.forEach([
-      () => raf.lock(FileLock.EXCLUSIVE, 2, 15),
-      () => checkNotLocked(file.path, 0, 2),
-      () => checkLocked(file.path, 0, 3),
-      () => checkLocked(file.path, 9),
-      () => checkLocked(file.path, 14),
-      () => raf.writeFromSync(new List.filled(10, 0)),
-      () => checkLocked(file.path, 10),
-      () => checkNotLocked(file.path, 15),
-      () => raf.unlock(2, 15),
-      () => checkNotLocked(file.path)
-    ],
-    (f) => f()).whenComplete(() {
-      raf.closeSync();
-      directory.deleteSync(recursive: true);
-      asyncEnd();
-    });
+    () => raf.lock(FileLock.EXCLUSIVE, 2, 15),
+    () => checkNotLocked(file.path, 0, 2),
+    () => checkLocked(file.path, 0, 3),
+    () => checkLocked(file.path, 9),
+    () => checkLocked(file.path, 14),
+    () => raf.writeFromSync(new List.filled(10, 0)),
+    () => checkLocked(file.path, 10),
+    () => checkNotLocked(file.path, 15),
+    () => raf.unlock(2, 15),
+    () => checkNotLocked(file.path)
+  ], (f) => f()).whenComplete(() {
+    raf.closeSync();
+    directory.deleteSync(recursive: true);
+    asyncEnd();
+  });
 }
 
 void main() {

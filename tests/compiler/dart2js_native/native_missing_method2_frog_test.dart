@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'native_testing.dart';
+
 @Native("A")
 class A {}
 
-A makeA() native ;
+A makeA() native;
 
 void setup() native """
 function A() {};

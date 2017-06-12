@@ -834,6 +834,11 @@ class ParserErrorCode extends ErrorCode {
       "Setters can't be defined within methods or functions.",
       "Try moving the setter outside the method or function.");
 
+  static const ParserErrorCode STACK_OVERFLOW = const ParserErrorCode(
+      'STACK_OVERFLOW',
+      "The file has too many nested expressions or statements.",
+      "Try simplifying the code.");
+
   static const ParserErrorCode STATIC_AFTER_CONST = const ParserErrorCode(
       'STATIC_AFTER_CONST',
       "The modifier 'static' should be before the modifier 'const'.",

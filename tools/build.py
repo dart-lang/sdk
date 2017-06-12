@@ -99,7 +99,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(options, args):
   if options.arch == 'all':
-    options.arch = 'ia32,x64,simarm,simarm64,simmips,simdbc64'
+    options.arch = 'ia32,x64,simarm,simarm64,simdbc64'
   if options.mode == 'all':
     options.mode = 'debug,release,product'
   if options.os == 'all':
@@ -107,6 +107,10 @@ def ProcessOptions(options, args):
   options.mode = options.mode.split(',')
   options.arch = options.arch.split(',')
   options.os = options.os.split(',')
+  if not options.gyp and options.toolchain != None:
+    print "The --toolchain flag is only supported by the gyp build."
+    print "When using the GN build, set the toolchain and sysroot using gn.py."
+    return False
   for mode in options.mode:
     if not mode in ['debug', 'release', 'product']:
       print "Unknown mode %s" % mode
@@ -127,7 +131,7 @@ def ProcessOptions(options, args):
       if os_name != 'android':
         print "Unsupported target os %s" % os_name
         return False
-      if not HOST_OS in ['linux']:
+      if not HOST_OS in ['linux', 'macos']:
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os_name, HOST_OS))
         return False
@@ -478,8 +482,15 @@ def BuildNinjaCommand(options, target, target_os, mode, arch):
 
 
 filter_xcodebuild_output = False
-def BuildOneConfig(options, target, target_os, mode, arch, override_tools):
+def BuildOneConfig(options, target, target_os, mode, arch):
   global filter_xcodebuild_output
+  if arch.startswith('mips'):
+    bold  = '\033[1m'
+    reset = '\033[0m'
+    print(bold + "Warning: MIPS architectures are unlikely to be supported in "
+          "upcoming releases. Please consider using another architecture "
+          "and/or file an issue explaining your specific use of and need for "
+          "MIPS support." + reset)
   start_time = time.time()
   args = []
   build_config = utils.GetBuildConf(mode, arch, target_os)
@@ -584,41 +595,6 @@ def BuildOneConfig(options, target, target_os, mode, arch, override_tools):
   return 0
 
 
-def BuildCrossSdk(options, target_os, mode, arch):
-  # First build 'create_sdk' for the host. Do not override the host toolchain.
-  if BuildOneConfig(options, 'create_sdk', HOST_OS,
-                    mode, HOST_ARCH, False) != 0:
-    return 1
-
-  # Then, build the runtime for the target arch.
-  if BuildOneConfig(options, 'runtime', target_os, mode, arch, True) != 0:
-    return 1
-
-  # Copy dart-sdk from the host build products dir to the target build
-  # products dir, and copy the dart binary for target to the sdk bin/ dir.
-  src = os.path.join(
-      utils.GetBuildRoot(HOST_OS, mode, HOST_ARCH, HOST_OS), 'dart-sdk')
-  dst = os.path.join(
-      utils.GetBuildRoot(HOST_OS, mode, arch, target_os), 'dart-sdk')
-  shutil.rmtree(dst, ignore_errors=True)
-  shutil.copytree(src, dst)
-
-  dart = os.path.join(
-      utils.GetBuildRoot(HOST_OS, mode, arch, target_os), 'dart')
-  bin = os.path.join(dst, 'bin')
-  shutil.copy(dart, bin)
-
-  # Strip the dart binary
-  toolchainprefix = GetToolchainPrefix(target_os, arch, options)
-  if toolchainprefix == None:
-    print "Couldn't figure out the cross-toolchain"
-    return 1
-  strip = toolchainprefix + '-strip'
-  subprocess.call([strip, os.path.join(bin, 'dart')])
-
-  return 0
-
-
 def Main():
   utils.ConfigureJava()
   # Parse the options.
@@ -638,14 +614,9 @@ def Main():
     for target_os in options.os:
       for mode in options.mode:
         for arch in options.arch:
-          cross_build = utils.IsCrossBuild(target_os, arch)
-          if target in ['create_sdk'] and cross_build:
-            if BuildCrossSdk(options, target_os, mode, arch) != 0:
-              return 1
-          else:
-            if BuildOneConfig(options, target, target_os,
-                              mode, arch, cross_build) != 0:
-              return 1
+          if BuildOneConfig(options, target, target_os,
+                            mode, arch) != 0:
+            return 1
 
   return 0
 

@@ -6,15 +6,15 @@
 // to have the same name as a type parameter.
 
 library main;
+
 import "package:expect/expect.dart";
 import "library11.dart" as lib11;
 
-typedef lib11.Library111<Library111>
-    F<Library111>(lib11.Library111<Library111> a, Library111 b);
+typedef lib11.Library111<Library111> F<Library111>(
+    lib11.Library111<Library111> a, Library111 b);
 
 class A<T> {
-  T foo(T a, bool b) {
-  }
+  T foo(T a, bool b) {}
 }
 
 main() {
@@ -22,8 +22,8 @@ main() {
   var b = new A<lib11.Library111<int>>();
   Expect.isTrue(a.foo is F);
   Expect.isTrue(a.foo is F<bool>);
-  Expect.isTrue(a.foo is !F<int>);
+  Expect.isTrue(a.foo is! F<int>);
   Expect.isTrue(b.foo is F);
-  Expect.isTrue(b.foo is !F<bool>);
-  Expect.isTrue(a.foo is !F<int>);
+  Expect.isTrue(b.foo is! F<bool>);
+  Expect.isTrue(a.foo is! F<int>);
 }

@@ -26,7 +26,9 @@ main() {
     expect(optionsCollection[1].text, equals('Option1'));
     expect(optionsCollection[2].text, equals('Option2'));
 
-    expect(() { (optionsCollection as dynamic)[0] = 1; }, throws);
+    expect(() {
+      (optionsCollection as dynamic)[0] = 1;
+    }, throws);
 
     // OPTIONALS optionsCollection[0] = new OptionElement(value: '42', data: 'Option42');
     expect(() {

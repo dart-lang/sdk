@@ -51,7 +51,7 @@ class _LazyMangledNamesMap {
   String operator [](String key) {
     var result = JS('var', '#[#]', _jsMangledNames, key);
     // Filter out all non-string values to protect against polution from
-    // anciliary fields in [_jsMangledNames].
+    // ancillary fields in [_jsMangledNames].
     bool filter = JS('bool', 'typeof # !== "string"', result);
     // To ensure that the inferrer sees that result is a String, we explicitly
     // give it a better type here.
@@ -105,7 +105,7 @@ class _LazyReflectiveNamesMap {
     for (String key in keys) {
       var reflectiveName = JS('var', '#[#]', _jsMangledNames, key);
       // Filter out all non-string values to protect against polution from
-      // anciliary fields in [_jsMangledNames].
+      // ancillary fields in [_jsMangledNames].
       bool filter = JS('bool', 'typeof # !== "string"', reflectiveName);
       if (filter) continue;
       result[reflectiveName] = JS('String', '#', key);

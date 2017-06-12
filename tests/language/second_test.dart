@@ -6,8 +6,10 @@
 import "package:expect/expect.dart";
 
 class Helper {
-  static empty() { }
-  static int foo() { return 42; }
+  static empty() {}
+  static int foo() {
+    return 42;
+  }
 }
 
 class SecondTest {
@@ -16,7 +18,6 @@ class SecondTest {
     Expect.equals(42, Helper.foo());
   }
 }
-
 
 main() {
   SecondTest.testMain();

@@ -15,7 +15,13 @@ void expectUOE(Function f) {
 }
 
 testImmutable(var list) {
-  expectUOE(() { list.removeRange(0, 0); });
-  expectUOE(() { list.removeRange(0, 1); });
-  expectUOE(() { list.removeRange(-1, 1); });
+  expectUOE(() {
+    list.removeRange(0, 0);
+  });
+  expectUOE(() {
+    list.removeRange(0, 1);
+  });
+  expectUOE(() {
+    list.removeRange(-1, 1);
+  });
 }

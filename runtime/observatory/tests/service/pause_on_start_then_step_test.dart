@@ -69,16 +69,21 @@ var tests = [
     await completer.future;
 
     // Grab the timestamp.
+    print('Getting pausevent timestamp');
     var pausetime2 = isolate.pauseEvent.timestamp;
     expect(pausetime2, isNotNull);
     // Reload the isolate.
+    print('Reloading isolate');
     await isolate.reload();
+    print('Reload finished');
     // Verify that it is the same.
     expect(pausetime2.millisecondsSinceEpoch,
         equals(isolate.pauseEvent.timestamp.millisecondsSinceEpoch));
 
     expect(pausetime2.millisecondsSinceEpoch,
         greaterThan(pausetime1.millisecondsSinceEpoch));
+
+    print('Test finished');
   },
 ];
 

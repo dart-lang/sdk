@@ -41,7 +41,7 @@ class ObjectStoreViewElement extends HtmlElement implements Renderable {
   M.NotificationRepository _notifications;
   M.ObjectStore _store;
   M.ObjectStoreRepository _stores;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
 
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
@@ -53,14 +53,14 @@ class ObjectStoreViewElement extends HtmlElement implements Renderable {
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.ObjectStoreRepository stores,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
     assert(notifications != null);
     assert(stores != null);
-    assert(instances != null);
+    assert(objects != null);
     ObjectStoreViewElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
@@ -68,7 +68,7 @@ class ObjectStoreViewElement extends HtmlElement implements Renderable {
     e._events = events;
     e._notifications = notifications;
     e._stores = stores;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -121,7 +121,7 @@ class ObjectStoreViewElement extends HtmlElement implements Renderable {
                         new DivElement()
                           ..classes = ['memberValue']
                           ..children = [
-                            anyRef(_isolate, field.value, _instances,
+                            anyRef(_isolate, field.value, _objects,
                                 queue: _r.queue)
                           ]
                       ])

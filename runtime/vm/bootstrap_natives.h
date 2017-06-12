@@ -22,9 +22,9 @@ namespace dart {
   V(Object_noSuchMethod, 6)                                                    \
   V(Object_runtimeType, 1)                                                     \
   V(Object_haveSameRuntimeType, 2)                                             \
-  V(Object_instanceOf, 3)                                                      \
+  V(Object_instanceOf, 4)                                                      \
   V(Object_simpleInstanceOf, 2)                                                \
-  V(Object_as, 3)                                                              \
+  V(Object_as, 4)                                                              \
   V(Function_apply, 2)                                                         \
   V(Closure_equals, 2)                                                         \
   V(Closure_hashCode, 1)                                                       \
@@ -402,7 +402,7 @@ namespace dart {
   V(DeclarationMirror_metadata, 1)                                             \
   V(FunctionTypeMirror_call_method, 2)                                         \
   V(FunctionTypeMirror_parameters, 2)                                          \
-  V(FunctionTypeMirror_return_type, 2)                                         \
+  V(FunctionTypeMirror_return_type, 1)                                         \
   V(MethodMirror_owner, 2)                                                     \
   V(MethodMirror_parameters, 2)                                                \
   V(MethodMirror_return_type, 2)                                               \

@@ -5,7 +5,10 @@
 // Regression test for dart2js that used to generate bad code for the
 // non-bailout version of [main].
 
-var a = [false, [1, 2, 3]];
+var a = [
+  false,
+  [1, 2, 3]
+];
 var b;
 
 main() {

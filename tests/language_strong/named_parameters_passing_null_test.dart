@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 // Dart test program for testing named parameters with 'null' passed as an
 // argument.
 
-
 class TestClass {
   TestClass();
 
@@ -20,7 +19,6 @@ class TestClass {
 
 num globalMethod([value = 300]) => value;
 num globalMethod2({value: 300}) => value;
-
 
 main() {
   var obj = new TestClass();

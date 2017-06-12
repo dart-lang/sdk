@@ -429,7 +429,7 @@ class WhereIterable<E> extends Iterable<E> {
 
 class WhereIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
-  final _ElementPredicate _f;
+  final _ElementPredicate<E> _f;
 
   WhereIterator(this._iterator, this._f);
 
@@ -584,22 +584,13 @@ class SkipIterable<E> extends Iterable<E> {
     if (iterable is EfficientLengthIterable) {
       return new EfficientLengthSkipIterable<E>(iterable, count);
     }
-    return new SkipIterable<E>._(iterable, count);
+    return new SkipIterable<E>._(iterable, _checkCount(count));
   }
 
-  SkipIterable._(this._iterable, this._skipCount) {
-    if (_skipCount is! int) {
-      throw new ArgumentError.value(_skipCount, "count is not an integer");
-    }
-    RangeError.checkNotNegative(_skipCount, "count");
-  }
+  SkipIterable._(this._iterable, this._skipCount);
 
   Iterable<E> skip(int count) {
-    if (_skipCount is! int) {
-      throw new ArgumentError.value(_skipCount, "count is not an integer");
-    }
-    RangeError.checkNotNegative(_skipCount, "count");
-    return new SkipIterable<E>._(_iterable, _skipCount + count);
+    return new SkipIterable<E>._(_iterable, _skipCount + _checkCount(count));
   }
 
   Iterator<E> get iterator {
@@ -609,14 +600,31 @@ class SkipIterable<E> extends Iterable<E> {
 
 class EfficientLengthSkipIterable<E> extends SkipIterable<E>
     implements EfficientLengthIterable<E> {
-  EfficientLengthSkipIterable(Iterable<E> iterable, int skipCount)
-      : super._(iterable, skipCount);
+  factory EfficientLengthSkipIterable(Iterable<E> iterable, int count) {
+    return new EfficientLengthSkipIterable<E>._(iterable, _checkCount(count));
+  }
+
+  EfficientLengthSkipIterable._(Iterable<E> iterable, int count)
+      : super._(iterable, count);
 
   int get length {
     int length = _iterable.length - _skipCount;
     if (length >= 0) return length;
     return 0;
   }
+
+  Iterable<E> skip(int count) {
+    return new EfficientLengthSkipIterable<E>._(
+        _iterable, _skipCount + _checkCount(count));
+  }
+}
+
+int _checkCount(int count) {
+  if (count is! int) {
+    throw new ArgumentError.value(count, "count", "is not an integer");
+  }
+  RangeError.checkNotNegative(count, "count");
+  return count;
 }
 
 class SkipIterator<E> extends Iterator<E> {

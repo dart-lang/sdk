@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library GetterSetterInLibTest;
+
 import "package:expect/expect.dart";
 import 'getter_setter_in_lib.dart';
 import 'getter_setter_in_lib2.dart';

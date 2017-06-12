@@ -27,6 +27,6 @@ main() {
   nonAsciiFile.lastModifiedSync();
   path = nonAsciiFile.resolveSymbolicLinksSync();
   Expect.isTrue(path.endsWith('${precomposed}.txt') ||
-                path.endsWith('${decomposed}.txt'));
+      path.endsWith('${decomposed}.txt'));
   tempDir.deleteSync(recursive: true);
 }

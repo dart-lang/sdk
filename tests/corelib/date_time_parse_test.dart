@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 check(DateTime expected, String str) {
   DateTime actual = DateTime.parse(str);
-  Expect.equals(expected, actual);  // Only checks if they are at the same time.
+  Expect.equals(expected, actual); // Only checks if they are at the same time.
   Expect.equals(expected.isUtc, actual.isUtc);
 }
 
@@ -17,10 +17,10 @@ main() {
   check(new DateTime(2012, 02, 27, 13, 27), "2012-02-27 13:27:00");
   if (supportsMicroseconds) {
     check(new DateTime.utc(2012, 02, 27, 13, 27, 0, 123, 456),
-          "2012-02-27 13:27:00.123456z");
+        "2012-02-27 13:27:00.123456z");
   } else {
     check(new DateTime.utc(2012, 02, 27, 13, 27, 0, 123, 456),
-          "2012-02-27 13:27:00.123z");
+        "2012-02-27 13:27:00.123z");
   }
   check(new DateTime(2012, 02, 27, 13, 27), "20120227 13:27:00");
   check(new DateTime(2012, 02, 27, 13, 27), "20120227T132700");
@@ -33,12 +33,10 @@ main() {
   check(new DateTime.utc(2012, 02, 27, 14), "2012-02-27T14+00:00");
   check(new DateTime.utc(2012, 02, 27, 14), "2012-02-27T14 +00:00");
 
-  check(new DateTime.utc(2015, 02, 14, 13, 0, 0, 0),
-        "2015-02-15T00:00+11");
-  check(new DateTime.utc(2015, 02, 14, 13, 0, 0, 0),
-        "2015-02-15T00:00:00+11");
-  check(new DateTime.utc(2015, 02, 14, 13, 0, 0, 0),
-        "2015-02-15T00:00:00+11:00");
+  check(new DateTime.utc(2015, 02, 14, 13, 0, 0, 0), "2015-02-15T00:00+11");
+  check(new DateTime.utc(2015, 02, 14, 13, 0, 0, 0), "2015-02-15T00:00:00+11");
+  check(
+      new DateTime.utc(2015, 02, 14, 13, 0, 0, 0), "2015-02-15T00:00:00+11:00");
 
   if (supportsMicroseconds) {
     check(new DateTime.utc(2015, 02, 15, 0, 0, 0, 500, 500),

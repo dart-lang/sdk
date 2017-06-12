@@ -6,9 +6,7 @@ library dart2js.serialization_library_test;
 
 import 'dart:async';
 import 'dart:io';
-import '../memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
@@ -17,10 +15,9 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:expect/expect.dart';
-
+import '../equivalence/check_functions.dart';
+import '../memory_compiler.dart';
 import 'equivalence_test.dart';
-import 'test_helper.dart';
-import 'resolved_ast_test.dart';
 import 'helper.dart';
 
 main(List<String> arguments) {

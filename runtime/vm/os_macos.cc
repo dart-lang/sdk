@@ -211,11 +211,6 @@ intptr_t OS::PreferredCodeAlignment() {
 }
 
 
-bool OS::AllowStackFrameIteratorFromAnotherThread() {
-  return false;
-}
-
-
 int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
@@ -428,6 +423,21 @@ void OS::InitOnce() {
   static bool init_once_called = false;
   ASSERT(init_once_called == false);
   init_once_called = true;
+
+  // See https://github.com/dart-lang/sdk/issues/29539
+  // This is a workaround for a macos bug, we eagerly call localtime_r so that
+  // libnotify is initialized early before any fork happens.
+  struct timeval tv;
+  if (gettimeofday(&tv, NULL) < 0) {
+    FATAL1("gettimeofday returned an error (%s)\n", strerror(errno));
+    return;
+  }
+  tm decomposed;
+  struct tm* error_code = localtime_r(&(tv.tv_sec), &decomposed);
+  if (error_code == NULL) {
+    FATAL1("localtime_r returned an error (%s)\n", strerror(errno));
+    return;
+  }
 }
 
 

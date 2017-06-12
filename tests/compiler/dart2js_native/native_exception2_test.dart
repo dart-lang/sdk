@@ -15,7 +15,7 @@ class NativeClass {
   foo() => 'oof';
 }
 
-makeNativeClass() native ;
+makeNativeClass() native;
 
 setup() native """
 function NativeClass() {}

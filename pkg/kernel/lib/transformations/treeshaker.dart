@@ -222,7 +222,7 @@ class TreeShaker {
         new _ExternalTypeVisitor(this, isContravariant: true);
     _invariantVisitor = new _ExternalTypeVisitor(this,
         isCovariant: true, isContravariant: true);
-    _mirrorsLibrary = coreTypes.tryGetLibrary('dart:mirrors');
+    _mirrorsLibrary = coreTypes.mirrorsLibrary;
     try {
       _build();
     } on _UsingMirrorsException {
@@ -446,7 +446,7 @@ class TreeShaker {
       Class class_ = root.getClass(table);
 
       // This is a class which will be instantiated by non-Dart code (whether it
-      // has a valid generative construtor or not).
+      // has a valid generative constructor or not).
       _addInstantiatedClass(class_);
 
       // We keep all the constructors of externally instantiated classes.
@@ -1054,6 +1054,10 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
         visitInvariant(typeArgument);
       }
     }
+  }
+
+  visitTypedefType(TypedefType node) {
+    throw 'TypedefType is not implemented in tree shaker';
   }
 
   visitFunctionType(FunctionType node) {

@@ -4,9 +4,8 @@
 
 library fasta.function_type_builder;
 
-import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeDeclarationBuilder;
-
-import 'scope.dart' show Scope;
+import 'builder.dart'
+    show LibraryBuilder, Scope, TypeBuilder, TypeDeclarationBuilder;
 
 abstract class FunctionTypeBuilder extends TypeBuilder {
   final TypeBuilder returnType;

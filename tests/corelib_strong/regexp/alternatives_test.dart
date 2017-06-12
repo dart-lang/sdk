@@ -26,23 +26,27 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  description(
-  'Test regular expression processing with alternatives.'
-  );
+  description('Test regular expression processing with alternatives.');
 
   var s1 = "<p>content</p>";
-  shouldBe(firstMatch(s1, new RegExp(r"<((\\/([^>]+)>)|(([^>]+)>))")), ["<p>","p>",null,null,"p>","p"]);
-  shouldBe(firstMatch(s1, new RegExp(r"<((ABC>)|(\\/([^>]+)>)|(([^>]+)>))")), ["<p>","p>",null,null,null,"p>","p"]);
-  shouldBe(firstMatch(s1, new RegExp(r"<(a|\\/p|.+?)>")), ["<p>","p"]);
+  shouldBe(firstMatch(s1, new RegExp(r"<((\\/([^>]+)>)|(([^>]+)>))")),
+      ["<p>", "p>", null, null, "p>", "p"]);
+  shouldBe(firstMatch(s1, new RegExp(r"<((ABC>)|(\\/([^>]+)>)|(([^>]+)>))")),
+      ["<p>", "p>", null, null, null, "p>", "p"]);
+  shouldBe(firstMatch(s1, new RegExp(r"<(a|\\/p|.+?)>")), ["<p>", "p"]);
 
   // Force YARR to use Interpreter by using iterative parentheses
-  shouldBe(firstMatch(s1, new RegExp(r"<((\\/([^>]+)>)|((([^>])+)>))")), ["<p>","p>",null,null,"p>","p","p"]);
-  shouldBe(firstMatch(s1, new RegExp(r"<((ABC>)|(\\/([^>]+)>)|((([^>])+)>))")), ["<p>","p>",null,null,null,"p>","p","p"]);
-  shouldBe(firstMatch(s1, new RegExp(r"<(a|\\/p|(.)+?)>")), ["<p>","p","p"]);
+  shouldBe(firstMatch(s1, new RegExp(r"<((\\/([^>]+)>)|((([^>])+)>))")),
+      ["<p>", "p>", null, null, "p>", "p", "p"]);
+  shouldBe(firstMatch(s1, new RegExp(r"<((ABC>)|(\\/([^>]+)>)|((([^>])+)>))")),
+      ["<p>", "p>", null, null, null, "p>", "p", "p"]);
+  shouldBe(firstMatch(s1, new RegExp(r"<(a|\\/p|(.)+?)>")), ["<p>", "p", "p"]);
 
   // Force YARR to use Interpreter by using backreference
   var s2 = "<p>p</p>";
-  shouldBe(firstMatch(s2, new RegExp(r"<((\\/([^>]+)>)|(([^>]+)>))\5")), ["<p>p","p>",null,null,"p>","p"]);
-  shouldBe(firstMatch(s2, new RegExp(r"<((ABC>)|(\\/([^>]+)>)|(([^>]+)>))\6")), ["<p>p","p>",null,null,null,"p>","p"]);
-  shouldBe(firstMatch(s2, new RegExp(r"<(a|\\/p|.+?)>\1")), ["<p>p","p"]);
+  shouldBe(firstMatch(s2, new RegExp(r"<((\\/([^>]+)>)|(([^>]+)>))\5")),
+      ["<p>p", "p>", null, null, "p>", "p"]);
+  shouldBe(firstMatch(s2, new RegExp(r"<((ABC>)|(\\/([^>]+)>)|(([^>]+)>))\6")),
+      ["<p>p", "p>", null, null, null, "p>", "p"]);
+  shouldBe(firstMatch(s2, new RegExp(r"<(a|\\/p|.+?)>\1")), ["<p>p", "p"]);
 }

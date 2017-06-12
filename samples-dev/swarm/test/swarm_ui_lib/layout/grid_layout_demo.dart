@@ -66,8 +66,14 @@ void addGridStyles(String width, String height, [String margin = '']) {
 
 void _addColorStyles() {
   final grid = document.body.querySelector('#grid');
-  final colors = const [ 'darkred', 'darkorange', 'darkgoldenrod',
-                         'darkgreen', 'darkblue', 'darkviolet'];
+  final colors = const [
+    'darkred',
+    'darkorange',
+    'darkgoldenrod',
+    'darkgreen',
+    'darkblue',
+    'darkviolet'
+  ];
   int c = 0;
   var node = grid.children[0];
   while (node != null) {
@@ -79,8 +85,7 @@ void _addColorStyles() {
 }
 
 class MockCompositeView extends CompositeView {
-   MockCompositeView(String id, Map styles, List childViews)
-    : super('') {
+  MockCompositeView(String id, Map styles, List childViews) : super('') {
     node.id = id;
     CollectionUtils.copyMap(customStyle, styles);
 
@@ -92,15 +97,14 @@ class MockCompositeView extends CompositeView {
 
 class MockView extends View {
   MockView(String id, Map styles)
-      : super.fromNode(new Element.html(
-          '<div class="grid-item">MockView-$id</div>')) {
+      : super.fromNode(
+            new Element.html('<div class="grid-item">MockView-$id</div>')) {
     node.id = id;
     CollectionUtils.copyMap(customStyle, styles);
     // TODO(jmesserly): this is needed to get horizontal content-sizing to work
     node.style.display = 'inline-block';
   }
 }
-
 
 void printMetrics(String example) {
   final node = document.body.querySelector('#grid');

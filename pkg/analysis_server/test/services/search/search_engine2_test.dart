@@ -9,12 +9,13 @@ import 'package:analysis_server/src/services/search/search_engine_internal2.dart
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -285,7 +286,7 @@ get b => 42;
       provider,
       byteStore,
       contentOverlay,
-      'test',
+      null,
       new SourceFactory(
           [new DartUriResolver(sdk), new ResourceUriResolver(provider)],
           null,

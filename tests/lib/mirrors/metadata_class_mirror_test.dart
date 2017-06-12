@@ -4,10 +4,13 @@
 
 // Regression test for http://dartbug.com/19173
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 class A {
-    const A();
+  const A();
 }
 
 @deprecated

@@ -14,12 +14,10 @@ class Foo {
   var field;
 }
 
-class Bar extends Foo {
-}
+class Bar extends Foo {}
 
 void main() {
-  expect('Variable(s(field) in s(Foo))',
-         reflectClass(Foo).declarations[#field]);
-  expect('<null>',
-         reflectClass(Bar).declarations[#field]);
+  expect(
+      'Variable(s(field) in s(Foo))', reflectClass(Foo).declarations[#field]);
+  expect('<null>', reflectClass(Bar).declarations[#field]);
 }

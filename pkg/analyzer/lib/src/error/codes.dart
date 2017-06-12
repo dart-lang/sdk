@@ -51,6 +51,14 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
           "'{1}'.");
 
   /**
+   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
+   * object results in an uncaught exception being thrown.
+   */
+  static const CheckedModeCompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =
+      const CheckedModeCompileTimeErrorCode('CONST_EVAL_THROWS_EXCEPTION',
+          "Evaluation of this constant expression throws an exception.");
+
+  /**
    * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error
    * if o is not <b>null</b> and the interface of the class of <i>o</i> is not a
    * subtype of the static type of the field <i>v</i>.
@@ -980,8 +988,28 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS =
       const CompileTimeErrorCode(
           'EXTRA_POSITIONAL_ARGUMENTS',
-          "{0} positional arguments expected, but {1} found.",
+          "Too many positional arguments: {0} expected, but {1} found.",
           "Try removing the extra arguments.");
+
+  /**
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
+   * h</i> or if <i>m &gt; n</i>.
+   *
+   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
+   * object results in an uncaught exception being thrown.
+   *
+   * Parameters:
+   * 0: the maximum number of positional arguments
+   * 1: the actual number of positional arguments given
+   *
+   * See [NOT_ENOUGH_REQUIRED_ARGUMENTS].
+   */
+  static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED =
+      const CompileTimeErrorCode(
+          'EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
+          "Too many positional arguments: {0} expected, but {1} found.",
+          "Try removing the extra positional arguments, "
+          "or specifying the name for named arguments.");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
@@ -1107,7 +1135,7 @@ class CompileTimeErrorCode extends ErrorCode {
           "This class can't implement the deferred class '{0}'.",
           "Try specifying a different interface, "
           "removing the class from the list, or "
-          "changing the import to not be deferred..");
+          "changing the import to not be deferred.");
 
   /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or
@@ -2967,7 +2995,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'UNDEFINED_METHOD_WITH_CONSTRUCTOR',
           "The method '{0}' isn't defined for the class '{1}', but a constructor with that name is defined.",
-          "Try adding 'new' or 'const' to invoke the constuctor, or "
+          "Try adding 'new' or 'const' to invoke the constructor, or "
           "correcting the name to the name of an existing method.");
 
   /**
@@ -3507,8 +3535,25 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode EXTRA_POSITIONAL_ARGUMENTS =
       const StaticWarningCode(
           'EXTRA_POSITIONAL_ARGUMENTS',
-          "{0} positional arguments expected, but {1} found.",
+          "Too many positional arguments: {0} expected, but {1} found.",
           "Try removing the extra positional arguments.");
+
+  /**
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
+   * h</i> or if <i>m &gt; n</i>.
+   *
+   * Parameters:
+   * 0: the maximum number of positional arguments
+   * 1: the actual number of positional arguments given
+   *
+   * See [NOT_ENOUGH_REQUIRED_ARGUMENTS].
+   */
+  static const StaticWarningCode EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED =
+      const StaticWarningCode(
+          'EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
+          "Too many positional arguments: {0} expected, but {1} found.",
+          "Try removing the extra positional arguments, "
+          "or specifying the name for named arguments.");
 
   /**
    * 5. Variables: It is a static warning if a final instance variable that has
@@ -3572,7 +3617,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE =
       const StaticWarningCode(
           'FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
-          "The parameter type '{0}' is incompatable with the field type '{1}'.",
+          "The parameter type '{0}' is incompatible with the field type '{1}'.",
           "Try changing or removing the parameter's type, or "
           "changing the field's type.");
 

@@ -36,7 +36,7 @@ void main() {
   // internally calls RegExpImpl::IrregexpExecOnce more than once without
   // ensuring that the regexp is compiled.
   // This can create a crash if the code was exchanged with the sweep
-  // generation (for code flushing support) in GC durring the matching.
+  // generation (for code flushing support) in GC during the matching.
 
   var re = new RegExp('(s)');
 
@@ -46,7 +46,7 @@ void main() {
 
   // Run enough times to get a number of GC's (all mark sweep because of the
   // --gc_global) flag.
-  for ( var i = 0; i < 10; i++) {
+  for (var i = 0; i < 10; i++) {
     // Make a long string with plenty of matches for re.
     var x = "s foo s bar s foo s bar s";
     x = x + x;

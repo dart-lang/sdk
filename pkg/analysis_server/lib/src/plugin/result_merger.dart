@@ -4,8 +4,8 @@
 
 import 'dart:collection';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
-    hide AnalysisErrorFixes;
+import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:meta/meta.dart';
 
@@ -31,7 +31,7 @@ class ResultMerger {
     /**
      * Return a key encoding the unique attributes of the given [error].
      */
-    String computeKey(plugin.AnalysisError error) {
+    String computeKey(AnalysisError error) {
       StringBuffer buffer = new StringBuffer();
       buffer.write(error.location.offset);
       buffer.write(';');

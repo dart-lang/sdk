@@ -24,7 +24,7 @@ class M2 {
 
 class M3 {}
 
-makeB() native ;
+makeB() native;
 
 void setup() native """
 function B() {}

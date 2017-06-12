@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.contributor.dart.library_member;
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
 import 'package:test/test.dart';
@@ -14,7 +12,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryMemberContributorTest);
-    defineReflectiveTests(LibraryMemberContributorTest_Driver);
   });
 }
 
@@ -269,10 +266,4 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     assertNoSuggestions();
   }
-}
-
-@reflectiveTest
-class LibraryMemberContributorTest_Driver extends LibraryMemberContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

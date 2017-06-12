@@ -6,33 +6,33 @@ part of layout_tests;
 class AdaptiveLayout {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-columns' : 'auto minmax(min-content, 1fr)',
-      'grid-rows' : 'auto minmax(min-content, 1fr) auto',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-columns': 'auto minmax(min-content, 1fr)',
+      'grid-rows': 'auto minmax(min-content, 1fr) auto',
     },
-    '#title' : const {
-      'grid-column' : '1',
-      'grid-row' : '1',
+    '#title': const {
+      'grid-column': '1',
+      'grid-row': '1',
     },
-    '#score' : const {
-      'grid-column' : '1',
-      'grid-row' : '3',
+    '#score': const {
+      'grid-column': '1',
+      'grid-row': '3',
     },
-    '#stats' : const {
-      'grid-column' : '1',
-      'grid-row' : '2',
-      'grid-row-align' : 'start',
+    '#stats': const {
+      'grid-column': '1',
+      'grid-row': '2',
+      'grid-row-align': 'start',
     },
-    '#board' : const {
-      'grid-column' : '2',
-      'grid-row' : '1',
-      'grid-row-span' : '2',
+    '#board': const {
+      'grid-column': '2',
+      'grid-row': '1',
+      'grid-row-span': '2',
     },
-    '#controls' : const {
-      'grid-column' : '2',
-      'grid-row' : '3',
-      'grid-column-align' : 'center',
+    '#controls': const {
+      'grid-column': '2',
+      'grid-row': '3',
+      'grid-column-align': 'center',
     },
   };
 }
@@ -40,26 +40,26 @@ class AdaptiveLayout {
 class SourceIndependencePortrait {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-template' : '"ta" "sa" "bb" "cc"',
-      'grid-columns' : 'auto minmax(min-content, 1fr)',
-      'grid-rows' : 'auto auto minmax(min-content, 1fr) auto',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-template': '"ta" "sa" "bb" "cc"',
+      'grid-columns': 'auto minmax(min-content, 1fr)',
+      'grid-rows': 'auto auto minmax(min-content, 1fr) auto',
     },
-    '#title' : const {
-      'grid-cell' : '"t"',
+    '#title': const {
+      'grid-cell': '"t"',
     },
-    '#score' : const {
-      'grid-cell' : '"s"',
+    '#score': const {
+      'grid-cell': '"s"',
     },
-    '#stats' : const {
-      'grid-cell' : '"a"',
+    '#stats': const {
+      'grid-cell': '"a"',
     },
-    '#board' : const {
-      'grid-cell' : '"b"',
+    '#board': const {
+      'grid-cell': '"b"',
     },
-    '#controls' : const {
-      'grid-cell' : '"c"',
+    '#controls': const {
+      'grid-cell': '"c"',
     },
   };
 }
@@ -67,26 +67,26 @@ class SourceIndependencePortrait {
 class SourceIndependenceLandscape {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-template' : '"tb" "ab" "sc"',
-      'grid-columns' : 'auto minmax(min-content, 1fr)',
-      'grid-rows' : 'auto minmax(min-content, 1fr) auto',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-template': '"tb" "ab" "sc"',
+      'grid-columns': 'auto minmax(min-content, 1fr)',
+      'grid-rows': 'auto minmax(min-content, 1fr) auto',
     },
-    '#title' : const {
-      'grid-cell' : '"t"',
+    '#title': const {
+      'grid-cell': '"t"',
     },
-    '#score' : const {
-      'grid-cell' : '"s"',
+    '#score': const {
+      'grid-cell': '"s"',
     },
-    '#stats' : const {
-      'grid-cell' : '"a"',
+    '#stats': const {
+      'grid-cell': '"a"',
     },
-    '#board' : const {
-      'grid-cell' : '"b"',
+    '#board': const {
+      'grid-cell': '"b"',
     },
-    '#controls' : const {
-      'grid-cell' : '"c"',
+    '#controls': const {
+      'grid-cell': '"c"',
     },
   };
 }
@@ -94,33 +94,34 @@ class SourceIndependenceLandscape {
 class GridLayering {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-columns' : '"start" auto "track-start" 0.5fr "thumb-start" auto "fill-split" auto "thumb-end" 0.5fr "track-end" auto "end"',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-columns':
+          '"start" auto "track-start" 0.5fr "thumb-start" auto "fill-split" auto "thumb-end" 0.5fr "track-end" auto "end"',
     },
-    '#lower-label' : const {
-      'grid-column' : '"start"',
+    '#lower-label': const {
+      'grid-column': '"start"',
     },
-    '#track' : const {
-      'grid-column' : '"track-start" "track-end"',
-      'grid-row-align' : 'center',
+    '#track': const {
+      'grid-column': '"track-start" "track-end"',
+      'grid-row-align': 'center',
     },
-    '#upper-label' : const {
-      'grid-column' : '"track-end"',
+    '#upper-label': const {
+      'grid-column': '"track-end"',
     },
-    '#lower-fill' : const {
-      'grid-column' : '"track-start" "fill-split"',
-      'grid-row-align' : 'center',
-      'grid-layer' : '5',
+    '#lower-fill': const {
+      'grid-column': '"track-start" "fill-split"',
+      'grid-row-align': 'center',
+      'grid-layer': '5',
     },
-    '#upper-fill' : const {
-      'grid-column' : '"fill-split" "track-end"',
-      'grid-row-align' : 'center',
-      'grid-layer' : '5',
+    '#upper-fill': const {
+      'grid-column': '"fill-split" "track-end"',
+      'grid-row-align': 'center',
+      'grid-layer': '5',
     },
-    '#thumb' : const {
-      'grid-column' : '"thumb-start" "thumb-end"',
-      'grid-layer' : '10',
+    '#thumb': const {
+      'grid-column': '"thumb-start" "thumb-end"',
+      'grid-layer': '10',
     },
   };
 }
@@ -128,14 +129,14 @@ class GridLayering {
 class GridLines_5 {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-columns' : '150px 1fr',
-      'grid-rows' : '50px 1fr 50px',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-columns': '150px 1fr',
+      'grid-rows': '50px 1fr 50px',
     },
-    '#item1' : const {
-      'grid-column' : '2',
-      'grid-row' : '1 4',
+    '#item1': const {
+      'grid-column': '2',
+      'grid-row': '1 4',
     },
   };
 }
@@ -143,14 +144,14 @@ class GridLines_5 {
 class GridLines_6 {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-columns' : '150px "item1-start" 1fr "item1-end"',
-      'grid-rows' : '"item1-start" 50px 1fr 50px "item1-end"',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-columns': '150px "item1-start" 1fr "item1-end"',
+      'grid-rows': '"item1-start" 50px 1fr 50px "item1-end"',
     },
-    '#item1' : const {
-      'grid-column' : '"item1-start" "item1-end"',
-      'grid-row' : '"item1-start" "item1-end"',
+    '#item1': const {
+      'grid-column': '"item1-start" "item1-end"',
+      'grid-row': '"item1-start" "item1-end"',
     },
   };
 }
@@ -158,20 +159,20 @@ class GridLines_6 {
 class GridCells {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-template' : '"ad" "bd" "cd"',
-      'grid-columns' : '150px 1fr',
-      'grid-rows' : '50px 1fr 50px',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-template': '"ad" "bd" "cd"',
+      'grid-columns': '150px 1fr',
+      'grid-rows': '50px 1fr 50px',
     },
-    '#item2' : const {
-      'grid-cell' : '"b"',
-      'grid-row-align' : 'start',
+    '#item2': const {
+      'grid-cell': '"b"',
+      'grid-row-align': 'start',
     },
-    '#item3' : const {
-      'grid-cell' : '"b"',
-      'grid-column-align' : 'end',
-      'grid-row-align' : 'end',
+    '#item3': const {
+      'grid-cell': '"b"',
+      'grid-column-align': 'end',
+      'grid-row-align': 'end',
     },
   };
 }
@@ -179,14 +180,14 @@ class GridCells {
 class StartEndingGridlines11a {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-columns' : '50px 1fr',
-      'grid-rows' : '"first" 250px 1fr 250px "last"',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-columns': '50px 1fr',
+      'grid-rows': '"first" 250px 1fr 250px "last"',
     },
-    '#item' : const {
-      'grid-column' : '1 3',
-      'grid-row' : '"first" "last"',
+    '#item': const {
+      'grid-column': '1 3',
+      'grid-row': '"first" "last"',
     },
   };
 }
@@ -194,14 +195,14 @@ class StartEndingGridlines11a {
 class StartEndingGridlines11b {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-columns' : '50px 1fr',
-      'grid-rows' : '"first" 250px 1fr 250px "last"',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-columns': '50px 1fr',
+      'grid-rows': '"first" 250px 1fr 250px "last"',
     },
-    '#item' : const {
-      'grid-column' : 'start end',
-      'grid-row' : 'start end',
+    '#item': const {
+      'grid-column': 'start end',
+      'grid-row': 'start end',
     },
   };
 }
@@ -209,22 +210,22 @@ class StartEndingGridlines11b {
 class RepeatingColumnsRows {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-columns' : '10px ("content" 1fr 10px) [4]',
-      'grid-rows' : '1fr',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-columns': '10px ("content" 1fr 10px) [4]',
+      'grid-rows': '1fr',
     },
-    '#col2' : const {
-      'grid-column' : '2',
+    '#col2': const {
+      'grid-column': '2',
     },
-    '#col4' : const {
-      'grid-column' : '4',
+    '#col4': const {
+      'grid-column': '4',
     },
-    '#col6' : const {
-      'grid-column' : '6',
+    '#col6': const {
+      'grid-column': '6',
     },
-    '#col8' : const {
-      'grid-column' : '8',
+    '#col8': const {
+      'grid-column': '8',
     },
   };
 }
@@ -232,22 +233,22 @@ class RepeatingColumnsRows {
 class AnonymousGridCells {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-rows' : '"header" auto "main" 1fr "footer" auto',
-      'grid-columns' : '1fr',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-rows': '"header" auto "main" 1fr "footer" auto',
+      'grid-columns': '1fr',
     },
-    '#header' : const {
-      'grid-row' : '"header"',
-      'grid-column' : 'start',
+    '#header': const {
+      'grid-row': '"header"',
+      'grid-column': 'start',
     },
-    '#main' : const {
-      'grid-row' : '"main"',
-      'grid-column' : 'start',
+    '#main': const {
+      'grid-row': '"main"',
+      'grid-column': 'start',
     },
-    '#footer' : const {
-      'grid-row' : '"footer"',
-      'grid-column' : 'start',
+    '#footer': const {
+      'grid-row': '"footer"',
+      'grid-column': 'start',
     },
   };
 }
@@ -255,26 +256,26 @@ class AnonymousGridCells {
 class ImplicitColumnsRows {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-columns' : '20px',
-      'grid-rows' : '20px',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-columns': '20px',
+      'grid-rows': '20px',
     },
-    '#A' : const {
-      'grid-column' : '1',
-      'grid-row' : '1',
-      'grid-column-align' : 'start',
-      'grid-row-align' : 'start',
+    '#A': const {
+      'grid-column': '1',
+      'grid-row': '1',
+      'grid-column-align': 'start',
+      'grid-row-align': 'start',
     },
-    '#B' : const {
-      'grid-column' : '5',
-      'grid-row' : '1',
-      'grid-row-span' : '2',
+    '#B': const {
+      'grid-column': '5',
+      'grid-row': '1',
+      'grid-row-span': '2',
     },
-    '#C' : const {
-      'grid-column' : '1',
-      'grid-row' : '2',
-      'grid-column-span' : '2',
+    '#C': const {
+      'grid-column': '1',
+      'grid-row': '2',
+      'grid-column-span': '2',
     },
   };
 }
@@ -282,22 +283,22 @@ class ImplicitColumnsRows {
 class AlignGridItems {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-columns' : '1fr 1fr',
-      'grid-rows' : '1fr 1fr',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-columns': '1fr 1fr',
+      'grid-rows': '1fr 1fr',
     },
-    '#A' : const {
-      'grid-column' : '1',
-      'grid-row' : '1',
-      'grid-column-align' : 'start',
-      'grid-row-align' : 'start',
+    '#A': const {
+      'grid-column': '1',
+      'grid-row': '1',
+      'grid-column-align': 'start',
+      'grid-row-align': 'start',
     },
-    '#B' : const {
-      'grid-column' : '2',
-      'grid-row' : '2',
-      'grid-column-align' : 'end',
-      'grid-row-align' : 'end',
+    '#B': const {
+      'grid-column': '2',
+      'grid-row': '2',
+      'grid-column-align': 'end',
+      'grid-row-align': 'end',
     },
   };
 }
@@ -305,42 +306,42 @@ class AlignGridItems {
 class DrawOrderGridItems {
   // selector, properties<propertyName, value>
   static const selectors = const {
-    '#grid' : const {
-      'display' : '-dart-grid',
-      'grid-columns' : '1fr 1fr',
-      'grid-rows' : '1fr 1fr',
+    '#grid': const {
+      'display': '-dart-grid',
+      'grid-columns': '1fr 1fr',
+      'grid-rows': '1fr 1fr',
     },
-    '#A' : const {
-      'grid-column' : '1',
-      'grid-row' : '2',
-      'grid-column-span' : '2',
-      'grid-row-align' : 'end',
+    '#A': const {
+      'grid-column': '1',
+      'grid-row': '2',
+      'grid-column-span': '2',
+      'grid-row-align': 'end',
     },
-    '#B' : const {
-      'grid-column' : '1',
-      'grid-row' : '1',
-      'grid-layer' : '10',
+    '#B': const {
+      'grid-column': '1',
+      'grid-row': '1',
+      'grid-layer': '10',
     },
-    '#C' : const {
-      'grid-column' : '2',
-      'grid-row' : '1',
-      'grid-row-align' : 'start',
-      'margin-left' : '-20px',
+    '#C': const {
+      'grid-column': '2',
+      'grid-row': '1',
+      'grid-row-align': 'start',
+      'margin-left': '-20px',
     },
-    '#D' : const {
-      'grid-column' : '2',
-      'grid-row' : '2',
-      'grid-column-align' : 'end',
-      'grid-row-align' : 'start',
+    '#D': const {
+      'grid-column': '2',
+      'grid-row': '2',
+      'grid-column-align': 'end',
+      'grid-row-align': 'start',
     },
-    '#E' : const {
-      'grid-column' : '1',
-      'grid-row' : '1',
-      'grid-column-span' : '2',
-      'grid-row-span' : '2',
-      'grid-layer' : '5',
-      'grid-column-align' : 'center',
-      'grid-row-align' : 'center',
+    '#E': const {
+      'grid-column': '1',
+      'grid-row': '1',
+      'grid-column-span': '2',
+      'grid-row-span': '2',
+      'grid-layer': '5',
+      'grid-column-align': 'center',
+      'grid-row-align': 'center',
     },
   };
 }

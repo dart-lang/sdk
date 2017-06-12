@@ -4,10 +4,11 @@
 
 library dart2js.source_map_builder;
 
+import 'package:kernel/ast.dart' show Location;
 import '../../compiler_new.dart' show OutputSink, OutputType;
 import '../util/uri_extras.dart' show relativize;
 import '../util/util.dart';
-import 'line_column_provider.dart';
+import 'location_provider.dart';
 import 'code_output.dart' show SourceLocationsProvider, SourceLocations;
 import 'source_information.dart' show SourceLocation;
 
@@ -20,11 +21,11 @@ class SourceMapBuilder {
   /// The URI of the target language file.
   final Uri targetFileUri;
 
-  final LineColumnProvider lineColumnProvider;
+  final LocationProvider locationProvider;
   final List<SourceMapEntry> entries = new List<SourceMapEntry>();
 
   SourceMapBuilder(this.version, this.sourceMapUri, this.targetFileUri,
-      this.lineColumnProvider);
+      this.locationProvider);
 
   void addMapping(int targetOffset, SourceLocation sourceLocation) {
     entries.add(new SourceMapEntry(sourceLocation, targetOffset));
@@ -49,9 +50,10 @@ class SourceMapBuilder {
     Map<Uri, LineColumnMap<SourceMapEntry>> sourceLocationMap =
         <Uri, LineColumnMap<SourceMapEntry>>{};
     entries.forEach((SourceMapEntry sourceMapEntry) {
-      int line = lineColumnProvider.getLine(sourceMapEntry.targetOffset);
-      int column =
-          lineColumnProvider.getColumn(line, sourceMapEntry.targetOffset);
+      Location kernelLocation =
+          locationProvider.getLocation(sourceMapEntry.targetOffset);
+      int line = kernelLocation.line - 1;
+      int column = kernelLocation.column - 1;
       lineColumnMap.add(line, column, sourceMapEntry);
 
       SourceLocation location = sourceMapEntry.sourceLocation;
@@ -61,7 +63,7 @@ class SourceMapBuilder {
               sourceLocationMap.putIfAbsent(location.sourceUri,
                   () => new LineColumnMap<SourceMapEntry>());
           sourceLineColumnMap.add(
-              location.line, location.column, sourceMapEntry);
+              location.line - 1, location.column - 1, sourceMapEntry);
         }
       }
     });
@@ -155,8 +157,8 @@ class SourceMapBuilder {
       Uri sourceUri = sourceLocation.sourceUri;
       if (sourceUri != null) {
         sourceUriIndexEncoder.encode(output, uriMap[sourceUri]);
-        sourceLineEncoder.encode(output, sourceLocation.line);
-        sourceColumnEncoder.encode(output, sourceLocation.column);
+        sourceLineEncoder.encode(output, sourceLocation.line - 1);
+        sourceColumnEncoder.encode(output, sourceLocation.column - 1);
       }
 
       String sourceName = sourceLocation.sourceName;
@@ -182,13 +184,13 @@ class SourceMapBuilder {
   }
 
   /// Generates source map files for all [SourceLocations] in
-  /// [sourceLocationsProvider] for the .js code in [lineColumnProvider]
+  /// [sourceLocationsProvider] for the .js code in [locationProvider]
   /// [sourceMapUri] is used to relativizes the URIs of the referenced source
   /// files and the target [fileUri]. [name] and [outputProvider] are used to
   /// create the [OutputSink] for the source map text.
   static void outputSourceMap(
       SourceLocationsProvider sourceLocationsProvider,
-      LineColumnProvider lineColumnProvider,
+      LocationProvider locationProvider,
       String name,
       Uri sourceMapUri,
       Uri fileUri,
@@ -200,7 +202,7 @@ class SourceMapBuilder {
     sourceLocationsProvider.sourceLocations
         .forEach((SourceLocations sourceLocations) {
       SourceMapBuilder sourceMapBuilder = new SourceMapBuilder(
-          sourceLocations.name, sourceMapUri, fileUri, lineColumnProvider);
+          sourceLocations.name, sourceMapUri, fileUri, locationProvider);
       sourceLocations.forEachSourceLocation(sourceMapBuilder.addMapping);
       String sourceMap = sourceMapBuilder.build();
       String extension = 'js.map';
@@ -275,11 +277,13 @@ class SourceMapEntry {
 /// Map from line/column pairs to lists of [T] elements.
 class LineColumnMap<T> {
   Map<int, Map<int, List<T>>> _map = <int, Map<int, List<T>>>{};
+  var _makeLineMap = () => <int, List<T>>{};
+  var _makeList = () => <T>[];
 
   /// Returns the list of elements associated with ([line],[column]).
   List<T> _getList(int line, int column) {
-    Map<int, List<T>> lineMap = _map.putIfAbsent(line, () => <int, List<T>>{});
-    return lineMap.putIfAbsent(column, () => <T>[]);
+    Map<int, List<T>> lineMap = _map.putIfAbsent(line, _makeLineMap);
+    return lineMap.putIfAbsent(column, _makeList);
   }
 
   /// Adds [element] to the end of the list of elements associated with

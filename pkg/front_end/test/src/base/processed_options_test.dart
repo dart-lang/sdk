@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
-import 'package:analyzer/src/summary/format.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:front_end/src/fasta/fasta.dart' show ByteSink;
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
+import 'package:kernel/kernel.dart' show Program, Library;
+
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,18 +22,12 @@ main() {
 
 @reflectiveTest
 class ProcessedOptionsTest {
-  final fileSystem = new MemoryFileSystem(pathos.posix, Uri.parse('file:///'));
+  final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
 
-  PackageBundleBuilder _mockSdkSummary;
+  Program _mockOutline;
 
-  PackageBundleBuilder get mockSdkSummary => _mockSdkSummary ??=
-      new PackageBundleBuilder(apiSignature: 'mock summary signature');
-
-  Future<Null> checkMockSummary(CompilerOptions raw) async {
-    var processed = new ProcessedOptions(raw);
-    var sdkSummary = await processed.getSdkSummary();
-    expect(sdkSummary.apiSignature, mockSdkSummary.apiSignature);
-  }
+  Program get mockSummary => _mockOutline ??=
+      new Program(libraries: [new Library(Uri.parse('file:///a/b.dart'))]);
 
   test_compileSdk_false() {
     for (var value in [false, true]) {
@@ -49,31 +45,6 @@ class ProcessedOptionsTest {
     expect(processed.fileSystem, same(fileSystem));
   }
 
-  test_getSdkSummary_sdkLocationProvided_noTrailingSlash() async {
-    var uri = Uri.parse('file:///sdk');
-    writeMockSummaryTo(Uri.parse('$uri/lib/_internal/strong.sum'));
-    checkMockSummary(new CompilerOptions()
-      ..fileSystem = fileSystem
-      ..sdkRoot = uri);
-  }
-
-  test_getSdkSummary_sdkLocationProvided_spec() async {
-    var uri = Uri.parse('file:///sdk');
-    writeMockSummaryTo(Uri.parse('$uri/lib/_internal/spec.sum'));
-    checkMockSummary(new CompilerOptions()
-      ..fileSystem = fileSystem
-      ..strongMode = false
-      ..sdkRoot = uri);
-  }
-
-  test_getSdkSummary_sdkLocationProvided_trailingSlash() async {
-    var uri = Uri.parse('file:///sdk');
-    writeMockSummaryTo(Uri.parse('$uri/lib/_internal/strong.sum'));
-    checkMockSummary(new CompilerOptions()
-      ..fileSystem = fileSystem
-      ..sdkRoot = Uri.parse('$uri/'));
-  }
-
   test_getSdkSummary_summaryLocationProvided() async {
     var uri = Uri.parse('file:///sdkSummary');
     writeMockSummaryTo(uri);
@@ -82,7 +53,20 @@ class ProcessedOptionsTest {
       ..sdkSummary = uri);
   }
 
-  test_getUriResolver_explicitPackagesFile() async {
+  void writeMockSummaryTo(Uri uri) {
+    var sink = new ByteSink();
+    new BinaryPrinter(sink).writeProgramFile(mockSummary);
+    fileSystem.entityForUri(uri).writeAsBytesSync(sink.builder.takeBytes());
+  }
+
+  Future<Null> checkMockSummary(CompilerOptions raw) async {
+    var processed = new ProcessedOptions(raw);
+    var sdkSummary = await processed.sdkSummaryProgram;
+    expect(sdkSummary.libraries.single.importUri,
+        mockSummary.libraries.single.importUri);
+  }
+
+  test_getUriTranslator_explicitPackagesFile() async {
     // This .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('file:///.packages'))
@@ -95,11 +79,11 @@ class ProcessedOptionsTest {
       ..fileSystem = fileSystem
       ..packagesFileUri = Uri.parse('file:///explicit.packages');
     var processed = new ProcessedOptions(raw);
-    var uriResolver = await processed.getUriResolver();
-    expect(uriResolver.packages, {'foo': Uri.parse('file:///baz/')});
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.packages, {'foo': Uri.parse('file:///baz/')});
   }
 
-  test_getUriResolver_explicitPackagesFile_withBaseLocation() async {
+  test_getUriTranslator_explicitPackagesFile_withBaseLocation() async {
     // This .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('file:///.packages'))
@@ -112,12 +96,12 @@ class ProcessedOptionsTest {
       ..fileSystem = fileSystem
       ..packagesFileUri = Uri.parse('file:///base/location/explicit.packages');
     var processed = new ProcessedOptions(raw);
-    var uriResolver = await processed.getUriResolver();
-    expect(
-        uriResolver.packages, {'foo': Uri.parse('file:///base/location/baz/')});
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.packages,
+        {'foo': Uri.parse('file:///base/location/baz/')});
   }
 
-  test_getUriResolver_noPackages() async {
+  test_getUriTranslator_noPackages() async {
     // .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('file:///.packages'))
@@ -126,11 +110,7 @@ class ProcessedOptionsTest {
       ..fileSystem = fileSystem
       ..packagesFileUri = new Uri();
     var processed = new ProcessedOptions(raw);
-    var uriResolver = await processed.getUriResolver();
-    expect(uriResolver.packages, isEmpty);
-  }
-
-  void writeMockSummaryTo(Uri uri) {
-    fileSystem.entityForUri(uri).writeAsBytesSync(mockSdkSummary.toBuffer());
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.packages, isEmpty);
   }
 }

@@ -5,28 +5,34 @@
 library dart2js.js_emitter.class_stub_generator;
 
 import '../common/names.dart' show Identifiers;
-import '../compiler.dart' show Compiler;
+import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../js_backend/namer.dart' show Namer;
+import '../js_backend/interceptor_data.dart' show InterceptorData;
+import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart'
     show CodegenWorldBuilder, SelectorConstraints;
 import '../world.dart' show ClosedWorld;
 
+import 'code_emitter_task.dart';
 import 'model.dart';
 
 class ClassStubGenerator {
-  final Namer namer;
-  final JavaScriptBackend backend;
-  final CodegenWorldBuilder worldBuilder;
-  final ClosedWorld closedWorld;
+  final Namer _namer;
+  final CodegenWorldBuilder _worldBuilder;
+  final ClosedWorld _closedWorld;
   final bool enableMinification;
+  final Emitter _emitter;
+  final CommonElements _commonElements;
 
-  ClassStubGenerator(
-      this.namer, this.backend, this.worldBuilder, this.closedWorld,
+  ClassStubGenerator(this._emitter, this._commonElements, this._namer,
+      this._worldBuilder, this._closedWorld,
       {this.enableMinification});
+
+  InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
   jsAst.Expression generateClassConstructor(
       ClassEntity classElement, Iterable<jsAst.Name> fields, bool hasRtiField) {
@@ -40,7 +46,7 @@ class ClassStubGenerator {
     var typeParameters = const <jsAst.Parameter>[];
     var typeInits = const <jsAst.Expression>[];
     if (hasRtiField) {
-      var rtiName = namer.rtiFieldJsName;
+      var rtiName = _namer.rtiFieldJsName;
       typeParameters = rtiName;
       typeInits = js('this.# = #', [rtiName, rtiName]);
     }
@@ -49,25 +55,25 @@ class ClassStubGenerator {
       typeParameters,
       fields.map((name) => js('this.# = #', [name, name])),
       typeInits,
-      namer.deferredAction
+      _namer.deferredAction
     ]);
   }
 
   jsAst.Expression generateGetter(MemberEntity member, jsAst.Name fieldName) {
     ClassEntity cls = member.enclosingClass;
     String receiver =
-        backend.interceptorData.isInterceptedClass(cls) ? 'receiver' : 'this';
+        _interceptorData.isInterceptedClass(cls) ? 'receiver' : 'this';
     List<String> args =
-        backend.interceptorData.isInterceptedMethod(member) ? ['receiver'] : [];
+        _interceptorData.isInterceptedMethod(member) ? ['receiver'] : [];
     return js('function(#) { return #.# }', [args, receiver, fieldName]);
   }
 
   jsAst.Expression generateSetter(MemberEntity member, jsAst.Name fieldName) {
     ClassEntity cls = member.enclosingClass;
     String receiver =
-        backend.interceptorData.isInterceptedClass(cls) ? 'receiver' : 'this';
+        _interceptorData.isInterceptedClass(cls) ? 'receiver' : 'this';
     List<String> args =
-        backend.interceptorData.isInterceptedMethod(member) ? ['receiver'] : [];
+        _interceptorData.isInterceptedMethod(member) ? ['receiver'] : [];
     // TODO(floitsch): remove 'return'?
     return js(
         'function(#, v) { return #.# = v; }', [args, receiver, fieldName]);
@@ -82,10 +88,9 @@ class ClassStubGenerator {
       MemberEntity member, Map<Selector, SelectorConstraints> selectors) {
     // If the method is intercepted, the stub gets the
     // receiver explicitely and we need to pass it to the getter call.
-    bool isInterceptedMethod =
-        backend.interceptorData.isInterceptedMethod(member);
+    bool isInterceptedMethod = _interceptorData.isInterceptedMethod(member);
     bool isInterceptedClass =
-        backend.interceptorData.isInterceptedClass(member.enclosingClass);
+        _interceptorData.isInterceptedClass(member.enclosingClass);
 
     const String receiverArgumentName = r'$receiver';
 
@@ -93,13 +98,13 @@ class ClassStubGenerator {
       jsAst.Expression receiver =
           js(isInterceptedClass ? receiverArgumentName : 'this');
       if (member.isGetter) {
-        jsAst.Name getterName = namer.getterForElement(member);
+        jsAst.Name getterName = _namer.getterForElement(member);
         if (isInterceptedMethod) {
           return js('this.#(#)', [getterName, receiver]);
         }
         return js('#.#()', [receiver, getterName]);
       } else {
-        jsAst.Name fieldName = namer.instanceFieldPropertyName(member);
+        jsAst.Name fieldName = _namer.instanceFieldPropertyName(member);
         return js('#.#', [receiver, fieldName]);
       }
     }
@@ -114,12 +119,12 @@ class ClassStubGenerator {
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
-      if (selectors[selector].applies(member, selector, closedWorld)) {
+      if (selectors[selector].applies(member, selector, _closedWorld)) {
         generatedSelectors.add(selector);
 
-        jsAst.Name invocationName = namer.invocationName(selector);
+        jsAst.Name invocationName = _namer.invocationName(selector);
         Selector callSelector = new Selector.callClosureFrom(selector);
-        jsAst.Name closureCallName = namer.invocationName(callSelector);
+        jsAst.Name closureCallName = _namer.invocationName(callSelector);
 
         List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
         List<jsAst.Expression> arguments = <jsAst.Expression>[];
@@ -147,7 +152,7 @@ class ClassStubGenerator {
     Map<jsAst.Name, Selector> jsNames = <jsAst.Name, Selector>{};
 
     // Do not generate no such method handlers if there is no class.
-    if (worldBuilder.directlyInstantiatedClasses.isEmpty) {
+    if (_worldBuilder.directlyInstantiatedClasses.isEmpty) {
       return jsNames;
     }
 
@@ -155,16 +160,16 @@ class ClassStubGenerator {
         String ignore, Map<Selector, SelectorConstraints> selectors) {
       for (Selector selector in selectors.keys) {
         SelectorConstraints maskSet = selectors[selector];
-        if (maskSet.needsNoSuchMethodHandling(selector, closedWorld)) {
-          jsAst.Name jsName = namer.invocationMirrorInternalName(selector);
+        if (maskSet.needsNoSuchMethodHandling(selector, _closedWorld)) {
+          jsAst.Name jsName = _namer.invocationMirrorInternalName(selector);
           jsNames[jsName] = selector;
         }
       }
     }
 
-    worldBuilder.forEachInvokedName(addNoSuchMethodHandlers);
-    worldBuilder.forEachInvokedGetter(addNoSuchMethodHandlers);
-    worldBuilder.forEachInvokedSetter(addNoSuchMethodHandlers);
+    _worldBuilder.forEachInvokedName(addNoSuchMethodHandlers);
+    _worldBuilder.forEachInvokedGetter(addNoSuchMethodHandlers);
+    _worldBuilder.forEachInvokedSetter(addNoSuchMethodHandlers);
     return jsNames;
   }
 
@@ -179,13 +184,11 @@ class ClassStubGenerator {
         .map((String name) => js.string(name))
         .toList();
 
-    jsAst.Name methodName = namer.asName(selector.invocationMirrorMemberName);
-    jsAst.Name internalName = namer.invocationMirrorInternalName(selector);
+    jsAst.Name methodName = _namer.asName(selector.invocationMirrorMemberName);
+    jsAst.Name internalName = _namer.invocationMirrorInternalName(selector);
 
-    assert(
-        backend.interceptorData.isInterceptedName(Identifiers.noSuchMethod_));
-    bool isIntercepted =
-        backend.interceptorData.isInterceptedName(selector.name);
+    assert(_interceptorData.isInterceptedName(Identifiers.noSuchMethod_));
+    bool isIntercepted = _interceptorData.isInterceptedName(selector.name);
     jsAst.Expression expression = js(
         '''this.#noSuchMethodName(#receiver,
                     #createInvocationMirror(#methodName,
@@ -195,9 +198,9 @@ class ClassStubGenerator {
                                             #namedArguments))''',
         {
           'receiver': isIntercepted ? r'$receiver' : 'this',
-          'noSuchMethodName': namer.noSuchMethodName,
-          'createInvocationMirror': backend.emitter
-              .staticFunctionAccess(backend.helpers.createInvocationMirror),
+          'noSuchMethodName': _namer.noSuchMethodName,
+          'createInvocationMirror': _emitter
+              .staticFunctionAccess(_commonElements.createInvocationMirror),
           'methodName':
               js.quoteName(enableMinification ? internalName : methodName),
           'internalName': js.quoteName(internalName),
@@ -232,17 +235,14 @@ class ClassStubGenerator {
 ///   * `isStatic`.
 ///   * `name`.
 ///   * `isIntercepted.
-List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
-  Namer namer = backend.namer;
-  Compiler compiler = backend.compiler;
-
-  FunctionEntity closureFromTearOff = backend.helpers.closureFromTearOff;
+List<jsAst.Statement> buildTearOffCode(CompilerOptions options, Emitter emitter,
+    Namer namer, CommonElements commonElements) {
+  FunctionEntity closureFromTearOff = commonElements.closureFromTearOff;
   jsAst.Expression tearOffAccessExpression;
   jsAst.Expression tearOffGlobalObjectString;
   jsAst.Expression tearOffGlobalObject;
   if (closureFromTearOff != null) {
-    tearOffAccessExpression =
-        backend.emitter.staticFunctionAccess(closureFromTearOff);
+    tearOffAccessExpression = emitter.staticFunctionAccess(closureFromTearOff);
     tearOffGlobalObject =
         js.stringPart(namer.globalObjectForMethod(closureFromTearOff));
     tearOffGlobalObjectString =
@@ -257,9 +257,9 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
   }
 
   jsAst.Statement tearOffGetter;
-  if (!compiler.options.useContentSecurityPolicy) {
+  if (!options.useContentSecurityPolicy) {
     jsAst.Expression tearOffAccessText =
-        new jsAst.UnparsedNode(tearOffAccessExpression, compiler, false);
+        new jsAst.UnparsedNode(tearOffAccessExpression, options, false);
     tearOffGetter = js.statement(
         '''
 function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {

@@ -14,6 +14,7 @@ test(list, notInList) {
     }
     Expect.isFalse(list.contains(notInList), "!$list.contains($notInList)");
   }
+
   List fixedList = new List(list.length);
   List growList = new List();
   for (int i = 0; i < list.length; i++) {
@@ -30,7 +31,7 @@ class C {
 }
 
 class Niet {
-  bool operator==(other) => false;
+  bool operator ==(other) => false;
 }
 
 main() {
@@ -39,7 +40,7 @@ main() {
   test(const <bool>[true, false], null);
   test(const <C>[const C(), const C(), null], new C());
   test(<C>[new C(), new C(), new C(), null], new C());
-  test(const <double>[ 0.0, 1.0, 5e-324, 1e+308, double.INFINITY ], 2.0);
+  test(const <double>[0.0, 1.0, 5e-324, 1e+308, double.INFINITY], 2.0);
   Expect.isTrue(const <double>[-0.0].contains(0.0));
   Expect.isFalse(const <double>[double.NAN].contains(double.NAN));
   var niet = new Niet();

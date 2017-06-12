@@ -4,24 +4,23 @@
 
 List sorted(Iterable input, [compare, key]) {
   comparator(compare, key) {
-    if (compare == null && key == null)
-      return (a, b) => a.compareTo(b);
-    if (compare == null)
-      return (a, b) => key(a).compareTo(key(b));
-    if (key == null)
-      return compare;
+    if (compare == null && key == null) return (a, b) => a.compareTo(b);
+    if (compare == null) return (a, b) => key(a).compareTo(key(b));
+    if (key == null) return compare;
     return (a, b) => compare(key(a), key(b));
   }
+
   List copy = new List.from(input);
   copy.sort(comparator(compare, key));
   return copy;
 }
 
-render(idl_node, [indent_str='  ']) {
+render(idl_node, [indent_str = '  ']) {
   var output = [''];
   var indent_stack = [];
 
-  indented(action) {  // TODO: revert to  indented(action()) {
+  // TODO: revert to  indented(action()) {
+  indented(action) {
     indent_stack.add(indent_str);
     action();
     indent_stack.removeLast();
@@ -48,8 +47,7 @@ render(idl_node, [indent_str='  ']) {
     if (node == null) {
       return;
     } else if (node is String) {
-      if (output.last.endsWith('\n'))
-        output.addAll(indent_stack);
+      if (output.last.endsWith('\n')) output.addAll(indent_stack);
       output.add(node);
     } else if (node is List) {
       var separator = null;
@@ -66,32 +64,33 @@ render(idl_node, [indent_str='  ']) {
       w(node.extAttrs);
       wln('module ${node.id} {');
       indented(() {
-          w(node.interfaces);
-          w(node.typedefs);
-        });
+        w(node.interfaces);
+        w(node.typedefs);
+      });
       wln('};');
     } else if (node is IDLInterface) {
       w(node.annotations);
       w(node.extAttrs);
       w('interface ${node.id}');
       indented(() {
-          if (!node.parents.isEmpty) {
-            wln(' :');
-            w(node.parents, ',\n');
+        if (!node.parents.isEmpty) {
+          wln(' :');
+          w(node.parents, ',\n');
+        }
+        wln(' {');
+        section(list, comment) {
+          if (list != null && !list.isEmpty) {
+            wln();
+            wln(comment);
+            w(sort(list));
           }
-          wln(' {');
-          section(list, comment) {
-            if (list != null && !list.isEmpty) {
-              wln();
-              wln(comment);
-              w(sort(list));
-            }
-          }
-          section(node.constants, '/* Constants */');
-          section(node.attributes, '/* Attributes */');
-          section(node.operations, '/* Operations */');
-          section(node.snippets, '/* Snippets */');
-        });
+        }
+
+        section(node.constants, '/* Constants */');
+        section(node.attributes, '/* Attributes */');
+        section(node.operations, '/* Operations */');
+        section(node.snippets, '/* Snippets */');
+      });
       wln('};');
     } else if (node is IDLParentInterface) {
       w(node.annotations);
@@ -116,7 +115,7 @@ render(idl_node, [indent_str='  ']) {
         w(' ');
       }
     } else if (node is IDLExtAttrs) {
-      if(!node.map.isEmpty) {
+      if (!node.map.isEmpty) {
         w('[');
         var sep = null;
         for (var name in sorted(node.map.keys)) {
@@ -160,8 +159,7 @@ render(idl_node, [indent_str='  ']) {
     } else if (node is IDLArgument) {
       w(node.extAttrs);
       w('in ');
-      if (node.isOptional)
-        w('optional ');
+      if (node.isOptional) w('optional ');
       w('${node.type.id} ${node.id}');
     } else if (node is IDLExtAttrFunctionValue) {
       w(node.name);

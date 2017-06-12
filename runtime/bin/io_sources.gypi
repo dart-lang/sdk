@@ -17,5 +17,6 @@
     'socket_patch.dart',
     'stdio_patch.dart',
     'secure_socket_patch.dart',
+    'sync_socket_patch.dart',
   ],
 }

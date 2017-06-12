@@ -22,7 +22,6 @@ const CERTIFICATE = "localhost_cert";
 // have a reference to the underlying socket.  Then we send some
 // unencrypted data on it, in the middle of an encrypted data transfer.
 
-
 // This test creates a server and then connects a client to the server.
 // After connecting, the connection is upgraded to a secure connection.
 // The client writes data to the server, then writes unencrypted data
@@ -33,7 +32,6 @@ const CERTIFICATE = "localhost_cert";
 
 const messageSize = 1000;
 
-
 List<int> createTestData() {
   List<int> data = new List<int>(messageSize);
   for (int i = 0; i < messageSize; i++) {
@@ -42,7 +40,6 @@ List<int> createTestData() {
   return data;
 }
 
-
 void verifyTestData(List<int> data) {
   Expect.equals(messageSize, data.length);
   List<int> expected = createTestData();
@@ -50,7 +47,6 @@ void verifyTestData(List<int> data) {
     Expect.equals(expected[i], data[i]);
   }
 }
-
 
 Future runServer(RawSocket client) {
   final completer = new Completer();
@@ -77,8 +73,7 @@ Future runServer(RawSocket client) {
         completer.complete(null);
         break;
     }
-  },
-  onError: (e) {
+  }, onError: (e) {
     Expect.isTrue(e is TlsException);
     Expect.isTrue(e.toString().contains(
         'received a record with an incorrect Message Authentication Code'));
@@ -86,7 +81,6 @@ Future runServer(RawSocket client) {
   });
   return completer.future;
 }
-
 
 Future<RawSocket> runClient(List sockets) {
   final RawSocket baseSocket = sockets[0];
@@ -108,7 +102,7 @@ Future<RawSocket> runClient(List sockets) {
         break;
       case RawSocketEvent.WRITE:
         if (bytesWritten < data.length) {
-          bytesWritten +=  socket.write(data, bytesWritten);
+          bytesWritten += socket.write(data, bytesWritten);
         }
         if (bytesWritten < data.length) {
           socket.writeEventsEnabled = true;
@@ -122,40 +116,32 @@ Future<RawSocket> runClient(List sockets) {
         tryComplete();
         break;
     }
-  },
-  onError: (e) {
+  }, onError: (e) {
     Expect.isTrue(e is IOException);
     tryComplete();
   });
   return completer.future;
 }
 
-
 Future<List> connectClient(int port, bool hostnameInConnect) =>
-  RawSocket.connect(HOST, port)
-  .then((socket) =>
-    (hostnameInConnect ? RawSecureSocket.secure(socket)
-                       : RawSecureSocket.secure(socket, host: HOST))
-    .then((secureSocket) => [socket, secureSocket]));
-
+    RawSocket.connect(HOST, port).then((socket) => (hostnameInConnect
+            ? RawSecureSocket.secure(socket)
+            : RawSecureSocket.secure(socket, host: HOST))
+        .then((secureSocket) => [socket, secureSocket]));
 
 Future test(bool hostnameInConnect) {
   return RawServerSocket.bind(HOST, 0).then((server) {
     server.listen((client) {
-      RawSecureSocket.secureServer(client, CERTIFICATE)
-        .then((secureClient) {
-          Expect.throws(() => client.add([0]));
-          return runServer(secureClient);
-        },
-        onError: (e) {
-          Expect.isTrue(e is HandshakeException);
-        })
-        .whenComplete(server.close);
+      RawSecureSocket.secureServer(client, CERTIFICATE).then((secureClient) {
+        Expect.throws(() => client.add([0]));
+        return runServer(secureClient);
+      }, onError: (e) {
+        Expect.isTrue(e is HandshakeException);
+      }).whenComplete(server.close);
     });
     return connectClient(server.port, hostnameInConnect).then(runClient);
   });
 }
-
 
 main() {
   asyncStart();

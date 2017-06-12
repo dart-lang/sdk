@@ -18,9 +18,8 @@ void testWriteInt8ListAndView() {
   const int VIEW_LENGTH = 4;
   Int8List list = new Int8List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
-  var view = new Int8List.view(list.buffer,
-                               OFFSET_IN_BYTES_FOR_VIEW,
-                               VIEW_LENGTH);
+  var view =
+      new Int8List.view(list.buffer, OFFSET_IN_BYTES_FOR_VIEW, VIEW_LENGTH);
 
   Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
@@ -41,7 +40,6 @@ void testWriteInt8ListAndView() {
     });
   });
 }
-
 
 void testWriteUint8ListAndView() {
   asyncStart();
@@ -50,9 +48,8 @@ void testWriteUint8ListAndView() {
   const int VIEW_LENGTH = 4;
   Uint8List list = new Uint8List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
-  var view = new Uint8List.view(list.buffer,
-                                OFFSET_IN_BYTES_FOR_VIEW,
-                                VIEW_LENGTH);
+  var view =
+      new Uint8List.view(list.buffer, OFFSET_IN_BYTES_FOR_VIEW, VIEW_LENGTH);
 
   Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
@@ -73,7 +70,6 @@ void testWriteUint8ListAndView() {
     });
   });
 }
-
 
 void testWriteUint8ClampedListAndView() {
   asyncStart();
@@ -82,9 +78,8 @@ void testWriteUint8ClampedListAndView() {
   const int VIEW_LENGTH = 4;
   Uint8ClampedList list = new Uint8ClampedList(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
-  var view = new Uint8ClampedList.view(list.buffer,
-                                       OFFSET_IN_BYTES_FOR_VIEW,
-                                       VIEW_LENGTH);
+  var view = new Uint8ClampedList.view(
+      list.buffer, OFFSET_IN_BYTES_FOR_VIEW, VIEW_LENGTH);
 
   Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
@@ -105,7 +100,6 @@ void testWriteUint8ClampedListAndView() {
     });
   });
 }
-
 
 void testWriteInt16ListAndView() {
   asyncStart();
@@ -116,22 +110,20 @@ void testWriteInt16ListAndView() {
   const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int16List.BYTES_PER_ELEMENT;
   var list = new Int16List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
-  var view = new Int16List.view(list.buffer,
-                                OFFSET_IN_BYTES_FOR_VIEW,
-                                VIEW_LENGTH);
+  var view =
+      new Int16List.view(list.buffer, OFFSET_IN_BYTES_FOR_VIEW, VIEW_LENGTH);
 
   Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(new Uint8List.view(list.buffer),
-                           0,
-                           LIST_LENGTH_IN_BYTES);
+      return raf.writeFrom(
+          new Uint8List.view(list.buffer), 0, LIST_LENGTH_IN_BYTES);
     }).then((raf) {
-      return raf.writeFrom(new Uint8List.view(view.buffer,
-                                              view.offsetInBytes,
-                                              view.lengthInBytes),
-                           0,
-                           VIEW_LENGTH_IN_BYTES);
+      return raf.writeFrom(
+          new Uint8List.view(
+              view.buffer, view.offsetInBytes, view.lengthInBytes),
+          0,
+          VIEW_LENGTH_IN_BYTES);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -143,14 +135,13 @@ void testWriteInt16ListAndView() {
       for (int i = 0; i < content.length; i++) {
         typed_data_content[i] = content[i];
       }
-      Expect.listEquals(expected,
-                        new Int16List.view(typed_data_content.buffer));
+      Expect.listEquals(
+          expected, new Int16List.view(typed_data_content.buffer));
       temp.deleteSync(recursive: true);
       asyncEnd();
     });
   });
 }
-
 
 void testWriteUint16ListAndView() {
   asyncStart();
@@ -161,22 +152,20 @@ void testWriteUint16ListAndView() {
   const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Uint16List.BYTES_PER_ELEMENT;
   var list = new Uint16List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
-  var view = new Uint16List.view(list.buffer,
-                                 OFFSET_IN_BYTES_FOR_VIEW,
-                                 VIEW_LENGTH);
+  var view =
+      new Uint16List.view(list.buffer, OFFSET_IN_BYTES_FOR_VIEW, VIEW_LENGTH);
 
   Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(new Uint8List.view(list.buffer),
-                           0,
-                           LIST_LENGTH_IN_BYTES);
+      return raf.writeFrom(
+          new Uint8List.view(list.buffer), 0, LIST_LENGTH_IN_BYTES);
     }).then((raf) {
-      return raf.writeFrom(new Uint8List.view(view.buffer,
-                                              view.offsetInBytes,
-                                              view.lengthInBytes),
-                           0,
-                           VIEW_LENGTH_IN_BYTES);
+      return raf.writeFrom(
+          new Uint8List.view(
+              view.buffer, view.offsetInBytes, view.lengthInBytes),
+          0,
+          VIEW_LENGTH_IN_BYTES);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -188,14 +177,13 @@ void testWriteUint16ListAndView() {
       for (int i = 0; i < content.length; i++) {
         typed_data_content[i] = content[i];
       }
-      Expect.listEquals(expected,
-                        new Uint16List.view(typed_data_content.buffer));
+      Expect.listEquals(
+          expected, new Uint16List.view(typed_data_content.buffer));
       temp.deleteSync(recursive: true);
       asyncEnd();
     });
   });
 }
-
 
 void testWriteInt32ListAndView() {
   asyncStart();
@@ -206,22 +194,20 @@ void testWriteInt32ListAndView() {
   const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int32List.BYTES_PER_ELEMENT;
   var list = new Int32List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
-  var view = new Int32List.view(list.buffer,
-                                OFFSET_IN_BYTES_FOR_VIEW,
-                                VIEW_LENGTH);
+  var view =
+      new Int32List.view(list.buffer, OFFSET_IN_BYTES_FOR_VIEW, VIEW_LENGTH);
 
   Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(new Uint8List.view(list.buffer),
-                           0,
-                           LIST_LENGTH_IN_BYTES);
+      return raf.writeFrom(
+          new Uint8List.view(list.buffer), 0, LIST_LENGTH_IN_BYTES);
     }).then((raf) {
-      return raf.writeFrom(new Uint8List.view(view.buffer,
-                                              view.offsetInBytes,
-                                              view.lengthInBytes),
-                           0,
-                           VIEW_LENGTH_IN_BYTES);
+      return raf.writeFrom(
+          new Uint8List.view(
+              view.buffer, view.offsetInBytes, view.lengthInBytes),
+          0,
+          VIEW_LENGTH_IN_BYTES);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -233,14 +219,13 @@ void testWriteInt32ListAndView() {
       for (int i = 0; i < content.length; i++) {
         typed_data_content[i] = content[i];
       }
-      Expect.listEquals(expected,
-                        new Int32List.view(typed_data_content.buffer));
+      Expect.listEquals(
+          expected, new Int32List.view(typed_data_content.buffer));
       temp.deleteSync(recursive: true);
       asyncEnd();
     });
   });
 }
-
 
 void testWriteUint32ListAndView() {
   asyncStart();
@@ -251,22 +236,20 @@ void testWriteUint32ListAndView() {
   const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int32List.BYTES_PER_ELEMENT;
   var list = new Uint32List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
-  var view = new Uint32List.view(list.buffer,
-                                 OFFSET_IN_BYTES_FOR_VIEW,
-                                 VIEW_LENGTH);
+  var view =
+      new Uint32List.view(list.buffer, OFFSET_IN_BYTES_FOR_VIEW, VIEW_LENGTH);
 
   Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(new Uint8List.view(list.buffer),
-                           0,
-                           LIST_LENGTH_IN_BYTES);
+      return raf.writeFrom(
+          new Uint8List.view(list.buffer), 0, LIST_LENGTH_IN_BYTES);
     }).then((raf) {
-      return raf.writeFrom(new Uint8List.view(view.buffer,
-                                              view.offsetInBytes,
-                                              view.lengthInBytes),
-                           0,
-                           VIEW_LENGTH_IN_BYTES);
+      return raf.writeFrom(
+          new Uint8List.view(
+              view.buffer, view.offsetInBytes, view.lengthInBytes),
+          0,
+          VIEW_LENGTH_IN_BYTES);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -278,14 +261,13 @@ void testWriteUint32ListAndView() {
       for (int i = 0; i < content.length; i++) {
         typed_data_content[i] = content[i];
       }
-      Expect.listEquals(expected,
-                        new Uint32List.view(typed_data_content.buffer));
+      Expect.listEquals(
+          expected, new Uint32List.view(typed_data_content.buffer));
       temp.deleteSync(recursive: true);
       asyncEnd();
     });
   });
 }
-
 
 void testWriteInt64ListAndView() {
   asyncStart();
@@ -296,22 +278,20 @@ void testWriteInt64ListAndView() {
   const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Int64List.BYTES_PER_ELEMENT;
   var list = new Int64List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
-  var view = new Int64List.view(list.buffer,
-                                OFFSET_IN_BYTES_FOR_VIEW,
-                                VIEW_LENGTH);
+  var view =
+      new Int64List.view(list.buffer, OFFSET_IN_BYTES_FOR_VIEW, VIEW_LENGTH);
 
   Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(new Uint8List.view(list.buffer),
-                           0,
-                           LIST_LENGTH_IN_BYTES);
+      return raf.writeFrom(
+          new Uint8List.view(list.buffer), 0, LIST_LENGTH_IN_BYTES);
     }).then((raf) {
-      return raf.writeFrom(new Uint8List.view(view.buffer,
-                                              view.offsetInBytes,
-                                              view.lengthInBytes),
-                           0,
-                           VIEW_LENGTH_IN_BYTES);
+      return raf.writeFrom(
+          new Uint8List.view(
+              view.buffer, view.offsetInBytes, view.lengthInBytes),
+          0,
+          VIEW_LENGTH_IN_BYTES);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -323,14 +303,13 @@ void testWriteInt64ListAndView() {
       for (int i = 0; i < content.length; i++) {
         typed_data_content[i] = content[i];
       }
-      Expect.listEquals(expected,
-                        new Int64List.view(typed_data_content.buffer));
+      Expect.listEquals(
+          expected, new Int64List.view(typed_data_content.buffer));
       temp.deleteSync(recursive: true);
       asyncEnd();
     });
   });
 }
-
 
 void testWriteUint64ListAndView() {
   asyncStart();
@@ -341,22 +320,20 @@ void testWriteUint64ListAndView() {
   const int VIEW_LENGTH_IN_BYTES = VIEW_LENGTH * Uint64List.BYTES_PER_ELEMENT;
   var list = new Uint64List(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;
-  var view = new Uint64List.view(list.buffer,
-                                 OFFSET_IN_BYTES_FOR_VIEW,
-                                 VIEW_LENGTH);
+  var view =
+      new Uint64List.view(list.buffer, OFFSET_IN_BYTES_FOR_VIEW, VIEW_LENGTH);
 
   Directory.systemTemp.createTemp('dart_file_typed_data').then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeFrom(new Uint8List.view(list.buffer),
-                           0,
-                           LIST_LENGTH_IN_BYTES);
+      return raf.writeFrom(
+          new Uint8List.view(list.buffer), 0, LIST_LENGTH_IN_BYTES);
     }).then((raf) {
-      return raf.writeFrom(new Uint8List.view(view.buffer,
-                                              view.offsetInBytes,
-                                              view.lengthInBytes),
-                           0,
-                           VIEW_LENGTH_IN_BYTES);
+      return raf.writeFrom(
+          new Uint8List.view(
+              view.buffer, view.offsetInBytes, view.lengthInBytes),
+          0,
+          VIEW_LENGTH_IN_BYTES);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -368,14 +345,13 @@ void testWriteUint64ListAndView() {
       for (int i = 0; i < content.length; i++) {
         typed_data_content[i] = content[i];
       }
-      Expect.listEquals(expected,
-                        new Uint64List.view(typed_data_content.buffer));
+      Expect.listEquals(
+          expected, new Uint64List.view(typed_data_content.buffer));
       temp.deleteSync(recursive: true);
       asyncEnd();
     });
   });
 }
-
 
 main() {
   testWriteInt8ListAndView();

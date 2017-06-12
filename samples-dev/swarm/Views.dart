@@ -31,7 +31,7 @@ abstract class VariableSizeViewFactory<D> {
 /** A collection of event listeners. */
 class EventListeners {
   var listeners;
-  EventListeners()  {
+  EventListeners() {
     listeners = new List();
   }
 
@@ -46,9 +46,8 @@ class EventListeners {
   }
 }
 
-
 /**
- * Private view class used to store placeholder views for detatched ListView
+ * Private view class used to store placeholder views for detached ListView
  * elements.
  */
 class _PlaceholderView extends View {
@@ -98,8 +97,7 @@ abstract class ListViewLayout<D> {
    * Returns an interval specifying what views are currently visible given a
    * particular [:offset:].
    */
-  Interval computeVisibleInterval(num offset, num viewLength,
-                                  num bufferLength);
+  Interval computeVisibleInterval(num offset, num viewLength, num bufferLength);
 }
 
 /**
@@ -138,19 +136,19 @@ class GenericListView<D> extends View {
    * and update the view appropriately.
    */
   GenericListView(
-    this._layout,
-    this._data,
-    this._scrollable,
-    this._vertical,
-    this._selectedItem,
-    this._snapToItems,
-    this._paginate,
-    this._removeClippedViews,
-    this._showScrollbar,
-    this._pages)
-  : super(),
-    _activeInterval = new Interval(0, 0),
-    _itemViews = new Map<int, View>() {
+      this._layout,
+      this._data,
+      this._scrollable,
+      this._vertical,
+      this._selectedItem,
+      this._snapToItems,
+      this._paginate,
+      this._removeClippedViews,
+      this._showScrollbar,
+      this._pages)
+      : super(),
+        _activeInterval = new Interval(0, 0),
+        _itemViews = new Map<int, View>() {
     // TODO(rnystrom): Move this into enterDocument once we have an exitDocument
     // that we can use to unregister it.
     if (_scrollable) {
@@ -216,16 +214,16 @@ class GenericListView<D> extends View {
           _containerElem,
           _vertical /* verticalScrollEnabled */,
           !_vertical /* horizontalScrollEnabled */,
-          true /* momentumEnabled */,
-          () {
-            num width = _layout.getWidth(_viewLength);
-            num height = _layout.getHeight(_viewLength);
-            width = width != null ? width : 0;
-            height = height != null ? height : 0;
-            return new Size(width, height);
-          },
-          _paginate && _snapToItems ?
-              Scroller.FAST_SNAP_DECELERATION_FACTOR : 1);
+          true /* momentumEnabled */, () {
+        num width = _layout.getWidth(_viewLength);
+        num height = _layout.getHeight(_viewLength);
+        width = width != null ? width : 0;
+        height = height != null ? height : 0;
+        return new Size(width, height);
+      },
+          _paginate && _snapToItems
+              ? Scroller.FAST_SNAP_DECELERATION_FACTOR
+              : 1);
       scroller.onContentMoved.listen((e) => renderVisibleItems(false));
       if (_pages != null) {
         watch(_pages.target, (s) => _onPageSelected());
@@ -251,14 +249,16 @@ class GenericListView<D> extends View {
     if (_data is ObservableList<D>) {
       ObservableList<D> observable = _data;
       attachWatch(observable, (EventSummary e) {
-          if (e.target == observable) {
-            onDataChange();
-          }
-        });
+        if (e.target == observable) {
+          onDataChange();
+        }
+      });
     }
 
     if (_selectedItem != null) {
-      addOnClick((Event e) { _onClick(e); });
+      addOnClick((Event e) {
+        _onClick(e);
+      });
     }
 
     if (_selectedItem != null) {
@@ -285,7 +285,6 @@ class GenericListView<D> extends View {
     // GenericListView.
     style.overflow = 'hidden';
   }
-
 
   void onResize() {
     int lastViewLength = _viewLength;
@@ -322,10 +321,12 @@ class GenericListView<D> extends View {
   }
 
   void _decelStart() {
-    num currentTarget = scroller.verticalEnabled ?
-        scroller.currentTarget.y : scroller.currentTarget.x;
-    num current = scroller.verticalEnabled ?
-        scroller.contentOffset.y : scroller.contentOffset.x;
+    num currentTarget = scroller.verticalEnabled
+        ? scroller.currentTarget.y
+        : scroller.currentTarget.x;
+    num current = scroller.verticalEnabled
+        ? scroller.contentOffset.y
+        : scroller.contentOffset.x;
     num targetIndex = _layout.getSnapIndex(currentTarget, _viewLength);
     if (current != currentTarget) {
       // The user is throwing rather than statically releasing.
@@ -333,8 +334,8 @@ class GenericListView<D> extends View {
       // as long as they made at least a minimal throw gesture.
       num currentIndex = _layout.getSnapIndex(current, _viewLength);
       if (currentIndex == targetIndex &&
-        (currentTarget - current).abs() > SNAP_TO_NEXT_THROW_THRESHOLD &&
-        -_layout.getOffset(targetIndex) != currentTarget) {
+          (currentTarget - current).abs() > SNAP_TO_NEXT_THROW_THRESHOLD &&
+          -_layout.getOffset(targetIndex) != currentTarget) {
         num snappedCurrentPosition = -_layout.getOffset(targetIndex);
         targetIndex = getNextIndex(targetIndex, currentTarget < current);
       }
@@ -349,7 +350,7 @@ class GenericListView<D> extends View {
     } else {
       // Update the target page only after we are all done animating.
       if (_pages != null) {
-        _pages.target.value =_layout.getPage(targetIndex, _viewLength);
+        _pages.target.value = _layout.getPage(targetIndex, _viewLength);
       }
     }
   }
@@ -367,16 +368,16 @@ class GenericListView<D> extends View {
   }
 
   void _onPageSelected() {
-    if (_pages.target !=
-        _layout.getPage(_activeInterval.start, _viewLength)) {
+    if (_pages.target != _layout.getPage(_activeInterval.start, _viewLength)) {
       _throwTo(_layout.getOffset(
           _layout.getPageStartIndex(_pages.target.value, _viewLength)));
     }
   }
 
   num get _offset {
-    return scroller.verticalEnabled ?
-        scroller.getVerticalOffset() : scroller.getHorizontalOffset();
+    return scroller.verticalEnabled
+        ? scroller.getVerticalOffset()
+        : scroller.getHorizontalOffset();
   }
 
   /**
@@ -396,12 +397,12 @@ class GenericListView<D> extends View {
     }
 
     if (_pages != null) {
-      _pages.current.value =
-          _layout.getPage(targetInterval.start, _viewLength);
+      _pages.current.value = _layout.getPage(targetInterval.start, _viewLength);
     }
     if (_pages != null) {
-      _pages.length.value = _data.length > 0 ?
-          _layout.getPage(_data.length - 1, _viewLength) + 1 : 0;
+      _pages.length.value = _data.length > 0
+          ? _layout.getPage(_data.length - 1, _viewLength) + 1
+          : 0;
     }
 
     if (!_removeClippedViews) {
@@ -418,23 +419,27 @@ class GenericListView<D> extends View {
 
     // Remove views that are not needed anymore
     for (int i = _activeInterval.start,
-             end = Math.min(targetInterval.start, _activeInterval.end);
-         i < end; i++) {
+            end = Math.min(targetInterval.start, _activeInterval.end);
+        i < end;
+        i++) {
       _removeView(i);
     }
     for (int i = Math.max(targetInterval.end, _activeInterval.start);
-         i < _activeInterval.end; i++) {
+        i < _activeInterval.end;
+        i++) {
       _removeView(i);
     }
 
     // Add new views
     for (int i = targetInterval.start,
-             end = Math.min(_activeInterval.start, targetInterval.end);
-         i < end; i++) {
+            end = Math.min(_activeInterval.start, targetInterval.end);
+        i < end;
+        i++) {
       _addView(i);
     }
     for (int i = Math.max(_activeInterval.end, targetInterval.start);
-         i < targetInterval.end; i++) {
+        i < targetInterval.end;
+        i++) {
       _addView(i);
     }
 
@@ -462,7 +467,7 @@ class GenericListView<D> extends View {
       final view = _itemViews[index];
       _addViewHelper(view, index);
       childViewAdded(view);
-     return view;
+      return view;
     }
 
     final view = _newView(index);
@@ -491,13 +496,13 @@ class GenericListView<D> extends View {
 
   /**
    * Detach a subview from the view replacing it with an empty placeholder view.
-   * The detatched subview can be safely reparented.
+   * The detached subview can be safely reparented.
    */
   View detachSubview(D itemData) {
     int index = findIndex(itemData);
     View view = _itemViews[index];
     if (view == null) {
-      // Edge case: add the view so we can detatch as the view is currently
+      // Edge case: add the view so we can detach as the view is currently
       // outside but might soon be inside the visible area.
       assert(!_activeInterval.contains(index));
       _addView(index);
@@ -523,7 +528,7 @@ class GenericListView<D> extends View {
       currentPosition =
           FxUtil.computeRelativePosition(view.node, _containerElem);
     }
-    assert (_itemViews[index] is _PlaceholderView);
+    assert(_itemViews[index] is _PlaceholderView);
     view.enterDocument();
     _itemViews[index].node.replaceWith(view.node);
     _itemViews[index] = view;
@@ -531,7 +536,9 @@ class GenericListView<D> extends View {
       FxUtil.setTranslate(view.node, currentPosition.x, currentPosition.y, 0);
       // The view's position is unchanged except now re-parented to
       // the list view.
-      Timer.run(() { _positionSubview(view.node, index); });
+      Timer.run(() {
+        _positionSubview(view.node, index);
+      });
     } else {
       _positionSubview(view.node, index);
     }
@@ -551,7 +558,7 @@ class GenericListView<D> extends View {
   }
 
   void _positionSubview(Element node, int index) {
-   if (_vertical) {
+    if (_vertical) {
       FxUtil.setTranslate(node, 0, _layout.getOffset(index), 0);
     } else {
       FxUtil.setTranslate(node, _layout.getOffset(index), 0, 0);
@@ -609,8 +616,8 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
   List<D> _data;
   bool _paginate;
 
-  FixedSizeListViewLayout(this.itemViewFactory, this._data, this._vertical,
-                          this._paginate);
+  FixedSizeListViewLayout(
+      this.itemViewFactory, this._data, this._vertical, this._paginate);
 
   void onDataChange() {}
 
@@ -621,7 +628,6 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
   int get _itemLength {
     return _vertical ? itemViewFactory.height : itemViewFactory.width;
   }
-
 
   int getWidth(int viewLength) {
     return _vertical ? itemViewFactory.width : getLength(viewLength);
@@ -647,15 +653,14 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
   }
 
   int getLength(int viewLength) {
-    int itemLength =
-        _vertical ? itemViewFactory.height : itemViewFactory.width;
+    int itemLength = _vertical ? itemViewFactory.height : itemViewFactory.width;
     if (viewLength == null || viewLength == 0) {
       return itemLength * _data.length;
     } else if (_paginate) {
       if (_data.length > 0) {
         final pageLength = getPageLength(viewLength);
-        return getPage(_data.length - 1, viewLength)
-            * pageLength + Math.max(viewLength, pageLength);
+        return getPage(_data.length - 1, viewLength) * pageLength +
+            Math.max(viewLength, pageLength);
       } else {
         return 0;
       }
@@ -705,23 +710,30 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
  * Simple list view class where each item has fixed width and height.
  */
 class ListView<D> extends GenericListView<D> {
-
   /**
    * Creates a new ListView for the given data. If [:_data:] is an
    * [:ObservableList<T>:] then it will listen to changes to the list and
    * update the view appropriately.
    */
   ListView(List<D> data, ViewFactory<D> itemViewFactory, bool scrollable,
-           bool vertical, ObservableValue<D> selectedItem,
-           [bool snapToItems = false,
-            bool paginate = false,
-            bool removeClippedViews = false,
-            bool showScrollbar = false,
-            PageState pages = null])
-      : super(new FixedSizeListViewLayout<D>(itemViewFactory, data, vertical,
-                                             paginate),
-              data, scrollable, vertical, selectedItem, snapToItems, paginate,
-              removeClippedViews, showScrollbar, pages);
+      bool vertical, ObservableValue<D> selectedItem,
+      [bool snapToItems = false,
+      bool paginate = false,
+      bool removeClippedViews = false,
+      bool showScrollbar = false,
+      PageState pages = null])
+      : super(
+            new FixedSizeListViewLayout<D>(
+                itemViewFactory, data, vertical, paginate),
+            data,
+            scrollable,
+            vertical,
+            selectedItem,
+            snapToItems,
+            paginate,
+            removeClippedViews,
+            showScrollbar,
+            pages);
 }
 
 /**
@@ -738,18 +750,18 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
   VariableSizeViewFactory<D> itemViewFactory;
   Interval _lastVisibleInterval;
 
-  VariableSizeListViewLayout(this.itemViewFactory, data, this._vertical,
-                             this._paginate) :
-      _data = data,
-      _lastVisibleInterval = new Interval(0, 0) {
+  VariableSizeListViewLayout(
+      this.itemViewFactory, data, this._vertical, this._paginate)
+      : _data = data,
+        _lastVisibleInterval = new Interval(0, 0) {
     _itemOffsets = <int>[];
     _lengths = <int>[];
     _itemOffsets.add(0);
   }
 
   void onDataChange() {
-     _itemOffsets.clear();
-     _itemOffsets.add(0);
+    _itemOffsets.clear();
+    _itemOffsets.add(0);
     _lengths.clear();
   }
 
@@ -800,12 +812,12 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
       num lengthFromAllButLastElement = 0;
       if (_itemOffsets.length > 2) {
         lengthFromAllButLastElement =
-            (getOffset(_itemOffsets.length - 2) -
-              getOffset(0)) *
-             (_data.length / (_itemOffsets.length - 2));
+            (getOffset(_itemOffsets.length - 2) - getOffset(0)) *
+                (_data.length / (_itemOffsets.length - 2));
       }
       return (lengthFromAllButLastElement +
-              Math.max(viewLength, _lengths[_lengths.length - 1])).toInt();
+              Math.max(viewLength, _lengths[_lengths.length - 1]))
+          .toInt();
     } else {
       if (_lengths.length == 1) {
         return Math.max(viewLength, _lengths[0]);
@@ -821,7 +833,7 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     } else {
       // Hack so that _lengths[length - 1] is available.
       getOffset(_data.length);
-      return (getOffset(_data.length - 1) - getOffset(0))  +
+      return (getOffset(_data.length - 1) - getOffset(0)) +
           Math.max(_lengths[_lengths.length - 1], viewLength);
     }
   }
@@ -830,7 +842,8 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     if (index >= _itemOffsets.length) {
       int offset = _itemOffsets[_itemOffsets.length - 1];
       for (int i = _itemOffsets.length; i <= index; i++) {
-        int length = _vertical ? itemViewFactory.getHeight(_data[i - 1])
+        int length = _vertical
+            ? itemViewFactory.getHeight(_data[i - 1])
             : itemViewFactory.getWidth(_data[i - 1]);
         offset += length;
         _itemOffsets.add(offset);
@@ -860,13 +873,11 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
   }
 
   Interval computeVisibleInterval(
-    num offset, num viewLength, num bufferLength) {
+      num offset, num viewLength, num bufferLength) {
     offset = offset.toInt();
-    int start = _findFirstItemBefore(
-        -offset - bufferLength,
+    int start = _findFirstItemBefore(-offset - bufferLength,
         _lastVisibleInterval != null ? _lastVisibleInterval.start : 0);
-    int end = _findFirstItemAfter(
-        -offset + viewLength + bufferLength,
+    int end = _findFirstItemAfter(-offset + viewLength + bufferLength,
         _lastVisibleInterval != null ? _lastVisibleInterval.end : 0);
     _lastVisibleInterval = new Interval(start, Math.max(start, end));
     _lastOffset = offset;
@@ -896,21 +907,25 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
 }
 
 class VariableSizeListView<D> extends GenericListView<D> {
-
-  VariableSizeListView(List<D> data,
-                       VariableSizeViewFactory<D> itemViewFactory,
-                       bool scrollable,
-                       bool vertical,
-                       ObservableValue<D> selectedItem,
-                       [bool snapToItems = false,
-                        bool paginate = false,
-                        bool removeClippedViews = false,
-                        bool showScrollbar = false,
-                        PageState pages = null])
-      : super(new VariableSizeListViewLayout(itemViewFactory, data, vertical,
-                                             paginate),
-              data, scrollable, vertical, selectedItem, snapToItems,
-              paginate, removeClippedViews, showScrollbar, pages);
+  VariableSizeListView(List<D> data, VariableSizeViewFactory<D> itemViewFactory,
+      bool scrollable, bool vertical, ObservableValue<D> selectedItem,
+      [bool snapToItems = false,
+      bool paginate = false,
+      bool removeClippedViews = false,
+      bool showScrollbar = false,
+      PageState pages = null])
+      : super(
+            new VariableSizeListViewLayout(
+                itemViewFactory, data, vertical, paginate),
+            data,
+            scrollable,
+            vertical,
+            selectedItem,
+            snapToItems,
+            paginate,
+            removeClippedViews,
+            showScrollbar,
+            pages);
 }
 
 /** A back button that is equivalent to clicking "back" in the browser. */
@@ -923,7 +938,6 @@ class BackButton extends View {
     addOnClick((e) => window.history.back());
   }
 }
-
 
 // TODO(terry): Maybe should be part of ButtonView class in appstack/view?
 /** OS button. */
@@ -942,7 +956,6 @@ class PushButtonView extends View {
     addOnClick(_clickHandler);
   }
 }
-
 
 // TODO(terry): Add a drop shadow around edge and corners need to be rounded.
 //              Need to support conveyor for contents of dialog so it's not
@@ -968,8 +981,8 @@ class DialogView extends View {
         </div>
       </div>''');
 
-    _done = new PushButtonView('Done', 'done-button',
-        EventBatch.wrap((e) => onDone()));
+    _done = new PushButtonView(
+        'Done', 'done-button', EventBatch.wrap((e) => onDone()));
     final titleArea = node.querySelector('.dialog-title-area');
     titleArea.nodes.add(_done.node);
 
@@ -980,5 +993,5 @@ class DialogView extends View {
   }
 
   /** Override to handle dialog done. */
-  void onDone() { }
+  void onDone() {}
 }

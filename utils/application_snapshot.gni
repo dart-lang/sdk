@@ -4,7 +4,13 @@
 
 import("../build/compiled_action.gni")
 
-_dart_root = rebase_path("..")
+_dart_root = get_path_info("..", "abspath")
+
+declare_args() {
+  # Default to building app-jit snapshots. The simulator and cross builds
+  # override this to script snapshots to cut down on build time.
+  dart_snapshot_kind = "app-jit"
+}
 
 template("application_snapshot") {
   assert(defined(invoker.main_dart), "Must specify 'main_dart'")
@@ -24,7 +30,7 @@ template("application_snapshot") {
     extra_inputs += invoker.inputs
   }
   compiled_action(target_name) {
-    tool = get_path_info("$_dart_root/runtime/bin:dart", "abspath")
+    tool = "$_dart_root/runtime/bin:dart"
     deps = extra_deps + [ "$_dart_root/pkg:pkg_files_stamp" ]
 
     inputs = extra_inputs + [
@@ -41,11 +47,18 @@ template("application_snapshot") {
     abs_output = rebase_path(output)
     main_file = rebase_path(main_dart)
 
-    args = [
-             "--packages=$dot_packages",
-             "--snapshot=$abs_output",
-             "--snapshot-kind=app-jit",
-             main_file,
-           ] + training_args
+    args = [ "--packages=$dot_packages",
+             "--snapshot=$abs_output" ]
+
+    if (dart_snapshot_kind == "script") {
+      args += ["--snapshot-kind=script",
+               main_file ]
+      assert(training_args != "", "Ignoring unused argument")
+    } else if (dart_snapshot_kind == "app-jit") {
+      args += ["--snapshot-kind=app-jit",
+               main_file ] + training_args
+    } else {
+      assert(false, "Bad dart_snapshot_kind: $dart_snapshot_kind")
+    }
   }
 }

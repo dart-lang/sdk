@@ -4,6 +4,9 @@
 
 // Test static members.
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -19,7 +22,7 @@ class Foo {
 
 void main() {
   expect('Variable(s(hello) in s(Foo), static)',
-         reflectClass(Foo).declarations[#hello]);
+      reflectClass(Foo).declarations[#hello]);
   var reflectee = reflectClass(Foo).getField(#hello).reflectee;
   Expect.stringEquals('a, c', reflectee.keys.join(', '));
   // Call the lazy getter twice as different things probably happen in the

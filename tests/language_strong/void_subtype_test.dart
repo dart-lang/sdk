@@ -14,7 +14,9 @@ var _str = new StringBuffer();
   return t;
 }
 
-void writeV() { _str.write("V"); }
+void writeV() {
+  _str.write("V");
+}
 
 main() {
   {

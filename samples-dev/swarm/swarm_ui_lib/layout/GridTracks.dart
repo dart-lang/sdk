@@ -24,7 +24,6 @@ class GridTrackList {
   GridTrackList(this.tracks, this.lineNames) {}
 }
 
-
 /** Represents a row or a column. */
 class GridTrack {
   /**
@@ -62,7 +61,6 @@ class GridTrack {
   bool get isFractional => minSizing.isFraction || maxSizing.isFraction;
 }
 
-
 /** Represents the grid-row-align or grid-column-align. */
 class GridItemAlignment {
   // TODO(jmesserly): should this be stored as an int for performance?
@@ -70,14 +68,15 @@ class GridItemAlignment {
 
   // 'start' | 'end' | 'center' | 'stretch'
   GridItemAlignment.fromString(String value)
-    : this.value = (value == null) ? 'stretch' : value {
-
-      switch (this.value) {
-      case 'start': case 'end': case 'center': case 'stretch':
+      : this.value = (value == null) ? 'stretch' : value {
+    switch (this.value) {
+      case 'start':
+      case 'end':
+      case 'center':
+      case 'stretch':
         break;
       default:
-        throw new UnsupportedError(
-            'invalid row/column alignment "$value"');
+        throw new UnsupportedError('invalid row/column alignment "$value"');
     }
   }
 
@@ -98,7 +97,6 @@ class GridItemAlignment {
   }
 }
 
-
 /**
  * Represents a grid-template. Used in conjunction with a grid-cell to
  * place cells in the grid, without needing to specify the exact row/column.
@@ -108,8 +106,8 @@ class GridTemplate {
   final int _numRows;
 
   GridTemplate(List<String> rows)
-    : _rects = new Map<int, _GridTemplateRect>(),
-      _numRows = rows.length {
+      : _rects = new Map<int, _GridTemplateRect>(),
+        _numRows = rows.length {
     _buildRects(rows);
   }
 
@@ -145,7 +143,7 @@ class GridTemplate {
     final rect = _rects[cell.codeUnitAt(0)];
     if (rect == null) {
       throw new UnsupportedError(
-        'grid-cell "$cell" not found in parent\'s grid-template');
+          'grid-cell "$cell" not found in parent\'s grid-template');
     }
     return rect;
   }
@@ -155,10 +153,12 @@ class GridTemplate {
 class _GridTemplateRect {
   int row, column, rowSpan, columnSpan, _count, _char;
   _GridTemplateRect(this._char, this.row, this.column)
-    : rowSpan = 1, columnSpan = 1, _count = 1 {}
+      : rowSpan = 1,
+        columnSpan = 1,
+        _count = 1 {}
 
   void add(int r, int c) {
-    assert (r >= row && c >= column);
+    assert(r >= row && c >= column);
     _count++;
     rowSpan = Math.max(rowSpan, r - row + 1);
     columnSpan = Math.max(columnSpan, c - column + 1);
@@ -175,7 +175,6 @@ class _GridTemplateRect {
     }
   }
 }
-
 
 /**
  * Used to return a row/column and span during parsing of grid-row and

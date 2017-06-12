@@ -17,7 +17,7 @@ test(MirrorSystem mirrors) {
   LibraryMirror core = mirrors.findLibrary(#dart.core);
 
   Expect.setEquals([a, b, core],
-                   prefixed.libraryDependencies.map((dep) => dep.targetLibrary));
+      prefixed.libraryDependencies.map((dep) => dep.targetLibrary));
 
   Expect.stringEquals(
       'import dart.core\n'

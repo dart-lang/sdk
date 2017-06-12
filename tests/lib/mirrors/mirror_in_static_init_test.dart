@@ -8,6 +8,7 @@
 
 library mirror_in_static_init_test;
 
+@MirrorsUsed(targets: "mirror_in_static_init_test")
 import 'dart:mirrors';
 
 // This class is only loaded during initialization of `staticField`.

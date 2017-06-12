@@ -29,7 +29,7 @@ class S<T> {
   static final bool checkedMode = computeCheckedMode();
   static bool computeCheckedMode() {
     try {
-      int x = "foo";
+      int x = "foo" as dynamic;
     } on Error {
       return true;
     }
@@ -37,8 +37,7 @@ class S<T> {
   }
 }
 
-class M {
-}
+class M {}
 
 class C0<T> = S with M;
 class C1<T> = S<T> with M;
@@ -48,32 +47,32 @@ class C3 = S<String> with M;
 main() {
   var c0 = new C0();
   Expect.isTrue(c0 is S);
-  Expect.isTrue(c0 is S<int>);
-  Expect.isTrue(c0 is S<String>);
+  Expect.isFalse(c0 is S<int>);
+  Expect.isFalse(c0 is S<String>);
   Expect.isTrue(c0.matches(c0));
   Expect.isTrue(c0.matches(42));
   Expect.isTrue(c0.matches("hello"));
 
   var c0_int = new C0<int>();
   Expect.isTrue(c0_int is S);
-  Expect.isTrue(c0_int is S<int>);
-  Expect.isTrue(c0_int is S<String>);
+  Expect.isFalse(c0_int is S<int>);
+  Expect.isFalse(c0_int is S<String>);
   Expect.isTrue(c0_int.matches(c0));
   Expect.isTrue(c0_int.matches(42));
   Expect.isTrue(c0_int.matches("hello"));
 
   var c0_String = new C0<String>();
   Expect.isTrue(c0_String is S);
-  Expect.isTrue(c0_String is S<int>);
-  Expect.isTrue(c0_String is S<String>);
+  Expect.isFalse(c0_String is S<int>);
+  Expect.isFalse(c0_String is S<String>);
   Expect.isTrue(c0_String.matches(c0));
   Expect.isTrue(c0_String.matches(42));
   Expect.isTrue(c0_String.matches("hello"));
 
   var c1 = new C1();
   Expect.isTrue(c1 is S);
-  Expect.isTrue(c1 is S<int>);
-  Expect.isTrue(c1 is S<String>);
+  Expect.isFalse(c1 is S<int>);
+  Expect.isFalse(c1 is S<String>);
   Expect.isTrue(c1.matches(c1));
   Expect.isTrue(c1.matches(42));
   Expect.isTrue(c1.matches("hello"));

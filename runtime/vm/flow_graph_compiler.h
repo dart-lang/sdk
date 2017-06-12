@@ -8,8 +8,8 @@
 #include "vm/allocation.h"
 #include "vm/assembler.h"
 #include "vm/code_descriptors.h"
-#include "vm/code_generator.h"
 #include "vm/intermediate_language.h"
+#include "vm/runtime_entry.h"
 
 namespace dart {
 
@@ -233,22 +233,6 @@ class SlowPathCode : public ZoneAllocated {
 };
 
 
-struct CidRangeTarget {
-  intptr_t cid_start;
-  intptr_t cid_end;
-  Function* target;
-  intptr_t count;
-  CidRangeTarget(intptr_t cid_start_arg,
-                 intptr_t cid_end_arg,
-                 Function* target_arg,
-                 intptr_t count_arg)
-      : cid_start(cid_start_arg),
-        cid_end(cid_end_arg),
-        target(target_arg),
-        count(count_arg) {}
-};
-
-
 class FlowGraphCompiler : public ValueObject {
  private:
   class BlockInfo : public ZoneAllocated {
@@ -406,8 +390,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateStaticCall(intptr_t deopt_id,
                           TokenPosition token_pos,
                           const Function& function,
-                          intptr_t argument_count,
-                          const Array& argument_names,
+                          ArgumentsInfo args_info,
                           LocationSummary* locs,
                           const ICData& ic_data);
 
@@ -434,17 +417,19 @@ class FlowGraphCompiler : public ValueObject {
                         TokenPosition token_pos,
                         LocationSummary* locs);
 
-  void EmitPolymorphicInstanceCall(const ICData& ic_data,
-                                   intptr_t argument_count,
-                                   const Array& argument_names,
-                                   intptr_t deopt_id,
-                                   TokenPosition token_pos,
-                                   LocationSummary* locs,
-                                   bool complete,
-                                   intptr_t total_call_count);
+  void EmitPolymorphicInstanceCall(
+      const CallTargets& targets,
+      const InstanceCallInstr& original_instruction,
+      ArgumentsInfo args_info,
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      LocationSummary* locs,
+      bool complete,
+      intptr_t total_call_count);
 
   // Pass a value for try-index where block is not available (e.g. slow path).
-  void EmitMegamorphicInstanceCall(const ICData& ic_data,
+  void EmitMegamorphicInstanceCall(const String& function_name,
+                                   const Array& arguments_descriptor,
                                    intptr_t argument_count,
                                    intptr_t deopt_id,
                                    TokenPosition token_pos,
@@ -458,9 +443,9 @@ class FlowGraphCompiler : public ValueObject {
                                   TokenPosition token_pos,
                                   LocationSummary* locs);
 
-  void EmitTestAndCall(const ICData& ic_data,
-                       intptr_t arg_count,
-                       const Array& arg_names,
+  void EmitTestAndCall(const CallTargets& targets,
+                       const String& function_name,
+                       ArgumentsInfo args_info,
                        Label* failed,
                        Label* match_found,
                        intptr_t deopt_id,
@@ -540,6 +525,11 @@ class FlowGraphCompiler : public ValueObject {
 
   // If the cid does not fit in 16 bits, then this will cause a bailout.
   uint16_t ToEmbeddableCid(intptr_t cid, Instruction* instruction);
+
+  // In optimized code, variables at the catch block entry reside at the top
+  // of the allocatable register range.
+  // Must be in sync with FlowGraphAllocator::ProcessInitialDefinition.
+  intptr_t CatchEntryRegForVariable(const LocalVariable& var);
 #endif  // defined(TARGET_ARCH_DBC)
 
   CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id);
@@ -580,11 +570,6 @@ class FlowGraphCompiler : public ValueObject {
 
   bool may_reoptimize() const { return may_reoptimize_; }
 
-  // Returns 'sorted' array in decreasing count order.
-  static void SortICDataByCount(const ICData& ic_data,
-                                GrowableArray<CidRangeTarget>* sorted,
-                                bool drop_smi);
-
   // Use in unoptimized compilation to preserve/reuse ICData.
   const ICData* GetOrAddInstanceCallICData(intptr_t deopt_id,
                                            const String& target_name,
@@ -596,8 +581,10 @@ class FlowGraphCompiler : public ValueObject {
                                          const Array& arguments_descriptor,
                                          intptr_t num_args_tested);
 
-  static const ICData& TrySpecializeICDataByReceiverCid(const ICData& ic_data,
-                                                        intptr_t cid);
+  static const CallTargets* ResolveCallTargetsForReceiverCid(
+      intptr_t cid,
+      const String& selector,
+      const Array& args_desc_array);
 
   const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data() const {
     return *deopt_id_to_ic_data_;
@@ -615,6 +602,11 @@ class FlowGraphCompiler : public ValueObject {
 
   void BeginCodeSourceRange();
   void EndCodeSourceRange(TokenPosition token_pos);
+
+  static bool LookupMethodFor(int class_id,
+                              const String& name,
+                              const ArgumentsDescriptor& args_desc,
+                              Function* fn_return);
 
 #if defined(TARGET_ARCH_DBC)
   enum CallResult {
@@ -661,9 +653,21 @@ class FlowGraphCompiler : public ValueObject {
 
   // Helper for TestAndCall that calculates a good bias that
   // allows more compact instructions to be emitted.
-  intptr_t ComputeGoodBiasForCidComparison(
-      const GrowableArray<CidRangeTarget>& sorted,
-      intptr_t max_immediate);
+  intptr_t ComputeGoodBiasForCidComparison(const CallTargets& sorted,
+                                           intptr_t max_immediate);
+
+  // More helpers for EmitTestAndCall.
+  void EmitTestAndCallLoadReceiver(intptr_t argument_count,
+                                   const Array& arguments_descriptor);
+
+  void EmitTestAndCallSmiBranch(Label* label, bool jump_if_smi);
+
+  void EmitTestAndCallLoadCid();
+
+  // Returns new class-id bias.
+  int EmitTestAndCallCheckCid(Label* next_label,
+                              const CidRange& range,
+                              int bias);
 
 // DBC handles type tests differently from all other architectures due
 // to its interpreted nature.
@@ -705,15 +709,17 @@ class FlowGraphCompiler : public ValueObject {
   enum TypeTestStubKind {
     kTestTypeOneArg,
     kTestTypeTwoArgs,
-    kTestTypeThreeArgs,
+    kTestTypeFourArgs,
   };
 
-  RawSubtypeTestCache* GenerateCallSubtypeTestStub(TypeTestStubKind test_kind,
-                                                   Register instance_reg,
-                                                   Register type_arguments_reg,
-                                                   Register temp_reg,
-                                                   Label* is_instance_lbl,
-                                                   Label* is_not_instance_lbl);
+  RawSubtypeTestCache* GenerateCallSubtypeTestStub(
+      TypeTestStubKind test_kind,
+      Register instance_reg,
+      Register instantiator_type_arguments_reg,
+      Register function_type_arguments_reg,
+      Register temp_reg,
+      Label* is_instance_lbl,
+      Label* is_not_instance_lbl);
 
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
 

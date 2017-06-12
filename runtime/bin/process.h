@@ -146,6 +146,9 @@ class Process {
                                              intptr_t* pid);
   static Dart_Handle SetProcessIdNativeField(Dart_Handle process, intptr_t pid);
 
+  static int64_t CurrentRSS();
+  static int64_t MaxRSS();
+
  private:
   static int global_exit_code_;
   static Mutex* global_exit_code_mutex_;

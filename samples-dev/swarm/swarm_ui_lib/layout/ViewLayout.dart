@@ -21,7 +21,6 @@ abstract class Positionable {
   void doLayout();
 }
 
-
 /**
  * Caches the layout parameters that were specified in CSS during a layout
  * computation. These values are immutable during a layout.
@@ -128,8 +127,7 @@ class ViewLayout {
   int get borderHeight => borderTopWidth + borderBottomWidth;
 
   /** Implements the custom layout computation. */
-  void measureLayout(Future<Size> size, Completer<bool> changed) {
-  }
+  void measureLayout(Future<Size> size, Completer<bool> changed) {}
 
   /**
    * Positions the view within its parent container.
@@ -182,7 +180,7 @@ class ViewLayout {
   }
 
   int measureContent(ViewLayout parent, Dimension dimension,
-                     [ContentSizeMode mode = null]) {
+      [ContentSizeMode mode = null]) {
     if (dimension == Dimension.WIDTH) {
       return measureWidth(parent, mode);
     } else if (dimension == Dimension.HEIGHT) {
@@ -193,11 +191,9 @@ class ViewLayout {
   int measureWidth(ViewLayout parent, ContentSizeMode mode) {
     final style = layoutParams.style;
     if (mode == ContentSizeMode.MIN) {
-      return _styleToPixels(
-          style.minWidth, currentWidth, parent.currentWidth);
+      return _styleToPixels(style.minWidth, currentWidth, parent.currentWidth);
     } else if (mode == ContentSizeMode.MAX) {
-      return _styleToPixels(
-          style.maxWidth, currentWidth, parent.currentWidth);
+      return _styleToPixels(style.maxWidth, currentWidth, parent.currentWidth);
     }
   }
 

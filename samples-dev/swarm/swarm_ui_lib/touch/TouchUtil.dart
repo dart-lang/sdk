@@ -30,10 +30,9 @@ EventListener mouseToTouchCallback(EventListener callback) {
 }
 
 /** Helper method to attach event listeners to a [node]. */
-void _addEventListeners(Element node,
-    EventListener onStart, EventListener onMove, EventListener onEnd,
-    EventListener onCancel, [bool capture = false]) {
-
+void _addEventListeners(Element node, EventListener onStart,
+    EventListener onMove, EventListener onEnd, EventListener onCancel,
+    [bool capture = false]) {
   Function removeListeners;
 
   onEndWrapper(e) {
@@ -65,14 +64,18 @@ void _addEventListeners(Element node,
     };
 
     Element.touchStartEvent.forTarget(node, useCapture: capture).listen((e) {
-      touchMoveSub = Element.touchMoveEvent.forTarget(
-          document, useCapture: capture).listen(onMove);
-      touchEndSub = Element.touchEndEvent.forTarget(
-          document, useCapture: capture).listen(onEndWrapper);
-      touchLeaveSub = Element.touchLeaveEvent.forTarget(
-          document, useCapture: capture).listen(onLeaveWrapper);
-      touchCancelSub = Element.touchCancelEvent.forTarget(
-          document, useCapture: capture).listen(onCancelWrapper);
+      touchMoveSub = Element.touchMoveEvent
+          .forTarget(document, useCapture: capture)
+          .listen(onMove);
+      touchEndSub = Element.touchEndEvent
+          .forTarget(document, useCapture: capture)
+          .listen(onEndWrapper);
+      touchLeaveSub = Element.touchLeaveEvent
+          .forTarget(document, useCapture: capture)
+          .listen(onLeaveWrapper);
+      touchCancelSub = Element.touchCancelEvent
+          .forTarget(document, useCapture: capture)
+          .listen(onCancelWrapper);
       return onStart(e);
     });
   } else {
@@ -92,12 +95,15 @@ void _addEventListeners(Element node,
     };
 
     Element.mouseDownEvent.forTarget(node, useCapture: capture).listen((e) {
-      mouseMoveSub = Element.mouseMoveEvent.forTarget(
-          document, useCapture: capture).listen(onMove);
-      mouseUpSub = Element.mouseUpEvent.forTarget(
-          document, useCapture: capture).listen(onEndWrapper);
-      touchCancelSub = Element.touchCancelEvent.forTarget(
-          document, useCapture: capture).listen(onCancelWrapper);
+      mouseMoveSub = Element.mouseMoveEvent
+          .forTarget(document, useCapture: capture)
+          .listen(onMove);
+      mouseUpSub = Element.mouseUpEvent
+          .forTarget(document, useCapture: capture)
+          .listen(onEndWrapper);
+      touchCancelSub = Element.touchCancelEvent
+          .forTarget(document, useCapture: capture)
+          .listen(onCancelWrapper);
       return onStart(e);
     });
   }
@@ -182,20 +188,55 @@ class MockTouch implements Touch {
 
   int get screenX => wrapped.screen.x;
 
-  int get screenY {return wrapped.screen.y; }
+  int get screenY {
+    return wrapped.screen.y;
+  }
 
   EventTarget get target => wrapped.target;
 
-  double get force { throw new UnimplementedError(); }
-  Point get page { throw new UnimplementedError(); }
-  int get radiusX { throw new UnimplementedError(); }
-  int get radiusY { throw new UnimplementedError(); }
-  num get rotationAngle { throw new UnimplementedError(); }
-  Point get screen { throw new UnimplementedError(); }
-  num get webkitForce { throw new UnimplementedError(); }
-  int get webkitRadiusX { throw new UnimplementedError(); }
-  int get webkitRadiusY { throw new UnimplementedError(); }
-  num get webkitRotationAngle { throw new UnimplementedError(); }
+  double get force {
+    throw new UnimplementedError();
+  }
+
+  Point get page {
+    throw new UnimplementedError();
+  }
+
+  int get radiusX {
+    throw new UnimplementedError();
+  }
+
+  int get radiusY {
+    throw new UnimplementedError();
+  }
+
+  String get region {
+    throw new UnimplementedError();
+  }
+
+  num get rotationAngle {
+    throw new UnimplementedError();
+  }
+
+  Point get screen {
+    throw new UnimplementedError();
+  }
+
+  num get webkitForce {
+    throw new UnimplementedError();
+  }
+
+  int get webkitRadiusX {
+    throw new UnimplementedError();
+  }
+
+  int get webkitRadiusY {
+    throw new UnimplementedError();
+  }
+
+  num get webkitRotationAngle {
+    throw new UnimplementedError();
+  }
 }
 
 class MockTouchEvent implements TouchEvent {
@@ -205,14 +246,15 @@ class MockTouchEvent implements TouchEvent {
   final List<Touch> targetTouches;
   final List<Touch> changedTouches;
   MockTouchEvent(MouseEvent this.wrapped, List<Touch> this.touches,
-      List<Touch> this.targetTouches,
-      List<Touch> this.changedTouches) {}
+      List<Touch> this.targetTouches, List<Touch> this.changedTouches) {}
 
   bool get bubbles => wrapped.bubbles;
 
   bool get cancelBubble => wrapped.cancelBubble;
 
-  void set cancelBubble(bool value) { wrapped.cancelBubble = value; }
+  void set cancelBubble(bool value) {
+    wrapped.cancelBubble = value;
+  }
 
   bool get cancelable => wrapped.cancelable;
 
@@ -222,21 +264,30 @@ class MockTouchEvent implements TouchEvent {
 
   int get eventPhase => wrapped.eventPhase;
 
-  void set returnValue(bool value) { wrapped.returnValue = value; }
+  void set returnValue(bool value) {
+    wrapped.returnValue = value;
+  }
 
   bool get returnValue => wrapped.returnValue;
 
   EventTarget get target => wrapped.target;
 
-  int get timeStamp => wrapped.timeStamp;
+  /*At different times, int, double, and String*/
+  get timeStamp => wrapped.timeStamp;
 
   String get type => wrapped.type;
 
-  void preventDefault() { wrapped.preventDefault(); }
+  void preventDefault() {
+    wrapped.preventDefault();
+  }
 
-  void stopImmediatePropagation() { wrapped.stopImmediatePropagation(); }
+  void stopImmediatePropagation() {
+    wrapped.stopImmediatePropagation();
+  }
 
-  void stopPropagation() { wrapped.stopPropagation(); }
+  void stopPropagation() {
+    wrapped.stopPropagation();
+  }
 
   int get charCode => wrapped.charCode;
 
@@ -265,11 +316,47 @@ class MockTouchEvent implements TouchEvent {
 
   bool get shiftKey => wrapped.shiftKey;
 
-  DataTransfer get clipboardData { throw new UnimplementedError(); }
-  Point get layer { throw new UnimplementedError(); }
-  Element get matchingTarget { throw new UnimplementedError(); }
-  Point get page { throw new UnimplementedError(); }
-  List get path { throw new UnimplementedError(); }
-  Point get screen { throw new UnimplementedError(); }
-  /*InputDevice*/ get sourceDevice { throw new UnimplementedError(); }
+  DataTransfer get clipboardData {
+    throw new UnimplementedError();
+  }
+
+  List<EventTarget> deepPath() {
+    throw new UnimplementedError();
+  }
+
+  bool get isTrusted {
+    throw new UnimplementedError();
+  }
+
+  Point get layer {
+    throw new UnimplementedError();
+  }
+
+  Element get matchingTarget {
+    throw new UnimplementedError();
+  }
+
+  Point get page {
+    throw new UnimplementedError();
+  }
+
+  List get path {
+    throw new UnimplementedError();
+  }
+
+  bool get scoped {
+    throw new UnimplementedError();
+  }
+
+  Point get screen {
+    throw new UnimplementedError();
+  }
+
+  /*InputDeviceCapabilities*/ get sourceCapabilities {
+    throw new UnimplementedError();
+  }
+
+  /*InputDevice*/ get sourceDevice {
+    throw new UnimplementedError();
+  }
 }

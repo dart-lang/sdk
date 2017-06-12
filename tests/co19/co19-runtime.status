@@ -13,7 +13,7 @@ LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail  # Issue 28269
 [$runtime == vm && $compiler == none && $system == fuchsia]
 *: Skip  # Tests not included in the image.
 
-[ $runtime == vm || $runtime == dart_precompiled ]
+[ $runtime == vm || $runtime == flutter || $runtime == dart_precompiled ]
 # Failures ok in tests below. VM moves super initializer to end of list.
 Language/Classes/Constructors/Generative_Constructors/execution_t03: Fail, OK
 Language/Expressions/Instance_Creation/New/execution_t04: Fail, OK
@@ -25,9 +25,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
-Language/Statements/Switch/syntax_t02: fail # Dart issue 12908
-Language/Statements/Labels/syntax_t03: fail # Dart issue 2238
-Language/Libraries_and_Scripts/Exports/reexport_t01: fail # Dart issue 12916
 Language/Libraries_and_Scripts/Exports/reexport_t02: fail # Dart issue 12916
 
 Language/Statements/Assert/execution_t02: skip # co19 issue 734
@@ -47,13 +44,10 @@ LibTest/isolate/Isolate/spawn_A04_t03: Skip # Flaky, Issue 15974
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 
-[ $runtime == vm || $runtime == dart_precompiled ]
+[ $runtime == vm || $runtime == flutter || $runtime == dart_precompiled ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
 # With asynchronous loading, the load errors in these tests are no longer recognized as compile errors:
-Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
-Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
-Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 
 [ ($runtime == vm || $runtime == dart_precompiled ) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
@@ -82,7 +76,7 @@ LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
 
-[ $runtime == vm || $runtime == dart_precompiled ]
+[ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.
 LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
@@ -104,7 +98,18 @@ Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issu
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 Language/Types/Interface_Types/subtype_t27: Skip  # Issue 21174.
 
-[ ($runtime == vm || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
+#
+# flutter runs with --error-on-bad-type so the following two tests end up
+# with errors and pass
+#
+[ $runtime == flutter ]
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: Pass
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: Pass
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: Pass
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: Pass
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: Pass
+
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) && $compiler != dartk && $compiler != dartkp ]
 # co19 update Sep 29, 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
 Language/Expressions/Identifier_Reference/built_in_identifier_t35: MissingCompileTimeError # Issue 25732
 Language/Expressions/Identifier_Reference/built_in_identifier_t36: MissingCompileTimeError # Issue 25732
@@ -144,11 +149,18 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompile
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
 
+Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
+Language/Libraries_and_Scripts/Exports/reexport_t01: fail # Dart issue 12916
+Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
+Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
+Language/Statements/Labels/syntax_t03: fail # Dart issue 2238
+Language/Statements/Switch/syntax_t02: fail # Dart issue 12908
+
 [ $runtime == dart_precompiled || $mode == product ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
 
-[ $compiler == precompiler || $compiler == app_jit || $mode == product ]
+[ $compiler == precompiler || $compiler == app_jit || $mode == product || $runtime == flutter]
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: Skip # Eager loading
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: Skip # Eager loading
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Skip # Eager loading
@@ -182,7 +194,7 @@ Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
 [ $compiler == precompiler && $runtime == dart_precompiled && $arch == simarm ]
 LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError # Issue #26675
 
-[ $hot_reload || $hot_reload_rollback ]
+[ $hot_reload || $hot_reload_rollback || $runtime == flutter ]
 Language/Expressions/Assignment/prefix_object_t02: Skip # Requires deferred libraries
 Language/Expressions/Constants/constant_constructor_t03: Skip # Requires deferred libraries
 Language/Expressions/Constants/identifier_denotes_a_constant_t06: Skip # Requires deferred libraries
@@ -226,3 +238,157 @@ LibTest/isolate/Isolate/spawn_A04_t05: Pass, Slow
 
 [ $runtime == vm && $mode == release && $system == linux && $arch == ia32]
 service/dev_fs_spawn_test: Pass, Fail # Issue 28411
+
+[ $runtime == flutter ]
+LibTest/isolate/Isolate/spawnUri* : Skip # spawnUri is not supported by flutter
+LibTest/collection/SplayTreeSet/SplayTreeSet.from_A02_t04: Pass, Timeout
+LibTest/collection/LinkedList/addFirst_A01_t01: Pass, Timeout # Flutter Issue 9109
+LibTest/typed_data/Int32List/buffer_A01_t02: Pass, Timeout # Flutter Issue 9109
+LibTest/collection/DoubleLinkedQueueEntry/append_A01_t01: Pass, Timeout # Flutter Issue 9109
+
+LibTest/async/Future/doWhile_A05_t01: Pass, RuntimeError # Flutter Issue 9109
+LibTest/async/Future/forEach_A04_t02: Pass, RuntimeError # Flutter Issue 9109
+LibTest/async/StreamController/StreamController.broadcast_A04_t01: Pass, RuntimeError # Flutter Issue 9109
+LibTest/async/Stream/timeout_A01_t01: Pass, RuntimeError # Flutter Issue 9109
+LibTest/async/Stream/timeout_A03_t01: Pass, RuntimeError # Flutter Issue 9109
+LibTest/async/Stream/timeout_A04_t01: Pass, RuntimeError # Flutter Issue 9109
+LibTest/isolate/ReceivePort/sendPort_A01_t01: Pass, Timeout # Flutter Issue 9109
+
+#
+# flutter uses --error_on_bad_type, --error_on_bad_override and
+# --await_is_keyword so the following tests fail with a Compilation
+# Error which is fine.
+#
+Language/Classes/Abstract_Instance_Members/override_more_required_parameters_t01: CompileTimeError
+Language/Classes/Abstract_Instance_Members/override_no_named_parameters_t01: CompileTimeError
+Language/Classes/Abstract_Instance_Members/override_not_a_subtype_t01: CompileTimeError
+Language/Classes/Abstract_Instance_Members/override_not_a_subtype_t03: CompileTimeError
+Language/Classes/Constructors/Factories/function_type_t01: CompileTimeError
+Language/Classes/Constructors/Factories/function_type_t02: CompileTimeError
+Language/Classes/Constructors/Factories/redirecting_constructor_call_t02: CompileTimeError
+Language/Classes/Getters/override_t01: CompileTimeError
+Language/Classes/Getters/override_t02: CompileTimeError
+Language/Classes/Getters/override_t03: CompileTimeError
+Language/Classes/Getters/type_object_t02: CompileTimeError
+Language/Classes/Instance_Methods/override_fewer_parameters_t01: CompileTimeError
+Language/Classes/Instance_Methods/override_fewer_parameters_t02: CompileTimeError
+Language/Classes/Instance_Methods/override_more_parameters_t01: CompileTimeError
+Language/Classes/Instance_Methods/override_more_parameters_t02: CompileTimeError
+Language/Classes/Instance_Methods/override_named_parameters_t01: CompileTimeError
+Language/Classes/Instance_Methods/override_named_parameters_t02: CompileTimeError
+Language/Classes/Instance_Methods/override_named_parameters_t05: CompileTimeError
+Language/Classes/Instance_Methods/override_subtype_t01: CompileTimeError
+Language/Classes/Instance_Methods/override_subtype_t02: CompileTimeError
+Language/Classes/Instance_Methods/override_subtype_t03: CompileTimeError
+Language/Classes/Instance_Methods/override_subtype_t04: CompileTimeError
+Language/Classes/Setters/override_t01: CompileTimeError
+Language/Classes/Setters/override_t02: CompileTimeError
+Language/Classes/Setters/type_object_t02: CompileTimeError
+Language/Errors_and_Warnings/static_warning_t01: CompileTimeError
+Language/Expressions/Assignment/expression_assignment_failed_t06: CompileTimeError
+Language/Expressions/Assignment/super_assignment_failed_t05: CompileTimeError
+Language/Expressions/Instance_Creation/malformed_or_malbounded_t01: CompileTimeError
+Language/Expressions/Instance_Creation/malformed_or_malbounded_t03: CompileTimeError
+Language/Expressions/Instance_Creation/malformed_or_malbounded_t07: CompileTimeError
+Language/Expressions/Instance_Creation/New/evaluation_t03: CompileTimeError
+Language/Expressions/Instance_Creation/New/evaluation_t16: CompileTimeError
+Language/Expressions/Instance_Creation/New/evaluation_t17: CompileTimeError
+Language/Expressions/Instance_Creation/New/evaluation_t18: CompileTimeError
+Language/Expressions/Instance_Creation/New/generic_type_t01: CompileTimeError
+Language/Expressions/Instance_Creation/New/generic_type_t02: CompileTimeError
+Language/Expressions/Instance_Creation/New/generic_type_t03: CompileTimeError
+Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t02: CompileTimeError
+Language/Expressions/Instance_Creation/New/type_argument_t01: CompileTimeError
+Language/Expressions/Instance_Creation/New/type_t01: CompileTimeError
+Language/Expressions/Instance_Creation/New/type_t02: CompileTimeError
+Language/Expressions/Instance_Creation/New/type_t03: CompileTimeError
+Language/Expressions/Instance_Creation/New/type_t05: CompileTimeError
+Language/Expressions/Null/instance_of_class_null_t01: CompileTimeError
+Language/Expressions/Type_Cast/evaluation_t04: CompileTimeError
+Language/Expressions/Type_Cast/evaluation_t05: CompileTimeError
+Language/Expressions/Type_Cast/evaluation_t06: CompileTimeError
+Language/Expressions/Type_Cast/evaluation_t07: CompileTimeError
+Language/Expressions/Type_Cast/evaluation_t08: CompileTimeError
+Language/Expressions/Type_Cast/evaluation_t09: CompileTimeError
+Language/Expressions/Type_Test/evaluation_t03: CompileTimeError
+Language/Expressions/Type_Test/evaluation_t04: CompileTimeError
+Language/Expressions/Type_Test/evaluation_t05: CompileTimeError
+Language/Expressions/Type_Test/evaluation_t06: CompileTimeError
+Language/Expressions/Type_Test/evaluation_t07: CompileTimeError
+Language/Expressions/Type_Test/evaluation_t08: CompileTimeError
+Language/Expressions/Type_Test/evaluation_t09: CompileTimeError
+Language/Generics/malformed_t02: CompileTimeError
+Language/Generics/scope_t06: CompileTimeError
+Language/Generics/upper_bound_t01: CompileTimeError
+Language/Libraries_and_Scripts/Imports/namespace_changes_t19: CompileTimeError
+Language/Libraries_and_Scripts/Imports/same_name_t01: CompileTimeError
+Language/Libraries_and_Scripts/Imports/same_name_t05: CompileTimeError
+Language/Libraries_and_Scripts/Imports/same_name_t06: CompileTimeError
+Language/Libraries_and_Scripts/Imports/same_name_t08: CompileTimeError
+Language/Libraries_and_Scripts/Imports/same_name_t11: CompileTimeError
+Language/Libraries_and_Scripts/Imports/same_name_t16: CompileTimeError
+Language/Libraries_and_Scripts/Imports/same_name_t18: CompileTimeError
+Language/Libraries_and_Scripts/Imports/same_name_t19: CompileTimeError
+Language/Metadata/before_class_t01: CompileTimeError
+Language/Metadata/before_ctor_t01: CompileTimeError
+Language/Metadata/before_ctor_t02: CompileTimeError
+Language/Metadata/before_export_t01: CompileTimeError
+Language/Metadata/before_factory_t01: CompileTimeError
+Language/Metadata/before_function_t01: CompileTimeError
+Language/Metadata/before_function_t02: CompileTimeError
+Language/Metadata/before_function_t03: CompileTimeError
+Language/Metadata/before_function_t04: CompileTimeError
+Language/Metadata/before_function_t05: CompileTimeError
+Language/Metadata/before_function_t06: CompileTimeError
+Language/Metadata/before_function_t07: CompileTimeError
+Language/Metadata/before_import_t01: CompileTimeError
+Language/Metadata/before_library_t01: CompileTimeError
+Language/Metadata/before_param_t01: CompileTimeError
+Language/Metadata/before_param_t02: CompileTimeError
+Language/Metadata/before_param_t03: CompileTimeError
+Language/Metadata/before_param_t04: CompileTimeError
+Language/Metadata/before_param_t05: CompileTimeError
+Language/Metadata/before_param_t06: CompileTimeError
+Language/Metadata/before_param_t07: CompileTimeError
+Language/Metadata/before_param_t08: CompileTimeError
+Language/Metadata/before_param_t09: CompileTimeError
+Language/Metadata/before_typedef_t01: CompileTimeError
+Language/Metadata/before_type_param_t01: CompileTimeError
+Language/Metadata/before_variable_t01: CompileTimeError
+Language/Metadata/before_variable_t02: CompileTimeError
+Language/Mixins/Mixin_Application/syntax_t21: CompileTimeError
+Language/Mixins/Mixin_Application/warning_t01: CompileTimeError
+Language/Mixins/Mixin_Application/warning_t02: CompileTimeError
+Language/Mixins/Mixin_Application/warning_t03: CompileTimeError
+Language/Overview/Privacy/private_and_public_t02: CompileTimeError
+Language/Overview/Privacy/private_and_public_t06: CompileTimeError
+Language/Overview/Scoping/hiding_declaration_t28: CompileTimeError
+Language/Statements/Try/malformed_type_t01: CompileTimeError
+Language/Statements/Try/malformed_type_t02: CompileTimeError
+Language/Statements/Try/malformed_type_t03: CompileTimeError
+Language/Types/Dynamic_Type_System/malbounded_type_error_t01: CompileTimeError
+Language/Types/Parameterized_Types/Actual_Type_of_Declaration/actual_type_t02: CompileTimeError
+Language/Types/Parameterized_Types/Actual_Type_of_Declaration/actual_type_t03: CompileTimeError
+Language/Types/Parameterized_Types/arity_mismatch_t01: CompileTimeError
+Language/Types/Parameterized_Types/arity_mismatch_t02: CompileTimeError
+Language/Types/Parameterized_Types/arity_mismatch_t03: CompileTimeError
+Language/Types/Parameterized_Types/arity_mismatch_t04: CompileTimeError
+Language/Types/Parameterized_Types/arity_mismatch_t05: CompileTimeError
+Language/Types/Parameterized_Types/arity_mismatch_t06: CompileTimeError
+Language/Types/Parameterized_Types/malbounded_t01: CompileTimeError
+Language/Types/Parameterized_Types/malbounded_t02: CompileTimeError
+Language/Types/Parameterized_Types/malbounded_t03: CompileTimeError
+Language/Types/Parameterized_Types/malbounded_t04: CompileTimeError
+Language/Types/Parameterized_Types/malbounded_t05: CompileTimeError
+Language/Types/Parameterized_Types/malbounded_t06: CompileTimeError
+Language/Types/Static_Types/malformed_type_t01: CompileTimeError
+Language/Types/Static_Types/malformed_type_t02: CompileTimeError
+Language/Types/Static_Types/malformed_type_t03: CompileTimeError
+Language/Types/Static_Types/malformed_type_t04: CompileTimeError
+Language/Types/Static_Types/malformed_type_t05: CompileTimeError
+Language/Types/Static_Types/malformed_type_t06: CompileTimeError
+Language/Expressions/Await_Expressions/syntax_t07: CompileTimeError
+Language/Expressions/Await_Expressions/syntax_t08: CompileTimeError
+Language/Expressions/Await_Expressions/syntax_t09: CompileTimeError
+Language/Expressions/Identifier_Reference/async_and_generator_t01: CompileTimeError
+

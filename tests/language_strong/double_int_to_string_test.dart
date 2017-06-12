@@ -9,12 +9,12 @@ main() {
   Expect.equals("0.0", (0.0).toString());
   Expect.equals("9.0", (9.0).toString());
   Expect.equals("90.0", (90.0).toString());
-  Expect.equals("111111111111111110000.0",
-                (111111111111111111111.0).toString());
+  Expect.equals(
+      "111111111111111110000.0", (111111111111111111111.0).toString());
   Expect.equals("-9.0", (-9.0).toString());
   Expect.equals("-90.0", (-90.0).toString());
-  Expect.equals("-111111111111111110000.0",
-                (-111111111111111111111.0).toString());
+  Expect.equals(
+      "-111111111111111110000.0", (-111111111111111111111.0).toString());
   Expect.equals("1000.0", (1000.0).toString());
   Expect.equals("1000000000000000100.0", (1000000000000000128.0).toString());
 }

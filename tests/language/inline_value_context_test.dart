@@ -17,7 +17,8 @@ class B {
 }
 
 int bar(o) {
-  if (o.x > 0) {  // <-- Deoptimize from inner frame.
+  if (o.x > 0) {
+    // <-- Deoptimize from inner frame.
     return 1;
   } else {
     return 0;
@@ -25,7 +26,8 @@ int bar(o) {
 }
 
 int foo(o) {
-  if (bar(o) > 0) {  // <-- Used in a value context.
+  if (bar(o) > 0) {
+    // <-- Used in a value context.
     return 1;
   } else {
     return 0;
@@ -37,6 +39,6 @@ main() {
   int sum = 0;
   for (int i = 0; i < 20; i++) sum += foo(o);
   o = new B();
-  sum += foo(o);  // <-- Cause deoptimization of bar within foo.
+  sum += foo(o); // <-- Cause deoptimization of bar within foo.
   Expect.equals(20, sum);
 }

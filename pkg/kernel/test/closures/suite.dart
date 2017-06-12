@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
@@ -6,191 +6,125 @@ library test.kernel.closures.suite;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show Directory, File, Platform;
-
-import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-
-import 'package:analyzer/src/kernel/loader.dart'
-    show DartLoader, DartOptions, createDartSdk;
-
-import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
-
-import 'kernel_chain.dart'
-    show MatchExpectation, Print, ReadDill, SanityCheck, WriteDill;
-
+import 'package:front_end/physical_file_system.dart';
 import 'package:testing/testing.dart'
-    show
-        Chain,
-        ChainContext,
-        Result,
-        StdioProcess,
-        Step,
-        TestDescription,
-        runMe;
+    show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
 import 'package:kernel/ast.dart' show Program;
 
 import 'package:kernel/transformations/closure_conversion.dart'
     as closure_conversion;
 
-import 'package:package_config/discovery.dart' show loadPackagesFile;
+import 'package:front_end/src/fasta/testing/kernel_chain.dart'
+    show Print, MatchExpectation, WriteDill, ReadDill, Verify;
 
-class TestContext extends ChainContext {
-  final Uri vm;
+import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
-  final Uri packages;
+import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
-  final DartOptions options;
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelTarget;
 
-  final DartSdk dartSdk;
+import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
+
+import 'package:front_end/src/fasta/errors.dart' show InputError;
+
+import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
+
+import 'package:kernel/kernel.dart' show loadProgramFromBinary;
+
+const String STRONG_MODE = " strong mode ";
+
+class ClosureConversionContext extends ChainContext {
+  final bool strongMode;
+
+  final TranslateUri uriTranslator;
 
   final List<Step> steps;
 
-  TestContext(String sdk, this.vm, Uri packages, bool strongMode, this.dartSdk,
-      bool updateExpectations)
-      : packages = packages,
-        options = new DartOptions(
-            strongMode: strongMode,
-            sdk: sdk,
-            packagePath: packages.toFilePath()),
-        steps = <Step>[
-          const Kernel(),
+  ClosureConversionContext(
+      this.strongMode, bool updateExpectations, this.uriTranslator)
+      : steps = <Step>[
+          const FastaCompile(),
           const Print(),
-          const SanityCheck(),
+          const Verify(true),
           const ClosureConversion(),
           const Print(),
-          const SanityCheck(),
+          const Verify(true),
           new MatchExpectation(".expect",
               updateExpectations: updateExpectations),
           const WriteDill(),
           const ReadDill(),
-          // TODO(29143): uncomment this when Vectors are added to VM.
-          //const Run(),
+          // TODO(29143): add `Run` step when Vectors are added to VM.
         ];
 
-  Future<DartLoader> createLoader() async {
-    Program repository = new Program();
-    return new DartLoader(repository, options, await loadPackagesFile(packages),
-        dartSdk: dartSdk);
+  Future<Program> loadPlatform() async {
+    Uri sdk = await computePatchedSdk();
+    return loadProgramFromBinary(sdk.resolve('platform.dill').toFilePath());
+  }
+
+  static Future<ClosureConversionContext> create(
+      Chain suite, Map<String, String> environment) async {
+    Uri packages = Uri.base.resolve(".packages");
+    bool strongMode = environment.containsKey(STRONG_MODE);
+    bool updateExpectations = environment["updateExpectations"] == "true";
+    TranslateUri uriTranslator =
+        await TranslateUri.parse(PhysicalFileSystem.instance, packages);
+    return new ClosureConversionContext(
+        strongMode, updateExpectations, uriTranslator);
   }
 }
 
-enum Environment {
-  directory,
-  file,
-}
-
-Future<String> getEnvironmentVariable(
-    String name, Environment kind, String undefined, notFound(String n)) async {
-  String result = Platform.environment[name];
-  if (result == null) {
-    throw undefined;
-  }
-  switch (kind) {
-    case Environment.directory:
-      if (!await new Directory(result).exists()) throw notFound(result);
-      break;
-
-    case Environment.file:
-      if (!await new File(result).exists()) throw notFound(result);
-      break;
-  }
-  return result;
-}
-
-Future<bool> fileExists(Uri base, String path) async {
-  return await new File.fromUri(base.resolve(path)).exists();
-}
-
-Future<TestContext> createContext(
+Future<ClosureConversionContext> createContext(
     Chain suite, Map<String, String> environment) async {
-  const String suggestion = """Try building the patched SDK by running
-    'tools/build.py patched_sdk'""";
-
-  // TODO(karlklose): The path is different on MacOS.
-  String sdk = "out/DebugX64/patched_sdk/";
-  Uri sdkUri = Uri.base.resolve(sdk);
-  const String asyncDart = "lib/async/async.dart";
-  if (!await fileExists(sdkUri, asyncDart)) {
-    throw "Couldn't find the patched SDK. $suggestion";
-  }
-  const String asyncSources = "lib/async/async_sources.gypi";
-  if (await fileExists(sdkUri, asyncSources)) {
-    throw "Found '$asyncSources' in '$sdk', so it isn't a patched SDK. "
-        "$suggestion";
-  }
-
-  // TODO(karlklose): select the VM based on the mode.
-  Uri vm = Uri.base.resolve("out/ReleaseX64/dart");
-
-  Uri packages = Uri.base.resolve(".packages");
-  bool strongMode = false;
-  bool updateExpectations = const String.fromEnvironment("updateExpectations",
-          defaultValue: "false") ==
-      "true";
-  return new TestContext(sdk, vm, packages, strongMode,
-      createDartSdk(sdk, strongMode: strongMode), updateExpectations);
+  environment["updateExpectations"] =
+      const String.fromEnvironment("updateExpectations");
+  return ClosureConversionContext.create(suite, environment);
 }
 
-class Kernel extends Step<TestDescription, Program, TestContext> {
-  const Kernel();
+class FastaCompile
+    extends Step<TestDescription, Program, ClosureConversionContext> {
+  const FastaCompile();
 
-  String get name => "kernel";
+  String get name => "fasta compilation";
 
   Future<Result<Program>> run(
-      TestDescription description, TestContext testContext) async {
+      TestDescription description, ClosureConversionContext context) async {
+    Program platform = await context.loadPlatform();
+    Ticker ticker = new Ticker();
+    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator, "vm");
+    platform.unbindCanonicalNames();
+    dillTarget.loader.appendLibraries(platform);
+    KernelTarget sourceTarget = new KernelTarget(PhysicalFileSystem.instance,
+        dillTarget, context.uriTranslator, context.strongMode);
+
+    Program p;
     try {
-      DartLoader loader = await testContext.createLoader();
-      Target target = getTarget(
-          "vm", new TargetFlags(strongMode: testContext.options.strongMode));
-      String path = description.file.path;
-      Uri uri = Uri.base.resolve(path);
-      loader.loadProgram(uri, target: target);
-      var program = loader.program;
-      for (var error in loader.errors) {
-        return fail(program, "$error");
-      }
-      target
-        ..performModularTransformations(program)
-        ..performGlobalTransformations(program);
-      return pass(program);
-    } catch (e, s) {
-      return crash(e, s);
+      sourceTarget.read(description.uri);
+      await dillTarget.buildOutlines();
+      await sourceTarget.buildOutlines();
+      p = await sourceTarget.buildProgram();
+    } on InputError catch (e, s) {
+      return fail(null, e.error, s);
     }
+    return pass(p);
   }
 }
 
-class ClosureConversion extends Step<Program, Program, TestContext> {
+class ClosureConversion
+    extends Step<Program, Program, ClosureConversionContext> {
   const ClosureConversion();
 
   String get name => "closure conversion";
 
-  Future<Result<Program>> run(Program program, TestContext testContext) async {
+  Future<Result<Program>> run(
+      Program program, ClosureConversionContext testContext) async {
     try {
       program = closure_conversion.transformProgram(program);
       return pass(program);
     } catch (e, s) {
       return crash(e, s);
     }
-  }
-}
-
-class Run extends Step<Uri, int, TestContext> {
-  const Run();
-
-  String get name => "run";
-
-  Future<Result<int>> run(Uri uri, TestContext context) async {
-    File generated = new File.fromUri(uri);
-    StdioProcess process;
-    try {
-      process = await StdioProcess
-          .run(context.vm.toFilePath(), [generated.path, "Hello, World!"]);
-      print(process.output);
-    } finally {
-      generated.parent.delete(recursive: true);
-    }
-    return process.toResult();
   }
 }
 

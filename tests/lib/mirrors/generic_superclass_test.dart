@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library lib;
+
 import 'package:expect/expect.dart';
+
+@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 class A<T> {}

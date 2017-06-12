@@ -12,8 +12,9 @@ class A {
 
 main() {
   var a = new A();
-  a..foo[Object] = 54
-   ..bar = 42;
+  a
+    ..foo[Object] = 54
+    ..bar = 42;
   if (a.foo.keys.first is! Type) {
     throw 'Test failed';
   }

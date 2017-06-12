@@ -13,10 +13,10 @@ void main() {
 int foo() {
   var list = new List<int>(1024);
 
-  for(int i = 0; i < list.length; i++) list[i] = -i;
+  for (int i = 0; i < list.length; i++) list[i] = -i;
 
-  for(int n = list.length; n > 1; n--) {
-    for(int i = 0; i < n - 1; i++) {
+  for (int n = list.length; n > 1; n--) {
+    for (int i = 0; i < n - 1; i++) {
       if (list[i] > list[i + 1]) {
         return list[i + 1];
       }

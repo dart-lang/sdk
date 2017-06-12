@@ -4,7 +4,6 @@
 // Test mismatch in argument counts.
 
 class ClosureCallWrongArgumentCountNegativeTest {
-
   static int melke(var f) {
     return f(1, 2, 3);
   }
@@ -13,6 +12,7 @@ class ClosureCallWrongArgumentCountNegativeTest {
     kuh(int a, int b) {
       return a + b;
     }
+
     melke(kuh);
   }
 }

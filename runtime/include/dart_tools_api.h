@@ -5,7 +5,7 @@
 #ifndef RUNTIME_INCLUDE_DART_TOOLS_API_H_
 #define RUNTIME_INCLUDE_DART_TOOLS_API_H_
 
-#include "include/dart_api.h"
+#include "dart_api.h"
 
 /** \mainpage Dart Tools Embedding API Reference
  *
@@ -905,6 +905,11 @@ typedef bool (*Dart_FileModifiedCallback)(const char* url, int64_t since);
 
 DART_EXPORT Dart_Handle
 Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback);
+
+/**
+ * Returns true if isolate is currently reloading.
+ */
+DART_EXPORT bool Dart_IsReloading();
 
 /*
  * ========

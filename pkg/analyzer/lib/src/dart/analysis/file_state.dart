@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -9,32 +10,32 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/fasta/ast_builder.dart' as fasta;
+import 'package:analyzer/src/fasta/element_store.dart' as fasta;
+import 'package:analyzer/src/fasta/mock_element.dart' as fasta;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
-import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:analyzer/src/fasta/ast_builder.dart' as fasta;
-import 'package:analyzer/src/fasta/element_store.dart' as fasta;
-import 'package:analyzer/src/fasta/mock_element.dart' as fasta;
+import 'package:front_end/src/base/api_signature.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/fasta/builder/builder.dart' as fasta;
-import 'package:front_end/src/fasta/builder/scope.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -92,7 +93,15 @@ class FileState {
   /**
    * The [Source] of the file with the [uri].
    */
-  Source source;
+  final Source source;
+
+  /**
+   * Return `true` if this file is a stub created for a file in the provided
+   * external summary store. The values of most properties are not the same
+   * as they would be if the file were actually read from the file system.
+   * The value of the property [uri] is correct.
+   */
+  final bool isInExternalSummaries;
 
   bool _exists;
   List<int> _contentBytes;
@@ -117,7 +126,21 @@ class FileState {
   Map<String, TopLevelDeclaration> _topLevelDeclarations;
   Map<String, TopLevelDeclaration> _exportedTopLevelDeclarations;
 
-  FileState._(this._fsState, this.path, this.uri, this.source);
+  /**
+   * The flag that shows whether the file has an error or warning that
+   * might be fixed by a change to another file.
+   */
+  bool hasErrorOrWarning = false;
+
+  FileState._(this._fsState, this.path, this.uri, this.source)
+      : isInExternalSummaries = false;
+
+  FileState._external(this._fsState, this.uri)
+      : isInExternalSummaries = true,
+        path = null,
+        source = null {
+    _apiSignature = new Uint8List(16);
+  }
 
   /**
    * The unlinked API signature of the file.
@@ -357,17 +380,21 @@ class FileState {
 
     if (USE_FASTA_PARSER) {
       try {
-        fasta.ScannerResult scanResult =
-            fasta.scan(_contentBytes, includeComments: true);
+        fasta.ScannerResult scanResult = fasta.scan(_contentBytes,
+            includeComments: true,
+            scanGenericMethodComments: analysisOptions.strongMode);
 
         var astBuilder = new fasta.AstBuilder(
             new ErrorReporter(errorListener, source),
             null,
             null,
             new _FastaElementStoreProxy(),
-            new _FastaEmptyScope(),
+            new fasta.Scope.top(isModifiable: true),
             uri);
+        astBuilder.parseGenericMethodComments = analysisOptions.strongMode;
+
         var parser = new fasta.Parser(astBuilder);
+        astBuilder.parser = parser;
         parser.parseUnit(scanResult.tokens);
         var unit = astBuilder.pop() as CompilationUnit;
 
@@ -502,28 +529,22 @@ class FileState {
     for (UnlinkedImport import in _unlinked.imports) {
       String uri = import.isImplicit ? 'dart:core' : import.uri;
       FileState file = _fileForRelativeUri(uri);
-      if (file != null) {
-        _importedFiles.add(file);
-      }
+      _importedFiles.add(file);
     }
     for (UnlinkedExportPublic export in _unlinked.publicNamespace.exports) {
       String uri = export.uri;
       FileState file = _fileForRelativeUri(uri);
-      if (file != null) {
-        _exportedFiles.add(file);
-        _exportFilters
-            .add(new NameFilter.forUnlinkedCombinators(export.combinators));
-      }
+      _exportedFiles.add(file);
+      _exportFilters
+          .add(new NameFilter.forUnlinkedCombinators(export.combinators));
     }
     for (String uri in _unlinked.publicNamespace.parts) {
       FileState file = _fileForRelativeUri(uri);
-      if (file != null) {
-        _partedFiles.add(file);
-        // TODO(scheglov) Sort for stable results?
-        _fsState._partToLibraries
-            .putIfAbsent(file, () => <FileState>[])
-            .add(this);
-      }
+      _partedFiles.add(file);
+      // TODO(scheglov) Sort for stable results?
+      _fsState._partToLibraries
+          .putIfAbsent(file, () => <FileState>[])
+          .add(this);
     }
 
     // Compute referenced files.
@@ -554,16 +575,21 @@ class FileState {
   String toString() => path;
 
   /**
-   * Return the [FileState] for the given [relativeUri], or `null` if the URI
-   * cannot be parsed, cannot correspond any file, etc.
+   * Return the [FileState] for the given [relativeUri], maybe "unresolved"
+   * file if the URI cannot be parsed, cannot correspond any file, etc.
    */
   FileState _fileForRelativeUri(String relativeUri) {
+    if (relativeUri.isEmpty) {
+      return _fsState.unresolvedFile;
+    }
+
     Uri absoluteUri;
     try {
       absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
     } on FormatException {
-      return null;
+      return _fsState.unresolvedFile;
     }
+
     return _fsState.getFileForUri(absoluteUri);
   }
 
@@ -601,6 +627,17 @@ class FileSystemState {
   final Uint32List _salt;
 
   /**
+   * The optional store with externally provided unlinked and corresponding
+   * linked summaries. These summaries are always added to the store for any
+   * file analysis.
+   *
+   * While walking the file graph, when we reach a file that exists in the
+   * external store, we add a stub [FileState], but don't attempt to read its
+   * content, or its unlinked unit, or imported libraries, etc.
+   */
+  final SummaryDataStore externalSummaries;
+
+  /**
    * Mapping from a URI to the corresponding [FileState].
    */
   final Map<Uri, FileState> _uriToFile = {};
@@ -609,6 +646,30 @@ class FileSystemState {
    * All known file paths.
    */
   final Set<String> knownFilePaths = new Set<String>();
+
+  /**
+   * The paths of files that were added to the set of known files since the
+   * last [knownFilesSetChanges] notification.
+   */
+  final Set<String> _addedKnownFiles = new Set<String>();
+
+  /**
+   * If not `null`, this delay will be awaited instead of the default one.
+   */
+  Duration _knownFilesSetChangesDelay;
+
+  /**
+   * The instance of timer that is scheduled to send a new update to the
+   * [knownFilesSetChanges] stream, or `null` if there are no changes to the
+   * set of known files to notify the stream about.
+   */
+  Timer _knownFilesSetChangesTimer;
+
+  /**
+   * The controller for the [knownFilesSetChanges] stream.
+   */
+  final StreamController<KnownFilesSetChange> _knownFilesSetChangesController =
+      new StreamController<KnownFilesSetChange>();
 
   /**
    * Mapping from a path to the flag whether there is a URI for the path.
@@ -630,6 +691,11 @@ class FileSystemState {
    */
   final Map<FileState, List<FileState>> _partToLibraries = {};
 
+  /**
+   * The [FileState] instance that correspond to an unresolved URI.
+   */
+  FileState _unresolvedFile;
+
   FileSystemStateTestView _testView;
 
   FileSystemState(
@@ -639,7 +705,8 @@ class FileSystemState {
       this._resourceProvider,
       this._sourceFactory,
       this._analysisOptions,
-      this._salt) {
+      this._salt,
+      {this.externalSummaries}) {
     _testView = new FileSystemStateTestView(this);
   }
 
@@ -649,8 +716,26 @@ class FileSystemState {
   List<FileState> get knownFiles =>
       _pathToFiles.values.map((files) => files.first).toList();
 
+  /**
+   * Return the [Stream] that is periodically notified about changes to the
+   * known files set.
+   */
+  Stream<KnownFilesSetChange> get knownFilesSetChanges =>
+      _knownFilesSetChangesController.stream;
+
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
+
+  /**
+   * Return the [FileState] instance that correspond to an unresolved URI.
+   */
+  FileState get unresolvedFile {
+    if (_unresolvedFile == null) {
+      _unresolvedFile = new FileState._(this, null, null, null);
+      _unresolvedFile.refresh();
+    }
+    return _unresolvedFile;
+  }
 
   /**
    * Return the canonical [FileState] for the given absolute [path]. The
@@ -691,12 +776,26 @@ class FileSystemState {
   FileState getFileForUri(Uri uri) {
     FileState file = _uriToFile[uri];
     if (file == null) {
-      Source uriSource = _sourceFactory.resolveUri(null, uri.toString());
-      // If the URI is invalid, for example package:/test/d.dart (note the
-      // leading '/'), then `null` is returned. We should ignore this URI.
-      if (uriSource == null) {
-        return null;
+      // If the external store has this URI, create a stub file for it.
+      // We are given all required unlinked and linked summaries for it.
+      if (externalSummaries != null) {
+        String uriStr = uri.toString();
+        if (externalSummaries.hasUnlinkedUnit(uriStr)) {
+          file = new FileState._external(this, uri);
+          _uriToFile[uri] = file;
+          return file;
+        }
       }
+
+      Source uriSource = _sourceFactory.resolveUri(null, uri.toString());
+
+      // If the URI cannot be resolved, for example because the factory
+      // does not understand the scheme, return the unresolved file instance.
+      if (uriSource == null) {
+        _uriToFile[uri] = unresolvedFile;
+        return unresolvedFile;
+      }
+
       String path = uriSource.fullName;
       File resource = _resourceProvider.getFile(path);
       FileSource source = new FileSource(resource, uri);
@@ -760,8 +859,23 @@ class FileSystemState {
       knownFilePaths.add(path);
       files = <FileState>[];
       _pathToFiles[path] = files;
+      // Schedule the stream update.
+      _addedKnownFiles.add(path);
+      _scheduleKnownFilesSetChange();
     }
     files.add(file);
+  }
+
+  void _scheduleKnownFilesSetChange() {
+    Duration delay = _knownFilesSetChangesDelay ?? new Duration(seconds: 1);
+    _knownFilesSetChangesTimer ??= new Timer(delay, () {
+      Set<String> addedFiles = _addedKnownFiles.toSet();
+      Set<String> removedFiles = new Set<String>();
+      _knownFilesSetChangesController
+          .add(new KnownFilesSetChange(addedFiles, removedFiles));
+      _addedKnownFiles.clear();
+      _knownFilesSetChangesTimer = null;
+    });
   }
 }
 
@@ -782,6 +896,20 @@ class FileSystemStateTestView {
         .where((f) => f._transitiveSignature == null)
         .toSet();
   }
+
+  void set knownFilesDelay(Duration value) {
+    state._knownFilesSetChangesDelay = value;
+  }
+}
+
+/**
+ * Information about changes to the known file set.
+ */
+class KnownFilesSetChange {
+  final Set<String> added;
+  final Set<String> removed;
+
+  KnownFilesSetChange(this.added, this.removed);
 }
 
 class _FastaElementProxy implements fasta.KernelClassElement {
@@ -800,10 +928,6 @@ class _FastaElementStoreProxy implements fasta.ElementStore {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _FastaEmptyScope extends fasta.Scope {
-  _FastaEmptyScope() : super({}, null);
 }
 
 class _FastaInterfaceTypeProxy implements fasta.KernelInterfaceType {

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.domain.diagnostic;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -14,7 +12,6 @@ import 'analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DiagnosticDomainTest);
-    defineReflectiveTests(DiagnosticDomainTest_Driver);
   });
 }
 
@@ -22,6 +19,7 @@ main() {
 class DiagnosticDomainTest extends AbstractAnalysisTest {
   @override
   void setUp() {
+    generateSummaryFiles = true;
     super.setUp();
     handler = new DiagnosticDomainHandler(server);
     server.handlers = [handler];
@@ -56,15 +54,5 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     var response = handler.handleRequest(request);
     var result = new DiagnosticGetDiagnosticsResult.fromResponse(response);
     expect(result.contexts, isEmpty);
-  }
-}
-
-@reflectiveTest
-class DiagnosticDomainTest_Driver extends DiagnosticDomainTest {
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    generateSummaryFiles = true;
-    super.setUp();
   }
 }

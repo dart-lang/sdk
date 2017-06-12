@@ -22,6 +22,6 @@ main() {
 }
 
 void sendIt(port) {
-  var map = { Foo.BAR: 42 };
+  var map = {Foo.BAR: 42};
   port.send(map);
 }

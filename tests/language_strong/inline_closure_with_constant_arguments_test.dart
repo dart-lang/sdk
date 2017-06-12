@@ -15,7 +15,6 @@ primeForSmis(bool b) {
   }
 }
 
-
 main() {
   for (var i = 0; i < 20; i++) {
     Expect.equals(3, primeForSmis(true));

@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class ImplicitScopeTest extends core::Object {
+  constructor •() → void
+    ;
+  static method alwaysTrue() → core::bool
+    ;
+  static method testMain() → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

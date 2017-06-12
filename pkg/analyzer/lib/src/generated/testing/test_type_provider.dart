@@ -417,7 +417,8 @@ class TestTypeProvider extends TypeProviderBase {
       var nullElement = ElementFactory.classElement2("Null");
       nullElement.constructors = <ConstructorElement>[
         ElementFactory.constructorElement(
-            nullElement, '_uninstantiatable', false)..factory = true
+            nullElement, '_uninstantiatable', false)
+          ..factory = true
       ];
       // Create a library element for "dart:core"
       // This enables the "isDartCoreNull" getter.

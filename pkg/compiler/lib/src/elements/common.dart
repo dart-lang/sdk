@@ -9,7 +9,10 @@ library elements.common;
 import '../common/names.dart' show Identifiers, Names, Uris;
 import '../common_elements.dart' show CommonElements;
 import '../util/util.dart' show Link;
+import 'entities.dart';
 import 'elements.dart';
+import 'names.dart';
+import 'types.dart';
 import 'resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType, ResolutionFunctionType;
 
@@ -189,7 +192,7 @@ abstract class CompilationUnitElementCommon implements CompilationUnitElement {}
 
 abstract class ClassElementCommon implements ClassElement {
   @override
-  Link<ResolutionDartType> get allSupertypes => allSupertypesAndSelf.supertypes;
+  Link<InterfaceType> get allSupertypes => allSupertypesAndSelf.supertypes;
 
   @override
   int get hierarchyDepth => allSupertypesAndSelf.maxDepth;
@@ -197,7 +200,7 @@ abstract class ClassElementCommon implements ClassElement {
   @override
   ResolutionInterfaceType asInstanceOf(ClassElement cls) {
     if (cls == this) return thisType;
-    return allSupertypesAndSelf.asInstanceOf(cls);
+    return allSupertypesAndSelf.asInstanceOf(cls, cls.hierarchyDepth);
   }
 
   @override
@@ -216,16 +219,16 @@ abstract class ClassElementCommon implements ClassElement {
    * When called on the implementation element both members declared in the
    * origin and the patch class are returned.
    */
-  Element lookupByName(Name memberName, {ClassElement stopAt}) {
+  MemberElement lookupByName(Name memberName, {ClassElement stopAt}) {
     return internalLookupByName(memberName,
         isSuperLookup: false, stopAtSuperclass: stopAt);
   }
 
-  Element lookupSuperByName(Name memberName) {
+  MemberElement lookupSuperByName(Name memberName) {
     return internalLookupByName(memberName, isSuperLookup: true);
   }
 
-  Element internalLookupByName(Name memberName,
+  MemberElement internalLookupByName(Name memberName,
       {bool isSuperLookup, ClassElement stopAtSuperclass}) {
     String name = memberName.text;
     bool isPrivate = memberName.isPrivate;
@@ -249,8 +252,8 @@ abstract class ClassElementCommon implements ClassElement {
       // for. Otherwise, we continue up the superclass chain.
       if (member.isAbstractField) {
         AbstractFieldElement field = member;
-        FunctionElement getter = field.getter;
-        FunctionElement setter = field.setter;
+        GetterElement getter = field.getter;
+        SetterElement setter = field.setter;
         if (memberName.isSetter) {
           // Abstract members can be defined in a super class.
           if (setter != null && !setter.isAbstract) {
@@ -262,7 +265,7 @@ abstract class ClassElementCommon implements ClassElement {
           }
         }
         // Abstract members can be defined in a super class.
-      } else if (!member.isAbstract) {
+      } else if (!member.isAbstract && !member.isMalformed) {
         return member;
       }
     }
@@ -434,9 +437,11 @@ abstract class ClassElementCommon implements ClassElement {
   }
 
   @override
-  bool implementsInterface(ClassElement intrface) {
-    return this != intrface &&
-        allSupertypesAndSelf.asInstanceOf(intrface) != null;
+  bool implementsInterface(ClassElement interface) {
+    return this != interface &&
+        allSupertypesAndSelf.asInstanceOf(
+                interface, interface.hierarchyDepth) !=
+            null;
   }
 
   @override
@@ -498,6 +503,8 @@ abstract class ClassElementCommon implements ClassElement {
 }
 
 abstract class FunctionSignatureCommon implements FunctionSignature {
+  ParameterStructure _parameterStructure;
+
   ResolutionDartType get returnType => type.returnType;
 
   void forEachRequiredParameter(void function(Element parameter)) {
@@ -554,6 +561,24 @@ abstract class FunctionSignatureCommon implements FunctionSignature {
           parameterCount >= otherTotalCount;
     }
     return true;
+  }
+
+  ParameterStructure get parameterStructure {
+    if (_parameterStructure == null) {
+      int requiredParameters = requiredParameterCount;
+      int positionalParameters;
+      List<String> namedParameters;
+      if (optionalParametersAreNamed) {
+        namedParameters = type.namedParameters;
+        positionalParameters = requiredParameters;
+      } else {
+        namedParameters = const <String>[];
+        positionalParameters = requiredParameters + optionalParameterCount;
+      }
+      _parameterStructure = new ParameterStructure(
+          requiredParameters, positionalParameters, namedParameters);
+    }
+    return _parameterStructure;
   }
 }
 

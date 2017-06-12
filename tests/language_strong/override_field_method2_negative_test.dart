@@ -4,11 +4,13 @@
 // Dart test error for overriding getter with method.
 
 class A {
-  get foo { return 123; }
+  get foo {
+    return 123;
+  }
 }
 
 class B extends A {
-  foo() {}  // method cannot override getter.
+  foo() {} // method cannot override getter.
 }
 
 class OverrideFieldMethod2NegativeTest {

@@ -20,6 +20,7 @@ class Class<T> {
       }
       Expect.isNotNull(o as Bar, "bar as Bar");
     }
+
     local();
   }
 }

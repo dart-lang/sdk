@@ -15,7 +15,7 @@ main() {
     receivePort.handler = (msg) {
       if (msg != expectedMsg) {
         print("Test failed.");
-        throw msg;  // Fail the test if the message is not expected.
+        throw msg; // Fail the test if the message is not expected.
       }
       print('Test done.');
       receivePort.close();
@@ -23,8 +23,7 @@ main() {
 
     var stopwatch = new Stopwatch()..start();
     Isolate.spawnUri(new Uri(path: 'deferred_in_isolate_app.dart'),
-                             [expectedMsg],
-                             [receivePort.sendPort]).then((isolate) {
+        [expectedMsg], [receivePort.sendPort]).then((isolate) {
       print('Isolate spawn: ${stopwatch.elapsedMilliseconds}ms');
     }).catchError((error) {
       print(error);

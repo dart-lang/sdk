@@ -4,11 +4,11 @@
 
 // Regression test for issue 16640.
 
-class Segment extends SegmentGen { }
+class Segment extends SegmentGen {}
 
-class SegmentGen extends ConceptEntity<Segment> { }
+class SegmentGen extends ConceptEntity<Segment> {}
 
-class ConceptEntity<E> { }
+class ConceptEntity<E> {}
 
 main() {
   new ConceptEntity<Segment>();

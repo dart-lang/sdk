@@ -276,7 +276,7 @@ not a subtype of the type declared for p._
 ## Alternatives
 
 The "erasure" of the reified parameter type for each covariant parameter to
-`Object` may seem agressive.
+`Object` may seem aggressive.
 
 In particular, it ignores upper bounds on the formal type parameter which gives
 rise to the covariance due to class covariance, and it ignores the structure of

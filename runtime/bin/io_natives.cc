@@ -91,6 +91,7 @@ namespace bin {
   V(Platform_Environment, 0)                                                   \
   V(Platform_ExecutableArguments, 0)                                           \
   V(Platform_GetVersion, 0)                                                    \
+  V(Platform_LocaleName, 0)                                                    \
   V(Process_Start, 11)                                                         \
   V(Process_Wait, 5)                                                           \
   V(Process_KillPid, 2)                                                        \
@@ -101,6 +102,8 @@ namespace bin {
   V(Process_Pid, 1)                                                            \
   V(Process_SetSignalHandler, 1)                                               \
   V(Process_ClearSignalHandler, 1)                                             \
+  V(ProcessInfo_CurrentRSS, 0)                                                 \
+  V(ProcessInfo_MaxRSS, 0)                                                     \
   V(SecureSocket_Connect, 7)                                                   \
   V(SecureSocket_Destroy, 1)                                                   \
   V(SecureSocket_FilterPointer, 1)                                             \
@@ -121,26 +124,26 @@ namespace bin {
   V(SecurityContext_UseCertificateChainBytes, 3)                               \
   V(ServerSocket_Accept, 2)                                                    \
   V(ServerSocket_CreateBindListen, 6)                                          \
-  V(Socket_CreateConnect, 3)                                                   \
+  V(SocketBase_IsBindError, 2)                                                 \
+  V(Socket_Available, 1)                                                       \
   V(Socket_CreateBindConnect, 4)                                               \
   V(Socket_CreateBindDatagram, 4)                                              \
-  V(Socket_IsBindError, 2)                                                     \
-  V(Socket_Available, 1)                                                       \
-  V(Socket_Read, 2)                                                            \
-  V(Socket_RecvFrom, 1)                                                        \
-  V(Socket_WriteList, 4)                                                       \
-  V(Socket_SendTo, 6)                                                          \
+  V(Socket_CreateConnect, 3)                                                   \
   V(Socket_GetPort, 1)                                                         \
   V(Socket_GetRemotePeer, 1)                                                   \
   V(Socket_GetError, 1)                                                        \
+  V(Socket_GetOption, 3)                                                       \
+  V(Socket_GetSocketId, 1)                                                     \
   V(Socket_GetStdioHandle, 2)                                                  \
   V(Socket_GetType, 1)                                                         \
-  V(Socket_GetOption, 3)                                                       \
-  V(Socket_SetOption, 4)                                                       \
   V(Socket_JoinMulticast, 4)                                                   \
   V(Socket_LeaveMulticast, 4)                                                  \
-  V(Socket_GetSocketId, 1)                                                     \
+  V(Socket_Read, 2)                                                            \
+  V(Socket_RecvFrom, 1)                                                        \
+  V(Socket_SendTo, 6)                                                          \
+  V(Socket_SetOption, 4)                                                       \
   V(Socket_SetSocketId, 2)                                                     \
+  V(Socket_WriteList, 4)                                                       \
   V(Stdin_ReadByte, 0)                                                         \
   V(Stdin_GetEchoMode, 0)                                                      \
   V(Stdin_SetEchoMode, 1)                                                      \
@@ -150,6 +153,17 @@ namespace bin {
   V(Stdout_GetTerminalSize, 1)                                                 \
   V(Stdout_AnsiSupported, 1)                                                   \
   V(StringToSystemEncoding, 1)                                                 \
+  V(SynchronousSocket_Available, 1)                                            \
+  V(SynchronousSocket_CloseSync, 1)                                            \
+  V(SynchronousSocket_CreateConnectSync, 3)                                    \
+  V(SynchronousSocket_GetPort, 1)                                              \
+  V(SynchronousSocket_GetRemotePeer, 1)                                        \
+  V(SynchronousSocket_LookupRequest, 2)                                        \
+  V(SynchronousSocket_ShutdownRead, 1)                                         \
+  V(SynchronousSocket_ShutdownWrite, 1)                                        \
+  V(SynchronousSocket_Read, 2)                                                 \
+  V(SynchronousSocket_ReadList, 4)                                             \
+  V(SynchronousSocket_WriteList, 4)                                            \
   V(SystemEncodingToString, 1)                                                 \
   V(X509_Subject, 1)                                                           \
   V(X509_Issuer, 1)                                                            \

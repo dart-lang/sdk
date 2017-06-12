@@ -65,6 +65,7 @@ test_with_context() {
     var b = a + 1;
     return (() => b + 1)();
   }
+
   for (var i = 0; i < 100000; i++) f(42);
   Expect.equals(44, f(42));
 }

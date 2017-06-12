@@ -1,4 +1,5 @@
 library KeyboardEventTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -7,7 +8,6 @@ import 'dart:html';
 // browsers.
 
 main() {
-
   useHtmlConfiguration();
 
   keydownHandlerTest(KeyEvent e) {
@@ -18,12 +18,13 @@ main() {
     var event = new KeyboardEvent('keyup');
   });
   test('keys', () {
-    var subscription = KeyboardEventStream.onKeyDown(document.body).listen(
-        keydownHandlerTest);
-    var subscription2 = KeyEvent.keyDownEvent.forTarget(document.body).listen(
-        keydownHandlerTest);
-    var subscription3 = document.body.onKeyDown.listen(
-        (e) => print('regular listener'));
+    var subscription =
+        KeyboardEventStream.onKeyDown(document.body).listen(keydownHandlerTest);
+    var subscription2 = KeyEvent.keyDownEvent
+        .forTarget(document.body)
+        .listen(keydownHandlerTest);
+    var subscription3 =
+        document.body.onKeyDown.listen((e) => print('regular listener'));
     subscription.cancel();
     subscription2.cancel();
     subscription3.cancel();
@@ -91,5 +92,3 @@ main() {
     streamDown.add(new KeyEvent('keydown', keyCode: 16, charCode: 0));
   });
 }
-
-

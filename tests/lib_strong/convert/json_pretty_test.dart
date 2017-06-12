@@ -12,7 +12,10 @@ import "package:expect/expect.dart";
 
 void _testIndentWithNullChar() {
   var encoder = const JsonEncoder.withIndent('\x00');
-  var encoded = encoder.convert([[],[[]]]);
+  var encoded = encoder.convert([
+    [],
+    [[]]
+  ]);
   Expect.equals("[\n\x00[],\n\x00[\n\x00\x00[]\n\x00]\n]", encoded);
 }
 
@@ -21,7 +24,12 @@ void main() {
 
   _expect(null, 'null');
 
-  _expect([[],[[]]], '''
+  _expect(
+      [
+        [],
+        [[]]
+      ],
+      '''
 [
   [],
   [
@@ -29,7 +37,9 @@ void main() {
   ]
 ]''');
 
-  _expect([1, 2, 3, 4], '''
+  _expect(
+      [1, 2, 3, 4],
+      '''
 [
   1,
   2,
@@ -37,7 +47,8 @@ void main() {
   4
 ]''');
 
-  _expect([true, null, 'hello', 42.42],
+  _expect(
+      [true, null, 'hello', 42.42],
       '''
 [
   true,
@@ -46,22 +57,34 @@ void main() {
   42.42
 ]''');
 
-  _expect({"hello": [], "goodbye": {} } ,
-'''{
+  _expect(
+      {"hello": [], "goodbye": {}},
+      '''{
   "hello": [],
   "goodbye": {}
 }''');
 
-  _expect(["test", 1, 2, 33234.324, true, false, null, {
-      "test1": "test2",
-      "test3": "test4",
-      "grace": 5,
-      "shanna": [0, 1, 2]
-    }, {
-      "lib": "app.dart",
-      "src": ["foo.dart", "bar.dart"]
-    }],
-        '''[
+  _expect(
+      [
+        "test",
+        1,
+        2,
+        33234.324,
+        true,
+        false,
+        null,
+        {
+          "test1": "test2",
+          "test3": "test4",
+          "grace": 5,
+          "shanna": [0, 1, 2]
+        },
+        {
+          "lib": "app.dart",
+          "src": ["foo.dart", "bar.dart"]
+        }
+      ],
+      '''[
   "test",
   1,
   2,
@@ -99,7 +122,8 @@ void _expect(Object object, String expected) {
 
   var flatOutput = encoder.convert(object);
 
-  var flatExpected = const LineSplitter().convert(expected)
+  var flatExpected = const LineSplitter()
+      .convert(expected)
       .map((line) => line.trimLeft())
       .join('\n');
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Regression test for dart2js that used to miscompile boolean and operations 
+/// Regression test for dart2js that used to miscompile boolean and operations
 /// if one of the operands was an int and the other was not (issue 22427).
 ///
 /// Extended to all operations as there is a risk of similar bugs with other
@@ -10,51 +10,67 @@
 
 import "package:expect/expect.dart";
 
-@AssumeDynamic() @NoInline()
+@AssumeDynamic()
+@NoInline()
 confuse(x) => x;
 
 class Thing1 {
-  operator&(b) => this;
-  operator|(b) => this;
-  operator^(b) => this;
-  operator<<(b) => this;
-  operator>>(b) => this;
+  operator &(b) => this;
+  operator |(b) => this;
+  operator ^(b) => this;
+  operator <<(b) => this;
+  operator >>(b) => this;
 
-  operator+(b) => this;
-  operator-(b) => this;
-  operator*(b) => this;
-  operator/(b) => this;
-  operator~/(b) => this;
-  operator%(b) => this;
+  operator +(b) => this;
+  operator -(b) => this;
+  operator *(b) => this;
+  operator /(b) => this;
+  operator ~/(b) => this;
+  operator %(b) => this;
   remainder(b) => this;
 
-  operator<(b) => this;
-  operator<=(b) => this;
-  operator>(b) => this;
-  operator>=(b) => this;
+  operator <(b) => this;
+  operator <=(b) => this;
+  operator >(b) => this;
+  operator >=(b) => this;
 }
 
 class Thing2 {
-  @NoInline() operator&(b) => this;
-  @NoInline() operator|(b) => this;
-  @NoInline() operator^(b) => this;
-  @NoInline() operator<<(b) => this;
-  @NoInline() operator>>(b) => this;
+  @NoInline()
+  operator &(b) => this;
+  @NoInline()
+  operator |(b) => this;
+  @NoInline()
+  operator ^(b) => this;
+  @NoInline()
+  operator <<(b) => this;
+  @NoInline()
+  operator >>(b) => this;
 
-  @NoInline() operator+(b) => this;
-  @NoInline() operator-(b) => this;
-  @NoInline() operator*(b) => this;
-  @NoInline() operator/(b) => this;
-  @NoInline() operator~/(b) => this;
-  @NoInline() operator%(b) => this;
-  @NoInline() remainder(b) => this;
+  @NoInline()
+  operator +(b) => this;
+  @NoInline()
+  operator -(b) => this;
+  @NoInline()
+  operator *(b) => this;
+  @NoInline()
+  operator /(b) => this;
+  @NoInline()
+  operator ~/(b) => this;
+  @NoInline()
+  operator %(b) => this;
+  @NoInline()
+  remainder(b) => this;
 
-  @NoInline() operator<(b) => this;
-  @NoInline() operator<=(b) => this;
-  @NoInline() operator>(b) => this;
-  @NoInline() operator>=(b) => this;
+  @NoInline()
+  operator <(b) => this;
+  @NoInline()
+  operator <=(b) => this;
+  @NoInline()
+  operator >(b) => this;
+  @NoInline()
+  operator >=(b) => this;
 }
-
 
 confused() {
   var a = new Thing1();
@@ -122,7 +138,7 @@ direct2() {
   Expect.equals(a, (a >= 5) >= 2);
 }
 
-main () {
+main() {
   confused();
   direct1();
   direct2();

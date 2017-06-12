@@ -38,8 +38,12 @@ class MixedFields extends OneField {
   final d = new Mark('d');
   MixedFields();
   MixedFields.c0() : c = new Mark('cc');
-  MixedFields.c1() : c = new Mark('cc'), super();
-  MixedFields.c2() : super(), c = new Mark('cc');
+  MixedFields.c1()
+      : c = new Mark('cc'),
+        super();
+  MixedFields.c2()
+      : super(),
+        c = new Mark('cc');
 }
 
 String run(callback) {

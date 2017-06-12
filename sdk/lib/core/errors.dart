@@ -363,7 +363,7 @@ class RangeError extends ArgumentError {
  * and the invalid index itself.
  */
 class IndexError extends ArgumentError implements RangeError {
-  /** The indexable object that [index] was not a valid index into. */
+  /** The indexable object that [invalidValue] was not a valid index into. */
   final indexable;
   /** The length of [indexable] at the time of the error. */
   final int length;

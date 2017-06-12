@@ -10,7 +10,8 @@ import 'dart:io' show stdout, exit, exitCode;
 
 import 'package:testing/testing.dart' show StdioProcess;
 
-import 'testing/kernel_chain.dart' show computeDartVm, computePatchedSdk;
+import 'testing/patched_sdk_location.dart'
+    show computeDartVm, computePatchedSdk;
 
 import 'compiler_context.dart' show CompilerContext;
 

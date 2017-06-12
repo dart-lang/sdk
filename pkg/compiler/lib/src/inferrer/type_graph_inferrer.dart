@@ -8,6 +8,7 @@ import 'dart:collection' show Queue;
 
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../tree/tree.dart' as ast show Node;
 import '../types/masks.dart'
     show CommonMasks, ContainerTypeMask, MapTypeMask, TypeMask;
@@ -62,7 +63,7 @@ class TypeGraphInferrer implements TypesInferrer {
 
   TypeMask get _dynamicType => commonMasks.dynamicType;
 
-  void analyzeMain(Element main) {
+  void analyzeMain(FunctionEntity main) {
     inferrer =
         new InferrerEngine(compiler, closedWorld, closedWorldRefiner, main);
     inferrer.runOverAllElements();
@@ -114,9 +115,9 @@ class TypeGraphInferrer implements TypesInferrer {
     }
 
     TypeMask result = const TypeMask.nonNullEmpty();
-    Iterable<Element> elements =
-        inferrer.closedWorld.allFunctions.filter(selector, mask);
-    for (Element element in elements) {
+    Iterable<MemberEntity> elements =
+        inferrer.closedWorld.locateMembers(selector, mask);
+    for (MemberElement element in elements) {
       TypeMask type =
           inferrer.typeOfElementWithSelector(element, selector).type;
       result = result.union(type, inferrer.closedWorld);

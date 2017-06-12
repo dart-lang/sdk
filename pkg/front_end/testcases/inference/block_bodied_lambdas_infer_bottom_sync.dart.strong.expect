@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field dynamic h = null;
+static method foo((core::Object) → core::int f) → void {}
+static method main() → dynamic {
+  (core::Object) → core::Null f = (core::Object x) → core::Null {
+    return null;
+  };
+  core::String y = f.call(42);
+  f = (core::Object x) → core::String => "hello";
+  self::foo((core::Object x) → core::Null {
+    return null;
+  });
+  self::foo((core::Object x) → core::Null {
+    throw "not implemented";
+  });
+}

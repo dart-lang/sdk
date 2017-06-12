@@ -12,4 +12,3 @@ main() {
   Expect.isNull(const int.fromEnvironment('d'));
   Expect.isNull(const int.fromEnvironment('e'));
 }
-

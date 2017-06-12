@@ -4,15 +4,16 @@
 
 import 'dart:async';
 
-import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:kernel/ast.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:kernel/text/ast_to_text.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'src/incremental/mock_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,118 +21,483 @@ main() {
   });
 }
 
-final _sdkSummary = _readSdkSummary();
-
-List<int> _readSdkSummary() {
-  var resourceProvider = PhysicalResourceProvider.INSTANCE;
-  var sdk = new FolderBasedDartSdk(resourceProvider,
-      FolderBasedDartSdk.defaultSdkDirectory(resourceProvider))
-    ..useSummary = true;
-  var path = resourceProvider.pathContext
-      .join(sdk.directory.path, 'lib', '_internal', 'strong.sum');
-  return resourceProvider.getFile(path).readAsBytesSync();
-}
-
 @reflectiveTest
 class IncrementalKernelGeneratorTest {
-  static final sdkSummaryUri = Uri.parse('special:sdk_summary');
-
   /// Virtual filesystem for testing.
-  final fileSystem = new MemoryFileSystem(pathos.posix, Uri.parse('file:///'));
+  final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
 
   /// The object under test.
   IncrementalKernelGenerator incrementalKernelGenerator;
 
-  Future<Map<Uri, Program>> getInitialState(Uri startingUri) async {
-    fileSystem.entityForUri(sdkSummaryUri).writeAsBytesSync(_sdkSummary);
-    incrementalKernelGenerator = new IncrementalKernelGenerator(
-        startingUri,
-        new CompilerOptions()
-          ..fileSystem = fileSystem
-          ..chaseDependencies = true
-          ..sdkSummary = sdkSummaryUri
-          ..packagesFileUri = new Uri());
-    return (await incrementalKernelGenerator.computeDelta()).newState;
+  /// Compute the initial [Program] for the given [entryPoint].
+  Future<Program> getInitialState(Uri entryPoint) async {
+    Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
+    // TODO(scheglov) Builder the SDK kernel and set it into the options.
+
+    // TODO(scheglov) Make `.packages` file optional.
+
+    var compilerOptions = new CompilerOptions()
+      ..fileSystem = fileSystem
+      ..byteStore = new MemoryByteStore()
+//      ..logger = new PerformanceLog(stdout)
+      ..strongMode = true
+      ..chaseDependencies = true
+      ..dartLibraries = dartLibraries
+      ..packagesFileUri = Uri.parse('file:///test/.packages');
+    incrementalKernelGenerator = await IncrementalKernelGenerator.newInstance(
+        compilerOptions, entryPoint);
+    return (await incrementalKernelGenerator.computeDelta()).newProgram;
   }
 
-  test_incrementalUpdate_referenceToCore() async {
-    writeFiles({'/foo.dart': 'main() { print(1); }'});
-    var fooUri = Uri.parse('file:///foo.dart');
-    var coreUri = Uri.parse('dart:core');
-    var initialState = await getInitialState(fooUri);
-    expect(initialState.keys, unorderedEquals([fooUri]));
+  test_compile_chain() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    Uri aUri = writeFile(aPath, 'var a = 1;');
+    Uri bUri = writeFile(
+        bPath,
+        r'''
+import 'a.dart';
+var b = a;
+''');
+    Uri cUri = writeFile(
+        cPath,
+        r'''
+import 'a.dart';
+import 'b.dart';
+var c1 = a;
+var c2 = b;
+''');
 
-    void _checkMain(Program program, int expectedArgument) {
-      expect(_getLibraryUris(program), unorderedEquals([fooUri, coreUri]));
-      var mainStatements = _getProcedureStatements(
-          _getProcedure(_getLibrary(program, fooUri), 'main'));
-      expect(mainStatements, hasLength(1));
-      _checkPrintLiteralInt(mainStatements[0], expectedArgument);
-      var coreLibrary = _getLibrary(program, coreUri);
-      expect(coreLibrary.procedures, hasLength(1));
-      expect(coreLibrary.procedures[0].name.name, 'print');
-      expect(coreLibrary.procedures[0].function.body, isNull);
+    {
+      Program program = await getInitialState(cUri);
+      _assertLibraryUris(program,
+          includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
+      Library library = _getLibrary(program, cUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field core::int c1 = a::a;
+static field core::int c2 = b::b;
+''');
     }
 
-    _checkMain(initialState[fooUri], 1);
-    writeFiles({'/foo.dart': 'main() { print(2); }'});
-    incrementalKernelGenerator.invalidateAll();
-    var deltaProgram = await incrementalKernelGenerator.computeDelta();
-    expect(deltaProgram.newState.keys, unorderedEquals([fooUri]));
-    _checkMain(deltaProgram.newState[fooUri], 2);
+    // Update b.dart and recompile c.dart
+    writeFile(
+        bPath,
+        r'''
+import 'a.dart';
+var b = 1.2;
+''');
+    incrementalKernelGenerator.invalidate(bUri);
+    {
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program,
+          includes: [bUri, cUri], excludes: [aUri, Uri.parse('dart:core')]);
+      Library library = _getLibrary(program, cUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field core::int c1 = a::a;
+static field core::double c2 = b::b;
+''');
+    }
   }
 
-  test_part() async {
-    writeFiles({
-      '/foo.dart': 'library foo; part "bar.dart"; main() { print(1); f(); }',
-      '/bar.dart': 'part of foo; f() { print(2); }'
-    });
-    var fooUri = Uri.parse('file:///foo.dart');
-    var initialState = await getInitialState(fooUri);
-    expect(initialState.keys, unorderedEquals([fooUri]));
-    var library = _getLibrary(initialState[fooUri], fooUri);
-    var mainStatements =
-        _getProcedureStatements(_getProcedure(library, 'main'));
-    var fProcedure = _getProcedure(library, 'f');
-    var fStatements = _getProcedureStatements(fProcedure);
-    expect(mainStatements, hasLength(2));
-    _checkPrintLiteralInt(mainStatements[0], 1);
-    _checkFunctionCall(mainStatements[1], fProcedure);
-    expect(fStatements, hasLength(1));
-    _checkPrintLiteralInt(fStatements[0], 2);
-    // TODO(paulberry): now test incremental updates
+  test_compile_export() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    writeFile(aPath, 'class A {}');
+    writeFile(bPath, 'export "a.dart";');
+    Uri cUri = writeFile(
+        cPath,
+        r'''
+import 'b.dart';
+A a;
+''');
+
+    Program program = await getInitialState(cUri);
+    Library library = _getLibrary(program, cUri);
+    expect(
+        _getLibraryText(library),
+        r'''
+library;
+import self as self;
+import "./a.dart" as a;
+
+static field a::A a;
+''');
+  }
+
+  test_compile_export_cycle() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    writeFile(aPath, 'export "b.dart"; class A {}');
+    writeFile(bPath, 'export "a.dart"; class B {}');
+    Uri cUri = writeFile(
+        cPath,
+        r'''
+import 'b.dart';
+A a;
+B b;
+''');
+
+    {
+      Program program = await getInitialState(cUri);
+      Library library = _getLibrary(program, cUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field a::A a;
+static field b::B b;
+''');
+    }
+
+    // Update c.dart and compile.
+    // We should load the cycle [a.dart, b.dart] from the byte store.
+    // This tests that we compute export scopes after loading.
+    writeFile(
+        cPath,
+        r'''
+import 'b.dart';
+A a;
+B b;
+int c;
+''');
+    incrementalKernelGenerator.invalidate(cUri);
+    {
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Program program = delta.newProgram;
+      Library library = _getLibrary(program, cUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "./a.dart" as a;
+import "./b.dart" as b;
+import "dart:core" as core;
+
+static field a::A a;
+static field b::B b;
+static field core::int c;
+''');
+    }
+  }
+
+  test_compile_export_hideWithLocal() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    writeFile(aPath, 'class A {} class B {}');
+    writeFile(bPath, 'export "a.dart"; class B {}');
+    Uri cUri = writeFile(
+        cPath,
+        r'''
+import 'b.dart';
+A a;
+B b;
+''');
+
+    Program program = await getInitialState(cUri);
+    Library library = _getLibrary(program, cUri);
+    expect(
+        _getLibraryText(library),
+        r'''
+library;
+import self as self;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field a::A a;
+static field b::B b;
+''');
+  }
+
+  test_compile_includePathToMain() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    String dPath = '/test/lib/d.dart';
+
+    // A --> B -> C
+    //   \-> D
+
+    Uri aUri = writeFile(
+        aPath,
+        r'''
+import 'b.dart';
+import 'd.dart';
+main() {
+  b();
+  d();
+}
+''');
+    Uri bUri = writeFile(
+        bPath,
+        r'''
+import 'c.dart';
+b() {
+  c();
+}
+''');
+    Uri cUri = writeFile(cPath, 'c() { print(0); }');
+    Uri dUri = writeFile(dPath, 'd() {}');
+
+    {
+      Program program = await getInitialState(aUri);
+      _assertLibraryUris(program,
+          includes: [aUri, bUri, cUri, dUri, Uri.parse('dart:core')]);
+    }
+
+    // Update c.dart and compute the delta.
+    // It should include the changed c.dart, the affected b.dart, and
+    // also a.dart because VM requires this (because of possible inlining).
+    // But d.dart is not on the path from main() to the changed c.dart,
+    // so it is not included.
+    writeFile(cPath, 'c() { print(1); }');
+    incrementalKernelGenerator.invalidate(cUri);
+    {
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program,
+          includes: [aUri, bUri, cUri],
+          excludes: [dUri, Uri.parse('dart:core')]);
+    }
+  }
+
+  test_compile_typedef() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    writeFile(aPath, 'typedef int F<T>(T x);');
+    Uri bUri = writeFile(
+        bPath,
+        r'''
+import 'a.dart';
+F<String> f;
+''');
+
+    Program program = await getInitialState(bUri);
+    Library library = _getLibrary(program, bUri);
+    expect(
+        _getLibraryText(library),
+        r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static field (core::String) → core::int f;
+''');
+  }
+
+  test_updateEntryPoint() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(
+        path,
+        r'''
+main() {
+  var v = 1;
+}
+''');
+
+    String initialText = r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::int v = 1;
+}
+''';
+
+    // Compute the initial state.
+    {
+      Program program = await getInitialState(uri);
+      Library library = _getLibrary(program, uri);
+      expect(_getLibraryText(library), initialText);
+    }
+
+    // Update the entry point library.
+    writeFile(
+        path,
+        r'''
+main() {
+  var v = 2.3;
+}
+''');
+
+    // We have not invalidated the file, so the delta is empty.
+    {
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      expect(delta.newProgram.libraries, isEmpty);
+    }
+
+    // Invalidate the file, so get the new text.
+    incrementalKernelGenerator.invalidate(uri);
+    {
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [uri]);
+      Library library = _getLibrary(program, uri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::double v = 2.3;
+}
+''');
+    }
+  }
+
+  test_updatePart() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String libPath = '/test/lib/test.dart';
+    String partPath = '/test/lib/bar.dart';
+    Uri libUri = writeFile(
+        libPath,
+        r'''
+library foo;
+part 'bar.dart';
+var a = 1;
+var c = b;
+void main() {}
+''');
+    Uri partUri = writeFile(
+        partPath,
+        r'''
+part of foo;
+var b = 2;
+var d = a;
+''');
+
+    // Check the initial state - types flow between the part and the library.
+    Program program = await getInitialState(libUri);
+    Library library = _getLibrary(program, libUri);
+    expect(
+        _getLibraryText(library),
+        r'''
+library foo;
+import self as self;
+import "dart:core" as core;
+
+static field core::int a = 1;
+static field core::int c = self::b;
+static field core::int b = 2 /* from file:///test/lib/bar.dart */;
+static field core::int d = self::a /* from file:///test/lib/bar.dart */;
+static method main() → void {}
+''');
+
+    // Update [b] in the part, the type is changed in the part and library.
+    {
+      writeFile(
+          partPath,
+          r'''
+part of foo;
+var b = 2.3;
+var d = a;
+''');
+      incrementalKernelGenerator.invalidate(partUri);
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Library library = _getLibrary(delta.newProgram, libUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library foo;
+import self as self;
+import "dart:core" as core;
+
+static field core::int a = 1;
+static field core::double c = self::b;
+static field core::double b = 2.3 /* from file:///test/lib/bar.dart */;
+static field core::int d = self::a /* from file:///test/lib/bar.dart */;
+static method main() → void {}
+''');
+    }
+
+    // Update [a] in the library, the type is changed in the part and library.
+    {
+      writeFile(
+          libPath,
+          r'''
+library foo;
+part 'bar.dart';
+var a = 'aaa';
+var c = b;
+void main() {}
+''');
+      incrementalKernelGenerator.invalidate(libUri);
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Library library = _getLibrary(delta.newProgram, libUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library foo;
+import self as self;
+import "dart:core" as core;
+
+static field core::String a = "aaa";
+static field core::double c = self::b;
+static field core::double b = 2.3 /* from file:///test/lib/bar.dart */;
+static field core::String d = self::a /* from file:///test/lib/bar.dart */;
+static method main() → void {}
+''');
+    }
+  }
+
+  /// Write the given [text] of the file with the given [path] into the
+  /// virtual filesystem.  Return the URI of the file.
+  Uri writeFile(String path, String text) {
+    Uri uri = Uri.parse('file://$path');
+    fileSystem.entityForUri(uri).writeAsStringSync(text);
+    return uri;
   }
 
   /// Write the given file contents to the virtual filesystem.
   void writeFiles(Map<String, String> contents) {
-    contents.forEach((path, text) {
-      fileSystem
-          .entityForUri(Uri.parse('file://$path'))
-          .writeAsStringSync(text);
-    });
+    contents.forEach(writeFile);
   }
 
-  void _checkFunctionCall(Statement statement, Procedure expectedTarget) {
-    expect(statement, new isInstanceOf<ExpressionStatement>());
-    var expressionStatement = statement as ExpressionStatement;
-    expect(
-        expressionStatement.expression, new isInstanceOf<StaticInvocation>());
-    var staticInvocation = expressionStatement.expression as StaticInvocation;
-    expect(staticInvocation.target, same(expectedTarget));
-  }
-
-  void _checkPrintLiteralInt(Statement statement, int expectedArgument) {
-    expect(statement, new isInstanceOf<ExpressionStatement>());
-    var expressionStatement = statement as ExpressionStatement;
-    expect(
-        expressionStatement.expression, new isInstanceOf<StaticInvocation>());
-    var staticInvocation = expressionStatement.expression as StaticInvocation;
-    expect(staticInvocation.target.name.name, 'print');
-    expect(staticInvocation.arguments.positional, hasLength(1));
-    expect(staticInvocation.arguments.positional[0],
-        new isInstanceOf<IntLiteral>());
-    var intLiteral = staticInvocation.arguments.positional[0] as IntLiteral;
-    expect(intLiteral.value, expectedArgument);
+  void _assertLibraryUris(Program program,
+      {List<Uri> includes: const [], List<Uri> excludes: const []}) {
+    List<Uri> libraryUris =
+        program.libraries.map((library) => library.importUri).toList();
+    for (var shouldInclude in includes) {
+      expect(libraryUris, contains(shouldInclude));
+    }
+    for (var shouldExclude in excludes) {
+      expect(libraryUris, isNot(contains(shouldExclude)));
+    }
   }
 
   Library _getLibrary(Program program, Uri uri) {
@@ -141,19 +507,10 @@ class IncrementalKernelGeneratorTest {
     throw fail('No library found with URI "$uri"');
   }
 
-  List<Uri> _getLibraryUris(Program program) =>
-      program.libraries.map((library) => library.importUri).toList();
-
-  Procedure _getProcedure(Library library, String name) {
-    for (var procedure in library.procedures) {
-      if (procedure.name.name == name) return procedure;
-    }
-    throw fail('No function declaration found with name "$name"');
-  }
-
-  List<Statement> _getProcedureStatements(Procedure procedure) {
-    var body = procedure.function.body;
-    expect(body, new isInstanceOf<Block>());
-    return (body as Block).statements;
+  String _getLibraryText(Library library) {
+    StringBuffer buffer = new StringBuffer();
+    new Printer(buffer, syntheticNames: new NameSystem())
+        .writeLibraryFile(library);
+    return buffer.toString();
   }
 }

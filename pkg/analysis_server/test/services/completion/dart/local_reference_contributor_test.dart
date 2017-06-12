@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.contributor.dart.local_ref;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
-    show Element, ElementKind;
-import 'package:analysis_server/plugin/protocol/protocol.dart'
-    hide Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
@@ -19,7 +13,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalReferenceContributorTest);
-    defineReflectiveTests(LocalReferenceContributorTest_Driver);
   });
 }
 
@@ -32,9 +25,9 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.LOCAL_VARIABLE));
+    expect(element.kind, equals(ElementKind.LOCAL_VARIABLE));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType, returnType != null ? returnType : 'dynamic');
@@ -47,9 +40,9 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.PARAMETER));
+    expect(element.kind, equals(ElementKind.PARAMETER));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType,
@@ -60,6 +53,79 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
     return new LocalReferenceContributor();
+  }
+
+  test_ArgDefaults_function() async {
+    addTestSource('''
+bool hasLength(int a, bool b) => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('hasLength', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: 'a, b',
+        defaultArgumentListTextRanges: [0, 1, 3, 1]);
+  }
+
+  test_ArgDefaults_function_none() async {
+    addTestSource('''
+bool hasLength() => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('hasLength', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: null,
+        defaultArgumentListTextRanges: null);
+  }
+
+  test_ArgDefaults_function_with_optional_positional() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+bool foo(int bar, [bool boo, int baz]) => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('foo', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: 'bar',
+        defaultArgumentListTextRanges: [0, 3]);
+  }
+
+  test_ArgDefaults_function_with_required_named() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+bool foo(int bar, {bool boo, @required int baz}) => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('foo', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: 'bar, baz: null',
+        defaultArgumentListTextRanges: [0, 3, 10, 4]);
+  }
+
+  test_ArgDefaults_method_with_required_named() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+class A {
+  bool foo(int bar, {bool boo, @required int baz}) => false;
+  baz() {
+    f^
+  }
+}''');
+    await computeSuggestions();
+
+    assertSuggestMethod('foo', 'A', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_METHOD,
+        defaultArgListString: 'bar, baz: null',
+        defaultArgumentListTextRanges: [0, 3, 10, 4]);
   }
 
   test_ArgumentList() async {
@@ -349,6 +415,37 @@ void main() {new B().bar(^);}''');
     assertNotSuggested('print');
   }
 
+  test_ArgumentList_namedFieldParam_tear_off() async {
+    addSource(
+        '/libA.dart',
+        '''
+typedef void VoidCallback();
+        
+class Button {
+  final VoidCallback onPressed;
+  Button({this.onPressed});
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+
+class PageState {
+  void _incrementCounter() { }
+  build() =>
+    new Button(
+      onPressed: ^
+    );  
+}    
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
+    assertSuggest('_incrementCounter',
+        csKind: CompletionSuggestionKind.IDENTIFIER);
+  }
+
   test_ArgumentList_namedParam() async {
     // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
     // ExpressionStatement
@@ -406,6 +503,96 @@ void main() {expect(foo: ^)}''');
         relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
     assertSuggestTopLevelVar('e', 'E',
         relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+  }
+
+  test_ArgumentList_namedParam_tear_off() async {
+    addSource(
+        '/libA.dart',
+        '''
+typedef void VoidCallback();
+        
+class Button {
+  Button({VoidCallback onPressed});
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+
+class PageState {
+  void _incrementCounter() { }
+  build() =>
+    new Button(
+      onPressed: ^
+    );  
+}    
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
+    assertSuggest('_incrementCounter',
+        csKind: CompletionSuggestionKind.IDENTIFIER);
+  }
+
+  test_ArgumentList_namedParam_tear_off_1() async {
+    addSource(
+        '/libA.dart',
+        '''
+typedef void VoidCallback();
+        
+class Button {
+  Button({VoidCallback onPressed, int x});
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+
+class PageState {
+  void _incrementCounter() { }
+  build() =>
+    new Button(
+      onPressed: ^
+    );  
+}    
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
+    assertSuggest('_incrementCounter',
+        csKind: CompletionSuggestionKind.IDENTIFIER);
+  }
+
+  test_ArgumentList_namedParam_tear_off_2() async {
+    addSource(
+        '/libA.dart',
+        '''
+typedef void VoidCallback();
+        
+class Button {
+  Button({ int x, VoidCallback onPressed);
+}
+''');
+    addTestSource('''
+import '/libA.dart';
+
+class PageState {
+  void _incrementCounter() { }
+  build() =>
+    new Button(
+      onPressed: ^
+    );  
+}    
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
+    assertSuggest('_incrementCounter',
+        csKind: CompletionSuggestionKind.IDENTIFIER);
   }
 
   test_AsExpression_type() async {
@@ -1960,7 +2147,6 @@ class A {a(blat: ^) { }}''');
     assertSuggestClass('A');
     assertNotSuggested('String');
     assertNotSuggested('identical');
-    assertNotSuggested('bar');
   }
 
   test_doc_classMember() async {
@@ -4589,85 +4775,5 @@ class C {bar(){var f; {var x;} var e = ^ var g}}''');
     assertSuggestLocalVariable('f', null);
     assertNotSuggested('x');
     assertNotSuggested('e');
-  }
-}
-
-@reflectiveTest
-class LocalReferenceContributorTest_Driver
-    extends LocalReferenceContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  test_ArgDefaults_function() async {
-    addTestSource('''
-bool hasLength(int a, bool b) => false;
-void main() {h^}''');
-    await computeSuggestions();
-
-    assertSuggestFunction('hasLength', 'bool',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
-        defaultArgListString: 'a, b',
-        defaultArgumentListTextRanges: [0, 1, 3, 1]);
-  }
-
-  test_ArgDefaults_function_none() async {
-    addTestSource('''
-bool hasLength() => false;
-void main() {h^}''');
-    await computeSuggestions();
-
-    assertSuggestFunction('hasLength', 'bool',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
-        defaultArgListString: null,
-        defaultArgumentListTextRanges: null);
-  }
-
-  test_ArgDefaults_function_with_optional_positional() async {
-    addMetaPackageSource();
-    addTestSource('''
-import 'package:meta/meta.dart';
-
-bool foo(int bar, [bool boo, int baz]) => false;
-void main() {h^}''');
-    await computeSuggestions();
-
-    assertSuggestFunction('foo', 'bool',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
-        defaultArgListString: 'bar',
-        defaultArgumentListTextRanges: [0, 3]);
-  }
-
-  test_ArgDefaults_function_with_required_named() async {
-    addMetaPackageSource();
-    addTestSource('''
-import 'package:meta/meta.dart';
-
-bool foo(int bar, {bool boo, @required int baz}) => false;
-void main() {h^}''');
-    await computeSuggestions();
-
-    assertSuggestFunction('foo', 'bool',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
-        defaultArgListString: 'bar, baz: null',
-        defaultArgumentListTextRanges: [0, 3, 10, 4]);
-  }
-
-  test_ArgDefaults_method_with_required_named() async {
-    addMetaPackageSource();
-    addTestSource('''
-import 'package:meta/meta.dart';
-
-class A {
-  bool foo(int bar, {bool boo, @required int baz}) => false;
-  baz() {
-    f^
-  }
-}''');
-    await computeSuggestions();
-
-    assertSuggestMethod('foo', 'A', 'bool',
-        relevance: DART_RELEVANCE_LOCAL_METHOD,
-        defaultArgListString: 'bar, baz: null',
-        defaultArgumentListTextRanges: [0, 3, 10, 4]);
   }
 }

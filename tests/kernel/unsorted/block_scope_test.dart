@@ -12,7 +12,8 @@ test0() {
   var x = 'outer', y = x;
   Expect.isTrue(x == 'outer');
   Expect.isTrue(y == 'outer');
-  { var x = 'inner';
+  {
+    var x = 'inner';
     Expect.isTrue(x == 'inner');
     Expect.isTrue(y == 'outer');
   }
@@ -36,7 +37,8 @@ test1() {
   var y = 'outer';
   Expect.isTrue(x == 'toplevel');
   Expect.isTrue(y == 'outer');
-  { var x = 'inner';
+  {
+    var x = 'inner';
     Expect.isTrue(x == 'inner');
     Expect.isTrue(y == 'outer');
   }

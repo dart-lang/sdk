@@ -5,7 +5,7 @@
 import 'package:front_end/src/base/errors.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/scanner/error_token.dart';
-import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 
 /**
@@ -140,7 +140,7 @@ bool _isAtEnd(Token token, int charOffset) {
     if (token.isEof) return token.charOffset == charOffset;
     // If we've found a non-error token, then we know there is additional input
     // text after [charOffset].
-    if (token.info.kind != BAD_INPUT_TOKEN) return false;
+    if (token.type.kind != BAD_INPUT_TOKEN) return false;
     // Otherwise keep looking.
   }
 }

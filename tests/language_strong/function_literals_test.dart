@@ -49,30 +49,56 @@ class FunctionLiteralsTest {
   }
 
   void testArrowArrow() {
-    checkIntFuncFunction(84, (x) => (y) => x+y, 42);
-    checkIntFuncFunction(84, (int x) => (y) => x+y, 42);
-    checkIntFuncFunction(84, (x) => (y) => x+y, 42);
-    checkIntFuncFunction(84, (int x) => (y) => x+y, 42);
+    checkIntFuncFunction(84, (x) => (y) => x + y, 42);
+    checkIntFuncFunction(84, (int x) => (y) => x + y, 42);
+    checkIntFuncFunction(84, (x) => (y) => x + y, 42);
+    checkIntFuncFunction(84, (int x) => (y) => x + y, 42);
   }
 
   void testArrowBlock() {
-    checkIntFuncFunction(84, (x) => (y) { return x+y; }, 42);
-    checkIntFuncFunction(84, (int x) => (y) { return x+y; }, 42);
+    checkIntFuncFunction(
+        84,
+        (x) => (y) {
+              return x + y;
+            },
+        42);
+    checkIntFuncFunction(
+        84,
+        (int x) => (y) {
+              return x + y;
+            },
+        42);
   }
 
   void testBlock() {
-    checkIntFunction(42, (x) { return x; }, 42);
-    checkIntFunction(42, (int x) { return x; }, 42);
+    checkIntFunction(42, (x) {
+      return x;
+    }, 42);
+    checkIntFunction(42, (int x) {
+      return x;
+    }, 42);
   }
 
   void testBlockArrow() {
-    checkIntFuncFunction(84, (x) { return (y) => x+y; }, 42);
-    checkIntFuncFunction(84, (int x) { return (y) => x+y; }, 42);
+    checkIntFuncFunction(84, (x) {
+      return (y) => x + y;
+    }, 42);
+    checkIntFuncFunction(84, (int x) {
+      return (y) => x + y;
+    }, 42);
   }
 
   void testBlockBlock() {
-    checkIntFuncFunction(84, (x) { return (y) { return x+y; }; }, 42);
-    checkIntFuncFunction(84, (int x) { return (y) { return x+y; }; }, 42);
+    checkIntFuncFunction(84, (x) {
+      return (y) {
+        return x + y;
+      };
+    }, 42);
+    checkIntFuncFunction(84, (int x) {
+      return (y) {
+        return x + y;
+      };
+    }, 42);
   }
 
   void testFunctionRef() {
@@ -82,7 +108,6 @@ class FunctionLiteralsTest {
     checkIntFunction(42, func4, 42);
   }
 }
-
 
 main() {
   FunctionLiteralsTest.testMain();

@@ -532,7 +532,7 @@ final Map<String, Message> MESSAGES = {
       categories: [Category.staticTypeWarning],
       template: "The method '#{memberName}' is not defined for the class"
           " '#{className}', but a constructor with that name is defined.",
-      howToFix: "Try adding 'new' or 'const' to invoke the constuctor, or "
+      howToFix: "Try adding 'new' or 'const' to invoke the constructor, or "
           "change the method name.",
       usedBy: [analyzer],
       examples: const [

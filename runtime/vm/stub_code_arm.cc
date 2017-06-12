@@ -6,14 +6,14 @@
 #if defined(TARGET_ARCH_ARM)
 
 #include "vm/assembler.h"
-#include "vm/code_generator.h"
-#include "vm/cpu.h"
 #include "vm/compiler.h"
+#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
+#include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/tags.h"
@@ -129,7 +129,8 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   R9 : address of the native function to call.
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
+static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
+                                              Address wrapper) {
   const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
@@ -189,7 +190,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ mov(R1, Operand(R9));  // Pass the function entrypoint to call.
 
   // Call native function invocation wrapper or redirection via simulator.
-  __ ldr(LR, Address(THR, Thread::native_call_wrapper_entry_point_offset()));
+  __ ldr(LR, wrapper);
   __ blx(LR);
 
   // Mark that the thread is executing Dart code.
@@ -205,13 +206,27 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateCallNoScopeNativeStub(Assembler* assembler) {
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR, Thread::no_scope_native_wrapper_entry_point_offset()));
+}
+
+
+void StubCode::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR, Thread::auto_scope_native_wrapper_entry_point_offset()));
+}
+
+
 // Input parameters:
 //   LR : return address.
 //   SP : address of return value.
 //   R9 : address of the native function to call.
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
-void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
+void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
@@ -464,7 +479,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
       __ vstmd(DB_W, SP, D0, kNumberOfDRegisters);
     }
   } else {
-    __ AddImmediate(SP, SP, -kNumberOfFpuRegisters * kFpuRegisterSize);
+    __ AddImmediate(SP, -kNumberOfFpuRegisters * kFpuRegisterSize);
   }
 
   __ mov(R0, Operand(SP));  // Pass address of saved registers block.
@@ -591,6 +606,12 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ Push(R8);  // Receiver.
   __ Push(R9);  // ICData/MegamorphicCache.
   __ Push(R4);  // Arguments descriptor.
+
+  // Adjust arguments count.
+  __ ldr(R3, FieldAddress(R4, ArgumentsDescriptor::type_args_len_offset()));
+  __ cmp(R3, Operand(0));
+  __ AddImmediate(R2, R2, Smi::RawValue(1), NE);  // Include the type arguments.
+
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
   const intptr_t kNumArgs = 4;
@@ -673,9 +694,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   const intptr_t cid = kArrayCid;
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R4, &slow_case));
 
-  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ LoadImmediate(R9, fixed_size);
-  __ add(R9, R9, Operand(R3, LSL, 1));  // R3 is  a Smi.
+  const intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawArray) + kObjectAlignment - 1;
+  __ LoadImmediate(R9, fixed_size_plus_alignment_padding);
+  __ add(R9, R9, Operand(R3, LSL, 1));  // R3 is a Smi.
   ASSERT(kSmiTagShift == 1);
   __ bic(R9, R9, Operand(kObjectAlignment - 1));
 
@@ -830,7 +852,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Compute address of 'arguments array' data area into R2.
   __ ldr(R2, Address(R2, VMHandles::kOffsetOfRawPtrInHandle));
-  __ AddImmediate(R2, R2, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R2, Array::data_offset() - kHeapObjectTag);
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -894,8 +916,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label slow_case;
     // First compute the rounded instance size.
     // R1: number of context variables.
-    intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
-    __ LoadImmediate(R2, fixed_size);
+    intptr_t fixed_size_plus_alignment_padding =
+        sizeof(RawContext) + kObjectAlignment - 1;
+    __ LoadImmediate(R2, fixed_size_plus_alignment_padding);
     __ add(R2, R2, Operand(R1, LSL, 2));
     ASSERT(kSmiTagShift == 1);
     __ bic(R2, R2, Operand(kObjectAlignment - 1));
@@ -1236,6 +1259,11 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ LoadImmediate(IP, 0);
   __ PushList((1 << R4) | (1 << R8) | (1 << IP));
 
+  // Adjust arguments count.
+  __ ldr(R3, FieldAddress(R4, ArgumentsDescriptor::type_args_len_offset()));
+  __ cmp(R3, Operand(0));
+  __ AddImmediate(R2, R2, Smi::RawValue(1), NE);  // Include the type arguments.
+
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
 
@@ -1322,7 +1350,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   // R9: IC data object (preserved).
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
   // R8: ic_data_array with check entries: classes and target functions.
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
 // R8: points directly to the first ic data array element.
 #if defined(DEBUG)
   // Check that first entry is for Smi/Smi.
@@ -1621,7 +1649,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // R9: IC data object (preserved).
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
   // R8: ic_data_array with entries: target functions and count.
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: points directly to the first ic data array element.
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
@@ -1739,68 +1767,77 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: instantiator type arguments or NULL.
-// R2: cache array.
+// R2: instantiator type arguments (only if n == 4, can be raw_null).
+// R1: function type arguments (only if n == 4, can be raw_null).
+// R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT((1 <= n) && (n <= 3));
+  ASSERT((n == 1) || (n == 2) || (n == 4));
   if (n > 1) {
-    // Get instance type arguments.
-    __ LoadClass(R3, R0, R4);
+    __ LoadClass(R8, R0, R4);
     // Compute instance type arguments into R4.
     Label has_no_type_arguments;
     __ LoadObject(R4, Object::null_object());
     __ ldr(R9, FieldAddress(
-                   R3, Class::type_arguments_field_offset_in_words_offset()));
+                   R8, Class::type_arguments_field_offset_in_words_offset()));
     __ CompareImmediate(R9, Class::kNoTypeArguments);
     __ b(&has_no_type_arguments, EQ);
     __ add(R9, R0, Operand(R9, LSL, 2));
     __ ldr(R4, FieldAddress(R9, 0));
     __ Bind(&has_no_type_arguments);
   }
-  __ LoadClassId(R3, R0);
+  __ LoadClassId(R8, R0);
   // R0: instance.
-  // R1: instantiator type arguments or NULL.
-  // R2: SubtypeTestCache.
-  // R3: instance class id.
+  // R2: instantiator type arguments (only if n == 4, can be raw_null).
+  // R1: function type arguments (only if n == 4, can be raw_null).
+  // R3: SubtypeTestCache.
+  // R8: instance class id.
   // R4: instance type arguments (null if none), used only if n > 1.
-  __ ldr(R2, FieldAddress(R2, SubtypeTestCache::cache_offset()));
-  __ AddImmediate(R2, Array::data_offset() - kHeapObjectTag);
+  __ ldr(R3, FieldAddress(R3, SubtypeTestCache::cache_offset()));
+  __ AddImmediate(R3, Array::data_offset() - kHeapObjectTag);
 
   Label loop, found, not_found, next_iteration;
-  // R2: entry start.
-  // R3: instance class id.
+  // R3: entry start.
+  // R8: instance class id.
   // R4: instance type arguments (still null if closure).
-  __ SmiTag(R3);
-  __ CompareImmediate(R3, Smi::RawValue(kClosureCid));
-  __ ldr(R4, FieldAddress(R0, Closure::instantiator_offset()), EQ);
-  __ ldr(R3, FieldAddress(R0, Closure::function_offset()), EQ);
-  // R3: instance class id as Smi or function.
+  __ SmiTag(R8);
+  __ CompareImmediate(R8, Smi::RawValue(kClosureCid));
+  __ b(&loop, NE);
+  __ ldr(R4, FieldAddress(R0, Closure::function_type_arguments_offset()));
+  __ CompareObject(R4, Object::null_object());
+  __ b(&not_found, NE);  // Cache cannot be used for generic closures.
+  __ ldr(R4, FieldAddress(R0, Closure::instantiator_type_arguments_offset()));
+  __ ldr(R8, FieldAddress(R0, Closure::function_offset()));
+  // R8: instance class id as Smi or function.
   __ Bind(&loop);
   __ ldr(R9,
-         Address(R2, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
+         Address(R3, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
   __ CompareObject(R9, Object::null_object());
   __ b(&not_found, EQ);
-  __ cmp(R9, Operand(R3));
+  __ cmp(R9, Operand(R8));
   if (n == 1) {
     __ b(&found, EQ);
   } else {
     __ b(&next_iteration, NE);
     __ ldr(R9,
-           Address(R2, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
+           Address(R3, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
     __ cmp(R9, Operand(R4));
     if (n == 2) {
       __ b(&found, EQ);
     } else {
       __ b(&next_iteration, NE);
-      __ ldr(R9, Address(R2, kWordSize *
+      __ ldr(R9, Address(R3, kWordSize *
                                  SubtypeTestCache::kInstantiatorTypeArguments));
+      __ cmp(R9, Operand(R2));
+      __ b(&next_iteration, NE);
+      __ ldr(R9,
+             Address(R3, kWordSize * SubtypeTestCache::kFunctionTypeArguments));
       __ cmp(R9, Operand(R1));
       __ b(&found, EQ);
     }
   }
   __ Bind(&next_iteration);
-  __ AddImmediate(R2, kWordSize * SubtypeTestCache::kTestEntryLength);
+  __ AddImmediate(R3, kWordSize * SubtypeTestCache::kTestEntryLength);
   __ b(&loop);
   // Fall through to not found.
   __ Bind(&not_found);
@@ -1808,7 +1845,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ Ret();
 
   __ Bind(&found);
-  __ ldr(R1, Address(R2, kWordSize * SubtypeTestCache::kTestResult));
+  __ ldr(R1, Address(R3, kWordSize * SubtypeTestCache::kTestResult));
   __ Ret();
 }
 
@@ -1816,8 +1853,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: instantiator type arguments or NULL.
-// R2: cache array.
+// R2: unused.
+// R1: unused.
+// R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 1);
@@ -1827,8 +1865,9 @@ void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: instantiator type arguments or NULL.
-// R2: cache array.
+// R2: unused.
+// R1: unused.
+// R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 2);
@@ -1838,11 +1877,12 @@ void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).
-// R1: instantiator type arguments or NULL.
-// R2: cache array.
+// R2: instantiator type arguments (can be raw_null).
+// R1: function type arguments (can be raw_null).
+// R3: SubtypeTestCache.
 // Result in R1: null -> not found, otherwise result (true or false).
-void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
+void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 4);
 }
 
 
@@ -2128,7 +2168,7 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
   // R1: receiver cid as Smi
@@ -2163,7 +2203,7 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
   // R1: receiver cid as Smi

@@ -75,9 +75,12 @@ class InstrumentationService {
   static const String TAG_LOG_ENTRY = 'Log';
   static const String TAG_NOTIFICATION = 'Noti';
   static const String TAG_PERFORMANCE = 'Perf';
+  static const String TAG_PLUGIN_ERROR = 'PluginErr';
+  static const String TAG_PLUGIN_EXCEPTION = 'PluginEx';
   static const String TAG_PLUGIN_NOTIFICATION = 'PluginNoti';
   static const String TAG_PLUGIN_REQUEST = 'PluginReq';
   static const String TAG_PLUGIN_RESPONSE = 'PluginRes';
+  static const String TAG_PLUGIN_TIMEOUT = 'PluginTo';
   static const String TAG_REQUEST = 'Req';
   static const String TAG_RESPONSE = 'Res';
   static const String TAG_SUBPROCESS_START = 'SPStart';
@@ -204,24 +207,66 @@ class InstrumentationService {
     }
   }
 
-  void logPluginNotification(Uri pluginUri, String notification) {
+  /**
+   * Log the fact that an error, described by the given [message], was reported
+   * by the given [plugin].
+   */
+  void logPluginError(
+      PluginData plugin, String code, String message, String stackTrace) {
+    List<String> fields = <String>[TAG_PLUGIN_ERROR, code, message, stackTrace];
+    plugin.addToFields(fields);
+    _instrumentationServer.log(_join(fields));
+  }
+
+  /**
+   * Log that the given non-priority [exception] was thrown, with the given
+   * [stackTrace] by the given [plugin].
+   */
+  void logPluginException(
+      PluginData plugin, dynamic exception, StackTrace stackTrace) {
+    if (_instrumentationServer != null) {
+      List<String> fields = <String>[
+        TAG_PLUGIN_EXCEPTION,
+        _toString(exception),
+        _toString(stackTrace)
+      ];
+      plugin.addToFields(fields);
+      _instrumentationServer.log(_join(fields));
+    }
+  }
+
+  void logPluginNotification(String pluginId, String notification) {
     if (_instrumentationServer != null) {
       _instrumentationServer.log(
-          _join([TAG_PLUGIN_NOTIFICATION, _toString(pluginUri), notification]));
+          _join([TAG_PLUGIN_NOTIFICATION, notification, pluginId, '', '']));
     }
   }
 
-  void logPluginRequest(Uri pluginUri, String request) {
+  void logPluginRequest(String pluginId, String request) {
     if (_instrumentationServer != null) {
       _instrumentationServer
-          .log(_join([TAG_PLUGIN_REQUEST, _toString(pluginUri), request]));
+          .log(_join([TAG_PLUGIN_REQUEST, request, pluginId, '', '']));
     }
   }
 
-  void logPluginResponse(Uri pluginUri, String response) {
+  void logPluginResponse(String pluginId, String response) {
     if (_instrumentationServer != null) {
       _instrumentationServer
-          .log(_join([TAG_PLUGIN_RESPONSE, _toString(pluginUri), response]));
+          .log(_join([TAG_PLUGIN_RESPONSE, response, pluginId, '', '']));
+    }
+  }
+
+  /**
+   * Log that the given [plugin] took too long to execute the given [request].
+   * This doesn't necessarily imply that there is a problem with the plugin,
+   * only that this particular response was not included in the data returned
+   * to the client.
+   */
+  void logPluginTimeout(PluginData plugin, String request) {
+    if (_instrumentationServer != null) {
+      List<String> fields = <String>[TAG_PLUGIN_TIMEOUT, request];
+      plugin.addToFields(fields);
+      _instrumentationServer.log(_join(fields));
     }
   }
 
@@ -364,7 +409,7 @@ class InstrumentationService {
     int length = fields.length;
     for (int i = 0; i < length; i++) {
       buffer.write(':');
-      _escape(buffer, fields[i]);
+      _escape(buffer, fields[i] ?? 'null');
     }
     return buffer.toString();
   }
@@ -426,5 +471,40 @@ class MulticastInstrumentationServer implements InstrumentationServer {
     for (InstrumentationServer server in _servers) {
       await server.shutdown();
     }
+  }
+}
+
+/**
+ * Information about a plugin.
+ */
+class PluginData {
+  /**
+   * The id used to uniquely identify the plugin.
+   */
+  final String pluginId;
+
+  /**
+   * The name of the plugin.
+   */
+  final String name;
+
+  /**
+   * The version of the plugin.
+   */
+  final String version;
+
+  /**
+   * Initialize a newly created set of data about a plugin.
+   */
+  PluginData(this.pluginId, this.name, this.version);
+
+  /**
+   * Add the information about the plugin to the list of [fields] to be sent to
+   * the instrumentation server.
+   */
+  void addToFields(List<String> fields) {
+    fields.add(pluginId);
+    fields.add(name ?? '');
+    fields.add(version ?? '');
   }
 }

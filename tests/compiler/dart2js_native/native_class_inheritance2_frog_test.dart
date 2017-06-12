@@ -11,7 +11,7 @@ import "native_testing.dart";
 
 @Native("A")
 class A {
-  foo([a = 100]) native ;
+  foo([a = 100]) native;
 }
 
 @Native("B")
@@ -19,19 +19,19 @@ class B extends A {}
 
 @Native("C")
 class C extends B {
-  foo([z = 300]) native ;
+  foo([z = 300]) native;
 }
 
 @Native("D")
 class D extends C {}
 
-makeA() native ;
-makeB() native ;
-makeC() native ;
-makeD() native ;
+makeA() native;
+makeB() native;
+makeC() native;
+makeD() native;
 
 void setup() native """
-// This code is all inside 'setup' and so not accesible from the global scope.
+// This code is all inside 'setup' and so not accessible from the global scope.
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;

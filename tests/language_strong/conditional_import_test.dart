@@ -8,8 +8,7 @@ import "package:async_helper/async_helper.dart";
 // All three libraries have an HttpRequest class.
 import "conditional_import_test.dart"
     if (dart.library.io) "dart:io"
-    if (dart.library.html) "dart:html"
-    deferred as d show HttpRequest;
+    if (dart.library.html) "dart:html" deferred as d show HttpRequest;
 
 class HttpRequest {}
 
@@ -22,11 +21,11 @@ void main() {
     await d.loadLibrary().timeout(const Duration(seconds: 5));
     if (io) {
       print("io");
-      Expect.throws(() => new d.HttpRequest());  // Class is abstract in dart:io
+      Expect.throws(() => new d.HttpRequest()); // Class is abstract in dart:io
     } else if (html) {
       print("html");
-      dynamic r = new d.HttpRequest();  // Shouldn't throw
-      var o = r.open;  // Shouldn't fail, the open method is there.
+      dynamic r = new d.HttpRequest(); // Shouldn't throw
+      var o = r.open; // Shouldn't fail, the open method is there.
     } else {
       print("none");
       dynamic r = new d.HttpRequest();
@@ -35,4 +34,3 @@ void main() {
     asyncEnd();
   }();
 }
-

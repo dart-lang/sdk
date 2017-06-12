@@ -32,4 +32,3 @@ bar(a, b, [c, d]) {
   print(c);
   print(d);
 }
-

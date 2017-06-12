@@ -20,6 +20,7 @@ Uri baseUri = Platform.script.replace(path: baseDirectory);
 Uri spawnUri = baseUri.resolveUri(Uri.parse('complex_reload/v1/main.dart'));
 Uri v2Uri = baseUri.resolveUri(Uri.parse('complex_reload/v2/main.dart'));
 Uri v3Uri = baseUri.resolveUri(Uri.parse('complex_reload/v3/main.dart'));
+Uri v2PackagesUri = baseUri.resolveUri(Uri.parse('complex_reload/v2/packages'));
 
 testMain() async {
   print(baseUri);
@@ -64,12 +65,14 @@ var tests = [
     // Reload to v2.
     var response = await slaveIsolate.reloadSources(
       rootLibUri: v2Uri.toString(),
+      packagesUri: v2PackagesUri.toString(),
     );
+    print(response);
     expect(response['success'], isTrue);
 
     // Invoke test in v2.
     String v2 = await invokeTest(slaveIsolate);
-    expect(v2, 'banana');
+    expect(v2, 'fooLib');
 
     // Reload to v3.
     response = await slaveIsolate.reloadSources(

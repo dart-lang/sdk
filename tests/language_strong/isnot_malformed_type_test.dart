@@ -6,9 +6,9 @@ import 'package:expect/expect.dart';
 
 f(obj) {
   // 'Baz' is not loaded, throws a type error on test.
-  return (obj is !Baz);
+  return (obj is! Baz);
 }
 
-main () {
+main() {
   Expect.throws(() => f(null), (e) => e is TypeError);
 }

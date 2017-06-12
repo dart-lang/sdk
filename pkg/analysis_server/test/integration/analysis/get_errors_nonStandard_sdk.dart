@@ -5,19 +5,18 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../mock_sdk.dart';
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDomainGetErrorsTest);
-    defineReflectiveTests(AnalysisDomainGetErrorsTest_Driver);
   });
 }
 
@@ -25,7 +24,8 @@ main() {
  * Tests that when an SDK path is specified on the command-line (via the `--sdk`
  * argument) that the specified SDK is used.
  */
-class AbstractAnalysisDomainGetErrorsTest
+@reflectiveTest
+class AnalysisDomainGetErrorsTest
     extends AbstractAnalysisServerIntegrationTest {
   String createNonStandardSdk() {
     MockSdkLibrary fakeLibrary =
@@ -92,14 +92,4 @@ import 'dart:fake';
     expect(errors, hasLength(1));
     expect(errors[0].code, 'unused_import');
   }
-}
-
-@reflectiveTest
-class AnalysisDomainGetErrorsTest extends AbstractAnalysisDomainGetErrorsTest {}
-
-@reflectiveTest
-class AnalysisDomainGetErrorsTest_Driver
-    extends AbstractAnalysisDomainGetErrorsTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

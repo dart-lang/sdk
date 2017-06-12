@@ -41,7 +41,8 @@ class KernelTask extends CompilerTask {
     if (main == null) {
       main = _compiler.backend.helperForMissingMain();
     }
-    return new ir.Program(kernel.libraryDependencies(library.canonicalUri))
+    return new ir.Program(
+        libraries: kernel.libraryDependencies(library.canonicalUri))
       ..mainMethod = kernel.functionToIr(main);
   }
 }

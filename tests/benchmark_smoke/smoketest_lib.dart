@@ -12,7 +12,6 @@ import 'dart:html';
  * broken Firefox.
  */
 class Smoketest extends BenchmarkBase {
-
   const Smoketest() : super("Smoketest");
 
   void run() {}

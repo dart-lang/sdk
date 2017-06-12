@@ -13,6 +13,8 @@ class Wrapper {
 
 main() {
   Wrapper w = new Wrapper();
-  w.f = () {return 42;};
+  w.f = () {
+    return 42;
+  };
   Expect.equals(42, w.f());
 }

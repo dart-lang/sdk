@@ -46,12 +46,11 @@ class FlutterTarget extends Target {
 
         // Required for flutter.
         'dart:ui',
-        'dart:jni',
         'dart:vmservice_sky',
       ];
 
   void performModularTransformations(Program program) {
-    new mix.MixinFullResolution().transform(program);
+    new mix.MixinFullResolution(this).transform(program);
   }
 
   void performGlobalTransformations(Program program) {
@@ -66,5 +65,12 @@ class FlutterTarget extends Target {
     }
 
     new SanitizeForVM().transform(program);
+  }
+
+  @override
+  Expression instantiateInvocation(Member target, Expression receiver,
+      String name, Arguments arguments, int offset, bool isSuper) {
+    // TODO(ahe): This should probably return the same as VmTarget does.
+    return new InvalidExpression();
   }
 }

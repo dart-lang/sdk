@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 // Catch illegal access to 'this' in initalized instance fields.
 
-
 class A {
   A() {}
   int x = 5;
-  int arr = new List(x);  // Illegal access to 'this'.
-                          // Also not a compile const expression.
+  int arr = new List(x); // Illegal access to 'this'.
+  // Also not a compile const expression.
 }
 
 void main() {

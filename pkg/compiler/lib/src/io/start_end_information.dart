@@ -91,10 +91,9 @@ class StartEndSourceInformation extends SourceInformation {
   String _computeText(String uriText) {
     StringBuffer sb = new StringBuffer();
     sb.write('$uriText:');
-    // Use 1-based line/startPosition info to match usual dart tool output.
-    sb.write('[${startPosition.line + 1},${startPosition.column + 1}]');
+    sb.write('[${startPosition.line},${startPosition.column}]');
     if (endPosition != null) {
-      sb.write('-[${endPosition.line + 1},${endPosition.column + 1}]');
+      sb.write('-[${endPosition.line},${endPosition.column}]');
     }
     return sb.toString();
   }

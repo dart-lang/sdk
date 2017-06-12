@@ -14,8 +14,8 @@ main() {
       var range = new Range();
       range.selectNode(document.body);
 
-      var expectation = Range.supportsCreateContextualFragment ?
-          returnsNormally : throws;
+      var expectation =
+          Range.supportsCreateContextualFragment ? returnsNormally : throws;
 
       expect(() {
         range.createContextualFragment('<div></div>');

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.dart.optype;
-
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
@@ -14,6 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 typedef int SuggestionsFilter(DartType dartType, int relevance);
@@ -730,6 +729,25 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         }
       };
       optype.includeTypeNameSuggestions = true;
+
+      // Check for named parameters in constructor calls.
+      AstNode grandparent = node.parent.parent;
+      if (grandparent is ConstructorReferenceNode) {
+        ConstructorElement element =
+            (grandparent as ConstructorReferenceNode).staticElement;
+        List<ParameterElement> parameters = element.parameters;
+        ParameterElement parameterElement = parameters.firstWhere((e) {
+          if (e is DefaultFieldFormalParameterElementImpl) {
+            return e.field.name == node.name.label.name;
+          }
+          return e.parameterKind == ParameterKind.NAMED &&
+              e.name == node.name.label.name;
+        }, orElse: () => null);
+        // Suggest tear-offs.
+        if (parameterElement?.type is FunctionType) {
+          optype.includeVoidReturnSuggestions = true;
+        }
+      }
     }
   }
 

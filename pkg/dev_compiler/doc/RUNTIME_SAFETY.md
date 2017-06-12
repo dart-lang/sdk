@@ -165,7 +165,7 @@ Standard checked mode would print `"a string"` without error.
 In standard Dart, `is` and `as` runtime checks expose the unsoundness of the type system in certain cases.  For example, consider:
 
 ```dart
-var list = ["hello", "world"];
+var list = <dynamic>["hello", "world"];
 if (list is List<int>) {
   ...
 } else if (list is List<String>) {

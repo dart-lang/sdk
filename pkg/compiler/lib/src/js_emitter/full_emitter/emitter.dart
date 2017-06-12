@@ -28,17 +28,14 @@ import '../../elements/elements.dart'
         FunctionSignature,
         LibraryElement,
         MethodElement,
-        TypedefElement,
-        VariableElement;
+        TypedefElement;
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
-import '../../io/line_column_provider.dart'
-    show LineColumnCollector, LineColumnProvider;
+import '../../io/location_provider.dart' show LocationCollector;
 import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
-import '../../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../../js_backend/js_backend.dart'
     show
         ConstantEmitter,
@@ -47,6 +44,7 @@ import '../../js_backend/js_backend.dart'
         Namer,
         SetterName,
         TypeVariableCodegenAnalysis;
+import '../../js_backend/native_data.dart';
 import '../../universe/call_structure.dart' show CallStructure;
 import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart' show CodegenWorldBuilder;
@@ -58,6 +56,7 @@ import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../js_emitter.dart' as js_emitter show Emitter, EmitterFactory;
 import '../model.dart';
 import '../program_builder/program_builder.dart';
+import '../sorter.dart';
 
 import 'class_builder.dart';
 import 'class_emitter.dart';
@@ -82,33 +81,32 @@ class EmitterFactory implements js_emitter.EmitterFactory {
   EmitterFactory({this.generateSourceMap});
 
   @override
-  String get patchVersion => "full";
-
-  @override
   bool get supportsReflection => true;
 
   @override
   Emitter createEmitter(
       CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
-    return new Emitter(
-        task.compiler, namer, closedWorld, generateSourceMap, task);
+    return new Emitter(task.compiler, namer, closedWorld, generateSourceMap,
+        task, task.sorter);
   }
 }
 
 class Emitter implements js_emitter.Emitter {
   final Compiler compiler;
   final CodeEmitterTask task;
+  final ClosedWorld _closedWorld;
 
   // The following fields will be set to copies of the program-builder's
   // collector.
-  Map<OutputUnit, List<VariableElement>> outputStaticNonFinalFieldLists;
-  Map<OutputUnit, Set<LibraryElement>> outputLibraryLists;
+  Map<OutputUnit, List<FieldEntity>> outputStaticNonFinalFieldLists;
+  Map<OutputUnit, Set<LibraryEntity>> outputLibraryLists;
   List<TypedefElement> typedefsNeededForReflection;
 
   final ContainerBuilder containerBuilder = new ContainerBuilder();
   final ClassEmitter classEmitter;
   final NsmEmitter nsmEmitter;
   final InterceptorEmitter interceptorEmitter;
+  final Sorter _sorter;
 
   // TODO(johnniwinther): Wrap these fields in a caching strategy.
   final List<jsAst.Statement> cachedEmittedConstantsAst = <jsAst.Statement>[];
@@ -175,15 +173,20 @@ class Emitter implements js_emitter.Emitter {
 
   final bool generateSourceMap;
 
-  Emitter(Compiler compiler, Namer namer, ClosedWorld closedWorld,
-      this.generateSourceMap, this.task)
-      : this.compiler = compiler,
-        this.namer = namer,
-        classEmitter = new ClassEmitter(closedWorld),
-        interceptorEmitter = new InterceptorEmitter(closedWorld),
-        nsmEmitter = new NsmEmitter(closedWorld) {
+  Emitter(this.compiler, this.namer, this._closedWorld, this.generateSourceMap,
+      this.task, this._sorter)
+      : classEmitter = new ClassEmitter(_closedWorld),
+        interceptorEmitter = new InterceptorEmitter(_closedWorld),
+        nsmEmitter = new NsmEmitter(_closedWorld) {
     constantEmitter = new ConstantEmitter(
-        compiler, namer, this.constantReference, constantListGenerator);
+        compiler.options,
+        _closedWorld.commonElements,
+        compiler.backend.rtiNeed,
+        compiler.backend.rtiEncoder,
+        namer,
+        task,
+        this.constantReference,
+        constantListGenerator);
     containerBuilder.emitter = this;
     classEmitter.emitter = this;
     nsmEmitter.emitter = this;
@@ -191,6 +194,8 @@ class Emitter implements js_emitter.Emitter {
   }
 
   DiagnosticReporter get reporter => compiler.reporter;
+
+  NativeData get _nativeData => _closedWorld.nativeData;
 
   List<jsAst.Node> cspPrecompiledFunctionFor(OutputUnit outputUnit) {
     return _cspPrecompiledFunctions.putIfAbsent(
@@ -602,7 +607,7 @@ class Emitter implements js_emitter.Emitter {
   jsAst.Statement buildStaticNonFinalFieldInitializations(
       OutputUnit outputUnit) {
     jsAst.Statement buildInitialization(
-        Element element, jsAst.Expression initialValue) {
+        FieldElement element, jsAst.Expression initialValue) {
       return js.statement('${namer.staticStateHolder}.# = #',
           [namer.globalPropertyName(element), initialValue]);
     }
@@ -611,7 +616,7 @@ class Emitter implements js_emitter.Emitter {
     JavaScriptConstantCompiler handler = backend.constants;
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
-    Iterable<Element> fields = outputStaticNonFinalFieldLists[outputUnit];
+    Iterable<FieldEntity> fields = outputStaticNonFinalFieldLists[outputUnit];
     // If the outputUnit does not contain any static non-final fields, then
     // [fields] is `null`.
     if (fields != null) {
@@ -626,10 +631,10 @@ class Emitter implements js_emitter.Emitter {
     if (inMainUnit && outputStaticNonFinalFieldLists.length > 1) {
       // In the main output-unit we output a stub initializer for deferred
       // variables, so that `isolateProperties` stays a fast object.
-      outputStaticNonFinalFieldLists.forEach(
-          (OutputUnit fieldsOutputUnit, Iterable<VariableElement> fields) {
+      outputStaticNonFinalFieldLists
+          .forEach((OutputUnit fieldsOutputUnit, Iterable<FieldEntity> fields) {
         if (fieldsOutputUnit == outputUnit) return; // Skip the main unit.
-        for (Element element in fields) {
+        for (FieldEntity element in fields) {
           reporter.withCurrentElement(element, () {
             parts.add(buildInitialization(element, jsAst.number(0)));
           });
@@ -792,9 +797,10 @@ class Emitter implements js_emitter.Emitter {
 
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
-    if (NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
+    if (NativeGenerator
+        .needsIsolateAffinityTagInitialization(_closedWorld.backendUsage)) {
       parts.add(NativeGenerator.generateIsolateAffinityTagInitialization(
-          backend,
+          _closedWorld.backendUsage,
           generateEmbeddedGlobalAccess,
           js(
               """
@@ -828,7 +834,7 @@ class Emitter implements js_emitter.Emitter {
     jsAst.Expression finishedClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
     jsAst.Expression cyclicThrow =
-        staticFunctionAccess(backend.helpers.cyclicThrowHelper);
+        staticFunctionAccess(backend.commonElements.cyclicThrowHelper);
     jsAst.Expression laziesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 
@@ -1048,7 +1054,8 @@ class Emitter implements js_emitter.Emitter {
         ? library.libraryName
         : "";
 
-    jsAst.Fun metadata = task.metadataCollector.buildMetadataFunction(library);
+    jsAst.Fun metadata =
+        task.metadataCollector.buildLibraryMetadataFunction(library);
 
     ClassBuilder descriptor = elementDescriptors[fragment][library];
 
@@ -1089,7 +1096,7 @@ class Emitter implements js_emitter.Emitter {
         .add(new jsAst.FunctionDeclaration(constructorName, constructorAst));
 
     String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
-    bool hasIsolateSupport = backend.backendUsage.isIsolateInUse;
+    bool hasIsolateSupport = _closedWorld.backendUsage.isIsolateInUse;
     jsAst.Node fieldNamesArray;
     if (hasIsolateSupport) {
       fieldNamesArray =
@@ -1345,17 +1352,17 @@ class Emitter implements js_emitter.Emitter {
       statements.add(buildDeferredHeader());
     }
 
-    // Collect the AST for the decriptors
+    // Collect the AST for the descriptors.
     Map<Element, ClassBuilder> descriptors = elementDescriptors[mainFragment];
     if (descriptors == null) descriptors = const {};
 
     checkEverythingEmitted(descriptors.keys);
 
-    Iterable<LibraryElement> libraries = outputLibraryLists[mainOutputUnit];
+    Iterable<LibraryEntity> libraries = outputLibraryLists[mainOutputUnit];
     if (libraries == null) libraries = <LibraryElement>[];
 
     List<jsAst.Expression> parts = <jsAst.Expression>[];
-    for (LibraryElement library in Elements.sortedByPosition(libraries)) {
+    for (LibraryEntity library in _sorter.sortLibraries(libraries)) {
       parts.add(generateLibraryDescriptor(library, mainFragment));
       descriptors.remove(library);
     }
@@ -1489,8 +1496,8 @@ class Emitter implements js_emitter.Emitter {
           "initName": initName,
           "functionThatReturnsNull": buildFunctionThatReturnsNull(),
           "mangledNames": buildMangledNames(),
-          "setupProgram":
-              buildSetupProgram(program, compiler, backend, namer, this),
+          "setupProgram": buildSetupProgram(
+              program, compiler, backend, namer, this, _closedWorld),
           "setupProgramName": setupProgramName,
           "descriptors": descriptorsAst,
           "cspPrecompiledFunctions":
@@ -1524,18 +1531,19 @@ class Emitter implements js_emitter.Emitter {
   }
 
   void emitMainOutputUnit(OutputUnit mainOutputUnit, jsAst.Program program) {
-    LineColumnCollector lineColumnCollector;
+    LocationCollector locationCollector;
     List<CodeOutputListener> codeOutputListeners;
     if (generateSourceMap) {
-      lineColumnCollector = new LineColumnCollector();
-      codeOutputListeners = <CodeOutputListener>[lineColumnCollector];
+      locationCollector = new LocationCollector();
+      codeOutputListeners = <CodeOutputListener>[locationCollector];
     }
 
     CodeOutput mainOutput = new StreamCodeOutput(
         compiler.outputProvider('', 'js', OutputType.js), codeOutputListeners);
     outputBuffers[mainOutputUnit] = mainOutput;
 
-    mainOutput.addBuffer(jsAst.createCodeBuffer(program, compiler,
+    mainOutput.addBuffer(jsAst.createCodeBuffer(
+        program, compiler.options, backend.sourceInformationStrategy,
         monitor: compiler.dumpInfoTask));
 
     if (compiler.options.deferredMapUri != null) {
@@ -1552,7 +1560,7 @@ class Emitter implements js_emitter.Emitter {
     if (generateSourceMap) {
       SourceMapBuilder.outputSourceMap(
           mainOutput,
-          lineColumnCollector,
+          locationCollector,
           '',
           compiler.options.sourceMapUri,
           compiler.options.outputUri,
@@ -1571,12 +1579,12 @@ class Emitter implements js_emitter.Emitter {
       Map<Element, ClassBuilder> descriptors = elementDescriptors[fragment];
 
       if (descriptors != null && descriptors.isNotEmpty) {
-        Iterable<LibraryElement> libraries = outputLibraryLists[outputUnit];
+        Iterable<LibraryEntity> libraries = outputLibraryLists[outputUnit];
         if (libraries == null) libraries = [];
 
         // TODO(johnniwinther): Avoid creating [CodeBuffer]s.
         List<jsAst.Expression> parts = <jsAst.Expression>[];
-        for (LibraryElement library in Elements.sortedByPosition(libraries)) {
+        for (LibraryEntity library in _sorter.sortLibraries(libraries)) {
           parts.add(generateLibraryDescriptor(library, fragment));
           descriptors.remove(library);
         }
@@ -1640,7 +1648,8 @@ class Emitter implements js_emitter.Emitter {
     });
     emitMainOutputUnit(program.mainFragment.outputUnit, mainOutput);
 
-    if (backend.backendUsage.requiresPreamble && !backend.htmlLibraryIsLoaded) {
+    if (_closedWorld.backendUsage.requiresPreamble &&
+        !backend.htmlLibraryIsLoaded) {
       reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
     // Return the total program size.
@@ -1650,14 +1659,14 @@ class Emitter implements js_emitter.Emitter {
   ClassBuilder getStaticMethodDescriptor(
       MethodElement element, Fragment fragment) {
     Element owner = element.library;
-    if (!backend.nativeData.isNativeMember(element)) {
+    if (!_nativeData.isNativeMember(element)) {
       // For static (not top level) elements, record their code in a buffer
       // specific to the class. For now, not supported for native classes and
       // native elements.
       ClassElement cls = element.enclosingClass;
       if (compiler.codegenWorldBuilder.directlyInstantiatedClasses
               .contains(cls) &&
-          !backend.nativeData.isNativeClass(cls) &&
+          !_nativeData.isNativeClass(cls) &&
           compiler.deferredLoadTask.outputUnitForElement(element) ==
               compiler.deferredLoadTask.outputUnitForElement(cls)) {
         owner = cls;
@@ -1734,8 +1743,8 @@ class Emitter implements js_emitter.Emitter {
           new List<_DeferredOutputUnitHash>();
       deferredLibraryHashes[loadId] = new List<_DeferredOutputUnitHash>();
       for (OutputUnit outputUnit in outputUnits) {
-        uris.add(
-            js.escapedString(backend.deferredPartFileName(outputUnit.name)));
+        uris.add(js.escapedString(
+            compiler.deferredLoadTask.deferredPartFileName(outputUnit.name)));
         hashes.add(deferredLoadHashes[outputUnit]);
       }
 
@@ -1855,21 +1864,22 @@ class Emitter implements js_emitter.Emitter {
       Hasher hasher = new Hasher();
       outputListeners.add(hasher);
 
-      LineColumnCollector lineColumnCollector;
+      LocationCollector locationCollector;
       if (generateSourceMap) {
-        lineColumnCollector = new LineColumnCollector();
-        outputListeners.add(lineColumnCollector);
+        locationCollector = new LocationCollector();
+        outputListeners.add(locationCollector);
       }
 
-      String partPrefix =
-          backend.deferredPartFileName(outputUnit.name, addExtension: false);
+      String partPrefix = compiler.deferredLoadTask
+          .deferredPartFileName(outputUnit.name, addExtension: false);
       CodeOutput output = new StreamCodeOutput(
           compiler.outputProvider(partPrefix, 'part.js', OutputType.jsPart),
           outputListeners);
 
       outputBuffers[outputUnit] = output;
 
-      output.addBuffer(jsAst.createCodeBuffer(outputAsts[outputUnit], compiler,
+      output.addBuffer(jsAst.createCodeBuffer(outputAsts[outputUnit],
+          compiler.options, backend.sourceInformationStrategy,
           monitor: compiler.dumpInfoTask));
 
       // Make a unique hash of the code (before the sourcemaps are added)
@@ -1905,7 +1915,7 @@ class Emitter implements js_emitter.Emitter {
 
         output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
         output.close();
-        SourceMapBuilder.outputSourceMap(output, lineColumnCollector, partName,
+        SourceMapBuilder.outputSourceMap(output, locationCollector, partName,
             mapUri, partUri, compiler.outputProvider);
       } else {
         output.close();

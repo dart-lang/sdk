@@ -14,7 +14,7 @@ const String groupsEndMark = r"<tr class='DevStatusSpacing'>";
 List<String> findGroups(List<String> source) {
   List<String> result = <String>[];
   bool started = false;
-  
+
   for (String line in source) {
     if (line.contains(groupsStartMark)) started = true;
     if (started) {
@@ -51,8 +51,8 @@ List<List<String>> findShards(List<String> source) {
         int quoteIndex = trimmed.indexOf("'", buildersIndex);
         if (quoteIndex >= 0) {
           // Found a shard name, add it.
-          shardResult.add(trimmed.substring(
-              buildersIndex + shardMark.length, quoteIndex));
+          shardResult.add(
+              trimmed.substring(buildersIndex + shardMark.length, quoteIndex));
         } else {
           // Unexpected source formatting, skip.
         }
@@ -63,7 +63,7 @@ List<List<String>> findShards(List<String> source) {
       }
     }
   }
-  return result;  
+  return result;
 }
 
 main(List<String> args) {
@@ -76,7 +76,7 @@ main(List<String> args) {
   List<String> dartoSource = dartoSourceFile.readAsLinesSync();
 
   List<String> groups = findGroups(dartoSource);
-  List<String> shards = findShards(dartoSource);
+  List<List<String>> shards = findShards(dartoSource);
   int groupCount = math.min(groups.length, shards.length);
 
   // Print the resulting Dart declaration.
@@ -89,11 +89,10 @@ main(List<String> args) {
 
 part of gardening.shard2group;
 
-const Map<String, List<String>> shardGroups = const {
-""");
+const Map<String, List<String>> shardGroups = const {""");
   for (int i = 0; i < groupCount; i++) {
     print("  '${groups[i]}': const <String>[");
-    for (List<String> shard in shards[i]) {
+    for (String shard in shards[i]) {
       print("    '$shard',");
     }
     print("  ],");

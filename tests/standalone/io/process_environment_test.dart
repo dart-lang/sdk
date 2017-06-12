@@ -15,22 +15,21 @@ runEnvironmentProcess(Map environment, name, includeParent, callback) {
   if (!new File(printEnv).existsSync()) {
     printEnv = '../$printEnv';
   }
-  Process.run(dartExecutable,
-              [printEnv, name],
-              environment: environment,
-              includeParentEnvironment: includeParent)
+  Process
+      .run(dartExecutable, [printEnv, name],
+          environment: environment, includeParentEnvironment: includeParent)
       .then((result) {
-        if (result.exitCode != 0) {
-          print('print_env.dart subprocess failed '
-                'with exit code ${result.exitCode}');
-          print('stdout:');
-          print(result.stdout);
-          print('stderr:');
-          print(result.stderr);
-        }
-        Expect.equals(0, result.exitCode);
-        callback(result.stdout);
-      });
+    if (result.exitCode != 0) {
+      print('print_env.dart subprocess failed '
+          'with exit code ${result.exitCode}');
+      print('stdout:');
+      print(result.stdout);
+      print('stderr:');
+      print(result.stderr);
+    }
+    Expect.equals(0, result.exitCode);
+    callback(result.stdout);
+  });
 }
 
 testEnvironment() {

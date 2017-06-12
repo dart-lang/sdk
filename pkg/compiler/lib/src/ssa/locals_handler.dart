@@ -4,14 +4,12 @@
 
 import '../closure.dart';
 import '../common.dart';
-import '../compiler.dart' show Compiler;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../io/source_information.dart';
-import '../js/js.dart' as js;
-import '../js_backend/js_backend.dart';
-import '../native/native.dart' as native;
+import '../js_backend/native_data.dart';
+import '../js_backend/interceptor_data.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
@@ -38,11 +36,12 @@ class LocalsHandler {
   ClosureClassMap closureData;
   Map<ResolutionTypeVariableType, TypeVariableLocal> typeVariableLocals =
       new Map<ResolutionTypeVariableType, TypeVariableLocal>();
-  final ExecutableElement executableContext;
+  final Entity executableContext;
+  final MemberEntity memberContext;
 
   /// The class that defines the current type environment or null if no type
   /// variables are in scope.
-  ClassElement get contextClass => executableContext.contextClass;
+  final ClassElement contextClass;
 
   /// The type of the current instance, if concrete.
   ///
@@ -62,10 +61,18 @@ class LocalsHandler {
   ///
   final ResolutionInterfaceType instanceType;
 
-  final Compiler _compiler;
+  final NativeData _nativeData;
 
-  LocalsHandler(this.builder, this.executableContext,
-      ResolutionInterfaceType instanceType, this._compiler)
+  final InterceptorData _interceptorData;
+
+  LocalsHandler(
+      this.builder,
+      this.executableContext,
+      this.memberContext,
+      this.contextClass,
+      ResolutionInterfaceType instanceType,
+      this._nativeData,
+      this._interceptorData)
       : this.instanceType =
             instanceType == null || instanceType.containsTypeVariables
                 ? null
@@ -76,7 +83,9 @@ class LocalsHandler {
   CommonMasks get commonMasks => closedWorld.commonMasks;
 
   GlobalTypeInferenceResults get _globalInferenceResults =>
-      _compiler.globalInference.results;
+      builder.globalInferenceResults;
+
+  ClosureTask get _closureToClassMapper => builder.closureToClassMapper;
 
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
@@ -100,10 +109,13 @@ class LocalsHandler {
       : directLocals = new Map<Local, HInstruction>.from(other.directLocals),
         redirectionMapping = other.redirectionMapping,
         executableContext = other.executableContext,
+        memberContext = other.memberContext,
+        contextClass = other.contextClass,
         instanceType = other.instanceType,
         builder = other.builder,
         closureData = other.closureData,
-        _compiler = other._compiler,
+        _nativeData = other._nativeData,
+        _interceptorData = other._interceptorData,
         activationVariables = other.activationVariables,
         cachedTypeOfThis = other.cachedTypeOfThis,
         cachedTypesOfCapturedVariables = other.cachedTypesOfCapturedVariables;
@@ -117,11 +129,7 @@ class LocalsHandler {
   }
 
   HInstruction createBox() {
-    // TODO(floitsch): Clean up this hack. Should we create a box-object by
-    // just creating an empty object literal?
-    HInstruction box = new HForeignCode(
-        js.js.parseForeignJS('{}'), commonMasks.nonNullType, <HInstruction>[],
-        nativeBehavior: native.NativeBehavior.PURE_ALLOCATION);
+    HInstruction box = new HCreateBox(commonMasks.nonNullType);
     builder.add(box);
     return box;
   }
@@ -191,8 +199,8 @@ class LocalsHandler {
   /// Invariant: [function] must be an implementation element.
   void startFunction(MemberElement element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
-    closureData = _compiler.closureToClassMapper
-        .getClosureToClassMapping(element.resolvedAst);
+    closureData =
+        _closureToClassMapper.getClosureToClassMapping(element.resolvedAst);
 
     if (element is MethodElement) {
       MethodElement functionElement = element;
@@ -209,7 +217,7 @@ class LocalsHandler {
         }
         HInstruction parameter = builder.addParameter(
             parameterElement,
-            TypeMaskFactory.inferredTypeForElement(
+            TypeMaskFactory.inferredTypeForParameter(
                 parameterElement, _globalInferenceResults));
         builder.parameters[parameterElement] = parameter;
         directLocals[parameterElement] = parameter;
@@ -224,7 +232,6 @@ class LocalsHandler {
     closureData.forEachFreeVariable((Local from, CapturedVariable to) {
       redirectElement(from, to);
     });
-    JavaScriptBackend backend = _compiler.backend;
     if (closureData.isClosure) {
       // Inside closure redirect references to itself to [:this:].
       HThis thisInstruction =
@@ -252,12 +259,12 @@ class LocalsHandler {
     // Instead of allocating and initializing the object, the constructor
     // 'upgrades' the native subclass object by initializing the Dart fields.
     bool isNativeUpgradeFactory = element.isGenerativeConstructor &&
-        backend.nativeData.isNativeOrExtendsNative(cls);
-    if (backend.interceptorData.isInterceptedMethod(element)) {
+        _nativeData.isNativeOrExtendsNative(cls);
+    if (_interceptorData.isInterceptedMethod(element)) {
       bool isInterceptedClass =
-          backend.interceptorData.isInterceptedClass(cls.declaration);
+          _interceptorData.isInterceptedClass(cls.declaration);
       String name = isInterceptedClass ? 'receiver' : '_';
-      SyntheticLocal parameter = new SyntheticLocal(name, executableContext);
+      SyntheticLocal parameter = createLocal(name);
       HParameterValue value = new HParameterValue(parameter, getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAfter(directLocals[closureData.thisLocal], value);
@@ -270,8 +277,7 @@ class LocalsHandler {
         directLocals[closureData.thisLocal] = value;
       }
     } else if (isNativeUpgradeFactory) {
-      SyntheticLocal parameter =
-          new SyntheticLocal('receiver', executableContext);
+      SyntheticLocal parameter = createLocal('receiver');
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
       HParameterValue value =
@@ -318,10 +324,10 @@ class LocalsHandler {
     if (isAccessedDirectly(local)) {
       if (directLocals[local] == null) {
         if (local is TypeVariableElement) {
-          _compiler.reporter.internalError(_compiler.currentElement,
+          throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
               "Runtime type information not available for $local.");
         } else {
-          _compiler.reporter.internalError(
+          throw new SpannableAssertionFailure(
               local, "Cannot find value $local in ${directLocals.keys}.");
         }
       }
@@ -647,7 +653,7 @@ class LocalsHandler {
 
   TypeMask getTypeOfCapturedVariable(FieldElement element) {
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
-      return TypeMaskFactory.inferredTypeForElement(
+      return TypeMaskFactory.inferredTypeForMember(
           element, _globalInferenceResults);
     });
   }
@@ -656,6 +662,10 @@ class LocalsHandler {
   /// being updated in try/catch blocks, and should be
   /// accessed indirectly through [HLocalGet] and [HLocalSet].
   Map<Local, HLocalValue> activationVariables = <Local, HLocalValue>{};
+
+  SyntheticLocal createLocal(String name) {
+    return new SyntheticLocal(name, executableContext, memberContext);
+  }
 }
 
 /// A synthetic local variable only used with the SSA graph.
@@ -664,16 +674,14 @@ class LocalsHandler {
 /// try-catch statement.
 class SyntheticLocal extends Local {
   final String name;
-  final ExecutableElement executableContext;
+  final Entity executableContext;
+  final MemberEntity memberContext;
 
   // Avoid slow Object.hashCode.
   final int hashCode = _nextHashCode = (_nextHashCode + 1).toUnsigned(30);
   static int _nextHashCode = 0;
 
-  SyntheticLocal(this.name, this.executableContext);
-
-  @override
-  MemberElement get memberContext => executableContext.memberContext;
+  SyntheticLocal(this.name, this.executableContext, this.memberContext);
 
   toString() => 'SyntheticLocal($name)';
 }

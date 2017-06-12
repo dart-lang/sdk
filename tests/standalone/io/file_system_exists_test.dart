@@ -26,13 +26,13 @@ void testFileExists() {
   Directory.systemTemp.createTemp('dart_file_system_exists').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var file = new File("${path}myFile");
-    return file.create()
-      .then((_) => new File(file.path).exists().then(Expect.isTrue))
-      .then((_) => new Directory(file.path).exists().then(Expect.isFalse))
-      .then((_) => new Link(file.path).exists().then(Expect.isFalse))
-
-      .then((_) => file.delete())
-      .then((_) => tmp.delete());
+    return file
+        .create()
+        .then((_) => new File(file.path).exists().then(Expect.isTrue))
+        .then((_) => new Directory(file.path).exists().then(Expect.isFalse))
+        .then((_) => new Link(file.path).exists().then(Expect.isFalse))
+        .then((_) => file.delete())
+        .then((_) => tmp.delete());
   });
 }
 
@@ -57,13 +57,13 @@ void testDirectoryExists() {
   Directory.systemTemp.createTemp('dart_file_system_exists').then((tmp) {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var dir = new Directory("${path}myDirectory");
-    return dir.create()
-      .then((_) => new File(dir.path).exists().then(Expect.isFalse))
-      .then((_) => new Directory(dir.path).exists().then(Expect.isTrue))
-      .then((_) => new Link(dir.path).exists().then(Expect.isFalse))
-
-      .then((_) => dir.delete())
-      .then((_) => tmp.delete());
+    return dir
+        .create()
+        .then((_) => new File(dir.path).exists().then(Expect.isFalse))
+        .then((_) => new Directory(dir.path).exists().then(Expect.isTrue))
+        .then((_) => new Link(dir.path).exists().then(Expect.isFalse))
+        .then((_) => dir.delete())
+        .then((_) => tmp.delete());
   });
 }
 
@@ -95,16 +95,15 @@ void testFileLinkExists() {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var file = new File("${path}myFile");
     var link = new Link("${path}myLink");
-    return file.create()
-      .then((_) => link.create(file.path))
-
-      .then((_) => new File(link.path).exists().then(Expect.isTrue))
-      .then((_) => new Directory(link.path).exists().then(Expect.isFalse))
-      .then((_) => new Link(link.path).exists().then(Expect.isTrue))
-
-      .then((_) => link.delete())
-      .then((_) => file.delete())
-      .then((_) => tmp.delete());
+    return file
+        .create()
+        .then((_) => link.create(file.path))
+        .then((_) => new File(link.path).exists().then(Expect.isTrue))
+        .then((_) => new Directory(link.path).exists().then(Expect.isFalse))
+        .then((_) => new Link(link.path).exists().then(Expect.isTrue))
+        .then((_) => link.delete())
+        .then((_) => file.delete())
+        .then((_) => tmp.delete());
   });
 }
 
@@ -136,16 +135,15 @@ void testDirectoryLinkExists() {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var dir = new Directory("${path}myDir");
     var link = new Link("${path}myLink");
-    return dir.create()
-      .then((_) => link.create(dir.path))
-
-      .then((_) => new File(link.path).exists().then(Expect.isFalse))
-      .then((_) => new Directory(link.path).exists().then(Expect.isTrue))
-      .then((_) => new Link(link.path).exists().then(Expect.isTrue))
-
-      .then((_) => link.delete())
-      .then((_) => dir.delete())
-      .then((_) => tmp.delete());
+    return dir
+        .create()
+        .then((_) => link.create(dir.path))
+        .then((_) => new File(link.path).exists().then(Expect.isFalse))
+        .then((_) => new Directory(link.path).exists().then(Expect.isTrue))
+        .then((_) => new Link(link.path).exists().then(Expect.isTrue))
+        .then((_) => link.delete())
+        .then((_) => dir.delete())
+        .then((_) => tmp.delete());
   });
 }
 
@@ -175,16 +173,15 @@ void testBrokenLinkExists() {
     var path = "${tmp.path}${Platform.pathSeparator}";
     var dir = new Directory("${path}myDir");
     var link = new Link("${path}myLink");
-    return dir.create()
-      .then((_) => link.create(dir.path))
-      .then((_) => dir.delete())
-
-      .then((_) => new File(link.path).exists().then(Expect.isFalse))
-      .then((_) => new Directory(link.path).exists().then(Expect.isFalse))
-      .then((_) => new Link(link.path).exists().then(Expect.isTrue))
-
-      .then((_) => link.delete())
-      .then((_) => tmp.delete());
+    return dir
+        .create()
+        .then((_) => link.create(dir.path))
+        .then((_) => dir.delete())
+        .then((_) => new File(link.path).exists().then(Expect.isFalse))
+        .then((_) => new Directory(link.path).exists().then(Expect.isFalse))
+        .then((_) => new Link(link.path).exists().then(Expect.isTrue))
+        .then((_) => link.delete())
+        .then((_) => tmp.delete());
   });
 }
 
@@ -202,4 +199,3 @@ void main() {
   testBrokenLinkExistsSync();
   testBrokenLinkExists();
 }
-

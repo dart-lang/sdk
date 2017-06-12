@@ -35,9 +35,10 @@ main() {
 }
 """);
   String executable = new File(Platform.executable).resolveSymbolicLinksSync();
-  Process.run(executable, ['script.dart'], workingDirectory: temp.path)
+  Process
+      .run(executable, ['script.dart'], workingDirectory: temp.path)
       .then((result) {
-        temp.deleteSync(recursive: true);
-        Expect.equals(0, result.exitCode);
-      });
+    temp.deleteSync(recursive: true);
+    Expect.equals(0, result.exitCode);
+  });
 }

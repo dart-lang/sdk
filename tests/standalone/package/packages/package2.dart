@@ -7,4 +7,5 @@ library package2;
 class X {
   const X();
 }
+
 const X x = const X();

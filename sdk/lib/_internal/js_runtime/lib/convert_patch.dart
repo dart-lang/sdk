@@ -123,7 +123,7 @@ _convertJsonToDartLazy(object) {
   return object;
 }
 
-class _JsonMap implements LinkedHashMap {
+class _JsonMap implements Map<String, dynamic> {
   // The original JavaScript object remains unchanged until
   // the map is eventually upgraded, in which case we null it
   // out to reclaim the memory used by it.
@@ -156,7 +156,7 @@ class _JsonMap implements LinkedHashMap {
   bool get isEmpty => length == 0;
   bool get isNotEmpty => length > 0;
 
-  Iterable get keys {
+  Iterable<String> get keys {
     if (_isUpgraded) return _upgradedMap.keys;
     return new _JsonMapKeyIterable(this);
   }
@@ -280,12 +280,12 @@ class _JsonMap implements LinkedHashMap {
     return JS('JSExtendableArray', '#', keys);
   }
 
-  Map _upgrade() {
+  Map<String, dynamic> _upgrade() {
     if (_isUpgraded) return _upgradedMap;
 
     // Copy all the (key, value) pairs to a freshly allocated
     // linked hash map thus preserving the ordering.
-    Map result = {};
+    Map result = <String, dynamic>{};
     List<String> keys = _computeKeys();
     for (int i = 0; i < keys.length; i++) {
       String key = keys[i];
@@ -331,7 +331,7 @@ class _JsonMap implements LinkedHashMap {
   static _newJavaScriptObject() => JS('=Object', 'Object.create(null)');
 }
 
-class _JsonMapKeyIterable extends ListIterable {
+class _JsonMapKeyIterable extends ListIterable<String> {
   final _JsonMap _parent;
 
   _JsonMapKeyIterable(this._parent);
@@ -347,7 +347,7 @@ class _JsonMapKeyIterable extends ListIterable {
   /// Although [ListIterable] defines its own iterator, we return the iterator
   /// of the underlying list [_keys] in order to propagate
   /// [ConcurrentModificationError]s.
-  Iterator get iterator {
+  Iterator<String> get iterator {
     return _parent._isUpgraded
         ? _parent.keys.iterator
         : _parent._computeKeys().iterator;

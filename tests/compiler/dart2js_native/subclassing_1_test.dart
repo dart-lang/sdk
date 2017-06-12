@@ -19,15 +19,15 @@ class B extends A {
   oof() => 'B';
 }
 
-B makeB1() native ;
-B makeB2() native ;
-B makeC() native ;
+B makeB1() native;
+B makeB2() native;
+B makeC() native;
 
 @Creates('=Object')
-getBPrototype() native ;
+getBPrototype() native;
 
 @Creates('=Object')
-getCPrototype() native ;
+getCPrototype() native;
 
 void setup() native r"""
 function A() {}

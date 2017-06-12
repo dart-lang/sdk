@@ -226,15 +226,17 @@ void FlowGraphTypePropagator::VisitCheckArrayBound(
 
 
 void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
-  if (!check->unary_checks().NumberOfChecksIs(1) ||
-      !check->Dependencies().IsNone()) {
+  if (!check->cids().IsMonomorphic()) {
+    return;
+  }
+
+  if (!check->Dependencies().IsNone()) {
     // TODO(vegorov): If check is affected by side-effect we can still propagate
     // the type further but not the cid.
     return;
   }
 
-  SetCid(check->value()->definition(),
-         check->unary_checks().GetReceiverClassIdAt(0));
+  SetCid(check->value()->definition(), check->cids().MonomorphicReceiverCid());
 }
 
 
@@ -247,8 +249,8 @@ void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
 
   LoadClassIdInstr* load_cid =
       check->value()->definition()->OriginalDefinition()->AsLoadClassId();
-  if (load_cid != NULL) {
-    SetCid(load_cid->object()->definition(), check->cid());
+  if (load_cid != NULL && check->cids().IsSingleCid()) {
+    SetCid(load_cid->object()->definition(), check->cids().cid_start);
   }
 }
 
@@ -297,7 +299,7 @@ void FlowGraphTypePropagator::VisitInstanceCall(InstanceCallInstr* instr) {
 void FlowGraphTypePropagator::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* instr) {
   if (instr->instance_call()->has_unique_selector()) {
-    SetCid(instr->ArgumentAt(0), instr->ic_data().GetReceiverClassIdAt(0));
+    SetCid(instr->ArgumentAt(0), instr->targets().MonomorphicReceiverCid());
     return;
   }
   CheckNonNullSelector(instr, instr->ArgumentAt(0),
@@ -350,7 +352,7 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
   } else if ((call != NULL) &&
              call->MatchesCoreName(Symbols::_simpleInstanceOf()) &&
              comparison->InputAt(1)->BindsToConstant() &&
-             (comparison->InputAt(1)->BoundConstant().IsBool())) {
+             comparison->InputAt(1)->BoundConstant().IsBool()) {
     ASSERT(call->ArgumentAt(1)->IsConstant());
     if (comparison->InputAt(1)->BoundConstant().raw() == Bool::False().raw()) {
       negated = !negated;
@@ -367,8 +369,24 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
           true_successor, call->ArgumentAt(0),
           CompileType::FromAbstractType(Type::Cast(type), is_nullable));
     }
+  } else if (comparison->InputAt(0)->BindsToConstant() &&
+             comparison->InputAt(0)->BoundConstant().IsNull()) {
+    // Handle for expr != null.
+    BlockEntryInstr* true_successor =
+        negated ? instr->true_successor() : instr->false_successor();
+    redef = flow_graph_->EnsureRedefinition(
+        true_successor, comparison->InputAt(1)->definition(),
+        comparison->InputAt(1)->Type()->CopyNonNullable());
+
+  } else if (comparison->InputAt(1)->BindsToConstant() &&
+             comparison->InputAt(1)->BoundConstant().IsNull()) {
+    // Handle for null != expr.
+    BlockEntryInstr* true_successor =
+        negated ? instr->true_successor() : instr->false_successor();
+    redef = flow_graph_->EnsureRedefinition(
+        true_successor, comparison->InputAt(0)->definition(),
+        comparison->InputAt(0)->Type()->CopyNonNullable());
   }
-  // TODO(fschneider): Add propagation for null-comparisons.
   // TODO(fschneider): Add propagation for generic is-tests.
 
   // Grow types array if a new redefinition was inserted.
@@ -457,7 +475,7 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
     ASSERT(check->IsCheckClass());
     check_clone = new CheckClassInstr(
         assert->value()->Copy(zone()), assert->env()->deopt_id(),
-        check->AsCheckClass()->unary_checks(), check->token_pos());
+        check->AsCheckClass()->cids(), check->token_pos());
     check_clone->AsCheckClass()->set_licm_hoisted(
         check->AsCheckClass()->licm_hoisted());
   }
@@ -550,7 +568,7 @@ CompileType CompileType::Bool() {
 
 
 CompileType CompileType::Int() {
-  return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNonNullable);
+  return FromAbstractType(Type::ZoneHandle(Type::Int64Type()), kNonNullable);
 }
 
 
@@ -581,7 +599,7 @@ intptr_t CompileType::ToNullableCid() {
     } else if (type_->IsMalformed()) {
       cid_ = kDynamicCid;
     } else if (type_->IsVoidType()) {
-      cid_ = kNullCid;
+      cid_ = kDynamicCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
     } else if (type_->HasResolvedTypeClass()) {
@@ -668,7 +686,7 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  if (type.IsDynamicType() || type.IsObjectType()) {
+  if (type.IsDynamicType() || type.IsObjectType() || type.IsVoidType()) {
     *is_instance = true;
     return true;
   }
@@ -679,11 +697,6 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
 
   // Consider the compile type of the value.
   const AbstractType& compile_type = *ToAbstractType();
-
-  // The compile-type of a value should never be void. The result of a void
-  // function must always be null, which was checked to be null at the return
-  // statement inside the function.
-  ASSERT(!compile_type.IsVoidType());
 
   if (compile_type.IsMalformedOrMalbounded()) {
     return false;
@@ -697,12 +710,6 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     *is_instance = is_nullable || type.IsObjectType() || type.IsDynamicType() ||
                    type.IsNullType() || type.IsVoidType();
     return true;
-  }
-
-  // A non-null value is not an instance of void.
-  if (type.IsVoidType()) {
-    *is_instance = IsNull();
-    return HasDecidableNullability();
   }
 
   // If the value can be null then we can't eliminate the
@@ -719,11 +726,6 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
 bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
   if (IsNone()) {
     return false;
-  }
-
-  if (other.IsVoidType()) {
-    // The only value assignable to void is null.
-    return IsNull();
   }
 
   return ToAbstractType()->IsMoreSpecificThan(other, NULL, NULL, Heap::kOld);
@@ -771,16 +773,19 @@ CompileType RedefinitionInstr::ComputeType() const {
     // than the type of its input. If yes, return it. Otherwise, fall back
     // to the input's type.
 
-    // If either type has a concrete cid, stick with it.
-    if (value()->Type()->ToCid() != kDynamicCid) {
-      return *value()->Type();
-    }
-    if (constrained_type_->ToCid() != kDynamicCid) {
-      return *constrained_type_;
-    }
     // If either type is non-nullable, the resulting type is non-nullable.
     const bool is_nullable =
         value()->Type()->is_nullable() && constrained_type_->is_nullable();
+
+    // If either type has a concrete cid, stick with it.
+    if (value()->Type()->ToNullableCid() != kDynamicCid) {
+      return CompileType::CreateNullable(is_nullable,
+                                         value()->Type()->ToNullableCid());
+    }
+    if (constrained_type_->ToNullableCid() != kDynamicCid) {
+      return CompileType::CreateNullable(is_nullable,
+                                         constrained_type_->ToNullableCid());
+    }
     if (value()->Type()->IsMoreSpecificThan(
             *constrained_type_->ToAbstractType())) {
       return is_nullable ? *value()->Type()
@@ -924,11 +929,6 @@ CompileType AssertAssignableInstr::ComputeType() const {
     return *value_type;
   }
 
-  if (dst_type().IsVoidType()) {
-    // The only value assignable to void is null.
-    return CompileType::Null();
-  }
-
   return CompileType::Create(value_type->ToCid(), dst_type());
 }
 
@@ -1005,8 +1005,8 @@ CompileType AllocateUninitializedContextInstr::ComputeType() const {
 
 
 CompileType PolymorphicInstanceCallInstr::ComputeType() const {
-  if (!HasSingleRecognizedTarget()) return CompileType::Dynamic();
-  const Function& target = Function::Handle(ic_data().GetTargetAt(0));
+  if (!IsSureToCallSingleRecognizedTarget()) return CompileType::Dynamic();
+  const Function& target = *targets_.TargetAt(0)->target;
   return (target.recognized_kind() != MethodRecognizer::kUnknown)
              ? CompileType::FromCid(MethodRecognizer::ResultCid(target))
              : CompileType::Dynamic();
@@ -1019,16 +1019,14 @@ CompileType StaticCallInstr::ComputeType() const {
   }
 
   if (Isolate::Current()->type_checks()) {
-    // Void functions are known to return null, which is checked at the return
-    // from the function.
     const AbstractType& result_type =
         AbstractType::ZoneHandle(function().result_type());
-    return CompileType::FromAbstractType(
-        result_type.IsVoidType() ? AbstractType::ZoneHandle(Type::NullType())
-                                 : result_type);
+    return CompileType::FromAbstractType(result_type);
   }
 
-  return CompileType::Dynamic();
+  return (function_.recognized_kind() != MethodRecognizer::kUnknown)
+             ? CompileType::FromCid(MethodRecognizer::ResultCid(function_))
+             : CompileType::Dynamic();
 }
 
 
@@ -1522,7 +1520,7 @@ CompileType InvokeMathCFunctionInstr::ComputeType() const {
 }
 
 
-CompileType MergedMathInstr::ComputeType() const {
+CompileType TruncDivModInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 

@@ -10,7 +10,7 @@ import 'package:analyzer/src/command_line/arguments.dart'
         ignoreUnrecognizedFlagsFlag;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show InSummarySource;
+    show ConflictingSummaryException, InSummarySource;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/command_runner.dart' show UsageException;
 import 'package:path/path.dart' as path;
@@ -63,6 +63,10 @@ int compile(List<String> args, {void printFn(Object obj)}) {
     // Incorrect usage, input file not found, etc.
     printFn(error);
     return 64;
+  } on ConflictingSummaryException catch (error) {
+    // Same input file appears in multiple provided summaries.
+    printFn(error);
+    return 65;
   } on CompileErrorException catch (error) {
     // Code has error(s) and failed to compile.
     printFn(error);
@@ -182,7 +186,11 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
   var module = compiler.compile(unit, compilerOpts);
   module.errors.forEach(printFn);
 
-  if (!module.isValid) throw new CompileErrorException();
+  if (!module.isValid) {
+    throw compilerOpts.unsafeForceCompile
+        ? new ForceCompileErrorException()
+        : new CompileErrorException();
+  }
 
   // Write JS file, as well as source map and summary (if requested).
   for (var i = 0; i < outPaths.length; i++) {
@@ -217,7 +225,8 @@ String _moduleForLibrary(
     if (path.isWithin(moduleRoot, summaryPath) && summaryPath.endsWith(ext)) {
       var buildUnitPath =
           summaryPath.substring(0, summaryPath.length - ext.length);
-      return path.relative(buildUnitPath, from: moduleRoot);
+      return path.url
+          .joinAll(path.split(path.relative(buildUnitPath, from: moduleRoot)));
     }
 
     _usageException('Imported file ${source.uri} is not within the module root '
@@ -256,4 +265,10 @@ void _usageException(String message) {
 /// Thrown when the input source code has errors.
 class CompileErrorException implements Exception {
   toString() => '\nPlease fix all errors before compiling (warnings are okay).';
+}
+
+/// Thrown when force compilation failed (probably due to static errors).
+class ForceCompileErrorException extends CompileErrorException {
+  toString() =>
+      '\nForce-compilation not successful. Please check static errors.';
 }

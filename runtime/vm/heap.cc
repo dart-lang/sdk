@@ -700,14 +700,10 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
   stats_.before_.micros_ = OS::GetCurrentMonotonicMicros();
   stats_.before_.new_ = new_space_.GetCurrentUsage();
   stats_.before_.old_ = old_space_.GetCurrentUsage();
-  stats_.times_[0] = 0;
-  stats_.times_[1] = 0;
-  stats_.times_[2] = 0;
-  stats_.times_[3] = 0;
-  stats_.data_[0] = 0;
-  stats_.data_[1] = 0;
-  stats_.data_[2] = 0;
-  stats_.data_[3] = 0;
+  for (int i = 0; i < GCStats::kTimeEntries; i++)
+    stats_.times_[i] = 0;
+  for (int i = 0; i < GCStats::kDataEntries; i++)
+    stats_.data_[i] = 0;
 }
 
 
@@ -742,26 +738,34 @@ void Heap::PrintStats() {
   if ((FLAG_verbose_gc_hdr != 0) &&
       (((stats_.num_ - 1) % FLAG_verbose_gc_hdr) == 0)) {
     OS::PrintErr(
-        "[    GC    |  space  | count | start | gc time | "
-        "new gen (KB) | old gen (KB) | timers | data ]\n"
-        "[ (isolate)| (reason)|       |  (s)  |   (ms)  | "
-        "used,cap,ext | used,cap,ext |  (ms)  |      ]\n");
+        "[              |                      |     |       |      "
+        "| new gen     | new gen     | new gen "
+        "| old gen       | old gen       | old gen     "
+        "| sweep | safe- | roots/| stbuf/| tospc/| weaks/|               ]\n"
+        "[ GC isolate   | space (reason)       | GC# | start | time "
+        "| used (kB)   | capacity kB | external"
+        "| used (kB)     | capacity (kB) | external kB "
+        "| thread| point |marking| reset | sweep |swplrge| data          ]\n"
+        "[              |                      |     |  (s)  | (ms) "
+        "|before| after|before| after| b4 |aftr"
+        "| before| after | before| after |before| after"
+        "| (ms)  | (ms)  | (ms)  | (ms)  | (ms)  | (ms)  |               ]\n");
   }
 
   // clang-format off
   const char* space_str = stats_.space_ == kNew ? "Scavenge" : "Mark-Sweep";
   OS::PrintErr(
-    "[ GC(%" Pd64 "): %s(%s), "  // GC(isolate), space(reason)
-    "%" Pd ", "  // count
-    "%.3f, "  // start time
-    "%.3f, "  // total time
-    "%" Pd ", %" Pd ", "  // new gen: in use before/after
-    "%" Pd ", %" Pd ", "  // new gen: capacity before/after
-    "%" Pd ", %" Pd ", "  // new gen: external before/after
-    "%" Pd ", %" Pd ", "  // old gen: in use before/after
-    "%" Pd ", %" Pd ", "  // old gen: capacity before/after
-    "%" Pd ", %" Pd ", "  // old gen: external before/after
-    "%.3f, %.3f, %.3f, %.3f, "  // times
+    "[ GC %9" Pd64 " : %10s(%9s), "  // GC(isolate), space(reason)
+    "%4" Pd ", "  // count
+    "%6.2f, "  // start time
+    "%5.1f, "  // total time
+    "%5" Pd ", %5" Pd ", "  // new gen: in use before/after
+    "%5" Pd ", %5" Pd ", "  // new gen: capacity before/after
+    "%3" Pd ", %3" Pd ", "  // new gen: external before/after
+    "%6" Pd ", %6" Pd ", "  // old gen: in use before/after
+    "%6" Pd ", %6" Pd ", "  // old gen: capacity before/after
+    "%5" Pd ", %5" Pd ", "  // old gen: external before/after
+    "%6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, "  // times
     "%" Pd ", %" Pd ", %" Pd ", %" Pd ", "  // data
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
     isolate()->main_port(), space_str, GCReasonToString(stats_.reason_),
@@ -785,6 +789,8 @@ void Heap::PrintStats() {
     MicrosecondsToMilliseconds(stats_.times_[1]),
     MicrosecondsToMilliseconds(stats_.times_[2]),
     MicrosecondsToMilliseconds(stats_.times_[3]),
+    MicrosecondsToMilliseconds(stats_.times_[4]),
+    MicrosecondsToMilliseconds(stats_.times_[5]),
     stats_.data_[0],
     stats_.data_[1],
     stats_.data_[2],

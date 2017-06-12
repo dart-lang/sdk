@@ -44,7 +44,7 @@ Future spawn(entry) {
   });
 }
 
-main(){
+main() {
   asyncStart();
   asyncStart();
   RawReceivePort reply = new RawReceivePort(null);
@@ -58,7 +58,7 @@ main(){
     var isolate2 = l[1][0];
     var sendPort2 = l[1][1];
     // Capture errors from one isolate as stream.
-    Stream errors = isolate1.errors;  // Broadcast stream, never a done message.
+    Stream errors = isolate1.errors; // Broadcast stream, never a done message.
     int state = 1;
     var subscription;
     subscription = errors.listen(null, onError: (error, stack) {
@@ -113,4 +113,3 @@ main(){
     sendPort2.send(3);
   });
 }
-

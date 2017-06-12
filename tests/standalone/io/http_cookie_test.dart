@@ -7,10 +7,12 @@ import "dart:async";
 import "dart:io";
 
 void testCookies() {
-  var cookies = [{'abc': 'def'},
-                 {'ABC': 'DEF'},
-                 {'Abc': 'Def'},
-                 {'Abc': 'Def', 'SID': 'sffFSDF4FsdfF56765'}];
+  var cookies = [
+    {'abc': 'def'},
+    {'ABC': 'DEF'},
+    {'Abc': 'Def'},
+    {'Abc': 'Def', 'SID': 'sffFSDF4FsdfF56765'}
+  ];
 
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((HttpRequest request) {
@@ -29,34 +31,29 @@ void testCookies() {
     int count = 0;
     HttpClient client = new HttpClient();
     for (int i = 0; i < cookies.length; i++) {
-      client.get("127.0.0.1", server.port, "/$i")
-          .then((request) {
-            // Send the cookies to the server.
-            cookies[i].forEach((k, v) {
-              request.cookies.add(new Cookie(k, v));
-            });
-            return request.close();
-          })
-          .then((response) {
-            // Expect the same cookies back.
-            var cookiesMap = {};
-            response.cookies.forEach((c) => cookiesMap[c.name] = c.value);
-            Expect.mapEquals(cookies[i], cookiesMap);
-            response.cookies.forEach((c) => Expect.isTrue(c.httpOnly));
-            response.listen(
-                (d) {},
-                onDone: () {
-                  if (++count == cookies.length) {
-                    client.close();
-                    server.close();
-                  }
-                });
-          })
-          .catchError((e, trace) {
-            String msg = "Unexpected error $e";
-            if (trace != null) msg += "\nStackTrace: $trace";
-            Expect.fail(msg);
-         });
+      client.get("127.0.0.1", server.port, "/$i").then((request) {
+        // Send the cookies to the server.
+        cookies[i].forEach((k, v) {
+          request.cookies.add(new Cookie(k, v));
+        });
+        return request.close();
+      }).then((response) {
+        // Expect the same cookies back.
+        var cookiesMap = {};
+        response.cookies.forEach((c) => cookiesMap[c.name] = c.value);
+        Expect.mapEquals(cookies[i], cookiesMap);
+        response.cookies.forEach((c) => Expect.isTrue(c.httpOnly));
+        response.listen((d) {}, onDone: () {
+          if (++count == cookies.length) {
+            client.close();
+            server.close();
+          }
+        });
+      }).catchError((e, trace) {
+        String msg = "Unexpected error $e";
+        if (trace != null) msg += "\nStackTrace: $trace";
+        Expect.fail(msg);
+      });
     }
   });
 }

@@ -8,7 +8,6 @@ import 'analysis/test_all.dart' as analysis_all;
 import 'analysis_server_test.dart' as analysis_server_test;
 import 'channel/test_all.dart' as channel_test;
 import 'completion_test.dart' as completion_test;
-import 'context_manager_driver_test.dart' as context_manager_driver_test;
 import 'context_manager_test.dart' as context_manager_test;
 import 'domain_analysis_test.dart' as domain_analysis_test;
 import 'domain_completion_test.dart' as domain_completion_test;
@@ -36,7 +35,6 @@ main() {
     analysis_server_test.main();
     channel_test.main();
     completion_test.main();
-    context_manager_driver_test.main();
     context_manager_test.main();
     domain_analysis_test.main();
     domain_completion_test.main();

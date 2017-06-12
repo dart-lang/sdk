@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring.move_files;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -24,6 +22,9 @@ main() {
 @reflectiveTest
 class MoveFileTest extends RefactoringTest {
   MoveFileRefactoring refactoring;
+
+  @override
+  bool get enableNewAnalysisDriver => false;
 
   test_file_definingUnit() async {
     String pathA = '/project/000/1111/a.dart';

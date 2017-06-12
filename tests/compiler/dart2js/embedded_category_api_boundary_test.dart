@@ -38,7 +38,7 @@ Set<String> whiteList = new Set.from([
 
 bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
   return compiler.enqueuer.resolution.processedEntities
-      .every((Element element) {
+      .every((MemberElement element) {
     if (whiteList.contains("$element")) return true;
     LibraryInfo info = libraries[element.library.canonicalUri.path];
     bool isAllowedInEmbedded =

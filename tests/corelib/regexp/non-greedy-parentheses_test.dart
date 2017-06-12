@@ -27,14 +27,14 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-'Test for regression against <a href="https://bugs.webkit.org/show_bug.cgi?id=39289">Wrong result in case of non-iterative matching of subpatterns in non-greedy cases in YARR Interpreter</a>'
-  );
+      'Test for regression against <a href="https://bugs.webkit.org/show_bug.cgi?id=39289">Wrong result in case of non-iterative matching of subpatterns in non-greedy cases in YARR Interpreter</a>');
 
   shouldBe(firstMatch("a", new RegExp(r"(a)??")), ["", null]);
   shouldBe(firstMatch("b", new RegExp(r"(a)??")), ["", null]);
   shouldBe(firstMatch("ab", new RegExp(r"(a)??b")), ["ab", "a"]);
   shouldBe(firstMatch("aaab", new RegExp(r"(a+)??b")), ["aaab", "aaa"]);
-  shouldBe(firstMatch("abbc", new RegExp(r"(a)??(b+)??c")), ["abbc", "a", "bb"]);
+  shouldBe(
+      firstMatch("abbc", new RegExp(r"(a)??(b+)??c")), ["abbc", "a", "bb"]);
   shouldBe(firstMatch("ac", new RegExp(r"(a)??(b)??c")), ["ac", "a", null]);
   shouldBe(firstMatch("abc", new RegExp(r"(a(b)??)??c")), ["abc", "ab", "b"]);
   shouldBe(firstMatch("ac", new RegExp(r"(a(b)??)??c")), ["ac", "a", null]);

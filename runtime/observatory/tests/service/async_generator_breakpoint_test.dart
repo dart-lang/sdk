@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override --verbose-debug
+// VMOptions=--error_on_bad_type --error_on_bad_override --verbose-debug --stacktrace-every=55 --stress-async-stacks
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -37,7 +38,7 @@ testeeDo() {
   var stream = printAsyncStar();
   var iterator = printSyncStar();
 
-  print('middle'); // Line 40
+  print('middle'); // Line 41
 
   future.then((v) => print(v));
   stream.toList();
@@ -60,7 +61,7 @@ testAsync(Isolate isolate) async {
   var bp4 = await isolate.addBreakpoint(script, 23);
   expect(bp4, isNotNull);
   expect(bp4 is Breakpoint, isTrue);
-  var bp5 = await isolate.addBreakpoint(script, 40);
+  var bp5 = await isolate.addBreakpoint(script, 41);
   print("BP5 - $bp5");
   expect(bp5, isNotNull);
   expect(bp5 is Breakpoint, isTrue);

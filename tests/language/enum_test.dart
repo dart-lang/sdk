@@ -7,7 +7,10 @@ import 'package:expect/expect.dart';
 enum Enum1 { _ }
 enum Enum2 { A }
 enum Enum3 { B, C }
-enum Enum4 { D, E, }
+enum Enum4 {
+  D,
+  E,
+}
 enum Enum5 { F, G, H }
 enum _Enum6 { I, _J }
 

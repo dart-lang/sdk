@@ -22,7 +22,10 @@ main() {
     test('simple timing', () {
       var body = document.body;
       var opacity = num.parse(body.getComputedStyle().opacity);
-      body.animate([{"opacity": 100}, {"opacity": 0}], 100);
+      body.animate([
+        {"opacity": 100},
+        {"opacity": 0}
+      ], 100);
       var newOpacity = num.parse(body.getComputedStyle().opacity);
       expect(newOpacity == opacity, isTrue);
     });
@@ -33,8 +36,12 @@ main() {
       var body = document.body;
       // Animate different characteristics so the tests can run concurrently.
       var fontSize = body.getComputedStyle().fontSize;
-      var player = body.animate(
-          [{"font-size": "500px"}, {"font-size": fontSize}], {"duration": 100});
+      var player = body.animate([
+        {"font-size": "500px"},
+        {"font-size": fontSize}
+      ], {
+        "duration": 100
+      });
       var newFontSize = body.getComputedStyle().fontSize;
       // Don't bother to parse to numbers, as long as it's changed that
       // indicates something is happening.

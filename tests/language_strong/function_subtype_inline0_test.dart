@@ -18,15 +18,15 @@ class C<T> {
         '($nameOfT,[String])->void is Foo');
     Expect.equals(expectedResult, (T a, [String b]) {} is Bar,
         '($nameOfT,[String])->void is Bar');
-    Expect.isFalse((T a, [String b]) {} is Baz,
-        '($nameOfT,[String])->void is Baz');
+    Expect.isFalse(
+        (T a, [String b]) {} is Baz, '($nameOfT,[String])->void is Baz');
     Expect.equals(expectedResult, (T a, [String b]) {} is Boz,
         '($nameOfT,[String])->void is Boz');
 
-    Expect.isFalse((T a, {String b}) {} is Foo,
-        '($nameOfT,{b:String})->void is Foo');
-    Expect.isFalse((T a, {String b}) {} is Bar,
-        '($nameOfT,{b:String})->void is Bar');
+    Expect.isFalse(
+        (T a, {String b}) {} is Foo, '($nameOfT,{b:String})->void is Foo');
+    Expect.isFalse(
+        (T a, {String b}) {} is Bar, '($nameOfT,{b:String})->void is Bar');
     Expect.equals(expectedResult, (T a, {String b}) {} is Baz,
         '($nameOfT,{b:String})->void is Baz');
     Expect.equals(expectedResult, (T a, {String b}) {} is Boz,

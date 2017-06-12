@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Callable extends core::Object {
+  constructor •() → void
+    ;
+  method call(dynamic x) → dynamic
+    ;
+}
+class CallableGetter extends core::Object {
+  constructor •() → void
+    ;
+  get call() → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

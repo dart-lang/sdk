@@ -15,35 +15,32 @@ import "dart:typed_data";
 
 Future<HttpServer> createServer() => HttpServer.bind("127.0.0.1", 0);
 
-Future<WebSocket> createClient(int port, bool compression) =>
-  compression ? WebSocket.connect('ws://127.0.0.1:$port/')
+Future<WebSocket> createClient(int port, bool compression) => compression
+    ? WebSocket.connect('ws://127.0.0.1:$port/')
     : WebSocket.connect('ws://127.0.0.1:$port/',
         compression: CompressionOptions.OFF);
 
 void test(expected, testData, compression) {
   createServer().then((server) {
     var messageCount = 0;
-    var transformer = compression ? new WebSocketTransformer()
+    var transformer = compression
+        ? new WebSocketTransformer()
         : new WebSocketTransformer(compression: CompressionOptions.OFF);
     server.transform(transformer).listen((webSocket) {
-      webSocket.listen(
-          (message) {
-            Expect.listEquals(expected, message);
-            webSocket.add(testData[messageCount]);
-            messageCount++;
-          },
-          onDone: () => Expect.equals(testData.length, messageCount));
+      webSocket.listen((message) {
+        Expect.listEquals(expected, message);
+        webSocket.add(testData[messageCount]);
+        messageCount++;
+      }, onDone: () => Expect.equals(testData.length, messageCount));
     });
 
     createClient(server.port, compression).then((webSocket) {
       var messageCount = 0;
-      webSocket.listen(
-          (message) {
-            Expect.listEquals(expected, message);
-            messageCount++;
-            if (messageCount == testData.length) webSocket.close();
-          },
-          onDone: server.close);
+      webSocket.listen((message) {
+        Expect.listEquals(expected, message);
+        messageCount++;
+        if (messageCount == testData.length) webSocket.close();
+      }, onDone: server.close);
       testData.forEach(webSocket.add);
     });
   });
@@ -77,7 +74,8 @@ testIntLists({bool compression: false}) {
 void testOutOfRangeClient({bool compression: false}) {
   createServer().then((server) {
     var messageCount = 0;
-    var transformer = compression ? new WebSocketTransformer()
+    var transformer = compression
+        ? new WebSocketTransformer()
         : new WebSocketTransformer(compression: CompressionOptions.OFF);
     server.transform(transformer).listen((webSocket) {
       webSocket.listen((message) => Expect.fail("No message expected"));
@@ -100,7 +98,6 @@ void testOutOfRangeClient({bool compression: false}) {
           .catchError((e) => completer.complete(true));
       return completer.future;
     }
-
 
     var futures = [];
     var data;
@@ -172,16 +169,17 @@ void testOutOfRangeServer({bool compression: false}) {
   var allDone = new Completer();
 
   Future expectError(future) {
-      var completer = new Completer();
-      future
-          .then((_) => completer.completeError("Message $data did not fail"))
-          .catchError((e) => completer.complete(true));
-      return completer.future;
+    var completer = new Completer();
+    future
+        .then((_) => completer.completeError("Message $data did not fail"))
+        .catchError((e) => completer.complete(true));
+    return completer.future;
   }
 
   createServer().then((server) {
     var messageCount = 0;
-    var transformer = compression ? new WebSocketTransformer()
+    var transformer = compression
+        ? new WebSocketTransformer()
         : new WebSocketTransformer(compression: CompressionOptions.OFF);
     server.transform(transformer).listen((webSocket) {
       webSocket.listen((message) {
@@ -196,17 +194,17 @@ void testOutOfRangeServer({bool compression: false}) {
     Future x(int i) {
       var completer = new Completer();
       createClient(server.port, compression).then((webSocket) {
-          webSocket.listen((message) => Expect.fail("No message expected"),
-                           onDone: () => completer.complete(true),
-                           onError: (e) => completer.completeError(e));
-          webSocket.add(new List()..add(i));
+        webSocket.listen((message) => Expect.fail("No message expected"),
+            onDone: () => completer.complete(true),
+            onError: (e) => completer.completeError(e));
+        webSocket.add(new List()..add(i));
       });
       return completer.future;
     }
 
     for (int i = 0; i < testData.length; i++) futures.add(x(i));
-    allDone.future.then(
-        (_) => Future.wait(futures).then((_) => server.close()));
+    allDone.future
+        .then((_) => Future.wait(futures).then((_) => server.close()));
   });
 }
 

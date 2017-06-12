@@ -33,7 +33,7 @@ class B extends HtmlElement {
   static var invocations = [];
 
   Completer completer;
-  
+
   void attributeChanged(name, oldValue, newValue) {
     invocations.add('$name: $oldValue => $newValue');
     if (completer != null) {
@@ -57,12 +57,12 @@ main() {
 
   var registered = false;
   setUp(() => customElementsReady.then((_) {
-    if (!registered) {
-      registered = true;
-      document.registerElement(A.tag, A);
-      document.registerElement(B.tag, B);
-    }
-  }));
+        if (!registered) {
+          registered = true;
+          document.registerElement(A.tag, A);
+          document.registerElement(B.tag, B);
+        }
+      }));
 
   group('fully_supported', () {
     test('transfer attribute changed callback', () {
@@ -100,20 +100,18 @@ main() {
       b.completer = completer;
       b.id = 'x';
       return completer.future
-        .then((_) => expect(B.invocations, ['created', 'id: null => x']))
-        .then((_) {
-          B.invocations = [];
-          var secondCompleter = new Completer();
-          b.completer = secondCompleter;
-          b.attributes.remove('id');
-          return secondCompleter.future;
-        })
-       .then((_) => expect(B.invocations, ['id: x => null'])); 
+          .then((_) => expect(B.invocations, ['created', 'id: null => x']))
+          .then((_) {
+        B.invocations = [];
+        var secondCompleter = new Completer();
+        b.completer = secondCompleter;
+        b.attributes.remove('id');
+        return secondCompleter.future;
+      }).then((_) => expect(B.invocations, ['id: x => null']));
     });
   });
 
   group('unsupported_on_polyfill', () {
-
     // If these tests start passing, don't remove the status suppression. Move
     // the tests to the fullYy_supported group.
 

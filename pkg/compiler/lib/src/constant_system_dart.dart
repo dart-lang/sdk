@@ -4,13 +4,10 @@
 
 library dart2js.constant_system.dart;
 
-import 'common/backend_api.dart' show BackendClasses;
 import 'constants/constant_system.dart';
 import 'constants/values.dart';
 import 'common_elements.dart' show CommonElements;
 import 'elements/types.dart';
-import 'elements/resolution_types.dart' show DartTypes;
-import 'tree/dartstring.dart' show DartString;
 
 const DART_CONSTANT_SYSTEM = const DartConstantSystem();
 
@@ -256,8 +253,7 @@ class AddOperation implements BinaryOperation {
     } else if (left.isString && right.isString) {
       StringConstantValue leftString = left;
       StringConstantValue rightString = right;
-      DartString result = new DartString.concat(
-          leftString.primitiveValue, rightString.primitiveValue);
+      String result = leftString.primitiveValue + rightString.primitiveValue;
       return DART_CONSTANT_SYSTEM.createString(result);
     } else {
       return null;
@@ -371,10 +367,9 @@ class CodeUnitAtRuntimeOperation extends CodeUnitAtOperation {
     if (left.isString && right.isInt) {
       StringConstantValue stringConstant = left;
       IntConstantValue indexConstant = right;
-      DartString dartString = stringConstant.primitiveValue;
+      String string = stringConstant.primitiveValue;
       int index = indexConstant.primitiveValue;
-      if (index < 0 || index >= dartString.length) return null;
-      String string = dartString.slowToString();
+      if (index < 0 || index >= string.length) return null;
       int value = string.codeUnitAt(index);
       return DART_CONSTANT_SYSTEM.createInt(value);
     }
@@ -433,7 +428,7 @@ class DartConstantSystem extends ConstantSystem {
   DoubleConstantValue createDouble(double d) => new DoubleConstantValue(d);
 
   @override
-  StringConstantValue createString(DartString string) {
+  StringConstantValue createString(String string) {
     return new StringConstantValue(string);
   }
 
@@ -449,28 +444,19 @@ class DartConstantSystem extends ConstantSystem {
   }
 
   @override
-  MapConstantValue createMap(
-      CommonElements commonElements,
-      BackendClasses backendClasses,
-      InterfaceType type,
-      List<ConstantValue> keys,
-      List<ConstantValue> values) {
+  MapConstantValue createMap(CommonElements commonElements, InterfaceType type,
+      List<ConstantValue> keys, List<ConstantValue> values) {
     return new MapConstantValue(type, keys, values);
   }
 
   @override
-  ConstantValue createType(CommonElements commonElements,
-      BackendClasses backendClasses, DartType type) {
-    // TODO(johnniwinther): Change the `Type` type to
-    // `compiler.commonElements.typeType` and check the backend specific value
-    // in [checkConstMapKeysDontOverrideEquals] in 'members.dart'.
-    InterfaceType implementationType = backendClasses.typeType;
+  ConstantValue createType(CommonElements commonElements, DartType type) {
+    InterfaceType implementationType = commonElements.typeLiteralType;
     return new TypeConstantValue(type, implementationType);
   }
 
   @override
-  ConstantValue createSymbol(CommonElements commonElements,
-      BackendClasses backendClasses, String text) {
+  ConstantValue createSymbol(CommonElements commonElements, String text) {
     throw new UnsupportedError('DartConstantSystem.createSymbol');
   }
 

@@ -127,6 +127,15 @@ var t2 = ((a = 1) == 0) != ((a = 2) == 0);
     await checkFile(content);
   }
 
+  test_initializer_extractIndex() async {
+    var content = r'''
+var a = /*info:INFERRED_TYPE_LITERAL*/[0, 1.2];
+var b0 = a[0];
+var b1 = a[1];
+''';
+    await checkFile(content);
+  }
+
   test_initializer_functionLiteral_blockBody() async {
     var content = r'''
 var t = /*error:TOP_LEVEL_FUNCTION_LITERAL_BLOCK*/
@@ -801,6 +810,30 @@ dynamic h/*error: instanceGetter*/;
 ''');
   }
 
+  test_initializer_error_methodInvocation_cycle_topLevel() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = b.foo();
+var b = a.foo();
+''');
+    checkElementText(
+        library,
+        r'''
+dynamic a/*error: dependencyCycle*/;
+dynamic b/*error: dependencyCycle*/;
+''');
+  }
+
+  test_initializer_error_methodInvocation_cycle_topLevel_self() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = a.foo();
+''');
+    checkElementText(
+        library,
+        r'''
+dynamic a/*error: dependencyCycle*/;
+''');
+  }
+
   test_initializer_error_referenceToFieldOfStaticField() async {
     var library = await _encodeDecodeLibrary(r'''
 class C {
@@ -844,6 +877,21 @@ class D {
   int i;
 }
 dynamic x/*error: instanceGetter*/;
+''');
+  }
+
+  test_initializer_extractIndex() async {
+    var library = await _encodeDecodeLibrary(r'''
+var a = [0, 1.2];
+var b0 = a[0];
+var b1 = a[1];
+''');
+    checkElementText(
+        library,
+        r'''
+List<num> a;
+num b0;
+num b1;
 ''');
   }
 
@@ -1423,6 +1471,27 @@ var V = throw 42;
         library,
         r'''
 Null V;
+''');
+  }
+
+  test_instanceField_error_noSetterParameter() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int x;
+}
+class B implements A {
+  set x() {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+abstract class A {
+  int x;
+}
+class B implements A {
+  void set x() {}
+}
 ''');
   }
 
@@ -2618,6 +2687,36 @@ abstract class B<T1, T2> extends A<T2, T1> {
 }
 class C implements B<int, String> {
   int m(String a) {}
+}
+''');
+  }
+
+  test_method_OK_single_private_linkThroughOtherLibraryOfCycle() async {
+    String path = _p('/other.dart');
+    provider.newFile(
+        path,
+        r'''
+import 'test.dart';
+class B extends A2 {}
+''');
+    var library = await _encodeDecodeLibrary(r'''
+import 'other.dart';
+class A1 {
+  int _foo() => 1;
+}
+class A2 extends A1 {
+  _foo() => 2;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'other.dart';
+class A1 {
+  int _foo() {}
+}
+class A2 extends A1 {
+  int _foo() {}
 }
 ''');
   }

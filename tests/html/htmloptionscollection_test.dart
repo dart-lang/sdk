@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library HTMLOptionsCollectionTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -29,7 +30,9 @@ main() {
     expect(optionsCollection[1].text, equals('Option1'));
     expect(optionsCollection[2].text, equals('Option2'));
 
-    expect(() { optionsCollection[0] = 1; }, throws);
+    expect(() {
+      optionsCollection[0] = 1;
+    }, throws);
 
     // OPTIONALS optionsCollection[0] = new OptionElement(value: '42', data: 'Option42');
     expect(() {

@@ -2,27 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.domain.completion;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
+import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_abstract.dart';
 import 'domain_completion_util.dart';
 import 'mocks.dart' show pumpEventQueue;
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionDomainHandlerTest);
-    defineReflectiveTests(_NoSearchEngine);
   });
 }
 
@@ -169,7 +170,65 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     expect(suggestions, hasLength(2));
   }
 
+  test_constructor() async {
+    addTestFile('class A {bool foo; A() : ^;}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  test_constructor2() async {
+    addTestFile('class A {bool foo; A() : s^;}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  test_constructor3() async {
+    addTestFile('class A {bool foo; A() : a=7,^;}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  test_constructor4() async {
+    addTestFile('class A {bool foo; A() : a=7,s^;}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  test_constructor5() async {
+    addTestFile('class A {bool foo; A() : a=7,s^}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  test_constructor6() async {
+    addTestFile('class A {bool foo; A() : a=7,^ void bar() {}}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FIELD);
+  }
+
+  @failingTest
   test_html() {
+    //
+    // We no longer support the analysis of non-dart files.
+    //
     testFile = '/project/web/test.html';
     addTestFile('''
       <html>^</html>
@@ -218,36 +277,43 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     Request request1 =
         new CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('7');
-    Response response1 = await waitResponse(request1);
-    var result1 = new CompletionGetSuggestionsResult.fromResponse(response1);
-    var completionId1 = result1.id;
-    assertValidId(completionId1);
-
-    // Perform some analysis but assert that no suggestions have yet been made
-    completionId = completionId1;
-    await pumpEventQueue(25);
-    expect(suggestionsDone, isFalse);
-    expect(suggestions, hasLength(0));
+    Future<Response> responseFuture1 = waitResponse(request1);
 
     // Make another request before the first request completes
     Request request2 =
         new CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('8');
-    Response response2 = await waitResponse(request2);
-    var result2 = new CompletionGetSuggestionsResult.fromResponse(response2);
-    var completionId2 = result2.id;
-    assertValidId(completionId2);
+    Future<Response> responseFuture2 = waitResponse(request2);
 
-    // Wait for both sets of suggestions
-    completionId = completionId2;
+    // Await first response
+    Response response1 = await responseFuture1;
+    var result1 = new CompletionGetSuggestionsResult.fromResponse(response1);
+    assertValidId(result1.id);
+
+    // Await second response
+    Response response2 = await responseFuture2;
+    var result2 = new CompletionGetSuggestionsResult.fromResponse(response2);
+    assertValidId(result2.id);
+
+    // Wait for all processing to be complete
+    await analysisHandler.server.analysisDriverScheduler.waitForIdle();
     await pumpEventQueue();
-    expect(allSuggestions[completionId1], hasLength(0));
-    expect(allSuggestions[completionId2], same(suggestions));
+
+    // Assert that first request has been aborted
+    expect(allSuggestions[result1.id], hasLength(0));
+
+    // Assert valid results for the second request
+    expect(allSuggestions[result2.id], same(suggestions));
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'class',
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  @failingTest
   test_imports_aborted_source_changed() async {
+    // TODO(brianwilkerson) Figure out whether this test makes sense when
+    // running the new driver. It waits for an initial empty notification then
+    // waits for a new notification. But I think that under the driver we only
+    // ever send one notification.
     addTestFile('''
         class foo { }
         c^''');
@@ -256,14 +322,7 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     Request request =
         new CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('0');
-    Response response = await waitResponse(request);
-    completionId = response.id;
-    assertValidId(completionId);
-
-    // Perform some analysis but assert that no suggestions have yet been made
-    await pumpEventQueue(25);
-    expect(suggestionsDone, isFalse);
-    expect(suggestions, hasLength(0));
+    Future<Response> responseFuture = waitResponse(request);
 
     // Simulate user deleting text after request but before suggestions returned
     server.updateContent('uc1', {testFile: new AddContentOverlay(testCode)});
@@ -272,10 +331,17 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
           [new SourceEdit(completionOffset - 1, 1, '')])
     });
 
-    // Expect the completion domain to discard request because source changed
-    await pumpEventQueue().then((_) {
-      expect(suggestionsDone, isTrue);
-    });
+    // Await a response
+    Response response = await responseFuture;
+    completionId = response.id;
+    assertValidId(completionId);
+
+    // Wait for all processing to be complete
+    await analysisHandler.server.analysisDriverScheduler.waitForIdle();
+    await pumpEventQueue();
+
+    // Assert that request has been aborted
+    expect(suggestionsDone, isTrue);
     expect(suggestions, hasLength(0));
   }
 
@@ -325,6 +391,12 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     completionId = response.id;
     assertValidId(completionId);
     await waitForTasksFinished();
+    // wait for response to arrive
+    // because although the analysis is complete (waitForTasksFinished)
+    // the response may not yet have been processed
+    while (replacementOffset == null) {
+      await new Future.delayed(new Duration(milliseconds: 5));
+    }
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'library',
@@ -626,6 +698,26 @@ class B extends A {m() {^}}
     });
   }
 
+  test_sentToPlugins() async {
+    addTestFile('''
+      void main() {
+        ^
+      }
+    ''');
+    PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
+    plugin.CompletionGetSuggestionsResult result =
+        new plugin.CompletionGetSuggestionsResult(1, 2, <CompletionSuggestion>[
+      new CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
+          DART_RELEVANCE_DEFAULT, 'plugin completion', 3, 0, false, false)
+    ]);
+    pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
+      info: new Future.value(result.toResponse('-', 1))
+    };
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'plugin completion',
+        selectionOffset: 3);
+  }
+
   test_simple() {
     addTestFile('''
       void main() {
@@ -679,29 +771,5 @@ class MockRelevancySorter implements DartContributionSorter {
       throw 'unexpected sort';
     }
     return new Future.value();
-  }
-}
-
-@reflectiveTest
-class _NoSearchEngine extends AbstractAnalysisTest {
-  @override
-  void setUp() {
-    super.setUp();
-    createProject();
-    handler = new CompletionDomainHandler(server);
-  }
-
-  test_noSearchEngine() async {
-    addTestFile('''
-main() {
-  ^
-}
-    ''');
-    await waitForTasksFinished();
-    Request request =
-        new CompletionGetSuggestionsParams(testFile, 0).toRequest('0');
-    Response response = handler.handleRequest(request);
-    expect(response.error, isNotNull);
-    expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);
   }
 }

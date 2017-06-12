@@ -22,7 +22,7 @@ var publicSymbol = #field;
 main() {
   Expect.equals(publicSymbol, publicSymbol2);
   Expect.notEquals(privateSymbol, privateSymbol2);
-  
+
   var foo = new Foo();
   var m = reflect(foo);
   m.setField(privateSymbol, 38);

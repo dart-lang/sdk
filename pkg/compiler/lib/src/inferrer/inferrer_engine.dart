@@ -12,6 +12,7 @@ import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/js_backend.dart';
 import '../native/behavior.dart' as native;
@@ -45,7 +46,7 @@ class InferrerEngine {
   final Map<Element, TypeInformation> defaultTypeOfParameter =
       new Map<Element, TypeInformation>();
   final WorkQueue workQueue = new WorkQueue();
-  final Element mainElement;
+  final FunctionEntity mainElement;
   final Set<Element> analyzedElements = new Set<Element>();
 
   /// The maximum number of times we allow a node in the graph to
@@ -85,15 +86,25 @@ class InferrerEngine {
 
   CommonElements get commonElements => closedWorld.commonElements;
 
+  /// Returns `true` if [element] has an `@AssumeDynamic()` annotation.
+  bool assumeDynamic(Element element) {
+    return element is MemberElement && optimizerHints.assumeDynamic(element);
+  }
+
+  /// Returns `true` if [element] has an `@TrustTypeAnnotations()` annotation.
+  bool trustTypeAnnotations(Element element) {
+    return element is MemberElement &&
+        optimizerHints.trustTypeAnnotations(element);
+  }
+
   /**
    * Applies [f] to all elements in the universe that match
    * [selector] and [mask]. If [f] returns false, aborts the iteration.
    */
   void forEachElementMatching(
       Selector selector, TypeMask mask, bool f(Element element)) {
-    Iterable<Element> elements =
-        closedWorld.allFunctions.filter(selector, mask);
-    for (Element e in elements) {
+    Iterable<MemberEntity> elements = closedWorld.locateMembers(selector, mask);
+    for (MemberElement e in elements) {
       if (!f(e.implementation)) return;
     }
   }
@@ -132,7 +143,8 @@ class InferrerEngine {
       sideEffects.setAllSideEffects();
       sideEffects.setDependsOnSomething();
     } else {
-      sideEffects.add(closedWorldRefiner.getCurrentlyKnownSideEffects(callee));
+      sideEffects.add(
+          closedWorldRefiner.getCurrentlyKnownSideEffects(callee.declaration));
     }
   }
 
@@ -209,7 +221,7 @@ class InferrerEngine {
 
   bool isNativeMember(Element element) {
     return element is MemberElement &&
-        compiler.backend.nativeData.isNativeMember(element);
+        closedWorld.nativeData.isNativeMember(element);
   }
 
   bool checkIfExposesThis(Element element) {
@@ -225,7 +237,7 @@ class InferrerEngine {
   }
 
   JavaScriptBackend get backend => compiler.backend;
-  Annotations get annotations => backend.annotations;
+  OptimizerHintsForTests get optimizerHints => backend.optimizerHints;
   DiagnosticReporter get reporter => compiler.reporter;
   CommonMasks get commonMasks => closedWorld.commonMasks;
 
@@ -442,8 +454,8 @@ class InferrerEngine {
           print('${types.getInferredSignatureOf(info.element)} for '
               '${info.element}');
         } else if (info is DynamicCallSiteTypeInformation) {
-          for (Element target in info.targets) {
-            if (target is FunctionElement) {
+          for (MemberElement target in info.targets) {
+            if (target is MethodElement) {
               print('${types.getInferredSignatureOf(target)} for ${target}');
             } else {
               print('${types.getInferredTypeOf(target).type} for ${target}');
@@ -474,11 +486,12 @@ class InferrerEngine {
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-    var visitor = compiler.options.kernelGlobalInference
+    dynamic visitor = compiler.options.kernelGlobalInference
         ? new KernelTypeGraphBuilder(element, resolvedAst, compiler, this)
         : new ElementGraphBuilder(element, resolvedAst, compiler, this);
     TypeInformation type;
     reporter.withCurrentElement(element, () {
+      // ignore: UNDEFINED_METHOD
       type = visitor.run();
     });
     addedInGraph++;
@@ -556,13 +569,16 @@ class InferrerEngine {
     types.allocatedCalls.forEach((info) {
       if (!info.inLoop) return;
       if (info is StaticCallSiteTypeInformation) {
-        closedWorldRefiner.addFunctionCalledInLoop(info.calledElement);
+        closedWorldRefiner
+            .addFunctionCalledInLoop(info.calledElement.declaration);
       } else if (info.mask != null && !info.mask.containsAll(closedWorld)) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
         // on the code bloat.
-        info.targets.forEach(closedWorldRefiner.addFunctionCalledInLoop);
+        info.targets.forEach((MemberElement element) {
+          closedWorldRefiner.addFunctionCalledInLoop(element);
+        });
       }
     });
   }
@@ -576,7 +592,7 @@ class InferrerEngine {
       TypeInformation info = workQueue.remove();
       TypeMask oldType = info.type;
       TypeMask newType = info.refine(this);
-      // Check that refinement has not accidentially changed the type.
+      // Check that refinement has not accidentally changed the type.
       assert(oldType == info.type);
       if (info.abandonInferencing) info.doNotEnqueue = true;
       if ((info.type = newType) != oldType) {
@@ -882,7 +898,7 @@ class InferrerEngine {
           arguments, sideEffects, inLoop);
     }
 
-    closedWorld.allFunctions.filter(selector, mask).forEach((callee) {
+    closedWorld.locateMembers(selector, mask).forEach((MemberElement callee) {
       updateSideEffects(sideEffects, selector, callee);
     });
 
@@ -908,6 +924,18 @@ class InferrerEngine {
   TypeInformation registerAwait(ast.Node node, TypeInformation argument) {
     AwaitTypeInformation info =
         new AwaitTypeInformation(types.currentMember, node);
+    info.addAssignment(argument);
+    types.allocatedTypes.add(info);
+    return info;
+  }
+
+  /**
+   * Registers a call to yield with an expression of type [argumentType] as
+   * argument.
+   */
+  TypeInformation registerYield(ast.Node node, TypeInformation argument) {
+    YieldTypeInformation info =
+        new YieldTypeInformation(types.currentMember, node);
     info.addAssignment(argument);
     types.allocatedTypes.add(info);
     return info;
@@ -953,7 +981,7 @@ class InferrerEngine {
     int max = 0;
     Map<int, Setlet<ResolvedAst>> methodSizes = <int, Setlet<ResolvedAst>>{};
     compiler.enqueuer.resolution.processedEntities
-        .forEach((AstElement element) {
+        .forEach((MemberElement element) {
       ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;

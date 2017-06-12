@@ -7,6 +7,7 @@
 // VMOptions=--no_intrinsify
 
 library big_integer_test;
+
 import "package:expect/expect.dart";
 
 divRemParsed(String a, String b, String quotient, String remainder) {
@@ -16,15 +17,15 @@ divRemParsed(String a, String b, String quotient, String remainder) {
   int int_remainder = int.parse(remainder);
   int computed_quotient = int_a ~/ int_b;
   Expect.equals(int_quotient, computed_quotient);
-  String str_quotient = computed_quotient >= 0 ?
-      "0x${computed_quotient.toRadixString(16)}" :
-      "-0x${(-computed_quotient).toRadixString(16)}";
+  String str_quotient = computed_quotient >= 0
+      ? "0x${computed_quotient.toRadixString(16)}"
+      : "-0x${(-computed_quotient).toRadixString(16)}";
   Expect.equals(quotient.toLowerCase(), str_quotient);
   int computed_remainder = int_a.remainder(int_b);
   Expect.equals(int_remainder, computed_remainder);
-  String str_remainder = computed_remainder >= 0 ?
-      "0x${computed_remainder.toRadixString(16)}" :
-      "-0x${(-computed_remainder).toRadixString(16)}";
+  String str_remainder = computed_remainder >= 0
+      ? "0x${computed_remainder.toRadixString(16)}"
+      : "-0x${(-computed_remainder).toRadixString(16)}";
   Expect.equals(remainder.toLowerCase(), str_remainder);
 }
 

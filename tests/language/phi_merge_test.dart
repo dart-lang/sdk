@@ -5,10 +5,12 @@
 // Regression test for dart2js that used to crash on this code.
 
 class A {
-  operator[]=(index, value) {
+  operator []=(index, value) {
     switch (value) {
-      case 42: break;
-      case 43: break;
+      case 42:
+        break;
+      case 43:
+        break;
     }
   }
 }

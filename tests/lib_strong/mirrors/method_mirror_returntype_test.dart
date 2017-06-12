@@ -41,7 +41,7 @@ main() {
   ClassMirror cm = reflectClass(C);
   mm = cm.declarations[#getE];
   Expect.equals(true, mm.returnType is TypeMirror);
-  // The spec for this is ambigious and needs to be updated before it is clear
+  // The spec for this is ambiguous and needs to be updated before it is clear
   // what has to be returned.
   //Expect.equals("E", _n(mm.returnType.simpleName));
   Expect.equals(true, mm.owner is ClassMirror);

@@ -5,11 +5,11 @@
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
 library arithmetic_test;
+
 import "package:expect/expect.dart";
 import 'dart:math';
 
 class ArithmeticTest {
-
   static bool exceptionCaughtParseInt(String s) {
     try {
       int.parse(s);
@@ -113,17 +113,39 @@ class ArithmeticTest {
     Expect.equals(big, big.truncate());
 
     // Test if double is contagious. The assignment will check the type.
-    { double d = 1 + 1.0; }
-    { double d = 1.0 + 1; }
-    { double d = 1 * 1.0; }
-    { double d = 0 * 1.0; }
-    { double d = 1.0 * 0; }
-    { double d = 1 / 1.0; }
-    { double d = 1.0 / 0; }
-    { double d = 1 - 1.0; }
-    { double d = 1.0 - 1; }
-    { double d = big * 1.0; }
-    { double d = 1.0 * big; }
+    {
+      double d = 1 + 1.0;
+    }
+    {
+      double d = 1.0 + 1;
+    }
+    {
+      double d = 1 * 1.0;
+    }
+    {
+      double d = 0 * 1.0;
+    }
+    {
+      double d = 1.0 * 0;
+    }
+    {
+      double d = 1 / 1.0;
+    }
+    {
+      double d = 1.0 / 0;
+    }
+    {
+      double d = 1 - 1.0;
+    }
+    {
+      double d = 1.0 - 1;
+    }
+    {
+      double d = big * 1.0;
+    }
+    {
+      double d = 1.0 * big;
+    }
 
     // Reset big to positive value.
     big = 123456789012345;
@@ -151,10 +173,9 @@ class ArithmeticTest {
     Expect.isTrue(negateDouble(3.5e3).isNegative);
     Expect.isFalse(negateDouble(-3.5e3).isNegative);
 
-
     // Constants.
-    final nan = 0.0/0.0;
-    final infinity = 1.0/0.0;
+    final nan = 0.0 / 0.0;
+    final infinity = 1.0 / 0.0;
 
     // -- isInfinite --.
     // Smi.
@@ -244,7 +265,6 @@ class ArithmeticTest {
     Expect.equals(-1.0, (-0.49999999999999994).floor());
     Expect.equals(-3.0, (-2.1).floor());
 
-
     // -- truncate --.
     // Smi.
     Expect.equals(0, (0).truncate());
@@ -305,29 +325,51 @@ class ArithmeticTest {
     Expect.equals(1, (1).toInt());
     Expect.equals(-1, (-1).toInt());
     // Type checks.
-    { int i = (0).toInt(); }
-    { int i = (1).toInt(); }
-    { int i = (-1).toInt(); }
+    {
+      int i = (0).toInt();
+    }
+    {
+      int i = (1).toInt();
+    }
+    {
+      int i = (-1).toInt();
+    }
     // Big.
     Expect.equals(big, big.toInt());
     Expect.equals(-big, (-big).toInt());
-    { int i = big.toInt(); }
-    { int i = (-big).toInt(); }
+    {
+      int i = big.toInt();
+    }
+    {
+      int i = (-big).toInt();
+    }
     // Double.
     Expect.equals(1234567890123, (1234567890123.0).toInt());
     Expect.equals(-1234567890123, (-1234567890123.0).toInt());
-    { int i = (1234567890123.0).toInt(); }
-    { int i = (-1234567890123.0).toInt(); }
+    {
+      int i = (1234567890123.0).toInt();
+    }
+    {
+      int i = (-1234567890123.0).toInt();
+    }
     // 32bit Smi border cases.
     Expect.equals(-1073741824, (-1073741824.0).toInt());
     Expect.equals(-1073741825, (-1073741825.0).toInt());
     Expect.equals(1073741823, (1073741823.0).toInt());
     Expect.equals(1073741824, (1073741824.0).toInt());
 
-    { int i = (-1073741824.0).toInt(); }
-    { int i = (-1073741825.0).toInt(); }
-    { int i = (1073741823.0).toInt(); }
-    { int i = (1073741824.0).toInt(); }
+    {
+      int i = (-1073741824.0).toInt();
+    }
+    {
+      int i = (-1073741825.0).toInt();
+    }
+    {
+      int i = (1073741823.0).toInt();
+    }
+    {
+      int i = (1073741824.0).toInt();
+    }
 
     // -- toDouble --.
     // Smi.
@@ -335,14 +377,24 @@ class ArithmeticTest {
     Expect.equals(1.0, (1).toDouble());
     Expect.equals(-1.0, (-1).toDouble());
     // Type checks.
-    { double d = (0).toDouble(); }
-    { double d = (1).toDouble(); }
-    { double d = (-1).toDouble(); }
+    {
+      double d = (0).toDouble();
+    }
+    {
+      double d = (1).toDouble();
+    }
+    {
+      double d = (-1).toDouble();
+    }
     // Big.
     Expect.equals(big, big.toInt());
     Expect.equals(-big, (-big).toInt());
-    { int i = big.toInt(); }
-    { int i = (-big).toInt(); }
+    {
+      int i = big.toInt();
+    }
+    {
+      int i = (-big).toInt();
+    }
 
     // Math functions.
     Expect.equals(2.0, sqrt(4.0));
@@ -351,22 +403,34 @@ class ArithmeticTest {
 
     Expect.equals(12, int.parse("12"));
     Expect.equals(-12, int.parse("-12"));
-    Expect.equals(12345678901234567890,
-                  int.parse("12345678901234567890"));
-    Expect.equals(-12345678901234567890,
-                  int.parse("-12345678901234567890"));
+    Expect.equals(12345678901234567890, int.parse("12345678901234567890"));
+    Expect.equals(-12345678901234567890, int.parse("-12345678901234567890"));
     // Type checks.
-    { int i = int.parse("12"); }
-    { int i = int.parse("-12"); }
-    { int i = int.parse("12345678901234567890"); }
-    { int i = int.parse("-12345678901234567890"); }
+    {
+      int i = int.parse("12");
+    }
+    {
+      int i = int.parse("-12");
+    }
+    {
+      int i = int.parse("12345678901234567890");
+    }
+    {
+      int i = int.parse("-12345678901234567890");
+    }
 
     Expect.equals(1.2, double.parse("1.2"));
     Expect.equals(-1.2, double.parse("-1.2"));
     // Type checks.
-    { double d = double.parse("1.2"); }
-    { double d = double.parse("-1.2"); }
-    { double d = double.parse("0"); }
+    {
+      double d = double.parse("1.2");
+    }
+    {
+      double d = double.parse("-1.2");
+    }
+    {
+      double d = double.parse("0");
+    }
 
     // Random
     {
@@ -423,24 +487,23 @@ class ArithmeticTest {
     var b = -1;
     for (var i = 0; i < 10; i++) Expect.equals(0x40000000, div(a, b));
   }
-  
-  
+
   static int divMod(a, b) => a ~/ b + a % b;
-  
+
   static void testSmiDivModDeopt() {
     var a = -0x40000000;
     var b = -1;
     for (var i = 0; i < 10; i++) Expect.equals(0x40000000, divMod(a, b));
   }
-  
+
   static double sinCosSub(double a) => sin(a) - cos(a);
-  
-  static double sinCosAddCos(double a)  => sin(a) * cos(a) + cos(a);
+
+  static double sinCosAddCos(double a) => sin(a) * cos(a) + cos(a);
 
   static void testSinCos() {
     var e = sin(1.234) - cos(1.234);
     var f = sin(1.234) * cos(1.234) + cos(1.234);
-    
+
     for (var i = 0; i < 20; i++) {
       Expect.approxEquals(e, sinCosSub(1.234));
       Expect.approxEquals(f, sinCosAddCos(1.234));
@@ -456,7 +519,7 @@ class ArithmeticTest {
       cos(i);
     }
   }
-    
+
   static mySqrt(var x) => sqrt(x);
 
   static testSqrtDeopt() {

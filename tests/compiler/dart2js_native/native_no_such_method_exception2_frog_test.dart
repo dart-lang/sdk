@@ -9,11 +9,11 @@ class A {}
 
 @Native("B")
 class B extends A {
-  foo() native ;
+  foo() native;
 }
 
-makeA() native ;
-makeB() native ;
+makeA() native;
+makeB() native;
 
 setup() native """
 function inherits(child, parent) {

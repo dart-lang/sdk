@@ -217,12 +217,12 @@ Future testData(TestData data) async {
     Expect.equals(
         data.kind,
         constant.kind,
-        "Unexpected kind '${constant.kind}' for contant "
+        "Unexpected kind '${constant.kind}' for constant "
         "`${constant.toDartText()}`, expected '${data.kind}'.");
     Expect.equals(
         data.text,
         constant.toDartText(),
-        "Unexpected text '${constant.toDartText()}' for contant, "
+        "Unexpected text '${constant.toDartText()}' for constant, "
         "expected '${data.text}'.");
     if (data.type != null) {
       String instanceType =
@@ -230,7 +230,7 @@ Future testData(TestData data) async {
       Expect.equals(
           data.type,
           instanceType,
-          "Unexpected type '$instanceType' for contant "
+          "Unexpected type '$instanceType' for constant "
           "`${constant.toDartText()}`, expected '${data.type}'.");
     }
     if (data.fields != null) {
@@ -238,7 +238,7 @@ Future testData(TestData data) async {
       Expect.equals(
           data.fields.length,
           instanceFields.length,
-          "Unexpected field count ${instanceFields.length} for contant "
+          "Unexpected field count ${instanceFields.length} for constant "
           "`${constant.toDartText()}`, expected '${data.fields.length}'.");
       instanceFields.forEach((field, expression) {
         String name = '$field';
@@ -248,7 +248,7 @@ Future testData(TestData data) async {
             expected,
             expression,
             "Unexpected field expression ${expression} for field '$name' in "
-            "contant `${constant.toDartText()}`, expected '${expected}'.");
+            "constant `${constant.toDartText()}`, expected '${expected}'.");
       });
     }
   });

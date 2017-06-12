@@ -26,9 +26,9 @@ part of dart.core;
  *
  *     Duration fastestMarathon = new Duration(hours:2, minutes:3, seconds:2);
  *
- * The Duration is the sum of all individual parts.
+ * The [Duration] is the sum of all individual parts.
  * This means that individual parts can be larger than the next-bigger unit.
- * For example, [minutes] can be greater than 59.
+ * For example, [inMinutes] can be greater than 59.
  *
  *     assert(fastestMarathon.inMinutes == 123);
  *

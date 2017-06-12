@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-
 import 'dart:async';
 import 'package:expect/expect.dart';
 
@@ -24,9 +23,9 @@ addLater({a, b}) => new Future.value(a + b);
 
 // Regression test for issue 21480.
 testNamedArguments() async {
-  var sum = await addLater(a:5, b:10);
+  var sum = await addLater(a: 5, b: 10);
   Expect.equals(sum, 15);
-  sum = await addLater(b:11, a:-11);
+  sum = await addLater(b: 11, a: -11);
   Expect.equals(sum, 0);
 }
 
@@ -36,6 +35,7 @@ testSideEffects() async {
     Expect.equals(11, a2);
     return new Future.value();
   }
+
   int a = 10;
   await foo(a++, a++);
   Expect.equals(12, a);

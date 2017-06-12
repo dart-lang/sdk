@@ -27,10 +27,14 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  "This test checks a few cases of extended (> 127) characters in repeat regular expressions."
-  );
+      "This test checks a few cases of extended (> 127) characters in repeat regular expressions.");
 
-  assertEquals("foo\u00a0\u00a0\u00a0".replaceFirst(new RegExp(new String.fromCharCode(0x00a0) + "*"), ""), "foo\u00a0\u00a0\u00a0");
-  assertEquals("foo\u00a0\u00a0\u00a0".replaceFirst(new RegExp(r"\u00a0+"), ""), "foo");
-  assertEquals("foo\u00a0\u00a0\u00a0".replaceFirst(new RegExp(r"\u00a0*$"), ""), "foo");
+  assertEquals(
+      "foo\u00a0\u00a0\u00a0"
+          .replaceFirst(new RegExp(new String.fromCharCode(0x00a0) + "*"), ""),
+      "foo\u00a0\u00a0\u00a0");
+  assertEquals(
+      "foo\u00a0\u00a0\u00a0".replaceFirst(new RegExp(r"\u00a0+"), ""), "foo");
+  assertEquals(
+      "foo\u00a0\u00a0\u00a0".replaceFirst(new RegExp(r"\u00a0*$"), ""), "foo");
 }

@@ -11,6 +11,7 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
+
 const SERVER_ADDRESS = "127.0.0.1";
 
 void testWriteDestroyServer() {
@@ -26,6 +27,7 @@ void testWriteDestroyServer() {
         offset += n;
         socket.writeEventsEnabled = true;
       }
+
       socket.listen((e) {
         if (e == RawSocketEvent.WRITE) {
           if (offset == buffer.length) {
@@ -77,6 +79,7 @@ void testWriteDestroyClient() {
         offset += n;
         socket.writeEventsEnabled = true;
       }
+
       socket.listen((e) {
         if (e == RawSocketEvent.WRITE) {
           if (offset == buffer.length) {

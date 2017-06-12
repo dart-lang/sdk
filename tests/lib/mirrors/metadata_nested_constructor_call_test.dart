@@ -6,6 +6,7 @@
 
 library test.metadata_nested_constructor_call;
 
+@MirrorsUsed(targets: "test.metadata_nested_constructor_call")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

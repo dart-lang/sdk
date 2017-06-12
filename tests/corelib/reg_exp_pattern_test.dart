@@ -9,19 +9,19 @@ import "package:expect/expect.dart";
 
 main() {
   for (var s in [
-         r"a",
-         r"a|b",
-         r"(?:)",
-         r"^",
-         r"$",
-         r"^$",
-         r"$^",
-         r"",
-         r"\\",
-         r"/",
-         r"[^]",
-         "\x00",
-      ]) {
+    r"a",
+    r"a|b",
+    r"(?:)",
+    r"^",
+    r"$",
+    r"^$",
+    r"$^",
+    r"",
+    r"\\",
+    r"/",
+    r"[^]",
+    "\x00",
+  ]) {
     Expect.equals(s, new RegExp(s).pattern);
   }
 }

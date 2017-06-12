@@ -26,7 +26,7 @@ class Helper {
     return a < b;
   }
 
-  static bool LE(a,b) {
+  static bool LE(a, b) {
     return a <= b;
   }
 
@@ -42,7 +42,7 @@ class Helper {
 class A {
   var b;
 
-  A(x) : b = x { }
+  A(x) : b = x {}
 }
 
 class ComparisonTest {

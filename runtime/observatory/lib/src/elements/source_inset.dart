@@ -21,7 +21,7 @@ class SourceInsetElement extends HtmlElement implements Renderable {
   M.IsolateRef _isolate;
   M.SourceLocation _location;
   M.ScriptRepository _scripts;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.EventRepository _events;
   int _currentPos;
   bool _inDebuggerContext;
@@ -34,7 +34,7 @@ class SourceInsetElement extends HtmlElement implements Renderable {
       M.IsolateRef isolate,
       M.SourceLocation location,
       M.ScriptRepository scripts,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       M.EventRepository events,
       {int currentPos,
       bool inDebuggerContext: false,
@@ -43,7 +43,7 @@ class SourceInsetElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(location != null);
     assert(scripts != null);
-    assert(instances != null);
+    assert(objects != null);
     assert(events != null);
     assert(inDebuggerContext != null);
     assert(variables != null);
@@ -52,7 +52,7 @@ class SourceInsetElement extends HtmlElement implements Renderable {
     e._isolate = isolate;
     e._location = location;
     e._scripts = scripts;
-    e._instances = instances;
+    e._objects = objects;
     e._events = events;
     e._currentPos = currentPos;
     e._inDebuggerContext = inDebuggerContext;
@@ -78,7 +78,7 @@ class SourceInsetElement extends HtmlElement implements Renderable {
   void render() {
     children = [
       new ScriptInsetElement(
-          _isolate, _location.script, _scripts, _instances, _events,
+          _isolate, _location.script, _scripts, _objects, _events,
           startPos: _location.tokenPos,
           endPos: _location.endTokenPos,
           currentPos: _currentPos,

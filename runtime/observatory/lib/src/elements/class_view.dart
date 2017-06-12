@@ -74,7 +74,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
   M.TopRetainingInstancesRepository _topRetainedInstances;
   M.FieldRepository _fields;
   M.ScriptRepository _scripts;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.EvalRepository _eval;
   M.ClassSampleProfileRepository _profiles;
   Iterable<M.Field> _classFields;
@@ -97,7 +97,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
       M.RetainingPathRepository retainingPaths,
       M.FieldRepository fields,
       M.ScriptRepository scripts,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       M.EvalRepository eval,
       M.StronglyReachableInstancesRepository stronglyReachable,
       M.TopRetainingInstancesRepository topRetained,
@@ -115,7 +115,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
     assert(retainingPaths != null);
     assert(fields != null);
     assert(scripts != null);
-    assert(instances != null);
+    assert(objects != null);
     assert(eval != null);
     assert(stronglyReachable != null);
     assert(topRetained != null);
@@ -134,7 +134,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
     e._retainingPaths = retainingPaths;
     e._fields = fields;
     e._scripts = scripts;
-    e._instances = instances;
+    e._objects = objects;
     e._eval = eval;
     e._stronglyReachableInstances = stronglyReachable;
     e._topRetainedInstances = topRetained;
@@ -165,7 +165,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
   void render() {
     _common = _common ??
         new ObjectCommonElement(_isolate, _cls, _retainedSizes, _reachableSizes,
-            _references, _retainingPaths, _instances,
+            _references, _retainingPaths, _objects,
             queue: _r.queue);
     _classInstances = _classInstances ??
         new ClassInstancesElement(
@@ -175,7 +175,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
             _reachableSizes,
             _stronglyReachableInstances,
             _topRetainedInstances,
-            _instances,
+            _objects,
             queue: _r.queue);
     var header = '';
     if (_cls.isAbstract) {
@@ -226,8 +226,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
                     new ErrorRefElement(_cls.error, queue: _r.queue)
                   ],
           new HRElement(),
-          new EvalBoxElement(_isolate, _cls, _instances, _eval,
-              queue: _r.queue),
+          new EvalBoxElement(_isolate, _cls, _objects, _eval, queue: _r.queue),
           new HRElement(),
           new HeadingElement.h2()..text = 'Fields & Functions',
           new DivElement()
@@ -282,7 +281,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
                 ? [
                     new HRElement(),
                     new SourceInsetElement(
-                        _isolate, _cls.location, _scripts, _instances, _events,
+                        _isolate, _cls.location, _scripts, _objects, _events,
                         queue: _r.queue)
                   ]
                 : const [],
@@ -350,7 +349,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
           new DivElement()
             ..classes = ['memberValue']
             ..children = [
-              new InstanceRefElement(_isolate, _cls.superType, _instances,
+              new InstanceRefElement(_isolate, _cls.superType, _objects,
                   queue: _r.queue)
             ]
         ]);
@@ -365,7 +364,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
           new DivElement()
             ..classes = ['memberValue']
             ..children = [
-              new InstanceRefElement(_isolate, _cls.mixin, _instances,
+              new InstanceRefElement(_isolate, _cls.mixin, _objects,
                   queue: _r.queue)
             ]
         ]);
@@ -384,7 +383,8 @@ class ClassViewElement extends HtmlElement implements Renderable {
                       new ClassRefElement(_isolate, subcls, queue: _r.queue),
                       new SpanElement()..text = ', '
                     ])
-                .toList()..removeLast())
+                .toList()
+                  ..removeLast())
         ]);
     }
 
@@ -401,11 +401,12 @@ class ClassViewElement extends HtmlElement implements Renderable {
             ..classes = ['memberValue']
             ..children = (_cls.interfaces
                 .expand((interf) => [
-                      new InstanceRefElement(_isolate, interf, _instances,
+                      new InstanceRefElement(_isolate, interf, _objects,
                           queue: _r.queue),
                       new SpanElement()..text = ', '
                     ])
-                .toList()..removeLast())
+                .toList()
+                  ..removeLast())
         ]);
     }
     if (_cls.name != _cls.vmName) {
@@ -449,7 +450,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
                             new DivElement()
                               ..classes = ['memberName']
                               ..children = [
-                                new FieldRefElement(_isolate, f, _instances,
+                                new FieldRefElement(_isolate, f, _objects,
                                     queue: _r.queue)
                               ],
                             new DivElement()
@@ -457,8 +458,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
                               ..children = f.staticValue == null
                                   ? const []
                                   : [
-                                      anyRef(
-                                          _isolate, f.staticValue, _instances,
+                                      anyRef(_isolate, f.staticValue, _objects,
                                           queue: _r.queue)
                                     ]
                           ])

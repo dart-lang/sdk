@@ -18,24 +18,24 @@ main() {
 
     test('SpeechRecognition', () {
       expect(() {
-        new SpeechRecognition();
+        var s = new SpeechRecognition();
+        expect(s is SpeechRecognition, true);
+        expect(s.onStart.listen is Function, true);
       }, expectation);
     });
-/*
-    https://code.google.com/p/dart/issues/detail?id=11825
+
     test('SpeechRecognitionEvent', () {
       expect(() {
-        var e = new Event.eventType('SpeechRecognitionEvent', 'speech');
+        var e = new SpeechRecognitionEvent('speech');
         expect(e is SpeechRecognitionEvent, true);
       }, expectation);
     });
-*/
+
     test('SpeechRecognitionError', () {
       expect(() {
-        var e = new Event.eventType('SpeechRecognitionError', 'speech');
+        var e = new SpeechRecognitionError('speech');
         expect(e is SpeechRecognitionError, true);
       }, expectation);
     });
   });
 }
-

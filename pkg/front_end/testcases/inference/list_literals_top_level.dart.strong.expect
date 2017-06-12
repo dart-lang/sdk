@@ -1,0 +1,21 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::List<core::int> x1 = <dynamic>[1, 2, 3];
+static field core::List<core::num> x2 = <dynamic>[1, 2.0, 3];
+static method test1() → dynamic {
+  self::x1.{core::List::add}("hi");
+  self::x1.{core::List::add}(4.0);
+  self::x1.{core::List::add}(4);
+  core::List<core::num> y = self::x1;
+}
+static method test2() → dynamic {
+  self::x2.{core::List::add}("hi");
+  self::x2.{core::List::add}(4.0);
+  core::List<core::int> y = self::x2;
+}
+static method main() → dynamic {
+  self::test1();
+  self::test2();
+}

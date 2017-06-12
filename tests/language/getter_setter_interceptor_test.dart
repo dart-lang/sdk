@@ -14,17 +14,17 @@ class B {
     length++;
     return receiver.length++;
   }
+
   bar(receiver) {
     ++length;
     return ++receiver.length;
   }
 }
 
-
 main() {
   var a = new A();
   var b = new B();
-  var c = [1,2,3];
+  var c = [1, 2, 3];
 
   Expect.equals(3, b.foo(c));
   Expect.equals(5, b.bar(c));

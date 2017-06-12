@@ -12,8 +12,11 @@ class First {
   static int get a {
     return 10;
   }
+
   static var b;
-  static int foo() { return 30; }
+  static int foo() {
+    return 30;
+  }
 }
 
 class StaticImplicitClosureTest {
@@ -28,7 +31,6 @@ class StaticImplicitClosureTest {
     Expect.equals(30, fa());
   }
 }
-
 
 main() {
   StaticImplicitClosureTest.testMain();

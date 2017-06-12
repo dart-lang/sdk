@@ -18,7 +18,9 @@ class A {
   var list;
   var node;
 
-  A(node) : node = node, list = node.outgoing;
+  A(node)
+      : node = node,
+        list = node.outgoing;
 
   next() {
     // dart2js used to update [offset] twice: once in the optimized
@@ -42,11 +44,10 @@ class L {
   noSuchMethod(mirror) => reflect(list).delegate(mirror);
 }
 
-main () {
+main() {
   var o = new A(new N(new L([1]), new L([2])));
 
-  for (var i = 1; i <= 2; i++)
-    Expect.equals(i, o.next());
+  for (var i = 1; i <= 2; i++) Expect.equals(i, o.next());
 
   Expect.equals(null, o.list);
 }

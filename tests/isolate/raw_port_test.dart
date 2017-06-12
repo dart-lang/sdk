@@ -5,10 +5,10 @@
 // Test RawReceivePort.
 
 library raw_port_test;
+
 import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 import 'remote_unittest_helper.dart';
-
 
 void remote(SendPort port) {
   port.send("reply");
@@ -58,12 +58,13 @@ main([args, port]) {
       Isolate.spawn(remote, rawPort.sendPort);
       Isolate.spawn(remote, port.sendPort);
       int ctr = 2;
-      port.listen(expectAsync((v) {
-                    expect(v, "reply");
-                    ctr--;
-                    if (ctr == 0) port.close();
-                  }, count: 2),
-                  onDone: expectAsync((){}));
+      port.listen(
+          expectAsync((v) {
+            expect(v, "reply");
+            ctr--;
+            if (ctr == 0) port.close();
+          }, count: 2),
+          onDone: expectAsync(() {}));
     });
   });
 }

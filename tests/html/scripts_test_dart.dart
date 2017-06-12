@@ -3,14 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library ScriptsTestDart;
+
 import 'dart:html';
 import 'dart:async';
 
 main() {
   window.postMessage('squid', '*');
-  window.postMessage('tiger', '*');  // Unexpected message OK.
+  window.postMessage('tiger', '*'); // Unexpected message OK.
   new Timer(new Duration(seconds: 1), () {
-    window.postMessage('squid', '*');  // Duplicate message OK.
+    window.postMessage('squid', '*'); // Duplicate message OK.
     window.postMessage('sea urchin', '*');
   });
 }

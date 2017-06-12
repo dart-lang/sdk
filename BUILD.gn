@@ -4,7 +4,7 @@
 
 # This target will be built if no target is specified when invoking ninja.
 group("default") {
-  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+  if (is_fuchsia || is_fuchsia_host) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -14,7 +14,7 @@ group("default") {
 }
 
 group("most") {
-  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+  if (is_fuchsia || is_fuchsia_host) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -30,7 +30,7 @@ group("most") {
 }
 
 group("runtime") {
-  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+  if (is_fuchsia || is_fuchsia_host) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -46,7 +46,7 @@ group("runtime") {
 }
 
 group("runtime_kernel") {
-  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+  if (is_fuchsia || is_fuchsia_host) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -67,80 +67,10 @@ group("runtime_precompiled") {
   ]
 }
 
-action("create_sdk") {
+group("create_sdk") {
   deps = [
-    "runtime/bin:dart",
-    "utils/analysis_server",
-    "utils/compiler:dart2js",
-    "utils/compiler:utils_wrapper",
-    "utils/dartanalyzer:generate_dartanalyzer_snapshot",
-    "utils/dartanalyzer:generate_summary_spec",
-    "utils/dartanalyzer:generate_summary_strong",
-    "utils/dartdevc",
-    "utils/dartdoc",
-    "utils/dartfmt",
-    "utils/pub",
+    "sdk:create_sdk",
   ]
-
-  sdk_lib_files = exec_script("tools/list_dart_files.py",
-                              [
-                                "absolute",
-                                rebase_path("sdk/lib"),
-                              ],
-                              "list lines")
-
-  preamble_files =
-      exec_script("tools/list_files.py",
-                  [
-                    "absolute",
-                    "",
-                    rebase_path("sdk/lib/_internal/js_runtime/lib/preambles"),
-                  ],
-                  "list lines")
-
-  sdk_bin_files = exec_script("tools/list_files.py",
-                              [
-                                "absolute",
-                                "",
-                                rebase_path("sdk/bin"),
-                              ],
-                              "list lines")
-
-  inputs = sdk_lib_files + preamble_files + sdk_bin_files + [
-             "sdk/lib/dart_client.platform",
-             "sdk/lib/dart_server.platform",
-             "sdk/lib/dart_shared.platform",
-             "$root_gen_dir/dart2js.dart.snapshot",
-             "$root_gen_dir/utils_wrapper.dart.snapshot",
-             "$root_gen_dir/pub.dart.snapshot",
-             "$root_gen_dir/dartanalyzer.dart.snapshot",
-             "$root_gen_dir/dartdevc.dart.snapshot",
-             "$root_gen_dir/dartfmt.dart.snapshot",
-             "$root_gen_dir/analysis_server.dart.snapshot",
-             "$root_gen_dir/dartdoc.dart.snapshot",
-             "$root_gen_dir/spec.sum",
-             "$root_gen_dir/strong.sum",
-             "tools/VERSION",
-           ]
-
-  outputs = [
-    "$root_out_dir/dart-sdk/README",
-  ]
-
-  script = "tools/create_sdk.py"
-  args = [
-    "--sdk_output_dir",
-    rebase_path("$root_out_dir/dart-sdk"),
-    "--snapshot_location",
-    rebase_path("$root_gen_dir"),
-  ]
-  if (defined(is_fuchsia) && is_fuchsia_host) {
-    args += [ "--copy_libs" ]
-  }
-  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
-    # The binaries are already stripped.
-    args += [ "--disable_stripping" ]
-  }
 }
 
 group("dart2js") {
@@ -188,88 +118,86 @@ group("samples") {
   ]
 }
 
-# The rules below build a qemu Fuchsia OS image that includes the Dart tree
-# under /system/test/dart. Building this image is gated by the GN argument
-# 'dart_build_fuchsia_test_image' because building the image is slow.
-if (defined(is_fuchsia) && is_fuchsia) {
-  declare_args() {
-    dart_build_fuchsia_test_image = false
+# The rules below build a Fuchsia OS image that includes the Dart tree
+# under /system/test/dart.
+if (is_fuchsia) {
+  action("generate_dart_test_manifest") {
+    testonly = true
+
+    deps = [
+      "//packages/gn:mkbootfs",
+    ]
+
+    output_prefix = "$target_gen_dir/dart_test_tree"
+    outputs = [
+      "$output_prefix.manifest",
+    ]
+
+    mode = "release"
+    if (is_debug) {
+      mode = "debug"
+    }
+
+    mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
+    system_manifest = "$mkbootfs_gen/system.bootfs.manifest"
+
+    script = "tools/gen_fuchsia_test_manifest.py"
+    args = [
+      "-m",
+      mode,
+      "-u",
+      rebase_path(system_manifest),
+      "-o",
+      rebase_path(output_prefix),
+    ]
   }
 
-  if (dart_build_fuchsia_test_image) {
-    action("generate_dart_test_manifest") {
-      testonly = true
+  action("generate_dart_test_image") {
+    testonly = true
+    deps = [
+      ":generate_dart_test_manifest",
+      "runtime/bin:dart",
+      "runtime/bin:process_test",
+      "runtime/bin:run_vm_tests",
+    ]
 
-      deps = [
-        "//packages/gn:mkbootfs",
-      ]
+    mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
+    boot_manifest = "$mkbootfs_gen/boot.bootfs.manifest"
 
-      output_prefix = "$target_gen_dir/dart_test_tree"
-      outputs = [
-        "$output_prefix.manifest",
-      ]
-
-      mode = "release"
-      if (is_debug) {
-        mode = "debug"
-      }
-
-      mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
-      user_manifest = "$mkbootfs_gen/user.bootfs.manifest"
-
-      script = "tools/gen_fuchsia_test_manifest.py"
-      args = [
-        "-m",
-        mode,
-        "-u",
-        rebase_path(user_manifest),
-        "-o",
-        rebase_path(output_prefix),
-      ]
+    # Compute path to magenta bootdata.bin
+    if (current_cpu == "arm64") {
+      magenta_bootdata =
+          "//out/build-magenta/build-magenta-qemu-arm64/bootdata.bin"
+    } else if (current_cpu == "x64") {
+      magenta_bootdata =
+          "//out/build-magenta/build-magenta-pc-x86-64/bootdata.bin"
+    } else {
+      assert(false, "unable to determine path to magenta's bootdata.bin")
     }
 
-    action("generate_dart_test_image") {
-      testonly = true
-      deps = [
-        ":generate_dart_test_manifest",
-        "runtime/bin:dart",
-        "runtime/bin:process_test",
-        "runtime/bin:run_vm_tests",
-      ]
+    input = "$target_gen_dir/dart_test_tree.manifest"
+    inputs = [
+      magenta_bootdata,
+      input,
+    ]
 
-      # Compute path to magenta bootdata.bin
-      if (current_cpu == "arm64") {
-        magenta_bootdata =
-            "//out/build-magenta/build-magenta-qemu-arm64/bootdata.bin"
-      } else if (current_cpu == "x64") {
-        magenta_bootdata =
-            "//out/build-magenta/build-magenta-pc-x86-64/bootdata.bin"
-      } else {
-        assert(false, "unable to determine path to magenta's bootdata.bin")
-      }
+    output = "$root_out_dir/dart_test_tree.bin"
+    outputs = [
+      output,
+    ]
 
-      input = "$target_gen_dir/dart_test_tree.manifest"
-      inputs = [
-        magenta_bootdata,
-        input,
-      ]
-
-      output = "$root_out_dir/dart_test_tree.bin"
-      outputs = [
-        output,
-      ]
-
-      script = "//packages/gn/make_bootfs.py"
-      args = [
-        "--manifest",
-        rebase_path(input),
-        "--output-file",
-        rebase_path(output),
-        "--build-id-map",
-        rebase_path("$target_gen_dir/build_id_map"),
-        "--pre-binaries",
-        rebase_path(magenta_bootdata),
-      ]
-    }
+    script = "//packages/gn/make_bootfs.py"
+    args = [
+      "--boot-manifest",
+      rebase_path(boot_manifest),
+      "--system-manifest",
+      rebase_path(input),
+      "--output-file",
+      rebase_path(output),
+      "--build-id-map",
+      rebase_path("$target_gen_dir/build_id_map"),
+      "--pre-binaries",
+      rebase_path(magenta_bootdata),
+    ]
   }
 }

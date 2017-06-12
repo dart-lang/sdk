@@ -41,6 +41,11 @@ void setFieldType(VariableElement field, DartType newType) {
 }
 
 /**
+ * A function that return the [InheritanceManager] for the class [element].
+ */
+typedef InheritanceManager InheritanceManagerProvider(ClassElement element);
+
+/**
  * A function that returns `true` if the given [element] passes the filter.
  */
 typedef bool VariableFilter(VariableElement element);
@@ -61,9 +66,9 @@ class InstanceMemberInferrer {
   TypeSystem typeSystem;
 
   /**
-   * The inheritance manager used to find overridden method.
+   * The provider for inheritance managers used to find overridden method.
    */
-  final InheritanceManager inheritanceManager;
+  final InheritanceManagerProvider inheritanceManagerProvider;
 
   /**
    * The set of fields for which type inference from initializer should be
@@ -82,7 +87,9 @@ class InstanceMemberInferrer {
   /**
    * Initialize a newly create inferrer.
    */
-  InstanceMemberInferrer(TypeProvider typeProvider, this.inheritanceManager,
+  InstanceMemberInferrer(
+      TypeProvider typeProvider,
+      this.inheritanceManagerProvider,
       this.fieldsWithDisabledInitializerInference,
       {TypeSystem typeSystem})
       : typeSystem = (typeSystem != null)
@@ -118,7 +125,7 @@ class InstanceMemberInferrer {
    * value is never `null`, but might be an error, and/or have the `null` type.
    */
   _FieldOverrideInferenceResult _computeFieldOverrideType(
-      PropertyAccessorElement accessor) {
+      InheritanceManager inheritanceManager, PropertyAccessorElement accessor) {
     String name = accessor.displayName;
 
     var overriddenElements = <ExecutableElement>[];
@@ -255,7 +262,8 @@ class InstanceMemberInferrer {
    * If the given [element] represents a non-synthetic instance property
    * accessor for which no type was provided, infer its types.
    */
-  void _inferAccessor(PropertyAccessorElement element) {
+  void _inferAccessor(
+      InheritanceManager inheritanceManager, PropertyAccessorElement element) {
     if (element.isSynthetic || element.isStatic) {
       return;
     }
@@ -265,7 +273,7 @@ class InstanceMemberInferrer {
     }
 
     _FieldOverrideInferenceResult typeResult =
-        _computeFieldOverrideType(element);
+        _computeFieldOverrideType(inheritanceManager, element);
     if (typeResult.isError == null || typeResult.type == null) {
       return;
     }
@@ -273,11 +281,14 @@ class InstanceMemberInferrer {
     if (element.kind == ElementKind.GETTER) {
       (element as ExecutableElementImpl).returnType = typeResult.type;
     } else if (element.kind == ElementKind.SETTER) {
-      var parameter = element.parameters[0] as ParameterElementImpl;
-      if (parameter.hasImplicitType) {
-        parameter.type = typeResult.type;
+      List<ParameterElement> parameters = element.parameters;
+      if (parameters.isNotEmpty) {
+        var parameter = parameters[0] as ParameterElementImpl;
+        if (parameter.hasImplicitType) {
+          parameter.type = typeResult.type;
+        }
+        parameter.inheritsCovariant = typeResult.isCovariant;
       }
-      parameter.inheritsCovariant = typeResult.isCovariant;
     }
     setFieldType(element.variable, typeResult.type);
   }
@@ -300,6 +311,8 @@ class InstanceMemberInferrer {
         throw new _CycleException();
       }
       try {
+        InheritanceManager inheritanceManager =
+            inheritanceManagerProvider(classElement);
         //
         // Ensure that all of instance members in the supertypes have had types
         // inferred for them.
@@ -310,9 +323,15 @@ class InstanceMemberInferrer {
         //
         // Then infer the types for the members.
         //
-        classElement.fields.forEach(_inferField);
-        classElement.accessors.forEach(_inferAccessor);
-        classElement.methods.forEach(_inferExecutable);
+        classElement.fields.forEach((field) {
+          _inferField(inheritanceManager, field);
+        });
+        classElement.accessors.forEach((accessor) {
+          _inferAccessor(inheritanceManager, accessor);
+        });
+        classElement.methods.forEach((method) {
+          _inferExecutable(inheritanceManager, method);
+        });
         //
         // Infer initializing formal parameter types. This must happen after
         // field types are inferred.
@@ -342,7 +361,8 @@ class InstanceMemberInferrer {
    * getter or setter, infer the return type and any parameter type(s) where
    * they were not provided.
    */
-  void _inferExecutable(ExecutableElement element) {
+  void _inferExecutable(
+      InheritanceManager inheritanceManager, ExecutableElement element) {
     if (element.isSynthetic || element.isStatic) {
       return;
     }
@@ -393,13 +413,13 @@ class InstanceMemberInferrer {
    * If the given [field] represents a non-synthetic instance field for
    * which no type was provided, infer the type of the field.
    */
-  void _inferField(FieldElement field) {
+  void _inferField(InheritanceManager inheritanceManager, FieldElement field) {
     if (field.isSynthetic || field.isStatic) {
       return;
     }
 
     _FieldOverrideInferenceResult typeResult =
-        _computeFieldOverrideType(field.getter);
+        _computeFieldOverrideType(inheritanceManager, field.getter);
     if (typeResult.isError) {
       if (field is FieldElementForLink_ClassField) {
         field.setInferenceError(new TopLevelInferenceErrorBuilder(

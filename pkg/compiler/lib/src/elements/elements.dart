@@ -20,14 +20,13 @@ import 'package:front_end/src/fasta/scanner.dart'
     show Token, isUserDefinableOperator, isMinusOperator;
 import '../tree/tree.dart' hide AsyncModifier;
 import '../universe/call_structure.dart';
-import 'package:front_end/src/fasta/scanner/characters.dart' show $_;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'entities.dart';
+import 'names.dart';
 import 'resolution_types.dart';
+import 'types.dart';
 import 'visitor.dart' show ElementVisitor;
-
-part 'names.dart';
 
 const int STATE_NOT_STARTED = 0;
 const int STATE_STARTED = 1;
@@ -470,7 +469,8 @@ class Elements {
   static bool isInStaticContext(Element element) {
     if (isUnresolved(element)) return true;
     if (element.enclosingElement.isClosure) {
-      var closureClass = element.enclosingElement;
+      dynamic closureClass = element.enclosingElement;
+      // ignore: UNDEFINED_GETTER
       element = closureClass.methodElement;
     }
     Element outer = element.outermostEnclosingMemberOrTopLevel;
@@ -741,7 +741,7 @@ class Elements {
     return '${aUri}'.compareTo('${bUri}');
   }
 
-  static List<Element> sortedByPosition(Iterable<Element> elements) {
+  static List<E> sortedByPosition<E extends Element>(Iterable<E> elements) {
     return elements.toList()..sort(compareByPosition);
   }
 
@@ -777,7 +777,7 @@ class Elements {
     constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
     return cls.library == closedWorld.commonElements.typedDataLibrary &&
-        closedWorld.backendClasses.isNativeClass(cls) &&
+        closedWorld.nativeData.isNativeClass(cls) &&
         closedWorld.isSubtypeOf(
             cls, closedWorld.commonElements.typedDataClass) &&
         closedWorld.isSubtypeOf(cls, closedWorld.commonElements.listClass) &&
@@ -826,7 +826,7 @@ class Elements {
       FunctionElement element,
       T compileArgument(Node argument),
       T compileDefaultValue(ParameterElement element)) {
-    assert(invariant(element, element.isImplementation));
+    assert(element.isImplementation, failedAt(element));
     List<T> result = <T>[];
 
     FunctionSignature parameters = element.functionSignature;
@@ -926,7 +926,7 @@ class Elements {
     // TODO(ngeoffray): Should the resolver do it instead?
     CallStructure callStructure = new CallStructure(
         signature.parameterCount, signature.type.namedParameters);
-    if (!callStructure.signatureApplies(signature.type)) {
+    if (!callStructure.signatureApplies(signature.parameterStructure)) {
       return false;
     }
     list.addAll(makeArgumentsList<T>(callStructure, nodes, callee,
@@ -1287,6 +1287,8 @@ abstract class FunctionSignature {
   void orderedForEachParameter(void function(FormalElement parameter));
 
   bool isCompatibleWith(FunctionSignature constructorSignature);
+
+  ParameterStructure get parameterStructure;
 }
 
 /// A top level, static or instance method, constructor, local function, or
@@ -1316,6 +1318,9 @@ abstract class FunctionElement extends Element
 
   /// `true` if this function is external.
   bool get isExternal;
+
+  /// The structure of the function parameters.
+  ParameterStructure get parameterStructure;
 }
 
 /// A getter or setter.
@@ -1507,7 +1512,7 @@ abstract class ConstructorElement extends MethodElement
 /// JavaScript backend specific element for the body of constructor.
 // TODO(johnniwinther): Remove this class from the element model.
 abstract class ConstructorBodyElement extends MethodElement {
-  FunctionElement get constructor;
+  ConstructorElement get constructor;
 }
 
 /// [GenericElement] defines the common interface for generic functions and
@@ -1594,7 +1599,7 @@ abstract class ClassElement extends TypeDeclarationElement
   OrderedTypeSet get allSupertypesAndSelf;
 
   /// A list of all supertypes of this class excluding the class itself.
-  Link<ResolutionDartType> get allSupertypes;
+  Link<InterfaceType> get allSupertypes;
 
   /// Returns the this type of this class as an instance of [cls].
   ResolutionInterfaceType asInstanceOf(ClassElement cls);
@@ -1670,8 +1675,8 @@ abstract class ClassElement extends TypeDeclarationElement
   ///
   /// This method recursively visits superclasses until the member is found or
   /// [stopAt] is reached.
-  Element lookupByName(Name memberName, {ClassElement stopAt});
-  Element lookupSuperByName(Name memberName);
+  MemberElement lookupByName(Name memberName, {ClassElement stopAt});
+  MemberElement lookupSuperByName(Name memberName);
 
   Element lookupLocalMember(String memberName);
   Element lookupBackendMember(String memberName);

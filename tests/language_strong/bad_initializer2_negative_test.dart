@@ -7,14 +7,14 @@ import "package:expect/expect.dart";
 
 class BadInitializer2NegativeTest {
   static testMain() {
-   var foo = (int n) {
-     if (n == 0) {
-       return 0;
-     } else {
-       return 1 + foo(n - 1);  // <-- self-reference to closure foo.
-     }
-   };
-   Expect.equals(4, foo(4));
+    var foo = (int n) {
+      if (n == 0) {
+        return 0;
+      } else {
+        return 1 + foo(n - 1); // <-- self-reference to closure foo.
+      }
+    };
+    Expect.equals(4, foo(4));
   }
 }
 

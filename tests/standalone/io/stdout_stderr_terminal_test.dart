@@ -16,7 +16,6 @@ void testTerminalSize(std) {
   }
 }
 
-
 void main() {
   testTerminalSize(stdout);
   testTerminalSize(stderr);

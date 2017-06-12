@@ -4,8 +4,8 @@
 
 #include "platform/globals.h"
 
-#if !defined(DART_USE_TCMALLOC) || defined(PRODUCT) ||                         \
-    defined(TARGET_ARCH_DBC) || defined(HOST_OS_FUCHSIA)
+#if (!defined(DART_USE_TCMALLOC) && !defined(DART_USE_JEMALLOC)) ||            \
+    defined(PRODUCT)
 
 #include "vm/malloc_hooks.h"
 
@@ -67,5 +67,4 @@ intptr_t MallocHooks::heap_allocated_memory_in_bytes() {
 
 }  // namespace dart
 
-#endif  // !defined(DART_USE_TCMALLOC) || defined(PRODUCT) ||
-        // defined(TARGET_ARCH_DBC) || defined(HOST_OS_FUCHSIA)
+#endif  // !defined(DART_USE_TCMALLOC) && ...

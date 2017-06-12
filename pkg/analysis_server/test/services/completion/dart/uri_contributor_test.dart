@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.contributor.dart.importuri;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -18,8 +16,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UriContributorTest);
     defineReflectiveTests(UriContributorWindowsTest);
-    defineReflectiveTests(UriContributorTest_Driver);
-    defineReflectiveTests(UriContributorWindowsTest_Driver);
   });
 }
 
@@ -465,12 +461,6 @@ class UriContributorTest extends DartCompletionContributorTest {
 }
 
 @reflectiveTest
-class UriContributorTest_Driver extends UriContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-}
-
-@reflectiveTest
 class UriContributorWindowsTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
@@ -634,12 +624,6 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
     assertNotSuggested('foo/bar.dart');
     assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
   }
-}
-
-@reflectiveTest
-class UriContributorWindowsTest_Driver extends UriContributorWindowsTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
 
 class _TestWinResourceProvider extends MemoryResourceProvider {

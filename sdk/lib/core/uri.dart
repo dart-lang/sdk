@@ -118,15 +118,16 @@ abstract class Uri {
    * general delimiters, are escaped if necessary.
    * If `fragment` is omitted or `null`, the URI has no fragment part.
    */
-  factory Uri({String scheme,
-               String userInfo,
-               String host,
-               int port,
-               String path,
-               Iterable<String> pathSegments,
-               String query,
-               Map<String, dynamic/*String|Iterable<String>*/> queryParameters,
-               String fragment}) = _Uri;
+  factory Uri(
+      {String scheme,
+      String userInfo,
+      String host,
+      int port,
+      String path,
+      Iterable<String> pathSegments,
+      String query,
+      Map<String, dynamic /*String|Iterable<String>*/ > queryParameters,
+      String fragment}) = _Uri;
 
   /**
    * Creates a new `http` URI from authority, path and query.
@@ -161,9 +162,8 @@ abstract class Uri {
    * The `query` component is set from the optional [queryParameters]
    * argument.
    */
-  factory Uri.http(String authority,
-                   String unencodedPath,
-                   [Map<String, String> queryParameters]) = _Uri.http;
+  factory Uri.http(String authority, String unencodedPath,
+      [Map<String, String> queryParameters]) = _Uri.http;
 
   /**
    * Creates a new `https` URI from authority, path and query.
@@ -171,9 +171,8 @@ abstract class Uri {
    * This constructor is the same as [Uri.http] except for the scheme
    * which is set to `https`.
    */
-  factory Uri.https(String authority,
-                    String unencodedPath,
-                    [Map<String, String> queryParameters]) = _Uri.https;
+  factory Uri.https(String authority, String unencodedPath,
+      [Map<String, String> queryParameters]) = _Uri.https;
 
   /**
    * Creates a new file URI from an absolute or relative file path.
@@ -284,7 +283,7 @@ abstract class Uri {
    * that name is looked up using [Encoding.getByName],
    * and if the lookup returns an encoding, that encoding is used to convert
    * [content] to bytes.
-   * If providing both an [encoding] and a charset [parameter], they should
+   * If providing both an [encoding] and a charset in [parameters], they should
    * agree, otherwise decoding won't be able to use the charset parameter
    * to determine the encoding.
    *
@@ -298,15 +297,15 @@ abstract class Uri {
    * To read the content back, use [UriData.contentAsString].
    */
   factory Uri.dataFromString(String content,
-                             {String mimeType,
-                              Encoding encoding,
-                              Map<String, String> parameters,
-                              bool base64: false}) {
-    UriData data =  new UriData.fromString(content,
-                                           mimeType: mimeType,
-                                           encoding: encoding,
-                                           parameters: parameters,
-                                           base64: base64);
+      {String mimeType,
+      Encoding encoding,
+      Map<String, String> parameters,
+      bool base64: false}) {
+    UriData data = new UriData.fromString(content,
+        mimeType: mimeType,
+        encoding: encoding,
+        parameters: parameters,
+        base64: base64);
     return data.uri;
   }
 
@@ -327,13 +326,13 @@ abstract class Uri {
    * encoded.
    */
   factory Uri.dataFromBytes(List<int> bytes,
-                            {mimeType: "application/octet-stream",
-                             Map<String, String> parameters,
-                             percentEncoded: false}) {
+      {mimeType: "application/octet-stream",
+      Map<String, String> parameters,
+      percentEncoded: false}) {
     UriData data = new UriData.fromBytes(bytes,
-                                         mimeType: mimeType,
-                                         parameters: parameters,
-                                         percentEncoded: percentEncoded);
+        mimeType: mimeType,
+        parameters: parameters,
+        percentEncoded: percentEncoded);
     return data.uri;
   }
 
@@ -614,7 +613,7 @@ abstract class Uri {
   int get hashCode;
 
   /// A URI is equal to another URI with the same normalized representation.
-  bool operator==(Object other);
+  bool operator ==(Object other);
 
   /// Returns the normalized string representation of the URI.
   String toString();
@@ -659,15 +658,16 @@ abstract class Uri {
    * call above, but may also be slightly faster because the parts taken
    * from this `Uri` need not be checked for validity again.
    */
-  Uri replace({String scheme,
-               String userInfo,
-               String host,
-               int port,
-               String path,
-               Iterable<String> pathSegments,
-               String query,
-               Map<String, dynamic/*String|Iterable<String>*/> queryParameters,
-               String fragment});
+  Uri replace(
+      {String scheme,
+      String userInfo,
+      String host,
+      int port,
+      String path,
+      Iterable<String> pathSegments,
+      String query,
+      Map<String, dynamic /*String|Iterable<String>*/ > queryParameters,
+      String fragment});
 
   /**
    * Returns a `Uri` that differs from this only in not having a fragment.
@@ -803,7 +803,7 @@ abstract class Uri {
     // The following index-normalization belongs with the scanning, but is
     // easier to do here because we already have extracted variables from the
     // indices list.
-    var indices = new List<int>(8);//new List<int>.filled(8, start - 1);
+    var indices = new List<int>(8);
 
     // Set default values for each position.
     // The value will either be correct in some cases where it isn't set
@@ -839,10 +839,10 @@ abstract class Uri {
     // `/` is part of the path or is leading an authority component when we see
     // the next character.
 
-    int hostStart     = indices[_hostStartIndex] + 1;
-    int portStart     = indices[_portStartIndex];
-    int pathStart     = indices[_pathStartIndex];
-    int queryStart    = indices[_queryStartIndex];
+    int hostStart = indices[_hostStartIndex] + 1;
+    int portStart = indices[_portStartIndex];
+    int pathStart = indices[_pathStartIndex];
+    int queryStart = indices[_queryStartIndex];
     int fragmentStart = indices[_fragmentStartIndex];
 
     // We may discover scheme while handling special cases.
@@ -884,10 +884,10 @@ abstract class Uri {
         // Pathological case, don't bother correcting it.
         isSimple = false;
       } else if (queryStart < end &&
-                 (queryStart == pathStart + 2 &&
+              (queryStart == pathStart + 2 &&
                   uri.startsWith("..", pathStart)) ||
-                 (queryStart > pathStart + 2 &&
-                  uri.startsWith("/..", queryStart - 3))) {
+          (queryStart > pathStart + 2 &&
+              uri.startsWith("/..", queryStart - 3))) {
         // The path ends in a ".." segment. This should be normalized to "../".
         // We didn't detect this while scanning because a query or fragment was
         // detected at the same time (which is why we only need to check this
@@ -929,7 +929,7 @@ abstract class Uri {
                 end += 1;
               } else {
                 uri = "${uri.substring(start, pathStart)}/"
-                      "${uri.substring(queryStart, end)}";
+                    "${uri.substring(queryStart, end)}";
                 schemeEnd -= start;
                 hostStart -= start;
                 portStart -= start;
@@ -943,7 +943,8 @@ abstract class Uri {
           } else if (uri.startsWith("http", start)) {
             scheme = "http";
             // HTTP URIs should not have an explicit port of 80.
-            if (portStart > start && portStart + 3 == pathStart &&
+            if (portStart > start &&
+                portStart + 3 == pathStart &&
                 uri.startsWith("80", portStart + 1)) {
               if (start == 0 && end == uri.length) {
                 uri = uri.replaceRange(portStart, pathStart, "");
@@ -953,7 +954,7 @@ abstract class Uri {
                 end -= 3;
               } else {
                 uri = uri.substring(start, portStart) +
-                      uri.substring(pathStart, end);
+                    uri.substring(pathStart, end);
                 schemeEnd -= start;
                 hostStart -= start;
                 portStart -= start;
@@ -968,7 +969,8 @@ abstract class Uri {
         } else if (schemeEnd == start + 5 && uri.startsWith("https", start)) {
           scheme = "https";
           // HTTPS URIs should not have an explicit port of 443.
-          if (portStart > start && portStart + 4 == pathStart &&
+          if (portStart > start &&
+              portStart + 4 == pathStart &&
               uri.startsWith("443", portStart + 1)) {
             if (start == 0 && end == uri.length) {
               uri = uri.replaceRange(portStart, pathStart, "");
@@ -978,7 +980,7 @@ abstract class Uri {
               end -= 3;
             } else {
               uri = uri.substring(start, portStart) +
-                    uri.substring(pathStart, end);
+                  uri.substring(pathStart, end);
               schemeEnd -= start;
               hostStart -= start;
               portStart -= start;
@@ -1004,12 +1006,11 @@ abstract class Uri {
         fragmentStart -= start;
       }
       return new _SimpleUri(uri, schemeEnd, hostStart, portStart, pathStart,
-                            queryStart, fragmentStart, scheme);
-
+          queryStart, fragmentStart, scheme);
     }
 
     return new _Uri.notSimple(uri, start, end, schemeEnd, hostStart, portStart,
-                              pathStart, queryStart, fragmentStart, scheme);
+        pathStart, queryStart, fragmentStart, scheme);
   }
 
   /**
@@ -1070,7 +1071,7 @@ abstract class Uri {
    * details.
    */
   static String encodeQueryComponent(String component,
-                                     {Encoding encoding: UTF8}) {
+      {Encoding encoding: UTF8}) {
     return _Uri._uriEncode(_Uri._unreservedTable, component, encoding, true);
   }
 
@@ -1088,8 +1089,8 @@ abstract class Uri {
    * decoded component.
    */
   static String decodeComponent(String encodedComponent) {
-    return _Uri._uriDecode(encodedComponent, 0, encodedComponent.length,
-                           UTF8, false);
+    return _Uri._uriDecode(
+        encodedComponent, 0, encodedComponent.length, UTF8, false);
   }
 
   /**
@@ -1100,11 +1101,10 @@ abstract class Uri {
    * [encoding] to decode the byte-list to a String. The default encoding is
    * UTF-8.
    */
-  static String decodeQueryComponent(
-      String encodedComponent,
+  static String decodeQueryComponent(String encodedComponent,
       {Encoding encoding: UTF8}) {
-    return _Uri._uriDecode(encodedComponent, 0, encodedComponent.length,
-                           encoding, true);
+    return _Uri._uriDecode(
+        encodedComponent, 0, encodedComponent.length, encoding, true);
   }
 
   /**
@@ -1146,7 +1146,7 @@ abstract class Uri {
    * is UTF-8.
    */
   static Map<String, String> splitQueryString(String query,
-                                              {Encoding encoding: UTF8}) {
+      {Encoding encoding: UTF8}) {
     return query.split("&").fold({}, (map, element) {
       int index = element.indexOf("=");
       if (index == -1) {
@@ -1163,7 +1163,6 @@ abstract class Uri {
     });
   }
 
-
   /**
    * Parse the [host] as an IP version 4 (IPv4) address, returning the address
    * as a list of 4 bytes in network byte order (big endian).
@@ -1172,7 +1171,7 @@ abstract class Uri {
    * representation.
    */
   static List<int> parseIPv4Address(String host) =>
-       _parseIPv4Address(host, 0, host.length);
+      _parseIPv4Address(host, 0, host.length);
 
   /// Implementation of [parseIPv4Address] that can work on a substring.
   static List<int> _parseIPv4Address(String host, int start, int end) {
@@ -1413,22 +1412,25 @@ class _Uri implements Uri {
   /// component of that type.
   ///
   /// The [path] and [scheme] are never empty.
-  _Uri._internal(this.scheme,
-                 this._userInfo,
-                 this._host,
-                 this._port,
-                 this.path,
-                 this._query,
-                 this._fragment);
+  _Uri._internal(this.scheme, this._userInfo, this._host, this._port, this.path,
+      this._query, this._fragment);
 
   /// Create a [_Uri] from parts of [uri].
   ///
   /// The parameters specify the start/end of particular components of the URI.
   /// The [scheme] may contain a string representing a normalized scheme
   /// component if one has already been discovered.
-  factory _Uri.notSimple(String uri, int start, int end, int schemeEnd,
-                        int hostStart, int portStart, int pathStart,
-                        int queryStart, int fragmentStart, String scheme) {
+  factory _Uri.notSimple(
+      String uri,
+      int start,
+      int end,
+      int schemeEnd,
+      int hostStart,
+      int portStart,
+      int pathStart,
+      int queryStart,
+      int fragmentStart,
+      String scheme) {
     if (scheme == null) {
       scheme = "";
       if (schemeEnd > start) {
@@ -1454,8 +1456,8 @@ class _Uri implements Uri {
         port = _makePort(port, scheme);
       }
     }
-    String path = _makePath(uri, pathStart, queryStart, null,
-                            scheme, host != null);
+    String path =
+        _makePath(uri, pathStart, queryStart, null, scheme, host != null);
     String query;
     if (queryStart < fragmentStart) {
       query = _makeQuery(uri, queryStart + 1, fragmentStart, null);
@@ -1464,25 +1466,21 @@ class _Uri implements Uri {
     if (fragmentStart < end) {
       fragment = _makeFragment(uri, fragmentStart + 1, end);
     }
-    return new _Uri._internal(scheme,
-                              userInfo,
-                              host,
-                              port,
-                              path,
-                              query,
-                              fragment);
+    return new _Uri._internal(
+        scheme, userInfo, host, port, path, query, fragment);
   }
 
   /// Implementation of [Uri.Uri].
-  factory _Uri({String scheme,
-                String userInfo,
-                String host,
-                int port,
-                String path,
-                Iterable<String> pathSegments,
-                String query,
-                Map<String, dynamic/*String|Iterable<String>*/> queryParameters,
-                String fragment}) {
+  factory _Uri(
+      {String scheme,
+      String userInfo,
+      String host,
+      int port,
+      String path,
+      Iterable<String> pathSegments,
+      String query,
+      Map<String, dynamic /*String|Iterable<String>*/ > queryParameters,
+      String fragment}) {
     scheme = _makeScheme(scheme, 0, _stringOrNullLength(scheme));
     userInfo = _makeUserInfo(userInfo, 0, _stringOrNullLength(userInfo));
     host = _makeHost(host, 0, _stringOrNullLength(host), false);
@@ -1492,13 +1490,12 @@ class _Uri implements Uri {
     fragment = _makeFragment(fragment, 0, _stringOrNullLength(fragment));
     port = _makePort(port, scheme);
     bool isFile = (scheme == "file");
-    if (host == null &&
-        (userInfo.isNotEmpty || port != null || isFile)) {
+    if (host == null && (userInfo.isNotEmpty || port != null || isFile)) {
       host = "";
     }
     bool hasAuthority = (host != null);
-    path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
-                     scheme, hasAuthority);
+    path = _makePath(
+        path, 0, _stringOrNullLength(path), pathSegments, scheme, hasAuthority);
     if (scheme.isEmpty && host == null && !path.startsWith('/')) {
       bool allowScheme = scheme.isNotEmpty || host != null;
       path = _normalizeRelativePath(path, allowScheme);
@@ -1508,21 +1505,19 @@ class _Uri implements Uri {
     if (host == null && path.startsWith("//")) {
       host = "";
     }
-    return new _Uri._internal(scheme, userInfo, host, port,
-                              path, query, fragment);
+    return new _Uri._internal(
+        scheme, userInfo, host, port, path, query, fragment);
   }
 
   /// Implementation of [Uri.http].
-  factory _Uri.http(String authority,
-                    String unencodedPath,
-                    [Map<String, String> queryParameters]) {
+  factory _Uri.http(String authority, String unencodedPath,
+      [Map<String, String> queryParameters]) {
     return _makeHttpUri("http", authority, unencodedPath, queryParameters);
   }
 
   /// Implementation of [Uri.https].
-  factory _Uri.https(String authority,
-                     String unencodedPath,
-                     [Map<String, String> queryParameters]) {
+  factory _Uri.https(String authority, String unencodedPath,
+      [Map<String, String> queryParameters]) {
     return _makeHttpUri("https", authority, unencodedPath, queryParameters);
   }
 
@@ -1602,10 +1597,8 @@ class _Uri implements Uri {
     throw new FormatException(message, uri, index);
   }
 
-  static Uri _makeHttpUri(String scheme,
-                          String authority,
-                          String unencodedPath,
-                          Map<String, String> queryParameters) {
+  static Uri _makeHttpUri(String scheme, String authority, String unencodedPath,
+      Map<String, String> queryParameters) {
     var userInfo = "";
     var host = null;
     var port = null;
@@ -1631,15 +1624,15 @@ class _Uri implements Uri {
           if (authority.codeUnitAt(hostEnd) == _RIGHT_BRACKET) break;
         }
         if (hostEnd == authority.length) {
-          throw new FormatException("Invalid IPv6 host entry.",
-                                    authority, hostStart);
+          throw new FormatException(
+              "Invalid IPv6 host entry.", authority, hostStart);
         }
         Uri.parseIPv6Address(authority, hostStart + 1, hostEnd);
-        hostEnd++;  // Skip the closing bracket.
+        hostEnd++; // Skip the closing bracket.
         if (hostEnd != authority.length &&
             authority.codeUnitAt(hostEnd) != _COLON) {
-          throw new FormatException("Invalid end of authority",
-                                    authority, hostEnd);
+          throw new FormatException(
+              "Invalid end of authority", authority, hostEnd);
         }
       }
       // Split host and port.
@@ -1654,34 +1647,34 @@ class _Uri implements Uri {
       }
       host = authority.substring(hostStart, hostEnd);
     }
-    return new Uri(scheme: scheme,
-                   userInfo: userInfo,
-                   host: host,
-                   port: port,
-                   pathSegments: unencodedPath.split("/"),
-                   queryParameters: queryParameters);
+    return new Uri(
+        scheme: scheme,
+        userInfo: userInfo,
+        host: host,
+        port: port,
+        pathSegments: unencodedPath.split("/"),
+        queryParameters: queryParameters);
   }
 
   /// Implementation of [Uri.file].
   factory _Uri.file(String path, {bool windows}) {
     windows = (windows == null) ? _Uri._isWindows : windows;
-    return windows ? _makeWindowsFileUrl(path, false)
-                   : _makeFileUri(path, false);
+    return windows
+        ? _makeWindowsFileUrl(path, false)
+        : _makeFileUri(path, false);
   }
 
   /// Implementation of [Uri.directory].
   factory _Uri.directory(String path, {bool windows}) {
     windows = (windows == null) ? _Uri._isWindows : windows;
-    return windows ? _makeWindowsFileUrl(path, true)
-                   : _makeFileUri(path, true);
+    return windows ? _makeWindowsFileUrl(path, true) : _makeFileUri(path, true);
   }
-
 
   /// Used internally in path-related constructors.
   external static bool get _isWindows;
 
-  static _checkNonWindowsPathReservedCharacters(List<String> segments,
-                                                bool argumentError) {
+  static _checkNonWindowsPathReservedCharacters(
+      List<String> segments, bool argumentError) {
     segments.forEach((segment) {
       if (segment.contains("/")) {
         if (argumentError) {
@@ -1693,9 +1686,9 @@ class _Uri implements Uri {
     });
   }
 
-  static _checkWindowsPathReservedCharacters(List<String> segments,
-                                             bool argumentError,
-                                             [int firstSegment = 0]) {
+  static _checkWindowsPathReservedCharacters(
+      List<String> segments, bool argumentError,
+      [int firstSegment = 0]) {
     for (var segment in segments.skip(firstSegment)) {
       if (segment.contains(new RegExp(r'["*/:<>?\\|]'))) {
         if (argumentError) {
@@ -1713,21 +1706,19 @@ class _Uri implements Uri {
       return;
     }
     if (argumentError) {
-      throw new ArgumentError("Illegal drive letter " +
-                              new String.fromCharCode(charCode));
+      throw new ArgumentError(
+          "Illegal drive letter " + new String.fromCharCode(charCode));
     } else {
-      throw new UnsupportedError("Illegal drive letter " +
-                              new String.fromCharCode(charCode));
+      throw new UnsupportedError(
+          "Illegal drive letter " + new String.fromCharCode(charCode));
     }
   }
 
   static _makeFileUri(String path, bool slashTerminated) {
     const String sep = "/";
     var segments = path.split(sep);
-    if (slashTerminated &&
-        segments.isNotEmpty &&
-        segments.last.isNotEmpty) {
-      segments.add("");  // Extra separator at end.
+    if (slashTerminated && segments.isNotEmpty && segments.last.isNotEmpty) {
+      segments.add(""); // Extra separator at end.
     }
     if (path.startsWith(sep)) {
       // Absolute file:// URI.
@@ -1763,9 +1754,8 @@ class _Uri implements Uri {
       }
       // Absolute file://C:/ URI.
       var pathSegments = path.split(sep);
-      if (slashTerminated &&
-          pathSegments.last.isNotEmpty) {
-        pathSegments.add("");  // Extra separator at end.
+      if (slashTerminated && pathSegments.last.isNotEmpty) {
+        pathSegments.add(""); // Extra separator at end.
       }
       _checkWindowsPathReservedCharacters(pathSegments, true, 1);
       return new Uri(scheme: "file", pathSegments: pathSegments);
@@ -1777,22 +1767,19 @@ class _Uri implements Uri {
         int pathStart = path.indexOf(r'\', 2);
         String hostPart =
             (pathStart < 0) ? path.substring(2) : path.substring(2, pathStart);
-        String pathPart =
-            (pathStart < 0) ? "" : path.substring(pathStart + 1);
+        String pathPart = (pathStart < 0) ? "" : path.substring(pathStart + 1);
         var pathSegments = pathPart.split(sep);
         _checkWindowsPathReservedCharacters(pathSegments, true);
-        if (slashTerminated &&
-            pathSegments.last.isNotEmpty) {
-          pathSegments.add("");  // Extra separator at end.
+        if (slashTerminated && pathSegments.last.isNotEmpty) {
+          pathSegments.add(""); // Extra separator at end.
         }
         return new Uri(
             scheme: "file", host: hostPart, pathSegments: pathSegments);
       } else {
         // Absolute file:// URI.
         var pathSegments = path.split(sep);
-        if (slashTerminated &&
-            pathSegments.last.isNotEmpty) {
-          pathSegments.add("");  // Extra separator at end.
+        if (slashTerminated && pathSegments.last.isNotEmpty) {
+          pathSegments.add(""); // Extra separator at end.
         }
         _checkWindowsPathReservedCharacters(pathSegments, true);
         return new Uri(scheme: "file", pathSegments: pathSegments);
@@ -1804,21 +1791,22 @@ class _Uri implements Uri {
       if (slashTerminated &&
           pathSegments.isNotEmpty &&
           pathSegments.last.isNotEmpty) {
-        pathSegments.add("");  // Extra separator at end.
+        pathSegments.add(""); // Extra separator at end.
       }
       return new Uri(pathSegments: pathSegments);
     }
   }
 
-  Uri replace({String scheme,
-               String userInfo,
-               String host,
-               int port,
-               String path,
-               Iterable<String> pathSegments,
-               String query,
-               Map<String, dynamic/*String|Iterable<String>*/> queryParameters,
-               String fragment}) {
+  Uri replace(
+      {String scheme,
+      String userInfo,
+      String host,
+      int port,
+      String path,
+      Iterable<String> pathSegments,
+      String query,
+      Map<String, dynamic /*String|Iterable<String>*/ > queryParameters,
+      String fragment}) {
     // Set to true if the scheme has (potentially) changed.
     // In that case, the default port may also have changed and we need
     // to check even the existing port.
@@ -1854,8 +1842,8 @@ class _Uri implements Uri {
 
     bool hasAuthority = host != null;
     if (path != null || pathSegments != null) {
-      path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
-                       scheme, hasAuthority);
+      path = _makePath(path, 0, _stringOrNullLength(path), pathSegments, scheme,
+          hasAuthority);
     } else {
       path = this.path;
       if ((isFile || (hasAuthority && !path.isEmpty)) &&
@@ -1882,8 +1870,8 @@ class _Uri implements Uri {
 
   Uri removeFragment() {
     if (!this.hasFragment) return this;
-    return new _Uri._internal(scheme, _userInfo, _host, _port,
-                             path, _query, null);
+    return new _Uri._internal(
+        scheme, _userInfo, _host, _port, path, _query, null);
   }
 
   List<String> get pathSegments {
@@ -1895,9 +1883,9 @@ class _Uri implements Uri {
       pathToSplit = pathToSplit.substring(1);
     }
     result = (pathToSplit == "")
-        ? const<String>[]
+        ? const <String>[]
         : new List<String>.unmodifiable(
-              pathToSplit.split("/").map(Uri.decodeComponent));
+            pathToSplit.split("/").map(Uri.decodeComponent));
     _pathSegments = result;
     return result;
   }
@@ -2096,9 +2084,7 @@ class _Uri implements Uri {
   }
 
   static String _makePath(String path, int start, int end,
-                          Iterable<String> pathSegments,
-                          String scheme,
-                          bool hasAuthority) {
+      Iterable<String> pathSegments, String scheme, bool hasAuthority) {
     bool isFile = (scheme == "file");
     bool ensureLeadingSlash = isFile || hasAuthority;
     if (path == null && pathSegments == null) return isFile ? "/" : "";
@@ -2109,8 +2095,9 @@ class _Uri implements Uri {
     if (path != null) {
       result = _normalizeOrSubstring(path, start, end, _pathCharOrSlashTable);
     } else {
-      result = pathSegments.map((s) =>
-          _uriEncode(_pathCharTable, s, UTF8, false)).join("/");
+      result = pathSegments
+          .map((s) => _uriEncode(_pathCharTable, s, UTF8, false))
+          .join("/");
     }
     if (result.isEmpty) {
       if (isFile) return "/";
@@ -2133,9 +2120,8 @@ class _Uri implements Uri {
     return _removeDotSegments(path);
   }
 
-  static String _makeQuery(
-      String query, int start, int end,
-      Map<String, dynamic/*String|Iterable<String>*/> queryParameters) {
+  static String _makeQuery(String query, int start, int end,
+      Map<String, dynamic /*String|Iterable<String>*/ > queryParameters) {
     if (query != null) {
       if (queryParameters != null) {
         throw new ArgumentError('Both query and queryParameters specified');
@@ -2191,14 +2177,14 @@ class _Uri implements Uri {
   static String _normalizeEscape(String source, int index, bool lowerCase) {
     assert(source.codeUnitAt(index) == _PERCENT);
     if (index + 2 >= source.length) {
-      return "%";  // Marks the escape as invalid.
+      return "%"; // Marks the escape as invalid.
     }
     int firstDigit = source.codeUnitAt(index + 1);
     int secondDigit = source.codeUnitAt(index + 2);
     int firstDigitValue = hexDigitValue(firstDigit);
     int secondDigitValue = hexDigitValue(secondDigit);
     if (firstDigitValue < 0 || secondDigitValue < 0) {
-      return "%";  // Marks the escape as invalid.
+      return "%"; // Marks the escape as invalid.
     }
     int value = firstDigitValue * 16 + secondDigitValue;
     if (_isUnreservedChar(value)) {
@@ -2217,7 +2203,7 @@ class _Uri implements Uri {
   }
 
   static String _escapeChar(int char) {
-    assert(char <= 0x10ffff);  // It's a valid unicode code point.
+    assert(char <= 0x10ffff); // It's a valid unicode code point.
     List<int> codeUnits;
     if (char < 0x80) {
       // ASCII, a single percent encoded sequence.
@@ -2227,7 +2213,7 @@ class _Uri implements Uri {
       codeUnits[2] = _hexDigits.codeUnitAt(char & 0xf);
     } else {
       // Do UTF-8 encoding of character, then percent encode bytes.
-      int flag = 0xc0;  // The high-bit markers on the first byte of UTF-8.
+      int flag = 0xc0; // The high-bit markers on the first byte of UTF-8.
       int encodedBytes = 2;
       if (char > 0x7ff) {
         flag = 0xe0;
@@ -2245,7 +2231,7 @@ class _Uri implements Uri {
         codeUnits[index + 1] = _hexDigits.codeUnitAt(byte >> 4);
         codeUnits[index + 2] = _hexDigits.codeUnitAt(byte & 0xf);
         index += 3;
-        flag = 0x80;  // Following bytes have only high bit set.
+        flag = 0x80; // Following bytes have only high bit set.
       }
     }
     return new String.fromCharCodes(codeUnits);
@@ -2257,8 +2243,8 @@ class _Uri implements Uri {
    * If [_normalize] returns `null` (original content is already normalized),
    * this methods returns the substring if [component] from [start] to [end].
    */
-  static String _normalizeOrSubstring(String component, int start, int end,
-                                      List<int> charTable) {
+  static String _normalizeOrSubstring(
+      String component, int start, int end, List<int> charTable) {
     return _normalize(component, start, end, charTable) ??
         component.substring(start, end);
   }
@@ -2274,9 +2260,9 @@ class _Uri implements Uri {
    *
    * Returns `null` if the original content was already normalized.
    */
-  static String _normalize(String component, int start, int end,
-                           List<int> charTable,
-                           {bool escapeDelimiters = false}) {
+  static String _normalize(
+      String component, int start, int end, List<int> charTable,
+      {bool escapeDelimiters = false}) {
     StringBuffer buffer;
     int sectionStart = start;
     int index = start;
@@ -2378,8 +2364,8 @@ class _Uri implements Uri {
       baseEnd = newEnd;
       backCount--;
     }
-    return base.replaceRange(baseEnd + 1, null,
-                             reference.substring(refStart - 3 * backCount));
+    return base.replaceRange(
+        baseEnd + 1, null, reference.substring(refStart - 3 * backCount));
   }
 
   /// Make a guess at whether a path contains a `..` or `.` segment.
@@ -2400,7 +2386,7 @@ class _Uri implements Uri {
   /// and it treats the path as if it is absolute (leading '..' are removed).
   static String _removeDotSegments(String path) {
     if (!_mayContainDotSegments(path)) return path;
-    assert(path.isNotEmpty);  // An empty path would not have dot segments.
+    assert(path.isNotEmpty); // An empty path would not have dot segments.
     List<String> output = [];
     bool appendSlash = false;
     for (String segment in path.split("/")) {
@@ -2435,12 +2421,12 @@ class _Uri implements Uri {
   /// when you resolve it against a base URI with a path with a non-empty
   /// final segment.
   static String _normalizeRelativePath(String path, bool allowScheme) {
-    assert(!path.startsWith('/'));  // Only get called for relative paths.
+    assert(!path.startsWith('/')); // Only get called for relative paths.
     if (!_mayContainDotSegments(path)) {
       if (!allowScheme) path = _escapeScheme(path);
       return path;
     }
-    assert(path.isNotEmpty);  // An empty path would not have dot segments.
+    assert(path.isNotEmpty); // An empty path would not have dot segments.
     List<String> output = [];
     bool appendSlash = false;
     for (String segment in path.split("/")) {
@@ -2511,8 +2497,8 @@ class _Uri implements Uri {
       if (reference.hasAuthority) {
         targetUserInfo = reference.userInfo;
         targetHost = reference.host;
-        targetPort = _makePort(reference.hasPort ? reference.port : null,
-                               targetScheme);
+        targetPort =
+            _makePort(reference.hasPort ? reference.port : null, targetScheme);
         targetPath = _removeDotSegments(reference.path);
         if (reference.hasQuery) targetQuery = reference.query;
       } else {
@@ -2554,8 +2540,8 @@ class _Uri implements Uri {
                 // If both base and reference are relative paths,
                 // allow the merged path to start with "..".
                 // The RFC only specifies the case where the base has a scheme.
-                targetPath = _normalizeRelativePath(mergedPath,
-                  this.hasScheme || this.hasAuthority);
+                targetPath = _normalizeRelativePath(
+                    mergedPath, this.hasScheme || this.hasAuthority);
               }
             }
           }
@@ -2564,13 +2550,8 @@ class _Uri implements Uri {
       }
     }
     String fragment = reference.hasFragment ? reference.fragment : null;
-    return new _Uri._internal(targetScheme,
-                              targetUserInfo,
-                              targetHost,
-                              targetPort,
-                              targetPath,
-                              targetQuery,
-                              fragment);
+    return new _Uri._internal(targetScheme, targetUserInfo, targetHost,
+        targetPort, targetPath, targetQuery, fragment);
   }
 
   bool get hasScheme => scheme.isNotEmpty;
@@ -2593,7 +2574,7 @@ class _Uri implements Uri {
     }
     if (scheme != "http" && scheme != "https") {
       throw new StateError(
-        "Origin is only applicable schemes http and https: $this");
+          "Origin is only applicable schemes http and https: $this");
     }
     if (_host == null || _host == "") {
       throw new StateError(
@@ -2708,20 +2689,20 @@ class _Uri implements Uri {
     return sb.toString();
   }
 
-  bool operator==(other) {
+  bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is Uri) {
       Uri uri = other;
-      return scheme       == uri.scheme       &&
-             hasAuthority == uri.hasAuthority &&
-             userInfo     == uri.userInfo     &&
-             host         == uri.host         &&
-             port         == uri.port         &&
-             path         == uri.path         &&
-             hasQuery     == uri.hasQuery     &&
-             query        == uri.query        &&
-             hasFragment  == uri.hasFragment  &&
-             fragment     == uri.fragment;
+      return scheme == uri.scheme &&
+          hasAuthority == uri.hasAuthority &&
+          userInfo == uri.userInfo &&
+          host == uri.host &&
+          port == uri.port &&
+          path == uri.path &&
+          hasQuery == uri.hasQuery &&
+          query == uri.query &&
+          hasFragment == uri.hasFragment &&
+          fragment == uri.fragment;
     }
     return false;
   }
@@ -2732,8 +2713,7 @@ class _Uri implements Uri {
 
   static List _createList() => [];
 
-  static Map _splitQueryStringAll(
-      String query, {Encoding encoding: UTF8}) {
+  static Map _splitQueryStringAll(String query, {Encoding encoding: UTF8}) {
     Map result = {};
     int i = 0;
     int start = 0;
@@ -2744,7 +2724,7 @@ class _Uri implements Uri {
       String value;
       if (start == end) return;
       if (equalsIndex < 0) {
-        key =  _uriDecode(query, start, end, encoding, true);
+        key = _uriDecode(query, start, end, encoding, true);
         value = "";
       } else {
         key = _uriDecode(query, start, equalsIndex, encoding, true);
@@ -2768,10 +2748,8 @@ class _Uri implements Uri {
     return result;
   }
 
-  external static String _uriEncode(List<int> canonicalTable,
-                                    String text,
-                                    Encoding encoding,
-                                    bool spaceToPlus);
+  external static String _uriEncode(List<int> canonicalTable, String text,
+      Encoding encoding, bool spaceToPlus);
 
   /**
    * Convert a byte (2 character hex sequence) in string [s] starting
@@ -2808,11 +2786,8 @@ class _Uri implements Uri {
    * The decoder will create a byte-list of the percent-encoded parts, and then
    * decode the byte-list using [encoding]. The default encodings UTF-8.
    */
-  static String _uriDecode(String text,
-                           int start,
-                           int end,
-                           Encoding encoding,
-                           bool plusToSpace) {
+  static String _uriDecode(
+      String text, int start, int end, Encoding encoding, bool plusToSpace) {
     assert(0 <= start);
     assert(start <= end);
     assert(end <= text.length);
@@ -2865,7 +2840,7 @@ class _Uri implements Uri {
 
   static bool _isUnreservedChar(int char) {
     return char < 127 &&
-           ((_unreservedTable[char >> 4] & (1 << (char & 0x0f))) != 0);
+        ((_unreservedTable[char >> 4] & (1 << (char & 0x0f))) != 0);
   }
 
   // Tables of char-codes organized as a bit vector of 128 bits where
@@ -2874,248 +2849,259 @@ class _Uri implements Uri {
 
   // The unreserved characters of RFC 3986.
   static const _unreservedTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //                           -.
-      0x6000,   // 0x20 - 0x2f  0000000000000110
-                //              0123456789
-      0x03ff,   // 0x30 - 0x3f  1111111111000000
-                //               ABCDEFGHIJKLMNO
-      0xfffe,   // 0x40 - 0x4f  0111111111111111
-                //              PQRSTUVWXYZ    _
-      0x87ff,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz   ~
-      0x47ff];  // 0x70 - 0x7f  1111111111100010
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                                   -.
+    0x6000, // 0x20 - 0x2f  0000000000000110
+    //                      0123456789
+    0x03ff, // 0x30 - 0x3f  1111111111000000
+    //                       ABCDEFGHIJKLMNO
+    0xfffe, // 0x40 - 0x4f  0111111111111111
+    //                      PQRSTUVWXYZ    _
+    0x87ff, // 0x50 - 0x5f  1111111111100001
+    //                       abcdefghijklmno
+    0xfffe, // 0x60 - 0x6f  0111111111111111
+    //                      pqrstuvwxyz   ~
+    0x47ff, // 0x70 - 0x7f  1111111111100010
+  ];
 
   // The unreserved characters of RFC 2396.
   static const _unreserved2396Table = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //               !     '()*  -.
-      0x6782,   // 0x20 - 0x2f  0100000111100110
-                //              0123456789
-      0x03ff,   // 0x30 - 0x3f  1111111111000000
-                //               ABCDEFGHIJKLMNO
-      0xfffe,   // 0x40 - 0x4f  0111111111111111
-                //              PQRSTUVWXYZ    _
-      0x87ff,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz   ~
-      0x47ff];  // 0x70 - 0x7f  1111111111100010
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                       !     '()*  -.
+    0x6782, // 0x20 - 0x2f  0100000111100110
+    //                      0123456789
+    0x03ff, // 0x30 - 0x3f  1111111111000000
+    //                       ABCDEFGHIJKLMNO
+    0xfffe, // 0x40 - 0x4f  0111111111111111
+    //                      PQRSTUVWXYZ    _
+    0x87ff, // 0x50 - 0x5f  1111111111100001
+    //                       abcdefghijklmno
+    0xfffe, // 0x60 - 0x6f  0111111111111111
+    //                      pqrstuvwxyz   ~
+    0x47ff, // 0x70 - 0x7f  1111111111100010
+  ];
 
   // Table of reserved characters specified by ECMAScript 5.
   static const _encodeFullTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //               ! #$ &'()*+,-./
-      0xffda,   // 0x20 - 0x2f  0101101111111111
-                //              0123456789:; = ?
-      0xafff,   // 0x30 - 0x3f  1111111111110101
-                //              @ABCDEFGHIJKLMNO
-      0xffff,   // 0x40 - 0x4f  1111111111111111
-                //              PQRSTUVWXYZ    _
-      0x87ff,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz   ~
-      0x47ff];  // 0x70 - 0x7f  1111111111100010
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                       ! #$ &'()*+,-./
+    0xffda, // 0x20 - 0x2f  0101101111111111
+    //                      0123456789:; = ?
+    0xafff, // 0x30 - 0x3f  1111111111110101
+    //                      @ABCDEFGHIJKLMNO
+    0xffff, // 0x40 - 0x4f  1111111111111111
+    //                      PQRSTUVWXYZ    _
+    0x87ff, // 0x50 - 0x5f  1111111111100001
+    //                       abcdefghijklmno
+    0xfffe, // 0x60 - 0x6f  0111111111111111
+    //                      pqrstuvwxyz   ~
+    0x47ff, // 0x70 - 0x7f  1111111111100010
+  ];
 
   // Characters allowed in the scheme.
   static const _schemeTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //                         + -.
-      0x6800,   // 0x20 - 0x2f  0000000000010110
-                //              0123456789
-      0x03ff,   // 0x30 - 0x3f  1111111111000000
-                //               ABCDEFGHIJKLMNO
-      0xfffe,   // 0x40 - 0x4f  0111111111111111
-                //              PQRSTUVWXYZ
-      0x07ff,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz
-      0x07ff];  // 0x70 - 0x7f  1111111111100010
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                                 + -.
+    0x6800, // 0x20 - 0x2f  0000000000010110
+    //                      0123456789
+    0x03ff, // 0x30 - 0x3f  1111111111000000
+    //                       ABCDEFGHIJKLMNO
+    0xfffe, // 0x40 - 0x4f  0111111111111111
+    //                      PQRSTUVWXYZ
+    0x07ff, // 0x50 - 0x5f  1111111111100001
+    //                       abcdefghijklmno
+    0xfffe, // 0x60 - 0x6f  0111111111111111
+    //                      pqrstuvwxyz
+    0x07ff, // 0x70 - 0x7f  1111111111100010
+  ];
 
   // Characters allowed in scheme except for upper case letters.
   static const _schemeLowerTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //                         + -.
-      0x6800,   // 0x20 - 0x2f  0000000000010110
-                //              0123456789
-      0x03ff,   // 0x30 - 0x3f  1111111111000000
-                //
-      0x0000,   // 0x40 - 0x4f  0111111111111111
-                //
-      0x0000,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz
-      0x07ff];  // 0x70 - 0x7f  1111111111100010
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                                 + -.
+    0x6800, // 0x20 - 0x2f  0000000000010110
+    //                      0123456789
+    0x03ff, // 0x30 - 0x3f  1111111111000000
+    //
+    0x0000, // 0x40 - 0x4f  0111111111111111
+    //
+    0x0000, // 0x50 - 0x5f  1111111111100001
+    //                       abcdefghijklmno
+    0xfffe, // 0x60 - 0x6f  0111111111111111
+    //                      pqrstuvwxyz
+    0x07ff, // 0x70 - 0x7f  1111111111100010
+  ];
 
   // Sub delimiter characters combined with unreserved as of 3986.
   // sub-delims  = "!" / "$" / "&" / "'" / "(" / ")"
-  //             / "*" / "+" / "," / ";" / "="
+  //         / "*" / "+" / "," / ";" / "="
   // RFC 3986 section 2.3.
   // unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
   static const _subDelimitersTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //               !  $ &'()*+,-.
-      0x7fd2,   // 0x20 - 0x2f  0100101111111110
-                //              0123456789 ; =
-      0x2bff,   // 0x30 - 0x3f  1111111111010100
-                //               ABCDEFGHIJKLMNO
-      0xfffe,   // 0x40 - 0x4f  0111111111111111
-                //              PQRSTUVWXYZ    _
-      0x87ff,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz   ~
-      0x47ff];  // 0x70 - 0x7f  1111111111100010
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                       !  $ &'()*+,-.
+    0x7fd2, // 0x20 - 0x2f  0100101111111110
+    //                      0123456789 ; =
+    0x2bff, // 0x30 - 0x3f  1111111111010100
+    //                       ABCDEFGHIJKLMNO
+    0xfffe, // 0x40 - 0x4f  0111111111111111
+    //                      PQRSTUVWXYZ    _
+    0x87ff, // 0x50 - 0x5f  1111111111100001
+    //                       abcdefghijklmno
+    0xfffe, // 0x60 - 0x6f  0111111111111111
+    //                      pqrstuvwxyz   ~
+    0x47ff, // 0x70 - 0x7f  1111111111100010
+  ];
 
   // General delimiter characters, RFC 3986 section 2.2.
   // gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
   //
   static const _genDelimitersTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //                 #           /
-      0x8008,   // 0x20 - 0x2f  0001000000000001
-                //                        :    ?
-      0x8400,   // 0x30 - 0x3f  0000000000100001
-                //              @
-      0x0001,   // 0x40 - 0x4f  1000000000000000
-                //                         [ ]
-      0x2800,   // 0x50 - 0x5f  0000000000010100
-                //
-      0x0000,   // 0x60 - 0x6f  0000000000000000
-                //
-      0x0000];  // 0x70 - 0x7f  0000000000000000
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                         #           /
+    0x8008, // 0x20 - 0x2f  0001000000000001
+    //                                :    ?
+    0x8400, // 0x30 - 0x3f  0000000000100001
+    //                      @
+    0x0001, // 0x40 - 0x4f  1000000000000000
+    //                                 [ ]
+    0x2800, // 0x50 - 0x5f  0000000000010100
+    //
+    0x0000, // 0x60 - 0x6f  0000000000000000
+    //
+    0x0000, // 0x70 - 0x7f  0000000000000000
+  ];
 
   // Characters allowed in the userinfo as of RFC 3986.
-  // RFC 3986 Apendix A
+  // RFC 3986 Appendix A
   // userinfo = *( unreserved / pct-encoded / sub-delims / ':')
   static const _userinfoTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //               !  $ &'()*+,-.
-      0x7fd2,   // 0x20 - 0x2f  0100101111111110
-                //              0123456789:; =
-      0x2fff,   // 0x30 - 0x3f  1111111111110100
-                //               ABCDEFGHIJKLMNO
-      0xfffe,   // 0x40 - 0x4f  0111111111111111
-                //              PQRSTUVWXYZ    _
-      0x87ff,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz   ~
-      0x47ff];  // 0x70 - 0x7f  1111111111100010
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                       !  $ &'()*+,-.
+    0x7fd2, // 0x20 - 0x2f  0100101111111110
+    //                      0123456789:; =
+    0x2fff, // 0x30 - 0x3f  1111111111110100
+    //                       ABCDEFGHIJKLMNO
+    0xfffe, // 0x40 - 0x4f  0111111111111111
+    //                      PQRSTUVWXYZ    _
+    0x87ff, // 0x50 - 0x5f  1111111111100001
+    //                       abcdefghijklmno
+    0xfffe, // 0x60 - 0x6f  0111111111111111
+    //                      pqrstuvwxyz   ~
+    0x47ff, // 0x70 - 0x7f  1111111111100010
+  ];
 
   // Characters allowed in the reg-name as of RFC 3986.
-  // RFC 3986 Apendix A
+  // RFC 3986 Appendix A
   // reg-name = *( unreserved / pct-encoded / sub-delims )
   static const _regNameTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //               !  $%&'()*+,-.
-      0x7ff2,   // 0x20 - 0x2f  0100111111111110
-                //              0123456789 ; =
-      0x2bff,   // 0x30 - 0x3f  1111111111010100
-                //               ABCDEFGHIJKLMNO
-      0xfffe,   // 0x40 - 0x4f  0111111111111111
-                //              PQRSTUVWXYZ    _
-      0x87ff,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz   ~
-      0x47ff];  // 0x70 - 0x7f  1111111111100010
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                       !  $%&'()*+,-.
+    0x7ff2, // 0x20 - 0x2f  0100111111111110
+    //                      0123456789 ; =
+    0x2bff, // 0x30 - 0x3f  1111111111010100
+    //                       ABCDEFGHIJKLMNO
+    0xfffe, // 0x40 - 0x4f  0111111111111111
+    //                      PQRSTUVWXYZ    _
+    0x87ff, // 0x50 - 0x5f  1111111111100001
+    //                       abcdefghijklmno
+    0xfffe, // 0x60 - 0x6f  0111111111111111
+    //                      pqrstuvwxyz   ~
+    0x47ff, // 0x70 - 0x7f  1111111111100010
+  ];
 
   // Characters allowed in the path as of RFC 3986.
   // RFC 3986 section 3.3.
   // pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
   static const _pathCharTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //               !  $ &'()*+,-.
-      0x7fd2,   // 0x20 - 0x2f  0100101111111110
-                //              0123456789:; =
-      0x2fff,   // 0x30 - 0x3f  1111111111110100
-                //              @ABCDEFGHIJKLMNO
-      0xffff,   // 0x40 - 0x4f  1111111111111111
-                //              PQRSTUVWXYZ    _
-      0x87ff,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz   ~
-      0x47ff];  // 0x70 - 0x7f  1111111111100010
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                       !  $ &'()*+,-.
+    0x7fd2, // 0x20 - 0x2f  0100101111111110
+    //                      0123456789:; =
+    0x2fff, // 0x30 - 0x3f  1111111111110100
+    //                      @ABCDEFGHIJKLMNO
+    0xffff, // 0x40 - 0x4f  1111111111111111
+    //                      PQRSTUVWXYZ    _
+    0x87ff, // 0x50 - 0x5f  1111111111100001
+    //                       abcdefghijklmno
+    0xfffe, // 0x60 - 0x6f  0111111111111111
+    //                      pqrstuvwxyz   ~
+    0x47ff, // 0x70 - 0x7f  1111111111100010
+  ];
 
   // Characters allowed in the path as of RFC 3986.
   // RFC 3986 section 3.3 *and* slash.
   static const _pathCharOrSlashTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //               !  $ &'()*+,-./
-      0xffd2,   // 0x20 - 0x2f  0100101111111111
-                //              0123456789:; =
-      0x2fff,   // 0x30 - 0x3f  1111111111110100
-                //              @ABCDEFGHIJKLMNO
-      0xffff,   // 0x40 - 0x4f  1111111111111111
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                       !  $ &'()*+,-./
+    0xffd2, // 0x20 - 0x2f  0100101111111111
+    //                      0123456789:; =
+    0x2fff, // 0x30 - 0x3f  1111111111110100
+    //                      @ABCDEFGHIJKLMNO
+    0xffff, // 0x40 - 0x4f  1111111111111111
 
-                //              PQRSTUVWXYZ    _
-      0x87ff,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz   ~
-      0x47ff];  // 0x70 - 0x7f  1111111111100010
+    //                      PQRSTUVWXYZ    _
+    0x87ff, // 0x50 - 0x5f  1111111111100001
+    //                       abcdefghijklmno
+    0xfffe, // 0x60 - 0x6f  0111111111111111
+    //                      pqrstuvwxyz   ~
+    0x47ff, // 0x70 - 0x7f  1111111111100010
+  ];
 
   // Characters allowed in the query as of RFC 3986.
   // RFC 3986 section 3.4.
   // query = *( pchar / "/" / "?" )
   static const _queryCharTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //               !  $ &'()*+,-./
-      0xffd2,   // 0x20 - 0x2f  0100101111111111
-                //              0123456789:; = ?
-      0xafff,   // 0x30 - 0x3f  1111111111110101
-                //              @ABCDEFGHIJKLMNO
-      0xffff,   // 0x40 - 0x4f  1111111111111111
-                //              PQRSTUVWXYZ    _
-      0x87ff,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz   ~
-      0x47ff];  // 0x70 - 0x7f  1111111111100010
-
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                       !  $ &'()*+,-./
+    0xffd2, // 0x20 - 0x2f  0100101111111111
+    //                      0123456789:; = ?
+    0xafff, // 0x30 - 0x3f  1111111111110101
+    //                      @ABCDEFGHIJKLMNO
+    0xffff, // 0x40 - 0x4f  1111111111111111
+    //                      PQRSTUVWXYZ    _
+    0x87ff, // 0x50 - 0x5f  1111111111100001
+    //                       abcdefghijklmno
+    0xfffe, // 0x60 - 0x6f  0111111111111111
+    //                      pqrstuvwxyz   ~
+    0x47ff, // 0x70 - 0x7f  1111111111100010
+  ];
 }
 
 // --------------------------------------------------------------------
@@ -3179,10 +3165,10 @@ class UriData {
    * be more efficient if the [uri] itself isn't used.
    */
   factory UriData.fromString(String content,
-                             {String mimeType,
-                              Encoding encoding,
-                              Map<String, String> parameters,
-                              bool base64: false}) {
+      {String mimeType,
+      Encoding encoding,
+      Map<String, String> parameters,
+      bool base64: false}) {
     StringBuffer buffer = new StringBuffer();
     List<int> indices = [_noScheme];
     String charsetName;
@@ -3217,9 +3203,9 @@ class UriData {
    * be more efficient if the [uri] itself isn't used.
    */
   factory UriData.fromBytes(List<int> bytes,
-                            {mimeType: "application/octet-stream",
-                             Map<String, String> parameters,
-                             percentEncoded: false}) {
+      {mimeType: "application/octet-stream",
+      Map<String, String> parameters,
+      percentEncoded: false}) {
     StringBuffer buffer = new StringBuffer();
     List<int> indices = [_noScheme];
     _writeUri(mimeType, null, parameters, buffer, indices);
@@ -3231,9 +3217,9 @@ class UriData {
       buffer.write(';base64,');
       indices.add(buffer.length - 1);
       BASE64.encoder
-            .startChunkedConversion(
-                new StringConversionSink.fromStringSink(buffer))
-            .addSlice(bytes, 0, bytes.length, true);
+          .startChunkedConversion(
+              new StringConversionSink.fromStringSink(buffer))
+          .addSlice(bytes, 0, bytes.length, true);
     }
 
     return new UriData._(buffer.toString(), indices, null);
@@ -3248,16 +3234,15 @@ class UriData {
    */
   factory UriData.fromUri(Uri uri) {
     if (uri.scheme != "data") {
-      throw new ArgumentError.value(uri, "uri",
-                                    "Scheme must be 'data'");
+      throw new ArgumentError.value(uri, "uri", "Scheme must be 'data'");
     }
     if (uri.hasAuthority) {
-      throw new ArgumentError.value(uri, "uri",
-                                    "Data uri must not have authority");
+      throw new ArgumentError.value(
+          uri, "uri", "Data uri must not have authority");
     }
     if (uri.hasFragment) {
-      throw new ArgumentError.value(uri, "uri",
-                                    "Data uri must not have a fragment part");
+      throw new ArgumentError.value(
+          uri, "uri", "Data uri must not have a fragment part");
     }
     if (!uri.hasQuery) {
       return _parse(uri.path, 0, uri);
@@ -3274,33 +3259,28 @@ class UriData {
    * Of an [indices] list is passed, separator indices are stored in that
    * list.
    */
-  static void _writeUri(String mimeType,
-                        String charsetName,
-                        Map<String, String> parameters,
-                        StringBuffer buffer, List indices) {
+  static void _writeUri(String mimeType, String charsetName,
+      Map<String, String> parameters, StringBuffer buffer, List indices) {
     if (mimeType == null || mimeType == "text/plain") {
       mimeType = "";
     }
     if (mimeType.isEmpty || identical(mimeType, "application/octet-stream")) {
-      buffer.write(mimeType);  // Common cases need no escaping.
+      buffer.write(mimeType); // Common cases need no escaping.
     } else {
       int slashIndex = _validateMimeType(mimeType);
       if (slashIndex < 0) {
-        throw new ArgumentError.value(mimeType, "mimeType",
-                                      "Invalid MIME type");
+        throw new ArgumentError.value(
+            mimeType, "mimeType", "Invalid MIME type");
       }
-      buffer.write(_Uri._uriEncode(_tokenCharTable,
-                                   mimeType.substring(0, slashIndex),
-                                   UTF8, false));
+      buffer.write(_Uri._uriEncode(
+          _tokenCharTable, mimeType.substring(0, slashIndex), UTF8, false));
       buffer.write("/");
-      buffer.write(_Uri._uriEncode(_tokenCharTable,
-                                   mimeType.substring(slashIndex + 1),
-                                   UTF8, false));
+      buffer.write(_Uri._uriEncode(
+          _tokenCharTable, mimeType.substring(slashIndex + 1), UTF8, false));
     }
     if (charsetName != null) {
       if (indices != null) {
-        indices..add(buffer.length)
-               ..add(buffer.length + 8);
+        indices..add(buffer.length)..add(buffer.length + 8);
       }
       buffer.write(";charset=");
       buffer.write(_Uri._uriEncode(_tokenCharTable, charsetName, UTF8, false));
@@ -3310,8 +3290,8 @@ class UriData {
         throw new ArgumentError.value("", "Parameter names must not be empty");
       }
       if (value.isEmpty) {
-        throw new ArgumentError.value("", "Parameter values must not be empty",
-                                      'parameters["$key"]');
+        throw new ArgumentError.value(
+            "", "Parameter values must not be empty", 'parameters["$key"]');
       }
       if (indices != null) indices.add(buffer.length);
       buffer.write(';');
@@ -3402,11 +3382,12 @@ class UriData {
     int queryIndex = _text.indexOf('?', colonIndex + 1);
     int end = _text.length;
     if (queryIndex >= 0) {
-      query = _Uri._normalizeOrSubstring(_text, queryIndex + 1, end, _Uri._queryCharTable);
+      query = _Uri._normalizeOrSubstring(
+          _text, queryIndex + 1, end, _Uri._queryCharTable);
       end = queryIndex;
     }
-    path = _Uri._normalizeOrSubstring(_text, colonIndex + 1, end,
-        _Uri._pathCharOrSlashTable);
+    path = _Uri._normalizeOrSubstring(
+        _text, colonIndex + 1, end, _Uri._pathCharOrSlashTable);
     _uriCache = new _DataUri(this, path, query);
     return _uriCache;
   }
@@ -3451,7 +3432,7 @@ class UriData {
    */
   String get charset {
     int parameterStart = 1;
-    int parameterEnd = _separatorIndices.length - 1;  // The ',' before data.
+    int parameterEnd = _separatorIndices.length - 1; // The ',' before data.
     if (isBase64) {
       // There is a ";base64" separator, so subtract one for that as well.
       parameterEnd -= 1;
@@ -3460,8 +3441,8 @@ class UriData {
       var keyStart = _separatorIndices[i] + 1;
       var keyEnd = _separatorIndices[i + 1];
       if (keyEnd == keyStart + 7 && _text.startsWith("charset", keyStart)) {
-        return _Uri._uriDecode(_text, keyEnd + 1, _separatorIndices[i + 2],
-                               UTF8, false);
+        return _Uri._uriDecode(
+            _text, keyEnd + 1, _separatorIndices[i + 2], UTF8, false);
       }
     }
     return "US-ASCII";
@@ -3549,7 +3530,7 @@ class UriData {
    */
   String contentAsString({Encoding encoding}) {
     if (encoding == null) {
-      var charset = this.charset;  // Returns "US-ASCII" if not present.
+      var charset = this.charset; // Returns "US-ASCII" if not present.
       encoding = Encoding.getByName(charset);
       if (encoding == null) {
         throw new UnsupportedError("Unknown charset: $charset");
@@ -3585,7 +3566,7 @@ class UriData {
       var equals = _separatorIndices[i - 1];
       var end = _separatorIndices[i];
       String key = _Uri._uriDecode(_text, start, equals, UTF8, false);
-      String value = _Uri._uriDecode(_text,equals + 1, end, UTF8, false);
+      String value = _Uri._uriDecode(_text, equals + 1, end, UTF8, false);
       result[key] = value;
     }
     return result;
@@ -3596,10 +3577,10 @@ class UriData {
     assert((start == 5) == text.startsWith("data:"));
 
     /// Character codes.
-    const int comma     = 0x2c;
-    const int slash     = 0x2f;
+    const int comma = 0x2c;
+    const int slash = 0x2f;
     const int semicolon = 0x3b;
-    const int equals    = 0x3d;
+    const int equals = 0x3d;
     List<int> indices = [start - 1];
     int slashIndex = -1;
     var char;
@@ -3655,7 +3636,7 @@ class UriData {
       // (reserved, unreserved, or escape sequences).
       // Normalize to this (throws on a fragment separator).
       var data = _Uri._normalize(text, i + 1, text.length, _uricTable,
-                                 escapeDelimiters: true);
+          escapeDelimiters: true);
       if (data != null) {
         text = text.replaceRange(i + 1, text.length, data);
       }
@@ -3668,9 +3649,8 @@ class UriData {
    *
    * Encodes into [buffer] instead of creating its own buffer.
    */
-  static void _uriEncodeBytes(List<int> canonicalTable,
-                              List<int> bytes,
-                              StringSink buffer) {
+  static void _uriEncodeBytes(
+      List<int> canonicalTable, List<int> bytes, StringSink buffer) {
     // Encode the string into bytes then generate an ASCII only string
     // by percent encoding selected bytes.
     int byteOr = 0;
@@ -3707,22 +3687,23 @@ class UriData {
   //
   // In a data URI, we also need to escape '%' and '#' characters.
   static const _tokenCharTable = const [
-                //             LSB             MSB
-                //              |               |
-      0x0000,   // 0x00 - 0x0f  00000000 00000000
-      0x0000,   // 0x10 - 0x1f  00000000 00000000
-                //               !  $ &'   *+ -.
-      0x6cd2,   // 0x20 - 0x2f  01001011 00110110
-                //              01234567 89
-      0x03ff,   // 0x30 - 0x3f  11111111 11000000
-                //               ABCDEFG HIJKLMNO
-      0xfffe,   // 0x40 - 0x4f  01111111 11111111
-                //              PQRSTUVW XYZ   ^_
-      0xc7ff,   // 0x50 - 0x5f  11111111 11100011
-                //              `abcdefg hijklmno
-      0xffff,   // 0x60 - 0x6f  11111111 11111111
-                //              pqrstuvw xyz{|}~
-      0x7fff];  // 0x70 - 0x7f  11111111 11111110
+    //                     LSB             MSB
+    //                      |               |
+    0x0000, // 0x00 - 0x0f  00000000 00000000
+    0x0000, // 0x10 - 0x1f  00000000 00000000
+    //                       !  $ &'   *+ -.
+    0x6cd2, // 0x20 - 0x2f  01001011 00110110
+    //                      01234567 89
+    0x03ff, // 0x30 - 0x3f  11111111 11000000
+    //                       ABCDEFG HIJKLMNO
+    0xfffe, // 0x40 - 0x4f  01111111 11111111
+    //                      PQRSTUVW XYZ   ^_
+    0xc7ff, // 0x50 - 0x5f  11111111 11100011
+    //                      `abcdefg hijklmno
+    0xffff, // 0x60 - 0x6f  11111111 11111111
+    //                      pqrstuvw xyz{|}~
+    0x7fff, // 0x70 - 0x7f  11111111 11111110
+  ];
 
   // All non-escape RFC-2396 uric characters.
   //
@@ -3736,22 +3717,22 @@ class UriData {
 
   // Characters allowed in base-64 encoding (alphanumeric, '/', '+' and '=').
   static const _base64Table = const [
-                //             LSB             MSB
-                //              |               |
-      0x0000,   // 0x00 - 0x0f  00000000 00000000
-      0x0000,   // 0x10 - 0x1f  00000000 00000000
-                //                          +   /
-      0x8800,   // 0x20 - 0x2f  00000000 00010001
-                //              01234567 89
-      0x03ff,   // 0x30 - 0x3f  11111111 11000000
-                //               ABCDEFG HIJKLMNO
-      0xfffe,   // 0x40 - 0x4f  01111111 11111111
-                //              PQRSTUVW XYZ
-      0x07ff,   // 0x50 - 0x5f  11111111 11100000
-                //               abcdefg hijklmno
-      0xfffe,   // 0x60 - 0x6f  01111111 11111111
-                //              pqrstuvw xyz
-      0x07ff,   // 0x70 - 0x7f  11111111 11100000
+    //                     LSB             MSB
+    //                      |               |
+    0x0000, // 0x00 - 0x0f  00000000 00000000
+    0x0000, // 0x10 - 0x1f  00000000 00000000
+    //                                  +   /
+    0x8800, // 0x20 - 0x2f  00000000 00010001
+    //                      01234567 89
+    0x03ff, // 0x30 - 0x3f  11111111 11000000
+    //                       ABCDEFG HIJKLMNO
+    0xfffe, // 0x40 - 0x4f  01111111 11111111
+    //                      PQRSTUVW XYZ
+    0x07ff, // 0x50 - 0x5f  11111111 11100000
+    //                       abcdefg hijklmno
+    0xfffe, // 0x60 - 0x6f  01111111 11111111
+    //                      pqrstuvw xyz
+    0x07ff, // 0x70 - 0x7f  11111111 11100000
   ];
 }
 
@@ -3762,29 +3743,35 @@ class UriData {
 // The `0` index is only used internally.
 
 /// Index of the position of that `:` after a scheme.
-const int _schemeEndIndex     = 1;
+const int _schemeEndIndex = 1;
+
 /// Index of the position of the character just before the host name.
-const int _hostStartIndex     = 2;
+const int _hostStartIndex = 2;
+
 /// Index of the position of the `:` before a port value.
-const int _portStartIndex     = 3;
+const int _portStartIndex = 3;
+
 /// Index of the position of the first character of a path.
-const int _pathStartIndex     = 4;
+const int _pathStartIndex = 4;
+
 /// Index of the position of the `?` before a query.
-const int _queryStartIndex    = 5;
+const int _queryStartIndex = 5;
+
 /// Index of the position of the `#` before a fragment.
 const int _fragmentStartIndex = 6;
+
 /// Index of a position where the URI was determined to be "non-simple".
-const int _notSimpleIndex     = 7;
+const int _notSimpleIndex = 7;
 
 // Initial state for scanner.
-const int _uriStart           = 00;
+const int _uriStart = 00;
 
 // If scanning of a URI terminates in this state or above,
 // consider the URI non-simple
 const int _nonSimpleEndStates = 14;
 
 // Initial state for scheme validation.
-const int _schemeStart        = 20;
+const int _schemeStart = 20;
 
 /// Transition tables used to scan a URI to determine its structure.
 ///
@@ -3883,54 +3870,55 @@ List<Uint8List> _createTables() {
   // TODO(lrn): Use a precomputed table.
 
   // Total number of states for the scanner.
-  const int stateCount         = 22;
+  const int stateCount = 22;
 
   // States used to scan a URI from scratch.
-  const int schemeOrPath       = 01;
-  const int authOrPath         = 02;
-  const int authOrPathSlash    = 03;
-  const int uinfoOrHost0       = 04;
-  const int uinfoOrHost        = 05;
-  const int uinfoOrPort0       = 06;
-  const int uinfoOrPort        = 07;
-  const int ipv6Host           = 08;
-  const int relPathSeg         = 09;
-  const int pathSeg            = 10;
-  const int path               = 11;
-  const int query              = 12;
-  const int fragment           = 13;
-  const int schemeOrPathDot    = 14;
-  const int schemeOrPathDot2   = 15;
-  const int relPathSegDot      = 16;
-  const int relPathSegDot2     = 17;
-  const int pathSegDot         = 18;
-  const int pathSegDot2        = 19;
+  const int schemeOrPath = 01;
+  const int authOrPath = 02;
+  const int authOrPathSlash = 03;
+  const int uinfoOrHost0 = 04;
+  const int uinfoOrHost = 05;
+  const int uinfoOrPort0 = 06;
+  const int uinfoOrPort = 07;
+  const int ipv6Host = 08;
+  const int relPathSeg = 09;
+  const int pathSeg = 10;
+  const int path = 11;
+  const int query = 12;
+  const int fragment = 13;
+  const int schemeOrPathDot = 14;
+  const int schemeOrPathDot2 = 15;
+  const int relPathSegDot = 16;
+  const int relPathSegDot2 = 17;
+  const int pathSegDot = 18;
+  const int pathSegDot2 = 19;
 
   // States used to validate a scheme after its end position has been found.
-  const int scheme0            = _schemeStart;
-  const int scheme             = 21;
+  const int scheme0 = _schemeStart;
+  const int scheme = 21;
 
   // Constants encoding the write-index for the state transition into the top 5
   // bits of a byte.
-  const int schemeEnd          = _schemeEndIndex     << 5;
-  const int hostStart          = _hostStartIndex     << 5;
-  const int portStart          = _portStartIndex     << 5;
-  const int pathStart          = _pathStartIndex     << 5;
-  const int queryStart         = _queryStartIndex    << 5;
-  const int fragmentStart      = _fragmentStartIndex << 5;
-  const int notSimple          = _notSimpleIndex     << 5;
+  const int schemeEnd = _schemeEndIndex << 5;
+  const int hostStart = _hostStartIndex << 5;
+  const int portStart = _portStartIndex << 5;
+  const int pathStart = _pathStartIndex << 5;
+  const int queryStart = _queryStartIndex << 5;
+  const int fragmentStart = _fragmentStartIndex << 5;
+  const int notSimple = _notSimpleIndex << 5;
 
   /// The `unreserved` characters of RFC 3986.
   const unreserved =
-      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._~"  ;
+      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._~";
+
   /// The `sub-delim` characters of RFC 3986.
   const subDelims = r"!$&'()*+,;=";
   // The `pchar` characters of RFC 3986: characters that may occur in a path,
   // excluding escapes.
   const pchar = "$unreserved$subDelims";
 
-  var tables = new List<Uint8List>.generate(stateCount,
-      (_) => new Uint8List(96));
+  var tables =
+      new List<Uint8List>.generate(stateCount, (_) => new Uint8List(96));
 
   // Helper function which initialize the table for [state] with a default
   // transition and returns the table.
@@ -3967,7 +3955,7 @@ List<Uint8List> _createTables() {
   b = build(_uriStart, schemeOrPath | notSimple);
   setChars(b, pchar, schemeOrPath);
   setChars(b, ".", schemeOrPathDot);
-  setChars(b, ":", authOrPath | schemeEnd);  // Handle later.
+  setChars(b, ":", authOrPath | schemeEnd); // Handle later.
   setChars(b, "/", authOrPathSlash);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
@@ -4062,8 +4050,8 @@ List<Uint8List> _createTables() {
   b = build(relPathSegDot2, path | notSimple);
   setChars(b, pchar, path);
   setChars(b, "/", relPathSeg);
-  setChars(b, "?", query | queryStart);  // This should be non-simple.
-  setChars(b, "#", fragment | fragmentStart);  // This should be non-simple.
+  setChars(b, "?", query | queryStart); // This should be non-simple.
+  setChars(b, "#", fragment | fragmentStart); // This should be non-simple.
 
   b = build(pathSeg, path | notSimple);
   setChars(b, pchar, path);
@@ -4146,6 +4134,7 @@ class _SimpleUri implements Uri {
   final int _pathStart;
   final int _queryStart;
   final int _fragmentStart;
+
   /// The scheme is often used to distinguish URIs.
   /// To make comparisons more efficient, we cache the value, and
   /// canonicalize a few known types.
@@ -4173,9 +4162,10 @@ class _SimpleUri implements Uri {
   bool get _isHttp => _schemeEnd == 4 && _uri.startsWith("http");
   bool get _isHttps => _schemeEnd == 5 && _uri.startsWith("https");
   bool get _isPackage => _schemeEnd == 7 && _uri.startsWith("package");
+
   /// Like [isScheme] but expects argument to be case normalized.
   bool _isScheme(String scheme) =>
-    _schemeEnd == scheme.length && _uri.startsWith(scheme);
+      _schemeEnd == scheme.length && _uri.startsWith(scheme);
 
   bool get hasAbsolutePath => _uri.startsWith("/", _pathStart);
   bool get hasEmptyPath => _pathStart == _queryStart;
@@ -4204,10 +4194,12 @@ class _SimpleUri implements Uri {
     }
     return _schemeCache;
   }
-  String get authority => _hostStart > 0 ?
-      _uri.substring(_schemeEnd + 3, _pathStart) : "";
-  String get userInfo => (_hostStart > _schemeEnd + 3) ?
-      _uri.substring(_schemeEnd + 3, _hostStart - 1) : "";
+
+  String get authority =>
+      _hostStart > 0 ? _uri.substring(_schemeEnd + 3, _pathStart) : "";
+  String get userInfo => (_hostStart > _schemeEnd + 3)
+      ? _uri.substring(_schemeEnd + 3, _hostStart - 1)
+      : "";
   String get host =>
       _hostStart > 0 ? _uri.substring(_hostStart, _portStart) : "";
   int get port {
@@ -4216,11 +4208,13 @@ class _SimpleUri implements Uri {
     if (_isHttps) return 443;
     return 0;
   }
-  String get path =>_uri.substring(_pathStart, _queryStart);
-  String get query => (_queryStart < _fragmentStart) ?
-     _uri.substring(_queryStart + 1, _fragmentStart) : "";
-  String get fragment => (_fragmentStart < _uri.length) ?
-     _uri.substring(_fragmentStart + 1) : "";
+
+  String get path => _uri.substring(_pathStart, _queryStart);
+  String get query => (_queryStart < _fragmentStart)
+      ? _uri.substring(_queryStart + 1, _fragmentStart)
+      : "";
+  String get fragment =>
+      (_fragmentStart < _uri.length) ? _uri.substring(_fragmentStart + 1) : "";
 
   String get origin {
     // Check original behavior - W3C spec is wonky!
@@ -4230,7 +4224,7 @@ class _SimpleUri implements Uri {
     }
     if (!isHttp && !_isHttps) {
       throw new StateError(
-        "Origin is only applicable schemes http and https: $this");
+          "Origin is only applicable to schemes http and https: $this");
     }
     if (_hostStart == _portStart) {
       throw new StateError(
@@ -4241,7 +4235,7 @@ class _SimpleUri implements Uri {
     }
     // Need to drop anon-empty userInfo.
     return _uri.substring(0, _schemeEnd + 3) +
-           _uri.substring(_hostStart, _pathStart);
+        _uri.substring(_hostStart, _pathStart);
   }
 
   List<String> get pathSegments {
@@ -4263,8 +4257,7 @@ class _SimpleUri implements Uri {
 
   Map<String, String> get queryParameters {
     if (!hasQuery) return const <String, String>{};
-    return new UnmodifiableMapView<String, String>(
-        Uri.splitQueryString(query));
+    return new UnmodifiableMapView<String, String>(Uri.splitQueryString(query));
   }
 
   Map<String, List<String>> get queryParametersAll {
@@ -4280,7 +4273,7 @@ class _SimpleUri implements Uri {
   bool _isPort(String port) {
     int portDigitStart = _portStart + 1;
     return portDigitStart + port.length == _pathStart &&
-           _uri.startsWith(port, portDigitStart);
+        _uri.startsWith(port, portDigitStart);
   }
 
   Uri normalizePath() => this;
@@ -4288,20 +4281,26 @@ class _SimpleUri implements Uri {
   Uri removeFragment() {
     if (!hasFragment) return this;
     return new _SimpleUri(
-      _uri.substring(0, _fragmentStart),
-      _schemeEnd, _hostStart, _portStart,
-      _pathStart, _queryStart, _fragmentStart, _schemeCache);
+        _uri.substring(0, _fragmentStart),
+        _schemeEnd,
+        _hostStart,
+        _portStart,
+        _pathStart,
+        _queryStart,
+        _fragmentStart,
+        _schemeCache);
   }
 
-  Uri replace({String scheme,
-               String userInfo,
-               String host,
-               int port,
-               String path,
-               Iterable<String> pathSegments,
-               String query,
-               Map<String, dynamic/*String|Iterable<String>*/> queryParameters,
-               String fragment}) {
+  Uri replace(
+      {String scheme,
+      String userInfo,
+      String host,
+      int port,
+      String path,
+      Iterable<String> pathSegments,
+      String query,
+      Map<String, dynamic /*String|Iterable<String>*/ > queryParameters,
+      String fragment}) {
     bool schemeChanged = false;
     if (scheme != null) {
       scheme = _Uri._makeScheme(scheme, 0, scheme.length);
@@ -4337,7 +4336,7 @@ class _SimpleUri implements Uri {
     bool hasAuthority = host != null;
     if (path != null || pathSegments != null) {
       path = _Uri._makePath(path, 0, _stringOrNullLength(path), pathSegments,
-                           scheme, hasAuthority);
+          scheme, hasAuthority);
     } else {
       path = _uri.substring(_pathStart, _queryStart);
       if ((isFile || (hasAuthority && !path.isEmpty)) &&
@@ -4375,7 +4374,7 @@ class _SimpleUri implements Uri {
   }
 
   // Merge two simple URIs. This should always result in a prefix of
-  // one concatentated with a suffix of the other, possibly with a `/` in
+  // one concatenated with a suffix of the other, possibly with a `/` in
   // the middle of two merged paths, which is again simple.
   // In a few cases, there might be a need for extra normalization, when
   // resolving on top of a known scheme.
@@ -4394,15 +4393,16 @@ class _SimpleUri implements Uri {
       if (isSimple) {
         var delta = base._schemeEnd + 1;
         var newUri = base._uri.substring(0, base._schemeEnd + 1) +
-                     ref._uri.substring(ref._schemeEnd + 1);
-        return new _SimpleUri(newUri,
-           base._schemeEnd,
-           ref._hostStart + delta,
-           ref._portStart + delta,
-           ref._pathStart + delta,
-           ref._queryStart + delta,
-           ref._fragmentStart + delta,
-           base._schemeCache);
+            ref._uri.substring(ref._schemeEnd + 1);
+        return new _SimpleUri(
+            newUri,
+            base._schemeEnd,
+            ref._hostStart + delta,
+            ref._portStart + delta,
+            ref._pathStart + delta,
+            ref._queryStart + delta,
+            ref._fragmentStart + delta,
+            base._schemeCache);
       } else {
         // This will require normalization, so use the _Uri implementation.
         return _toNonSimple().resolveUri(ref);
@@ -4412,43 +4412,46 @@ class _SimpleUri implements Uri {
       if (ref.hasQuery) {
         int delta = base._queryStart - ref._queryStart;
         var newUri = base._uri.substring(0, base._queryStart) +
-                     ref._uri.substring(ref._queryStart);
-        return new _SimpleUri(newUri,
-           base._schemeEnd,
-           base._hostStart,
-           base._portStart,
-           base._pathStart,
-           ref._queryStart + delta,
-           ref._fragmentStart + delta,
-           base._schemeCache);
+            ref._uri.substring(ref._queryStart);
+        return new _SimpleUri(
+            newUri,
+            base._schemeEnd,
+            base._hostStart,
+            base._portStart,
+            base._pathStart,
+            ref._queryStart + delta,
+            ref._fragmentStart + delta,
+            base._schemeCache);
       }
       if (ref.hasFragment) {
         int delta = base._fragmentStart - ref._fragmentStart;
         var newUri = base._uri.substring(0, base._fragmentStart) +
-                     ref._uri.substring(ref._fragmentStart);
-        return new _SimpleUri(newUri,
-           base._schemeEnd,
-           base._hostStart,
-           base._portStart,
-           base._pathStart,
-           base._queryStart,
-           ref._fragmentStart + delta,
-           base._schemeCache);
+            ref._uri.substring(ref._fragmentStart);
+        return new _SimpleUri(
+            newUri,
+            base._schemeEnd,
+            base._hostStart,
+            base._portStart,
+            base._pathStart,
+            base._queryStart,
+            ref._fragmentStart + delta,
+            base._schemeCache);
       }
       return base.removeFragment();
     }
     if (ref.hasAbsolutePath) {
       var delta = base._pathStart - ref._pathStart;
       var newUri = base._uri.substring(0, base._pathStart) +
-                   ref._uri.substring(ref._pathStart);
-      return new _SimpleUri(newUri,
-        base._schemeEnd,
-        base._hostStart,
-        base._portStart,
-        base._pathStart,
-        ref._queryStart + delta,
-        ref._fragmentStart + delta,
-        base._schemeCache);
+          ref._uri.substring(ref._pathStart);
+      return new _SimpleUri(
+          newUri,
+          base._schemeEnd,
+          base._hostStart,
+          base._portStart,
+          base._pathStart,
+          ref._queryStart + delta,
+          ref._fragmentStart + delta,
+          base._schemeCache);
     }
     if (base.hasEmptyPath && base.hasAuthority) {
       // ref has relative non-empty path.
@@ -4459,15 +4462,16 @@ class _SimpleUri implements Uri {
       }
       var delta = base._pathStart - refStart + 1;
       var newUri = "${base._uri.substring(0, base._pathStart)}/"
-                   "${ref._uri.substring(refStart)}";
-      return new _SimpleUri(newUri,
-        base._schemeEnd,
-        base._hostStart,
-        base._portStart,
-        base._pathStart,
-        ref._queryStart + delta,
-        ref._fragmentStart + delta,
-        base._schemeCache);
+          "${ref._uri.substring(refStart)}";
+      return new _SimpleUri(
+          newUri,
+          base._schemeEnd,
+          base._hostStart,
+          base._portStart,
+          base._pathStart,
+          ref._queryStart + delta,
+          ref._fragmentStart + delta,
+          base._schemeCache);
     }
     // Merge paths.
 
@@ -4492,6 +4496,7 @@ class _SimpleUri implements Uri {
     /// The count is decremented when the segment is matched with a
     /// segment of the base path, and both are then omitted from the result.
     int backCount = 0;
+
     /// Count "../" segments and advance `refStart` to after the segments.
     while (refStart + 3 <= refEnd && refUri.startsWith("../", refStart)) {
       refStart += 3;
@@ -4535,16 +4540,17 @@ class _SimpleUri implements Uri {
 
     var delta = baseEnd - refStart + insert.length;
     var newUri = "${base._uri.substring(0, baseEnd)}$insert"
-               "${ref._uri.substring(refStart)}";
+        "${ref._uri.substring(refStart)}";
 
-    return new _SimpleUri(newUri,
-      base._schemeEnd,
-      base._hostStart,
-      base._portStart,
-      base._pathStart,
-      ref._queryStart + delta,
-      ref._fragmentStart + delta,
-      base._schemeCache);
+    return new _SimpleUri(
+        newUri,
+        base._schemeEnd,
+        base._hostStart,
+        base._portStart,
+        base._pathStart,
+        ref._queryStart + delta,
+        ref._fragmentStart + delta,
+        base._schemeCache);
   }
 
   String toFilePath({bool windows}) {
@@ -4568,8 +4574,8 @@ class _SimpleUri implements Uri {
     if (_hostStart < _portStart) {
       // Has authority and non-empty host.
       throw new UnsupportedError(
-        "Cannot extract a non-Windows file path from a file URI "
-        "with an authority");
+          "Cannot extract a non-Windows file path from a file URI "
+          "with an authority");
     }
     return this.path;
   }
@@ -4581,7 +4587,7 @@ class _SimpleUri implements Uri {
 
   int get hashCode => _hashCodeCache ??= _uri.hashCode;
 
-  bool operator==(Object other) {
+  bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is Uri) return _uri == other.toString();
     return false;
@@ -4589,14 +4595,13 @@ class _SimpleUri implements Uri {
 
   Uri _toNonSimple() {
     return new _Uri._internal(
-      this.scheme,
-      this.userInfo,
-      this.hasAuthority ? this.host: null,
-      this.hasPort ? this.port : null,
-      this.path,
-      this.hasQuery ? this.query : null,
-      this.hasFragment ? this.fragment : null
-    );
+        this.scheme,
+        this.userInfo,
+        this.hasAuthority ? this.host : null,
+        this.hasPort ? this.port : null,
+        this.path,
+        this.hasQuery ? this.query : null,
+        this.hasFragment ? this.fragment : null);
   }
 
   String toString() => _uri;
@@ -4623,7 +4628,7 @@ class _DataUri extends _Uri {
 int _startsWithData(String text, int start) {
   // Multiply by 3 to avoid a non-colon character making delta be 0x20.
   int delta = (text.codeUnitAt(start + 4) ^ _COLON) * 3;
-  delta |= text.codeUnitAt(start)     ^ 0x64 /*d*/;
+  delta |= text.codeUnitAt(start) ^ 0x64 /*d*/;
   delta |= text.codeUnitAt(start + 1) ^ 0x61 /*a*/;
   delta |= text.codeUnitAt(start + 2) ^ 0x74 /*t*/;
   delta |= text.codeUnitAt(start + 3) ^ 0x61 /*a*/;

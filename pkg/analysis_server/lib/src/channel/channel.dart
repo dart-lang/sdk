@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library channel;
-
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
 
 /**
  * Instances of the class [ChannelChunkSink] uses a [Converter] to translate

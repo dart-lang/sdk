@@ -1,4 +1,5 @@
 library sub;
+
 import '../cyclic_import_test.dart';
 import 'package:expect/expect.dart';
 

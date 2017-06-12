@@ -7,12 +7,14 @@ library dart2js.test.memory_source_file_helper;
 import 'dart:async' show Future;
 export 'dart:io' show Platform;
 
+import 'package:compiler/compiler_new.dart';
+
 export 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 
 export 'package:compiler/src/filenames.dart' show currentDirectory;
 
 import 'package:compiler/src/io/source_file.dart'
-    show StringSourceFile, SourceFile;
+    show Binary, StringSourceFile, SourceFile, Utf8BytesSourceFile;
 
 import 'package:compiler/src/source_file_provider.dart' show SourceFileProvider;
 
@@ -20,38 +22,60 @@ export 'package:compiler/src/source_file_provider.dart'
     show SourceFileProvider, FormattingDiagnosticHandler;
 
 class MemorySourceFileProvider extends SourceFileProvider {
-  Map<String, String> memorySourceFiles;
+  Map<String, dynamic> memorySourceFiles;
 
-  MemorySourceFileProvider(Map<String, String> this.memorySourceFiles);
+  /// MemorySourceFiles can contain maps of file names to string contents or
+  /// file names to binary contents.
+  MemorySourceFileProvider(Map<String, dynamic> this.memorySourceFiles);
 
-  Future<String> readStringFromUri(Uri resourceUri) {
+  Future<Input> readBytesFromUri(Uri resourceUri, InputKind inputKind) {
     if (resourceUri.scheme != 'memory') {
-      return super.readStringFromUri(resourceUri);
+      return super.readBytesFromUri(resourceUri, inputKind);
     }
-    String source = memorySourceFiles[resourceUri.path];
+    var source = memorySourceFiles[resourceUri.path];
     if (source == null) {
       return new Future.error(new Exception(
           'No such memory file $resourceUri in ${memorySourceFiles.keys}'));
     }
-    this.sourceFiles[resourceUri] =
-        new StringSourceFile.fromUri(resourceUri, source);
-    return new Future.value(source);
+    Input input;
+    switch (inputKind) {
+      case InputKind.utf8:
+        if (source is String) {
+          input = new StringSourceFile.fromUri(resourceUri, source);
+        } else {
+          input = new Utf8BytesSourceFile(resourceUri, source);
+        }
+        break;
+      case InputKind.binary:
+        if (source is String) {
+          source = source.codeUnits;
+        }
+        input = new Binary(resourceUri, source);
+        break;
+    }
+    this.sourceFiles[resourceUri] = input;
+    return new Future.value(input);
   }
 
-  Future<String> call(Uri resourceUri) => readStringFromUri(resourceUri);
+  //Future<List<int>> call(Uri resourceUri) => readBytesFromUri(resourceUri, InputKind.utf8);
 
   SourceFile getSourceFile(Uri resourceUri) {
     if (resourceUri.scheme != 'memory') {
       return super.getSourceFile(resourceUri);
     }
-    String source = memorySourceFiles[resourceUri.path];
+    var source = memorySourceFiles[resourceUri.path];
     if (source == null) {
       throw new Exception(
           'No such memory file $resourceUri in ${memorySourceFiles.keys}');
     }
-    return new StringSourceFile.fromUri(resourceUri, source);
+    if (source is String) {
+      return new StringSourceFile.fromUri(resourceUri, source);
+    }
+    return new Utf8BytesSourceFile(resourceUri, source);
   }
 
   @override
-  Future readFromUri(Uri resourceUri) => readStringFromUri(resourceUri);
+  Future<Input> readFromUri(Uri resourceUri,
+          {InputKind inputKind: InputKind.utf8}) =>
+      readBytesFromUri(resourceUri, inputKind);
 }

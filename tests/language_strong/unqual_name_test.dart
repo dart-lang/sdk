@@ -5,9 +5,8 @@
 
 import "package:expect/expect.dart";
 
-
 class B {
-  B(x, y) : b = y { }
+  B(x, y) : b = y {}
   var b;
 
   get_b() {
@@ -20,9 +19,7 @@ class B {
   }
 }
 
-
 class UnqualNameTest {
-
   static eleven() {
     return 11;
   }

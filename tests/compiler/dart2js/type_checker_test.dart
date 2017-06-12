@@ -100,6 +100,8 @@ Future testReturn(MockCompiler compiler) {
     check(returnWithType("void", 1), MessageKind.RETURN_VALUE_IN_VOID),
     check(returnWithType("void", null)),
     check(returnWithType("String", ""), MessageKind.RETURN_NOTHING),
+    check(arrowReturnWithType("void", "4")),
+    check("void set foo(x) => 5;"),
     // check("String foo() {};"), // Should probably fail.
   ]);
 }
@@ -173,7 +175,8 @@ class Class {
 }
 """;
   compiler.parseScript(script);
-  ClassElement foo = compiler.mainApp.find("Class");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement foo = mainApp.find("Class");
   foo.ensureResolved(compiler.resolution);
   FunctionElement method = foo.lookupLocalMember('forIn');
 
@@ -412,7 +415,8 @@ class Class {
 }
 """;
   compiler.parseScript(script);
-  ClassElement foo = compiler.mainApp.find("Class");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement foo = mainApp.find("Class");
   foo.ensureResolved(compiler.resolution);
   FunctionElement method = foo.lookupLocalMember('forIn');
 
@@ -1355,7 +1359,8 @@ testThis(MockCompiler compiler) {
                        void method() {}
                      }""";
   compiler.parseScript(script);
-  ClassElement foo = compiler.mainApp.find("Foo");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement foo = mainApp.find("Foo");
   foo.ensureResolved(compiler.resolution);
   Element method = foo.lookupLocalMember('method');
   analyzeIn(compiler, method, "{ int i = this; }", warnings: NOT_ASSIGNABLE);
@@ -1375,7 +1380,8 @@ testSuper(MockCompiler compiler) {
     }
     ''';
   compiler.parseScript(script);
-  ClassElement B = compiler.mainApp.find("B");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement B = mainApp.find("B");
   B.ensureResolved(compiler.resolution);
   Element method = B.lookupLocalMember('method');
   analyzeIn(compiler, method, "{ int i = super.field; }",
@@ -1672,7 +1678,8 @@ void testTypeVariableExpressions(MockCompiler compiler) {
                        void method() {}
                      }""";
   compiler.parseScript(script);
-  ClassElement foo = compiler.mainApp.find("Foo");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement foo = mainApp.find("Foo");
   foo.ensureResolved(compiler.resolution);
   Element method = foo.lookupLocalMember('method');
 
@@ -1707,7 +1714,8 @@ class Test<S extends Foo, T> {
 """;
 
   compiler.parseScript(script);
-  ClassElement classTest = compiler.mainApp.find("Test");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement classTest = mainApp.find("Test");
   classTest.ensureResolved(compiler.resolution);
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
@@ -1747,7 +1755,8 @@ class Test<S extends T, T extends Foo> {
 }""";
 
   compiler.parseScript(script);
-  ClassElement classTest = compiler.mainApp.find("Test");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement classTest = mainApp.find("Test");
   classTest.ensureResolved(compiler.resolution);
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
@@ -1769,7 +1778,8 @@ class Test<S extends T, T extends S> {
 }""";
 
   compiler.parseScript(script);
-  ClassElement classTest = compiler.mainApp.find("Test");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement classTest = mainApp.find("Test");
   classTest.ensureResolved(compiler.resolution);
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
@@ -2499,7 +2509,8 @@ testAwait(MockCompiler compiler) {
                        Foo self() => this;
                      }""";
   compiler.parseScript(script);
-  ClassElement foo = compiler.mainApp.find("Foo");
+  LibraryElement mainApp = compiler.mainApp;
+  ClassElement foo = mainApp.find("Foo");
   foo.ensureResolved(compiler.resolution);
   FunctionElement method = foo.lookupLocalMember('method');
   analyzeIn(compiler, method, "{ await 0; }");
@@ -2554,8 +2565,8 @@ testAsyncReturn(MockCompiler compiler) {
     check("""
     Future<int> foo() async => new Future<Future<int>>.value();
     """),
-    check("void foo() async => 0;", MessageKind.RETURN_VALUE_IN_VOID),
-    check("void foo() async => new Future.value();",
+    check("void foo() async { return 0; }", MessageKind.RETURN_VALUE_IN_VOID),
+    check("void foo() async { return new Future.value(); }",
         MessageKind.RETURN_VALUE_IN_VOID),
     check("int foo() async => 0;", NOT_ASSIGNABLE),
     check("int foo() async => new Future<int>.value();", NOT_ASSIGNABLE),
@@ -2604,6 +2615,10 @@ class SubFunction implements Function {}''';
 
 String returnWithType(String type, expression) {
   return "$type foo() { return $expression; }";
+}
+
+String arrowReturnWithType(String type, expression) {
+  return "$type foo() => $expression;";
 }
 
 Node parseExpression(String text) =>

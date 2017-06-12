@@ -7,39 +7,40 @@ part of world_builder;
 abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
   /// Set of all local functions in the program. Used by the mirror tracking
   /// system to find all live closure instances.
-  Iterable<LocalFunctionElement> get localFunctions;
+  Iterable<Local> get localFunctions;
 
   /// Set of (live) local functions (closures) whose signatures reference type
   /// variables.
   ///
   /// A live function is one whose enclosing member function has been enqueued.
-  Iterable<LocalFunctionElement> get localFunctionsWithFreeTypeVariables;
+  Iterable<Local> get localFunctionsWithFreeTypeVariables;
 
   /// Set of methods in instantiated classes that are potentially closurized.
-  Iterable<MethodElement> get closurizedMembers;
+  Iterable<FunctionEntity> get closurizedMembers;
 
   /// Set of live closurized members whose signatures reference type variables.
   ///
   /// A closurized method is considered live if the enclosing class has been
   /// instantiated.
-  Iterable<MethodElement> get closurizedMembersWithFreeTypeVariables;
+  Iterable<FunctionEntity> get closurizedMembersWithFreeTypeVariables;
 
   /// Returns `true` if [cls] is considered to be implemented by an
   /// instantiated class, either directly, through subclasses or through
   /// subtypes. The latter case only contains spurious information from
   /// instantiations through factory constructors and mixins.
-  bool isImplemented(ClassElement cls);
+  // TODO(johnniwinther): Improve semantic precision.
+  bool isImplemented(ClassEntity cls);
 
   /// Set of all fields that are statically known to be written to.
-  Iterable<Element> get fieldSetters;
+  Iterable<FieldEntity> get fieldSetters;
 
   /// Call [f] for all classes with instantiated types. This includes the
   /// directly and abstractly instantiated classes but also classes whose type
   /// arguments are used in live factory constructors.
-  void forEachInstantiatedClass(f(ClassElement cls, InstantiationInfo info));
+  void forEachInstantiatedClass(f(ClassEntity cls, InstantiationInfo info));
 
   /// Returns `true` if [member] is invoked as a setter.
-  bool hasInvokedSetter(Element member);
+  bool hasInvokedSetter(MemberEntity member);
 
   /// Returns `true` if [member] has been marked as used (called, read, etc.) in
   /// this world builder.
@@ -93,7 +94,7 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
 /// The type and kind of an instantiation registered through
 /// `ResolutionWorldBuilder.registerTypeInstantiation`.
 class Instance {
-  final ResolutionInterfaceType type;
+  final InterfaceType type;
   final Instantiation kind;
   final bool isRedirection;
 
@@ -191,13 +192,13 @@ class InstantiationInfo {
   ///
   /// If the constructor is unknown, for instance for native or mirror usage,
   /// `null` is used as key.
-  Map<ConstructorElement, Set<Instance>> instantiationMap;
+  Map<ConstructorEntity, Set<Instance>> instantiationMap;
 
   /// Register [type] as the instantiation [kind] using [constructor].
-  void addInstantiation(ConstructorElement constructor,
-      ResolutionInterfaceType type, Instantiation kind,
+  void addInstantiation(
+      ConstructorEntity constructor, InterfaceType type, Instantiation kind,
       {bool isRedirection: false}) {
-    instantiationMap ??= <ConstructorElement, Set<Instance>>{};
+    instantiationMap ??= <ConstructorEntity, Set<Instance>>{};
     instantiationMap
         .putIfAbsent(constructor, () => new Set<Instance>())
         .add(new Instance(type, kind, isRedirection: isRedirection));
@@ -231,7 +232,7 @@ class InstantiationInfo {
     if (instantiationMap != null) {
       bool needsComma = false;
       instantiationMap
-          .forEach((ConstructorElement constructor, Set<Instance> set) {
+          .forEach((ConstructorEntity constructor, Set<Instance> set) {
         if (needsComma) {
           sb.write(', ');
         }
@@ -250,29 +251,30 @@ class InstantiationInfo {
   }
 }
 
-/// [ResolutionEnqueuerWorldBuilder] based on the [Element] model.
-class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
+/// Base implementation of [ResolutionEnqueuerWorldBuilder].
+abstract class ResolutionWorldBuilderBase
+    implements ResolutionEnqueuerWorldBuilder {
   /// Instantiation information for all classes with instantiated types.
   ///
   /// Invariant: Elements are declaration elements.
-  final Map<ClassElement, InstantiationInfo> _instantiationInfo =
-      <ClassElement, InstantiationInfo>{};
+  final Map<ClassEntity, InstantiationInfo> _instantiationInfo =
+      <ClassEntity, InstantiationInfo>{};
 
   /// Classes implemented by directly instantiated classes.
-  final Set<ClassElement> _implementedClasses = new Set<ClassElement>();
+  final Set<ClassEntity> _implementedClasses = new Set<ClassEntity>();
 
   /// The set of all referenced static fields.
   ///
   /// Invariant: Elements are declaration elements.
-  final Set<FieldElement> allReferencedStaticFields = new Set<FieldElement>();
+  final Set<FieldEntity> allReferencedStaticFields = new Set<FieldEntity>();
 
   /**
    * Documentation wanted -- johnniwinther
    *
    * Invariant: Elements are declaration elements.
    */
-  final Set<FunctionElement> methodsNeedingSuperGetter =
-      new Set<FunctionElement>();
+  final Set<FunctionEntity> methodsNeedingSuperGetter =
+      new Set<FunctionEntity>();
   final Map<String, Map<Selector, SelectorConstraints>> _invokedNames =
       <String, Map<Selector, SelectorConstraints>>{};
   final Map<String, Map<Selector, SelectorConstraints>> _invokedGetters =
@@ -280,8 +282,8 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   final Map<String, Map<Selector, SelectorConstraints>> _invokedSetters =
       <String, Map<Selector, SelectorConstraints>>{};
 
-  final Map<ClassElement, _ClassUsage> _processedClasses =
-      <ClassElement, _ClassUsage>{};
+  final Map<ClassEntity, _ClassUsage> _processedClasses =
+      <ClassEntity, _ClassUsage>{};
 
   /// Map of registered usage of static members of live classes.
   final Map<Entity, _StaticMemberUsage> _staticMemberUsage =
@@ -302,31 +304,38 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
       <String, Set<_MemberUsage>>{};
 
   /// Fields set.
-  final Set<Element> fieldSetters = new Set<Element>();
-  final Set<ResolutionDartType> isChecks = new Set<ResolutionDartType>();
+  final Set<FieldEntity> fieldSetters = new Set<FieldEntity>();
+  final Set<DartType> isChecks = new Set<DartType>();
 
   /// Set of all closures in the program. Used by the mirror tracking system
   /// to find all live closure instances.
-  final Set<LocalFunctionElement> localFunctions =
-      new Set<LocalFunctionElement>();
+  final Set<Local> localFunctions = new Set<Local>();
 
   /// Set of live local functions (closures) whose signatures reference type
   /// variables.
   ///
   /// A local function is considered live if the enclosing member function is
   /// live.
-  final Set<LocalFunctionElement> localFunctionsWithFreeTypeVariables =
-      new Set<LocalFunctionElement>();
+  final Set<Local> localFunctionsWithFreeTypeVariables = new Set<Local>();
 
   /// Set of methods in instantiated classes that are potentially closurized.
-  final Set<MethodElement> closurizedMembers = new Set<MethodElement>();
+  final Set<FunctionEntity> closurizedMembers = new Set<FunctionEntity>();
 
   /// Set of live closurized members whose signatures reference type variables.
   ///
   /// A closurized method is considered live if the enclosing class has been
   /// instantiated.
-  final Set<MethodElement> closurizedMembersWithFreeTypeVariables =
-      new Set<MethodElement>();
+  final Set<FunctionEntity> closurizedMembersWithFreeTypeVariables =
+      new Set<FunctionEntity>();
+
+  final ElementEnvironment _elementEnvironment;
+
+  final CommonElements _commonElements;
+
+  final NativeBasicData _nativeBasicData;
+  final NativeDataBuilder _nativeDataBuilder;
+  final InterceptorDataBuilder _interceptorDataBuilder;
+  final BackendUsageBuilder _backendUsageBuilder;
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
@@ -334,40 +343,38 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   bool hasIsolateSupport = false;
   bool hasFunctionApplySupport = false;
 
-  /// Used for testing the new more precise computation of instantiated types
-  /// and classes.
-  static bool useInstantiationMap = false;
-
-  final JavaScriptBackend _backend;
-  final Resolution _resolution;
   bool _closed = false;
   ClosedWorld _closedWorldCache;
   FunctionSetBuilder _allFunctions;
 
   final Set<TypedefElement> _allTypedefs = new Set<TypedefElement>();
 
-  final Map<ClassElement, Set<MixinApplicationElement>> _mixinUses =
-      new Map<ClassElement, Set<MixinApplicationElement>>();
+  final Map<ClassEntity, Set<ClassEntity>> _mixinUses =
+      new Map<ClassEntity, Set<ClassEntity>>();
 
   // We keep track of subtype and subclass relationships in four
   // distinct sets to make class hierarchy analysis faster.
-  final Map<ClassElement, ClassHierarchyNode> _classHierarchyNodes =
-      <ClassElement, ClassHierarchyNode>{};
-  final Map<ClassElement, ClassSet> _classSets = <ClassElement, ClassSet>{};
+  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes =
+      <ClassEntity, ClassHierarchyNode>{};
+  final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
 
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
 
   bool get isClosed => _closed;
 
-  ElementResolutionWorldBuilder(
-      this._backend, this._resolution, this.selectorConstraintsStrategy) {
+  ResolutionWorldBuilderBase(
+      this._elementEnvironment,
+      this._commonElements,
+      this._nativeBasicData,
+      this._nativeDataBuilder,
+      this._interceptorDataBuilder,
+      this._backendUsageBuilder,
+      this.selectorConstraintsStrategy) {
     _allFunctions = new FunctionSetBuilder();
   }
 
-  Iterable<ClassElement> get processedClasses => _processedClasses.keys
+  Iterable<ClassEntity> get processedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
-
-  CommonElements get commonElements => _resolution.commonElements;
 
   ClosedWorld get closedWorldForTesting {
     if (!_closed) {
@@ -381,9 +388,9 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   /// constructor that has been called directly and not only through a
   /// super-call.
   // TODO(johnniwinther): Improve semantic precision.
-  Iterable<ClassElement> get directlyInstantiatedClasses {
-    Set<ClassElement> classes = new Set<ClassElement>();
-    getInstantiationMap().forEach((ClassElement cls, InstantiationInfo info) {
+  Iterable<ClassEntity> get directlyInstantiatedClasses {
+    Set<ClassEntity> classes = new Set<ClassEntity>();
+    getInstantiationMap().forEach((ClassEntity cls, InstantiationInfo info) {
       if (info.hasInstantiation) {
         classes.add(cls);
       }
@@ -397,7 +404,7 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<InterfaceType> get instantiatedTypes {
-    Set<ResolutionInterfaceType> types = new Set<ResolutionInterfaceType>();
+    Set<InterfaceType> types = new Set<InterfaceType>();
     getInstantiationMap().forEach((_, InstantiationInfo info) {
       if (info.instantiationMap != null) {
         for (Set<Instance> instances in info.instantiationMap.values) {
@@ -410,18 +417,14 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     return types;
   }
 
-  /// Returns `true` if [cls] is considered to be implemented by an
-  /// instantiated class, either directly, through subclasses or through
-  /// subtypes. The latter case only contains spurious information from
-  /// instantiations through factory constructors and mixins.
-  // TODO(johnniwinther): Improve semantic precision.
-  bool isImplemented(ClassElement cls) {
-    return _implementedClasses.contains(cls.declaration);
+  bool isImplemented(ClassEntity cls) {
+    return _implementedClasses.contains(cls);
   }
 
-  void registerClosurizedMember(MemberElement element) {
+  void registerClosurizedMember(FunctionEntity element) {
     closurizedMembers.add(element);
-    if (element.type.containsTypeVariables) {
+    FunctionType type = _elementEnvironment.getFunctionType(element);
+    if (type.containsTypeVariables) {
       closurizedMembersWithFreeTypeVariables.add(element);
     }
   }
@@ -433,16 +436,15 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(
-      ResolutionInterfaceType type, ClassUsedCallback classUsed,
-      {ConstructorElement constructor,
+      InterfaceType type, ClassUsedCallback classUsed,
+      {ConstructorEntity constructor,
       bool byMirrors: false,
       bool isRedirection: false}) {
-    ClassElement cls = type.element;
-    cls.ensureResolved(_resolution);
+    ClassEntity cls = type.element;
     InstantiationInfo info =
         _instantiationInfo.putIfAbsent(cls, () => new InstantiationInfo());
     Instantiation kind = Instantiation.UNINSTANTIATED;
-    bool isNative = _backend.nativeBasicData.isNativeClass(cls);
+    bool isNative = _nativeBasicData.isNativeClass(cls);
     if (!cls.isAbstract ||
         // We can't use the closed-world assumption with native abstract
         // classes; a native abstract class may have non-abstract subclasses
@@ -467,7 +469,7 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     // instead.
     if (_implementedClasses.add(cls)) {
       classUsed(cls, _getClassUsage(cls).implement());
-      cls.allSupertypes.forEach((ResolutionInterfaceType supertype) {
+      _elementEnvironment.forEachSupertype(cls, (InterfaceType supertype) {
         if (_implementedClasses.add(supertype.element)) {
           classUsed(
               supertype.element, _getClassUsage(supertype.element).implement());
@@ -477,12 +479,12 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   }
 
   @override
-  void forEachInstantiatedClass(f(ClassElement cls, InstantiationInfo info)) {
+  void forEachInstantiatedClass(f(ClassEntity cls, InstantiationInfo info)) {
     getInstantiationMap().forEach(f);
   }
 
   bool _hasMatchingSelector(
-      Map<Selector, SelectorConstraints> selectors, Element member) {
+      Map<Selector, SelectorConstraints> selectors, MemberEntity member) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member)) {
@@ -496,59 +498,20 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   }
 
   /// Returns the instantiation map used for computing the closed world.
-  ///
-  /// If [useInstantiationMap] is `true`, redirections are removed and
-  /// redirecting factories are converted to their effective target and type.
-  Map<ClassElement, InstantiationInfo> getInstantiationMap() {
-    if (!useInstantiationMap) return _instantiationInfo;
-
-    Map<ClassElement, InstantiationInfo> instantiationMap =
-        <ClassElement, InstantiationInfo>{};
-
-    InstantiationInfo infoFor(ClassElement cls) {
-      return instantiationMap.putIfAbsent(cls, () => new InstantiationInfo());
-    }
-
-    _instantiationInfo.forEach((cls, info) {
-      if (info.instantiationMap != null) {
-        info.instantiationMap
-            .forEach((ConstructorElement constructor, Set<Instance> set) {
-          for (Instance instance in set) {
-            if (instance.isRedirection) {
-              continue;
-            }
-            if (constructor == null || !constructor.isRedirectingFactory) {
-              infoFor(cls)
-                  .addInstantiation(constructor, instance.type, instance.kind);
-            } else {
-              ConstructorElement target = constructor.effectiveTarget;
-              ResolutionInterfaceType targetType =
-                  constructor.computeEffectiveTargetType(instance.type);
-              Instantiation kind = Instantiation.DIRECTLY_INSTANTIATED;
-              if (target.enclosingClass.isAbstract) {
-                // If target is a factory constructor on an abstract class.
-                kind = Instantiation.UNINSTANTIATED;
-              }
-              infoFor(targetType.element)
-                  .addInstantiation(target, targetType, kind);
-            }
-          }
-        });
-      }
-    });
-    return instantiationMap;
+  Map<ClassEntity, InstantiationInfo> getInstantiationMap() {
+    return _instantiationInfo;
   }
 
-  bool _hasInvocation(Element member) {
+  bool _hasInvocation(MemberEntity member) {
     return _hasMatchingSelector(_invokedNames[member.name], member);
   }
 
-  bool _hasInvokedGetter(Element member) {
+  bool _hasInvokedGetter(MemberEntity member) {
     return _hasMatchingSelector(_invokedGetters[member.name], member) ||
         member.isFunction && methodsNeedingSuperGetter.contains(member);
   }
 
-  bool hasInvokedSetter(Element member) {
+  bool hasInvokedSetter(MemberEntity member) {
     return _hasMatchingSelector(_invokedSetters[member.name], member);
   }
 
@@ -602,13 +565,7 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     return constraints.addReceiverConstraint(mask);
   }
 
-  void registerIsCheck(ResolutionDartType type) {
-    type.computeUnaliased(_resolution);
-    type = type.unaliased;
-    // Even in checked mode, type annotations for return type and argument
-    // types do not imply type checks, so there should never be a check
-    // against the type variable of a typedef.
-    assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
+  void registerIsCheck(DartType type) {
     isChecks.add(type);
   }
 
@@ -617,9 +574,18 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   }
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
-    Element element = staticUse.element;
-    assert(invariant(element, element.isDeclaration,
-        message: "Element ${element} is not the declaration."));
+    if (staticUse.kind == StaticUseKind.CLOSURE) {
+      Local localFunction = staticUse.element;
+      FunctionType type =
+          _elementEnvironment.getLocalFunctionType(localFunction);
+      if (type.containsTypeVariables) {
+        localFunctionsWithFreeTypeVariables.add(localFunction);
+      }
+      localFunctions.add(staticUse.element);
+      return;
+    }
+
+    MemberEntity element = staticUse.element;
     _StaticMemberUsage usage = _staticMemberUsage.putIfAbsent(element, () {
       if ((element.isStatic || element.isTopLevel) && element.isFunction) {
         return new _StaticFunctionUsage(element);
@@ -629,8 +595,8 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     });
     EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
 
-    if (Elements.isStaticOrTopLevel(element) && element.isField) {
-      allReferencedStaticFields.add(element);
+    if ((element.isStatic || element.isTopLevel) && element.isField) {
+      allReferencedStaticFields.add(staticUse.element);
     }
     // TODO(johnniwinther): Avoid this. Currently [FIELD_GET] and
     // [FIELD_SET] contains [BoxFieldElement]s which we cannot enqueue.
@@ -640,21 +606,17 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
       case StaticUseKind.FIELD_GET:
         break;
       case StaticUseKind.FIELD_SET:
-        fieldSetters.add(element);
+        fieldSetters.add(staticUse.element);
         break;
       case StaticUseKind.CLOSURE:
-        LocalFunctionElement localFunction = staticUse.element;
-        if (localFunction.type.containsTypeVariables) {
-          localFunctionsWithFreeTypeVariables.add(localFunction);
-        }
-        localFunctions.add(element);
+        // Already handled above.
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
         useSet.addAll(usage.tearOff());
-        methodsNeedingSuperGetter.add(element);
+        methodsNeedingSuperGetter.add(staticUse.element);
         break;
       case StaticUseKind.SUPER_FIELD_SET:
-        fieldSetters.add(element);
+        fieldSetters.add(staticUse.element);
         useSet.addAll(usage.normalUse());
         break;
       case StaticUseKind.STATIC_TEAR_OFF:
@@ -668,8 +630,7 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
         useSet.addAll(usage.normalUse());
         break;
       case StaticUseKind.DIRECT_INVOKE:
-        invariant(
-            element, 'Direct static use is not supported for resolution.');
+        failedAt(element, 'Direct static use is not supported for resolution.');
         break;
       case StaticUseKind.INLINING:
         throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
@@ -680,23 +641,24 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     }
   }
 
+  /// Called to create a [_ClassUsage] for [cls].
+  ///
+  /// Subclasses override this to ensure needed invariants on [cls].
+  _ClassUsage _createClassUsage(ClassEntity cls) => new _ClassUsage(cls);
+
   /// Return the canonical [_ClassUsage] for [cls].
-  _ClassUsage _getClassUsage(ClassElement cls) {
+  _ClassUsage _getClassUsage(ClassEntity cls) {
     return _processedClasses.putIfAbsent(cls, () {
-      cls.ensureResolved(_resolution);
-      _ClassUsage usage = new _ClassUsage(cls);
-      _resolution.ensureClassMembers(cls);
-      return usage;
+      return _createClassUsage(cls);
     });
   }
 
   /// Register [cls] and all its superclasses as instantiated.
-  void _processInstantiatedClass(
-      ClassElement cls, ClassUsedCallback classUsed) {
+  void _processInstantiatedClass(ClassEntity cls, ClassUsedCallback classUsed) {
     // Registers [superclass] as instantiated. Returns `true` if it wasn't
     // already instantiated and we therefore have to process its superclass as
     // well.
-    bool processClass(ClassElement superclass) {
+    bool processClass(ClassEntity superclass) {
       _ClassUsage usage = _getClassUsage(superclass);
       if (!usage.isInstantiated) {
         classUsed(usage.cls, usage.instantiate());
@@ -706,14 +668,15 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     }
 
     while (cls != null && processClass(cls)) {
-      cls = cls.superclass;
+      cls = _elementEnvironment.getSuperClass(cls);
     }
   }
 
   /// Computes usage for all members declared by [cls]. Calls [membersUsed] with
   /// the usage changes for each member.
-  void processClassMembers(ClassElement cls, MemberUsedCallback memberUsed) {
-    cls.implementation.forEachMember((ClassElement cls, MemberElement member) {
+  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed) {
+    _elementEnvironment.forEachClassMember(cls,
+        (ClassEntity cls, MemberEntity member) {
       _processInstantiatedClassMember(cls, member, memberUsed);
     });
   }
@@ -737,11 +700,9 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   }
 
   void _processInstantiatedClassMember(
-      ClassElement cls, MemberElement member, MemberUsedCallback memberUsed) {
-    assert(invariant(member, member.isDeclaration));
+      ClassEntity cls, MemberEntity member, MemberUsedCallback memberUsed) {
     if (!member.isInstanceMember) return;
     String memberName = member.name;
-    member.computeType(_resolution);
     // The obvious thing to test here would be "member.isNative",
     // however, that only works after metadata has been parsed/analyzed,
     // and that may not have happened yet.
@@ -750,7 +711,7 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     // Note: this assumes that there are no non-native fields on native
     // classes, which may not be the case when a native class is subclassed.
     _instanceMemberUsage.putIfAbsent(member, () {
-      bool isNative = _backend.nativeBasicData.isNativeClass(cls);
+      bool isNative = _nativeBasicData.isNativeClass(cls);
       _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       useSet.addAll(usage.appliedUse);
@@ -759,7 +720,7 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
       }
       if (member.isFunction &&
           member.name == Identifiers.call &&
-          !cls.typeVariables.isEmpty) {
+          _elementEnvironment.isGenericClass(cls)) {
         closurizedMembersWithFreeTypeVariables.add(member);
       }
 
@@ -794,154 +755,24 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
   }
 
   /// Returns an iterable over all mixin applications that mixin [cls].
-  Iterable<MixinApplicationElement> allMixinUsesOf(ClassElement cls) {
-    Iterable<MixinApplicationElement> uses = _mixinUses[cls];
-    return uses != null ? uses : const <MixinApplicationElement>[];
-  }
-
-  /// Called to add [cls] to the set of known classes.
-  ///
-  /// This ensures that class hierarchy queries can be performed on [cls] and
-  /// classes that extend or implement it.
-  void registerClass(ClassElement cls) => _registerClass(cls);
-
-  void _registerClass(ClassElement cls, {bool isDirectlyInstantiated: false}) {
-    _ensureClassSet(cls);
-    if (isDirectlyInstantiated) {
-      _updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);
-    }
+  Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls) {
+    Iterable<ClassEntity> uses = _mixinUses[cls];
+    return uses != null ? uses : const <ClassEntity>[];
   }
 
   void registerTypedef(TypedefElement typdef) {
     _allTypedefs.add(typdef);
   }
 
-  ClassHierarchyNode _ensureClassHierarchyNode(ClassElement cls) {
-    cls = cls.declaration;
-    return _classHierarchyNodes.putIfAbsent(cls, () {
-      ClassHierarchyNode parentNode;
-      if (cls.superclass != null) {
-        parentNode = _ensureClassHierarchyNode(cls.superclass);
-      }
-      return new ClassHierarchyNode(parentNode, cls);
-    });
-  }
-
-  ClassSet _ensureClassSet(ClassElement cls) {
-    cls = cls.declaration;
-    return _classSets.putIfAbsent(cls, () {
-      ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
-      ClassSet classSet = new ClassSet(node);
-
-      for (ResolutionInterfaceType type in cls.allSupertypes) {
-        // TODO(johnniwinther): Optimization: Avoid adding [cls] to
-        // superclasses.
-        ClassSet subtypeSet = _ensureClassSet(type.element);
-        subtypeSet.addSubtype(node);
-      }
-      if (cls.isMixinApplication) {
-        // TODO(johnniwinther): Store this in the [ClassSet].
-        MixinApplicationElement mixinApplication = cls;
-        if (mixinApplication.mixin != null) {
-          // If [mixinApplication] is malformed [mixin] is `null`.
-          registerMixinUse(mixinApplication, mixinApplication.mixin);
-        }
-      }
-
-      return classSet;
-    });
-  }
-
-  void _updateSuperClassHierarchyNodeForClass(ClassHierarchyNode node) {
-    // Ensure that classes implicitly implementing `Function` are in its
-    // subtype set.
-    ClassElement cls = node.cls;
-    if (cls != commonElements.functionClass &&
-        cls.implementsFunction(commonElements)) {
-      ClassSet subtypeSet = _ensureClassSet(commonElements.functionClass);
-      subtypeSet.addSubtype(node);
-    }
-    if (!node.isInstantiated && node.parentNode != null) {
-      _updateSuperClassHierarchyNodeForClass(node.parentNode);
-    }
-  }
-
-  void _updateClassHierarchyNodeForClass(ClassElement cls,
-      {bool directlyInstantiated: false, bool abstractlyInstantiated: false}) {
-    ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
-    _updateSuperClassHierarchyNodeForClass(node);
-    if (directlyInstantiated) {
-      node.isDirectlyInstantiated = true;
-    }
-    if (abstractlyInstantiated) {
-      node.isAbstractlyInstantiated = true;
-    }
-  }
-
-  ClosedWorld closeWorld(DiagnosticReporter reporter) {
-    Map<ClassElement, Set<ClassElement>> typesImplementedBySubclasses =
-        new Map<ClassElement, Set<ClassElement>>();
-
-    /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
-    /// properties of the [ClassHierarchyNode] for [cls].
-
-    void addSubtypes(ClassElement cls, InstantiationInfo info) {
-      if (!info.hasInstantiation) {
-        return;
-      }
-      assert(cls.isDeclaration);
-      if (!cls.isResolved) {
-        reporter.internalError(cls, 'Class "${cls.name}" is not resolved.');
-      }
-
-      _updateClassHierarchyNodeForClass(cls,
-          directlyInstantiated: info.isDirectlyInstantiated,
-          abstractlyInstantiated: info.isAbstractlyInstantiated);
-
-      // Walk through the superclasses, and record the types
-      // implemented by that type on the superclasses.
-      ClassElement superclass = cls.superclass;
-      while (superclass != null) {
-        Set<Element> typesImplementedBySubclassesOfCls =
-            typesImplementedBySubclasses.putIfAbsent(
-                superclass, () => new Set<ClassElement>());
-        for (ResolutionDartType current in cls.allSupertypes) {
-          typesImplementedBySubclassesOfCls.add(current.element);
-        }
-        superclass = superclass.superclass;
-      }
-    }
-
-    // Use the [:seenClasses:] set to include non-instantiated
-    // classes: if the superclass of these classes require RTI, then
-    // they also need RTI, so that a constructor passes the type
-    // variables to the super constructor.
-    forEachInstantiatedClass(addSubtypes);
-
-    _closed = true;
-    return _closedWorldCache = new ClosedWorldImpl(
-        backend: _backend,
-        commonElements: commonElements,
-        resolutionWorldBuilder: this,
-        functionSetBuilder: _allFunctions,
-        allTypedefs: _allTypedefs,
-        mixinUses: _mixinUses,
-        typesImplementedBySubclasses: typesImplementedBySubclasses,
-        classHierarchyNodes: _classHierarchyNodes,
-        classSets: _classSets);
-  }
-
-  void registerMixinUse(
-      MixinApplicationElement mixinApplication, ClassElement mixin) {
+  void registerMixinUse(ClassEntity mixinApplication, ClassEntity mixin) {
     // TODO(johnniwinther): Add map restricted to live classes.
     // We don't support patch classes as mixin.
-    assert(mixin.isDeclaration);
-    Set<MixinApplicationElement> users =
-        _mixinUses.putIfAbsent(mixin, () => new Set<MixinApplicationElement>());
+    Set<ClassEntity> users =
+        _mixinUses.putIfAbsent(mixin, () => new Set<ClassEntity>());
     users.add(mixinApplication);
   }
 
-  void registerUsedElement(MemberElement element) {
+  void registerUsedElement(MemberEntity element) {
     if (element.isInstanceMember && !element.isAbstract) {
       _allFunctions.add(element);
     }
@@ -960,5 +791,174 @@ class ElementResolutionWorldBuilder implements ResolutionEnqueuerWorldBuilder {
     }
     _StaticMemberUsage usage = _staticMemberUsage[member];
     return usage != null && usage.hasUse;
+  }
+
+  bool checkClass(ClassEntity cls);
+  bool validateClass(ClassEntity cls);
+
+  /// Returns the class mixed into [cls] if any.
+  ClassEntity getAppliedMixin(ClassEntity cls);
+
+  /// Returns the hierarchy depth of [cls].
+  int getHierarchyDepth(ClassEntity cls);
+
+  /// Returns `true` if [cls] implements `Function` either explicitly or through
+  /// a `call` method.
+  bool implementsFunction(ClassEntity cls);
+
+  /// Returns the superclass of [cls] if any.
+  ClassEntity getSuperClass(ClassEntity cls);
+
+  /// Returns all supertypes of [cls].
+  Iterable<InterfaceType> getSupertypes(ClassEntity cls);
+
+  ClassHierarchyNode _ensureClassHierarchyNode(ClassEntity cls) {
+    assert(checkClass(cls));
+    return _classHierarchyNodes.putIfAbsent(cls, () {
+      ClassHierarchyNode parentNode;
+      ClassEntity superclass = getSuperClass(cls);
+      if (superclass != null) {
+        parentNode = _ensureClassHierarchyNode(superclass);
+      }
+      return new ClassHierarchyNode(parentNode, cls, getHierarchyDepth(cls));
+    });
+  }
+
+  ClassSet _ensureClassSet(ClassEntity cls) {
+    assert(checkClass(cls));
+    return _classSets.putIfAbsent(cls, () {
+      ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
+      ClassSet classSet = new ClassSet(node);
+
+      for (InterfaceType type in getSupertypes(cls)) {
+        // TODO(johnniwinther): Optimization: Avoid adding [cls] to
+        // superclasses.
+        ClassSet subtypeSet = _ensureClassSet(type.element);
+        subtypeSet.addSubtype(node);
+      }
+
+      ClassEntity appliedMixin = getAppliedMixin(cls);
+      if (appliedMixin != null) {
+        // TODO(johnniwinther): Store this in the [ClassSet].
+        registerMixinUse(cls, appliedMixin);
+      }
+
+      return classSet;
+    });
+  }
+
+  void _updateSuperClassHierarchyNodeForClass(ClassHierarchyNode node) {
+    // Ensure that classes implicitly implementing `Function` are in its
+    // subtype set.
+    ClassEntity cls = node.cls;
+    if (cls != _commonElements.functionClass && implementsFunction(cls)) {
+      ClassSet subtypeSet = _ensureClassSet(_commonElements.functionClass);
+      subtypeSet.addSubtype(node);
+    }
+    if (!node.isInstantiated && node.parentNode != null) {
+      _updateSuperClassHierarchyNodeForClass(node.parentNode);
+    }
+  }
+
+  void _updateClassHierarchyNodeForClass(ClassEntity cls,
+      {bool directlyInstantiated: false, bool abstractlyInstantiated: false}) {
+    ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
+    _updateSuperClassHierarchyNodeForClass(node);
+    if (directlyInstantiated) {
+      node.isDirectlyInstantiated = true;
+    }
+    if (abstractlyInstantiated) {
+      node.isAbstractlyInstantiated = true;
+    }
+  }
+
+  Map<ClassEntity, Set<ClassEntity>> populateHierarchyNodes() {
+    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
+        new Map<ClassEntity, Set<ClassEntity>>();
+
+    /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
+    /// properties of the [ClassHierarchyNode] for [cls].
+
+    void addSubtypes(ClassEntity cls, InstantiationInfo info) {
+      if (!info.hasInstantiation) {
+        return;
+      }
+      assert(checkClass(cls));
+      if (!validateClass(cls)) {
+        throw new SpannableAssertionFailure(
+            cls, 'Class "${cls.name}" is not resolved.');
+      }
+
+      _updateClassHierarchyNodeForClass(cls,
+          directlyInstantiated: info.isDirectlyInstantiated,
+          abstractlyInstantiated: info.isAbstractlyInstantiated);
+
+      // Walk through the superclasses, and record the types
+      // implemented by that type on the superclasses.
+      ClassEntity superclass = getSuperClass(cls);
+      while (superclass != null) {
+        Set<ClassEntity> typesImplementedBySubclassesOfCls =
+            typesImplementedBySubclasses.putIfAbsent(
+                superclass, () => new Set<ClassEntity>());
+        for (InterfaceType current in getSupertypes(cls)) {
+          typesImplementedBySubclassesOfCls.add(current.element);
+        }
+        superclass = getSuperClass(superclass);
+      }
+    }
+
+    // Use the [:seenClasses:] set to include non-instantiated
+    // classes: if the superclass of these classes require RTI, then
+    // they also need RTI, so that a constructor passes the type
+    // variables to the super constructor.
+    forEachInstantiatedClass(addSubtypes);
+
+    return typesImplementedBySubclasses;
+  }
+}
+
+abstract class KernelResolutionWorldBuilderBase
+    extends ResolutionWorldBuilderBase {
+  KernelResolutionWorldBuilderBase(
+      ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
+      NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
+      InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
+      SelectorConstraintsStrategy selectorConstraintsStrategy)
+      : super(
+            elementEnvironment,
+            commonElements,
+            nativeBasicData,
+            nativeDataBuilder,
+            interceptorDataBuilder,
+            backendUsageBuilder,
+            selectorConstraintsStrategy);
+
+  @override
+  ClosedWorld closeWorld() {
+    Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
+        populateHierarchyNodes();
+    _closed = true;
+    return _closedWorldCache = new KernelClosedWorld(
+        commonElements: _commonElements,
+        nativeData: _nativeDataBuilder.close(),
+        interceptorData: _interceptorDataBuilder.close(),
+        backendUsage: _backendUsageBuilder.close(),
+        // TODO(johnniwinther): Compute these.
+        constantSystem: null,
+        resolutionWorldBuilder: this,
+        functionSet: _allFunctions.close(),
+        allTypedefs: _allTypedefs,
+        mixinUses: _mixinUses,
+        typesImplementedBySubclasses: typesImplementedBySubclasses,
+        classHierarchyNodes: _classHierarchyNodes,
+        classSets: _classSets);
+  }
+
+  @override
+  void registerClass(ClassEntity cls) {
+    throw new UnimplementedError('KernelResolutionWorldBuilder.registerClass');
   }
 }

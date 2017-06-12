@@ -5,7 +5,6 @@
 // This test should be removed when dart2js can pass all mirror tests.
 // TODO(ahe): Remove this test.
 
-
 import 'mirrors_test.dart' as test;
 
 main() {

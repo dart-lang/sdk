@@ -4,13 +4,16 @@
 
 library test.private_types;
 
+@MirrorsUsed(targets: "test.private_types")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 typedef int _F(int i);
+
 class _C<_T> {}
 
 typedef int F(int i);
+
 class C<T> {}
 
 main() {

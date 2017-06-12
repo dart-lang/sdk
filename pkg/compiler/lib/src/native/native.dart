@@ -5,7 +5,7 @@
 library native;
 
 import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
+import '../elements/entities.dart';
 
 export 'behavior.dart';
 export 'enqueue.dart';
@@ -27,9 +27,10 @@ const Iterable<String> _allowedDartSchemePaths = const <String>[
   'web_sql'
 ];
 
-bool maybeEnableNative(Compiler compiler, LibraryElement library) {
+bool maybeEnableNative(Compiler compiler, LibraryEntity library) {
   bool allowedTestLibrary() {
-    String scriptName = library.entryCompilationUnit.script.name;
+    Uri uri = library.canonicalUri;
+    String scriptName = uri.path;
     return scriptName.contains('sdk/tests/compiler/dart2js_native') ||
         scriptName.contains('sdk/tests/compiler/dart2js_extra');
   }

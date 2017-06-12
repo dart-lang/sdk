@@ -178,7 +178,7 @@ class PrintCommand extends DebuggerCommand {
       debugger.console.print(response.message);
     } else {
       debugger.console.print('= ', newline: false);
-      debugger.console.printRef(debugger.isolate, response, debugger.instances);
+      debugger.console.printRef(debugger.isolate, response, debugger.objects);
     }
   }
 
@@ -600,9 +600,14 @@ class SetCommand extends DebuggerCommand {
     ],
     'causal-async-stacks': [
       _boolValues,
-      _setSaneAsyncStacks,
+      _setCausalAsyncStacks,
       (debugger, _) => debugger.saneAsyncStacks
     ],
+    'awaiter-stacks': [
+      _boolValues,
+      _setAwaiterStacks,
+      (debugger, _) => debugger.awaiterStacks
+    ]
   };
 
   static Future _setBreakOnException(debugger, name, value) async {
@@ -624,14 +629,20 @@ class SetCommand extends DebuggerCommand {
     debugger.console.print('${name} = ${value}');
   }
 
-  static Future _setSaneAsyncStacks(debugger, name, value) async {
+  static Future _setCausalAsyncStacks(debugger, name, value) async {
     if (value == 'true') {
-      debugger.saneAsyncStacks = true;
+      debugger.causalAsyncStacks = true;
     } else {
-      debugger.saneAsyncStacks = false;
+      debugger.causalAsyncStacks = false;
     }
     debugger.refreshStack();
     debugger.console.print('${name} = ${value}');
+  }
+
+  static Future _setAwaiterStacks(debugger, name, value) async {
+    debugger.awaiterStacks = (value == 'true');
+    debugger.refreshStack();
+    debugger.console.print('${name} == ${value}');
   }
 
   Future run(List<String> args) async {
@@ -1236,7 +1247,6 @@ class VmNameCommand extends DebuggerCommand {
       'Syntax: vm name <name>\n';
 }
 
-
 class VmCommand extends DebuggerCommand {
   VmCommand(Debugger debugger)
       : super(debugger, 'vm', [
@@ -1363,14 +1373,23 @@ class ObservatoryDebugger extends Debugger {
 
   bool _upIsDown;
 
-  bool get saneAsyncStacks => _saneAsyncStacks;
-  void set saneAsyncStacks(bool value) {
+  bool get causalAsyncStacks => _causalAsyncStacks;
+  void set causalAsyncStacks(bool value) {
     settings.set('causal-async-stacks', value);
-    _saneAsyncStacks = value;
+    _causalAsyncStacks = value;
   }
 
-  bool _saneAsyncStacks;
+  bool _causalAsyncStacks;
 
+  bool get awaiterStacks => _awaiterStacks;
+  void set awaiterStacks(bool value) {
+    settings.set('awaiter-stacks', value);
+    _causalAsyncStacks = value;
+  }
+
+  bool _awaiterStacks;
+
+  static const String kAwaiterStackFrames = 'awaiterFrames';
   static const String kAsyncCausalStackFrames = 'asyncCausalFrames';
   static const String kStackFrames = 'frames';
 
@@ -1391,31 +1410,35 @@ class ObservatoryDebugger extends Debugger {
   }
 
   int get stackDepth {
-    if (saneAsyncStacks) {
-      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
-      var stackFrames = stack[kStackFrames];
-      if (asyncCausalStackFrames == null) {
-        // No causal frames.
-        return stackFrames.length;
+    if (awaiterStacks) {
+      var awaiterStackFrames = stack[kAwaiterStackFrames];
+      if (awaiterStackFrames != null) {
+        return awaiterStackFrames.length;
       }
-      return asyncCausalStackFrames.length;
-    } else {
-      return stack[kStackFrames].length;
     }
+    if (causalAsyncStacks) {
+      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
+      if (asyncCausalStackFrames != null) {
+        return asyncCausalStackFrames.length;
+      }
+    }
+    return stack[kStackFrames].length;
   }
 
   List get stackFrames {
-    if (saneAsyncStacks) {
-      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
-      var stackFrames = stack[kStackFrames];
-      if (asyncCausalStackFrames == null) {
-        // No causal frames.
-        return stackFrames ?? [];
+    if (awaiterStacks) {
+      var awaiterStackFrames = stack[kAwaiterStackFrames];
+      if (awaiterStackFrames != null) {
+        return awaiterStackFrames;
       }
-      return asyncCausalStackFrames;
-    } else {
-      return stack[kStackFrames] ?? [];
     }
+    if (causalAsyncStacks) {
+      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
+      if (asyncCausalStackFrames != null) {
+        return asyncCausalStackFrames;
+      }
+    }
+    return stack[kStackFrames] ?? [];
   }
 
   static final _history = [''];
@@ -1453,7 +1476,8 @@ class ObservatoryDebugger extends Debugger {
 
   void _loadSettings() {
     _upIsDown = settings.get('up-is-down');
-    _saneAsyncStacks = settings.get('causal-async-stacks') ?? true;
+    _causalAsyncStacks = settings.get('causal-async-stacks') ?? true;
+    _awaiterStacks = settings.get('awaiter-stacks') ?? true;
   }
 
   S.VM get vm => page.app.vm;
@@ -1622,7 +1646,7 @@ class ObservatoryDebugger extends Debugger {
           // This seems to be missing if we are paused-at-exception after
           // paused-at-isolate-exit. Maybe we shutdown part of the debugger too
           // soon?
-          console.printRef(isolate, event.exception, instances);
+          console.printRef(isolate, event.exception, objects);
         } else {
           console.print('Paused at ${script.name}:${line}:${col}');
         }
@@ -1976,23 +2000,23 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
 
   S.Isolate _isolate;
   ObservatoryDebugger _debugger;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.ScriptRepository _scripts;
   M.EventRepository _events;
 
-  factory DebuggerPageElement(S.Isolate isolate, M.InstanceRepository instances,
+  factory DebuggerPageElement(S.Isolate isolate, M.ObjectRepository objects,
       M.ScriptRepository scripts, M.EventRepository events) {
     assert(isolate != null);
-    assert(instances != null);
+    assert(objects != null);
     assert(scripts != null);
     assert(events != null);
     final e = document.createElement(tag.name);
     final debugger = new ObservatoryDebugger(isolate);
     debugger.page = e;
-    debugger.instances = instances;
+    debugger.objects = objects;
     e._isolate = isolate;
     e._debugger = debugger;
-    e._instances = instances;
+    e._objects = objects;
     e._scripts = scripts;
     e._events = events;
     return e;
@@ -2019,7 +2043,7 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
 
     final stackDiv = new DivElement()..classes = ['stack'];
     final stackElement = new DebuggerStackElement(
-        _isolate, _debugger, stackDiv, _instances, _scripts, _events);
+        _isolate, _debugger, stackDiv, _objects, _scripts, _events);
     stackDiv.children = [stackElement];
     final consoleDiv = new DivElement()
       ..classes = ['console']
@@ -2131,7 +2155,7 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
   static const tag = const Tag<DebuggerStackElement>('debugger-stack');
 
   S.Isolate _isolate;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.ScriptRepository _scripts;
   M.EventRepository _events;
   Element _scroller;
@@ -2168,20 +2192,20 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
       S.Isolate isolate,
       ObservatoryDebugger debugger,
       Element scroller,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       M.ScriptRepository scripts,
       M.EventRepository events) {
     assert(isolate != null);
     assert(debugger != null);
     assert(scroller != null);
-    assert(instances != null);
+    assert(objects != null);
     assert(scripts != null);
     assert(events != null);
     final e = document.createElement(tag.name);
     e._isolate = isolate;
     e._debugger = debugger;
     e._scroller = scroller;
-    e._instances = instances;
+    e._objects = objects;
     e._scripts = scripts;
     e._events = events;
 
@@ -2239,7 +2263,7 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
 
   _addFrame(List frameList, S.Frame frameInfo) {
     final frameElement = new DebuggerFrameElement(
-        _isolate, frameInfo, _scroller, _instances, _scripts, _events,
+        _isolate, frameInfo, _scroller, _objects, _scripts, _events,
         queue: app.queue);
 
     if (frameInfo.index == currentFrame) {
@@ -2257,7 +2281,7 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
 
   _addMessage(List messageList, S.ServiceMessage messageInfo) {
     final messageElement = new DebuggerMessageElement(
-        _isolate, messageInfo, _instances, _scripts, _events,
+        _isolate, messageInfo, _objects, _scripts, _events,
         queue: app.queue);
 
     var li = new LIElement();
@@ -2272,7 +2296,10 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
   void updateStackFrames(S.ServiceMap newStack) {
     List frameElements = _frameList.children;
     List newFrames;
-    if (_debugger.saneAsyncStacks &&
+    if (_debugger.awaiterStacks &&
+        (newStack[ObservatoryDebugger.kAwaiterStackFrames] != null)) {
+      newFrames = newStack[ObservatoryDebugger.kAwaiterStackFrames];
+    } else if (_debugger.causalAsyncStacks &&
         (newStack[ObservatoryDebugger.kAsyncCausalStackFrames] != null)) {
       newFrames = newStack[ObservatoryDebugger.kAsyncCausalStackFrames];
     } else {
@@ -2392,7 +2419,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
   M.Isolate _isolate;
   S.Frame _frame;
   S.Frame get frame => _frame;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.ScriptRepository _scripts;
   M.EventRepository _events;
 
@@ -2427,14 +2454,14 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
       M.Isolate isolate,
       S.Frame frame,
       Element scroller,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       M.ScriptRepository scripts,
       M.EventRepository events,
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(frame != null);
     assert(scroller != null);
-    assert(instances != null);
+    assert(objects != null);
     assert(scripts != null);
     assert(events != null);
     final DebuggerFrameElement e = document.createElement(tag.name);
@@ -2442,7 +2469,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
     e._isolate = isolate;
     e._frame = frame;
     e._scroller = scroller;
-    e._instances = instances;
+    e._objects = objects;
     e._scripts = scripts;
     e._events = events;
     return e;
@@ -2510,7 +2537,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
                               _isolate,
                               _frame.function.location,
                               _scripts,
-                              _instances,
+                              _objects,
                               _events,
                               currentPos: _frame.location.tokenPos,
                               variables: _frame.variables,
@@ -2535,26 +2562,25 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
                                     ..classes = ['memberName']
                                     ..children = [
                                       anyRef(_isolate, homeMethod.dartOwner,
-                                          _instances,
+                                          _objects,
                                           queue: _r.queue)
                                     ]
                                 ]
-                      ]
-                        ..addAll(_frame.variables
-                            .map((v) => new DivElement()
-                              ..classes = ['memberItem']
-                              ..children = [
-                                new DivElement()
-                                  ..classes = ['memberName']
-                                  ..text = v.name,
-                                new DivElement()
-                                  ..classes = ['memberName']
-                                  ..children = [
-                                    anyRef(_isolate, v['value'], _instances,
-                                        queue: _r.queue)
-                                  ]
-                              ])
-                            .toList()))
+                      ]..addAll(_frame.variables
+                          .map((v) => new DivElement()
+                            ..classes = ['memberItem']
+                            ..children = [
+                              new DivElement()
+                                ..classes = ['memberName']
+                                ..text = v.name,
+                              new DivElement()
+                                ..classes = ['memberName']
+                                ..children = [
+                                  anyRef(_isolate, v['value'], _objects,
+                                      queue: _r.queue)
+                                ]
+                            ])
+                          .toList()))
                   ]
               ],
             new DivElement()
@@ -2750,7 +2776,7 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
   S.Isolate _isolate;
   S.ServiceMessage _message;
   S.ServiceObject _preview;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.ScriptRepository _scripts;
   M.EventRepository _events;
 
@@ -2765,20 +2791,19 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
   factory DebuggerMessageElement(
       S.Isolate isolate,
       S.ServiceMessage message,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       M.ScriptRepository scripts,
       M.EventRepository events,
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(message != null);
-    assert(instances != null);
-    assert(instances != null);
+    assert(objects != null);
     assert(events != null);
     final DebuggerMessageElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
     e._message = message;
-    e._instances = instances;
+    e._objects = objects;
     e._scripts = scripts;
     e._events = events;
     return e;
@@ -2829,7 +2854,7 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
                               _isolate,
                               _message.handler.location,
                               _scripts,
-                              _instances,
+                              _objects,
                               _events,
                               inDebuggerContext: true,
                               queue: _r.queue)
@@ -2849,13 +2874,12 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
                               ..onClick.listen((_) {
                                 previewButton.disabled = true;
                               })
-                          ]
-                            ..addAll(_preview == null
-                                ? const []
-                                : [
-                                    anyRef(_isolate, _preview, _instances,
-                                        queue: _r.queue)
-                                  ]))
+                          ]..addAll(_preview == null
+                              ? const []
+                              : [
+                                  anyRef(_isolate, _preview, _objects,
+                                      queue: _r.queue)
+                                ]))
                       ]
                   ]
               ],
@@ -3048,10 +3072,9 @@ class DebuggerConsoleElement extends HtmlElement implements Renderable {
     }
   }
 
-  void printRef(
-      S.Isolate isolate, S.Instance ref, M.InstanceRepository instances,
+  void printRef(S.Isolate isolate, S.Instance ref, M.ObjectRepository objects,
       {bool newline: true}) {
-    _append(new InstanceRefElement(isolate, ref, instances, queue: app.queue));
+    _append(new InstanceRefElement(isolate, ref, objects, queue: app.queue));
     if (newline) {
       this.newline();
     }

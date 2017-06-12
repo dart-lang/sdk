@@ -33,16 +33,16 @@ main() {
   var registered = false;
   var upgrader;
   setUp(() => customElementsReady.then((_) {
-    if (!registered) {
-      registered = true;
-      upgrader = document.createElementUpgrader(FooElement);
-      js.context['upgradeListener'] = (e) {
-        upgrader.upgrade(e);
-      };
+        if (!registered) {
+          registered = true;
+          upgrader = document.createElementUpgrader(FooElement);
+          js.context['upgradeListener'] = (e) {
+            upgrader.upgrade(e);
+          };
 
-      document.registerElement('custom-element', CustomElement);
-    }
-  }));
+          document.registerElement('custom-element', CustomElement);
+        }
+      }));
 
   test('created gets proxied', () {
     var element = document.createElement(FooElement.tag);
@@ -99,8 +99,7 @@ main() {
   });
 
   test('can upgrade with extendsTag', () {
-    var upgrader =
-        document.createElementUpgrader(CustomDiv, extendsTag: 'div');
+    var upgrader = document.createElementUpgrader(CustomDiv, extendsTag: 'div');
     var div = new DivElement();
     var customDiv = upgrader.upgrade(div);
     expect(customDiv is CustomDiv, isTrue);

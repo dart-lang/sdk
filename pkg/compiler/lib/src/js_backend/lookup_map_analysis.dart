@@ -9,7 +9,6 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../common/backend_api.dart';
 import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart'
@@ -23,11 +22,9 @@ import '../constants/values.dart'
 import '../elements/elements.dart' show ClassElement, FieldElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart' show ResolutionInterfaceType;
-import '../options.dart';
 import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
-import 'backend_helpers.dart';
 
 /// Lookup map handling for resolution.
 ///
@@ -129,8 +126,6 @@ class LookupMapAnalysis {
       ConstantEnvironment constants,
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
-      BackendHelpers helpers,
-      BackendClasses backendClasses,
       LookupMapResolutionAnalysis analysis) {
     /// Checks if the version of lookup_map is valid, and if so, enable this
     /// analysis during codegen.
@@ -151,7 +146,7 @@ class LookupMapAnalysis {
     // when we introduce the next version.
     Version version;
     try {
-      version = new Version.parse(value.primitiveValue.slowToString());
+      version = new Version.parse(value.primitiveValue);
     } catch (e) {}
 
     if (version == null || !_validLookupMapVersionConstraint.allows(version)) {
@@ -170,8 +165,8 @@ class LookupMapAnalysis {
         elementEnvironment.lookupClassMember(typeLookupMapClass, '_value');
     // TODO(sigmund): Maybe inline nested maps to make the output code smaller?
 
-    return new _LookupMapAnalysis(constantSystem, commonElements, helpers,
-        backendClasses, entriesField, keyField, valueField, typeLookupMapClass);
+    return new _LookupMapAnalysis(constantSystem, commonElements, entriesField,
+        keyField, valueField, typeLookupMapClass);
   }
 
   /// Compute the [WorldImpact] for the constants registered since last flush.
@@ -207,10 +202,6 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
   final ConstantSystem _constantSystem;
 
   final CommonElements _commonElements;
-
-  final BackendHelpers _helpers;
-
-  final BackendClasses _backendClasses;
 
   /// The resolved [ClassElement] associated with `LookupMap`.
   final ClassElement _typeLookupMapClass;
@@ -255,8 +246,6 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
   _LookupMapAnalysis(
       this._constantSystem,
       this._commonElements,
-      this._helpers,
-      this._backendClasses,
       this._entriesField,
       this._keyField,
       this._valueField,
@@ -301,9 +290,7 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
 
   void _addClassUse(ClassElement cls) {
     ConstantValue key = _typeConstants.putIfAbsent(
-        cls,
-        () => _constantSystem.createType(
-            _commonElements, _backendClasses, cls.rawType));
+        cls, () => _constantSystem.createType(_commonElements, cls.rawType));
     _addUse(key);
   }
 
@@ -352,7 +339,7 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
         // TODO(sigmund): can we get rid of this?
         _impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
-            _helpers.createRuntimeType,
+            _commonElements.createRuntimeType,
             null));
         _addGenerics(arg);
       }
@@ -419,7 +406,7 @@ class _LookupMapInfo {
   final ConstructedConstantValue original;
 
   /// Reference to the lookup map analysis to be able to refer to data shared
-  /// accross infos.
+  /// across infos.
   final _LookupMapAnalysis analysis;
 
   /// Whether we have already emitted this constant.

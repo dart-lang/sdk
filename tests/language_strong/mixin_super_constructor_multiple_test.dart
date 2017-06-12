@@ -9,9 +9,9 @@ class S {
   S.foo() : i = 1742;
 }
 
-class M1 { }
+class M1 {}
 
-class M2 { }
+class M2 {}
 
 class C extends S with M1, M2 {
   C.foo() : super.foo();

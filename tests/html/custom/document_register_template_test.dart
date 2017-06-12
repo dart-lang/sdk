@@ -17,7 +17,6 @@ main() {
   });
 }
 
-
 class MyElement extends TemplateElement {
   MyElement.created() : super.created();
   method() => 'value';

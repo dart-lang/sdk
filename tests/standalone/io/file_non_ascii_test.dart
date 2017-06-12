@@ -30,16 +30,16 @@ main() {
               nonAsciiFile.create().then((_) {
                 var d = nonAsciiFile.parent;
                 Expect.isTrue(d.path.endsWith(precomposed) ||
-                              d.path.endsWith(decomposed));
+                    d.path.endsWith(decomposed));
                 nonAsciiFile.length().then((length) {
                   Expect.equals(6, length);
                   nonAsciiFile.lastModified().then((_) {
                     nonAsciiFile.resolveSymbolicLinks().then((path) {
                       Expect.isTrue(path.endsWith('${precomposed}.txt') ||
-                                    path.endsWith('${decomposed}.txt'));
+                          path.endsWith('${decomposed}.txt'));
                       tempDir.delete(recursive: true).then((_) {
                         asyncEnd();
-                        });
+                      });
                     });
                   });
                 });

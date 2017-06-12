@@ -22,7 +22,6 @@ self.makeFoo = function() { return new Foo(); }
 self.nativeConstructor(Foo);
 """;
 
-
 main() {
   nativeTesting();
   setup();

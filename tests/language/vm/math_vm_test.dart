@@ -17,7 +17,7 @@ class FakeNumber {
 class MathTest {
   static bool testParseInt(x) {
     try {
-      int.parse(x);  // Expects string.
+      int.parse(x); // Expects string.
       return true;
     } catch (e) {
       return false;
@@ -26,7 +26,7 @@ class MathTest {
 
   static bool testSqrt(x) {
     try {
-      sqrt(x);  // Expects number.
+      sqrt(x); // Expects number.
       return true;
     } catch (e) {
       return false;
@@ -42,7 +42,6 @@ class MathTest {
 testDoublePow() {
   Expect.equals((1 << 32).toDouble(), pow(2.0, 32));
 }
-
 
 testSinCos(a) {
   double sVal = sin(a);

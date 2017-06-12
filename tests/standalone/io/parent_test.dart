@@ -22,12 +22,10 @@ void main() {
     testPosixCases();
   }
   asyncStart();
-  createTempDirectories()
-    .then(testObjects)
-    .whenComplete(() {
-      asyncEnd();
-      new Directory(tempDirectory).delete(recursive: true);
-    });
+  createTempDirectories().then(testObjects).whenComplete(() {
+    asyncEnd();
+    new Directory(tempDirectory).delete(recursive: true);
+  });
 }
 
 testPosixCases() {
@@ -52,8 +50,8 @@ testPosixCases() {
   Expect.equals('dir', FileSystemEntity.parentOf('dir/file//'));
   Expect.equals('dir/subdir', FileSystemEntity.parentOf('dir/subdir/file'));
   Expect.equals('dir//subdir', FileSystemEntity.parentOf('dir//subdir//file/'));
-  Expect.equals('dir/sub.dir',
-                FileSystemEntity.parentOf('dir/sub.dir/fi le///'));
+  Expect.equals(
+      'dir/sub.dir', FileSystemEntity.parentOf('dir/sub.dir/fi le///'));
   Expect.equals('dir/..', FileSystemEntity.parentOf('dir/../file/'));
   Expect.equals('dir/..', FileSystemEntity.parentOf('dir/../..'));
   Expect.equals('.', FileSystemEntity.parentOf('./..'));
@@ -73,21 +71,16 @@ testWindowsCases() {
   Expect.equals(r'.', FileSystemEntity.parentOf(r'C:'));
 
   Expect.equals(r'\\server\share\dir',
-                FileSystemEntity.parentOf(r'\\server\share\dir\file'));
+      FileSystemEntity.parentOf(r'\\server\share\dir\file'));
   Expect.equals(r'\\server\share\dir',
-                FileSystemEntity.parentOf(r'\\server\share\dir\file\'));
-  Expect.equals(r'\\server\share',
-                FileSystemEntity.parentOf(r'\\server\share\file'));
-  Expect.equals(r'\\server\',
-                FileSystemEntity.parentOf(r'\\server\share'));
-  Expect.equals(r'\\server\',
-                FileSystemEntity.parentOf(r'\\server\share\'));
-  Expect.equals(r'\\server\',
-                FileSystemEntity.parentOf(r'\\server\'));
-  Expect.equals(r'\\server/',
-                FileSystemEntity.parentOf(r'\\server/'));
-  Expect.equals(r'\\serve',
-                FileSystemEntity.parentOf(r'\\serve'));
+      FileSystemEntity.parentOf(r'\\server\share\dir\file\'));
+  Expect.equals(
+      r'\\server\share', FileSystemEntity.parentOf(r'\\server\share\file'));
+  Expect.equals(r'\\server\', FileSystemEntity.parentOf(r'\\server\share'));
+  Expect.equals(r'\\server\', FileSystemEntity.parentOf(r'\\server\share\'));
+  Expect.equals(r'\\server\', FileSystemEntity.parentOf(r'\\server\'));
+  Expect.equals(r'\\server/', FileSystemEntity.parentOf(r'\\server/'));
+  Expect.equals(r'\\serve', FileSystemEntity.parentOf(r'\\serve'));
 
   Expect.equals(r'.', FileSystemEntity.parentOf(r'file'));
   Expect.equals(r'.', FileSystemEntity.parentOf(r''));
@@ -101,16 +94,19 @@ testWindowsCases() {
   Expect.equals(r'dir', FileSystemEntity.parentOf(r'dir\file\'));
   Expect.equals(r'dir', FileSystemEntity.parentOf(r'dir/file/'));
   Expect.equals(r'dir\subdir', FileSystemEntity.parentOf(r'dir\subdir\file'));
-  Expect.equals(r'dir\sub.dir',
-                FileSystemEntity.parentOf(r'dir\sub.dir\fi le'));
+  Expect.equals(
+      r'dir\sub.dir', FileSystemEntity.parentOf(r'dir\sub.dir\fi le'));
 }
 
 Future createTempDirectories() {
-  return Directory.systemTemp.createTemp('dart_parent_').then((dir) {
-    tempDirectory = dir.path;
-  }).then((_) => new File(join(tempDirectory, 'file1')).create())
-  .then((_) => new Link(join(tempDirectory, 'link1')).create('.'))
-  .then((_) => new Directory(join(tempDirectory, 'dir1')).create());
+  return Directory.systemTemp
+      .createTemp('dart_parent_')
+      .then((dir) {
+        tempDirectory = dir.path;
+      })
+      .then((_) => new File(join(tempDirectory, 'file1')).create())
+      .then((_) => new Link(join(tempDirectory, 'link1')).create('.'))
+      .then((_) => new Directory(join(tempDirectory, 'dir1')).create());
 }
 
 testObjects(var ignored) {
@@ -118,10 +114,8 @@ testObjects(var ignored) {
 }
 
 testPath(String path) {
-  Expect.equals(tempDirectory,
-                new File(join(tempDirectory, path)).parent.path);
-  Expect.equals(tempDirectory,
-                new Link(join(tempDirectory, path)).parent.path);
-  Expect.equals(tempDirectory,
-                new Directory(join(tempDirectory, path)).parent.path);
+  Expect.equals(tempDirectory, new File(join(tempDirectory, path)).parent.path);
+  Expect.equals(tempDirectory, new Link(join(tempDirectory, path)).parent.path);
+  Expect.equals(
+      tempDirectory, new Directory(join(tempDirectory, path)).parent.path);
 }

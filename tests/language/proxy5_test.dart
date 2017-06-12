@@ -11,7 +11,9 @@ abstract class Mock {
   noSuchMethod(i);
 }
 
-abstract class Foo { int foo(); }
+abstract class Foo {
+  int foo();
+}
 
 class DontWarnMe extends Mock implements Foo {}
 

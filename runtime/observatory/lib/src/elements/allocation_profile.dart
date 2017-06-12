@@ -123,9 +123,8 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         navMenu('allocation profile'),
         new NavRefreshElement(
-            label: 'Download',
-            disabled: _profile == null,
-            queue: _r.queue)..onRefresh.listen((_) => _downloadCSV()),
+            label: 'Download', disabled: _profile == null, queue: _r.queue)
+          ..onRefresh.listen((_) => _downloadCSV()),
         new NavRefreshElement(label: 'Reset Accumulator', queue: _r.queue)
           ..onRefresh.listen((_) => _refresh(reset: true)),
         new NavRefreshElement(label: 'GC', queue: _r.queue)
@@ -226,7 +225,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
               ..children = _isCompacted
                   ? [
                       new HeadingElement.h2()
-                        ..text = '(${_usedCaption(_profile.newSpace)}) '
+                        ..text = '(${_usedCaption(_profile.oldSpace)}) '
                             'Old Generation',
                     ]
                   : [
@@ -564,7 +563,8 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
     ]);
 
     new LayoutArea(host, data, config,
-        state: new ChartState(), autoUpdate: true)..draw();
+        state: new ChartState(), autoUpdate: true)
+      ..draw();
   }
 
   Future _refresh({bool gc: false, bool reset: false}) async {

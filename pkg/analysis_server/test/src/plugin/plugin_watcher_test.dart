@@ -7,14 +7,15 @@ import 'dart:typed_data';
 
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer_plugin/protocol/protocol_generated.dart';
+import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -66,6 +67,12 @@ class PluginWatcherTest {
             .convertPath('/pkg2/tools/analysis_plugin/bin/plugin.dart'),
         '');
     await driver.computeResult('package:pkg2/pk2.dart');
+    //
+    // Wait until the timer associated with the driver's FileSystemState is
+    // guaranteed to have expired and the list of changed files will have been
+    // delivered.
+    //
+    await new Future.delayed(new Duration(seconds: 1));
     expect(manager.addedContextRoots, hasLength(1));
   }
 
@@ -120,8 +127,8 @@ class TestDriver implements AnalysisDriver {
 
   Future<Null> computeResult(String uri) {
     FileState file = fsState.getFileForUri(Uri.parse(uri));
-    AnalysisResult result = new AnalysisResult(this, null, file.path, null,
-        true, null, null, null, null, null, null, null);
+    AnalysisResult result = new AnalysisResult(
+        this, null, file.path, null, true, null, null, null, null, null, null);
     _resultController.add(result);
     return new Future.delayed(new Duration(milliseconds: 1));
   }

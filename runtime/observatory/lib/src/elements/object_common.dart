@@ -32,7 +32,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
   M.ReachableSizeRepository _reachableSizes;
   M.InboundReferencesRepository _references;
   M.RetainingPathRepository _retainingPaths;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.Guarded<M.Instance> _retainedSize = null;
   bool _loadingRetainedBytes = false;
   M.Guarded<M.Instance> _reachableSize = null;
@@ -48,7 +48,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
       M.ReachableSizeRepository reachableSizes,
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(object != null);
@@ -56,7 +56,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     assert(reachableSizes != null);
     assert(references != null);
     assert(retainingPaths != null);
-    assert(instances != null);
+    assert(objects != null);
     ObjectCommonElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
@@ -64,7 +64,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     e._retainedSizes = retainedSizes;
     e._reachableSizes = reachableSizes;
     e._references = references;
-    e._instances = instances;
+    e._objects = objects;
     e._retainingPaths = retainingPaths;
     return e;
   }
@@ -89,10 +89,10 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
 
   void render() {
     _path = _path ??
-        new RetainingPathElement(_isolate, _object, _retainingPaths, _instances,
+        new RetainingPathElement(_isolate, _object, _retainingPaths, _objects,
             queue: _r.queue);
     _inbounds = _inbounds ??
-        new InboundReferencesElement(_isolate, _object, _references, _instances,
+        new InboundReferencesElement(_isolate, _object, _references, _objects,
             queue: _r.queue);
     children = [
       new DivElement()

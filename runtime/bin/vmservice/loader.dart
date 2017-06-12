@@ -69,11 +69,14 @@ class IsolateLoaderState extends IsolateEmbedderData {
   IsolateLoaderState(this.isolateId);
 
   final int isolateId;
-
+  bool _dead = false;
   SendPort sp;
 
   void init(String packageRootFlag, String packagesConfigFlag,
       String workingDirectory, String rootScript) {
+    if (_dead) {
+      return;
+    }
     // _workingDirectory must be set first.
     _workingDirectory = new Uri.directory(workingDirectory);
     if (rootScript != null) {
@@ -87,10 +90,18 @@ class IsolateLoaderState extends IsolateEmbedderData {
     if (packagesConfigFlag != null) {
       _setPackagesConfig(packagesConfigFlag);
     }
-    _fileRequestQueue = new List<FileRequest>();
+  }
+
+  void updatePackageMap(String packagesConfigFlag) {
+    if (packagesConfigFlag == null) {
+      return;
+    }
+    _packageMap = null;
+    _setPackagesConfig(packagesConfigFlag);
   }
 
   void cleanup() {
+    _dead = true;
     if (_packagesPort != null) {
       _packagesPort.close();
       _packagesPort = null;
@@ -128,7 +139,7 @@ class IsolateLoaderState extends IsolateEmbedderData {
   // _fileRequestQueue and are processed when we can safely issue them.
   static const int _maxFileRequests = 16;
   int currentFileRequests = 0;
-  List<FileRequest> _fileRequestQueue;
+  final List<FileRequest> _fileRequestQueue = new List<FileRequest>();
 
   bool get shouldIssueFileRequest => currentFileRequests < _maxFileRequests;
   void enqueueFileRequest(FileRequest fr) {
@@ -255,8 +266,11 @@ class IsolateLoaderState extends IsolateEmbedderData {
   RawReceivePort _packagesPort;
 
   void _requestPackagesMap([Uri packageConfig]) {
-    assert(_packagesPort == null);
     assert(_rootScript != null);
+    if (_packagesPort != null) {
+      // Already scheduled.
+      return;
+    }
     // Create a port to receive the packages map on.
     _packagesPort = new RawReceivePort(_handlePackagesReply);
     var sp = _packagesPort.sendPort;
@@ -275,7 +289,9 @@ class IsolateLoaderState extends IsolateEmbedderData {
   }
 
   void _handlePackagesReply(msg) {
-    assert(_packagesPort != null);
+    if (_packagesPort == null) {
+      return;
+    }
     // Make sure to close the _packagePort before any other action.
     _packagesPort.close();
     _packagesPort = null;
@@ -1019,11 +1035,14 @@ _processLoadRequest(request) {
         String packagesFile = request[5];
         String workingDirectory = request[6];
         String rootScript = request[7];
+        bool isReloading = request[8];
         if (loaderState == null) {
           loaderState = new IsolateLoaderState(isolateId);
           isolateEmbedderData[isolateId] = loaderState;
           loaderState.init(
               packageRoot, packagesFile, workingDirectory, rootScript);
+        } else if (isReloading) {
+          loaderState.updatePackageMap(packagesFile);
         }
         loaderState.sp = sp;
         assert(isolateEmbedderData[isolateId] == loaderState);
@@ -1113,34 +1132,36 @@ _processLoadRequest(request) {
       }
       break;
     case _Dart_kResolveAsFilePath:
-      String uri = request[4];
-      Uri resolvedUri = Uri.parse(_sanitizeWindowsPath(uri));
-      try {
-        if (resolvedUri.scheme == 'package') {
-          resolvedUri = loaderState._resolvePackageUri(resolvedUri);
-        }
-        if (resolvedUri.scheme == '' || resolvedUri.scheme == 'file') {
-          resolvedUri = loaderState._workingDirectory.resolveUri(resolvedUri);
+      loaderState._triggerPackageResolution(() {
+        String uri = request[4];
+        Uri resolvedUri = Uri.parse(_sanitizeWindowsPath(uri));
+        try {
+          if (resolvedUri.scheme == 'package') {
+            resolvedUri = loaderState._resolvePackageUri(resolvedUri);
+          }
+          if (resolvedUri.scheme == '' || resolvedUri.scheme == 'file') {
+            resolvedUri = loaderState._workingDirectory.resolveUri(resolvedUri);
+            var msg = new List(5);
+            msg[0] = tag;
+            msg[1] = uri;
+            msg[2] = resolvedUri.toString();
+            msg[3] = null;
+            msg[4] = resolvedUri.toFilePath();
+            sp.send(msg);
+          } else {
+            throw "Cannot resolve scheme (${resolvedUri.scheme}) to file path"
+                " for $resolvedUri";
+          }
+        } catch (e) {
           var msg = new List(5);
-          msg[0] = tag;
+          msg[0] = -tag;
           msg[1] = uri;
           msg[2] = resolvedUri.toString();
           msg[3] = null;
-          msg[4] = resolvedUri.toFilePath();
+          msg[4] = e.toString();
           sp.send(msg);
-        } else {
-          throw "Cannot resolve scheme (${resolvedUri.scheme}) to file path"
-              " for $resolvedUri";
         }
-      } catch (e) {
-        var msg = new List(5);
-        msg[0] = -tag;
-        msg[1] = uri;
-        msg[2] = resolvedUri.toString();
-        msg[3] = null;
-        msg[4] = e.toString();
-        sp.send(msg);
-      }
+      });
       break;
     default:
       _log('Unknown loader request tag=$tag from $isolateId');

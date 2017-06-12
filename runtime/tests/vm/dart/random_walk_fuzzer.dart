@@ -33,7 +33,7 @@ void main(List<String> args) {
     seed = int.parse(args[0]);
   } else {
     // Dart's built-in random number generator doesn't provide access to the
-    // seed when it is choosen by the implementation. We need to be able to
+    // seed when it is chosen by the implementation. We need to be able to
     // report this seed to make runs of the fuzzer reproducible, so we create
     // the seed ourselves.
 
@@ -176,8 +176,8 @@ void setupInterestingValues() {
   addInstance("𝄞"); // Surrogate pairs
   addInstance("𝄞"[0]); // Surrogate pairs
   addInstance("𝄞"[1]); // Surrogate pairs
-  addInstance("\u{0}"); // Non-printing charater
-  addInstance("\u{1}"); // Non-printing charater
+  addInstance("\u{0}"); // Non-printing character
+  addInstance("\u{1}"); // Non-printing character
   addInstance("f\u{0}oo"); // Internal NUL
   addInstance("blåbæ\u{0}rgrød"); // Internal NUL
   addInstance("Îñţérñåţîö\u{0}ñåļîžåţîờñ"); // Internal NUL

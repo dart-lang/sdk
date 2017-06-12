@@ -5,7 +5,7 @@
 # BSD-style license that can be found in the LICENSE file.
 #
 
-# A script to kill hanging processs. The tool will return non-zero if any
+# A script to kill hanging process. The tool will return non-zero if any
 # process was actually found.
 #
 
@@ -215,7 +215,12 @@ def KillBrowsers():
   status += Kill('chrome_helper')
   status += Kill('iexplore')
   status += Kill('safari')
-  status += Kill('content_shell')
+  if os_name == "win32":
+    # TODO(29599): Let content_shell affect exit code on windows,
+    # once issue with zombie renderers is fixed.
+    Kill('content_shell')
+  else:
+    status += Kill('content_shell')
   return status
 
 def KillVCSystems():

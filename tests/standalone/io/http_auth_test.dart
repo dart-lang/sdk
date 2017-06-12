@@ -23,7 +23,8 @@ class Server {
           passwordChanged = true;
           response.close();
           return;
-        };
+        }
+        ;
 
         String username;
         String password;
@@ -37,23 +38,21 @@ class Server {
         if (passwordChanged) password = "${password}1";
         if (request.headers[HttpHeaders.AUTHORIZATION] != null) {
           Expect.equals(1, request.headers[HttpHeaders.AUTHORIZATION].length);
-          String authorization =
-            request.headers[HttpHeaders.AUTHORIZATION][0];
+          String authorization = request.headers[HttpHeaders.AUTHORIZATION][0];
           List<String> tokens = authorization.split(" ");
           Expect.equals("Basic", tokens[0]);
-          String auth =
-              BASE64.encode(UTF8.encode("$username:$password"));
+          String auth = BASE64.encode(UTF8.encode("$username:$password"));
           if (passwordChanged && auth != tokens[1]) {
             response.statusCode = HttpStatus.UNAUTHORIZED;
-            response.headers.set(HttpHeaders.WWW_AUTHENTICATE,
-                                 "Basic, realm=realm");
+            response.headers
+                .set(HttpHeaders.WWW_AUTHENTICATE, "Basic, realm=realm");
           } else {
             Expect.equals(auth, tokens[1]);
           }
         } else {
           response.statusCode = HttpStatus.UNAUTHORIZED;
-          response.headers.set(HttpHeaders.WWW_AUTHENTICATE,
-                               "Basic, realm=realm");
+          response.headers
+              .set(HttpHeaders.WWW_AUTHENTICATE, "Basic, realm=realm");
         }
         response.close();
       });
@@ -77,15 +76,15 @@ void testUrlUserInfo() {
   setupServer().then((server) {
     HttpClient client = new HttpClient();
 
-    client.getUrl(Uri.parse(
-        "http://username:password@127.0.0.1:${server.port}/"))
-      .then((request) => request.close())
-      .then((HttpClientResponse response) {
-        response.listen((_) {}, onDone: () {
-          server.shutdown();
-          client.close();
-        });
+    client
+        .getUrl(Uri.parse("http://username:password@127.0.0.1:${server.port}/"))
+        .then((request) => request.close())
+        .then((HttpClientResponse response) {
+      response.listen((_) {}, onDone: () {
+        server.shutdown();
+        client.close();
       });
+    });
   });
 }
 
@@ -94,23 +93,21 @@ void testBasicNoCredentials() {
     HttpClient client = new HttpClient();
 
     Future makeRequest(Uri url) {
-      return client.getUrl(url)
-        .then((HttpClientRequest request) => request.close())
-        .then((HttpClientResponse response) {
-          Expect.equals(HttpStatus.UNAUTHORIZED, response.statusCode);
-          return response.fold(null, (x, y) {});
-        });
+      return client
+          .getUrl(url)
+          .then((HttpClientRequest request) => request.close())
+          .then((HttpClientResponse response) {
+        Expect.equals(HttpStatus.UNAUTHORIZED, response.statusCode);
+        return response.fold(null, (x, y) {});
+      });
     }
 
     var futures = [];
     for (int i = 0; i < 5; i++) {
       futures.add(
-          makeRequest(
-              Uri.parse("http://127.0.0.1:${server.port}/test$i")));
+          makeRequest(Uri.parse("http://127.0.0.1:${server.port}/test$i")));
       futures.add(
-          makeRequest(
-              Uri.parse(
-                  "http://127.0.0.1:${server.port}/test$i/xxx")));
+          makeRequest(Uri.parse("http://127.0.0.1:${server.port}/test$i/xxx")));
     }
     Future.wait(futures).then((_) {
       server.shutdown();
@@ -124,30 +121,26 @@ void testBasicCredentials() {
     HttpClient client = new HttpClient();
 
     Future makeRequest(Uri url) {
-      return client.getUrl(url)
-        .then((HttpClientRequest request) => request.close())
-        .then((HttpClientResponse response) {
-          Expect.equals(HttpStatus.OK, response.statusCode);
-          return response.fold(null, (x, y) {});
-        });
+      return client
+          .getUrl(url)
+          .then((HttpClientRequest request) => request.close())
+          .then((HttpClientResponse response) {
+        Expect.equals(HttpStatus.OK, response.statusCode);
+        return response.fold(null, (x, y) {});
+      });
     }
 
     for (int i = 0; i < 5; i++) {
-      client.addCredentials(
-          Uri.parse("http://127.0.0.1:${server.port}/test$i"),
-          "realm",
-          new HttpClientBasicCredentials("test$i", "test$i"));
+      client.addCredentials(Uri.parse("http://127.0.0.1:${server.port}/test$i"),
+          "realm", new HttpClientBasicCredentials("test$i", "test$i"));
     }
 
     var futures = [];
     for (int i = 0; i < 5; i++) {
       futures.add(
-          makeRequest(
-              Uri.parse("http://127.0.0.1:${server.port}/test$i")));
+          makeRequest(Uri.parse("http://127.0.0.1:${server.port}/test$i")));
       futures.add(
-          makeRequest(
-              Uri.parse(
-                  "http://127.0.0.1:${server.port}/test$i/xxx")));
+          makeRequest(Uri.parse("http://127.0.0.1:${server.port}/test$i/xxx")));
     }
     Future.wait(futures).then((_) {
       server.shutdown();
@@ -177,30 +170,29 @@ void testBasicAuthenticateCallback() {
     };
 
     Future makeRequest(Uri url) {
-      return client.getUrl(url)
-        .then((HttpClientRequest request) => request.close())
-        .then((HttpClientResponse response) {
-          Expect.equals(HttpStatus.OK, response.statusCode);
-          return response.fold(null, (x, y) {});
-        });
+      return client
+          .getUrl(url)
+          .then((HttpClientRequest request) => request.close())
+          .then((HttpClientResponse response) {
+        Expect.equals(HttpStatus.OK, response.statusCode);
+        return response.fold(null, (x, y) {});
+      });
     }
 
     List<Future> makeRequests() {
       var futures = [];
       for (int i = 0; i < 5; i++) {
         futures.add(
-            makeRequest(
-                Uri.parse("http://127.0.0.1:${server.port}/test$i")));
-        futures.add(
-            makeRequest(
-                Uri.parse("http://127.0.0.1:${server.port}/test$i/xxx")));
+            makeRequest(Uri.parse("http://127.0.0.1:${server.port}/test$i")));
+        futures.add(makeRequest(
+            Uri.parse("http://127.0.0.1:${server.port}/test$i/xxx")));
       }
       return futures;
     }
 
     Future.wait(makeRequests()).then((_) {
-      makeRequest(
-          Uri.parse("http://127.0.0.1:${server.port}/passwdchg")).then((_) {
+      makeRequest(Uri.parse("http://127.0.0.1:${server.port}/passwdchg"))
+          .then((_) {
         passwordChanged = true;
         Future.wait(makeRequests()).then((_) {
           server.shutdown();
@@ -215,22 +207,20 @@ void testLocalServerBasic() {
   HttpClient client = new HttpClient();
 
   client.authenticate = (Uri url, String scheme, String realm) {
-    client.addCredentials(
-        Uri.parse("http://127.0.0.1/basic"),
-        "test",
+    client.addCredentials(Uri.parse("http://127.0.0.1/basic"), "test",
         new HttpClientBasicCredentials("test", "test"));
     return new Future.value(true);
   };
 
-  client.getUrl(Uri.parse("http://127.0.0.1/basic/test"))
+  client
+      .getUrl(Uri.parse("http://127.0.0.1/basic/test"))
       .then((HttpClientRequest request) => request.close())
       .then((HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
-        response.fold(null, (x, y) {})
-            .then((_) {
-              client.close();
-            });
-      });
+    Expect.equals(HttpStatus.OK, response.statusCode);
+    response.fold(null, (x, y) {}).then((_) {
+      client.close();
+    });
+  });
 }
 
 void testLocalServerDigest() {
@@ -238,22 +228,20 @@ void testLocalServerDigest() {
 
   client.authenticate = (Uri url, String scheme, String realm) {
     print("url: $url, scheme: $scheme, realm: $realm");
-    client.addCredentials(
-        Uri.parse("http://127.0.0.1/digest"),
-        "test",
+    client.addCredentials(Uri.parse("http://127.0.0.1/digest"), "test",
         new HttpClientDigestCredentials("test", "test"));
     return new Future.value(true);
   };
 
-  client.getUrl(Uri.parse("http://127.0.0.1/digest/test"))
+  client
+      .getUrl(Uri.parse("http://127.0.0.1/digest/test"))
       .then((HttpClientRequest request) => request.close())
       .then((HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
-        response.fold(null, (x, y) {})
-            .then((_) {
-              client.close();
-            });
-      });
+    Expect.equals(HttpStatus.OK, response.statusCode);
+    response.fold(null, (x, y) {}).then((_) {
+      client.close();
+    });
+  });
 }
 
 main() {

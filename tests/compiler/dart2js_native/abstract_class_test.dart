@@ -13,16 +13,16 @@ abstract class A {}
 
 @Native("B")
 abstract class B {
-  foo() native ;
+  foo() native;
 }
 
 class C {}
 
-makeA() native ;
-makeB() native ;
+makeA() native;
+makeB() native;
 
 void setup() native """
-// This code is all inside 'setup' and so not accesible from the global scope.
+// This code is all inside 'setup' and so not accessible from the global scope.
 function A(){}
 function B(){}
 B.prototype.foo = function() { return 'B.foo'; };

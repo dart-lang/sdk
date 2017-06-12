@@ -66,5 +66,12 @@ LibTest/math/cos_A01_t01: PASS, FAIL, OK  # Issue 26261
 LibTest/math/tan_A01_t01: PASS, FAIL, OK  # Issue 26261
 LibTest/math/log_A01_t01: PASS, FAIL, OK  # Issue 26261
 
-[ $runtime == dartium || $compiler == dart2js ]
-LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
+[ $compiler != dart2analyzer && $checked ]
+# Tests that fail on every runtime in checked mode, but not on the analyzer.
+Language/Functions/generator_return_type_t01: Fail # Co19 issue 110
+Language/Functions/generator_return_type_t02: Fail # Co19 issue 110
+Language/Functions/async_return_type_t01: Fail # Co19 issue 110
+Language/Types/Type_Void/returning_t02: Fail # Co19 issue 110
+Language/Types/Type_Void/returning_t03: Fail # Co19 issue 110
+Language/Types/Type_Void/returning_t04: Fail # Co19 issue 110
+Language/Types/Type_Void/returning_t05: Fail # Co19 issue 110

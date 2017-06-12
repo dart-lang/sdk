@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library ShadowDOMTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
@@ -17,13 +18,14 @@ main() {
   });
 
   group('ShadowDOM_tests', () {
-
     var div1, div2, shadowRoot, paragraph1, paragraph2;
 
     init() {
       paragraph1 = new ParagraphElement();
       paragraph2 = new ParagraphElement();
-      [paragraph1, paragraph2].forEach((p) { p.classes.add('foo');});
+      [paragraph1, paragraph2].forEach((p) {
+        p.classes.add('foo');
+      });
       div1 = new DivElement();
       div2 = new DivElement();
       div1.classes.add('foo');
@@ -53,7 +55,6 @@ main() {
       }, expectation);
     });
 
-
     // TODO(samhop): test that <content> and <content select="foo"> and
     // <shadow>
     // work properly. This is blocked on having a good way to do browser
@@ -69,19 +70,16 @@ main() {
 
     if (ShadowRoot.supported) {
       test('Shadowroot contents are distributed', () {
-
         var div = new DivElement();
 
-        var box1 = new DivElement()
-          ..classes.add('foo');
+        var box1 = new DivElement()..classes.add('foo');
         div.append(box1);
 
         var box2 = new DivElement();
         div.append(box2);
 
         var sRoot = div.createShadowRoot();
-        var content1 = new ContentElement()
-          ..select = ".foo";
+        var content1 = new ContentElement()..select = ".foo";
         sRoot.append(content1);
 
         var content2 = new ContentElement();

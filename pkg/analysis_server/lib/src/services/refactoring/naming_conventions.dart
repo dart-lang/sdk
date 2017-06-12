@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.refactoring.naming_conventions;
-
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
+import 'package:front_end/src/scanner/token.dart' show Keyword;
 
 /**
  * Returns the [RefactoringStatus] with severity:
@@ -168,7 +167,7 @@ RefactoringStatus _validateIdentifier(
   // keyword
   {
     Keyword keyword = Keyword.keywords[identifier];
-    if (keyword != null && !keyword.isPseudoKeyword) {
+    if (keyword != null) {
       String message = "$desc must not be a keyword.";
       return new RefactoringStatus.fatal(message);
     }

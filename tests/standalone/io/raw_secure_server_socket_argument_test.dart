@@ -16,33 +16,29 @@ import "dart:isolate";
 const SERVER_ADDRESS = "127.0.0.1";
 const CERTIFICATE = "localhost_cert";
 
-
 void testArguments() {
   bool isArgOrTypeError(e) => e is ArgumentError || e is TypeError;
-  Expect.throws(() =>
-                RawSecureServerSocket.bind(SERVER_ADDRESS, 65536, null),
-                isArgOrTypeError);
-  Expect.throws(() =>
-                RawSecureServerSocket.bind(SERVER_ADDRESS, -1, null),
-                isArgOrTypeError);
-  Expect.throws(() => RawSecureServerSocket.bind(SERVER_ADDRESS, 0,
-                                                 null, backlog: -1),
-                isArgOrTypeError);
-  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, null),
-                isArgOrTypeError);
-  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, -1),
-                isArgOrTypeError);
-  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, 345656),
-                isArgOrTypeError);
-  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, 'hest'),
-                isArgOrTypeError);
-  Expect.throws(() => RawSecureSocket.connect(null, 0),
-                isArgOrTypeError);
-  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, 0,
-                                              onBadCertificate: 'hund'),
-                isArgOrTypeError);
+  Expect.throws(() => RawSecureServerSocket.bind(SERVER_ADDRESS, 65536, null),
+      isArgOrTypeError);
+  Expect.throws(() => RawSecureServerSocket.bind(SERVER_ADDRESS, -1, null),
+      isArgOrTypeError);
+  Expect.throws(
+      () => RawSecureServerSocket.bind(SERVER_ADDRESS, 0, null, backlog: -1),
+      isArgOrTypeError);
+  Expect.throws(
+      () => RawSecureSocket.connect(SERVER_ADDRESS, null), isArgOrTypeError);
+  Expect.throws(
+      () => RawSecureSocket.connect(SERVER_ADDRESS, -1), isArgOrTypeError);
+  Expect.throws(
+      () => RawSecureSocket.connect(SERVER_ADDRESS, 345656), isArgOrTypeError);
+  Expect.throws(
+      () => RawSecureSocket.connect(SERVER_ADDRESS, 'hest'), isArgOrTypeError);
+  Expect.throws(() => RawSecureSocket.connect(null, 0), isArgOrTypeError);
+  Expect.throws(
+      () =>
+          RawSecureSocket.connect(SERVER_ADDRESS, 0, onBadCertificate: 'hund'),
+      isArgOrTypeError);
 }
-
 
 main() {
   testArguments();

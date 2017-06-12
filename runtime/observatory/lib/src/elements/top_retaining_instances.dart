@@ -25,7 +25,7 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
   M.IsolateRef _isolate;
   M.ClassRef _cls;
   M.TopRetainingInstancesRepository _topRetainingInstances;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   Iterable<M.RetainingObject> _topRetaining;
   bool _expanded = false;
 
@@ -36,18 +36,18 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
       M.IsolateRef isolate,
       M.ClassRef cls,
       M.TopRetainingInstancesRepository topRetainingInstances,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(cls != null);
     assert(topRetainingInstances != null);
-    assert(instances != null);
+    assert(objects != null);
     TopRetainingInstancesElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
     e._cls = cls;
     e._topRetainingInstances = topRetainingInstances;
-    e._instances = instances;
+    e._objects = objects;
     return e;
   }
 
@@ -105,7 +105,7 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
             new DivElement()
               ..classes = ['memberValue']
               ..children = [
-                anyRef(_isolate, r.object, _instances, queue: _r.queue)
+                anyRef(_isolate, r.object, _objects, queue: _r.queue)
               ]
           ])
         .toList();

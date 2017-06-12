@@ -24,10 +24,8 @@ main() {
   });
 }
 
-
 // Inline bar in optimized code.
 heyhey() => barbar();
-
 
 barbar() {
   if (libLoaded) {

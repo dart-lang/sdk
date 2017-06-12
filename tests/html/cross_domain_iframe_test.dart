@@ -19,11 +19,14 @@ main() {
     iframe.src = crossOriginUrl;
     document.body.append(iframe);
 
-    window.onMessage.where((MessageEvent event) {
-      return event.origin == crossOrigin;
-    }).first.then(expectAsync((MessageEvent event) {
-      expect(event.data, equals('foobar'));
-      expect(event.source, isNotNull);
-    }));
+    window.onMessage
+        .where((MessageEvent event) {
+          return event.origin == crossOrigin;
+        })
+        .first
+        .then(expectAsync((MessageEvent event) {
+          expect(event.data, equals('foobar'));
+          expect(event.source, isNotNull);
+        }));
   });
 }

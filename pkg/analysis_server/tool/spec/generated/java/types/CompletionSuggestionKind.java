@@ -34,14 +34,14 @@ public class CompletionSuggestionKind {
 
   /**
    * The element identifier should be inserted at the completion location. For example "someMethod"
-   * in import 'myLib.dart' show someMethod; . For suggestions of this kind, the element attribute is
+   * in import 'myLib.dart' show someMethod;. For suggestions of this kind, the element attribute is
    * defined and the completion field is the element's identifier.
    */
   public static final String IDENTIFIER = "IDENTIFIER";
 
   /**
-   * The element is being invoked at the completion location. For example, "someMethod" in
-   * x.someMethod(); . For suggestions of this kind, the element attribute is defined and the
+   * The element is being invoked at the completion location. For example, 'someMethod' in
+   * x.someMethod();. For suggestions of this kind, the element attribute is defined and the
    * completion field is the element's identifier.
    */
   public static final String INVOCATION = "INVOCATION";
@@ -52,8 +52,8 @@ public class CompletionSuggestionKind {
   public static final String KEYWORD = "KEYWORD";
 
   /**
-   * A named argument for the current callsite is being suggested. For suggestions of this kind, the
-   * completion is the named argument identifier including a trailing ':' and space.
+   * A named argument for the current call site is being suggested. For suggestions of this kind, the
+   * completion is the named argument identifier including a trailing ':' and a space.
    */
   public static final String NAMED_ARGUMENT = "NAMED_ARGUMENT";
 

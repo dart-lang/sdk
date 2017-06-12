@@ -6,13 +6,13 @@
 import "package:expect/expect.dart";
 
 main() {
-  Expect.equals("0.000555000000000000046248",
-                (0.000555).toStringAsPrecision(21));
+  Expect.equals(
+      "0.000555000000000000046248", (0.000555).toStringAsPrecision(21));
   Expect.equals(0.000555000000000000046248, 0.000555);
-  Expect.equals("5.54999999999999980179e-7",
-                (0.000000555).toStringAsPrecision(21));
+  Expect.equals(
+      "5.54999999999999980179e-7", (0.000000555).toStringAsPrecision(21));
   Expect.equals(5.54999999999999980179e-7, 0.000000555);
-  Expect.equals("-5.54999999999999980179e-7",
-                (-0.000000555).toStringAsPrecision(21));
+  Expect.equals(
+      "-5.54999999999999980179e-7", (-0.000000555).toStringAsPrecision(21));
   Expect.equals(-5.54999999999999980179e-7, -0.000000555);
 }

@@ -9,9 +9,11 @@ library annotations;
 class UsedOnlyOnLibrary {
   const UsedOnlyOnLibrary();
 }
+
 const usedOnlyOnLibrary = const UsedOnlyOnLibrary();
 
 class Reflectable {
   const Reflectable();
 }
+
 const Reflectable reflectable = const Reflectable();

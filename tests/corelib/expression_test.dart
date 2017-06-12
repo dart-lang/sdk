@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 // Tests basic expressions. Does not attempt to validate the details of arithmetic, coercion, and
 // so forth.
 class ExpressionTest {
-
   ExpressionTest() {}
 
   int foo;

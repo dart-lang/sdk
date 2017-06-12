@@ -4,22 +4,16 @@
 
 library package_testing_support;
 
-import 'dart:convert' show
-    JSON;
+import 'test_configurations.dart' show testConfigurations;
 
-import 'test_configurations.dart' show
-    testConfigurations;
+import 'test_options.dart' show TestOptionsParser;
 
-import 'test_options.dart' show
-    TestOptionsParser;
+import 'test_suite.dart' show TestUtils;
 
-import 'test_suite.dart' show
-    TestUtils;
-
-main(List<String> arguments) {
+void main(List<String> arguments) {
   TestUtils.setDartDirUri(Uri.base);
-  List<Map> configurations = <Map>[];
-  for (String argument in arguments) {
+  var configurations = <Map>[];
+  for (var argument in arguments) {
     configurations.addAll(new TestOptionsParser().parse(argument.split(" ")));
   }
   testConfigurations(configurations);

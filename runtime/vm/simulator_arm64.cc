@@ -303,9 +303,10 @@ void SimulatorDebugger::PrintDartFrame(uword pc,
 
 
 void SimulatorDebugger::PrintBacktrace() {
-  StackFrameIterator frames(sim_->get_register(FP), sim_->get_register(SP),
-                            sim_->get_pc(),
-                            StackFrameIterator::kDontValidateFrames);
+  StackFrameIterator frames(
+      sim_->get_register(FP), sim_->get_register(SP), sim_->get_pc(),
+      StackFrameIterator::kDontValidateFrames, Thread::Current(),
+      StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);
   Function& function = Function::Handle();

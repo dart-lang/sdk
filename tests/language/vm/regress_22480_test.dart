@@ -17,4 +17,3 @@ test(j) {
 main() {
   Expect.isTrue(test(30));
 }
-

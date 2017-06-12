@@ -2,20 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OccurrencesTest);
-    defineReflectiveTests(OccurrencesTest_Driver);
   });
 }
 
-class AbstractOccurrencesTest extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class OccurrencesTest extends AbstractAnalysisServerIntegrationTest {
   test_occurrences() {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -64,13 +65,4 @@ main() {
       check('sum', ['sum = 0', 'sum +=', 'sum)']);
     });
   }
-}
-
-@reflectiveTest
-class OccurrencesTest extends AbstractOccurrencesTest {}
-
-@reflectiveTest
-class OccurrencesTest_Driver extends AbstractOccurrencesTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

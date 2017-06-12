@@ -42,14 +42,14 @@ void main(List<String> arguments) {
  */
 void processArgs(List<String> arguments) {
   var parser = new ArgParser();
-  parser.addOption("changed", help: "the file has changed since the last build",
-      allowMultiple: true);
-  parser.addOption("removed", help: "the file was removed since the last build",
-      allowMultiple: true);
+  parser.addOption("changed",
+      help: "the file has changed since the last build", allowMultiple: true);
+  parser.addOption("removed",
+      help: "the file was removed since the last build", allowMultiple: true);
   parser.addFlag("clean", negatable: false, help: "remove any build artifacts");
   parser.addFlag("full", negatable: false, help: "perform a full build");
   parser.addFlag("machine",
-    negatable: false, help: "produce warnings in a machine parseable format");
+      negatable: false, help: "produce warnings in a machine parseable format");
   parser.addFlag("help", negatable: false, help: "display this help and exit");
 
   var args = parser.parse(arguments);
@@ -85,11 +85,10 @@ void handleFullBuild() {
   var files = <String>[];
 
   Directory.current.list(recursive: true).listen((entity) {
-        if (entity is File) {
-          files.add((entity as File).resolveSymbolicLinksSync());
-        }
-      },
-      onDone: () => handleChangedFiles(files));
+    if (entity is File) {
+      files.add((entity as File).resolveSymbolicLinksSync());
+    }
+  }, onDone: () => handleChangedFiles(files));
 }
 
 /**
@@ -102,9 +101,7 @@ void handleChangedFiles(List<String> files) {
 /**
  * Process the given list of removed files.
  */
-void handleRemovedFiles(List<String> files) {
-
-}
+void handleRemovedFiles(List<String> files) {}
 
 /**
  * Convert a .foo file to a .foobar file.

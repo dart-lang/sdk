@@ -8,6 +8,7 @@
 import 'package:expect/expect.dart';
 
 typedef void Foo();
+
 class A<T> {}
 
 class C {

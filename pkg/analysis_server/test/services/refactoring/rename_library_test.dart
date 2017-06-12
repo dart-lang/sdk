@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring.rename_library;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,7 +12,6 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLibraryTest);
-    defineReflectiveTests(RenameLibraryTest_Driver);
   });
 }
 
@@ -106,10 +103,4 @@ part of the.new.name;
   void _createRenameRefactoring() {
     createRenameRefactoringForElement(testUnitElement.library);
   }
-}
-
-@reflectiveTest
-class RenameLibraryTest_Driver extends RenameLibraryTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

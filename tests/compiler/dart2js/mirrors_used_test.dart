@@ -53,7 +53,8 @@ void main() {
     CompilerImpl compiler = result.compiler;
     JavaScriptBackend backend = compiler.backend;
     print('');
-    List generatedCode = Elements.sortedByPosition(backend.generatedCode.keys);
+    List generatedCode =
+        Elements.sortedByPosition(new List.from(backend.generatedCode.keys));
     for (var element in generatedCode) {
       print(element);
     }
@@ -108,19 +109,33 @@ void main() {
 
     for (var library in compiler.libraryLoader.libraries) {
       library.forEachLocalMember((member) {
-        if (library == compiler.mainApp && member.name == 'Foo') {
-          Expect.isTrue(
-              compiler.backend.mirrorsData.isAccessibleByReflection(member),
-              '$member');
-          member.forEachLocalMember((classMember) {
+        if (member.isClass) {
+          if (library == compiler.mainApp && member.name == 'Foo') {
             Expect.isTrue(
                 compiler.backend.mirrorsData
-                    .isAccessibleByReflection(classMember),
-                '$classMember');
-          });
+                    .isClassAccessibleByReflection(member),
+                '$member');
+            member.forEachLocalMember((classMember) {
+              Expect.isTrue(
+                  compiler.backend.mirrorsData
+                      .isMemberAccessibleByReflection(classMember),
+                  '$classMember');
+            });
+          } else {
+            Expect.isFalse(
+                compiler.backend.mirrorsData
+                    .isClassAccessibleByReflection(member),
+                '$member');
+          }
+        } else if (member.isTypedef) {
+          Expect.isFalse(
+              compiler.backend.mirrorsData
+                  .isTypedefAccessibleByReflection(member),
+              '$member');
         } else {
           Expect.isFalse(
-              compiler.backend.mirrorsData.isAccessibleByReflection(member),
+              compiler.backend.mirrorsData
+                  .isMemberAccessibleByReflection(member),
               '$member');
         }
       });

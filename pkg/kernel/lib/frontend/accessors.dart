@@ -151,7 +151,8 @@ class VariableAccessor extends Accessor {
   _makeWrite(Expression value, bool voidContext) {
     return variable.isFinal || variable.isConst
         ? makeInvalidWrite(value)
-        : new VariableSet(variable, value)..fileOffset = offset;
+        : new VariableSet(variable, value)
+      ..fileOffset = offset;
   }
 }
 
@@ -292,7 +293,8 @@ class IndexAccessor extends Accessor {
   _makeSimpleWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(receiver, indexSetName,
-        new Arguments(<Expression>[index, value]), setter)..fileOffset = offset;
+        new Arguments(<Expression>[index, value]), setter)
+      ..fileOffset = offset;
   }
 
   receiverAccess() {
@@ -308,20 +310,16 @@ class IndexAccessor extends Accessor {
   }
 
   _makeRead() {
-    return builtGetter = new MethodInvocation(
-        receiverAccess(),
-        indexGetName,
-        new Arguments(<Expression>[indexAccess()]),
-        getter)..fileOffset = offset;
+    return builtGetter = new MethodInvocation(receiverAccess(), indexGetName,
+        new Arguments(<Expression>[indexAccess()]), getter)
+      ..fileOffset = offset;
   }
 
   _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
-    return new MethodInvocation(
-        receiverAccess(),
-        indexSetName,
-        new Arguments(<Expression>[indexAccess(), value]),
-        setter)..fileOffset = offset;
+    return new MethodInvocation(receiverAccess(), indexSetName,
+        new Arguments(<Expression>[indexAccess(), value]), setter)
+      ..fileOffset = offset;
   }
 
   // TODO(dmitryas): remove this method after the "[]=" operator of the Context
@@ -335,7 +333,8 @@ class IndexAccessor extends Accessor {
         indexSetName,
         new Arguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)]),
-        setter)..fileOffset = offset);
+        setter)
+      ..fileOffset = offset);
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
@@ -450,14 +449,15 @@ class StaticAccessor extends Accessor {
 
   StaticAccessor(this.readTarget, this.writeTarget, int offset) : super(offset);
 
-  _makeRead() => builtGetter = readTarget == null
-      ? makeInvalidRead()
-      : new StaticGet(readTarget)..fileOffset = offset;
+  _makeRead() => builtGetter =
+      readTarget == null ? makeInvalidRead() : new StaticGet(readTarget)
+        ..fileOffset = offset;
 
   _makeWrite(Expression value, bool voidContext) {
     return writeTarget == null
         ? makeInvalidWrite(value)
-        : new StaticSet(writeTarget, value)..fileOffset = offset;
+        : new StaticSet(writeTarget, value)
+      ..fileOffset = offset;
   }
 }
 

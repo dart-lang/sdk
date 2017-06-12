@@ -4,10 +4,10 @@
 
 // Regression test case for http://dartbug.com/9602
 library issue9602;
+
 import 'issue9602_other.dart';
 
-class C extends Object with M {
-}
+class C extends Object with M {}
 
 main() {
   new C();

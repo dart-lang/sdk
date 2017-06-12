@@ -14,7 +14,6 @@ void set someSetter(int val) {}
 
 int someFunc() => 0;
 
-class SomeClass {
-}
+class SomeClass {}
 
 typedef int Func(Object a);

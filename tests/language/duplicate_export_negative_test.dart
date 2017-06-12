@@ -6,5 +6,4 @@ library duplicate_export_negative_test;
 
 import 'duplicate_import_libd.dart';
 
-void main() {
-}
+void main() {}

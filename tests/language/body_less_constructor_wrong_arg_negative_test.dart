@@ -12,5 +12,5 @@ class Base {
 }
 
 class C extends Base {
-  const C(var x): super(); // call super constructor with wrong argument count.
+  const C(var x) : super(); // call super constructor with wrong argument count.
 }

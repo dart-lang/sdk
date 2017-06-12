@@ -100,6 +100,33 @@ void sleep(Duration duration) {
 int get pid => _ProcessUtils._pid(null);
 
 /**
+ * [ProcessInfo] provides methods for retrieving information about the
+ * current process.
+ */
+class ProcessInfo {
+  /**
+   * The current resident set size of memory for the process.
+   *
+   * Note that the meaning of this field is platform dependent. For example,
+   * some memory accounted for here may be shared with other processes, or if
+   * the same page is mapped into a process's address space, it may be counted
+   * twice.
+   */
+  external static int get currentRss;
+
+  /**
+   * The high-watermark in bytes for the resident set size of memory for the
+   * process.
+   *
+   * Note that the meaning of this field is platform dependent. For example,
+   * some memory accounted for here may be shared with other processes, or if
+   * the same page is mapped into a process's address space, it may be counted
+   * twice.
+   */
+  external static int get maxRss;
+}
+
+/**
  * Modes for running a new process.
  */
 enum ProcessStartMode {

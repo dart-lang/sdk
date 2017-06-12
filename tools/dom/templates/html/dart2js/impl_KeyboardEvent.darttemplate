@@ -24,22 +24,29 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * creating keyboard events with specific key value contents, see the custom
    * Event [KeyEvent].
    */
-  factory $CLASSNAME(String type,
-      {Window view, bool canBubble: true, bool cancelable: true,
-      int keyLocation: 1, bool ctrlKey: false,
-      bool altKey: false, bool shiftKey: false, bool metaKey: false}) {
+  factory $CLASSNAME(String type, {
+      Window view,
+      bool canBubble: true,
+      bool cancelable: true,
+      int location,
+      int keyLocation, // Legacy alias for location
+      bool ctrlKey: false,
+      bool altKey: false,
+      bool shiftKey: false,
+      bool metaKey: false}) {
     if (view == null) {
       view = window;
     }
+    location ??= keyLocation ?? 1;
     KeyboardEvent e = document._createEvent("KeyboardEvent");
     e._initKeyboardEvent(type, canBubble, cancelable, view, "",
-        keyLocation, ctrlKey, altKey, shiftKey, metaKey);
+        location, ctrlKey, altKey, shiftKey, metaKey);
     return e;
   }
 
   @DomName('KeyboardEvent.initKeyboardEvent')
   void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
-      Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
+      Window view, String keyIdentifier, int location, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey) {
     if (JS('bool', 'typeof(#.initKeyEvent) == "function"', this)) {
       // initKeyEvent is only in Firefox (instead of initKeyboardEvent). It has
@@ -52,16 +59,16 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     } else {
       // initKeyboardEvent is for all other browsers.
       JS('void', '#.initKeyboardEvent(#, #, #, #, #, #, #, #, #, #)', this,
-          type, canBubble, cancelable, view, keyIdentifier, keyLocation,
+          type, canBubble, cancelable, view, keyIdentifier, location,
           ctrlKey, altKey, shiftKey, metaKey);
     }
   }
 
   @DomName('KeyboardEvent.keyCode')
-  int get keyCode => _keyCode;
+  final int keyCode;
 
   @DomName('KeyboardEvent.charCode')
-  int get charCode => _charCode;
+  final int charCode;
 
   @DomName('KeyboardEvent.which')
   int get which => _which;

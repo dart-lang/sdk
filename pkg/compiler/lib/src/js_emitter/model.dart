@@ -16,6 +16,7 @@ class Program {
   final bool outputContainsConstantList;
   final bool needsNativeSupport;
   final bool hasIsolateSupport;
+  final bool hasSoftDeferredClasses;
 
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
@@ -38,7 +39,8 @@ class Program {
       this.typeToInterceptorMap, this._metadataCollector, this.finalizers,
       {this.needsNativeSupport,
       this.outputContainsConstantList,
-      this.hasIsolateSupport}) {
+      this.hasIsolateSupport,
+      this.hasSoftDeferredClasses}) {
     assert(needsNativeSupport != null);
     assert(outputContainsConstantList != null);
     assert(hasIsolateSupport != null);
@@ -230,6 +232,12 @@ class Class implements FieldContainer {
   final bool onlyForRti;
   final bool isDirectlyInstantiated;
   final bool isNative;
+  final bool isClosureBaseClass; // Common base class for closures.
+
+  /// Whether this class should be soft deferred.
+  ///
+  /// A soft-deferred class is only fully initialized at first instantiation.
+  final bool isSoftDeferred;
 
   // If the class implements a function type, and the type is encoded in the
   // metatada table, then this field contains the index into that field.
@@ -262,10 +270,13 @@ class Class implements FieldContainer {
       {this.hasRtiField,
       this.onlyForRti,
       this.isDirectlyInstantiated,
-      this.isNative}) {
+      this.isNative,
+      this.isClosureBaseClass,
+      this.isSoftDeferred = false}) {
     assert(onlyForRti != null);
     assert(isDirectlyInstantiated != null);
     assert(isNative != null);
+    assert(isClosureBaseClass != null);
   }
 
   bool get isMixinApplication => false;
@@ -279,6 +290,8 @@ class Class implements FieldContainer {
 
   int get superclassHolderIndex =>
       (superclass == null) ? 0 : superclass.holder.index;
+
+  String toString() => 'Class(${element.name})';
 }
 
 class MixinApplication extends Class {
@@ -312,7 +325,8 @@ class MixinApplication extends Class {
             hasRtiField: hasRtiField,
             onlyForRti: onlyForRti,
             isDirectlyInstantiated: isDirectlyInstantiated,
-            isNative: false);
+            isNative: false,
+            isClosureBaseClass: false);
 
   bool get isMixinApplication => true;
   Class get mixinClass => _mixinClass;

@@ -43,7 +43,7 @@
       "name": "outline",
       "kind": "Chain",
       "source": "outline_test.dart",
-      "path": "./",
+      "path": "../../testcases/",
       "status": "outline.status",
       "pattern": [
         "\\.dart$"
@@ -51,7 +51,8 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/test/fasta/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/shaker/"
       ]
     },
 
@@ -59,7 +60,7 @@
       "name": "compile",
       "kind": "Chain",
       "source": "compile_test.dart",
-      "path": "./",
+      "path": "../../testcases/",
       "status": "compile.status",
       "pattern": [
         "\\.dart$"
@@ -67,7 +68,8 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/test/fasta/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/shaker/"
       ]
     },
 
@@ -75,7 +77,7 @@
       "name": "kompile",
       "kind": "Chain",
       "source": "kompile_test.dart",
-      "path": "./",
+      "path": "../../testcases/",
       "status": "kompile.status",
       "pattern": [
         "\\.dart$"
@@ -83,7 +85,39 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/test/fasta/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/shaker/"
+      ]
+    },
+
+    {
+      "name": "strong",
+      "kind": "Chain",
+      "source": "strong_test.dart",
+      "path": "../../testcases/",
+      "status": "strong.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+        "/test/.*_test\\.dart$",
+        "/test/.*_suite\\.dart$",
+        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/shaker/"
+      ]
+    },
+
+    {
+      "name": "shaker",
+      "kind": "Chain",
+      "source": "shaker_test.dart",
+      "path": "../../testcases/shaker/",
+      "status": "shaker.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+        "/shaker/lib/lib.dart"
       ]
     },
 
@@ -135,7 +169,6 @@
 
     "uris": [
       "../../lib/src/fasta",
-      "../../lib/src/fasta/analyzer",
       "../../lib/src/fasta/builder",
       "../../lib/src/fasta/dill",
       "../../lib/src/fasta/kernel",
@@ -152,9 +185,12 @@
       "kompile_test.dart",
       "outline_test.dart",
       "sdk_test.dart",
+      "../incremental_kernel_generator_test.dart",
       "../../../analyzer/lib/src/fasta",
-      "../../../compiler/lib/src/parser",
-      "../../../compiler/lib/src/scanner",
+      "../../../analyzer/lib/src/summary/fasta",
+      "../../../analyzer/lib/src/dart/analysis/file_state.dart",
+      "../../../analyzer/test/generated/parser_fasta_test.dart",
+      "../../../analyzer/tool/summary/mini_ast.dart",
       "../../../../utils/kernel-service/kernel-service.dart",
       "../../../../tools/patch_sdk.dart"
     ],
@@ -162,9 +198,7 @@
     "exclude": [
       "/third_party/pkg/",
       "/third_party/pkg_tested/",
-      "/pkg/analyzer/(?!.*/(fasta|kernel)/)",
-      "/pkg/compiler/lib/src/(?!(scanner|parser)/)",
-      "/pkg/compiler/lib/src/parser/partial_elements\\.dart$",
+      "/pkg/analyzer/(?!.*/(fasta/|kernel/|(file_state|parser_fasta_test)\\.dart$))",
       "/pkg/js_ast/"
     ]
   }

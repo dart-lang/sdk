@@ -9,7 +9,8 @@ import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import "package:compiler/src/elements/elements.dart"
-    show Element, ClassElement, MemberSignature, PublicName;
+    show ClassElement, MemberSignature;
+import "package:compiler/src/elements/names.dart";
 
 void main() {
   test();

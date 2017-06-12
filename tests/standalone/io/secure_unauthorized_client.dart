@@ -30,19 +30,17 @@ const HOST_NAME = "localhost";
 Future runClients(int port) {
   var testFutures = [];
   for (int i = 0; i < 20; ++i) {
-    testFutures.add(
-        SecureSocket.connect(HOST_NAME, port, context: clientContext)
-          .then((SecureSocket socket) {
-            expect(false);
-          }, onError: (e) {
-            expect(e is HandshakeException || e is SocketException);
-          }));
+    testFutures.add(SecureSocket
+        .connect(HOST_NAME, port, context: clientContext)
+        .then((SecureSocket socket) {
+      expect(false);
+    }, onError: (e) {
+      expect(e is HandshakeException || e is SocketException);
+    }));
   }
   return Future.wait(testFutures);
 }
 
-
 void main(List<String> args) {
-  runClients(int.parse(args[0]))
-    .then((_) => print('SUCCESS'));
+  runClients(int.parse(args[0])).then((_) => print('SUCCESS'));
 }

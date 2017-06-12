@@ -21,5 +21,6 @@ void main(List<String> arguments) {
       socket.listen(null, onDone: run);
     });
   }
+
   for (int i = 0; i < 4; i++) run();
 }

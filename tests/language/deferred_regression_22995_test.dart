@@ -9,7 +9,9 @@ import "package:expect/expect.dart";
 import 'deferred_regression_22995_lib.dart' deferred as lib;
 
 class A {}
+
 class B {}
+
 class C {}
 
 typedef Ti(int x);
@@ -18,9 +20,9 @@ typedef TTi(Ti x);
 typedef Tg<T>(T x);
 
 class T {
-   fA(A a) => null;
-   fTB(TB a) => null;
-   fTgC(Tg<C> a) => null;
+  fA(A a) => null;
+  fTB(TB a) => null;
+  fTgC(Tg<C> a) => null;
 }
 
 main() {
@@ -31,4 +33,3 @@ main() {
     lib.foofoo();
   });
 }
-

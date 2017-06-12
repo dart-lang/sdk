@@ -270,17 +270,17 @@ class Cursor extends Interceptor {
 
   @DomName('IDBCursor.advance')
   @DocsEditable()
-  void advance(int count) native ;
+  void advance(int count) native;
 
   @DomName('IDBCursor.continuePrimaryKey')
   @DocsEditable()
   @Experimental() // untriaged
-  void continuePrimaryKey(Object key, Object primaryKey) native ;
+  void continuePrimaryKey(Object key, Object primaryKey) native;
 
   @JSName('delete')
   @DomName('IDBCursor.delete')
   @DocsEditable()
-  Request _delete() native ;
+  Request _delete() native;
 
   @DomName('IDBCursor.update')
   @DocsEditable()
@@ -292,7 +292,7 @@ class Cursor extends Interceptor {
   @JSName('update')
   @DomName('IDBCursor.update')
   @DocsEditable()
-  Request _update_1(value) native ;
+  Request _update_1(value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -390,7 +390,7 @@ class Database extends EventTarget {
   }
 
   @JSName('transaction')
-  Transaction _transaction(stores, mode) native ;
+  Transaction _transaction(stores, mode) native;
 
   // To suppress missing implicit constructor warnings.
   factory Database._() {
@@ -449,7 +449,7 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.objectStoreNames')
   @DocsEditable()
-  @Returns('DomStringList')
+  @Returns('DomStringList|Null')
   @Creates('DomStringList')
   final List<String> objectStoreNames;
 
@@ -457,11 +457,11 @@ class Database extends EventTarget {
   @DocsEditable()
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  final Object version;
+  final int version;
 
   @DomName('IDBDatabase.close')
   @DocsEditable()
-  void close() native ;
+  void close() native;
 
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
@@ -476,15 +476,15 @@ class Database extends EventTarget {
   @JSName('createObjectStore')
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
-  ObjectStore _createObjectStore_1(name, options) native ;
+  ObjectStore _createObjectStore_1(name, options) native;
   @JSName('createObjectStore')
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
-  ObjectStore _createObjectStore_2(name) native ;
+  ObjectStore _createObjectStore_2(name) native;
 
   @DomName('IDBDatabase.deleteObjectStore')
   @DocsEditable()
-  void deleteObjectStore(String name) native ;
+  void deleteObjectStore(String name) native;
 
   /// Stream of `abort` events handled by this [Database].
   @DomName('IDBDatabase.onabort')
@@ -609,12 +609,12 @@ class IdbFactory extends Interceptor {
 
   @DomName('IDBFactory.cmp')
   @DocsEditable()
-  int cmp(Object first, Object second) native ;
+  int cmp(Object first, Object second) native;
 
   @JSName('deleteDatabase')
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable()
-  OpenDBRequest _deleteDatabase(String name) native ;
+  OpenDBRequest _deleteDatabase(String name) native;
 
   @JSName('open')
   @DomName('IDBFactory.open')
@@ -622,7 +622,7 @@ class IdbFactory extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Database')
-  OpenDBRequest _open(String name, [int version]) native ;
+  OpenDBRequest _open(String name, [int version]) native;
 
   @JSName('webkitGetDatabaseNames')
   @DomName('IDBFactory.webkitGetDatabaseNames')
@@ -633,7 +633,7 @@ class IdbFactory extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('DomStringList')
-  Request _webkitGetDatabaseNames() native ;
+  Request _webkitGetDatabaseNames() native;
 }
 
 /**
@@ -776,7 +776,7 @@ class Index extends Interceptor {
   @JSName('count')
   @DomName('IDBIndex.count')
   @DocsEditable()
-  Request _count(Object key) native ;
+  Request _count(Object key) native;
 
   @JSName('get')
   @DomName('IDBIndex.get')
@@ -784,17 +784,17 @@ class Index extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
-  Request _get(Object key) native ;
+  Request _get(Object key) native;
 
   @DomName('IDBIndex.getAll')
   @DocsEditable()
   @Experimental() // untriaged
-  Request getAll(Object range, [int maxCount]) native ;
+  Request getAll(Object range, [int maxCount]) native;
 
   @DomName('IDBIndex.getAllKeys')
   @DocsEditable()
   @Experimental() // untriaged
-  Request getAllKeys(Object range, [int maxCount]) native ;
+  Request getAllKeys(Object range, [int maxCount]) native;
 
   @JSName('getKey')
   @DomName('IDBIndex.getKey')
@@ -803,7 +803,7 @@ class Index extends Interceptor {
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
   @Creates('ObjectStore')
-  Request _getKey(Object key) native ;
+  Request _getKey(Object key) native;
 
   @JSName('openCursor')
   @DomName('IDBIndex.openCursor')
@@ -811,7 +811,7 @@ class Index extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor(Object range, [String direction]) native ;
+  Request _openCursor(Object range, [String direction]) native;
 
   @JSName('openKeyCursor')
   @DomName('IDBIndex.openKeyCursor')
@@ -819,7 +819,7 @@ class Index extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openKeyCursor(Object range, [String direction]) native ;
+  Request _openKeyCursor(Object range, [String direction]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -874,22 +874,22 @@ class KeyRange extends Interceptor {
   @DomName('IDBKeyRange.bound')
   @DocsEditable()
   static KeyRange bound_(Object lower, Object upper,
-      [bool lowerOpen, bool upperOpen]) native ;
+      [bool lowerOpen, bool upperOpen]) native;
 
   @JSName('lowerBound')
   @DomName('IDBKeyRange.lowerBound')
   @DocsEditable()
-  static KeyRange lowerBound_(Object bound, [bool open]) native ;
+  static KeyRange lowerBound_(Object bound, [bool open]) native;
 
   @JSName('only')
   @DomName('IDBKeyRange.only')
   @DocsEditable()
-  static KeyRange only_(Object value) native ;
+  static KeyRange only_(Object value) native;
 
   @JSName('upperBound')
   @DomName('IDBKeyRange.upperBound')
   @DocsEditable()
-  static KeyRange upperBound_(Object bound, [bool open]) native ;
+  static KeyRange upperBound_(Object bound, [bool open]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1036,7 +1036,7 @@ class ObjectStore extends Interceptor {
 
   @DomName('IDBObjectStore.indexNames')
   @DocsEditable()
-  @Returns('DomStringList')
+  @Returns('DomStringList|Null')
   @Creates('DomStringList')
   final List<String> indexNames;
 
@@ -1074,24 +1074,24 @@ class ObjectStore extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request _add_1(value, key) native ;
+  Request _add_1(value, key) native;
   @JSName('add')
   @DomName('IDBObjectStore.add')
   @DocsEditable()
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request _add_2(value) native ;
+  Request _add_2(value) native;
 
   @JSName('clear')
   @DomName('IDBObjectStore.clear')
   @DocsEditable()
-  Request _clear() native ;
+  Request _clear() native;
 
   @JSName('count')
   @DomName('IDBObjectStore.count')
   @DocsEditable()
-  Request _count(Object key) native ;
+  Request _count(Object key) native;
 
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
@@ -1106,20 +1106,20 @@ class ObjectStore extends Interceptor {
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _createIndex_1(name, keyPath, options) native ;
+  Index _createIndex_1(name, keyPath, options) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _createIndex_2(name, keyPath) native ;
+  Index _createIndex_2(name, keyPath) native;
 
   @JSName('delete')
   @DomName('IDBObjectStore.delete')
   @DocsEditable()
-  Request _delete(Object key) native ;
+  Request _delete(Object key) native;
 
   @DomName('IDBObjectStore.deleteIndex')
   @DocsEditable()
-  void deleteIndex(String name) native ;
+  void deleteIndex(String name) native;
 
   @JSName('get')
   @DomName('IDBObjectStore.get')
@@ -1127,21 +1127,21 @@ class ObjectStore extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
-  Request _get(Object key) native ;
+  Request _get(Object key) native;
 
   @DomName('IDBObjectStore.getAll')
   @DocsEditable()
   @Experimental() // untriaged
-  Request getAll(Object range, [int maxCount]) native ;
+  Request getAll(Object range, [int maxCount]) native;
 
   @DomName('IDBObjectStore.getAllKeys')
   @DocsEditable()
   @Experimental() // untriaged
-  Request getAllKeys(Object range, [int maxCount]) native ;
+  Request getAllKeys(Object range, [int maxCount]) native;
 
   @DomName('IDBObjectStore.index')
   @DocsEditable()
-  Index index(String name) native ;
+  Index index(String name) native;
 
   @JSName('openCursor')
   @DomName('IDBObjectStore.openCursor')
@@ -1149,12 +1149,12 @@ class ObjectStore extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor(Object range, [String direction]) native ;
+  Request _openCursor(Object range, [String direction]) native;
 
   @DomName('IDBObjectStore.openKeyCursor')
   @DocsEditable()
   @Experimental() // untriaged
-  Request openKeyCursor(Object range, [String direction]) native ;
+  Request openKeyCursor(Object range, [String direction]) native;
 
   @DomName('IDBObjectStore.put')
   @DocsEditable()
@@ -1177,14 +1177,14 @@ class ObjectStore extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request _put_1(value, key) native ;
+  Request _put_1(value, key) native;
   @JSName('put')
   @DomName('IDBObjectStore.put')
   @DocsEditable()
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request _put_2(value) native ;
+  Request _put_2(value) native;
 
   /**
    * Helper for iterating over cursors in a request.
@@ -1301,7 +1301,7 @@ class Request extends EventTarget {
 
   @DomName('IDBRequest.error')
   @DocsEditable()
-  final DomError error;
+  final DomException error;
 
   @DomName('IDBRequest.readyState')
   @DocsEditable()
@@ -1415,7 +1415,7 @@ class Transaction extends EventTarget {
 
   @DomName('IDBTransaction.error')
   @DocsEditable()
-  final DomError error;
+  final DomException error;
 
   @DomName('IDBTransaction.mode')
   @DocsEditable()
@@ -1424,17 +1424,17 @@ class Transaction extends EventTarget {
   @DomName('IDBTransaction.objectStoreNames')
   @DocsEditable()
   @Experimental() // untriaged
-  @Returns('DomStringList')
+  @Returns('DomStringList|Null')
   @Creates('DomStringList')
   final List<String> objectStoreNames;
 
   @DomName('IDBTransaction.abort')
   @DocsEditable()
-  void abort() native ;
+  void abort() native;
 
   @DomName('IDBTransaction.objectStore')
   @DocsEditable()
-  ObjectStore objectStore(String name) native ;
+  ObjectStore objectStore(String name) native;
 
   /// Stream of `abort` events handled by this [Transaction].
   @DomName('IDBTransaction.onabort')

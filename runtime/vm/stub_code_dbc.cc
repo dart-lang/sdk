@@ -6,14 +6,14 @@
 #if defined(TARGET_ARCH_DBC)
 
 #include "vm/assembler.h"
-#include "vm/code_generator.h"
-#include "vm/cpu.h"
 #include "vm/compiler.h"
+#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
+#include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/tags.h"

@@ -30,19 +30,16 @@ class A {
   var a = 0;
 
   A()
-    : a = E(1),  // Initializations in different order to decls.  Ascending...
-      b = E(2),
-      c = E(3),
-
-      f = E(4),  // Descending to be perverse...
-      e = E(5),
-      d = E(6),
-
-      g = E(7),  // Ascending again.
-      h = E(8),
-      i = E(9),
-      j = E(10) {
-
+      : a = E(1), // Initializations in different order to decls.  Ascending...
+        b = E(2),
+        c = E(3),
+        f = E(4), // Descending to be perverse...
+        e = E(5),
+        d = E(6),
+        g = E(7), // Ascending again.
+        h = E(8),
+        i = E(9),
+        j = E(10) {
     Expect.equals(1, a);
     Expect.equals(2, b);
     Expect.equals(3, c);

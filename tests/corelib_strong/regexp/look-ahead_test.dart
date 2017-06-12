@@ -27,8 +27,7 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  'Test for regression against <a href="https://bugs.webkit.org/show_bug.cgi?id=41458">Yarr Interpreter is crashing in some cases of look-ahead regex patterns</a>'
-  );
+      'Test for regression against <a href="https://bugs.webkit.org/show_bug.cgi?id=41458">Yarr Interpreter is crashing in some cases of look-ahead regex patterns</a>');
 
   shouldBe(firstMatch("ab", new RegExp(r"a(?=b|c)")), ["a"]);
   shouldBe(firstMatch("abd", new RegExp(r"a(?=c|b)|d")), ["a"]);

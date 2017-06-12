@@ -451,8 +451,16 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
         stack_lower_(stack_lower),
         has_exit_frame_(exited_dart_code) {
     if (exited_dart_code) {
+// On windows the profiler does not run on the thread being profiled.
+#if defined(_WIN32)
+      const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
+          StackFrameIterator::kAllowCrossThreadIteration;
+#else
+      const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
+          StackFrameIterator::kNoCrossThreadIteration;
+#endif
       StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
-                                  thread);
+                                  thread, cross_thread_policy);
       pc_ = NULL;
       fp_ = NULL;
       sp_ = NULL;
@@ -875,9 +883,9 @@ static bool GetAndValidateThreadStackBounds(Thread* thread,
 #endif
 
   if (!use_simulator_stack_bounds &&
-      !os_thread->GetProfilerStackBounds(stack_lower, stack_upper) &&
       !(get_os_thread_bounds &&
-        OSThread::GetCurrentStackBounds(stack_lower, stack_upper))) {
+        OSThread::GetCurrentStackBounds(stack_lower, stack_upper)) &&
+      !os_thread->GetProfilerStackBounds(stack_lower, stack_upper)) {
     // Could not get stack boundary.
     return false;
   }
@@ -969,7 +977,7 @@ void Profiler::DumpStackTrace(void* context) {
   uword pc = SignalHandler::GetProgramCounter(mcontext);
   uword fp = SignalHandler::GetFramePointer(mcontext);
   uword sp = SignalHandler::GetCStackPointer(mcontext);
-  DumpStackTrace(sp, fp, pc);
+  DumpStackTrace(sp, fp, pc, true /* for_crash */);
 #else
 // TODO(fschneider): Add support for more platforms.
 // Do nothing on unsupported platforms.
@@ -977,24 +985,26 @@ void Profiler::DumpStackTrace(void* context) {
 }
 
 
-void Profiler::DumpStackTrace() {
+void Profiler::DumpStackTrace(bool for_crash) {
   uintptr_t sp = Thread::GetCurrentStackPointer();
   uintptr_t fp = 0;
   uintptr_t pc = OS::GetProgramCounter();
 
   COPY_FP_REGISTER(fp);
 
-  DumpStackTrace(sp, fp, pc);
+  DumpStackTrace(sp, fp, pc, for_crash);
 }
 
 
-void Profiler::DumpStackTrace(uword sp, uword fp, uword pc) {
-  // Allow only one stack trace to prevent recursively printing stack traces if
-  // we hit an assert while printing the stack.
-  static uintptr_t started_dump = 0;
-  if (AtomicOperations::FetchAndIncrement(&started_dump) != 0) {
-    OS::PrintErr("Aborting re-entrant request for stack trace.\n");
-    return;
+void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
+  if (for_crash) {
+    // Allow only one stack trace to prevent recursively printing stack traces
+    // if we hit an assert while printing the stack.
+    static uintptr_t started_dump = 0;
+    if (AtomicOperations::FetchAndIncrement(&started_dump) != 0) {
+      OS::PrintErr("Aborting re-entrant request for stack trace.\n");
+      return;
+    }
   }
 
   Thread* thread = Thread::Current();

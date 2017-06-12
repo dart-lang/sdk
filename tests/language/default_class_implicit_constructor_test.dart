@@ -11,8 +11,7 @@ abstract class A {
   factory A() = B;
 }
 
-class B implements A {
-}
+class B implements A {}
 
 main() {
   var val = new A();

@@ -77,4 +77,3 @@ main() {
   Expect.equals(-4755801206503243776, shiftLeftNeg8448(49));
   Expect.equals(-9511602413006487552, shiftLeftNeg8448(50));
 }
-

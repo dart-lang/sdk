@@ -14,26 +14,26 @@ void testRunShell() {
   test(args) {
     asyncStart();
     var script = Platform.script.resolve("process_echo_util.dart").toFilePath();
-    Process.run(Platform.executable,
-                [script]..addAll(args),
-                runInShell: true)
+    Process
+        .run(Platform.executable, [script]..addAll(args), runInShell: true)
         .then((result) {
-          if (Platform.operatingSystem == "windows") {
-            result = result.stdout.split("\r\n");
-          } else {
-            result = result.stdout.split("\n");
-          }
-          if (result.length - 1 != args.length) {
-            throw "wrong number of args: $args vs $result";
-          }
-          for (int i = 0; i < args.length; i++) {
-            if (args[i] != result[i]) {
-              throw "bad result at $i: '${args[i]}' vs '${result[i]}'";
-            }
-          }
-          asyncEnd();
-        });
+      if (Platform.operatingSystem == "windows") {
+        result = result.stdout.split("\r\n");
+      } else {
+        result = result.stdout.split("\n");
+      }
+      if (result.length - 1 != args.length) {
+        throw "wrong number of args: $args vs $result";
+      }
+      for (int i = 0; i < args.length; i++) {
+        if (args[i] != result[i]) {
+          throw "bad result at $i: '${args[i]}' vs '${result[i]}'";
+        }
+      }
+      asyncEnd();
+    });
   }
+
   test(["\""]);
   test(["a b"]);
   test(["'"]);
@@ -50,14 +50,14 @@ void testRunShell() {
 void testBadRunShell() {
   test(exe, [args = const []]) {
     asyncStart();
-    Process.run(exe, args, runInShell: true)
-        .then((result) {
-          if (result.exitCode == 0) {
-            throw "error expected";
-          }
-          asyncEnd();
-        });
+    Process.run(exe, args, runInShell: true).then((result) {
+      if (result.exitCode == 0) {
+        throw "error expected";
+      }
+      asyncEnd();
+    });
   }
+
   test("'\"'");
   test("'\$HOME'");
 }
@@ -66,4 +66,3 @@ void main() {
   testRunShell();
   testBadRunShell();
 }
-

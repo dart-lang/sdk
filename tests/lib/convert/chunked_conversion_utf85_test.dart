@@ -83,7 +83,6 @@ List<int> encode7(String str) {
   return bytes;
 }
 
-
 main() {
   for (var test in UNICODE_TESTS) {
     List<int> bytes = test[0];

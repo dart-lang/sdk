@@ -6,6 +6,7 @@
 // Regression test for slow-path allocation in the allocation stub.
 
 library map_test;
+
 import 'dart:collection';
 
 void testCollection(var collection, n) {

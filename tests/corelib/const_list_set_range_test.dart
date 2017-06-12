@@ -15,15 +15,37 @@ void expectUOE(Function f) {
 }
 
 testImmutable(var list) {
-  expectUOE(() { list.setRange(0, 0, const []); });
-  expectUOE(() { list.setRange(0, 1, const [], 1); });
-  expectUOE(() { list.setRange(0, 1, const []); });
-  expectUOE(() { list.setRange(0, 0, []); });
-  expectUOE(() { list.setRange(0, 1, [], 1); });
-  expectUOE(() { list.setRange(0, 1, []); });
-  expectUOE(() { list.setRange(0, 0, const [1]); });
-  expectUOE(() { list.setRange(0, 1, const [1]); });
-  expectUOE(() { list.setRange(0, 0, [1]); });
-  expectUOE(() { list.setRange(0, 1, [1]); });
-  expectUOE(() { list.setRange(0, 1, [1], 1); });
+  expectUOE(() {
+    list.setRange(0, 0, const []);
+  });
+  expectUOE(() {
+    list.setRange(0, 1, const [], 1);
+  });
+  expectUOE(() {
+    list.setRange(0, 1, const []);
+  });
+  expectUOE(() {
+    list.setRange(0, 0, []);
+  });
+  expectUOE(() {
+    list.setRange(0, 1, [], 1);
+  });
+  expectUOE(() {
+    list.setRange(0, 1, []);
+  });
+  expectUOE(() {
+    list.setRange(0, 0, const [1]);
+  });
+  expectUOE(() {
+    list.setRange(0, 1, const [1]);
+  });
+  expectUOE(() {
+    list.setRange(0, 0, [1]);
+  });
+  expectUOE(() {
+    list.setRange(0, 1, [1]);
+  });
+  expectUOE(() {
+    list.setRange(0, 1, [1], 1);
+  });
 }

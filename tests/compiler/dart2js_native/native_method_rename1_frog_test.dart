@@ -10,16 +10,16 @@ import 'dart:_js_helper' show Native, JSName;
 @Native("A")
 class A {
   @JSName('fooA')
-  int foo() native ;
+  int foo() native;
 
   @JSName('barA')
-  int bar() native ;
+  int bar() native;
 
   @JSName('bazA')
-  int baz() native ;
+  int baz() native;
 }
 
-A makeA() native ;
+A makeA() native;
 
 class B {
   int bar([x]) => 800;
@@ -27,7 +27,7 @@ class B {
 }
 
 void setup() native """
-// This code is all inside 'setup' and so not accesible from the global scope.
+// This code is all inside 'setup' and so not accessible from the global scope.
 function A(){}
 A.prototype.fooA = function(){return 100;};
 A.prototype.barA = function(){return 200;};

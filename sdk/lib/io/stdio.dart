@@ -302,7 +302,6 @@ class _StdConsumer implements StreamConsumer<List<int>> {
 
 class _StdSink implements IOSink {
   final IOSink _sink;
-  final bool _isTranslatable;
 
   _StdSink(this._sink);
 

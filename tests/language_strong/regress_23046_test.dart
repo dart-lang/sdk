@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 
 const String x = '$y"';
 const String y = 'foo';
-const Map m = const { x: 0, y: 1 };
+const Map m = const {x: 0, y: 1};
 
 main() {
   Expect.equals(x, 'foo"');

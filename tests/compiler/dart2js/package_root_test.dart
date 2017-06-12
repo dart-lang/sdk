@@ -58,7 +58,7 @@ void main() {
       return new Future.value(Packages.noPackages);
     };
 
-    await runTest(Uri.parse('memory:main.dart'), MessageKind.READ_SCRIPT_ERROR,
+    await runTest(Uri.parse('memory:main.dart'), MessageKind.READ_URI_ERROR,
         packageRoot: packageRoot);
     await runTest(Uri.parse('memory:main.dart'), MessageKind.LIBRARY_NOT_FOUND,
         packageConfig: PACKAGE_CONFIG_URI);

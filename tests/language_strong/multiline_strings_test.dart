@@ -7,40 +7,64 @@
 import "package:expect/expect.dart";
 
 main() {
-  Expect.equals('foo', '''  
+  Expect.equals(
+      'foo',
+      '''  
 foo''');
 
-  Expect.equals('\\\nfoo', '''\\
+  Expect.equals(
+      '\\\nfoo',
+      '''\\
 foo''');
 
-  Expect.equals('\t\nfoo', '''\t
+  Expect.equals(
+      '\t\nfoo',
+      '''\t
 foo''');
 
-  Expect.equals('foo', '''\
+  Expect.equals(
+      'foo',
+      '''\
 foo''');
 
-  Expect.equals('foo', '''\ \
+  Expect.equals(
+      'foo',
+      '''\ \
 foo''');
 
-  Expect.equals(' \nfoo', '''\x20
+  Expect.equals(
+      ' \nfoo',
+      '''\x20
 foo''');
 
   String x = ' ';
-  Expect.equals(' \nfoo', '''$x
+  Expect.equals(
+      ' \nfoo',
+      '''$x
 foo''');
 
-  Expect.equals('foo', r'''  
+  Expect.equals(
+      'foo',
+      r'''  
 foo''');
 
-  Expect.equals('\\\\\nfoo', r'''\\
+  Expect.equals(
+      '\\\\\nfoo',
+      r'''\\
 foo''');
 
-  Expect.equals('\\t\nfoo', r'''\t
+  Expect.equals(
+      '\\t\nfoo',
+      r'''\t
 foo''');
 
-  Expect.equals('foo', r'''\
+  Expect.equals(
+      'foo',
+      r'''\
 foo''');
 
-  Expect.equals('foo', r'''\ \
+  Expect.equals(
+      'foo',
+      r'''\ \
 foo''');
 }

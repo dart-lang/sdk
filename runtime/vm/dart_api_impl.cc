@@ -124,6 +124,11 @@ class CheckFunctionTypesVisitor : public ObjectVisitor {
     if (obj->IsFunction()) {
       funcHandle_ ^= obj;
       classHandle_ ^= funcHandle_.Owner();
+      // Signature functions get created, but not canonicalized, when function
+      // types get instantiated during run time type tests.
+      if (funcHandle_.IsSignatureFunction()) {
+        return;
+      }
       // Verify that the result type of a function is canonical or a
       // TypeParameter.
       typeHandle_ ^= funcHandle_.result_type();
@@ -349,9 +354,10 @@ Heap::Space SpaceForExternal(Thread* thread, intptr_t size) {
 
 
 static RawObject* Send0Arg(const Instance& receiver, const String& selector) {
+  const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
   ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Resolver::ResolveDynamic(receiver, selector, args_desc));
   if (function.IsNull()) {
@@ -366,9 +372,10 @@ static RawObject* Send0Arg(const Instance& receiver, const String& selector) {
 static RawObject* Send1Arg(const Instance& receiver,
                            const String& selector,
                            const Instance& argument) {
+  const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 2;
   ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Resolver::ResolveDynamic(receiver, selector, args_desc));
   if (function.IsNull()) {
@@ -1996,6 +2003,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
   CHECK_CALLBACK_STATE(T);
   Error& malformed_type_error = Error::Handle(Z);
   *value = instance.IsInstanceOf(type_obj, Object::null_type_arguments(),
+                                 Object::null_type_arguments(),
                                  &malformed_type_error);
   ASSERT(malformed_type_error.IsNull());  // Type was created from a class.
   return Api::Success();
@@ -2719,9 +2727,10 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
     return Api::NewError("Object does not implement the List interface");
   }
   const String& name = String::Handle(Z, Field::GetterName(Symbols::Length()));
+  const int kTypeArgsLen = 0;
   const int kNumArgs = 1;
   ArgumentsDescriptor args_desc(
-      Array::Handle(Z, ArgumentsDescriptor::New(kNumArgs)));
+      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Z, Resolver::ResolveDynamic(instance, name, args_desc));
   if (function.IsNull()) {
@@ -2825,9 +2834,10 @@ DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
     // Check and handle a dart object that implements the List interface.
     const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
     if (!instance.IsNull()) {
+      const intptr_t kTypeArgsLen = 0;
       const intptr_t kNumArgs = 2;
       ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+          Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
       const Function& function = Function::Handle(
           Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                       args_desc));
@@ -2883,9 +2893,10 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
     // Check and handle a dart object that implements the List interface.
     const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
     if (!instance.IsNull()) {
+      const intptr_t kTypeArgsLen = 0;
       const intptr_t kNumArgs = 3;
       ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+          Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
       const Function& function = Function::Handle(
           Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                       args_desc));
@@ -3069,9 +3080,10 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   // Check and handle a dart object that implements the List interface.
   const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
   if (!instance.IsNull()) {
+    const int kTypeArgsLen = 0;
     const int kNumArgs = 2;
     ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+        Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
     const Function& function = Function::Handle(
         Z,
         Resolver::ResolveDynamic(instance, Symbols::IndexToken(), args_desc));
@@ -3156,9 +3168,10 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   // Check and handle a dart object that implements the List interface.
   const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
   if (!instance.IsNull()) {
+    const int kTypeArgsLen = 0;
     const int kNumArgs = 3;
     ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+        Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
     const Function& function = Function::Handle(
         Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                     args_desc));
@@ -3786,10 +3799,11 @@ static RawObject* ResolveConstructor(const char* current_func,
       return ApiError::New(message);
     }
   }
-  int extra_args = 1;
+  const int kTypeArgsLen = 0;
+  const int extra_args = 1;
   String& error_message = String::Handle();
-  if (!constructor.AreValidArgumentCounts(num_args + extra_args, 0,
-                                          &error_message)) {
+  if (!constructor.AreValidArgumentCounts(kTypeArgsLen, num_args + extra_args,
+                                          0, &error_message)) {
     const String& message = String::Handle(String::NewFormatted(
         "%s: wrong argument count for "
         "constructor '%s': %s.",
@@ -3868,9 +3882,12 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     if (!redirect_type.IsInstantiated()) {
       // The type arguments of the redirection type are instantiated from the
       // type arguments of the type argument.
+      // We do not support generic constructors.
+      ASSERT(redirect_type.IsInstantiated(kFunctions));
       Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, &bound_error, NULL, NULL, Heap::kNew);
+          type_arguments, Object::null_type_arguments(), &bound_error, NULL,
+          NULL, Heap::kNew);
       if (!bound_error.IsNull()) {
         return Api::NewHandle(T, bound_error.raw());
       }
@@ -4099,10 +4116,11 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
       TypeArguments::Handle(Z, type_obj.arguments());
   const Function& constructor =
       Function::Handle(Z, cls.LookupFunctionAllowPrivate(dot_name));
+  const int kTypeArgsLen = 0;
   const int extra_args = 1;
   if (!constructor.IsNull() && constructor.IsGenerativeConstructor() &&
-      constructor.AreValidArgumentCounts(number_of_arguments + extra_args, 0,
-                                         NULL)) {
+      constructor.AreValidArgumentCounts(
+          kTypeArgsLen, number_of_arguments + extra_args, 0, NULL)) {
     // Create the argument list.
     // Constructors get the uninitialized object.
     if (!type_arguments.IsNull()) {
@@ -4156,6 +4174,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   }
   Dart_Handle result;
   Array& args = Array::Handle(Z);
+  const intptr_t kTypeArgsLen = 0;
   if (obj.IsType()) {
     if (!Type::Cast(obj).IsFinalized()) {
       return Api::NewError(
@@ -4164,9 +4183,10 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     }
 
     const Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
-    const Function& function = Function::Handle(
-        Z, Resolver::ResolveStaticAllowPrivate(
-               cls, function_name, number_of_arguments, Object::empty_array()));
+    const Function& function =
+        Function::Handle(Z, Resolver::ResolveStaticAllowPrivate(
+                                cls, function_name, kTypeArgsLen,
+                                number_of_arguments, Object::empty_array()));
     if (function.IsNull()) {
       const String& cls_name = String::Handle(Z, cls.Name());
       return Api::NewError("%s: did not find static method '%s.%s'.",
@@ -4193,8 +4213,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     // to check here.
     Instance& instance = Instance::Handle(Z);
     instance ^= obj.raw();
-    ArgumentsDescriptor args_desc(
-        Array::Handle(Z, ArgumentsDescriptor::New(number_of_arguments + 1)));
+    ArgumentsDescriptor args_desc(Array::Handle(
+        Z, ArgumentsDescriptor::New(kTypeArgsLen, number_of_arguments + 1)));
     const Function& function = Function::Handle(
         Z, Resolver::ResolveDynamic(instance, function_name, args_desc));
     if (function.IsNull()) {
@@ -4202,8 +4222,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
       result = SetupArguments(T, number_of_arguments, arguments, 1, &args);
       if (!::Dart_IsError(result)) {
         args.SetAt(0, instance);
-        const Array& args_descriptor =
-            Array::Handle(Z, ArgumentsDescriptor::New(args.Length()));
+        const Array& args_descriptor = Array::Handle(
+            Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
         result = Api::NewHandle(
             T, DartEntry::InvokeNoSuchMethod(instance, function_name, args,
                                              args_descriptor));
@@ -4256,7 +4276,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     // LookupFunctionAllowPrivate does not check argument arity, so we
     // do it here.
     String& error_message = String::Handle(Z);
-    if (!function.AreValidArgumentCounts(number_of_arguments, 0,
+    if (!function.AreValidArgumentCounts(kTypeArgsLen, number_of_arguments, 0,
                                          &error_message)) {
       return Api::NewError("%s: wrong argument count for function '%s': %s.",
                            CURRENT_FUNC, function_name.ToCString(),
@@ -4386,12 +4406,13 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
 #endif  // !defined(PRODUCT)
 
     // Invoke the getter and return the result.
+    const int kTypeArgsLen = 0;
     const int kNumArgs = 1;
     const Array& args = Array::Handle(Z, Array::New(kNumArgs));
     args.SetAt(0, instance);
     if (getter.IsNull()) {
-      const Array& args_descriptor =
-          Array::Handle(Z, ArgumentsDescriptor::New(args.Length()));
+      const Array& args_descriptor = Array::Handle(
+          Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
       return Api::NewHandle(
           T, DartEntry::InvokeNoSuchMethod(instance, getter_name, args,
                                            args_descriptor));
@@ -4542,13 +4563,14 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     }
 
     // Invoke the setter and return the result.
+    const int kTypeArgsLen = 0;
     const int kNumArgs = 2;
     const Array& args = Array::Handle(Z, Array::New(kNumArgs));
     args.SetAt(0, instance);
     args.SetAt(1, value_instance);
     if (setter.IsNull()) {
-      const Array& args_descriptor =
-          Array::Handle(Z, ArgumentsDescriptor::New(args.Length()));
+      const Array& args_descriptor = Array::Handle(
+          Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
       return Api::NewHandle(
           T, DartEntry::InvokeNoSuchMethod(instance, setter_name, args,
                                            args_descriptor));
@@ -5407,6 +5429,10 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
   }
+  if (tmp.IsNull()) {
+    return Api::NewError("%s: The binary program does not contain 'main'.",
+                         CURRENT_FUNC);
+  }
   library ^= tmp.raw();
   I->object_store()->set_root_library(library);
   return Api::NewHandle(T, library.raw());
@@ -6032,6 +6058,21 @@ Dart_CompileToKernel(const char* script_uri) {
 #endif
 }
 
+DART_EXPORT Dart_KernelCompilationResult
+Dart_CompileSourcesToKernel(const char* script_uri,
+                            int source_files_count,
+                            Dart_SourceFile sources[]) {
+#ifdef DART_PRECOMPILED_RUNTIME
+  Dart_KernelCompilationResult result;
+  result.status = Dart_KernelCompilationStatus_Unknown;
+  result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
+  return result;
+#else
+  return KernelIsolate::CompileToKernel(script_uri, source_files_count,
+                                        sources);
+#endif
+}
+
 // --- Service support ---
 
 DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
@@ -6085,6 +6126,11 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
 DART_EXPORT Dart_Handle
 Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_mod_callback) {
   return Api::Success();
+}
+
+
+DART_EXPORT bool Dart_IsReloading() {
+  return false;
 }
 
 
@@ -6220,6 +6266,14 @@ Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback) {
   }
   IsolateReloadContext::SetFileModifiedCallback(file_modified_callback);
   return Api::Success();
+}
+
+
+DART_EXPORT bool Dart_IsReloading() {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  CHECK_ISOLATE(isolate);
+  return isolate->IsReloading();
 }
 
 
@@ -6802,6 +6856,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   }
   I->StopBackgroundCompiler();
 
+  ProgramVisitor::Dedup();
   Symbols::Compact(I);
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),

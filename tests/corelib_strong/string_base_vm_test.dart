@@ -4,10 +4,10 @@
 // Dart test program for testing class 'StringBase' (currently VM specific).
 
 library string_base_test;
+
 import "package:expect/expect.dart";
 
 class StringBaseTest {
-
   StringBaseTest() {}
 
   toString() {
@@ -28,7 +28,7 @@ class StringBaseTest {
   static testCreation() {
     String s = "Hello";
     List<int> a = new List(s.length);
-    List<int> ga  = new List();
+    List<int> ga = new List();
     bool exception_caught = false;
     for (int i = 0; i < a.length; i++) {
       a[i] = s.codeUnitAt(i);

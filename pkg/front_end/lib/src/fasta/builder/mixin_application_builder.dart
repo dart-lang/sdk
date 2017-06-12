@@ -7,9 +7,7 @@ library fasta.mixin_application_builder;
 import '../errors.dart' show internalError;
 
 import 'builder.dart'
-    show TypeBuilder, TypeDeclarationBuilder, TypeVariableBuilder;
-
-import 'scope.dart' show Scope;
+    show Scope, TypeBuilder, TypeDeclarationBuilder, TypeVariableBuilder;
 
 abstract class MixinApplicationBuilder<T extends TypeBuilder>
     extends TypeBuilder {

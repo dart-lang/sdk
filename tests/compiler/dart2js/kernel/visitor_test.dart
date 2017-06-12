@@ -8,69 +8,85 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:compiler/src/compiler.dart' show Compiler;
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart';
-import 'package:kernel/class_hierarchy.dart';
-import 'package:path/path.dart' as pathlib;
+import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
 
 import '../memory_compiler.dart';
 
-const String TESTCASE_DIR = 'pkg/kernel/testcases/';
+const String TESTCASE_DIR = 'pkg/front_end/testcases/';
 
-const List<String> SKIP_TESTS = const <String>[
-  /// The test expects an unpatched api.
-  'external',
+const List<String> TESTS = const <String>[
+  'DeltaBlue',
+  'argument',
+  'arithmetic',
+  'async_function',
+  'bad_store',
+  'call',
+  'closure',
+  'covariant_generic',
+  'escape',
+  'fallthrough',
+  'micro',
+  'named_parameters',
+  'null_aware',
+  'optional',
+  'override',
+  'prefer_baseclass',
+  'redirecting_factory',
+  'static_setter',
+  'store_load',
+  'stringliteral',
+  'uninitialized_fields',
+  'unused_methods',
+  'void-methods',
 ];
 
-main(List<String> arguments) async {
-  Directory directory = new Directory('${TESTCASE_DIR}/input');
-  for (FileSystemEntity file in directory.listSync()) {
-    if (file is File && file.path.endsWith('.dart')) {
-      String name = pathlib.basenameWithoutExtension(file.path);
-      bool selected = arguments.contains(name);
-      if (!selected) {
-        if (arguments.isNotEmpty) continue;
-        if (SKIP_TESTS.contains(name)) continue;
-      }
-
-      test(name, () async {
-        var compiler = await newCompiler();
-        await compiler.run(file.absolute.uri);
-        var loadedLibraries =
-            await compiler.libraryLoader.loadLibrary(file.absolute.uri);
-        compiler.processLoadedLibraries(loadedLibraries);
-        var library = loadedLibraries.rootLibrary;
-        JavaScriptBackend backend = compiler.backend;
-        StringBuffer buffer = new StringBuffer();
-        Program program = backend.kernelTask.buildProgram(library);
-        new MixinFullResolution().transform(program);
-        new Printer(buffer)
-            .writeLibraryFile(program.mainMethod.enclosingLibrary);
-        String actual = buffer.toString();
-        String expected =
-            new File('${TESTCASE_DIR}/spec-mode/$name.baseline.txt')
-                .readAsStringSync();
-        if (selected) {
-          String input =
-              new File('${TESTCASE_DIR}/input/$name.dart').readAsStringSync();
-          print('============================================================');
-          print(name);
-          print('--input-----------------------------------------------------');
-          print(input);
-          print('--expected--------------------------------------------------');
-          print(expected);
-          print('--actual----------------------------------------------------');
-          print(actual);
-        }
-        expect(actual, equals(expected));
-      });
+main(List<String> arguments) {
+  if (arguments.isEmpty) {
+    for (String testName in TESTS) {
+      scheduleTest(testName, selected: false);
+    }
+  } else {
+    for (String testName in arguments) {
+      scheduleTest(testName, selected: true);
     }
   }
+}
+
+scheduleTest(String name, {bool selected}) async {
+  test(name, () async {
+    Uri uri = Uri.base.resolve(TESTCASE_DIR).resolve('$name.dart');
+    var compiler = await newCompiler();
+    await compiler.run(uri);
+    var loadedLibraries = await compiler.libraryLoader.loadLibrary(uri);
+    compiler.processLoadedLibraries(loadedLibraries);
+    var library = loadedLibraries.rootLibrary;
+    JavaScriptBackend backend = compiler.backend;
+    StringBuffer buffer = new StringBuffer();
+    Program program = backend.kernelTask.buildProgram(library);
+    new MixinFullResolution(new NoneTarget(null)).transform(program);
+    new Printer(buffer).writeLibraryFile(program.mainMethod.enclosingLibrary);
+    String actual = buffer.toString();
+    String expected =
+        new File('${TESTCASE_DIR}/$name.dart.direct.expect').readAsStringSync();
+    if (selected) {
+      String input = new File('${TESTCASE_DIR}/$name.dart').readAsStringSync();
+      print('============================================================');
+      print(name);
+      print('--input-----------------------------------------------------');
+      print(input);
+      print('--expected--------------------------------------------------');
+      print(expected);
+      print('--actual----------------------------------------------------');
+      print(actual);
+    }
+    expect(actual, equals(expected));
+  });
 }
 
 Future<Compiler> newCompiler() async {

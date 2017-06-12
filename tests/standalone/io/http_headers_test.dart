@@ -52,17 +52,17 @@ void testMultiValue() {
 
   headers.add(HttpHeaders.PRAGMA, "pragma2");
   Expect.equals(2, headers[HttpHeaders.PRAGMA].length);
-  Expect.throws(() => headers.value(HttpHeaders.PRAGMA),
-                (e) => e is HttpException);
+  Expect.throws(
+      () => headers.value(HttpHeaders.PRAGMA), (e) => e is HttpException);
 
   headers.add(HttpHeaders.PRAGMA, ["pragma3", "pragma4"]);
   Expect.listEquals(["pragma1", "pragma2", "pragma3", "pragma4"],
-                    headers[HttpHeaders.PRAGMA]);
+      headers[HttpHeaders.PRAGMA]);
 
   headers.remove(HttpHeaders.PRAGMA, "pragma3");
   Expect.equals(3, headers[HttpHeaders.PRAGMA].length);
-  Expect.listEquals(["pragma1", "pragma2", "pragma4"],
-                    headers[HttpHeaders.PRAGMA]);
+  Expect.listEquals(
+      ["pragma1", "pragma2", "pragma4"], headers[HttpHeaders.PRAGMA]);
 
   headers.remove(HttpHeaders.PRAGMA, "pragma3");
   Expect.equals(3, headers[HttpHeaders.PRAGMA].length);
@@ -275,36 +275,32 @@ void testHeaderValue() {
   }
 
   HeaderValue headerValue;
-  headerValue = HeaderValue.parse(
-      "xxx; aaa=bbb; ccc=\"\\\";\\a\"; ddd=\"    \"");
+  headerValue =
+      HeaderValue.parse("xxx; aaa=bbb; ccc=\"\\\";\\a\"; ddd=\"    \"");
   check(headerValue, "xxx", {"aaa": "bbb", "ccc": '\";a', "ddd": "    "});
-  headerValue = new HeaderValue("xxx",
-                                {"aaa": "bbb", "ccc": '\";a', "ddd": "    "});
+  headerValue =
+      new HeaderValue("xxx", {"aaa": "bbb", "ccc": '\";a', "ddd": "    "});
   check(headerValue, "xxx", {"aaa": "bbb", "ccc": '\";a', "ddd": "    "});
 
-  headerValue = HeaderValue.parse(
-    "attachment; filename=genome.jpeg;"
-    "modification-date=\"Wed, 12 February 1997 16:29:51 -0500\"");
+  headerValue = HeaderValue.parse("attachment; filename=genome.jpeg;"
+      "modification-date=\"Wed, 12 February 1997 16:29:51 -0500\"");
   var parameters = {
-      "filename": "genome.jpeg",
-      "modification-date": "Wed, 12 February 1997 16:29:51 -0500"
+    "filename": "genome.jpeg",
+    "modification-date": "Wed, 12 February 1997 16:29:51 -0500"
   };
   check(headerValue, "attachment", parameters);
   headerValue = new HeaderValue("attachment", parameters);
   check(headerValue, "attachment", parameters);
-  headerValue = HeaderValue.parse(
-    "  attachment  ;filename=genome.jpeg  ;"
-    "modification-date = \"Wed, 12 February 1997 16:29:51 -0500\""  );
+  headerValue = HeaderValue.parse("  attachment  ;filename=genome.jpeg  ;"
+      "modification-date = \"Wed, 12 February 1997 16:29:51 -0500\"");
   check(headerValue, "attachment", parameters);
   headerValue = HeaderValue.parse("xxx; aaa; bbb; ccc");
   check(headerValue, "xxx", {"aaa": null, "bbb": null, "ccc": null});
 }
 
 void testContentType() {
-  void check(ContentType contentType,
-             String primaryType,
-             String subType,
-             [Map parameters]) {
+  void check(ContentType contentType, String primaryType, String subType,
+      [Map parameters]) {
     Expect.equals(primaryType, contentType.primaryType);
     Expect.equals(subType, contentType.subType);
     Expect.equals("$primaryType/$subType", contentType.value);
@@ -324,7 +320,7 @@ void testContentType() {
   Expect.equals("", contentType.subType);
   Expect.equals("/", contentType.value);
   Expect.throws(() => contentType.parameters["xxx"] = "yyy",
-                (e) => e is UnsupportedError);
+      (e) => e is UnsupportedError);
 
   contentType = ContentType.parse("text/html");
   check(contentType, "text", "html");
@@ -333,29 +329,26 @@ void testContentType() {
   check(contentType, "text", "html", {"charset": "utf-8"});
   Expect.equals("text/html; charset=utf-8", contentType.toString());
   Expect.throws(() => contentType.parameters["xxx"] = "yyy",
-                (e) => e is UnsupportedError);
+      (e) => e is UnsupportedError);
 
-  contentType = new ContentType("text",
-                                "html",
-                                parameters: {"CHARSET": "UTF-8", "xxx": "YYY"});
+  contentType = new ContentType("text", "html",
+      parameters: {"CHARSET": "UTF-8", "xxx": "YYY"});
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "YYY"});
   String s = contentType.toString();
   bool expectedToString = (s == "text/html; charset=utf-8; xxx=YYY" ||
-                           s == "text/html; xxx=YYY; charset=utf-8");
+      s == "text/html; xxx=YYY; charset=utf-8");
   Expect.isTrue(expectedToString);
   contentType = ContentType.parse("text/html; CHARSET=UTF-8; xxx=YYY");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "YYY"});
   Expect.throws(() => contentType.parameters["xxx"] = "yyy",
-                (e) => e is UnsupportedError);
+      (e) => e is UnsupportedError);
 
-  contentType = new ContentType("text",
-                                "html",
-                                charset: "ISO-8859-1",
-                                parameters: {"CHARSET": "UTF-8", "xxx": "yyy"});
+  contentType = new ContentType("text", "html",
+      charset: "ISO-8859-1", parameters: {"CHARSET": "UTF-8", "xxx": "yyy"});
   check(contentType, "text", "html", {"charset": "iso-8859-1", "xxx": "yyy"});
   s = contentType.toString();
   expectedToString = (s == "text/html; charset=iso-8859-1; xxx=yyy" ||
-                      s == "text/html; xxx=yyy; charset=iso-8859-1");
+      s == "text/html; xxx=yyy; charset=iso-8859-1");
   Expect.isTrue(expectedToString);
 
   contentType = ContentType.parse("text/html");
@@ -364,20 +357,17 @@ void testContentType() {
   check(contentType, "text", "html");
   contentType = ContentType.parse("text/html; charset=utf-8");
   check(contentType, "text", "html", {"charset": "utf-8"});
-  contentType = ContentType.parse(
-      "  text/html  ;  charset  =  utf-8  ");
+  contentType = ContentType.parse("  text/html  ;  charset  =  utf-8  ");
   check(contentType, "text", "html", {"charset": "utf-8"});
-  contentType = ContentType.parse(
-      "text/html; charset=utf-8; xxx=yyy");
+  contentType = ContentType.parse("text/html; charset=utf-8; xxx=yyy");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
-  contentType = ContentType.parse(
-      "  text/html  ;  charset  =  utf-8  ;  xxx=yyy  ");
+  contentType =
+      ContentType.parse("  text/html  ;  charset  =  utf-8  ;  xxx=yyy  ");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
-  contentType = ContentType.parse(
-      'text/html; charset=utf-8; xxx="yyy"');
+  contentType = ContentType.parse('text/html; charset=utf-8; xxx="yyy"');
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
-  contentType = ContentType.parse(
-      "  text/html  ;  charset  =  utf-8  ;  xxx=yyy  ");
+  contentType =
+      ContentType.parse("  text/html  ;  charset  =  utf-8  ;  xxx=yyy  ");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
 
   contentType = ContentType.parse("text/html; charset=;");
@@ -422,7 +412,6 @@ void testContentTypeCache() {
 
 void testCookie() {
   test(String name, String value) {
-
     void checkCookiesEquals(a, b) {
       Expect.equals(a.name, b.name);
       Expect.equals(a.value, b.value);
@@ -441,63 +430,84 @@ void testCookie() {
     Expect.equals("$name=$value; HttpOnly", cookie.toString());
     DateTime date = new DateTime.utc(2014, DateTime.JANUARY, 5, 23, 59, 59, 0);
     cookie.expires = date;
-    checkCookie(cookie, "$name=$value"
-                "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
-                "; HttpOnly");
+    checkCookie(
+        cookie,
+        "$name=$value"
+        "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
+        "; HttpOnly");
     cookie.maxAge = 567;
-    checkCookie(cookie, "$name=$value"
-                "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
-                "; Max-Age=567"
-                "; HttpOnly");
+    checkCookie(
+        cookie,
+        "$name=$value"
+        "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
+        "; Max-Age=567"
+        "; HttpOnly");
     cookie.domain = "example.com";
-    checkCookie(cookie, "$name=$value"
-                "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
-                "; Max-Age=567"
-                "; Domain=example.com"
-                "; HttpOnly");
+    checkCookie(
+        cookie,
+        "$name=$value"
+        "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
+        "; Max-Age=567"
+        "; Domain=example.com"
+        "; HttpOnly");
     cookie.path = "/xxx";
-    checkCookie(cookie, "$name=$value"
-                "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
-                "; Max-Age=567"
-                "; Domain=example.com"
-                "; Path=/xxx"
-                "; HttpOnly");
+    checkCookie(
+        cookie,
+        "$name=$value"
+        "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
+        "; Max-Age=567"
+        "; Domain=example.com"
+        "; Path=/xxx"
+        "; HttpOnly");
     cookie.secure = true;
-    checkCookie(cookie, "$name=$value"
-                "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
-                "; Max-Age=567"
-                "; Domain=example.com"
-                "; Path=/xxx"
-                "; Secure"
-                "; HttpOnly");
+    checkCookie(
+        cookie,
+        "$name=$value"
+        "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
+        "; Max-Age=567"
+        "; Domain=example.com"
+        "; Path=/xxx"
+        "; Secure"
+        "; HttpOnly");
     cookie.httpOnly = false;
-    checkCookie(cookie, "$name=$value"
-                "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
-                "; Max-Age=567"
-                "; Domain=example.com"
-                "; Path=/xxx"
-                "; Secure");
+    checkCookie(
+        cookie,
+        "$name=$value"
+        "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
+        "; Max-Age=567"
+        "; Domain=example.com"
+        "; Path=/xxx"
+        "; Secure");
     cookie.expires = null;
-    checkCookie(cookie, "$name=$value"
-                "; Max-Age=567"
-                "; Domain=example.com"
-                "; Path=/xxx"
-                "; Secure");
+    checkCookie(
+        cookie,
+        "$name=$value"
+        "; Max-Age=567"
+        "; Domain=example.com"
+        "; Path=/xxx"
+        "; Secure");
     cookie.maxAge = null;
-    checkCookie(cookie, "$name=$value"
-                "; Domain=example.com"
-                "; Path=/xxx"
-                "; Secure");
+    checkCookie(
+        cookie,
+        "$name=$value"
+        "; Domain=example.com"
+        "; Path=/xxx"
+        "; Secure");
     cookie.domain = null;
-    checkCookie(cookie, "$name=$value"
-                "; Path=/xxx"
-                "; Secure");
+    checkCookie(
+        cookie,
+        "$name=$value"
+        "; Path=/xxx"
+        "; Secure");
     cookie.path = null;
-    checkCookie(cookie, "$name=$value"
-                "; Secure");
+    checkCookie(
+        cookie,
+        "$name=$value"
+        "; Secure");
     cookie.secure = false;
     checkCookie(cookie, "$name=$value");
   }
+
   test("name", "value");
   test("abc", "def");
   test("ABC", "DEF");
@@ -510,18 +520,18 @@ void testInvalidCookie() {
   Expect.throws(() => new _Cookie.fromSetCookieValue("="));
   Expect.throws(() => new _Cookie.fromSetCookieValue("=xxx"));
   Expect.throws(() => new _Cookie.fromSetCookieValue("xxx"));
-  Expect.throws(() => new _Cookie.fromSetCookieValue(
-      "xxx=yyy; expires=12 jan 2013"));
+  Expect.throws(
+      () => new _Cookie.fromSetCookieValue("xxx=yyy; expires=12 jan 2013"));
   Expect.throws(() => new _Cookie.fromSetCookieValue("x x = y y"));
   Expect.throws(() => new _Cookie("[4", "y"));
   Expect.throws(() => new _Cookie("4", "y\""));
 
   _HttpHeaders headers = new _HttpHeaders("1.1");
-  headers.set('Cookie',
-              'DARTSESSID=d3d6fdd78d51aaaf2924c32e991f4349; undefined');
+  headers.set(
+      'Cookie', 'DARTSESSID=d3d6fdd78d51aaaf2924c32e991f4349; undefined');
   Expect.equals('DARTSESSID', headers._parseCookies().single.name);
-  Expect.equals('d3d6fdd78d51aaaf2924c32e991f4349',
-                headers._parseCookies().single.value);
+  Expect.equals(
+      'd3d6fdd78d51aaaf2924c32e991f4349', headers._parseCookies().single.value);
 }
 
 void testHeaderLists() {
@@ -534,15 +544,15 @@ void testHeaderLists() {
 void testInvalidFieldName() {
   void test(String field) {
     _HttpHeaders headers = new _HttpHeaders("1.1");
-    Expect.throws(() => headers.add(field, "value"),
-                  (e) => e is FormatException);
-    Expect.throws(() => headers.set(field, "value"),
-                  (e) => e is FormatException);
-    Expect.throws(() => headers.remove(field, "value"),
-                  (e) => e is FormatException);
-    Expect.throws(() => headers.removeAll(field),
-                  (e) => e is FormatException);
+    Expect.throws(
+        () => headers.add(field, "value"), (e) => e is FormatException);
+    Expect.throws(
+        () => headers.set(field, "value"), (e) => e is FormatException);
+    Expect.throws(
+        () => headers.remove(field, "value"), (e) => e is FormatException);
+    Expect.throws(() => headers.removeAll(field), (e) => e is FormatException);
   }
+
   test('\r');
   test('\n');
   test(',');
@@ -552,15 +562,16 @@ void testInvalidFieldName() {
 void testInvalidFieldValue() {
   void test(value, {bool remove: true}) {
     _HttpHeaders headers = new _HttpHeaders("1.1");
-    Expect.throws(() => headers.add("field", value),
-                  (e) => e is FormatException);
-    Expect.throws(() => headers.set("field", value),
-                  (e) => e is FormatException);
+    Expect.throws(
+        () => headers.add("field", value), (e) => e is FormatException);
+    Expect.throws(
+        () => headers.set("field", value), (e) => e is FormatException);
     if (remove) {
-      Expect.throws(() => headers.remove("field", value),
-                    (e) => e is FormatException);
+      Expect.throws(
+          () => headers.remove("field", value), (e) => e is FormatException);
     }
   }
+
   test('\r');
   test('\n');
   test('test\x00');

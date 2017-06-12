@@ -11,6 +11,7 @@ import '../constants/values.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../enqueue.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
@@ -73,13 +74,16 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
       });
     }
 
-    for (Element target in _mirrorsData.targetsUsed) {
-      if (target == null) continue;
+    for (MemberElement target in _mirrorsData.membersInMirrorsUsedTargets) {
       if (target.isField) {
         staticFields.add(target);
-      } else if (target.isLibrary || target.isClass) {
-        addFieldsInContainer(target);
       }
+    }
+    for (ClassElement target in _mirrorsData.classesInMirrorsUsedTargets) {
+      addFieldsInContainer(target);
+    }
+    for (LibraryElement target in _mirrorsData.librariesInMirrorsUsedTargets) {
+      addFieldsInContainer(target);
     }
     return staticFields;
   }
@@ -107,7 +111,9 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
     if (_mirrorsData.isTreeShakingDisabled) {
       enqueuer.applyImpact(_computeImpactForReflectiveElements(recentClasses,
           enqueuer.processedClasses, _compiler.libraryLoader.libraries));
-    } else if (!_mirrorsData.targetsUsed.isEmpty) {
+    } else if (_mirrorsData.membersInMirrorsUsedTargets.isNotEmpty ||
+        _mirrorsData.classesInMirrorsUsedTargets.isNotEmpty ||
+        _mirrorsData.librariesInMirrorsUsedTargets.isNotEmpty) {
       // Add all static elements (not classes) that have been requested for
       // reflection. If there is no mirror-usage these are probably not
       // necessary, but the backend relies on them being resolved.
@@ -120,7 +126,8 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
     if (_mirrorsData.mustRetainMetadata) {
       _reporter.log('Retaining metadata.');
 
-      _compiler.libraryLoader.libraries.forEach(_mirrorsData.retainMetadataOf);
+      (_compiler.libraryLoader.libraries as Iterable<LibraryElement>)
+          .forEach(_mirrorsData.retainMetadataOfLibrary);
 
       if (!enqueuer.queueIsClosed) {
         /// Register the constant value of [metadata] as live in resolution.
@@ -185,7 +192,7 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
       }
     }
 
-    entities.forEach(processElementMetadata);
+    entities.forEach((MemberElement member) => processElementMetadata(member));
   }
 
   void onResolutionComplete() {
@@ -243,7 +250,8 @@ class MirrorsCodegenAnalysisImpl implements MirrorsCodegenAnalysis {
     if (_mirrorsData.mustRetainMetadata) {
       _reporter.log('Retaining metadata.');
 
-      _compiler.libraryLoader.libraries.forEach(_mirrorsData.retainMetadataOf);
+      (_compiler.libraryLoader.libraries as Iterable<LibraryElement>)
+          .forEach(_mirrorsData.retainMetadataOfLibrary);
 
       for (Dependency dependency in _metadataConstants) {
         _impactBuilder
@@ -383,7 +391,7 @@ class MirrorsHandler {
   void _enqueueReflectiveSpecialClasses() {
     Iterable<ClassElement> classes = _backend.classesRequiredForReflection;
     for (ClassElement cls in classes) {
-      if (_backend.mirrorsData.referencedFromMirrorSystem(cls)) {
+      if (_backend.mirrorsData.isClassReferencedFromMirrorSystem(cls)) {
         _logEnqueueReflectiveAction(cls);
         cls.ensureResolved(_resolution);
         impactBuilder

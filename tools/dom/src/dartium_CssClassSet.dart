@@ -13,14 +13,14 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
   Iterable<_ElementCssClassSet> _elementCssClassSetIterable;
 
   _MultiElementCssClassSet(this._elementIterable) {
-    _elementCssClassSetIterable = new List.from(_elementIterable).map(
-        (e) => new _ElementCssClassSet(e));
+    _elementCssClassSetIterable =
+        new List.from(_elementIterable).map((e) => new _ElementCssClassSet(e));
   }
 
   Set<String> readClasses() {
     var s = new LinkedHashSet<String>();
-    _elementCssClassSetIterable.forEach(
-        (_ElementCssClassSet e) => s.addAll(e.readClasses()));
+    _elementCssClassSetIterable
+        .forEach((_ElementCssClassSet e) => s.addAll(e.readClasses()));
     return s;
   }
 
@@ -40,7 +40,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    *   After f returns, the modified set is written to the
    *       className property of this element.
    */
-  modify( f(Set<String> s)) {
+  modify(f(Set<String> s)) {
     _elementCssClassSetIterable.forEach((_ElementCssClassSet e) => e.modify(f));
   }
 
@@ -49,7 +49,8 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * is.
    */
   bool toggle(String value, [bool shouldAdd]) =>
-      _elementCssClassSetIterable.fold(false,
+      _elementCssClassSetIterable.fold(
+          false,
           (bool changed, _ElementCssClassSet e) =>
               e.toggle(value, shouldAdd) || changed);
 
@@ -65,7 +66,6 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
 }
 
 class _ElementCssClassSet extends CssClassSetImpl {
-
   final Element _element;
 
   _ElementCssClassSet(this._element);
@@ -73,6 +73,9 @@ class _ElementCssClassSet extends CssClassSetImpl {
   Set<String> readClasses() {
     var s = new LinkedHashSet<String>();
     var classname = _element.className;
+    if (classname is svg.AnimatedString) {
+      classname = classname.baseVal;
+    }
 
     for (String name in classname.split(' ')) {
       String trimmed = name.trim();

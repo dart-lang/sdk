@@ -12,6 +12,6 @@ import 'dart:_js_helper';
 // Native impl has same name as abstract class.
 @Native("I")
 class Impl implements I {
-  Impl read() native ;
-  write(Impl x) native ;
+  Impl read() native;
+  write(Impl x) native;
 }

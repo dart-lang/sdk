@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.inherited_ref;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/ide_options.dart';
@@ -72,27 +70,6 @@ class InheritedReferenceContributor extends DartCompletionContributor
         resolutionMap.elementDeclaredByClassDeclaration(classDecl), request);
   }
 
-  List<CompletionSuggestion> _computeSuggestionsForClass2(
-      ClassElement classElement, DartCompletionRequest request,
-      {bool skipChildClass: true}) {
-    bool isFunctionalArgument = request.target.isFunctionalArgument();
-    kind = isFunctionalArgument
-        ? CompletionSuggestionKind.IDENTIFIER
-        : CompletionSuggestionKind.INVOCATION;
-    OpType optype = request.opType;
-
-    if (!skipChildClass) {
-      _addSuggestionsForType(classElement.type, optype, request.ideOptions,
-          isFunctionalArgument: isFunctionalArgument);
-    }
-
-    for (InterfaceType type in classElement.allSupertypes) {
-      _addSuggestionsForType(type, optype, request.ideOptions,
-          isFunctionalArgument: isFunctionalArgument);
-    }
-    return suggestions;
-  }
-
   List<CompletionSuggestion> computeSuggestionsForClass(
       ClassElement classElement, DartCompletionRequest request,
       {bool skipChildClass: true}) {
@@ -134,5 +111,26 @@ class InheritedReferenceContributor extends DartCompletionContributor
         }
       }
     }
+  }
+
+  List<CompletionSuggestion> _computeSuggestionsForClass2(
+      ClassElement classElement, DartCompletionRequest request,
+      {bool skipChildClass: true}) {
+    bool isFunctionalArgument = request.target.isFunctionalArgument();
+    kind = isFunctionalArgument
+        ? CompletionSuggestionKind.IDENTIFIER
+        : CompletionSuggestionKind.INVOCATION;
+    OpType optype = request.opType;
+
+    if (!skipChildClass) {
+      _addSuggestionsForType(classElement.type, optype, request.ideOptions,
+          isFunctionalArgument: isFunctionalArgument);
+    }
+
+    for (InterfaceType type in classElement.allSupertypes) {
+      _addSuggestionsForType(type, optype, request.ideOptions,
+          isFunctionalArgument: isFunctionalArgument);
+    }
+    return suggestions;
   }
 }

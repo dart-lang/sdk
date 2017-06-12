@@ -8,13 +8,13 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact;
-import '../common/resolution.dart' show Resolution, ResolutionImpact;
+import '../common/resolution.dart' show ResolutionImpact;
 import '../constants/expressions.dart';
 import '../common_elements.dart' show ElementEnvironment;
-import '../elements/elements.dart';
+import '../elements/elements.dart' show AsyncMarker;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
-import '../enqueue.dart' show ResolutionEnqueuer;
+import '../elements/resolution_types.dart' show Types;
+import '../elements/types.dart';
 import '../native/enqueue.dart';
 import '../native/native.dart' as native;
 import '../options.dart';
@@ -23,8 +23,6 @@ import '../universe/use.dart'
     show StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
 import '../util/util.dart';
-import 'backend.dart';
-import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
@@ -34,10 +32,10 @@ import 'lookup_map_analysis.dart';
 import 'mirrors_data.dart';
 import 'namer.dart';
 import 'native_data.dart';
+import 'runtime_types.dart';
 
 class JavaScriptImpactTransformer extends ImpactTransformer {
   final CompilerOptions _options;
-  final Resolution _resolution;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendImpacts _impacts;
@@ -50,7 +48,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
   JavaScriptImpactTransformer(
       this._options,
-      this._resolution,
       this._elementEnvironment,
       this._commonElements,
       this._impacts,
@@ -62,8 +59,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._rtiNeedBuilder);
 
   @override
-  WorldImpact transformResolutionImpact(
-      ResolutionEnqueuer enqueuer, ResolutionImpact worldImpact) {
+  WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed =
         new TransformedWorldImpact(worldImpact);
 
@@ -152,7 +148,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     bool hasAsCast = false;
     bool hasTypeLiteral = false;
     for (TypeUse typeUse in worldImpact.typeUses) {
-      ResolutionDartType type = typeUse.type;
+      DartType type = typeUse.type;
       switch (typeUse.kind) {
         case TypeUseKind.INSTANTIATION:
         case TypeUseKind.MIRROR_INSTANTIATION:
@@ -176,15 +172,18 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case TypeUseKind.TYPE_LITERAL:
           _customElementsResolutionAnalysis.registerTypeLiteral(type);
-          if (type.isTypeVariable && type is! MethodTypeVariableType) {
-            // GENERIC_METHODS: The `is!` test above filters away method type
-            // variables, because they have the value `dynamic` with the
-            // incomplete support for generic methods offered with
-            // '--generic-method-syntax'. This must be revised in order to
-            // support generic methods fully.
-            ClassElement cls = type.element.enclosingClass;
-            _rtiNeedBuilder.registerClassUsingTypeVariableExpression(cls);
-            registerImpact(_impacts.typeVariableExpression);
+          if (type.isTypeVariable) {
+            TypeVariableType typeVariable = type;
+            if (typeVariable.element.typeDeclaration is ClassEntity) {
+              // GENERIC_METHODS: The `is!` test above filters away method type
+              // variables, because they have the value `dynamic` with the
+              // incomplete support for generic methods offered with
+              // '--generic-method-syntax'. This must be revised in order to
+              // support generic methods fully.
+              ClassEntity cls = typeVariable.element.typeDeclaration;
+              _rtiNeedBuilder.registerClassUsingTypeVariableExpression(cls);
+              registerImpact(_impacts.typeVariableExpression);
+            }
           }
           hasTypeLiteral = true;
           break;
@@ -210,8 +209,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         transformed
             .registerTypeUse(new TypeUse.instantiation(mapLiteralUse.type));
       }
-      ResolutionInterfaceType type = mapLiteralUse.type;
-      registerRequiredType(type);
+      registerRequiredType(mapLiteralUse.type);
     }
 
     for (ListLiteralUse listLiteralUse in worldImpact.listLiterals) {
@@ -219,8 +217,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       // factory constructors are registered directly.
       transformed
           .registerTypeUse(new TypeUse.instantiation(listLiteralUse.type));
-      ResolutionInterfaceType type = listLiteralUse.type;
-      registerRequiredType(type);
+      registerRequiredType(listLiteralUse.type);
     }
 
     if (worldImpact.constSymbolNames.isNotEmpty) {
@@ -234,8 +231,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       switch (staticUse.kind) {
         case StaticUseKind.CLOSURE:
           registerImpact(_impacts.closure);
-          LocalFunctionElement closure = staticUse.element;
-          if (closure.type.containsTypeVariables) {
+          Local closure = staticUse.element;
+          FunctionType type = _elementEnvironment.getLocalFunctionType(closure);
+          if (type.containsTypeVariables) {
             registerImpact(_impacts.computeSignature);
           }
           break;
@@ -279,29 +277,30 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   }
 
   /// Register [type] as required for the runtime type information system.
-  void registerRequiredType(ResolutionDartType type) {
+  void registerRequiredType(DartType type) {
     if (!type.isInterfaceType) return;
+    InterfaceType interfaceType = type;
     // If [argument] has type variables or is a type variable, this method
     // registers a RTI dependency between the class where the type variable is
     // defined (that is the enclosing class of the current element being
     // resolved) and the class of [type]. If the class of [type] requires RTI,
     // then the class of the type variable does too.
-    ClassElement contextClass = Types.getClassContext(type);
+    ClassEntity contextClass = Types.getClassContext(interfaceType);
     if (contextClass != null) {
-      _rtiNeedBuilder.registerRtiDependency(type.element, contextClass);
+      _rtiNeedBuilder.registerRtiDependency(
+          interfaceType.element, contextClass);
     }
   }
 
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].
-  void onIsCheck(ResolutionDartType type, TransformedWorldImpact transformed) {
+  void onIsCheck(DartType type, TransformedWorldImpact transformed) {
     void registerImpact(BackendImpact impact) {
       impact.registerImpact(transformed, _elementEnvironment);
       _backendUsageBuider.processBackendImpact(impact);
     }
 
     registerRequiredType(type);
-    type.computeUnaliased(_resolution);
-    type = type.unaliased;
+    type = _elementEnvironment.getUnaliasedType(type);
     registerImpact(_impacts.typeCheck);
 
     bool inCheckedMode = _options.enableTypeAssertions;
@@ -323,11 +322,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         }
       }
     }
-    if (type is ResolutionFunctionType) {
+    if (type is FunctionType) {
       registerImpact(_impacts.functionTypeCheck);
     }
-    if (type is ResolutionInterfaceType &&
-        _nativeBasicData.isNativeClass(type.element)) {
+    if (type is InterfaceType && _nativeBasicData.isNativeClass(type.element)) {
       registerImpact(_impacts.nativeTypeCheck);
     }
   }
@@ -336,7 +334,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 class CodegenImpactTransformer {
   final CompilerOptions _options;
   final ElementEnvironment _elementEnvironment;
-  final BackendHelpers _helpers;
+  final CommonElements _commonElements;
   final BackendImpacts _impacts;
   final CheckedModeHelpers _checkedModeHelpers;
   final NativeData _nativeData;
@@ -351,7 +349,7 @@ class CodegenImpactTransformer {
   CodegenImpactTransformer(
       this._options,
       this._elementEnvironment,
-      this._helpers,
+      this._commonElements,
       this._impacts,
       this._checkedModeHelpers,
       this._nativeData,
@@ -363,9 +361,9 @@ class CodegenImpactTransformer {
       this._lookupMapAnalysis,
       this._rtiChecksBuilder);
 
-  void onIsCheckForCodegen(
-      ResolutionDartType type, TransformedWorldImpact transformed) {
+  void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
     if (type.isDynamic) return;
+    if (type.isVoid) return;
     type = type.unaliased;
     _impacts.typeCheck.registerImpact(transformed, _elementEnvironment);
 
@@ -380,22 +378,21 @@ class CodegenImpactTransformer {
       CheckedModeHelper helper =
           _checkedModeHelpers.getCheckedModeHelper(type, typeCast: false);
       if (helper != null) {
-        StaticUse staticUse = helper.getStaticUse(_helpers);
+        StaticUse staticUse = helper.getStaticUse(_commonElements);
         transformed.registerStaticUse(staticUse);
       }
       // We also need the native variant of the check (for DOM types).
       helper =
           _checkedModeHelpers.getNativeCheckedModeHelper(type, typeCast: false);
       if (helper != null) {
-        StaticUse staticUse = helper.getStaticUse(_helpers);
+        StaticUse staticUse = helper.getStaticUse(_commonElements);
         transformed.registerStaticUse(staticUse);
       }
     }
     if (!type.treatAsRaw || type.containsTypeVariables) {
       _impacts.genericIsCheck.registerImpact(transformed, _elementEnvironment);
     }
-    if (type is ResolutionInterfaceType &&
-        _nativeData.isNativeClass(type.element)) {
+    if (type is InterfaceType && _nativeData.isNativeClass(type.element)) {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
@@ -407,7 +404,7 @@ class CodegenImpactTransformer {
     TransformedWorldImpact transformed = new TransformedWorldImpact(impact);
 
     for (TypeUse typeUse in impact.typeUses) {
-      ResolutionDartType type = typeUse.type;
+      DartType type = typeUse.type;
       switch (typeUse.kind) {
         case TypeUseKind.INSTANTIATION:
           _lookupMapAnalysis.registerInstantiatedType(type);
@@ -419,7 +416,7 @@ class CodegenImpactTransformer {
       }
     }
 
-    for (Pair<ResolutionDartType, ResolutionDartType> check
+    for (Pair<DartType, DartType> check
         in impact.typeVariableBoundsSubtypeChecks) {
       _rtiChecksBuilder.registerTypeVariableBoundsSubtypeCheck(
           check.a, check.b);
@@ -428,7 +425,7 @@ class CodegenImpactTransformer {
     for (StaticUse staticUse in impact.staticUses) {
       switch (staticUse.kind) {
         case StaticUseKind.CLOSURE:
-          LocalFunctionElement closure = staticUse.element;
+          Local closure = staticUse.element;
           if (_rtiNeed.localFunctionNeedsRti(closure)) {
             _impacts.computeSignature
                 .registerImpact(transformed, _elementEnvironment);
@@ -457,8 +454,8 @@ class CodegenImpactTransformer {
       }
     }
 
-    for (FunctionElement element in impact.asyncMarkers) {
-      switch (element.asyncMarker) {
+    for (AsyncMarker asyncMarker in impact.asyncMarkers) {
+      switch (asyncMarker) {
         case AsyncMarker.ASYNC:
           _impacts.asyncBody.registerImpact(transformed, _elementEnvironment);
           break;

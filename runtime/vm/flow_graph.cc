@@ -468,6 +468,19 @@ bool FlowGraph::InstanceCallNeedsClassCheck(InstanceCallInstr* call,
 }
 
 
+Instruction* FlowGraph::CreateCheckClass(Definition* to_check,
+                                         const Cids& cids,
+                                         intptr_t deopt_id,
+                                         TokenPosition token_pos) {
+  if (cids.IsMonomorphic() && cids.MonomorphicReceiverCid() == kSmiCid) {
+    return new (zone())
+        CheckSmiInstr(new (zone()) Value(to_check), deopt_id, token_pos);
+  }
+  return new (zone())
+      CheckClassInstr(new (zone()) Value(to_check), deopt_id, cids, token_pos);
+}
+
+
 bool FlowGraph::VerifyUseLists() {
   // Verify the initial definitions.
   for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
@@ -975,8 +988,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   // Add global constants to the initial definitions.
   constant_null_ = GetConstant(Object::ZoneHandle());
   constant_dead_ = GetConstant(Symbols::OptimizedOut());
-  constant_empty_context_ =
-      GetConstant(Context::Handle(isolate()->object_store()->empty_context()));
+  constant_empty_context_ = GetConstant(Object::empty_context());
 
   // Add parameters to the initial definitions and renaming environment.
   if (inlining_parameters != NULL) {
@@ -1042,7 +1054,7 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
     Value* use = it.CurrentValue();
     use->definition()->AddEnvUse(use);
   }
-  if (instr->CanDeoptimize()) {
+  if (instr->ComputeCanDeoptimize()) {
     instr->env()->set_deopt_id(instr->deopt_id());
   }
 }
@@ -1316,6 +1328,7 @@ void FlowGraph::RemoveRedefinitions() {
   // Remove redefinition instructions inserted to inhibit hoisting.
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
        block_it.Advance()) {
+    thread()->CheckForSafepoint();
     for (ForwardInstructionIterator instr_it(block_it.Current());
          !instr_it.Done(); instr_it.Advance()) {
       RedefinitionInstr* redefinition = instr_it.Current()->AsRedefinition();
@@ -1840,7 +1853,7 @@ void FlowGraph::WidenSmiToInt32() {
 
   // Step 2. For each block in the graph compute which loop it belongs to.
   // We will use this information later during computation of the widening's
-  // gain: we are going to assume that only conversion occuring inside the
+  // gain: we are going to assume that only conversion occurring inside the
   // same loop should be counted against the gain, all other conversions
   // can be hoisted and thus cost nothing compared to the loop cost itself.
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers = LoopHeaders();
@@ -2020,7 +2033,7 @@ void FlowGraph::EliminateEnvironments() {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (!current->CanDeoptimize() &&
+      if (!current->ComputeCanDeoptimize() &&
           (!current->MayThrow() || !current->GetBlock()->InsideTryBlock())) {
         // Instructions that can throw need an environment for optimized
         // try-catch.
@@ -2267,20 +2280,18 @@ void FlowGraph::TryMergeTruncDivMod(
         (*merge_candidates)[k] = NULL;  // Clear it.
         ASSERT(curr_instr->HasUses());
         AppendExtractNthOutputForMerged(
-            curr_instr, MergedMathInstr::OutputIndexOf(curr_instr->op_kind()),
+            curr_instr, TruncDivModInstr::OutputIndexOf(curr_instr->op_kind()),
             kTagged, kSmiCid);
         ASSERT(other_binop->HasUses());
         AppendExtractNthOutputForMerged(
-            other_binop, MergedMathInstr::OutputIndexOf(other_binop->op_kind()),
-            kTagged, kSmiCid);
-
-        ZoneGrowableArray<Value*>* args = new (Z) ZoneGrowableArray<Value*>(2);
-        args->Add(new (Z) Value(curr_instr->left()->definition()));
-        args->Add(new (Z) Value(curr_instr->right()->definition()));
+            other_binop,
+            TruncDivModInstr::OutputIndexOf(other_binop->op_kind()), kTagged,
+            kSmiCid);
 
         // Replace with TruncDivMod.
-        MergedMathInstr* div_mod = new (Z) MergedMathInstr(
-            args, curr_instr->deopt_id(), MergedMathInstr::kTruncDivMod);
+        TruncDivModInstr* div_mod = new (Z) TruncDivModInstr(
+            curr_instr->left()->CopyWithType(),
+            curr_instr->right()->CopyWithType(), curr_instr->deopt_id());
         curr_instr->ReplaceWith(div_mod, NULL);
         other_binop->ReplaceUsesWith(div_mod);
         other_binop->RemoveFromGraph();

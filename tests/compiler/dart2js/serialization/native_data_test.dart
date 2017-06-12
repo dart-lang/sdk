@@ -13,9 +13,10 @@ import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
+import 'package:compiler/src/world.dart';
+import '../equivalence/check_helpers.dart';
 import '../memory_compiler.dart';
 import 'helper.dart';
-import 'test_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
@@ -35,6 +36,7 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
   SerializationResult result = await serialize(uri);
   Compiler compiler1 = result.compiler;
   SerializedData serializedData = result.serializedData;
+  ClosedWorld closedWorld1 = compiler1.closeResolution().closedWorld;
 
   print('------------------------------------------------------------------');
   print('analyze deserialized: $uri');
@@ -44,13 +46,14 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
       resolutionInputs: serializedData.toUris(),
       options: [Flags.analyzeAll]);
   await compiler2.run(uri);
+  ClosedWorld closedWorld2 = compiler2.closeResolution().closedWorld;
 
   JavaScriptBackend backend1 = compiler1.backend;
   JavaScriptBackend backend2 = compiler2.backend;
   NativeBasicDataImpl nativeBasicData1 = backend1.nativeBasicData;
   NativeBasicDataImpl nativeBasicData2 = backend2.nativeBasicData;
-  NativeDataImpl nativeData1 = backend1.nativeData;
-  NativeDataImpl nativeData2 = backend2.nativeData;
+  NativeDataImpl nativeData1 = closedWorld1.nativeData;
+  NativeDataImpl nativeData2 = closedWorld2.nativeData;
 
   checkMaps(
       nativeData1.jsInteropLibraryNames,

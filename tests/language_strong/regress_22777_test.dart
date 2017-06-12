@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 
 var a = 0;
 
-testSync () {
+testSync() {
   do {
     continue;
   } while (throw "Error");

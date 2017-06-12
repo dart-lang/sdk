@@ -1,0 +1,7 @@
+library test;
+import self as self;
+
+static field dynamic i = 0;
+static method main() → dynamic {
+  dynamic j = self::i;
+}

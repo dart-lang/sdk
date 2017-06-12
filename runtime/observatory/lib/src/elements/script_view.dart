@@ -53,7 +53,7 @@ class ScriptViewElement extends HtmlElement implements Renderable {
   M.ReachableSizeRepository _reachableSizes;
   M.InboundReferencesRepository _references;
   M.RetainingPathRepository _retainingPaths;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   int _pos;
 
   M.VMRef get vm => _vm;
@@ -72,7 +72,7 @@ class ScriptViewElement extends HtmlElement implements Renderable {
       M.ReachableSizeRepository reachableSizes,
       M.InboundReferencesRepository references,
       M.RetainingPathRepository retainingPaths,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       {int pos,
       RenderingQueue queue}) {
     assert(vm != null);
@@ -85,7 +85,7 @@ class ScriptViewElement extends HtmlElement implements Renderable {
     assert(reachableSizes != null);
     assert(references != null);
     assert(retainingPaths != null);
-    assert(instances != null);
+    assert(objects != null);
     ScriptViewElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._vm = vm;
@@ -98,7 +98,7 @@ class ScriptViewElement extends HtmlElement implements Renderable {
     e._reachableSizes = reachableSizes;
     e._references = references;
     e._retainingPaths = retainingPaths;
-    e._instances = instances;
+    e._objects = objects;
     e._pos = pos;
     return e;
   }
@@ -140,7 +140,7 @@ class ScriptViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'Script',
           new HRElement(),
           new ObjectCommonElement(_isolate, _script, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _instances,
+              _reachableSizes, _references, _retainingPaths, _objects,
               queue: _r.queue),
           new BRElement(),
           new DivElement()
@@ -158,8 +158,7 @@ class ScriptViewElement extends HtmlElement implements Renderable {
                 ],
             ],
           new HRElement(),
-          new ScriptInsetElement(
-              _isolate, _script, _scripts, _instances, _events,
+          new ScriptInsetElement(_isolate, _script, _scripts, _objects, _events,
               currentPos: _pos, queue: _r.queue),
           new ViewFooterElement(queue: _r.queue)
         ]

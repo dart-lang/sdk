@@ -19,8 +19,8 @@ ResolutionDartType getType(compiler, String name) {
   element.computeType(compiler.resolution);
   FunctionSignature signature = element.functionSignature;
 
-  // Function signatures are used to be to provide void types (only occuring as
-  // as return types) and (inlined) function types (only occuring as method
+  // Function signatures are used to be to provide void types (only occurring as
+  // as return types) and (inlined) function types (only occurring as method
   // parameter types).
   //
   // Only a single type is used from each signature. That is, it is not the

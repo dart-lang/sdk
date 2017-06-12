@@ -12,20 +12,20 @@ void test(responseBytes, bodyLength) async {
   fullRequest(bytes) {
     var len = bytes.length;
     return len > 4 &&
-           bytes[len - 4] == 13 &&
-           bytes[len - 3] == 10 &&
-           bytes[len - 2] == 13 &&
-           bytes[len - 1] == 10;
+        bytes[len - 4] == 13 &&
+        bytes[len - 3] == 10 &&
+        bytes[len - 2] == 13 &&
+        bytes[len - 1] == 10;
   }
 
   handleSocket(socket) async {
     var bytes = [];
     await for (var data in socket) {
-        bytes.addAll(data);
-        if (fullRequest(bytes)) {
-          socket.add(responseBytes);
-          socket.close();
-        }
+      bytes.addAll(data);
+      if (fullRequest(bytes)) {
+        socket.add(responseBytes);
+        socket.close();
+      }
     }
   }
 
@@ -37,8 +37,8 @@ void test(responseBytes, bodyLength) async {
       await client.getUrl(Uri.parse('http://127.0.0.1:${server.port}/'));
   var response = await request.close();
   Expect.equals(response.statusCode, 200);
-  Expect.equals(bodyLength,
-                (await response.fold([], (p, e) => p..addAll(e))).length);
+  Expect.equals(
+      bodyLength, (await response.fold([], (p, e) => p..addAll(e))).length);
   server.close();
 }
 

@@ -8,13 +8,13 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../js_backend/backend_usage.dart' show BackendUsage;
 
 import 'model.dart';
 
 class NativeGenerator {
-  static bool needsIsolateAffinityTagInitialization(JavaScriptBackend backend) {
-    return backend.backendUsage.needToInitializeIsolateAffinityTag;
+  static bool needsIsolateAffinityTagInitialization(BackendUsage backendUsage) {
+    return backendUsage.needToInitializeIsolateAffinityTag;
   }
 
   /// Generates the code for isolate affinity tags.
@@ -22,10 +22,10 @@ class NativeGenerator {
   /// Independently Dart programs on the same page must not interfer and
   /// this code sets up the variables needed to guarantee that behavior.
   static jsAst.Statement generateIsolateAffinityTagInitialization(
-      JavaScriptBackend backend,
+      BackendUsage backendUsage,
       jsAst.Expression generateEmbeddedGlobalAccess(String global),
       jsAst.Expression internStringFunction) {
-    assert(backend.backendUsage.needToInitializeIsolateAffinityTag);
+    assert(backendUsage.needToInitializeIsolateAffinityTag);
 
     jsAst.Expression getIsolateTagAccess =
         generateEmbeddedGlobalAccess(embeddedNames.GET_ISOLATE_TAG);
@@ -66,7 +66,7 @@ class NativeGenerator {
     ''',
         {
           'initializeDispatchProperty':
-              backend.backendUsage.needToInitializeDispatchProperty,
+              backendUsage.needToInitializeDispatchProperty,
           'internStringFunction': internStringFunction,
           'getIsolateTag': getIsolateTagAccess,
           'isolateTag': isolateTagAccess,

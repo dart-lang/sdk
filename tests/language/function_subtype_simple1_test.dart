@@ -34,18 +34,18 @@ void args6(int a, int b, int c, int d, int e, int f) {}
 void args7(int a, int b, int c, int d, int e, int f, int g) {}
 void args8(int a, int b, int c, int d, int e, int f, int g, int h) {}
 void args9(int a, int b, int c, int d, int e, int f, int g, int h, int i) {}
-void args10(int a, int b, int c, int d, int e, int f, int g, int h, int i,
-            int j) {}
+void args10(
+    int a, int b, int c, int d, int e, int f, int g, int h, int i, int j) {}
 void args11(int a, int b, int c, int d, int e, int f, int g, int h, int i,
-            int j, int k) {}
+    int j, int k) {}
 void args12(int a, int b, int c, int d, int e, int f, int g, int h, int i,
-            int j, int k, int l) {}
+    int j, int k, int l) {}
 void args13(int a, int b, int c, int d, int e, int f, int g, int h, int i,
-            int j, int k, int l, int m) {}
+    int j, int k, int l, int m) {}
 void args14(int a, int b, int c, int d, int e, int f, int g, int h, int i,
-            int j, int k, int l, int m, int n) {}
+    int j, int k, int l, int m, int n) {}
 void args15(int a, int b, int c, int d, int e, int f, int g, int h, int i,
-            int j, int k, int l, int m, int n, int o) {}
+    int j, int k, int l, int m, int n, int o) {}
 
 main() {
   Expect.isTrue(args0 is Args0);

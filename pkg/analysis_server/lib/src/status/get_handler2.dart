@@ -6,7 +6,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_diagnostic.dart';
@@ -30,6 +31,18 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:path/path.dart' as path;
 import 'package:plugin/plugin.dart';
+
+String _writeWithSeparators(int value) {
+  // TODO(devoncarew): Replace with the implementation from package:intl.
+  String str = value.toString();
+  int pos = 3;
+  while (str.length > pos) {
+    int len = str.length;
+    str = '${str.substring(0, len - pos)},${str.substring(len - pos)}';
+    pos += 4;
+  }
+  return str;
+}
 
 /**
  * A function that can be used to generate HTML output into the given [buffer].
@@ -590,6 +603,11 @@ class GetHandler2 implements AbstractGetHandler {
     });
   }
 
+  void _returnRedirect(HttpRequest request, String pathFragment) {
+    HttpResponse response = request.response;
+    response.redirect(request.uri.resolve(pathFragment));
+  }
+
   /**
    * Return a response indicating the status of the analysis server.
    */
@@ -605,11 +623,6 @@ class GetHandler2 implements AbstractGetHandler {
         }
       });
     });
-  }
-
-  void _returnRedirect(HttpRequest request, String pathFragment) {
-    HttpResponse response = request.response;
-    response.redirect(request.uri.resolve(pathFragment));
   }
 
   /**
@@ -1243,16 +1256,4 @@ class GetHandler2 implements AbstractGetHandler {
     String classAttribute = hasError ? ' class="error"' : '';
     return '<a href="$href" $classAttribute>$innerHtml</a>';
   }
-}
-
-String _writeWithSeparators(int value) {
-  // TODO(devoncarew): Replace with the implementation from package:intl.
-  String str = value.toString();
-  int pos = 3;
-  while (str.length > pos) {
-    int len = str.length;
-    str = '${str.substring(0, len - pos)},${str.substring(len - pos)}';
-    pos += 4;
-  }
-  return str;
 }

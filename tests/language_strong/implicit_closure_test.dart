@@ -10,13 +10,18 @@ import "package:expect/expect.dart";
 class First {
   First(this.i) {}
   var b;
-  int foo() { return i; }
+  int foo() {
+    return i;
+  }
+
   Function foo1() {
     local() {
       return i;
     }
+
     return local;
   }
+
   int i;
 }
 
@@ -35,7 +40,6 @@ class ImplicitClosureTest {
     Expect.equals(obj.i, ib());
   }
 }
-
 
 main() {
   ImplicitClosureTest.testMain();

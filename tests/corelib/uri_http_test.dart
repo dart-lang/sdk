@@ -28,9 +28,9 @@ testHttpUri() {
   check(new Uri.http("host", "/a b/"), "http://host/a%20b/");
   check(new Uri.http("host", "/a%2F"), "http://host/a%252F");
   check(new Uri.http("host", "/a%2F/"), "http://host/a%252F/");
-  check(new Uri.http("host", "/a/b", { "c": "d" }), "http://host/a/b?c=d");
-  check(new Uri.http("host",
-                     "/a/b", { "c=": "&d" }), "http://host/a/b?c%3D=%26d");
+  check(new Uri.http("host", "/a/b", {"c": "d"}), "http://host/a/b?c=d");
+  check(
+      new Uri.http("host", "/a/b", {"c=": "&d"}), "http://host/a/b?c%3D=%26d");
   check(new Uri.http("[::]", "a"), "http://[::]/a");
   check(new Uri.http("[::127.0.0.1]", "a"), "http://[::127.0.0.1]/a");
 }
@@ -59,9 +59,9 @@ testHttpsUri() {
   check(new Uri.https("host", "/a b/"), "https://host/a%20b/");
   check(new Uri.https("host", "/a%2F"), "https://host/a%252F");
   check(new Uri.https("host", "/a%2F/"), "https://host/a%252F/");
-  check(new Uri.https("host", "/a/b", { "c": "d" }), "https://host/a/b?c=d");
-  check(new Uri.https("host",
-                      "/a/b", { "c=": "&d" }), "https://host/a/b?c%3D=%26d");
+  check(new Uri.https("host", "/a/b", {"c": "d"}), "https://host/a/b?c=d");
+  check(new Uri.https("host", "/a/b", {"c=": "&d"}),
+      "https://host/a/b?c%3D=%26d");
   check(new Uri.https("[::]", "a"), "https://[::]/a");
   check(new Uri.https("[::127.0.0.1]", "a"), "https://[::127.0.0.1]/a");
 }

@@ -19,12 +19,27 @@
     },
     'front_end': {
       'filepath': '^pkg/front_end',
-    }
+    },
+    'messages_review': {
+      'filepath': (
+        '^('
+        'pkg/front_end/messages\\.yaml|'
+        'pkg/compiler/lib/src/diagnostics/messages\\.dart|'
+        'pkg/analyzer/lib/src/analysis_options/error/option_codes\\.dart|'
+        'pkg/analyzer/lib/src/dart/error/hint_codes\\.dart|'
+        'pkg/analyzer/lib/src/dart/error/lint_codes\\.dart|'
+        'pkg/analyzer/lib/src/dart/error/todo_codes\\.dart|'
+        'pkg/analyzer/lib/src/html/error/html_codes\\.dart|'
+        'pkg/dart_messages/lib/shared_messages\\.dart'
+        ')$'
+      )
+    },
   },
 
   'WATCHLISTS': {
     'runtime': ['vm-dev@dartlang.org'],
-    'observatory': ['johnmccutchan@google.com', 'turnidge@google.com', 'rmacnak@google.com'],
+    'observatory': ['turnidge@google.com', 'rmacnak@google.com'],
     'front_end': ['dart-fe-team+reviews@google.com'],
+    'messages_review': [ 'dart-uxr+reviews@google.com' ],
   },
 }

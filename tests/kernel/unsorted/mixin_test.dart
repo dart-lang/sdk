@@ -61,4 +61,3 @@ main() {
   Expect.isTrue(o.subFoo() == 4);
   Expect.isTrue(o.foo() == 4);
 }
-

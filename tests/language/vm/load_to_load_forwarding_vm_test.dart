@@ -43,10 +43,11 @@ bar(a, mode) {
 // in the object.
 testImmutableVMFields(arr, immutable) {
   if (immutable) {
-    return arr.length;  // Immutable length load.
+    return arr.length; // Immutable length load.
   }
 
-  if (arr.length < 2) {  // Mutable length load, should not be forwarded.
+  if (arr.length < 2) {
+    // Mutable length load, should not be forwarded.
     arr.add(null);
   }
 
@@ -82,11 +83,11 @@ fakeAliasing(arr) {
   var c = arr.length;
 
   if (c * c != c * c) {
-    arr[0] = a;  // Escape.
+    arr[0] = a; // Escape.
     arr[0] = b;
   }
 
-  return c * c;  // Deopt point.
+  return c * c; // Deopt point.
 }
 
 class X {
@@ -102,7 +103,7 @@ testPhiForwarding(obj) {
   var len = 0;
   while (obj != null) {
     len++;
-    obj = obj.next;  // This load should not be forwarded.
+    obj = obj.next; // This load should not be forwarded.
   }
 
   return len;
@@ -116,7 +117,7 @@ testPhiForwarding2(obj) {
   var len = 0, next = null;
   while ((obj != null) && len < 2) {
     len++;
-    obj = obj.next;  // This load should be forwarded.
+    obj = obj.next; // This load should be forwarded.
     next = obj.next;
   }
 
@@ -164,11 +165,8 @@ testPhiForwarding4() {
     c = xb;
   }
 
-  Expect.listEquals([-0.1, 0.1, 0.0,
-                     0.0, -0.1, 0.1,
-                     0.1, 0.0, -0.1], result);
+  Expect.listEquals([-0.1, 0.1, 0.0, 0.0, -0.1, 0.1, 0.1, 0.0, -0.1], result);
 }
-
 
 class C {
   C(this.box, this.parent);
@@ -189,10 +187,11 @@ testPhiForwarding5(C c) {
   return s;
 }
 
-
 class U {
   var x, y;
-  U() : x = 0, y = 0;
+  U()
+      : x = 0,
+        y = 0;
 }
 
 testEqualPhisElimination() {
@@ -215,7 +214,6 @@ testEqualPhisElimination() {
   Expect.equals(2, u.x);
   Expect.equals(2, u.y);
 }
-
 
 testPhiMultipleRepresentations(f, arr) {
   var w;
@@ -248,112 +246,112 @@ testIndexedNoAlias(a) {
 
 testIndexedAliasedStore1(i) {
   var a = new List(2);
-  a[0] = 1;  // X[C]
-  a[i] = 2;  // X[*]
+  a[0] = 1; // X[C]
+  a[i] = 2; // X[*]
   return a[0];
 }
 
 testIndexedAliasedStore2(f, c) {
   var a = new List(2);
   var d = f ? a : c;
-  a[0] = 1;  // X[C]
-  d[0] = 2;  // *[C]
+  a[0] = 1; // X[C]
+  d[0] = 2; // *[C]
   return a[0];
 }
 
 testIndexedAliasedStore3(f, c, i) {
   var a = new List(2);
   var d = f ? a : c;
-  a[0] = 1;  // X[C]
-  d[i] = 2;  // *[*]
+  a[0] = 1; // X[C]
+  d[i] = 2; // *[*]
   return a[0];
 }
 
 testIndexedAliasedStore4(i) {
   var a = new List(2);
-  a[i] = 1;  // X[*]
-  a[0] = 2;  // X[C]
+  a[i] = 1; // X[*]
+  a[0] = 2; // X[C]
   return a[i];
 }
 
 testIndexedAliasedStore5(i, j) {
   var a = new List(2);
-  a[i] = 1;  // X[*]
-  a[j] = 2;  // X[*]
+  a[i] = 1; // X[*]
+  a[j] = 2; // X[*]
   return a[i];
 }
 
 testIndexedAliasedStore6(i, f, c) {
   var a = new List(2);
   var d = f ? a : c;
-  a[i] = 1;  // X[*]
-  d[0] = 2;  // *[C]
+  a[i] = 1; // X[*]
+  d[0] = 2; // *[C]
   return a[i];
 }
 
 testIndexedAliasedStore7(i, f, c) {
   var a = new List(2);
   var d = f ? a : c;
-  a[i] = 1;  // X[*]
-  d[i] = 2;  // *[*]
+  a[i] = 1; // X[*]
+  d[i] = 2; // *[*]
   return a[i];
 }
 
 testIndexedAliasedStore8(c, i) {
-  c[0] = 1;  // *[C]
-  c[i] = 2;  // *[*]
+  c[0] = 1; // *[C]
+  c[i] = 2; // *[*]
   return c[0];
 }
 
 testIndexedAliasedStore9(c, f) {
   var a = new List(2);
   var d = f ? a : c;
-  c[0] = 1;  // *[C]
-  d[0] = 2;  // *[C]
+  c[0] = 1; // *[C]
+  d[0] = 2; // *[C]
   return c[0];
 }
 
 testIndexedAliasedStore10(c, i) {
-  c[i] = 1;  // *[*]
-  c[0] = 2;  // *[C]
+  c[i] = 1; // *[*]
+  c[0] = 2; // *[C]
   return c[i];
 }
 
 testIndexedAliasedStore11(c, i, j) {
-  c[i] = 1;  // *[*]
-  c[j] = 2;  // *[*]
+  c[i] = 1; // *[*]
+  c[j] = 2; // *[*]
   return c[i];
 }
 
 testIndexedAliasedStore12(f, c) {
   var a = new List(2);
   var d = f ? a : c;
-  d[0] = 1;  // *[C]
-  a[0] = 2;  // X[C]
+  d[0] = 1; // *[C]
+  a[0] = 2; // X[C]
   return d[0];
 }
 
 testIndexedAliasedStore13(f, c, i) {
   var a = new List(2);
   var d = f ? a : c;
-  d[0] = 1;  // *[C]
-  a[i] = 2;  // X[*]
+  d[0] = 1; // *[C]
+  a[i] = 2; // X[*]
   return d[0];
 }
 
 testIndexedAliasedStore14(f, c, i) {
   var a = new List(2);
   var d = f ? a : c;
-  d[i] = 1;  // *[*]
-  a[0] = 2;  // X[C]
+  d[i] = 1; // *[*]
+  a[0] = 2; // X[C]
   return d[i];
 }
 
 testIndexedAliasedStore15(f, c, i) {
   var a = new List(2);
   var d = f ? a : c;
-  d[i] = 1;  // *[*]
-  a[i] = 2;  // X[*]
+  d[i] = 1; // *[*]
+  a[i] = 2; // X[*]
   return d[i];
 }
 
@@ -489,15 +487,15 @@ testAliasesRefinement() {
 testViewAliasing1() {
   final f64 = new Float64List(1);
   final f32 = new Float32List.view(f64.buffer);
-  f64[0] = 1.0;  // Should not be forwarded.
-  f32[1] = 2.0;  // upper 32bits for 2.0f and 2.0 are the same
+  f64[0] = 1.0; // Should not be forwarded.
+  f32[1] = 2.0; // upper 32bits for 2.0f and 2.0 are the same
   return f64[0];
 }
 
 testViewAliasing2() {
   final f64 = new Float64List(2);
   final f64v = new Float64List.view(f64.buffer, Float64List.BYTES_PER_ELEMENT);
-  f64[1] = 1.0;  // Should not be forwarded.
+  f64[1] = 1.0; // Should not be forwarded.
   f64v[0] = 2.0;
   return f64[1];
 }
@@ -505,7 +503,7 @@ testViewAliasing2() {
 testViewAliasing3() {
   final u8 = new Uint8List(Float64List.BYTES_PER_ELEMENT * 2);
   final f64 = new Float64List.view(u8.buffer, Float64List.BYTES_PER_ELEMENT);
-  f64[0] = 1.0;  // Should not be forwarded.
+  f64[0] = 1.0; // Should not be forwarded.
   u8[15] = 0x40;
   u8[14] = 0x00;
   return f64[0];
@@ -514,7 +512,7 @@ testViewAliasing3() {
 testViewAliasing4() {
   final u8 = new Uint8List(Float64List.BYTES_PER_ELEMENT * 2);
   final f64 = new Float64List.view(u8.buffer, Float64List.BYTES_PER_ELEMENT);
-  f64[0] = 2.0;  // Not aliased: should be forwarded.
+  f64[0] = 2.0; // Not aliased: should be forwarded.
   u8[0] = 0x40;
   u8[1] = 0x00;
   return f64[0];
@@ -567,7 +565,7 @@ main() {
 
   for (var i = 0; i < 20; i++) {
     Expect.equals(0.0, testPhiMultipleRepresentations(true, f64List));
-    Expect.equals(0, testPhiMultipleRepresentations(false, const [1,2]));
+    Expect.equals(0, testPhiMultipleRepresentations(false, const [1, 2]));
   }
 
   final escape = new List(1);

@@ -14,8 +14,8 @@ import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/js_backend/backend.dart';
-import 'package:compiler/src/kernel/element_adapter.dart';
-import 'package:compiler/src/kernel/world_builder.dart';
+import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
@@ -26,7 +26,8 @@ import 'package:compiler/src/universe/use.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
-import '../serialization/test_helper.dart';
+import '../equivalence/check_helpers.dart';
+import 'test_helpers.dart';
 
 const Map<String, String> SOURCE = const <String, String>{
   // Pretend this is a dart2js_native test to allow use of 'native' keyword.
@@ -55,6 +56,9 @@ main() {
   testStringInterpolationConst();
   testStringJuxtaposition();
   testSymbol();
+  testConstSymbol();
+  testComplexConstSymbol();
+  testIfNullConstSymbol();
   testTypeLiteral();
   testBoolFromEnvironment();
   testEmptyListLiteral();
@@ -99,6 +103,12 @@ main() {
   testSyncStar();
   testAsync();
   testAsyncStar();
+  testLocalSyncStar();
+  testLocalAsync();
+  testLocalAsyncStar();
+  testAnonymousSyncStar();
+  testAnonymousAsync();
+  testAnonymousAsyncStar();
   testIfThen();
   testIfThenElse();
   testForIn(null);
@@ -209,6 +219,25 @@ testStringInterpolationConst() {
 }
 testStringJuxtaposition() => 'a' 'b';
 testSymbol() => #main;
+testConstSymbol() => const Symbol('main');
+
+const complexSymbolField1 = "true".length == 4;
+const complexSymbolField2 = "true" "false" "${4}${null}";
+const complexSymbolField3 = const { 
+  0.1: const bool.fromEnvironment('a', defaultValue: true),
+  false: const int.fromEnvironment('b', defaultValue: 42),
+  const <int>[]: const String.fromEnvironment('c'),
+  testComplexConstSymbol: #testComplexConstSymbol,
+  1 + 2: identical(0, -0), 
+  true || false: false && true,
+  override: const GenericClass<int, String>.generative(),
+}; 
+const complexSymbolField = 
+    complexSymbolField1 ? complexSymbolField2 : complexSymbolField3;
+testComplexConstSymbol() => const Symbol(complexSymbolField);
+
+testIfNullConstSymbol() => const Symbol(null ?? 'foo');
+
 testTypeLiteral() => Object;
 testBoolFromEnvironment() => const bool.fromEnvironment('FOO');
 testEmptyListLiteral() => [];
@@ -255,6 +284,28 @@ testSetIfNull(o) => o ??= 42;
 testSyncStar() sync* {}
 testAsync() async {}
 testAsyncStar() async* {}
+testLocalSyncStar() {
+  local() sync* {}
+  return local;
+}
+testLocalAsync() {
+  local() async {}
+  return local;
+}
+testLocalAsyncStar() {
+  local() async* {}
+  return local;
+}
+testAnonymousSyncStar() {
+  return () sync* {};
+}
+testAnonymousAsync() {
+  return () async {};
+}
+testAnonymousAsyncStar() {
+  return () async* {};
+}
+
 testIfThen() {
   if (false) return 42;
   return 1;
@@ -693,38 +744,38 @@ main(List<String> args) {
     compiler.resolution.retainCachesForTesting = true;
     Expect.isTrue(await compiler.run(entryPoint));
     JavaScriptBackend backend = compiler.backend;
-    KernelElementAdapter kernelElementAdapter =
-        new KernelWorldBuilder(compiler.reporter, backend.kernelTask.program);
+    KernelToElementMapImpl kernelElementMap =
+        new KernelToElementMapImpl(compiler.reporter, compiler.environment);
+    kernelElementMap.addProgram(backend.kernelTask.program);
 
-    checkLibrary(compiler, kernelElementAdapter, compiler.mainApp,
+    checkLibrary(compiler, kernelElementMap, compiler.mainApp,
         fullTest: fullTest);
     compiler.libraryLoader.libraries.forEach((LibraryElement library) {
       if (library == compiler.mainApp) return;
-      checkLibrary(compiler, kernelElementAdapter, library, fullTest: fullTest);
+      checkLibrary(compiler, kernelElementMap, library, fullTest: fullTest);
     });
   });
 }
 
-void checkLibrary(Compiler compiler, KernelElementAdapter kernelElementAdapter,
+void checkLibrary(Compiler compiler, KernelToElementMapMixin elementMap,
     LibraryElement library,
     {bool fullTest: false}) {
   library.forEachLocalMember((AstElement element) {
     if (element.isClass) {
       ClassElement cls = element;
       cls.forEachLocalMember((AstElement member) {
-        checkElement(compiler, kernelElementAdapter, member,
-            fullTest: fullTest);
+        checkElement(compiler, elementMap, member, fullTest: fullTest);
       });
     } else if (element.isTypedef) {
       // Skip typedefs.
     } else {
-      checkElement(compiler, kernelElementAdapter, element, fullTest: fullTest);
+      checkElement(compiler, elementMap, element, fullTest: fullTest);
     }
   });
 }
 
-void checkElement(Compiler compiler, KernelElementAdapter kernelElementAdapter,
-    AstElement element,
+void checkElement(
+    Compiler compiler, KernelToElementMapMixin elementMap, AstElement element,
     {bool fullTest: false}) {
   if (!fullTest && element.library.isPlatformLibrary) {
     return;
@@ -746,12 +797,11 @@ void checkElement(Compiler compiler, KernelElementAdapter kernelElementAdapter,
     ResolutionImpact kernelImpact1 = build(compiler, element.resolvedAst);
     ir.Member member = getIrMember(compiler, element.resolvedAst);
     Expect.isNotNull(kernelImpact1, 'No impact computed for $element');
-    ResolutionImpact kernelImpact2 =
-        buildKernelImpact(member, kernelElementAdapter);
+    ResolutionImpact kernelImpact2 = buildKernelImpact(member, elementMap);
     Expect.isNotNull(kernelImpact2, 'No impact computed for $member');
     testResolutionImpactEquivalence(astImpact, kernelImpact1,
         strategy: const CheckStrategy());
-    KernelEquivalence equivalence = new KernelEquivalence(kernelElementAdapter);
+    KernelEquivalence equivalence = new KernelEquivalence(elementMap);
     testResolutionImpactEquivalence(astImpact, kernelImpact2,
         strategy: new CheckStrategy(
             elementEquivalence: equivalence.entityEquivalence,
@@ -854,45 +904,4 @@ ResolutionImpact laxImpact(
   }
   impact.nativeData.forEach(builder.registerNativeData);
   return builder;
-}
-
-/// Visitor the performers unaliasing of all typedefs nested within a
-/// [ResolutionDartType].
-class Unaliaser extends BaseDartTypeVisitor<dynamic, ResolutionDartType> {
-  const Unaliaser();
-
-  @override
-  ResolutionDartType visit(ResolutionDartType type, [_]) =>
-      type.accept(this, null);
-
-  @override
-  ResolutionDartType visitType(ResolutionDartType type, _) => type;
-
-  List<ResolutionDartType> visitList(List<ResolutionDartType> types) =>
-      types.map(visit).toList();
-
-  @override
-  ResolutionDartType visitInterfaceType(ResolutionInterfaceType type, _) {
-    return type.createInstantiation(visitList(type.typeArguments));
-  }
-
-  @override
-  ResolutionDartType visitTypedefType(ResolutionTypedefType type, _) {
-    return visit(type.unaliased);
-  }
-
-  @override
-  ResolutionDartType visitFunctionType(ResolutionFunctionType type, _) {
-    return new ResolutionFunctionType.synthesized(
-        visit(type.returnType),
-        visitList(type.parameterTypes),
-        visitList(type.optionalParameterTypes),
-        type.namedParameters,
-        visitList(type.namedParameterTypes));
-  }
-}
-
-/// Perform unaliasing of all typedefs nested within a [ResolutionDartType].
-ResolutionDartType unalias(ResolutionDartType type) {
-  return const Unaliaser().visit(type);
 }

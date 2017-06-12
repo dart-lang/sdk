@@ -5,7 +5,7 @@
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -31,7 +31,4 @@ class Foo {
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

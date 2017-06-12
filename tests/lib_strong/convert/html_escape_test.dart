@@ -11,7 +11,7 @@ const _NOOP = 'Nothing_to_escape';
 const _TEST_INPUT = """<A </test> of \xA0 "double" & 'single' values>""";
 
 const _OUTPUT_UNKNOWN = '&lt;A &lt;&#47;test&gt; of \xA0 &quot;double&quot; '
-  '&amp; &#39;single&#39; values&gt;';
+    '&amp; &#39;single&#39; values&gt;';
 
 const _OUTPUT_ATTRIBUTE =
     "&lt;A &lt;/test&gt; of \xA0 &quot;double&quot; &amp; 'single' values&gt;";
@@ -62,12 +62,9 @@ void _testTransform(HtmlEscape escape, String input, String expected) {
     done = true;
   }
 
-  stream.listen(
-      stringData,
-      onDone: streamClosed);
+  stream.listen(stringData, onDone: streamClosed);
 
-
-  for(var i = 0; i < _COUNT; i++) {
+  for (var i = 0; i < _COUNT; i++) {
     controller.add(input);
   }
   controller.close();
@@ -80,9 +77,13 @@ const _COUNT = 3;
 void main() {
   _testMode(HTML_ESCAPE, _TEST_INPUT, _OUTPUT_UNKNOWN);
   _testMode(const HtmlEscape(), _TEST_INPUT, _OUTPUT_UNKNOWN);
-  _testMode(const HtmlEscape(HtmlEscapeMode.UNKNOWN), _TEST_INPUT, _OUTPUT_UNKNOWN);
-  _testMode(const HtmlEscape(HtmlEscapeMode.ATTRIBUTE), _TEST_INPUT, _OUTPUT_ATTRIBUTE);
-  _testMode(const HtmlEscape(HtmlEscapeMode.SQ_ATTRIBUTE), _TEST_INPUT, _OUTPUT_SQ_ATTRIBUTE);
-  _testMode(const HtmlEscape(HtmlEscapeMode.ELEMENT), _TEST_INPUT, _OUTPUT_ELEMENT);
+  _testMode(
+      const HtmlEscape(HtmlEscapeMode.UNKNOWN), _TEST_INPUT, _OUTPUT_UNKNOWN);
+  _testMode(const HtmlEscape(HtmlEscapeMode.ATTRIBUTE), _TEST_INPUT,
+      _OUTPUT_ATTRIBUTE);
+  _testMode(const HtmlEscape(HtmlEscapeMode.SQ_ATTRIBUTE), _TEST_INPUT,
+      _OUTPUT_SQ_ATTRIBUTE);
+  _testMode(
+      const HtmlEscape(HtmlEscapeMode.ELEMENT), _TEST_INPUT, _OUTPUT_ELEMENT);
   _testMode(HTML_ESCAPE, _NOOP, _NOOP);
 }

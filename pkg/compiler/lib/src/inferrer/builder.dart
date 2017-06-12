@@ -11,14 +11,14 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart' show ConstantValue, IntConstantValue;
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../js_backend/backend_helpers.dart';
-import '../js_backend/js_backend.dart' as js;
+import '../elements/names.dart';
+import '../elements/operators.dart' as op;
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../native/native.dart' as native;
-import '../resolution/operators.dart' as op;
 import '../resolution/semantic_visitor.dart';
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
@@ -131,6 +131,12 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
   }
 
+  void initializationIsIndefinite() {
+    if (analyzedElement.isGenerativeConstructor) {
+      locals.fieldScope.isIndefinite = true;
+    }
+  }
+
   DiagnosticReporter get reporter => compiler.reporter;
 
   ClosedWorld get closedWorld => inferrer.closedWorld;
@@ -201,7 +207,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitLiteralString(ast.LiteralString node) {
-    return types.stringLiteralType(node.dartString);
+    return types.stringLiteralType(node.dartString.slowToString());
   }
 
   TypeInformation visitStringJuxtaposition(ast.StringJuxtaposition node) {
@@ -210,7 +216,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitLiteralBool(ast.LiteralBool node) {
-    return types.boolLiteralType(node);
+    return types.boolLiteralType(node.value);
   }
 
   TypeInformation visitLiteralDouble(ast.LiteralDouble node) {
@@ -237,7 +243,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // TODO(kasperl): We should be able to tell that the type of a literal
     // symbol is always a non-null exact symbol implementation -- not just
     // any non-null subtype of the symbol interface.
-    return types.nonNullSubtype(closedWorld.commonElements.symbolClass);
+    return types
+        .nonNullSubtype(closedWorld.commonElements.symbolImplementationClass);
   }
 
   @override
@@ -692,7 +699,11 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       visit(node.body);
       List<ast.Send> tests = <ast.Send>[];
       handleCondition(node.condition, tests);
-      updateIsChecks(tests, usePositive: true);
+      // TODO(29309): This condition appears to stengthen both the back-edge and
+      // exit-edge. For now, avoid strengthening on the condition until the
+      // proper fix is found.
+      //
+      //     updateIsChecks(tests, usePositive: true);
     });
   }
 
@@ -710,6 +721,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   TypeInformation visitTryStatement(ast.TryStatement node) {
     LocalsHandler saved = locals;
     locals = new LocalsHandler.from(locals, node, useOtherTryBlock: false);
+    initializationIsIndefinite();
     visit(node.tryBlock);
     saved.mergeDiamondFlow(locals, null);
     locals = saved;
@@ -987,7 +999,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         if (!isConstructorRedirect &&
             !seenSuperConstructorCall &&
             !cls.isObject) {
-          FunctionElement target = cls.superclass.lookupDefaultConstructor();
+          ConstructorElement target = cls.superclass.lookupDefaultConstructor();
           ArgumentsTypes arguments = new ArgumentsTypes([], {});
           analyzeSuperConstructorCall(target, arguments);
           inferrer.registerCalledElement(node, null, null, outermostElement,
@@ -1060,7 +1072,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
 
     inferrer.closedWorldRefiner
-        .registerSideEffects(analyzedElement, sideEffects);
+        .registerSideEffects(analyzedElement.declaration, sideEffects);
     assert(breaksFor.isEmpty);
     assert(continuesFor.isEmpty);
     return returnType;
@@ -1978,13 +1990,13 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           (node.asSendSet() != null) &&
           (node.asSendSet().receiver != null) &&
           node.asSendSet().receiver.isThis()) {
-        Iterable<Element> targets = closedWorld.allFunctions.filter(
+        Iterable<MemberEntity> targets = closedWorld.locateMembers(
             setterSelector, types.newTypedSelector(thisType, setterMask));
         // We just recognized a field initialization of the form:
         // `this.foo = 42`. If there is only one target, we can update
         // its type.
         if (targets.length == 1) {
-          Element single = targets.first;
+          MemberElement single = targets.first;
           if (single.isField) {
             locals.updateField(single, rhsType);
           }
@@ -2279,6 +2291,11 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     return inferrer.registerAwait(node, futureType);
   }
 
+  TypeInformation visitYield(ast.Yield node) {
+    TypeInformation operandType = node.expression.accept(this);
+    return inferrer.registerYield(node, operandType);
+  }
+
   TypeInformation handleTypeLiteralInvoke(ast.NodeList arguments) {
     // This is reached when users forget to put a `new` in front of a type
     // literal. The emitter will generate an actual call (even though it is
@@ -2317,7 +2334,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
     // TODO(polux): return nonNullEmpty and check it doesn'TypeInformation break anything
-    if (target.isMalformed || !callStructure.signatureApplies(target.type)) {
+    if (target.isMalformed ||
+        !callStructure.signatureApplies(target.parameterStructure)) {
       return types.dynamicType;
     }
 
@@ -2503,9 +2521,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     TypeMask mask = inTreeData.typeOfSend(node);
     String name = element.name;
     handleStaticSend(node, selector, mask, element, arguments);
-    if (name == BackendHelpers.JS ||
-        name == BackendHelpers.JS_EMBEDDED_GLOBAL ||
-        name == BackendHelpers.JS_BUILTIN) {
+    if (name == JavaScriptBackend.JS ||
+        name == JavaScriptBackend.JS_EMBEDDED_GLOBAL ||
+        name == JavaScriptBackend.JS_BUILTIN) {
       native.NativeBehavior nativeBehavior = elements.getNativeData(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
@@ -2809,7 +2827,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation synthesizeForwardingCall(
-      Spannable node, FunctionElement element) {
+      Spannable node, ConstructorElement element) {
     element = element.implementation;
     FunctionElement function = analyzedElement;
     FunctionSignature signature = function.functionSignature;
@@ -2842,7 +2860,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
-    Element element = elements.getRedirectingTargetConstructor(node);
+    ConstructorElement element = elements.getRedirectingTargetConstructor(node);
     if (Elements.isMalformed(element)) {
       recordReturnType(types.dynamicType);
     } else {
@@ -2863,6 +2881,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     recordReturnType(
         expression == null ? types.nullType : expression.accept(this));
     locals.seenReturnOrThrow = true;
+    initializationIsIndefinite();
     return null;
   }
 
@@ -2911,8 +2930,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     Selector moveNextSelector = Selectors.moveNext;
     TypeMask moveNextMask = inTreeData.typeOfIteratorMoveNext(node);
 
-    js.JavaScriptBackend backend = compiler.backend;
-    ConstructorElement ctor = backend.helpers.streamIteratorConstructor;
+    ConstructorElement ctor = compiler.commonElements.streamIteratorConstructor;
 
     /// Synthesize a call to the [StreamIterator] constructor.
     TypeInformation iteratorType = handleStaticSend(

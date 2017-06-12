@@ -8,5 +8,4 @@ library same_package_twice_test;
 
 import 'package:foo/foo.dart' as foo;
 
-main() {
-}
+main() {}

@@ -7,6 +7,7 @@
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/selector.dart' show Selector;
 
 const String TEST = r"""

@@ -16,7 +16,7 @@ final RegExp whitespace = new RegExp(r'\s');
 /**
  * Convert the HTML in [desc] into text, word wrapping at width [width].
  *
- * If [javadocStyle] is true, then the output is compatable with Javadoc,
+ * If [javadocStyle] is true, then the output is compatible with Javadoc,
  * which understands certain HTML constructs.
  */
 String nodesToText(List<dom.Node> desc, int width, bool javadocStyle,

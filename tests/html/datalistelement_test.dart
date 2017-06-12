@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library datalistelement_dataview_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -16,9 +17,9 @@ main() {
   var div;
 
   setUp(() {
-      div = new DivElement();
-      document.body.append(div);
-      div.innerHtml = """
+    div = new DivElement();
+    document.body.append(div);
+    div.innerHtml = """
 <input id="input" list="browsers" />
 <datalist id="browsers">
   <option value="Chrome">
@@ -28,11 +29,11 @@ main() {
   <option value="Safari">
 </datalist>
 """;
-    });
+  });
 
   tearDown(() {
-      document.body.nodes.removeLast();
-    });
+    document.body.nodes.removeLast();
+  });
 
   // Support is checked in element_types test.
   var expectation = DataListElement.supported ? returnsNormally : throws;

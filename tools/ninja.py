@@ -62,7 +62,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(options, args):
   if options.arch == 'all':
-    options.arch = 'ia32,x64,simarm,simarm64,simmips,simdbc64'
+    options.arch = 'ia32,x64,simarm,simarm64,simdbc64'
   if options.mode == 'all':
     options.mode = 'debug,release,product'
   if options.os == 'all':
@@ -90,7 +90,7 @@ def ProcessOptions(options, args):
       if os_name != 'android':
         print "Unsupported target os %s" % os_name
         return False
-      if not HOST_OS in ['linux']:
+      if not HOST_OS in ['linux', 'macos']:
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os_name, HOST_OS))
         return False
@@ -225,6 +225,13 @@ def EnsureGomaStarted(out_dir):
 
 # Returns a tuple (build_config, command to run, whether goma is used)
 def BuildOneConfig(options, targets, target_os, mode, arch):
+  if arch.startswith('mips'):
+    bold  = '\033[1m'
+    reset = '\033[0m'
+    print(bold + "Warning: MIPS architectures are unlikely to be supported in "
+          "upcoming releases. Please consider using another architecture "
+          "and/or file an issue explaining your specific use of and need for "
+          "MIPS support." + reset)
   build_config = utils.GetBuildConf(mode, arch, target_os)
   out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
   using_goma = False

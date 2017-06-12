@@ -15,7 +15,7 @@ baz(p) => new Future(() => p);
 
 foo() async {
   var b = 0;
-  for(int i = 0; i < 10; i++) {
+  for (int i = 0; i < 10; i++) {
     b += (await bar(1)) + (await baz(2));
   }
   return b;
@@ -59,7 +59,7 @@ nesting() async {
         try {
           var z = (await bar(3)) + x;
           throw z;
-        }  catch (e1) {
+        } catch (e1) {
           return e1;
         }
       };
@@ -73,7 +73,7 @@ nesting() async {
   }
 }
 
-awaitAsUnary(a,b) async {
+awaitAsUnary(a, b) async {
   return await a + await b;
 }
 
@@ -85,7 +85,7 @@ awaitIf(p) async {
   }
 }
 
-awaitNestedIf(p,q) async {
+awaitNestedIf(p, q) async {
   if (p == (await bar(5))) {
     if (q < (await bar(7))) {
       return "q<7";
@@ -114,7 +114,7 @@ awaitReturn() async {
 }
 
 awaitSwitch() async {
-  switch(await bar(3)) {
+  switch (await bar(3)) {
     case 1:
       return 1;
       break;
@@ -137,7 +137,7 @@ awaitNestedWhile(int i, int j) async {
   var k = 0;
   while ((await decI()) > 0) {
     j = savedJ;
-    while(0 < (await decJ())) {
+    while (0 < (await decJ())) {
       k++;
     }
   }
@@ -157,16 +157,16 @@ awaitNestedDoWhile(int i, int j) async {
     do {
       k++;
     } while (0 < (await decI()));
-  } while((await decJ()) > 0);
+  } while ((await decJ()) > 0);
   return k;
 }
 
 awaitFor() async {
-  var asyncInc = (p) async => p+1;
+  var asyncInc = (p) async => p + 1;
   var k = 0;
   for (int j = (await bar(0)), i = (await bar(1));
-       j < (await bar(5));
-       j = (await asyncInc(j)), i = (await asyncInc(i))) {
+      j < (await bar(5));
+      j = (await asyncInc(j)), i = (await asyncInc(i))) {
     k += i;
     k += j;
   }
@@ -199,11 +199,11 @@ test() async {
     Expect.equals("p<5", result);
     result = await awaitIf(5);
     Expect.equals("p>=5", result);
-    result = await awaitNestedIf(5,3);
+    result = await awaitNestedIf(5, 3);
     Expect.equals("q<7", result);
-    result = await awaitNestedIf(5,8);
+    result = await awaitNestedIf(5, 8);
     Expect.equals("q>=7", result);
-    result = await awaitNestedIf(3,8);
+    result = await awaitNestedIf(3, 8);
     Expect.equals("p!=5", result);
     result = await awaitReturn();
     Expect.equals(17, result);
@@ -215,9 +215,9 @@ test() async {
     Expect.equals("p<5", result);
     result = await awaitElseIf(5);
     Expect.equals("p==5", result);
-    result = await awaitNestedWhile(5,3);
+    result = await awaitNestedWhile(5, 3);
     Expect.equals(15, result);
-    result = await awaitNestedWhile(4,6);
+    result = await awaitNestedWhile(4, 6);
     Expect.equals(24, result);
     result = await awaitAsUnary(bar(1), bar(2));
     Expect.equals(3, result);

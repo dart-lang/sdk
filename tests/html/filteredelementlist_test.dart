@@ -11,9 +11,7 @@ main() {
       t3 = new Text('T3'),
       t4 = new Text('T4');
 
-  var d1 = new DivElement(),
-      d2 = new DivElement(),
-      d3 = new DivElement();
+  var d1 = new DivElement(), d2 = new DivElement(), d3 = new DivElement();
 
   createTestDiv() {
     var testDiv = new DivElement();
@@ -59,8 +57,7 @@ main() {
   });
 
   test('FilteredElementList.insertAll test', () {
-    var i1 = new DivElement(),
-        i2 = new DivElement();
+    var i1 = new DivElement(), i2 = new DivElement();
 
     var it = [i1, i2];
 
@@ -92,7 +89,7 @@ main() {
     expect(nodeList.childNodes[7], d3);
   });
 
- test('FilteredElementList.insertAndRemove', () {
+  test('FilteredElementList.insertAndRemove', () {
     var emptyDiv = new DivElement();
     var elementList = new FilteredElementList(emptyDiv);
     expect(() => elementList[0], throwsA(isRangeError));
@@ -107,5 +104,5 @@ main() {
     expect(elementList.remove(br2), isFalse);
     expect(elementList[0], br);
     expect(() => elementList[1], throwsA(isRangeError));
- });
+  });
 }

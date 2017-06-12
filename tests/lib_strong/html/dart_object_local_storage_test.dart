@@ -16,16 +16,16 @@ main() {
   body.append(element);
 
   test('body', () {
-      expect(body, equals(document.body));
+    expect(body, equals(document.body));
   });
   test('localStorage', () {
-      expect(localStorage, equals(window.localStorage));
+    expect(localStorage, equals(window.localStorage));
   });
   test('sessionStorage', () {
-      expect(sessionStorage, equals(window.sessionStorage));
+    expect(sessionStorage, equals(window.sessionStorage));
   });
   test('unknown', () {
-      var test = document.query('#test');
-      expect(element, equals(test));
+    var test = document.query('#test');
+    expect(element, equals(test));
   });
 }

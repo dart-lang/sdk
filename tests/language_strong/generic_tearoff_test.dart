@@ -17,7 +17,7 @@ void _test(Int2Int2Int f) {
   int y = f(123, 456);
   Expect.equals(y, 123);
   // `f` doesn't take type args.
-  Expect.throws(() => (f as dynamic)/*<int>*/(123, 456)); 
+  Expect.throws(() => (f as dynamic) /*<int>*/(123, 456));
 }
 
 void _testParam(/*=T*/ minFn/*<T extends num>*/(/*=T*/ x, /*=T*/ y)) {
@@ -27,7 +27,7 @@ void _testParam(/*=T*/ minFn/*<T extends num>*/(/*=T*/ x, /*=T*/ y)) {
 main() {
   // Strong mode infers: `min<int>`
   // Test simple/prefixed identifiers and property access
-  _test(min); 
+  _test(min);
   _test(math.min);
   _test(new C().m);
 

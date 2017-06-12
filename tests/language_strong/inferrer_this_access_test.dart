@@ -19,7 +19,7 @@ class B {
   B() {
     hest = 54;
     a = 42;
-  } 
+  }
 }
 
 class C extends B {

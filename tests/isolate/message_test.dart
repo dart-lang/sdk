@@ -6,6 +6,7 @@
 // VMOptions=--enable_type_checks --enable_asserts
 
 library MessageTest;
+
 import 'dart:isolate';
 import 'dart:async';
 import 'package:unittest/unittest.dart';
@@ -20,19 +21,26 @@ class MessageTest {
   static const List list2 = const [null, list1, list1, list1, list1];
   static const List list3 = const [list2, 2.0, true, false, 0xfffffffffff];
   static const Map map1 = const {
-    "a=1" : 1, "b=2" : 2, "c=3" : 3,
+    "a=1": 1,
+    "b=2": 2,
+    "c=3": 3,
   };
   static const Map map2 = const {
-    "list1" : list1, "list2" : list2, "list3" : list3,
+    "list1": list1,
+    "list2": list2,
+    "list3": list3,
   };
   static const List list4 = const [map1, map2];
   static const List elms = const [
-      list1, list2, list3, list4,
+    list1,
+    list2,
+    list3,
+    list4,
   ];
 
   static void VerifyMap(Map expected, Map actual) {
     expect(expected, isMap);
-    expect(actual,  isMap);
+    expect(actual, isMap);
     expect(actual.length, expected.length);
     testForEachMap(key, value) {
       if (value is List) {
@@ -41,6 +49,7 @@ class MessageTest {
         expect(actual[key], value);
       }
     }
+
     expected.forEach(testForEachMap);
   }
 
@@ -110,7 +119,7 @@ void main([args, port]) {
 
       // Send recursive objects and receive them back.
       List local_list1 = ["Hello", "World", "Hello", 0xffffffffff];
-      List local_list2 = [null, local_list1, local_list1 ];
+      List local_list2 = [null, local_list1, local_list1];
       List local_list3 = [local_list2, 2.0, true, false, 0xffffffffff];
       List sendObject = new List(5);
       sendObject[0] = local_list1;
@@ -134,7 +143,7 @@ void main([args, port]) {
 
       // Shutdown the MessageServer.
       remoteCall(remote, -1).then(expectAsync((int message) {
-          expect(message, MessageTest.elms.length + 1);
+        expect(message, MessageTest.elms.length + 1);
       }));
     }));
   });

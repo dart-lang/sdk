@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static field core::List<core::String> stringList;
+static method asyncString() → asy::Future<core::String>
+  ;
+static method asyncString2() → asy::Future<core::String>
+  ;
+static method syncStarString() → core::Iterable<core::String>
+  ;
+static method syncStarString2() → core::Iterable<core::String>
+  ;
+static method asyncStarString() → asy::Stream<core::String>
+  ;
+static method asyncStarString2() → asy::Stream<core::String>
+  ;
+static method main() → dynamic
+  ;

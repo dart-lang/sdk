@@ -13,7 +13,7 @@ class A {
   A.parenthesized(y) : x = (() => y);
   A.stringLiteral(y) : x = "**${() => y}--";
   A.listLiteral(y) : x = [() => y];
-  A.mapLiteral(y) : x = { "fun": () => y };
+  A.mapLiteral(y) : x = {"fun": () => y};
   A.arg(y) : x = foo(() => y);
 }
 

@@ -5,13 +5,13 @@
 import "package:expect/expect.dart";
 
 main() {
-    const a = 1;
-    Expect.equals(1, a);
-    Expect.equals(1, const A(a).a);
-    Expect.equals(1, const [const A(a)][0].a);
+  const a = 1;
+  Expect.equals(1, a);
+  Expect.equals(1, const A(a).a);
+  Expect.equals(1, const [const A(a)][0].a);
 }
 
 class A {
-    final a;
-    const A(this.a);
+  final a;
+  const A(this.a);
 }

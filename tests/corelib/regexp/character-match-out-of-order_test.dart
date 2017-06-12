@@ -26,7 +26,8 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  description('Test to ensure RegExp generates single character matches in the correct order');
+  description(
+      'Test to ensure RegExp generates single character matches in the correct order');
 
   shouldBe(new RegExp(r"[\w']+").firstMatch("'_'"), ["'_'"]);
 }

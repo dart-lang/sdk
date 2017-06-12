@@ -134,6 +134,7 @@ import 'elements/modelx.dart'
         LibraryElementX,
         MetadataAnnotationX,
         SetterElementX;
+import 'elements/names.dart';
 import 'enqueue.dart' show DeferredAction;
 import 'id_generator.dart';
 import 'library_loader.dart' show LibraryLoader;
@@ -227,15 +228,10 @@ class PatchMemberListener extends MemberListener {
   void addMember(Element patch) {
     addMetadata(patch);
 
-    PatchVersion patchVersion = getPatchVersion(compiler, patch);
-    if (patchVersion != null) {
-      if (patchVersion.isActive(compiler.patchVersion)) {
-        Element origin = enclosingClass.origin.localLookup(patch.name);
-        patchElement(compiler, reporter, origin, patch);
-        enclosingClass.addMember(patch, reporter);
-      } else {
-        // Skip this element.
-      }
+    if (_isMarkedAsPatch(compiler, patch)) {
+      Element origin = enclosingClass.origin.localLookup(patch.name);
+      patchElement(compiler, reporter, origin, patch);
+      enclosingClass.addMember(patch, reporter);
     } else {
       if (Name.isPublicName(patch.name)) {
         reporter.reportErrorMessage(patch, MessageKind.INJECTED_PUBLIC_MEMBER);
@@ -261,17 +257,12 @@ class PatchElementListener extends ElementListener implements Listener {
   void pushElement(Element patch) {
     popMetadata(patch);
 
-    PatchVersion patchVersion = getPatchVersion(compiler, patch);
-    if (patchVersion != null) {
-      if (patchVersion.isActive(compiler.patchVersion)) {
-        LibraryElement originLibrary = compilationUnitElement.library;
-        assert(originLibrary.isPatched);
-        Element origin = originLibrary.localLookup(patch.name);
-        patchElement(compiler, reporter, origin, patch);
-        compilationUnitElement.addMember(patch, reporter);
-      } else {
-        // Skip this element.
-      }
+    if (_isMarkedAsPatch(compiler, patch)) {
+      LibraryElement originLibrary = compilationUnitElement.library;
+      assert(originLibrary.isPatched);
+      Element origin = originLibrary.localLookup(patch.name);
+      patchElement(compiler, reporter, origin, patch);
+      compilationUnitElement.addMember(patch, reporter);
     } else {
       if (Name.isPublicName(patch.name)) {
         reporter.reportErrorMessage(patch, MessageKind.INJECTED_PUBLIC_MEMBER);
@@ -381,28 +372,17 @@ abstract class EagerAnnotationHandler<T> {
 }
 
 /// Annotation handler for pre-resolution detection of `@patch` annotations.
-class PatchAnnotationHandler extends EagerAnnotationHandler<PatchVersion> {
+class PatchAnnotationHandler extends EagerAnnotationHandler<bool> {
   const PatchAnnotationHandler();
 
-  PatchVersion getPatchVersion(MetadataAnnotationX annotation) {
-    if (annotation.beginToken != null) {
-      if (annotation.beginToken.next.lexeme == 'patch') {
-        return const PatchVersion(null);
-      } else if (annotation.beginToken.next.lexeme == 'patch_full') {
-        return const PatchVersion('full');
-      } else if (annotation.beginToken.next.lexeme == 'patch_lazy') {
-        return const PatchVersion('lazy');
-      } else if (annotation.beginToken.next.lexeme == 'patch_startup') {
-        return const PatchVersion('startup');
-      }
+  @override
+  bool apply(
+      Compiler compiler, Element element, MetadataAnnotation annotation) {
+    MetadataAnnotationX meta = annotation;
+    if (meta.beginToken?.next?.lexeme == 'patch') {
+      return true;
     }
     return null;
-  }
-
-  @override
-  PatchVersion apply(
-      Compiler compiler, Element element, MetadataAnnotation annotation) {
-    return getPatchVersion(annotation);
   }
 
   @override
@@ -411,7 +391,7 @@ class PatchAnnotationHandler extends EagerAnnotationHandler<PatchVersion> {
     ResolutionDartType annotationType =
         constant.getType(compiler.commonElements);
     if (annotationType.element !=
-        compiler.backend.helpers.patchAnnotationClass) {
+        compiler.commonElements.patchAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
       reporter.internalError(annotation, 'Invalid patch annotation.');
     }
@@ -520,17 +500,8 @@ void patchFunction(DiagnosticReporter reporter, BaseFunctionElementX origin,
   origin.applyPatch(patch);
 }
 
-PatchVersion getPatchVersion(Compiler compiler, Element element) {
+bool _isMarkedAsPatch(Compiler compiler, Element element) {
   return EagerAnnotationHandler.checkAnnotation(
-      compiler, element, const PatchAnnotationHandler());
-}
-
-class PatchVersion {
-  final String tag;
-
-  const PatchVersion(this.tag);
-
-  bool isActive(String patchTag) => tag == null || tag == patchTag;
-
-  String toString() => 'PatchVersion($tag)';
+          compiler, element, const PatchAnnotationHandler()) ==
+      true;
 }

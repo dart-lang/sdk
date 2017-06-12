@@ -75,7 +75,8 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 3) {
   const Instance& message = Instance::CheckedHandle(arguments->NativeArgAt(2));
   const Array& args = Array::Handle(Array::New(5));
 
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
   iterator.NextFrame();  // Skip native call.
   const Script& script = Script::Handle(FindScript(&iterator));
 
@@ -139,7 +140,8 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
   const Array& args = Array::Handle(Array::New(2));
 
   // Initialize 'url' and 'line' arguments.
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
   iterator.NextFrame();  // Skip native call.
   const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
   args.SetAt(0, String::Handle(script.url()));
@@ -165,7 +167,8 @@ DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
   const Array& args = Array::Handle(Array::New(3));
 
   // Initialize 'className', 'url' and 'line' arguments.
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
   iterator.NextFrame();  // Skip native call.
   const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
   args.SetAt(0, class_name);

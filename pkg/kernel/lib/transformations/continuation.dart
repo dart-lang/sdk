@@ -410,7 +410,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       initEffects[i] = <Statement>[];
       if (decl.initializer != null) {
         decl.initializer = expressionRewriter.rewrite(
-            decl.initializer, initEffects[i])..parent = decl;
+            decl.initializer, initEffects[i])
+          ..parent = decl;
       }
       isSimple = isSimple && initEffects[i].isEmpty;
     }
@@ -420,7 +421,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     for (int i = 0; i < length; ++i) {
       updateEffects[i] = <Statement>[];
       stmt.updates[i] = expressionRewriter.rewrite(
-          stmt.updates[i], updateEffects[i])..parent = stmt;
+          stmt.updates[i], updateEffects[i])
+        ..parent = stmt;
       isSimple = isSimple && updateEffects[i].isEmpty;
     }
 
@@ -530,8 +532,9 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     }
     loopBody.add(
         new IfStatement(cond, new Block(newBody), new BreakStatement(labeled)));
-    labeled.body = new WhileStatement(
-        new BoolLiteral(true), new Block(loopBody))..parent = labeled;
+    labeled.body =
+        new WhileStatement(new BoolLiteral(true), new Block(loopBody))
+          ..parent = labeled;
     statements.add(new Block(<Statement>[]
       ..addAll(temps)
       ..add(labeled)));
@@ -567,7 +570,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       var condition = new AwaitExpression(new MethodInvocation(
           new VariableGet(iteratorVariable),
           new Name('moveNext'),
-          new Arguments(<Expression>[])))..fileOffset = stmt.fileOffset;
+          new Arguments(<Expression>[])))
+        ..fileOffset = stmt.fileOffset;
 
       // var <variable> = iterator.current;
       var valueVariable = stmt.variable;
@@ -659,7 +663,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   TreeNode visitVariableDeclaration(VariableDeclaration stmt) {
     if (stmt.initializer != null) {
       stmt.initializer = expressionRewriter.rewrite(
-          stmt.initializer, statements)..parent = stmt;
+          stmt.initializer, statements)
+        ..parent = stmt;
     }
     statements.add(stmt);
     return null;
@@ -750,7 +755,8 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     var addExpression = new MethodInvocation(
         new VariableGet(controllerVariable),
         new Name(stmt.isYieldStar ? 'addStream' : 'add', helper.asyncLibrary),
-        new Arguments(<Expression>[expr]))..fileOffset = stmt.fileOffset;
+        new Arguments(<Expression>[expr]))
+      ..fileOffset = stmt.fileOffset;
 
     statements.add(new IfStatement(
         addExpression,
@@ -794,6 +800,10 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
         }
       }
     }
+    // In an "Future<FooBar> foo() async {}" function the body can either return
+    // a "FooBar" or a "Future<FooBar>" => a "FutureOr<FooBar>".
+    returnType =
+        new InterfaceType(helper.futureOrClass, <DartType>[returnType]);
     var completerTypeArguments = <DartType>[returnType];
     var completerType =
         new InterfaceType(helper.completerClass, completerTypeArguments);
@@ -871,6 +881,7 @@ class HelperNodes {
   final Library coreLibrary;
   final Class iteratorClass;
   final Class futureClass;
+  final Class futureOrClass;
   final Class completerClass;
   final Procedure printProcedure;
   final Procedure completerConstructor;
@@ -888,6 +899,7 @@ class HelperNodes {
       this.coreLibrary,
       this.iteratorClass,
       this.futureClass,
+      this.futureOrClass,
       this.completerClass,
       this.printProcedure,
       this.completerConstructor,
@@ -903,20 +915,21 @@ class HelperNodes {
   factory HelperNodes.fromProgram(Program program) {
     var coreTypes = new CoreTypes(program);
     return new HelperNodes(
-        coreTypes.getLibrary('dart:async'),
-        coreTypes.getLibrary('dart:core'),
-        coreTypes.getClass('dart:core', 'Iterator'),
-        coreTypes.getClass('dart:async', 'Future'),
-        coreTypes.getClass('dart:async', 'Completer'),
-        coreTypes.getTopLevelMember('dart:core', 'print'),
-        coreTypes.getMember('dart:async', 'Completer', 'sync'),
-        coreTypes.getMember('dart:core', '_SyncIterable', ''),
-        coreTypes.getMember('dart:async', '_StreamIterator', ''),
-        coreTypes.getMember('dart:async', 'Future', 'microtask'),
-        coreTypes.getMember('dart:async', '_AsyncStarStreamController', ''),
-        coreTypes.getTopLevelMember('dart:async', '_asyncThenWrapperHelper'),
-        coreTypes.getTopLevelMember('dart:async', '_asyncErrorWrapperHelper'),
-        coreTypes.getTopLevelMember('dart:async', '_awaitHelper'),
+        coreTypes.asyncLibrary,
+        coreTypes.coreLibrary,
+        coreTypes.iteratorClass,
+        coreTypes.futureClass,
+        coreTypes.futureOrClass,
+        coreTypes.completerClass,
+        coreTypes.printProcedure,
+        coreTypes.completerSyncConstructor,
+        coreTypes.syncIterableDefaultConstructor,
+        coreTypes.streamIteratorDefaultConstructor,
+        coreTypes.futureMicrotaskConstructor,
+        coreTypes.asyncStarStreamControllerDefaultConstructor,
+        coreTypes.asyncThenWrapperHelperProcedure,
+        coreTypes.asyncErrorWrapperHelperProcedure,
+        coreTypes.awaitHelperProcedure,
         coreTypes);
   }
 }

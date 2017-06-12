@@ -9,6 +9,7 @@ bar() {
   var c = () => 54;
   return c;
 }
+
 baz() {
   c() => 68;
   return c;

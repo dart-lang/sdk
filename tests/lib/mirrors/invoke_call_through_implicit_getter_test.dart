@@ -4,6 +4,7 @@
 
 library test.invoke_call_through_implicit_getter;
 
+@MirrorsUsed(targets: "test.invoke_call_through_implicit_getter")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -11,6 +12,7 @@ import 'package:expect/expect.dart';
 class FakeFunctionCall {
   call(x, y) => '1 $x $y';
 }
+
 class FakeFunctionNSM {
   noSuchMethod(msg) => msg.positionalArguments.join(', ');
 }
@@ -18,9 +20,9 @@ class FakeFunctionNSM {
 class C {
   var fakeFunctionCall = new FakeFunctionCall();
   var fakeFunctionNSM = new FakeFunctionNSM();
-  var closure;  // = (x, y) => '2 $this $x $y';
-  var closureOpt;  // = (x, y, [z, w]) => '3 $this $x $y $z $w';
-  var closureNamed;  // = (x, y, {z, w}) => '4 $this $x $y $z $w';
+  var closure; // = (x, y) => '2 $this $x $y';
+  var closureOpt; // = (x, y, [z, w]) => '3 $this $x $y $z $w';
+  var closureNamed; // = (x, y, {z, w}) => '4 $this $x $y $z $w';
   var notAClosure = 'Not a closure';
   noSuchMethod(msg) => 'DNU';
 
@@ -49,22 +51,18 @@ testInstanceBase() {
 testInstanceReflective() {
   InstanceMirror im = reflect(new C());
 
-  Expect.equals('1 5 6',
-                im.invoke(#fakeFunctionCall, [5, 6]).reflectee);
-  Expect.equals('7, 8',
-                im.invoke(#fakeFunctionNSM, [7, 8]).reflectee);
-  Expect.equals('2 C 9 10',
-                im.invoke(#closure, [9, 10]).reflectee);
-  Expect.equals('3 C 11 12 13 null',
-                im.invoke(#closureOpt, [11, 12, 13]).reflectee);
+  Expect.equals('1 5 6', im.invoke(#fakeFunctionCall, [5, 6]).reflectee);
+  Expect.equals('7, 8', im.invoke(#fakeFunctionNSM, [7, 8]).reflectee);
+  Expect.equals('2 C 9 10', im.invoke(#closure, [9, 10]).reflectee);
+  Expect.equals(
+      '3 C 11 12 13 null', im.invoke(#closureOpt, [11, 12, 13]).reflectee);
   Expect.equals('4 C 14 15 null 16',
-                im.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee);
-  Expect.equals('DNU',
-                im.invoke(#doesNotExist, [17, 18]).reflectee);
+      im.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee);
+  Expect.equals('DNU', im.invoke(#doesNotExist, [17, 18]).reflectee);
   Expect.throws(() => im.invoke(#closure, ['wrong arity']),
-                (e) => e is NoSuchMethodError);
-  Expect.throws(() => im.invoke(#notAClosure, []),
-                (e) => e is NoSuchMethodError);
+      (e) => e is NoSuchMethodError);
+  Expect.throws(
+      () => im.invoke(#notAClosure, []), (e) => e is NoSuchMethodError);
 }
 
 class D {
@@ -88,18 +86,15 @@ testClassBase() {
 testClassReflective() {
   ClassMirror cm = reflectClass(D);
 
-  Expect.equals('1 5 6',
-                cm.invoke(#fakeFunctionCall, [5, 6]).reflectee);
-  Expect.equals('7, 8',
-                cm.invoke(#fakeFunctionNSM, [7, 8]).reflectee);
-  Expect.equals('2 9 10',
-                cm.invoke(#closure, [9, 10]).reflectee);
-  Expect.equals('3 11 12 13 null',
-                cm.invoke(#closureOpt, [11, 12, 13]).reflectee);
+  Expect.equals('1 5 6', cm.invoke(#fakeFunctionCall, [5, 6]).reflectee);
+  Expect.equals('7, 8', cm.invoke(#fakeFunctionNSM, [7, 8]).reflectee);
+  Expect.equals('2 9 10', cm.invoke(#closure, [9, 10]).reflectee);
+  Expect.equals(
+      '3 11 12 13 null', cm.invoke(#closureOpt, [11, 12, 13]).reflectee);
   Expect.equals('4 14 15 null 16',
-                cm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee);
+      cm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee);
   Expect.throws(() => cm.invoke(#closure, ['wrong arity']),
-                (e) => e is NoSuchMethodError);
+      (e) => e is NoSuchMethodError);
 }
 
 var fakeFunctionCall = new FakeFunctionCall();
@@ -121,18 +116,15 @@ testLibraryBase() {
 testLibraryReflective() {
   LibraryMirror lm = reflectClass(D).owner;
 
-  Expect.equals('1 5 6',
-                lm.invoke(#fakeFunctionCall, [5, 6]).reflectee);
-  Expect.equals('7, 8',
-                lm.invoke(#fakeFunctionNSM, [7, 8]).reflectee);
-  Expect.equals('2 9 10',
-                lm.invoke(#closure, [9, 10]).reflectee);
-  Expect.equals('3 11 12 13 null',
-                lm.invoke(#closureOpt, [11, 12, 13]).reflectee);
+  Expect.equals('1 5 6', lm.invoke(#fakeFunctionCall, [5, 6]).reflectee);
+  Expect.equals('7, 8', lm.invoke(#fakeFunctionNSM, [7, 8]).reflectee);
+  Expect.equals('2 9 10', lm.invoke(#closure, [9, 10]).reflectee);
+  Expect.equals(
+      '3 11 12 13 null', lm.invoke(#closureOpt, [11, 12, 13]).reflectee);
   Expect.equals('4 14 15 null 16',
-                lm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee);
+      lm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee);
   Expect.throws(() => lm.invoke(#closure, ['wrong arity']),
-                (e) => e is NoSuchMethodError);
+      (e) => e is NoSuchMethodError);
 }
 
 main() {

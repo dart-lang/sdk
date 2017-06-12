@@ -15,4 +15,3 @@ class Bar {
 
 var privateSymbol2 = #_field;
 var publicSymbol2 = #field;
-

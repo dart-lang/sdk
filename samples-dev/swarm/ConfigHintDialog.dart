@@ -16,13 +16,14 @@ class ConfigHintDialog extends DialogView {
   }
 
   ConfigHintDialog._impl(this._parent, this._doneHandler, View content)
-  : super('Feed configuration', '', content);
+      : super('Feed configuration', '', content);
 
-  void onDone() { _doneHandler(); }
+  void onDone() {
+    _doneHandler();
+  }
 
   static View makeContent() {
-    return new View.html(
-        '''
+    return new View.html('''
         <div>
           Add or remove feeds in
           <a href="https://www.google.com/reader" target="_blank">

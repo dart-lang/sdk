@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' as server;
+import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analysis_server/src/protocol/protocol_internal.dart' as server;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
 /**
@@ -17,18 +18,13 @@ class ResultConverter {
   static final server.ResponseDecoder decoder =
       new server.ResponseDecoder(null);
 
-  server.AnalysisError convertAnalysisError(plugin.AnalysisError error) {
-    return new server.AnalysisError.fromJson(decoder, '', error.toJson());
-  }
-
   server.AnalysisErrorFixes convertAnalysisErrorFixes(
       plugin.AnalysisErrorFixes fixes) {
-    List<server.SourceChange> changes = fixes.fixes
+    List<SourceChange> changes = fixes.fixes
         .map((plugin.PrioritizedSourceChange change) =>
             convertPrioritizedSourceChange(change))
         .toList();
-    return new server.AnalysisErrorFixes(convertAnalysisError(fixes.error),
-        fixes: changes);
+    return new server.AnalysisErrorFixes(fixes.error, fixes: changes);
   }
 
   server.AnalysisNavigationParams convertAnalysisNavigationParams(
@@ -37,56 +33,14 @@ class ResultConverter {
         decoder, '', params.toJson());
   }
 
-  server.CompletionSuggestion convertCompletionSuggestion(
-      plugin.CompletionSuggestion suggestion) {
-    return new server.CompletionSuggestion.fromJson(
-        decoder, '', suggestion.toJson());
-  }
-
   server.EditGetRefactoringResult convertEditGetRefactoringResult(
-      plugin.RefactoringKind kind, plugin.EditGetRefactoringResult result) {
+      RefactoringKind kind, plugin.EditGetRefactoringResult result) {
     return new server.EditGetRefactoringResult.fromJson(
-        new server.ResponseDecoder(convertRefactoringKind(kind)),
-        '',
-        result.toJson());
+        new server.ResponseDecoder(kind), '', result.toJson());
   }
 
-  server.FoldingRegion convertFoldingRegion(plugin.FoldingRegion region) {
-    return new server.FoldingRegion.fromJson(decoder, '', region.toJson());
-  }
-
-  server.HighlightRegion convertHighlightRegion(plugin.HighlightRegion region) {
-    return new server.HighlightRegion.fromJson(decoder, '', region.toJson());
-  }
-
-  server.Occurrences convertOccurrences(plugin.Occurrences occurrences) {
-    return new server.Occurrences.fromJson(decoder, '', occurrences.toJson());
-  }
-
-  server.Outline convertOutline(plugin.Outline outline) {
-    return new server.Outline.fromJson(decoder, '', outline.toJson());
-  }
-
-  server.SourceChange convertPrioritizedSourceChange(
+  SourceChange convertPrioritizedSourceChange(
       plugin.PrioritizedSourceChange change) {
-    return convertSourceChange(change.change);
-  }
-
-  server.RefactoringFeedback convertRefactoringFeedback(
-      plugin.RefactoringKind kind, plugin.RefactoringFeedback feedback) {
-    return new server.RefactoringFeedback.fromJson(
-        new server.ResponseDecoder(convertRefactoringKind(kind)),
-        '',
-        feedback.toJson(),
-        null);
-  }
-
-  server.RefactoringKind convertRefactoringKind(
-      plugin.RefactoringKind feedback) {
-    return new server.RefactoringKind.fromJson(decoder, '', feedback.toJson());
-  }
-
-  server.SourceChange convertSourceChange(plugin.SourceChange change) {
-    return new server.SourceChange.fromJson(decoder, '', change.toJson());
+    return change.change;
   }
 }

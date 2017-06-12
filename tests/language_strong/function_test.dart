@@ -27,42 +27,62 @@ class StaticFunctionDef {
   static var fn3;
 
   static init() {
-    fn1 = () { return one; };
-    fn2 = () { return (() { return one; })(); };
+    fn1 = () {
+      return one;
+    };
+    fn2 = () {
+      return (() {
+        return one;
+      })();
+    };
     fn3 = () {
-               final local = 1;
-               return (() { return local; })();
-             };
+      final local = 1;
+      return (() {
+        return local;
+      })();
+    };
   }
 }
 
 class A {
   var ma;
-  A(a) {ma = a;}
+  A(a) {
+    ma = a;
+  }
 }
 
 class B1 extends A {
   final mfn;
-  B1(int a) : super(a), this.mfn = (() {return a;}) {
-  }
+  B1(int a)
+      : super(a),
+        this.mfn = (() {
+          return a;
+        }) {}
 }
 
 class B2 extends A {
   final mfn;
-  B2(int a) : super(2), this.mfn = (() {return a;}) {
-  }
+  B2(int a)
+      : super(2),
+        this.mfn = (() {
+          return a;
+        }) {}
 }
 
 class B3 extends A {
   final mfn;
-  B3(int a) : super(() {return a;}), this.mfn = (() {return a;}) {
-  }
+  B3(int a)
+      : super(() {
+          return a;
+        }),
+        this.mfn = (() {
+          return a;
+        }) {}
 }
 
 typedef void Fisk();
 
 class FunctionTest {
-
   FunctionTest() {}
 
   static void testMain() {
@@ -127,7 +147,11 @@ class FunctionTest {
 
   void testVarOrder2() {
     var a = 0;
-    f() {return a++;};
+    f() {
+      return a++;
+    }
+
+    ;
     var b = f(), c = f();
 
     Expect.equals(a, 2);
@@ -140,12 +164,16 @@ class FunctionTest {
     var f, g;
     {
       var b = 2;
-      f = () {return b - a;};
+      f = () {
+        return b - a;
+      };
     }
 
     {
       var b = 3;
-      g = () {return b - a;};
+      g = () {
+        return b - a;
+      };
     }
     Expect.equals(1, f());
     Expect.equals(2, g());
@@ -156,12 +184,20 @@ class FunctionTest {
     var f, g;
     {
       var b = 2;
-      f = () {return ((){return b - a;})();};
+      f = () {
+        return (() {
+          return b - a;
+        })();
+      };
     }
 
     {
       var b = 3;
-      g = () {return ((){return b - a;})();};
+      g = () {
+        return (() {
+          return b - a;
+        })();
+      };
     }
     Expect.equals(1, f());
     Expect.equals(2, g());
@@ -171,7 +207,9 @@ class FunctionTest {
     var a = new List();
     for (int i = 0; i < 10; i++) {
       var x = i;
-      a.add(() {return x;});
+      a.add(() {
+        return x;
+      });
     }
 
     var sum = 0;
@@ -201,8 +239,11 @@ class FunctionTest {
   // Make sure labels are preserved, and a second 'i' does influence the first.
   void testLexicalClosureRef4() {
     var a = new List();
-    x:for (int i = 0; i < 10; i++) {
-      a.add(() {return i;});
+    x:
+    for (int i = 0; i < 10; i++) {
+      a.add(() {
+        return i;
+      });
       continue x;
     }
 
@@ -217,7 +258,7 @@ class FunctionTest {
   int tempField;
 
   void testForEach() {
-    List<int> vals = [1,2,3];
+    List<int> vals = [1, 2, 3];
     int total = 0;
     vals.forEach((int v) {
       total += v;
@@ -229,6 +270,7 @@ class FunctionTest {
     f([a = 1, b = 3]) {
       return a - b;
     }
+
     Expect.equals(-2, f());
   }
 
@@ -236,15 +278,26 @@ class FunctionTest {
     f(a, b) {
       return a - b;
     }
-    Expect.equals(-2, f(1,3));
+
+    Expect.equals(-2, f(1, 3));
   }
 
   void testFunctionDefaults1() {
     // TODO(jimhug): This return null shouldn't be necessary.
-    f() { return null; };
-    (([a = 10]) { Expect.equals(10, a); })();
-    ((a, [b = 10]) { Expect.equals(10, b); })(1);
-    (([a = 10]) { Expect.equals(null, a); })( f() );
+    f() {
+      return null;
+    }
+
+    ;
+    (([a = 10]) {
+      Expect.equals(10, a);
+    })();
+    ((a, [b = 10]) {
+      Expect.equals(10, b);
+    })(1);
+    (([a = 10]) {
+      Expect.equals(null, a);
+    })(f());
     // FAILS: (([a = 10]) { Expect.equals(null ,a); })( f() );
   }
 
@@ -254,18 +307,28 @@ class FunctionTest {
   }
 
   num helperFunctionDefaults2([a = 10]) {
-    return ((){return a;})();
+    return (() {
+      return a;
+    })();
   }
 
   void testEscapingFunctions() {
-    f() { return 42; };
-    (() { Expect.equals(42, f()); })();
+    f() {
+      return 42;
+    }
+
+    ;
+    (() {
+      Expect.equals(42, f());
+    })();
     var o = new Bug4089219(42);
     Expect.equals(42, (o.f)());
   }
 
   void testThisBinding() {
-    Expect.equals(this, () { return this; }());
+    Expect.equals(this, () {
+      return this;
+    }());
   }
 }
 
@@ -273,7 +336,7 @@ typedef void Foo<A, B>(A a, B b);
 
 class Bar<A, B> {
   Foo<A, B> field;
-  Bar(A a, B b) : this.field = ((A a1, B b2){}) {
+  Bar(A a, B b) : this.field = ((A a1, B b2) {}) {
     field(a, b);
   }
 }

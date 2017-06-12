@@ -5,11 +5,21 @@
 import "package:expect/expect.dart";
 
 testGetRange(list, start, end, bool isModifiable) {
-  expectRE(() { list.getRange(-1, 0); });
-  expectRE(() { list.getRange(0, -1); });
-  expectRE(() { list.getRange(1, 0); });
-  expectRE(() { list.getRange(0, list.length + 1); });
-  expectRE(() { list.getRange(list.length + 1, list.length + 1); });
+  expectRE(() {
+    list.getRange(-1, 0);
+  });
+  expectRE(() {
+    list.getRange(0, -1);
+  });
+  expectRE(() {
+    list.getRange(1, 0);
+  });
+  expectRE(() {
+    list.getRange(0, list.length + 1);
+  });
+  expectRE(() {
+    list.getRange(list.length + 1, list.length + 1);
+  });
   Iterable iterable = list.getRange(start, end);
   Expect.isFalse(iterable is List);
   if (start == end) {

@@ -29,12 +29,13 @@ void testJson(json, expected) {
     } else if (expected is num) {
       Expect.equals(expected is int, actual is int, "$path: same number type");
       Expect.isTrue(expected.compareTo(actual) == 0,
-                    "$path: Expected: $expected, was: $actual");
+          "$path: Expected: $expected, was: $actual");
     } else {
       // String, bool, null.
       Expect.equals(expected, actual, path);
     }
   }
+
   for (var reviver in [null, (k, v) => v]) {
     for (var split in [0, 1, 2, 3]) {
       var name = (reviver == null) ? "" : "reviver:";
@@ -82,9 +83,12 @@ String escape(String s) {
   var sb = new StringBuffer();
   for (int i = 0; i < s.length; i++) {
     int code = s.codeUnitAt(i);
-    if (code == '\\'.codeUnitAt(0)) sb.write(r'\\');
-    else if (code == '\"'.codeUnitAt(0)) sb.write(r'\"');
-    else if (code >= 32 && code < 127) sb.writeCharCode(code);
+    if (code == '\\'.codeUnitAt(0))
+      sb.write(r'\\');
+    else if (code == '\"'.codeUnitAt(0))
+      sb.write(r'\"');
+    else if (code >= 32 && code < 127)
+      sb.writeCharCode(code);
     else {
       String hex = '000${code.toRadixString(16)}';
       sb.write(r'\u' '${hex.substring(hex.length - 4)}');
@@ -99,7 +103,7 @@ void testThrows(json) {
 
 testNumbers() {
   // Positive tests for number formats.
-  var integerList = ["0","9","9999"];
+  var integerList = ["0", "9", "9999"];
   var signList = ["", "-"];
   var fractionList = ["", ".0", ".1", ".99999"];
   var exponentList = [""];
@@ -132,6 +136,7 @@ testNumbers() {
       if (value is List) return value;
       return [value];
     }
+
     signs = def(signs, signList);
     integers = def(integers, integerList);
     fractions = def(fractions, fractionList);
@@ -147,6 +152,7 @@ testNumbers() {
       }
     }
   }
+
   // Doubles overflow to Infinity.
   testJson("1e+400", double.INFINITY);
   // (Integers do not, but we don't have those on dart2js).
@@ -215,7 +221,7 @@ testStrings() {
   // Throws on unterminated strings.
   testThrows(r'"......\"');
   // Throws on unterminated escapes.
-  testThrows(r'"\');  // ' is not escaped.
+  testThrows(r'"\'); // ' is not escaped.
   testThrows(r'"\a"');
   testThrows(r'"\u"');
   testThrows(r'"\u1"');
@@ -235,16 +241,19 @@ testStrings() {
   testThrows('"\\\x00"'); // Not raw string!
   // Throws on control characters.
   for (int i = 0; i < 32; i++) {
-    var string = new String.fromCharCodes([0x22,i,0x22]); // '"\x00"' etc.
+    var string = new String.fromCharCodes([0x22, i, 0x22]); // '"\x00"' etc.
     testThrows(string);
   }
 }
 
-
 testObjects() {
   testJson(r'{}', {});
-  testJson(r'{"x":42}', {"x":42});
-  testJson(r'{"x":{"x":{"x":42}}}', {"x": {"x": {"x": 42}}});
+  testJson(r'{"x":42}', {"x": 42});
+  testJson(r'{"x":{"x":{"x":42}}}', {
+    "x": {
+      "x": {"x": 42}
+    }
+  });
   testJson(r'{"x":10,"x":42}', {"x": 42});
   testJson(r'{"":42}', {"": 42});
 
@@ -263,9 +272,25 @@ testObjects() {
 testArrays() {
   testJson(r'[]', []);
   testJson(r'[1.1e1,"string",true,false,null,{}]',
-           [1.1e1, "string", true, false, null, {}]);
-  testJson(r'[[[[[[]]]],[[[]]],[[]]]]', [[[[[[]]]],[[[]]],[[]]]]);
-  testJson(r'[{},[{}],{"x":[]}]', [{},[{}],{"x":[]}]);
+      [1.1e1, "string", true, false, null, {}]);
+  testJson(r'[[[[[[]]]],[[[]]],[[]]]]', [
+    [
+      [
+        [
+          [[]]
+        ]
+      ],
+      [
+        [[]]
+      ],
+      [[]]
+    ]
+  ]);
+  testJson(r'[{},[{}],{"x":[]}]', [
+    {},
+    [{}],
+    {"x": []}
+  ]);
 
   testThrows(r'[1,,2]');
   testThrows(r'[1,2,]');
@@ -295,11 +320,14 @@ testWhitespace() {
   // Valid white-space characters.
   var v = '\t\r\n\ ';
   // Invalid white-space and non-recognized characters.
-  var invalids = ['\x00', '\f', '\x08', '\\', '\xa0','\u2028', '\u2029'];
+  var invalids = ['\x00', '\f', '\x08', '\\', '\xa0', '\u2028', '\u2029'];
 
   // Valid whitespace accepted "everywhere".
-  testJson('$v[${v}-2.2e2$v,$v{$v"key"$v:${v}true$v}$v,$v"ab"$v]$v',
-           [-2.2e2, {"key": true}, "ab"]);
+  testJson('$v[${v}-2.2e2$v,$v{$v"key"$v:${v}true$v}$v,$v"ab"$v]$v', [
+    -2.2e2,
+    {"key": true},
+    "ab"
+  ]);
 
   // IE9 accepts invalid characters at the end, so some of these tests have been
   // moved to json_strict_test.dart.

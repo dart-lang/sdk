@@ -26,8 +26,13 @@ const String setupProgramName = 'setupProgram';
 //   unlikely since it lives on types, but still.
 const String typeNameProperty = r'builtin$cls';
 
-jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
-    JavaScriptBackend backend, Namer namer, Emitter emitter) {
+jsAst.Statement buildSetupProgram(
+    Program program,
+    Compiler compiler,
+    JavaScriptBackend backend,
+    Namer namer,
+    Emitter emitter,
+    ClosedWorld closedWorld) {
   jsAst.Expression typeInformationAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPE_INFORMATION);
   jsAst.Expression globalFunctionsAccess =
@@ -103,7 +108,7 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
     'staticsPropertyNameString': js.quoteName(namer.staticsPropertyName),
     'typeInformation': typeInformationAccess,
     'globalFunctions': globalFunctionsAccess,
-    'enabledInvokeOn': backend.backendUsage.isInvokeOnUsed,
+    'enabledInvokeOn': closedWorld.backendUsage.isInvokeOnUsed,
     'interceptedNames': interceptedNamesAccess,
     'interceptedNamesSet': emitter.generateInterceptedNamesSet(),
     'notInCspMode': !compiler.options.useContentSecurityPolicy,
@@ -124,20 +129,23 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
     'finishedClassesAccess': finishedClassesAccess,
     'needsMixinSupport': emitter.needsMixinSupport,
     'needsNativeSupport': program.needsNativeSupport,
-    'enabledJsInterop': backend.jsInteropAnalysis.enabledJsInterop,
+    'enabledJsInterop': backend.nativeBasicData.isJsInteropUsed,
     'jsInteropBoostrap': backend.jsInteropAnalysis.buildJsInteropBootstrap(),
-    'isInterceptorClass': namer.operatorIs(backend.helpers.jsInterceptorClass),
+    'isInterceptorClass':
+        namer.operatorIs(compiler.commonElements.jsInterceptorClass),
     'isObject': namer.operatorIs(compiler.commonElements.objectClass),
     'specProperty': js.string(namer.nativeSpecProperty),
     'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
     'hasRetainedMetadata': backend.mirrorsData.hasRetainedMetadata,
     'types': typesAccess,
-    'objectClassName': js.quoteName(
-        namer.runtimeTypeName(compiler.commonElements.objectClass as Entity)),
+    'objectClassName': js.quoteName(namer.runtimeTypeName(
+        // ignore: UNNECESSARY_CAST
+        compiler.commonElements.objectClass as Entity)),
     'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
     'usesMangledNames': compiler.commonElements.mirrorsLibrary != null ||
-        backend.backendUsage.isFunctionApplyUsed,
-    'tearOffCode': buildTearOffCode(backend),
+        closedWorld.backendUsage.isFunctionApplyUsed,
+    'tearOffCode': buildTearOffCode(
+        compiler.options, emitter, namer, compiler.commonElements),
     'nativeInfoHandler': nativeInfoHandler,
     'operatorIsPrefix': js.string(namer.operatorIsPrefix),
     'deferredActionString': js.string(namer.deferredAction)
@@ -440,7 +448,7 @@ function $setupProgramName(programData, typesOffset) {
       for (var i = 0; i < properties.length; i++) finishClass(properties[i]);
     }
 
-    // Generic handler for deferred class setup. The handler updates the 
+    // Generic handler for deferred class setup. The handler updates the
     // prototype that it is installed on (it traverses the prototype chain
     // of [this] to find itself) and then removes itself. It recurses by
     // calling deferred handling again, which terminates on Object due to
@@ -733,7 +741,7 @@ function $setupProgramName(programData, typesOffset) {
           if (isSetter) {
             reflectionName += "=";
           } else if (!isGetter) {
-            reflectionName += ":" + 
+            reflectionName += ":" +
                 (requiredParameterCount + optionalParameterCount);
           }
           mangledNames[name] = reflectionName;

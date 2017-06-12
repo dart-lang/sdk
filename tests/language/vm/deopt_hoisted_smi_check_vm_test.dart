@@ -30,6 +30,6 @@ main() {
     Expect.equals(9, sum(1, 2));
     Expect.equals(0xAB, mask(0xAB));
   }
-  Expect.equals(9, sum(1.0, 2.0));  // Passing double causes deoptimization.
+  Expect.equals(9, sum(1.0, 2.0)); // Passing double causes deoptimization.
   Expect.equals(0xAB, mask(0x1000000AB));
 }

@@ -49,8 +49,8 @@ main() {
     bytes = b.takeBytes();
     testLength(0);
     Expect.isTrue(bytes is Uint8List);
-    Expect.listEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-                      bytes);
+    Expect.listEquals(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], bytes);
 
     b.addByte(0);
     testLength(1);

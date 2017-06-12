@@ -26,6 +26,8 @@ dependency_overrides:
     path: ../front_end
   analyzer:
     path: ../analyzer
+  kernel:
+    path: ../../pkg/kernel
 
 # Uncomment if running gclient, so you can depend directly on the downloaded
 # versions of dart2js's transitive dependencies:

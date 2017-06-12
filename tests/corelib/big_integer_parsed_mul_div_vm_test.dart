@@ -7,6 +7,7 @@
 // VMOptions=--no_intrinsify
 
 library big_integer_test;
+
 import "package:expect/expect.dart";
 
 mulDivParsed(String a, String b, String product) {
@@ -15,32 +16,32 @@ mulDivParsed(String a, String b, String product) {
   int int_product = int.parse(product);
   int computed_product = int_a * int_b;
   Expect.equals(int_product, computed_product);
-  String str_product = computed_product >= 0 ?
-      "0x${computed_product.toRadixString(16)}" :
-      "-0x${(-computed_product).toRadixString(16)}";
+  String str_product = computed_product >= 0
+      ? "0x${computed_product.toRadixString(16)}"
+      : "-0x${(-computed_product).toRadixString(16)}";
   Expect.equals(product.toLowerCase(), str_product);
   int computed_product2 = int_b * int_a;
   Expect.equals(int_product, computed_product2);
-  String str_product2 = computed_product2 >= 0 ?
-      "0x${computed_product2.toRadixString(16)}" :
-      "-0x${(-computed_product2).toRadixString(16)}";
+  String str_product2 = computed_product2 >= 0
+      ? "0x${computed_product2.toRadixString(16)}"
+      : "-0x${(-computed_product2).toRadixString(16)}";
   Expect.equals(product.toLowerCase(), str_product2);
 
   if (int_a != 0) {
     int computed_quotient1 = int_product ~/ int_a;
     Expect.equals(int_b, computed_quotient1);
-    String str_quotient1 = computed_quotient1 >= 0 ?
-        "0x${computed_quotient1.toRadixString(16)}" :
-        "-0x${(-computed_quotient1).toRadixString(16)}";
+    String str_quotient1 = computed_quotient1 >= 0
+        ? "0x${computed_quotient1.toRadixString(16)}"
+        : "-0x${(-computed_quotient1).toRadixString(16)}";
     Expect.equals(b.toLowerCase(), str_quotient1);
   }
 
   if (int_b != 0) {
     int computed_quotient2 = int_product ~/ int_b;
     Expect.equals(int_a, computed_quotient2);
-    String str_quotient2 = computed_quotient2 >= 0 ?
-        "0x${computed_quotient2.toRadixString(16)}" :
-        "-0x${(-computed_quotient2).toRadixString(16)}";
+    String str_quotient2 = computed_quotient2 >= 0
+        ? "0x${computed_quotient2.toRadixString(16)}"
+        : "-0x${(-computed_quotient2).toRadixString(16)}";
     Expect.equals(a.toLowerCase(), str_quotient2);
   }
 }
@@ -64,11 +65,9 @@ testBigintMultiplyDivide() {
   mulDivParsed("0xFFFFFFF", "0x5", "0x4FFFFFFB");
   mulDivParsed("0xFFFFFFFF", "0x5", "0x4FFFFFFFB");
   mulDivParsed("0xFFFFFFFFFFFFFFFF", "0x5", "0x4FFFFFFFFFFFFFFFB");
-  mulDivParsed("0xFFFFFFFFFFFFFFFF", "0x3039",
-               "0x3038FFFFFFFFFFFFCFC7");
-  mulDivParsed("0xFFFFFFFFFFFFFFFF",
-               "0xFFFFFFFFFFFFFFFFFFFFFFFFFF",
-               "0xFFFFFFFFFFFFFFFEFFFFFFFFFF0000000000000001");
+  mulDivParsed("0xFFFFFFFFFFFFFFFF", "0x3039", "0x3038FFFFFFFFFFFFCFC7");
+  mulDivParsed("0xFFFFFFFFFFFFFFFF", "0xFFFFFFFFFFFFFFFFFFFFFFFFFF",
+      "0xFFFFFFFFFFFFFFFEFFFFFFFFFF0000000000000001");
   mulDivParsed(
       "0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000",
       "0xFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000",

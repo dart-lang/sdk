@@ -4,10 +4,8 @@
 // Dart test program for testing wrong abstract class reference:
 // A class must implement a known interface.
 
-
 class Interface2NegativeTest implements BooHoo {
-  static testMain() {
-  }
+  static testMain() {}
 }
 
 main() {

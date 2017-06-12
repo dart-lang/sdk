@@ -38,7 +38,8 @@ class BreakTest {
 
     // Use a label to break to the outer loop.
     i = 0;
-    L: while (i < 10) {
+    L:
+    while (i < 10) {
       i++;
       while (i > 5) {
         break L;

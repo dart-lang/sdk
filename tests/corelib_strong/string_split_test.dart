@@ -10,7 +10,6 @@ main() {
   testSplitPattern();
 }
 
-
 testSplit(List expect, String string, Pattern pattern) {
   String patternString;
   if (pattern is String) {
@@ -20,8 +19,8 @@ testSplit(List expect, String string, Pattern pattern) {
   } else {
     patternString = pattern.toString();
   }
-  Expect.listEquals(expect, string.split(pattern),
-                    '"$string".split($patternString)');
+  Expect.listEquals(
+      expect, string.split(pattern), '"$string".split($patternString)');
 }
 
 /** String patterns. */
@@ -43,8 +42,8 @@ void testSplitString() {
   // No overlapping matches. Match as early as possible.
   testSplit(["", "", "", "a"], "aaaaaaa", "aa");
   // Cannot split the empty string.
-  testSplit([], "", "");  // Match.
-  testSplit([""], "", "a");  // No match.
+  testSplit([], "", ""); // Match.
+  testSplit([""], "", "a"); // No match.
 }
 
 /** RegExp patterns. */

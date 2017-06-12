@@ -1,4 +1,3 @@
-
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -40,7 +39,7 @@ abstract class A {
 }
 
 abstract class B extends A {
-  B(num f1, num f2, num f3): super(f1, f2, f3);
+  B(num f1, num f2, num f3) : super(f1, f2, f3);
 
   void m1(num n);
   void m2(covariant num n);
@@ -57,8 +56,8 @@ abstract class B extends A {
 }
 
 class C extends B {
-  C(int f1, int f2, int f3): super(f1, f2, f3);
-  
+  C(int f1, int f2, int f3) : super(f1, f2, f3);
+
   void m1(int i) {}
   void m2(int i) {}
   void m3(int i) {}

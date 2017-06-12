@@ -88,10 +88,11 @@ TEST_CASE(DartStaticResolve) {
 
   // Now try to resolve and invoke the static function in this class.
   {
+    const int kTypeArgsLen = 0;
     const int kNumArguments = 2;
-    const Function& function = Function::Handle(
-        Resolver::ResolveStatic(library, class_name, static_function_name,
-                                kNumArguments, Object::empty_array()));
+    const Function& function = Function::Handle(Resolver::ResolveStatic(
+        library, class_name, static_function_name, kTypeArgsLen, kNumArguments,
+        Object::empty_array()));
     EXPECT(!function.IsNull());  // No ambiguity error expected.
     const Array& args = Array::Handle(Array::New(kNumArguments));
     const String& arg0 = String::Handle(String::New("junk"));
@@ -105,10 +106,11 @@ TEST_CASE(DartStaticResolve) {
 
   // Now try to resolve a static function with invalid argument count.
   {
+    const int kTypeArgsLen = 0;
     const int kNumArguments = 1;
-    const Function& bad_function = Function::Handle(
-        Resolver::ResolveStatic(library, class_name, static_function_name,
-                                kNumArguments, Object::empty_array()));
+    const Function& bad_function = Function::Handle(Resolver::ResolveStatic(
+        library, class_name, static_function_name, kTypeArgsLen, kNumArguments,
+        Object::empty_array()));
     EXPECT(bad_function.IsNull());  // No ambiguity error expected.
   }
 
@@ -117,10 +119,11 @@ TEST_CASE(DartStaticResolve) {
     const String& super_static_function_name =
         String::Handle(String::New("statCall"));
     const String& super_class_name = String::Handle(String::New("Base"));
+    const int kTypeArgsLen = 0;
     const int kNumArguments = 0;
     const Function& super_function = Function::Handle(Resolver::ResolveStatic(
-        library, super_class_name, super_static_function_name, kNumArguments,
-        Object::empty_array()));
+        library, super_class_name, super_static_function_name, kTypeArgsLen,
+        kNumArguments, Object::empty_array()));
     EXPECT(!super_function.IsNull());  // No ambiguity error expected.
   }
 }
@@ -150,9 +153,10 @@ TEST_CASE(DartDynamicResolve) {
 
   // Now try to resolve and invoke the instance function in this class.
   {
+    const int kTypeArgsLen = 0;
     const int kNumArguments = 3;
     ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
+        Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
     const Function& function = Function::Handle(
         Resolver::ResolveDynamic(receiver, function_name, args_desc));
     EXPECT(!function.IsNull());
@@ -169,9 +173,10 @@ TEST_CASE(DartDynamicResolve) {
 
   // Now try to resolve an instance function with invalid argument count.
   {
+    const int kTypeArgsLen = 0;
     const int kNumArguments = 1;
     ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
+        Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
     const Function& bad_function = Function::Handle(
         Resolver::ResolveDynamic(receiver, function_name, args_desc));
     EXPECT(bad_function.IsNull());
@@ -179,9 +184,10 @@ TEST_CASE(DartDynamicResolve) {
 
   // Hierarchy walking.
   {
+    const int kTypeArgsLen = 0;
     const int kNumArguments = 1;
     ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
+        Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
     const String& super_function_name = String::Handle(String::New("dynCall"));
     const Function& super_function = Function::Handle(
         Resolver::ResolveDynamic(receiver, super_function_name, args_desc));

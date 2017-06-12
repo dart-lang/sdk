@@ -6,6 +6,7 @@
 // VMOptions=--checked
 
 library TypedMessageTest;
+
 import "dart:async";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";

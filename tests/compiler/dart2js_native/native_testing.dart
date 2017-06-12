@@ -5,7 +5,6 @@
 // Native testing library. Provides support for mock @Native classes and
 // collects common imports.
 
-
 import "package:expect/expect.dart";
 import 'dart:_js_helper' show Native;
 

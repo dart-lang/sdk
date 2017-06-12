@@ -26,7 +26,6 @@ void main() {
 }
 
 class ThrowOnToString {
-
   String toString() {
     throw "Bad!";
   }

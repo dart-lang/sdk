@@ -17,7 +17,6 @@ test_branch(a, b) {
   return false;
 }
 
-
 main() {
   Expect.equals(true, test_expr(0.5, double.NAN));
   for (var i = 0; i < 20; i++) test_expr(0.5, double.NAN);

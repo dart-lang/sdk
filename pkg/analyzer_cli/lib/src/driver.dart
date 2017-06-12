@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.src.driver;
-
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:analyzer/error/error.dart';
@@ -18,7 +15,6 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -36,11 +32,15 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer_cli/src/analyzer_impl.dart';
+import 'package:analyzer_cli/src/batch_mode.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
+import 'package:analyzer_cli/src/error_severity.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
+import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:package_config/discovery.dart' as pkg_discovery;
 import 'package:package_config/packages.dart' show Packages;
@@ -66,8 +66,6 @@ bool containsLintRuleEntry(Map<String, YamlNode> options) {
   var linterNode = options['linter'];
   return linterNode is YamlMap && linterNode.containsKey('rules');
 }
-
-typedef Future<ErrorSeverity> _BatchRunnerHandler(List<String> args);
 
 class Driver implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
@@ -133,19 +131,20 @@ class Driver implements CommandLineStarter {
     // Do analysis.
     if (options.buildMode) {
       ErrorSeverity severity = _buildModeAnalyze(options);
-      // In case of error propagate exit code.
-      if (severity == ErrorSeverity.ERROR) {
+      // Propagate issues to the exit code.
+      if (_shouldBeFatal(severity, options)) {
         io.exitCode = severity.ordinal;
       }
     } else if (options.shouldBatch) {
-      _BatchRunner.runAsBatch(args, (List<String> args) async {
+      BatchRunner batchRunner = new BatchRunner(outSink, errorSink);
+      batchRunner.runAsBatch(args, (List<String> args) async {
         CommandLineOptions options = CommandLineOptions.parse(args);
         return await _analyzeAll(options);
       });
     } else {
       ErrorSeverity severity = await _analyzeAll(options);
-      // In case of error propagate exit code.
-      if (severity == ErrorSeverity.ERROR) {
+      // Propagate issues to the exit code.
+      if (_shouldBeFatal(severity, options)) {
         io.exitCode = severity.ordinal;
       }
     }
@@ -232,6 +231,26 @@ class Driver implements CommandLineStarter {
     List<Uri> libUris = <Uri>[];
     Set<Source> partSources = new Set<Source>();
 
+    SeverityProcessor defaultSeverityProcessor = (AnalysisError error) {
+      return determineProcessedSeverity(
+          error, options, _context.analysisOptions);
+    };
+
+    // We currently print out to stderr to ensure that when in batch mode we
+    // print to stderr, this is because the prints from batch are made to
+    // stderr. The reason that options.shouldBatch isn't used is because when
+    // the argument flags are constructed in BatchRunner and passed in from
+    // batch mode which removes the batch flag to prevent the "cannot have the
+    // batch flag and source file" error message.
+    ErrorFormatter formatter;
+    if (options.machineFormat) {
+      formatter = new MachineErrorFormatter(errorSink, options, stats,
+          severityProcessor: defaultSeverityProcessor);
+    } else {
+      formatter = new HumanErrorFormatter(outSink, options, stats,
+          severityProcessor: defaultSeverityProcessor);
+    }
+
     for (Source source in sourcesToAnalyze) {
       SourceKind sourceKind = analysisDriver != null
           ? await analysisDriver.getSourceKind(source.fullName)
@@ -240,12 +259,12 @@ class Driver implements CommandLineStarter {
         partSources.add(source);
         continue;
       }
-      // TODO(devoncarew): Analyzing each source individually causes errors to
-      // be reported multiple times (#25697).
-      ErrorSeverity status = await _runAnalyzer(source, options);
+      ErrorSeverity status = await _runAnalyzer(source, options, formatter);
       allResult = allResult.max(status);
       libUris.add(source.uri);
     }
+
+    formatter.flush();
 
     // Check that each part has a corresponding source in the input list.
     for (Source partSource in partSources) {
@@ -317,6 +336,10 @@ class Driver implements CommandLineStarter {
     }
     if (options.enableStrictCallChecks !=
         _previousOptions.enableStrictCallChecks) {
+      return false;
+    }
+    if (options.enableAssertInitializer !=
+        _previousOptions.enableAssertInitializer) {
       return false;
     }
     if (options.showPackageWarnings != _previousOptions.showPackageWarnings) {
@@ -586,7 +609,7 @@ class Driver implements CommandLineStarter {
           resourceProvider,
           analysisDriverMemoryByteStore,
           new FileContentOverlay(),
-          'test',
+          null,
           context.sourceFactory,
           context.analysisOptions);
       analysisDriver.results.listen((_) {});
@@ -692,18 +715,11 @@ class Driver implements CommandLineStarter {
 
   /// Analyze a single source.
   Future<ErrorSeverity> _runAnalyzer(
-      Source source, CommandLineOptions options) async {
+      Source source, CommandLineOptions options, ErrorFormatter formatter) {
     int startTime = currentTimeMillis;
     AnalyzerImpl analyzer = new AnalyzerImpl(_context.analysisOptions, _context,
         analysisDriver, source, options, stats, startTime);
-    ErrorSeverity errorSeverity = await analyzer.analyze();
-    if (errorSeverity == ErrorSeverity.ERROR) {
-      io.exitCode = errorSeverity.ordinal;
-    }
-    if (options.warningsAreFatal && errorSeverity == ErrorSeverity.WARNING) {
-      io.exitCode = errorSeverity.ordinal;
-    }
-    return errorSeverity;
+    return analyzer.analyze(formatter);
   }
 
   void _setupSdk(CommandLineOptions options, bool useSummaries,
@@ -725,6 +741,19 @@ class Driver implements CommandLineStarter {
         dartSdk.analysisOptions = analysisOptions;
         sdk = dartSdk;
       }
+    }
+  }
+
+  bool _shouldBeFatal(ErrorSeverity severity, CommandLineOptions options) {
+    if (severity == ErrorSeverity.ERROR) {
+      return true;
+    } else if (severity == ErrorSeverity.WARNING &&
+        (options.warningsAreFatal || options.infosAreFatal)) {
+      return true;
+    } else if (severity == ErrorSeverity.INFO && options.infosAreFatal) {
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -764,6 +793,9 @@ class Driver implements CommandLineStarter {
     contextOptions.hint = !options.disableHints;
     contextOptions.generateImplicitErrors = options.showPackageWarnings;
     contextOptions.generateSdkErrors = options.showSdkWarnings;
+    if (options.enableAssertInitializer != null) {
+      contextOptions.enableAssertInitializer = options.enableAssertInitializer;
+    }
 
     return contextOptions;
   }
@@ -826,61 +858,6 @@ class Driver implements CommandLineStarter {
   /// Convert [sourcePath] into an absolute path.
   static String _normalizeSourcePath(String sourcePath) =>
       path.normalize(new io.File(sourcePath).absolute.path);
-}
-
-/// Provides a framework to read command line options from stdin and feed them
-/// to a callback.
-class _BatchRunner {
-  /// Run the tool in 'batch' mode, receiving command lines through stdin and
-  /// returning pass/fail status through stdout. This feature is intended for
-  /// use in unit testing.
-  static void runAsBatch(List<String> sharedArgs, _BatchRunnerHandler handler) {
-    outSink.writeln('>>> BATCH START');
-    Stopwatch stopwatch = new Stopwatch();
-    stopwatch.start();
-    int testsFailed = 0;
-    int totalTests = 0;
-    ErrorSeverity batchResult = ErrorSeverity.NONE;
-    // Read line from stdin.
-    Stream cmdLine =
-        io.stdin.transform(UTF8.decoder).transform(new LineSplitter());
-    cmdLine.listen((String line) async {
-      // Maybe finish.
-      if (line.isEmpty) {
-        var time = stopwatch.elapsedMilliseconds;
-        outSink.writeln(
-            '>>> BATCH END (${totalTests - testsFailed}/$totalTests) ${time}ms');
-        io.exitCode = batchResult.ordinal;
-      }
-      // Prepare arguments.
-      var lineArgs = line.split(new RegExp('\\s+'));
-      var args = new List<String>();
-      args.addAll(sharedArgs);
-      args.addAll(lineArgs);
-      args.remove('-b');
-      args.remove('--batch');
-      // Analyze single set of arguments.
-      try {
-        totalTests++;
-        ErrorSeverity result = await handler(args);
-        bool resultPass = result != ErrorSeverity.ERROR;
-        if (!resultPass) {
-          testsFailed++;
-        }
-        batchResult = batchResult.max(result);
-        // Write stderr end token and flush.
-        errorSink.writeln('>>> EOF STDERR');
-        String resultPassString = resultPass ? 'PASS' : 'FAIL';
-        outSink.writeln(
-            '>>> TEST $resultPassString ${stopwatch.elapsedMilliseconds}ms');
-      } catch (e, stackTrace) {
-        errorSink.writeln(e);
-        errorSink.writeln(stackTrace);
-        errorSink.writeln('>>> EOF STDERR');
-        outSink.writeln('>>> TEST CRASH');
-      }
-    });
-  }
 }
 
 class _DriverError implements Exception {

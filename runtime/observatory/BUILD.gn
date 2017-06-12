@@ -27,8 +27,7 @@ declare_args() {
 }
 
 # We set this to "" in the Fuchsia build to force building with dart_bootstrap.
-if (defined(is_fuchsia) && defined(is_fuchsia_host) &&
-    (is_fuchsia || is_fuchsia_host)) {
+if (is_fuchsia || is_fuchsia_host) {
   dart_host_pub_exe = ""
 }
 

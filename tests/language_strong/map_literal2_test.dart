@@ -14,7 +14,7 @@ get nextVal {
 main() {
   // Map literals with string interpolation in keys.
   nextValCtr = 0;
-  var map = {"a$nextVal": "Grey", "a$nextVal": "Poupon" };
+  var map = {"a$nextVal": "Grey", "a$nextVal": "Poupon"};
   Expect.equals(true, map.containsKey("a0"));
   Expect.equals(true, map.containsKey("a1"));
   Expect.equals("Grey", map["a0"]);

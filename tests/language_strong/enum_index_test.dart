@@ -28,5 +28,3 @@ main() {
 test(expected, object) {
   Expect.equals(expected, object.index);
 }
-
-

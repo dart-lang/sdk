@@ -19,25 +19,25 @@ import 'dart:io';
 const ENOENT = 2;
 
 testStartError() {
-  Future<Process> processFuture =
-      Process.start("__path_to_something_that_should_not_exist__",
-                    const [],
-                    environment: {"PATH": ""});
-  processFuture.then((p) => Expect.fail('got process despite start error'))
-  .catchError((error) {
+  Future<Process> processFuture = Process.start(
+      "__path_to_something_that_should_not_exist__", const [],
+      environment: {"PATH": ""});
+  processFuture
+      .then((p) => Expect.fail('got process despite start error'))
+      .catchError((error) {
     Expect.isTrue(error is ProcessException);
     Expect.equals(ENOENT, error.errorCode, error.toString());
   });
 }
 
 testRunError() {
-  Future<ProcessResult> processFuture =
-      Process.run("__path_to_something_that_should_not_exist__",
-                  const [],
-                  environment: {"PATH": ""});
+  Future<ProcessResult> processFuture = Process.run(
+      "__path_to_something_that_should_not_exist__", const [],
+      environment: {"PATH": ""});
 
-  processFuture.then((result) => Expect.fail("exit handler called"))
-  .catchError((error) {
+  processFuture
+      .then((result) => Expect.fail("exit handler called"))
+      .catchError((error) {
     Expect.isTrue(error is ProcessException);
     Expect.equals(ENOENT, error.errorCode, error.toString());
   });

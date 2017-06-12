@@ -9,6 +9,7 @@ import 'errors.dart' show internalError;
 enum ModifierEnum {
   Abstract,
   Const,
+  Covariant,
   External,
   Final,
   Static,
@@ -21,19 +22,26 @@ const int abstractMask = 1;
 
 const int constMask = abstractMask << 1;
 
-const int externalMask = constMask << 1;
+const int covariantMask = constMask << 1;
+
+const int externalMask = covariantMask << 1;
 
 const int finalMask = externalMask << 1;
 
 const int staticMask = finalMask << 1;
 
-/// Not a real modifier, and by setting it to null, it is automatically
-/// ignored by [Modifier.validate] below.
+const int namedMixinApplicationMask = staticMask << 1;
+
+/// Not a real modifier, and by setting it to zero, it is automatically ignored
+/// by [Modifier.validate] below.
 const int varMask = 0;
 
 const Modifier Abstract = const Modifier(ModifierEnum.Abstract, abstractMask);
 
 const Modifier Const = const Modifier(ModifierEnum.Const, constMask);
+
+const Modifier Covariant =
+    const Modifier(ModifierEnum.Covariant, covariantMask);
 
 const Modifier External = const Modifier(ModifierEnum.External, externalMask);
 
@@ -54,6 +62,7 @@ class Modifier {
   factory Modifier.fromString(String string) {
     if (identical('abstract', string)) return Abstract;
     if (identical('const', string)) return Const;
+    if (identical('covariant', string)) return Covariant;
     if (identical('external', string)) return External;
     if (identical('final', string)) return Final;
     if (identical('static', string)) return Static;
@@ -64,7 +73,8 @@ class Modifier {
   toString() => "modifier(${'$kind'.substring('ModifierEnum.'.length)})";
 
   static int validate(List<Modifier> modifiers, {bool isAbstract: false}) {
-    // TODO(ahe): Implement modifier validation: ordering and uniqueness.
+    // TODO(ahe): Rename this method, validation is now taken care of by the
+    // parser.
     int result = isAbstract ? abstractMask : 0;
     if (modifiers == null) return result;
     for (Modifier modifier in modifiers) {

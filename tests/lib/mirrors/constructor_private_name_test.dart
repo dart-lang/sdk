@@ -6,6 +6,7 @@ library test.constructors_test;
 
 // Regression test for C1 bug.
 
+@MirrorsUsed(targets: "test.constructors_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

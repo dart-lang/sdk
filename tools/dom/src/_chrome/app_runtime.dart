@@ -15,10 +15,8 @@ class AppRuntimeLaunchItem extends ChromeObject {
    * Public constructor
    */
   AppRuntimeLaunchItem({FileEntry entry, String type}) {
-    if (entry != null)
-      this.entry = entry;
-    if (type != null)
-      this.type = type;
+    if (entry != null) this.entry = entry;
+    if (type != null) this.type = type;
   }
 
   /*
@@ -42,7 +40,6 @@ class AppRuntimeLaunchItem extends ChromeObject {
   set type(String type) {
     JS('void', '#.type = #', this._jsObject, type);
   }
-
 }
 
 class AppRuntimeLaunchData extends ChromeObject {
@@ -50,10 +47,8 @@ class AppRuntimeLaunchData extends ChromeObject {
    * Public constructor
    */
   AppRuntimeLaunchData({String id, List<AppRuntimeLaunchItem> items}) {
-    if (id != null)
-      this.id = id;
-    if (items != null)
-      this.items = items;
+    if (id != null) this.id = id;
+    if (items != null) this.items = items;
   }
 
   /*
@@ -84,7 +79,6 @@ class AppRuntimeLaunchData extends ChromeObject {
   set items(List<AppRuntimeLaunchItem> items) {
     JS('void', '#.items = #', this._jsObject, convertArgument(items));
   }
-
 }
 
 /**
@@ -99,6 +93,7 @@ class Event_app_runtime_onLaunched extends Event {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
+
     super.addListener(__proxy_callback);
   }
 
@@ -108,6 +103,7 @@ class Event_app_runtime_onLaunched extends Event {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
+
     super.removeListener(__proxy_callback);
   }
 
@@ -117,6 +113,7 @@ class Event_app_runtime_onLaunched extends Event {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
+
     super.hasListener(__proxy_callback);
   }
 
@@ -151,7 +148,9 @@ class API_app_runtime {
   Event_app_runtime_onLaunched onLaunched;
   Event_app_runtime_onRestarted onRestarted;
   API_app_runtime(this._jsObject) {
-    onLaunched = new Event_app_runtime_onLaunched(JS('', '#.onLaunched', this._jsObject));
-    onRestarted = new Event_app_runtime_onRestarted(JS('', '#.onRestarted', this._jsObject));
+    onLaunched = new Event_app_runtime_onLaunched(
+        JS('', '#.onLaunched', this._jsObject));
+    onRestarted = new Event_app_runtime_onRestarted(
+        JS('', '#.onRestarted', this._jsObject));
   }
 }

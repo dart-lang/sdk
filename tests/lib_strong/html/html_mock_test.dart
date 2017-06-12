@@ -16,13 +16,19 @@ class MockBodyElement extends Mock implements BodyElement {
   Node append(Node e) => e;
 }
 
+class _EventListeners {
+  Stream<Event> get onBlur => new Stream.fromIterable([]);
+}
+
 @proxy
-class MockHtmlDocument extends Mock implements HtmlDocument {
+class MockHtmlDocument extends Mock
+    with _EventListeners
+    implements HtmlDocument {
   BodyElement get body => new MockBodyElement();
 }
 
 @proxy
-class MockWindow extends Mock implements Window {
+class MockWindow extends Mock with _EventListeners implements Window {
   Stream<Event> get onBeforeUnload => new Stream.fromIterable([]);
 
   String name = "MOCK_NAME";
@@ -64,5 +70,12 @@ main() {
   test('method', () {
     HtmlDocument doc = new MockHtmlDocument();
     expect(doc.body.append(null), equals(null));
+  });
+
+  test('mixin', () {
+    Window win = new MockWindow();
+    expect(win.onBlur is Stream, isTrue, reason: 'onBlur should be a stream');
+    HtmlDocument doc = new MockHtmlDocument();
+    expect(doc.onBlur is Stream, isTrue, reason: 'onBlur should be a stream');
   });
 }

@@ -25,9 +25,15 @@ class MyList extends ListBase {
   List list;
   MyList(this.list);
   get length => list.length;
-  set length(value) { list.length = value; }
+  set length(value) {
+    list.length = value;
+  }
+
   operator [](index) => list[index];
-  operator []=(index, val) { list[index] = val; }
+  operator []=(index, val) {
+    list[index] = val;
+  }
+
   toString() => list.toString();
 }
 
@@ -47,7 +53,7 @@ main() {
   test([1, 2, 3], 0, const [4, 5]);
   test([1, 2, 3], 1, const [4, 5]);
   test([1, 2, 3], 2, const [4, 5]);
-  test([1, 2, 3], 3, const [4 ,5]);
+  test([1, 2, 3], 3, const [4, 5]);
   test([1, 2, 3], 2, const [4]);
   test([1, 2, 3], 3, const []);
   test([1, 2, 3], 0, new Iterable.generate(2, (x) => x + 4));

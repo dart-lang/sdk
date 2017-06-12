@@ -7,7 +7,7 @@
 PROG_NAME="$BASH_SOURCE"
 WRAPPERS_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 DART_ROOT="$(cd "${WRAPPERS_DIR}/../.." ; pwd -P)"
-DARTK="$DART_ROOT/pkg/kernel/bin/dartk.dart"
+DARTK="$DART_ROOT/pkg/kernel/tool/dartk.dart"
 
 if [[ `uname` == 'Darwin' ]];
 then

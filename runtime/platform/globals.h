@@ -288,7 +288,7 @@ typedef simd128_value_t fpu_register_t;
 #define DART_UNUSED
 #endif
 
-// DART_NORETURN indicates to the compiler that a function doees not return.
+// DART_NORETURN indicates to the compiler that a function does not return.
 // It should be used on functions that unconditionally call functions like
 // exit(), which end the program. We use it to avoid compiler warnings in
 // callers of DART_NORETURN functions.
@@ -448,13 +448,7 @@ typedef intptr_t word;
 typedef uintptr_t uword;
 
 // Size of a class id.
-#if defined(ARCH_IS_32_BIT)
 typedef uint16_t classid_t;
-#elif defined(ARCH_IS_64_BIT)
-typedef uint32_t classid_t;
-#else
-#error Unexpected architecture word size
-#endif
 
 // Byte sizes.
 const int kWordSize = sizeof(word);
@@ -579,7 +573,7 @@ static inline void USE(T) {}
 // When you use implicit_cast, the compiler checks that the cast is safe.
 // Such explicit implicit_casts are necessary in surprisingly many
 // situations where C++ demands an exact type match instead of an
-// argument type convertable to a target type.
+// argument type convertible to a target type.
 //
 // The From type can be inferred, so the preferred syntax for using
 // implicit_cast is the same as for static_cast etc.:

@@ -575,9 +575,25 @@ class A {
 }
 var v = const A.a1(0);''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
-    ]);
+    assertErrors(
+        source, [CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    verify([source]);
+  }
+
+  test_superConstructor_paramTypeMismatch() async {
+    Source source = addSource(r'''
+class C {
+  final double d;
+  const C(this.d);
+}
+class D extends C {
+  const D(d) : super(d);
+}
+const f = const D(0);
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
     verify([source]);
   }
 

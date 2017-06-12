@@ -42,7 +42,7 @@ abstract class Invocation {
   /**
    * Whether the invocation was a setter call.
    *
-   * If so, [arguments] has exactly one positional argument,
+   * If so, [positionalArguments] has exactly one positional argument,
    * and [namedArguments] is empty.
    */
   bool get isSetter;

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
-import '../js_backend/backend_helpers.dart';
 import '../options.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
@@ -19,11 +19,12 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
   final GlobalTypeInferenceResults results;
   final CompilerOptions options;
-  final BackendHelpers helpers;
+  final CommonElements commonElements;
   final ClosedWorld closedWorld;
   String get name => 'type propagator';
 
-  SsaTypePropagator(this.results, this.options, this.helpers, this.closedWorld);
+  SsaTypePropagator(
+      this.results, this.options, this.commonElements, this.closedWorld);
 
   TypeMask computeType(HInstruction instruction) {
     return instruction.accept(this);
@@ -277,15 +278,15 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           HTypeConversion.RECEIVER_TYPE_CHECK);
       return true;
     } else if (instruction.element == null) {
-      Iterable<MemberEntity> targets = closedWorld.allFunctions
-          .filter(instruction.selector, instruction.mask);
+      Iterable<MemberEntity> targets =
+          closedWorld.locateMembers(instruction.selector, instruction.mask);
       if (targets.length == 1) {
         MemberEntity target = targets.first;
         ClassEntity cls = target.enclosingClass;
         TypeMask type = new TypeMask.nonNullSubclass(cls, closedWorld);
         // TODO(ngeoffray): We currently only optimize on primitive
         // types.
-        if (!type.satisfies(helpers.jsIndexableClass, closedWorld) &&
+        if (!type.satisfies(commonElements.jsIndexableClass, closedWorld) &&
             !type.containsOnlyNum(closedWorld) &&
             !type.containsOnlyBool(closedWorld)) {
           return false;
@@ -379,8 +380,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     if (!instruction.selector.isClosureCall) {
       TypeMask newType;
       TypeMask computeNewType() {
-        newType = closedWorld.allFunctions
-            .receiverType(instruction.selector, instruction.mask);
+        newType = closedWorld.computeReceiverType(
+            instruction.selector, instruction.mask);
         newType = newType.intersection(receiverType, closedWorld);
         return newType;
       }
@@ -397,7 +398,12 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           addDependentInstructionsToWorkList(next);
         }
       } else {
-        bool hasCandidates() => receiver.dominatedUsers(instruction).length > 1;
+        DominatedUses uses;
+        bool hasCandidates() {
+          uses =
+              DominatedUses.of(receiver, instruction, excludeDominator: true);
+          return uses.isNotEmpty;
+        }
 
         if ((receiver.usedBy.length <= _MAX_QUICK_USERS)
             ? (hasCandidates() && computeNewType() != receiverType)
@@ -407,13 +413,13 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           HTypeKnown converted =
               new HTypeKnown.witnessed(newType, receiver, instruction);
           instruction.block.addBefore(instruction.next, converted);
-          receiver.replaceAllUsersDominatedBy(converted.next, converted);
+          uses.replaceWith(converted);
           addDependentInstructionsToWorkList(converted);
         }
       }
     }
 
-    return instruction.specializer.computeTypeFromInputTypes(
-        instruction, results, options, helpers, closedWorld);
+    return instruction.specializer
+        .computeTypeFromInputTypes(instruction, results, options, closedWorld);
   }
 }

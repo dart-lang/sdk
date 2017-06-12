@@ -12,7 +12,7 @@ class Point {
 
   Point(this.x, this.y);
 
-  operator * (other) {
+  operator *(other) {
     return x * other.x + y * other.y;
   }
 }
@@ -22,13 +22,12 @@ class C {
   C(this.p);
 }
 
-
 class Pointx4 {
   var x, y;
 
   Pointx4(this.x, this.y);
 
-  operator * (other) {
+  operator *(other) {
     return x * other.x + y * other.y;
   }
 }
@@ -50,7 +49,7 @@ class F {
 
   F(this.p);
 
-  operator * (other) {
+  operator *(other) {
     Expect.isTrue(other is Point);
     Expect.equals(42.0, other.x);
     Expect.equals(0.5, other.y);
@@ -81,7 +80,7 @@ test1x4(c, x, y, z, w) {
 
 effects() {
   // This function should not be inlinable.
-  try { } catch (e) { }
+  try {} catch (e) {}
 }
 
 testForwardingThroughEffects(c, x, y) {
@@ -105,7 +104,7 @@ class PointP<T> {
 
   PointP(this.x, this.y);
 
-  operator * (other) {
+  operator *(other) {
     return x * other.x + y * other.y;
   }
 }
@@ -139,7 +138,7 @@ testInitialValueForFinalField(x) {
 
 testFinalField() {
   for (var i = 0; i < 100; i++) {
-   testInitialValueForFinalField(1);
+    testInitialValueForFinalField(1);
   }
 }
 
@@ -181,7 +180,7 @@ class CompoundC {
 
 class NoopSink {
   const NoopSink();
-  call(val) { }
+  call(val) {}
 }
 
 testCompound1() {
@@ -195,15 +194,16 @@ testCompound1() {
   Expect.equals(0.1, f(0.1));
   for (var i = 0; i < 100; i++) f(0.1);
   Expect.equals(0.1, f(0.1));
-  Expect.equals(0.1, f(0.1, (val) {
-    Expect.isTrue(val is CompoundA);
-    Expect.isTrue(val.b is CompoundB);
-    Expect.isTrue(val.b.c is CompoundC);
-    Expect.isNull(val.b.c.root);
-    Expect.equals(0.1, val.b.c.d);
-  }));
+  Expect.equals(
+      0.1,
+      f(0.1, (val) {
+        Expect.isTrue(val is CompoundA);
+        Expect.isTrue(val.b is CompoundB);
+        Expect.isTrue(val.b.c is CompoundC);
+        Expect.isNull(val.b.c.root);
+        Expect.equals(0.1, val.b.c.d);
+      }));
 }
-
 
 testCompound2() {
   f(d, [sink = const NoopSink()]) {
@@ -217,15 +217,16 @@ testCompound2() {
   Expect.equals(0.1, f(0.1));
   for (var i = 0; i < 100; i++) f(0.1);
   Expect.equals(0.1, f(0.1));
-  Expect.equals(0.1, f(0.1, (val) {
-    Expect.isTrue(val is CompoundA);
-    Expect.isTrue(val.b is CompoundB);
-    Expect.isTrue(val.b.c is CompoundC);
-    Expect.equals(val, val.b.c.root);
-    Expect.equals(0.1, val.b.c.d);
-  }));
+  Expect.equals(
+      0.1,
+      f(0.1, (val) {
+        Expect.isTrue(val is CompoundA);
+        Expect.isTrue(val.b is CompoundB);
+        Expect.isTrue(val.b.c is CompoundC);
+        Expect.equals(val, val.b.c.root);
+        Expect.equals(0.1, val.b.c.d);
+      }));
 }
-
 
 testCompound3() {
   f(d, [sink = const NoopSink()]) {
@@ -238,13 +239,14 @@ testCompound3() {
   Expect.equals(0.1, f(0.1));
   for (var i = 0; i < 100; i++) f(0.1);
   Expect.equals(0.1, f(0.1));
-  Expect.equals(0.1, f(0.1, (val) {
-    Expect.isTrue(val is CompoundC);
-    Expect.equals(val, val.root);
-    Expect.equals(0.1, val.d);
-  }));
+  Expect.equals(
+      0.1,
+      f(0.1, (val) {
+        Expect.isTrue(val is CompoundC);
+        Expect.equals(val, val.root);
+        Expect.equals(0.1, val.d);
+      }));
 }
-
 
 testCompound4() {
   f(d, [sink = const NoopSink()]) {
@@ -260,35 +262,40 @@ testCompound4() {
   Expect.equals(1.0, f(1.0));
   for (var i = 0; i < 100; i++) f(1.0);
   Expect.equals(1.0, f(1.0));
-  Expect.equals(1.0, f(1.0, (val) {
-    Expect.isTrue(val is CompoundC);
-    Expect.equals(val, val.root);
-    Expect.equals(11.0, val.d);
-  }));
+  Expect.equals(
+      1.0,
+      f(1.0, (val) {
+        Expect.isTrue(val is CompoundC);
+        Expect.equals(val, val.root);
+        Expect.equals(11.0, val.d);
+      }));
 }
-
 
 main() {
   var c = new C(new Point(0.1, 0.2));
 
   // Compute initial values.
   final x0 = test1(c, 11.11, 22.22);
-  var fc = new Cx4(new Pointx4(new Float32x4(1.0, 1.0, 1.0, 1.0),
-                               new Float32x4(1.0, 1.0, 1.0, 1.0)));
-  final fx0 = test1x4(fc, new Float32x4(1.0, 1.0, 1.0, 1.0),
-                          new Float32x4(1.0, 1.0, 1.0, 1.0),
-                          new Float32x4(1.0, 1.0, 1.0, 1.0),
-                          new Float32x4(1.0, 1.0, 1.0, 1.0));
+  var fc = new Cx4(new Pointx4(
+      new Float32x4(1.0, 1.0, 1.0, 1.0), new Float32x4(1.0, 1.0, 1.0, 1.0)));
+  final fx0 = test1x4(
+      fc,
+      new Float32x4(1.0, 1.0, 1.0, 1.0),
+      new Float32x4(1.0, 1.0, 1.0, 1.0),
+      new Float32x4(1.0, 1.0, 1.0, 1.0),
+      new Float32x4(1.0, 1.0, 1.0, 1.0));
   final y0 = testForwardingThroughEffects(c, 11.11, 22.22);
   final z0 = testIdentity(c.p);
 
   // Force optimization.
   for (var i = 0; i < 100; i++) {
     test1(c, i.toDouble(), i.toDouble());
-    test1x4(fc, new Float32x4(1.0, 1.0, 1.0, 1.0),
-                new Float32x4(1.0, 1.0, 1.0, 1.0),
-                new Float32x4(1.0, 1.0, 1.0, 1.0),
-                new Float32x4(1.0, 1.0, 1.0, 1.0));
+    test1x4(
+        fc,
+        new Float32x4(1.0, 1.0, 1.0, 1.0),
+        new Float32x4(1.0, 1.0, 1.0, 1.0),
+        new Float32x4(1.0, 1.0, 1.0, 1.0),
+        new Float32x4(1.0, 1.0, 1.0, 1.0));
     testForwardingThroughEffects(c, i.toDouble(), i.toDouble());
     testIdentity(c.p);
     foo2();

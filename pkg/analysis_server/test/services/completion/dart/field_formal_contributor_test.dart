@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.field_formal;
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
 import 'package:test/test.dart';
@@ -14,7 +12,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldFormalContributorTest);
-    defineReflectiveTests(FieldFormalContributorTest_Driver);
   });
 }
 
@@ -197,10 +194,4 @@ class FieldFormalContributorTest extends DartCompletionContributorTest {
     assertSuggestField('y', 'int', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('x');
   }
-}
-
-@reflectiveTest
-class FieldFormalContributorTest_Driver extends FieldFormalContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

@@ -685,28 +685,17 @@ RawObject* SnapshotReader::NewInteger(int64_t value) {
 }
 
 
-int32_t ImageWriter::GetOffsetFor(RawInstructions* instructions,
-                                  RawCode* code) {
-#if defined(PRODUCT)
-  // Instructions are only dedup in product mode because it obfuscates profiler
-  // results.
-  for (intptr_t i = 0; i < instructions_.length(); i++) {
-    if (instructions_[i].raw_insns_ == instructions) {
-      return instructions_[i].offset_;
-    }
-  }
-#endif
-
+int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
+                                      RawCode* code) {
   intptr_t heap_size = instructions->Size();
   intptr_t offset = next_offset_;
   next_offset_ += heap_size;
   instructions_.Add(InstructionsData(instructions, code, offset));
-
   return offset;
 }
 
 
-int32_t ImageWriter::GetObjectOffsetFor(RawObject* raw_object) {
+int32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
   intptr_t heap_size = raw_object->Size();
   intptr_t offset = next_object_offset_;
   next_object_offset_ += heap_size;
@@ -1066,7 +1055,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 }
 
 
-RawInstructions* InstructionsReader::GetInstructionsAt(int32_t offset) {
+RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, OS::PreferredCodeAlignment()));
 
   RawInstructions* result = reinterpret_cast<RawInstructions*>(
@@ -1078,7 +1067,7 @@ RawInstructions* InstructionsReader::GetInstructionsAt(int32_t offset) {
 }
 
 
-RawObject* InstructionsReader::GetObjectAt(int32_t offset) {
+RawObject* ImageReader::GetObjectAt(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, kWordSize));
 
   RawObject* result = reinterpret_cast<RawObject*>(
@@ -1127,6 +1116,7 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
                         Object::extractor_parameter_types().raw());
   READ_VM_SINGLETON_OBJ(kExtractorParameterNames,
                         Object::extractor_parameter_names().raw());
+  READ_VM_SINGLETON_OBJ(kEmptyContextObject, Object::empty_context().raw());
   READ_VM_SINGLETON_OBJ(kEmptyContextScopeObject,
                         Object::empty_context_scope().raw());
   READ_VM_SINGLETON_OBJ(kEmptyObjectPool, Object::empty_object_pool().raw());
@@ -1369,6 +1359,7 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
                          kExtractorParameterTypes);
   WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_names().raw(),
                          kExtractorParameterNames);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_context().raw(), kEmptyContextObject);
   WRITE_VM_SINGLETON_OBJ(Object::empty_context_scope().raw(),
                          kEmptyContextScopeObject);
   WRITE_VM_SINGLETON_OBJ(Object::empty_object_pool().raw(), kEmptyObjectPool);
@@ -1435,39 +1426,6 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
 }
 
 #undef VM_OBJECT_WRITE
-
-
-// An object visitor which will iterate over all the script objects in the heap
-// and either count them or collect them into an array. This is used during
-// full snapshot generation of the VM isolate to write out all script
-// objects and their accompanying token streams.
-class ScriptVisitor : public ObjectVisitor {
- public:
-  explicit ScriptVisitor(Thread* thread)
-      : objHandle_(Object::Handle(thread->zone())), count_(0), scripts_(NULL) {}
-
-  ScriptVisitor(Thread* thread, const Array* scripts)
-      : objHandle_(Object::Handle(thread->zone())),
-        count_(0),
-        scripts_(scripts) {}
-
-  void VisitObject(RawObject* obj) {
-    if (obj->IsScript()) {
-      if (scripts_ != NULL) {
-        objHandle_ = obj;
-        scripts_->SetAt(count_, objHandle_);
-      }
-      count_ += 1;
-    }
-  }
-
-  intptr_t count() const { return count_; }
-
- private:
-  Object& objHandle_;
-  intptr_t count_;
-  const Array* scripts_;
-};
 
 
 ForwardList::ForwardList(Thread* thread, intptr_t first_object_id)

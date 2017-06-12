@@ -133,7 +133,6 @@ testSublist(array) {
 }
 
 void testSpecialValues(array) {
-
   /// Same as Expect.identical, but also works with NaNs and -0.0 for dart2js.
   void checkEquals(expected, actual) {
     if (expected.isNaN) {
@@ -145,7 +144,7 @@ void testSpecialValues(array) {
     }
   }
 
-  var pairs =  [
+  var pairs = [
     [0.0, 0.0],
     [5e-324, 0.0],
     [2.225073858507201e-308, 0.0],
@@ -222,7 +221,6 @@ void testSpecialValues(array) {
     checkEquals(expected, f.w);
   }
 }
-
 
 main() {
   var list;

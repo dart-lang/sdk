@@ -56,11 +56,11 @@ main() {
         compiler.resolutionWorldBuilder.closedWorldForTesting;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
     JavaScriptBackend backend = compiler.backend;
-    Expect.isNotNull(backend.annotations.expectNoInlineClass,
+    Expect.isNotNull(compiler.commonElements.expectNoInlineClass,
         'NoInlineClass is unresolved.');
-    Expect.isNotNull(backend.annotations.expectTrustTypeAnnotationsClass,
+    Expect.isNotNull(compiler.commonElements.expectTrustTypeAnnotationsClass,
         'TrustTypeAnnotations is unresolved.');
-    Expect.isNotNull(backend.annotations.expectAssumeDynamicClass,
+    Expect.isNotNull(compiler.commonElements.expectAssumeDynamicClass,
         'AssumeDynamicClass is unresolved.');
 
     void testTypeMatch(FunctionElement function, TypeMask expectedParameterType,
@@ -83,17 +83,18 @@ main() {
         TypeMask expectedParameterType: null,
         TypeMask expectedReturnType: null,
         bool expectAssumeDynamic: false}) {
-      Element method = compiler.mainApp.find(name);
+      LibraryElement mainApp = compiler.mainApp;
+      MethodElement method = mainApp.find(name);
       Expect.isNotNull(method);
-      Expect.equals(expectNoInline, backend.annotations.noInline(method),
+      Expect.equals(expectNoInline, backend.optimizerHints.noInline(method),
           "Unexpected annotation of @NoInline on '$method'.");
       Expect.equals(
           expectTrustTypeAnnotations,
-          backend.annotations.trustTypeAnnotations(method),
+          backend.optimizerHints.trustTypeAnnotations(method),
           "Unexpected annotation of @TrustTypeAnnotations on '$method'.");
       Expect.equals(
           expectAssumeDynamic,
-          backend.annotations.assumeDynamic(method),
+          backend.optimizerHints.assumeDynamic(method),
           "Unexpected annotation of @AssumeDynamic on '$method'.");
       TypesInferrer inferrer = compiler.globalInference.typesInferrerInternal;
       if (expectTrustTypeAnnotations && expectedParameterType != null) {

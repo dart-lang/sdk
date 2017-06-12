@@ -416,7 +416,7 @@ abstract class num implements Comparable<num> {
    * exponential representation (see [toStringAsExponential]).
    *
    * Returns `"NaN"` for [double.NAN], `"Infinity"` for [double.INFINITY], and
-   * `"-Infinity"` for [double.MINUS_INFINITY].
+   * `"-Infinity"` for [double.NEGATIVE_INFINITY].
    *
    * An [int] is converted to a decimal representation with no decimal point.
    *

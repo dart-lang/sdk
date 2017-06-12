@@ -19,7 +19,49 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PhysicalFileSystemTest);
     defineReflectiveTests(FileTest);
+    defineReflectiveTests(DirectoryTest);
   });
+}
+
+const Matcher _throwsFileSystemException =
+    const Throws(const isInstanceOf<FileSystemException>());
+
+@reflectiveTest
+class DirectoryTest extends _BaseTest {
+  String path;
+  FileSystemEntity dir;
+
+  setUp() {
+    super.setUp();
+    path = p.join(tempPath, 'dir');
+    dir = PhysicalFileSystem.instance.entityForUri(p.toUri(path));
+  }
+
+  test_equals_differentPaths() {
+    expect(dir == entityForPath(p.join(tempPath, 'dir2')), isFalse);
+  }
+
+  test_equals_samePath() {
+    expect(dir == entityForPath(p.join(tempPath, 'dir')), isTrue);
+  }
+
+  test_exists_directoryExists() async {
+    await new io.Directory(path).create();
+    expect(await dir.exists(), isTrue);
+  }
+
+  test_exists_doesNotExist() async {
+    expect(await dir.exists(), isFalse);
+  }
+
+  test_readAsBytes() async {
+    await new io.Directory(path).create();
+    expect(dir.readAsBytes(), _throwsFileSystemException);
+  }
+
+  test_uri() {
+    expect(dir.uri, p.toUri(path));
+  }
 }
 
 @reflectiveTest
@@ -41,8 +83,39 @@ class FileTest extends _BaseTest {
     expect(file == entityForPath(p.join(tempPath, 'file.txt')), isTrue);
   }
 
+  test_exists_doesNotExist() async {
+    expect(await file.exists(), isFalse);
+  }
+
+  test_exists_fileExists() async {
+    new io.File(path).writeAsStringSync('contents');
+    expect(await file.exists(), isTrue);
+  }
+
   test_hashCode_samePath() {
     expect(file.hashCode, entityForPath(p.join(tempPath, 'file.txt')).hashCode);
+  }
+
+  test_lastModified_doesNotExist() {
+    expect(file.lastModified(), _throwsFileSystemException);
+  }
+
+  test_lastModified_increasesOnEachChange() async {
+    new io.File(path).writeAsStringSync('contents1');
+    var mod1 = await file.lastModified();
+
+    // Pause to ensure the file-system time-stamps are different.
+    await new Future.delayed(new Duration(seconds: 1));
+    new io.File(path).writeAsStringSync('contents2');
+    var mod2 = await file.lastModified();
+    expect(mod2.isAfter(mod1), isTrue);
+
+    await new Future.delayed(new Duration(seconds: 1));
+    var path2 = p.join(tempPath, 'file2.txt');
+    new io.File(path2).writeAsStringSync('contents2');
+    var file2 = entityForPath(path2);
+    var mod3 = await file2.lastModified();
+    expect(mod3.isAfter(mod2), isTrue);
   }
 
   test_readAsBytes_badUtf8() async {
@@ -53,7 +126,7 @@ class FileTest extends _BaseTest {
   }
 
   test_readAsBytes_doesNotExist() {
-    expect(file.readAsBytes(), throwsException);
+    expect(file.readAsBytes(), _throwsFileSystemException);
   }
 
   test_readAsBytes_exists() async {
@@ -64,11 +137,11 @@ class FileTest extends _BaseTest {
 
   test_readAsString_badUtf8() {
     new io.File(path).writeAsBytesSync([0xc0, 0x40]); // Invalid UTF-8
-    expect(file.readAsString(), throwsException);
+    expect(file.readAsString(), _throwsFileSystemException);
   }
 
   test_readAsString_doesNotExist() {
-    expect(file.readAsString(), throwsException);
+    expect(file.readAsString(), _throwsFileSystemException);
   }
 
   test_readAsString_exists() async {

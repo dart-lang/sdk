@@ -14,8 +14,11 @@ class Foo<W, V> {
   H<V> p() {}
   o(W w) {}
 }
+
 class H<T> {}
+
 class Bar {}
+
 class Baz {}
 
 void testInstance() {
@@ -49,7 +52,6 @@ void testInstance() {
   Expect.equals(baz, p.returnType.typeArguments[0]);
 
   Expect.equals(baz, setter.parameters.single.type);
-
 }
 
 void testOriginalDeclaration() {

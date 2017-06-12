@@ -18,6 +18,7 @@ class ClosureBreak2Test {
       o1.field++;
       Expect.equals(8, newstr.length);
     }
+
     bool loop = true;
     L:
     while (loop) {
@@ -25,7 +26,7 @@ class ClosureBreak2Test {
       Expect.equals(4, newstr1.length);
       while (loop) {
         int newint = 0;
-	Expect.equals(4, newstr1.length);
+        Expect.equals(4, newstr1.length);
         break L;
       }
     }

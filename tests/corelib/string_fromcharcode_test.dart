@@ -20,13 +20,12 @@ main() {
   Expect.equals(1, unmatched.length);
   Expect.equals(0xDC00, unmatched.codeUnitAt(0));
 
-  Expect.throws(() => new String.fromCharCode(-1),
-                (e) => e is ArgumentError);
+  Expect.throws(() => new String.fromCharCode(-1), (e) => e is ArgumentError);
 
   // Invalid code point.
-  Expect.throws(() => new String.fromCharCode(0x110000),
-                (e) => e is ArgumentError);
+  Expect.throws(
+      () => new String.fromCharCode(0x110000), (e) => e is ArgumentError);
 
-  Expect.throws(() => new String.fromCharCode(0x110001),
-                (e) => e is ArgumentError);
+  Expect.throws(
+      () => new String.fromCharCode(0x110001), (e) => e is ArgumentError);
 }

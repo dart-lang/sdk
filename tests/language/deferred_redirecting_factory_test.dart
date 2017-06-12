@@ -38,7 +38,6 @@ test3() async {
   Expect.equals("lib2", new C.b().foo);
 }
 
-
 test() async {
   await test1();
   await test2();

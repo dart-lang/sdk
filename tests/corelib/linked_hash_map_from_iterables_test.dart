@@ -39,11 +39,11 @@ void emptyMapTest() {
 }
 
 void fewerValuesIterableTest() {
-  Expect.throws(() => new LinkedHashMap.fromIterables([1,2], [0]));
+  Expect.throws(() => new LinkedHashMap.fromIterables([1, 2], [0]));
 }
 
 void fewerKeysIterableTest() {
-  Expect.throws(() => new LinkedHashMap.fromIterables([1], [0,2]));
+  Expect.throws(() => new LinkedHashMap.fromIterables([1], [0, 2]));
 }
 
 void equalElementsTest() {
@@ -58,7 +58,6 @@ void equalElementsTest() {
   Expect.equals("one", map[1]);
   Expect.equals("three", map[2]);
 }
-
 
 void genericTypeTest() {
   var map = new LinkedHashMap<int, String>.fromIterables(

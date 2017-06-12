@@ -17,17 +17,17 @@ main() {
   Expect.equals(3, compareInt(3));
   Expect.equals(-2, compareInt(-2));
   Expect.equals(0, compareInt(-1));
-  
+
   Expect.equals(3, binOpInt(3, 3));
   Expect.equals(0, binOpInt(-2, -2));
-  
+
   Expect.equals(3.0, binOpDouble(3.0, 3.0));
   Expect.equals(0.0, binOpDouble(-2.0, -2.0));
-  
+
   Expect.equals(3.0, compareDouble(3.0));
   Expect.equals(-2.0, compareDouble(-2.0));
   Expect.equals(0.0, compareDouble(-1.0));
-  
+
   testOSR();
 }
 

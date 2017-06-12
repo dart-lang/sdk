@@ -9,8 +9,15 @@ part of utilslib;
  */
 class DateUtils {
   // TODO(jmesserly): localized strings
-  static const WEEKDAYS = const ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
-                                 'Friday', 'Saturday', 'Sunday'];
+  static const WEEKDAYS = const [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
+  ];
 
   static const YESTERDAY = 'Yesterday';
 
@@ -34,9 +41,20 @@ class DateUtils {
 
     int day = int.parse(parts[1]);
 
-    final months = const['Jan', 'Feb', 'Mar', 'Apr',
-                         'May', 'Jun', 'Jul', 'Aug',
-                         'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = const [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     int month = months.indexOf(parts[2], 0) + 1;
     if (month < 0) {
       throw 'bad month, expected 3 letter month code, got: ${parts[2]}';
@@ -58,7 +76,8 @@ class DateUtils {
     int zoneOffset = int.parse(parts[5]) ~/ 100;
 
     // Pretend it's a UTC time
-    DateTime result = new DateTime.utc(year, month, day, hours, minutes, seconds, 0);
+    DateTime result =
+        new DateTime.utc(year, month, day, hours, minutes, seconds, 0);
     // Shift it to the proper zone, but it's still a UTC time
     result = result.subtract(new Duration(hours: zoneOffset));
     // Then render it as a local time
@@ -117,7 +136,8 @@ class DateUtils {
    */
   static String toRecentTimeString(DateTime then) {
     bool datesAreEqual(DateTime d1, DateTime d2) {
-      return (d1.year == d2.year) && (d1.month == d2.month) &&
+      return (d1.year == d2.year) &&
+          (d1.month == d2.month) &&
           (d1.day == d2.day);
     }
 
@@ -143,6 +163,7 @@ class DateUtils {
         if (n >= 10) return "${n}";
         return "0${n}";
       }
+
       String twoDigitMonth = twoDigits(then.month);
       String twoDigitDay = twoDigits(then.day);
       return "${then.year}-${twoDigitMonth}-${twoDigitDay}";
@@ -180,6 +201,7 @@ class DateUtils {
       if (n >= 10) return "${n}";
       return "0${n}";
     }
+
     String mm =
         twoDigits(duration.inMinutes.remainder(Duration.MINUTES_PER_HOUR));
     return "${hours}:${mm} ${a}";

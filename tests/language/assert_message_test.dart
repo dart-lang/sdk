@@ -67,9 +67,10 @@ main() {
   }
 
   asyncStart();
-  asyncTests().then((_) { asyncEnd(); });
+  asyncTests().then((_) {
+    asyncEnd();
+  });
 }
-
 
 Future asyncTests() async {
   // You can await in both condition and message.

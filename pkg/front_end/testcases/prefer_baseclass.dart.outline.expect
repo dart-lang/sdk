@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    ;
+}
+class B extends core::Object {
+  constructor •() → void
+    ;
+}
+class AB1 extends self::A implements self::B {
+  constructor •() → void
+    ;
+}
+class AB2 extends self::A implements self::B {
+  constructor •() → void
+    ;
+}
+class BA1 extends self::B implements self::A {
+  constructor •() → void
+    ;
+}
+class BA2 extends self::B implements self::A {
+  constructor •() → void
+    ;
+}
+static method takeSubclassOfA(dynamic obj) → dynamic
+  ;
+static method takeSubclassOfB(dynamic obj) → dynamic
+  ;
+static method main() → dynamic
+  ;

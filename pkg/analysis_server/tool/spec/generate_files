@@ -42,15 +42,10 @@ fi
 
 if [[ `uname` == 'Darwin' ]];
 then
-  if [[ $GYP_GENERATORS == 'ninja' ]];
-  then
-    BUILD_DIR="${ROOT_DIR}/out/$DART_CONFIGURATION"
-  else
-    BUILD_DIR="${ROOT_DIR}/xcodebuild/$DART_CONFIGURATION"
-  fi
+  BUILD_DIR="${ROOT_DIR}/xcodebuild/$DART_CONFIGURATION"
 fi
 
-PKG_FILE="${ROOT_DIR}/pkg/analysis_server/.packages"
+PKG_FILE="${ROOT_DIR}/.packages"
 if [[ !(-e $PKG_FILE) ]];
 then
   PKG_FILE="${ROOT_DIR}/.packages"

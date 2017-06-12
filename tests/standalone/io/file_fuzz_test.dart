@@ -62,12 +62,11 @@ fuzzAsyncMethods() {
   Future.wait(futures).then((_) => asyncEnd());
 }
 
-
 fuzzSyncRandomAccessMethods() {
   var temp = Directory.systemTemp.createTempSync('dart_file_fuzz');
   var file = new File('${temp.path}/x');
   file.createSync();
-  var modes = [ FileMode.READ, FileMode.WRITE, FileMode.APPEND ];
+  var modes = [FileMode.READ, FileMode.WRITE, FileMode.APPEND];
   for (var m in modes) {
     var opened = file.openSync(mode: m);
     typeMapping.forEach((k, v) {
@@ -91,16 +90,16 @@ fuzzAsyncRandomAccessMethods() {
   var temp = Directory.systemTemp.createTempSync('dart_file_fuzz');
   var file = new File('${temp.path}/x');
   file.createSync();
-  var modes = [ FileMode.READ, FileMode.WRITE, FileMode.APPEND ];
+  var modes = [FileMode.READ, FileMode.WRITE, FileMode.APPEND];
   var futures = [];
   var openedFiles = [];
   for (var m in modes) {
     var opened = file.openSync(mode: m);
     openedFiles.add(opened);
     typeMapping.forEach((k, v) {
-        futures.add(doItAsync(() => opened.setPosition(v)));
-        futures.add(doItAsync(() => opened.truncate(v)));
-        futures.add(doItAsync(() => opened.writeByte(v)));
+      futures.add(doItAsync(() => opened.setPosition(v)));
+      futures.add(doItAsync(() => opened.truncate(v)));
+      futures.add(doItAsync(() => opened.writeByte(v)));
     });
     for (var p in typePermutations(2)) {
       futures.add(doItAsync(() => opened.writeString(p[0], encoding: p[1])));

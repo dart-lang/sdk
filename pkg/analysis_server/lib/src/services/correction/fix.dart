@@ -2,48 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.services.correction.fix;
-
-import 'dart:async';
-
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
-
-/**
- * Compute and return the fixes available for the given [error]. The error was
- * reported after it's source was analyzed in the given [context]. The [plugin]
- * is used to get the list of fix contributors.
- */
-Future<List<Fix>> computeFixes(
-    ServerPlugin plugin,
-    ResourceProvider resourceProvider,
-    AnalysisContext context,
-    AnalysisError error) async {
-  List<Fix> fixes = <Fix>[];
-  List<FixContributor> contributors = plugin.fixContributors;
-  FixContext fixContext = new FixContextImpl(resourceProvider, context, error);
-  for (FixContributor contributor in contributors) {
-    try {
-      List<Fix> contributedFixes = await contributor.computeFixes(fixContext);
-      if (contributedFixes != null) {
-        fixes.addAll(contributedFixes);
-      }
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          'Exception from fix contributor: ${contributor.runtimeType}',
-          new CaughtException(exception, stackTrace));
-    }
-  }
-  fixes.sort(Fix.SORT_BY_RELEVANCE);
-  return fixes;
-}
 
 /**
  * Return true if this [errorCode] is likely to have a fix associated with it.
@@ -52,6 +17,7 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN ||
     errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
     errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS ||
+    errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED ||
     errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR ||
     errorCode ==
         StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
@@ -108,7 +74,12 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
     (errorCode is LintCode &&
         (errorCode.name == LintNames.annotate_overrides ||
-            errorCode.name == LintNames.unnecessary_brace_in_string_interp));
+            errorCode.name == LintNames.avoid_init_to_null ||
+            errorCode.name == LintNames.prefer_collection_literals ||
+            errorCode.name == LintNames.prefer_conditional_assignment ||
+            errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
+            errorCode.name == LintNames.unnecessary_lambdas ||
+            errorCode.name == LintNames.unnecessary_this));
 
 /**
  * An enumeration of possible quick fix kinds.
@@ -177,9 +148,9 @@ class DartFixKind {
   static const IMPORT_LIBRARY_PROJECT3 =
       const FixKind('IMPORT_LIBRARY_PROJECT3', 49, "Import library '{0}'");
   static const IMPORT_LIBRARY_SDK =
-      const FixKind('IMPORT_LIBRARY_SDK', 49, "Import library '{0}'");
+      const FixKind('IMPORT_LIBRARY_SDK', 46, "Import library '{0}'");
   static const IMPORT_LIBRARY_SHOW =
-      const FixKind('IMPORT_LIBRARY_SHOW', 49, "Update library '{0}' import");
+      const FixKind('IMPORT_LIBRARY_SHOW', 45, "Update library '{0}' import");
   static const INSERT_SEMICOLON =
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
   static const LINT_ADD_OVERRIDE =
@@ -194,6 +165,13 @@ class DartFixKind {
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
   static const MAKE_FIELD_NOT_FINAL =
       const FixKind('MAKE_FIELD_NOT_FINAL', 50, "Make field '{0}' not final");
+  static const REMOVE_AWAIT = const FixKind('REMOVE_AWAIT', 50, "Remove await");
+  static const REMOVE_EMPTY_STATEMENT =
+      const FixKind('REMOVE_EMPTY_STATEMENT', 50, "Remove empty statement");
+  static const REMOVE_INITIALIZER =
+      const FixKind('REMOVE_INITIALIZER', 50, "Remove initializer");
+  static const REMOVE_METHOD_DECLARATION = const FixKind(
+      'REMOVE_METHOD_DECLARATION', 50, 'Remove method declaration');
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = const FixKind(
       'REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
       50,
@@ -202,6 +180,10 @@ class DartFixKind {
       'REMOVE_PARENTHESIS_IN_GETTER_INVOCATION',
       50,
       "Remove parentheses in getter invocation");
+  static const REMOVE_THIS_EXPRESSION =
+      const FixKind('REMOVE_THIS_EXPRESSION', 50, "Remove this expression");
+  static const REMOVE_TYPE_NAME =
+      const FixKind('REMOVE_TYPE_NAME', 50, "Remove type name");
   static const REMOVE_UNNECESSARY_CAST =
       const FixKind('REMOVE_UNNECESSARY_CAST', 50, "Remove unnecessary cast");
   static const REMOVE_UNUSED_CATCH_CLAUSE =
@@ -218,10 +200,20 @@ class DartFixKind {
       'REPLACE_RETURN_TYPE_FUTURE',
       50,
       "Return 'Future' from 'async' function");
+  static const REPLACE_WITH_BRACKETS =
+      const FixKind('REPLACE_WITH_BRACKETS', 50, "Replace with { }");
+  static const REPLACE_WITH_CONDITIONAL_ASSIGNMENT = const FixKind(
+      'REPLACE_WITH_CONDITIONAL_ASSIGNMENT', 50, 'Replace with ??=');
+  static const REPLACE_WITH_IDENTIFIER =
+      const FixKind('REPLACE_WITH_IDENTIFIER', 50, "Replace with identifier");
+  static const REPLACE_WITH_LITERAL =
+      const FixKind('REPLACE_WITH_LITERAL', 50, 'Replace with literal');
   static const REPLACE_WITH_NULL_AWARE = const FixKind(
       'REPLACE_WITH_NULL_AWARE',
       50,
       "Replace the '.' with a '?.' in the invocation");
+  static const REPLACE_WITH_TEAR_OFF = const FixKind(
+      'REPLACE_WITH_TEAR_OFF', 50, "Replace function literal with tear-off");
   static const USE_CONST = const FixKind('USE_CONST', 50, "Change to constant");
   static const USE_EFFECTIVE_INTEGER_DIVISION = const FixKind(
       'USE_EFFECTIVE_INTEGER_DIVISION',
@@ -241,15 +233,15 @@ class FixContextImpl implements FixContext {
   final ResourceProvider resourceProvider;
 
   @override
-  final AnalysisContext analysisContext;
+  final AnalysisDriver analysisDriver;
 
   @override
   final AnalysisError error;
 
-  FixContextImpl(this.resourceProvider, this.analysisContext, this.error);
+  FixContextImpl(this.resourceProvider, this.analysisDriver, this.error);
 
   FixContextImpl.from(FixContext other)
       : resourceProvider = other.resourceProvider,
-        analysisContext = other.analysisContext,
+        analysisDriver = other.analysisDriver,
         error = other.error;
 }

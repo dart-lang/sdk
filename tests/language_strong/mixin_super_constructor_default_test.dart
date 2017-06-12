@@ -10,8 +10,8 @@ class Base {
 }
 
 abstract class M {
-  get i;
-  get j;
+  int get i;
+  int get j;
   int k = 42;
   foo() => i + j;
 }

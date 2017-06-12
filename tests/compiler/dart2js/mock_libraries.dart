@@ -12,6 +12,7 @@ core:core/core.dart
 async:async/async.dart
 _js_helper:_internal/js_runtime/lib/js_helper.dart
 _interceptors:_internal/js_runtime/lib/interceptors.dart
+_internal:internal/internal.dart
 _isolate_helper:_internal/js_runtime/lib/isolate_helper.dart
 """;
 
@@ -29,6 +30,9 @@ String buildLibrarySource(Map<String, String> elementMap,
 }
 
 const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
+  '<imports>': '''
+import 'dart:_internal' as internal;
+''',
   'bool': 'class bool {}',
   'Comparator': 'abstract class Comparator<T> {}',
   'DateTime': r'''
@@ -98,12 +102,30 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
   'Resource': 'class Resource {}',
   'StackTrace': 'abstract class StackTrace {}',
   'String': 'class String implements Pattern {}',
-  'Symbol': 'class Symbol { final _name; const Symbol(this._name); }',
+  'Symbol': '''
+      abstract class Symbol { 
+        const factory Symbol(String name) = internal.Symbol; 
+      }
+      ''',
   'Type': 'class Type {}',
   'Pattern': 'abstract class Pattern {}',
   '_genericNoSuchMethod': '_genericNoSuchMethod(a,b,c,d,e) {}',
   '_unresolvedConstructorError': '_unresolvedConstructorError(a,b,c,d,e) {}',
   '_malformedTypeError': '_malformedTypeError(message) {}',
+};
+
+const Map<String, String> DEFAULT_INTERNAL_LIBRARY = const <String, String>{
+  '<imports>': '''
+import 'dart:core' as core;
+''',
+  'Symbol': '''
+class Symbol implements core.Symbol { 
+  final core.String _name; 
+  
+  const Symbol(this._name);
+  Symbol.validated(this._name);
+}
+''',
 };
 
 const String DEFAULT_PATCH_CORE_SOURCE = r'''

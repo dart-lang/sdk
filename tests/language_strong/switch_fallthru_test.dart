@@ -14,10 +14,10 @@ class SwitchFallthruTest {
         break;
       case 1:
         result = "one";
-        // fall-through, throw implicit FallThroughError here.
+      // fall-through, throw implicit FallThroughError here.
       case 9:
         result = "nine";
-        // No implicit FallThroughError at end of switch statement.
+      // No implicit FallThroughError at end of switch statement.
     }
     return result;
   }

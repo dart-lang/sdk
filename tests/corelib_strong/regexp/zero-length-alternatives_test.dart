@@ -27,8 +27,7 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  'Test regular expression processing with alternatives that match consuming no characters'
-  );
+      'Test regular expression processing with alternatives that match consuming no characters');
 
   var emptyStr = "";
   var s1 = "xxxx";

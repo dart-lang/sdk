@@ -8,7 +8,9 @@ import "package:expect/expect.dart";
 
 class A {
   var indexField = new List(2);
-  operator[]=(index, value) { indexField[index] = value; }
+  operator []=(index, value) {
+    indexField[index] = value;
+  }
 
   noSuchMethod(Invocation im) {
     if (im.memberName == const Symbol('[]')) {

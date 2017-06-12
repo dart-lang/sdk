@@ -9,9 +9,15 @@ class MyList extends ListBase {
   List list;
   MyList(this.list);
   get length => list.length;
-  set length(value) { list.length = value; }
+  set length(value) {
+    list.length = value;
+  }
+
   operator [](index) => list[index];
-  operator []=(index, val) { list[index] = val; }
+  operator []=(index, val) {
+    list[index] = val;
+  }
+
   toString() => list.toString();
 }
 
@@ -25,7 +31,7 @@ void testWithoutModification(List list) {
 void testWithModification(List list) {
   if (list.isEmpty) return;
   Expect.throws(() => list.forEach((_) => list.add(0)),
-                (e) => e is ConcurrentModificationError);
+      (e) => e is ConcurrentModificationError);
 }
 
 main() {

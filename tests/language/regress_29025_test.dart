@@ -5,6 +5,7 @@
 typedef T F<T>(T t);
 
 class B<T extends F<T>> {}
+
 class C<T extends F<C<T>>> {}
 
 class D extends B<D> {
@@ -20,10 +21,10 @@ class E extends C<E> {
 }
 
 main() {
- F<D> fd = new D();
- var d = fd(fd);
- print(d);
- F<E> fe = new E();
- var e = fe(fe);
- print(e);
+  F<D> fd = new D();
+  var d = fd(fd);
+  print(d);
+  F<E> fe = new E();
+  var e = fe(fe);
+  print(e);
 }

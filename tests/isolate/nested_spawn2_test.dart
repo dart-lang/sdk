@@ -7,6 +7,7 @@
 // disappeared.
 
 library NestedSpawn2Test;
+
 import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 import "remote_unittest_helper.dart";

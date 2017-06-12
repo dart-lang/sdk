@@ -4,12 +4,12 @@
 
 import "package:expect/expect.dart";
 
-const m1 = const { 'a': 400 + 99 };
-const m2 = const { 'a': 499, 'b': 42 };
-const m3 = const { 'm1': m1, 'm2': m2 };
-const m4 = const { 'z': 9, 'a': 8, 'm': 7 };
-const m5 = const { '': 499 };
-const m6 = const { 'a': 499 };
+const m1 = const {'a': 400 + 99};
+const m2 = const {'a': 499, 'b': 42};
+const m3 = const {'m1': m1, 'm2': m2};
+const m4 = const {'z': 9, 'a': 8, 'm': 7};
+const m5 = const {'': 499};
+const m6 = const {'a': 499};
 const m7 = const {};
 
 bool isUnsupportedError(o) => o is UnsupportedError;
@@ -117,8 +117,6 @@ main() {
   Expect.throws(() => m7.clear(), isUnsupportedError);
   Expect.throws(() => m7['b'] = 42, isUnsupportedError);
   Expect.throws(() => m7['a'] = 499, isUnsupportedError);
-  Expect.throws(() => m7.putIfAbsent('a', () => 499),
-                isUnsupportedError);
-  Expect.throws(() => m7.putIfAbsent('z', () => 499),
-                isUnsupportedError);
+  Expect.throws(() => m7.putIfAbsent('a', () => 499), isUnsupportedError);
+  Expect.throws(() => m7.putIfAbsent('z', () => 499), isUnsupportedError);
 }

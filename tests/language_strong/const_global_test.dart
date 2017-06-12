@@ -7,12 +7,12 @@ import "package:expect/expect.dart";
 const a = 1;
 
 main() {
-    Expect.equals(1, a);
-    Expect.equals(1, const A(a).a);
-    Expect.equals(1, const [const A(a)][0].a);
+  Expect.equals(1, a);
+  Expect.equals(1, const A(a).a);
+  Expect.equals(1, const [const A(a)][0].a);
 }
 
 class A {
-    final a;
-    const A(this.a);
+  final a;
+  const A(this.a);
 }

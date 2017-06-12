@@ -7,25 +7,49 @@ import "dart:async";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
-void toplevel(port, message) { port.send("toplevel:$message"); }
-Function createFuncToplevel() => (p, m) { p.send(m); };
+void toplevel(port, message) {
+  port.send("toplevel:$message");
+}
+
+Function createFuncToplevel() => (p, m) {
+      p.send(m);
+    };
+
 class C {
   Function initializer;
   Function body;
-  C() : initializer = ((p, m) { throw "initializer"; }) {
-    body = (p, m) { throw "body"; };
+  C()
+      : initializer = ((p, m) {
+          throw "initializer";
+        }) {
+    body = (p, m) {
+      throw "body";
+    };
   }
-  static void staticFunc(port, message) { port.send("static:$message"); }
-  static Function createFuncStatic() => (p, m) { throw "static expr"; };
-  void instanceMethod(p, m) { throw "instanceMethod"; }
-  Function createFuncMember() => (p, m) { throw "instance expr"; };
-  void call(n, p) { throw "C"; }
+  static void staticFunc(port, message) {
+    port.send("static:$message");
+  }
+
+  static Function createFuncStatic() => (p, m) {
+        throw "static expr";
+      };
+  void instanceMethod(p, m) {
+    throw "instanceMethod";
+  }
+
+  Function createFuncMember() => (p, m) {
+        throw "instance expr";
+      };
+  void call(n, p) {
+    throw "C";
+  }
 }
 
 class Callable {
-  void call(p, m) { p.send(["callable", m]); }
+  void call(p, m) {
+    p.send(["callable", m]);
+  }
 }
-
 
 void main() {
   asyncStart();
@@ -45,7 +69,7 @@ void main() {
   // The result of `toplevel.call` and `staticFunc.call` may or may not be
   // identical to `toplevel` and `staticFunc` respectively. If they are not
   // equal, they may or may not be considered toplevel/static functions anyway,
-  // and therefore sendable. The VM and dart2js curretnly disagrees on whether
+  // and therefore sendable. The VM and dart2js currently disagree on whether
   // `toplevel` and `toplevel.call` are identical, both allow them to be sent.
   // If this is ever specified to something else, use:
   //     testUnsendable("toplevel.call", toplevel.call);
@@ -73,7 +97,10 @@ void main() {
 // Pass the message to `callback` and return the sendPort.
 SendPort singleMessagePort(callback) {
   var p;
-  p = new RawReceivePort((v) { p.close(); callback(v); });
+  p = new RawReceivePort((v) {
+    p.close();
+    callback(v);
+  });
   return p.sendPort;
 }
 
@@ -103,7 +130,9 @@ void testSendable(name, func) {
   // Round-trip function trough other isolate.
   echoPort((roundtripFunc) {
     Expect.identical(func, roundtripFunc, "$name:send through isolate");
-  }).then((port) { port.send(func); });
+  }).then((port) {
+    port.send(func);
+  });
 }
 
 // Creates a new isolate and a pair of ports that expect a single message
@@ -116,8 +145,8 @@ Future<SendPort> echoPort(callback(value)) {
     completer.complete(p);
     initPort.close();
   });
-  return Isolate.spawn(_echo, [replyPort, initPort.sendPort])
-                .then((isolate) => completer.future);
+  return Isolate.spawn(_echo, [replyPort, initPort.sendPort]).then(
+      (isolate) => completer.future);
 }
 
 void _echo(msg) {
@@ -125,7 +154,7 @@ void _echo(msg) {
   RawReceivePort requestPort;
   requestPort = new RawReceivePort((msg) {
     replyPort.send(msg);
-    requestPort.close();  // Single echo only.
+    requestPort.close(); // Single echo only.
   });
   msg[1].send(requestPort.sendPort);
 }
@@ -135,8 +164,7 @@ void _echo(msg) {
 Future<SendPort> callPort() {
   Completer completer = new Completer<SendPort>();
   SendPort initPort = singleMessagePort(completer.complete);
-  return Isolate.spawn(_call, initPort)
-                .then((_) => completer.future);
+  return Isolate.spawn(_call, initPort).then((_) => completer.future);
 }
 
 void _call(initPort) {
@@ -146,13 +174,19 @@ void _call(initPort) {
 void testUnsendable(name, func) {
   asyncStart();
   Isolate.spawn(nop, func).then((v) => throw "allowed spawn direct?",
-                                onError: (e,s){ asyncEnd(); });
+      onError: (e, s) {
+    asyncEnd();
+  });
   asyncStart();
   Isolate.spawn(nop, [func]).then((v) => throw "allowed spawn wrapped?",
-                                  onError: (e,s){ asyncEnd(); });
+      onError: (e, s) {
+    asyncEnd();
+  });
 
   asyncStart();
-  var noReply = new RawReceivePort((_) { throw "Unexpected message: $_"; });
+  var noReply = new RawReceivePort((_) {
+    throw "Unexpected message: $_";
+  });
   Expect.throws(() {
     noReply.sendPort.send(func);
   }, null, "send direct");
@@ -166,16 +200,17 @@ void testUnsendable(name, func) {
 
   // Try sending through other isolate.
   asyncStart();
-  echoPort((v) { Expect.equals(0, v); })
-    .then((p) {
-      try {
-        p.send(func);
-      } finally {
-        p.send(0); //   Closes echo port.
-      }
-    })
-    .then((p) => throw "unreachable 2",
-          onError: (e, s) {asyncEnd();});
+  echoPort((v) {
+    Expect.equals(0, v);
+  }).then((p) {
+    try {
+      p.send(func);
+    } finally {
+      p.send(0); //   Closes echo port.
+    }
+  }).then((p) => throw "unreachable 2", onError: (e, s) {
+    asyncEnd();
+  });
 }
 
 void nop(_) {}

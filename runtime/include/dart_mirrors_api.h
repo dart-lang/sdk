@@ -7,7 +7,7 @@
 #ifndef RUNTIME_INCLUDE_DART_MIRRORS_API_H_
 #define RUNTIME_INCLUDE_DART_MIRRORS_API_H_
 
-#include "include/dart_api.h"
+#include "dart_api.h"
 
 
 /**

@@ -5,8 +5,11 @@
 
 class BadInitializer1NegativeTest {
   static testMain() {
-     final List elems = const [
-         const [1, 2.0, true, false, 0xffffffffff, elems], "a", "b"];
+    final List elems = const [
+      const [1, 2.0, true, false, 0xffffffffff, elems],
+      "a",
+      "b"
+    ];
   }
 }
 

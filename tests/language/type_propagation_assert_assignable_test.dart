@@ -11,7 +11,9 @@ class A {
   final _b;
 
   b() {
-    try { return _b; } catch (e) { }
+    try {
+      return _b;
+    } catch (e) {}
   }
 
   A(this.p, this._b);

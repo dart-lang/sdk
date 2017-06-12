@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 // Test that a list literal is expandable and modifiable.
 
 class ListLiteralTest {
-
   static void testMain() {
     var list = [1, 2, 3];
     Expect.equals(3, list.length);

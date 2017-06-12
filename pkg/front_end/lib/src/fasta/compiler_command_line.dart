@@ -17,6 +17,8 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--packages": Uri,
   "--platform": Uri,
   "-o": Uri,
+  "--target": String,
+  "-t": String,
 };
 
 class CompilerCommandLine extends CommandLine {
@@ -50,8 +52,11 @@ class CompilerCommandLine extends CommandLine {
     if (options.containsKey("-o") && options.containsKey("--output")) {
       return argumentError(usage, "Can't specify both '-o' and '--output'.");
     }
-    if (programName == "compile_platform" && arguments.length != 2) {
-      return argumentError(usage, "Expected two arguments.");
+    if (options.containsKey("-t") && options.containsKey("--target")) {
+      return argumentError(usage, "Can't specify both '-t' and '--target'.");
+    }
+    if (programName == "compile_platform" && arguments.length != 3) {
+      return argumentError(usage, "Expected three arguments.");
     } else if (arguments.isEmpty) {
       return argumentError(usage, "No Dart file specified.");
     }
@@ -82,6 +87,12 @@ class CompilerCommandLine extends CommandLine {
   bool get warningsAreFatal => fatal.contains("warnings");
 
   bool get nitsAreFatal => fatal.contains("nits");
+
+  bool get strongMode => options.containsKey("--strong-mode");
+
+  String get target {
+    return options["-t"] ?? options["--target"] ?? "vm";
+  }
 
   static dynamic withGlobalOptions(String programName, List<String> arguments,
       dynamic f(CompilerContext context)) {
@@ -119,7 +130,8 @@ String computeUsage(String programName, bool verbose) {
 
     case "compile_platform":
       summary = "Compiles Dart SDK platform to the Dill/Kernel IR format.";
-      basicUsage = "Usage: $programName [options] patched_sdk output\n";
+      basicUsage = "Usage: $programName [options] patched_sdk fullOutput "
+          "outlineOutput\n";
   }
   StringBuffer sb = new StringBuffer(basicUsage);
   if (summary != null) {
@@ -161,6 +173,9 @@ Supported options:
   --platform=<file>
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
+
+  --target=none|vm|vmcc|vmreify|flutter
+    Specify the target configuration.
 
   --verify
     Check that the generated output is free of various problems. This is mostly

@@ -4,8 +4,15 @@
 
 import "package:expect/expect.dart";
 
-abstract class S<T extends S<T>> { m() => 123; get S_T => T; }
-class C<T extends C<T>> extends S<C> { m() => 456; get C_T => T; }
+abstract class S<T extends S<T>> {
+  m() => 123;
+  get S_T => T;
+}
+
+class C<T extends C<T>> extends S<C> {
+  m() => 456;
+  get C_T => T;
+}
 
 class D extends C<D> {}
 

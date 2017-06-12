@@ -567,6 +567,10 @@ code-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
+code-ref .emphasize {
+  font-style: italic;
+}
+
 
 /* class-tree */
 
@@ -647,15 +651,19 @@ code-view .code-comment {
 /* context-ref */
 
 context-ref > a[href]:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 context-ref > a[href] {
-    color: #0489c3;
-    text-decoration: none;
+  color: #0489c3;
+  text-decoration: none;
 }
 context-ref > a[href] * {
-    color: inherit;
+  color: inherit;
 }
+context-ref .emphasize {
+  font-style: italic;
+}
+
 
 /* cpu-profile */
 
@@ -1252,6 +1260,10 @@ function-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
+function-ref .emphasize {
+  font-style: italic;
+}
+
 
 /* heap-snapshot */
 
@@ -1305,17 +1317,19 @@ heap-snapshot .tree-item > .name {
 /* icdata-ref */
 
 icdata-ref > a[href]:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
-
 icdata-ref > a[href] {
-    color: #0489c3;
-    text-decoration: none;
+  color: #0489c3;
+  text-decoration: none;
+}
+icdata-ref > a[href] * {
+  color: inherit;
+}
+icdata-ref .emphasize {
+  font-style: italic;
 }
 
-icdata-ref > a[href] * {
-    color: inherit;
-}
 
 /* inbound-reference */
 
@@ -1484,6 +1498,10 @@ library-ref > a[href] {
   color: #0489c3;
   text-decoration: none;
 }
+library-ref .emphasize {
+  font-style: italic;
+}
+
 
 .nav-option {
   float: right;
@@ -1554,6 +1572,9 @@ megamorphic-cache-ref > a[href] {
 }
 megamorphic-cache-ref > a[href] * {
     color: inherit;
+}
+megamorphic-ref .emphasize {
+  font-style: italic;
 }
 
 /* metric-graph */
@@ -1809,16 +1830,18 @@ object-common button {
 /* object-pool-ref */
 
 object-pool-ref > a[href]:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 object-pool-ref > a[href] {
-    color: #0489c3;
-    text-decoration: none;
+  color: #0489c3;
+  text-decoration: none;
 }
-
 object-pool-ref > a[href] * {
-    color: inherit;
+  color: inherit;
+}
+object-pool-ref .emphasize {
+  font-style: italic;
 }
 
 /* object-pool-view */
@@ -1911,13 +1934,16 @@ ports-page .port-number {
 /* script-ref */
 
 script-ref > a[href]:hover {
-    text-decoration: underline;
+  text-decoration: underline;
+}
+script-ref > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+script-ref .emphasize {
+  font-style: italic;
 }
 
-script-ref > a[href] {
-    color: #0489c3;
-    text-decoration: none;
-}
 
 /* source-link */
 
@@ -2171,6 +2197,10 @@ type-arguments-ref a[href] {
   color: #0489c3;
   text-decoration: none;
 }
+type-arguments-ref .emphasize {
+  font-style: italic;
+}
+
 
 /* token-stream-ref */
 
@@ -2181,6 +2211,27 @@ token-stream-ref a[href] {
   color: #0489c3;
   text-decoration: none;
 }
+token-stream-ref .emphasize {
+  font-style: italic;
+}
+
+
+/* unknown-ref */
+
+unknown-ref > a[href]:hover {
+  text-decoration: underline;
+}
+unknown-ref > a[href] {
+  color: #0489c3;
+  text-decoration: none;
+}
+unknown-ref > a[href] * {
+  color: inherit;
+}
+unknown-ref .emphasize {
+  font-style: italic;
+}
+
 
 /* view-footer */
 

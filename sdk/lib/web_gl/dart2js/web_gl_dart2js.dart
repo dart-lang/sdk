@@ -399,20 +399,20 @@ class AngleInstancedArrays extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   void drawArraysInstancedAngle(int mode, int first, int count, int primcount)
-      native ;
+      native;
 
   @JSName('drawElementsInstancedANGLE')
   @DomName('ANGLEInstancedArrays.drawElementsInstancedANGLE')
   @DocsEditable()
   @Experimental() // untriaged
   void drawElementsInstancedAngle(
-      int mode, int count, int type, int offset, int primcount) native ;
+      int mode, int count, int type, int offset, int primcount) native;
 
   @JSName('vertexAttribDivisorANGLE')
   @DomName('ANGLEInstancedArrays.vertexAttribDivisorANGLE')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttribDivisorAngle(int index, int divisor) native ;
+  void vertexAttribDivisorAngle(int index, int divisor) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -456,44 +456,198 @@ class ChromiumSubscribeUniform extends Interceptor {
   @DomName('CHROMIUMSubscribeUniform.bindValuebufferCHROMIUM')
   @DocsEditable()
   @Experimental() // untriaged
-  void bindValuebufferChromium(int target, ChromiumValuebuffer buffer) native ;
+  void bindValuebufferChromium(int target, ChromiumValuebuffer buffer) native;
 
   @JSName('createValuebufferCHROMIUM')
   @DomName('CHROMIUMSubscribeUniform.createValuebufferCHROMIUM')
   @DocsEditable()
   @Experimental() // untriaged
-  ChromiumValuebuffer createValuebufferChromium() native ;
+  ChromiumValuebuffer createValuebufferChromium() native;
 
   @JSName('deleteValuebufferCHROMIUM')
   @DomName('CHROMIUMSubscribeUniform.deleteValuebufferCHROMIUM')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteValuebufferChromium(ChromiumValuebuffer buffer) native ;
+  void deleteValuebufferChromium(ChromiumValuebuffer buffer) native;
 
   @JSName('isValuebufferCHROMIUM')
   @DomName('CHROMIUMSubscribeUniform.isValuebufferCHROMIUM')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isValuebufferChromium(ChromiumValuebuffer buffer) native ;
+  bool isValuebufferChromium(ChromiumValuebuffer buffer) native;
 
   @JSName('populateSubscribedValuesCHROMIUM')
   @DomName('CHROMIUMSubscribeUniform.populateSubscribedValuesCHROMIUM')
   @DocsEditable()
   @Experimental() // untriaged
-  void populateSubscribedValuesChromium(int target) native ;
+  void populateSubscribedValuesChromium(int target) native;
 
   @JSName('subscribeValueCHROMIUM')
   @DomName('CHROMIUMSubscribeUniform.subscribeValueCHROMIUM')
   @DocsEditable()
   @Experimental() // untriaged
-  void subscribeValueChromium(int target, int subscriptions) native ;
+  void subscribeValueChromium(int target, int subscriptions) native;
 
   @JSName('uniformValuebufferCHROMIUM')
   @DomName('CHROMIUMSubscribeUniform.uniformValuebufferCHROMIUM')
   @DocsEditable()
   @Experimental() // untriaged
   void uniformValuebufferChromium(
-      UniformLocation location, int target, int subscription) native ;
+      UniformLocation location, int target, int subscription) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('WebGLCompressedTextureASTC')
+@Experimental() // untriaged
+@Native("WebGLCompressedTextureASTC")
+class CompressedTextureAstc extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory CompressedTextureAstc._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_10x10_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_10x10_KHR = 0x93BB;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_10x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_10x5_KHR = 0x93B8;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_10x6_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_10x6_KHR = 0x93B9;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_10x8_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_10x8_KHR = 0x93BA;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_12x10_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_12x10_KHR = 0x93BC;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_12x12_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_12x12_KHR = 0x93BD;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_4x4_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_4x4_KHR = 0x93B0;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_5x4_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_5x4_KHR = 0x93B1;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_5x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_5x5_KHR = 0x93B2;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_6x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_6x5_KHR = 0x93B3;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_6x6_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_6x6_KHR = 0x93B4;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_8x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_8x5_KHR = 0x93B5;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_8x6_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_8x6_KHR = 0x93B6;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_RGBA_ASTC_8x8_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_RGBA_ASTC_8x8_KHR = 0x93B7;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR = 0x93DB;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR = 0x93D8;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR = 0x93D9;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR = 0x93DA;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR = 0x93DC;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR = 0x93DD;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR = 0x93D0;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR = 0x93D1;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR = 0x93D2;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR = 0x93D3;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR = 0x93D4;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR = 0x93D5;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR = 0x93D6;
+
+  @DomName('WebGLCompressedTextureASTC.COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR = 0x93D7;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -676,7 +830,7 @@ class DebugShaders extends Interceptor {
 
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   @DocsEditable()
-  String getTranslatedShaderSource(Shader shader) native ;
+  String getTranslatedShaderSource(Shader shader) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -851,7 +1005,7 @@ class DrawBuffers extends Interceptor {
   @JSName('drawBuffersWEBGL')
   @DomName('WebGLDrawBuffers.drawBuffersWEBGL')
   @DocsEditable()
-  void drawBuffersWebgl(List<int> buffers) native ;
+  void drawBuffersWebgl(List<int> buffers) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -910,6 +1064,117 @@ class ExtBlendMinMax extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   static const int MIN_EXT = 0x8007;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('EXTColorBufferFloat')
+@Experimental() // untriaged
+@Native("EXTColorBufferFloat")
+class ExtColorBufferFloat extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ExtColorBufferFloat._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('EXTDisjointTimerQuery')
+@Experimental() // untriaged
+@Native("EXTDisjointTimerQuery")
+class ExtDisjointTimerQuery extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ExtDisjointTimerQuery._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  @DomName('EXTDisjointTimerQuery.CURRENT_QUERY_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CURRENT_QUERY_EXT = 0x8865;
+
+  @DomName('EXTDisjointTimerQuery.GPU_DISJOINT_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int GPU_DISJOINT_EXT = 0x8FBB;
+
+  @DomName('EXTDisjointTimerQuery.QUERY_COUNTER_BITS_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int QUERY_COUNTER_BITS_EXT = 0x8864;
+
+  @DomName('EXTDisjointTimerQuery.QUERY_RESULT_AVAILABLE_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int QUERY_RESULT_AVAILABLE_EXT = 0x8867;
+
+  @DomName('EXTDisjointTimerQuery.QUERY_RESULT_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int QUERY_RESULT_EXT = 0x8866;
+
+  @DomName('EXTDisjointTimerQuery.TIMESTAMP_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TIMESTAMP_EXT = 0x8E28;
+
+  @DomName('EXTDisjointTimerQuery.TIME_ELAPSED_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TIME_ELAPSED_EXT = 0x88BF;
+
+  @JSName('beginQueryEXT')
+  @DomName('EXTDisjointTimerQuery.beginQueryEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void beginQueryExt(int target, TimerQueryExt query) native;
+
+  @JSName('createQueryEXT')
+  @DomName('EXTDisjointTimerQuery.createQueryEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  TimerQueryExt createQueryExt() native;
+
+  @JSName('deleteQueryEXT')
+  @DomName('EXTDisjointTimerQuery.deleteQueryEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteQueryExt(TimerQueryExt query) native;
+
+  @JSName('endQueryEXT')
+  @DomName('EXTDisjointTimerQuery.endQueryEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void endQueryExt(int target) native;
+
+  @JSName('getQueryEXT')
+  @DomName('EXTDisjointTimerQuery.getQueryEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getQueryExt(int target, int pname) native;
+
+  @JSName('getQueryObjectEXT')
+  @DomName('EXTDisjointTimerQuery.getQueryObjectEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getQueryObjectExt(TimerQueryExt query, int pname) native;
+
+  @JSName('isQueryEXT')
+  @DomName('EXTDisjointTimerQuery.isQueryEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isQueryExt(TimerQueryExt query) native;
+
+  @JSName('queryCounterEXT')
+  @DomName('EXTDisjointTimerQuery.queryCounterEXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void queryCounterExt(TimerQueryExt query, int target) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -994,11 +1259,11 @@ class LoseContext extends Interceptor {
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable()
-  void loseContext() native ;
+  void loseContext() native;
 
   @DomName('WebGLLoseContext.restoreContext')
   @DocsEditable()
-  void restoreContext() native ;
+  void restoreContext() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1120,22 +1385,22 @@ class OesVertexArrayObject extends Interceptor {
   @JSName('bindVertexArrayOES')
   @DomName('OESVertexArrayObject.bindVertexArrayOES')
   @DocsEditable()
-  void bindVertexArray(VertexArrayObjectOes arrayObject) native ;
+  void bindVertexArray(VertexArrayObjectOes arrayObject) native;
 
   @JSName('createVertexArrayOES')
   @DomName('OESVertexArrayObject.createVertexArrayOES')
   @DocsEditable()
-  VertexArrayObjectOes createVertexArray() native ;
+  VertexArrayObjectOes createVertexArray() native;
 
   @JSName('deleteVertexArrayOES')
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   @DocsEditable()
-  void deleteVertexArray(VertexArrayObjectOes arrayObject) native ;
+  void deleteVertexArray(VertexArrayObjectOes arrayObject) native;
 
   @JSName('isVertexArrayOES')
   @DomName('OESVertexArrayObject.isVertexArrayOES')
   @DocsEditable()
-  bool isVertexArray(VertexArrayObjectOes arrayObject) native ;
+  bool isVertexArray(VertexArrayObjectOes arrayObject) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2405,248 +2670,248 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.activeTexture')
   @DocsEditable()
-  void activeTexture(int texture) native ;
+  void activeTexture(int texture) native;
 
   @DomName('WebGLRenderingContext.attachShader')
   @DocsEditable()
-  void attachShader(Program program, Shader shader) native ;
+  void attachShader(Program program, Shader shader) native;
 
   @DomName('WebGLRenderingContext.bindAttribLocation')
   @DocsEditable()
-  void bindAttribLocation(Program program, int index, String name) native ;
+  void bindAttribLocation(Program program, int index, String name) native;
 
   @DomName('WebGLRenderingContext.bindBuffer')
   @DocsEditable()
-  void bindBuffer(int target, Buffer buffer) native ;
+  void bindBuffer(int target, Buffer buffer) native;
 
   @DomName('WebGLRenderingContext.bindFramebuffer')
   @DocsEditable()
-  void bindFramebuffer(int target, Framebuffer framebuffer) native ;
+  void bindFramebuffer(int target, Framebuffer framebuffer) native;
 
   @DomName('WebGLRenderingContext.bindRenderbuffer')
   @DocsEditable()
-  void bindRenderbuffer(int target, Renderbuffer renderbuffer) native ;
+  void bindRenderbuffer(int target, Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.bindTexture')
   @DocsEditable()
-  void bindTexture(int target, Texture texture) native ;
+  void bindTexture(int target, Texture texture) native;
 
   @DomName('WebGLRenderingContext.blendColor')
   @DocsEditable()
-  void blendColor(num red, num green, num blue, num alpha) native ;
+  void blendColor(num red, num green, num blue, num alpha) native;
 
   @DomName('WebGLRenderingContext.blendEquation')
   @DocsEditable()
-  void blendEquation(int mode) native ;
+  void blendEquation(int mode) native;
 
   @DomName('WebGLRenderingContext.blendEquationSeparate')
   @DocsEditable()
-  void blendEquationSeparate(int modeRGB, int modeAlpha) native ;
+  void blendEquationSeparate(int modeRGB, int modeAlpha) native;
 
   @DomName('WebGLRenderingContext.blendFunc')
   @DocsEditable()
-  void blendFunc(int sfactor, int dfactor) native ;
+  void blendFunc(int sfactor, int dfactor) native;
 
   @DomName('WebGLRenderingContext.blendFuncSeparate')
   @DocsEditable()
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
-      native ;
+      native;
 
   @DomName('WebGLRenderingContext.bufferData')
   @DocsEditable()
-  void bufferData(int target, data_OR_size, int usage) native ;
+  void bufferData(int target, data_OR_size, int usage) native;
 
   @DomName('WebGLRenderingContext.bufferSubData')
   @DocsEditable()
-  void bufferSubData(int target, int offset, data) native ;
+  void bufferSubData(int target, int offset, data) native;
 
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
   @DocsEditable()
-  int checkFramebufferStatus(int target) native ;
+  int checkFramebufferStatus(int target) native;
 
   @DomName('WebGLRenderingContext.clear')
   @DocsEditable()
-  void clear(int mask) native ;
+  void clear(int mask) native;
 
   @DomName('WebGLRenderingContext.clearColor')
   @DocsEditable()
-  void clearColor(num red, num green, num blue, num alpha) native ;
+  void clearColor(num red, num green, num blue, num alpha) native;
 
   @DomName('WebGLRenderingContext.clearDepth')
   @DocsEditable()
-  void clearDepth(num depth) native ;
+  void clearDepth(num depth) native;
 
   @DomName('WebGLRenderingContext.clearStencil')
   @DocsEditable()
-  void clearStencil(int s) native ;
+  void clearStencil(int s) native;
 
   @DomName('WebGLRenderingContext.colorMask')
   @DocsEditable()
-  void colorMask(bool red, bool green, bool blue, bool alpha) native ;
+  void colorMask(bool red, bool green, bool blue, bool alpha) native;
 
   @DomName('WebGLRenderingContext.compileShader')
   @DocsEditable()
-  void compileShader(Shader shader) native ;
+  void compileShader(Shader shader) native;
 
   @DomName('WebGLRenderingContext.compressedTexImage2D')
   @DocsEditable()
   void compressedTexImage2D(int target, int level, int internalformat,
-      int width, int height, int border, TypedData data) native ;
+      int width, int height, int border, TypedData data) native;
 
   @DomName('WebGLRenderingContext.compressedTexSubImage2D')
   @DocsEditable()
   void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset,
-      int width, int height, int format, TypedData data) native ;
+      int width, int height, int format, TypedData data) native;
 
   @DomName('WebGLRenderingContext.copyTexImage2D')
   @DocsEditable()
   void copyTexImage2D(int target, int level, int internalformat, int x, int y,
-      int width, int height, int border) native ;
+      int width, int height, int border) native;
 
   @DomName('WebGLRenderingContext.copyTexSubImage2D')
   @DocsEditable()
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x,
-      int y, int width, int height) native ;
+      int y, int width, int height) native;
 
   @DomName('WebGLRenderingContext.createBuffer')
   @DocsEditable()
-  Buffer createBuffer() native ;
+  Buffer createBuffer() native;
 
   @DomName('WebGLRenderingContext.createFramebuffer')
   @DocsEditable()
-  Framebuffer createFramebuffer() native ;
+  Framebuffer createFramebuffer() native;
 
   @DomName('WebGLRenderingContext.createProgram')
   @DocsEditable()
-  Program createProgram() native ;
+  Program createProgram() native;
 
   @DomName('WebGLRenderingContext.createRenderbuffer')
   @DocsEditable()
-  Renderbuffer createRenderbuffer() native ;
+  Renderbuffer createRenderbuffer() native;
 
   @DomName('WebGLRenderingContext.createShader')
   @DocsEditable()
-  Shader createShader(int type) native ;
+  Shader createShader(int type) native;
 
   @DomName('WebGLRenderingContext.createTexture')
   @DocsEditable()
-  Texture createTexture() native ;
+  Texture createTexture() native;
 
   @DomName('WebGLRenderingContext.cullFace')
   @DocsEditable()
-  void cullFace(int mode) native ;
+  void cullFace(int mode) native;
 
   @DomName('WebGLRenderingContext.deleteBuffer')
   @DocsEditable()
-  void deleteBuffer(Buffer buffer) native ;
+  void deleteBuffer(Buffer buffer) native;
 
   @DomName('WebGLRenderingContext.deleteFramebuffer')
   @DocsEditable()
-  void deleteFramebuffer(Framebuffer framebuffer) native ;
+  void deleteFramebuffer(Framebuffer framebuffer) native;
 
   @DomName('WebGLRenderingContext.deleteProgram')
   @DocsEditable()
-  void deleteProgram(Program program) native ;
+  void deleteProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.deleteRenderbuffer')
   @DocsEditable()
-  void deleteRenderbuffer(Renderbuffer renderbuffer) native ;
+  void deleteRenderbuffer(Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.deleteShader')
   @DocsEditable()
-  void deleteShader(Shader shader) native ;
+  void deleteShader(Shader shader) native;
 
   @DomName('WebGLRenderingContext.deleteTexture')
   @DocsEditable()
-  void deleteTexture(Texture texture) native ;
+  void deleteTexture(Texture texture) native;
 
   @DomName('WebGLRenderingContext.depthFunc')
   @DocsEditable()
-  void depthFunc(int func) native ;
+  void depthFunc(int func) native;
 
   @DomName('WebGLRenderingContext.depthMask')
   @DocsEditable()
-  void depthMask(bool flag) native ;
+  void depthMask(bool flag) native;
 
   @DomName('WebGLRenderingContext.depthRange')
   @DocsEditable()
-  void depthRange(num zNear, num zFar) native ;
+  void depthRange(num zNear, num zFar) native;
 
   @DomName('WebGLRenderingContext.detachShader')
   @DocsEditable()
-  void detachShader(Program program, Shader shader) native ;
+  void detachShader(Program program, Shader shader) native;
 
   @DomName('WebGLRenderingContext.disable')
   @DocsEditable()
-  void disable(int cap) native ;
+  void disable(int cap) native;
 
   @DomName('WebGLRenderingContext.disableVertexAttribArray')
   @DocsEditable()
-  void disableVertexAttribArray(int index) native ;
+  void disableVertexAttribArray(int index) native;
 
   @DomName('WebGLRenderingContext.drawArrays')
   @DocsEditable()
-  void drawArrays(int mode, int first, int count) native ;
+  void drawArrays(int mode, int first, int count) native;
 
   @DomName('WebGLRenderingContext.drawElements')
   @DocsEditable()
-  void drawElements(int mode, int count, int type, int offset) native ;
+  void drawElements(int mode, int count, int type, int offset) native;
 
   @DomName('WebGLRenderingContext.enable')
   @DocsEditable()
-  void enable(int cap) native ;
+  void enable(int cap) native;
 
   @DomName('WebGLRenderingContext.enableVertexAttribArray')
   @DocsEditable()
-  void enableVertexAttribArray(int index) native ;
+  void enableVertexAttribArray(int index) native;
 
   @DomName('WebGLRenderingContext.finish')
   @DocsEditable()
-  void finish() native ;
+  void finish() native;
 
   @DomName('WebGLRenderingContext.flush')
   @DocsEditable()
-  void flush() native ;
+  void flush() native;
 
   @DomName('WebGLRenderingContext.framebufferRenderbuffer')
   @DocsEditable()
   void framebufferRenderbuffer(int target, int attachment,
-      int renderbuffertarget, Renderbuffer renderbuffer) native ;
+      int renderbuffertarget, Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.framebufferTexture2D')
   @DocsEditable()
   void framebufferTexture2D(int target, int attachment, int textarget,
-      Texture texture, int level) native ;
+      Texture texture, int level) native;
 
   @DomName('WebGLRenderingContext.frontFace')
   @DocsEditable()
-  void frontFace(int mode) native ;
+  void frontFace(int mode) native;
 
   @DomName('WebGLRenderingContext.generateMipmap')
   @DocsEditable()
-  void generateMipmap(int target) native ;
+  void generateMipmap(int target) native;
 
   @DomName('WebGLRenderingContext.getActiveAttrib')
   @DocsEditable()
-  ActiveInfo getActiveAttrib(Program program, int index) native ;
+  ActiveInfo getActiveAttrib(Program program, int index) native;
 
   @DomName('WebGLRenderingContext.getActiveUniform')
   @DocsEditable()
-  ActiveInfo getActiveUniform(Program program, int index) native ;
+  ActiveInfo getActiveUniform(Program program, int index) native;
 
   @DomName('WebGLRenderingContext.getAttachedShaders')
   @DocsEditable()
-  List<Shader> getAttachedShaders(Program program) native ;
+  List<Shader> getAttachedShaders(Program program) native;
 
   @DomName('WebGLRenderingContext.getAttribLocation')
   @DocsEditable()
-  int getAttribLocation(Program program, String name) native ;
+  int getAttribLocation(Program program, String name) native;
 
   @DomName('WebGLRenderingContext.getBufferParameter')
   @DocsEditable()
   @Creates('int|Null')
   @Returns('int|Null')
-  Object getBufferParameter(int target, int pname) native ;
+  Object getBufferParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getContextAttributes')
   @DocsEditable()
@@ -2659,22 +2924,22 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.getContextAttributes')
   @DocsEditable()
   @Creates('ContextAttributes|Null')
-  _getContextAttributes_1() native ;
+  _getContextAttributes_1() native;
 
   @DomName('WebGLRenderingContext.getError')
   @DocsEditable()
-  int getError() native ;
+  int getError() native;
 
   @DomName('WebGLRenderingContext.getExtension')
   @DocsEditable()
-  Object getExtension(String name) native ;
+  Object getExtension(String name) native;
 
   @DomName('WebGLRenderingContext.getFramebufferAttachmentParameter')
   @DocsEditable()
   @Creates('int|Renderbuffer|Texture|Null')
   @Returns('int|Renderbuffer|Texture|Null')
   Object getFramebufferAttachmentParameter(
-      int target, int attachment, int pname) native ;
+      int target, int attachment, int pname) native;
 
   @DomName('WebGLRenderingContext.getParameter')
   @DocsEditable()
@@ -2682,52 +2947,52 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture')
   @Returns(
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture')
-  Object getParameter(int pname) native ;
+  Object getParameter(int pname) native;
 
   @DomName('WebGLRenderingContext.getProgramInfoLog')
   @DocsEditable()
-  String getProgramInfoLog(Program program) native ;
+  String getProgramInfoLog(Program program) native;
 
   @DomName('WebGLRenderingContext.getProgramParameter')
   @DocsEditable()
   @Creates('int|bool|Null')
   @Returns('int|bool|Null')
-  Object getProgramParameter(Program program, int pname) native ;
+  Object getProgramParameter(Program program, int pname) native;
 
   @DomName('WebGLRenderingContext.getRenderbufferParameter')
   @DocsEditable()
   @Creates('int|Null')
   @Returns('int|Null')
-  Object getRenderbufferParameter(int target, int pname) native ;
+  Object getRenderbufferParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getShaderInfoLog')
   @DocsEditable()
-  String getShaderInfoLog(Shader shader) native ;
+  String getShaderInfoLog(Shader shader) native;
 
   @DomName('WebGLRenderingContext.getShaderParameter')
   @DocsEditable()
   @Creates('int|bool|Null')
   @Returns('int|bool|Null')
-  Object getShaderParameter(Shader shader, int pname) native ;
+  Object getShaderParameter(Shader shader, int pname) native;
 
   @DomName('WebGLRenderingContext.getShaderPrecisionFormat')
   @DocsEditable()
   ShaderPrecisionFormat getShaderPrecisionFormat(
-      int shadertype, int precisiontype) native ;
+      int shadertype, int precisiontype) native;
 
   @DomName('WebGLRenderingContext.getShaderSource')
   @DocsEditable()
-  String getShaderSource(Shader shader) native ;
+  String getShaderSource(Shader shader) native;
 
   @DomName('WebGLRenderingContext.getSupportedExtensions')
   @DocsEditable()
-  List<String> getSupportedExtensions() native ;
+  List<String> getSupportedExtensions() native;
 
   @DomName('WebGLRenderingContext.getTexParameter')
   @DocsEditable()
   @Creates('int|Null')
   @Returns('int|Null')
-  Object getTexParameter(int target, int pname) native ;
+  Object getTexParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getUniform')
   @DocsEditable()
@@ -2735,119 +3000,119 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List')
   @Returns(
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List')
-  Object getUniform(Program program, UniformLocation location) native ;
+  Object getUniform(Program program, UniformLocation location) native;
 
   @DomName('WebGLRenderingContext.getUniformLocation')
   @DocsEditable()
-  UniformLocation getUniformLocation(Program program, String name) native ;
+  UniformLocation getUniformLocation(Program program, String name) native;
 
   @DomName('WebGLRenderingContext.getVertexAttrib')
   @DocsEditable()
   @Creates('Null|num|bool|NativeFloat32List|Buffer')
   @Returns('Null|num|bool|NativeFloat32List|Buffer')
-  Object getVertexAttrib(int index, int pname) native ;
+  Object getVertexAttrib(int index, int pname) native;
 
   @DomName('WebGLRenderingContext.getVertexAttribOffset')
   @DocsEditable()
-  int getVertexAttribOffset(int index, int pname) native ;
+  int getVertexAttribOffset(int index, int pname) native;
 
   @DomName('WebGLRenderingContext.hint')
   @DocsEditable()
-  void hint(int target, int mode) native ;
+  void hint(int target, int mode) native;
 
   @DomName('WebGLRenderingContext.isBuffer')
   @DocsEditable()
-  bool isBuffer(Buffer buffer) native ;
+  bool isBuffer(Buffer buffer) native;
 
   @DomName('WebGLRenderingContext.isContextLost')
   @DocsEditable()
-  bool isContextLost() native ;
+  bool isContextLost() native;
 
   @DomName('WebGLRenderingContext.isEnabled')
   @DocsEditable()
-  bool isEnabled(int cap) native ;
+  bool isEnabled(int cap) native;
 
   @DomName('WebGLRenderingContext.isFramebuffer')
   @DocsEditable()
-  bool isFramebuffer(Framebuffer framebuffer) native ;
+  bool isFramebuffer(Framebuffer framebuffer) native;
 
   @DomName('WebGLRenderingContext.isProgram')
   @DocsEditable()
-  bool isProgram(Program program) native ;
+  bool isProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.isRenderbuffer')
   @DocsEditable()
-  bool isRenderbuffer(Renderbuffer renderbuffer) native ;
+  bool isRenderbuffer(Renderbuffer renderbuffer) native;
 
   @DomName('WebGLRenderingContext.isShader')
   @DocsEditable()
-  bool isShader(Shader shader) native ;
+  bool isShader(Shader shader) native;
 
   @DomName('WebGLRenderingContext.isTexture')
   @DocsEditable()
-  bool isTexture(Texture texture) native ;
+  bool isTexture(Texture texture) native;
 
   @DomName('WebGLRenderingContext.lineWidth')
   @DocsEditable()
-  void lineWidth(num width) native ;
+  void lineWidth(num width) native;
 
   @DomName('WebGLRenderingContext.linkProgram')
   @DocsEditable()
-  void linkProgram(Program program) native ;
+  void linkProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.pixelStorei')
   @DocsEditable()
-  void pixelStorei(int pname, int param) native ;
+  void pixelStorei(int pname, int param) native;
 
   @DomName('WebGLRenderingContext.polygonOffset')
   @DocsEditable()
-  void polygonOffset(num factor, num units) native ;
+  void polygonOffset(num factor, num units) native;
 
   @DomName('WebGLRenderingContext.readPixels')
   @DocsEditable()
   void readPixels(int x, int y, int width, int height, int format, int type,
-      TypedData pixels) native ;
+      TypedData pixels) native;
 
   @DomName('WebGLRenderingContext.renderbufferStorage')
   @DocsEditable()
   void renderbufferStorage(
-      int target, int internalformat, int width, int height) native ;
+      int target, int internalformat, int width, int height) native;
 
   @DomName('WebGLRenderingContext.sampleCoverage')
   @DocsEditable()
-  void sampleCoverage(num value, bool invert) native ;
+  void sampleCoverage(num value, bool invert) native;
 
   @DomName('WebGLRenderingContext.scissor')
   @DocsEditable()
-  void scissor(int x, int y, int width, int height) native ;
+  void scissor(int x, int y, int width, int height) native;
 
   @DomName('WebGLRenderingContext.shaderSource')
   @DocsEditable()
-  void shaderSource(Shader shader, String string) native ;
+  void shaderSource(Shader shader, String string) native;
 
   @DomName('WebGLRenderingContext.stencilFunc')
   @DocsEditable()
-  void stencilFunc(int func, int ref, int mask) native ;
+  void stencilFunc(int func, int ref, int mask) native;
 
   @DomName('WebGLRenderingContext.stencilFuncSeparate')
   @DocsEditable()
-  void stencilFuncSeparate(int face, int func, int ref, int mask) native ;
+  void stencilFuncSeparate(int face, int func, int ref, int mask) native;
 
   @DomName('WebGLRenderingContext.stencilMask')
   @DocsEditable()
-  void stencilMask(int mask) native ;
+  void stencilMask(int mask) native;
 
   @DomName('WebGLRenderingContext.stencilMaskSeparate')
   @DocsEditable()
-  void stencilMaskSeparate(int face, int mask) native ;
+  void stencilMaskSeparate(int face, int mask) native;
 
   @DomName('WebGLRenderingContext.stencilOp')
   @DocsEditable()
-  void stencilOp(int fail, int zfail, int zpass) native ;
+  void stencilOp(int fail, int zfail, int zpass) native;
 
   @DomName('WebGLRenderingContext.stencilOpSeparate')
   @DocsEditable()
-  void stencilOpSeparate(int face, int fail, int zfail, int zpass) native ;
+  void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
@@ -2857,58 +3122,90 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       int internalformat,
       int format_OR_width,
       int height_OR_type,
-      border_OR_canvas_OR_image_OR_pixels_OR_video,
+      bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
       [int format,
       int type,
       TypedData pixels]) {
     if (type != null &&
         format != null &&
-        (border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
+        (bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
       _texImage2D_1(
           target,
           level,
           internalformat,
           format_OR_width,
           height_OR_type,
-          border_OR_canvas_OR_image_OR_pixels_OR_video,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
           format,
           type,
           pixels);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData ||
-            border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData ||
+            bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         format == null &&
         type == null &&
         pixels == null) {
       var pixels_1 = convertDartToNative_ImageData(
-          border_OR_canvas_OR_image_OR_pixels_OR_video);
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
       _texImage2D_2(target, level, internalformat, format_OR_width,
           height_OR_type, pixels_1);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement) &&
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is ImageElement) &&
         format == null &&
         type == null &&
         pixels == null) {
-      _texImage2D_3(target, level, internalformat, format_OR_width,
-          height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_3(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement) &&
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is CanvasElement) &&
         format == null &&
         type == null &&
         pixels == null) {
-      _texImage2D_4(target, level, internalformat, format_OR_width,
-          height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_4(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement) &&
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is VideoElement) &&
         format == null &&
         type == null &&
         pixels == null) {
-      _texImage2D_5(target, level, internalformat, format_OR_width,
-          height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_5(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is ImageBitmap) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      _texImage2D_6(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -2918,35 +3215,40 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_1(target, level, internalformat, width, height, int border,
-      format, type, TypedData pixels) native ;
+      format, type, TypedData pixels) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_2(target, level, internalformat, format, type, pixels)
-      native ;
+      native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_3(
-      target, level, internalformat, format, type, ImageElement image) native ;
+      target, level, internalformat, format, type, ImageElement image) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
-  void _texImage2D_4(target, level, internalformat, format, type,
-      CanvasElement canvas) native ;
+  void _texImage2D_4(
+      target, level, internalformat, format, type, CanvasElement canvas) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2D_5(
-      target, level, internalformat, format, type, VideoElement video) native ;
+      target, level, internalformat, format, type, VideoElement video) native;
+  @JSName('texImage2D')
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable()
+  void _texImage2D_6(
+      target, level, internalformat, format, type, ImageBitmap bitmap) native;
 
   @DomName('WebGLRenderingContext.texParameterf')
   @DocsEditable()
-  void texParameterf(int target, int pname, num param) native ;
+  void texParameterf(int target, int pname, num param) native;
 
   @DomName('WebGLRenderingContext.texParameteri')
   @DocsEditable()
-  void texParameteri(int target, int pname, int param) native ;
+  void texParameteri(int target, int pname, int param) native;
 
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
@@ -2957,10 +3259,11 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       int yoffset,
       int format_OR_width,
       int height_OR_type,
-      canvas_OR_format_OR_image_OR_pixels_OR_video,
+      bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
       [int type,
       TypedData pixels]) {
-    if (type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
+    if (type != null &&
+        (bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
       _texSubImage2D_1(
           target,
           level,
@@ -2968,40 +3271,75 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
           yoffset,
           format_OR_width,
           height_OR_type,
-          canvas_OR_format_OR_image_OR_pixels_OR_video,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
           type,
           pixels);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData ||
-            canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData ||
+            bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         type == null &&
         pixels == null) {
       var pixels_1 = convertDartToNative_ImageData(
-          canvas_OR_format_OR_image_OR_pixels_OR_video);
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
       _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width,
           height_OR_type, pixels_1);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement) &&
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is ImageElement) &&
         type == null &&
         pixels == null) {
-      _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width,
-          height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_3(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement) &&
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is CanvasElement) &&
         type == null &&
         pixels == null) {
-      _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width,
-          height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_4(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement) &&
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is VideoElement) &&
         type == null &&
         pixels == null) {
-      _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width,
-          height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_5(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is ImageBitmap) &&
+        type == null &&
+        pixels == null) {
+      _texSubImage2D_6(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -3011,155 +3349,157 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_1(target, level, xoffset, yoffset, width, height,
-      int format, type, TypedData pixels) native ;
+      int format, type, TypedData pixels) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels)
-      native ;
+      native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void _texSubImage2D_3(target, level, xoffset, yoffset, format, type,
-      ImageElement image) native ;
+  void _texSubImage2D_3(
+      target, level, xoffset, yoffset, format, type, ImageElement image) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2D_4(target, level, xoffset, yoffset, format, type,
-      CanvasElement canvas) native ;
+      CanvasElement canvas) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
-  void _texSubImage2D_5(target, level, xoffset, yoffset, format, type,
-      VideoElement video) native ;
+  void _texSubImage2D_5(
+      target, level, xoffset, yoffset, format, type, VideoElement video) native;
+  @JSName('texSubImage2D')
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable()
+  void _texSubImage2D_6(
+      target, level, xoffset, yoffset, format, type, ImageBitmap bitmap) native;
 
   @DomName('WebGLRenderingContext.uniform1f')
   @DocsEditable()
-  void uniform1f(UniformLocation location, num x) native ;
+  void uniform1f(UniformLocation location, num x) native;
 
   @DomName('WebGLRenderingContext.uniform1fv')
   @DocsEditable()
-  void uniform1fv(UniformLocation location, v) native ;
+  void uniform1fv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform1i')
   @DocsEditable()
-  void uniform1i(UniformLocation location, int x) native ;
+  void uniform1i(UniformLocation location, int x) native;
 
   @DomName('WebGLRenderingContext.uniform1iv')
   @DocsEditable()
-  void uniform1iv(UniformLocation location, v) native ;
+  void uniform1iv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform2f')
   @DocsEditable()
-  void uniform2f(UniformLocation location, num x, num y) native ;
+  void uniform2f(UniformLocation location, num x, num y) native;
 
   @DomName('WebGLRenderingContext.uniform2fv')
   @DocsEditable()
-  void uniform2fv(UniformLocation location, v) native ;
+  void uniform2fv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform2i')
   @DocsEditable()
-  void uniform2i(UniformLocation location, int x, int y) native ;
+  void uniform2i(UniformLocation location, int x, int y) native;
 
   @DomName('WebGLRenderingContext.uniform2iv')
   @DocsEditable()
-  void uniform2iv(UniformLocation location, v) native ;
+  void uniform2iv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform3f')
   @DocsEditable()
-  void uniform3f(UniformLocation location, num x, num y, num z) native ;
+  void uniform3f(UniformLocation location, num x, num y, num z) native;
 
   @DomName('WebGLRenderingContext.uniform3fv')
   @DocsEditable()
-  void uniform3fv(UniformLocation location, v) native ;
+  void uniform3fv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform3i')
   @DocsEditable()
-  void uniform3i(UniformLocation location, int x, int y, int z) native ;
+  void uniform3i(UniformLocation location, int x, int y, int z) native;
 
   @DomName('WebGLRenderingContext.uniform3iv')
   @DocsEditable()
-  void uniform3iv(UniformLocation location, v) native ;
+  void uniform3iv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform4f')
   @DocsEditable()
-  void uniform4f(UniformLocation location, num x, num y, num z, num w) native ;
+  void uniform4f(UniformLocation location, num x, num y, num z, num w) native;
 
   @DomName('WebGLRenderingContext.uniform4fv')
   @DocsEditable()
-  void uniform4fv(UniformLocation location, v) native ;
+  void uniform4fv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniform4i')
   @DocsEditable()
-  void uniform4i(UniformLocation location, int x, int y, int z, int w) native ;
+  void uniform4i(UniformLocation location, int x, int y, int z, int w) native;
 
   @DomName('WebGLRenderingContext.uniform4iv')
   @DocsEditable()
-  void uniform4iv(UniformLocation location, v) native ;
+  void uniform4iv(UniformLocation location, v) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix2fv')
   @DocsEditable()
-  void uniformMatrix2fv(UniformLocation location, bool transpose, array)
-      native ;
+  void uniformMatrix2fv(UniformLocation location, bool transpose, array) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix3fv')
   @DocsEditable()
-  void uniformMatrix3fv(UniformLocation location, bool transpose, array)
-      native ;
+  void uniformMatrix3fv(UniformLocation location, bool transpose, array) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix4fv')
   @DocsEditable()
-  void uniformMatrix4fv(UniformLocation location, bool transpose, array)
-      native ;
+  void uniformMatrix4fv(UniformLocation location, bool transpose, array) native;
 
   @DomName('WebGLRenderingContext.useProgram')
   @DocsEditable()
-  void useProgram(Program program) native ;
+  void useProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.validateProgram')
   @DocsEditable()
-  void validateProgram(Program program) native ;
+  void validateProgram(Program program) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib1f')
   @DocsEditable()
-  void vertexAttrib1f(int indx, num x) native ;
+  void vertexAttrib1f(int indx, num x) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib1fv')
   @DocsEditable()
-  void vertexAttrib1fv(int indx, values) native ;
+  void vertexAttrib1fv(int indx, values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib2f')
   @DocsEditable()
-  void vertexAttrib2f(int indx, num x, num y) native ;
+  void vertexAttrib2f(int indx, num x, num y) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib2fv')
   @DocsEditable()
-  void vertexAttrib2fv(int indx, values) native ;
+  void vertexAttrib2fv(int indx, values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib3f')
   @DocsEditable()
-  void vertexAttrib3f(int indx, num x, num y, num z) native ;
+  void vertexAttrib3f(int indx, num x, num y, num z) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib3fv')
   @DocsEditable()
-  void vertexAttrib3fv(int indx, values) native ;
+  void vertexAttrib3fv(int indx, values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib4f')
   @DocsEditable()
-  void vertexAttrib4f(int indx, num x, num y, num z, num w) native ;
+  void vertexAttrib4f(int indx, num x, num y, num z, num w) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib4fv')
   @DocsEditable()
-  void vertexAttrib4fv(int indx, values) native ;
+  void vertexAttrib4fv(int indx, values) native;
 
   @DomName('WebGLRenderingContext.vertexAttribPointer')
   @DocsEditable()
   void vertexAttribPointer(int indx, int size, int type, bool normalized,
-      int stride, int offset) native ;
+      int stride, int offset) native;
 
   @DomName('WebGLRenderingContext.viewport')
   @DocsEditable()
-  void viewport(int x, int y, int width, int height) native ;
+  void viewport(int x, int y, int width, int height) native;
 
   /**
    * Sets the currently bound texture to [data].
@@ -4743,76 +5083,75 @@ class RenderingContext2 extends Interceptor
   @DomName('WebGL2RenderingContext.beginQuery')
   @DocsEditable()
   @Experimental() // untriaged
-  void beginQuery(int target, Query query) native ;
+  void beginQuery(int target, Query query) native;
 
   @DomName('WebGL2RenderingContext.beginTransformFeedback')
   @DocsEditable()
   @Experimental() // untriaged
-  void beginTransformFeedback(int primitiveMode) native ;
+  void beginTransformFeedback(int primitiveMode) native;
 
   @DomName('WebGL2RenderingContext.bindBufferBase')
   @DocsEditable()
   @Experimental() // untriaged
-  void bindBufferBase(int target, int index, Buffer buffer) native ;
+  void bindBufferBase(int target, int index, Buffer buffer) native;
 
   @DomName('WebGL2RenderingContext.bindBufferRange')
   @DocsEditable()
   @Experimental() // untriaged
   void bindBufferRange(
-      int target, int index, Buffer buffer, int offset, int size) native ;
+      int target, int index, Buffer buffer, int offset, int size) native;
 
   @DomName('WebGL2RenderingContext.bindSampler')
   @DocsEditable()
   @Experimental() // untriaged
-  void bindSampler(int unit, Sampler sampler) native ;
+  void bindSampler(int unit, Sampler sampler) native;
 
   @DomName('WebGL2RenderingContext.bindTransformFeedback')
   @DocsEditable()
   @Experimental() // untriaged
-  void bindTransformFeedback(int target, TransformFeedback feedback) native ;
+  void bindTransformFeedback(int target, TransformFeedback feedback) native;
 
   @DomName('WebGL2RenderingContext.bindVertexArray')
   @DocsEditable()
   @Experimental() // untriaged
-  void bindVertexArray(VertexArrayObject vertexArray) native ;
+  void bindVertexArray(VertexArrayObject vertexArray) native;
 
   @DomName('WebGL2RenderingContext.blitFramebuffer')
   @DocsEditable()
   @Experimental() // untriaged
   void blitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0,
-      int dstY0, int dstX1, int dstY1, int mask, int filter) native ;
+      int dstY0, int dstX1, int dstY1, int mask, int filter) native;
 
   @DomName('WebGL2RenderingContext.clearBufferfi')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearBufferfi(int buffer, int drawbuffer, num depth, int stencil)
-      native ;
+  void clearBufferfi(int buffer, int drawbuffer, num depth, int stencil) native;
 
   @DomName('WebGL2RenderingContext.clearBufferfv')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearBufferfv(int buffer, int drawbuffer, value) native ;
+  void clearBufferfv(int buffer, int drawbuffer, value) native;
 
   @DomName('WebGL2RenderingContext.clearBufferiv')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearBufferiv(int buffer, int drawbuffer, value) native ;
+  void clearBufferiv(int buffer, int drawbuffer, value) native;
 
   @DomName('WebGL2RenderingContext.clearBufferuiv')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearBufferuiv(int buffer, int drawbuffer, value) native ;
+  void clearBufferuiv(int buffer, int drawbuffer, value) native;
 
   @DomName('WebGL2RenderingContext.clientWaitSync')
   @DocsEditable()
   @Experimental() // untriaged
-  int clientWaitSync(Sync sync, int flags, int timeout) native ;
+  int clientWaitSync(Sync sync, int flags, int timeout) native;
 
   @DomName('WebGL2RenderingContext.compressedTexImage3D')
   @DocsEditable()
   @Experimental() // untriaged
   void compressedTexImage3D(int target, int level, int internalformat,
-      int width, int height, int depth, int border, TypedData data) native ;
+      int width, int height, int depth, int border, TypedData data) native;
 
   @DomName('WebGL2RenderingContext.compressedTexSubImage3D')
   @DocsEditable()
@@ -4827,178 +5166,177 @@ class RenderingContext2 extends Interceptor
       int height,
       int depth,
       int format,
-      TypedData data) native ;
+      TypedData data) native;
 
   @DomName('WebGL2RenderingContext.copyBufferSubData')
   @DocsEditable()
   @Experimental() // untriaged
   void copyBufferSubData(int readTarget, int writeTarget, int readOffset,
-      int writeOffset, int size) native ;
+      int writeOffset, int size) native;
 
   @DomName('WebGL2RenderingContext.copyTexSubImage3D')
   @DocsEditable()
   @Experimental() // untriaged
   void copyTexSubImage3D(int target, int level, int xoffset, int yoffset,
-      int zoffset, int x, int y, int width, int height) native ;
+      int zoffset, int x, int y, int width, int height) native;
 
   @DomName('WebGL2RenderingContext.createQuery')
   @DocsEditable()
   @Experimental() // untriaged
-  Query createQuery() native ;
+  Query createQuery() native;
 
   @DomName('WebGL2RenderingContext.createSampler')
   @DocsEditable()
   @Experimental() // untriaged
-  Sampler createSampler() native ;
+  Sampler createSampler() native;
 
   @DomName('WebGL2RenderingContext.createTransformFeedback')
   @DocsEditable()
   @Experimental() // untriaged
-  TransformFeedback createTransformFeedback() native ;
+  TransformFeedback createTransformFeedback() native;
 
   @DomName('WebGL2RenderingContext.createVertexArray')
   @DocsEditable()
   @Experimental() // untriaged
-  VertexArrayObject createVertexArray() native ;
+  VertexArrayObject createVertexArray() native;
 
   @DomName('WebGL2RenderingContext.deleteQuery')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteQuery(Query query) native ;
+  void deleteQuery(Query query) native;
 
   @DomName('WebGL2RenderingContext.deleteSampler')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteSampler(Sampler sampler) native ;
+  void deleteSampler(Sampler sampler) native;
 
   @DomName('WebGL2RenderingContext.deleteSync')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteSync(Sync sync) native ;
+  void deleteSync(Sync sync) native;
 
   @DomName('WebGL2RenderingContext.deleteTransformFeedback')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteTransformFeedback(TransformFeedback feedback) native ;
+  void deleteTransformFeedback(TransformFeedback feedback) native;
 
   @DomName('WebGL2RenderingContext.deleteVertexArray')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteVertexArray(VertexArrayObject vertexArray) native ;
+  void deleteVertexArray(VertexArrayObject vertexArray) native;
 
   @DomName('WebGL2RenderingContext.drawArraysInstanced')
   @DocsEditable()
   @Experimental() // untriaged
   void drawArraysInstanced(int mode, int first, int count, int instanceCount)
-      native ;
+      native;
 
   @DomName('WebGL2RenderingContext.drawBuffers')
   @DocsEditable()
   @Experimental() // untriaged
-  void drawBuffers(List<int> buffers) native ;
+  void drawBuffers(List<int> buffers) native;
 
   @DomName('WebGL2RenderingContext.drawElementsInstanced')
   @DocsEditable()
   @Experimental() // untriaged
   void drawElementsInstanced(
-      int mode, int count, int type, int offset, int instanceCount) native ;
+      int mode, int count, int type, int offset, int instanceCount) native;
 
   @DomName('WebGL2RenderingContext.drawRangeElements')
   @DocsEditable()
   @Experimental() // untriaged
   void drawRangeElements(
-      int mode, int start, int end, int count, int type, int offset) native ;
+      int mode, int start, int end, int count, int type, int offset) native;
 
   @DomName('WebGL2RenderingContext.endQuery')
   @DocsEditable()
   @Experimental() // untriaged
-  void endQuery(int target) native ;
+  void endQuery(int target) native;
 
   @DomName('WebGL2RenderingContext.endTransformFeedback')
   @DocsEditable()
   @Experimental() // untriaged
-  void endTransformFeedback() native ;
+  void endTransformFeedback() native;
 
   @DomName('WebGL2RenderingContext.fenceSync')
   @DocsEditable()
   @Experimental() // untriaged
-  Sync fenceSync(int condition, int flags) native ;
+  Sync fenceSync(int condition, int flags) native;
 
   @DomName('WebGL2RenderingContext.framebufferTextureLayer')
   @DocsEditable()
   @Experimental() // untriaged
-  void framebufferTextureLayer(int target, int attachment, Texture texture,
-      int level, int layer) native ;
+  void framebufferTextureLayer(
+      int target, int attachment, Texture texture, int level, int layer) native;
 
   @DomName('WebGL2RenderingContext.getActiveUniformBlockName')
   @DocsEditable()
   @Experimental() // untriaged
   String getActiveUniformBlockName(Program program, int uniformBlockIndex)
-      native ;
+      native;
 
   @DomName('WebGL2RenderingContext.getActiveUniformBlockParameter')
   @DocsEditable()
   @Experimental() // untriaged
   Object getActiveUniformBlockParameter(
-      Program program, int uniformBlockIndex, int pname) native ;
+      Program program, int uniformBlockIndex, int pname) native;
 
   @DomName('WebGL2RenderingContext.getActiveUniforms')
   @DocsEditable()
   @Experimental() // untriaged
-  List<int> getActiveUniforms(
-      Program program, List<int> uniformIndices, int pname) native ;
+  Object getActiveUniforms(Program program, List<int> uniformIndices, int pname)
+      native;
 
   @DomName('WebGL2RenderingContext.getBufferSubData')
   @DocsEditable()
   @Experimental() // untriaged
-  void getBufferSubData(int target, int offset, ByteBuffer returnedData)
-      native ;
+  void getBufferSubData(int target, int offset, ByteBuffer returnedData) native;
 
   @DomName('WebGL2RenderingContext.getFragDataLocation')
   @DocsEditable()
   @Experimental() // untriaged
-  int getFragDataLocation(Program program, String name) native ;
+  int getFragDataLocation(Program program, String name) native;
 
   @DomName('WebGL2RenderingContext.getIndexedParameter')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getIndexedParameter(int target, int index) native ;
+  Object getIndexedParameter(int target, int index) native;
 
   @DomName('WebGL2RenderingContext.getInternalformatParameter')
   @DocsEditable()
   @Experimental() // untriaged
   Object getInternalformatParameter(int target, int internalformat, int pname)
-      native ;
+      native;
 
   @DomName('WebGL2RenderingContext.getQuery')
   @DocsEditable()
   @Experimental() // untriaged
-  Query getQuery(int target, int pname) native ;
+  Query getQuery(int target, int pname) native;
 
   @DomName('WebGL2RenderingContext.getQueryParameter')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getQueryParameter(Query query, int pname) native ;
+  Object getQueryParameter(Query query, int pname) native;
 
   @DomName('WebGL2RenderingContext.getSamplerParameter')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getSamplerParameter(Sampler sampler, int pname) native ;
+  Object getSamplerParameter(Sampler sampler, int pname) native;
 
   @DomName('WebGL2RenderingContext.getSyncParameter')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getSyncParameter(Sync sync, int pname) native ;
+  Object getSyncParameter(Sync sync, int pname) native;
 
   @DomName('WebGL2RenderingContext.getTransformFeedbackVarying')
   @DocsEditable()
   @Experimental() // untriaged
-  ActiveInfo getTransformFeedbackVarying(Program program, int index) native ;
+  ActiveInfo getTransformFeedbackVarying(Program program, int index) native;
 
   @DomName('WebGL2RenderingContext.getUniformBlockIndex')
   @DocsEditable()
   @Experimental() // untriaged
-  int getUniformBlockIndex(Program program, String uniformBlockName) native ;
+  int getUniformBlockIndex(Program program, String uniformBlockName) native;
 
   @DomName('WebGL2RenderingContext.getUniformIndices')
   @DocsEditable()
@@ -5012,74 +5350,88 @@ class RenderingContext2 extends Interceptor
   @DomName('WebGL2RenderingContext.getUniformIndices')
   @DocsEditable()
   @Experimental() // untriaged
-  List<int> _getUniformIndices_1(Program program, List uniformNames) native ;
+  List<int> _getUniformIndices_1(Program program, List uniformNames) native;
 
   @DomName('WebGL2RenderingContext.invalidateFramebuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  void invalidateFramebuffer(int target, List<int> attachments) native ;
+  void invalidateFramebuffer(int target, List<int> attachments) native;
 
   @DomName('WebGL2RenderingContext.invalidateSubFramebuffer')
   @DocsEditable()
   @Experimental() // untriaged
   void invalidateSubFramebuffer(int target, List<int> attachments, int x, int y,
-      int width, int height) native ;
+      int width, int height) native;
 
   @DomName('WebGL2RenderingContext.isQuery')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isQuery(Query query) native ;
+  bool isQuery(Query query) native;
 
   @DomName('WebGL2RenderingContext.isSampler')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isSampler(Sampler sampler) native ;
+  bool isSampler(Sampler sampler) native;
 
   @DomName('WebGL2RenderingContext.isSync')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isSync(Sync sync) native ;
+  bool isSync(Sync sync) native;
 
   @DomName('WebGL2RenderingContext.isTransformFeedback')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isTransformFeedback(TransformFeedback feedback) native ;
+  bool isTransformFeedback(TransformFeedback feedback) native;
 
   @DomName('WebGL2RenderingContext.isVertexArray')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isVertexArray(VertexArrayObject vertexArray) native ;
+  bool isVertexArray(VertexArrayObject vertexArray) native;
 
   @DomName('WebGL2RenderingContext.pauseTransformFeedback')
   @DocsEditable()
   @Experimental() // untriaged
-  void pauseTransformFeedback() native ;
+  void pauseTransformFeedback() native;
 
   @DomName('WebGL2RenderingContext.readBuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  void readBuffer(int mode) native ;
+  void readBuffer(int mode) native;
+
+  @JSName('readPixels')
+  @DomName('WebGL2RenderingContext.readPixels')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void readPixels2(int x, int y, int width, int height, int format, int type,
+      int offset) native;
 
   @DomName('WebGL2RenderingContext.renderbufferStorageMultisample')
   @DocsEditable()
   @Experimental() // untriaged
   void renderbufferStorageMultisample(int target, int samples,
-      int internalformat, int width, int height) native ;
+      int internalformat, int width, int height) native;
 
   @DomName('WebGL2RenderingContext.resumeTransformFeedback')
   @DocsEditable()
   @Experimental() // untriaged
-  void resumeTransformFeedback() native ;
+  void resumeTransformFeedback() native;
 
   @DomName('WebGL2RenderingContext.samplerParameterf')
   @DocsEditable()
   @Experimental() // untriaged
-  void samplerParameterf(Sampler sampler, int pname, num param) native ;
+  void samplerParameterf(Sampler sampler, int pname, num param) native;
 
   @DomName('WebGL2RenderingContext.samplerParameteri')
   @DocsEditable()
   @Experimental() // untriaged
-  void samplerParameteri(Sampler sampler, int pname, int param) native ;
+  void samplerParameteri(Sampler sampler, int pname, int param) native;
+
+  @JSName('texImage2D')
+  @DomName('WebGL2RenderingContext.texImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texImage2D2(int target, int level, int internalformat, int width,
+      int height, int border, int format, int type, int offset) native;
 
   @DomName('WebGL2RenderingContext.texImage3D')
   @DocsEditable()
@@ -5094,19 +5446,19 @@ class RenderingContext2 extends Interceptor
       int border,
       int format,
       int type,
-      TypedData pixels) native ;
+      offset_OR_pixels) native;
 
   @DomName('WebGL2RenderingContext.texStorage2D')
   @DocsEditable()
   @Experimental() // untriaged
-  void texStorage2D(int target, int levels, int internalformat, int width,
-      int height) native ;
+  void texStorage2D(
+      int target, int levels, int internalformat, int width, int height) native;
 
   @DomName('WebGL2RenderingContext.texStorage3D')
   @DocsEditable()
   @Experimental() // untriaged
   void texStorage3D(int target, int levels, int internalformat, int width,
-      int height, int depth) native ;
+      int height, int depth) native;
 
   @DomName('WebGL2RenderingContext.texSubImage3D')
   @DocsEditable()
@@ -5119,13 +5471,13 @@ class RenderingContext2 extends Interceptor
       int zoffset,
       int format_OR_width,
       int height_OR_type,
-      canvas_OR_data_OR_depth_OR_image_OR_video,
+      bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video,
       [int format,
       int type,
       TypedData pixels]) {
     if (type != null &&
         format != null &&
-        (canvas_OR_data_OR_depth_OR_image_OR_video is int)) {
+        (bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video is int)) {
       _texSubImage3D_1(
           target,
           level,
@@ -5134,25 +5486,25 @@ class RenderingContext2 extends Interceptor
           zoffset,
           format_OR_width,
           height_OR_type,
-          canvas_OR_data_OR_depth_OR_image_OR_video,
+          bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video,
           format,
           type,
           pixels);
       return;
     }
-    if ((canvas_OR_data_OR_depth_OR_image_OR_video is ImageData ||
-            canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
+    if ((bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video is ImageData ||
+            bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
         format == null &&
         type == null &&
         pixels == null) {
       var data_1 = convertDartToNative_ImageData(
-          canvas_OR_data_OR_depth_OR_image_OR_video);
+          bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video);
       _texSubImage3D_2(target, level, xoffset, yoffset, zoffset,
           format_OR_width, height_OR_type, data_1);
       return;
     }
-    if ((canvas_OR_data_OR_depth_OR_image_OR_video is ImageElement ||
-            canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
+    if ((bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video is ImageElement ||
+            bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
         format == null &&
         type == null &&
         pixels == null) {
@@ -5164,11 +5516,11 @@ class RenderingContext2 extends Interceptor
           zoffset,
           format_OR_width,
           height_OR_type,
-          canvas_OR_data_OR_depth_OR_image_OR_video);
+          bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video);
       return;
     }
-    if ((canvas_OR_data_OR_depth_OR_image_OR_video is CanvasElement ||
-            canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
+    if ((bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video is CanvasElement ||
+            bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
         format == null &&
         type == null &&
         pixels == null) {
@@ -5180,11 +5532,11 @@ class RenderingContext2 extends Interceptor
           zoffset,
           format_OR_width,
           height_OR_type,
-          canvas_OR_data_OR_depth_OR_image_OR_video);
+          bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video);
       return;
     }
-    if ((canvas_OR_data_OR_depth_OR_image_OR_video is VideoElement ||
-            canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
+    if ((bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video is VideoElement ||
+            bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
         format == null &&
         type == null &&
         pixels == null) {
@@ -5196,7 +5548,23 @@ class RenderingContext2 extends Interceptor
           zoffset,
           format_OR_width,
           height_OR_type,
-          canvas_OR_data_OR_depth_OR_image_OR_video);
+          bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video is ImageBitmap ||
+            bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video == null) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      _texSubImage3D_6(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          zoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_data_OR_depth_OR_image_OR_video);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -5207,31 +5575,37 @@ class RenderingContext2 extends Interceptor
   @DocsEditable()
   @Experimental() // untriaged
   void _texSubImage3D_1(target, level, xoffset, yoffset, zoffset, width, height,
-      int depth, format, type, TypedData pixels) native ;
+      int depth, format, type, TypedData pixels) native;
   @JSName('texSubImage3D')
   @DomName('WebGL2RenderingContext.texSubImage3D')
   @DocsEditable()
   @Experimental() // untriaged
   void _texSubImage3D_2(
-      target, level, xoffset, yoffset, zoffset, format, type, data) native ;
+      target, level, xoffset, yoffset, zoffset, format, type, data) native;
   @JSName('texSubImage3D')
   @DomName('WebGL2RenderingContext.texSubImage3D')
   @DocsEditable()
   @Experimental() // untriaged
   void _texSubImage3D_3(target, level, xoffset, yoffset, zoffset, format, type,
-      ImageElement image) native ;
+      ImageElement image) native;
   @JSName('texSubImage3D')
   @DomName('WebGL2RenderingContext.texSubImage3D')
   @DocsEditable()
   @Experimental() // untriaged
   void _texSubImage3D_4(target, level, xoffset, yoffset, zoffset, format, type,
-      CanvasElement canvas) native ;
+      CanvasElement canvas) native;
   @JSName('texSubImage3D')
   @DomName('WebGL2RenderingContext.texSubImage3D')
   @DocsEditable()
   @Experimental() // untriaged
   void _texSubImage3D_5(target, level, xoffset, yoffset, zoffset, format, type,
-      VideoElement video) native ;
+      VideoElement video) native;
+  @JSName('texSubImage3D')
+  @DomName('WebGL2RenderingContext.texSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage3D_6(target, level, xoffset, yoffset, zoffset, format, type,
+      ImageBitmap bitmap) native;
 
   @DomName('WebGL2RenderingContext.transformFeedbackVaryings')
   @DocsEditable()
@@ -5248,126 +5622,126 @@ class RenderingContext2 extends Interceptor
   @DocsEditable()
   @Experimental() // untriaged
   void _transformFeedbackVaryings_1(Program program, List varyings, bufferMode)
-      native ;
+      native;
 
   @DomName('WebGL2RenderingContext.uniform1ui')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform1ui(UniformLocation location, int v0) native ;
+  void uniform1ui(UniformLocation location, int v0) native;
 
   @DomName('WebGL2RenderingContext.uniform1uiv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform1uiv(UniformLocation location, List<int> value) native ;
+  void uniform1uiv(UniformLocation location, v) native;
 
   @DomName('WebGL2RenderingContext.uniform2ui')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform2ui(UniformLocation location, int v0, int v1) native ;
+  void uniform2ui(UniformLocation location, int v0, int v1) native;
 
   @DomName('WebGL2RenderingContext.uniform2uiv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform2uiv(UniformLocation location, List<int> value) native ;
+  void uniform2uiv(UniformLocation location, v) native;
 
   @DomName('WebGL2RenderingContext.uniform3ui')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform3ui(UniformLocation location, int v0, int v1, int v2) native ;
+  void uniform3ui(UniformLocation location, int v0, int v1, int v2) native;
 
   @DomName('WebGL2RenderingContext.uniform3uiv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform3uiv(UniformLocation location, List<int> value) native ;
+  void uniform3uiv(UniformLocation location, v) native;
 
   @DomName('WebGL2RenderingContext.uniform4ui')
   @DocsEditable()
   @Experimental() // untriaged
   void uniform4ui(UniformLocation location, int v0, int v1, int v2, int v3)
-      native ;
+      native;
 
   @DomName('WebGL2RenderingContext.uniform4uiv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform4uiv(UniformLocation location, List<int> value) native ;
+  void uniform4uiv(UniformLocation location, v) native;
 
   @DomName('WebGL2RenderingContext.uniformBlockBinding')
   @DocsEditable()
   @Experimental() // untriaged
   void uniformBlockBinding(
-      Program program, int uniformBlockIndex, int uniformBlockBinding) native ;
+      Program program, int uniformBlockIndex, int uniformBlockBinding) native;
 
   @DomName('WebGL2RenderingContext.uniformMatrix2x3fv')
   @DocsEditable()
   @Experimental() // untriaged
   void uniformMatrix2x3fv(UniformLocation location, bool transpose, value)
-      native ;
+      native;
 
   @DomName('WebGL2RenderingContext.uniformMatrix2x4fv')
   @DocsEditable()
   @Experimental() // untriaged
   void uniformMatrix2x4fv(UniformLocation location, bool transpose, value)
-      native ;
+      native;
 
   @DomName('WebGL2RenderingContext.uniformMatrix3x2fv')
   @DocsEditable()
   @Experimental() // untriaged
   void uniformMatrix3x2fv(UniformLocation location, bool transpose, value)
-      native ;
+      native;
 
   @DomName('WebGL2RenderingContext.uniformMatrix3x4fv')
   @DocsEditable()
   @Experimental() // untriaged
   void uniformMatrix3x4fv(UniformLocation location, bool transpose, value)
-      native ;
+      native;
 
   @DomName('WebGL2RenderingContext.uniformMatrix4x2fv')
   @DocsEditable()
   @Experimental() // untriaged
   void uniformMatrix4x2fv(UniformLocation location, bool transpose, value)
-      native ;
+      native;
 
   @DomName('WebGL2RenderingContext.uniformMatrix4x3fv')
   @DocsEditable()
   @Experimental() // untriaged
   void uniformMatrix4x3fv(UniformLocation location, bool transpose, value)
-      native ;
+      native;
 
   @DomName('WebGL2RenderingContext.vertexAttribDivisor')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttribDivisor(int index, int divisor) native ;
+  void vertexAttribDivisor(int index, int divisor) native;
 
   @DomName('WebGL2RenderingContext.vertexAttribI4i')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttribI4i(int index, int x, int y, int z, int w) native ;
+  void vertexAttribI4i(int index, int x, int y, int z, int w) native;
 
   @DomName('WebGL2RenderingContext.vertexAttribI4iv')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttribI4iv(int index, List<int> v) native ;
+  void vertexAttribI4iv(int index, v) native;
 
   @DomName('WebGL2RenderingContext.vertexAttribI4ui')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttribI4ui(int index, int x, int y, int z, int w) native ;
+  void vertexAttribI4ui(int index, int x, int y, int z, int w) native;
 
   @DomName('WebGL2RenderingContext.vertexAttribI4uiv')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttribI4uiv(int index, List<int> v) native ;
+  void vertexAttribI4uiv(int index, v) native;
 
   @DomName('WebGL2RenderingContext.vertexAttribIPointer')
   @DocsEditable()
   @Experimental() // untriaged
   void vertexAttribIPointer(
-      int index, int size, int type, int stride, int offset) native ;
+      int index, int size, int type, int stride, int offset) native;
 
   @DomName('WebGL2RenderingContext.waitSync')
   @DocsEditable()
   @Experimental() // untriaged
-  void waitSync(Sync sync, int flags, int timeout) native ;
+  void waitSync(Sync sync, int flags, int timeout) native;
 
   // From WebGLRenderingContextBase
 
@@ -5389,304 +5763,304 @@ class RenderingContext2 extends Interceptor
   @DomName('WebGL2RenderingContext.activeTexture')
   @DocsEditable()
   @Experimental() // untriaged
-  void activeTexture(int texture) native ;
+  void activeTexture(int texture) native;
 
   @DomName('WebGL2RenderingContext.attachShader')
   @DocsEditable()
   @Experimental() // untriaged
-  void attachShader(Program program, Shader shader) native ;
+  void attachShader(Program program, Shader shader) native;
 
   @DomName('WebGL2RenderingContext.bindAttribLocation')
   @DocsEditable()
   @Experimental() // untriaged
-  void bindAttribLocation(Program program, int index, String name) native ;
+  void bindAttribLocation(Program program, int index, String name) native;
 
   @DomName('WebGL2RenderingContext.bindBuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  void bindBuffer(int target, Buffer buffer) native ;
+  void bindBuffer(int target, Buffer buffer) native;
 
   @DomName('WebGL2RenderingContext.bindFramebuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  void bindFramebuffer(int target, Framebuffer framebuffer) native ;
+  void bindFramebuffer(int target, Framebuffer framebuffer) native;
 
   @DomName('WebGL2RenderingContext.bindRenderbuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  void bindRenderbuffer(int target, Renderbuffer renderbuffer) native ;
+  void bindRenderbuffer(int target, Renderbuffer renderbuffer) native;
 
   @DomName('WebGL2RenderingContext.bindTexture')
   @DocsEditable()
   @Experimental() // untriaged
-  void bindTexture(int target, Texture texture) native ;
+  void bindTexture(int target, Texture texture) native;
 
   @DomName('WebGL2RenderingContext.blendColor')
   @DocsEditable()
   @Experimental() // untriaged
-  void blendColor(num red, num green, num blue, num alpha) native ;
+  void blendColor(num red, num green, num blue, num alpha) native;
 
   @DomName('WebGL2RenderingContext.blendEquation')
   @DocsEditable()
   @Experimental() // untriaged
-  void blendEquation(int mode) native ;
+  void blendEquation(int mode) native;
 
   @DomName('WebGL2RenderingContext.blendEquationSeparate')
   @DocsEditable()
   @Experimental() // untriaged
-  void blendEquationSeparate(int modeRGB, int modeAlpha) native ;
+  void blendEquationSeparate(int modeRGB, int modeAlpha) native;
 
   @DomName('WebGL2RenderingContext.blendFunc')
   @DocsEditable()
   @Experimental() // untriaged
-  void blendFunc(int sfactor, int dfactor) native ;
+  void blendFunc(int sfactor, int dfactor) native;
 
   @DomName('WebGL2RenderingContext.blendFuncSeparate')
   @DocsEditable()
   @Experimental() // untriaged
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
-      native ;
+      native;
 
   @DomName('WebGL2RenderingContext.bufferData')
   @DocsEditable()
   @Experimental() // untriaged
-  void bufferData(int target, data_OR_size, int usage) native ;
+  void bufferData(int target, data_OR_size, int usage) native;
 
   @DomName('WebGL2RenderingContext.bufferSubData')
   @DocsEditable()
   @Experimental() // untriaged
-  void bufferSubData(int target, int offset, data) native ;
+  void bufferSubData(int target, int offset, data) native;
 
   @DomName('WebGL2RenderingContext.checkFramebufferStatus')
   @DocsEditable()
   @Experimental() // untriaged
-  int checkFramebufferStatus(int target) native ;
+  int checkFramebufferStatus(int target) native;
 
   @DomName('WebGL2RenderingContext.clear')
   @DocsEditable()
   @Experimental() // untriaged
-  void clear(int mask) native ;
+  void clear(int mask) native;
 
   @DomName('WebGL2RenderingContext.clearColor')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearColor(num red, num green, num blue, num alpha) native ;
+  void clearColor(num red, num green, num blue, num alpha) native;
 
   @DomName('WebGL2RenderingContext.clearDepth')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearDepth(num depth) native ;
+  void clearDepth(num depth) native;
 
   @DomName('WebGL2RenderingContext.clearStencil')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearStencil(int s) native ;
+  void clearStencil(int s) native;
 
   @DomName('WebGL2RenderingContext.colorMask')
   @DocsEditable()
   @Experimental() // untriaged
-  void colorMask(bool red, bool green, bool blue, bool alpha) native ;
+  void colorMask(bool red, bool green, bool blue, bool alpha) native;
 
   @DomName('WebGL2RenderingContext.compileShader')
   @DocsEditable()
   @Experimental() // untriaged
-  void compileShader(Shader shader) native ;
+  void compileShader(Shader shader) native;
 
   @DomName('WebGL2RenderingContext.compressedTexImage2D')
   @DocsEditable()
   @Experimental() // untriaged
   void compressedTexImage2D(int target, int level, int internalformat,
-      int width, int height, int border, TypedData data) native ;
+      int width, int height, int border, TypedData data) native;
 
   @DomName('WebGL2RenderingContext.compressedTexSubImage2D')
   @DocsEditable()
   @Experimental() // untriaged
   void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset,
-      int width, int height, int format, TypedData data) native ;
+      int width, int height, int format, TypedData data) native;
 
   @DomName('WebGL2RenderingContext.copyTexImage2D')
   @DocsEditable()
   @Experimental() // untriaged
   void copyTexImage2D(int target, int level, int internalformat, int x, int y,
-      int width, int height, int border) native ;
+      int width, int height, int border) native;
 
   @DomName('WebGL2RenderingContext.copyTexSubImage2D')
   @DocsEditable()
   @Experimental() // untriaged
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x,
-      int y, int width, int height) native ;
+      int y, int width, int height) native;
 
   @DomName('WebGL2RenderingContext.createBuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  Buffer createBuffer() native ;
+  Buffer createBuffer() native;
 
   @DomName('WebGL2RenderingContext.createFramebuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  Framebuffer createFramebuffer() native ;
+  Framebuffer createFramebuffer() native;
 
   @DomName('WebGL2RenderingContext.createProgram')
   @DocsEditable()
   @Experimental() // untriaged
-  Program createProgram() native ;
+  Program createProgram() native;
 
   @DomName('WebGL2RenderingContext.createRenderbuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  Renderbuffer createRenderbuffer() native ;
+  Renderbuffer createRenderbuffer() native;
 
   @DomName('WebGL2RenderingContext.createShader')
   @DocsEditable()
   @Experimental() // untriaged
-  Shader createShader(int type) native ;
+  Shader createShader(int type) native;
 
   @DomName('WebGL2RenderingContext.createTexture')
   @DocsEditable()
   @Experimental() // untriaged
-  Texture createTexture() native ;
+  Texture createTexture() native;
 
   @DomName('WebGL2RenderingContext.cullFace')
   @DocsEditable()
   @Experimental() // untriaged
-  void cullFace(int mode) native ;
+  void cullFace(int mode) native;
 
   @DomName('WebGL2RenderingContext.deleteBuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteBuffer(Buffer buffer) native ;
+  void deleteBuffer(Buffer buffer) native;
 
   @DomName('WebGL2RenderingContext.deleteFramebuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteFramebuffer(Framebuffer framebuffer) native ;
+  void deleteFramebuffer(Framebuffer framebuffer) native;
 
   @DomName('WebGL2RenderingContext.deleteProgram')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteProgram(Program program) native ;
+  void deleteProgram(Program program) native;
 
   @DomName('WebGL2RenderingContext.deleteRenderbuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteRenderbuffer(Renderbuffer renderbuffer) native ;
+  void deleteRenderbuffer(Renderbuffer renderbuffer) native;
 
   @DomName('WebGL2RenderingContext.deleteShader')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteShader(Shader shader) native ;
+  void deleteShader(Shader shader) native;
 
   @DomName('WebGL2RenderingContext.deleteTexture')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteTexture(Texture texture) native ;
+  void deleteTexture(Texture texture) native;
 
   @DomName('WebGL2RenderingContext.depthFunc')
   @DocsEditable()
   @Experimental() // untriaged
-  void depthFunc(int func) native ;
+  void depthFunc(int func) native;
 
   @DomName('WebGL2RenderingContext.depthMask')
   @DocsEditable()
   @Experimental() // untriaged
-  void depthMask(bool flag) native ;
+  void depthMask(bool flag) native;
 
   @DomName('WebGL2RenderingContext.depthRange')
   @DocsEditable()
   @Experimental() // untriaged
-  void depthRange(num zNear, num zFar) native ;
+  void depthRange(num zNear, num zFar) native;
 
   @DomName('WebGL2RenderingContext.detachShader')
   @DocsEditable()
   @Experimental() // untriaged
-  void detachShader(Program program, Shader shader) native ;
+  void detachShader(Program program, Shader shader) native;
 
   @DomName('WebGL2RenderingContext.disable')
   @DocsEditable()
   @Experimental() // untriaged
-  void disable(int cap) native ;
+  void disable(int cap) native;
 
   @DomName('WebGL2RenderingContext.disableVertexAttribArray')
   @DocsEditable()
   @Experimental() // untriaged
-  void disableVertexAttribArray(int index) native ;
+  void disableVertexAttribArray(int index) native;
 
   @DomName('WebGL2RenderingContext.drawArrays')
   @DocsEditable()
   @Experimental() // untriaged
-  void drawArrays(int mode, int first, int count) native ;
+  void drawArrays(int mode, int first, int count) native;
 
   @DomName('WebGL2RenderingContext.drawElements')
   @DocsEditable()
   @Experimental() // untriaged
-  void drawElements(int mode, int count, int type, int offset) native ;
+  void drawElements(int mode, int count, int type, int offset) native;
 
   @DomName('WebGL2RenderingContext.enable')
   @DocsEditable()
   @Experimental() // untriaged
-  void enable(int cap) native ;
+  void enable(int cap) native;
 
   @DomName('WebGL2RenderingContext.enableVertexAttribArray')
   @DocsEditable()
   @Experimental() // untriaged
-  void enableVertexAttribArray(int index) native ;
+  void enableVertexAttribArray(int index) native;
 
   @DomName('WebGL2RenderingContext.finish')
   @DocsEditable()
   @Experimental() // untriaged
-  void finish() native ;
+  void finish() native;
 
   @DomName('WebGL2RenderingContext.flush')
   @DocsEditable()
   @Experimental() // untriaged
-  void flush() native ;
+  void flush() native;
 
   @DomName('WebGL2RenderingContext.framebufferRenderbuffer')
   @DocsEditable()
   @Experimental() // untriaged
   void framebufferRenderbuffer(int target, int attachment,
-      int renderbuffertarget, Renderbuffer renderbuffer) native ;
+      int renderbuffertarget, Renderbuffer renderbuffer) native;
 
   @DomName('WebGL2RenderingContext.framebufferTexture2D')
   @DocsEditable()
   @Experimental() // untriaged
   void framebufferTexture2D(int target, int attachment, int textarget,
-      Texture texture, int level) native ;
+      Texture texture, int level) native;
 
   @DomName('WebGL2RenderingContext.frontFace')
   @DocsEditable()
   @Experimental() // untriaged
-  void frontFace(int mode) native ;
+  void frontFace(int mode) native;
 
   @DomName('WebGL2RenderingContext.generateMipmap')
   @DocsEditable()
   @Experimental() // untriaged
-  void generateMipmap(int target) native ;
+  void generateMipmap(int target) native;
 
   @DomName('WebGL2RenderingContext.getActiveAttrib')
   @DocsEditable()
   @Experimental() // untriaged
-  ActiveInfo getActiveAttrib(Program program, int index) native ;
+  ActiveInfo getActiveAttrib(Program program, int index) native;
 
   @DomName('WebGL2RenderingContext.getActiveUniform')
   @DocsEditable()
   @Experimental() // untriaged
-  ActiveInfo getActiveUniform(Program program, int index) native ;
+  ActiveInfo getActiveUniform(Program program, int index) native;
 
   @DomName('WebGL2RenderingContext.getAttachedShaders')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Shader> getAttachedShaders(Program program) native ;
+  List<Shader> getAttachedShaders(Program program) native;
 
   @DomName('WebGL2RenderingContext.getAttribLocation')
   @DocsEditable()
   @Experimental() // untriaged
-  int getAttribLocation(Program program, String name) native ;
+  int getAttribLocation(Program program, String name) native;
 
   @DomName('WebGL2RenderingContext.getBufferParameter')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getBufferParameter(int target, int pname) native ;
+  Object getBufferParameter(int target, int pname) native;
 
   @DomName('WebGL2RenderingContext.getContextAttributes')
   @DocsEditable()
@@ -5699,216 +6073,216 @@ class RenderingContext2 extends Interceptor
   @DomName('WebGL2RenderingContext.getContextAttributes')
   @DocsEditable()
   @Experimental() // untriaged
-  _getContextAttributes_1() native ;
+  _getContextAttributes_1() native;
 
   @DomName('WebGL2RenderingContext.getError')
   @DocsEditable()
   @Experimental() // untriaged
-  int getError() native ;
+  int getError() native;
 
   @DomName('WebGL2RenderingContext.getExtension')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getExtension(String name) native ;
+  Object getExtension(String name) native;
 
   @DomName('WebGL2RenderingContext.getFramebufferAttachmentParameter')
   @DocsEditable()
   @Experimental() // untriaged
   Object getFramebufferAttachmentParameter(
-      int target, int attachment, int pname) native ;
+      int target, int attachment, int pname) native;
 
   @DomName('WebGL2RenderingContext.getParameter')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getParameter(int pname) native ;
+  Object getParameter(int pname) native;
 
   @DomName('WebGL2RenderingContext.getProgramInfoLog')
   @DocsEditable()
   @Experimental() // untriaged
-  String getProgramInfoLog(Program program) native ;
+  String getProgramInfoLog(Program program) native;
 
   @DomName('WebGL2RenderingContext.getProgramParameter')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getProgramParameter(Program program, int pname) native ;
+  Object getProgramParameter(Program program, int pname) native;
 
   @DomName('WebGL2RenderingContext.getRenderbufferParameter')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getRenderbufferParameter(int target, int pname) native ;
+  Object getRenderbufferParameter(int target, int pname) native;
 
   @DomName('WebGL2RenderingContext.getShaderInfoLog')
   @DocsEditable()
   @Experimental() // untriaged
-  String getShaderInfoLog(Shader shader) native ;
+  String getShaderInfoLog(Shader shader) native;
 
   @DomName('WebGL2RenderingContext.getShaderParameter')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getShaderParameter(Shader shader, int pname) native ;
+  Object getShaderParameter(Shader shader, int pname) native;
 
   @DomName('WebGL2RenderingContext.getShaderPrecisionFormat')
   @DocsEditable()
   @Experimental() // untriaged
   ShaderPrecisionFormat getShaderPrecisionFormat(
-      int shadertype, int precisiontype) native ;
+      int shadertype, int precisiontype) native;
 
   @DomName('WebGL2RenderingContext.getShaderSource')
   @DocsEditable()
   @Experimental() // untriaged
-  String getShaderSource(Shader shader) native ;
+  String getShaderSource(Shader shader) native;
 
   @DomName('WebGL2RenderingContext.getSupportedExtensions')
   @DocsEditable()
   @Experimental() // untriaged
-  List<String> getSupportedExtensions() native ;
+  List<String> getSupportedExtensions() native;
 
   @DomName('WebGL2RenderingContext.getTexParameter')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getTexParameter(int target, int pname) native ;
+  Object getTexParameter(int target, int pname) native;
 
   @DomName('WebGL2RenderingContext.getUniform')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getUniform(Program program, UniformLocation location) native ;
+  Object getUniform(Program program, UniformLocation location) native;
 
   @DomName('WebGL2RenderingContext.getUniformLocation')
   @DocsEditable()
   @Experimental() // untriaged
-  UniformLocation getUniformLocation(Program program, String name) native ;
+  UniformLocation getUniformLocation(Program program, String name) native;
 
   @DomName('WebGL2RenderingContext.getVertexAttrib')
   @DocsEditable()
   @Experimental() // untriaged
-  Object getVertexAttrib(int index, int pname) native ;
+  Object getVertexAttrib(int index, int pname) native;
 
   @DomName('WebGL2RenderingContext.getVertexAttribOffset')
   @DocsEditable()
   @Experimental() // untriaged
-  int getVertexAttribOffset(int index, int pname) native ;
+  int getVertexAttribOffset(int index, int pname) native;
 
   @DomName('WebGL2RenderingContext.hint')
   @DocsEditable()
   @Experimental() // untriaged
-  void hint(int target, int mode) native ;
+  void hint(int target, int mode) native;
 
   @DomName('WebGL2RenderingContext.isBuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isBuffer(Buffer buffer) native ;
+  bool isBuffer(Buffer buffer) native;
 
   @DomName('WebGL2RenderingContext.isContextLost')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isContextLost() native ;
+  bool isContextLost() native;
 
   @DomName('WebGL2RenderingContext.isEnabled')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isEnabled(int cap) native ;
+  bool isEnabled(int cap) native;
 
   @DomName('WebGL2RenderingContext.isFramebuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isFramebuffer(Framebuffer framebuffer) native ;
+  bool isFramebuffer(Framebuffer framebuffer) native;
 
   @DomName('WebGL2RenderingContext.isProgram')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isProgram(Program program) native ;
+  bool isProgram(Program program) native;
 
   @DomName('WebGL2RenderingContext.isRenderbuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isRenderbuffer(Renderbuffer renderbuffer) native ;
+  bool isRenderbuffer(Renderbuffer renderbuffer) native;
 
   @DomName('WebGL2RenderingContext.isShader')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isShader(Shader shader) native ;
+  bool isShader(Shader shader) native;
 
   @DomName('WebGL2RenderingContext.isTexture')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isTexture(Texture texture) native ;
+  bool isTexture(Texture texture) native;
 
   @DomName('WebGL2RenderingContext.lineWidth')
   @DocsEditable()
   @Experimental() // untriaged
-  void lineWidth(num width) native ;
+  void lineWidth(num width) native;
 
   @DomName('WebGL2RenderingContext.linkProgram')
   @DocsEditable()
   @Experimental() // untriaged
-  void linkProgram(Program program) native ;
+  void linkProgram(Program program) native;
 
   @DomName('WebGL2RenderingContext.pixelStorei')
   @DocsEditable()
   @Experimental() // untriaged
-  void pixelStorei(int pname, int param) native ;
+  void pixelStorei(int pname, int param) native;
 
   @DomName('WebGL2RenderingContext.polygonOffset')
   @DocsEditable()
   @Experimental() // untriaged
-  void polygonOffset(num factor, num units) native ;
+  void polygonOffset(num factor, num units) native;
 
   @DomName('WebGL2RenderingContext.readPixels')
   @DocsEditable()
   @Experimental() // untriaged
   void readPixels(int x, int y, int width, int height, int format, int type,
-      TypedData pixels) native ;
+      TypedData pixels) native;
 
   @DomName('WebGL2RenderingContext.renderbufferStorage')
   @DocsEditable()
   @Experimental() // untriaged
   void renderbufferStorage(
-      int target, int internalformat, int width, int height) native ;
+      int target, int internalformat, int width, int height) native;
 
   @DomName('WebGL2RenderingContext.sampleCoverage')
   @DocsEditable()
   @Experimental() // untriaged
-  void sampleCoverage(num value, bool invert) native ;
+  void sampleCoverage(num value, bool invert) native;
 
   @DomName('WebGL2RenderingContext.scissor')
   @DocsEditable()
   @Experimental() // untriaged
-  void scissor(int x, int y, int width, int height) native ;
+  void scissor(int x, int y, int width, int height) native;
 
   @DomName('WebGL2RenderingContext.shaderSource')
   @DocsEditable()
   @Experimental() // untriaged
-  void shaderSource(Shader shader, String string) native ;
+  void shaderSource(Shader shader, String string) native;
 
   @DomName('WebGL2RenderingContext.stencilFunc')
   @DocsEditable()
   @Experimental() // untriaged
-  void stencilFunc(int func, int ref, int mask) native ;
+  void stencilFunc(int func, int ref, int mask) native;
 
   @DomName('WebGL2RenderingContext.stencilFuncSeparate')
   @DocsEditable()
   @Experimental() // untriaged
-  void stencilFuncSeparate(int face, int func, int ref, int mask) native ;
+  void stencilFuncSeparate(int face, int func, int ref, int mask) native;
 
   @DomName('WebGL2RenderingContext.stencilMask')
   @DocsEditable()
   @Experimental() // untriaged
-  void stencilMask(int mask) native ;
+  void stencilMask(int mask) native;
 
   @DomName('WebGL2RenderingContext.stencilMaskSeparate')
   @DocsEditable()
   @Experimental() // untriaged
-  void stencilMaskSeparate(int face, int mask) native ;
+  void stencilMaskSeparate(int face, int mask) native;
 
   @DomName('WebGL2RenderingContext.stencilOp')
   @DocsEditable()
   @Experimental() // untriaged
-  void stencilOp(int fail, int zfail, int zpass) native ;
+  void stencilOp(int fail, int zfail, int zpass) native;
 
   @DomName('WebGL2RenderingContext.stencilOpSeparate')
   @DocsEditable()
   @Experimental() // untriaged
-  void stencilOpSeparate(int face, int fail, int zfail, int zpass) native ;
+  void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
   @DomName('WebGL2RenderingContext.texImage2D')
   @DocsEditable()
@@ -5919,58 +6293,90 @@ class RenderingContext2 extends Interceptor
       int internalformat,
       int format_OR_width,
       int height_OR_type,
-      border_OR_canvas_OR_image_OR_pixels_OR_video,
+      bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
       [int format,
       int type,
       TypedData pixels]) {
     if (type != null &&
         format != null &&
-        (border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
+        (bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
       _texImage2D_1(
           target,
           level,
           internalformat,
           format_OR_width,
           height_OR_type,
-          border_OR_canvas_OR_image_OR_pixels_OR_video,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
           format,
           type,
           pixels);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData ||
-            border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData ||
+            bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         format == null &&
         type == null &&
         pixels == null) {
       var pixels_1 = convertDartToNative_ImageData(
-          border_OR_canvas_OR_image_OR_pixels_OR_video);
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
       _texImage2D_2(target, level, internalformat, format_OR_width,
           height_OR_type, pixels_1);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement) &&
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is ImageElement) &&
         format == null &&
         type == null &&
         pixels == null) {
-      _texImage2D_3(target, level, internalformat, format_OR_width,
-          height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_3(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement) &&
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is CanvasElement) &&
         format == null &&
         type == null &&
         pixels == null) {
-      _texImage2D_4(target, level, internalformat, format_OR_width,
-          height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_4(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement) &&
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is VideoElement) &&
         format == null &&
         type == null &&
         pixels == null) {
-      _texImage2D_5(target, level, internalformat, format_OR_width,
-          height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_5(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
+            is ImageBitmap) &&
+        format == null &&
+        type == null &&
+        pixels == null) {
+      _texImage2D_6(
+          target,
+          level,
+          internalformat,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -5981,41 +6387,47 @@ class RenderingContext2 extends Interceptor
   @DocsEditable()
   @Experimental() // untriaged
   void _texImage2D_1(target, level, internalformat, width, height, int border,
-      format, type, TypedData pixels) native ;
+      format, type, TypedData pixels) native;
   @JSName('texImage2D')
   @DomName('WebGL2RenderingContext.texImage2D')
   @DocsEditable()
   @Experimental() // untriaged
   void _texImage2D_2(target, level, internalformat, format, type, pixels)
-      native ;
+      native;
   @JSName('texImage2D')
   @DomName('WebGL2RenderingContext.texImage2D')
   @DocsEditable()
   @Experimental() // untriaged
   void _texImage2D_3(
-      target, level, internalformat, format, type, ImageElement image) native ;
+      target, level, internalformat, format, type, ImageElement image) native;
   @JSName('texImage2D')
   @DomName('WebGL2RenderingContext.texImage2D')
   @DocsEditable()
   @Experimental() // untriaged
-  void _texImage2D_4(target, level, internalformat, format, type,
-      CanvasElement canvas) native ;
+  void _texImage2D_4(
+      target, level, internalformat, format, type, CanvasElement canvas) native;
   @JSName('texImage2D')
   @DomName('WebGL2RenderingContext.texImage2D')
   @DocsEditable()
   @Experimental() // untriaged
   void _texImage2D_5(
-      target, level, internalformat, format, type, VideoElement video) native ;
+      target, level, internalformat, format, type, VideoElement video) native;
+  @JSName('texImage2D')
+  @DomName('WebGL2RenderingContext.texImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texImage2D_6(
+      target, level, internalformat, format, type, ImageBitmap bitmap) native;
 
   @DomName('WebGL2RenderingContext.texParameterf')
   @DocsEditable()
   @Experimental() // untriaged
-  void texParameterf(int target, int pname, num param) native ;
+  void texParameterf(int target, int pname, num param) native;
 
   @DomName('WebGL2RenderingContext.texParameteri')
   @DocsEditable()
   @Experimental() // untriaged
-  void texParameteri(int target, int pname, int param) native ;
+  void texParameteri(int target, int pname, int param) native;
 
   @DomName('WebGL2RenderingContext.texSubImage2D')
   @DocsEditable()
@@ -6027,10 +6439,11 @@ class RenderingContext2 extends Interceptor
       int yoffset,
       int format_OR_width,
       int height_OR_type,
-      canvas_OR_format_OR_image_OR_pixels_OR_video,
+      bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
       [int type,
       TypedData pixels]) {
-    if (type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
+    if (type != null &&
+        (bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
       _texSubImage2D_1(
           target,
           level,
@@ -6038,40 +6451,75 @@ class RenderingContext2 extends Interceptor
           yoffset,
           format_OR_width,
           height_OR_type,
-          canvas_OR_format_OR_image_OR_pixels_OR_video,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
           type,
           pixels);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData ||
-            canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData ||
+            bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         type == null &&
         pixels == null) {
       var pixels_1 = convertDartToNative_ImageData(
-          canvas_OR_format_OR_image_OR_pixels_OR_video);
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
       _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width,
           height_OR_type, pixels_1);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement) &&
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is ImageElement) &&
         type == null &&
         pixels == null) {
-      _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width,
-          height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_3(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement) &&
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is CanvasElement) &&
         type == null &&
         pixels == null) {
-      _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width,
-          height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_4(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement) &&
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is VideoElement) &&
         type == null &&
         pixels == null) {
-      _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width,
-          height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_5(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
+            is ImageBitmap) &&
+        type == null &&
+        pixels == null) {
+      _texSubImage2D_6(
+          target,
+          level,
+          xoffset,
+          yoffset,
+          format_OR_width,
+          height_OR_type,
+          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -6082,190 +6530,193 @@ class RenderingContext2 extends Interceptor
   @DocsEditable()
   @Experimental() // untriaged
   void _texSubImage2D_1(target, level, xoffset, yoffset, width, height,
-      int format, type, TypedData pixels) native ;
+      int format, type, TypedData pixels) native;
   @JSName('texSubImage2D')
   @DomName('WebGL2RenderingContext.texSubImage2D')
   @DocsEditable()
   @Experimental() // untriaged
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels)
-      native ;
+      native;
   @JSName('texSubImage2D')
   @DomName('WebGL2RenderingContext.texSubImage2D')
   @DocsEditable()
   @Experimental() // untriaged
-  void _texSubImage2D_3(target, level, xoffset, yoffset, format, type,
-      ImageElement image) native ;
+  void _texSubImage2D_3(
+      target, level, xoffset, yoffset, format, type, ImageElement image) native;
   @JSName('texSubImage2D')
   @DomName('WebGL2RenderingContext.texSubImage2D')
   @DocsEditable()
   @Experimental() // untriaged
   void _texSubImage2D_4(target, level, xoffset, yoffset, format, type,
-      CanvasElement canvas) native ;
+      CanvasElement canvas) native;
   @JSName('texSubImage2D')
   @DomName('WebGL2RenderingContext.texSubImage2D')
   @DocsEditable()
   @Experimental() // untriaged
-  void _texSubImage2D_5(target, level, xoffset, yoffset, format, type,
-      VideoElement video) native ;
+  void _texSubImage2D_5(
+      target, level, xoffset, yoffset, format, type, VideoElement video) native;
+  @JSName('texSubImage2D')
+  @DomName('WebGL2RenderingContext.texSubImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _texSubImage2D_6(
+      target, level, xoffset, yoffset, format, type, ImageBitmap bitmap) native;
 
   @DomName('WebGL2RenderingContext.uniform1f')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform1f(UniformLocation location, num x) native ;
+  void uniform1f(UniformLocation location, num x) native;
 
   @DomName('WebGL2RenderingContext.uniform1fv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform1fv(UniformLocation location, v) native ;
+  void uniform1fv(UniformLocation location, v) native;
 
   @DomName('WebGL2RenderingContext.uniform1i')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform1i(UniformLocation location, int x) native ;
+  void uniform1i(UniformLocation location, int x) native;
 
   @DomName('WebGL2RenderingContext.uniform1iv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform1iv(UniformLocation location, v) native ;
+  void uniform1iv(UniformLocation location, v) native;
 
   @DomName('WebGL2RenderingContext.uniform2f')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform2f(UniformLocation location, num x, num y) native ;
+  void uniform2f(UniformLocation location, num x, num y) native;
 
   @DomName('WebGL2RenderingContext.uniform2fv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform2fv(UniformLocation location, v) native ;
+  void uniform2fv(UniformLocation location, v) native;
 
   @DomName('WebGL2RenderingContext.uniform2i')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform2i(UniformLocation location, int x, int y) native ;
+  void uniform2i(UniformLocation location, int x, int y) native;
 
   @DomName('WebGL2RenderingContext.uniform2iv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform2iv(UniformLocation location, v) native ;
+  void uniform2iv(UniformLocation location, v) native;
 
   @DomName('WebGL2RenderingContext.uniform3f')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform3f(UniformLocation location, num x, num y, num z) native ;
+  void uniform3f(UniformLocation location, num x, num y, num z) native;
 
   @DomName('WebGL2RenderingContext.uniform3fv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform3fv(UniformLocation location, v) native ;
+  void uniform3fv(UniformLocation location, v) native;
 
   @DomName('WebGL2RenderingContext.uniform3i')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform3i(UniformLocation location, int x, int y, int z) native ;
+  void uniform3i(UniformLocation location, int x, int y, int z) native;
 
   @DomName('WebGL2RenderingContext.uniform3iv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform3iv(UniformLocation location, v) native ;
+  void uniform3iv(UniformLocation location, v) native;
 
   @DomName('WebGL2RenderingContext.uniform4f')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform4f(UniformLocation location, num x, num y, num z, num w) native ;
+  void uniform4f(UniformLocation location, num x, num y, num z, num w) native;
 
   @DomName('WebGL2RenderingContext.uniform4fv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform4fv(UniformLocation location, v) native ;
+  void uniform4fv(UniformLocation location, v) native;
 
   @DomName('WebGL2RenderingContext.uniform4i')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform4i(UniformLocation location, int x, int y, int z, int w) native ;
+  void uniform4i(UniformLocation location, int x, int y, int z, int w) native;
 
   @DomName('WebGL2RenderingContext.uniform4iv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniform4iv(UniformLocation location, v) native ;
+  void uniform4iv(UniformLocation location, v) native;
 
   @DomName('WebGL2RenderingContext.uniformMatrix2fv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniformMatrix2fv(UniformLocation location, bool transpose, array)
-      native ;
+  void uniformMatrix2fv(UniformLocation location, bool transpose, array) native;
 
   @DomName('WebGL2RenderingContext.uniformMatrix3fv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniformMatrix3fv(UniformLocation location, bool transpose, array)
-      native ;
+  void uniformMatrix3fv(UniformLocation location, bool transpose, array) native;
 
   @DomName('WebGL2RenderingContext.uniformMatrix4fv')
   @DocsEditable()
   @Experimental() // untriaged
-  void uniformMatrix4fv(UniformLocation location, bool transpose, array)
-      native ;
+  void uniformMatrix4fv(UniformLocation location, bool transpose, array) native;
 
   @DomName('WebGL2RenderingContext.useProgram')
   @DocsEditable()
   @Experimental() // untriaged
-  void useProgram(Program program) native ;
+  void useProgram(Program program) native;
 
   @DomName('WebGL2RenderingContext.validateProgram')
   @DocsEditable()
   @Experimental() // untriaged
-  void validateProgram(Program program) native ;
+  void validateProgram(Program program) native;
 
   @DomName('WebGL2RenderingContext.vertexAttrib1f')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttrib1f(int indx, num x) native ;
+  void vertexAttrib1f(int indx, num x) native;
 
   @DomName('WebGL2RenderingContext.vertexAttrib1fv')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttrib1fv(int indx, values) native ;
+  void vertexAttrib1fv(int indx, values) native;
 
   @DomName('WebGL2RenderingContext.vertexAttrib2f')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttrib2f(int indx, num x, num y) native ;
+  void vertexAttrib2f(int indx, num x, num y) native;
 
   @DomName('WebGL2RenderingContext.vertexAttrib2fv')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttrib2fv(int indx, values) native ;
+  void vertexAttrib2fv(int indx, values) native;
 
   @DomName('WebGL2RenderingContext.vertexAttrib3f')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttrib3f(int indx, num x, num y, num z) native ;
+  void vertexAttrib3f(int indx, num x, num y, num z) native;
 
   @DomName('WebGL2RenderingContext.vertexAttrib3fv')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttrib3fv(int indx, values) native ;
+  void vertexAttrib3fv(int indx, values) native;
 
   @DomName('WebGL2RenderingContext.vertexAttrib4f')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttrib4f(int indx, num x, num y, num z, num w) native ;
+  void vertexAttrib4f(int indx, num x, num y, num z, num w) native;
 
   @DomName('WebGL2RenderingContext.vertexAttrib4fv')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttrib4fv(int indx, values) native ;
+  void vertexAttrib4fv(int indx, values) native;
 
   @DomName('WebGL2RenderingContext.vertexAttribPointer')
   @DocsEditable()
   @Experimental() // untriaged
   void vertexAttribPointer(int indx, int size, int type, bool normalized,
-      int stride, int offset) native ;
+      int stride, int offset) native;
 
   @DomName('WebGL2RenderingContext.viewport')
   @DocsEditable()
   @Experimental() // untriaged
-  void viewport(int x, int y, int width, int height) native ;
+  void viewport(int x, int y, int width, int height) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6343,6 +6794,20 @@ class Sync extends Interceptor {
 class Texture extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Texture._() {
+    throw new UnsupportedError("Not supported");
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@DocsEditable()
+@DomName('WebGLTimerQueryEXT')
+@Experimental() // untriaged
+@Native("WebGLTimerQueryEXT")
+class TimerQueryExt extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory TimerQueryExt._() {
     throw new UnsupportedError("Not supported");
   }
 }

@@ -6,10 +6,11 @@
 
 class A<T> {
   static int method() {
-    var foo = new T(); // error, can't reference a type variable in a static context
+    var foo =
+        new T(); // error, can't reference a type variable in a static context
   }
 }
 
 main() {
-   A.method(); 
+  A.method();
 }

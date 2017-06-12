@@ -18,14 +18,12 @@ class A {
   factory A.a1({condition}) = _A1.boo;
 
   test() {
-    if(condition != true) {
+    if (condition != true) {
       throw "FAILED";
-    } 
+    }
   }
 }
 
 class _A1 extends A {
-  _A1.boo({condition: true}):
-    super(condition: condition);
+  _A1.boo({condition: true}) : super(condition: condition);
 }
-

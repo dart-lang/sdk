@@ -5,8 +5,6 @@
 /**
  * A collection of utility methods used by completion contributors.
  */
-import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
-    show Element, ElementKind;
 import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind, Location;
@@ -19,6 +17,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
+    show Element, ElementKind;
 
 /**
  * The name of the type `dynamic`;
@@ -76,7 +76,7 @@ void addDefaultArgDetails(
       if (isFlutterWidget(element.enclosingElement)) {
         for (ParameterElement param in element.parameters) {
           if (param.name == 'children') {
-            String defaultValue = getDefaultStringParameterValue(param);
+            String defaultValue = getDefaultStringParameterValue(param) ?? '';
             if (sb.isNotEmpty) {
               sb.write(', ');
             }
@@ -178,21 +178,29 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
 }
 
 String getDefaultStringParameterValue(ParameterElement param) {
-  DartType type = param.type;
-  if (type is InterfaceType && isDartList(type)) {
-    List<DartType> typeArguments = type.typeArguments;
-    StringBuffer sb = new StringBuffer();
-    if (typeArguments.length == 1) {
-      DartType typeArg = typeArguments.first;
-      if (!typeArg.isDynamic) {
-        sb.write('<${typeArg.name}>');
+  if (param != null) {
+    DartType type = param.type;
+    if (type is InterfaceType && isDartList(type)) {
+      List<DartType> typeArguments = type.typeArguments;
+      if (typeArguments.length == 1) {
+        DartType typeArg = typeArguments.first;
+        String typeInfo = !typeArg.isDynamic ? '<${typeArg.name}>' : '';
+        return '$typeInfo[]';
       }
-      sb.write('[]');
-      return sb.toString();
     }
+    if (type is FunctionType) {
+      String params = type.parameters
+          .map((p) => '${getTypeString(p.type)}${p.name}')
+          .join(', ');
+      //TODO(pq): consider adding a `TODO:` message in generated stub
+      return '($params) {}';
+    }
+    //TODO(pq): support map literals
   }
   return null;
 }
+
+String getTypeString(DartType type) => type.isDynamic ? '' : '${type.name} ';
 
 bool isDartList(DartType type) {
   ClassElement element = type.element;
@@ -247,4 +255,5 @@ String nameForType(TypeAnnotation type) {
   return DYNAMIC;
 }
 
+//TODO(pq): fix to use getDefaultStringParameterValue()
 String _getDefaultValue(ParameterElement param) => 'null';

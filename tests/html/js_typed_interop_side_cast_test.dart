@@ -12,19 +12,22 @@ import 'package:js/js.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
-@JS() @anonymous
+@JS()
+@anonymous
 class A {
   external int get x;
   external factory A({int x});
 }
 
-@JS() @anonymous
+@JS()
+@anonymous
 class C {
   external int get x;
   external factory C({int x});
 }
 
-@JS() @anonymous
+@JS()
+@anonymous
 class B {
   external int get x;
   external factory B({int x});

@@ -476,6 +476,20 @@ part 'my_unit.dart';
     assertThat(element)..isReferencedAt("'my_unit.dart';", true, length: 14);
   }
 
+  test_isReferencedBy_CompilationUnitElement_part_inPart() async {
+    provider.newFile(_p('$testProject/a.dart'), 'part of lib;');
+    provider.newFile(
+        _p('$testProject/b.dart'),
+        '''
+library lib;
+part 'a.dart';
+''');
+    await _indexTestUnit('''
+part 'b.dart';
+''');
+    // No exception, even though a.dart is a part of b.dart part.
+  }
+
   test_isReferencedBy_ConstructorElement() async {
     await _indexTestUnit('''
 class A implements B {

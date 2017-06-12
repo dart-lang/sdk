@@ -10,10 +10,9 @@ import "dart:io";
 Future<HttpServer> setupServer() {
   Completer completer = new Completer();
   HttpServer.bind("127.0.0.1", 0).then((server) {
-
     var handlers = new Map<String, Function>();
-    addRequestHandler(String path, void handler(HttpRequest request,
-                                                HttpResponse response)) {
+    addRequestHandler(
+        String path, void handler(HttpRequest request, HttpResponse response)) {
       handlers[path] = handler;
     }
 
@@ -29,99 +28,77 @@ Future<HttpServer> setupServer() {
     });
 
     void addRedirectHandler(int number, int statusCode) {
-      addRequestHandler(
-         "/$number",
-         (HttpRequest request, HttpResponse response) {
-           response.redirect(
-               Uri.parse("http://127.0.0.1:${server.port}/${number + 1}"));
-       });
+      addRequestHandler("/$number",
+          (HttpRequest request, HttpResponse response) {
+        response.redirect(
+            Uri.parse("http://127.0.0.1:${server.port}/${number + 1}"));
+      });
     }
 
     // Setup simple redirect.
-    addRequestHandler(
-       "/redirect",
-       (HttpRequest request, HttpResponse response) {
-         response.redirect(
-             Uri.parse("http://127.0.0.1:${server.port}/location"),
-             status: HttpStatus.MOVED_PERMANENTLY);
-       }
-    );
-    addRequestHandler(
-       "/location",
-       (HttpRequest request, HttpResponse response) {
-         response.close();
-       }
-    );
+    addRequestHandler("/redirect",
+        (HttpRequest request, HttpResponse response) {
+      response.redirect(Uri.parse("http://127.0.0.1:${server.port}/location"),
+          status: HttpStatus.MOVED_PERMANENTLY);
+    });
+    addRequestHandler("/location",
+        (HttpRequest request, HttpResponse response) {
+      response.close();
+    });
 
     // Setup redirects with relative url.
-    addRequestHandler(
-       "/redirectUrl",
-       (HttpRequest request, HttpResponse response) {
-         response.headers.set(HttpHeaders.LOCATION, "/some/relativeUrl");
-         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
-         response.close();
-       }
-    );
+    addRequestHandler("/redirectUrl",
+        (HttpRequest request, HttpResponse response) {
+      response.headers.set(HttpHeaders.LOCATION, "/some/relativeUrl");
+      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.close();
+    });
 
-    addRequestHandler(
-       "/some/redirectUrl",
-       (HttpRequest request, HttpResponse response) {
-         response.headers.set(HttpHeaders.LOCATION, "relativeUrl");
-         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
-         response.close();
-       }
-    );
+    addRequestHandler("/some/redirectUrl",
+        (HttpRequest request, HttpResponse response) {
+      response.headers.set(HttpHeaders.LOCATION, "relativeUrl");
+      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.close();
+    });
 
-    addRequestHandler(
-       "/some/relativeUrl",
-       (HttpRequest request, HttpResponse response) {
-         response.close();
-       }
-    );
+    addRequestHandler("/some/relativeUrl",
+        (HttpRequest request, HttpResponse response) {
+      response.close();
+    });
 
-    addRequestHandler(
-       "/some/relativeToAbsolute",
-       (HttpRequest request, HttpResponse response) {
-         response.redirect(Uri.parse("xxx"), status: HttpStatus.SEE_OTHER);
-       }
-    );
+    addRequestHandler("/some/relativeToAbsolute",
+        (HttpRequest request, HttpResponse response) {
+      response.redirect(Uri.parse("xxx"), status: HttpStatus.SEE_OTHER);
+    });
 
-    addRequestHandler(
-       "/redirectUrl2",
-       (HttpRequest request, HttpResponse response) {
-         response.headers.set(HttpHeaders.LOCATION, "location");
-         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
-         response.close();
-       }
-    );
+    addRequestHandler("/redirectUrl2",
+        (HttpRequest request, HttpResponse response) {
+      response.headers.set(HttpHeaders.LOCATION, "location");
+      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.close();
+    });
 
-    addRequestHandler(
-       "/redirectUrl3",
-       (HttpRequest request, HttpResponse response) {
-         response.headers.set(HttpHeaders.LOCATION, "./location");
-         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
-         response.close();
-       }
-    );
+    addRequestHandler("/redirectUrl3",
+        (HttpRequest request, HttpResponse response) {
+      response.headers.set(HttpHeaders.LOCATION, "./location");
+      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.close();
+    });
 
-    addRequestHandler(
-       "/redirectUrl4",
-       (HttpRequest request, HttpResponse response) {
-         response.headers.set(HttpHeaders.LOCATION, "./a/b/../../location");
-         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
-         response.close();
-       }
-    );
+    addRequestHandler("/redirectUrl4",
+        (HttpRequest request, HttpResponse response) {
+      response.headers.set(HttpHeaders.LOCATION, "./a/b/../../location");
+      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.close();
+    });
 
-    addRequestHandler(
-       "/redirectUrl5",
-       (HttpRequest request, HttpResponse response) {
-         response.headers.set(HttpHeaders.LOCATION,
-                              "//127.0.0.1:${server.port}/location");
-         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
-         response.close();
-       }
-    );
+    addRequestHandler("/redirectUrl5",
+        (HttpRequest request, HttpResponse response) {
+      response.headers
+          .set(HttpHeaders.LOCATION, "//127.0.0.1:${server.port}/location");
+      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.close();
+    });
 
     // Setup redirect chain.
     int n = 1;
@@ -134,96 +111,71 @@ Future<HttpServer> setupServer() {
     }
 
     // Setup redirect loop.
-    addRequestHandler(
-       "/A",
-       (HttpRequest request, HttpResponse response) {
-         response.headers.set(HttpHeaders.LOCATION,
-                              "http://127.0.0.1:${server.port}/B");
-         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
-         response.close();
-       }
-    );
-    addRequestHandler(
-       "/B",
-       (HttpRequest request, HttpResponse response) {
-         response.headers.set(HttpHeaders.LOCATION,
-                              "http://127.0.0.1:${server.port}/A");
-         response.statusCode = HttpStatus.MOVED_TEMPORARILY;
-         response.close();
-       }
-    );
+    addRequestHandler("/A", (HttpRequest request, HttpResponse response) {
+      response.headers
+          .set(HttpHeaders.LOCATION, "http://127.0.0.1:${server.port}/B");
+      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.close();
+    });
+    addRequestHandler("/B", (HttpRequest request, HttpResponse response) {
+      response.headers
+          .set(HttpHeaders.LOCATION, "http://127.0.0.1:${server.port}/A");
+      response.statusCode = HttpStatus.MOVED_TEMPORARILY;
+      response.close();
+    });
 
     // Setup redirect checking headers.
-    addRequestHandler(
-       "/src",
-       (HttpRequest request, HttpResponse response) {
-         Expect.equals("value", request.headers.value("X-Request-Header"));
-         response.headers.set(HttpHeaders.LOCATION,
-                              "http://127.0.0.1:${server.port}/target");
-         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
-         response.close();
-       }
-    );
-    addRequestHandler(
-       "/target",
-       (HttpRequest request, HttpResponse response) {
-         Expect.equals("value", request.headers.value("X-Request-Header"));
-         response.close();
-       }
-    );
+    addRequestHandler("/src", (HttpRequest request, HttpResponse response) {
+      Expect.equals("value", request.headers.value("X-Request-Header"));
+      response.headers
+          .set(HttpHeaders.LOCATION, "http://127.0.0.1:${server.port}/target");
+      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+      response.close();
+    });
+    addRequestHandler("/target", (HttpRequest request, HttpResponse response) {
+      Expect.equals("value", request.headers.value("X-Request-Header"));
+      response.close();
+    });
 
     // Setup redirect for 301 where POST should not redirect.
-    addRequestHandler(
-        "/301src",
+    addRequestHandler("/301src", (HttpRequest request, HttpResponse response) {
+      Expect.equals("POST", request.method);
+      request.listen((_) {}, onDone: () {
+        response.headers.set(
+            HttpHeaders.LOCATION, "http://127.0.0.1:${server.port}/301target");
+        response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+        response.close();
+      });
+    });
+    addRequestHandler("/301target",
         (HttpRequest request, HttpResponse response) {
-          Expect.equals("POST", request.method);
-          request.listen(
-              (_) {},
-              onDone: () {
-                response.headers.set(
-                    HttpHeaders.LOCATION,
-                    "http://127.0.0.1:${server.port}/301target");
-                response.statusCode = HttpStatus.MOVED_PERMANENTLY;
-                response.close();
-              });
-        });
-    addRequestHandler(
-       "/301target",
-       (HttpRequest request, HttpResponse response) {
-         Expect.fail("Redirect of POST should not happen");
-       }
-    );
+      Expect.fail("Redirect of POST should not happen");
+    });
 
     // Setup redirect for 303 where POST should turn into GET.
-    addRequestHandler(
-        "/303src",
+    addRequestHandler("/303src", (HttpRequest request, HttpResponse response) {
+      request.listen((_) {}, onDone: () {
+        Expect.equals("POST", request.method);
+        response.headers.set(
+            HttpHeaders.LOCATION, "http://127.0.0.1:${server.port}/303target");
+        response.statusCode = HttpStatus.SEE_OTHER;
+        response.close();
+      });
+    });
+    addRequestHandler("/303target",
         (HttpRequest request, HttpResponse response) {
-          request.listen((_) {}, onDone: () {
-            Expect.equals("POST", request.method);
-            response.headers.set(
-                HttpHeaders.LOCATION,
-                "http://127.0.0.1:${server.port}/303target");
-            response.statusCode = HttpStatus.SEE_OTHER;
-            response.close();
-          });
-        });
-    addRequestHandler(
-       "/303target",
-       (HttpRequest request, HttpResponse response) {
-         Expect.equals("GET", request.method);
-         response.close();
-       });
+      Expect.equals("GET", request.method);
+      response.close();
+    });
 
     // Setup redirect where we close the connection.
-    addRequestHandler(
-       "/closing",
-       (HttpRequest request, HttpResponse response) {
-         response.headers.set(HttpHeaders.LOCATION,
-                              "http://127.0.0.1:${server.port}/");
-         response.statusCode = HttpStatus.FOUND;
-         response.persistentConnection = false;
-         response.close();
-       });
+    addRequestHandler("/closing", (HttpRequest request, HttpResponse response) {
+      response.headers
+          .set(HttpHeaders.LOCATION, "http://127.0.0.1:${server.port}/");
+      response.statusCode = HttpStatus.FOUND;
+      response.persistentConnection = false;
+      response.close();
+    });
 
     completer.complete(server);
   });
@@ -247,27 +199,27 @@ void testManualRedirect() {
 
     int redirectCount = 0;
     handleResponse(HttpClientResponse response) {
-      response.listen(
-          (_) => Expect.fail("Response data not expected"),
+      response.listen((_) => Expect.fail("Response data not expected"),
           onDone: () {
-            redirectCount++;
-            if (redirectCount < 10) {
-              Expect.isTrue(response.isRedirect);
-              checkRedirects(redirectCount, response);
-              response.redirect().then(handleResponse);
-            } else {
-              Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
-              server.close();
-              client.close();
-            }
-          });
+        redirectCount++;
+        if (redirectCount < 10) {
+          Expect.isTrue(response.isRedirect);
+          checkRedirects(redirectCount, response);
+          response.redirect().then(handleResponse);
+        } else {
+          Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
+          server.close();
+          client.close();
+        }
+      });
     }
-    client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/1"))
-      .then((HttpClientRequest request) {
-        request.followRedirects = false;
-        return request.close();
-      })
-      .then(handleResponse);
+
+    client
+        .getUrl(Uri.parse("http://127.0.0.1:${server.port}/1"))
+        .then((HttpClientRequest request) {
+      request.followRedirects = false;
+      return request.close();
+    }).then(handleResponse);
   });
 }
 
@@ -278,27 +230,27 @@ void testManualRedirectWithHeaders() {
     int redirectCount = 0;
 
     handleResponse(HttpClientResponse response) {
-      response.listen(
-          (_) => Expect.fail("Response data not expected"),
+      response.listen((_) => Expect.fail("Response data not expected"),
           onDone: () {
-            redirectCount++;
-            if (redirectCount < 2) {
-              Expect.isTrue(response.isRedirect);
-              response.redirect().then(handleResponse);
-            } else {
-              Expect.equals(HttpStatus.OK, response.statusCode);
-              server.close();
-              client.close();
-            }
-          });
+        redirectCount++;
+        if (redirectCount < 2) {
+          Expect.isTrue(response.isRedirect);
+          response.redirect().then(handleResponse);
+        } else {
+          Expect.equals(HttpStatus.OK, response.statusCode);
+          server.close();
+          client.close();
+        }
+      });
     }
 
-    client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/src"))
-      .then((HttpClientRequest request) {
-        request.followRedirects = false;
-        request.headers.add("X-Request-Header", "value");
-        return request.close();
-      }).then(handleResponse);
+    client
+        .getUrl(Uri.parse("http://127.0.0.1:${server.port}/src"))
+        .then((HttpClientRequest request) {
+      request.followRedirects = false;
+      request.headers.add("X-Request-Header", "value");
+      return request.close();
+    }).then(handleResponse);
   });
 }
 
@@ -306,19 +258,18 @@ void testAutoRedirect() {
   setupServer().then((server) {
     HttpClient client = new HttpClient();
 
-    client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/redirect"))
-      .then((HttpClientRequest request) {
-        return request.close();
-      })
-      .then((HttpClientResponse response) {
-        response.listen(
-            (_) => Expect.fail("Response data not expected"),
-            onDone: () {
-              Expect.equals(1, response.redirects.length);
-              server.close();
-              client.close();
-            });
+    client
+        .getUrl(Uri.parse("http://127.0.0.1:${server.port}/redirect"))
+        .then((HttpClientRequest request) {
+      return request.close();
+    }).then((HttpClientResponse response) {
+      response.listen((_) => Expect.fail("Response data not expected"),
+          onDone: () {
+        Expect.equals(1, response.redirects.length);
+        server.close();
+        client.close();
       });
+    });
   });
 }
 
@@ -326,20 +277,19 @@ void testAutoRedirectWithHeaders() {
   setupServer().then((server) {
     HttpClient client = new HttpClient();
 
-    client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/src"))
-      .then((HttpClientRequest request) {
-        request.headers.add("X-Request-Header", "value");
-        return request.close();
-      })
-      .then((HttpClientResponse response) {
-        response.listen(
-            (_) => Expect.fail("Response data not expected"),
-            onDone: () {
-              Expect.equals(1, response.redirects.length);
-              server.close();
-              client.close();
-            });
+    client
+        .getUrl(Uri.parse("http://127.0.0.1:${server.port}/src"))
+        .then((HttpClientRequest request) {
+      request.headers.add("X-Request-Header", "value");
+      return request.close();
+    }).then((HttpClientResponse response) {
+      response.listen((_) => Expect.fail("Response data not expected"),
+          onDone: () {
+        Expect.equals(1, response.redirects.length);
+        server.close();
+        client.close();
       });
+    });
   });
 }
 
@@ -347,20 +297,19 @@ void testAutoRedirect301POST() {
   setupServer().then((server) {
     HttpClient client = new HttpClient();
 
-    client.postUrl(Uri.parse("http://127.0.0.1:${server.port}/301src"))
-      .then((HttpClientRequest request) {
-        return request.close();
-      })
-      .then((HttpClientResponse response) {
-        Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
-        response.listen(
-            (_) => Expect.fail("Response data not expected"),
-            onDone: () {
-              Expect.equals(0, response.redirects.length);
-              server.close();
-              client.close();
-            });
+    client
+        .postUrl(Uri.parse("http://127.0.0.1:${server.port}/301src"))
+        .then((HttpClientRequest request) {
+      return request.close();
+    }).then((HttpClientResponse response) {
+      Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
+      response.listen((_) => Expect.fail("Response data not expected"),
+          onDone: () {
+        Expect.equals(0, response.redirects.length);
+        server.close();
+        client.close();
       });
+    });
   });
 }
 
@@ -368,20 +317,19 @@ void testAutoRedirect303POST() {
   setupServer().then((server) {
     HttpClient client = new HttpClient();
 
-    client.postUrl(Uri.parse("http://127.0.0.1:${server.port}/303src"))
-      .then((HttpClientRequest request) {
-        return request.close();
-      })
-      .then((HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
-        response.listen(
-            (_) => Expect.fail("Response data not expected"),
-            onDone: () {
-              Expect.equals(1, response.redirects.length);
-              server.close();
-              client.close();
-            });
+    client
+        .postUrl(Uri.parse("http://127.0.0.1:${server.port}/303src"))
+        .then((HttpClientRequest request) {
+      return request.close();
+    }).then((HttpClientResponse response) {
+      Expect.equals(HttpStatus.OK, response.statusCode);
+      response.listen((_) => Expect.fail("Response data not expected"),
+          onDone: () {
+        Expect.equals(1, response.redirects.length);
+        server.close();
+        client.close();
       });
+    });
   });
 }
 
@@ -389,13 +337,14 @@ void testAutoRedirectLimit() {
   setupServer().then((server) {
     HttpClient client = new HttpClient();
 
-    client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/1"))
-      .then((HttpClientRequest request) => request.close())
-      .catchError((error) {
-        Expect.equals(5, error.redirects.length);
-        server.close();
-        client.close();
-      }, test: (e) => e is RedirectException);
+    client
+        .getUrl(Uri.parse("http://127.0.0.1:${server.port}/1"))
+        .then((HttpClientRequest request) => request.close())
+        .catchError((error) {
+      Expect.equals(5, error.redirects.length);
+      server.close();
+      client.close();
+    }, test: (e) => e is RedirectException);
   });
 }
 
@@ -404,13 +353,14 @@ void testRedirectLoop() {
     HttpClient client = new HttpClient();
 
     int redirectCount = 0;
-    client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/A"))
-      .then((HttpClientRequest request) => request.close())
-      .catchError((error) {
-        Expect.equals(2, error.redirects.length);
-        server.close();
-        client.close();
-      }, test: (e) => e is RedirectException);
+    client
+        .getUrl(Uri.parse("http://127.0.0.1:${server.port}/A"))
+        .then((HttpClientRequest request) => request.close())
+        .catchError((error) {
+      Expect.equals(2, error.redirects.length);
+      server.close();
+      client.close();
+    }, test: (e) => e is RedirectException);
   });
 }
 
@@ -418,17 +368,16 @@ void testRedirectClosingConnection() {
   setupServer().then((server) {
     HttpClient client = new HttpClient();
 
-    client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/closing"))
+    client
+        .getUrl(Uri.parse("http://127.0.0.1:${server.port}/closing"))
         .then((request) => request.close())
         .then((response) {
-          response.listen(
-              (_) {},
-              onDone: () {
-                Expect.equals(1, response.redirects.length);
-                server.close();
-                client.close();
-              });
-          });
+      response.listen((_) {}, onDone: () {
+        Expect.equals(1, response.redirects.length);
+        server.close();
+        client.close();
+      });
+    });
   });
 }
 
@@ -438,20 +387,20 @@ void testRedirectRelativeUrl() {
       HttpClient client = new HttpClient();
 
       print(path);
-      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}$path"))
+      client
+          .getUrl(Uri.parse("http://127.0.0.1:${server.port}$path"))
           .then((request) => request.close())
           .then((response) {
-            response.listen(
-                (_) {},
-                onDone: () {
-                  Expect.equals(HttpStatus.OK, response.statusCode);
-                  Expect.equals(1, response.redirects.length);
-                  server.close();
-                  client.close();
-                });
-            });
+        response.listen((_) {}, onDone: () {
+          Expect.equals(HttpStatus.OK, response.statusCode);
+          Expect.equals(1, response.redirects.length);
+          server.close();
+          client.close();
+        });
+      });
     });
   }
+
   testPath("/redirectUrl");
   testPath("/some/redirectUrl");
   testPath("/redirectUrl2");
@@ -466,27 +415,25 @@ void testRedirectRelativeToAbsolute() {
 
     int redirectCount = 0;
     handleResponse(HttpClientResponse response) {
-      response.listen(
-          (_) => Expect.fail("Response data not expected"),
+      response.listen((_) => Expect.fail("Response data not expected"),
           onDone: () {
-            Expect.equals(HttpStatus.SEE_OTHER, response.statusCode);
-            Expect.equals("xxx",
-                          response.headers["Location"][0]);
-            Expect.isTrue(response.isRedirect);
-            server.close();
-            client.close();
-          });
+        Expect.equals(HttpStatus.SEE_OTHER, response.statusCode);
+        Expect.equals("xxx", response.headers["Location"][0]);
+        Expect.isTrue(response.isRedirect);
+        server.close();
+        client.close();
+      });
     }
-    client.getUrl(
-        Uri.parse("http://127.0.0.1:${server.port}/some/relativeToAbsolute"))
-      .then((HttpClientRequest request) {
-        request.followRedirects = false;
-        return request.close();
-      })
-      .then(handleResponse);
+
+    client
+        .getUrl(Uri
+            .parse("http://127.0.0.1:${server.port}/some/relativeToAbsolute"))
+        .then((HttpClientRequest request) {
+      request.followRedirects = false;
+      return request.close();
+    }).then(handleResponse);
   });
 }
-
 
 main() {
   testManualRedirect();

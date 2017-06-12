@@ -7,7 +7,6 @@ import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
-import '../tree/dartstring.dart';
 import '../tree/nodes.dart' as ast;
 import '../types/masks.dart';
 import '../universe/selector.dart';
@@ -210,11 +209,11 @@ class TypeSystem {
 
   TypeInformation nonNullEmptyType;
 
-  TypeInformation stringLiteralType(DartString value) {
+  TypeInformation stringLiteralType(String value) {
     return new StringLiteralTypeInformation(value, commonMasks.stringType);
   }
 
-  TypeInformation boolLiteralType(ast.LiteralBool value) {
+  TypeInformation boolLiteralType(bool value) {
     return new BoolLiteralTypeInformation(value, commonMasks.boolType);
   }
 
@@ -254,7 +253,7 @@ class TypeSystem {
   TypeInformation refineReceiver(Selector selector, TypeMask mask,
       TypeInformation receiver, bool isConditional) {
     if (receiver.type.isExact) return receiver;
-    TypeMask otherType = closedWorld.allFunctions.receiverType(selector, mask);
+    TypeMask otherType = closedWorld.computeReceiverType(selector, mask);
     // Conditional sends (a?.b) can still narrow the possible types of `a`,
     // however, we still need to consider that `a` may be null.
     if (isConditional) {
@@ -282,7 +281,7 @@ class TypeSystem {
       TypeInformation type, ResolutionDartType annotation,
       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
-    if (annotation.isVoid) return nullType;
+    if (annotation.isVoid) return type;
     if (annotation.element == closedWorld.commonElements.objectClass &&
         isNullable) {
       return type;
@@ -325,9 +324,8 @@ class TypeSystem {
 
   ElementTypeInformation getInferredTypeOf(Element element) {
     element = element.implementation;
-    return typeInformations.putIfAbsent(element, () {
-      return new ElementTypeInformation(element, this);
-    });
+    return typeInformations[element] ??=
+        new ElementTypeInformation(element, this);
   }
 
   /**

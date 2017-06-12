@@ -36,9 +36,7 @@ class Zebra implements BigGame {
   Zebra(this.name) {}
 }
 
-
 class SavannahTest {
-
   static void testMain() {
     Map<BigGame, String> savannah = new Map<BigGame, String>();
 
@@ -74,7 +72,6 @@ class SavannahTest {
     Expect.equals("Paolo", savannah[zebra1]);
     Expect.equals("Zeeta", savannah[zebra2]);
   }
-
 }
 
 main() {

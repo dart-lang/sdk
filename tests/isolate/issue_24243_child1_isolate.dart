@@ -12,7 +12,7 @@ main(List<String> args, message) {
     var list2 = <int>[7, 8, 9];
     var list = new List<List<int>>.from([list0, list1, list2]);
     sendPort.send(list);
-  } catch(error) {
+  } catch (error) {
     sendPort.send("Invalid Argument(s).");
   }
 }

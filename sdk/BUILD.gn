@@ -1,0 +1,758 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This GN file contains build rules for assembling the Dart SDK. There are
+# two possible variants: the "Full" SDK, and the "Platform" SDK. If you want
+# to make a new subset of the Full SDK, make it the same way we make
+# the Platform SDK.
+#
+# Warning:
+# If you need to copy something into dart-sdk/lib/foo in addition to the stuff
+# copied there by :copy_libraries, then you must depend on ":copy_libraries",
+# or ":copy_libraries" may delete/overwrite your addition, and the build will
+# fail.
+
+import("../build/copy_tree.gni")
+
+declare_args() {
+  # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
+  dart_platform_sdk = false
+}
+
+if (is_fuchsia ||
+    is_fuchsia_host ||
+    current_cpu == "arm64" ||
+    current_cpu == "arm") {
+  dart_platform_sdk = true
+}
+
+# The directory layout of the SDK is as follows:
+#
+# ..dart-sdk/
+# ....bin/
+# ......dart or dart.exe (executable)
+# ......dart.lib (import library for VM native extensions on Windows)
+# ......dartdoc
+# ......dartfmt
+# ......dart2js
+# ......dartanalyzer
+# ......dartdevc
+# ......pub
+# ......snapshots/
+# ........analysis_server.dart.snapshot
+# ........dart2js.dart.snapshot
+# ........dartanalyzer.dart.snapshot
+# ........dartdoc.dart.snapshot
+# ........dartfmt.dart.snapshot
+# ........dartdevc.dart.snapshot
+# ........pub.dart.snapshot
+# ........utils_wrapper.dart.snapshot
+#.........resources/
+#...........dartdoc/
+#..............packages
+#.............resources/
+#.............templates/
+# ....include/
+# ......dart_api.h
+# ......dart_mirrors_api.h
+# ......dart_native_api.h
+# ......dart_tools_api.h
+# ....lib/
+# ......dart_client.platform
+# ......dart_server.platform
+# ......dart_shared.platform
+# ......_internal/
+#.........spec.sum
+#.........strong.sum
+#.........dev_compiler/
+# ......analysis_server/
+# ......analyzer/
+# ......async/
+# ......collection/
+# ......convert/
+# ......core/
+# ......front_end/
+# ......html/
+# ......internal/
+# ......io/
+# ......isolate/
+# ......js/
+# ......js_util/
+# ......kernel/
+# ......math/
+# ......mirrors/
+# ......typed_data/
+# ......api_readme.md
+
+# Scripts that go under bin/
+_platform_sdk_scripts = [
+  "dartanalyzer",
+  "dartfmt",
+  "pub",
+]
+
+_full_sdk_scripts = [
+  "dart2js",
+  "dartanalyzer",
+  "dartdevc",
+  "dartfmt",
+  "pub",
+]
+
+# Scripts not ending in _sdk that go under bin/
+_scripts = [ "dartdoc" ]
+
+# Snapshots that go under bin/snapshots
+_platform_sdk_snapshots = [
+  [
+    "analysis_server",
+    "../utils/analysis_server",
+  ],
+  [
+    "dartanalyzer",
+    "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
+  ],
+  [
+    "dartdoc",
+    "../utils/dartdoc",
+  ],
+  [
+    "dartfmt",
+    "../utils/dartfmt",
+  ],
+  [
+    "pub",
+    "../utils/pub",
+  ],
+]
+
+_full_sdk_snapshots = [
+  [
+    "analysis_server",
+    "../utils/analysis_server",
+  ],
+  [
+    "dart2js",
+    "../utils/compiler:dart2js",
+  ],
+  [
+    "dartanalyzer",
+    "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
+  ],
+  [
+    "dartdevc",
+    "../utils/dartdevc",
+  ],
+  [
+    "dartdoc",
+    "../utils/dartdoc",
+  ],
+  [
+    "dartfmt",
+    "../utils/dartfmt",
+  ],
+  [
+    "pub",
+    "../utils/pub",
+  ],
+  [
+    "utils_wrapper",
+    "../utils/compiler:utils_wrapper",
+  ],
+]
+
+# Libraries that go under lib/
+_platform_sdk_libraries = [
+  "_internal",
+  "async",
+  "collection",
+  "convert",
+  "core",
+  "developer",
+  "internal",
+  "io",
+  "isolate",
+  "math",
+  "mirrors",
+  "profiler",
+  "typed_data",
+]
+
+_full_sdk_libraries = [
+  "_blink",
+  "_chrome",
+  "_internal",
+  "async",
+  "collection",
+  "convert",
+  "core",
+  "developer",
+  "html",
+  "indexed_db",
+  "internal",
+  "io",
+  "isolate",
+  "js",
+  "js_util",
+  "math",
+  "mirrors",
+  "profiler",
+  "svg",
+  "typed_data",
+  "web_audio",
+  "web_gl",
+  "web_sql",
+]
+
+# Package sources copied to lib/
+_analyzer_source_dirs = [
+  "analyzer",
+  "analysis_server",
+  "front_end",
+  "kernel",
+]
+
+# Copies the Dart VM binary into bin/
+copy("copy_dart") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    "../runtime/bin:dart",
+  ]
+  dart_out = get_label_info("../runtime/bin:dart", "root_out_dir")
+  if (is_win) {
+    sources = [
+      "$dart_out/dart.exe",
+    ]
+  } else if (is_fuchsia || is_fuchsia_host) {
+    sources = [
+      "$dart_out/dart",
+    ]
+  } else {
+    sources = [
+      "$dart_out/exe.stripped/dart",
+    ]
+  }
+  if (is_win) {
+    sources += [ "$dart_out/dart.lib" ]
+  }
+  outputs = [
+    "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
+  ]
+}
+
+# Copies dynamically linked libraries into bin/. This is currently only needed
+# for Fuchsia when building for Linux hosts.
+if (is_fuchsia_host && is_linux) {
+  copy("copy_dylibs") {
+    visibility = [ ":create_common_sdk" ]
+    deps = [
+      "//third_party/boringssl:crypto",
+      "//third_party/boringssl:ssl",
+      "//third_party/zlib",
+    ]
+    crypto_out =
+        get_label_info("//third_party/boringssl:crypto", "root_out_dir")
+    crypto_name = get_label_info("//third_party/boringssl:crypto", "name")
+    ssl_out = get_label_info("//third_party/boringssl:ssl", "root_out_dir")
+    ssl_name = get_label_info("//third_party/boringssl:ssl", "name")
+    zlib_out = get_label_info("//third_party/zlib", "root_out_dir")
+    sources = [
+      "$crypto_out/lib${crypto_name}.so",
+      "$ssl_out/lib${ssl_name}.so",
+      "$zlib_out/libz.so",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
+    ]
+  }
+}
+
+# A template for copying the things in _platform_sdk_scripts and
+# _full_sdk_scripts into bin/
+template("copy_sdk_script") {
+  assert(defined(invoker.name), "copy_sdk_script must define 'name'")
+  name = invoker.name
+  ext = ""
+  if (is_win) {
+    ext = ".bat"
+  }
+  copy(target_name) {
+    visibility = [
+      ":copy_platform_sdk_scripts",
+      ":copy_full_sdk_scripts",
+    ]
+    sources = [
+      "bin/${name}_sdk$ext",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/bin/$name$ext",
+    ]
+  }
+}
+
+foreach(sdk_script, _full_sdk_scripts) {
+  copy_sdk_script("copy_${sdk_script}_script") {
+    name = sdk_script
+  }
+}
+
+foreach(script, _scripts) {
+  copy("copy_${script}_script") {
+    visibility = [
+      ":copy_platform_sdk_scripts",
+      ":copy_full_sdk_scripts",
+    ]
+    ext = ""
+    if (is_win) {
+      ext = ".bat"
+    }
+    sources = [
+      "bin/$script$ext",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
+    ]
+  }
+}
+
+# This is the main target for copying scripts in _platform_sdk_scripts to bin/
+group("copy_platform_sdk_scripts") {
+  visibility = [ ":create_platform_sdk" ]
+  deps = []
+  foreach(sdk_script, _platform_sdk_scripts) {
+    deps += [ ":copy_${sdk_script}_script" ]
+  }
+  foreach(script, _scripts) {
+    deps += [ ":copy_${script}_script" ]
+  }
+}
+
+# This is the main target for copying scripts in _full_sdk_scripts to bin/
+group("copy_full_sdk_scripts") {
+  visibility = [ ":create_full_sdk" ]
+  deps = []
+  foreach(sdk_script, _full_sdk_scripts) {
+    deps += [ ":copy_${sdk_script}_script" ]
+  }
+  foreach(script, _scripts) {
+    deps += [ ":copy_${script}_script" ]
+  }
+}
+
+# This loop generates "copy" targets that put snapshots into bin/snapshots
+foreach(snapshot, _full_sdk_snapshots) {
+  copy("copy_${snapshot[0]}_snapshot") {
+    visibility = [
+      ":copy_platform_sdk_snapshots",
+      ":copy_full_sdk_snapshots",
+    ]
+    deps = [
+      snapshot[1],
+    ]
+    sources = [
+      "$root_gen_dir/${snapshot[0]}.dart.snapshot",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/bin/snapshots/{{source_file_part}}",
+    ]
+  }
+}
+
+# This is the main rule for copying snapshots from _platform_sdk_snapshots to
+# bin/snapshots
+group("copy_platform_sdk_snapshots") {
+  visibility = [ ":create_platform_sdk" ]
+  deps = []
+  foreach(snapshot, _platform_sdk_snapshots) {
+    deps += [ ":copy_${snapshot[0]}_snapshot" ]
+  }
+}
+
+# This is the main rule for copying snapshots from _full_sdk_snapshots to
+# bin/snapshots
+group("copy_full_sdk_snapshots") {
+  visibility = [ ":create_full_sdk" ]
+  deps = []
+  foreach(snapshot, _full_sdk_snapshots) {
+    deps += [ ":copy_${snapshot[0]}_snapshot" ]
+  }
+}
+
+# This loop generates rules for copying analyzer sources into lib/
+foreach(analyzer_source_dir, _analyzer_source_dirs) {
+  copy_tree("copy_${analyzer_source_dir}_source_dir") {
+    visibility = [ ":copy_analyzer_sources" ]
+    source = "../pkg/$analyzer_source_dir"
+    dest = "$root_out_dir/dart-sdk/lib/$analyzer_source_dir"
+    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore,packages"
+  }
+}
+
+# This is the main rule for copying analyzer sources to lib/
+group("copy_analyzer_sources") {
+  visibility = [ ":create_common_sdk" ]
+  deps = []
+  foreach(analyzer_source_dir, _analyzer_source_dirs) {
+    deps += [ ":copy_${analyzer_source_dir}_source_dir" ]
+  }
+}
+
+# This rule copies dartdoc templates to
+# bin/snapshots/resources/dartdoc/templates
+copy_tree("copy_dartdoc_templates") {
+  visibility = [ ":copy_dartdoc_files" ]
+  source = "../third_party/pkg/dartdoc/lib/templates"
+  dest = "$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/templates"
+}
+
+# This rule copies dartdoc resources to
+# bin/snapshots/resources/dartdoc/resources
+copy_tree("copy_dartdoc_resources") {
+  visibility = [ ":copy_dartdoc_files" ]
+  source = "../third_party/pkg/dartdoc/lib/resources"
+  dest = "$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/resources"
+}
+
+# This rule writes the .packages file for dartdoc resources.
+write_file("$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/.packages",
+           "dartdoc:.")
+
+# This is the main rule for copying the files that dartdoc needs.
+group("copy_dartdoc_files") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    ":copy_dartdoc_resources",
+    ":copy_dartdoc_templates",
+  ]
+}
+
+# This rule copies analyzer summaries to lib/_internal
+copy("copy_analysis_summaries") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../utils/dartanalyzer:generate_summary_spec",
+    "../utils/dartanalyzer:generate_summary_strong",
+  ]
+  sources = [
+    "$root_gen_dir/spec.sum",
+    "$root_gen_dir/strong.sum",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
+  ]
+}
+
+# This rule copies ddc summaries to lib/_internal
+copy("copy_dev_compiler_summary") {
+  visibility = [ ":copy_dev_compiler_sdk" ]
+  deps = [
+    ":copy_libraries",
+  ]
+  sources = [
+    "../pkg/dev_compiler/lib/sdk/ddc_sdk.sum",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
+  ]
+}
+
+# This rule copies js needed by ddc to lib/dev_compiler
+copy_tree("copy_dev_compiler_js") {
+  visibility = [
+    ":copy_dev_compiler_sdk",
+    ":copy_dev_compiler_require_js",
+    ":copy_dev_compiler_tools",
+  ]
+  source = "../pkg/dev_compiler/lib/js"
+  dest = "$root_out_dir/dart-sdk/lib/dev_compiler"
+}
+
+# This rule copies require.js to lib/dev_compiler/amd
+copy("copy_dev_compiler_require_js") {
+  visibility = [ ":copy_dev_compiler_sdk" ]
+  deps = [
+    ":copy_dev_compiler_js",
+  ]
+  sources = [
+    "../third_party/requirejs/require.js",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/dev_compiler/amd/{{source_file_part}}",
+  ]
+}
+
+# This rule copies tools to go along with ddc.
+copy("copy_dev_compiler_tools") {
+  visibility = [ ":copy_dev_compiler_sdk" ]
+  deps = [
+    ":copy_dev_compiler_js",
+    "../utils/dartdevc:dartdevc_web",
+    "../utils/dartdevc:stack_trace_mapper",
+  ]
+  dart_out = get_label_info("../utils/dartdevc:dartdevc_web", "root_out_dir")
+  sources = [
+    "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js",
+    "$dart_out/dev_compiler/build/web/ddc_web_compiler.js",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/dev_compiler/web/{{source_file_part}}",
+  ]
+}
+
+# This is the main rule for copying ddc's dependencies to lib/
+group("copy_dev_compiler_sdk") {
+  visibility = [ ":create_full_sdk" ]
+  deps = [
+    ":copy_dev_compiler_js",
+    ":copy_dev_compiler_require_js",
+    ":copy_dev_compiler_summary",
+    ":copy_dev_compiler_tools",
+  ]
+}
+
+# This rule copies header files to include/
+copy("copy_headers") {
+  visibility = [ ":create_common_sdk" ]
+  sources = [
+    "../runtime/include/dart_api.h",
+    "../runtime/include/dart_mirrors_api.h",
+    "../runtime/include/dart_native_api.h",
+    "../runtime/include/dart_tools_api.h",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/include/{{source_file_part}}",
+  ]
+}
+
+# This rule copies .platform files to lib/
+copy("copy_platform_files") {
+  visibility = [ ":create_common_sdk" ]
+  sources = [
+    "lib/dart_client.platform",
+    "lib/dart_server.platform",
+    "lib/dart_shared.platform",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/{{source_file_part}}",
+  ]
+}
+
+# This rule copies pub assets to lib/_internal/pub/asset
+copy_tree("copy_pub_assets") {
+  visibility = [
+    ":create_common_sdk",
+    ":copy_7zip",
+  ]
+  deps = [
+    ":copy_libraries",
+  ]
+  source = "../third_party/pkg/pub/lib/src/asset"
+  dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset"
+}
+
+# This loop generates rules to copy libraries to lib/
+foreach(library, _full_sdk_libraries) {
+  copy_tree("copy_${library}_library") {
+    visibility = [
+      ":copy_platform_sdk_libraries",
+      ":copy_full_sdk_libraries",
+    ]
+    source = "lib/$library"
+    dest = "$root_out_dir/dart-sdk/lib/$library"
+    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
+  }
+}
+
+# This is the main rule to copy libraries in _platform_sdk_libraries to lib/
+group("copy_platform_sdk_libraries") {
+  visibility = [
+    ":create_platform_sdk",
+    ":copy_libraries",
+  ]
+  deps = []
+  foreach(library, _platform_sdk_libraries) {
+    deps += [ ":copy_${library}_library" ]
+  }
+}
+
+# This is the main rule to copy libraries in _full_sdk_libraries to lib/
+group("copy_full_sdk_libraries") {
+  visibility = [
+    ":create_full_sdk",
+    ":copy_libraries",
+  ]
+  deps = []
+  foreach(library, _full_sdk_libraries) {
+    deps += [ ":copy_${library}_library" ]
+  }
+}
+
+group("copy_libraries") {
+  if (dart_platform_sdk) {
+    deps = [
+      ":copy_platform_sdk_libraries",
+    ]
+  } else {
+    deps = [
+      ":copy_full_sdk_libraries",
+    ]
+  }
+}
+
+if (is_win) {
+  copy_tree("copy_7zip") {
+    visibility = [ ":create_common_sdk" ]
+    deps = [
+      ":copy_libraries",
+      ":copy_pub_assets",
+    ]
+    source = "../third_party/7zip"
+    dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset/7zip"
+    exclude = ".svn"
+  }
+}
+
+# This rule writes the version file.
+action("write_version_file") {
+  visibility = [ ":create_common_sdk" ]
+  output = "$root_out_dir/dart-sdk/version"
+  outputs = [
+    output,
+  ]
+  script = "../tools/write_version_file.py"
+  args = [
+    "--output",
+    rebase_path(output),
+  ]
+}
+
+# This rule writes the revision file.
+action("write_revision_file") {
+  visibility = [ ":create_common_sdk" ]
+  output = "$root_out_dir/dart-sdk/revision"
+  outputs = [
+    output,
+  ]
+  script = "../tools/write_revision_file.py"
+  args = [
+    "--output",
+    rebase_path(output),
+  ]
+}
+
+# Copy libraries.dart to lib/_internal/libraries.dart for backwards
+# compatibility.
+#
+# TODO(sigmund): stop copying libraries.dart. Old versions (<=0.25.1-alpha.4)
+# of the analyzer package do not support the new location of this file. We
+# should be able to remove the old file once we release a newer version of
+# analyzer and popular frameworks have migrated to use it.
+copy("copy_libraries_dart") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    ":copy_libraries",
+  ]
+  sources = [
+    "lib/_internal/sdk_library_metadata/lib/libraries.dart",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
+  ]
+}
+
+# This rule copies the README file.
+copy("copy_readme") {
+  visibility = [ ":create_common_sdk" ]
+  sources = [
+    "../README.dart-sdk",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/README",
+  ]
+}
+
+# This rule copies the LICENSE file.
+copy("copy_license") {
+  visibility = [ ":create_common_sdk" ]
+  sources = [
+    "../LICENSE",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/LICENSE",
+  ]
+}
+
+# This rule copies the API readme file to lib/
+copy("copy_api_readme") {
+  visibility = [ ":create_common_sdk" ]
+  sources = [
+    "api_readme.md",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/api_readme.md",
+  ]
+}
+
+# Parts common to both platform and full SDKs.
+group("create_common_sdk") {
+  visibility = [ ":create_sdk" ]
+  deps = [
+    ":copy_analysis_summaries",
+    ":copy_analyzer_sources",
+    ":copy_api_readme",
+    ":copy_dart",
+    ":copy_dartdoc_files",
+    ":copy_headers",
+    ":copy_libraries_dart",
+    ":copy_license",
+    ":copy_platform_files",
+    ":copy_pub_assets",
+    ":copy_readme",
+    ":write_revision_file",
+    ":write_version_file",
+  ]
+  if (is_win) {
+    deps += [ ":copy_7zip" ]
+  }
+  if (is_fuchsia_host && is_linux) {
+    deps += [ ":copy_dylibs" ]
+  }
+}
+
+# Parts specific to the platform SDK.
+group("create_platform_sdk") {
+  visibility = [ ":create_sdk" ]
+  deps = [
+    ":copy_platform_sdk_libraries",
+    ":copy_platform_sdk_scripts",
+    ":copy_platform_sdk_snapshots",
+  ]
+}
+
+# Parts specific to the full SDK.
+group("create_full_sdk") {
+  visibility = [
+    ":create_sdk",
+  ]
+
+  deps = [
+    ":copy_dev_compiler_sdk",
+    ":copy_full_sdk_libraries",
+    ":copy_full_sdk_scripts",
+    ":copy_full_sdk_snapshots",
+  ]
+}
+
+# The main target to depend on from ../BUILD.gn
+group("create_sdk") {
+  deps = [
+    ":create_common_sdk",
+  ]
+  if (dart_platform_sdk) {
+    deps += [ ":create_platform_sdk" ]
+  } else {
+    deps += [ ":create_full_sdk" ]
+  }
+}

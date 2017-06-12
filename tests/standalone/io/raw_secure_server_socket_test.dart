@@ -24,7 +24,7 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+      password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -69,14 +69,11 @@ void testInvalidBind() {
   asyncStart();
   print("asyncStart testInvalidBind 3");
   RawSecureServerSocket.bind(HOST, 0, serverContext).then((s) {
-    RawSecureServerSocket.bind(HOST,
-                               s.port,
-                               serverContext).then((t) {
+    RawSecureServerSocket.bind(HOST, s.port, serverContext).then((t) {
       s.close();
       t.close();
       Expect.fail("Multiple listens on same port");
-    })
-    .catchError((error) {
+    }).catchError((error) {
       Expect.isTrue(error is SocketException);
       s.close();
       print("asyncEnd testInvalidBind 3");
@@ -90,7 +87,7 @@ void testSimpleConnect() {
   asyncStart();
   RawSecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     var clientEndFuture =
-    RawSecureSocket.connect(HOST, server.port, context: clientContext);
+        RawSecureSocket.connect(HOST, server.port, context: clientContext);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
         // TODO(whesse): Shutdown(SEND) not supported on secure sockets.
@@ -110,28 +107,23 @@ void testSimpleConnectFail(SecurityContext context, bool cancelOnError) {
   print("asyncStart testSimpleConnectFail $counter");
   asyncStart();
   RawSecureServerSocket.bind(HOST, 0, context).then((server) {
-    var clientEndFuture =
-        RawSecureSocket.connect(HOST, server.port, context: clientContext)
-      .then((clientEnd) {
-        Expect.fail("No client connection expected.");
-      })
-      .catchError((error) {
-        Expect.isTrue(error is SocketException ||
-                      error is HandshakeException);
-      });
+    var clientEndFuture = RawSecureSocket
+        .connect(HOST, server.port, context: clientContext)
+        .then((clientEnd) {
+      Expect.fail("No client connection expected.");
+    }).catchError((error) {
+      Expect.isTrue(error is SocketException || error is HandshakeException);
+    });
     server.listen((serverEnd) {
       Expect.fail("No server connection expected.");
-    },
-    onError: (error) {
-      Expect.isTrue(error is SocketException ||
-                    error is HandshakeException);
+    }, onError: (error) {
+      Expect.isTrue(error is SocketException || error is HandshakeException);
       clientEndFuture.then((_) {
         if (!cancelOnError) server.close();
         print("asyncEnd testSimpleConnectFail $counter");
         asyncEnd();
       });
-    },
-    cancelOnError: cancelOnError);
+    }, cancelOnError: cancelOnError);
   });
 }
 
@@ -166,7 +158,7 @@ void testServerListenAfterConnect() {
 //
 // listenSecure
 // When this argument is true a secure server is used. When this is false
-// a non-secure server is used and the connections are secured after beeing
+// a non-secure server is used and the connections are secured after being
 // connected.
 //
 // connectSecure
@@ -186,11 +178,12 @@ void testServerListenAfterConnect() {
 // server will not happen until the first TLS handshake data has been
 // received from the client. This argument only takes effect when
 // handshakeBeforeSecure is true.
-void testSimpleReadWrite({bool listenSecure,
-                          bool connectSecure,
-                          bool handshakeBeforeSecure,
-                          bool postponeSecure,
-                          bool dropReads}) {
+void testSimpleReadWrite(
+    {bool listenSecure,
+    bool connectSecure,
+    bool handshakeBeforeSecure,
+    bool postponeSecure,
+    bool dropReads}) {
   int clientReads = 0;
   int serverReads = 0;
   if (handshakeBeforeSecure == true &&
@@ -199,7 +192,7 @@ void testSimpleReadWrite({bool listenSecure,
   }
 
   print("asyncStart testSimpleReadWrite($listenSecure, $connectSecure, "
-       "$handshakeBeforeSecure, $postponeSecure, $dropReads");
+      "$handshakeBeforeSecure, $postponeSecure, $dropReads");
   asyncStart();
 
   const messageSize = 1000;
@@ -278,8 +271,8 @@ void testSimpleReadWrite({bool listenSecure,
             Expect.isTrue(data[i] is int);
             Expect.isTrue(data[i] < 256 && data[i] >= 0);
           }
-          bytesWritten += client.write(
-              data, bytesWritten, data.length - bytesWritten);
+          bytesWritten +=
+              client.write(data, bytesWritten, data.length - bytesWritten);
           if (bytesWritten < data.length) {
             client.writeEventsEnabled = true;
           }
@@ -290,7 +283,8 @@ void testSimpleReadWrite({bool listenSecure,
         case RawSocketEvent.READ_CLOSED:
           completer.complete(null);
           break;
-        default: throw "Unexpected event $event";
+        default:
+          throw "Unexpected event $event";
       }
     });
     return completer.future;
@@ -333,7 +327,8 @@ void testSimpleReadWrite({bool listenSecure,
           verifyTestData(dataReceived);
           completer.complete(socket);
           break;
-        default: throw "Unexpected event $event";
+        default:
+          throw "Unexpected event $event";
       }
     });
     return completer.future;
@@ -389,8 +384,8 @@ void testSimpleReadWrite({bool listenSecure,
             Expect.isTrue(data[i] is int);
             Expect.isTrue(data[i] < 256 && data[i] >= 0);
           }
-          bytesWritten += client.write(
-              data, bytesWritten, data.length - bytesWritten);
+          bytesWritten +=
+              client.write(data, bytesWritten, data.length - bytesWritten);
           if (bytesWritten < data.length) {
             client.writeEventsEnabled = true;
           }
@@ -403,7 +398,8 @@ void testSimpleReadWrite({bool listenSecure,
         case RawSocketEvent.READ_CLOSED:
           Expect.fail("Unexpected close");
           break;
-        default: throw "Unexpected event $event";
+        default:
+          throw "Unexpected event $event";
       }
     });
     return completer.future;
@@ -450,7 +446,8 @@ void testSimpleReadWrite({bool listenSecure,
         case RawSocketEvent.READ_CLOSED:
           Expect.fail("Unexpected close");
           break;
-        default: throw "Unexpected event $event";
+        default:
+          throw "Unexpected event $event";
       }
     });
     return completer.future;
@@ -466,9 +463,8 @@ void testSimpleReadWrite({bool listenSecure,
     } else {
       return RawSocket.connect(HOST, port).then((socket) {
         return runClientHandshake(socket).then((subscription) {
-            return RawSecureSocket.secure(socket,
-                                          context: clientContext,
-                                          subscription: subscription);
+          return RawSecureSocket.secure(socket,
+              context: clientContext, subscription: subscription);
         });
       });
     }
@@ -484,11 +480,10 @@ void testSimpleReadWrite({bool listenSecure,
         });
       } else {
         runServerHandshake(client).then((secure) {
-            RawSecureSocket.secureServer(
-                client,
-                serverContext,
-                subscription: secure[0],
-                bufferedData: secure[1]).then((client) {
+          RawSecureSocket
+              .secureServer(client, serverContext,
+                  subscription: secure[0], bufferedData: secure[1])
+              .then((client) {
             runServer(client).then((_) => server.close());
           });
         });
@@ -498,14 +493,13 @@ void testSimpleReadWrite({bool listenSecure,
     connectClient(server.port).then(runClient).then((socket) {
       socket.close();
       print("asyncEnd testSimpleReadWrite($listenSecure, $connectSecure, "
-       "$handshakeBeforeSecure, $postponeSecure, $dropReads");
+          "$handshakeBeforeSecure, $postponeSecure, $dropReads");
       asyncEnd();
     });
   }
 
   if (listenSecure) {
-    RawSecureServerSocket.bind(
-        HOST, 0, serverContext).then(serverReady);
+    RawSecureServerSocket.bind(HOST, 0, serverContext).then(serverReady);
   } else {
     RawServerSocket.bind(HOST, 0).then(serverReady);
   }
@@ -532,16 +526,17 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
             asyncEnd();
           });
         }
+
         try {
-          RawSecureSocket.secureServer(
-              client, serverContext, subscription: subscription)
-            .catchError((_) {})
-            .whenComplete(() {
-              if (pausedServer) {
-                Expect.fail("secureServer succeeded with paused subscription");
-              }
-              done();
-            });
+          RawSecureSocket
+              .secureServer(client, serverContext, subscription: subscription)
+              .catchError((_) {})
+              .whenComplete(() {
+            if (pausedServer) {
+              Expect.fail("secureServer succeeded with paused subscription");
+            }
+            done();
+          });
         } catch (e) {
           if (!pausedServer) {
             Expect.fail("secureServer failed with non-paused subscriptions");
@@ -561,16 +556,16 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
           subscription.pause();
         }
         try {
-          RawSecureSocket.secure(
-              socket, subscription: subscription)
-            .catchError((_) {})
-            .whenComplete(() {
-              if (pausedClient) {
-                Expect.fail("secure succeeded with paused subscription");
-              }
-              socket.close();
-              clientComplete.complete(null);
-            });
+          RawSecureSocket
+              .secure(socket, subscription: subscription)
+              .catchError((_) {})
+              .whenComplete(() {
+            if (pausedClient) {
+              Expect.fail("secure succeeded with paused subscription");
+            }
+            socket.close();
+            clientComplete.complete(null);
+          });
         } catch (e) {
           if (!pausedClient) {
             Expect.fail("secure failed with non-paused subscriptions ($e)");
@@ -603,62 +598,70 @@ runTests() {
   SecurityContext context = new SecurityContext();
   testSimpleConnectFail(context, false);
   testSimpleConnectFail(context, true);
-  var chain =
-      Platform.script.resolve('certificates/untrusted_server_chain.pem')
+  var chain = Platform.script
+      .resolve('certificates/untrusted_server_chain.pem')
       .toFilePath();
   context.useCertificateChain(chain);
   testSimpleConnectFail(context, false);
   testSimpleConnectFail(context, true);
-  var key =
-      Platform.script.resolve('certificates/untrusted_server_key.pem')
-       .toFilePath();
+  var key = Platform.script
+      .resolve('certificates/untrusted_server_key.pem')
+      .toFilePath();
   context.usePrivateKey(key, password: 'dartdart');
   testSimpleConnectFail(context, false);
   testSimpleConnectFail(context, true);
   testServerListenAfterConnect();
 
-  testSimpleReadWrite(listenSecure: true,
-                      connectSecure: true,
-                      handshakeBeforeSecure: false,
-                      postponeSecure: false,
-                      dropReads: false);
-  testSimpleReadWrite(listenSecure: true,
-                      connectSecure: false,
-                      handshakeBeforeSecure: false,
-                      postponeSecure: false,
-                      dropReads: false);
+  testSimpleReadWrite(
+      listenSecure: true,
+      connectSecure: true,
+      handshakeBeforeSecure: false,
+      postponeSecure: false,
+      dropReads: false);
+  testSimpleReadWrite(
+      listenSecure: true,
+      connectSecure: false,
+      handshakeBeforeSecure: false,
+      postponeSecure: false,
+      dropReads: false);
 
-  testSimpleReadWrite(listenSecure: false,
-                      connectSecure: true,
-                      handshakeBeforeSecure: false,
-                      postponeSecure: false,
-                      dropReads: false);
+  testSimpleReadWrite(
+      listenSecure: false,
+      connectSecure: true,
+      handshakeBeforeSecure: false,
+      postponeSecure: false,
+      dropReads: false);
 
-  testSimpleReadWrite(listenSecure: false,
-                      connectSecure: false,
-                      handshakeBeforeSecure: false,
-                      postponeSecure: false,
-                      dropReads: false);
-  testSimpleReadWrite(listenSecure: false,
-                      connectSecure: false,
-                      handshakeBeforeSecure: true,
-                      postponeSecure: true,
-                      dropReads: false);
-  testSimpleReadWrite(listenSecure: false,
-                      connectSecure: false,
-                      handshakeBeforeSecure: true,
-                      postponeSecure: false,
-                      dropReads: false);
-  testSimpleReadWrite(listenSecure: true,
-                      connectSecure: true,
-                      handshakeBeforeSecure: false,
-                      postponeSecure: false,
-                      dropReads: true);
-  testSimpleReadWrite(listenSecure: false,
-                      connectSecure: false,
-                      handshakeBeforeSecure: true,
-                      postponeSecure: true,
-                      dropReads: true);
+  testSimpleReadWrite(
+      listenSecure: false,
+      connectSecure: false,
+      handshakeBeforeSecure: false,
+      postponeSecure: false,
+      dropReads: false);
+  testSimpleReadWrite(
+      listenSecure: false,
+      connectSecure: false,
+      handshakeBeforeSecure: true,
+      postponeSecure: true,
+      dropReads: false);
+  testSimpleReadWrite(
+      listenSecure: false,
+      connectSecure: false,
+      handshakeBeforeSecure: true,
+      postponeSecure: false,
+      dropReads: false);
+  testSimpleReadWrite(
+      listenSecure: true,
+      connectSecure: true,
+      handshakeBeforeSecure: false,
+      postponeSecure: false,
+      dropReads: true);
+  testSimpleReadWrite(
+      listenSecure: false,
+      connectSecure: false,
+      handshakeBeforeSecure: true,
+      postponeSecure: true,
+      dropReads: true);
   testPausedSecuringSubscription(false, false);
   testPausedSecuringSubscription(true, false);
   testPausedSecuringSubscription(false, true);

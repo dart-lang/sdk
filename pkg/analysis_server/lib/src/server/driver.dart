@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library driver;
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
@@ -249,11 +247,6 @@ class Driver implements ServerStarter {
       'disable-new-analysis-driver';
 
   /**
-   * The name of the option used to enable fined grained invalidation.
-   */
-  static const String FINER_GRAINED_INVALIDATION = 'finer-grained-invalidation';
-
-  /**
    * The name of the option used to cause instrumentation to also be written to
    * a local file.
    */
@@ -283,15 +276,10 @@ class Driver implements ServerStarter {
       'verbose-flutter-completions';
 
   /**
-   * The name of the flag used to disable the index.
-   */
-  static const String NO_INDEX = "no-index";
-
-  /**
    * The name of the flag used to enable version 2 of semantic highlight
    * notification.
    */
-  static const String USE_ANALISYS_HIGHLIGHT2 = "useAnalysisHighlight2";
+  static const String USE_ANALYSIS_HIGHLIGHT2 = "useAnalysisHighlight2";
 
   /**
    * The option for specifying the http diagnostic port.
@@ -396,11 +384,8 @@ class Driver implements ServerStarter {
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.enableNewAnalysisDriver =
         !results[DISABLE_NEW_ANALYSIS_DRIVER];
-    analysisServerOptions.finerGrainedInvalidation =
-        results[FINER_GRAINED_INVALIDATION];
-    analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
-        results[USE_ANALISYS_HIGHLIGHT2];
+        results[USE_ANALYSIS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
     analysisServerOptions.newAnalysisDriverLog =
         results[NEW_ANALYSIS_DRIVER_LOG];
@@ -559,10 +544,6 @@ class Driver implements ServerStarter {
         help: "disable using new analysis driver",
         defaultsTo: false,
         negatable: false);
-    parser.addFlag(FINER_GRAINED_INVALIDATION,
-        help: "enable finer grained invalidation",
-        defaultsTo: false,
-        negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,
         help:
             "the path of the file to which instrumentation data will be written");
@@ -572,28 +553,26 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
         help: "set a destination for the new analysis driver's log");
-    parser.addOption(VERBOSE_FLUTTER_COMPLETIONS,
+    parser.addFlag(VERBOSE_FLUTTER_COMPLETIONS,
         help: "enable verbose code completion for Flutter (experimental)");
     parser.addOption(PORT_OPTION,
         help: "the http diagnostic port on which the server provides"
             " status and performance information");
     parser.addOption(INTERNAL_DELAY_FREQUENCY);
     parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
-    parser.addFlag(NO_INDEX,
-        help: "disable indexing sources", defaultsTo: false, negatable: false);
-    parser.addFlag(USE_ANALISYS_HIGHLIGHT2,
+    parser.addFlag(USE_ANALYSIS_HIGHLIGHT2,
         help: "enable version 2 of semantic highlight",
         defaultsTo: false,
         negatable: false);
     parser.addOption(FILE_READ_MODE,
-        help: "an option of the ways files can be read from disk, " +
-            "some clients normalize end of line characters which would make " +
-            "the file offset and range information incorrect.",
+        help: "an option for reading files (some clients normalize eol "
+            "characters, which make the file offset and range information "
+            "incorrect)",
         allowed: ["as-is", "normalize-eol-always"],
         allowedHelp: {
-          "as-is": "file contents are read as-is, no file changes occur",
+          "as-is": "file contents are read as-is",
           "normalize-eol-always":
-              r'file contents normalize the end of line characters to the single character new line `\n`'
+              r"eol characters normalized to the single character new line ('\n')"
         },
         defaultsTo: "as-is");
 

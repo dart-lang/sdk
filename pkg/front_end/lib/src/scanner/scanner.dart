@@ -15,7 +15,7 @@ class KeywordState {
   /**
    * An empty transition table used by leaf states.
    */
-  static List<KeywordState> _EMPTY_TABLE = new List<KeywordState>(26);
+  static List<KeywordState> _EMPTY_TABLE = new List<KeywordState>($z - $A + 1);
 
   /**
    * The initial state in the state machine.
@@ -54,7 +54,7 @@ class KeywordState {
    * [character], or `null` if there is no valid state reachable from this state
    * with such a transition.
    */
-  KeywordState next(int character) => _table[character - $a];
+  KeywordState next(int character) => _table[character - $A];
 
   /**
    * Create the next state in the state machine where we have already recognized
@@ -64,7 +64,7 @@ class KeywordState {
    */
   static KeywordState _computeKeywordStateTable(
       int start, List<String> strings, int offset, int length) {
-    List<KeywordState> result = new List<KeywordState>(26);
+    List<KeywordState> result = new List<KeywordState>($z - $A + 1);
     assert(length != 0);
     int chunk = $nul;
     int chunkStart = -1;
@@ -77,7 +77,7 @@ class KeywordState {
         int c = strings[i].codeUnitAt(start);
         if (chunk != c) {
           if (chunkStart != -1) {
-            result[chunk - $a] = _computeKeywordStateTable(
+            result[chunk - $A] = _computeKeywordStateTable(
                 start + 1, strings, chunkStart, i - chunkStart);
           }
           chunkStart = i;
@@ -86,8 +86,8 @@ class KeywordState {
       }
     }
     if (chunkStart != -1) {
-      assert(result[chunk - $a] == null);
-      result[chunk - $a] = _computeKeywordStateTable(
+      assert(result[chunk - $A] == null);
+      result[chunk - $A] = _computeKeywordStateTable(
           start + 1, strings, chunkStart, offset + length - chunkStart);
     } else {
       assert(length == 1);
@@ -107,7 +107,7 @@ class KeywordState {
     List<Keyword> values = Keyword.values;
     List<String> strings = new List<String>(values.length);
     for (int i = 0; i < values.length; i++) {
-      strings[i] = values[i].syntax;
+      strings[i] = values[i].lexeme;
     }
     strings.sort();
     return _computeKeywordStateTable(0, strings, 0, strings.length);
@@ -125,6 +125,12 @@ class KeywordState {
  * possible token.
  */
 abstract class Scanner {
+  /**
+   * A flag indicating whether the [Scanner] factory method
+   * will return a fasta based scanner or an analyzer based scanner.
+   */
+  static bool useFasta = false;
+
   /**
    * The reader used to access the characters in the source.
    */
@@ -202,7 +208,7 @@ abstract class Scanner {
    * Initialize a newly created scanner to scan characters from the given
    * character [_reader].
    */
-  Scanner(this._reader) {
+  Scanner.create(this._reader) {
     _tokens = new Token(TokenType.EOF, -1);
     _tokens.setNext(_tokens);
     _tail = _tokens;
@@ -277,12 +283,12 @@ abstract class Scanner {
         return _tokenizeString(_reader.advance(), start, true);
       }
     }
-    if ($a <= next && next <= $z) {
-      // 'a'-'z'
+    if (($A <= next && next <= $Z) || ($a <= next && next <= $z)) {
+      // 'A'-'Z' || 'a'-'z'
       return _tokenizeKeywordOrIdentifier(next, true);
     }
-    if (($A <= next && next <= $Z) || next == $_ || next == $$) {
-      // 'A'-'Z' || '_' || '$'
+    if (next == $_ || next == $$) {
+      // '_' || '$'
       return _tokenizeIdentifier(next, _reader.offset, true);
     }
     if (next == $lt) {
@@ -935,17 +941,15 @@ abstract class Scanner {
   int _tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
     KeywordState state = KeywordState.KEYWORD_STATE;
     int start = _reader.offset;
-    while (state != null && $a <= next && next <= $z) {
+    while (state != null &&
+        (($A <= next && next <= $Z) || $a <= next && next <= $z)) {
       state = state.next(next);
       next = _reader.advance();
     }
     if (state == null || state.keyword() == null) {
       return _tokenizeIdentifier(next, start, allowDollar);
     }
-    if (($A <= next && next <= $Z) ||
-        ($0 <= next && next <= $9) ||
-        next == $_ ||
-        next == $$) {
+    if (($0 <= next && next <= $9) || next == $_ || next == $$) {
       return _tokenizeIdentifier(next, start, allowDollar);
     } else if (next < 128) {
       _appendKeywordToken(state.keyword());

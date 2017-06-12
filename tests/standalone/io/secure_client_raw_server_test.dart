@@ -21,16 +21,14 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+      password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 InternetAddress HOST;
 Future<RawSecureServerSocket> startEchoServer() {
-  return RawSecureServerSocket.bind(HOST,
-                                    0,
-                                    serverContext).then((server) {
+  return RawSecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     server.listen((RawSecureSocket client) {
       List<List<int>> readChunks = <List<int>>[];
       List<int> dataToWrite = null;
@@ -72,27 +70,28 @@ Future<RawSecureServerSocket> startEchoServer() {
 Future testClient(server) {
   Completer success = new Completer();
   List<String> chunks = <String>[];
-  SecureSocket.connect(HOST, server.port, context: clientContext)
-  .then((socket) {
+  SecureSocket
+      .connect(HOST, server.port, context: clientContext)
+      .then((socket) {
     socket.write("Hello server.");
     socket.close();
-    socket.listen(
-      (List<int> data) {
-        var received = new String.fromCharCodes(data);
-        chunks.add(received);
-      },
-      onDone: () {
-        String reply = chunks.join();
-        Expect.equals("Hello server.", reply);
-        success.complete(server);
-      });
+    socket.listen((List<int> data) {
+      var received = new String.fromCharCodes(data);
+      chunks.add(received);
+    }, onDone: () {
+      String reply = chunks.join();
+      Expect.equals("Hello server.", reply);
+      success.complete(server);
+    });
   });
   return success.future;
 }
 
 void main() {
   asyncStart();
-  InternetAddress.lookup("localhost").then((hosts) => HOST = hosts.first)
+  InternetAddress
+      .lookup("localhost")
+      .then((hosts) => HOST = hosts.first)
       .then((_) => startEchoServer())
       .then(testClient)
       .then((server) => server.close())

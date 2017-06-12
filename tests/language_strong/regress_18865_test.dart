@@ -4,12 +4,12 @@
 
 // Regression test for issue 18865.
 
-class B<T> { }
+class B<T> {}
 
 class A<T> extends B {
   static foo() => new A();
 }
 
-main () {
+main() {
   A.foo();
 }

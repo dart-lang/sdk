@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.analysis.notification_analysis_options_test;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart'
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,8 +20,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NewAnalysisOptionsFileNotificationTest);
     defineReflectiveTests(OldAnalysisOptionsFileNotificationTest);
-    defineReflectiveTests(NewAnalysisOptionsFileNotificationTest_Driver);
-    defineReflectiveTests(OldAnalysisOptionsFileNotificationTest_Driver);
   });
 }
 
@@ -75,6 +73,7 @@ analyzer:
 
   @override
   void setUp() {
+    generateSummaryFiles = true;
     registerLintRules();
     super.setUp();
     server.handlers = [new AnalysisDomainHandler(server)];
@@ -339,30 +338,8 @@ class NewAnalysisOptionsFileNotificationTest
 }
 
 @reflectiveTest
-class NewAnalysisOptionsFileNotificationTest_Driver
-    extends NewAnalysisOptionsFileNotificationTest {
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    generateSummaryFiles = true;
-    super.setUp();
-  }
-}
-
-@reflectiveTest
 class OldAnalysisOptionsFileNotificationTest
     extends AnalysisOptionsFileNotificationTest {
   @override
   String get optionsFilePath => '$projectPath/.analysis_options';
-}
-
-@reflectiveTest
-class OldAnalysisOptionsFileNotificationTest_Driver
-    extends OldAnalysisOptionsFileNotificationTest {
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    generateSummaryFiles = true;
-    super.setUp();
-  }
 }

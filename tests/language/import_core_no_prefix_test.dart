@@ -5,6 +5,7 @@
 // Dart test program importing the core library explicitly.
 
 library ImportCoreNoPrefixTest.dart;
+
 import "dart:core";
 
 main() {

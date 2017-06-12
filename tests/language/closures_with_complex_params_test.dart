@@ -21,7 +21,7 @@ class Pair<A, B> {
 test1() {
   // Closures with nested parameterized types.
   var cdar1 = (Pair<int, Pair<int, int>> pr) => pr.snd.fst;
-  var cdar2 = (Pair<int, Pair<int, int> > pr) => pr.snd.fst;
+  var cdar2 = (Pair<int, Pair<int, int>> pr) => pr.snd.fst;
 
   var e = new Pair<int, Pair<int, int>>(100, new Pair<int, int>(200, 300));
 
@@ -32,7 +32,7 @@ test1() {
 test2() {
   // Closures with nested parameterized types in optional position
   var cdar1 = ([Pair<int, Pair<int, int>> pr = null]) => pr.snd.fst;
-  var cdar2 = ([Pair<int, Pair<int, int> > pr = null]) => pr.snd.fst;
+  var cdar2 = ([Pair<int, Pair<int, int>> pr = null]) => pr.snd.fst;
 
   var e = new Pair<int, Pair<int, int>>(100, new Pair<int, int>(200, 300));
 
@@ -43,13 +43,13 @@ test2() {
 test3() {
   // Closures with nested parameterized types.
   var f1 = (Pair<int, Pair<int, int>> pr) => pr.snd.fst + 1;
-  var f2 = (Pair<int, Pair<int, int> > pr) => pr.snd.fst + 2;
+  var f2 = (Pair<int, Pair<int, int>> pr) => pr.snd.fst + 2;
 
   // Closures with function type with nested parameterized types.
-  var ap1 = (f(Pair<int, Pair<int, int>> pr1), Pair<int, Pair<int, int>> pr)
-                 => f(pr) * 10;
-  var ap2 = (f(Pair<int, Pair<int, int> > pr1), Pair<int, Pair<int, int> > pr)
-                 => f(pr) * 100;
+  var ap1 = (f(Pair<int, Pair<int, int>> pr1), Pair<int, Pair<int, int>> pr) =>
+      f(pr) * 10;
+  var ap2 = (f(Pair<int, Pair<int, int>> pr1), Pair<int, Pair<int, int>> pr) =>
+      f(pr) * 100;
 
   var e = new Pair<int, Pair<int, int>>(100, new Pair<int, int>(200, 300));
 

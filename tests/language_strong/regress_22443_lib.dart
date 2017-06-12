@@ -4,5 +4,4 @@
 
 library regress_22443;
 
-class LazyClass {
-}
+class LazyClass {}

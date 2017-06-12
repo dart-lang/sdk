@@ -10,12 +10,12 @@ typedef void Callback2(arg1, arg2);
 
 @Native("A")
 class A {
-  foo0(Callback0 closure) native ;
-  foo1(Callback1 closure, arg1) native ;
-  foo2(Callback2 closure, arg1, arg2) native ;
+  foo0(Callback0 closure) native;
+  foo1(Callback1 closure, arg1) native;
+  foo2(Callback2 closure, arg1, arg2) native;
 }
 
-makeA() native ;
+makeA() native;
 
 void setup() native """
 function A() {}

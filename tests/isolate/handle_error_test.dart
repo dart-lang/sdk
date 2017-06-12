@@ -27,13 +27,13 @@ isomain1(replyPort) {
   replyPort.send(port.sendPort);
 }
 
-main(){
+main() {
   asyncStart();
   RawReceivePort reply = new RawReceivePort(null);
   // Start paused so we have time to set up the error handler.
   Isolate.spawn(isomain1, reply.sendPort, paused: true).then((Isolate isolate) {
     isolate.setErrorsFatal(false);
-    Stream errors = isolate.errors;  // Broadcast stream, never a done message.
+    Stream errors = isolate.errors; // Broadcast stream, never a done message.
     SendPort sendPort;
     StreamSubscription subscription;
     int state = 0;

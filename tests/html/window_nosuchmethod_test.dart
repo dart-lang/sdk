@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library WindowNSMETest;
+
 import "package:expect/expect.dart";
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
@@ -22,34 +23,34 @@ main() {
   var things = [new Unused(), dom.window];
 
   test('windowNonMethod', () {
-      var win = things[inscrutable(1)];
-      final message = foo("Hello World");
-      try {
-        String x = win.foo(message);
-        expect(false, isTrue, reason: 'Should not reach here: $x');
-      } on NoSuchMethodError catch (e) {
-        // Expected exception.
-      } on Exception catch (e) {
-        expect(false, isTrue, reason: 'Wrong exception: $e');
-      }
-    });
+    var win = things[inscrutable(1)];
+    final message = foo("Hello World");
+    try {
+      String x = win.foo(message);
+      expect(false, isTrue, reason: 'Should not reach here: $x');
+    } on NoSuchMethodError catch (e) {
+      // Expected exception.
+    } on Exception catch (e) {
+      expect(false, isTrue, reason: 'Wrong exception: $e');
+    }
+  });
 
   test('foo', () {
-      var win = things[inscrutable(0)];
-      String x = win.foo('bar');
-      expect(x, 'not bar');
-    });
+    var win = things[inscrutable(0)];
+    String x = win.foo('bar');
+    expect(x, 'not bar');
+  });
 
-  // Use dom.window direclty in case the compiler does type inference.
+  // Use dom.window directly in case the compiler does type inference.
   test('windowNonMethod2', () {
-      final message = foo("Hello World");
-      try {
-        String x = dom.window.foo(message);
-        expect(false, isTrue, reason: 'Should not reach here: $x');
-      } on NoSuchMethodError catch (e) {
-        // Expected exception.
-      } on Exception catch (e) {
-        expect(false, isTrue, reason: 'Wrong exception: $e');
-      }
-    });
+    final message = foo("Hello World");
+    try {
+      String x = dom.window.foo(message);
+      expect(false, isTrue, reason: 'Should not reach here: $x');
+    } on NoSuchMethodError catch (e) {
+      // Expected exception.
+    } on Exception catch (e) {
+      expect(false, isTrue, reason: 'Wrong exception: $e');
+    }
+  });
 }

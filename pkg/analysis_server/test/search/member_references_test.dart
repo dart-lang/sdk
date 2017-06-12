@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.search.member_references;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -15,7 +14,6 @@ import 'abstract_search_domain.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MemberReferencesTest);
-    defineReflectiveTests(MemberReferencesTest_Driver);
   });
 }
 
@@ -112,14 +110,5 @@ mainUnresolved(a, b) {
     assertNoResult(SearchResultKind.INVOCATION, 'foo(2)');
     assertHasRef(SearchResultKind.INVOCATION, 'foo(10)', true);
     assertHasRef(SearchResultKind.INVOCATION, 'foo(20)', true);
-  }
-}
-
-@reflectiveTest
-class MemberReferencesTest_Driver extends MemberReferencesTest {
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    super.setUp();
   }
 }

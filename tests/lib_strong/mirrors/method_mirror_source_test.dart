@@ -23,18 +23,17 @@ foo1() {}
 doSomething(e) => e;
 
 int get x => 42;
-set x(value) { }
+set x(value) {}
 
 class S {}
 
 class C extends S {
-
   var _x;
   var _y;
 
   C(this._x, y)
-    : _y = y,
-      super();
+      : _y = y,
+        super();
 
   factory C.other(num z) {}
   factory C.other2() {}
@@ -46,65 +45,64 @@ class C extends S {
 
   // Some comment.
 
-  void bar() { /* Not so happy bar. */ }
+  void bar() {/* Not so happy bar. */}
 
-  num get someX =>
-    181;
+  num get someX => 181;
 
   set someX(v) {
     // Discard this one.
   }
 }
-    
 
 main() {
   // Top-level members
   LibraryMirror lib = reflectClass(C).owner;
-  expectSource(lib.declarations[#foo1],
-      "foo1() {}");
-  expectSource(lib.declarations[#x],
-      "int get x => 42;");
-  expectSource(lib.declarations[const Symbol("x=")],
-      "set x(value) { }");
+  expectSource(lib.declarations[#foo1], "foo1() {}");
+  expectSource(lib.declarations[#x], "int get x => 42;");
+  expectSource(lib.declarations[const Symbol("x=")], "set x(value) { }");
 
   // Class members
   ClassMirror cm = reflectClass(C);
-  expectSource(cm.declarations[#foo],
+  expectSource(
+      cm.declarations[#foo],
       "static dynamic foo() {\n"
       "    // Happy foo.\n"
       "  }");
-  expectSource(cm.declarations[#bar],
-      "void bar() { /* Not so happy bar. */ }");
-  expectSource(cm.declarations[#someX],
+  expectSource(cm.declarations[#bar], "void bar() { /* Not so happy bar. */ }");
+  expectSource(
+      cm.declarations[#someX],
       "num get someX =>\n"
       "    181;");
-  expectSource(cm.declarations[const Symbol("someX=")],
+  expectSource(
+      cm.declarations[const Symbol("someX=")],
       "set someX(v) {\n"
       "    // Discard this one.\n"
       "  }");
-  expectSource(cm.declarations[#C],
+  expectSource(
+      cm.declarations[#C],
       "C(this._x, y)\n"
       "    : _y = y,\n"
       "      super();");
-  expectSource(cm.declarations[#C.other],
-      "factory C.other(num z) {}");
-  expectSource(cm.declarations[#C.other3],
-      "factory C.other3() = C.other2;");
+  expectSource(cm.declarations[#C.other], "factory C.other(num z) {}");
+  expectSource(cm.declarations[#C.other3], "factory C.other3() = C.other2;");
 
   // Closures
-  expectSource(reflect((){}), "(){}");
-  expectSource(reflect((x,y,z) { return x*y*z; }), "(x,y,z) { return x*y*z; }");
+  expectSource(reflect(() {}), "(){}");
+  expectSource(reflect((x, y, z) {
+    return x * y * z;
+  }), "(x,y,z) { return x*y*z; }");
   expectSource(reflect((e) => doSomething(e)), "(e) => doSomething(e)");
 
-  namedClosure(x,y,z) => 1;
+  namedClosure(x, y, z) => 1;
   var a = () {};
   expectSource(reflect(namedClosure), "namedClosure(x,y,z) => 1;");
   expectSource(reflect(a), "() {}");
 
   // Function at first line.
   LibraryMirror otherLib = reflectClass(SomethingInOther).owner;
-  expectSource(otherLib.declarations[#main],
-"""main() {
+  expectSource(
+      otherLib.declarations[#main],
+      """main() {
   print("Blah");
 }""");
 }

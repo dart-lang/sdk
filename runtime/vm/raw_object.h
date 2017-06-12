@@ -266,21 +266,11 @@ class RawObject {
     kVMHeapObjectBit = 2,
     kRememberedBit = 3,
     kReservedTagPos = 4,  // kReservedBit{100K,1M,10M}
-#if defined(ARCH_IS_32_BIT)
     kReservedTagSize = 4,
     kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
-#elif defined(ARCH_IS_64_BIT)
-    kReservedTagSize = 12,
-    kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 16
-    kSizeTagSize = 16,
-    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 32
-    kClassIdTagSize = 32,
-#else
-#error Unexpected architecture word size
-#endif
   };
 
   COMPILE_ASSERT(kClassIdTagSize == (sizeof(classid_t) * kBitsPerByte));
@@ -614,6 +604,7 @@ class RawObject {
   friend class RawExternalTypedData;
   friend class RawInstructions;
   friend class RawInstance;
+  friend class RawString;
   friend class RawTypedData;
   friend class Scavenger;
   friend class ScavengerVisitor;
@@ -621,7 +612,7 @@ class RawObject {
   friend class InstanceAccumulator;        // GetClassId
   friend class RetainingPathVisitor;       // GetClassId
   friend class SkippedCodeFunctions;       // StorePointer
-  friend class InstructionsReader;         // tags_ check
+  friend class ImageReader;                // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
@@ -764,6 +755,7 @@ class RawTypeArguments : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->types()[length - 1]);
   }
 
+  friend class Object;
   friend class SnapshotReader;
 };
 
@@ -1025,6 +1017,9 @@ class RawScript : public RawObject {
   RawArray* line_starts_;
   RawArray* debug_positions_;
   RawArray* yield_positions_;
+  RawTypedData* kernel_string_offsets_;
+  RawTypedData* kernel_string_data_;
+  RawTypedData* kernel_canonical_names_;
   RawTokenStream* tokens_;
   RawString* source_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }
@@ -1225,7 +1220,7 @@ class RawInstructions : public RawObject {
   friend class MarkingVisitorBase;
   friend class SkippedCodeFunctions;
   friend class Function;
-  friend class InstructionsReader;
+  friend class ImageReader;
   friend class ImageWriter;
 };
 
@@ -1438,6 +1433,7 @@ class RawContext : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->data()[num_vars - 1]);
   }
 
+  friend class Object;
   friend class SnapshotReader;
 };
 
@@ -1737,7 +1733,6 @@ class RawTypeParameter : public RawAbstractType {
   classid_t parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
-  uint8_t parent_level_;  // Max 255 levels of nested generic functions is OK.
   int8_t type_state_;
 
   friend class CidRewriteVisitor;
@@ -1779,18 +1774,29 @@ class RawClosure : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->instantiator_);
+    return reinterpret_cast<RawObject**>(&ptr()->instantiator_type_arguments_);
   }
 
-  // No instance fields should be declared before the following 3 fields whose
+  // No instance fields should be declared before the following 4 fields whose
   // offsets must be identical in Dart and C++.
 
-  // These 3 fields are also declared in the Dart source of class _Closure.
-  RawTypeArguments* instantiator_;
+  // These 4 fields are also declared in the Dart source of class _Closure.
+  RawTypeArguments* instantiator_type_arguments_;
+  RawTypeArguments* function_type_arguments_;
   RawFunction* function_;
   RawContext* context_;
 
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->context_); }
+
+  // Note that instantiator_type_arguments_ and function_type_arguments_ are
+  // used to instantiate the signature of function_ when this closure is
+  // involved in a type test. In other words, these fields define the function
+  // type of this closure instance, but they are not used when invoking it.
+  // If this closure is generic, it can be invoked with function type arguments
+  // that will be processed in the prolog of the closure function_. For example,
+  // if the generic closure function_ has a generic parent function, the
+  // passed-in function type arguments get concatenated to the function type
+  // arguments of the parent that are found in the context_.
 };
 
 
@@ -1848,10 +1854,20 @@ class RawString : public RawInstance {
  protected:
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
   RawSmi* length_;
+#if !defined(HASH_IN_OBJECT_HEADER)
   RawSmi* hash_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->hash_); }
+#else
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+#endif
 
+ private:
   friend class Library;
+  friend class OneByteStringSerializationCluster;
+  friend class TwoByteStringSerializationCluster;
+  friend class OneByteStringDeserializationCluster;
+  friend class TwoByteStringDeserializationCluster;
+  friend class RODataSerializationCluster;
 };
 
 
@@ -2437,6 +2453,7 @@ inline intptr_t RawObject::NumberOfTypedDataClasses() {
   COMPILE_ASSERT(kNullCid == kByteBufferCid + 1);
   return (kNullCid - kTypedDataInt8ArrayCid);
 }
+
 
 }  // namespace dart
 

@@ -921,14 +921,14 @@ dynamic x;
 
 foo1() async => x;
 Future foo2() async => x;
-Future<int> foo3() async => x;
+Future<int> foo3() async => /*info:DYNAMIC_CAST*/x;
 Future<int> foo4() async => new Future<int>.value(x);
 Future<int> foo5() async =>
     /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(x);
 
 bar1() async { return x; }
 Future bar2() async { return x; }
-Future<int> bar3() async { return x; }
+Future<int> bar3() async { return /*info:DYNAMIC_CAST*/x; }
 Future<int> bar4() async { return new Future<int>.value(x); }
 Future<int> bar5() async {
   return /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(x);
@@ -955,7 +955,7 @@ Future<bool> get issue_ddc_264 async {
 
 
 Future<String> issue_sdk_26404() async {
-  return (1 > 0) ? new Future<String>.value('hello') : "world";
+  return (/*info:DOWN_CAST_COMPOSITE*/(1 > 0) ? new Future<String>.value('hello') : "world");
 }
 ''');
   }
@@ -2197,11 +2197,20 @@ main() {
   test_implicitCasts() async {
     addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;');
     await check();
-    // TODO(jmesserly): should not be emitting the hint as well as the error.
-    // It is a "strong mode hint" however, so it will not be user visible.
-    addFile(
-        'num n; int i = /*info:ASSIGNMENT_CAST,error:INVALID_ASSIGNMENT*/n;');
+    addFile('num n; int i = /*error:INVALID_ASSIGNMENT*/n;');
     await check(implicitCasts: false);
+  }
+
+  test_implicitCasts_return() async {
+    addFile(r'''
+import 'dart:async';
+
+Future<List<String>> foo() async {
+  List<Object> x = <Object>["hello", "world"];
+  return /*info:DOWN_CAST_IMPLICIT*/x;
+}
+    ''');
+    await check();
   }
 
   test_implicitCasts_genericMethods() async {
@@ -2227,8 +2236,7 @@ void f() {
     addFile(r'''
 class C {
   var /*error:IMPLICIT_DYNAMIC_FIELD*/x0;
-  var /*error:IMPLICIT_DYNAMIC_FIELD*/x1 =
-      /*error:TOP_LEVEL_UNSUPPORTED*/(<dynamic>[])[0];
+  var /*error:IMPLICIT_DYNAMIC_FIELD*/x1 = (<dynamic>[])[0];
   var /*error:IMPLICIT_DYNAMIC_FIELD*/x2,
       x3 = 42,
       /*error:IMPLICIT_DYNAMIC_FIELD*/x4;
@@ -2431,6 +2439,9 @@ class I<T> {}
 class D<T, S> extends /*error:IMPLICIT_DYNAMIC_TYPE*/C
     with M1, /*error:IMPLICIT_DYNAMIC_TYPE*/M2
     implements /*error:IMPLICIT_DYNAMIC_TYPE*/I {}
+class D2<T, S> = /*error:IMPLICIT_DYNAMIC_TYPE*/C
+    with M1, /*error:IMPLICIT_DYNAMIC_TYPE*/M2
+    implements /*error:IMPLICIT_DYNAMIC_TYPE*/I;
 
 C f(D d) {
   D x = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
@@ -2455,8 +2466,7 @@ A g(B b) {
   test_implicitDynamic_variable() async {
     addFile(r'''
 var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x0;
-var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x1 =
-    /*error:TOP_LEVEL_UNSUPPORTED*/(<dynamic>[])[0];
+var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x1 = (<dynamic>[])[0];
 var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x2,
     x3 = 42,
     /*error:IMPLICIT_DYNAMIC_VARIABLE*/x4;
@@ -2631,6 +2641,9 @@ class M {
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
     extends Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
     implements I {}
+
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U1 = Object
+    with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M implements I;
 ''');
   }
 
@@ -2658,6 +2671,14 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T2 extends Base
     with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1, M2 {}
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T3 extends Base
     with M2, /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1 {}
+
+
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U1 = Base
+    with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1;
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U2 = Base
+    with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1, M2;
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U3 = Base
+    with M2, /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M1;
 ''');
   }
 
@@ -2682,6 +2703,10 @@ class M2 {
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
     with M1,
     /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M2 {}
+
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U1 = Base
+    with M1,
+    /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M2;
 ''');
   }
 
@@ -2711,6 +2736,9 @@ class M3 {
 
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
     with M1, /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M2, M3 {}
+
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U1 = Base
+    with M1, /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M2, M3;
 ''');
   }
 
@@ -2740,6 +2768,10 @@ class T2 extends Base implements I1 {
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T3
     extends Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/Base
     implements I1 {}
+
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U3
+    = Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/Base
+    implements I1;
 
 class T4 extends Object with Base implements I1 {
     m(a) {}
@@ -2953,6 +2985,9 @@ class M {
 
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
     with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M {}
+
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U1 = Base
+    with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M;
 ''');
   }
 
@@ -2972,8 +3007,9 @@ class M {
     m(B a) {}
 }
 
-class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
-    with M {}
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base with M {}
+
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U1 = Base with M;
 ''');
   }
 
@@ -2994,6 +3030,10 @@ class M {
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
     extends Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
     implements I2 {}
+
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U1
+    = Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
+    implements I2;
 ''');
   }
 
@@ -3014,6 +3054,10 @@ class M {
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
     extends Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
     implements I2 {}
+
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U1
+    = Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
+    implements I2;
 ''');
   }
 
@@ -3034,10 +3078,14 @@ class M {
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
     extends Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
     implements I2 {}
+
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U1
+    = Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
+    implements I2;
 ''');
   }
 
-  test_noDuplicateReportsFromOverridingInterfaces_baseTypeAndMixinOverrideSameMethodInInterface() async {
+  test_noDuplicateReports_baseTypeAndMixinOverrideSameMethodInInterface() async {
     await checkFile('''
 class A {}
 class B {}
@@ -3061,10 +3109,19 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
     /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends Base
     with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
     implements I1 {}
+
+
+// Here we want to report both, because the error location is
+// different.
+// TODO(sigmund): should we merge these as well?
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U1 =
+    /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/Base
+    with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
+    implements I1;
 ''');
   }
 
-  test_noDuplicateReportsFromOverridingInterfaces_twoGrandTypesOverrideSameMethodInInterface() async {
+  test_noDuplicateReports_twoGrandTypesOverrideSameMethodInInterface() async {
     await checkFile('''
 class A {}
 class B {}
@@ -3092,7 +3149,7 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T2
 ''');
   }
 
-  test_noDuplicateReportsFromOverridingInterfaces_twoMixinsOverrideSameMethodInInterface() async {
+  test_noDuplicateReports_twoMixinsOverrideSameMethodInInterface() async {
     await checkFile('''
 class A {}
 class B {}
@@ -3119,7 +3176,7 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Object
 ''');
   }
 
-  test_noDuplicateReportsFromOverridingInterfaces_typeAndBaseTypeOverrideSameMethodInInterface() async {
+  test_noDuplicateReports_typeAndBaseTypeOverrideSameMethodInInterface() async {
     await checkFile('''
 class A {}
 class B {}
@@ -3146,7 +3203,7 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T2
 ''');
   }
 
-  test_noDuplicateReportsFromOverridingInterfaces_typeAndMixinOverrideSameMethodInInterface() async {
+  test_noDuplicateReports_typeAndMixinOverrideSameMethodInInterface() async {
     await checkFile('''
 class A {}
 class B {}
@@ -3166,10 +3223,14 @@ class T1 extends Object with M implements I1 {
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T2
     extends Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
     implements I1 {}
+
+class /*error:INCONSISTENT_METHOD_INHERITANCE*/U2
+    = Object with /*error:INVALID_METHOD_OVERRIDE_FROM_MIXIN*/M
+    implements I1;
 ''');
   }
 
-  test_noDuplicateReportsFromOverridingInterfaces_typeOverridesSomeMethodInMultipleInterfaces() async {
+  test_noDuplicateReports_typeOverridesSomeMethodInMultipleInterfaces() async {
     await checkFile('''
 class A {}
 class B {}
@@ -3475,7 +3536,7 @@ void voidFn() => null;
 class A {
   set a(y) => 4;
   set b(y) => voidFn();
-  void set c(y) => /*error:RETURN_OF_INVALID_TYPE*/4;
+  void set c(y) => 4;
   void set d(y) => voidFn();
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set e(y) => 4;
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set f(y) =>

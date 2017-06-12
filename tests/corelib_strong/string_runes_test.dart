@@ -57,7 +57,7 @@ main() {
 
     // .map
     Expect.listEquals(expectedRunes.map((x) => x.toRadixString(16)).toList(),
-                      runes.map((x) => x.toRadixString(16)).toList());
+        runes.map((x) => x.toRadixString(16)).toList());
   }
 
   // First character must be single-code-unit for test.
@@ -75,6 +75,10 @@ main() {
   Expect.equals(0x10000, it.current);
 
   // Setting rawIndex inside surrogate pair.
-  Expect.throws(() { it.rawIndex = 1; }, (e) => e is Error);
-  Expect.throws(() { it.reset(1); }, (e) => e is Error);
+  Expect.throws(() {
+    it.rawIndex = 1;
+  }, (e) => e is Error);
+  Expect.throws(() {
+    it.reset(1);
+  }, (e) => e is Error);
 }

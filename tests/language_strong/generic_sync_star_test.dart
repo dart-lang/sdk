@@ -4,7 +4,6 @@
 
 import "package:expect/expect.dart";
 
-
 Iterable/*<T>*/ foo/*<T>*/(/*=T*/ x) sync* {
   for (int i = 0; i < 3; i++) {
     yield x;

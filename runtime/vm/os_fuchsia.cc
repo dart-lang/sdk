@@ -8,7 +8,9 @@
 #include "vm/os.h"
 
 #include <errno.h>
+#include <magenta/process.h>
 #include <magenta/syscalls.h>
+#include <magenta/syscalls/object.h>
 #include <magenta/types.h>
 
 #include "platform/assert.h"
@@ -144,31 +146,27 @@ intptr_t OS::PreferredCodeAlignment() {
 }
 
 
-bool OS::AllowStackFrameIteratorFromAnotherThread() {
-  UNIMPLEMENTED();
-  return false;
-}
-
-
 int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_CONF);
 }
 
 
 uintptr_t OS::MaxRSS() {
-  // TODO(US-95): Implement.
-  return 0;
+  mx_info_task_stats_t task_stats;
+  mx_handle_t process = mx_process_self();
+  mx_status_t status = mx_object_get_info(
+      process, MX_INFO_TASK_STATS, &task_stats, sizeof(task_stats), NULL, NULL);
+  return (status == NO_ERROR) ? task_stats.mem_committed_bytes : 0;
 }
 
 
 void OS::Sleep(int64_t millis) {
-  mx_nanosleep(millis * kMicrosecondsPerMillisecond *
-               kNanosecondsPerMicrosecond);
+  SleepMicros(millis * kMicrosecondsPerMillisecond);
 }
 
 
 void OS::SleepMicros(int64_t micros) {
-  mx_nanosleep(micros * kNanosecondsPerMicrosecond);
+  mx_nanosleep(mx_deadline_after(micros * kNanosecondsPerMicrosecond));
 }
 
 

@@ -14,18 +14,18 @@ part of dart.core;
  */
 abstract class Sink<T> {
   /**
-   * Put the data into the sink.
+   * Adds [data] to the sink.
    *
    * Must not be called after a call to [close].
    */
   void add(T data);
 
   /**
-   * Tell the sink that no further data will be added.
-   *
-   * Calling this method more than once is allowed, but does nothing.
+   * Closes the sink.
    *
    * The [add] method must not be called after this method.
+   *
+   * Calling this method more than once is allowed, but does nothing.
    */
   void close();
 }

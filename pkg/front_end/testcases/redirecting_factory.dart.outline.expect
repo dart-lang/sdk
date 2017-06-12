@@ -1,0 +1,55 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class FooBase<Tf extends core::Object> extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::FooBase::•];
+  abstract get x() → core::int;
+  static factory •<Tf extends core::Object>(core::int x) → dynamic
+    let final dynamic #t1 = self::Foo::• in invalid-expression;
+}
+abstract class Foo<T extends core::Object> extends core::Object implements self::FooBase<dynamic> {
+  static field dynamic _redirecting# = <dynamic>[self::Foo::•];
+  static factory •<T extends core::Object>(core::int x) → dynamic
+    let final dynamic #t2 = self::Bar::• in invalid-expression;
+}
+class Bar<Sb extends core::Object, Tb extends core::Object> extends core::Object implements self::Foo<self::Bar::Tb> {
+  field core::int x;
+  constructor •(dynamic x) → void
+    ;
+}
+class Builder<X extends core::Object> extends core::Object {
+  constructor •() → void
+    ;
+  method method() → dynamic
+    ;
+}
+class SimpleCase<A extends core::Object, B extends core::Object> extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::SimpleCase::•];
+  static factory •<A extends core::Object, B extends core::Object>() → dynamic
+    let final dynamic #t3 = self::SimpleCaseImpl::• in invalid-expression;
+}
+class SimpleCaseImpl<Ai extends core::Object, Bi extends core::Object> extends core::Object implements self::SimpleCase<self::SimpleCaseImpl::Ai, self::SimpleCaseImpl::Bi> {
+  static field dynamic _redirecting# = <dynamic>[self::SimpleCaseImpl::•];
+  static factory •<Ai extends core::Object, Bi extends core::Object>() → dynamic
+    let final dynamic #t4 = self::SimpleCaseImpl2::• in invalid-expression;
+}
+class SimpleCaseImpl2<Ai2 extends core::Object, Bi2 extends core::Object> extends core::Object implements self::SimpleCaseImpl<self::SimpleCaseImpl2::Ai2, self::SimpleCaseImpl2::Bi2> {
+  constructor •() → void
+    ;
+}
+class Base<M extends core::Object> extends core::Object {
+  constructor •() → void
+    ;
+}
+class Mixin<M extends core::Object> extends core::Object {
+  constructor •() → void
+    ;
+}
+class Mix<M extends core::Object> = self::Base<self::Mix::M> with self::Mixin<self::Mix::M> {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+}
+static method main() → dynamic
+  ;

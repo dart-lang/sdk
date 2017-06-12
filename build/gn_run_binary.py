@@ -48,7 +48,7 @@ def main(argv):
     print "Binary not found: " + path
     return error_exit
 
-  # The rest of the arguements are passed directly to the executable.
+  # The rest of the arguments are passed directly to the executable.
   args = [path] + argv[3:]
 
   result = run_command(args)

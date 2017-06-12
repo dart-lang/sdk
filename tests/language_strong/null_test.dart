@@ -196,7 +196,7 @@ void test() {
 
   Expect.throws(() => obj.notDeclared());
   var noSuchMethod = null.noSuchMethod;
-  // Assing to "var" to prevent warning.
+  // Assign to "var" to prevent warning.
   var capture = new CaptureInvocationMirror();
   var mirror = capture.notDeclared();
   Expect.throws(() => noSuchMethod(mirror));

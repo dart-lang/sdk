@@ -11,7 +11,7 @@
 import "package:expect/expect.dart";
 
 foo() {
-  return () { };
+  return () {};
 }
 
 bar(a, b) {

@@ -16,39 +16,39 @@ selectKeys(map, predicate) {
 main() {
   ClassMirror cm = reflectClass(declarations_model.Class);
 
-  Expect.setEquals(
-    [#+,
-     #instanceVariable,
-     const Symbol('instanceVariable='),
-     #instanceGetter,
-     const Symbol('instanceSetter='),
-     #instanceMethod,
-     #-,
-     #inheritedInstanceVariable,
-     const Symbol('inheritedInstanceVariable='),
-     #inheritedInstanceGetter,
-     const Symbol('inheritedInstanceSetter='),
-     #inheritedInstanceMethod,
-     #*,
-     #mixinInstanceVariable,
-     const Symbol('mixinInstanceVariable='),
-     #mixinInstanceGetter,
-     const Symbol('mixinInstanceSetter='),
-     #mixinInstanceMethod,
-     #hashCode,
-     #runtimeType,
-     #==,
-     #noSuchMethod,
-     #toString],
-    selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate));
+  Expect.setEquals([
+    #+,
+    #instanceVariable,
+    const Symbol('instanceVariable='),
+    #instanceGetter,
+    const Symbol('instanceSetter='),
+    #instanceMethod,
+    #-,
+    #inheritedInstanceVariable,
+    const Symbol('inheritedInstanceVariable='),
+    #inheritedInstanceGetter,
+    const Symbol('inheritedInstanceSetter='),
+    #inheritedInstanceMethod,
+    #*,
+    #mixinInstanceVariable,
+    const Symbol('mixinInstanceVariable='),
+    #mixinInstanceGetter,
+    const Symbol('mixinInstanceSetter='),
+    #mixinInstanceMethod,
+    #hashCode,
+    #runtimeType,
+    #==,
+    #noSuchMethod,
+    #toString
+  ], selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate));
   // Filter out private to avoid implementation-specific members of Object.
 
-  Expect.setEquals(
-    [#instanceVariable,
-     const Symbol('instanceVariable='),
-     #inheritedInstanceVariable,
-     const Symbol('inheritedInstanceVariable='),
-     #mixinInstanceVariable,
-     const Symbol('mixinInstanceVariable=')],
-    selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate && dm.isSynthetic));
+  Expect.setEquals([
+    #instanceVariable,
+    const Symbol('instanceVariable='),
+    #inheritedInstanceVariable,
+    const Symbol('inheritedInstanceVariable='),
+    #mixinInstanceVariable,
+    const Symbol('mixinInstanceVariable=')
+  ], selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate && dm.isSynthetic));
 }

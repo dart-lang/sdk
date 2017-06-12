@@ -7,6 +7,7 @@
 
 // Library tag to be able to run in html test framework.
 library TypedArray;
+
 import "package:expect/expect.dart";
 import 'package:async_helper/async_helper.dart';
 import 'dart:isolate';
@@ -36,6 +37,7 @@ Int8List initInt8() {
   int8[1] = 100;
   return int8;
 }
+
 Int8List int8 = initInt8();
 
 int8_receiver() {
@@ -63,7 +65,6 @@ int8_sender(message) {
   r.send(a);
 }
 
-
 // Uint8 array.
 Uint8List initUint8() {
   var uint8 = new Uint8List(2);
@@ -71,6 +72,7 @@ Uint8List initUint8() {
   uint8[1] = 0x7f;
   return uint8;
 }
+
 Uint8List uint8 = initUint8();
 
 uint8_receiver() {
@@ -98,7 +100,6 @@ uint8_sender(message) {
   r.send(a);
 }
 
-
 // Int16 array.
 Int16List initInt16() {
   var int16 = new Int16List(2);
@@ -106,6 +107,7 @@ Int16List initInt16() {
   int16[1] = 10000;
   return int16;
 }
+
 Int16List int16 = initInt16();
 
 int16_receiver() {
@@ -133,7 +135,6 @@ int16_sender(message) {
   r.send(a);
 }
 
-
 // Uint16 array.
 Uint16List initUint16() {
   var uint16 = new Uint16List(2);
@@ -141,6 +142,7 @@ Uint16List initUint16() {
   uint16[1] = 0x7fff;
   return uint16;
 }
+
 Uint16List uint16 = initUint16();
 
 uint16_receiver() {
@@ -168,7 +170,6 @@ uint16_sender(message) {
   r.send(a);
 }
 
-
 // Int32 array.
 Int32List initInt32() {
   var int32 = new Int32List(2);
@@ -176,6 +177,7 @@ Int32List initInt32() {
   int32[1] = 1000000;
   return int32;
 }
+
 Int32List int32 = initInt32();
 
 int32_receiver() {
@@ -203,7 +205,6 @@ int32_sender(message) {
   r.send(a);
 }
 
-
 // Uint32 array.
 Uint32List initUint32() {
   var uint32 = new Uint32List(2);
@@ -211,6 +212,7 @@ Uint32List initUint32() {
   uint32[1] = 0x7fffffff;
   return uint32;
 }
+
 Uint32List uint32 = initUint32();
 
 uint32_receiver() {
@@ -238,7 +240,6 @@ uint32_sender(message) {
   r.send(a);
 }
 
-
 // Float32 Array.
 Float32List initFloat32() {
   var float32 = new Float32List(2);
@@ -246,6 +247,7 @@ Float32List initFloat32() {
   float32[1] = 2.0;
   return float32;
 }
+
 Float32List float32 = initFloat32();
 
 float32_receiver() {
@@ -274,7 +276,6 @@ float32_sender(message) {
   r.send(a);
 }
 
-
 // Float64 Array.
 Float64List initFloat64() {
   var float64 = new Float64List(2);
@@ -282,6 +283,7 @@ Float64List initFloat64() {
   float64[1] = 201.765;
   return float64;
 }
+
 Float64List float64 = initFloat64();
 
 float64_receiver() {

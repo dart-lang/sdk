@@ -38,7 +38,6 @@ void testCopySync() {
   tmp.deleteSync(recursive: true);
 }
 
-
 void testCopy() {
   asyncStart();
   var tmp = Directory.systemTemp.createTempSync('dart-file-copy');
@@ -48,37 +47,31 @@ void testCopy() {
   Expect.equals(FILE_CONTENT1, file1.readAsStringSync());
 
   // Copy to new file works.
-  file1.copy('${tmp.path}/file2')
-    .then((file2) {
-      Expect.equals(FILE_CONTENT1, file1.readAsStringSync());
-      Expect.equals(FILE_CONTENT1, file2.readAsStringSync());
+  file1.copy('${tmp.path}/file2').then((file2) {
+    Expect.equals(FILE_CONTENT1, file1.readAsStringSync());
+    Expect.equals(FILE_CONTENT1, file2.readAsStringSync());
 
-      // Override works for files.
-      file2.writeAsStringSync(FILE_CONTENT2);
-      return file2.copy(file1.path)
-        .then((_) {
-          Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
-          Expect.equals(FILE_CONTENT2, file2.readAsStringSync());
+    // Override works for files.
+    file2.writeAsStringSync(FILE_CONTENT2);
+    return file2.copy(file1.path).then((_) {
+      Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
+      Expect.equals(FILE_CONTENT2, file2.readAsStringSync());
 
-          // Fail when coping to directory.
-          var dir = new Directory('${tmp.path}/dir')..createSync();
+      // Fail when coping to directory.
+      var dir = new Directory('${tmp.path}/dir')..createSync();
 
-          return file1.copy(dir.path)
-            .then((_) => Expect.fail('expected error'),
-                  onError: (_) {})
-            .then((_) {
-              Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
-            });
-
-        });
-    })
-    .whenComplete(() {
-      tmp.deleteSync(recursive: true);
-      asyncEnd();
+      return file1
+          .copy(dir.path)
+          .then((_) => Expect.fail('expected error'), onError: (_) {})
+          .then((_) {
+        Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
+      });
     });
-
+  }).whenComplete(() {
+    tmp.deleteSync(recursive: true);
+    asyncEnd();
+  });
 }
-
 
 main() {
   testCopySync();

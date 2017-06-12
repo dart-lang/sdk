@@ -21,8 +21,7 @@ class Env {
    * cancel the pending callback.
    */
   static int requestAnimationFrame(AnimationCallback callback,
-                                   [Element element = null,
-                                    num minTime = null]) {
+      [Element element = null, num minTime = null]) {
     if (_animationScheduler == null) {
       _animationScheduler = new AnimationScheduler();
     }

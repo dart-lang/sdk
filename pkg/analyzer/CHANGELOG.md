@@ -1,7 +1,7 @@
 ## 0.30.0-alpha.0
 * Changed the API for creating BazelWorkspace.  It should now be constructed using BazelWorkspace.find().  Note that this might return `null` in the event that the given path is not part of a BazelWorkspace.
 * Added an AST structure to support asserts in constructor initializers (AssertInitializer).  AstVisitor classes must now implement visitAssertInitializer().
-* Changed the API for creating PartOfDirective.  It now accepts a StringLiteral URI, to accomodate "part of" declarations with a URI string rather than a library name.
+* Changed the API for creating PartOfDirective.  It now accepts a StringLiteral URI, to accommodate "part of" declarations with a URI string rather than a library name.
 * Removed AST constructors.  AST nodes should now be created using `astFactory`, located in `package:analyzer/dart/ast/standard_ast_factory.dart`.
 
 ## 0.29.0-alpha.0

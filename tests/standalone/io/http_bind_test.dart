@@ -13,7 +13,7 @@ testBindShared(String host, bool v6Only) async {
   asyncStart();
 
   // Sent a single request using a new HttpClient to ensure a new TCP
-  // connnection is used.
+  // connection is used.
   Future singleRequest(host, port, statusCode) async {
     var client = new HttpClient();
     var request = await client.open('GET', host, port, '/');

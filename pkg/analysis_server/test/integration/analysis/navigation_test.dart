@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNavigationTest);
-    defineReflectiveTests(AnalysisNavigationTest_Driver);
   });
 }
 
-class AbstractAnalysisNavigationTest
-    extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class AnalysisNavigationTest extends AbstractAnalysisServerIntegrationTest {
   test_navigation() async {
     String pathname1 = sourcePath('test1.dart');
     String text1 = r'''
@@ -133,13 +133,4 @@ part of foo;
     checkLocal(
         'TypeParameter field;', 'TypeParameter>', ElementKind.TYPE_PARAMETER);
   }
-}
-
-@reflectiveTest
-class AnalysisNavigationTest extends AbstractAnalysisNavigationTest {}
-
-@reflectiveTest
-class AnalysisNavigationTest_Driver extends AbstractAnalysisNavigationTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

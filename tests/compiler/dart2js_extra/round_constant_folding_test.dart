@@ -56,7 +56,7 @@ const int PI5 = 0x123456789AB;
 const int PI6 = 0x123456789ABCDEF;
 const int PI7 = 0x123456789ABCDEF0123456789ABCDEF0123456789ABCDEF;
 
-const int NI1 = 0-PI1;
+const int NI1 = 0 - PI1;
 const int NI2 = -PI2;
 const int NI3 = -PI3;
 const int NI4 = -PI4;
@@ -64,9 +64,8 @@ const int NI5 = -PI5;
 const int NI6 = -PI6;
 const int NI7 = -PI7;
 
-
 /// Ensures that the behaviour of `action()` is the same as `value.round()`.
-@NoInline()  // To ensure 'value.round()' has a non-constant receiver.
+@NoInline() // To ensure 'value.round()' has a non-constant receiver.
 check(value, action) {
   var result1, result2;
   try {
@@ -157,11 +156,23 @@ main() {
 
   // Check that the operation is not removed if it can throw, even if the result
   // is unused.
-  Expect.throws(() { X1.round(); });
-  Expect.throws(() { X2.round(); });
-  Expect.throws(() { X3.round(); });
+  Expect.throws(() {
+    X1.round();
+  });
+  Expect.throws(() {
+    X2.round();
+  });
+  Expect.throws(() {
+    X3.round();
+  });
   unusedCall(0);
-  Expect.throws(() { unusedCall(X1); });
-  Expect.throws(() { unusedCall(X2); });
-  Expect.throws(() { unusedCall(X3); });
+  Expect.throws(() {
+    unusedCall(X1);
+  });
+  Expect.throws(() {
+    unusedCall(X2);
+  });
+  Expect.throws(() {
+    unusedCall(X3);
+  });
 }

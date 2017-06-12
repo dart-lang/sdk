@@ -2620,7 +2620,8 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   function = Function::NewClosureFunction(function_name, parent,
                                           TokenPosition::kMinSource);
   const Closure& closure = Closure::Handle(
-      Closure::New(Object::null_type_arguments(), function, context));
+      Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),
+                   function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT_EQ(closure_class.id(), kClosureCid);
   const Function& closure_function = Function::Handle(closure.function());
@@ -3019,8 +3020,10 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
   const intptr_t id = 12;
   const intptr_t num_args_tested = 1;
   const String& target_name = String::Handle(Symbols::New(thread, "Thun"));
-  const Array& args_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(1, Object::null_array()));
+  const intptr_t kTypeArgsLen = 0;
+  const intptr_t kNumArgs = 1;
+  const Array& args_descriptor = Array::Handle(
+      ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
   ICData& o1 = ICData::Handle();
   o1 = ICData::New(function, target_name, args_descriptor, id, num_args_tested,
                    false);
@@ -3098,17 +3101,20 @@ ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   const Object& class_id_or_fun = Object::Handle(Smi::New(empty_class.id()));
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
-  cache.AddCheck(class_id_or_fun, targ_0, targ_1, Bool::True());
+  const TypeArguments& targ_2 = TypeArguments::Handle(TypeArguments::New(4));
+  cache.AddCheck(class_id_or_fun, targ_0, targ_1, targ_2, Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
   Object& test_class_id_or_fun = Object::Handle();
   TypeArguments& test_targ_0 = TypeArguments::Handle();
   TypeArguments& test_targ_1 = TypeArguments::Handle();
+  TypeArguments& test_targ_2 = TypeArguments::Handle();
   Bool& test_result = Bool::Handle();
   cache.GetCheck(0, &test_class_id_or_fun, &test_targ_0, &test_targ_1,
-                 &test_result);
+                 &test_targ_2, &test_result);
   EXPECT_EQ(class_id_or_fun.raw(), test_class_id_or_fun.raw());
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
+  EXPECT_EQ(targ_2.raw(), test_targ_2.raw());
   EXPECT_EQ(Bool::True().raw(), test_result.raw());
 }
 
@@ -3185,6 +3191,16 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   // Private mismatch 2.
   mangled_name = OneByteString::New("foo@12345");
   bare_name = OneByteString::New("food");
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+
+  // Private mixin application match.
+  mangled_name = OneByteString::New("_M1@12345&_M2@12345&_M3@12345");
+  bare_name = OneByteString::New("_M1&_M2&_M3");
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+
+  // Private mixin application mismatch.
+  mangled_name = OneByteString::New("_M1@12345&_M2@12345&_M3@12345");
+  bare_name = OneByteString::New("_M1&_M2&_M4");
   EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private constructor match.
@@ -3319,14 +3335,14 @@ TEST_CASE(StackTraceFormat) {
                "Unhandled exception:\n"
                "MyException\n"
                "#0      baz (test-lib:2:3)\n"
-               "#1      _OtherClass._OtherClass._named (test-lib:7:5)\n"
+               "#1      new _OtherClass._named (test-lib:7:5)\n"
                "#2      globalVar= (test-lib:12:7)\n"
                "#3      _bar (test-lib:16:3)\n"
                "#4      MyClass.field (test-lib:25:5)\n"
                "#5      MyClass.foo.fooHelper (test-lib:30:7)\n"
                "#6      MyClass.foo (test-lib:32:14)\n"
-               "#7      MyClass.MyClass.<anonymous closure> (test-lib:21:12)\n"
-               "#8      MyClass.MyClass (test-lib:21:18)\n"
+               "#7      new MyClass.<anonymous closure> (test-lib:21:12)\n"
+               "#8      new MyClass (test-lib:21:18)\n"
                "#9      main.<anonymous closure> (test-lib:37:14)\n"
                "#10     main (test-lib:37:24)");
 }
@@ -3828,7 +3844,7 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   // Add invocation dispatcher.
   const String& invocation_dispatcher_name =
       String::Handle(Symbols::New(thread, "myMethod"));
-  const Array& args_desc = Array::Handle(ArgumentsDescriptor::New(1));
+  const Array& args_desc = Array::Handle(ArgumentsDescriptor::New(0, 1));
   Function& invocation_dispatcher = Function::Handle();
   invocation_dispatcher ^= cls.GetInvocationDispatcher(
       invocation_dispatcher_name, args_desc,

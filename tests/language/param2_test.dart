@@ -5,9 +5,7 @@
 
 import "package:expect/expect.dart";
 
-
 class Param2Test {
-
   static forEach(List<int> a, int f(k)) {
     for (int i = 0; i < a.length; i++) {
       a[i] = f(a[i]);
@@ -30,6 +28,7 @@ class Param2Test {
     int square(int x) {
       return x * x;
     }
+
     Expect.equals(4, apply(square, 2));
     Expect.equals(100, apply(square, 10));
 
@@ -58,7 +57,6 @@ class Param2Test {
     Expect.equals(false, exists(v, isZero));
   }
 }
-
 
 main() {
   Param2Test.testMain();

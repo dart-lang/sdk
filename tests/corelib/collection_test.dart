@@ -18,7 +18,6 @@ class CollectionTest {
   }
 }
 
-
 main() {
   final TEST_ELEMENTS = const [4, 2, 6, 7, 9];
   // Const list.

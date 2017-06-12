@@ -6,7 +6,6 @@
 
 import "package:expect/expect.dart";
 
-
 main() {
   // Prime IC cache.
   noDom(1);
@@ -15,7 +14,7 @@ main() {
     Expect.equals(i % 256, foo(i));
     Expect.equals(i % -256, boo(i));
     Expect.throws(() => hoo(i), (e) => e is IntegerDivisionByZeroException);
-    
+
     Expect.equals(i ~/ 254 + i % 254, fooTwo(i));
     Expect.equals(i ~/ -254 + i % -254, booTwo(i));
     Expect.throws(() => hooTwo(i), (e) => e is IntegerDivisionByZeroException);
@@ -26,7 +25,7 @@ main() {
     }
     Expect.equals((i ~/ 10) + (i % 10) + (i % 10), threeOp(i));
     Expect.equals((i ~/ 10) + (i ~/ 12) + (i % 10) + (i % 12), fourOp(i));
-    
+
     // Zero test is done outside the loop.
     if (i < 0) {
       Expect.equals(i % -i, foo2(i));
@@ -40,7 +39,7 @@ main() {
   Expect.throws(() => fooTwo2(0), (e) => e is IntegerDivisionByZeroException);
 }
 
-foo(i) => i % 256;  // This will get optimized to AND instruction.
+foo(i) => i % 256; // This will get optimized to AND instruction.
 boo(i) => i % -256;
 hoo(i) => i % 0;
 
@@ -65,17 +64,16 @@ threeOp(a) {
   return x + y + z;
 }
 
-
 fourOp(a) {
   var x0 = a ~/ 10;
   var x1 = a ~/ 12;
-  var y0 = a % 10; 
+  var y0 = a % 10;
   var y1 = a % 12;
   return x0 + x1 + y0 + y1;
 }
 
 foo2(i) {
-  // Make sure x has a range computed. 
+  // Make sure x has a range computed.
   var x = 0;
   if (i < 0) {
     x = -i;
@@ -85,9 +83,8 @@ foo2(i) {
   return i % x;
 }
 
-
 fooTwo2(i) {
-  // Make sure x has a range computed. 
+  // Make sure x has a range computed.
   var x = 0;
   if (i < 0) {
     x = -i;

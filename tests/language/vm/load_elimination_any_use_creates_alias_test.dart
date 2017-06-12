@@ -18,20 +18,19 @@ modify() {
 }
 
 class B {
+  @alwaysInline
+  poly() {
+    G = this;
+    modify();
+    return bval;
+  }
 
- @alwaysInline
- poly() {
-   G = this;
-   modify();
-   return bval;
- }
- var bval = -1;
+  var bval = -1;
 }
 
 class C {
   poly() => null;
 }
-
 
 @alwaysInline
 foo(obj) => obj.poly();

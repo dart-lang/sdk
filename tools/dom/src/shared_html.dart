@@ -8,17 +8,20 @@ part of dart.dom.html;
 typedef R _wrapZoneCallback<A, R>(A a);
 typedef R _wrapZoneBinaryCallback<A, B, R>(A a, B b);
 
-_wrapZoneCallback/*<A, R>*/ _wrapZone/*<A, R>*/(_wrapZoneCallback/*<A, R>*/ callback) {
+_wrapZoneCallback/*<A, R>*/ _wrapZone/*<A, R>*/(
+    _wrapZoneCallback/*<A, R>*/ callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
   return Zone.current.bindUnaryCallback/*<R, A>*/(callback, runGuarded: true);
 }
 
-_wrapZoneBinaryCallback/*<A, B, R>*/ _wrapBinaryZone/*<A, B, R>*/(_wrapZoneBinaryCallback/*<A, B, R>*/ callback) {
+_wrapZoneBinaryCallback/*<A, B, R>*/ _wrapBinaryZone/*<A, B, R>*/(
+    _wrapZoneBinaryCallback/*<A, B, R>*/ callback) {
   if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  return Zone.current.bindBinaryCallback/*<R, A, B>*/(callback, runGuarded: true);
+  return Zone.current
+      .bindBinaryCallback/*<R, A, B>*/(callback, runGuarded: true);
 }
 
 /**
@@ -34,7 +37,8 @@ Element query(String relativeSelectors) => document.query(relativeSelectors);
  */
 @deprecated
 @Experimental()
-ElementList<Element> queryAll(String relativeSelectors) => document.queryAll(relativeSelectors);
+ElementList<Element> queryAll(String relativeSelectors) =>
+    document.queryAll(relativeSelectors);
 
 /**
  * Finds the first descendant element of this document that matches the
@@ -71,7 +75,8 @@ Element querySelector(String selectors) => document.querySelector(selectors);
  * For details about CSS selector syntax, see the
  * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
  */
-ElementList<Element> querySelectorAll(String selectors) => document.querySelectorAll(selectors);
+ElementList<Element> querySelectorAll(String selectors) =>
+    document.querySelectorAll(selectors);
 
 /// A utility for changing the Dart wrapper type for elements.
 abstract class ElementUpgrader {

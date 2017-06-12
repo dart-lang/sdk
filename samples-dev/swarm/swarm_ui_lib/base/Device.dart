@@ -10,7 +10,6 @@ part of base;
  * Utils for device detection.
  */
 class Device {
-
   /**
    * The regular expression for detecting an iPhone or iPod.
    */

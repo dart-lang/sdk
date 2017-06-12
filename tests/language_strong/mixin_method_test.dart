@@ -28,7 +28,7 @@ class F extends E {
 }
 
 main() {
-  var c = new C();
+  dynamic c = new C();
   Expect.equals("S-foo", c.foo());
   Expect.equals("M1-bar", c.bar());
   Expect.equals("S-baz", c.baz());

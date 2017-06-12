@@ -22,33 +22,37 @@ test1() async {
 
   try {
     await a;
-  } catch(e, st) {
+  } catch (e, st) {
     // st has foo,2,3 and not bar,2,3.
-    expect(st.toString(), stringContainsInOrder([
-           'foo3',
-           '<asynchronous suspension>',
-           'foo2',
-           '<asynchronous suspension>',
-           'foo',
-           '<asynchronous suspension>',
-           'test1',
-           ]));
+    expect(
+        st.toString(),
+        stringContainsInOrder([
+          'foo3',
+          '<asynchronous suspension>',
+          'foo2',
+          '<asynchronous suspension>',
+          'foo',
+          '<asynchronous suspension>',
+          'test1',
+        ]));
     expect(st.toString().contains('bar'), isFalse);
   }
 
   try {
     await b;
-  } catch(e, st) {
+  } catch (e, st) {
     // st has bar,2,3 but not foo,2,3
-    expect(st.toString(), stringContainsInOrder([
-           'bar3',
-           '<asynchronous suspension>',
-           'bar2',
-           '<asynchronous suspension>',
-           'bar',
-           '<asynchronous suspension>',
-           'test1',
-           ]));
+    expect(
+        st.toString(),
+        stringContainsInOrder([
+          'bar3',
+          '<asynchronous suspension>',
+          'bar2',
+          '<asynchronous suspension>',
+          'bar',
+          '<asynchronous suspension>',
+          'test1',
+        ]));
     expect(st.toString().contains('foo'), isFalse);
   }
 }
@@ -61,33 +65,37 @@ test2() async {
 
   try {
     await foo();
-  } catch(e, st) {
+  } catch (e, st) {
     // st has foo,2,3 but not bar,2,3
-    expect(st.toString(), stringContainsInOrder([
-           'foo3',
-           '<asynchronous suspension>',
-           'foo2',
-           '<asynchronous suspension>',
-           'foo',
-           '<asynchronous suspension>',
-           'test2',
-           ]));
+    expect(
+        st.toString(),
+        stringContainsInOrder([
+          'foo3',
+          '<asynchronous suspension>',
+          'foo2',
+          '<asynchronous suspension>',
+          'foo',
+          '<asynchronous suspension>',
+          'test2',
+        ]));
     expect(st.toString().contains('bar'), isFalse);
   }
 
   try {
     await bar();
-  } catch(e, st) {
+  } catch (e, st) {
     // st has bar,2,3 but not foo,2,3
-    expect(st.toString(), stringContainsInOrder([
-           'bar3',
-           '<asynchronous suspension>',
-           'bar2',
-           '<asynchronous suspension>',
-           'bar',
-           '<asynchronous suspension>',
-           'test2',
-           ]));
+    expect(
+        st.toString(),
+        stringContainsInOrder([
+          'bar3',
+          '<asynchronous suspension>',
+          'bar2',
+          '<asynchronous suspension>',
+          'bar',
+          '<asynchronous suspension>',
+          'test2',
+        ]));
     expect(st.toString().contains('foo'), isFalse);
   }
 }

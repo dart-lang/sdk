@@ -9,7 +9,9 @@ import "package:expect/expect.dart";
 call_native(x) {
   // Wrap in try to avoid inlining.
   // Use a large int so the intrinsifier does not fire.
-  try { return x + 12342353257893275483274832; } finally { }
+  try {
+    return x + 12342353257893275483274832;
+  } finally {}
 }
 
 bar(x) {

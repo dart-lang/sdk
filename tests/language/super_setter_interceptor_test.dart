@@ -9,7 +9,10 @@ import "package:expect/expect.dart";
 var expected;
 
 class A {
-  set length(a) { Expect.equals(expected, a); }
+  set length(a) {
+    Expect.equals(expected, a);
+  }
+
   get length => 41;
 }
 

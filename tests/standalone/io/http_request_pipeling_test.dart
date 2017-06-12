@@ -20,13 +20,13 @@ void main() {
       request.response.close();
       if (request.uri.path == "/done") {
         request.response.done.then((_) {
-            Expect.equals(REQUEST_COUNT + 1, count);
+          Expect.equals(REQUEST_COUNT + 1, count);
           server.close();
         });
       }
     });
     Socket.connect("127.0.0.1", server.port).then((s) {
-      s.listen((data) { });
+      s.listen((data) {});
       for (int i = 0; i < REQUEST_COUNT; i++) {
         s.write("GET /$i HTTP/1.1\r\nX-Header-1: 111\r\n\r\n");
       }

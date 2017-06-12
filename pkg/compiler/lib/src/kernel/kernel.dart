@@ -35,6 +35,7 @@ import '../elements/elements.dart'
         MetadataAnnotation,
         MixinApplicationElement,
         TypeVariableElement;
+import '../elements/entities.dart' show LibraryEntity;
 import '../elements/modelx.dart' show ErroneousFieldElementX;
 import '../tree/tree.dart' show FunctionExpression, Node;
 import 'constant_visitor.dart';
@@ -253,7 +254,7 @@ class Kernel {
         });
       });
       addWork(cls.declaration, () {
-        for (MetadataAnnotation metadata in cls.declaration.metadata) {
+        for (MetadataAnnotation metadata in cls.implementation.metadata) {
           classNode.addAnnotation(
               const ConstantVisitor().visit(metadata.constant, this));
         }
@@ -351,6 +352,7 @@ class Kernel {
     return result;
   }
 
+  // ignore: MISSING_RETURN
   ir.DartType typeToIr(ResolutionDartType type) {
     switch (type.kind) {
       case ResolutionTypeKind.FUNCTION:
@@ -474,7 +476,7 @@ class Kernel {
         });
       });
       addWork(function.declaration, () {
-        for (MetadataAnnotation metadata in function.declaration.metadata) {
+        for (MetadataAnnotation metadata in function.implementation.metadata) {
           member.addAnnotation(
               const ConstantVisitor().visit(metadata.constant, this));
         }
@@ -550,7 +552,7 @@ class Kernel {
         }
       });
       addWork(field.declaration, () {
-        for (MetadataAnnotation metadata in field.declaration.metadata) {
+        for (MetadataAnnotation metadata in field.implementation.metadata) {
           fieldNode.addAnnotation(
               const ConstantVisitor().visit(metadata.constant, this));
         }
@@ -608,7 +610,7 @@ class Kernel {
     throw message;
   }
 
-  forEachLibraryElement(f(LibraryElement library)) {
+  forEachLibraryElement(f(LibraryEntity library)) {
     return compiler.libraryLoader.libraries.forEach(f);
   }
 

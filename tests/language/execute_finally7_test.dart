@@ -6,7 +6,6 @@
 
 import "package:expect/expect.dart";
 
-
 class MyException {
   const MyException(String message) : message_ = message;
   final String message_;
@@ -32,7 +31,7 @@ class Helper {
         }
         i++;
       }
-      for(int i = 0; i < 10; i++) {
+      for (int i = 0; i < 10; i++) {
         a[i]();
       }
     } on MyException catch (exception) {

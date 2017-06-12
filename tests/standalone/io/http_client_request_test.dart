@@ -9,29 +9,26 @@ import "dart:typed_data";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-
 void testClientRequest(Future handler(request)) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
-      request.drain()
-          .then((_) => request.response.close())
-          .catchError((_) {});
+      request.drain().then((_) => request.response.close()).catchError((_) {});
     });
 
     var client = new HttpClient();
-    client.get("127.0.0.1", server.port, "/")
-      .then((request) {
-        return handler(request);
-      })
-      .then((response) => response.drain())
-      .catchError((_) {})
-      .whenComplete(() {
-        client.close();
-        server.close();
-      });
+    client
+        .get("127.0.0.1", server.port, "/")
+        .then((request) {
+          return handler(request);
+        })
+        .then((response) => response.drain())
+        .catchError((_) {})
+        .whenComplete(() {
+          client.close();
+          server.close();
+        });
   });
 }
-
 
 void testResponseDone() {
   testClientRequest((request) {
@@ -43,7 +40,6 @@ void testResponseDone() {
     return request.done;
   });
 }
-
 
 void testBadResponseAdd() {
   asyncStart();
@@ -83,7 +79,6 @@ void testBadResponseAdd() {
   });
 }
 
-
 void testBadResponseClose() {
   asyncStart();
   testClientRequest((request) {
@@ -106,7 +101,6 @@ void testBadResponseClose() {
     return request.done;
   });
 }
-
 
 void main() {
   testResponseDone();

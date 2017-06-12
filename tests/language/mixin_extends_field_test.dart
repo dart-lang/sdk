@@ -16,9 +16,11 @@ class M2 {
   var baz = "M2-baz";
 }
 
-class C extends S with M1 { }
-class D extends S with M1, M2 { }
-class E extends S with M2, M1 { }
+class C extends S with M1 {}
+
+class D extends S with M1, M2 {}
+
+class E extends S with M2, M1 {}
 
 class F extends E {
   var fez = "F-fez";

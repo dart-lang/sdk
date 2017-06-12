@@ -4,23 +4,25 @@
 
 import "package:expect/expect.dart";
 
-class I<T> { }
+class I<T> {}
 
-class J<T> { }
+class J<T> {}
 
-class K<T> { }
+class K<T> {}
 
-class S<T> { }
+class S<T> {}
 
 class M<T> {
-  m() { return T; }
+  m() {
+    return T;
+  }
 }
 
-class A<U, V> = Object with M implements I<V>;  // M is raw.
+class A<U, V> = Object with M implements I<V>; // M is raw.
 
-class B<T> = Object with A implements J<T>;  // A is raw.
+class B<T> = Object with A implements J<T>; // A is raw.
 
-class C<T> = S<List<T>> with B implements K<T>;  // B is raw.
+class C<T> = S<List<T>> with B implements K<T>; // B is raw.
 
 main() {
   var c = new C<int>();

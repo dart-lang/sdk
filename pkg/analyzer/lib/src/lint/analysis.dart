@@ -21,7 +21,7 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:cli_util/cli_util.dart' as cli_util;
+import 'package:analyzer/src/util/sdk.dart';
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
@@ -47,6 +47,7 @@ AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
   analysisOptions.hint = false;
   analysisOptions.lint = options.enableLints;
   analysisOptions.generateSdkErrors = options.showSdkWarnings;
+  analysisOptions.enableAssertInitializer = options.enableAssertInitializer;
   analysisOptions.enableTiming = options.enableTiming;
   return analysisOptions;
 }
@@ -58,6 +59,10 @@ class DriverOptions {
 
   /// The path to the dart SDK.
   String dartSdkPath;
+
+  /// Whether the parser is able to parse asserts in the initializer list of a
+  /// constructor
+  bool enableAssertInitializer = false;
 
   /// Whether to show lint warnings.
   bool enableLints = true;
@@ -134,12 +139,8 @@ class LintDriver {
   }
 
   String get sdkDir {
-    if (options.dartSdkPath != null) {
-      return options.dartSdkPath;
-    }
-    // In case no SDK has been specified, fall back to inferring it
-    // TODO: pass args to cli_util
-    return cli_util.getSdkDir().path;
+    // In case no SDK has been specified, fall back to inferring it.
+    return options.dartSdkPath ?? getSdkPath();
   }
 
   List<AnalysisErrorInfo> analyze(Iterable<io.File> files) {

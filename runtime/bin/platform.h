@@ -52,6 +52,8 @@ class Platform {
   // Extracts the local hostname.
   static bool LocalHostname(char* buffer, intptr_t buffer_length);
 
+  static const char* LocaleName();
+
   // Extracts the environment variables for the current process.  The array of
   // strings is Dart_ScopeAllocated. The number of elements in the array is
   // returned in the count argument.

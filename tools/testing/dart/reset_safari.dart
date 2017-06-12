@@ -2,23 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 /// Helper program for killing and resetting all Safari settings to a known
 /// state that works well for testing dart2js output in Safari.
 ///
 /// Warning: this will delete all your Safari settings and bookmarks.
 library testing.reset_safari;
 
-import 'dart:async' show
-    Future,
-    Timer;
+import 'dart:async' show Future, Timer;
 
-import 'dart:io' show
-    Directory,
-    File,
-    Platform,
-    Process,
-    ProcessResult;
+import 'dart:io' show Directory, File, Platform, Process, ProcessResult;
 
 const String defaultSafariBundleLocation = "/Applications/Safari.app/";
 
@@ -35,11 +27,11 @@ const String safari = "com.apple.Safari";
 const String defaultsLocation = "/usr/bin/defaults";
 
 final List<String> safariSettings = <String>[
-    "Library/Caches/$safari",
-    "Library/Safari",
-    "Library/Saved Application State/$safari.savedState",
-    "Library/Caches/Metadata/Safari",
-    "Library/Preferences/$safari.plist",
+  "Library/Caches/$safari",
+  "Library/Safari",
+  "Library/Saved Application State/$safari.savedState",
+  "Library/Caches/Metadata/Safari",
+  "Library/Preferences/$safari.plist",
 ];
 
 const Duration defaultPollDelay = const Duration(milliseconds: 1);
@@ -107,10 +99,8 @@ final String knownSafariPreference = '''
 
 Future<Null> get pollDelay => new Future.delayed(defaultPollDelay);
 
-String signalArgument(
-    String defaultSignal,
-    {bool force: false,
-     bool testOnly: false}) {
+String signalArgument(String defaultSignal,
+    {bool force: false, bool testOnly: false}) {
   if (force && testOnly) {
     throw new ArgumentError("[force] and [testOnly] can't both be true.");
   }
@@ -119,24 +109,21 @@ String signalArgument(
   return defaultSignal;
 }
 
-Future<int> kill(
-    List<String> pids,
-    {bool force: false,
-     bool testOnly: false}) async {
-  List<String> arguments =
-      <String>[signalArgument("-TERM", force: force, testOnly: testOnly)]
-      ..addAll(pids);
+Future<int> kill(List<String> pids,
+    {bool force: false, bool testOnly: false}) async {
+  List<String> arguments = <String>[
+    signalArgument("-TERM", force: force, testOnly: testOnly)
+  ]..addAll(pids);
   ProcessResult result = await Process.run(killLocation, arguments);
   return result.exitCode;
 }
 
-Future<int> pkill(
-    String pattern,
-    {bool force: false,
-     bool testOnly: false}) async {
+Future<int> pkill(String pattern,
+    {bool force: false, bool testOnly: false}) async {
   List<String> arguments = <String>[
-      signalArgument("-HUP", force: force, testOnly: testOnly),
-      pattern];
+    signalArgument("-HUP", force: force, testOnly: testOnly),
+    pattern
+  ];
   ProcessResult result = await Process.run(pkillLocation, arguments);
   return result.exitCode;
 }
@@ -144,8 +131,7 @@ Future<int> pkill(
 Uri validatedBundleName(Uri bundle) {
   if (bundle == null) return Uri.base.resolve(defaultSafariBundleLocation);
   if (!bundle.path.endsWith("/")) {
-    throw new ArgumentError(
-        "Bundle ('$bundle') must end with a slash ('/').");
+    throw new ArgumentError("Bundle ('$bundle') must end with a slash ('/').");
   }
   return bundle;
 }
@@ -153,8 +139,8 @@ Uri validatedBundleName(Uri bundle) {
 Future<Null> killSafari({Uri bundle}) async {
   bundle = validatedBundleName(bundle);
   Uri safariBinary = bundle.resolve(relativeSafariLocation);
-  ProcessResult result = await Process.run(
-      lsofLocation, ["-t", safariBinary.toFilePath()]);
+  ProcessResult result =
+      await Process.run(lsofLocation, ["-t", safariBinary.toFilePath()]);
   if (result.exitCode == 0) {
     String stdout = result.stdout;
     List<String> pids = new List<String>.from(
@@ -209,8 +195,8 @@ Future<Null> resetSafariSettings() async {
   for (String setting in safariSettings) {
     await deleteIfExists(homeDirectory.resolve(setting));
   }
-  ProcessResult result = await Process.run(
-      defaultsLocation, <String>["write", safari, knownSafariPreference]);
+  ProcessResult result = await Process
+      .run(defaultsLocation, <String>["write", safari, knownSafariPreference]);
   if (result.exitCode != 0) {
     throw "Unable to reset Safari settings: ${result.stdout}${result.stderr}";
   }

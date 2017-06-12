@@ -60,6 +60,11 @@ class Erasure extends Transformer with DartTypeVisitor<DartType> {
   }
 
   @override
+  TypedefType visitTypedefType(TypedefType type) {
+    throw 'Typedef types not implemented in erasure';
+  }
+
+  @override
   Supertype visitSupertype(Supertype type) {
     if (removeTypeParameters(type.classNode)) {
       return new Supertype(type.classNode, const <DartType>[]);

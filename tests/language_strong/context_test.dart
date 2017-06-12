@@ -12,7 +12,10 @@ class ContextTest {
 
   static void testMain() {
     int x = 42;
-    bar() { return x; }
+    bar() {
+      return x;
+    }
+
     x++;
     Expect.equals(43, foo(bar));
   }

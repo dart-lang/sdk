@@ -19,16 +19,16 @@ main() {
   const declaredType =
       const InstanceMock(kind: M.InstanceKind.type, name: 'CustomObject');
   const field_non_dynamic = const FieldRefMock(declaredType: declaredType);
-  final repository = new InstanceRepositoryMock();
+  final objects = new ObjectRepositoryMock();
   test('instantiation', () {
-    final e = new FieldRefElement(isolate, field, repository);
+    final e = new FieldRefElement(isolate, field, objects);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.field, equals(field));
   });
   group('elements', () {
     test('created after attachment (dynamic)', () async {
-      final e = new FieldRefElement(isolate, field, repository);
+      final e = new FieldRefElement(isolate, field, objects);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.children.length, isNonZero, reason: 'has elements');
@@ -38,7 +38,7 @@ main() {
       expect(e.children.length, isZero, reason: 'is empty');
     });
     test('created after attachment (non dynamic)', () async {
-      final e = new FieldRefElement(isolate, field_non_dynamic, repository);
+      final e = new FieldRefElement(isolate, field_non_dynamic, objects);
       document.body.append(e);
       await e.onRendered.first;
       expect(e.children.length, isNonZero, reason: 'has elements');

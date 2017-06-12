@@ -9,7 +9,9 @@ import "package:async_helper/async_helper.dart";
 
 main() {
   f() async* {
-    label1: label2: yield 0;
+    label1:
+    label2:
+    yield 0;
   }
 
   asyncStart();

@@ -57,22 +57,24 @@ class Scrollbar implements ScrollListener {
   bool _displayOnHover;
   bool _hovering = false;
 
-  Scrollbar(Scroller scroller, [displayOnHover = true]) :
-      _displayOnHover = displayOnHover,
-      _scroller = scroller,
-      _frame = scroller.getFrame(),
-      _cachedSize = new Map<String, num>() {
-    _boundHideFn = () { _showScrollbars(false); };
+  Scrollbar(Scroller scroller, [displayOnHover = true])
+      : _displayOnHover = displayOnHover,
+        _scroller = scroller,
+        _frame = scroller.getFrame(),
+        _cachedSize = new Map<String, num>() {
+    _boundHideFn = () {
+      _showScrollbars(false);
+    };
   }
 
   bool get _scrollBarDragInProgress => _scrollBarDragInProgressValue;
 
   void set _scrollBarDragInProgress(bool value) {
     _scrollBarDragInProgressValue = value;
-    _toggleClass(_verticalElement, DRAG_CLASS_NAME,
-        value && _currentScrollVertical);
-    _toggleClass(_horizontalElement, DRAG_CLASS_NAME,
-        value && !_currentScrollVertical);
+    _toggleClass(
+        _verticalElement, DRAG_CLASS_NAME, value && _currentScrollVertical);
+    _toggleClass(
+        _horizontalElement, DRAG_CLASS_NAME, value && !_currentScrollVertical);
   }
 
   // TODO(jacobr): move this helper method into the DOM.
@@ -121,44 +123,42 @@ class Scrollbar implements ScrollListener {
       // instead attach a single global event listener and let data in the
       // DOM drive.
       _frame.onClick.listen((Event e) {
-          // Always focus on click as one of our children isn't all focused.
-          if (!_frame.contains(document.activeElement)) {
-            scrollerEl.focus();
-          }
-        });
+        // Always focus on click as one of our children isn't all focused.
+        if (!_frame.contains(document.activeElement)) {
+          scrollerEl.focus();
+        }
+      });
       _frame.onMouseOver.listen((Event e) {
-          final activeElement = document.activeElement;
-          // TODO(jacobr): don't steal focus from a child element or a truly
-          // focusable element. Only support stealing focus ffrom another
-          // element that was given fake focus.
-          if (activeElement is BodyElement ||
-              (!_frame.contains(activeElement) &&
-               activeElement is DivElement)) {
-            scrollerEl.focus();
-          }
-          if (_hovering == false) {
-            _hovering = true;
-            _cancelTimeout();
-            _showScrollbars(true);
-            refresh();
-          }
-        });
+        final activeElement = document.activeElement;
+        // TODO(jacobr): don't steal focus from a child element or a truly
+        // focusable element. Only support stealing focus ffrom another
+        // element that was given fake focus.
+        if (activeElement is BodyElement ||
+            (!_frame.contains(activeElement) && activeElement is DivElement)) {
+          scrollerEl.focus();
+        }
+        if (_hovering == false) {
+          _hovering = true;
+          _cancelTimeout();
+          _showScrollbars(true);
+          refresh();
+        }
+      });
       _frame.onMouseOut.listen((e) {
-          _hovering = false;
-          // Start hiding immediately if we aren't
-          // scrolling or already in the process of
-          // hidng the scrollbar
-          if (!_scrollInProgress && _timer == null) {
-            _boundHideFn();
-          }
-        });
+        _hovering = false;
+        // Start hiding immediately if we aren't
+        // scrolling or already in the process of
+        // hidng the scrollbar
+        if (!_scrollInProgress && _timer == null) {
+          _boundHideFn();
+        }
+      });
     }
   }
 
   void _onStart(/*MouseEvent | Touch*/ e) {
     Element elementOver = e.target;
-    if (elementOver == _verticalElement ||
-        elementOver == _horizontalElement) {
+    if (elementOver == _verticalElement || elementOver == _horizontalElement) {
       _currentScrollVertical = elementOver == _verticalElement;
       if (_currentScrollVertical) {
         _currentScrollStartMouse = e.page.y;
@@ -180,15 +180,14 @@ class Scrollbar implements ScrollListener {
       _refreshScrollRatioHelper(
           _scroller._scrollSize.height, contentSize.height);
     } else {
-      _refreshScrollRatioHelper(_scroller._scrollSize.width,
-                          contentSize.width);
+      _refreshScrollRatioHelper(_scroller._scrollSize.width, contentSize.width);
     }
   }
 
-
   void _refreshScrollRatioHelper(num frameSize, num contentSize) {
-    num frameTravelDistance = frameSize - _defaultScrollSize(
-        frameSize, contentSize) -_PADDING_LENGTH * 2;
+    num frameTravelDistance = frameSize -
+        _defaultScrollSize(frameSize, contentSize) -
+        _PADDING_LENGTH * 2;
     if (frameTravelDistance < 0.001) {
       _currentScrollRatio = 0;
     } else {
@@ -222,20 +221,19 @@ class Scrollbar implements ScrollListener {
   void _onEnd(UIEvent e) {
     _scrollBarDragInProgress = false;
     // TODO(jacobr): make scrollbar less tightly coupled to the scroller.
-    _scroller._onScrollerDragEnd.add(
-        new Event(ScrollerEventType.DRAG_END));
+    _scroller._onScrollerDragEnd.add(new Event(ScrollerEventType.DRAG_END));
   }
-
 
   /**
    * When scrolling ends, schedule a timeout to hide the scrollbars.
    */
   void _onScrollerEnd(Event e) {
     _cancelTimeout();
-    _timer = new Timer(const Duration(milliseconds: _DISPLAY_TIME),
-        _boundHideFn);
+    _timer =
+        new Timer(const Duration(milliseconds: _DISPLAY_TIME), _boundHideFn);
     _scrollInProgress = false;
   }
+
   void onScrollerMoved(num scrollX, num scrollY, bool decelerating) {
     if (_scrollInProgress == false) {
       // Display the scrollbar and then immediately prepare to hide it...
@@ -251,8 +249,8 @@ class Scrollbar implements ScrollListener {
       return;
     }
     _scroller._resize(() {
-      updateScrollbars(_scroller.getHorizontalOffset(),
-                       _scroller.getVerticalOffset());
+      updateScrollbars(
+          _scroller.getHorizontalOffset(), _scroller.getVerticalOffset());
     });
   }
 
@@ -261,14 +259,12 @@ class Scrollbar implements ScrollListener {
     if (_scroller._shouldScrollHorizontally()) {
       num scrollPercentX = _scroller.getHorizontalScrollPercent(scrollX);
       _updateScrollbar(_horizontalElement, scrollX, scrollPercentX,
-                       _scroller._scrollSize.width,
-                       contentSize.width, 'right', 'width');
+          _scroller._scrollSize.width, contentSize.width, 'right', 'width');
     }
     if (_scroller._shouldScrollVertically()) {
       num scrollPercentY = _scroller.getVerticalScrollPercent(scrollY);
       _updateScrollbar(_verticalElement, scrollY, scrollPercentY,
-                       _scroller._scrollSize.height,
-                       contentSize.height, 'bottom', 'height');
+          _scroller._scrollSize.height, contentSize.height, 'bottom', 'height');
     }
   }
 
@@ -309,8 +305,9 @@ class Scrollbar implements ScrollListener {
 
   num _defaultScrollSize(num frameSize, num contentSize) {
     return GoogleMath.clamp(
-        (frameSize -_PADDING_LENGTH * 2) * frameSize / contentSize,
-        _MIN_SIZE, frameSize -_PADDING_LENGTH * 2);
+        (frameSize - _PADDING_LENGTH * 2) * frameSize / contentSize,
+        _MIN_SIZE,
+        frameSize - _PADDING_LENGTH * 2);
   }
 
   /**
@@ -319,9 +316,8 @@ class Scrollbar implements ScrollListener {
    * specified by [cssPos]. The CSS property to adjust for size (height|width)
    * is specified by [cssSize].
    */
-  void _updateScrollbar(Element element, num offset,
-                        num scrollPercent, num frameSize,
-                        num contentSize, String cssPos, String cssSize) {
+  void _updateScrollbar(Element element, num offset, num scrollPercent,
+      num frameSize, num contentSize, String cssPos, String cssSize) {
     if (!_cachedSize.containsKey(cssSize)) {
       if (offset == null || contentSize < frameSize) {
         return;
@@ -337,9 +333,9 @@ class Scrollbar implements ScrollListener {
     num scrollPx = stretchPercent * (contentSize - frameSize);
     num maxSize = _defaultScrollSize(frameSize, contentSize);
     num size = Math.max(_MIN_COMPRESSED_SIZE, maxSize - scrollPx);
-    num maxOffset = frameSize - size -_PADDING_LENGTH  * 2;
-    num pos = GoogleMath.clamp(scrollPercent * maxOffset,
-                              0, maxOffset) + _PADDING_LENGTH;
+    num maxOffset = frameSize - size - _PADDING_LENGTH * 2;
+    num pos = GoogleMath.clamp(scrollPercent * maxOffset, 0, maxOffset) +
+        _PADDING_LENGTH;
     pos = pos.round();
     size = size.round();
     final style = element.style;

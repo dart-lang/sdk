@@ -16,7 +16,6 @@ class MockCat implements Cat {
   }
 }
 
-
 class MockCat2 extends MockCat {
   // this apparently works.
   noSuchMethod(_);
@@ -36,7 +35,6 @@ class MockCat3 extends MockCat2 implements Cat {
   }
 }
 
-
 class MockWithGenerics {
   /*=T*/ doStuff/*<T>*/(/*=T*/ t);
 
@@ -48,9 +46,10 @@ class MockWithGetterSetter {
   set setter(value);
 
   Invocation invocation;
-  noSuchMethod(i) { invocation = i; }
+  noSuchMethod(i) {
+    invocation = i;
+  }
 }
-
 
 void main() {
   MockCat mock = new MockCat();

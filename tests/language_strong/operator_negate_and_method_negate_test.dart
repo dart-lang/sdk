@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 // well as unary- operator.
 
 class Foo {
-  operator-() => 42;
+  operator -() => 42;
   negate() => 87;
 }
 

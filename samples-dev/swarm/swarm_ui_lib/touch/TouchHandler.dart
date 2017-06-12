@@ -153,8 +153,9 @@ class TouchHandler {
   num _correctVelocity(num velocity) {
     num absVelocity = velocity.abs();
     if (absVelocity > _MAXIMUM_VELOCITY) {
-      absVelocity = _recentTouchesY.length < 6 ?
-          _VELOCITY_FOR_INCORRECT_EVENTS : _MAXIMUM_VELOCITY;
+      absVelocity = _recentTouchesY.length < 6
+          ? _VELOCITY_FOR_INCORRECT_EVENTS
+          : _MAXIMUM_VELOCITY;
     }
     return absVelocity * (velocity < 0 ? -1 : 1);
   }
@@ -165,11 +166,14 @@ class TouchHandler {
    * phase.
    */
   void enable([bool capture = false]) {
-    Function onEnd = (e) { _onEnd(e.timeStamp, e); };
-    _addEventListeners(
-        _element,
-        (e) { _onStart(e); },
-        (e) { _onMove(e); }, onEnd, onEnd, capture);
+    Function onEnd = (e) {
+      _onEnd(e.timeStamp.toInt(), e);
+    };
+    _addEventListeners(_element, (e) {
+      _onStart(e);
+    }, (e) {
+      _onMove(e);
+    }, onEnd, onEnd, capture);
   }
 
   /**
@@ -218,7 +222,7 @@ class TouchHandler {
    * Return the touch of the last event.
    */
   Touch _getLastTouch() {
-    assert (_lastEvent != null); // Last event not set
+    assert(_lastEvent != null); // Last event not set
     return _lastEvent.touches[0];
   }
 
@@ -268,21 +272,22 @@ class TouchHandler {
     int clientY = touch.client.y;
     int moveX = _lastTouchX - clientX;
     int moveY = _lastTouchY - clientY;
+    int timeStamp = e.timeStamp.toInt();
     _totalMoveX += moveX.abs();
     _totalMoveY += moveY.abs();
     _lastTouchX = clientX;
     _lastTouchY = clientY;
     if (!_dragging &&
         ((_totalMoveY > _MIN_TRACKING_FOR_DRAG && _draggable.verticalEnabled) ||
-         (_totalMoveX > _MIN_TRACKING_FOR_DRAG &&
-          _draggable.horizontalEnabled))) {
+            (_totalMoveX > _MIN_TRACKING_FOR_DRAG &&
+                _draggable.horizontalEnabled))) {
       _dragging = _draggable.onDragStart(e);
       if (!_dragging) {
         _endTracking();
       } else {
         _startTouchX = clientX;
         _startTouchY = clientY;
-        _startTime = e.timeStamp;
+        _startTime = timeStamp;
       }
     }
     if (_dragging) {
@@ -293,12 +298,12 @@ class TouchHandler {
           _removeTouchesInWrongDirection(_recentTouchesX, _lastMoveX, moveX);
       _recentTouchesY =
           _removeTouchesInWrongDirection(_recentTouchesY, _lastMoveY, moveY);
-      _recentTouchesX = _removeOldTouches(_recentTouchesX, e.timeStamp);
-      _recentTouchesY = _removeOldTouches(_recentTouchesY, e.timeStamp);
+      _recentTouchesX = _removeOldTouches(_recentTouchesX, timeStamp);
+      _recentTouchesY = _removeOldTouches(_recentTouchesY, timeStamp);
       _recentTouchesX.add(clientX);
-      _recentTouchesX.add(e.timeStamp);
+      _recentTouchesX.add(timeStamp);
       _recentTouchesY.add(clientY);
-      _recentTouchesY.add(e.timeStamp);
+      _recentTouchesY.add(timeStamp);
     }
     _lastMoveX = moveX;
     _lastMoveY = moveY;
@@ -318,14 +323,15 @@ class TouchHandler {
     final touch = e.touches[0];
     _startTouchX = _lastTouchX = touch.client.x;
     _startTouchY = _lastTouchY = touch.client.y;
-    _startTime = e.timeStamp;
+    int timeStamp = e.timeStamp.toInt();
+    _startTime = timeStamp;
     // TODO(jacobr): why don't we just clear the lists?
     _recentTouchesX = new List<int>();
     _recentTouchesY = new List<int>();
     _recentTouchesX.add(touch.client.x);
-    _recentTouchesX.add(e.timeStamp);
+    _recentTouchesX.add(timeStamp);
     _recentTouchesY.add(touch.client.y);
-    _recentTouchesY.add(e.timeStamp);
+    _recentTouchesY.add(timeStamp);
     _lastEvent = e;
     _beginTracking();
   }
@@ -337,14 +343,13 @@ class TouchHandler {
    * or y component of the recent touch and the second item is the touch time
    * stamp. The time of the most recent event is specified by [recentTime].
    */
-  List<int> _removeOldTouches(List<int> recentTouches,
-                         int recentTime) {
+  List<int> _removeOldTouches(List<int> recentTouches, int recentTime) {
     int count = 0;
     final len = recentTouches.length;
-    assert (len % 2 == 0);
+    assert(len % 2 == 0);
     while (count < len &&
-           recentTime - recentTouches[count + 1] > _MAX_TRACKING_TIME ||
-           (len - count) > _MAX_TRACKING_TOUCHES * 2) {
+            recentTime - recentTouches[count + 1] > _MAX_TRACKING_TIME ||
+        (len - count) > _MAX_TRACKING_TOUCHES * 2) {
       count += 2;
     }
     return count == 0 ? recentTouches : _removeFirstN(recentTouches, count);
@@ -362,9 +367,11 @@ class TouchHandler {
    * stamp. The x or y component of the most recent move is specified by
    * [recentMove].
    */
-  List<int> _removeTouchesInWrongDirection(List<int> recentTouches,
-                                            int lastMove, int recentMove) {
-    if (lastMove !=0 && recentMove != 0 && recentTouches.length > 2 &&
+  List<int> _removeTouchesInWrongDirection(
+      List<int> recentTouches, int lastMove, int recentMove) {
+    if (lastMove != 0 &&
+        recentMove != 0 &&
+        recentTouches.length > 2 &&
         _xor(lastMove > 0, recentMove > 0)) {
       return _removeFirstN(recentTouches, recentTouches.length - 2);
     }

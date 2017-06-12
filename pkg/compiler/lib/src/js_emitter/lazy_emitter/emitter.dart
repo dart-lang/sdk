@@ -24,15 +24,13 @@ import 'model_emitter.dart';
 
 class EmitterFactory implements emitterTask.EmitterFactory {
   @override
-  String get patchVersion => "lazy";
-
-  @override
   bool get supportsReflection => false;
 
   @override
   Emitter createEmitter(
       CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
-    return new Emitter(task.compiler, namer, task.nativeEmitter);
+    return new Emitter(
+        task.compiler, namer, task.nativeEmitter, closedWorld, task);
   }
 }
 
@@ -43,10 +41,12 @@ class Emitter implements emitterTask.Emitter {
 
   JavaScriptBackend get _backend => _compiler.backend;
 
-  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter)
+  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter,
+      ClosedWorld closedWorld, CodeEmitterTask task)
       : this._compiler = compiler,
         this.namer = namer,
-        _emitter = new ModelEmitter(compiler, namer, nativeEmitter);
+        _emitter =
+            new ModelEmitter(compiler, namer, nativeEmitter, closedWorld, task);
 
   DiagnosticReporter get reporter => _compiler.reporter;
 

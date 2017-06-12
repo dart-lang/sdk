@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Regression for issue 23853: we used to incorreclty split and put a type in a
+/// Regression for issue 23853: we used to incorrectly split and put a type in a
 /// deferred hunk if the type was used explicitly in the deferred library and
 /// was used only in a generic type in the main library.
 library compiler.test.dart2js_extra.deferred_split_test;

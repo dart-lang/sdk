@@ -23,17 +23,32 @@ main() async {
 /// re-export stuff in lib/src.
 /// TODO(paulberry): remove dependencies on analyzer.
 final subpackageRules = {
-  'lib': new SubpackageRules(
-      mayImportAnalyzer: true,
-      allowedDependencies: ['lib/src', 'lib/src/base']),
-  'lib/src': new SubpackageRules(
-      mayImportAnalyzer: true,
-      allowedDependencies: ['lib', 'lib/src/base', 'lib/src/scanner']),
-  'lib/src/base': new SubpackageRules(
-      mayImportAnalyzer: true, allowedDependencies: ['lib']),
+  'lib': new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
+    'lib/src',
+    'lib/src/base',
+    'lib/src/fasta',
+    'lib/src/fasta/dill',
+    'lib/src/fasta/kernel',
+    'lib/src/incremental'
+  ]),
+  'lib/src': new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
+    'lib',
+    'lib/src/base',
+    'lib/src/fasta',
+    "lib/src/fasta/dill",
+    "lib/src/fasta/kernel",
+    'lib/src/fasta/source',
+    'lib/src/incremental',
+  ]),
+  'lib/src/base': new SubpackageRules(allowedDependencies: [
+    'lib',
+    'lib/src',
+    'lib/src/fasta',
+    'lib/src/incremental'
+  ]),
   'lib/src/codegen': new SubpackageRules(),
-  'lib/src/fasta':
-      new SubpackageRules(mayImportAnalyzer: false, allowedDependencies: [
+  'lib/src/fasta': new SubpackageRules(allowedDependencies: [
+    'lib',
     'lib/src/fasta/builder',
     'lib/src/fasta/dill',
     'lib/src/fasta/kernel',
@@ -41,39 +56,38 @@ final subpackageRules = {
     'lib/src/fasta/scanner',
     'lib/src/fasta/testing',
     'lib/src/fasta/util',
-  ]),
-  'lib/src/fasta/analyzer':
-      new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
-    'lib/src/fasta',
-    'lib/src/fasta/builder',
-    'lib/src/fasta/dill',
-    'lib/src/fasta/kernel',
-    'lib/src/fasta/source',
+    'lib/src/scanner',
   ]),
   'lib/src/fasta/builder': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
-    'lib/src/fasta/dill',
     'lib/src/fasta/parser',
     'lib/src/fasta/source',
+    'lib/src/fasta/type_inference',
     'lib/src/fasta/util',
   ]),
   'lib/src/fasta/dill': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
+    'lib/src/fasta/builder',
     'lib/src/fasta/kernel',
   ]),
   'lib/src/fasta/kernel': new SubpackageRules(allowedDependencies: [
+    'lib',
     'lib/src/fasta',
+    'lib/src/base',
     'lib/src/fasta/builder',
     'lib/src/fasta/dill',
     'lib/src/fasta/parser',
     'lib/src/fasta/scanner',
     'lib/src/fasta/source',
+    'lib/src/fasta/type_inference',
     'lib/src/fasta/util',
+    'lib/src/scanner',
   ]),
   'lib/src/fasta/parser': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
     'lib/src/fasta/scanner',
     'lib/src/fasta/util',
+    'lib/src/scanner',
   ]),
   'lib/src/fasta/scanner': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
@@ -82,23 +96,40 @@ final subpackageRules = {
     'lib/src/fasta/util',
   ]),
   'lib/src/fasta/source': new SubpackageRules(allowedDependencies: [
+    'lib',
     'lib/src/fasta',
+    'lib/src/base',
     'lib/src/fasta/builder',
     'lib/src/fasta/dill',
     'lib/src/fasta/kernel',
     'lib/src/fasta/parser',
     'lib/src/fasta/scanner',
+    'lib/src/fasta/type_inference',
     'lib/src/fasta/util',
+    'lib/src/scanner',
   ]),
-  'lib/src/fasta/testing':
-      new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
+  'lib/src/fasta/testing': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
-    'lib/src/fasta/dill',
+    'lib/src/base',
     'lib/src/fasta/kernel',
-    'lib/src/fasta/analyzer',
     'lib/src/fasta/scanner',
+    'lib/src/scanner',
+  ]),
+  'lib/src/fasta/type_inference': new SubpackageRules(allowedDependencies: [
+    'lib/src',
+    'lib/src/base',
+    'lib/src/fasta',
+    'lib/src/fasta/kernel',
   ]),
   'lib/src/fasta/util': new SubpackageRules(),
+  'lib/src/incremental': new SubpackageRules(allowedDependencies: [
+    'lib',
+    'lib/src',
+    'lib/src/base',
+    'lib/src/fasta',
+    'lib/src/fasta/parser',
+    'lib/src/fasta/source',
+  ]),
   'lib/src/scanner': new SubpackageRules(allowedDependencies: [
     'lib/src/base',
     // For error codes.

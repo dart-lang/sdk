@@ -5,12 +5,11 @@
 /**
  * Code generation for the file "integration_test_methods.dart".
  */
-library codegenInttestMethods;
-
 import 'dart:convert';
 
 import 'package:analyzer/src/codegen/tools.dart';
 import 'package:front_end/src/codegen/tools.dart';
+import 'package:path/path.dart' as path;
 
 import 'api.dart';
 import 'codegen_dart.dart';
@@ -18,9 +17,9 @@ import 'from_html.dart';
 import 'to_html.dart';
 
 final GeneratedFile target = new GeneratedFile(
-    'test/integration/integration_test_methods.dart', (String pkgPath) {
-  CodegenInttestMethodsVisitor visitor =
-      new CodegenInttestMethodsVisitor(readApi(pkgPath));
+    'test/integration/support/integration_test_methods.dart', (String pkgPath) {
+  CodegenInttestMethodsVisitor visitor = new CodegenInttestMethodsVisitor(
+      path.basename(pkgPath), readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
@@ -29,6 +28,11 @@ final GeneratedFile target = new GeneratedFile(
  */
 class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     with CodeGenerator {
+  /**
+   * The name of the package into which code is being generated.
+   */
+  final String packageName;
+
   /**
    * Visitor used to produce doc comments.
    */
@@ -45,7 +49,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
    */
   List<String> notificationSwitchContents = <String>[];
 
-  CodegenInttestMethodsVisitor(Api api)
+  CodegenInttestMethodsVisitor(this.packageName, Api api)
       : toHtmlVisitor = new ToHtmlVisitor(api),
         super(api) {
     codeGeneratorSettings.commentLineLength = 79;
@@ -93,23 +97,25 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
 
   @override
   visitApi() {
-    outputHeader();
+    outputHeader(year: '2017');
     writeln();
     writeln('/**');
     writeln(' * Convenience methods for running integration tests');
     writeln(' */');
-    writeln('library test.integration.methods;');
-    writeln();
     writeln("import 'dart:async';");
     writeln();
-    writeln("import 'package:analysis_server/plugin/protocol/protocol.dart';");
+    writeln("import 'package:$packageName/protocol/protocol_generated.dart';");
     writeln(
-        "import 'package:analysis_server/src/protocol/protocol_internal.dart';");
+        "import 'package:$packageName/src/protocol/protocol_internal.dart';");
     writeln("import 'package:test/test.dart';");
     writeln();
     writeln("import 'integration_tests.dart';");
     writeln("import 'protocol_matchers.dart';");
-    writeln();
+    for (String uri in api.types.importUris) {
+      write("import '");
+      write(uri);
+      writeln("';");
+    }
     writeln();
     writeln('/**');
     writeln(' * Convenience methods for running integration tests');
@@ -217,6 +223,9 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       toHtmlVisitor.describePayload(request.params, 'Parameters');
       toHtmlVisitor.describePayload(request.result, 'Returns');
     }));
+    if (request.deprecated) {
+      writeln('@deprecated');
+    }
     String resultClass;
     String futureClass;
     if (request.result == null) {

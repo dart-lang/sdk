@@ -53,7 +53,6 @@ void test(bool revive) {
   testToString();
   testConcurrentModifications();
   testType();
-  testNonStringKeys();
   testClear();
 
   testListEntry();
@@ -116,8 +115,10 @@ void testLookupNonExistingValues(Map map) {
 }
 
 void testOrder(List list) {
-  if (list.isEmpty) return;
-  else testOrder(list.skip(1).toList());
+  if (list.isEmpty)
+    return;
+  else
+    testOrder(list.skip(1).toList());
 
   Map original = {};
   for (int i = 0; i < list.length; i++) {
@@ -186,139 +187,120 @@ void testConcurrentModifications() {
   }
 
   Map map = {};
-  Expect.isTrue(throwsCME(() => testKeys(jsonify(map),
-      (map) => map['a'] = 0)));
-  Expect.isTrue(throwsCME(() => testValues(jsonify(map),
-      (map) => map['a'] = 0)));
-  Expect.isFalse(throwsCME(() => testForEach(jsonify(map),
-      (map) => map['a'] = 0)));
+  Expect.isTrue(throwsCME(() => testKeys(jsonify(map), (map) => map['a'] = 0)));
+  Expect
+      .isTrue(throwsCME(() => testValues(jsonify(map), (map) => map['a'] = 0)));
+  Expect.isFalse(
+      throwsCME(() => testForEach(jsonify(map), (map) => map['a'] = 0)));
 
-  Expect.isFalse(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.clear())));
-  Expect.isFalse(throwsCME(() => testValues(jsonify(map),
-      (map) => map.clear())));
-  Expect.isFalse(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.clear())));
+  Expect.isFalse(throwsCME(() => testKeys(jsonify(map), (map) => map.clear())));
+  Expect
+      .isFalse(throwsCME(() => testValues(jsonify(map), (map) => map.clear())));
+  Expect.isFalse(
+      throwsCME(() => testForEach(jsonify(map), (map) => map.clear())));
 
-  Expect.isFalse(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.remove('a'))));
-  Expect.isFalse(throwsCME(() => testValues(jsonify(map),
-      (map) => map.remove('a'))));
-  Expect.isFalse(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.remove('a'))));
+  Expect.isFalse(
+      throwsCME(() => testKeys(jsonify(map), (map) => map.remove('a'))));
+  Expect.isFalse(
+      throwsCME(() => testValues(jsonify(map), (map) => map.remove('a'))));
+  Expect.isFalse(
+      throwsCME(() => testForEach(jsonify(map), (map) => map.remove('a'))));
 
-  Expect.isTrue(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.putIfAbsent('a', () => 0))));
-  Expect.isTrue(throwsCME(() => testValues(jsonify(map),
-      (map) => map.putIfAbsent('a', () => 0))));
-  Expect.isFalse(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.putIfAbsent('a', () => 0))));
+  Expect.isTrue(throwsCME(
+      () => testKeys(jsonify(map), (map) => map.putIfAbsent('a', () => 0))));
+  Expect.isTrue(throwsCME(
+      () => testValues(jsonify(map), (map) => map.putIfAbsent('a', () => 0))));
+  Expect.isFalse(throwsCME(
+      () => testForEach(jsonify(map), (map) => map.putIfAbsent('a', () => 0))));
 
-  Expect.isFalse(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.addAll({}))));
-  Expect.isFalse(throwsCME(() => testValues(jsonify(map),
-      (map) => map.addAll({}))));
-  Expect.isFalse(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.addAll({}))));
+  Expect.isFalse(
+      throwsCME(() => testKeys(jsonify(map), (map) => map.addAll({}))));
+  Expect.isFalse(
+      throwsCME(() => testValues(jsonify(map), (map) => map.addAll({}))));
+  Expect.isFalse(
+      throwsCME(() => testForEach(jsonify(map), (map) => map.addAll({}))));
 
-  Expect.isTrue(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.addAll({'a': 0}))));
-  Expect.isTrue(throwsCME(() => testValues(jsonify(map),
-      (map) => map.addAll({'a': 0}))));
-  Expect.isFalse(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.addAll({'a': 0}))));
+  Expect.isTrue(
+      throwsCME(() => testKeys(jsonify(map), (map) => map.addAll({'a': 0}))));
+  Expect.isTrue(
+      throwsCME(() => testValues(jsonify(map), (map) => map.addAll({'a': 0}))));
+  Expect.isFalse(throwsCME(
+      () => testForEach(jsonify(map), (map) => map.addAll({'a': 0}))));
 
   map = {'a': 1};
-  Expect.isFalse(throwsCME(() => testKeys(jsonify(map),
-      (map) => map['a'] = 0)));
-  Expect.isFalse(throwsCME(() => testValues(jsonify(map),
-      (map) => map['a'] = 0)));
-  Expect.isFalse(throwsCME(() => testForEach(jsonify(map),
-      (map) => map['a'] = 0)));
+  Expect
+      .isFalse(throwsCME(() => testKeys(jsonify(map), (map) => map['a'] = 0)));
+  Expect.isFalse(
+      throwsCME(() => testValues(jsonify(map), (map) => map['a'] = 0)));
+  Expect.isFalse(
+      throwsCME(() => testForEach(jsonify(map), (map) => map['a'] = 0)));
 
-  Expect.isTrue(throwsCME(() => testKeys(jsonify(map),
-      (map) => map['b'] = 0)));
-  Expect.isTrue(throwsCME(() => testValues(jsonify(map),
-      (map) => map['b'] = 0)));
-  Expect.isTrue(throwsCME(() => testForEach(jsonify(map),
-      (map) => map['b'] = 0)));
+  Expect.isTrue(throwsCME(() => testKeys(jsonify(map), (map) => map['b'] = 0)));
+  Expect
+      .isTrue(throwsCME(() => testValues(jsonify(map), (map) => map['b'] = 0)));
+  Expect.isTrue(
+      throwsCME(() => testForEach(jsonify(map), (map) => map['b'] = 0)));
 
-  Expect.isTrue(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.clear())));
-  Expect.isTrue(throwsCME(() => testValues(jsonify(map),
-      (map) => map.clear())));
-  Expect.isTrue(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.clear())));
+  Expect.isTrue(throwsCME(() => testKeys(jsonify(map), (map) => map.clear())));
+  Expect
+      .isTrue(throwsCME(() => testValues(jsonify(map), (map) => map.clear())));
+  Expect
+      .isTrue(throwsCME(() => testForEach(jsonify(map), (map) => map.clear())));
 
-  Expect.isTrue(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.remove('a'))));
-  Expect.isTrue(throwsCME(() => testValues(jsonify(map),
-      (map) => map.remove('a'))));
-  Expect.isTrue(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.remove('a'))));
+  Expect.isTrue(
+      throwsCME(() => testKeys(jsonify(map), (map) => map.remove('a'))));
+  Expect.isTrue(
+      throwsCME(() => testValues(jsonify(map), (map) => map.remove('a'))));
+  Expect.isTrue(
+      throwsCME(() => testForEach(jsonify(map), (map) => map.remove('a'))));
 
-  Expect.isFalse(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.remove('b'))));
-  Expect.isFalse(throwsCME(() => testValues(jsonify(map),
-      (map) => map.remove('b'))));
-  Expect.isFalse(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.remove('b'))));
+  Expect.isFalse(
+      throwsCME(() => testKeys(jsonify(map), (map) => map.remove('b'))));
+  Expect.isFalse(
+      throwsCME(() => testValues(jsonify(map), (map) => map.remove('b'))));
+  Expect.isFalse(
+      throwsCME(() => testForEach(jsonify(map), (map) => map.remove('b'))));
 
-  Expect.isFalse(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.putIfAbsent('a', () => 0))));
-  Expect.isFalse(throwsCME(() => testValues(jsonify(map),
-      (map) => map.putIfAbsent('a', () => 0))));
-  Expect.isFalse(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.putIfAbsent('a', () => 0))));
+  Expect.isFalse(throwsCME(
+      () => testKeys(jsonify(map), (map) => map.putIfAbsent('a', () => 0))));
+  Expect.isFalse(throwsCME(
+      () => testValues(jsonify(map), (map) => map.putIfAbsent('a', () => 0))));
+  Expect.isFalse(throwsCME(
+      () => testForEach(jsonify(map), (map) => map.putIfAbsent('a', () => 0))));
 
-  Expect.isTrue(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.putIfAbsent('b', () => 0))));
-  Expect.isTrue(throwsCME(() => testValues(jsonify(map),
-      (map) => map.putIfAbsent('b', () => 0))));
-  Expect.isTrue(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.putIfAbsent('b', () => 0))));
+  Expect.isTrue(throwsCME(
+      () => testKeys(jsonify(map), (map) => map.putIfAbsent('b', () => 0))));
+  Expect.isTrue(throwsCME(
+      () => testValues(jsonify(map), (map) => map.putIfAbsent('b', () => 0))));
+  Expect.isTrue(throwsCME(
+      () => testForEach(jsonify(map), (map) => map.putIfAbsent('b', () => 0))));
 
-  Expect.isFalse(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.addAll({}))));
-  Expect.isFalse(throwsCME(() => testValues(jsonify(map),
-      (map) => map.addAll({}))));
-  Expect.isFalse(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.addAll({}))));
+  Expect.isFalse(
+      throwsCME(() => testKeys(jsonify(map), (map) => map.addAll({}))));
+  Expect.isFalse(
+      throwsCME(() => testValues(jsonify(map), (map) => map.addAll({}))));
+  Expect.isFalse(
+      throwsCME(() => testForEach(jsonify(map), (map) => map.addAll({}))));
 
-  Expect.isFalse(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.addAll({'a': 0}))));
-  Expect.isFalse(throwsCME(() => testValues(jsonify(map),
-      (map) => map.addAll({'a': 0}))));
-  Expect.isFalse(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.addAll({'a': 0}))));
+  Expect.isFalse(
+      throwsCME(() => testKeys(jsonify(map), (map) => map.addAll({'a': 0}))));
+  Expect.isFalse(
+      throwsCME(() => testValues(jsonify(map), (map) => map.addAll({'a': 0}))));
+  Expect.isFalse(throwsCME(
+      () => testForEach(jsonify(map), (map) => map.addAll({'a': 0}))));
 
-  Expect.isTrue(throwsCME(() => testKeys(jsonify(map),
-      (map) => map.addAll({'b': 0}))));
-  Expect.isTrue(throwsCME(() => testValues(jsonify(map),
-      (map) => map.addAll({'b': 0}))));
-  Expect.isTrue(throwsCME(() => testForEach(jsonify(map),
-      (map) => map.addAll({'b': 0}))));
+  Expect.isTrue(
+      throwsCME(() => testKeys(jsonify(map), (map) => map.addAll({'b': 0}))));
+  Expect.isTrue(
+      throwsCME(() => testValues(jsonify(map), (map) => map.addAll({'b': 0}))));
+  Expect.isTrue(throwsCME(
+      () => testForEach(jsonify(map), (map) => map.addAll({'b': 0}))));
 }
 
 void testType() {
   Expect.isTrue(jsonify({}) is Map);
-  Expect.isTrue(jsonify({}) is HashMap);
-  Expect.isTrue(jsonify({}) is LinkedHashMap);
-
   Expect.isTrue(jsonify({}) is Map<String, dynamic>);
-  Expect.isTrue(jsonify({}) is HashMap<String, dynamic>);
-  Expect.isTrue(jsonify({}) is LinkedHashMap<String, dynamic>);
-
-  Expect.isTrue(jsonify({}) is Map<int, dynamic>);
-  Expect.isTrue(jsonify({}) is HashMap<int, dynamic>);
-  Expect.isTrue(jsonify({}) is LinkedHashMap<int, dynamic>);
-}
-
-void testNonStringKeys() {
-  Map map = jsonify({});
-  map[1] = 2;
-  Expect.equals(1, map.length);
-  Expect.equals(2, map[1]);
+  Expect.isFalse(jsonify({}) is Map<int, dynamic>);
 }
 
 void testClear() {
@@ -328,7 +310,13 @@ void testClear() {
 }
 
 void testListEntry() {
-  Map map = jsonify({'a': [7, 8, {'b': 9}]});
+  Map map = jsonify({
+    'a': [
+      7,
+      8,
+      {'b': 9}
+    ]
+  });
   List list = map['a'];
   Expect.equals(3, list.length);
   Expect.equals(7, list[0]);

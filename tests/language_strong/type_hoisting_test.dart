@@ -8,7 +8,10 @@ class A<T> {
   A(this.x, T z);
   A.make();
   void f(T x) {}
-  static String g(String x) {return x;}
+  static String g(String x) {
+    return x;
+  }
+
   T x;
 }
 
@@ -16,15 +19,21 @@ class B extends A<int> {
   B(int x, int z) : super(x, z);
   B.make() : super.make();
   void f(int x) {}
-  static int g(int x) {return x;}
+  static int g(int x) {
+    return x;
+  }
 }
 
 class C {
   C(this.x, int z);
   void f(int x) {}
-  static int g(int x) {return x;}
+  static int g(int x) {
+    return x;
+  }
+
   int x = 0;
 }
+
 typedef void ToVoid<T>(T x);
 typedef T Id<T>(T x);
 

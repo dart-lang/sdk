@@ -11,7 +11,7 @@ class StringUtils {
   /**
    * Returns either [str], or if [str] is null, the value of [defaultStr].
    */
-  static String defaultString(String str, [String defaultStr='']) {
+  static String defaultString(String str, [String defaultStr = '']) {
     return str == null ? defaultStr : str;
   }
 

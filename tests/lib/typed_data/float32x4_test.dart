@@ -262,7 +262,6 @@ testConversions() {
   Expect.equals(12.0, n.w);
 }
 
-
 testBitOperators() {
   var m = new Int32x4(0xAAAAAAA, 0xAAAAAAA, 0xAAAAAAA, 0xAAAAAAA);
   var n = new Int32x4(0x5555555, 0x5555555, 0x5555555, 0x5555555);
@@ -278,7 +277,7 @@ testBitOperators() {
   Expect.equals(true, n.flagY);
   Expect.equals(true, n.flagZ);
   Expect.equals(true, n.flagW);
-  var o = m|n;  // or
+  var o = m | n; // or
   Expect.equals(0xFFFFFFF, o.x);
   Expect.equals(0xFFFFFFF, o.y);
   Expect.equals(0xFFFFFFF, o.z);
@@ -287,7 +286,7 @@ testBitOperators() {
   Expect.equals(true, o.flagY);
   Expect.equals(true, o.flagZ);
   Expect.equals(true, o.flagW);
-  o = m&n;  // and
+  o = m & n; // and
   Expect.equals(0x0, o.x);
   Expect.equals(0x0, o.y);
   Expect.equals(0x0, o.z);
@@ -300,7 +299,7 @@ testBitOperators() {
   Expect.equals(0xAAAAAAA, n.y);
   Expect.equals(0xAAAAAAA, n.z);
   Expect.equals(0xAAAAAAA, n.w);
-  o = m^n;  // xor
+  o = m ^ n; // xor
   Expect.equals(0x0, o.x);
   Expect.equals(0x0, o.y);
   Expect.equals(0x0, o.z);
@@ -396,28 +395,27 @@ void testConstructor() {
 }
 
 void testBadArguments() {
-  Expect.throws(() => new Float32x4(null, 2.0, 3.0, 4.0),
-                (e) => e is ArgumentError);
-  Expect.throws(() => new Float32x4(1.0, null, 3.0, 4.0),
-                (e) => e is ArgumentError);
-  Expect.throws(() => new Float32x4(1.0, 2.0, null, 4.0),
-                (e) => e is ArgumentError);
-  Expect.throws(() => new Float32x4(1.0, 2.0, 3.0, null),
-                (e) => e is ArgumentError);
+  Expect.throws(
+      () => new Float32x4(null, 2.0, 3.0, 4.0), (e) => e is ArgumentError);
+  Expect.throws(
+      () => new Float32x4(1.0, null, 3.0, 4.0), (e) => e is ArgumentError);
+  Expect.throws(
+      () => new Float32x4(1.0, 2.0, null, 4.0), (e) => e is ArgumentError);
+  Expect.throws(
+      () => new Float32x4(1.0, 2.0, 3.0, null), (e) => e is ArgumentError);
   // Use local variable typed as "var" to avoid static warnings.
   var str = "foo";
   Expect.throws(() => new Float32x4(str, 2.0, 3.0, 4.0),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => new Float32x4(1.0, str, 3.0, 4.0),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => new Float32x4(1.0, 2.0, str, 4.0),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
   Expect.throws(() => new Float32x4(1.0, 2.0, 3.0, str),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError);
 }
 
 void testSpecialValues() {
-
   /// Same as Expect.identical, but also works with NaNs and -0.0 for dart2js.
   void checkEquals(expected, actual) {
     if (expected.isNaN) {
@@ -429,7 +427,7 @@ void testSpecialValues() {
     }
   }
 
-  var pairs =  [
+  var pairs = [
     [0.0, 0.0],
     [5e-324, 0.0],
     [2.225073858507201e-308, 0.0],

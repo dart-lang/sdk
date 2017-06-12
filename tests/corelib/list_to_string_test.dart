@@ -10,7 +10,9 @@ class MyList extends ListBase {
   MyList(this.list);
 
   get length => list.length;
-  set length(val) { list.length = val; }
+  set length(val) {
+    list.length = val;
+  }
 
   operator [](index) => list[index];
   operator []=(index, val) => list[index] = val;

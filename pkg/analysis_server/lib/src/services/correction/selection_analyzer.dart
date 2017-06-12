@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.correction.selection_analyzer;
-
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
  * A visitor for visiting [AstNode]s covered by a selection [SourceRange].
@@ -68,7 +66,7 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<Object> {
     }
     AstNode firstNode = _selectedNodes[0];
     AstNode lastNode = _selectedNodes[_selectedNodes.length - 1];
-    return rangeStartEnd(firstNode, lastNode);
+    return range.startEnd(firstNode, lastNode);
   }
 
   /**
@@ -117,7 +115,7 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitNode(AstNode node) {
-    SourceRange nodeRange = rangeNode(node);
+    SourceRange nodeRange = range.node(node);
     if (selection.covers(nodeRange)) {
       if (isFirstNode) {
         handleFirstSelectedNode(node);

@@ -2,15 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library lib;
+
+@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 class A<T> {}
-class B<T extends A> extends A implements C{
+
+class B<T extends A> extends A implements C {
   A m(A a) {}
   A field;
 }
-class C<S,T> {}
+
+class C<S, T> {}
+
 class D extends A<int> {}
 
 main() {
@@ -46,7 +52,7 @@ main() {
   Expect.isFalse(cInstance.isOriginalDeclaration);
   Expect.isFalse(cNestedInstance.isOriginalDeclaration);
   Expect.isFalse(cTypeArgument.isOriginalDeclaration);
-  
+
   Expect.isTrue(aDecl.typeArguments.isEmpty);
   Expect.isTrue(dInstance.typeArguments.isEmpty);
   Expect.equals(dynamicMirror, aInstance.typeArguments.single);
@@ -62,5 +68,5 @@ main() {
   Expect.equals(dynamicMirror, cInstance.typeArguments.last);
   Expect.equals(dynamicMirror, cNestedInstance.typeArguments.last);
   Expect.equals(dynamicMirror, cTypeArgument.typeArguments.first);
-  Expect.equals(dynamicMirror, cTypeArgument.typeArguments.last);  
+  Expect.equals(dynamicMirror, cTypeArgument.typeArguments.last);
 }

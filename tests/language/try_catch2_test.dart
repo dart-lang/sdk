@@ -13,12 +13,15 @@ abstract class TestException {
 
 class MyException implements TestException {
   const MyException([String message = ""]) : message_ = message;
-  String getMessage() { return message_; }
+  String getMessage() {
+    return message_;
+  }
+
   final String message_;
 }
 
 class StackTrace {
-  StackTrace() { }
+  StackTrace() {}
 }
 
 class Helper {

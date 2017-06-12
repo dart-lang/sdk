@@ -61,11 +61,15 @@ main() {
   d = const Duration(hours: 1, minutes: 59);
   Expect.equals(119, d.inMinutes);
   Expect.equals(1, d.inHours);
-  d = new Duration(days: 1, hours:23);
+  d = new Duration(days: 1, hours: 23);
   Expect.equals(47, d.inHours);
   Expect.equals(1, d.inDays);
   d = const Duration(
-      days: 0, hours: 23, minutes: 59, seconds: 59, milliseconds: 999,
+      days: 0,
+      hours: 23,
+      minutes: 59,
+      seconds: 59,
+      milliseconds: 999,
       microseconds: 999);
   Expect.equals(0, d.inDays);
 
@@ -201,8 +205,7 @@ main() {
   Expect.equals(-3600000000, d.inMicroseconds);
   d = d1 * 0;
   Expect.equals(0, d.inMicroseconds);
-  Expect.throws(() => d1 ~/ 0,
-                (e) => e is IntegerDivisionByZeroException);
+  Expect.throws(() => d1 ~/ 0, (e) => e is IntegerDivisionByZeroException);
 
   d = new Duration(microseconds: 0);
   Expect.isTrue(d < new Duration(microseconds: 1));
@@ -212,15 +215,25 @@ main() {
   Expect.isTrue(d >= new Duration(microseconds: -1));
   Expect.isTrue(d >= d);
 
-  d = const Duration(days: 1, hours: 3, minutes: 17, seconds: 42,
-                     milliseconds: 823, microseconds: 127);
+  d = const Duration(
+      days: 1,
+      hours: 3,
+      minutes: 17,
+      seconds: 42,
+      milliseconds: 823,
+      microseconds: 127);
   Expect.equals("27:17:42.823127", d.toString());
 
   d = const Duration(hours: 1999, minutes: 17, seconds: 42);
   Expect.equals("1999:17:42.000000", d.toString());
 
-  d = const Duration(days: -1, hours: -3, minutes: -17, seconds: -42,
-                     milliseconds: -823, microseconds: -127);
+  d = const Duration(
+      days: -1,
+      hours: -3,
+      minutes: -17,
+      seconds: -42,
+      milliseconds: -823,
+      microseconds: -127);
   Expect.equals("-27:17:42.823127", d.toString());
 
   d = const Duration(hours: -1999, minutes: -17, seconds: -42);

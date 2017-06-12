@@ -407,7 +407,7 @@ class Isolate {
   external void addOnExitListener(SendPort responsePort, {Object response});
 
   /**
-   * Stop listening for exit messages from the isolate.
+   * Stops listening for exit messages from the isolate.
    *
    * Requests for the isolate to not send exit messages on [responsePort].
    * If the isolate isn't expecting to send exit messages on [responsePort],
@@ -418,8 +418,9 @@ class Isolate {
    * only one call to `removeOnExitListener` is needed to stop it from receiving
    * exit messagees.
    *
-   * Closing the receive port at the end of the send port will not stop the
-   * isolate from sending exit messages, they are just going to be lost.
+   * Closing the receive port that is associated with the [responsePort] does
+   * not stop the isolate from sending uncaught errors, they are just going to
+   * be lost.
    *
    * An exit message may still be sent if the isolate terminates
    * before this request is received and processed.
@@ -427,7 +428,7 @@ class Isolate {
   external void removeOnExitListener(SendPort responsePort);
 
   /**
-   * Set whether uncaught errors will terminate the isolate.
+   * Sets whether uncaught errors will terminate the isolate.
    *
    * If errors are fatal, any uncaught error will terminate the isolate
    * event loop and shut down the isolate.
@@ -435,8 +436,9 @@ class Isolate {
    * This call requires the [terminateCapability] for the isolate.
    * If the capability is absent or incorrect, no change is made.
    *
-   * Since isolates run concurrently, it's possible for it to exit due to an
-   * error before errors are set non-fatal.
+   * Since isolates run concurrently, it's possible for the receiving isolate
+   * to exit due to an error, before a request, using this method, has been
+   * received and processed.
    * To avoid this, either use the corresponding parameter to the spawn
    * function, or start the isolate paused, set errors non-fatal and
    * then resume the isolate.
@@ -472,7 +474,7 @@ class Isolate {
   external void kill({int priority: BEFORE_NEXT_EVENT});
 
   /**
-   * Request that the isolate send [response] on the [responsePort].
+   * Requests that the isolate send [response] on the [responsePort].
    *
    * The [response] object must follow the same restrictions as enforced by
    * [SendPort.send].
@@ -510,6 +512,10 @@ class Isolate {
    * Listening using the same port more than once does nothing.
    * A port will only receive each error once,
    * and will only need to be removed once using [removeErrorListener].
+
+   * Closing the receive port that is associated with the port does not stop
+   * the isolate from sending uncaught errors, they are just going to be lost.
+   * Instead use [removeErrorListener] to stop receiving errors on [port].
    *
    * Since isolates run concurrently, it's possible for it to exit before the
    * error listener is established. To avoid this, start the isolate paused,
@@ -518,19 +524,16 @@ class Isolate {
   external void addErrorListener(SendPort port);
 
   /**
-   * Stop listening for uncaught errors from the isolate.
+   * Stops listening for uncaught errors from the isolate.
    *
-   * Requests for the isolate to not send uncaught errors on [responsePort].
-   * If the isolate isn't expecting to send uncaught errors on [responsePort],
+   * Requests for the isolate to not send uncaught errors on [port].
+   * If the isolate isn't expecting to send uncaught errors on [port],
    * because the port hasn't been added using [addErrorListener],
    * or because it has already been removed, the request is ignored.
    *
    * If the same port has been passed via [addErrorListener] more than once,
    * only one call to `removeErrorListener` is needed to stop it from receiving
    * unaught errors.
-   *
-   * Closing the receive port at the end of the send port will not stop the
-   * isolate from sending uncaught errors, they are just going to be lost.
    *
    * Uncaught errors message may still be sent by the isolate
    * until this request is received and processed.

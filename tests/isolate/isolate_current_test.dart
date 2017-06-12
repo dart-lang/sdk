@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library isolate_current_test;
+
 import "dart:isolate";
 import "dart:async";
 import "package:expect/expect.dart";
@@ -118,12 +119,11 @@ void expectCurrent(args) {
 }
 
 /** Convert isolate to list (of control port and capabilities). */
-i2l(Isolate isolate) => [isolate.controlPort,
-                         isolate.pauseCapability,
-                         isolate.terminateCapability];
+i2l(Isolate isolate) =>
+    [isolate.controlPort, isolate.pauseCapability, isolate.terminateCapability];
 /** Convert list to isolate. */
-l2i(List list) => new Isolate(list[0], pauseCapability: list[1],
-                                       terminateCapability: list[2]);
+l2i(List list) => new Isolate(list[0],
+    pauseCapability: list[1], terminateCapability: list[2]);
 
 /** Identity transformation. */
 id(Isolate isolate) => isolate;

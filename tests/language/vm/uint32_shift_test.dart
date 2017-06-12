@@ -6,11 +6,15 @@
 import 'package:expect/expect.dart';
 
 class Good {
-  use(x) { return x & 0x1; }
+  use(x) {
+    return x & 0x1;
+  }
 }
 
 class Bad {
-  use(x) { return x & 0x100000000; }
+  use(x) {
+    return x & 0x100000000;
+  }
 }
 
 f(o, x) => o.use(x << 1);
@@ -23,4 +27,3 @@ main() {
   }
   Expect.equals(0x100000000, f(bad, 0x80000000));
 }
-

@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library private_selector_test;
+
 import "package:expect/expect.dart";
 import 'private_selector_lib.dart';
 
-class B extends A {
-}
+class B extends A {}
 
 main() {
   new A().public();

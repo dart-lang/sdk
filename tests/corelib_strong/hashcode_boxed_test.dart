@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 double fib(double n) {
-  return n <= 1.0 ? 1.0 : fib(n-1) + fib(n-2);
+  return n <= 1.0 ? 1.0 : fib(n - 1) + fib(n - 2);
 }
 
 main() {

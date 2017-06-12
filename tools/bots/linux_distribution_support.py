@@ -21,7 +21,7 @@ import bot_utils
 utils = bot_utils.GetUtils()
 
 HOST_OS = utils.GuessOS()
-SRC_BUILDER = r'linux-distribution-support-(debian_wheezy|ubuntu_precise)'
+SRC_BUILDER = r'debianpackage-linux'
 
 def SrcConfig(name, is_buildbot):
   """Returns info for the current buildbot based on the name of the builder.
@@ -33,10 +33,9 @@ def SrcConfig(name, is_buildbot):
   src_pattern = re.match(SRC_BUILDER, name)
   if not src_pattern:
     return None
-  return bot.BuildInfo('none', 'none', 'release', 'linux',
-                       builder_tag=src_pattern.group(1))
+  return bot.BuildInfo('none', 'none', 'release', 'linux')
 
-def ArchiveArtifacts(tarfile, builddir, channel, linux_system):
+def ArchiveArtifacts(tarfile, builddir, channel):
   namer = bot_utils.GCSNamer(channel=channel)
   gsutil = bot_utils.GSUtil()
   revision = utils.GetArchiveVersion()
@@ -50,7 +49,7 @@ def ArchiveArtifacts(tarfile, builddir, channel, linux_system):
     # We expect a flat structure, not subdirectories
     assert(os.path.isfile(full_path))
     if full_path != tarfile:
-      package_dir = namer.linux_packages_directory(revision, linux_system)
+      package_dir = namer.linux_packages_directory(revision)
       remote_file = '/'.join([package_dir,
                               os.path.basename(entry)])
       gsutil.upload(full_path, remote_file, public=True)
@@ -108,23 +107,16 @@ def SrcSteps(build_info):
   tarfile = os.path.join(builddir, tarfilename)
 
   with bot.BuildStep('Validating linux system'):
-    print 'Validating that we are on %s' % build_info.builder_tag
+    print 'Validating that we are on debian jessie'
     args = ['cat', '/etc/os-release']
     (stdout, stderr, exitcode) = bot_utils.run(args)
     if exitcode != 0:
       print "Could not find linux system, exiting"
       sys.exit(1)
-
-    if build_info.builder_tag == "debian_wheezy":
-      if not "jessie" in stdout:
-        print "Trying to build debian bits on a non debian system"
-        print "You can't fix this, please contact whesse@"
-        sys.exit(1)
-    if build_info.builder_tag == "ubuntu_precise":
-      if not "precise" in stdout:
-        print "Trying to build ubuntu bits on a non ubuntu system"
-        print "You can't fix this, please contact whesse@"
-        sys.exit(1)
+    if not "jessie" in stdout:
+      print "Trying to build debian bits but not on debian Jessie"
+      print "You can't fix this, please contact whesse@"
+      sys.exit(1)
 
   with bot.BuildStep('Create src tarball'):
     print 'Building src tarball'
@@ -138,7 +130,7 @@ def SrcSteps(build_info):
 
   with bot.BuildStep('Sanity check installation'):
     if os.path.exists('/usr/bin/dart'):
-      print "Dart already installled, removing"
+      print "Dart already installed, removing"
       UninstallDart()
     TestInstallation(assume_installed=False)
 
@@ -154,9 +146,7 @@ def SrcSteps(build_info):
 
     # We currently can't run the testing script on wheezy since the checked in
     # binary is built on precise, see issue 18742
-    if (build_info.builder_tag == 'ubuntu_precise'):
-      Run([sys.executable, './tools/test.py', '-ax64',
-          '--mode=release', 'standalone'])
+    # TODO(18742): Run './tools/test.py' '-mrelease' 'standalone'
 
     # Sanity check dart2js and the analyzer against a hello world program
     with utils.TempDir() as temp_dir:
@@ -175,7 +165,7 @@ def SrcSteps(build_info):
     bot_name, _ = bot.GetBotName()
     channel = bot_utils.GetChannelFromName(bot_name)
     if channel != bot_utils.Channel.BLEEDING_EDGE:
-     ArchiveArtifacts(tarfile, builddir, channel, build_info.builder_tag)
+     ArchiveArtifacts(tarfile, builddir, channel)
     else:
       print 'Not uploading artifacts on bleeding edge'
 

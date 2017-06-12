@@ -5,9 +5,7 @@
 import "cha_deopt1_lib.dart";
 
 class U extends T {
-
   m() => "good horse";
-
 }
 
 make_u() => new U();

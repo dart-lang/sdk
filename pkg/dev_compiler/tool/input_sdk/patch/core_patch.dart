@@ -10,13 +10,14 @@ import 'dart:_js_helper'
         patch,
         checkInt,
         getRuntimeType,
+        getTraceFromException,
         jsonEncodeNative,
         JsLinkedHashMap,
         JSSyntaxRegExp,
-        Primitives,
-        stringJoinUnchecked,
+        NoInline,
         objectHashCode,
-        getTraceFromException;
+        Primitives,
+        stringJoinUnchecked;
 
 import 'dart:_foreign_helper' show JS;
 
@@ -131,6 +132,7 @@ class int {
 
   @patch
   factory int.fromEnvironment(String name, {int defaultValue}) {
+    // ignore: const_constructor_throws_exception
     throw new UnsupportedError(
         'int.fromEnvironment can only be used as a const constructor');
   }
@@ -391,6 +393,7 @@ class String {
 
   @patch
   factory String.fromEnvironment(String name, {String defaultValue}) {
+    // ignore: const_constructor_throws_exception
     throw new UnsupportedError(
         'String.fromEnvironment can only be used as a const constructor');
   }
@@ -445,6 +448,7 @@ class String {
 class bool {
   @patch
   factory bool.fromEnvironment(String name, {bool defaultValue: false}) {
+    // ignore: const_constructor_throws_exception
     throw new UnsupportedError(
         'bool.fromEnvironment can only be used as a const constructor');
   }

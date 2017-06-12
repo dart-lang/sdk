@@ -26,15 +26,15 @@ main() {
     check('button', () => new ButtonElement() is ButtonElement);
     check('canvas', () => new CanvasElement() is CanvasElement);
     check('caption', () => new TableCaptionElement() is TableCaptionElement);
-    check('content',
-        () => new ContentElement() is ContentElement, ContentElement.supported);
+    check('content', () => new ContentElement() is ContentElement,
+        ContentElement.supported);
     check('details', () => new DetailsElement() is DetailsElement,
         DetailsElement.supported);
     check('datalist', () => new DataListElement() is DataListElement,
         DataListElement.supported);
     check('dl', () => new DListElement() is DListElement);
     check('div', () => new DivElement() is DivElement);
-    check('embed',
-        () => new EmbedElement() is EmbedElement, EmbedElement.supported);
+    check('embed', () => new EmbedElement() is EmbedElement,
+        EmbedElement.supported);
   });
 }

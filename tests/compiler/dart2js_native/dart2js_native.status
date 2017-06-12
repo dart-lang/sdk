@@ -43,7 +43,6 @@ fixup_get_tag_test: RuntimeError # Issue 27394
 hash_code_test: RuntimeError # Issue 27394
 is_check_test: CompileTimeError # Issue 27394
 issue9182_test: RuntimeError # Issue 27394
-js_const_test: RuntimeError # Issue 27394
 jsobject_test: RuntimeError # Issue 27394
 load_elim_refinement_test: Crash # Issue 27394
 mirror_intercepted_field_test: Crash # Issue 27394
@@ -121,6 +120,9 @@ subclassing_type_test: RuntimeError # Issue 27394
 super_call_test: RuntimeError # Issue 27394
 super_property_test: RuntimeError # Issue 27394
 uninstantiated_type_parameter_test: RuntimeError # Issue 27394
+
+[ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel ]
+static_methods_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 bound_closure_super_test: Crash # Issue 27394

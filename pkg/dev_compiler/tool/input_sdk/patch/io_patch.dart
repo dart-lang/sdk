@@ -252,8 +252,8 @@ class _Platform {
   }
 
   @patch
-  static _ansiSupported() {
-    throw new UnsupportedError("Platform._ansiSupported");
+  static String _localeName() {
+    throw new UnsupportedError("Platform._localeName");
   }
 }
 
@@ -287,6 +287,19 @@ class _ProcessUtils {
   @patch
   static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
     throw new UnsupportedError("ProcessUtils._watchSignal");
+  }
+}
+
+@patch
+class ProcessInfo {
+  @patch
+  static int get currentRss {
+    throw new UnsupportedError("ProcessInfo.currentRss");
+  }
+
+  @patch
+  static int get maxRss {
+    throw new UnsupportedError("ProcessInfo.maxRss");
   }
 }
 
@@ -424,6 +437,14 @@ class SecureSocket {
   @patch
   factory SecureSocket._(RawSecureSocket rawSocket) {
     throw new UnsupportedError("SecureSocket constructor");
+  }
+}
+
+@patch
+class RawSynchronousSocket {
+  @patch
+  static RawSynchronousSocket connectSync(host, int port) {
+    throw new UnsupportedError("RawSynchronousSocket.connectSync");
   }
 }
 

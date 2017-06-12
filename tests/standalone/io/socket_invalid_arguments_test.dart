@@ -8,25 +8,26 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 class NotAnInteger {
-  operator==(other) => other == 1;
-  operator<(other) => other > 1;
-  operator+(other) => 1;
+  operator ==(other) => other == 1;
+  operator <(other) => other > 1;
+  operator +(other) => 1;
 }
 
 class NotAList {
   get length => 10;
-  operator[](index) => 1;
+  operator [](index) => 1;
 }
 
 testSocketCreation(host, port) {
   asyncStart();
   try {
-    Socket.connect(host, port)
+    Socket
+        .connect(host, port)
         .then((socket) => Expect.fail("Shouldn't get connected"))
         .catchError((e) {
-          Expect.isTrue(e is ArgumentError || e is SocketException);
-          asyncEnd();
-        });
+      Expect.isTrue(e is ArgumentError || e is SocketException);
+      asyncEnd();
+    });
   } catch (e) {
     Expect.isTrue(e is ArgumentError || e is SocketException);
     asyncEnd();
@@ -40,21 +41,18 @@ testAdd(buffer) {
     server.listen((socket) => socket.destroy());
     Socket.connect("127.0.0.1", server.port).then((socket) {
       int errors = 0;
-      socket.done
-        .catchError((e) { errors++; })
-        .then((_) {
-          Expect.equals(1, errors);
-          asyncEnd();
-          server.close();
-        });
-      socket.listen(
-          (_) { },
-          onError: (error) {
-            Expect.fail("Error on stream");
-          },
-          onDone: () {
-            asyncEnd();
-          });
+      socket.done.catchError((e) {
+        errors++;
+      }).then((_) {
+        Expect.equals(1, errors);
+        asyncEnd();
+        server.close();
+      });
+      socket.listen((_) {}, onError: (error) {
+        Expect.fail("Error on stream");
+      }, onDone: () {
+        asyncEnd();
+      });
       socket.add(buffer);
     });
   });
@@ -64,9 +62,9 @@ testServerSocketCreation(address, port, backlog) {
   asyncStart();
   var server;
   try {
-    ServerSocket.bind(address, port, backlog: backlog)
-        .then((_) { Expect.fail("ServerSocket bound"); })
-        .catchError((e) => asyncEnd());
+    ServerSocket.bind(address, port, backlog: backlog).then((_) {
+      Expect.fail("ServerSocket bound");
+    }).catchError((e) => asyncEnd());
   } catch (e) {
     asyncEnd();
   }

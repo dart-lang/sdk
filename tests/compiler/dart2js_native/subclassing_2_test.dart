@@ -22,10 +22,10 @@ class B extends A {
   oof() => 'B';
 }
 
-B makeB() native ;
+B makeB() native;
 
 @Creates('=Object')
-getBPrototype() native ;
+getBPrototype() native;
 
 void setup() native r"""
 function A() {}

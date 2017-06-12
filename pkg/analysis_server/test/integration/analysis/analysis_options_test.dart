@@ -2,23 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OptionsIntegrationTest);
-    defineReflectiveTests(OptionsIntegrationTest_Driver);
   });
 }
 
-class AbstractOptionsIntegrationTest
-    extends AbstractAnalysisServerIntegrationTest {
+@reflectiveTest
+class OptionsIntegrationTest extends AbstractAnalysisServerIntegrationTest {
+  @failingTest
   test_option_warning_newOptionFile() async {
+    // TimeoutException after 0:00:30.000000: Test timed out after 30 seconds
+    // (#28868).
+
+    fail('test timeout expected - #28868');
+
     String options = sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     writeFile(
         options,
@@ -45,7 +50,13 @@ linter:
     expect(error.location.startColumn, 7);
   }
 
+  @failingTest
   test_option_warning_oldOptionFile() async {
+    // TimeoutException after 0:00:30.000000: Test timed out after 30 seconds
+    // (#28868).
+
+    fail('test timeout expected - #28868');
+
     String options = sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
     writeFile(
         options,
@@ -70,30 +81,5 @@ linter:
     expect(error.location.length, 'camel_case_typo'.length);
     expect(error.location.startLine, 3);
     expect(error.location.startColumn, 7);
-  }
-}
-
-@reflectiveTest
-class OptionsIntegrationTest extends AbstractOptionsIntegrationTest {}
-
-@reflectiveTest
-class OptionsIntegrationTest_Driver extends AbstractOptionsIntegrationTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  test_option_warning_newOptionFile() async {
-    // TimeoutException after 0:00:30.000000: Test timed out after 30 seconds
-    // (#28868).
-    //return super.test_option_warning_newOptionFile();
-    fail('Test timed out');
-  }
-
-  @failingTest
-  test_option_warning_oldOptionFile() async {
-    // TimeoutException after 0:00:30.000000: Test timed out after 30 seconds
-    // (#28868).
-    //return super.test_option_warning_oldOptionFile();
-    fail('Test timed out');
   }
 }

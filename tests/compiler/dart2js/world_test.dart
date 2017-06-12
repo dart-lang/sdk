@@ -9,7 +9,8 @@ import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/elements/elements.dart'
-    show Element, ClassElement, LibraryElement;
+    show ClassElement, LibraryElement;
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/world.dart' show ClassQuery, ClosedWorld;
 
@@ -62,10 +63,10 @@ testClassSets() async {
   ClassElement G = env.getElement("G");
   ClassElement X = env.getElement("X");
 
-  void checkClasses(String property, ClassElement cls,
-      Iterable<ClassElement> foundClasses, List<ClassElement> expectedClasses,
+  void checkClasses(String property, ClassEntity cls,
+      Iterable<ClassEntity> foundClasses, List<ClassEntity> expectedClasses,
       {bool exact: true}) {
-    for (ClassElement expectedClass in expectedClasses) {
+    for (ClassEntity expectedClass in expectedClasses) {
       Expect.isTrue(
           foundClasses.contains(expectedClass),
           "Expect $expectedClass in '$property' on $cls. "
@@ -83,16 +84,16 @@ testClassSets() async {
     }
   }
 
-  void check(String property, ClassElement cls,
-      Iterable<ClassElement> foundClasses, List<ClassElement> expectedClasses,
+  void check(String property, ClassEntity cls,
+      Iterable<ClassEntity> foundClasses, List<ClassEntity> expectedClasses,
       {bool exact: true,
-      void forEach(ClassElement cls, ForEachFunction f),
-      int getCount(ClassElement cls)}) {
+      void forEach(ClassEntity cls, ForEachFunction f),
+      int getCount(ClassEntity cls)}) {
     checkClasses(property, cls, foundClasses, expectedClasses, exact: exact);
 
     if (forEach != null) {
-      List<ClassElement> visited = <ClassElement>[];
-      forEach(cls, (ClassElement c) {
+      List<ClassEntity> visited = <ClassEntity>[];
+      forEach(cls, (ClassEntity c) {
         visited.add(c);
       });
       checkClasses('forEach($property)', cls, visited, expectedClasses,
@@ -109,14 +110,13 @@ testClassSets() async {
     }
   }
 
-  void testSubclasses(ClassElement cls, List<ClassElement> expectedClasses,
+  void testSubclasses(ClassEntity cls, List<ClassEntity> expectedClasses,
       {bool exact: true}) {
     check('subclassesOf', cls, closedWorld.subclassesOf(cls), expectedClasses,
         exact: exact);
   }
 
-  void testStrictSubclasses(
-      ClassElement cls, List<ClassElement> expectedClasses,
+  void testStrictSubclasses(ClassEntity cls, List<ClassEntity> expectedClasses,
       {bool exact: true}) {
     check('strictSubclassesOf', cls, closedWorld.strictSubclassesOf(cls),
         expectedClasses,
@@ -125,7 +125,7 @@ testClassSets() async {
         getCount: closedWorld.strictSubclassCount);
   }
 
-  void testStrictSubtypes(ClassElement cls, List<ClassElement> expectedClasses,
+  void testStrictSubtypes(ClassEntity cls, List<ClassEntity> expectedClasses,
       {bool exact: true}) {
     check('strictSubtypesOf', cls, closedWorld.strictSubtypesOf(cls),
         expectedClasses,
@@ -134,7 +134,7 @@ testClassSets() async {
         getCount: closedWorld.strictSubtypeCount);
   }
 
-  void testMixinUses(ClassElement cls, List<ClassElement> expectedClasses,
+  void testMixinUses(ClassEntity cls, List<ClassEntity> expectedClasses,
       {bool exact: true}) {
     check('mixinUsesOf', cls, closedWorld.mixinUsesOf(cls), expectedClasses,
         exact: exact);
@@ -243,7 +243,7 @@ testProperties() async {
   ClosedWorld closedWorld = env.closedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
-    ClassElement cls = env.getElement(name);
+    ClassEntity cls = env.getElement(name);
     Expect.equals(hasStrictSubtype, closedWorld.hasAnyStrictSubtype(cls),
         "Unexpected hasAnyStrictSubtype property on $cls.");
     Expect.equals(hasOnlySubclasses, closedWorld.hasOnlySubclasses(cls),
@@ -331,7 +331,7 @@ testNativeClasses() async {
   ClassElement clsCanvasRenderingContext2D =
       dart_html.findExported('CanvasRenderingContext2D');
 
-  List<ClassElement> allClasses = [
+  List<ClassEntity> allClasses = [
     clsEventTarget,
     clsWindow,
     clsAbstractWorker,
@@ -341,18 +341,18 @@ testNativeClasses() async {
     clsCanvasRenderingContext2D
   ];
 
-  check(ClassElement cls,
+  check(ClassEntity cls,
       {bool isDirectlyInstantiated,
       bool isAbstractlyInstantiated,
       bool isIndirectlyInstantiated,
       bool hasStrictSubtype,
       bool hasOnlySubclasses,
-      ClassElement lubOfInstantiatedSubclasses,
-      ClassElement lubOfInstantiatedSubtypes,
+      ClassEntity lubOfInstantiatedSubclasses,
+      ClassEntity lubOfInstantiatedSubtypes,
       int instantiatedSubclassCount,
       int instantiatedSubtypeCount,
-      List<ClassElement> subclasses: const <ClassElement>[],
-      List<ClassElement> subtypes: const <ClassElement>[]}) {
+      List<ClassEntity> subclasses: const <ClassEntity>[],
+      List<ClassEntity> subtypes: const <ClassEntity>[]}) {
     ClassSet classSet = closedWorld.getClassSet(cls);
     ClassHierarchyNode node = classSet.node;
 
@@ -390,7 +390,7 @@ testNativeClasses() async {
       Expect.equals(instantiatedSubtypeCount, classSet.instantiatedSubtypeCount,
           "Unexpected instantiatedSubtypeCount property on $cls.$dumpText");
     }
-    for (ClassElement other in allClasses) {
+    for (ClassEntity other in allClasses) {
       if (other == cls) continue;
       if (!closedWorld.isExplicitlyInstantiated(other)) continue;
       Expect.equals(
@@ -403,8 +403,8 @@ testNativeClasses() async {
           "Unexpected subtype relation between $other and $cls.");
     }
 
-    Set<ClassElement> strictSubclasses = new Set<ClassElement>();
-    closedWorld.forEachStrictSubclassOf(cls, (ClassElement other) {
+    Set<ClassEntity> strictSubclasses = new Set<ClassEntity>();
+    closedWorld.forEachStrictSubclassOf(cls, (ClassEntity other) {
       if (allClasses.contains(other)) {
         strictSubclasses.add(other);
       }
@@ -412,8 +412,8 @@ testNativeClasses() async {
     Expect.setEquals(subclasses, strictSubclasses,
         "Unexpected strict subclasses of $cls: ${strictSubclasses}.");
 
-    Set<ClassElement> strictSubtypes = new Set<ClassElement>();
-    closedWorld.forEachStrictSubtypeOf(cls, (ClassElement other) {
+    Set<ClassEntity> strictSubtypes = new Set<ClassEntity>();
+    closedWorld.forEachStrictSubtypeOf(cls, (ClassEntity other) {
       if (allClasses.contains(other)) {
         strictSubtypes.add(other);
       }
@@ -552,11 +552,11 @@ testCommonSubclasses() async {
   ClassElement I = env.getElement("I");
   ClassElement J = env.getElement("J");
 
-  void check(ClassElement cls1, ClassQuery query1, ClassElement cls2,
-      ClassQuery query2, List<ClassElement> expectedResult) {
-    Iterable<ClassElement> result1 =
+  void check(ClassEntity cls1, ClassQuery query1, ClassEntity cls2,
+      ClassQuery query2, List<ClassEntity> expectedResult) {
+    Iterable<ClassEntity> result1 =
         closedWorld.commonSubclasses(cls1, query1, cls2, query2);
-    Iterable<ClassElement> result2 =
+    Iterable<ClassEntity> result2 =
         closedWorld.commonSubclasses(cls2, query2, cls1, query1);
     Expect.setEquals(
         result1,

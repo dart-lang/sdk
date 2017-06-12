@@ -11,7 +11,9 @@ import 'package:expect/expect.dart';
 import 'generics_helper.dart';
 
 class SuperSuper<SS> {}
+
 class Super<S> extends SuperSuper<S> {}
+
 class Generic<G> extends Super<G> {}
 
 main() {
@@ -22,7 +24,8 @@ main() {
 
   TypeVariableMirror gFromGeneric = generic.typeVariables.single;
   TypeVariableMirror sFromSuper = superOfGeneric.typeVariables.single;
-  TypeVariableMirror ssFromSuperSuper = superOfSuperOfGeneric.typeVariables.single;
+  TypeVariableMirror ssFromSuperSuper =
+      superOfSuperOfGeneric.typeVariables.single;
 
   Expect.equals(#G, gFromGeneric.simpleName);
   Expect.equals(#S, sFromSuper.simpleName);
@@ -35,7 +38,6 @@ main() {
   typeArguments(generic, []);
   typeArguments(superOfGeneric, [gFromGeneric]);
   typeArguments(superOfSuperOfGeneric, [gFromGeneric]);
-
 
   // Instantiations.
   ClassMirror genericWithInt = reflect(new Generic<int>()).type;

@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring.extract_method;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,7 +16,6 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodTest);
-    defineReflectiveTests(ExtractMethodTest_Driver);
   });
 }
 
@@ -897,7 +894,7 @@ main(int k) {
     await indexTestUnit('''
 var X = 1;
 
-var Y = () {
+dynamic Y = () {
   return 1 + X;
 };
 ''');
@@ -906,11 +903,11 @@ var Y = () {
     return _assertSuccessfulRefactoring('''
 var X = 1;
 
-var Y = () {
+dynamic Y = () {
   return res();
 };
 
-num res() => 1 + X;
+int res() => 1 + X;
 ''');
   }
 
@@ -2842,10 +2839,4 @@ Future<int> newFuture() => null;
       return new RefactoringMethodParameter(p.kind, p.type, p.name, id: p.id);
     }).toList();
   }
-}
-
-@reflectiveTest
-class ExtractMethodTest_Driver extends ExtractMethodTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

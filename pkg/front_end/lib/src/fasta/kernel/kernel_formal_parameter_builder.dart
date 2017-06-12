@@ -4,7 +4,8 @@
 
 library fasta.kernel_formal_parameter_builder;
 
-import 'package:kernel/ast.dart' show DynamicType, VariableDeclaration;
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
+    show KernelVariableDeclaration;
 
 import 'kernel_builder.dart'
     show
@@ -16,7 +17,7 @@ import 'kernel_builder.dart'
 
 class KernelFormalParameterBuilder
     extends FormalParameterBuilder<KernelTypeBuilder> {
-  VariableDeclaration declaration;
+  KernelVariableDeclaration declaration;
   final int charOffset;
 
   KernelFormalParameterBuilder(
@@ -30,12 +31,11 @@ class KernelFormalParameterBuilder
       : super(metadata, modifiers, type, name, hasThis, compilationUnit,
             charOffset);
 
-  VariableDeclaration build(LibraryBuilder library) {
-    return declaration ??= new VariableDeclaration(name,
-        type: type?.build(library) ?? const DynamicType(),
-        isFinal: isFinal,
-        isConst: isConst)..fileOffset = charOffset;
-  }
+  KernelVariableDeclaration get target => declaration;
 
-  VariableDeclaration get target => declaration;
+  KernelVariableDeclaration build(LibraryBuilder library) {
+    return declaration ??= new KernelVariableDeclaration(name, 0,
+        type: type?.build(library), isFinal: isFinal, isConst: isConst)
+      ..fileOffset = charOffset;
+  }
 }

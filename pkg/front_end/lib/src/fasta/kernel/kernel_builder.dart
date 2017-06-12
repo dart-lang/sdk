@@ -24,9 +24,6 @@ export 'kernel_library_builder.dart' show KernelLibraryBuilder;
 export 'kernel_mixin_application_builder.dart'
     show KernelMixinApplicationBuilder;
 
-export 'kernel_named_mixin_application_builder.dart'
-    show KernelNamedMixinApplicationBuilder;
-
 export 'kernel_procedure_builder.dart'
     show
         KernelConstructorBuilder,
@@ -48,12 +45,15 @@ import 'package:kernel/text/ast_to_text.dart' show Printer;
 import 'package:kernel/ast.dart'
     show
         Class,
+        Constructor,
         DartType,
         DynamicType,
         Field,
+        Initializer,
         Library,
         Member,
         Procedure,
+        RedirectingInitializer,
         TypeParameter;
 
 import '../errors.dart' show inputError;
@@ -105,4 +105,16 @@ dynamic memberError(Member member, Object error, [int charOffset]) {
   }
   name = (cls == null ? "" : "${cls.name}::") + name;
   return inputError(uri, charOffset, "Error in $name: $error");
+}
+
+int compareProcedures(Procedure a, Procedure b) {
+  int i = a.fileUri.compareTo(b.fileUri);
+  if (i != 0) return i;
+  return a.fileOffset.compareTo(b.fileOffset);
+}
+
+bool isRedirectingGenerativeConstructorImplementation(Constructor constructor) {
+  List<Initializer> initializers = constructor.initializers;
+  return initializers.length == 1 &&
+      initializers.single is RedirectingInitializer;
 }

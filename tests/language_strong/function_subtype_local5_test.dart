@@ -33,7 +33,7 @@ class C<T> {
   }
 }
 
-class D<S,T> extends C<T> {}
+class D<S, T> extends C<T> {}
 
 main() {
   new D<String, bool>().test('bool', true);

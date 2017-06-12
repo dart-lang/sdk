@@ -8,7 +8,6 @@ part of touch;
  * Represents a point in 2 dimensional space.
  */
 class Coordinate {
-
   /**
    * X-value
    */
@@ -19,8 +18,7 @@ class Coordinate {
    */
   num y;
 
-  Coordinate([num this.x = 0, num this.y = 0]) {
-  }
+  Coordinate([num this.x = 0, num this.y = 0]) {}
 
   /**
    * Gets the coordinates of a touch's location relative to the window's
@@ -66,7 +64,6 @@ class Coordinate {
  * Represents the interval { x | start <= x < end }.
  */
 class Interval {
-
   final num start;
   final num end;
 
@@ -83,8 +80,7 @@ class Interval {
   int get hashCode => throw new UnimplementedError();
 
   Interval union(Interval other) {
-    return new Interval(Math.min(start, other.start),
-                        Math.max(end, other.end));
+    return new Interval(Math.min(start, other.start), Math.max(end, other.end));
   }
 
   bool contains(num value) {

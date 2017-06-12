@@ -14,8 +14,7 @@ class GetName {
 String getName(im) => reflect(new GetName()).delegate(im);
 
 class NoSuchMethodTest {
-
-  foo({a : 10, b : 20}) {
+  foo({a: 10, b: 20}) {
     return (10 * a) + b;
   }
 
@@ -23,12 +22,12 @@ class NoSuchMethodTest {
     Expect.equals("moo", getName(im));
     Expect.equals(0, im.positionalArguments.length);
     Expect.equals(1, im.namedArguments.length);
-    return foo(b:im.namedArguments[const Symbol("b")]);
+    return foo(b: im.namedArguments[const Symbol("b")]);
   }
 
   static testMain() {
     var obj = new NoSuchMethodTest();
-    Expect.equals(199, obj.moo(b:99));  // obj.NoSuchMethod called here.
+    Expect.equals(199, obj.moo(b: 99)); // obj.NoSuchMethod called here.
   }
 }
 

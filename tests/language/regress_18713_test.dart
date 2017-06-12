@@ -16,7 +16,8 @@ class S<Y> {
 
 class TS<A, B> = T<A> with S<B>;
 
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 dyn(x) => x;
 
 main() {

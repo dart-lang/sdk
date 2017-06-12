@@ -10,10 +10,14 @@ class ImplicitScopeTest {
   static bool alwaysTrue() {
     return 1 + 1 == 2;
   }
+
   static testMain() {
     var a = "foo";
     var b;
-    if (alwaysTrue()) var a = "bar"; else var b = a;
+    if (alwaysTrue())
+      var a = "bar";
+    else
+      var b = a;
     Expect.equals("foo", a);
     Expect.equals(null, b);
 
@@ -25,7 +29,7 @@ class ImplicitScopeTest {
     Expect.equals("foo", a);
     Expect.equals(null, b);
 
-    do var a = "bar", b = "baz"; while("black" == "white");
+    do var a = "bar", b = "baz"; while ("black" == "white");
     Expect.equals("foo", a);
     Expect.equals(null, b);
   }

@@ -18,7 +18,7 @@ main() {
 
   // However, it is not allowed as a part of a symbol name.
   x = const Symbol('void.foo'); // //# 04: compile-time error
-  x = #void.foo; //                //# 05: static type warning
+  Expect.throws(() { x = #void.foo; }, (e) => e is NoSuchMethodError); //# 05: static type warning
   checkBadSymbol('void.foo'); //   //# 06: ok
   x = const Symbol('foo.void'); // //# 07: compile-time error
   x = #foo.void; //                //# 08: compile-time error

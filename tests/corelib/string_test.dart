@@ -36,7 +36,7 @@ void testOutOfRange() {
   String a = "Hello";
   bool exception_caught = false;
   try {
-    var c = a[20];  // Throw exception.
+    var c = a[20]; // Throw exception.
   } on RangeError catch (e) {
     exception_caught = true;
   }
@@ -47,11 +47,12 @@ void testIllegalArgument() {
   String a = "Hello";
   bool exception_caught = false;
   try {
-    var c = a[2.2];  // Throw exception.
+    var c = a[2.2]; // Throw exception.
     Expect.fail("Accepting double as index");
   } on ArgumentError catch (e) {
     exception_caught = true;
-  } on TypeError catch (e) {  // Thrown in checked mode only.
+  } on TypeError catch (e) {
+    // Thrown in checked mode only.
     exception_caught = true;
   }
   Expect.isTrue(exception_caught);
@@ -186,7 +187,7 @@ void testStartsWith() {
   Expect.isTrue("strstr".startsWith(regexp, 0));
   Expect.isFalse("strstr".startsWith(regexp, 1));
   Expect.isFalse("strstr".startsWith(regexp, 2));
-  Expect.isFalse("strstr".startsWith(regexp, 3));  // Second "str" isn't at ^.
+  Expect.isFalse("strstr".startsWith(regexp, 3)); // Second "str" isn't at ^.
 }
 
 void testIndexOf() {
@@ -268,7 +269,7 @@ void testLastIndexOf() {
   Expect.equals(3, "strstr".lastIndexOf("s", 5));
   Expect.equals(5, "strstr".lastIndexOf("r", 5));
   Expect.throws(() {
-      "str".lastIndexOf("string", 5);
+    "str".lastIndexOf("string", 5);
   });
   Expect.equals(4, "strstr".lastIndexOf("t", 5));
   Expect.equals(4, "strstr".lastIndexOf("tr", 5));
@@ -327,12 +328,10 @@ void testContains() {
 }
 
 void testReplaceAll() {
-  Expect.equals(
-      "AtoBtoCDtoE", "AfromBfromCDfromE".replaceAll("from", "to"));
+  Expect.equals("AtoBtoCDtoE", "AfromBfromCDfromE".replaceAll("from", "to"));
 
-  // Test with the replaced string at the begining.
-  Expect.equals(
-      "toABtoCDtoE", "fromABfromCDfromE".replaceAll("from", "to"));
+  // Test with the replaced string at the beginning.
+  Expect.equals("toABtoCDtoE", "fromABfromCDfromE".replaceAll("from", "to"));
 
   // Test with the replaced string at the end.
   Expect.equals(
@@ -382,6 +381,7 @@ void testCharCodes() {
       Expect.equals(str.codeUnitAt(i), list[i]);
     }
   }
+
   test("abc");
   test("");
   test(" ");
@@ -443,9 +443,9 @@ void testRepeat() {
       expect = buf.toString();
     }
     String actual = str * repeat;
-    Expect.equals(expect, actual,
-                  "$str#${str.length} * $repeat");
+    Expect.equals(expect, actual, "$str#${str.length} * $repeat");
   }
+
   for (String str in testStrings) {
     for (int repeat in counts) {
       testRepeat(str, repeat);

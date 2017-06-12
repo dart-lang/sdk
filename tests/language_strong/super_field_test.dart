@@ -13,9 +13,10 @@ class A {
   String greeting() {
     return "Gruezi";
   }
-  @virtual String city;
-}
 
+  @virtual
+  String city;
+}
 
 class B extends A {
   B() : super() {}
@@ -24,17 +25,16 @@ class B extends A {
   }
 }
 
-
 class C extends B {
   C() : super() {}
   String greeting() {
     return "Servus " + super.greeting();
   }
+
   String get city {
     return "Basel " + super.city;
   }
 }
-
 
 class SuperFieldTest {
   static testMain() {

@@ -304,7 +304,8 @@ class DartLoader implements ReferenceLevelLoader {
     _classes[element] = classNode = new ast.Class(
         name: element.name,
         isAbstract: element.isAbstract,
-        fileUri: '${element.source.uri}')..fileOffset = element.nameOffset;
+        fileUri: '${element.source.uri}')
+      ..fileOffset = element.nameOffset;
     classNode.level = ast.ClassLevel.Temporary;
     var library = getLibraryReference(element.library);
     library.addClass(classNode);
@@ -372,7 +373,8 @@ class DartLoader implements ReferenceLevelLoader {
               typeParameters: freshParameters.freshTypeParameters,
               supertype: freshParameters.substituteSuper(supertype),
               mixedInType: freshParameters.substituteSuper(mixinType),
-              fileUri: classNode.fileUri)..fileOffset = element.nameOffset;
+              fileUri: classNode.fileUri)
+            ..fileOffset = element.nameOffset;
           mixinClass.level = ast.ClassLevel.Type;
           addMixinClassToLibrary(mixinClass, classNode.enclosingLibrary);
           supertype = new ast.Supertype(mixinClass,
@@ -524,7 +526,8 @@ class DartLoader implements ReferenceLevelLoader {
         return new ast.Constructor(scope.buildFunctionInterface(constructor),
             name: _nameOfMember(element),
             isConst: constructor.isConst,
-            isExternal: constructor.isExternal)
+            isExternal: constructor.isExternal,
+            isSyntheticDefault: constructor.isSynthetic)
           ..fileOffset = element.nameOffset;
 
       case ElementKind.FIELD:
@@ -535,7 +538,8 @@ class DartLoader implements ReferenceLevelLoader {
             isFinal: variable.isFinal,
             isConst: variable.isConst,
             type: scope.buildType(variable.type),
-            fileUri: '${element.source.uri}')..fileOffset = element.nameOffset;
+            fileUri: '${element.source.uri}')
+          ..fileOffset = element.nameOffset;
 
       case ElementKind.METHOD:
       case ElementKind.GETTER:
@@ -554,7 +558,8 @@ class DartLoader implements ReferenceLevelLoader {
             isAbstract: executable.isAbstract,
             isStatic: executable.isStatic,
             isExternal: executable.isExternal,
-            fileUri: '${element.source.uri}')..fileOffset = element.nameOffset;
+            fileUri: '${element.source.uri}')
+          ..fileOffset = element.nameOffset;
 
       default:
         throw 'Unexpected member kind: $element';
@@ -697,6 +702,20 @@ class DartLoader implements ReferenceLevelLoader {
       units.add(context.resolveCompilationUnit(source, element));
       if (reportErrors) _processErrors(source);
     }
+    for (var import in element.imports) {
+      if (import.isDeferred && import.prefix != null) {
+        node.addDependency(new ast.LibraryDependency.deferredImport(
+            getLibraryReference(import.importedLibrary), import.prefix.name));
+      } else {
+        node.addDependency(new ast.LibraryDependency.import(
+            getLibraryReference(import.importedLibrary),
+            name: import.prefix?.name));
+      }
+    }
+    for (var export in element.exports) {
+      node.addDependency(new ast.LibraryDependency.export(
+          getLibraryReference(export.exportedLibrary)));
+    }
     _buildLibraryBody(element, node, units);
   }
 
@@ -811,7 +830,8 @@ class DartLoader implements ReferenceLevelLoader {
         ast.ProcedureKind.Method,
         new ast.FunctionNode(new ast.ExpressionStatement(new ast.Throw(
             new ast.StringLiteral('Program has no main method')))),
-        isStatic: true)..fileUri = library.fileUri;
+        isStatic: true)
+      ..fileUri = library.fileUri;
     library.addMember(main);
     return main;
   }

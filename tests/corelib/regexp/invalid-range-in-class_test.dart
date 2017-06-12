@@ -26,9 +26,7 @@ import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  description(
-  "This page tests invalid character ranges in character classes."
-  );
+  description("This page tests invalid character ranges in character classes.");
 
   // These test a basic range / non range.
   shouldBe(new RegExp(r"[a-c]+").firstMatch("-acbd"), ["acb"]);

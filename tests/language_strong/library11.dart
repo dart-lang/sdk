@@ -11,10 +11,12 @@ class Library11 {
   func() {
     return 3;
   }
+
   var fld;
   static static_func() {
     return 2;
   }
+
   static var static_fld = 1;
 }
 
@@ -22,7 +24,6 @@ class Library111<T> {
   Library111.namedConstructor(T this.fld);
   T fld;
 }
-
 
 const int top_level11 = 100;
 top_level_func11() {

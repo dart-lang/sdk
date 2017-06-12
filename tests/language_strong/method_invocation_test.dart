@@ -15,7 +15,9 @@ class A {
 }
 
 class B {
-  get f { throw 123; }
+  get f {
+    throw 123;
+  }
 }
 
 class MethodInvocationTest {

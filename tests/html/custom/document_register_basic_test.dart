@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library document_register_basic_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -32,8 +33,7 @@ class Baz extends Foo {
   get thisIsAlsoACustomClass => true;
 }
 
-class BadB {
-}
+class BadB {}
 
 abstract class BadC extends HtmlElement {
   BadC.created() : super.created();

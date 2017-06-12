@@ -8,7 +8,7 @@ class A {
 }
 
 class B extends A {
-  foo() {}  // method cannot override field.
+  foo() {} // method cannot override field.
 }
 
 class OverrideFieldMethod1NegativeTest {

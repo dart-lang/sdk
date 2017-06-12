@@ -272,7 +272,7 @@ class Place : public ValueObject {
   //
   //    - for places that depend on an instance X.f, X.@offs, X[i], X[C]
   //      we drop X if X is not an allocation because in this case X does not
-  //      posess an identity obtaining aliases *.f, *.@offs, *[i] and *[C]
+  //      possess an identity obtaining aliases *.f, *.@offs, *[i] and *[C]
   //      respectively;
   //    - for non-constant indexed places X[i] we drop information about the
   //      index obtaining alias X[*].
@@ -2402,6 +2402,9 @@ bool DominatorBasedCSE::OptimizeRecursive(FlowGraph* graph,
 
   // Process children in the dominator tree recursively.
   intptr_t num_children = block->dominated_blocks().length();
+  if (num_children != 0) {
+    graph->thread()->CheckForSafepoint();
+  }
   for (intptr_t i = 0; i < num_children; ++i) {
     BlockEntryInstr* child = block->dominated_blocks()[i];
     if (i < num_children - 1) {
@@ -2835,7 +2838,7 @@ void AllocationSinking::RemoveUnusedMaterializations() {
     if ((mat->input_use_list() == NULL) && (mat->env_use_list() == NULL)) {
       // Check if this materialization failed to compute and remove any
       // unforwarded loads. There were no loads from any allocation sinking
-      // candidate in the beggining so it is safe to assume that any encountered
+      // candidate in the beginning so it is safe to assume that any encountered
       // load was inserted by CreateMaterializationAt.
       for (intptr_t i = 0; i < mat->InputCount(); i++) {
         LoadFieldInstr* load = mat->InputAt(i)->definition()->AsLoadField();

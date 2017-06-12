@@ -30,7 +30,6 @@ f1() {
   return [a, b, c, d];
 }
 
-
 f2() {
   var a = 0;
   var b = 0;
@@ -55,7 +54,6 @@ f2() {
   }
   return [a, b, c, d];
 }
-
 
 f3() {
   var a = 0;
@@ -82,7 +80,6 @@ f3() {
   }
   return [a, b, c, d];
 }
-
 
 main() {
   Expect.listEquals([450, -450, 10, 100], f1());

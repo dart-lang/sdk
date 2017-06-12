@@ -7,8 +7,8 @@ library jsinterop.world_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
-import 'package:compiler/src/elements/elements.dart'
-    show ClassElement, PublicName;
+import 'package:compiler/src/elements/elements.dart' show ClassElement;
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/world.dart';
@@ -34,7 +34,7 @@ class A {
   external A(var foo);
 }
 
-@JS()
+@JS('BClass')
 class B {
   get foo;
 
@@ -94,9 +94,9 @@ $mainSource
     ClassElement Object_ =
         registerClass(env.compiler.commonElements.objectClass);
     ClassElement Interceptor =
-        registerClass(backend.helpers.jsInterceptorClass);
+        registerClass(env.compiler.commonElements.jsInterceptorClass);
     ClassElement JavaScriptObject =
-        registerClass(backend.helpers.jsJavaScriptObjectClass);
+        registerClass(env.compiler.commonElements.jsJavaScriptObjectClass);
     ClassElement A = registerClass(env.getElement('A'));
     ClassElement B = registerClass(env.getElement('B'));
     ClassElement C = registerClass(env.getElement('C'));
@@ -115,6 +115,27 @@ $mainSource
     Expect.equals(D.superclass, JavaScriptObject);
     Expect.equals(E.superclass, Object_);
     Expect.equals(F.superclass, Object_);
+
+    Expect.isFalse(world.nativeData.isJsInteropClass(Object_));
+    Expect.isTrue(world.nativeData.isJsInteropClass(A));
+    Expect.isTrue(world.nativeData.isJsInteropClass(B));
+    Expect.isTrue(world.nativeData.isJsInteropClass(C));
+    Expect.isTrue(world.nativeData.isJsInteropClass(D));
+    Expect.isFalse(world.nativeData.isJsInteropClass(E));
+    Expect.isFalse(world.nativeData.isJsInteropClass(F));
+
+    Expect.isFalse(world.nativeData.isAnonymousJsInteropClass(Object_));
+    Expect.isFalse(world.nativeData.isAnonymousJsInteropClass(A));
+    Expect.isFalse(world.nativeData.isAnonymousJsInteropClass(B));
+    Expect.isTrue(world.nativeData.isAnonymousJsInteropClass(C));
+    Expect.isTrue(world.nativeData.isAnonymousJsInteropClass(D));
+    Expect.isFalse(world.nativeData.isAnonymousJsInteropClass(E));
+    Expect.isFalse(world.nativeData.isAnonymousJsInteropClass(F));
+
+    Expect.equals('', world.nativeData.getJsInteropClassName(A));
+    Expect.equals('BClass', world.nativeData.getJsInteropClassName(B));
+    Expect.equals('', world.nativeData.getJsInteropClassName(C));
+    Expect.equals('', world.nativeData.getJsInteropClassName(D));
 
     for (String name in classEnvironment.keys) {
       ClassElement cls = classEnvironment[name];

@@ -871,8 +871,8 @@ abstract class Stream<T> {
    * In case of a `done` event the future completes with the given
    * [futureValue].
    */
-  Future<E> drain<E>([E futureValue]) => listen(null, cancelOnError: true)
-      .asFuture<E>(futureValue);
+  Future<E> drain<E>([E futureValue]) =>
+      listen(null, cancelOnError: true).asFuture<E>(futureValue);
 
   /**
    * Provides at most the first [count] data events of this stream.
@@ -952,9 +952,16 @@ abstract class Stream<T> {
    *
    * The returned stream provides the same events as this stream, except
    * that it never provides two consecutive data events that are equal.
+   * That is, errors are passed through to the returned stream, and
+   * data events are passed through if they are distinct from the most
+   * recently emitted data event.
    *
    * Equality is determined by the provided [equals] method. If that is
    * omitted, the '==' operator on the last provided data element is used.
+   *
+   * If [equals] throws, the data event is replaced by an error event
+   * containing the thrown error. The behavior is equivalent to the
+   * original stream emitting the error event.
    *
    * The returned stream is a broadcast stream if this stream is.
    * If a broadcast stream is listened to more than once, each subscription
@@ -1315,8 +1322,7 @@ abstract class Stream<T> {
         // should be inferred.
         var registeredOnTimeout =
             zone.registerUnaryCallback<dynamic, EventSink<T>>(onTimeout);
-        _ControllerEventSinkWrapper wrapper =
-            new _ControllerEventSinkWrapper(null);
+        var wrapper = new _ControllerEventSinkWrapper<T>(null);
         timeout = () {
           wrapper._sink = controller; // Only valid during call.
           zone.runUnaryGuarded(registeredOnTimeout, wrapper);
@@ -1463,16 +1469,37 @@ abstract class StreamSubscription<T> {
 }
 
 /**
- * An interface that abstracts creation or handling of [Stream] events.
+ * A [Sink] that supports adding errors.
+ *
+ * This makes it suitable for capturing the results of asynchronous
+ * computations, which can complete with a value or an error.
+ *
+ * The [EventSink] has been designed to handle asynchronous events from
+ * [Stream]s. See, for example, [Stream.eventTransformed] which uses
+ * `EventSink`s to transform events.
  */
 abstract class EventSink<T> implements Sink<T> {
-  /** Send a data event to a stream. */
+  /**
+   * Adds a data [event] to the sink.
+   *
+   * Must not be called on a closed sink.
+   */
   void add(T event);
 
-  /** Send an async error to a stream. */
-  void addError(Object errorEvent, [StackTrace stackTrace]);
+  /**
+   * Adds an [error] to the sink.
+   *
+   * Must not be called on a closed sink.
+   */
+  void addError(Object error, [StackTrace stackTrace]);
 
-  /** Close the sink. No further events can be added after closing. */
+  /**
+   * Closes the sink.
+   *
+   * Calling this method more than once is allowed, but does nothing.
+   *
+   * Neither [add] nor [addError] must be called after this method.
+   */
   void close();
 }
 
@@ -1504,10 +1531,6 @@ class StreamView<T> extends Stream<T> {
  * A consumer can accept a number of consecutive streams using [addStream],
  * and when no further data need to be added, the [close] method tells the
  * consumer to complete its work and shut down.
- *
- * This class is not just a [Sink<Stream>] because it is also combined with
- * other [Sink] classes, like it's combined with [EventSink] in the
- * [StreamSink] class.
  *
  * The [Stream.pipe] accepts a `StreamConsumer` and will pass the stream
  * to the consumer's [addStream] method. When that completes, it will
@@ -1550,8 +1573,7 @@ abstract class StreamConsumer<S> {
 /**
  * A object that accepts stream events both synchronously and asynchronously.
  *
- * A [StreamSink] unifies the asynchronous methods from [StreamConsumer] and
- * the synchronous methods from [EventSink].
+ * A [StreamSink] combines the methods from [StreamConsumer] and [EventSink].
  *
  * The [EventSink] methods can't be used while the [addStream] is called.
  * As soon as the [addStream]'s [Future] completes with a value, the
@@ -1606,79 +1628,92 @@ abstract class StreamSink<S> implements EventSink<S>, StreamConsumer<S> {
 }
 
 /**
- * The target of a [Stream.transform] call.
+ * Transforms a Stream.
  *
- * The [Stream.transform] call will pass itself to this object and then return
- * the resulting stream.
+ * When a stream's [Stream.transform] method is invoked with a
+ * [StreamTransformer], the stream calls the [bind] method on the provided
+ * transformer. The resulting stream is then returned from the
+ * [Stream.transform] method.
+ *
+ * Conceptually, a transformer is simply a function from [Stream] to [Stream]
+ * that is encapsulated into a class.
  *
  * It is good practice to write transformers that can be used multiple times.
+ *
+ * All other transforming methods on [Stream], such as [Stream.map],
+ * [Stream.where] or [Stream.expand] can be implemented using
+ * [Stream.transform]. A [StreamTransformer] is thus very powerful but often
+ * also a bit more complicated to use.
  */
 abstract class StreamTransformer<S, T> {
   /**
-   * Creates a [StreamTransformer].
+   * Creates a [StreamTransformer] based on the given [onListen] callback.
    *
-   * The returned instance takes responsibility of implementing ([bind]).
-   * When the user invokes `bind` it returns a new "bound" stream. Only when
-   * the user starts listening to the bound stream, the `listen` method
-   * invokes the given closure [transformer].
+   * The returned stream transformer uses the provided [onListen] callback
+   * when a transformed stream is listened to. At that time, the callback
+   * receives the input stream (the one passed to [bind]) and a
+   * boolean flag `cancelOnError` to create a [StreamSubscription].
    *
-   * The [transformer] closure receives the stream, that was bound, as argument
-   * and returns a [StreamSubscription]. In almost all cases the closure
-   * listens itself to the stream that is given as argument.
+   * The [onListen] callback does *not* receive the handlers that were passed
+   * to [Stream.listen]. These are automatically set after the call to the
+   * [onListen] callback (using [StreamSubscription.onData],
+   * [StreamSubscription.onError] and [StreamSubscription.onDone]).
    *
-   * The result of invoking the [transformer] closure is a [StreamSubscription].
-   * The bound stream-transformer (created by the `bind` method above) then sets
-   * the handlers it received as part of the `listen` call.
-   *
-   * Conceptually this can be summarized as follows:
-   *
-   * 1. `var transformer = new StreamTransformer(transformerClosure);`
-   *   creates a `StreamTransformer` that supports the `bind` method.
-   * 2. `var boundStream = stream.transform(transformer);` binds the `stream`
-   *   and returns a bound stream that has a pointer to `stream`.
-   * 3. `boundStream.listen(f1, onError: f2, onDone: f3, cancelOnError: b)`
-   *   starts the listening and transformation. This is accomplished
-   *   in 2 steps: first the `boundStream` invokes the `transformerClosure` with
-   *   the `stream` it captured: `transformerClosure(stream, b)`.
-   *   The result `subscription`, a [StreamSubscription], is then
-   *   updated to receive its handlers: `subscription.onData(f1)`,
-   *   `subscription.onError(f2)`, `subscription(f3)`. Finally the subscription
-   *   is returned as result of the `listen` call.
+   * Most commonly, an [onListen] callback will first call [Stream.listen] on
+   * the provided stream (with the corresponding `cancelOnError` flag), and then
+   * return a new [StreamSubscription].
    *
    * There are two common ways to create a StreamSubscription:
    *
-   * 1. by creating a new class that implements [StreamSubscription].
+   * 1. by allocating a [StreamController] and to return the result of
+   *    listening to its stream. It's important to forward pause, resume and
+   *    cancel events (unless the transformer intentionally wants to change
+   *    this behavior).
+   * 2. by creating a new class that implements [StreamSubscription].
    *    Note that the subscription should run callbacks in the [Zone] the
-   *    stream was listened to.
-   * 2. by allocating a [StreamController] and to return the result of
-   *    listening to its stream.
+   *    stream was listened to (see [Zone] and [Zone.bindCallback]).
    *
-   * Example use of a duplicating transformer:
+   * Example:
    *
-   *     stringStream.transform(new StreamTransformer<String, String>(
-   *         (Stream<String> input, bool cancelOnError) {
-   *           StreamController<String> controller;
-   *           StreamSubscription<String> subscription;
-   *           controller = new StreamController<String>(
-   *             onListen: () {
-   *               subscription = input.listen((data) {
-   *                   // Duplicate the data.
-   *                   controller.add(data);
-   *                   controller.add(data);
-   *                 },
-   *                 onError: controller.addError,
-   *                 onDone: controller.close,
-   *                 cancelOnError: cancelOnError);
-   *             },
-   *             onPause: () { subscription.pause(); },
-   *             onResume: () { subscription.resume(); },
-   *             onCancel: () => subscription.cancel(),
-   *             sync: true);
-   *           return controller.stream.listen(null);
-   *         });
+   * ```
+   * /// Starts listening to [input] and duplicates all non-error events.
+   * StreamSubscription<int> _onListen(Stream<int> input, bool cancelOnError) {
+   *   StreamSubscription<String> subscription;
+   *   // Create controller that forwards pause, resume and cancel events.
+   *   var controller = new StreamController<String>(
+   *       onPause: () {
+   *         subscription.pause();
+   *       },
+   *       onResume: () {
+   *         subscription.resume();
+   *       },
+   *       onCancel: () => subscription.cancel(),
+   *       sync: true); // "sync" is correct here, since events are forwarded.
+   *
+   *   // Listen to the provided stream using `cancelOnError`.
+   *   subscription = input.listen((data) {
+   *     // Duplicate the data.
+   *     controller.add(data);
+   *     controller.add(data);
+   *   },
+   *       onError: controller.addError,
+   *       onDone: controller.close,
+   *       cancelOnError: cancelOnError);
+   *
+   *   // Return a new [StreamSubscription] by listening to the controller's
+   *   // stream.
+   *   return controller.stream.listen(null);
+   * }
+   *
+   * // Instantiate a transformer:
+   * var duplicator = const StreamTransformer<int, int>(_onListen);
+   *
+   * // Use as follows:
+   * intStream.transform(duplicator);
+   * ```
    */
   const factory StreamTransformer(
-          StreamSubscription<T> transformer(
+          StreamSubscription<T> onListen(
               Stream<S> stream, bool cancelOnError)) =
       _StreamSubscriptionTransformer<S, T>;
 
@@ -1699,14 +1734,25 @@ abstract class StreamTransformer<S, T> {
       void handleDone(EventSink<T> sink)}) = _StreamHandlerTransformer<S, T>;
 
   /**
-   * Transform the incoming [stream]'s events.
+   * Transforms the provided [stream].
    *
-   * Creates a new stream.
-   * When this stream is listened to, it will start listening on [stream],
-   * and generate events on the new stream based on the events from [stream].
+   * Returns a new stream with events that are computed from events of the
+   * provided [stream].
    *
-   * Subscriptions on the returned stream should propagate pause state
-   * to the subscription on [stream].
+   * Implementors of the [StreamTransformer] interface should document
+   * differences from the following expected behavior:
+   *
+   * * When the returned stream is listened to, it starts listening to the
+   *   input [stream].
+   * * Subscriptions of the returned stream forward (in a reasonable time)
+   *   a [StreamSubscription.pause] call to the subscription of the input
+   *   [stream].
+   * * Similarly, canceling a subscription of the returned stream eventually
+   *   (in reasonable time) cancels the subscription of the input [stream].
+   *
+   * "Reasonable time" depends on the transformer and stream. Some transformers,
+   * like a "timeout" transformer, might make these operations depend on a
+   * duration. Others might not delay them at all, or just by a microtask.
    */
   Stream<T> bind(Stream<S> stream);
 }

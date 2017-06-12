@@ -21,7 +21,7 @@ const Latin1Codec LATIN1 = const Latin1Codec();
 const int _LATIN1_MASK = 0xFF;
 
 /**
- * A [LatinCodec] encodes strings to ISO Latin-1 (aka ISO-8859-1) bytes
+ * A [Latin1Codec] encodes strings to ISO Latin-1 (aka ISO-8859-1) bytes
  * and decodes Latin-1 bytes to strings.
  */
 class Latin1Codec extends Encoding {

@@ -13,7 +13,6 @@ class C {
   var x = 42;
 }
 
-
 const NeverInline = "NeverInline";
 
 @NeverInline
@@ -36,17 +35,16 @@ T1(C c, bool b) {
   return c.x + 1;
 }
 
-
 @NeverInline
 T2(C c, bool b) {
   try {
     AA(c, b);
-  } on String catch(e, st) {
+  } on String catch (e, st) {
     print(e);
     print(st);
     Expect.isTrue(st is StackTrace, "is StackTrace");
     Expect.isTrue(false);
-  } on int catch(e, st) {
+  } on int catch (e, st) {
     Expect.equals(e, 123);
     Expect.equals(b, true);
     Expect.equals(c.x, 2.5);
@@ -55,7 +53,6 @@ T2(C c, bool b) {
   }
   return c.x + 1;
 }
-
 
 main() {
   var c = new C();

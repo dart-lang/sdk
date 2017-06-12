@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.refactoring.inline_local;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -20,6 +17,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
  * [InlineLocalRefactoring] implementation.
@@ -131,9 +129,9 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     String initializerCode = utils.getNodeText(initializer);
     // replace references
     for (SearchMatch reference in _references) {
-      SourceRange range = reference.sourceRange;
+      SourceRange editRange = reference.sourceRange;
       // prepare context
-      int offset = range.offset;
+      int offset = editRange.offset;
       AstNode node = utils.findNode(offset);
       AstNode parent = node.parent;
       // prepare code
@@ -144,7 +142,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
             !initializer.isRaw &&
             initializer.isSingleQuoted == target.isSingleQuoted &&
             (!initializer.isMultiline || target.isMultiline)) {
-          range = rangeNode(parent);
+          editRange = range.node(parent);
           // unwrap the literal being inlined
           int initOffset = initializer.contentsOffset;
           int initLength = initializer.contentsEnd - initOffset;
@@ -160,8 +158,8 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
         codeForReference = initializerCode;
       }
       // do replace
-      doSourceChange_addElementEdit(
-          change, unitElement, newSourceEdit_range(range, codeForReference));
+      doSourceChange_addElementEdit(change, unitElement,
+          newSourceEdit_range(editRange, codeForReference));
     }
     // done
     return new Future.value(change);

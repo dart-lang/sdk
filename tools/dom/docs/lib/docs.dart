@@ -20,12 +20,14 @@ import 'dart:async';
 import 'dart:io';
 
 /// The various HTML libraries.
-const List<String> HTML_LIBRARY_NAMES = const ['dart:html',
-                                               'dart:indexed_db',
-                                               'dart:svg',
-                                               'dart:web_audio',
-                                               'dart:web_gl',
-                                               'dart:web_sql'];
+const List<String> HTML_LIBRARY_NAMES = const [
+  'dart:html',
+  'dart:indexed_db',
+  'dart:svg',
+  'dart:web_audio',
+  'dart:web_gl',
+  'dart:web_sql'
+];
 /**
  * Converts the libraries in [HTML_LIBRARY_NAMES] to a json file at [jsonPath]
  * given the library path at [libUri].
@@ -59,10 +61,10 @@ Future<bool> convert(String libUri, String jsonPath) {
   }
 
   return analyze(paths, libUri, options: ['--preserve-comments'])
-    .then((MirrorSystem mirrors) {
-      var convertedJson = _generateJsonFromLibraries(mirrors);
-      return _exportJsonToFile(convertedJson, jsonPath);
-    });
+      .then((MirrorSystem mirrors) {
+    var convertedJson = _generateJsonFromLibraries(mirrors);
+    return _exportJsonToFile(convertedJson, jsonPath);
+  });
 }
 
 Future<bool> _exportJsonToFile(Map convertedJson, String jsonPath) {
@@ -81,25 +83,26 @@ Map _generateJsonFromLibraries(MirrorSystem mirrors) {
   var convertedJson = {};
 
   // Sort the libraries by name (not key).
-  var sortedLibraries = new List<LibraryMirror>.from(
-      mirrors.libraries.values.where(
-          (e) => HTML_LIBRARY_NAMES.indexOf(e.uri.toString()) >= 0))
-      ..sort((x, y) =>
-        x.uri.toString().toUpperCase().compareTo(
-        y.uri.toString().toUpperCase()));
+  var sortedLibraries = new List<LibraryMirror>.from(mirrors.libraries.values
+      .where((e) => HTML_LIBRARY_NAMES.indexOf(e.uri.toString()) >= 0))
+    ..sort((x, y) => x.uri
+        .toString()
+        .toUpperCase()
+        .compareTo(y.uri.toString().toUpperCase()));
 
   for (LibraryMirror libMirror in sortedLibraries) {
     print('Extracting documentation from ${libMirror.simpleName}.');
 
     var libraryJson = {};
     var sortedClasses = _sortAndFilterMirrors(
-        classesOf(libMirror.declarations).toList(), ignoreDocsEditable: true);
+        classesOf(libMirror.declarations).toList(),
+        ignoreDocsEditable: true);
 
     for (ClassMirror classMirror in sortedClasses) {
       print(' class: $classMirror');
       var classJson = {};
-      var sortedMembers = _sortAndFilterMirrors(
-          membersOf(classMirror.declarations).toList());
+      var sortedMembers =
+          _sortAndFilterMirrors(membersOf(classMirror.declarations).toList());
 
       var membersJson = {};
       for (var memberMirror in sortedMembers) {
@@ -120,26 +123,23 @@ Map _generateJsonFromLibraries(MirrorSystem mirrors) {
       }
 
       // Only include the comment if DocsEditable is set.
-      var classComment = _splitCommentsByNewline(
-          computeUntrimmedCommentAsList(classMirror));
+      var classComment =
+          _splitCommentsByNewline(computeUntrimmedCommentAsList(classMirror));
       if (!classComment.isEmpty &&
           findMetadata(classMirror.metadata, 'DocsEditable') != null) {
         classJson.putIfAbsent('comment', () => classComment);
       }
       if (!membersJson.isEmpty) {
-        classJson.putIfAbsent('members', () =>
-            membersJson);
+        classJson.putIfAbsent('members', () => membersJson);
       }
 
       if (!classJson.isEmpty) {
-        libraryJson.putIfAbsent(domNames(classMirror)[0], () =>
-            classJson);
+        libraryJson.putIfAbsent(domNames(classMirror)[0], () => classJson);
       }
     }
 
     if (!libraryJson.isEmpty) {
-      convertedJson.putIfAbsent(nameOf(libMirror), () =>
-          libraryJson);
+      convertedJson.putIfAbsent(nameOf(libMirror), () => libraryJson);
     }
   }
 
@@ -153,17 +153,17 @@ Map _generateJsonFromLibraries(MirrorSystem mirrors) {
 /// members are generated.
 List<DeclarationMirror> _sortAndFilterMirrors(List<DeclarationMirror> mirrors,
     {ignoreDocsEditable: false}) {
-
-  var filteredMirrors = mirrors.where((DeclarationMirror c) =>
-      !domNames(c).isEmpty &&
-      !displayName(c).startsWith('_') &&
-      (!ignoreDocsEditable ? (findMetadata(c.metadata, 'DocsEditable') != null)
-          : true))
+  var filteredMirrors = mirrors
+      .where((DeclarationMirror c) =>
+          !domNames(c).isEmpty &&
+          !displayName(c).startsWith('_') &&
+          (!ignoreDocsEditable
+              ? (findMetadata(c.metadata, 'DocsEditable') != null)
+              : true))
       .toList();
 
   filteredMirrors.sort((x, y) =>
-    domNames(x)[0].toUpperCase().compareTo(
-    domNames(y)[0].toUpperCase()));
+      domNames(x)[0].toUpperCase().compareTo(domNames(y)[0].toUpperCase()));
 
   return filteredMirrors;
 }

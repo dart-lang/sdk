@@ -7,10 +7,11 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../clone.dart';
 import '../core_types.dart';
+import '../target/targets.dart' show NoneTarget, Target;
 import '../type_algebra.dart';
 
 Program transformProgram(Program program) {
-  new MixinFullResolution().transform(program);
+  new MixinFullResolution(new NoneTarget(null)).transform(program);
   return program;
 }
 
@@ -21,8 +22,12 @@ Program transformProgram(Program program) {
 /// Super calls (as well as super initializer invocations) are also resolved
 /// to their targets in this pass.
 class MixinFullResolution {
+  final Target targetInfo;
+
   ClassHierarchy hierarchy;
   CoreTypes coreTypes;
+
+  MixinFullResolution(this.targetInfo);
 
   void transform(Program program) {
     var transformedClasses = new Set<Class>();
@@ -52,14 +57,14 @@ class MixinFullResolution {
         for (var procedure in class_.procedures) {
           if (procedure.containsSuperCalls) {
             new SuperCallResolutionTransformer(
-                    hierarchy, coreTypes, class_.superclass)
+                    hierarchy, coreTypes, class_.superclass, targetInfo)
                 .visit(procedure);
           }
         }
         for (var constructor in class_.constructors) {
           if (constructor.containsSuperCalls) {
             new SuperCallResolutionTransformer(
-                    hierarchy, coreTypes, class_.superclass)
+                    hierarchy, coreTypes, class_.superclass, targetInfo)
                 .visit(constructor);
           }
           if (hasTransformedSuperclass && constructor.initializers.length > 0) {
@@ -176,11 +181,11 @@ class SuperCallResolutionTransformer extends Transformer {
   final ClassHierarchy hierarchy;
   final CoreTypes coreTypes;
   final Class lookupClass;
+  final Target targetInfo;
   Constructor _invocationMirrorConstructor; // cached
-  Procedure _listFrom; // cached
 
   SuperCallResolutionTransformer(
-      this.hierarchy, this.coreTypes, this.lookupClass);
+      this.hierarchy, this.coreTypes, this.lookupClass, this.targetInfo);
 
   TreeNode visit(TreeNode node) => node.accept(this);
 
@@ -232,7 +237,8 @@ class SuperCallResolutionTransformer extends Transformer {
       return new MethodInvocation(
           new DirectPropertyGet(new ThisExpression(), target),
           new Name('call'),
-          visitedArguments)..fileOffset = node.fileOffset;
+          visitedArguments)
+        ..fileOffset = node.fileOffset;
     }
   }
 
@@ -273,56 +279,12 @@ class SuperCallResolutionTransformer extends Transformer {
   ConstructorInvocation _createInvocation(String methodName,
       Arguments callArguments, bool isSuperInvocation, Expression receiver) {
     if (_invocationMirrorConstructor == null) {
-      Class clazz = coreTypes.getClass('dart:core', '_InvocationMirror');
+      Class clazz = coreTypes.invocationMirrorClass;
       _invocationMirrorConstructor = clazz.constructors[0];
     }
 
-    // The _InvocationMirror constructor takes the following arguments:
-    // * Method name (a string).
-    // * An arguments descriptor - a list consisting of:
-    //   - number of arguments (including receiver).
-    //   - number of positional arguments (including receiver).
-    //   - pairs (2 entries in the list) of
-    //     * named arguments name.
-    //     * index of named argument in arguments list.
-    // * A list of arguments, where the first ones are the positional arguments.
-    // * Whether it's a super invocation or not.
-
-    int numPositionalArguments = callArguments.positional.length + 1;
-    int numArguments = numPositionalArguments + callArguments.named.length;
-    List<Expression> argumentsDescriptor = [
-      new IntLiteral(numArguments),
-      new IntLiteral(numPositionalArguments)
-    ];
-    List<Expression> arguments = [];
-    arguments.add(receiver);
-    for (Expression pos in callArguments.positional) {
-      arguments.add(pos);
-    }
-    for (NamedExpression named in callArguments.named) {
-      argumentsDescriptor.add(new StringLiteral(named.name));
-      argumentsDescriptor.add(new IntLiteral(arguments.length));
-      arguments.add(named.value);
-    }
-
-    return new ConstructorInvocation(
-        _invocationMirrorConstructor,
-        new Arguments([
-          new StringLiteral(methodName),
-          _fixedLengthList(argumentsDescriptor),
-          _fixedLengthList(arguments),
-          new BoolLiteral(isSuperInvocation)
-        ]));
-  }
-
-  /// Create a fixed length list containing given expressions.
-  Expression _fixedLengthList(List<Expression> list) {
-    _listFrom ??= coreTypes.getMember('dart:core', 'List', 'from');
-    return new StaticInvocation(
-        _listFrom,
-        new Arguments([new ListLiteral(list)],
-            named: [new NamedExpression("growable", new BoolLiteral(false))],
-            types: [const DynamicType()]));
+    return targetInfo.instantiateInvocation(_invocationMirrorConstructor,
+        receiver, methodName, callArguments, -1, isSuperInvocation);
   }
 
   /// Check that a call to the targetFunction is legal given the arguments.

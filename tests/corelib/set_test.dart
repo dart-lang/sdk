@@ -4,7 +4,6 @@
 
 library set_test;
 
-
 import 'package:expect/expect.dart';
 import "dart:collection";
 
@@ -224,7 +223,7 @@ void testInts(Set create()) {
   testLength(4, set2);
   Expect.listEquals(set.toList(), set2.toList());
 
-  set2 = (set.toSet()..clear()).toSet();  // Cloning empty set shouldn't fail.
+  set2 = (set.toSet()..clear()).toSet(); // Cloning empty set shouldn't fail.
   testLength(0, set2);
 }
 
@@ -233,7 +232,9 @@ void testLength(int length, Set set) {
   (length == 0 ? Expect.isTrue : Expect.isFalse)(set.isEmpty);
   (length != 0 ? Expect.isTrue : Expect.isFalse)(set.isNotEmpty);
   if (length == 0) {
-    for (var e in set) { Expect.fail("contains element when iterated: $e"); }
+    for (var e in set) {
+      Expect.fail("contains element when iterated: $e");
+    }
   }
   (length == 0 ? Expect.isFalse : Expect.isTrue)(set.iterator.moveNext());
 }
@@ -292,7 +293,7 @@ void testRetainWhere(Set create([equals, hashCode, validKey, compare])) {
   // during development).
   Set set = create();
   set.addAll([new CE(0), new CE(1), new CE(2)]);
-  Expect.equals(3, set.length);  // All different.
+  Expect.equals(3, set.length); // All different.
   set.retainAll([new CE(0), new CE(2)]);
   Expect.equals(2, set.length);
   Expect.isTrue(set.contains(new CE(0)));
@@ -336,7 +337,7 @@ void testDifferenceIntersection(create([equals, hashCode, validKey, compare])) {
   CE ce1b = new CE(1);
   CE ce2 = new CE(2);
   CE ce3 = new CE(3);
-  Expect.equals(ce1a, ce1b);  // Sanity check.
+  Expect.equals(ce1a, ce1b); // Sanity check.
 
   var set1 = create();
   var set2 = create();
@@ -357,7 +358,7 @@ void testDifferenceIntersection(create([equals, hashCode, validKey, compare])) {
   var set3 = create(identical, identityHashCode, null, identityCompare);
   set3.add(ce1b);
   difference = set1.difference(set3);
-  testLength(2, difference);  // ce1a is not identical to element in set3.
+  testLength(2, difference); // ce1a is not identical to element in set3.
   Expect.identical(ce1a, difference.lookup(ce1a));
   Expect.identical(ce2, difference.lookup(ce2));
 
@@ -375,7 +376,7 @@ class CE implements Comparable<CE> {
   final int id;
   const CE(this.id);
   int get hashCode => id;
-  bool operator==(Object other) => other is CE && id == (other as CE).id;
+  bool operator ==(Object other) => other is CE && id == (other as CE).id;
   int compareTo(CE other) => id - other.id;
   String toString() => "CE($id)";
 }
@@ -383,8 +384,8 @@ class CE implements Comparable<CE> {
 // Equality of Id objects based on id modulo value.
 Function customEq(int mod) => (CE e1, CE e2) => ((e1.id - e2.id) % mod) == 0;
 Function customHash(int mod) => (CE e) => e.id % mod;
-Function customCompare(int mod) => (CE e1, CE e2) =>
-    (e1.id % mod) - (e2.id % mod);
+Function customCompare(int mod) =>
+    (CE e1, CE e2) => (e1.id % mod) - (e2.id % mod);
 bool validKey(Object o) => o is CE;
 final customId = new Map.identity();
 int counter = 0;
@@ -438,8 +439,14 @@ void testIntSetFrom(setFrom) {
 }
 
 void testCESetFrom(setFrom) {
-  List<Object> ceList = [new CE(2), new CE(3), new CE(5),
-                         new CE(7), new CE(11), new CE(13)];
+  List<Object> ceList = [
+    new CE(2),
+    new CE(3),
+    new CE(5),
+    new CE(7),
+    new CE(11),
+    new CE(13)
+  ];
 
   Set<CE> set1 = setFrom(ceList);
   Expect.listEquals(ceList, set1.toList()..sort());
@@ -457,11 +464,13 @@ void testCESetFrom(setFrom) {
 }
 
 class A {}
+
 class B {}
+
 class C implements A, B {}
 
 void testASetFrom(setFrom) {
-  List<B> bList= <B>[new C()];
+  List<B> bList = <B>[new C()];
   // Set.from allows to cast elements.
   Set<A> aSet = setFrom(bList);
   Expect.isTrue(aSet.length == 1);
@@ -474,9 +483,10 @@ main() {
   testMain(() => new LinkedHashSet.identity());
   testMain(() => new HashSet(equals: identical));
   testMain(() => new LinkedHashSet(equals: identical));
-  testMain(() => new HashSet(equals: (a, b) => a == b,
-                             hashCode: (a) => -a.hashCode,
-                             isValidKey: (a) => true));
+  testMain(() => new HashSet(
+      equals: (a, b) => a == b,
+      hashCode: (a) => -a.hashCode,
+      isValidKey: (a) => true));
   testMain(() => new LinkedHashSet(
       equals: (a, b) => a == b,
       hashCode: (a) => -a.hashCode,
@@ -493,27 +503,29 @@ main() {
   testTypeAnnotations(new LinkedHashSet<int>());
   testTypeAnnotations(new HashSet<int>(equals: identical));
   testTypeAnnotations(new LinkedHashSet<int>(equals: identical));
-  testTypeAnnotations(new HashSet<int>(equals: (int a, int b) => a == b,
-                                       hashCode: (int a) => a.hashCode,
-                                       isValidKey: (a) => a is int));
-  testTypeAnnotations(new LinkedHashSet<int>(equals: (int a, int b) => a == b,
-                                             hashCode: (int a) => a.hashCode,
-                                             isValidKey: (a) => a is int));
+  testTypeAnnotations(new HashSet<int>(
+      equals: (int a, int b) => a == b,
+      hashCode: (int a) => a.hashCode,
+      isValidKey: (a) => a is int));
+  testTypeAnnotations(new LinkedHashSet<int>(
+      equals: (int a, int b) => a == b,
+      hashCode: (int a) => a.hashCode,
+      isValidKey: (a) => a is int));
   testTypeAnnotations(new SplayTreeSet<int>());
 
   testRetainWhere(([equals, hashCode, validKey, comparator]) =>
       new HashSet(equals: equals, hashCode: hashCode, isValidKey: validKey));
   testRetainWhere(([equals, hashCode, validKey, comparator]) =>
-      new LinkedHashSet(equals: equals, hashCode: hashCode,
-                        isValidKey: validKey));
+      new LinkedHashSet(
+          equals: equals, hashCode: hashCode, isValidKey: validKey));
   testRetainWhere(([equals, hashCode, validKey, comparator]) =>
       new SplayTreeSet(comparator, validKey));
 
   testDifferenceIntersection(([equals, hashCode, validKey, comparator]) =>
       new HashSet(equals: equals, hashCode: hashCode, isValidKey: validKey));
   testDifferenceIntersection(([equals, hashCode, validKey, comparator]) =>
-      new LinkedHashSet(equals: equals, hashCode: hashCode,
-                        isValidKey: validKey));
+      new LinkedHashSet(
+          equals: equals, hashCode: hashCode, isValidKey: validKey));
   testDifferenceIntersection(([equals, hashCode, validKey, comparator]) =>
       new SplayTreeSet(comparator, validKey));
 
@@ -527,8 +539,8 @@ main() {
   testCESetFrom((x) => new LinkedHashSet<CE>.from(x));
   testCESetFrom((x) => new SplayTreeSet<CE>.from(x));
 
-  testCESetFrom((x) => new SplayTreeSet<CE>.from(x,
-                                                 customCompare(20), validKey));
+  testCESetFrom(
+      (x) => new SplayTreeSet<CE>.from(x, customCompare(20), validKey));
   testCESetFrom((x) => new SplayTreeSet<CE>.from(x, identityCompare));
 
   testASetFrom((x) => new Set<A>.from(x));

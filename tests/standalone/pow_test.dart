@@ -9,8 +9,7 @@ library pow_test;
 import "package:expect/expect.dart";
 import 'dart:math';
 
-var expectedResults =
-[
+var expectedResults = [
   1,
   2,
   4,
@@ -80,7 +79,6 @@ var expectedResults =
   73786976294838206464,
   147573952589676412928
 ];
-
 
 void main() {
   int exp = 0;

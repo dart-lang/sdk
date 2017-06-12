@@ -6,10 +6,10 @@
 class A {
   var foo;
   A() {
-    foo = () { };
+    foo = () {};
   }
   void bar(var a) {
-    a.foo();  // Tries to invoke the non-existing method 'foo'.
+    a.foo(); // Tries to invoke the non-existing method 'foo'.
     /*
     'a.foo()' is a "Regular instance-method invocation". The guide says:
     "If no method is found, the result of the invocation expression is
@@ -27,7 +27,6 @@ class FieldMethod4NegativeTest {
     a.bar();
   }
 }
-
 
 main() {
   FieldMethod4NegativeTest.testMain();

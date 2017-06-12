@@ -51,12 +51,13 @@ class SwarmUri {
 
     // TODO(terry): Added b/5096547 to track replace should by default behave
     //              like replaceAll to avoid a problematic usage pattern.
-    return component.replaceAll(':', '%3A')
-                    .replaceAll('/', '%2F')
-                    .replaceAll('?', '%3F')
-                    .replaceAll('=', '%3D')
-                    .replaceAll('&', '%26')
-                    .replaceAll(' ', '%20');
+    return component
+        .replaceAll(':', '%3A')
+        .replaceAll('/', '%2F')
+        .replaceAll('?', '%3F')
+        .replaceAll('=', '%3D')
+        .replaceAll('&', '%26')
+        .replaceAll(' ', '%20');
   }
 
   /**
@@ -67,11 +68,12 @@ class SwarmUri {
   static String decodeComponent(String component) {
     if (component == null) return component;
 
-    return component.replaceAll('%3A', ':')
-                    .replaceAll('%2F', '/')
-                    .replaceAll('%3F', '?')
-                    .replaceAll('%3D', '=')
-                    .replaceAll('%26', '&')
-                    .replaceAll('%20', ' ');
+    return component
+        .replaceAll('%3A', ':')
+        .replaceAll('%2F', '/')
+        .replaceAll('%3F', '?')
+        .replaceAll('%3D', '=')
+        .replaceAll('%26', '&')
+        .replaceAll('%20', ' ');
   }
 }

@@ -12,8 +12,8 @@ import "package:expect/expect.dart";
 test() {
   Expect.isTrue(Platform.numberOfProcessors > 0);
   var os = Platform.operatingSystem;
-  Expect.isTrue(os == "android" || os == "linux" || os == "macos" ||
-      os == "windows");
+  Expect.isTrue(
+      os == "android" || os == "linux" || os == "macos" || os == "windows");
   Expect.equals(Platform.isLinux, Platform.operatingSystem == "linux");
   Expect.equals(Platform.isMacOS, Platform.operatingSystem == "macos");
   Expect.equals(Platform.isWindows, Platform.operatingSystem == "windows");
@@ -43,8 +43,8 @@ test() {
   // Move directory to be sure script is correct.
   var oldDir = Directory.current;
   Directory.current = Directory.current.parent;
-  Expect.isTrue(Platform.script.path.
-                endsWith('tests/standalone/io/platform_test.dart'));
+  Expect.isTrue(
+      Platform.script.path.endsWith('tests/standalone/io/platform_test.dart'));
   Expect.isTrue(Platform.script.toFilePath().startsWith(oldDir.path));
   // Restore dir.
   Directory.current = oldDir;
@@ -53,23 +53,24 @@ test() {
     Directory packageRoot = new Directory.fromUri(Uri.parse(pkgRootString));
     Expect.isTrue(packageRoot.existsSync());
     Expect.isTrue(new Directory("${packageRoot.path}/expect").existsSync());
-    Expect.isTrue(Platform.executableArguments.any(
-      (arg) {
-        if (!arg.startsWith("--package-root=")) {
-          return false;
-        }
-        // Cut out the '--package-root=' prefix.
-        arg = arg.substring(15);
-        return pkgRootString.contains(arg);
-      }));
+    Expect.isTrue(Platform.executableArguments.any((arg) {
+      if (!arg.startsWith("--package-root=")) {
+        return false;
+      }
+      // Cut out the '--package-root=' prefix.
+      arg = arg.substring(15);
+      return pkgRootString.contains(arg);
+    }));
   }
 }
 
 void f(reply) {
-  reply.send({"Platform.executable": Platform.executable,
-              "Platform.script": Platform.script,
-              "Platform.packageRoot": Platform.packageRoot,
-              "Platform.executableArguments": Platform.executableArguments});
+  reply.send({
+    "Platform.executable": Platform.executable,
+    "Platform.script": Platform.script,
+    "Platform.packageRoot": Platform.packageRoot,
+    "Platform.executableArguments": Platform.executableArguments
+  });
 }
 
 testIsolate() {
@@ -85,12 +86,11 @@ testIsolate() {
     Expect.equals("file", uri.scheme);
     Expect.isTrue(uri.path.endsWith('tests/standalone/io/platform_test.dart'));
     Expect.equals(Platform.packageRoot, results["Platform.packageRoot"]);
-    Expect.listEquals(Platform.executableArguments,
-                      results["Platform.executableArguments"]);
+    Expect.listEquals(
+        Platform.executableArguments, results["Platform.executableArguments"]);
     asyncEnd();
   });
 }
-
 
 testVersion() {
   checkValidVersion(String version) {

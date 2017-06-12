@@ -5,11 +5,11 @@
 // TODO(ahe): Copied from closure_conversion branch of kernel, remove this file
 // when closure_conversion is merged with master.
 
-library kernel.testing.kernel_chain;
+library fasta.testing.kernel_chain;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show Directory, File, IOSink, Platform;
+import 'dart:io' show Directory, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
@@ -27,145 +27,12 @@ import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-
-import 'package:analyzer/src/kernel/loader.dart'
-    show DartLoader, DartOptions, createDartSdk;
-
-import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
-
 import 'package:testing/testing.dart'
-    show Chain, ChainContext, Result, StdioProcess, Step, TestDescription;
+    show ChainContext, Result, StdioProcess, Step;
 
 import 'package:kernel/ast.dart' show Program;
 
-import 'package:package_config/discovery.dart' show loadPackagesFile;
-
-import '../environment_variable.dart' show EnvironmentVariable;
-
-typedef Future<TestContext> TestContextConstructor(
-    Chain suite,
-    Map<String, String> environment,
-    Uri sdk,
-    Uri vm,
-    Uri packages,
-    bool strongMode,
-    DartSdk dartSdk,
-    bool updateExpectations);
-
-Future<bool> fileExists(Uri base, String path) async {
-  return await new File.fromUri(base.resolve(path)).exists();
-}
-
-final EnvironmentVariable testConfigVariable = new EnvironmentVariable(
-    "DART_CONFIGURATION",
-    "It should be something like 'ReleaseX64', depending on which"
-    " configuration you're testing.");
-
-Future<Uri> computePatchedSdk() async {
-  String config = await testConfigVariable.value;
-  String path;
-  switch (Platform.operatingSystem) {
-    case "linux":
-      path = "out/$config/patched_sdk";
-      break;
-
-    case "macos":
-      path = "xcodebuild/$config/patched_sdk";
-      break;
-
-    case "windows":
-      path = "build/$config/patched_sdk";
-      break;
-
-    default:
-      throw "Unsupported operating system: '${Platform.operatingSystem}'.";
-  }
-  Uri sdk = Uri.base.resolve("$path/");
-  const String asyncDart = "lib/async/async.dart";
-  if (!await fileExists(sdk, asyncDart)) {
-    throw "Couldn't find '$asyncDart' in '$sdk'.";
-  }
-  const String asyncSources = "lib/async/async_sources.gypi";
-  if (await fileExists(sdk, asyncSources)) {
-    throw "Found '$asyncSources' in '$sdk', so it isn't a patched SDK.";
-  }
-  return sdk;
-}
-
-Uri computeDartVm(Uri patchedSdk) {
-  return patchedSdk.resolve(Platform.isWindows ? "../dart.exe" : "../dart");
-}
-
-abstract class TestContext extends ChainContext {
-  final Uri vm;
-
-  final Uri packages;
-
-  final DartOptions options;
-
-  final DartSdk dartSdk;
-
-  TestContext(Uri sdk, this.vm, Uri packages, bool strongMode, this.dartSdk)
-      : packages = packages,
-        options = new DartOptions(
-            strongMode: strongMode,
-            sdk: sdk.toFilePath(),
-            packagePath: packages.toFilePath());
-
-  Future<DartLoader> createLoader() async {
-    Program program = new Program();
-    return new DartLoader(program, options, await loadPackagesFile(packages),
-        ignoreRedirectingFactories: false, dartSdk: dartSdk);
-  }
-
-  static Future<TestContext> create(
-      Chain suite,
-      Map<String, String> environment,
-      TestContextConstructor constructor) async {
-    Uri sdk = await computePatchedSdk();
-    Uri vm = computeDartVm(sdk);
-    Uri packages = Uri.base.resolve(".packages");
-    bool strongMode = false;
-    bool updateExpectations = environment["updateExpectations"] == "true";
-    return constructor(
-        suite,
-        environment,
-        sdk,
-        vm,
-        packages,
-        strongMode,
-        createDartSdk(sdk.toFilePath(), strongMode: strongMode),
-        updateExpectations);
-  }
-}
-
-class Kernel extends Step<TestDescription, Program, TestContext> {
-  const Kernel();
-
-  String get name => "kernel";
-
-  Future<Result<Program>> run(
-      TestDescription description, TestContext testContext) async {
-    try {
-      DartLoader loader = await testContext.createLoader();
-      Target target = getTarget(
-          "vm", new TargetFlags(strongMode: testContext.options.strongMode));
-      loader.loadProgram(description.uri, target: target);
-      Program program = loader.program;
-      for (var error in loader.errors) {
-        return fail(program, "$error");
-      }
-      target.performModularTransformations(program);
-      target.performGlobalTransformations(program);
-      return pass(program);
-    } catch (e, s) {
-      return crash(e, s);
-    }
-  }
-}
-
-class Print extends Step<Program, Program, TestContext> {
+class Print extends Step<Program, Program, ChainContext> {
   const Print();
 
   String get name => "print";
@@ -184,25 +51,25 @@ class Print extends Step<Program, Program, TestContext> {
   }
 }
 
-class Verify extends Step<Program, Program, TestContext> {
+class Verify extends Step<Program, Program, ChainContext> {
   final bool fullCompile;
 
   const Verify(this.fullCompile);
 
   String get name => "verify";
 
-  Future<Result<Program>> run(Program program, TestContext testContext) async {
+  Future<Result<Program>> run(Program program, ChainContext context) async {
     var errors = verifyProgram(program, isOutline: !fullCompile);
     if (errors.isEmpty) {
       return pass(program);
     } else {
       return new Result<Program>(
-          null, testContext.expectationSet["VerificationError"], errors, null);
+          null, context.expectationSet["VerificationError"], errors, null);
     }
   }
 }
 
-class MatchExpectation extends Step<Program, Program, TestContext> {
+class MatchExpectation extends Step<Program, Program, ChainContext> {
   final String suffix;
 
   // TODO(ahe): This is true by default which doesn't match well with the class
@@ -247,7 +114,7 @@ $buffer""");
   }
 }
 
-class WriteDill extends Step<Program, Uri, TestContext> {
+class WriteDill extends Step<Program, Uri, ChainContext> {
   const WriteDill();
 
   String get name => "write .dill";
@@ -258,8 +125,11 @@ class WriteDill extends Step<Program, Uri, TestContext> {
     File generated = new File.fromUri(uri);
     IOSink sink = generated.openWrite();
     try {
-      new BinaryPrinter(sink).writeProgramFile(program);
-      program.unbindCanonicalNames();
+      try {
+        new BinaryPrinter(sink).writeProgramFile(program);
+      } finally {
+        program.unbindCanonicalNames();
+      }
     } catch (e, s) {
       return fail(uri, e, s);
     } finally {
@@ -270,7 +140,7 @@ class WriteDill extends Step<Program, Uri, TestContext> {
   }
 }
 
-class ReadDill extends Step<Uri, Uri, TestContext> {
+class ReadDill extends Step<Uri, Uri, ChainContext> {
   const ReadDill();
 
   String get name => "read .dill";
@@ -285,7 +155,7 @@ class ReadDill extends Step<Uri, Uri, TestContext> {
   }
 }
 
-class Copy extends Step<Program, Program, TestContext> {
+class Copy extends Step<Program, Program, ChainContext> {
   const Copy();
 
   String get name => "copy program";
@@ -297,29 +167,6 @@ class Copy extends Step<Program, Program, TestContext> {
     Uint8List bytes = sink.collect();
     new BinaryBuilder(bytes).readProgram(program);
     return pass(program);
-  }
-}
-
-class Run extends Step<Uri, int, TestContext> {
-  const Run();
-
-  String get name => "run";
-
-  bool get isAsync => true;
-
-  bool get isRuntime => true;
-
-  Future<Result<int>> run(Uri uri, TestContext context) async {
-    File generated = new File.fromUri(uri);
-    StdioProcess process;
-    try {
-      process = await StdioProcess
-          .run(context.vm.toFilePath(), [generated.path, "Hello, World!"]);
-      print(process.output);
-    } finally {
-      generated.parent.delete(recursive: true);
-    }
-    return process.toResult();
   }
 }
 

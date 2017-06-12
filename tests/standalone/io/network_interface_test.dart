@@ -6,7 +6,6 @@ import 'dart:io';
 
 import "package:expect/expect.dart";
 
-
 void testListLoopback() {
   NetworkInterface.list(includeLoopback: false).then((list) {
     for (var i in list) {
@@ -21,7 +20,6 @@ void testListLoopback() {
   });
 }
 
-
 void testListLinkLocal() {
   NetworkInterface.list(includeLinkLocal: false).then((list) {
     for (var i in list) {
@@ -31,7 +29,6 @@ void testListLinkLocal() {
     }
   });
 }
-
 
 void testListIndex() {
   var set = new Set();
@@ -44,7 +41,6 @@ void testListIndex() {
     }
   });
 }
-
 
 void main() {
   if (!NetworkInterface.listSupported) {

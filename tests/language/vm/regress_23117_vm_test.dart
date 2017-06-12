@@ -14,8 +14,8 @@ main() {
     var x = 1 + (1 << (i + 32));
     Expect.equals(x, mintLeftShift(x, 0));
     Expect.equals(x, mintRightShift(x, 0));
-    Expect.equals(2*x, mintLeftShift(x, 1));
-    Expect.equals(x~/2, mintRightShift(x, 1));
+    Expect.equals(2 * x, mintLeftShift(x, 1));
+    Expect.equals(x ~/ 2, mintRightShift(x, 1));
     Expect.equals(x, mintRightShift(mintLeftShift(x, i), i));
   }
 }

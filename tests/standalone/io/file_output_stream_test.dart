@@ -28,7 +28,6 @@ void testOpenOutputStreamSync() {
   });
 }
 
-
 main() {
   testOpenOutputStreamSync();
 }

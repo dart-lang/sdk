@@ -7,11 +7,12 @@
 import "package:expect/expect.dart";
 
 class First {
-  First(int val) : a_ = val { }
+  First(int val) : a_ = val {}
 
   void testMethod() {
     a = 20;
   }
+
   static void testStaticMethod() {
     b = 20;
   }
@@ -19,6 +20,7 @@ class First {
   int get a {
     return a_;
   }
+
   void set a(int val) {
     a_ = a_ + val;
   }
@@ -26,6 +28,7 @@ class First {
   static int get b {
     return b_;
   }
+
   static void set b(int val) {
     b_ = val;
   }
@@ -34,12 +37,11 @@ class First {
   static int b_;
 }
 
-
 class Second {
   static int c;
   int a_;
 
-  Second(int value) : a_ = value { }
+  Second(int value) : a_ = value {}
 
   void testMethod() {
     a = 20;
@@ -57,6 +59,7 @@ class Second {
   int get a {
     return a_;
   }
+
   void set a(int value) {
     a_ = a_ + value;
   }
@@ -64,11 +67,11 @@ class Second {
   static void set b(int value) {
     Second.c = value;
   }
+
   static int get d {
     return Second.c;
   }
 }
-
 
 class Setter1Test {
   static testMain() {
@@ -91,7 +94,6 @@ class Setter1Test {
     Expect.equals(20, Second.d);
   }
 }
-
 
 main() {
   Setter1Test.testMain();

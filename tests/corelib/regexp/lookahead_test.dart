@@ -109,8 +109,6 @@ void main() {
   execRE(new RegExp(r"^(?:(?=(b))|a)b"), "ab", ["ab", null]);
   execRE(new RegExp(r"^(?:(?=(b)(?:(?=(c))|d))|)bd"), "bd", ["bd", "b", null]);
 
-
-
   // Test of Negative Look-Ahead.
 
   re = new RegExp(r"(?!x).");
@@ -122,7 +120,6 @@ void main() {
   testRE(re, "4", true);
   execRE(re, "4", ["4", null]);
   execRE(re, "x", ["", null]);
-
 
   // Test mixed nested look-ahead with captures.
 

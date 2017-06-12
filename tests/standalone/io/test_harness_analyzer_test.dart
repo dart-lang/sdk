@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../../tools/test.dart' as test_dart;
+import '../../../tools/testing/dart/main.dart' as test_dart;
 import '../../../tools/testing/dart/launch_browser.dart' as launch_browser;
 
 // The purpose of this test is to run the analyzer on it and make sure our

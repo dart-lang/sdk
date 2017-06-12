@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 // Dart test for testing for in on a list literal.
 
 class ForInTest {
-
   static testMain() {
     testSimple();
     testGenericSyntax1();
@@ -46,7 +45,6 @@ class ForInTest {
     List<List<String>> strArrArr;
     for (strArrArr in aCollection) {}
   }
-
 }
 
 main() {

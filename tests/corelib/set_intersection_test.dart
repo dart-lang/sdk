@@ -4,14 +4,19 @@
 
 import "package:expect/expect.dart";
 
-class A { const A(); }
-class B extends A { const B(); }
+class A {
+  const A();
+}
+
+class B extends A {
+  const B();
+}
 
 main() {
   var set1 = new Set<B>();
   set1.add(const B());
   var set2 = new Set<B>();
-  var list = <B>[ const B() ];
+  var list = <B>[const B()];
   var set3 = list.toSet();
 
   var setOther = new Set<A>();

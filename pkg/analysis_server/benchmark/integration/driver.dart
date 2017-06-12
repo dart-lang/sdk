@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library server.driver;
-
 import 'dart:async';
 import 'dart:math' show max, sqrt;
 
 import 'package:logging/logging.dart';
 
-import '../../test/integration/integration_test_methods.dart';
-import '../../test/integration/integration_tests.dart';
+import '../../test/integration/support/integration_test_methods.dart';
+import '../../test/integration/support/integration_tests.dart';
 import 'operation.dart';
 
 final SPACE = ' '.codeUnitAt(0);

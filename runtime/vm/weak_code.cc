@@ -6,9 +6,9 @@
 
 #include "platform/assert.h"
 
-#include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/object.h"
+#include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -61,7 +61,8 @@ bool WeakCodeReferences::IsOptimizedCode(const Array& dependent_code,
 
 
 void WeakCodeReferences::DisableCode() {
-  const Array& code_objects = Array::Handle(array_.raw());
+  Thread* thread = Thread::Current();
+  const Array& code_objects = Array::Handle(thread->zone(), array_.raw());
   if (code_objects.IsNull()) {
     return;
   }
@@ -70,7 +71,8 @@ void WeakCodeReferences::DisableCode() {
   // Disable all code on stack.
   Code& code = Code::Handle();
   {
-    DartFrameIterator iterator;
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
     while (frame != NULL) {
       code = frame->LookupDartCode();

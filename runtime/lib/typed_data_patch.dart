@@ -59,8 +59,7 @@ abstract class _TypedListBase {
     return value;
   }
 
-  dynamic fold(
-      dynamic initialValue, dynamic combine(dynamic initialValue, element)) {
+  T fold<T>(T initialValue, T combine(T initialValue, element)) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       initialValue = combine(initialValue, this[i]);
@@ -68,9 +67,10 @@ abstract class _TypedListBase {
     return initialValue;
   }
 
-  Iterable map(f(element)) => new MappedIterable(this, f);
+  Iterable<T> map<T>(T f(element)) => new MappedIterable<dynamic, T>(this, f);
 
-  Iterable expand(Iterable f(element)) => new ExpandIterable(this, f);
+  Iterable<T> expand<T>(Iterable<T> f(element)) =>
+      new ExpandIterable<dynamic, T>(this, f);
 
   bool every(bool f(element)) {
     var len = this.length;

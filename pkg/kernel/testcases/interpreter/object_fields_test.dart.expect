@@ -1,0 +1,22 @@
+print(int: 37)
+print(String: hello world)
+static-invocation-redirecting
+print(String: B.redirecting1: 0)
+return
+static-invocation-redirecting
+print(String: B.redirecting2: 0)
+return
+static-invocation-redirecting
+print(String: B.redirecting1: 1)
+return
+static-invocation-redirecting
+print(String: C.redirecting1: 0)
+return
+static-invocation-fieldInitializer
+print(String: C.f1: 0)
+return
+static-invocation-fieldInitializer
+print(String: C.f2: 1)
+return
+print(int: 0)
+print(int: 1)

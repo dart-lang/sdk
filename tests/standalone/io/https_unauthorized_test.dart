@@ -25,18 +25,22 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 SecurityContext untrustedServerContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/untrusted_server_chain.pem'))
   ..usePrivateKey(localFile('certificates/untrusted_server_key.pem'),
-                  password: 'dartdart');
+      password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 Future<SecureServerSocket> runServer() {
-  return HttpServer.bindSecure(
-      HOST_NAME, 0, untrustedServerContext, backlog: 5)
-  .then((server) {
+  return HttpServer
+      .bindSecure(HOST_NAME, 0, untrustedServerContext, backlog: 5)
+      .then((server) {
     server.listen((HttpRequest request) {
-      request.listen((_) { }, onDone: () { request.response.close(); });
-    }, onError: (e) { if (e is! HandshakeException) throw e; });
+      request.listen((_) {}, onDone: () {
+        request.response.close();
+      });
+    }, onError: (e) {
+      if (e is! HandshakeException) throw e;
+    });
     return server;
   });
 }
@@ -44,9 +48,9 @@ Future<SecureServerSocket> runServer() {
 void main() {
   var clientScript = localFile('https_unauthorized_client.dart');
   Future clientProcess(int port) {
-    return Process.run(Platform.executable,
-        [clientScript, port.toString()])
-    .then((ProcessResult result) {
+    return Process
+        .run(Platform.executable, [clientScript, port.toString()]).then(
+            (ProcessResult result) {
       if (result.exitCode != 0 || !result.stdout.contains('SUCCESS')) {
         print("Client failed");
         print("  stdout:");

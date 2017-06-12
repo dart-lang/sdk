@@ -484,7 +484,7 @@ class _IsolateContext implements IsolateContext {
   }
 
   /**
-   * Handle messages comming in on the control port.
+   * Handle messages coming in on the control port.
    *
    * These events do not go through the event queue.
    * The `_globalState.currentContext` context is not set to this context
@@ -745,6 +745,14 @@ class IsolateNatives {
   static var enableSpawnWorker;
 
   static String thisScript = computeThisScript();
+
+  /// Returns the base path added to Uri.base to resolve `package:` Uris.
+  ///
+  /// This is used by `Isolate.resolvePackageUri` to load resources. The default
+  /// value is `packages/` but users can override this by using the
+  /// `defaultPackagesBase` hook.
+  static String get packagesBase =>
+      JS('String', r'#.defaultPackagesBase || "packages/"', global);
 
   /// Associates an ID with a native worker object.
   static final Expando<int> workerIds = new Expando<int>();

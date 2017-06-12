@@ -15,7 +15,9 @@ class B extends A {
   const B(x, this.y) : super(x);
   const B.redirect(x, y) : this(x + 22, y + 22);
   const B.redirect2(x, y) : this.redirect3(x + 122, y + 122);
-  const B.redirect3(x, y) :  this.y = y, super.redirect(x);
+  const B.redirect3(x, y)
+      : this.y = y,
+        super.redirect(x);
   const B.optional(x, [this.y]) : super(x);
   const B.optional2([x, this.y]) : super(x);
   final y;
@@ -25,9 +27,13 @@ class C extends B {
   const C(x, y, this.z) : super(x, y);
   const C.redirect(x, y, z) : this(x + 33, y + 33, z + 33);
   const C.redirect2(x, y, z) : this.redirect3(x + 333, y + 333, z + 333);
-  const C.redirect3(x, y, z) : this.z = z, super.redirect2(x, y);
+  const C.redirect3(x, y, z)
+      : this.z = z,
+        super.redirect2(x, y);
   const C.optional(x, [y, this.z]) : super(x, y);
-  const C.optional2([x, y, z]): this.z = z, super(x, y);
+  const C.optional2([x, y, z])
+      : this.z = z,
+        super(x, y);
   const C.optional3([this.z]) : super.optional2();
   final z;
 }

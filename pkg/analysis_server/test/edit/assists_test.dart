@@ -2,10 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.edit.assists;
+import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -42,6 +48,27 @@ class AssistsTest extends AbstractAnalysisTest {
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([server.serverPlugin]);
     handler = new EditDomainHandler(server);
+  }
+
+  test_fromPlugins() async {
+    PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
+    String message = 'From a plugin';
+    plugin.PrioritizedSourceChange change = new plugin.PrioritizedSourceChange(
+        5,
+        new SourceChange(message, edits: <SourceFileEdit>[
+          new SourceFileEdit('', 0,
+              edits: <SourceEdit>[new SourceEdit(0, 0, 'x')])
+        ]));
+    plugin.EditGetAssistsResult result = new plugin.EditGetAssistsResult(
+        <plugin.PrioritizedSourceChange>[change]);
+    pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
+      info: new Future.value(result.toResponse('-', 1))
+    };
+
+    addTestFile('main() {}');
+    await waitForTasksFinished();
+    await prepareAssists('in(');
+    _assertHasChange(message, 'xmain() {}');
   }
 
   test_removeTypeAnnotation() async {

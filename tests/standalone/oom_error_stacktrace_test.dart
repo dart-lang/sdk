@@ -10,12 +10,15 @@ class Helper1 {
   static int func1() {
     return func2();
   }
+
   static int func2() {
     return func3();
   }
+
   static int func3() {
     return func4();
   }
+
   static int func4() {
     var i = 0;
     try {
@@ -27,6 +30,7 @@ class Helper1 {
     }
     return i;
   }
+
   static List func5() {
     // Cause an OOM(out of memory) exception.
     var l1 = new List(268435455);

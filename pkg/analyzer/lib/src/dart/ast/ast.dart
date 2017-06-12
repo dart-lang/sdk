@@ -8458,6 +8458,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   Iterable<SyntacticEntity> get childEntities => super._childEntities
     ..add(partKeyword)
     ..add(ofKeyword)
+    ..add(_uri)
     ..add(_libraryName)
     ..add(semicolon);
 
@@ -9452,6 +9453,16 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
     }
     if (parent is ForEachStatement) {
       if (identical(parent.identifier, target)) {
+        return false;
+      }
+    }
+    if (parent is FieldFormalParameter) {
+      if (identical(parent.identifier, target)) {
+        return false;
+      }
+    }
+    if (parent is VariableDeclaration) {
+      if (identical(parent.name, target)) {
         return false;
       }
     }

@@ -4,6 +4,8 @@
 
 library fasta.kernel_library_builder;
 
+import 'package:front_end/src/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/clone.dart' show CloneVisitor;
@@ -12,7 +14,8 @@ import '../errors.dart' show internalError;
 
 import '../loader.dart' show Loader;
 
-import '../modifier.dart' show abstractMask, staticMask;
+import '../modifier.dart'
+    show abstractMask, namedMixinApplicationMask, staticMask;
 
 import '../source/source_library_builder.dart'
     show DeclarationBuilder, SourceLibraryBuilder;
@@ -39,19 +42,20 @@ import 'kernel_builder.dart'
         KernelFunctionTypeBuilder,
         KernelInvalidTypeBuilder,
         KernelMixinApplicationBuilder,
-        KernelNamedMixinApplicationBuilder,
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
+        LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
-        MixedAccessor,
-        NamedMixinApplicationBuilder,
+        NamedTypeBuilder,
         PrefixBuilder,
         ProcedureBuilder,
+        Scope,
         TypeBuilder,
-        TypeVariableBuilder;
+        TypeVariableBuilder,
+        compareProcedures;
 
 class KernelLibraryBuilder
     extends SourceLibraryBuilder<KernelTypeBuilder, Library> {
@@ -100,27 +104,341 @@ class KernelLibraryBuilder
       KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces,
       int charOffset) {
+    // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
+    var declaration = endNestedDeclaration()..resolveTypes(typeVariables, this);
+    assert(declaration.parent == libraryDeclaration);
+    Map<String, MemberBuilder> members = declaration.members;
+    Map<String, MemberBuilder> constructors = declaration.constructors;
+    Map<String, MemberBuilder> setters = declaration.setters;
+
+    Scope classScope = new Scope(
+        members, setters, scope.withTypeVariables(typeVariables),
+        isModifiable: false);
+
+    // When looking up a constructor, we don't consider type variables or the
+    // library scope.
+    Scope constructorScope =
+        new Scope(constructors, null, null, isModifiable: false);
     ClassBuilder cls = new SourceClassBuilder(
         metadata,
         modifiers,
         className,
         typeVariables,
-        supertype,
+        applyMixins(supertype,
+            subclassName: className, typeVariables: typeVariables),
         interfaces,
-        classMembers,
+        classScope,
+        constructorScope,
         this,
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
         charOffset);
     constructorReferences.clear();
-    classMembers.forEach((String name, MemberBuilder builder) {
-      while (builder != null) {
-        builder.parent = cls;
-        builder = builder.next;
+    Map<String, TypeVariableBuilder> typeVariablesByName =
+        checkTypeVariables(typeVariables, cls);
+    void setParent(String name, MemberBuilder member) {
+      while (member != null) {
+        member.parent = cls;
+        member = member.next;
       }
-    });
-    // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    endNestedDeclaration().resolveTypes(typeVariables, this);
+    }
+
+    void setParentAndCheckConflicts(String name, MemberBuilder member) {
+      if (typeVariablesByName != null) {
+        TypeVariableBuilder tv = typeVariablesByName[name];
+        if (tv != null) {
+          cls.addCompileTimeError(
+              member.charOffset, "Conflict with type variable '$name'.");
+          cls.addCompileTimeError(tv.charOffset, "This is the type variable.");
+        }
+      }
+      setParent(name, member);
+    }
+
+    members.forEach(setParentAndCheckConflicts);
+    constructors.forEach(setParentAndCheckConflicts);
+    // Formally, a setter has the name `id=`, so it can never conflict with a
+    // type variable.
+    setters.forEach(setParent);
     addBuilder(className, cls, charOffset);
+  }
+
+  Map<String, TypeVariableBuilder> checkTypeVariables(
+      List<TypeVariableBuilder> typeVariables, Builder owner) {
+    if (typeVariables?.isEmpty ?? true) return null;
+    Map<String, TypeVariableBuilder> typeVariablesByName =
+        <String, TypeVariableBuilder>{};
+    for (TypeVariableBuilder tv in typeVariables) {
+      TypeVariableBuilder existing = typeVariablesByName[tv.name];
+      if (existing != null) {
+        addCompileTimeError(tv.charOffset,
+            "A type variable can't have the same name as another.");
+        addCompileTimeError(
+            existing.charOffset, "The other type variable named '${tv.name}'.");
+      } else {
+        typeVariablesByName[tv.name] = tv;
+        if (owner is ClassBuilder) {
+          // Only classes and type variables can't have the same name. See
+          // [#29555](https://github.com/dart-lang/sdk/issues/29555).
+          if (tv.name == owner.name) {
+            addCompileTimeError(
+                tv.charOffset,
+                "A type variable can't have the same name as its enclosing "
+                "declaration.");
+          }
+        }
+      }
+    }
+    return typeVariablesByName;
+  }
+
+  KernelTypeBuilder applyMixin(
+      KernelTypeBuilder supertype, KernelTypeBuilder mixin, String signature,
+      {List<MetadataBuilder> metadata,
+      String name,
+      List<TypeVariableBuilder> typeVariables,
+      int modifiers: abstractMask,
+      List<KernelTypeBuilder> interfaces,
+      int charOffset: -1}) {
+    var constructors = <String, MemberBuilder>{};
+    bool isNamed = name != null;
+    SourceClassBuilder builder;
+    if (isNamed) {
+      modifiers |= namedMixinApplicationMask;
+    } else {
+      name = supertype.name;
+      int index = name.indexOf("^");
+      if (index != -1) {
+        name = name.substring(0, index);
+      }
+      name = "$name&${mixin.name}$signature";
+      builder = mixinApplicationClasses[name];
+    }
+    if (builder == null) {
+      builder = new SourceClassBuilder(
+          metadata,
+          modifiers,
+          name,
+          typeVariables,
+          supertype,
+          interfaces,
+          new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
+              scope.withTypeVariables(typeVariables),
+              isModifiable: false),
+          new Scope(constructors, null, null, isModifiable: false),
+          this,
+          <ConstructorReferenceBuilder>[],
+          charOffset,
+          null,
+          mixin);
+      addBuilder(name, builder, charOffset);
+      if (!isNamed) {
+        mixinApplicationClasses[name] = builder;
+      }
+    }
+    return addNamedType(name, <KernelTypeBuilder>[], charOffset)
+      ..bind(isNamed ? builder : null);
+  }
+
+  KernelTypeBuilder applyMixins(KernelTypeBuilder type,
+      {List<MetadataBuilder> metadata,
+      String name,
+      String subclassName,
+      List<TypeVariableBuilder> typeVariables,
+      int modifiers: abstractMask,
+      List<KernelTypeBuilder> interfaces,
+      int charOffset: -1}) {
+    if (type is KernelMixinApplicationBuilder) {
+      subclassName ??= name;
+      List<List<String>> signatureParts = <List<String>>[];
+      Map<String, String> unresolved = <String, String>{};
+      Map<String, String> unresolvedReversed = <String, String>{};
+      int unresolvedCount = 0;
+      Map<String, TypeBuilder> freeTypes = <String, TypeBuilder>{};
+
+      if (name == null || type.mixins.length != 1) {
+        TypeBuilder last = type.mixins.last;
+
+        /// Compute a signature of the type arguments used by the supertype and
+        /// mixins. These types are free variables. At this point we can't
+        /// trust that the number of type arguments match the type parameters,
+        /// so we also need to be able to detect missing type arguments.  To do
+        /// so, we separate each list of type arguments by `^` and type
+        /// arguments by `&`. For example, the mixin `C<S> with M<T, U>` would
+        /// look like this:
+        ///
+        ///     ^#U0^#U1&#U2
+        ///
+        /// Where `#U0`, `#U1`, and `#U2` are the free variables arising from
+        /// `S`, `T`, and `U` respectively.
+        ///
+        /// As we can resolve any type parameters used at this point, those are
+        /// named `#T0` and so forth. This reduces the number of free variables
+        /// which is crucial for memory usage and the Dart VM's bootstrap
+        /// sequence.
+        ///
+        /// For example, consider this use of mixin applications:
+        ///
+        ///     class _InternalLinkedHashMap<K, V> extends _HashVMBase
+        ///         with
+        ///             MapMixin<K, V>,
+        ///             _LinkedHashMapMixin<K, V>,
+        ///             _HashBase,
+        ///             _OperatorEqualsAndHashCode {}
+        ///
+        /// In this case, only two variables are free, and we produce this
+        /// signature: `^^#T0&#T1^#T0&#T1^^`. Assume another class uses the
+        /// sames mixins but with missing type arguments for `MapMixin`, its
+        /// signature would be: `^^^#T0&#T1^^`.
+        ///
+        /// Note that we do not need to compute a signature for a named mixin
+        /// application with only one mixin as we don't have to invent a name
+        /// for any classes in this situation.
+        void analyzeArguments(TypeBuilder type) {
+          if (name != null && type == last) {
+            // The last mixin of a named mixin application doesn't contribute
+            // to free variables.
+            return;
+          }
+          if (type is NamedTypeBuilder) {
+            List<String> part = <String>[];
+            for (int i = 0; i < (type.arguments?.length ?? 0); i++) {
+              var argument = type.arguments[i];
+              String name;
+              if (argument is NamedTypeBuilder) {
+                if (argument.builder != null) {
+                  int index = typeVariables?.indexOf(argument.builder) ?? -1;
+                  if (index != -1) {
+                    name = "#T${index}";
+                  }
+                } else if (argument.arguments == null) {
+                  name = unresolved[argument.name] ??= "#U${unresolvedCount++}";
+                }
+              }
+              name ??= "#U${unresolvedCount++}";
+              unresolvedReversed[name] = argument.name;
+              freeTypes[name] = argument;
+              part.add(name);
+              type.arguments[i] =
+                  new KernelNamedTypeBuilder(name, null, -1, fileUri);
+            }
+            signatureParts.add(part);
+          }
+        }
+
+        analyzeArguments(type.supertype);
+        type.mixins.forEach(analyzeArguments);
+      }
+      KernelTypeBuilder supertype = type.supertype;
+      List<List<String>> currentSignatureParts = <List<String>>[];
+      int currentSignatureCount = 0;
+      String computeSignature() {
+        if (freeTypes.isEmpty) return "";
+        currentSignatureParts.add(signatureParts[currentSignatureCount++]);
+        if (currentSignatureParts.any((l) => l.isNotEmpty)) {
+          return "^${currentSignatureParts.map((l) => l.join('&')).join('^')}";
+        } else {
+          return "";
+        }
+      }
+
+      Map<String, TypeVariableBuilder> computeTypeVariables() {
+        Map<String, TypeVariableBuilder> variables =
+            <String, TypeVariableBuilder>{};
+        for (List<String> strings in currentSignatureParts) {
+          for (String name in strings) {
+            variables[name] ??= addTypeVariable(name, null, -1);
+          }
+        }
+        return variables;
+      }
+
+      checkArguments(t) {
+        for (var argument in t.arguments ?? const []) {
+          if (argument.builder == null && argument.name.startsWith("#")) {
+            throw "No builder on ${argument.name}";
+          }
+        }
+      }
+
+      computeSignature(); // This combines the supertype with the first mixin.
+      for (int i = 0; i < type.mixins.length - 1; i++) {
+        Set<String> supertypeArguments = new Set<String>();
+        for (var part in currentSignatureParts) {
+          supertypeArguments.addAll(part);
+        }
+        String signature = computeSignature();
+        var variables = computeTypeVariables();
+        if (supertypeArguments.isNotEmpty) {
+          supertype = addNamedType(
+              supertype.name,
+              supertypeArguments
+                  .map((n) => addNamedType(n, null, -1)..bind(variables[n]))
+                  .toList(),
+              -1);
+        }
+        KernelNamedTypeBuilder mixin = type.mixins[i];
+        for (var type in mixin.arguments ?? const []) {
+          type.bind(variables[type.name]);
+        }
+        checkArguments(supertype);
+        checkArguments(mixin);
+        supertype = applyMixin(supertype, mixin, signature,
+            typeVariables:
+                new List<TypeVariableBuilder>.from(variables.values));
+      }
+      KernelNamedTypeBuilder mixin = type.mixins.last;
+
+      Set<String> supertypeArguments = new Set<String>();
+      for (var part in currentSignatureParts) {
+        supertypeArguments.addAll(part);
+      }
+      String signature = name == null ? computeSignature() : "";
+      var variables;
+      if (name == null) {
+        variables = computeTypeVariables();
+        typeVariables = new List<TypeVariableBuilder>.from(variables.values);
+        if (supertypeArguments.isNotEmpty) {
+          supertype = addNamedType(
+              supertype.name,
+              supertypeArguments
+                  .map((n) => addNamedType(n, null, -1)..bind(variables[n]))
+                  .toList(),
+              -1);
+        }
+      } else {
+        if (supertypeArguments.isNotEmpty) {
+          supertype = addNamedType(supertype.name,
+              supertypeArguments.map((n) => freeTypes[n]).toList(), -1);
+        }
+      }
+
+      if (name == null) {
+        for (var type in mixin.arguments ?? const []) {
+          type.bind(variables[type.name]);
+        }
+      }
+      checkArguments(supertype);
+      checkArguments(mixin);
+
+      KernelNamedTypeBuilder t = applyMixin(supertype, mixin, signature,
+          metadata: metadata,
+          name: name,
+          typeVariables: typeVariables,
+          modifiers: modifiers,
+          interfaces: interfaces,
+          charOffset: charOffset);
+      if (name == null) {
+        var builder = t.builder;
+        t = addNamedType(
+            t.name, freeTypes.keys.map((k) => freeTypes[k]).toList(), -1);
+        if (builder != null) {
+          t.bind(builder);
+        }
+      }
+      return t;
+    } else {
+      return type;
+    }
   }
 
   void addNamedMixinApplication(
@@ -131,27 +449,49 @@ class KernelLibraryBuilder
       KernelTypeBuilder mixinApplication,
       List<KernelTypeBuilder> interfaces,
       int charOffset) {
-    NamedMixinApplicationBuilder builder =
-        new KernelNamedMixinApplicationBuilder(metadata, name, typeVariables,
-            modifiers, mixinApplication, interfaces, this, charOffset);
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration().resolveTypes(typeVariables, this);
-    addBuilder(name, builder, charOffset);
+    KernelNamedTypeBuilder supertype = applyMixins(mixinApplication,
+        metadata: metadata,
+        name: name,
+        typeVariables: typeVariables,
+        modifiers: modifiers,
+        interfaces: interfaces,
+        charOffset: charOffset);
+    checkTypeVariables(typeVariables, supertype.builder);
   }
 
   void addField(List<MetadataBuilder> metadata, int modifiers,
-      KernelTypeBuilder type, String name, int charOffset) {
+      KernelTypeBuilder type, String name, int charOffset, Token initializer) {
     addBuilder(
         name,
         new KernelFieldBuilder(
-            metadata, type, name, modifiers, this, charOffset),
+            metadata, type, name, modifiers, this, charOffset, initializer),
         charOffset);
   }
 
-  String computeConstructorName(String name) {
-    assert(isConstructorName(name, currentDeclaration.name));
+  String computeAndValidateConstructorName(String name, int charOffset) {
+    String className = currentDeclaration.name;
+    bool startsWithClassName = name.startsWith(className);
+    if (startsWithClassName && name.length == className.length) {
+      // Unnamed constructor or factory.
+      return "";
+    }
     int index = name.indexOf(".");
-    return index == -1 ? "" : name.substring(index + 1);
+    if (startsWithClassName && index == className.length) {
+      // Named constructor or factory.
+      return name.substring(index + 1);
+    }
+    if (index == -1) {
+      // A legal name for a regular method, but not for a constructor.
+      return null;
+    }
+    String suffix = name.substring(index + 1);
+    addCompileTimeError(
+        charOffset,
+        "'$name' isn't a legal method name.\n"
+        "Did you mean '$className.$suffix'?");
+    return suffix;
   }
 
   void addProcedure(
@@ -161,7 +501,6 @@ class KernelLibraryBuilder
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
-      AsyncMarker asyncModifier,
       ProcedureKind kind,
       int charOffset,
       int charOpenParenOffset,
@@ -172,8 +511,10 @@ class KernelLibraryBuilder
     // `OutlineBuilder.beginTopLevelMethod`.
     endNestedDeclaration().resolveTypes(typeVariables, this);
     ProcedureBuilder procedure;
-    if (!isTopLevel && isConstructorName(name, currentDeclaration.name)) {
-      name = computeConstructorName(name);
+    String constructorName =
+        isTopLevel ? null : computeAndValidateConstructorName(name, charOffset);
+    if (constructorName != null) {
+      name = constructorName;
       procedure = new KernelConstructorBuilder(
           metadata,
           modifiers & ~abstractMask,
@@ -194,7 +535,6 @@ class KernelLibraryBuilder
           name,
           typeVariables,
           formals,
-          asyncModifier,
           kind,
           this,
           charOffset,
@@ -211,9 +551,8 @@ class KernelLibraryBuilder
   void addFactoryMethod(
       List<MetadataBuilder> metadata,
       int modifiers,
-      ConstructorReferenceBuilder constructorName,
+      ConstructorReferenceBuilder constructorNameReference,
       List<FormalParameterBuilder> formals,
-      AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget,
       int charOffset,
       int charOpenParenOffset,
@@ -222,11 +561,13 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
         endNestedDeclaration();
-    String name = constructorName.name;
-    if (isConstructorName(name, currentDeclaration.name)) {
-      name = computeConstructorName(name);
+    String name = constructorNameReference.name;
+    String constructorName =
+        computeAndValidateConstructorName(name, charOffset);
+    if (constructorName != null) {
+      name = constructorName;
     }
-    assert(constructorName.suffix == null);
+    assert(constructorNameReference.suffix == null);
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
         metadata,
         staticMask | modifiers,
@@ -234,7 +575,6 @@ class KernelLibraryBuilder
         name,
         <TypeVariableBuilder>[],
         formals,
-        asyncModifier,
         ProcedureKind.Factory,
         this,
         charOffset,
@@ -253,8 +593,8 @@ class KernelLibraryBuilder
       List<Object> constantNamesAndOffsets, int charOffset, int charEndOffset) {
     addBuilder(
         name,
-        new KernelEnumBuilder(metadata, name, constantNamesAndOffsets, this,
-            charOffset, charEndOffset),
+        new KernelEnumBuilder(loader.astFactory, metadata, name,
+            constantNamesAndOffsets, this, charOffset, charEndOffset),
         charOffset);
   }
 
@@ -277,8 +617,8 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset) {
-    return new KernelFunctionTypeBuilder(
-        charOffset, fileUri, returnType, typeVariables, formals);
+    return addType(new KernelFunctionTypeBuilder(
+        charOffset, fileUri, returnType, typeVariables, formals));
   }
 
   KernelFormalParameterBuilder addFormalParameter(
@@ -299,19 +639,19 @@ class KernelLibraryBuilder
     return builder;
   }
 
-  void buildBuilder(Builder builder) {
+  @override
+  void buildBuilder(Builder builder, LibraryBuilder coreLibrary) {
     if (builder is SourceClassBuilder) {
-      Class cls = builder.build(this);
+      Class cls = builder.build(this, coreLibrary);
       library.addClass(cls);
     } else if (builder is KernelFieldBuilder) {
       library.addMember(builder.build(this)..isStatic = true);
     } else if (builder is KernelProcedureBuilder) {
       library.addMember(builder.build(this)..isStatic = true);
-    } else if (builder is FunctionTypeAliasBuilder) {
-      // Kernel discard typedefs and use their corresponding function types
-      // directly.
+    } else if (builder is KernelFunctionTypeAliasBuilder) {
+      library.addTypedef(builder.build(this));
     } else if (builder is KernelEnumBuilder) {
-      library.addClass(builder.build(this));
+      library.addClass(builder.build(this, coreLibrary));
     } else if (builder is PrefixBuilder) {
       // Ignored. Kernel doesn't represent prefixes.
     } else if (builder is BuiltinTypeBuilder) {
@@ -321,9 +661,11 @@ class KernelLibraryBuilder
     }
   }
 
-  Library build() {
-    super.build();
+  @override
+  Library build(LibraryBuilder coreLibrary) {
+    super.build(coreLibrary);
     library.name = name;
+    library.procedures.sort(compareProcedures);
     return library;
   }
 
@@ -331,6 +673,7 @@ class KernelLibraryBuilder
   Builder buildAmbiguousBuilder(
       String name, Builder builder, Builder other, int charOffset,
       {bool isExport: false, bool isImport: false}) {
+    // TODO(ahe): Can I move this to Scope or Prefix?
     if (builder == other) return builder;
     if (builder is InvalidTypeBuilder) return builder;
     if (other is InvalidTypeBuilder) return other;
@@ -348,7 +691,7 @@ class KernelLibraryBuilder
     Uri otherUri;
     Uri preferredUri;
     Uri hiddenUri;
-    if (members[name] == builder) {
+    if (scope.local[name] == builder) {
       isLocal = true;
       preferred = builder;
       hiddenUri = other.computeLibraryUri();
@@ -390,26 +733,15 @@ class KernelLibraryBuilder
       return preferred;
     }
     if (builder.next == null && other.next == null) {
-      if (builder.isGetter && other.isSetter) {
-        return new MixedAccessor(builder, other, this);
-      } else if (builder.isSetter && other.isGetter) {
-        return new MixedAccessor(other, builder, this);
-      }
       if (isImport && builder is PrefixBuilder && other is PrefixBuilder) {
         // Handles the case where the same prefix is used for different
         // imports.
-        PrefixBuilder prefix = builder;
-        other.exports.forEach((String name, Builder member) {
-          Builder existing = exports[name];
-          if (existing != null) {
-            if (existing != member) {
-              member = buildAmbiguousBuilder(name, existing, member, charOffset,
-                  isExport: isExport, isImport: isImport);
-            }
-          }
-          prefix.exports[name] = member;
-        });
-        return builder;
+        return builder
+          ..exports.merge(other.exports,
+              (String name, Builder existing, Builder member) {
+            return buildAmbiguousBuilder(name, existing, member, charOffset,
+                isExport: isExport, isImport: isImport);
+          });
       }
     }
     if (isExport) {
@@ -505,17 +837,16 @@ class KernelLibraryBuilder
 
   @override
   void includePart(covariant KernelLibraryBuilder part) {
+    part.mixinApplicationClasses
+        .forEach((String name, SourceClassBuilder builder) {
+      SourceClassBuilder existing =
+          mixinApplicationClasses.putIfAbsent(name, () => builder);
+      if (existing != builder) {
+        part.scope.local.remove(name);
+      }
+    });
     super.includePart(part);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
-    assert(mixinApplicationClasses.isEmpty);
   }
-}
-
-bool isConstructorName(String name, String className) {
-  if (name.startsWith(className)) {
-    if (name.length == className.length) return true;
-    if (name.startsWith(".", className.length)) return true;
-  }
-  return false;
 }

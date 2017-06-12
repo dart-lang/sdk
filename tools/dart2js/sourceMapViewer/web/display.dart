@@ -31,9 +31,9 @@ Future getMap() {
   Completer c = new Completer();
   HttpRequest httpRequest = new HttpRequest();
   httpRequest
-      ..open('GET', '/map')
-      ..onLoadEnd.listen((_) => c.complete(httpRequest.responseText))
-      ..send('');
+    ..open('GET', '/map')
+    ..onLoadEnd.listen((_) => c.complete(httpRequest.responseText))
+    ..send('');
   return c.future;
 }
 
@@ -42,9 +42,9 @@ Future fetchFile(String path) {
   HttpRequest httpRequest = new HttpRequest();
   sourceFileName.text = path;
   httpRequest
-      ..open('GET', path)
-      ..onLoadEnd.listen((_) => c.complete(httpRequest.responseText))
-      ..send('');
+    ..open('GET', path)
+    ..onLoadEnd.listen((_) => c.complete(httpRequest.responseText))
+    ..send('');
   return c.future;
 }
 
@@ -55,18 +55,18 @@ displaySource(String filename, List<String> source, TargetEntry entry) {
   String id = nameId == null ? null : sourceMap.names[nameId];
   selectedSource.children.clear();
   SpanElement marker = new SpanElement()
-      ..className = "marker"
-      ..appendText("*");
+    ..className = "marker"
+    ..appendText("*");
   for (int pos = 0; pos < source.length; pos++) {
     String l = source[pos];
     if (pos != line) {
       selectedSource.children.add(l.isEmpty ? new BRElement() : new DivElement()
-          ..appendText(l));
+        ..appendText(l));
     } else {
       selectedSource.children.add(new DivElement()
-          ..appendText(l.substring(0, column))
-          ..children.add(marker)
-          ..appendText(l.substring(column)));
+        ..appendText(l.substring(0, column))
+        ..children.add(marker)
+        ..appendText(l.substring(column)));
     }
   }
   sourceFileName.text = filename;
@@ -106,8 +106,8 @@ void highlightSelectedSpan(TargetEntry entry, TargetLineEntry lineEntry) {
   String sourceName = source.substring(source.lastIndexOf('/') + 1);
   String sourcePoint =
       'Source: Line ${entry.sourceLine} Col. ${entry.sourceColumn}';
-  sourcePoint +=
-      entry.sourceNameId == null ? ''
+  sourcePoint += entry.sourceNameId == null
+      ? ''
       : ' (${sourceMap.names[entry.sourceNameId]})';
   sourcePoint += ' in $sourceName';
   selectedOutputSpan.children.add(getTextElement(targetSpan));
@@ -122,21 +122,21 @@ void highlightSelectedSpan(TargetEntry entry, TargetLineEntry lineEntry) {
   String highlightColor = "#99ff99";
   highlightedMapEntry = targetEntryMap[entry];
   highlightedMapEntry[0]
-     ..scrollIntoView()
-     ..style.backgroundColor = highlightColor;
+    ..scrollIntoView()
+    ..style.backgroundColor = highlightColor;
   highlightedMapEntry[1]
-     ..scrollIntoView()
-     ..style.backgroundColor = highlightColor;
+    ..scrollIntoView()
+    ..style.backgroundColor = highlightColor;
   highlightedMapEntry[1].onMouseOver.listen((e) {
     selectedOutputSpan.style.zIndex = "2";
     selectedOutputSpan.style.visibility = "visible";
     selectedOutputSpan.style.top = "${decodedMap.offsetTo(document.body).y +
                                       decodedMap.clientHeight - 20}px";
     selectedOutputSpan.style.left = "${decodedMap.offsetTo(document.body).x}px";
-    selectedOutputSpan.style.width= "${decodedMap.clientWidth}px";
+    selectedOutputSpan.style.width = "${decodedMap.clientWidth}px";
   });
 
-  highlightedMapEntry[1].onMouseOut.listen( (e) {
+  highlightedMapEntry[1].onMouseOut.listen((e) {
     selectedOutputSpan.style.visibility = "hidden";
   });
 
@@ -149,19 +149,19 @@ void loadSource(TargetEntry entry) {
   }
 
   String source = sourceMap.urls[entry.sourceUrlId];
-  fetchFile(new Uri(path: "/file",
-                    queryParameters: {"path": source}).toString()).then((text)
-                        => displaySource(source, text.split("\n"), entry));
+  fetchFile(
+          new Uri(path: "/file", queryParameters: {"path": source}).toString())
+      .then((text) => displaySource(source, text.split("\n"), entry));
   selectedSource.text = "loading";
 }
 
-SpanElement createSpan(String content, TargetEntry entry,
-                       TargetLineEntry lineEntry) {
-    return new SpanElement()
+SpanElement createSpan(
+    String content, TargetEntry entry, TargetLineEntry lineEntry) {
+  return new SpanElement()
     ..addEventListener('click', (e) {
-       loadSource(entry);
-       highlightSelectedSpan(entry, lineEntry);
-     }, false)
+      loadSource(entry);
+      highlightSelectedSpan(entry, lineEntry);
+    }, false)
     ..className = "range${entry.sourceUrlId % 4}"
     ..appendText(content);
 }
@@ -182,14 +182,14 @@ Element getTextElement(String text) {
 
 addTargetLine(int lineNumber, String content, TargetLineEntry lineEntry) {
   if (content.isEmpty) {
-    generatedOutput.children.add(new DivElement()
-        ..children.add(getLineNumberElement(lineNumber)));
+    generatedOutput.children
+        .add(new DivElement()..children.add(getLineNumberElement(lineNumber)));
     return;
   }
   if (lineEntry == null) {
     generatedOutput.children.add(new DivElement()
-        ..children.add(getLineNumberElement(lineNumber))
-        ..children.add(getTextElement(content)));
+      ..children.add(getLineNumberElement(lineNumber))
+      ..children.add(getTextElement(content)));
     return;
   }
   DivElement div = new DivElement();
@@ -232,8 +232,8 @@ void displayTargetSource() {
   int linesIndex = 0;
   for (int line = 0; line < target.length; line++) {
     TargetLineEntry entry = null;
-    if (linesIndex < targetLines.length
-        && targetLines[linesIndex].line == line) {
+    if (linesIndex < targetLines.length &&
+        targetLines[linesIndex].line == line) {
       entry = targetLines[linesIndex];
       linesIndex++;
     }
@@ -249,7 +249,7 @@ String getMappedData(String mapFileContent) {
   // Source map contains mapping information in this format:
   // "mappings": "A;A,yC;"
   List<String> mapEntry = mapFileContent.split('mappings');
-  return mapEntry[mapEntry.length-1].split('"')[2];
+  return mapEntry[mapEntry.length - 1].split('"')[2];
 }
 
 SpanElement createMapSpan(String segment) {
@@ -257,9 +257,10 @@ SpanElement createMapSpan(String segment) {
 }
 
 SpanElement createDecodedMapSpan(TargetEntry entry) {
-  return new SpanElement()..text = '(${entry.column}, ${entry.sourceUrlId},'
-                                   ' ${entry.sourceLine},'
-                                   ' ${entry.sourceColumn})';
+  return new SpanElement()
+    ..text = '(${entry.column}, ${entry.sourceUrlId},'
+        ' ${entry.sourceLine},'
+        ' ${entry.sourceColumn})';
 }
 
 displayMap(String mapFileContent) {
@@ -302,9 +303,8 @@ displayMap(String mapFileContent) {
 }
 
 void main() {
-  Future load(String q) => fetchFile(new Uri(path: "/file", queryParameters: {
-    "path": q
-  }).toString());
+  Future load(String q) => fetchFile(
+      new Uri(path: "/file", queryParameters: {"path": q}).toString());
 
   getMap().then((mapFileName) {
     load(mapFileName).then((mapFileContent) {

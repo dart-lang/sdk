@@ -33,11 +33,10 @@ void checkDynamicTypeError(f(), [String message]) {
   message = message != null ? ': $message' : '';
   try {
     f();
-    Expect.isFalse(inCheckedMode(),
-      'Missing type error in checked mode$message.');
+    Expect.isFalse(
+        inCheckedMode(), 'Missing type error in checked mode$message.');
   } on TypeError catch (e) {
-    Expect.isTrue(inCheckedMode(),
-      'Unexpected type error in production mode.');
+    Expect.isTrue(inCheckedMode(), 'Unexpected type error in production mode.');
   }
 }
 

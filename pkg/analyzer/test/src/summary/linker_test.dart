@@ -786,15 +786,6 @@ var y = x;
         'dynamic');
   }
 
-  @failingTest
-  void test_methodCall_withTypeArguments_topLevelVariable() {
-    // The following code is incorrect but it shouldn't crash analyzer.
-    // TODO(paulberry): fix this.
-    createLinker('var f = f/*<int>*/();');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
-    library.libraryCycleForLink.ensureLinked();
-  }
-
   void test_multiplyInheritedExecutable_differentSignatures() {
     createLinker('''
 class B {

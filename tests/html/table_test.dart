@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library TableTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
@@ -15,7 +16,7 @@ main() {
     var head = table.createTHead();
     expect(table.tHead, head);
 
-    var headerRow =  head.addRow();
+    var headerRow = head.addRow();
     var headerCell = headerRow.addCell();
     headerCell.text = 'Header Cell';
 
@@ -26,7 +27,7 @@ main() {
     expect(table.tBodies.length, 1);
     expect(table.tBodies[0], body);
 
-    var bodyRow =  body.addRow();
+    var bodyRow = body.addRow();
     expect(body.rows.length, 1);
     expect(body.rows[0], bodyRow);
 
@@ -38,7 +39,7 @@ main() {
     var foot = table.createTFoot();
     expect(table.tFoot, foot);
 
-    var footerRow =  foot.addRow();
+    var footerRow = foot.addRow();
     expect(foot.rows.length, 1);
     expect(foot.rows[0], footerRow);
 
@@ -48,7 +49,7 @@ main() {
     expect(footerRow.cells[0], footerCell);
 
     var body2 = table.createTBody();
-    var bodyRow2 =  body2.addRow();
+    var bodyRow2 = body2.addRow();
     var bodyCell2 = bodyRow2.addCell();
     bodyCell2.text = 'Body Cell2';
 
@@ -58,4 +59,3 @@ main() {
     expect(table.tBodies[1], body2);
   });
 }
-

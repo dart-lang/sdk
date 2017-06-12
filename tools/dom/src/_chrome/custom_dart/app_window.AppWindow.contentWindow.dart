@@ -4,5 +4,4 @@
 
 // TODO(sashab, sra): Detect whether this is the current window, or an
 // external one, and return an appropriately-typed object
-WindowBase get contentWindow =>
-  JS("Window", "#.contentWindow", this._jsObject);
+WindowBase get contentWindow => JS("Window", "#.contentWindow", this._jsObject);

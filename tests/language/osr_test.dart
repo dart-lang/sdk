@@ -15,25 +15,24 @@ main() {
   test(create);
 }
 
-
 class MyList<E> extends ListBase<E> {
   List<E> _list;
 
-  MyList([int length]): _list = (length==null ? new List() : new List(length));
+  MyList([int length])
+      : _list = (length == null ? new List() : new List(length));
 
   E operator [](int index) => _list[index];
 
   void operator []=(int index, E value) {
-    _list[index]=value;
+    _list[index] = value;
   }
 
   int get length => _list.length;
 
   void set length(int newLength) {
-    _list.length=newLength;
+    _list.length = newLength;
   }
 }
-
 
 test(List create([int length])) {
   sort_A01_t02_test(create);
@@ -57,7 +56,7 @@ sort_A01_t02_test(List create([int length])) {
     prevLength = length;
     List a = create(length);
     List expected = create(length);
-    for(int i = 0; i < length; ++i) {
+    for (int i = 0; i < length; ++i) {
       expected[i] = i;
       a[i] = i;
     }
@@ -79,18 +78,18 @@ sort_A01_t02_test(List create([int length])) {
     void permute(int n) {
       if (n == 1) {
         check();
-      }
-      else {
+      } else {
         for (int i = 0; i < n; i++) {
-          permute(n-1);
+          permute(n - 1);
           if (n % 2 == 1) {
-            swap(0, n-1);
+            swap(0, n - 1);
           } else {
-            swap(i, n-1);
+            swap(i, n - 1);
           }
         }
       }
     } //void permute
+
     permute(length);
   } //for i in 0..length
 } // test

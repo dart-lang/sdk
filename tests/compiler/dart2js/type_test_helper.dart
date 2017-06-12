@@ -13,7 +13,12 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/elements.dart'
-    show Element, MemberElement, TypeDeclarationElement, ClassElement;
+    show
+        Element,
+        MemberElement,
+        TypeDeclarationElement,
+        ClassElement,
+        LibraryElement;
 import 'package:compiler/src/world.dart' show ClosedWorld;
 
 GenericType instantiate(
@@ -30,6 +35,8 @@ class TypeEnvironment {
   final Compiler compiler;
 
   Resolution get resolution => compiler.resolution;
+
+  Types get types => resolution.types;
 
   static Future<TypeEnvironment> create(String source,
       {bool useMockCompiler: true,
@@ -84,7 +91,8 @@ class TypeEnvironment {
   TypeEnvironment._(Compiler this.compiler);
 
   Element getElement(String name) {
-    var element = compiler.mainApp.find(name);
+    LibraryElement mainApp = compiler.mainApp;
+    var element = mainApp.find(name);
     Expect.isNotNull(element);
     if (element.isClass) {
       element.ensureResolved(compiler.resolution);
@@ -113,20 +121,20 @@ class TypeEnvironment {
   }
 
   bool isSubtype(ResolutionDartType T, ResolutionDartType S) {
-    return compiler.types.isSubtype(T, S);
+    return types.isSubtype(T, S);
   }
 
   bool isMoreSpecific(ResolutionDartType T, ResolutionDartType S) {
-    return compiler.types.isMoreSpecific(T, S);
+    return types.isMoreSpecific(T, S);
   }
 
   ResolutionDartType computeLeastUpperBound(
       ResolutionDartType T, ResolutionDartType S) {
-    return compiler.types.computeLeastUpperBound(T, S);
+    return types.computeLeastUpperBound(T, S);
   }
 
   ResolutionDartType flatten(ResolutionDartType T) {
-    return compiler.types.flatten(T);
+    return types.flatten(T);
   }
 
   ResolutionFunctionType functionType(

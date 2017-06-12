@@ -18,18 +18,18 @@ abstract class I extends J {
 @Native("A")
 class A implements I {
   // The native class accepts only other native instances.
-  A read() native ;
-  write(A x) native ;
+  A read() native;
+  write(A x) native;
 }
 
 @Native("B")
 class B extends A {}
 
-makeA() native ;
-makeB() native ;
+makeA() native;
+makeB() native;
 
 void setup() native """
-// This code is all inside 'setup' and so not accesible from the global scope.
+// This code is all inside 'setup' and so not accessible from the global scope.
 function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;

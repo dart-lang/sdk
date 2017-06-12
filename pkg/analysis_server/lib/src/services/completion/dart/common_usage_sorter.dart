@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.dart.sorter.common;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
@@ -17,8 +15,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/dart.dart';
 
 part 'common_usage_sorter.g.dart';
 
@@ -45,29 +41,8 @@ class CommonUsageSorter implements DartContributionSorter {
     return new Future.value();
   }
 
-  CompletionTarget _getCompletionTarget(CompletionRequest request) {
-    if (request.result != null) {
-      var unit = request.result.unit;
-      return new CompletionTarget.forOffset(unit, request.offset);
-    } else {
-      // TODO (danrubel) get cached completion target
-      var libSrcs = request.context.getLibrariesContaining(request.source);
-      if (libSrcs.length == 0) {
-        return null;
-      }
-      LibraryElement libElem =
-          request.context.getResult(libSrcs[0], LIBRARY_ELEMENT1);
-      if (libElem is LibraryElement) {
-        var unit = request.context.getResult(
-            new LibrarySpecificUnit(libElem.source, request.source),
-            RESOLVED_UNIT5);
-        if (unit is CompilationUnit) {
-          return new CompletionTarget.forOffset(unit, request.offset);
-        }
-      }
-    }
-    return null;
-  }
+  CompletionTarget _getCompletionTarget(CompletionRequest request) =>
+      new CompletionTarget.forOffset(request.result.unit, request.offset);
 
   /**
    * Adjusts the relevance based on the given completion context.
@@ -135,37 +110,16 @@ class _BestTypeVisitor extends GeneralizingAstVisitor<DartType> {
 
   _BestTypeVisitor(this.entity);
 
-  DartType visitConstructorName(ConstructorName node) {
-    if (node.period != null && node.name == entity) {
-      TypeName typeName = node.type;
-      if (typeName != null) {
-        return typeName.type;
-      }
-    }
-    return null;
-  }
+  DartType visitConstructorName(ConstructorName node) =>
+      node.period != null && node.name == entity ? node.type?.type : null;
 
   DartType visitNode(AstNode node) {
     return null;
   }
 
-  DartType visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (node.identifier == entity) {
-      SimpleIdentifier prefix = node.prefix;
-      if (prefix != null) {
-        return prefix.bestType;
-      }
-    }
-    return null;
-  }
+  DartType visitPrefixedIdentifier(PrefixedIdentifier node) =>
+      node.identifier == entity ? node.prefix?.bestType : null;
 
-  DartType visitPropertyAccess(PropertyAccess node) {
-    if (node.propertyName == entity) {
-      Expression target = node.realTarget;
-      if (target != null) {
-        return target.bestType;
-      }
-    }
-    return null;
-  }
+  DartType visitPropertyAccess(PropertyAccess node) =>
+      node.propertyName == entity ? node.realTarget?.bestType : null;
 }

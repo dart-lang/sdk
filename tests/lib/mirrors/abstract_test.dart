@@ -6,14 +6,14 @@
 
 library test.abstract_test;
 
+@MirrorsUsed(targets: "test.abstract_test")
 import 'dart:mirrors';
 
 import 'stringify.dart';
 
-abstract class Foo {
-}
+abstract class Foo {}
 
 void main() {
-  expect('Class(s(Foo) in s(test.abstract_test), top-level)',
-         reflectClass(Foo));
+  expect(
+      'Class(s(Foo) in s(test.abstract_test), top-level)', reflectClass(Foo));
 }

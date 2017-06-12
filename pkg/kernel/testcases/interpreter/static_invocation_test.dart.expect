@@ -1,0 +1,21 @@
+static-invocation-a
+static-invocation-b
+print(int: 1)
+print(int: 9)
+print(int: 10)
+static-invocation-b
+print(int: 1)
+print(int: 9)
+print(int: 10)
+print(Null: null)
+static-invocation-d
+static-invocation-a
+return
+static-invocation-c
+print(String: c:37)
+return
+static-invocation-d
+static-invocation-a
+return
+print(String: d:37)
+print(int: 37)

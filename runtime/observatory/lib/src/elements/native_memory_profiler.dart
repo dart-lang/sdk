@@ -143,6 +143,9 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
   }
 
   Future _request({bool forceFetch: false}) async {
+    for (Isolate isolate in vm.isolates) {
+      await isolate.invokeRpc("_collectAllGarbage", {});
+    }
     _progress = null;
     _progressStream = _profiles.get(_vm, _tag, forceFetch: forceFetch);
     _r.dirty();

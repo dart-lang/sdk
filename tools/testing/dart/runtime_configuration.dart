@@ -25,7 +25,7 @@ class RuntimeConfiguration {
   // TODO(ahe): Remove this constructor and move the switch to
   // test_options.dart.  We probably want to store an instance of
   // [RuntimeConfiguration] in [configuration] there.
-  factory RuntimeConfiguration(Map configuration) {
+  factory RuntimeConfiguration(Map<String, dynamic> configuration) {
     String runtime = configuration['runtime'];
     bool useBlobs = configuration['use_blobs'];
 
@@ -210,7 +210,7 @@ class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
   int computeTimeoutMultiplier(
       {String mode, bool isChecked: false, bool isReload: false, String arch}) {
     return 4 // Allow additional time for browser testing to run.
-        // TODO(ahe): We might need to distinquish between DRT for running
+        // TODO(ahe): We might need to distinguish between DRT for running
         // JavaScript and Dart code.  I'm not convinced the inherited timeout
         // multiplier is relevant for JavaScript.
         *
@@ -281,16 +281,15 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
     }
 
     return <Command>[
-      commandBuilder.getVmCommand(suite.dartPrecompiledBinaryFileName,
-          arguments, environmentOverrides)
+      commandBuilder.getVmCommand(
+          suite.dartPrecompiledBinaryFileName, arguments, environmentOverrides)
     ];
   }
 }
 
 class DartPrecompiledAdbRuntimeConfiguration
-      extends DartVmRuntimeConfiguration {
-  static const String DeviceDir =
-      '/data/local/tmp/precompilation-testing';
+    extends DartVmRuntimeConfiguration {
+  static const String DeviceDir = '/data/local/tmp/precompilation-testing';
   static const String DeviceTestDir =
       '/data/local/tmp/precompilation-testing/test';
 
@@ -312,11 +311,8 @@ class DartPrecompiledAdbRuntimeConfiguration
     String precompiledRunner = suite.dartPrecompiledBinaryFileName;
     String processTest = suite.processTestBinaryFileName;
     return <Command>[
-      commandBuilder.getAdbPrecompiledCommand(precompiledRunner,
-                                              processTest,
-                                              script,
-                                              arguments,
-                                              useBlobs)
+      commandBuilder.getAdbPrecompiledCommand(
+          precompiledRunner, processTest, script, arguments, useBlobs)
     ];
   }
 }
@@ -330,7 +326,7 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
   void searchForSelfCheckers() {
     Uri pkg = TestUtils.dartDirUri.resolve('pkg');
-    for (var entry in  new Directory.fromUri(pkg).listSync(recursive: true)) {
+    for (var entry in new Directory.fromUri(pkg).listSync(recursive: true)) {
       if (entry is File && entry.path.endsWith('_self_check.dart')) {
         selfCheckers.add(entry.path);
       }

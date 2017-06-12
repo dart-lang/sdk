@@ -16,7 +16,7 @@ library dart2js.messages;
 
 import 'package:front_end/src/fasta/scanner.dart' show ErrorToken, Token;
 import 'generated/shared_messages.dart' as shared_messages;
-import 'invariant.dart' show invariant;
+import 'invariant.dart' show failedAt;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
@@ -349,7 +349,7 @@ enum MessageKind {
   PRIVATE_ACCESS,
   PRIVATE_IDENTIFIER,
   PRIVATE_NAMED_PARAMETER,
-  READ_SCRIPT_ERROR,
+  READ_URI_ERROR,
   READ_SELF_ERROR,
   REDIRECTING_CONSTRUCTOR_CYCLE,
   REDIRECTING_CONSTRUCTOR_HAS_BODY,
@@ -427,7 +427,7 @@ enum MessageKind {
 /// A message template for an error, warning, hint or info message generated
 /// by the compiler. Each template is associated with a [MessageKind] that
 /// uniquely identifies the message template.
-// TODO(johnnniwinther): For Infos, consider adding a reference to the
+// TODO(johnniwinther): For Infos, consider adding a reference to the
 // error/warning/hint that they belong to.
 class MessageTemplate {
   final MessageKind kind;
@@ -2605,8 +2605,8 @@ main() {}
 """
           ]),
 
-      MessageKind.READ_SCRIPT_ERROR: const MessageTemplate(
-          MessageKind.READ_SCRIPT_ERROR, "Can't read '#{uri}' (#{exception}).",
+      MessageKind.READ_URI_ERROR: const MessageTemplate(
+          MessageKind.READ_URI_ERROR, "Can't read '#{uri}' (#{exception}).",
           // Don't know how to fix since the underlying error is unknown.
           howToFix: DONT_KNOW_HOW_TO_FIX,
           examples: const [
@@ -3762,11 +3762,11 @@ class Message {
       arguments.forEach((key, value) {
         message = message.replaceAll('#{${key}}', convertToString(value));
       });
-      assert(invariant(
-          CURRENT_ELEMENT_SPANNABLE,
+      assert(
           kind == MessageKind.GENERIC ||
               !message.contains(new RegExp(r'#\{.+\}')),
-          message: 'Missing arguments in error message: "$message"'));
+          failedAt(CURRENT_ELEMENT_SPANNABLE,
+              'Missing arguments in error message: "$message"'));
       if (!terse && template.hasHowToFix) {
         String howToFix = template.howToFix;
         arguments.forEach((key, value) {

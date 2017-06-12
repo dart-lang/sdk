@@ -5,8 +5,5 @@
 library mylib;
 
 class T {
-
   m() => 42;
-
 }
-

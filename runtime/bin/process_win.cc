@@ -9,6 +9,7 @@
 
 #include "bin/process.h"
 
+#include <psapi.h>    // NOLINT
 #include <process.h>  // NOLINT
 
 #include "bin/builtin.h"
@@ -941,6 +942,24 @@ intptr_t Process::CurrentProcessId() {
 }
 
 
+int64_t Process::CurrentRSS() {
+  PROCESS_MEMORY_COUNTERS pmc;
+  if (!GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+    return -1;
+  }
+  return pmc.WorkingSetSize;
+}
+
+
+int64_t Process::MaxRSS() {
+  PROCESS_MEMORY_COUNTERS pmc;
+  if (!GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+    return -1;
+  }
+  return pmc.PeakWorkingSetSize;
+}
+
+
 static SignalInfo* signal_handlers = NULL;
 static Mutex* signal_mutex = new Mutex();
 
@@ -959,7 +978,7 @@ BOOL WINAPI SignalHandler(DWORD signal) {
   while (handler != NULL) {
     if (handler->signal() == signal) {
       int value = 0;
-      Socket::Write(handler->fd(), &value, 1);
+      SocketBase::Write(handler->fd(), &value, 1, SocketBase::kAsync);
       handled = true;
     }
     handler = handler->next();

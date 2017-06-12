@@ -15,8 +15,11 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:front_end/src/fasta/fasta.dart'
+import 'package:front_end/src/fasta/fasta.dart' as fasta
     show compilePlatform, writeDepsFile;
+
+import 'package:compiler/src/kernel/fasta_support.dart' as dart2js
+    show compilePlatform;
 
 /// Set of input files that were read by this script to generate patched SDK.
 /// We will dump it out into the depfile for ninja to use.
@@ -52,38 +55,96 @@ Future main(List<String> argv) async {
   }
 }
 
-Future _main(List<String> argv) async {
+void usage(String mode) {
   var base = path.fromUri(Platform.script);
-  var dartDir = path.dirname(path.dirname(path.absolute(base)));
+  final self = path.relative(base);
+  print('Usage: $self $mode SDK_DIR PATCH_DIR OUTPUT_DIR PACKAGES');
 
-  if (argv.length != 5 || argv.first != 'vm') {
-    final self = path.relative(base);
-    print('Usage: $self vm SDK_DIR PATCH_DIR OUTPUT_DIR PACKAGES');
+  final repositoryDir = path.relative(path.dirname(path.dirname(base)));
+  final sdkExample = path.relative(path.join(repositoryDir, 'sdk'));
+  final patchExample = path.relative(
+      path.join(repositoryDir, 'out', 'DebugX64', 'obj', 'gen', 'patch'));
+  final outExample = path.relative(
+      path.join(repositoryDir, 'out', 'DebugX64', 'obj', 'gen', 'patched_sdk'));
+  final packagesExample = path.relative(path.join(repositoryDir, '.packages'));
+  print('For example:');
+  print('\$ $self vm $sdkExample $patchExample $outExample $packagesExample');
 
-    final repositoryDir = path.relative(path.dirname(path.dirname(base)));
-    final sdkExample = path.relative(path.join(repositoryDir, 'sdk'));
-    final patchExample = path.relative(
-        path.join(repositoryDir, 'out', 'DebugX64', 'obj', 'gen', 'patch'));
-    final outExample = path.relative(path.join(
-        repositoryDir, 'out', 'DebugX64', 'obj', 'gen', 'patched_sdk'));
-    print('For example:');
-    print('\$ $self vm $sdkExample $patchExample $outExample');
+  exit(1);
+}
 
-    exit(1);
-  }
+Future _main(List<String> argv) async {
+  if (argv.isEmpty) usage('[vm|dart2js]');
+  var mode = argv.first;
+  if (mode != 'vm' && mode != 'dart2js') usage('[vm|dart2js]');
+  if (argv.length != 5) usage(mode);
 
-  var mode = argv[0];
-  assert(mode == "vm");
+  bool forVm = mode == 'vm';
+  bool forDart2js = mode == 'dart2js';
   var input = argv[1];
   var sdkLibIn = path.join(input, 'lib');
   var patchIn = argv[2];
   var outDir = argv[3];
+  var outDirUri = Uri.base.resolveUri(new Uri.directory(outDir));
   var sdkOut = path.join(outDir, 'lib');
   var packagesFile = argv[4];
 
-  // Copy and patch libraries.dart and version
+  // Parse libraries.dart
   var libContents = readInputFile(path.join(
       sdkLibIn, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'));
+  if (forVm) libContents = _updateLibraryMetadata(sdkOut, libContents);
+  var sdkLibraries = _getSdkLibraries(libContents);
+
+  // Enumerate core libraries and apply patches
+  for (SdkLibrary library in sdkLibraries) {
+    if (forDart2js && library.isVmLibrary) continue;
+    if (forVm && library.isDart2JsLibrary) continue;
+    _applyPatch(library, sdkLibIn, patchIn, sdkOut);
+  }
+
+  if (forVm) _copyExtraVmLibraries(sdkOut);
+
+  Uri platform = outDirUri.resolve('platform.dill.tmp');
+  Uri outline = outDirUri.resolve('outline.dill');
+  Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
+  if (forVm) {
+    await fasta.compilePlatform(outDirUri, platform,
+        packages: packages, outlineOutput: outline);
+  } else {
+    await dart2js.compilePlatform(outDirUri, platform,
+        packages: packages, outlineOutput: outline);
+  }
+
+  Uri platformFinalLocation = outDirUri.resolve('platform.dill');
+
+  // To properly regenerate the patched_sdk, patched_dart2js_sdk, and
+  // platform.dill only when necessary, we track dependencies as follows:
+  //  - inputs like the sdk libraries and patch files are covered by the
+  //    extraDependencies argument.
+  //  - this script and its script dependencies are handled by writeDepsFile
+  //    here.
+  //  - the internal platform libraries that may affect how this script
+  //    runs in the VM are discovered by providing the `platform` argument
+  //    below. Regardless of patched_sdk or patched_dart2js_sdk we provide below
+  //    the .dill file of patched_sdk (since the script runs in the VM and not
+  //    in dart2js). At the BUILD.gn level we have a dependency from
+  //    patched_dart2js_sdk to patched_sdk to ensure that file already exists.
+  await fasta.writeDepsFile(Platform.script,
+      Uri.base.resolveUri(new Uri.file("$outDir.d")), platformFinalLocation,
+      packages: packages,
+      platform:
+          forVm ? platform : outDirUri.resolve('../patched_sdk/platform.dill'),
+      extraDependencies: deps,
+      verbose: false);
+
+  await new File.fromUri(platform).rename(platformFinalLocation.toFilePath());
+}
+
+/// Updates the contents of
+/// sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart to include
+/// declarations for vm internal libraries.
+String _updateLibraryMetadata(String sdkOut, String libContents) {
+  // Copy and patch libraries.dart and version
   libContents = libContents.replaceAll(
       ' libraries = const {',
       ''' libraries = const {
@@ -117,81 +178,14 @@ Future _main(List<String> argv) async {
       path.join(
           sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),
       libContents);
+  return libContents;
+}
 
-  // Parse libraries.dart
-  var sdkLibraries = _getSdkLibraries(libContents);
-
-  // Enumerate core libraries and apply patches
-  for (SdkLibrary library in sdkLibraries) {
-    if (library.isDart2JsLibrary) {
-      continue;
-    }
-
-    var libraryOut = path.join(sdkLibIn, library.path);
-    var libraryIn = libraryOut;
-
-    var libraryFile = getInputFile(libraryIn, canBeMissing: true);
-    if (libraryFile != null) {
-      var outPaths = <String>[libraryOut];
-      var libraryContents = libraryFile.readAsStringSync();
-
-      int inputModifyTime =
-          libraryFile.lastModifiedSync().millisecondsSinceEpoch;
-      var partFiles = <File>[];
-      for (var part in parseDirectives(libraryContents).directives) {
-        if (part is PartDirective) {
-          var partPath = part.uri.stringValue;
-          outPaths.add(path.join(path.dirname(libraryOut), partPath));
-
-          var partFile =
-              getInputFile(path.join(path.dirname(libraryIn), partPath));
-          partFiles.add(partFile);
-          inputModifyTime = math.max(inputModifyTime,
-              partFile.lastModifiedSync().millisecondsSinceEpoch);
-        }
-      }
-
-      // See if we can find a patch file.
-      var patchPath = path.join(
-          patchIn, path.basenameWithoutExtension(libraryIn) + '_patch.dart');
-
-      var patchFile = getInputFile(patchPath, canBeMissing: true);
-      if (patchFile != null) {
-        inputModifyTime = math.max(inputModifyTime,
-            patchFile.lastModifiedSync().millisecondsSinceEpoch);
-      }
-
-      // Compute output paths
-      outPaths = outPaths
-          .map((p) => path.join(sdkOut, path.relative(p, from: sdkLibIn)))
-          .toList();
-
-      // Compare output modify time with input modify time.
-      bool needsUpdate = false;
-      for (var outPath in outPaths) {
-        var outFile = new File(outPath);
-        if (!outFile.existsSync() ||
-            outFile.lastModifiedSync().millisecondsSinceEpoch <
-                inputModifyTime) {
-          needsUpdate = true;
-          break;
-        }
-      }
-
-      if (needsUpdate) {
-        var contents = <String>[libraryContents];
-        contents.addAll(partFiles.map((f) => f.readAsStringSync()));
-        if (patchFile != null) {
-          var patchContents = patchFile.readAsStringSync();
-          contents = _patchLibrary(patchFile.path, contents, patchContents);
-        }
-
-        for (var i = 0; i < outPaths.length; i++) {
-          _writeSync(outPaths[i], contents[i]);
-        }
-      }
-    }
-  }
+/// Copy internal libraries that are developed under 'runtime/bin/' to the
+/// patched_sdk folder.
+_copyExtraVmLibraries(String sdkOut) {
+  var base = path.fromUri(Platform.script);
+  var dartDir = path.dirname(path.dirname(path.absolute(base)));
 
   for (var tuple in [
     ['_builtin', 'builtin.dart']
@@ -210,25 +204,72 @@ Future _main(List<String> argv) async {
     var libraryOut = path.join(sdkOut, 'vmservice_io', file);
     _writeSync(libraryOut, readInputFile(libraryIn));
   }
+}
 
-  Uri platform = Uri.base
-      .resolveUri(new Uri.directory(outDir).resolve('platform.dill.tmp'));
-  Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
-  await compilePlatform(
-      Uri.base.resolveUri(new Uri.directory(outDir)), platform,
-      packages: packages, verbose: false);
+_applyPatch(
+    SdkLibrary library, String sdkLibIn, String patchIn, String sdkOut) {
+  var libraryOut = path.join(sdkLibIn, library.path);
+  var libraryIn = libraryOut;
 
-  Uri platformFinalLocation =
-      Uri.base.resolveUri(new Uri.directory(outDir).resolve('platform.dill'));
+  var libraryFile = getInputFile(libraryIn, canBeMissing: true);
+  if (libraryFile != null) {
+    var outPaths = <String>[libraryOut];
+    var libraryContents = libraryFile.readAsStringSync();
 
-  await writeDepsFile(Platform.script,
-      Uri.base.resolveUri(new Uri.file("$outDir.d")), platformFinalLocation,
-      packages: packages,
-      platform: platform,
-      extraDependencies: deps,
-      verbose: false);
+    int inputModifyTime = libraryFile.lastModifiedSync().millisecondsSinceEpoch;
+    var partFiles = <File>[];
+    for (var part in parseDirectives(libraryContents).directives) {
+      if (part is PartDirective) {
+        var partPath = part.uri.stringValue;
+        outPaths.add(path.join(path.dirname(libraryOut), partPath));
 
-  await new File.fromUri(platform).rename(platformFinalLocation.toFilePath());
+        var partFile =
+            getInputFile(path.join(path.dirname(libraryIn), partPath));
+        partFiles.add(partFile);
+        inputModifyTime = math.max(inputModifyTime,
+            partFile.lastModifiedSync().millisecondsSinceEpoch);
+      }
+    }
+
+    // See if we can find a patch file.
+    var patchPath = path.join(
+        patchIn, path.basenameWithoutExtension(libraryIn) + '_patch.dart');
+
+    var patchFile = getInputFile(patchPath, canBeMissing: true);
+    if (patchFile != null) {
+      inputModifyTime = math.max(
+          inputModifyTime, patchFile.lastModifiedSync().millisecondsSinceEpoch);
+    }
+
+    // Compute output paths
+    outPaths = outPaths
+        .map((p) => path.join(sdkOut, path.relative(p, from: sdkLibIn)))
+        .toList();
+
+    // Compare output modify time with input modify time.
+    bool needsUpdate = false;
+    for (var outPath in outPaths) {
+      var outFile = new File(outPath);
+      if (!outFile.existsSync() ||
+          outFile.lastModifiedSync().millisecondsSinceEpoch < inputModifyTime) {
+        needsUpdate = true;
+        break;
+      }
+    }
+
+    if (needsUpdate) {
+      var contents = <String>[libraryContents];
+      contents.addAll(partFiles.map((f) => f.readAsStringSync()));
+      if (patchFile != null) {
+        var patchContents = patchFile.readAsStringSync();
+        contents = _patchLibrary(patchFile.path, contents, patchContents);
+      }
+
+      for (var i = 0; i < outPaths.length; i++) {
+        _writeSync(outPaths[i], contents[i]);
+      }
+    }
+  }
 }
 
 /// Writes a file, creating the directory if needed.

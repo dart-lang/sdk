@@ -326,8 +326,8 @@ DART_NOINLINE static void NativeAllocationSampleHelper(char** result) {
 
 
 ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
-  bool enable_malloc_hooks_saved = FLAG_enable_malloc_hooks;
-  FLAG_enable_malloc_hooks = true;
+  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
+  FLAG_profiler_native_memory = true;
 
   MallocHooks::InitOnce();
   MallocHooks::ResetStats();
@@ -522,7 +522,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
   MallocHooks::set_stack_trace_collection_enabled(
       stack_trace_collection_enabled);
   MallocHooks::TearDown();
-  FLAG_enable_malloc_hooks = enable_malloc_hooks_saved;
+  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
 #endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&
         // !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
@@ -985,9 +985,9 @@ TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Stub] AllocateArray", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("_List._List", walker.CurrentName());
+    EXPECT_STREQ("new _List", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("List.List._internal", walker.CurrentName());
+    EXPECT_STREQ("new List._internal", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -1037,11 +1037,11 @@ TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Stub] AllocateArray", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("_List._List", walker.CurrentName());
+    EXPECT_STREQ("new _List", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("_GrowableList._GrowableList", walker.CurrentName());
+    EXPECT_STREQ("new _GrowableList", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("List.List._internal", walker.CurrentName());
+    EXPECT_STREQ("new List._internal", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("bar", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -1240,7 +1240,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("TypedData_Float32Array_new", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("Float32List.Float32List", walker.CurrentName());
+    EXPECT_STREQ("new Float32List", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -1535,7 +1535,7 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("*B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
@@ -1555,7 +1555,7 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("*B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
@@ -1655,7 +1655,7 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("*B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
@@ -1672,7 +1672,7 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_STREQ("*B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
     EXPECT(walker.Down());

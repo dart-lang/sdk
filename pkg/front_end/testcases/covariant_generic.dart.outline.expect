@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Callback = <T extends core::Object>(T) → void;
+class Foo<T extends core::Object> extends core::Object {
+  final field self::Foo::T finalField;
+  final field (self::Foo::T) → void callbackField;
+  field self::Foo::T mutableField;
+  field (self::Foo::T) → void mutableCallbackField;
+  constructor •(dynamic finalField, dynamic callbackField) → void
+    ;
+  method method(self::Foo::T x) → void
+    ;
+  set setter(self::Foo::T x) → dynamic
+    ;
+  method withCallback((self::Foo::T) → void callback) → void
+    ;
+}
+static method main() → dynamic
+  ;

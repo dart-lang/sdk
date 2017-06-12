@@ -9,10 +9,12 @@ import "package:expect/expect.dart";
 
 import 'package:compiler/compiler_new.dart';
 
-import 'package:compiler/src/elements/elements.dart' as lego;
+import 'package:compiler/src/elements/elements.dart';
 export 'package:compiler/src/elements/elements.dart';
 
 import 'package:compiler/src/js_backend/js_backend.dart' as js;
+import 'package:compiler/src/js_backend/element_strategy.dart'
+    show ElementCodegenWorkItem;
 
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/codegen.dart';
@@ -22,11 +24,12 @@ export 'package:compiler/src/diagnostics/messages.dart';
 export 'package:compiler/src/diagnostics/source_span.dart';
 export 'package:compiler/src/diagnostics/spannable.dart';
 
-import 'package:compiler/src/types/types.dart' as types;
 export 'package:compiler/src/types/types.dart' show TypeMask;
 
 import 'package:compiler/src/util/util.dart';
 export 'package:compiler/src/util/util.dart';
+
+import 'package:compiler/src/world.dart';
 
 import 'package:compiler/src/compiler.dart' show Compiler;
 
@@ -71,7 +74,8 @@ Future<String> compile(String code,
         outputProvider: outputCollector);
     await compiler.init();
     compiler.parseScript(code);
-    lego.Element element = compiler.mainApp.find(entry);
+    LibraryElement mainApp = compiler.mainApp;
+    MethodElement element = mainApp.find(entry);
     if (element == null) return null;
     compiler.phase = Compiler.PHASE_RESOLVING;
     compiler.processQueue(compiler.enqueuer.resolution, element,
@@ -79,8 +83,9 @@ Future<String> compile(String code,
     ResolutionWorkItem resolutionWork =
         new ResolutionWorkItem(compiler.resolution, element);
     resolutionWork.run();
-    compiler.closeResolution();
-    CodegenWorkItem work = new CodegenWorkItem(compiler.backend, element);
+    ClosedWorld closedWorld = compiler.closeResolution().closedWorld;
+    CodegenWorkItem work =
+        new ElementCodegenWorkItem(compiler.backend, closedWorld, element);
     compiler.phase = Compiler.PHASE_COMPILING;
     work.run();
     js.JavaScriptBackend backend = compiler.backend;
@@ -121,7 +126,8 @@ Future<String> compile(String code,
         outputProvider: outputCollector);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    lego.Element element = compiler.mainApp.find(entry);
+    LibraryElement mainApp = compiler.mainApp;
+    Element element = mainApp.find(entry);
     js.JavaScriptBackend backend = compiler.backend;
     String generated = backend.getGeneratedCode(element);
     if (check != null) {
@@ -158,8 +164,8 @@ Future<String> compileAll(String code,
   });
 }
 
-Future analyzeAndCheck(String code, String name,
-    check(MockCompiler compiler, lego.Element element),
+Future analyzeAndCheck(
+    String code, String name, check(MockCompiler compiler, Element element),
     {int expectedErrors, int expectedWarnings}) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(code, uri,
@@ -167,7 +173,7 @@ Future analyzeAndCheck(String code, String name,
       expectedWarnings: expectedWarnings,
       analyzeOnly: true);
   return compiler.run(uri).then((_) {
-    lego.Element element = findElement(compiler, name);
+    Element element = findElement(compiler, name);
     return check(compiler, element);
   });
 }
@@ -189,8 +195,8 @@ Future compileSources(
   });
 }
 
-lego.Element findElement(compiler, String name, [Uri library]) {
-  lego.LibraryElement lib = compiler.mainApp;
+Element findElement(compiler, String name, [Uri library]) {
+  LibraryElement lib = compiler.mainApp;
   if (library != null) {
     lib = compiler.libraryLoader.lookupLibrary(library);
     Expect.isNotNull(lib, 'Could not locate library $library.');

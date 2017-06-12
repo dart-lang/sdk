@@ -8,7 +8,7 @@
 import 'package:expect/expect.dart';
 
 class A {
-  operator==(other) => 42;
+  operator ==(other) => 42;
 }
 
 class B extends A {

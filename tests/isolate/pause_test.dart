@@ -15,12 +15,12 @@ isomain1(replyPort) {
   replyPort.send(port.sendPort);
 }
 
-main(){
+main() {
   asyncStart();
   RawReceivePort reply = new RawReceivePort();
   Isolate isolate;
   Capability resume;
-  var completer = new Completer();  // Completed by first reply from isolate.
+  var completer = new Completer(); // Completed by first reply from isolate.
   reply.handler = completer.complete;
   Isolate.spawn(isomain1, reply.sendPort).then((Isolate iso) {
     isolate = iso;

@@ -27,10 +27,10 @@ class B extends A with M {
   callMiz() => this.miz();
 }
 
-B makeB() native ;
+B makeB() native;
 
 @Creates('=Object')
-getBPrototype() native ;
+getBPrototype() native;
 
 void setup() native r"""
 function B() {}

@@ -78,26 +78,66 @@ class Test<E> {
       Expect.fail("$name: $funcName didn't throw");
     }
 
-    throws("[]=",          () { list[0] = null; });
-    throws("length=",      () { list.length = length + 1; });
-    throws("length=",      () { list.length = length - 1; });
-    throws("setAll",       () { list.setAll(0, []); });
-    throws("add",          () { list.add(null); });
-    throws("insert",       () { list.insert(0, null); });
-    throws("insertAll",    () { list.insertAll(0, []); });
-    throws("addAll",       () { list.addAll([]); });
-    throws("remove",       () { list.remove(null); });
-    throws("removeWhere",  () { list.removeWhere((x) => true); });
-    throws("retainWhere",  () { list.retainWhere((x) => false); });
-    throws("sort",         () { list.sort(); });
-    throws("shuffle",      () { list.shuffle(); });
-    throws("clear",        () { list.clear(); });
-    throws("removeAt",     () { list.removeAt(0); });
-    throws("removeLast",   () { list.removeLast(); });
-    throws("setRange",     () { list.setRange(0, 1, []); });
-    throws("removeRange",  () { list.removeRange(0, 1); });
-    throws("replaceRange", () { list.replaceRange(0, 1, []); });
-    throws("fillRange",    () { list.fillRange(0, 1, null); });
+    throws("[]=", () {
+      list[0] = null;
+    });
+    throws("length=", () {
+      list.length = length + 1;
+    });
+    throws("length=", () {
+      list.length = length - 1;
+    });
+    throws("setAll", () {
+      list.setAll(0, []);
+    });
+    throws("add", () {
+      list.add(null);
+    });
+    throws("insert", () {
+      list.insert(0, null);
+    });
+    throws("insertAll", () {
+      list.insertAll(0, []);
+    });
+    throws("addAll", () {
+      list.addAll([]);
+    });
+    throws("remove", () {
+      list.remove(null);
+    });
+    throws("removeWhere", () {
+      list.removeWhere((x) => true);
+    });
+    throws("retainWhere", () {
+      list.retainWhere((x) => false);
+    });
+    throws("sort", () {
+      list.sort();
+    });
+    throws("shuffle", () {
+      list.shuffle();
+    });
+    throws("clear", () {
+      list.clear();
+    });
+    throws("removeAt", () {
+      list.removeAt(0);
+    });
+    throws("removeLast", () {
+      list.removeLast();
+    });
+    throws("setRange", () {
+      list.setRange(0, 1, []);
+    });
+    throws("removeRange", () {
+      list.removeRange(0, 1);
+    });
+    throws("replaceRange", () {
+      list.replaceRange(0, 1, []);
+    });
+    throws("fillRange", () {
+      list.fillRange(0, 1, null);
+    });
 
     success(opName, op(list)) {
       var expect;
@@ -107,7 +147,11 @@ class Test<E> {
         try {
           op(list);
         } catch (e2) {
-          Expect.equals(e.runtimeType, e2.runtimeType);
+          Expect.equals(
+              e.runtimeType,
+              e2.runtimeType,
+              "$name :: $opName threw different exceptions: "
+              "${e.runtimeType} vs ${e2.runtimeType}");
           return;
         }
         Expect.fail("$name-$opName didn't throw, expected: $e");
@@ -172,72 +216,87 @@ class Test<E> {
 
 createConstList(n) {
   if (n == 0) return const <int>[];
-  return const<int>[1, 2, 3];
+  return const <int>[1, 2, 3];
 }
+
 createFixedList(n) {
   var result = new List<int>(n);
   for (int i = 0; i < n; i++) result[i] = n;
   return result;
 }
+
 createGrowableList(n) {
   var result = new List<int>()..length = n;
   for (int i = 0; i < n; i++) result[i] = n;
   return result;
 }
+
 createIterable(n) => new Iterable.generate(n);
 createConstMapKeys(n) {
-  if (n == 0) return const <int,int>{}.keys;
-  return const <int,int>{0: 0, 1: 1, 2: 2}.keys;
+  if (n == 0) return const <int, int>{}.keys;
+  return const <int, int>{0: 0, 1: 1, 2: 2}.keys;
 }
+
 createConstMapValues(n) {
-  if (n == 0) return const <int,int>{}.values;
-  return const <int,int>{0: 0, 1: 1, 2: 2}.values;
+  if (n == 0) return const <int, int>{}.values;
+  return const <int, int>{0: 0, 1: 1, 2: 2}.values;
 }
+
 createMapKeys(n) {
   var map = <int, int>{};
   for (int i = 0; i < n; i++) map[i] = i;
   return map.keys;
 }
+
 createMapValues(n) {
   var map = <int, int>{};
   for (int i = 0; i < n; i++) map[i] = i;
   return map.values;
 }
+
 createSplayMapKeys(n) {
   var map = new SplayTreeMap<int, int>();
   for (int i = 0; i < n; i++) map[i] = i;
   return map.keys;
 }
+
 createSplayMapValues(n) {
   var map = new SplayTreeMap<int, int>();
   for (int i = 0; i < n; i++) map[i] = i;
   return map.values;
 }
+
 createSet(n) {
   var set = new Set<int>();
   for (int i = 0; i < n; i++) set.add(i);
   return set;
 }
+
 createSplaySet(n) {
   var set = new SplayTreeSet<int>();
   for (int i = 0; i < n; i++) set.add(i);
   return set;
 }
+
 createQueue(n) {
   var queue = new Queue<int>();
   for (int i = 0; i < n; i++) queue.add(i);
   return queue;
 }
+
 createListMapKeys(n) {
   return createGrowableList(n).asMap().keys;
 }
+
 createListMapValues(n) {
   return createGrowableList(n).asMap().values;
 }
+
 createCodeUnits(n) {
   var string = new String.fromCharCodes(new Iterable.generate(n));
   return string.codeUnits;
 }
+
 createTypedList(n) {
   var tl = new Uint8List(n);
   for (int i = 0; i < n; i++) tl[i] = i;

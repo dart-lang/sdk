@@ -14,9 +14,9 @@ class Thing {}
 @Native("NT")
 class NativeThing {}
 
-make1() native ;
-make2() native ;
-make3() native ;
+make1() native;
+make2() native;
+make3() native;
 
 void setup() native r"""
 function A() {}

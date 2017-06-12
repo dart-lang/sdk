@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.timing;
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:path/path.dart';
 
-import '../integration/integration_test_methods.dart';
-import '../integration/integration_tests.dart';
+import '../integration/support/integration_test_methods.dart';
+import '../integration/support/integration_tests.dart';
 
 /**
  * Instances of the class [TimingResult] represent the timing information
@@ -195,7 +193,7 @@ abstract class TimingTest extends IntegrationTestMixin {
       serverConnected.complete();
     });
     skipShutdown = true;
-    return server.start(/*profileServer: true*/).then((params) {
+    return server.start(/*profileServer: true*/).then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;

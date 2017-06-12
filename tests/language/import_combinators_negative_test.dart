@@ -5,10 +5,11 @@
 // Dart test program importing with show/hide combinators.
 
 library importCombinatorsNegativeTest;
+
 import "import1_lib.dart" show hide, show hide ugly;
 
 main() {
   print(hide);
   print(show);
-  print(ugly);  // Resolution error, identifier 'ugly ' is hidden.
+  print(ugly); // Resolution error, identifier 'ugly ' is hidden.
 }

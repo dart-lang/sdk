@@ -9,22 +9,17 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-
 class RemoteClass {
   final String name;
   const RemoteClass([this.name]);
 }
 
-class A {
-}
+class A {}
 
 @RemoteClass("ASF")
-class B extends A {
-}
+class B extends A {}
 
-class C extends B {
-}
-
+class C extends B {}
 
 void main() {
   bool foundB = false;
@@ -32,11 +27,11 @@ void main() {
   MirrorSystem mirrorSystem = currentMirrorSystem();
   mirrorSystem.libraries.forEach((lk, l) {
     l.declarations.forEach((dk, d) {
-      if(d is ClassMirror) {
+      if (d is ClassMirror) {
         d.metadata.forEach((md) {
           InstanceMirror metadata = md as InstanceMirror;
           // Metadata must not be inherited.
-          if(metadata.type == reflectClass(RemoteClass)) {
+          if (metadata.type == reflectClass(RemoteClass)) {
             Expect.isFalse(foundB);
             Expect.equals(#B, d.simpleName);
             foundB = true;
@@ -48,4 +43,3 @@ void main() {
 
   Expect.isTrue(foundB);
 }
-

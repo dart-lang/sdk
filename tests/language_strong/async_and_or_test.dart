@@ -28,6 +28,7 @@ traceA(x) {
   trace += "a";
   return x;
 }
+
 traceB(x) {
   trace += "b";
   return x;
@@ -40,8 +41,8 @@ testEvaluation(void fn()) async {
 
 test2() async {
   await testEvaluation(() async {
-    Expect.isFalse(
-        await confuse(traceA(false)) && await confuse(traceB(false)));
+    Expect
+        .isFalse(await confuse(traceA(false)) && await confuse(traceB(false)));
     Expect.equals("a", trace);
   });
   await testEvaluation(() async {
@@ -58,8 +59,8 @@ test2() async {
   });
 
   await testEvaluation(() async {
-    Expect.isFalse(
-        await confuse(traceA(false)) || await confuse(traceB(false)));
+    Expect
+        .isFalse(await confuse(traceA(false)) || await confuse(traceB(false)));
     Expect.equals("ab", trace);
   });
   await testEvaluation(() async {
@@ -74,7 +75,6 @@ test2() async {
     Expect.isTrue(await confuse(traceA(true)) || await confuse(traceB(true)));
     Expect.equals("a", trace);
   });
-
 }
 
 test() async {

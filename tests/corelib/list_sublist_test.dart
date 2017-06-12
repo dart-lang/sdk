@@ -8,7 +8,6 @@ main() {
   Expect.listEquals([], [].sublist(0, 0));
   Expect.listEquals([], const [].sublist(0, 0));
 
-
   Expect.listEquals([1, 2], [1, 2].sublist(0, 2));
   Expect.listEquals([1, 2], const [1, 2].sublist(0, 2));
 

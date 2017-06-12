@@ -10,11 +10,9 @@ class A {
   C c;
 }
 
-class B extends A {
-}
+class B extends A {}
 
-class C {
-}
+class C {}
 
 var array = [new B()];
 

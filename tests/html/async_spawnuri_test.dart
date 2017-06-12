@@ -13,24 +13,24 @@ main() {
 
   test('one shot timer in pure isolate', () {
     var response = new ReceivePort();
-    var remote = Isolate.spawnUri(Uri.parse('async_oneshot.dart'), 
-                               ['START'], response.sendPort);
+    var remote = Isolate.spawnUri(
+        Uri.parse('async_oneshot.dart'), ['START'], response.sendPort);
     remote.catchError((x) => expect("Error in oneshot isolate", x));
     expect(remote.then((_) => response.first), completion('DONE'));
   });
 
   test('periodic timer in pure isolate', () {
     var response = new ReceivePort();
-    var remote = Isolate.spawnUri(Uri.parse('async_periodictimer.dart'), 
-                               ['START'], response.sendPort);
+    var remote = Isolate.spawnUri(
+        Uri.parse('async_periodictimer.dart'), ['START'], response.sendPort);
     remote.catchError((x) => expect("Error in periodic timer isolate", x));
     expect(remote.then((_) => response.first), completion('DONE'));
   });
 
   test('cancellation in pure isolate', () {
     var response = new ReceivePort();
-    var remote = Isolate.spawnUri(Uri.parse('async_cancellingisolate.dart'), 
-                               ['START'], response.sendPort);
+    var remote = Isolate.spawnUri(Uri.parse('async_cancellingisolate.dart'),
+        ['START'], response.sendPort);
     remote.catchError((x) => expect("Error in cancelling isolate", x));
     expect(remote.then((_) => response.first), completion('DONE'));
   });

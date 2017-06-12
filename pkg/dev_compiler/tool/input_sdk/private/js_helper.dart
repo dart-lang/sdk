@@ -492,9 +492,8 @@ class Primitives {
     JS('void', '#[#] = #', object, key, value);
   }
 
-  static StackTrace extractStackTrace(Error error) {
-    return getTraceFromException(JS('', r'#.$thrownJsError', error));
-  }
+  static StackTrace extractStackTrace(Error error) =>
+      getTraceFromException(error);
 }
 
 /**
@@ -627,10 +626,18 @@ class UnknownJsTypeError extends Error {
 }
 
 /**
- * Called by generated code to fetch the stack trace from an
+ * Called by generated code to fetch the stack trace from a Dart
  * exception. Should never return null.
  */
-StackTrace getTraceFromException(exception) => new _StackTrace(exception);
+final _stackTrace = JS('', 'Symbol("_stackTrace")');
+StackTrace getTraceFromException(exception) {
+  var error = JS('', 'dart.recordJsError(#)', exception);
+  var trace = JS('StackTrace', '#[#]', error, _stackTrace);
+  if (trace != null) return trace;
+  trace = new _StackTrace(error);
+  JS('', '#[#] = #', error, _stackTrace, trace);
+  return trace;
+}
 
 class _StackTrace implements StackTrace {
   var _exception;
@@ -766,7 +773,7 @@ class Returns {
  * This example declares a Dart field + getter + setter called `$dom_title` that
  * corresponds to the JavaScript property `title`.
  *
- *     class Docmument native "*Foo" {
+ *     class Document native "*Foo" {
  *       @JSName('title')
  *       String $dom_title;
  *     }
@@ -781,7 +788,7 @@ class JSName {
  * objects that support integer indexing. This interface is not
  * visible to anyone, and is only injected into special libraries.
  */
-abstract class JavaScriptIndexingBehavior {}
+abstract class JavaScriptIndexingBehavior<E> {}
 
 // TODO(lrn): These exceptions should be implemented in core.
 // When they are, remove the 'Implementation' here.

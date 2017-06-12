@@ -6,7 +6,9 @@ import "package:expect/expect.dart";
 
 class BaseClass {
   var foo;
-  BaseClass() { foo = 0; }
+  BaseClass() {
+    foo = 0;
+  }
   toString() => "BaseClass";
 }
 
@@ -46,10 +48,10 @@ main() {
     // Expected error.
   }
   Expect.equals(true, c1 is BaseClass);
-  Expect.equals(true, c1 is !ExtendsClass);
+  Expect.equals(true, c1 is! ExtendsClass);
   Expect.equals(true, c2 is BaseClass);
   Expect.equals(true, c2 is ExtendsClass);
-  Expect.equals(true, c2 is !ImplementsClass);
+  Expect.equals(true, c2 is! ImplementsClass);
   Expect.equals("BaseClass", "${new BaseClass()}");
 
   // Verify we don't inherit toString from BaseClass

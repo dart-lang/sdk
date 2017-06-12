@@ -4,10 +4,10 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import "../elements/resolution_types.dart" show ResolutionDartType;
 import "../elements/elements.dart" show Element, ErroneousElement;
-import "../resolution/operators.dart"
+import "../elements/operators.dart"
     show AssignmentOperator, BinaryOperator, IncDecOperator, UnaryOperator;
+import "../elements/resolution_types.dart" show ResolutionDartType;
 import "../tree/tree.dart"
     show Expression, NewExpression, Node, NodeList, Operator, Send, SendSet;
 import "../universe/call_structure.dart" show CallStructure;

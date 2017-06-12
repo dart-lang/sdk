@@ -4,17 +4,13 @@
 
 import "package:expect/expect.dart";
 
-class A {
-}
+class A {}
 
-class B extends A {
-}
+class B extends A {}
 
-class C extends B {
-}
+class C extends B {}
 
-class D implements C {
-}
+class D implements C {}
 
 int inscrutable(int x) => (x == 0) ? 0 : (x | inscrutable(x & (x - 1)));
 

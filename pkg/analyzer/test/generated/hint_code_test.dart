@@ -2007,19 +2007,6 @@ class A {
     verify([source]);
   }
 
-  test_mustBeImmutable_instance() async {
-    Source source = addSource(r'''
-import 'package:meta/meta.dart';
-@immutable
-class A {
-  static int x;
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, []);
-    verify([source]);
-  }
-
   test_mustBeImmutable_extends() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -2046,6 +2033,19 @@ class C extends A with B {}
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.MUST_BE_IMMUTABLE]);
+    verify([source]);
+  }
+
+  test_mustBeImmutable_instance() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  static int x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
     verify([source]);
   }
 
@@ -3742,6 +3742,22 @@ class A {
     verify([source]);
   }
 
+  test_unusedField_notUsed_nullAssign() async {
+    enableUnusedElement = true;
+    Source source = addSource(r'''
+class A {
+  var _f;
+  m() {
+    _f ??= doSomething();
+  }
+}
+doSomething() => 0;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_unusedField_notUsed_postfixExpr() async {
     enableUnusedElement = true;
     Source source = addSource(r'''
@@ -4009,6 +4025,21 @@ main() {
   Foo foo;
   foo();
 }''');
+    await computeAnalysisResult(source);
+    assertErrors(source);
+    verify([source]);
+  }
+
+  test_unusedLocalVariable_isNullAssigned() async {
+    enableUnusedLocalVariable = true;
+    Source source = addSource(r'''
+typedef Foo();
+main() {
+  var v;
+  v ??= doSomething();
+}
+doSomething() => 42;
+''');
     await computeAnalysisResult(source);
     assertErrors(source);
     verify([source]);

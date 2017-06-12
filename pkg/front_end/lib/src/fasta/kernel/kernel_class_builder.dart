@@ -42,8 +42,10 @@ import 'kernel_builder.dart'
         KernelProcedureBuilder,
         KernelTypeBuilder,
         LibraryBuilder,
+        MemberBuilder,
         MetadataBuilder,
         ProcedureBuilder,
+        Scope,
         TypeVariableBuilder,
         computeDefaultTypeArguments;
 
@@ -58,11 +60,12 @@ abstract class KernelClassBuilder
       List<TypeVariableBuilder> typeVariables,
       KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces,
-      Map<String, Builder> members,
+      Scope scope,
+      Scope constructors,
       LibraryBuilder parent,
       int charOffset)
       : super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            members, parent, charOffset);
+            scope, constructors, parent, charOffset);
 
   Class get cls;
 
@@ -107,13 +110,15 @@ abstract class KernelClassBuilder
     }
   }
 
-  int resolveConstructors(KernelLibraryBuilder library) {
+  @override
+  int resolveConstructors(LibraryBuilder library) {
     int count = super.resolveConstructors(library);
     if (count != 0) {
+      Map<String, MemberBuilder> constructors = this.constructors.local;
       // Copy keys to avoid concurrent modification error.
-      List<String> names = members.keys.toList();
+      List<String> names = constructors.keys.toList();
       for (String name in names) {
-        Builder builder = members[name];
+        Builder builder = constructors[name];
         if (builder is KernelProcedureBuilder && builder.isFactory) {
           // Compute the immediate redirection target, not the effective.
           ConstructorReferenceBuilder redirectionTarget =
@@ -158,13 +163,12 @@ abstract class KernelClassBuilder
     //
     // TODO(ahe): Generate the correct factory body instead.
     DillMemberBuilder constructorsField =
-        members.putIfAbsent("_redirecting#", () {
+        scope.local.putIfAbsent("_redirecting#", () {
       ListLiteral literal = new ListLiteral(<Expression>[]);
       Name name = new Name("_redirecting#", library.library);
       Field field = new Field(name,
-          isStatic: true,
-          initializer: literal,
-          fileUri: cls.fileUri)..fileOffset = cls.fileOffset;
+          isStatic: true, initializer: literal, fileUri: cls.fileUri)
+        ..fileOffset = cls.fileOffset;
       cls.addMember(field);
       return new DillMemberBuilder(field, this);
     });
@@ -267,5 +271,11 @@ abstract class KernelClassBuilder
         }
       }
     }
+  }
+
+  String get fullNameForErrors {
+    return isMixinApplication
+        ? "${supertype.fullNameForErrors} with ${mixedInType.fullNameForErrors}"
+        : name;
   }
 }

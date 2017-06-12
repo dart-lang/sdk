@@ -2256,6 +2256,12 @@ void Range::Clamp(RangeBoundary::RangeSize size) {
 }
 
 
+void Range::ClampToConstant(RangeBoundary::RangeSize size) {
+  min_ = min_.LowerBound().Clamp(size);
+  max_ = max_.UpperBound().Clamp(size);
+}
+
+
 void Range::Shl(const Range* left,
                 const Range* right,
                 RangeBoundary* result_min,
@@ -2596,7 +2602,7 @@ static bool DependsOnSymbol(const RangeBoundary& a, Definition* symbol) {
 
 
 // Given the range and definition update the range so that
-// it covers both original range and defintions range.
+// it covers both original range and definitions range.
 //
 // The following should also hold:
 //
@@ -2886,10 +2892,32 @@ void BinaryIntegerOpInstr::InferRangeHelper(const Range* left_range,
 }
 
 
+static void CacheRange(Range** slot,
+                       const Range* range,
+                       RangeBoundary::RangeSize size) {
+  if (range != NULL) {
+    if (*slot == NULL) {
+      *slot = new Range();
+    }
+    **slot = *range;
+
+    // Eliminate any symbolic dependencies from the range information.
+    (*slot)->ClampToConstant(size);
+  } else if (*slot != NULL) {
+    **slot = Range();  // Clear cached range information.
+  }
+}
+
+
 void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  const Range* right_smi_range = analysis->GetSmiRange(right());
   // TODO(vegorov) completely remove this once GetSmiRange is eliminated.
-  InferRangeHelper(analysis->GetSmiRange(left()),
-                   analysis->GetSmiRange(right()), range);
+  if (op_kind() == Token::kSHR || op_kind() == Token::kSHL ||
+      op_kind() == Token::kMOD || op_kind() == Token::kTRUNCDIV) {
+    CacheRange(&right_range_, right_smi_range,
+               RangeBoundary::kRangeBoundarySmi);
+  }
+  InferRangeHelper(analysis->GetSmiRange(left()), right_smi_range, range);
 }
 
 
@@ -2906,6 +2934,8 @@ void BinaryMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 
 void ShiftMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  CacheRange(&shift_range_, right()->definition()->range(),
+             RangeBoundary::kRangeBoundaryInt64);
   InferRangeHelper(left()->definition()->range(),
                    right()->definition()->range(), range);
 }

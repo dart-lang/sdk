@@ -245,7 +245,7 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
 
     // Reevaluate the minimum allowable priority.  The paused state
     // may have changed as part of handling the message.  We may also
-    // have encountered an error during message processsing.
+    // have encountered an error during message processing.
     //
     // Even if we encounter an error, we still process pending OOB
     // messages so that we don't lose the message notification.

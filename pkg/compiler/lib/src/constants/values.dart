@@ -8,7 +8,6 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../tree/dartstring.dart';
 import '../util/util.dart' show Hashing;
 
 enum ConstantValueKind {
@@ -126,10 +125,6 @@ class FunctionConstantValue extends ConstantValue {
 
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
-  DartString toDartString() {
-    return new DartString.literal(element.name);
-  }
-
   DartType getType(CommonElements types) => type;
 
   int get hashCode => (17 * element.hashCode) & 0x7fffffff;
@@ -170,8 +165,6 @@ abstract class PrimitiveConstantValue extends ConstantValue {
   // Primitive constants don't have dependencies.
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
-  DartString toDartString();
-
   /// This value in Dart syntax.
   String toDartText() => primitiveValue.toString();
 }
@@ -192,8 +185,6 @@ class NullConstantValue extends PrimitiveConstantValue {
 
   // The magic constant has no meaning. It is just a random value.
   int get hashCode => 785965825;
-
-  DartString toDartString() => const LiteralDartString("null");
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitNull(this, arg);
 
@@ -274,10 +265,6 @@ class IntConstantValue extends NumConstantValue {
 
   int get hashCode => primitiveValue & Hashing.SMI_MASK;
 
-  DartString toDartString() {
-    return new DartString.literal(primitiveValue.toString());
-  }
-
   accept(ConstantValueVisitor visitor, arg) => visitor.visitInt(this, arg);
 
   ConstantValueKind get kind => ConstantValueKind.INT;
@@ -338,10 +325,6 @@ class DoubleConstantValue extends NumConstantValue {
 
   int get hashCode => primitiveValue.hashCode;
 
-  DartString toDartString() {
-    return new DartString.literal(primitiveValue.toString());
-  }
-
   accept(ConstantValueVisitor visitor, arg) => visitor.visitDouble(this, arg);
 
   ConstantValueKind get kind => ConstantValueKind.DOUBLE;
@@ -385,8 +368,6 @@ class TrueConstantValue extends BoolConstantValue {
   // The magic constant is just a random value. It does not have any
   // significance.
   int get hashCode => 499;
-
-  DartString toDartString() => const LiteralDartString("true");
 }
 
 class FalseConstantValue extends BoolConstantValue {
@@ -405,24 +386,17 @@ class FalseConstantValue extends BoolConstantValue {
   // The magic constant is just a random value. It does not have any
   // significance.
   int get hashCode => 536555975;
-
-  DartString toDartString() => const LiteralDartString("false");
 }
 
 class StringConstantValue extends PrimitiveConstantValue {
-  final DartString primitiveValue;
+  final String primitiveValue;
 
   final int hashCode;
 
   // TODO(floitsch): cache StringConstants.
-  // TODO(floitsch): compute hashcode without calling toString() on the
-  // DartString.
-  StringConstantValue(DartString value)
+  StringConstantValue(String value)
       : this.primitiveValue = value,
-        this.hashCode = value.slowToString().hashCode;
-
-  StringConstantValue.fromString(String value)
-      : this(new DartString.literal(value));
+        this.hashCode = value.hashCode;
 
   bool get isString => true;
 
@@ -436,7 +410,7 @@ class StringConstantValue extends PrimitiveConstantValue {
         primitiveValue == otherString.primitiveValue;
   }
 
-  DartString toDartString() => primitiveValue;
+  String toDartString() => primitiveValue;
 
   int get length => primitiveValue.length;
 
@@ -445,7 +419,7 @@ class StringConstantValue extends PrimitiveConstantValue {
   ConstantValueKind get kind => ConstantValueKind.STRING;
 
   // TODO(johnniwinther): Ensure correct escaping.
-  String toDartText() => '"${primitiveValue.slowToString()}"';
+  String toDartText() => '"${primitiveValue}"';
 
   String toStructuredText() => 'StringConstant(${toDartText()})';
 }

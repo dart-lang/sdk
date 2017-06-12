@@ -35,15 +35,15 @@ import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
 import '../tree/tree.dart';
 import 'package:front_end/src/fasta/parser.dart'
-    show ClassMemberParser, Listener, Parser, ParserError;
+    show ClassMemberParser, Listener, MemberKind, Parser, ParserError;
 import 'member_listener.dart' show MemberListener;
 import 'node_listener.dart' show NodeListener;
 
 class ClassElementParser extends ClassMemberParser {
   ClassElementParser(Listener listener) : super(listener);
 
-  Token parseFormalParameters(Token token, {bool inFunctionType: false}) {
-    return skipFormalParameters(token);
+  Token parseFormalParameters(Token token, MemberKind kind) {
+    return skipFormalParameters(token, kind);
   }
 }
 
@@ -95,8 +95,10 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
     parseFunction(Parser p) {
       if (isClassMember && modifiers.isFactory) {
         p.parseFactoryMethod(beginToken);
+      } else if (isClassMember) {
+        p.parseMember(beginToken);
       } else {
-        p.parseFunction(beginToken, getOrSet);
+        p.parseTopLevelMember(beginToken);
       }
     }
 

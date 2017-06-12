@@ -10,40 +10,54 @@ import "dart:io";
 import "testing/dart/multitest.dart";
 import "testing/dart/status_file_parser.dart";
 import "testing/dart/test_suite.dart"
-    show multiHtmlTestGroupRegExp, multiTestRegExp, multiHtmlTestRegExp,
-         TestUtils;
+    show
+        multiHtmlTestGroupRegExp,
+        multiTestRegExp,
+        multiHtmlTestRegExp,
+        TestUtils;
 import "testing/dart/utils.dart" show Path;
 
 // [STATUS_TUPLES] is a list of (suite-name, directory, status-file)-tuples.
 final STATUS_TUPLES = [
-    ["corelib", "tests/corelib", "tests/corelib/corelib.status"],
-    ["html", "tests/html", "tests/html/html.status"],
-    ["isolate", "tests/isolate", "tests/isolate/isolate.status"],
-    ["language", "tests/language", "tests/language/language.status"],
-    ["language", "tests/language", "tests/language/language_analyzer2.status"],
-    ["language","tests/language", "tests/language/language_analyzer.status"],
-    ["language","tests/language", "tests/language/language_dart2js.status"],
-    ["lib", "tests/lib", "tests/lib/lib.status"],
-    ["standalone", "tests/standalone", "tests/standalone/standalone.status"],
-    ["pkg", "pkg", "pkg/pkg.status"],
-    ["pkgbuild", ".", "pkg/pkgbuild.status"],
-    ["utils", "tests/utils", "tests/utils/utils.status"],
-    ["samples", "samples", "samples/samples.status"],
-    ["analyze_library", "sdk", "tests/lib/analyzer/analyze_library.status"],
-    ["dart2js_extra", "tests/compiler/dart2js_extra",
-     "tests/compiler/dart2js_extra/dart2js_extra.status"],
-    ["dart2js_native", "tests/compiler/dart2js_native",
-     "tests/compiler/dart2js_native/dart2js_native.status"],
-    ["dart2js", "tests/compiler/dart2js",
-     "tests/compiler/dart2js/dart2js.status"],
-    ["benchmark_smoke", "tests/benchmark_smoke",
-     "tests/benchmark_smoke/benchmark_smoke.status"],
-    ["co19", "tests/co19/src", "tests/co19/co19-analyzer2.status"],
-    ["co19", "tests/co19/src", "tests/co19/co19-analyzer.status"],
-    ["co19", "tests/co19/src", "tests/co19/co19-dart2js.status"],
-    ["co19", "tests/co19/src", "tests/co19/co19-co19.status"],
-    ["co19", "tests/co19/src", "tests/co19/co19-dartium.status"],
-    ["co19", "tests/co19/src", "tests/co19/co19-runtime.status"],
+  ["corelib", "tests/corelib", "tests/corelib/corelib.status"],
+  ["html", "tests/html", "tests/html/html.status"],
+  ["isolate", "tests/isolate", "tests/isolate/isolate.status"],
+  ["language", "tests/language", "tests/language/language.status"],
+  ["language", "tests/language", "tests/language/language_analyzer2.status"],
+  ["language", "tests/language", "tests/language/language_analyzer.status"],
+  ["language", "tests/language", "tests/language/language_dart2js.status"],
+  ["lib", "tests/lib", "tests/lib/lib.status"],
+  ["standalone", "tests/standalone", "tests/standalone/standalone.status"],
+  ["pkg", "pkg", "pkg/pkg.status"],
+  ["utils", "tests/utils", "tests/utils/utils.status"],
+  ["samples", "samples", "samples/samples.status"],
+  ["analyze_library", "sdk", "tests/lib/analyzer/analyze_library.status"],
+  [
+    "dart2js_extra",
+    "tests/compiler/dart2js_extra",
+    "tests/compiler/dart2js_extra/dart2js_extra.status"
+  ],
+  [
+    "dart2js_native",
+    "tests/compiler/dart2js_native",
+    "tests/compiler/dart2js_native/dart2js_native.status"
+  ],
+  [
+    "dart2js",
+    "tests/compiler/dart2js",
+    "tests/compiler/dart2js/dart2js.status"
+  ],
+  [
+    "benchmark_smoke",
+    "tests/benchmark_smoke",
+    "tests/benchmark_smoke/benchmark_smoke.status"
+  ],
+  ["co19", "tests/co19/src", "tests/co19/co19-analyzer2.status"],
+  ["co19", "tests/co19/src", "tests/co19/co19-analyzer.status"],
+  ["co19", "tests/co19/src", "tests/co19/co19-dart2js.status"],
+  ["co19", "tests/co19/src", "tests/co19/co19-co19.status"],
+  ["co19", "tests/co19/src", "tests/co19/co19-dartium.status"],
+  ["co19", "tests/co19/src", "tests/co19/co19-runtime.status"],
 ];
 
 void main(List<String> args) {
@@ -107,16 +121,16 @@ class StatusFileNonExistentTestRemover extends StatusFileProcessor {
     });
   }
 
-  bool _testExists(String filePath,
-                   List<String> testFiles,
-                   String directory,
-                   TestRule rule) {
+  bool _testExists(String filePath, List<String> testFiles, String directory,
+      TestRule rule) {
     // TODO: Unify this regular expression matching with status_file_parser.dart
     List<RegExp> getRuleRegex(String name) {
-      return name.split("/")
+      return name
+          .split("/")
           .map((name) => new RegExp(name.replaceAll('*', '.*')))
           .toList();
     }
+
     bool matchRegexp(List<RegExp> patterns, String str) {
       var parts = str.split("/");
       if (patterns.length > parts.length) {
@@ -135,8 +149,8 @@ class StatusFileNonExistentTestRemover extends StatusFileProcessor {
     return testFiles.any((String file) {
       // TODO: Use test_suite.dart's [buildTestCaseDisplayName] instead.
       var filePath = new Path(file).relativeTo(new Path(directory));
-      String baseTestName = _concat("${filePath.directoryPath}",
-                                    "${filePath.filenameWithoutExtension}");
+      String baseTestName = _concat(
+          "${filePath.directoryPath}", "${filePath.filenameWithoutExtension}");
 
       List<String> testNames = [];
       for (var name in multiTestDetector.getMultitestNames(file)) {
@@ -148,21 +162,20 @@ class StatusFileNonExistentTestRemover extends StatusFileProcessor {
         testNames.add(baseTestName);
       }
 
-      return testNames.any(
-          (String testName) => matchRegexp(rulePattern, testName));
+      return testNames
+          .any((String testName) => matchRegexp(rulePattern, testName));
     });
   }
 
-  Set<int> _analyzeStatusFile(String directory,
-                              String filePath,
-                              List<Section> sections) {
+  Set<int> _analyzeStatusFile(
+      String directory, String filePath, List<Section> sections) {
     var invalidLines = new Set<int>();
     var dartFiles = testFileLister.listTestFiles(directory);
     for (var section in sections) {
       for (var rule in section.testRules) {
         if (!_testExists(filePath, dartFiles, directory, rule)) {
           print("Invalid rule: ${rule.name} in file "
-                "$filePath:${rule.lineNumber}");
+              "$filePath:${rule.lineNumber}");
           invalidLines.add(rule.lineNumber);
         }
       }
@@ -181,7 +194,7 @@ class StatusFileNonExistentTestRemover extends StatusFileProcessor {
     }
     var outputFile = new File("$statusFilePath.fixed");
     outputFile.writeAsStringSync(outputLines.join("\n"));
- }
+  }
 
   String _concat(String base, String part) {
     if (base == "") return part;
@@ -197,15 +210,14 @@ class StatusFileDeflaker extends StatusFileProcessor {
     return _readSections(filePath).then((List<Section> sections) {
       return _generatedDeflakedLines(suiteName, sections)
           .then((Map<int, String> fixedLines) {
-            if (fixedLines.length > 0) {
-              return _writeFixedStatusFile(filePath, fixedLines);
-            }
+        if (fixedLines.length > 0) {
+          return _writeFixedStatusFile(filePath, fixedLines);
+        }
       });
     });
   }
 
-  Future _generatedDeflakedLines(String suiteName,
-                                 List<Section> sections) {
+  Future _generatedDeflakedLines(String suiteName, List<Section> sections) {
     var fixedLines = new Map<int, String>();
     return Future.forEach(sections, (Section section) {
       return Future.forEach(section.testRules, (rule) {
@@ -214,10 +226,8 @@ class StatusFileDeflaker extends StatusFileProcessor {
     }).then((_) => fixedLines);
   }
 
-  Future _maybeFixStatusfileLine(String suiteName,
-                                 Section section,
-                                 TestRule rule,
-                                 Map<int, String> fixedLines) {
+  Future _maybeFixStatusfileLine(String suiteName, Section section,
+      TestRule rule, Map<int, String> fixedLines) {
     print("Processing ${section.statusFile.location}: ${rule.lineNumber}");
     // None of our status file lines have expressions, so we pass {} here.
     var notedOutcomes = rule.expression
@@ -231,9 +241,9 @@ class StatusFileDeflaker extends StatusFileProcessor {
     // TODO: [rule.name] is actually a pattern not just a testname. We should
     // find all possible testnames this rule matches against and unify the
     // outcomes of these tests.
-    return _testOutcomeFetcher.outcomesOf(suiteName, section, rule.name)
-      .then((Set<Expectation> actualOutcomes) {
-
+    return _testOutcomeFetcher
+        .outcomesOf(suiteName, section, rule.name)
+        .then((Set<Expectation> actualOutcomes) {
       var outcomesThatNeverHappened = new Set<Expectation>();
       for (Expectation notedOutcome in notedOutcomes) {
         bool found = false;
@@ -251,11 +261,11 @@ class StatusFileDeflaker extends StatusFileProcessor {
       if (outcomesThatNeverHappened.length > 0 && actualOutcomes.length > 0) {
         // Print the change to stdout.
         print("${rule.name} "
-              "(${section.statusFile.location}:${rule.lineNumber}):");
+            "(${section.statusFile.location}:${rule.lineNumber}):");
         print("   Actual outcomes:         ${actualOutcomes.toList()}");
         print("   Outcomes in status file: ${notedOutcomes.toList()}");
         print("   Outcomes in status file that never happened : "
-              "${outcomesThatNeverHappened.toList()}\n");
+            "${outcomesThatNeverHappened.toList()}\n");
 
         // Build the fixed status file line.
         fixedLines[rule.lineNumber] =
@@ -279,13 +289,12 @@ class StatusFileDeflaker extends StatusFileProcessor {
     var output = outputLines.join("\n");
     var outputFile = new File("$filePath.deflaked");
     outputFile.writeAsStringSync(output);
- }
+  }
 }
 
 class MultiTestDetector {
-  final multiTestsCache = new Map<String,List<String>>();
-  final multiHtmlTestsCache = new Map<String,List<String>>();
-
+  final multiTestsCache = new Map<String, List<String>>();
+  final multiHtmlTestsCache = new Map<String, List<String>>();
 
   List<String> getMultitestNames(String file) {
     List<String> names = [];
@@ -317,8 +326,9 @@ class MultiTestDetector {
         var content = new File(file).readAsStringSync();
 
         if (multiHtmlTestRegExp.hasMatch(content)) {
-          var matchesIter = multiHtmlTestGroupRegExp.allMatches(content).iterator;
-          while(matchesIter.moveNext()) {
+          var matchesIter =
+              multiHtmlTestGroupRegExp.allMatches(content).iterator;
+          while (matchesIter.moveNext()) {
             String fullMatch = matchesIter.current.group(0);
             subtestNames.add(fullMatch.substring(fullMatch.indexOf("'") + 1));
           }
@@ -339,17 +349,17 @@ class TestFileLister {
     return _filesCache.putIfAbsent(directory, () {
       var dir = new Directory(directory);
       // Cannot test for _test.dart because co19 tests don't have that ending.
-      var dartFiles = dir.listSync(recursive: true)
+      var dartFiles = dir
+          .listSync(recursive: true)
           .where((fe) => fe is File)
-          .where((file) => file.path.endsWith(".dart") ||
-                           file.path.endsWith("_test.html"))
+          .where((file) =>
+              file.path.endsWith(".dart") || file.path.endsWith("_test.html"))
           .map((file) => file.path)
           .toList();
       return dartFiles;
     });
   }
 }
-
 
 /*
  * [TestOutcomeFetcher] will fetch test results from a server using a REST-like
@@ -363,53 +373,60 @@ class TestOutcomeFetcher {
 
   Future<Set<Expectation>> outcomesOf(
       String suiteName, Section section, String testName) {
-    var pathComponents = ['json', 'test-outcomes', 'outcomes',
-                          Uri.encodeComponent("$suiteName/$testName")];
+    var pathComponents = [
+      'json',
+      'test-outcomes',
+      'outcomes',
+      Uri.encodeComponent("$suiteName/$testName")
+    ];
     var path = pathComponents.join('/') + '/';
     var url = new Uri(scheme: 'http', host: SERVER, port: PORT, path: path);
 
-    return _client.getUrl(url)
-      .then((HttpClientRequest request) => request.close())
-      .then((HttpClientResponse response) {
-        return response.transform(UTF8.decoder).transform(JSON.decoder).first
-            .then((List testResults) {
-              var setOfActualOutcomes = new Set<Expectation>();
+    return _client
+        .getUrl(url)
+        .then((HttpClientRequest request) => request.close())
+        .then((HttpClientResponse response) {
+      return response
+          .transform(UTF8.decoder)
+          .transform(JSON.decoder)
+          .first
+          .then((List testResults) {
+        var setOfActualOutcomes = new Set<Expectation>();
 
-              try {
-                for (var result in testResults) {
-                  var config = result['configuration'];
-                  var testResult = result['test_result'];
-                  var outcome = testResult['outcome'];
+        try {
+          for (var result in testResults) {
+            var config = result['configuration'];
+            var testResult = result['test_result'];
+            var outcome = testResult['outcome'];
 
-                  // These variables are derived variables and will be set in
-                  // tools/testing/dart/test_options.dart.
-                  // [Mostly due to the fact that we don't have an unary !
-                  //  operator in status file expressions.]
-                  config['unchecked'] = !config['checked'];
-                  config['unminified'] = !config['minified'];
-                  config['nocsp'] = !config['csp'];
-                  config['browser'] =
-                      TestUtils.isBrowserRuntime(config['runtime']);
-                  config['analyzer'] =
-                      TestUtils.isCommandLineAnalyzer(config['compiler']);
-                  config['jscl'] =
-                      TestUtils.isJsCommandLineRuntime(config['runtime']);
+            // These variables are derived variables and will be set in
+            // tools/testing/dart/test_options.dart.
+            // [Mostly due to the fact that we don't have an unary !
+            //  operator in status file expressions.]
+            config['unchecked'] = !config['checked'];
+            config['unminified'] = !config['minified'];
+            config['nocsp'] = !config['csp'];
+            config['browser'] = TestUtils.isBrowserRuntime(config['runtime']);
+            config['analyzer'] =
+                TestUtils.isCommandLineAnalyzer(config['compiler']);
+            config['jscl'] =
+                TestUtils.isJsCommandLineRuntime(config['runtime']);
 
-                  if (section.condition == null ||
-                      section.condition.evaluate(config)) {
-                    setOfActualOutcomes.add(Expectation.byName(outcome));
-                  }
-                }
-                return setOfActualOutcomes;
-              } catch (error) {
-                print("Warning: Error occured while processing testoutcomes"
-                      ": $error");
-                return [];
-              }
-            }).catchError((error) {
-              print("Warning: Error occured while fetching testoutcomes: $error");
-              return [];
-            });
+            if (section.condition == null ||
+                section.condition.evaluate(config)) {
+              setOfActualOutcomes.add(Expectation.byName(outcome));
+            }
+          }
+          return setOfActualOutcomes;
+        } catch (error) {
+          print("Warning: Error occured while processing testoutcomes"
+              ": $error");
+          return [];
+        }
+      }).catchError((error) {
+        print("Warning: Error occured while fetching testoutcomes: $error");
+        return [];
+      });
     });
   }
 }

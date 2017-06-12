@@ -19,7 +19,6 @@ class ParamTest {
   }
 }
 
-
 main() {
   ParamTest.testMain();
 }

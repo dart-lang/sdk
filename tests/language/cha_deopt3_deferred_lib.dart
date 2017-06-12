@@ -4,6 +4,6 @@
 
 import "cha_deopt3_lib.dart";
 
-class U implements T { }
+class U implements T {}
 
 make_u() => new U();

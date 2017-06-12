@@ -11,7 +11,7 @@ import 'dart:collection' as col;
 main() {
   try {
     col.foobar(1234567);
-  } catch(e) {
+  } catch (e) {
     Expect.isTrue(e.toString().contains("1234567"));
   }
 }

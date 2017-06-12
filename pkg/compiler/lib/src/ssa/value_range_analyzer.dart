@@ -5,7 +5,6 @@
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../js_backend/backend_helpers.dart';
 import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
@@ -600,15 +599,13 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
    */
   final Map<HInstruction, Range> ranges = new Map<HInstruction, Range>();
 
-  final BackendHelpers backendHelpers;
   final ClosedWorld closedWorld;
   final ValueRangeInfo info;
   final SsaOptimizerTask optimizer;
 
   HGraph graph;
 
-  SsaValueRangeAnalyzer(
-      this.backendHelpers, ClosedWorld closedWorld, this.optimizer)
+  SsaValueRangeAnalyzer(ClosedWorld closedWorld, this.optimizer)
       : info = new ValueRangeInfo(closedWorld.constantSystem),
         this.closedWorld = closedWorld;
 

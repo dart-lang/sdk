@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Uninitialized extends core::Object {
+  field core::int x;
+  constructor •() → void
+    ;
+}
+class PartiallyInitialized extends core::Object {
+  field core::int x;
+  constructor •(dynamic x) → void
+    ;
+  constructor noInitializer() → void
+    ;
+}
+class Initialized extends core::Object {
+  field core::int x;
+  constructor •(dynamic x) → void
+    ;
+}
+class Forwarding extends core::Object {
+  field core::int x;
+  constructor initialize(dynamic x) → void
+    ;
+  constructor •(core::int arg) → void
+    ;
+}
+static field core::int uninitializedTopLevel;
+static field core::int initializedTopLevel;
+static method main() → dynamic
+  ;

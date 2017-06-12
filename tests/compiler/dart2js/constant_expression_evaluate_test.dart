@@ -39,7 +39,7 @@ class ConstantData {
   const ConstantData(this.code, this.expectedValues);
 }
 
-class MemoryEnvironment implements Environment {
+class MemoryEnvironment implements EvaluationEnvironment {
   final Compiler _compiler;
   final Map<String, String> env;
 
@@ -71,9 +71,6 @@ class MemoryEnvironment implements Environment {
 
   @override
   CommonElements get commonElements => _compiler.commonElements;
-
-  @override
-  BackendClasses get backendClasses => _compiler.backend.backendClasses;
 }
 
 const List<TestData> DATA = const [
@@ -284,14 +281,14 @@ Future testData(TestData data) async {
     FieldElement field = library.localLookup(name);
     ConstantExpression constant = field.constant;
     data.expectedValues.forEach((Map<String, String> env, String expectedText) {
-      Environment environment = new MemoryEnvironment(compiler, env);
+      EvaluationEnvironment environment = new MemoryEnvironment(compiler, env);
       ConstantValue value =
           constant.evaluate(environment, DART_CONSTANT_SYSTEM);
       String valueText = value.toStructuredText();
       Expect.equals(
           expectedText,
           valueText,
-          "Unexpected value '${valueText}' for contant "
+          "Unexpected value '${valueText}' for constant "
           "`${constant.toDartText()}`, expected '${expectedText}'.");
     });
   });

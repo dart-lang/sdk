@@ -4,6 +4,6 @@
 
 import 'dart:collection';
 
-class A extends Object with LinkedListEntry<A> { }
+class A extends Object with LinkedListEntry<A> {}
 
 main() => new A();

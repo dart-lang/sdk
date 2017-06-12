@@ -1,12 +1,11 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for a function type test that cannot be eliminated at compile time.
 
 import "package:expect/expect.dart";
 
-class A {
-}
+class A {}
 
 typedef F<T> = Function<S>(List<S> list, Function<A>(A), T);
 

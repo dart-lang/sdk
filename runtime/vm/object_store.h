@@ -90,6 +90,9 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, int_type_);
   }
 
+  RawType* int64_type() const { return int64_type_; }
+  void set_int64_type(const Type& value) { int64_type_ = value.raw(); }
+
   RawClass* integer_implementation_class() const {
     return integer_implementation_class_;
   }
@@ -290,6 +293,7 @@ class ObjectStore {
     }
   }
 
+  RawLibrary* builtin_library() const { return builtin_library_; }
   void set_builtin_library(const Library& value) {
     builtin_library_ = value.raw();
   }
@@ -340,9 +344,6 @@ class ObjectStore {
   RawGrowableObjectArray* exit_listeners() const { return exit_listeners_; }
 
   RawGrowableObjectArray* error_listeners() const { return error_listeners_; }
-
-  RawContext* empty_context() const { return empty_context_; }
-  void set_empty_context(const Context& value) { empty_context_ = value.raw(); }
 
   RawInstance* stack_overflow() const { return stack_overflow_; }
   void set_stack_overflow(const Instance& value) {
@@ -511,6 +512,7 @@ class ObjectStore {
   V(RawType*, number_type_)                                                    \
   V(RawType*, int_type_)                                                       \
   V(RawClass*, integer_implementation_class_)                                  \
+  V(RawType*, int64_type_)                                                     \
   V(RawClass*, smi_class_)                                                     \
   V(RawType*, smi_type_)                                                       \
   V(RawClass*, mint_class_)                                                    \
@@ -569,7 +571,6 @@ class ObjectStore {
   V(RawGrowableObjectArray*, resume_capabilities_)                             \
   V(RawGrowableObjectArray*, exit_listeners_)                                  \
   V(RawGrowableObjectArray*, error_listeners_)                                 \
-  V(RawContext*, empty_context_)                                               \
   V(RawInstance*, stack_overflow_)                                             \
   V(RawInstance*, out_of_memory_)                                              \
   V(RawUnhandledException*, preallocated_unhandled_exception_)                 \

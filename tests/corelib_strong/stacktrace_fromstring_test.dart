@@ -8,7 +8,11 @@ import "dart:async";
 
 void main() {
   StackTrace stack;
-  try { throw 0; } catch (e, s) { stack = s; }
+  try {
+    throw 0;
+  } catch (e, s) {
+    stack = s;
+  }
   var string = "$stack";
   StackTrace stringTrace = new StackTrace.fromString(string);
   Expect.isTrue(stringTrace is StackTrace);

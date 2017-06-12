@@ -77,7 +77,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
   // That field is cleared when the timer is cancelled, but it is not returned
   // from the queue until its time comes.
   var timerIds = {};
-  var timerIdCounter = 1;  // Counter used to assing ids.
+  var timerIdCounter = 1;  // Counter used to assign ids.
 
   // Zero-timer queue as simple array queue using push/shift.
   var zeroTimerQueue = [];

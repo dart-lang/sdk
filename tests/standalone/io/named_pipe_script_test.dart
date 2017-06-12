@@ -30,8 +30,7 @@ main() async {
   }
 
   StringBuffer output = new StringBuffer();
-  Process process =
-      await Process.start(Platform.executable, [stdinPipePath]);
+  Process process = await Process.start(Platform.executable, [stdinPipePath]);
   bool stdinWriteFailed = false;
   process.stdout.transform(UTF8.decoder).listen(output.write);
   process.stderr.transform(UTF8.decoder).listen((data) {

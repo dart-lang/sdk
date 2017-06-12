@@ -19,6 +19,7 @@ class A {
   set accessor(x) {
     accessorA = x;
   }
+
   aMethod() => 'aMethod';
 }
 
@@ -29,6 +30,7 @@ class B extends A {
   set accessor(x) {
     accessorB = x;
   }
+
   bMethod() => 'bMethod';
 }
 
@@ -36,10 +38,12 @@ class C extends B {
   set field(x) {
     fieldC = x;
   }
+
   instanceMethod(x) => 'C:instanceMethod($x)';
   get accessor => 'C:get accessor';
   set accessor(x) {
     accessorC = x;
   }
+
   cMethod() => 'cMethod';
 }

@@ -27,20 +27,27 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  'Tests that regular expressions do not have extensions that diverge from the JavaScript specification. '
-  + 'Because WebKit originally used a copy of PCRE, various non-JavaScript regular expression features were historically present. '
-  + 'Also tests various related edge cases.'
-  );
+      'Tests that regular expressions do not have extensions that diverge from the JavaScript specification. ' +
+          'Because WebKit originally used a copy of PCRE, various non-JavaScript regular expression features were historically present. ' +
+          'Also tests various related edge cases.');
 
   shouldBeNull(new RegExp(r"\\x{41}").firstMatch("yA1"));
   assertEquals(new RegExp(r"[\x{41}]").firstMatch("yA1").group(0), "1");
   assertEquals(new RegExp(r"\x1g").firstMatch("x1g").group(0), "x1g");
   assertEquals(new RegExp(r"[\x1g]").firstMatch("x").group(0), "x");
   assertEquals(new RegExp(r"[\x1g]").firstMatch("1").group(0), "1");
-  assertEquals(new RegExp(r"\2147483648").firstMatch(new String.fromCharCode(140) + "7483648").group(0), new String.fromCharCode(140) + "7483648");
-  assertEquals(new RegExp(r"\4294967296").firstMatch("\"94967296").group(0), "\"94967296");
-  assertEquals(new RegExp(r"\8589934592").firstMatch("\8589934592").group(0), "\8589934592");
-  assertEquals("\nAbc\n".replaceAllMapped(new RegExp(r"(\n)[^\n]+$"), (m) => m.group(1)), "\nAbc\n");
+  assertEquals(
+      new RegExp(r"\2147483648")
+          .firstMatch(new String.fromCharCode(140) + "7483648")
+          .group(0),
+      new String.fromCharCode(140) + "7483648");
+  assertEquals(new RegExp(r"\4294967296").firstMatch("\"94967296").group(0),
+      "\"94967296");
+  assertEquals(new RegExp(r"\8589934592").firstMatch("\8589934592").group(0),
+      "\8589934592");
+  assertEquals(
+      "\nAbc\n".replaceAllMapped(new RegExp(r"(\n)[^\n]+$"), (m) => m.group(1)),
+      "\nAbc\n");
   shouldBeNull(new RegExp(r"x$").firstMatch("x\n"));
   assertThrows(() => new RegExp(r"x++"));
   shouldBeNull(new RegExp(r"[]]").firstMatch("]"));
@@ -55,15 +62,33 @@ void main() {
   assertEquals(new RegExp(r"\1011").firstMatch("yA1").group(0), "A1");
   assertEquals(new RegExp(r"[\1011]").firstMatch("yA1").group(0), "A");
   assertEquals(new RegExp(r"[\1011]").firstMatch("y1").group(0), "1");
-  assertEquals(new RegExp(r"\10q").firstMatch("y" + new String.fromCharCode(8) + "q").group(0), new String.fromCharCode(8) + "q");
-  assertEquals(new RegExp(r"[\10q]").firstMatch("y" + new String.fromCharCode(8) + "q").group(0), new String.fromCharCode(8));
-  assertEquals(new RegExp(r"\1q").firstMatch("y" + new String.fromCharCode(1) + "q").group(0), new String.fromCharCode(1) + "q");
-  assertEquals(new RegExp(r"[\1q]").firstMatch("y" + new String.fromCharCode(1) + "q").group(0), new String.fromCharCode(1));
+  assertEquals(
+      new RegExp(r"\10q")
+          .firstMatch("y" + new String.fromCharCode(8) + "q")
+          .group(0),
+      new String.fromCharCode(8) + "q");
+  assertEquals(
+      new RegExp(r"[\10q]")
+          .firstMatch("y" + new String.fromCharCode(8) + "q")
+          .group(0),
+      new String.fromCharCode(8));
+  assertEquals(
+      new RegExp(r"\1q")
+          .firstMatch("y" + new String.fromCharCode(1) + "q")
+          .group(0),
+      new String.fromCharCode(1) + "q");
+  assertEquals(
+      new RegExp(r"[\1q]")
+          .firstMatch("y" + new String.fromCharCode(1) + "q")
+          .group(0),
+      new String.fromCharCode(1));
   assertEquals(new RegExp(r"[\1q]").firstMatch("yq").group(0), "q");
   assertEquals(new RegExp(r"\8q").firstMatch("\8q").group(0), "\8q");
   assertEquals(new RegExp(r"[\8q]").firstMatch("y8q").group(0), "8");
   assertEquals(new RegExp(r"[\8q]").firstMatch("yq").group(0), "q");
   shouldBe(new RegExp(r"(x)\1q").firstMatch("xxq"), ["xxq", "x"]);
   shouldBe(new RegExp(r"(x)[\1q]").firstMatch("xxq"), ["xq", "x"]);
-  shouldBe(new RegExp(r"(x)[\1q]").firstMatch("xx" + new String.fromCharCode(1)), ["x" + new String.fromCharCode(1), "x"]);
+  shouldBe(
+      new RegExp(r"(x)[\1q]").firstMatch("xx" + new String.fromCharCode(1)),
+      ["x" + new String.fromCharCode(1), "x"]);
 }

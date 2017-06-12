@@ -14,6 +14,8 @@
 analysis_server/tool/spec/check_all_test: Skip  # Issue 29133
 analyzer_plugin/tool/spec/check_all_test: Skip  # Issue 29133
 analyzer/tool/summary/check_test: Skip  # Issue 29133
+analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
+analyzer/test/generated/non_error_resolver_driver_test: Slow, Pass
 
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
@@ -34,9 +36,13 @@ front_end/test/fasta/sdk_test: SkipByDesign
 front_end/test/fasta/bootstrap_test: Pass, Slow
 front_end/test/fasta/compile_test: Pass, Slow
 front_end/test/fasta/kompile_test: Pass, Slow
+front_end/test/fasta/strong_test: Pass, Slow
+front_end/test/fasta/outline_test: Pass, Slow
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
+
+front_end/test/fasta/analyze_test: Pass, Slow
 
 [ $compiler != dart2analyzer ]
 analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
@@ -75,19 +81,16 @@ analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/services/correction/fix_test: Pass, Slow
 analysis_server/test/socket_server_test: Skip # Pass, Slow
 analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
+analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 
 [ $runtime == vm && $checked && $system == windows ]
 front_end/tool/perf_test: Slow, Pass
 
 [ $runtime == vm && $use_sdk ]
-front_end/test/fasta/compile_test: Skip # Issue 28629
-front_end/test/fasta/kompile_test: Skip # Issue 28629
-front_end/test/fasta/outline_test: Skip # Issue 28629
-front_end/test/fasta/bootstrap_test: Skip # Issue 28629
+front_end/test/fasta/*: Skip # Issue 28629
+compiler/tool/generate_kernel_test*: Skip # Issue 28629
 
 [ $runtime == vm && $use_sdk == false ]
-front_end/test/incremental_kernel_generator_test: Skip # Issue 28698
-front_end/test/incremental_resolved_ast_generator_test: Skip # Issue 28698
 front_end/tool/perf_test: Skip # Issue 28698
 
 [ $runtime == vm && $use_sdk == true ]
@@ -152,7 +155,7 @@ collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 
 [ $runtime == safarimobilesim ]
-# Unexplained errors only occuring on Safari 6.1 and earlier.
+# Unexplained errors only occurring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
 
 [ $compiler == dart2js && $csp ]

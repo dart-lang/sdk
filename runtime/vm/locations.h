@@ -552,7 +552,11 @@ class RegisterSet : public ValueObject {
 // Specification of locations for inputs and output.
 class LocationSummary : public ZoneAllocated {
  public:
-  enum ContainsCall { kNoCall, kCall, kCallOnSlowPath };
+  enum ContainsCall {
+    kNoCall,  // Used registers must be reserved as tmp.
+    kCall,    // Registers have been saved and can be used without reservation.
+    kCallOnSlowPath  // Used registers must be reserved as tmp.
+  };
 
   LocationSummary(Zone* zone,
                   intptr_t input_count,

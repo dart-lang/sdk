@@ -2,14 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.correction.fix;
-
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/plugin/protocol/protocol.dart'
-    hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -18,11 +14,13 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    hide AnalysisError;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -33,8 +31,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FixProcessorTest);
     defineReflectiveTests(LintFixTest);
-    defineReflectiveTests(FixProcessorTest_Driver);
-    defineReflectiveTests(LintFixTest_Driver);
   });
 }
 
@@ -57,6 +53,7 @@ class BaseFixProcessorTest extends AbstractSingleUnitTest {
   String flutterPkgLibPath = '/packages/flutter/lib';
 
   Fix fix;
+
   SourceChange change;
   String resultCode;
 
@@ -167,20 +164,9 @@ bool test() {
    * Computes fixes for the given [error] in [testUnit].
    */
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    if (enableNewAnalysisDriver) {
-      DartFixContext fixContext = new _DartFixContextImpl(
-          provider,
-          driver.getTopLevelNameDeclarations,
-          resolutionMap.elementDeclaredByCompilationUnit(testUnit).context,
-          new AstProviderForDriver(driver),
-          testUnit,
-          error);
-      return await new DefaultFixContributor().internalComputeFixes(fixContext);
-    } else {
-      FixContextImpl fixContext = new FixContextImpl(provider, context, error);
-      DefaultFixContributor contributor = new DefaultFixContributor();
-      return contributor.computeFixes(fixContext);
-    }
+    DartFixContext fixContext = new _DartFixContextImpl(
+        provider, driver, new AstProviderForDriver(driver), testUnit, error);
+    return await new DefaultFixContributor().internalComputeFixes(fixContext);
   }
 
   /**
@@ -436,6 +422,42 @@ class A {
 ''');
   }
 
+  test_addMissingRequiredArg_cons_flutter_children() async {
+    addPackageSource(
+        'flutter', 'src/widgets/framework.dart', flutter_framework_code);
+
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required List<Widget> children});
+}
+
+build() {
+  return new MyWidget();
+}
+''');
+
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required List<Widget> children});
+}
+
+build() {
+  return new MyWidget(children: <Widget>[],);
+}
+''',
+        target: '/test.dart');
+  }
+
   test_addMissingRequiredArg_cons_single() async {
     _addMetaPackageSource();
     addSource(
@@ -463,6 +485,179 @@ import 'libA.dart';
 
 main() {
   A a = new A(a: null);
+}
+''',
+        target: '/test.dart');
+  }
+
+  test_addMissingRequiredArg_cons_single_closure() async {
+    _addMetaPackageSource();
+
+    addSource(
+        '/libA.dart',
+        r'''
+library libA;
+import 'package:meta/meta.dart';
+
+typedef void VoidCallback();
+
+class A {
+  A({@required VoidCallback onPressed}) {}
+}
+''');
+
+    await resolveTestUnit('''
+import 'libA.dart';
+
+main() {
+  A a = new A();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'libA.dart';
+
+main() {
+  A a = new A(onPressed: () {});
+}
+''',
+        target: '/test.dart');
+  }
+
+  test_addMissingRequiredArg_cons_single_closure_2() async {
+    _addMetaPackageSource();
+
+    addSource(
+        '/libA.dart',
+        r'''
+library libA;
+import 'package:meta/meta.dart';
+
+typedef void Callback(e);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+
+    await resolveTestUnit('''
+import 'libA.dart';
+
+main() {
+  A a = new A();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'libA.dart';
+
+main() {
+  A a = new A(callback: (e) {});
+}
+''',
+        target: '/test.dart');
+  }
+
+  test_addMissingRequiredArg_cons_single_closure_3() async {
+    _addMetaPackageSource();
+
+    addSource(
+        '/libA.dart',
+        r'''
+library libA;
+import 'package:meta/meta.dart';
+
+typedef void Callback(a,b,c);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+
+    await resolveTestUnit('''
+import 'libA.dart';
+
+main() {
+  A a = new A();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'libA.dart';
+
+main() {
+  A a = new A(callback: (a, b, c) {});
+}
+''',
+        target: '/test.dart');
+  }
+
+  test_addMissingRequiredArg_cons_single_closure_4() async {
+    _addMetaPackageSource();
+
+    addSource(
+        '/libA.dart',
+        r'''
+library libA;
+import 'package:meta/meta.dart';
+
+typedef int Callback(int a, String b,c);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+
+    await resolveTestUnit('''
+import 'libA.dart';
+
+main() {
+  A a = new A();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'libA.dart';
+
+main() {
+  A a = new A(callback: (int a, String b, c) {});
+}
+''',
+        target: '/test.dart');
+  }
+
+  test_addMissingRequiredArg_cons_single_list() async {
+    _addMetaPackageSource();
+
+    addSource(
+        '/libA.dart',
+        r'''
+library libA;
+import 'package:meta/meta.dart';
+
+class A {
+  A({@required List<String> names}) {}
+}
+''');
+
+    await resolveTestUnit('''
+import 'libA.dart';
+
+main() {
+  A a = new A();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'libA.dart';
+
+main() {
+  A a = new A(names: <String>[]);
 }
 ''',
         target: '/test.dart');
@@ -3380,6 +3575,34 @@ main() {
 ''');
   }
 
+  test_importLibraryProject_BAD_notInLib_BUILD() async {
+    testFile = '/aaa/bin/test.dart';
+    provider.newFile('/aaa/BUILD', '');
+    provider.newFile('/bbb/BUILD', '');
+    addSource('/bbb/test/lib.dart', 'class Test {}');
+    await resolveTestUnit('''
+main() {
+  Test t;
+}
+''');
+    performAllAnalysisTasks();
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
+  }
+
+  test_importLibraryProject_BAD_notInLib_pubspec() async {
+    testFile = '/aaa/bin/test.dart';
+    provider.newFile('/aaa/pubspec.yaml', 'name: aaa');
+    provider.newFile('/bbb/pubspec.yaml', 'name: bbb');
+    addSource('/bbb/test/lib.dart', 'class Test {}');
+    await resolveTestUnit('''
+main() {
+  Test t;
+}
+''');
+    performAllAnalysisTasks();
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
+  }
+
   test_importLibraryProject_withClass_annotation() async {
     addSource(
         '/lib.dart',
@@ -5687,12 +5910,6 @@ class Required {
 }
 
 @reflectiveTest
-class FixProcessorTest_Driver extends FixProcessorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-}
-
-@reflectiveTest
 class LintFixTest extends BaseFixProcessorTest {
   AnalysisError error;
 
@@ -5915,15 +6132,758 @@ main() {
 ''');
   }
 
+  test_removeAwait_intLiteral() async {
+    String src = '''
+bad() async {
+  print(/*LINT*/await 23);
+}
+''';
+    await findLint(src, LintNames.await_only_futures);
+
+    await applyFix(DartFixKind.REMOVE_AWAIT);
+
+    verifyResult('''
+bad() async {
+  print(23);
+}
+''');
+  }
+
+  test_removeAwait_StringLiteral() async {
+    String src = '''
+bad() async {
+  print(/*LINT*/await 'hola');
+}
+''';
+    await findLint(src, LintNames.await_only_futures);
+
+    await applyFix(DartFixKind.REMOVE_AWAIT);
+
+    verifyResult('''
+bad() async {
+  print('hola');
+}
+''');
+  }
+
+  test_removeEmptyStatement_insideBlock() async {
+    String src = '''
+void foo() {
+  while(true) {
+    /*LINT*/;
+  }
+}
+''';
+    await findLint(src, LintNames.empty_statements);
+
+    await applyFix(DartFixKind.REMOVE_EMPTY_STATEMENT);
+
+    verifyResult('''
+void foo() {
+  while(true) {
+  }
+}
+''');
+  }
+
+  test_removeEmptyStatement_outOfBlock_otherLine() async {
+    String src = '''
+void foo() {
+  while(true)
+  /*LINT*/;
+  print('hi');
+}
+''';
+    await findLint(src, LintNames.empty_statements);
+
+    await applyFix(DartFixKind.REPLACE_WITH_BRACKETS);
+
+    verifyResult('''
+void foo() {
+  while(true) {}
+  print('hi');
+}
+''');
+  }
+
+  test_removeEmptyStatement_outOfBlock_sameLine() async {
+    String src = '''
+void foo() {
+  while(true)/*LINT*/;
+  print('hi');
+}
+''';
+    await findLint(src, LintNames.empty_statements);
+
+    await applyFix(DartFixKind.REPLACE_WITH_BRACKETS);
+
+    verifyResult('''
+void foo() {
+  while(true) {}
+  print('hi');
+}
+''');
+  }
+
+  test_removeInitializer_field() async {
+    String src = '''
+class Test {
+  int /*LINT*/x = null;
+}
+''';
+    await findLint(src, LintNames.avoid_init_to_null);
+
+    await applyFix(DartFixKind.REMOVE_INITIALIZER);
+
+    verifyResult('''
+class Test {
+  int x;
+}
+''');
+  }
+
+  test_removeInitializer_listOfVariableDeclarations() async {
+    String src = '''
+String a = 'a', /*LINT*/b = null, c = 'c';
+''';
+    await findLint(src, LintNames.avoid_init_to_null);
+
+    await applyFix(DartFixKind.REMOVE_INITIALIZER);
+
+    verifyResult('''
+String a = 'a', b, c = 'c';
+''');
+  }
+
+  test_removeInitializer_topLevel() async {
+    String src = '''
+var /*LINT*/x = null;
+''';
+    await findLint(src, LintNames.avoid_init_to_null);
+
+    await applyFix(DartFixKind.REMOVE_INITIALIZER);
+
+    verifyResult('''
+var x;
+''');
+  }
+
+  test_removeMethodDeclaration_getter() async {
+    String src = '''
+class A {
+  int x;
+}
+class B extends A {
+  @override
+  int get /*LINT*/x => super.x;
+}
+''';
+    await findLint(src, LintNames.unnecessary_override);
+
+    await applyFix(DartFixKind.REMOVE_METHOD_DECLARATION);
+
+    verifyResult('''
+class A {
+  int x;
+}
+class B extends A {
+}
+''');
+  }
+
+  test_removeMethodDeclaration_method() async {
+    String src = '''
+class A {
+  @override
+  String /*LINT*/toString() => super.toString();
+}
+''';
+    await findLint(src, LintNames.unnecessary_override);
+
+    await applyFix(DartFixKind.REMOVE_METHOD_DECLARATION);
+
+    verifyResult('''
+class A {
+}
+''');
+  }
+
+  test_removeMethodDeclaration_setter() async {
+    String src = '''
+class A {
+  int x;
+}
+class B extends A {
+  @override
+  set /*LINT*/x(int other) {
+    this.x = other;
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_override);
+
+    await applyFix(DartFixKind.REMOVE_METHOD_DECLARATION);
+
+    verifyResult('''
+class A {
+  int x;
+}
+class B extends A {
+}
+''');
+  }
+
+  test_removeThisExpression_methodInvocation_oneCharacterOperator() async {
+    String src = '''
+class A {
+  void foo() {
+    /*LINT*/this.foo();
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  void foo() {
+    foo();
+  }
+}
+''');
+  }
+
+  test_removeThisExpression_methodInvocation_twoCharactersOperator() async {
+    String src = '''
+class A {
+  void foo() {
+    /*LINT*/this?.foo();
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  void foo() {
+    foo();
+  }
+}
+''');
+  }
+
+  test_removeThisExpression_propertyAccess_oneCharacterOperator() async {
+    String src = '''
+class A {
+  int x;
+  void foo() {
+    /*LINT*/this.x = 2;
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  int x;
+  void foo() {
+    x = 2;
+  }
+}
+''');
+  }
+
+  test_removeThisExpression_propertyAccess_twoCharactersOperator() async {
+    String src = '''
+class A {
+  int x;
+  void foo() {
+    /*LINT*/this?.x = 2;
+  }
+}
+''';
+    await findLint(src, LintNames.unnecessary_this);
+
+    await applyFix(DartFixKind.REMOVE_THIS_EXPRESSION);
+
+    verifyResult('''
+class A {
+  int x;
+  void foo() {
+    x = 2;
+  }
+}
+''');
+  }
+
+  test_removeTypeName_avoidAnnotatingWithDynamic_InsideFunctionTypedFormalParameter() async {
+    String src = '''
+bad(void foo(/*LINT*/dynamic x)) {
+  return null;
+}
+''';
+    await findLint(src, LintNames.avoid_annotating_with_dynamic);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+bad(void foo(x)) {
+  return null;
+}
+''');
+  }
+
+  test_removeTypeName_avoidAnnotatingWithDynamic_NamedParameter() async {
+    String src = '''
+bad({/*LINT*/dynamic defaultValue}) {
+  return null;
+}
+''';
+    await findLint(src, LintNames.avoid_annotating_with_dynamic);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+bad({defaultValue}) {
+  return null;
+}
+''');
+  }
+
+  test_removeTypeName_avoidAnnotatingWithDynamic_NormalParameter() async {
+    String src = '''
+bad(/*LINT*/dynamic defaultValue) {
+  return null;
+}
+''';
+    await findLint(src, LintNames.avoid_annotating_with_dynamic);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+bad(defaultValue) {
+  return null;
+}
+''');
+  }
+
+  test_removeTypeName_avoidAnnotatingWithDynamic_OptionalParameter() async {
+    String src = '''
+bad([/*LINT*/dynamic defaultValue]) {
+  return null;
+}
+''';
+    await findLint(src, LintNames.avoid_annotating_with_dynamic);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+bad([defaultValue]) {
+  return null;
+}
+''');
+  }
+
+  test_removeTypeName_avoidReturnTypesOnSetters_void() async {
+    String src = '''
+/*LINT*/void set speed2(int ms) {}
+''';
+    await findLint(src, LintNames.avoid_return_types_on_setters);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+set speed2(int ms) {}
+''');
+  }
+
+  test_removeTypeName_avoidTypesOnClosureParameters_FunctionTypedFormalParameter() async {
+    String src = '''
+var functionWithFunction = (/*LINT*/int f(int x)) => f(0);
+''';
+    await findLint(src, LintNames.avoid_types_on_closure_parameters);
+
+    await applyFix(DartFixKind.REPLACE_WITH_IDENTIFIER);
+
+    verifyResult('''
+var functionWithFunction = (f) => f(0);
+''');
+  }
+
+  test_removeTypeName_avoidTypesOnClosureParameters_NamedParameter() async {
+    String src = '''
+var x = ({/*LINT*/Future<int> defaultValue}) {
+  return null;
+};
+''';
+    await findLint(src, LintNames.avoid_types_on_closure_parameters);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+var x = ({defaultValue}) {
+  return null;
+};
+''');
+  }
+
+  test_removeTypeName_avoidTypesOnClosureParameters_NormalParameter() async {
+    String src = '''
+var x = (/*LINT*/Future<int> defaultValue) {
+  return null;
+};
+''';
+    await findLint(src, LintNames.avoid_types_on_closure_parameters);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+var x = (defaultValue) {
+  return null;
+};
+''');
+  }
+
+  test_removeTypeName_avoidTypesOnClosureParameters_OptionalParameter() async {
+    String src = '''
+var x = ([/*LINT*/Future<int> defaultValue]) {
+  return null;
+};
+''';
+    await findLint(src, LintNames.avoid_types_on_closure_parameters);
+
+    await applyFix(DartFixKind.REMOVE_TYPE_NAME);
+
+    verifyResult('''
+var x = ([defaultValue]) {
+  return null;
+};
+''');
+  }
+
+  test_replaceWithConditionalAssignment_withCodeBeforeAndAfter() async {
+    String src = '''
+class Person {
+  String _fullName;
+  void foo() {
+    print('hi');
+    /*LINT*/if (_fullName == null) {
+      _fullName = getFullUserName(this);
+    }
+    print('hi');
+  }
+}
+''';
+    await findLint(src, LintNames.prefer_conditional_assignment);
+
+    await applyFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
+
+    verifyResult('''
+class Person {
+  String _fullName;
+  void foo() {
+    print('hi');
+    _fullName ??= getFullUserName(this);
+    print('hi');
+  }
+}
+''');
+  }
+
+  test_replaceWithConditionalAssignment_withOneBlock() async {
+    String src = '''
+class Person {
+  String _fullName;
+  void foo() {
+    /*LINT*/if (_fullName == null) {
+      _fullName = getFullUserName(this);
+    }
+  }
+}
+''';
+    await findLint(src, LintNames.prefer_conditional_assignment);
+
+    await applyFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
+
+    verifyResult('''
+class Person {
+  String _fullName;
+  void foo() {
+    _fullName ??= getFullUserName(this);
+  }
+}
+''');
+  }
+
+  test_replaceWithConditionalAssignment_withoutBlock() async {
+    String src = '''
+class Person {
+  String _fullName;
+  void foo() {
+    /*LINT*/if (_fullName == null)
+      _fullName = getFullUserName(this);
+  }
+}
+''';
+    await findLint(src, LintNames.prefer_conditional_assignment);
+
+    await applyFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
+
+    verifyResult('''
+class Person {
+  String _fullName;
+  void foo() {
+    _fullName ??= getFullUserName(this);
+  }
+}
+''');
+  }
+
+  test_replaceWithConditionalAssignment_withTwoBlock() async {
+    String src = '''
+class Person {
+  String _fullName;
+  void foo() {
+    /*LINT*/if (_fullName == null) {{
+      _fullName = getFullUserName(this);
+    }}
+  }
+}
+''';
+    await findLint(src, LintNames.prefer_conditional_assignment);
+
+    await applyFix(DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT);
+
+    verifyResult('''
+class Person {
+  String _fullName;
+  void foo() {
+    _fullName ??= getFullUserName(this);
+  }
+}
+''');
+  }
+
+  test_replaceWithLiteral_linkedHashMap_withCommentsInGeneric() async {
+    String src = '''
+import 'dart:collection';
+
+final a = /*LINT*/new LinkedHashMap<int,/*comment*/int>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+import 'dart:collection';
+
+final a = <int,/*comment*/int>{};
+''');
+  }
+
+  test_replaceWithLiteral_linkedHashMap_withDynamicGenerics() async {
+    String src = '''
+import 'dart:collection';
+
+final a = /*LINT*/new LinkedHashMap<dynamic,dynamic>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+import 'dart:collection';
+
+final a = <dynamic,dynamic>{};
+''');
+  }
+
+  test_replaceWithLiteral_linkedHashMap_withGeneric() async {
+    String src = '''
+import 'dart:collection';
+
+final a = /*LINT*/new LinkedHashMap<int,int>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+import 'dart:collection';
+
+final a = <int,int>{};
+''');
+  }
+
+  test_replaceWithLiteral_linkedHashMap_withoutGeneric() async {
+    String src = '''
+import 'dart:collection';
+
+final a = /*LINT*/new LinkedHashMap();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+import 'dart:collection';
+
+final a = {};
+''');
+  }
+
+  test_replaceWithLiteral_list_withGeneric() async {
+    String src = '''
+final a = /*LINT*/new List<int>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+final a = <int>[];
+''');
+  }
+
+  test_replaceWithLiteral_list_withoutGeneric() async {
+    String src = '''
+final a = /*LINT*/new List();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+final a = [];
+''');
+  }
+
+  test_replaceWithLiteral_map_withGeneric() async {
+    String src = '''
+final a = /*LINT*/new Map<int,int>();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+final a = <int,int>{};
+''');
+  }
+
+  test_replaceWithLiteral_map_withoutGeneric() async {
+    String src = '''
+final a = /*LINT*/new Map();
+''';
+    await findLint(src, LintNames.prefer_collection_literals);
+
+    await applyFix(DartFixKind.REPLACE_WITH_LITERAL);
+
+    verifyResult('''
+final a = {};
+''');
+  }
+
+  test_replaceWithTearOff_function_oneParameter() async {
+    String src = '''
+final x = /*LINT*/(name) {
+  print(name);
+};
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+final x = print;
+''');
+  }
+
+  test_replaceWithTearOff_function_zeroParameters() async {
+    String src = '''
+void foo(){}
+Function finalVar() {
+  return /*LINT*/() {
+    foo();
+  };
+}
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+void foo(){}
+Function finalVar() {
+  return foo;
+}
+''');
+  }
+
+  test_replaceWithTearOff_lambda_asArgument() async {
+    String src = '''
+void foo() {
+  bool isPair(int a) => a % 2 == 0;
+  final finalList = <int>[];
+  finalList.where(/*LINT*/(number) =>
+    isPair(number));
+}
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+void foo() {
+  bool isPair(int a) => a % 2 == 0;
+  final finalList = <int>[];
+  finalList.where(isPair);
+}
+''');
+  }
+
+  test_replaceWithTearOff_method_oneParameter() async {
+    String src = '''
+var a = /*LINT*/(x) => finalList.remove(x);
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+var a = finalList.remove;
+''');
+  }
+
+  test_replaceWithTearOff_method_zeroParameter() async {
+    String src = '''
+final Object a;
+Function finalVar() {
+  return /*LINT*/() {
+    return a.toString();
+  };
+}
+''';
+    await findLint(src, LintNames.unnecessary_lambdas);
+
+    await applyFix(DartFixKind.REPLACE_WITH_TEAR_OFF);
+
+    verifyResult('''
+final Object a;
+Function finalVar() {
+  return a.toString;
+}
+''');
+  }
+
   void verifyResult(String expectedResult) {
     expect(resultCode, expectedResult);
   }
-}
-
-@reflectiveTest
-class LintFixTest_Driver extends LintFixTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }
 
 class _DartFixContextImpl implements DartFixContext {
@@ -5931,10 +6891,7 @@ class _DartFixContextImpl implements DartFixContext {
   final ResourceProvider resourceProvider;
 
   @override
-  final GetTopLevelDeclarations getTopLevelDeclarations;
-
-  @override
-  final AnalysisContext analysisContext;
+  final AnalysisDriver analysisDriver;
 
   @override
   final AstProvider astProvider;
@@ -5945,6 +6902,10 @@ class _DartFixContextImpl implements DartFixContext {
   @override
   final AnalysisError error;
 
-  _DartFixContextImpl(this.resourceProvider, this.getTopLevelDeclarations,
-      this.analysisContext, this.astProvider, this.unit, this.error);
+  _DartFixContextImpl(this.resourceProvider, this.analysisDriver,
+      this.astProvider, this.unit, this.error);
+
+  @override
+  GetTopLevelDeclarations get getTopLevelDeclarations =>
+      analysisDriver.getTopLevelNameDeclarations;
 }

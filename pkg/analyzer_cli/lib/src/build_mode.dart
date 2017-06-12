@@ -4,7 +4,6 @@
 
 library analyzer_cli.src.build_mode;
 
-import 'dart:core';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
@@ -132,6 +131,7 @@ class BuildMode {
   InternalAnalysisContext context;
   Map<Uri, File> uriToFileMap;
   final List<Source> explicitSources = <Source>[];
+  final List<PackageBundle> unlinkedBundles = <PackageBundle>[];
 
   PackageBundleAssembler assembler;
   final Set<Source> processedSources = new Set<Source>();
@@ -169,7 +169,13 @@ class BuildMode {
         .toList());
 
     // Prepare the analysis context.
-    _createContext();
+    try {
+      _createContext();
+    } on ConflictingSummaryException catch (e) {
+      errorSink.writeln('$e');
+      io.exitCode = ErrorSeverity.ERROR.ordinal;
+      return ErrorSeverity.ERROR;
+    }
 
     // Add sources.
     ChangeSet changeSet = new ChangeSet();
@@ -199,9 +205,23 @@ class BuildMode {
     // Write summary.
     assembler = new PackageBundleAssembler();
     if (_shouldOutputSummary) {
-      _serializeAstBasedSummary(explicitSources);
+      if (options.buildSummaryOnlyUnlinked) {
+        for (var src in explicitSources) {
+          // Note: This adds the unit to the assembler if it needed to be
+          // computed, so we don't need to explicitly do that.
+          _unlinkedUnitForUri('${src.uri}');
+        }
+      } else {
+        Set<String> unlinkedUris =
+            explicitSources.map((Source s) => s.uri.toString()).toSet();
+        for (var bundle in unlinkedBundles) {
+          unlinkedUris.addAll(bundle.unlinkedUnitUris);
+        }
+
+        _serializeAstBasedSummary(unlinkedUris);
+        assembler.recordDependencies(summaryDataStore);
+      }
       // Write the whole package bundle.
-      assembler.recordDependencies(summaryDataStore);
       PackageBundleBuilder bundle = assembler.assemble();
       if (options.buildSummaryOutput != null) {
         io.File file = new io.File(options.buildSummaryOutput);
@@ -229,10 +249,10 @@ class BuildMode {
       for (Source source in explicitSources) {
         AnalysisErrorInfo errorInfo = context.getErrors(source);
         for (AnalysisError error in errorInfo.errors) {
-          ProcessedSeverity processedSeverity =
-              processError(error, options, context.analysisOptions);
+          ErrorSeverity processedSeverity = determineProcessedSeverity(
+              error, options, context.analysisOptions);
           if (processedSeverity != null) {
-            maxSeverity = maxSeverity.max(processedSeverity.severity);
+            maxSeverity = maxSeverity.max(processedSeverity);
           }
         }
       }
@@ -242,8 +262,38 @@ class BuildMode {
 
   void _createContext() {
     // Read the summaries.
-    summaryDataStore = new SummaryDataStore(options.buildSummaryInputs,
+    summaryDataStore = new SummaryDataStore(<String>[],
         recordDependencyInfo: _shouldOutputSummary);
+
+    // Adds a bundle at `path` to `summaryDataStore`.
+    PackageBundle addBundle(String path) {
+      var bundle =
+          new PackageBundle.fromBuffer(new io.File(path).readAsBytesSync());
+      summaryDataStore.addBundle(path, bundle);
+      return bundle;
+    }
+
+    for (var path in options.buildSummaryInputs) {
+      var bundle = addBundle(path);
+      if (bundle.linkedLibraryUris.isEmpty &&
+          bundle.unlinkedUnitUris.isNotEmpty) {
+        throw new ArgumentError(
+            'Got an unlinked summary for --build-summary-input at `$path`. '
+            'Unlinked summaries should be provided with the '
+            '--build-summary-unlinked-input argument.');
+      }
+    }
+
+    for (var path in options.buildSummaryUnlinkedInputs) {
+      var bundle = addBundle(path);
+      unlinkedBundles.add(bundle);
+      if (bundle.linkedLibraryUris.isNotEmpty) {
+        throw new ArgumentError(
+            'Got a linked summary for --build-summary-input-unlinked at `$path`'
+            '. Linked bundles should be provided with the '
+            '--build-summary-input argument.');
+      }
+    }
 
     DartSdk sdk;
     PackageBundle sdkBundle;
@@ -318,16 +368,18 @@ class BuildMode {
    */
   void _printErrors({String outputPath}) {
     StringBuffer buffer = new StringBuffer();
-    ErrorFormatter formatter = new ErrorFormatter(
-        buffer,
-        options,
-        stats,
-        (AnalysisError error) =>
-            processError(error, options, context.analysisOptions));
+    var severityProcessor = (AnalysisError error) =>
+        determineProcessedSeverity(error, options, context.analysisOptions);
+    ErrorFormatter formatter = options.machineFormat
+        ? new MachineErrorFormatter(buffer, options, stats,
+            severityProcessor: severityProcessor)
+        : new HumanErrorFormatter(buffer, options, stats,
+            severityProcessor: severityProcessor);
     for (Source source in explicitSources) {
       AnalysisErrorInfo errorInfo = context.getErrors(source);
       formatter.formatErrors([errorInfo]);
     }
+    formatter.flush();
     if (!options.machineFormat) {
       stats.print(buffer);
     }
@@ -343,44 +395,48 @@ class BuildMode {
    * Serialize the package with the given [sources] into [assembler] using only
    * their ASTs and [LinkedUnit]s of input packages.
    */
-  void _serializeAstBasedSummary(List<Source> sources) {
-    Set<String> sourceUris =
-        sources.map((Source s) => s.uri.toString()).toSet();
-
+  void _serializeAstBasedSummary(Set<String> unlinkedUris) {
     LinkedLibrary _getDependency(String absoluteUri) =>
         summaryDataStore.linkedMap[absoluteUri];
 
-    UnlinkedUnit _getUnit(String absoluteUri) {
-      // Maybe an input package contains the source.
-      {
-        UnlinkedUnit unlinkedUnit = summaryDataStore.unlinkedMap[absoluteUri];
-        if (unlinkedUnit != null) {
-          return unlinkedUnit;
-        }
-      }
-      // Parse the source and serialize its AST.
-      Uri uri = Uri.parse(absoluteUri);
-      Source source = context.sourceFactory.forUri2(uri);
-      if (!source.exists()) {
-        // TODO(paulberry): we should report a warning/error because DDC
-        // compilations are unlikely to work.
-        return null;
-      }
-      return uriToUnit.putIfAbsent(uri, () {
-        CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
-        UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
-        assembler.addUnlinkedUnit(source, unlinkedUnit);
-        return unlinkedUnit;
-      });
-    }
-
     Map<String, LinkedLibraryBuilder> linkResult = link(
-        sourceUris,
+        unlinkedUris,
         _getDependency,
-        _getUnit,
+        _unlinkedUnitForUri,
         context.declaredVariables.get,
         options.strongMode);
     linkResult.forEach(assembler.addLinkedLibrary);
+  }
+
+  /**
+   * Returns the [UnlinkedUnit] for [absoluteUri], either by computing it or
+   * using the stored one in [uriToUnit].
+   *
+   * If the [UnlinkedUnit] needed to be computed, it will also be added to the
+   * [assembler].
+   */
+  UnlinkedUnit _unlinkedUnitForUri(String absoluteUri) {
+    // Maybe an input package contains the source.
+    {
+      UnlinkedUnit unlinkedUnit = summaryDataStore.unlinkedMap[absoluteUri];
+      if (unlinkedUnit != null) {
+        return unlinkedUnit;
+      }
+    }
+    // Parse the source and serialize its AST.
+    Uri uri = Uri.parse(absoluteUri);
+    Source source = context.sourceFactory.forUri2(uri);
+    if (!source.exists()) {
+      // TODO(paulberry): we should report a warning/error because DDC
+      // compilations are unlikely to work.
+      return null;
+    }
+    return uriToUnit.putIfAbsent(uri, () {
+      CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
+      UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
+      assembler.addUnlinkedUnit(source, unlinkedUnit);
+      return unlinkedUnit;
+    });
   }
 }
 

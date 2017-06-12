@@ -18,7 +18,7 @@ args.ArgParser parser = new args.ArgParser(allowTrailingOptions: true)
   ..addOption("dartk",
       abbr: "k",
       help: "Path to 'dartk' executable. By default it will be searched for\n"
-          "in the same directory as 'reified_dart'.",
+          "in the tool directory of the kernel package.",
       defaultsTo: null)
   ..addOption("dill-output",
       abbr: "d",
@@ -97,7 +97,7 @@ String getDefaultSdk() {
 
 String getDefaultDartk() {
   String currentFile = Platform.script.toFilePath();
-  String dartkPath = path.join(path.dirname(currentFile), "dartk.dart");
+  String dartkPath = path.join(path.dirname(currentFile), "../tool/dartk.dart");
 
   checkIsFile(dartkPath,
       option: "Path to 'dartk'",

@@ -8,6 +8,7 @@ class A {
   int a() {
     return 1;
   }
+
   var a;
 }
 

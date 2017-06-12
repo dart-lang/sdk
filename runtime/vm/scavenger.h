@@ -198,10 +198,12 @@ class Scavenger {
   // Ids for time and data records in Heap::GCStats.
   enum {
     // Time
-    kVisitIsolateRoots = 0,
-    kIterateStoreBuffers = 1,
-    kProcessToSpace = 2,
-    kIterateWeaks = 3,
+    kDummyScavengeTime = 0,
+    kSafePoint = 1,
+    kVisitIsolateRoots = 2,
+    kIterateStoreBuffers = 3,
+    kProcessToSpace = 4,
+    kIterateWeaks = 5,
     // Data
     kStoreBufferEntries = 0,
     kDataUnused1 = 1,

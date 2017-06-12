@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.plugin.analysis_contributor;
-
 import 'dart:async';
 
 import 'package:analysis_server/plugin/analysis/analysis_domain.dart';
@@ -11,11 +9,13 @@ import 'package:analysis_server/plugin/analysis/navigation/navigation.dart';
 import 'package:analysis_server/plugin/analysis/navigation/navigation_core.dart';
 import 'package:analysis_server/plugin/analysis/occurrences/occurrences.dart';
 import 'package:analysis_server/plugin/analysis/occurrences/occurrences_core.dart';
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -40,6 +40,9 @@ class SetAnalysisDomainTest extends AbstractAnalysisTest {
 
   AnalysisNavigationParams navigationParams;
   AnalysisOccurrencesParams occurrencesParams;
+
+  @override
+  bool get enableNewAnalysisDriver => false;
 
   @override
   void addServerPlugins(List<Plugin> plugins) {

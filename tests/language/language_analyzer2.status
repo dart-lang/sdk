@@ -10,25 +10,23 @@ generic_local_functions_test: CompileTimeError # Issue 28515
 regress_26668_test: Fail # Issue 26678
 regress_27617_test/1: MissingCompileTimeError
 regress_29025_test: StaticWarning # Issue 29081
+regress_29405_test: StaticWarning # Issue 29421
 
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
-deep_nesting1_negative_test: Crash # Issue 25558
-deep_nesting2_negative_test: Crash # Issue 25558
+deep_nesting1_negative_test: CompileTimeError # Issue 25558
+deep_nesting2_negative_test: CompileTimeError # Issue 25558
 
-enum_syntax_test/05: Fail # 21649
-enum_syntax_test/06: Fail # 21649
+enum_syntax_test/05: Fail # Issue 21649
+enum_syntax_test/06: Fail # Issue 21649
 
 regress_17382_test: Skip # don't care about the static warning.
 regress_23408_test: Skip # don't care about the static warning.
 regress_25246_test: Skip
-getter_setter_in_lib_test: Fail # issue 23286
+getter_setter_in_lib_test: Fail # Issue 23286
 
-# Test issue 12694 (was analyzer issue), (1) when "abstract" is import prefix using it as type is warning; (2) currently analyzer resolves prefix as field (don't ask)
-
-# TBF: we should check conflicts not only for methods, but for accessors too
-override_field_test/03: fail
+override_field_test/03: Fail # Issue 29703
 method_override7_test/03: Fail # Issue 11497
 
 external_test/21: Fail
@@ -43,127 +41,77 @@ multiline_newline_test/03: CompileTimeError # Issue 23888
 multiline_newline_test/04: MissingCompileTimeError # Issue 23888
 multiline_newline_test/05: MissingCompileTimeError # Issue 23888
 multiline_newline_test/06: MissingCompileTimeError # Issue 23888
+multiline_newline_test/01r: CompileTimeError # Issue 23888
+multiline_newline_test/02r: CompileTimeError # Issue 23888
+multiline_newline_test/03r: CompileTimeError # Issue 23888
+multiline_newline_test/04r: MissingCompileTimeError # Issue 23888
+multiline_newline_test/05r: MissingCompileTimeError # Issue 23888
+multiline_newline_test/06r: MissingCompileTimeError # Issue 23888
 
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
-#
-#
 
-ref_before_declaration_test/none: fail # test issue 14879, "P" is not defined
-bad_initializer2_negative_test: fail # Issue 14880, Analyzer reports compile-time error, but test runner is not satisfied
-
-# test issue 11124, It is warning, not error to don't initialize final field
+bad_initializer2_negative_test: fail # Issue 14880
 field3a_negative_test: Fail # Issue 11124
 final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
 final_syntax_test/03: Fail # Issue 11124
-
-# Test issue 11545, using not existing constructor name in annotation
-metadata_test: fail
-
-# test issue 11575, classes with abstract members are not marked as abstract
+metadata_test: fail # Issue 11545
 get_set_syntax_test/none: fail # Issue 11575
 implicit_this_test/none: fail # Issue 11575
 interface_test/none: fail # Issue 11575
 syntax_test/none: fail # Issue 11575
-
-# test issue 11577, has return type for []=
 cascade_test/none: fail # Issue 11577
-
-# test issue 11578, redirecting factory with not subtype
 factory5_test/none: fail # Issue 11578
 type_variable_bounds_test/none: fail # Issue 11578
 type_variable_scope_test/none: fail # Issue 11578
 factory_implementation_test/none: fail # Issue 11578
 malbounded_redirecting_factory_test/none: fail # Issue 11578
 malbounded_redirecting_factory2_test/none: fail # Issue 11578
-
-# test issue 11579, assignment, no setter
-getter_no_setter_test/none: fail
-
-# test issue 11585, static warning, not negative test
-constructor3_negative_test: fail
-constructor_call_wrong_argument_count_negative_test: fail
-instance_call_wrong_argument_count_negative_test: fail
-
-# test issue 11590, runtime only negative test
-field_method4_negative_test: fail
-
-# test issue 11594, Reference to a not resolve identifier is static warning
-import_combinators_negative_test: fail
-interface_static_non_final_fields_negative_test: fail
-
-# test issue 11962, it is warning, not error to reference undeclared identifier
-prefix1_negative_test: fail
-prefix2_negative_test: fail
-prefix4_negative_test: fail
-prefix5_negative_test: fail
-prefix12_negative_test: fail
-
-# test issue 11964, Any use of a malformed type gives rise to a static warning.
-prefix8_negative_test: fail
-prefix11_negative_test: fail
-
-# test issue 12156, fails only at runtime
-static_call_wrong_argument_count_negative_test: fail
-
-# test issue 12160, not annotated warnings for type variables from static member
-type_parameter_test/none: fail
-# test issue 12161, type variable in static, malformed type, static warning
-type_variable_static_context_negative_test: fail
-
-# test issue 12163, unresolved identifier is static warning in static context
+getter_no_setter_test/none: fail # Issue 11579
+constructor3_negative_test: fail # Issue 11585
+constructor_call_wrong_argument_count_negative_test: fail # Issue 11585
+instance_call_wrong_argument_count_negative_test: fail # Issue 11585
+field_method4_negative_test: fail # Issue 11590
+import_combinators_negative_test: fail # Issue 11594
+interface_static_non_final_fields_negative_test: fail # Issue 11594
+prefix1_negative_test: fail # Issue 11962
+prefix2_negative_test: fail # Issue 11962
+prefix4_negative_test: fail # Issue 11962
+prefix5_negative_test: fail # Issue 11962
+prefix12_negative_test: fail # Issue 11962
+prefix8_negative_test: fail # Issue 11964
+prefix11_negative_test: fail # Issue 11964
+static_call_wrong_argument_count_negative_test: fail # Issue 12156
+type_parameter_test/none: fail # Issue 12160
+type_variable_static_context_negative_test: fail # Issue 12161
 unresolved_in_factory_negative_test: fail # Issue 12163
 unresolved_top_level_var_negative_test: fail # Issue 12163
-
-# test issue 12191, ambiguous import is always warning now
 prefix3_negative_test: fail # Issue 12191
-
-# test issue 12381, It is compile-time error to invoke not existing function
 issue11724_test: fail # Issue 12381
-
-# test issue 12541; there shouldn't be a static warning
 static_field_test/01: fail # Issue 12541
 static_field_test/02: fail # Issue 12541
 static_field_test/03: fail # Issue 12541
 static_field_test/04: fail # Issue 12541
-
-# test issue 13916, Looks as no warning should be in this redirecting factory
-redirecting_factory_infinite_steps_test/01: fail
-
-# test issue 14471, has (legitimate) static warning; but not annotated
-redirecting_factory_default_values_test/none: StaticWarning # Test issue 14471; has (legitimate) static warning; but not annotated
-
-# test issue 13956, It is a static type warning if any of the type arguments to k' are not subtypes of the bounds of the corresponding formal type parameters of type.
-default_factory2_test/none: fail
-
-# test issue 14021, it is warning, not an error to reference private (undefined) identifier
-private_member1_negative_test: fail
-private_member2_negative_test: fail
-private_member3_negative_test: fail
-
-# test issue 14079
-malformed_test/none: fail # test issue 14079, legit warnings for malformed type
-malformed_test/05: fail # test issue 14079, it is not error, but warning to instantiate malformed type
-malformed_test/06: fail # test issue 14079, it is not error, but warning to use malformed type in "try-on" clause
-regress_22438_test: fail # test issue 14079, it is not error, but warning to use malformed type in "try-on" clause
-
-# test issue 14228
-black_listed_test/none: fail # test issue 14228, warnings are required but not expected
-
-# test issue 14736, It is a static warning if a class C declares an instance method named n and has a setter named n=.
-setter4_test: StaticWarning
-
-# test issue 15467
+redirecting_factory_infinite_steps_test/01: fail # Issue 13916
+redirecting_factory_default_values_test/none: StaticWarning # Issue 14471
+default_factory2_test/none: fail # Issue 13956
+private_member1_negative_test: fail # Issue 14021
+private_member2_negative_test: fail # Issue 14021
+private_member3_negative_test: fail # Issue 14021
+malformed_test/none: fail # Issue 14079
+malformed_test/05: fail # Issue 14079
+malformed_test/06: fail # Issue 14079
+regress_22438_test: fail # Issue 14079
+black_listed_test/none: fail # Issue 14228
+setter4_test: StaticWarning # Issue 14736
 proxy_test/05: StaticWarning # Issue 15467
 proxy_test/06: StaticWarning # Issue 15467
 proxy3_test/03: StaticWarning # Issue 15467
 proxy3_test/04: StaticWarning # Issue 15467
-
-# test issue 18230
 factory_redirection_test/02: StaticWarning # Issue 18230
 factory_redirection_test/08: StaticWarning # Issue 18230
 factory_redirection_test/09: StaticWarning # Issue 18230
@@ -176,12 +124,12 @@ factory_redirection_test/none: StaticWarning # Issue 18230
 
 # The following tests are currently assumed to be failing because the test is wrong.
 #
-application_negative_test: CompileTimeError # Test Issue 14528
-bad_initializer1_negative_test: CompileTimeError # Test Issue 14529
-bad_named_constructor_negative_test: CompileTimeError # Test Issue 18693
-body_less_constructor_wrong_arg_negative_test: CompileTimeError # Test Issue 18695
-empty_block_case_test: StaticWarning # Test Issue 18701
-error_stacktrace_test: StaticWarning # Test Issue 18702
+application_negative_test: CompileTimeError # Issue 14528
+bad_initializer1_negative_test: CompileTimeError # Issue 14529
+bad_named_constructor_negative_test: CompileTimeError # Issue 18693
+body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
+empty_block_case_test: StaticWarning # Issue 18701
+error_stacktrace_test: StaticWarning # Issue 18702
 
 abstract_beats_arguments_test: StaticWarning
 const_counter_negative_test: CompileTimeError
@@ -195,17 +143,17 @@ export_ambiguous_main_negative_test: CompileTimeError
 extend_type_parameter2_negative_test: CompileTimeError
 extend_type_parameter_negative_test: CompileTimeError
 factory2_negative_test: CompileTimeError
-factory2_test: StaticWarning # Test Issue 18727
+factory2_test: StaticWarning # Issue 18727
 factory3_negative_test: CompileTimeError
-factory3_test: StaticWarning # Test Issue 18727
-factory4_test: StaticWarning # Test Issue 18727
+factory3_test: StaticWarning # Issue 18727
+factory4_test: StaticWarning # Issue 18727
 factory_implementation_test/00: StaticWarning
 factory_negative_test: CompileTimeError
-factory_redirection_test/01: StaticWarning # Test Issue 11578
-factory_redirection_test/03: StaticWarning # Test Issue 11578
-factory_redirection_test/05: StaticWarning # Test Issue 11578
-factory_redirection_test/06: StaticWarning # Test Issue 11578
-factory_return_type_checked_test: StaticWarning # Test Issue 18728
+factory_redirection_test/01: StaticWarning # Issue 11578
+factory_redirection_test/03: StaticWarning # Issue 11578
+factory_redirection_test/05: StaticWarning # Issue 11578
+factory_redirection_test/06: StaticWarning # Issue 11578
+factory_return_type_checked_test: StaticWarning # Issue 18728
 f_bounded_quantification4_test: StaticWarning
 f_bounded_quantification5_test: StaticWarning
 field1_negative_test: CompileTimeError
@@ -427,7 +375,7 @@ vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
 
-issue13474_test: StaticWarning, OK # Test Issue
+issue13474_test: StaticWarning, OK # Issue 13474
 
 
 # The following lines have been left in to quickly switch back to having deferred loading
@@ -444,9 +392,9 @@ issue13474_test: StaticWarning, OK # Test Issue
 
 # Issues to be fixed now that type parameters have been fixed
 # (issues 14221, 15553)
-factory1_test/00: StaticWarning # Test Issue 18726
-factory1_test/01: StaticWarning # Test Issue 18726
-factory1_test/none: StaticWarning # Test Issue 18726
+factory1_test/00: StaticWarning # Issue 18726
+factory1_test/01: StaticWarning # Issue 18726
+factory1_test/none: StaticWarning # Issue 18726
 generic_closure_test: StaticWarning
 local_function2_test: StaticWarning
 redirecting_factory_long_test: StaticWarning

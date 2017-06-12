@@ -111,7 +111,7 @@ void PreallocatedStackTraceBuilder::AddFrame(const Code& code,
     // Encode the number of dropped frames into the pc offset.
     frame_offset ^= Smi::New(dropped_frames_);
     stacktrace_.SetPcOffsetAtFrame(null_slot, frame_offset);
-    // Move frames one slot down so that we can accomodate the new frame.
+    // Move frames one slot down so that we can accommodate the new frame.
     for (intptr_t i = start; i < StackTrace::kPreallocatedStackdepth; i++) {
       intptr_t prev = (i - 1);
       frame_code = stacktrace_.CodeAtFrame(i);
@@ -128,7 +128,9 @@ void PreallocatedStackTraceBuilder::AddFrame(const Code& code,
 
 
 static void BuildStackTrace(StackTraceBuilder* builder) {
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
+  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+                            Thread::Current(),
+                            StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle();
@@ -169,7 +171,9 @@ class ExceptionHandlerFinder : public StackResource {
   // can continue in that frame. Sets 'needs_stacktrace' if there is no
   // cath-all handler or if a stack-trace is specified in the catch.
   bool Find() {
-    StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
+    StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+                              Thread::Current(),
+                              StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = frames.NextFrame();
     if (frame == NULL) return false;  // No Dart frame.
     handler_pc_set_ = false;
@@ -347,7 +351,9 @@ class ExceptionHandlerFinder : public StackResource {
 static void FindErrorHandler(uword* handler_pc,
                              uword* handler_sp,
                              uword* handler_fp) {
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
+  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+                            Thread::Current(),
+                            StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);
   while (!frame->IsEntryFrame()) {
@@ -400,7 +406,8 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
     // frames from the pending deopt table, but only after unmarking them so
     // any stack walk that happens before the stack is unwound will still work.
     {
-      DartFrameIterator frames(thread);
+      DartFrameIterator frames(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
       StackFrame* frame = frames.NextFrame();
       while ((frame != NULL) && (frame->fp() < frame_pointer)) {
         if (frame->IsMarkedForLazyDeopt()) {
@@ -669,7 +676,8 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
                                          const String& dst_name,
                                          const String& bound_error_msg) {
   ASSERT(!dst_name.IsNull());  // Pass Symbols::Empty() instead.
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const Array& args = Array::Handle(zone, Array::New(4));
 
   ExceptionType exception_type =
@@ -678,7 +686,8 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
           ? kCast
           : kType;
 
-  DartFrameIterator iterator;
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
   const Script& script = Script::Handle(zone, GetCallerScript(&iterator));
   intptr_t line = -1;
   intptr_t column = -1;
@@ -973,6 +982,8 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       break;
   }
 
+  Thread* thread = Thread::Current();
+  NoReloadScope no_reload_scope(thread->isolate(), thread);
   return DartLibraryCalls::InstanceCreate(library, *class_name,
                                           *constructor_name, arguments);
 }

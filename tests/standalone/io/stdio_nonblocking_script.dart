@@ -28,7 +28,6 @@ void main(List<String> arguments) {
   stderr.nonBlocking.writeln(new Message('rredts'));
   test(stdout.nonBlocking);
   test(stderr.nonBlocking);
-  Future.wait([stdout.nonBlocking.close(),
-               stderr.nonBlocking.close()])
-      .then((_) => exit(1));
+  Future.wait([stdout.nonBlocking.close(), stderr.nonBlocking.close()]).then(
+      (_) => exit(1));
 }

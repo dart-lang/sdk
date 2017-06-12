@@ -10,7 +10,6 @@
 #include "vm/branch_optimizer.h"
 #include "vm/cha.h"
 #include "vm/class_finalizer.h"
-#include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/constant_propagator.h"
@@ -28,6 +27,7 @@
 #include "vm/hash_table.h"
 #include "vm/il_printer.h"
 #include "vm/isolate.h"
+#include "vm/json_parser.h"
 #include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -39,13 +39,13 @@
 #include "vm/regexp_assembler.h"
 #include "vm/regexp_parser.h"
 #include "vm/resolver.h"
+#include "vm/runtime_entry.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/type_table.h"
 #include "vm/version.h"
-#include "vm/json_parser.h"
 
 namespace dart {
 
@@ -495,6 +495,7 @@ void Precompiler::DoCompileAll(
       I->object_store()->set_async_star_move_next_helper(null_function);
       I->object_store()->set_complete_on_async_return(null_function);
       I->object_store()->set_async_star_stream_controller(null_class);
+      DropLibraryEntries();
     }
     DropClasses();
     DropLibraries();
@@ -502,15 +503,7 @@ void Precompiler::DoCompileAll(
     BindStaticCalls();
     SwitchICCalls();
 
-    ShareMegamorphicBuckets();
-    DedupStackMaps();
-    DedupCodeSourceMaps();
-    DedupLists();
-
-    if (FLAG_dedup_instructions) {
-      // Reduces binary size but obfuscates profiler results.
-      DedupInstructions();
-    }
+    ProgramVisitor::Dedup();
 
     zone_ = NULL;
   }
@@ -657,6 +650,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     {"dart:core", "AbstractClassInstantiationError",
      "AbstractClassInstantiationError._create"},
     {"dart:core", "ArgumentError", "ArgumentError."},
+    {"dart:core", "ArgumentError", "ArgumentError.value"},
     {"dart:core", "CyclicInitializationError", "CyclicInitializationError."},
     {"dart:core", "FallThroughError", "FallThroughError._create"},
     {"dart:core", "FormatException", "FormatException."},
@@ -830,11 +824,13 @@ void Precompiler::CollectCallbackFields() {
         // Create arguments descriptor with fixed parameters from
         // signature of field_type.
         function = Type::Cast(field_type).signature();
+        if (function.IsGeneric()) continue;
         if (function.HasOptionalParameters()) continue;
         if (FLAG_trace_precompiler) {
           THR_Print("Found callback field %s\n", field_name.ToCString());
         }
-        args_desc = ArgumentsDescriptor::New(function.num_fixed_parameters());
+        args_desc = ArgumentsDescriptor::New(0,  // No type argument vector.
+                                             function.num_fixed_parameters());
         cids.Clear();
         if (T->cha()->ConcreteSubclasses(cls, &cids)) {
           for (intptr_t j = 0; j < cids.length(); ++j) {
@@ -1014,9 +1010,10 @@ void Precompiler::AddTypesOf(const Class& cls) {
 
 void Precompiler::AddTypesOf(const Function& function) {
   if (function.IsNull()) return;
-  // We don't expect to see a reference to a redicting factory.
-  ASSERT(!function.IsRedirectingFactory());
   if (functions_to_retain_.HasKey(&function)) return;
+  // We don't expect to see a reference to a redirecting factory. Only its
+  // target should remain.
+  ASSERT(!function.IsRedirectingFactory());
   functions_to_retain_.Insert(&Function::ZoneHandle(Z, function.raw()));
 
   AbstractType& type = AbstractType::Handle(Z);
@@ -1048,6 +1045,12 @@ void Precompiler::AddTypesOf(const Function& function) {
   const Function& parent = Function::Handle(Z, function.parent_function());
   if (!parent.IsNull()) {
     AddTypesOf(parent);
+  }
+  if (function.IsSignatureFunction() || function.IsClosureFunction()) {
+    type = function.ExistingSignatureType();
+    if (!type.IsNull()) {
+      AddType(type);
+    }
   }
   // A class may have all functions inlined except a local function.
   const Class& owner = Class::Handle(Z, function.Owner());
@@ -1116,8 +1119,10 @@ void Precompiler::AddConstObject(const Instance& instance) {
         Function::Handle(Z, Closure::Cast(instance).function());
     ASSERT(func.is_static());
     AddFunction(func);
-    AddTypeArguments(
-        TypeArguments::Handle(Z, Closure::Cast(instance).instantiator()));
+    AddTypeArguments(TypeArguments::Handle(
+        Z, Closure::Cast(instance).instantiator_type_arguments()));
+    AddTypeArguments(TypeArguments::Handle(
+        Z, Closure::Cast(instance).function_type_arguments()));
     return;
   }
 
@@ -1215,7 +1220,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
   Zone* zone = stack_zone.GetZone();
 
   ParsedFunction* parsed_function;
-  // Check if this field is comming from the Kernel binary.
+  // Check if this field is coming from the Kernel binary.
   if (field.kernel_field() != NULL) {
     parsed_function = kernel::ParseStaticFieldInitializer(zone, field);
   } else {
@@ -1246,7 +1251,8 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
 
   if ((FLAG_disassemble || FLAG_disassemble_optimized) &&
       FlowGraphPrinter::ShouldPrint(parsed_function->function())) {
-    Disassembler::DisassembleCode(parsed_function->function(),
+    Code& code = Code::Handle(parsed_function->function().CurrentCode());
+    Disassembler::DisassembleCode(parsed_function->function(), code,
                                   /* optimized = */ true);
   }
   return parsed_function->function().raw();
@@ -1716,7 +1722,6 @@ void Precompiler::DropFunctions() {
   Function& function = Function::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
-  String& name = String::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1736,15 +1741,6 @@ void Precompiler::DropFunctions() {
         if (retain) {
           retained_functions.Add(function);
         } else {
-          bool top_level = cls.IsTopLevel();
-          if (top_level &&
-              (function.kind() != RawFunction::kImplicitStaticFinalGetter)) {
-            // Implicit static final getters are not added to the library
-            // dictionary in the first place.
-            name = function.DictionaryName();
-            bool removed = lib.RemoveObject(function, name);
-            ASSERT(removed);
-          }
           dropped_function_count_++;
           if (FLAG_trace_precompiler) {
             THR_Print("Dropping function %s\n",
@@ -1787,7 +1783,6 @@ void Precompiler::DropFields() {
   Array& fields = Array::Handle(Z);
   Field& field = Field::Handle(Z);
   GrowableObjectArray& retained_fields = GrowableObjectArray::Handle(Z);
-  String& name = String::Handle(Z);
   AbstractType& type = AbstractType::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
@@ -1809,11 +1804,6 @@ void Precompiler::DropFields() {
           type = field.type();
           AddType(type);
         } else {
-          bool top_level = cls.IsTopLevel();
-          if (top_level) {
-            name = field.DictionaryName();
-            lib.RemoveObject(field, name);
-          }
           dropped_field_count_++;
           if (FLAG_trace_precompiler) {
             THR_Print("Dropping field %s\n", field.ToCString());
@@ -2000,11 +1990,52 @@ void Precompiler::TraceTypesFromRetainedClasses() {
 }
 
 
-void Precompiler::DropClasses() {
+void Precompiler::DropLibraryEntries() {
   Library& lib = Library::Handle(Z);
+  Array& dict = Array::Handle(Z);
+  Object& entry = Object::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+
+    dict = lib.dictionary();
+    intptr_t dict_size = dict.Length() - 1;
+    intptr_t used = 0;
+    for (intptr_t j = 0; j < dict_size; j++) {
+      entry = dict.At(j);
+      if (entry.IsNull()) continue;
+
+      if (entry.IsClass()) {
+        if (classes_to_retain_.HasKey(&Class::Cast(entry))) {
+          used++;
+          continue;
+        }
+      } else if (entry.IsFunction()) {
+        if (functions_to_retain_.HasKey(&Function::Cast(entry))) {
+          used++;
+          continue;
+        }
+      } else if (entry.IsField()) {
+        if (fields_to_retain_.HasKey(&Field::Cast(entry))) {
+          used++;
+          continue;
+        }
+      } else if (entry.IsLibraryPrefix()) {
+        // Always drop.
+      } else {
+        FATAL1("Unexpected library entry: %s", entry.ToCString());
+      }
+      dict.SetAt(j, Object::null_object());
+    }
+    lib.RehashDictionary(dict, used * 4 / 3 + 1);
+    lib.DropDependenciesAndCaches();
+  }
+}
+
+
+void Precompiler::DropClasses() {
   Class& cls = Class::Handle(Z);
   Array& constants = Array::Handle(Z);
-  String& name = String::Handle(Z);
 
 #if defined(DEBUG)
   // We are about to remove classes from the class table. For this to be safe,
@@ -2061,10 +2092,6 @@ void Precompiler::DropClasses() {
     class_table->Unregister(cid);
 #endif
     cls.set_id(kIllegalCid);  // We check this when serializing.
-
-    lib = cls.library();
-    name = cls.DictionaryName();
-    lib.RemoveObject(cls, name);
   }
 }
 
@@ -2075,15 +2102,15 @@ void Precompiler::DropLibraries() {
   const Library& root_lib =
       Library::Handle(Z, I->object_store()->root_library());
   Library& lib = Library::Handle(Z);
+  Class& toplevel_class = Class::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
-    lib.DropDependencies();
     intptr_t entries = 0;
     DictionaryIterator it(lib);
     while (it.HasNext()) {
-      it.GetNext();
       entries++;
+      it.GetNext();
     }
     bool retain = false;
     if (entries > 0) {
@@ -2099,8 +2126,8 @@ void Precompiler::DropLibraries() {
     } else {
       // A type for a top-level class may be referenced from an object pool as
       // part of an error message.
-      const Class& top = Class::Handle(Z, lib.toplevel_class());
-      if (classes_to_retain_.HasKey(&top)) {
+      toplevel_class = lib.toplevel_class();
+      if (classes_to_retain_.HasKey(&toplevel_class)) {
         retain = true;
       }
     }
@@ -2109,6 +2136,12 @@ void Precompiler::DropLibraries() {
       lib.set_index(retained_libraries.Length());
       retained_libraries.Add(lib);
     } else {
+      toplevel_class = lib.toplevel_class();
+#if defined(DEBUG)
+      I->class_table()->Unregister(toplevel_class.id());
+#endif
+      toplevel_class.set_id(kIllegalCid);  // We check this when serializing.
+
       dropped_library_count_++;
       lib.set_index(-1);
       if (FLAG_trace_precompiler) {
@@ -2266,240 +2299,6 @@ void Precompiler::SwitchICCalls() {
   SwitchICCallsVisitor visitor(Z);
   ProgramVisitor::VisitFunctions(&visitor);
 #endif
-}
-
-
-void Precompiler::ShareMegamorphicBuckets() {
-  const GrowableObjectArray& table = GrowableObjectArray::Handle(
-      Z, I->object_store()->megamorphic_cache_table());
-  if (table.IsNull()) return;
-  MegamorphicCache& cache = MegamorphicCache::Handle(Z);
-
-  const intptr_t capacity = 1;
-  const Array& buckets = Array::Handle(
-      Z, Array::New(MegamorphicCache::kEntryLength * capacity, Heap::kOld));
-  const Function& handler =
-      Function::Handle(Z, MegamorphicCacheTable::miss_handler(I));
-  MegamorphicCache::SetEntry(buckets, 0, MegamorphicCache::smi_illegal_cid(),
-                             handler);
-
-  for (intptr_t i = 0; i < table.Length(); i++) {
-    cache ^= table.At(i);
-    cache.set_buckets(buckets);
-    cache.set_mask(capacity - 1);
-    cache.set_filled_entry_count(0);
-  }
-}
-
-
-void Precompiler::DedupStackMaps() {
-  class DedupStackMapsVisitor : public FunctionVisitor {
-   public:
-    explicit DedupStackMapsVisitor(Zone* zone)
-        : zone_(zone),
-          canonical_stackmaps_(),
-          code_(Code::Handle(zone)),
-          stackmaps_(Array::Handle(zone)),
-          stackmap_(StackMap::Handle(zone)) {}
-
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
-      code_ = function.CurrentCode();
-      stackmaps_ = code_.stackmaps();
-      if (stackmaps_.IsNull()) return;
-      for (intptr_t i = 0; i < stackmaps_.Length(); i++) {
-        stackmap_ ^= stackmaps_.At(i);
-        stackmap_ = DedupStackMap(stackmap_);
-        stackmaps_.SetAt(i, stackmap_);
-      }
-    }
-
-    RawStackMap* DedupStackMap(const StackMap& stackmap) {
-      const StackMap* canonical_stackmap =
-          canonical_stackmaps_.LookupValue(&stackmap);
-      if (canonical_stackmap == NULL) {
-        canonical_stackmaps_.Insert(
-            &StackMap::ZoneHandle(zone_, stackmap.raw()));
-        return stackmap.raw();
-      } else {
-        return canonical_stackmap->raw();
-      }
-    }
-
-   private:
-    Zone* zone_;
-    StackMapSet canonical_stackmaps_;
-    Code& code_;
-    Array& stackmaps_;
-    StackMap& stackmap_;
-  };
-
-  DedupStackMapsVisitor visitor(Z);
-  ProgramVisitor::VisitFunctions(&visitor);
-}
-
-
-void Precompiler::DedupCodeSourceMaps() {
-  class DedupCodeSourceMapsVisitor : public FunctionVisitor {
-   public:
-    explicit DedupCodeSourceMapsVisitor(Zone* zone)
-        : zone_(zone),
-          canonical_code_source_maps_(),
-          code_(Code::Handle(zone)),
-          code_source_map_(CodeSourceMap::Handle(zone)) {}
-
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
-      code_ = function.CurrentCode();
-      code_source_map_ = code_.code_source_map();
-      ASSERT(!code_source_map_.IsNull());
-      code_source_map_ = DedupCodeSourceMap(code_source_map_);
-      code_.set_code_source_map(code_source_map_);
-    }
-
-    RawCodeSourceMap* DedupCodeSourceMap(const CodeSourceMap& code_source_map) {
-      const CodeSourceMap* canonical_code_source_map =
-          canonical_code_source_maps_.LookupValue(&code_source_map);
-      if (canonical_code_source_map == NULL) {
-        canonical_code_source_maps_.Insert(
-            &CodeSourceMap::ZoneHandle(zone_, code_source_map.raw()));
-        return code_source_map.raw();
-      } else {
-        return canonical_code_source_map->raw();
-      }
-    }
-
-   private:
-    Zone* zone_;
-    CodeSourceMapSet canonical_code_source_maps_;
-    Code& code_;
-    CodeSourceMap& code_source_map_;
-  };
-
-  DedupCodeSourceMapsVisitor visitor(Z);
-  ProgramVisitor::VisitFunctions(&visitor);
-}
-
-
-void Precompiler::DedupLists() {
-  class DedupListsVisitor : public FunctionVisitor {
-   public:
-    explicit DedupListsVisitor(Zone* zone)
-        : zone_(zone),
-          canonical_lists_(),
-          code_(Code::Handle(zone)),
-          list_(Array::Handle(zone)) {}
-
-    void Visit(const Function& function) {
-      code_ = function.CurrentCode();
-      if (!code_.IsNull()) {
-        list_ = code_.stackmaps();
-        if (!list_.IsNull()) {
-          list_ = DedupList(list_);
-          code_.set_stackmaps(list_);
-        }
-        list_ = code_.inlined_id_to_function();
-        if (!list_.IsNull()) {
-          list_ = DedupList(list_);
-          code_.set_inlined_id_to_function(list_);
-        }
-      }
-
-      list_ = function.parameter_types();
-      if (!list_.IsNull()) {
-        if (!function.IsSignatureFunction() && !function.IsClosureFunction() &&
-            (function.name() != Symbols::Call().raw()) && !list_.InVMHeap()) {
-          // Parameter types not needed for function type tests.
-          for (intptr_t i = 0; i < list_.Length(); i++) {
-            list_.SetAt(i, Object::dynamic_type());
-          }
-        }
-        list_ = DedupList(list_);
-        function.set_parameter_types(list_);
-      }
-
-      list_ = function.parameter_names();
-      if (!list_.IsNull()) {
-        if (!function.HasOptionalNamedParameters() && !list_.InVMHeap()) {
-          // Parameter names not needed for resolution.
-          for (intptr_t i = 0; i < list_.Length(); i++) {
-            list_.SetAt(i, Symbols::OptimizedOut());
-          }
-        }
-        list_ = DedupList(list_);
-        function.set_parameter_names(list_);
-      }
-    }
-
-    RawArray* DedupList(const Array& list) {
-      const Array* canonical_list = canonical_lists_.LookupValue(&list);
-      if (canonical_list == NULL) {
-        canonical_lists_.Insert(&Array::ZoneHandle(zone_, list.raw()));
-        return list.raw();
-      } else {
-        return canonical_list->raw();
-      }
-    }
-
-   private:
-    Zone* zone_;
-    ArraySet canonical_lists_;
-    Code& code_;
-    Array& list_;
-  };
-
-  DedupListsVisitor visitor(Z);
-  ProgramVisitor::VisitFunctions(&visitor);
-}
-
-
-void Precompiler::DedupInstructions() {
-  class DedupInstructionsVisitor : public FunctionVisitor {
-   public:
-    explicit DedupInstructionsVisitor(Zone* zone)
-        : zone_(zone),
-          canonical_instructions_set_(),
-          code_(Code::Handle(zone)),
-          instructions_(Instructions::Handle(zone)) {}
-
-    void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        ASSERT(function.HasImplicitClosureFunction());
-        return;
-      }
-      code_ = function.CurrentCode();
-      instructions_ = code_.instructions();
-      instructions_ = DedupOneInstructions(instructions_);
-      code_.SetActiveInstructions(instructions_);
-      code_.set_instructions(instructions_);
-      function.SetInstructions(code_);  // Update cached entry point.
-    }
-
-    RawInstructions* DedupOneInstructions(const Instructions& instructions) {
-      const Instructions* canonical_instructions =
-          canonical_instructions_set_.LookupValue(&instructions);
-      if (canonical_instructions == NULL) {
-        canonical_instructions_set_.Insert(
-            &Instructions::ZoneHandle(zone_, instructions.raw()));
-        return instructions.raw();
-      } else {
-        return canonical_instructions->raw();
-      }
-    }
-
-   private:
-    Zone* zone_;
-    InstructionsSet canonical_instructions_set_;
-    Code& code_;
-    Instructions& instructions_;
-  };
-
-  DedupInstructionsVisitor visitor(Z);
-  ProgramVisitor::VisitFunctions(&visitor);
 }
 
 
@@ -2717,9 +2516,8 @@ void Precompiler::PopulateWithICData(const Function& function,
       if (instr->IsInstanceCall()) {
         InstanceCallInstr* call = instr->AsInstanceCall();
         if (!call->HasICData()) {
-          const Array& arguments_descriptor = Array::Handle(
-              zone, ArgumentsDescriptor::New(call->ArgumentCount(),
-                                             call->argument_names()));
+          const Array& arguments_descriptor =
+              Array::Handle(zone, call->GetArgumentsDescriptor());
           const ICData& ic_data = ICData::ZoneHandle(
               zone, ICData::New(function, call->function_name(),
                                 arguments_descriptor, call->deopt_id(),
@@ -2729,9 +2527,8 @@ void Precompiler::PopulateWithICData(const Function& function,
       } else if (instr->IsStaticCall()) {
         StaticCallInstr* call = instr->AsStaticCall();
         if (!call->HasICData()) {
-          const Array& arguments_descriptor = Array::Handle(
-              zone, ArgumentsDescriptor::New(call->ArgumentCount(),
-                                             call->argument_names()));
+          const Array& arguments_descriptor =
+              Array::Handle(zone, call->GetArgumentsDescriptor());
           const Function& target = call->function();
           MethodRecognizer::Kind recognized_kind =
               MethodRecognizer::RecognizeKind(target);
@@ -2946,7 +2743,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   if (optimized()) {
     // Installs code while at safepoint.
     ASSERT(thread()->IsMutatorThread());
-    function.InstallOptimizedCode(code, /* is_osr = */ false);
+    function.InstallOptimizedCode(code);
   } else {  // not optimized.
     function.set_unoptimized_code(code);
     function.AttachCode(code);
@@ -3201,7 +2998,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         {
 #ifndef PRODUCT
           TimelineDurationScope tds2(thread(), compiler_timeline,
-                                     "CommonSubexpressionElinination");
+                                     "CommonSubexpressionElimination");
 #endif  // !PRODUCT
           if (FLAG_common_subexpression_elimination ||
               FLAG_loop_invariant_code_motion) {
@@ -3532,10 +3329,12 @@ static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
     }
 
     if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
-      Disassembler::DisassembleCode(function, optimized);
+      Code& code = Code::Handle(function.CurrentCode());
+      Disassembler::DisassembleCode(function, code, optimized);
     } else if (FLAG_disassemble_optimized && optimized &&
                FlowGraphPrinter::ShouldPrint(function)) {
-      Disassembler::DisassembleCode(function, true);
+      Code& code = Code::Handle(function.CurrentCode());
+      Disassembler::DisassembleCode(function, code, true);
     }
     return Error::null();
   } else {

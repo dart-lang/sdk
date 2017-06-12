@@ -10,7 +10,7 @@ class A extends B {
   get length => 1;
 }
 
-class C extends  D {
+class C extends D {
   get id => "C";
   get length => 3;
 }

@@ -19,12 +19,11 @@ int confuse(x) {
 }
 
 main() {
-  var o = [ "foo", 499 ][confuse(1)];
+  var o = ["foo", 499][confuse(1)];
 
   // The `o is String` check in the rhs of the logical or must not be
   // propagated to the `if` body.
-  if ((o is num) ||
-      (o is String && true)) {
+  if ((o is num) || (o is String && true)) {
     nonInlinedUse(o);
   }
   Expect.equals(1, globalCounter);

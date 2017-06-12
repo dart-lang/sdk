@@ -15,6 +15,7 @@ foo(trace) {
   trace.add("foo");
   return "foo";
 }
+
 bar(trace) {
   trace.add("bar");
   return "bar";

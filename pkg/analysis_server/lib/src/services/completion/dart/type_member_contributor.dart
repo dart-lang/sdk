@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.type_member;
-
 import 'dart:async';
 import 'dart:collection';
 
@@ -25,17 +23,8 @@ class TypeMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // Determine if the target looks like a prefixed identifier,
-    // a method invocation, or a property access
-    Expression parsedExpression = request.dotTarget;
-    if (parsedExpression == null) {
-      return EMPTY_LIST;
-    }
-
-    // Resolve the expression and the containing library
-    await request.resolveContainingExpression(parsedExpression);
     LibraryElement containingLibrary = request.libraryElement;
-    // Gracefully degrade if the library element could not be resolved
+    // Gracefully degrade if the library element is not resolved
     // e.g. detached part file or source change
     if (containingLibrary == null) {
       return EMPTY_LIST;

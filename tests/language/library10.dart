@@ -13,6 +13,7 @@ class Library10 {
   func() {
     return 2;
   }
+
   var fld;
   static static_func() {
     var result = 0;
@@ -29,6 +30,7 @@ class Library10 {
     Expect.equals(200, lib11.top_level_func11());
     return 3;
   }
+
   static var static_fld = 4;
 }
 

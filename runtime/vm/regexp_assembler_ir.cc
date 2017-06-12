@@ -537,9 +537,10 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
     ZoneGrowableArray<PushArgumentInstr*>* arguments) const {
+  const intptr_t kTypeArgsLen = 0;
   return new (Z)
-      StaticCallInstr(TokenPosition::kNoSource, function, Object::null_array(),
-                      arguments, ic_data_array_);
+      StaticCallInstr(TokenPosition::kNoSource, function, kTypeArgsLen,
+                      Object::null_array(), arguments, ic_data_array_);
 }
 
 
@@ -585,9 +586,11 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
 InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
     ZoneGrowableArray<PushArgumentInstr*>* arguments) const {
-  return new (Z) InstanceCallInstr(
-      TokenPosition::kNoSource, desc.name, desc.token_kind, arguments,
-      Object::null_array(), desc.checked_argument_count, ic_data_array_);
+  const intptr_t kTypeArgsLen = 0;
+  return new (Z)
+      InstanceCallInstr(TokenPosition::kNoSource, desc.name, desc.token_kind,
+                        arguments, kTypeArgsLen, Object::null_array(),
+                        desc.checked_argument_count, ic_data_array_);
 }
 
 

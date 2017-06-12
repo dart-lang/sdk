@@ -34,7 +34,10 @@ void main() {
   // shouldBeTrue(identical(re, new RegExp(r"abc")));
   // shouldBeTrue(identical(re, new RegExp(r"abc", caseSensitive: true, multiLine: false)));
 
-  shouldBeFalse(identical(re, new RegExp(r"abc", caseSensitive: false, multiLine: true)));
-  shouldBeFalse(identical(re, new RegExp(r"abc", caseSensitive: true, multiLine: true)));
-  shouldBeFalse(identical(re, new RegExp(r"abc", caseSensitive: false, multiLine: false)));
+  shouldBeFalse(
+      identical(re, new RegExp(r"abc", caseSensitive: false, multiLine: true)));
+  shouldBeFalse(
+      identical(re, new RegExp(r"abc", caseSensitive: true, multiLine: true)));
+  shouldBeFalse(identical(
+      re, new RegExp(r"abc", caseSensitive: false, multiLine: false)));
 }

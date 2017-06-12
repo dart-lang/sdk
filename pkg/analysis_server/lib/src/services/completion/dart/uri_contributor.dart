@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.importuri;
-
 import 'dart:async';
 import 'dart:core';
 
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -15,9 +15,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' show posix;
 import 'package:path/src/context.dart';
-
-import '../../../protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
 
 /**
  * A contributor for calculating uri suggestions
@@ -161,32 +158,41 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
 
     Resource dir = resProvider.getResource(dirPath);
     if (dir is Folder) {
-      for (Resource child in dir.getChildren()) {
-        String completion;
-        if (child is Folder) {
-          completion = '$uriPrefix${child.shortName}/';
-        } else {
-          completion = '$uriPrefix${child.shortName}';
+      try {
+        for (Resource child in dir.getChildren()) {
+          String completion;
+          if (child is Folder) {
+            completion = '$uriPrefix${child.shortName}/';
+          } else {
+            completion = '$uriPrefix${child.shortName}';
+          }
+          if (completion != source.shortName) {
+            _addSuggestion(completion);
+          }
         }
-        if (completion != source.shortName) {
-          _addSuggestion(completion);
-        }
+      } on FileSystemException {
+        // Guard against I/O exceptions.
       }
     }
   }
 
   void _addPackageFolderSuggestions(
       String partial, String prefix, Folder folder) {
-    for (Resource child in folder.getChildren()) {
-      if (child is Folder) {
-        String childPrefix = '$prefix${child.shortName}/';
-        _addSuggestion(childPrefix);
-        if (partial.startsWith(childPrefix)) {
-          _addPackageFolderSuggestions(partial, childPrefix, child);
+    try {
+      for (Resource child in folder.getChildren()) {
+        if (child is Folder) {
+          String childPrefix = '$prefix${child.shortName}/';
+          _addSuggestion(childPrefix);
+          if (partial.startsWith(childPrefix)) {
+            _addPackageFolderSuggestions(partial, childPrefix, child);
+          }
+        } else {
+          _addSuggestion('$prefix${child.shortName}');
         }
-      } else {
-        _addSuggestion('$prefix${child.shortName}');
       }
+    } on FileSystemException {
+      // Guard against I/O exceptions.
+      return;
     }
   }
 

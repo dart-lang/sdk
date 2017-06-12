@@ -27,7 +27,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   M.ScriptRef _script;
   M.Script _loadedScript;
   M.ScriptRepository _scripts;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   M.EventRepository _events;
   StreamSubscription _subscription;
   int _startPos;
@@ -43,7 +43,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       M.IsolateRef isolate,
       M.ScriptRef script,
       M.ScriptRepository scripts,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       M.EventRepository events,
       {int startPos,
       int endPos,
@@ -54,7 +54,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(script != null);
     assert(scripts != null);
-    assert(instances != null);
+    assert(objects != null);
     assert(events != null);
     assert(inDebuggerContext != null);
     assert(variables != null);
@@ -63,7 +63,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     e._isolate = isolate;
     e._script = script;
     e._scripts = scripts;
-    e._instances = instances;
+    e._objects = objects;
     e._events = events;
     e._startPos = startPos;
     e._endPos = endPos;
@@ -326,7 +326,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   void addCurrentExecutionAnnotation() {
     if (_currentLine != null) {
-      var a = new CurrentExecutionAnnotation(_isolate, _instances, _r.queue);
+      var a = new CurrentExecutionAnnotation(_isolate, _objects, _r.queue);
       a.line = _currentLine;
       a.columnStart = _currentCol;
       S.Script script = _loadedScript as S.Script;
@@ -347,7 +347,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
         for (var bpt in bpts) {
           if (bpt.location != null) {
             _annotations.add(
-                new BreakpointAnnotation(_isolate, _instances, _r.queue, bpt));
+                new BreakpointAnnotation(_isolate, _objects, _r.queue, bpt));
           }
         }
       }
@@ -392,7 +392,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       if (match != null) {
         var anno = new LibraryAnnotation(
             _isolate,
-            _instances,
+            _objects,
             _r.queue,
             _loadedScript.library,
             Uris.inspect(isolate, object: _loadedScript.library));
@@ -407,7 +407,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       if (match != null) {
         var anno = new LibraryAnnotation(
             _isolate,
-            _instances,
+            _objects,
             _r.queue,
             _loadedScript.library,
             Uris.inspect(isolate, object: _loadedScript.library));
@@ -458,7 +458,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
         if (match != null) {
           M.Library target = resolveDependency(match[1]);
           if (target != null) {
-            var anno = new LibraryAnnotation(_isolate, _instances, _r.queue,
+            var anno = new LibraryAnnotation(_isolate, _objects, _r.queue,
                 target, Uris.inspect(isolate, object: target));
             anno.line = line.line;
             anno.columnStart = match.start + 8;
@@ -500,7 +500,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
         if (match != null) {
           S.Script part = resolvePart(match[1]);
           if (part != null) {
-            var anno = new PartAnnotation(_isolate, _instances, _r.queue, part,
+            var anno = new PartAnnotation(_isolate, _objects, _r.queue, part,
                 Uris.inspect(isolate, object: part));
             anno.line = line.line;
             anno.columnStart = match.start + 6;
@@ -516,7 +516,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     S.Script script = _loadedScript as S.Script;
     for (var cls in script.library.classes) {
       if ((cls.location != null) && (cls.location.script == script)) {
-        var a = new ClassDeclarationAnnotation(_isolate, _instances, _r.queue,
+        var a = new ClassDeclarationAnnotation(_isolate, _objects, _r.queue,
             cls, Uris.inspect(isolate, object: cls));
         _annotations.add(a);
       }
@@ -527,7 +527,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     S.Script script = _loadedScript as S.Script;
     for (var field in script.library.variables) {
       if ((field.location != null) && (field.location.script == script)) {
-        var a = new FieldDeclarationAnnotation(_isolate, _instances, _r.queue,
+        var a = new FieldDeclarationAnnotation(_isolate, _objects, _r.queue,
             field, Uris.inspect(isolate, object: field));
         _annotations.add(a);
       }
@@ -535,7 +535,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     for (var cls in script.library.classes) {
       for (var field in cls.fields) {
         if ((field.location != null) && (field.location.script == script)) {
-          var a = new FieldDeclarationAnnotation(_isolate, _instances, _r.queue,
+          var a = new FieldDeclarationAnnotation(_isolate, _objects, _r.queue,
               field, Uris.inspect(isolate, object: field));
           _annotations.add(a);
         }
@@ -552,8 +552,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
           (func.kind != M.FunctionKind.implicitSetter)) {
         // We annotate a field declaration with the field instead of the
         // implicit getter or setter.
-        var a = new FunctionDeclarationAnnotation(_isolate, _instances,
-            _r.queue, func, Uris.inspect(isolate, object: func));
+        var a = new FunctionDeclarationAnnotation(_isolate, _objects, _r.queue,
+            func, Uris.inspect(isolate, object: func));
         _annotations.add(a);
       }
     }
@@ -566,7 +566,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
             (func.kind != M.FunctionKind.implicitSetter)) {
           // We annotate a field declaration with the field instead of the
           // implicit getter or setter.
-          var a = new FunctionDeclarationAnnotation(_isolate, _instances,
+          var a = new FunctionDeclarationAnnotation(_isolate, _objects,
               _r.queue, func, Uris.inspect(isolate, object: func));
           _annotations.add(a);
         }
@@ -576,8 +576,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   void addCallSiteAnnotations() {
     for (var callSite in _callSites) {
-      _annotations.add(
-          new CallSiteAnnotation(_isolate, _instances, _r.queue, callSite));
+      _annotations
+          .add(new CallSiteAnnotation(_isolate, _objects, _r.queue, callSite));
     }
   }
 
@@ -594,7 +594,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
         // Annotate locations.
         for (var location in locations) {
           _annotations.add(new LocalVariableAnnotation(
-              _isolate, _instances, _r.queue, location, variable['value']));
+              _isolate, _objects, _r.queue, location, variable['value']));
         }
       }
     }
@@ -991,14 +991,14 @@ void addLink(Element content, String target) {
 
 abstract class Annotation implements Comparable<Annotation> {
   M.IsolateRef _isolate;
-  M.InstanceRepository _instances;
+  M.ObjectRepository _objects;
   RenderingQueue queue;
   int line;
   int columnStart;
   int columnStop;
   int get priority;
 
-  Annotation(this._isolate, this._instances, this.queue);
+  Annotation(this._isolate, this._objects, this.queue);
 
   void applyStyleTo(element);
 
@@ -1038,16 +1038,16 @@ abstract class Annotation implements Comparable<Annotation> {
   }
 
   Element serviceRef(object) {
-    return anyRef(_isolate, object, _instances, queue: queue);
+    return anyRef(_isolate, object, _objects, queue: queue);
   }
 }
 
 class CurrentExecutionAnnotation extends Annotation {
   int priority = 0; // highest priority.
 
-  CurrentExecutionAnnotation(M.IsolateRef isolate,
-      M.InstanceRepository instances, RenderingQueue queue)
-      : super(isolate, instances, queue);
+  CurrentExecutionAnnotation(
+      M.IsolateRef isolate, M.ObjectRepository objects, RenderingQueue queue)
+      : super(isolate, objects, queue);
 
   void applyStyleTo(element) {
     if (element == null) {
@@ -1062,9 +1062,9 @@ class BreakpointAnnotation extends Annotation {
   M.Breakpoint bpt;
   int priority = 1;
 
-  BreakpointAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
+  BreakpointAnnotation(M.IsolateRef isolate, M.ObjectRepository objects,
       RenderingQueue queue, this.bpt)
-      : super(isolate, instances, queue) {
+      : super(isolate, objects, queue) {
     var script = bpt.location.script;
     var location = bpt.location;
     if (location.tokenPos != null) {
@@ -1107,9 +1107,9 @@ class LibraryAnnotation extends Annotation {
   String url;
   int priority = 2;
 
-  LibraryAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
+  LibraryAnnotation(M.IsolateRef isolate, M.ObjectRepository objects,
       RenderingQueue queue, this.target, this.url)
-      : super(isolate, instances, queue);
+      : super(isolate, objects, queue);
 
   void applyStyleTo(element) {
     if (element == null) {
@@ -1125,9 +1125,9 @@ class PartAnnotation extends Annotation {
   String url;
   int priority = 2;
 
-  PartAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
+  PartAnnotation(M.IsolateRef isolate, M.ObjectRepository objects,
       RenderingQueue queue, this.part, this.url)
-      : super(isolate, instances, queue);
+      : super(isolate, objects, queue);
 
   void applyStyleTo(element) {
     if (element == null) {
@@ -1142,9 +1142,9 @@ class LocalVariableAnnotation extends Annotation {
   final value;
   int priority = 2;
 
-  LocalVariableAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
+  LocalVariableAnnotation(M.IsolateRef isolate, M.ObjectRepository objects,
       RenderingQueue queue, S.LocalVarLocation location, this.value)
-      : super(isolate, instances, queue) {
+      : super(isolate, objects, queue) {
     line = location.line;
     columnStart = location.column;
     columnStop = location.endColumn;
@@ -1163,9 +1163,9 @@ class CallSiteAnnotation extends Annotation {
   S.CallSite callSite;
   int priority = 2;
 
-  CallSiteAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
+  CallSiteAnnotation(M.IsolateRef isolate, M.ObjectRepository objects,
       RenderingQueue queue, this.callSite)
-      : super(isolate, instances, queue) {
+      : super(isolate, objects, queue) {
     line = callSite.line;
     columnStart = callSite.column - 1; // Call site is 1-origin.
     var tokenLength = callSite.script.guessTokenLength(line, columnStart);
@@ -1216,9 +1216,9 @@ abstract class DeclarationAnnotation extends Annotation {
   String url;
   int priority = 2;
 
-  DeclarationAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
+  DeclarationAnnotation(M.IsolateRef isolate, M.ObjectRepository objects,
       RenderingQueue queue, decl, this.url)
-      : super(isolate, instances, queue) {
+      : super(isolate, objects, queue) {
     assert(decl.loaded);
     S.SourceLocation location = decl.location;
     if (location == null) {
@@ -1255,14 +1255,10 @@ abstract class DeclarationAnnotation extends Annotation {
 class ClassDeclarationAnnotation extends DeclarationAnnotation {
   S.Class klass;
 
-  ClassDeclarationAnnotation(
-      M.IsolateRef isolate,
-      M.InstanceRepository instances,
-      RenderingQueue queue,
-      S.Class cls,
-      String url)
+  ClassDeclarationAnnotation(M.IsolateRef isolate, M.ObjectRepository objects,
+      RenderingQueue queue, S.Class cls, String url)
       : klass = cls,
-        super(isolate, instances, queue, cls, url);
+        super(isolate, objects, queue, cls, url);
 
   void applyStyleTo(element) {
     if (element == null) {
@@ -1276,14 +1272,10 @@ class ClassDeclarationAnnotation extends DeclarationAnnotation {
 class FieldDeclarationAnnotation extends DeclarationAnnotation {
   S.Field field;
 
-  FieldDeclarationAnnotation(
-      M.IsolateRef isolate,
-      M.InstanceRepository instances,
-      RenderingQueue queue,
-      S.Field fld,
-      String url)
+  FieldDeclarationAnnotation(M.IsolateRef isolate, M.ObjectRepository objects,
+      RenderingQueue queue, S.Field fld, String url)
       : field = fld,
-        super(isolate, instances, queue, fld, url);
+        super(isolate, objects, queue, fld, url);
 
   void applyStyleTo(element) {
     if (element == null) {
@@ -1300,12 +1292,12 @@ class FunctionDeclarationAnnotation extends DeclarationAnnotation {
 
   FunctionDeclarationAnnotation(
       M.IsolateRef isolate,
-      M.InstanceRepository instances,
+      M.ObjectRepository objects,
       RenderingQueue queue,
       S.ServiceFunction func,
       String url)
       : function = func,
-        super(isolate, instances, queue, func, url);
+        super(isolate, objects, queue, func, url);
 
   void applyStyleTo(element) {
     if (element == null) {

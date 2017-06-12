@@ -21,8 +21,8 @@ testShortResolution(package_uri) async {
   var fluString = await fluFile.readAsString();
   if (fluString != "Bar") {
     throw "Contents of $FLU_TEXT not matching.\n"
-          "Got: $fluString\n"
-          "Expected: Bar";
+        "Got: $fluString\n"
+        "Expected: Bar";
   }
 }
 

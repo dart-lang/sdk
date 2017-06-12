@@ -12,8 +12,8 @@ import 'package:compiler/src/js/js.dart' show js;
 Future testExpression(String expression, [String expect = ""]) {
   jsAst.Node node = js(expression);
   return MockCompiler.create((MockCompiler compiler) {
-    String jsText =
-        jsAst.prettyPrint(node, compiler, allowVariableMinification: false);
+    String jsText = jsAst.prettyPrint(node, compiler.options,
+        allowVariableMinification: false);
     if (expect == "") {
       Expect.stringEquals(expression, jsText);
     } else {
@@ -58,7 +58,7 @@ void main() {
         testExpression('foo(bar, baz)'),
         // Chained calls without parentheses.
         testExpression('foo(bar)(baz)'),
-        // Chaned calls with and without new.
+        // Chained calls with and without new.
         testExpression('new foo(bar)(baz)'),
         testExpression('new foo.bar(bar)(baz)'),
         testExpression('foo.bar(bar)(baz)'),

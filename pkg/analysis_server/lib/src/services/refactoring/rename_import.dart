@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.refactoring.rename_import;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -18,6 +15,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
  * A [Refactoring] for renaming [ImportElement]s.
@@ -56,17 +54,16 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       if (newName.isEmpty) {
         int uriEnd = element.uriEnd;
         int prefixEnd = element.prefixOffset + prefix.nameLength;
-        SourceRange range = rangeStartEnd(uriEnd, prefixEnd);
-        edit = newSourceEdit_range(range, "");
+        edit = newSourceEdit_range(
+            range.startOffsetEndOffset(uriEnd, prefixEnd), "");
       } else {
         if (prefix == null) {
-          SourceRange range = rangeStartLength(element.uriEnd, 0);
-          edit = newSourceEdit_range(range, " as $newName");
+          edit = newSourceEdit_range(
+              new SourceRange(element.uriEnd, 0), " as $newName");
         } else {
           int offset = element.prefixOffset;
           int length = prefix.nameLength;
-          SourceRange range = rangeStartLength(offset, length);
-          edit = newSourceEdit_range(range, newName);
+          edit = newSourceEdit_range(new SourceRange(offset, length), newName);
         }
       }
       if (edit != null) {

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
-import 'package:front_end/src/fasta/scanner/keyword.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/scanner/token.dart';
 import 'package:front_end/src/scanner/reader.dart' as analyzer;
@@ -20,16 +19,6 @@ main() {
 /// Assert that fasta PrecedenceInfo implements analyzer TokenType.
 @reflectiveTest
 class TokenTest {
-  void test_applyDelta() {
-    var scanner = new StringScanner('/* 1 */ foo', includeComments: true);
-    var token = scanner.tokenize();
-    expect(token.offset, 8);
-    expect(token.precedingComments.offset, 0);
-    token.applyDelta(12);
-    expect(token.offset, 20);
-    expect(token.precedingComments.offset, 12);
-  }
-
   void test_comments() {
     var source = '''
 /// Single line dartdoc comment
@@ -46,7 +35,7 @@ class Foo {
 }
 ''';
     var scanner = new StringScanner(source, includeComments: true);
-    fasta.Token token = scanner.tokenize();
+    Token token = scanner.tokenize();
 
     Token nextComment() {
       while (!token.isEof) {
@@ -57,7 +46,7 @@ class Foo {
       return null;
     }
 
-    fasta.Token comment = nextComment();
+    Token comment = nextComment();
     expect(comment.lexeme, contains('Single line dartdoc comment'));
     expect(comment.type, TokenType.SINGLE_LINE_COMMENT);
     expect(comment, new isInstanceOf<DocumentationCommentToken>());
@@ -113,7 +102,7 @@ class Foo {
 
     while (!token1.isEof) {
       if (token1 is fasta.StringToken) stringTokenFound = true;
-      if (token1 is fasta.KeywordToken) keywordTokenFound = true;
+      if (token1 is KeywordToken) keywordTokenFound = true;
       if (token1 is fasta.SymbolToken) symbolTokenFound = true;
       if (token1 is fasta.BeginGroupToken) beginGroupTokenFound = true;
 
@@ -150,14 +139,10 @@ class Foo {
   void test_matchesAny() {
     var scanner = new StringScanner('true', includeComments: true);
     var token = scanner.tokenize();
-    expect(token.matchesAny([TokenType.KEYWORD]), true);
-    expect(token.matchesAny([TokenType.AMPERSAND, TokenType.KEYWORD]), true);
+    expect(token.matchesAny([Keyword.TRUE]), true);
+    expect(token.matchesAny([TokenType.AMPERSAND, Keyword.TRUE]), true);
     expect(token.matchesAny([TokenType.AMPERSAND]), false);
   }
-
-  /// Return all fasta and all analyzer keywords
-  List<Keyword> get _allKeywords =>
-      new List.from(Keyword.values)..addAll(fasta.Keyword.values);
 
   void test_built_in_keywords() {
     var builtInKeywords = new Set<Keyword>.from([
@@ -179,33 +164,31 @@ class Foo {
       Keyword.STATIC,
       Keyword.TYPEDEF,
     ]);
-    for (Keyword keyword in _allKeywords) {
+    for (Keyword keyword in Keyword.values) {
       var isBuiltIn = builtInKeywords.contains(keyword);
-      expect(keyword.isPseudoKeyword, isBuiltIn, reason: keyword.name);
-      expect((keyword as fasta.Keyword).isBuiltIn, isBuiltIn,
-          reason: keyword.name);
+      expect(keyword.isBuiltIn, isBuiltIn, reason: keyword.name);
+      expect(keyword.isBuiltIn, isBuiltIn, reason: keyword.name);
     }
   }
 
   void test_pseudo_keywords() {
     var pseudoKeywords = new Set<Keyword>.from([
-      fasta.Keyword.ASYNC,
-      fasta.Keyword.AWAIT,
-      fasta.Keyword.FUNCTION,
-      fasta.Keyword.HIDE,
-      fasta.Keyword.NATIVE,
-      fasta.Keyword.OF,
-      fasta.Keyword.ON,
-      fasta.Keyword.PATCH,
-      fasta.Keyword.SHOW,
-      fasta.Keyword.SOURCE,
-      fasta.Keyword.SYNC,
-      fasta.Keyword.YIELD,
+      Keyword.ASYNC,
+      Keyword.AWAIT,
+      Keyword.FUNCTION,
+      Keyword.HIDE,
+      Keyword.NATIVE,
+      Keyword.OF,
+      Keyword.ON,
+      Keyword.PATCH,
+      Keyword.SHOW,
+      Keyword.SOURCE,
+      Keyword.SYNC,
+      Keyword.YIELD,
     ]);
-    for (Keyword keyword in _allKeywords) {
+    for (Keyword keyword in Keyword.values) {
       var isPseudo = pseudoKeywords.contains(keyword);
-      expect((keyword as fasta.Keyword).isPseudo, isPseudo,
-          reason: keyword.name);
+      expect(keyword.isPseudo, isPseudo, reason: keyword.name);
     }
   }
 

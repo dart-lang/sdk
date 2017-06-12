@@ -24,7 +24,7 @@ expectNoSideEffect(test) {
   Expect.isTrue(c == 0);
 }
 
-expectThrowsNotLoaded(test){
+expectThrowsNotLoaded(test) {
   Expect.throws(test, (e) => e is Error);
 }
 

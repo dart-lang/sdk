@@ -76,13 +76,6 @@ class ResolutionImpact extends WorldImpact {
   Iterable<dynamic> get nativeData => const <dynamic>[];
 }
 
-/// Interface for the accessing the front-end analysis.
-// TODO(johnniwinther): Find a better name for this.
-abstract class Frontend {
-  /// Returns the [ResolutionImpact] for [element].
-  ResolutionImpact getResolutionImpact(Element element);
-}
-
 /// Interface defining target-specific behavior for resolution.
 abstract class Target {
   /// Returns `true` if [library] is a target specific library whose members
@@ -126,7 +119,7 @@ abstract class Target {
 }
 
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
-abstract class Resolution implements Frontend {
+abstract class Resolution {
   ParsingContext get parsingContext;
   DiagnosticReporter get reporter;
   CommonElements get commonElements;

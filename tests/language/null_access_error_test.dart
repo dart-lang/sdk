@@ -5,7 +5,6 @@
 import "package:expect/expect.dart";
 
 class NullAccessTest {
-
   static void testNullVariable() {
     int variable;
     bool exceptionCaught = false;

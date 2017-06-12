@@ -76,7 +76,7 @@
  * [JsObject.jsify] constructor, which converts Dart [Map]s and [Iterable]s
  * into JavaScript Objects and Arrays.
  *
- * The following expression creats a new JavaScript object with the properties
+ * The following expression creates a new JavaScript object with the properties
  * `a` and `b` defined:
  *
  *     var jsMap = new JsObject.jsify({'a': 1, 'b': 2});
@@ -204,7 +204,7 @@ class JsObject {
    *
    * The type of [property] must be either [String] or [num].
    */
-  operator []=(Object property, value) {
+  void operator []=(Object property, value) {
     if (property is! String && property is! num) {
       throw new ArgumentError("property is not a String or num");
     }
@@ -367,7 +367,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     return super[index] as E;
   }
 
-  void operator []=(Object index, E value) {
+  void operator []=(Object index, value) {
     // TODO(justinfagnani): fix the semantics for non-ints
     // dartbug.com/14605
     if (index is num && index == index.toInt()) {
@@ -440,7 +440,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 }
 
 // Cross frame objects should not be considered browser types.
-// We include the the instanceof Object test to filter out cross frame objects
+// We include the instanceof Object test to filter out cross frame objects
 // on FireFox. Surprisingly on FireFox the instanceof Window test succeeds for
 // cross frame windows while the instanceof Object test fails.
 bool _isBrowserType(o) => JS(
@@ -568,8 +568,8 @@ Expando<Function> _interopCaptureThisExpando = new Expando<Function>();
 /// binding and calls [f] with the value of this passed as the first argument.
 /// When called from Dart, [null] will be passed as the first argument.
 ///
-/// See the documention for [allowInterop]. This method should only be used with
-/// package:js Dart-JavaScript interop.
+/// See the documentation for [allowInterop]. This method should only be used
+/// with package:js Dart-JavaScript interop.
 Function allowInteropCaptureThis(Function f) {
   var ret = _interopCaptureThisExpando[f];
   if (ret == null) {

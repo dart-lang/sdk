@@ -196,8 +196,8 @@ File* File::Open(const char* name, FileOpenMode mode) {
   // Report errors for non-regular files.
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
-    if (!S_ISREG(st.st_mode)) {
-      errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
+    if (S_ISDIR(st.st_mode)) {
+      errno = EISDIR;
       return NULL;
     }
   }

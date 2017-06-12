@@ -11,12 +11,11 @@ class OneArg<A> {
   }
 }
 
-class TwoArgs<A,B> {
-  TwoArgs<A,B> get foo => new TwoArgs<A,B>();
-  TwoArgs<A,B> get bar {
-    return new TwoArgs<A,B>();
+class TwoArgs<A, B> {
+  TwoArgs<A, B> get foo => new TwoArgs<A, B>();
+  TwoArgs<A, B> get bar {
+    return new TwoArgs<A, B>();
   }
-
 }
 
 void main() {

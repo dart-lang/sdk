@@ -7,9 +7,9 @@
 library dart2js.constants.constant_constructors;
 
 import '../common.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../resolution/operators.dart';
+import '../elements/operators.dart';
+import '../elements/resolution_types.dart';
 import '../resolution/semantic_visitor.dart';
 import '../resolution/send_resolver.dart' show DeclarationResolverMixin;
 import '../resolution/send_structure.dart';
@@ -158,13 +158,13 @@ class ConstantConstructorComputer extends SemanticVisitor
       ConstantExpression defaultValue,
       int index,
       _) {
-    assert(invariant(node, defaultValue != null));
+    assert(defaultValue != null, failedAt(node));
     defaultValues[index] = defaultValue;
   }
 
   visitNamedParameterDeclaration(VariableDefinitions node, Node definition,
       ParameterElement parameter, ConstantExpression defaultValue, _) {
-    assert(invariant(node, defaultValue != null));
+    assert(defaultValue != null, failedAt(node));
     String name = parameter.name;
     defaultValues[name] = defaultValue;
   }
@@ -181,7 +181,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       ConstantExpression defaultValue,
       int index,
       _) {
-    assert(invariant(node, defaultValue != null));
+    assert(defaultValue != null, failedAt(node));
     defaultValues[index] = defaultValue;
     fieldMap[parameter.fieldElement] = new PositionalArgumentReference(index);
   }
@@ -192,7 +192,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       InitializingFormalElement parameter,
       ConstantExpression defaultValue,
       _) {
-    assert(invariant(node, defaultValue != null));
+    assert(defaultValue != null, failedAt(node));
     String name = parameter.name;
     defaultValues[name] = defaultValue;
     fieldMap[parameter.fieldElement] = new NamedArgumentReference(name);

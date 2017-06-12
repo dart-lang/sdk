@@ -11,7 +11,7 @@ main() {
     var performance = js.context['performance'];
     var entries = performance.callMethod('getEntries', const []);
     entries.forEach((x) {
-        expect(x is js.JsObject, isTrue);
+      expect(x is js.JsObject, isTrue);
     });
   });
 
@@ -19,7 +19,7 @@ main() {
     var dartPerformance = js.JsNative.toTypedObject(js.context['performance']);
     var dartEntries = dartPerformance.getEntries();
     dartEntries.forEach((x) {
-        expect(x is PerformanceEntry, isTrue);
+      expect(x is PerformanceEntry, isTrue);
     });
   });
 }

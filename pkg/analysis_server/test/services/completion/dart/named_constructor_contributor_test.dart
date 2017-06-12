@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.contributor.dart.named_constructor;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,7 +13,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NamedConstructorContributorTest);
-    defineReflectiveTests(NamedConstructorContributorTest_Driver);
   });
 }
 
@@ -49,7 +45,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
   test_ConstructorName_importedClass() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    Source libSource = addSource(
+    addSource(
         '/testB.dart',
         '''
         lib B;
@@ -60,10 +56,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
         import "/testB.dart";
         var m;
         main() {new X.^}''');
-    // Assume that imported libraries are resolved
-    if (!enableNewAnalysisDriver) {
-      await resolveLibraryUnit(libSource);
-    }
+
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -105,7 +98,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
   test_ConstructorName_importedFactory() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    Source libSource = addSource(
+    addSource(
         '/testB.dart',
         '''
         lib B;
@@ -116,10 +109,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
         import "/testB.dart";
         var m;
         main() {new X.^}''');
-    // Assume that imported libraries are resolved
-    if (!enableNewAnalysisDriver) {
-      await resolveLibraryUnit(libSource);
-    }
+
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -184,11 +174,4 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('z');
     assertNotSuggested('m');
   }
-}
-
-@reflectiveTest
-class NamedConstructorContributorTest_Driver
-    extends NamedConstructorContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

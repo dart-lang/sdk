@@ -169,7 +169,7 @@ external String get JS$JS$hasJsInName;
 @JS()
 external int JS$JS$hasJsInNameMethod(int x);
 
-// This is the prefered way to handle static or top level members that start
+// This is the preferred way to handle static or top level members that start
 // with JS$. We verify that JS$JS$ works purely to prevent bugs.
 @JS(r'JS$hasJsInName')
 external String get JS$hasJsInName;
@@ -281,12 +281,11 @@ external num get propertyOnWindow;
 
 @JS()
 @anonymous
-class Simple
-{
-    external List<int> get numbers;
-    external set numbers(List<int> numbers);
+class Simple {
+  external List<int> get numbers;
+  external set numbers(List<int> numbers);
 
-    external factory Simple({ List<int> numbers });
+  external factory Simple({List<int> numbers});
 }
 
 main() {
@@ -310,8 +309,8 @@ main() {
 
     test('with array', () {
       // Repro for https://github.com/dart-lang/sdk/issues/26768
-       var simple = new Simple(numbers: [ 1, 2, 3 ]);
-       expect(stringify(simple), equals('{"numbers":[1,2,3]}'));
+      var simple = new Simple(numbers: [1, 2, 3]);
+      expect(stringify(simple), equals('{"numbers":[1,2,3]}'));
     });
 
     test(r'JS$ escaped name', () {
@@ -402,13 +401,14 @@ main() {
       // Calling with extra bogus arguments has no impact for JavaScript
       // methods.
       expect(untypedFunction(6, 6, "ignored", "ignored"), equals(36));
-      expect(untypedFunction(6, 6, "ignored", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), equals(36));
+      expect(
+          untypedFunction(6, 6, "ignored", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+          equals(36));
       // Calling a JavaScript method with too few arguments is also fine and
       // defaults to JavaScript behavior of setting all unspecified arguments
       // to undefined resulting in multiplying undefined by 2 == NAN.
       expect(untypedFunction(), isNaN);
-
     });
 
     test(r'JS$ escaped name', () {

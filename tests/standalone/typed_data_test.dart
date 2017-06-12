@@ -95,8 +95,8 @@ void testUnsignedTypedDataRange(bool check_throws) {
   Expect.throws(() => typed_data[2.0]);
 }
 
-void testClampedUnsignedTypedDataRangeHelper(Uint8ClampedList typed_data,
-                                             bool check_throws) {
+void testClampedUnsignedTypedDataRangeHelper(
+    Uint8ClampedList typed_data, bool check_throws) {
   Uint8ClampedList typed_data;
   typed_data = new Uint8ClampedList(10);
 
@@ -119,8 +119,8 @@ void testClampedUnsignedTypedDataRangeHelper(Uint8ClampedList typed_data,
 }
 
 void testClampedUnsignedTypedDataRange(bool check_throws) {
-  testClampedUnsignedTypedDataRangeHelper(new Uint8ClampedList(10),
-                                          check_throws);
+  testClampedUnsignedTypedDataRangeHelper(
+      new Uint8ClampedList(10), check_throws);
 }
 
 void testSetRangeHelper(typed_data) {
@@ -168,9 +168,9 @@ void testSetRange() {
 class C {
   final x;
   C(this.x);
-  operator<(o) => false;
-  operator>=(o) => false;
-  operator*(o) => x;
+  operator <(o) => false;
+  operator >=(o) => false;
+  operator *(o) => x;
 }
 
 void testIndexOutOfRangeHelper(typed_data, value) {
@@ -246,34 +246,35 @@ void testGetAtIndex(TypedData list, num initial_value) {
     Expect.equals(42, bdata.getUint8(i));
     Expect.equals(42, bdata.getInt8(i));
   }
-  for (int i = 0; i < bdata.lengthInBytes-1; i+=2) {
+  for (int i = 0; i < bdata.lengthInBytes - 1; i += 2) {
     Expect.equals(10794, bdata.getUint16(i, Endianness.LITTLE_ENDIAN));
     Expect.equals(10794, bdata.getInt16(i, Endianness.LITTLE_ENDIAN));
   }
-  for (int i = 0; i < bdata.lengthInBytes-3; i+=4) {
+  for (int i = 0; i < bdata.lengthInBytes - 3; i += 4) {
     Expect.equals(707406378, bdata.getUint32(i, Endianness.LITTLE_ENDIAN));
     Expect.equals(707406378, bdata.getInt32(i, Endianness.LITTLE_ENDIAN));
-    Expect.equals(1.511366173271439e-13,
-                  bdata.getFloat32(i, Endianness.LITTLE_ENDIAN));
+    Expect.equals(
+        1.511366173271439e-13, bdata.getFloat32(i, Endianness.LITTLE_ENDIAN));
   }
-  for (int i = 0; i < bdata.lengthInBytes-7; i+=8) {
-    Expect.equals(3038287259199220266,
-                  bdata.getUint64(i, Endianness.LITTLE_ENDIAN));
-    Expect.equals(3038287259199220266,
-                  bdata.getInt64(i, Endianness.LITTLE_ENDIAN));
-    Expect.equals(1.4260258159703532e-105,
-                  bdata.getFloat64(i, Endianness.LITTLE_ENDIAN));
+  for (int i = 0; i < bdata.lengthInBytes - 7; i += 8) {
+    Expect.equals(
+        3038287259199220266, bdata.getUint64(i, Endianness.LITTLE_ENDIAN));
+    Expect.equals(
+        3038287259199220266, bdata.getInt64(i, Endianness.LITTLE_ENDIAN));
+    Expect.equals(
+        1.4260258159703532e-105, bdata.getFloat64(i, Endianness.LITTLE_ENDIAN));
   }
 }
 
-void testSetAtIndex(TypedData list,
-                    num initial_value, [bool use_double = false]) {
+void testSetAtIndex(TypedData list, num initial_value,
+    [bool use_double = false]) {
   void validate([reinit = true]) {
     for (int i = 0; i < list.length; i++) {
       Expect.equals(initial_value, list[i]);
-      if (reinit) list[i] = use_double? 0.0 : 0;
+      if (reinit) list[i] = use_double ? 0.0 : 0;
     }
   }
+
   var bdata = new ByteData.view(list.buffer);
   for (int i = 0; i < bdata.lengthInBytes; i++) {
     bdata.setUint8(i, 42);
@@ -283,35 +284,35 @@ void testSetAtIndex(TypedData list,
     bdata.setInt8(i, 42);
   }
   validate();
-  for (int i = 0; i < bdata.lengthInBytes-1; i+=2) {
+  for (int i = 0; i < bdata.lengthInBytes - 1; i += 2) {
     bdata.setUint16(i, 10794, Endianness.LITTLE_ENDIAN);
   }
   validate();
-  for (int i = 0; i < bdata.lengthInBytes-1; i+=2) {
+  for (int i = 0; i < bdata.lengthInBytes - 1; i += 2) {
     bdata.setInt16(i, 10794, Endianness.LITTLE_ENDIAN);
   }
   validate();
-  for (int i = 0; i < bdata.lengthInBytes-3; i+=4) {
+  for (int i = 0; i < bdata.lengthInBytes - 3; i += 4) {
     bdata.setUint32(i, 707406378, Endianness.LITTLE_ENDIAN);
   }
   validate();
-  for (int i = 0; i < bdata.lengthInBytes-3; i+=4) {
+  for (int i = 0; i < bdata.lengthInBytes - 3; i += 4) {
     bdata.setInt32(i, 707406378, Endianness.LITTLE_ENDIAN);
   }
   validate();
-  for (int i = 0; i < bdata.lengthInBytes-3; i+=4) {
+  for (int i = 0; i < bdata.lengthInBytes - 3; i += 4) {
     bdata.setFloat32(i, 1.511366173271439e-13, Endianness.LITTLE_ENDIAN);
   }
   validate();
-  for (int i = 0; i < bdata.lengthInBytes-7; i+=8) {
+  for (int i = 0; i < bdata.lengthInBytes - 7; i += 8) {
     bdata.setUint64(i, 3038287259199220266, Endianness.LITTLE_ENDIAN);
   }
   validate();
-  for (int i = 0; i < bdata.lengthInBytes-7; i+=8) {
+  for (int i = 0; i < bdata.lengthInBytes - 7; i += 8) {
     bdata.setInt64(i, 3038287259199220266, Endianness.LITTLE_ENDIAN);
   }
   validate();
-  for (int i = 0; i < bdata.lengthInBytes-7; i+=8) {
+  for (int i = 0; i < bdata.lengthInBytes - 7; i += 8) {
     bdata.setFloat64(i, 1.4260258159703532e-105, Endianness.LITTLE_ENDIAN);
   }
   validate(false);
@@ -345,7 +346,7 @@ testViewCreation() {
   view = new Float64List.view(bytes, 24);
   Expect.equals(1000, view.lengthInBytes);
   view = new Int32x4List.view(bytes, 16);
-  Expect.equals(1008, view.lengthInBytes);  // Must be 16-byte aligned.
+  Expect.equals(1008, view.lengthInBytes); // Must be 16-byte aligned.
   view = new Float32x4List.view(bytes, 16);
   Expect.equals(1008, view.lengthInBytes);
   view = new Float64x2List.view(bytes, 16);
@@ -394,7 +395,7 @@ testViewCreation() {
   Expect.equals(800, view.lengthInBytes);
   view = bytes.asInt16List(24, 400);
   Expect.equals(800, view.lengthInBytes);
-  view = bytes.asUint32List(24, 200 );
+  view = bytes.asUint32List(24, 200);
   Expect.equals(800, view.lengthInBytes);
   view = bytes.asInt32List(24, 200);
   Expect.equals(800, view.lengthInBytes);
@@ -421,8 +422,15 @@ testWhere() {
 }
 
 testCreationFromList() {
-  var intList =
-    [-10000000000000000000, -255, -127, 0, 128, 256, 1000000000000000000000];
+  var intList = [
+    -10000000000000000000,
+    -255,
+    -127,
+    0,
+    128,
+    256,
+    1000000000000000000000
+  ];
   var intLists = [];
   intLists.add(new Int8List.fromList(intList));
   intLists.add(new Int16List.fromList(intList));
@@ -432,8 +440,13 @@ testCreationFromList() {
   intLists.add(new Uint16List.fromList(intList));
   intLists.add(new Uint32List.fromList(intList));
   intLists.add(new Uint64List.fromList(intList));
-  var doubleList =
-    [-123123123123.123123123123, -123.0, 0.0, 123.0, 123123123123.123123123];
+  var doubleList = [
+    -123123123123.123123123123,
+    -123.0,
+    0.0,
+    123.0,
+    123123123123.123123123
+  ];
   var doubleLists = [];
   doubleLists.add(new Float32List.fromList(doubleList));
   doubleLists.add(new Float64List.fromList(doubleList));
@@ -470,6 +483,7 @@ void testStrings() {
       }
     }
   }
+
   test([]);
   test([0x00, 0x7f, 0xff]);
   test([0x00, 0xdfff, 0xffff]);

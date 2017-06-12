@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.contributor.dart.label;
-
-import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
-    show Element, ElementKind;
-import 'package:analysis_server/plugin/protocol/protocol.dart'
-    hide Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/label_contributor.dart';
@@ -19,7 +13,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LabelContributorTest);
-    defineReflectiveTests(LabelContributorTest_Driver);
   });
 }
 
@@ -31,10 +24,10 @@ class LabelContributorTest extends DartCompletionContributorTest {
     CompletionSuggestion cs =
         assertSuggest(name, csKind: kind, relevance: relevance);
     expect(cs.returnType, isNull);
-    protocol.Element element = cs.element;
+    Element element = cs.element;
     expect(element, isNotNull);
     expect(element.flags, 0);
-    expect(element.kind, equals(protocol.ElementKind.LABEL));
+    expect(element.kind, equals(ElementKind.LABEL));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType, isNull);
@@ -324,10 +317,4 @@ void main() {
     await computeSuggestions();
     assertSuggestLabel('foo');
   }
-}
-
-@reflectiveTest
-class LabelContributorTest_Driver extends LabelContributorTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

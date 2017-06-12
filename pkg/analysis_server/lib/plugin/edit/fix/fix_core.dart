@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.plugin.edit.fix.fix_core;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
-    show SourceChange;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    show SourceChange;
 
 /**
  * A description of a single proposed fix for some problem.
@@ -59,12 +57,12 @@ class Fix {
  */
 abstract class FixContext {
   /**
-   * The [AnalysisContext] to get fixes in.
+   * The analysis driver used to access analysis results.
    */
-  AnalysisContext get analysisContext;
+  AnalysisDriver get analysisDriver;
 
   /**
-   * The error to fix, should be reported in the given [analysisContext].
+   * The error to fix, should be reported by the given [analysisDriver].
    */
   AnalysisError get error;
 

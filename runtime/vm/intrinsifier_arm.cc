@@ -176,8 +176,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ CompareImmediate(R2, max_len);                                            \
   __ b(&fall_through, GT);                                                     \
   __ mov(R2, Operand(R2, LSL, scale_shift));                                   \
-  const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
-  __ AddImmediate(R2, fixed_size);                                             \
+  const intptr_t fixed_size_plus_alignment_padding =                           \
+      sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
+  __ AddImmediate(R2, fixed_size_plus_alignment_padding);                      \
   __ bic(R2, R2, Operand(kObjectAlignment - 1));                               \
   Heap::Space space = Heap::kNew;                                              \
   __ ldr(R3, Address(THR, Thread::heap_offset()));                             \
@@ -1782,19 +1783,19 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
   __ b(return_false, GT);
 
   if (receiver_cid == kOneByteStringCid) {
-    __ AddImmediate(R0, R0, OneByteString::data_offset() - kHeapObjectTag);
+    __ AddImmediate(R0, OneByteString::data_offset() - kHeapObjectTag);
     __ add(R0, R0, Operand(R1));
   } else {
     ASSERT(receiver_cid == kTwoByteStringCid);
-    __ AddImmediate(R0, R0, TwoByteString::data_offset() - kHeapObjectTag);
+    __ AddImmediate(R0, TwoByteString::data_offset() - kHeapObjectTag);
     __ add(R0, R0, Operand(R1));
     __ add(R0, R0, Operand(R1));
   }
   if (other_cid == kOneByteStringCid) {
-    __ AddImmediate(R2, R2, OneByteString::data_offset() - kHeapObjectTag);
+    __ AddImmediate(R2, OneByteString::data_offset() - kHeapObjectTag);
   } else {
     ASSERT(other_cid == kTwoByteStringCid);
-    __ AddImmediate(R2, R2, TwoByteString::data_offset() - kHeapObjectTag);
+    __ AddImmediate(R2, TwoByteString::data_offset() - kHeapObjectTag);
   }
 
   // i = 0
@@ -1818,9 +1819,9 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
   __ b(return_false, NE);
 
   // i++, while (i < len)
-  __ AddImmediate(R3, R3, 1);
-  __ AddImmediate(R0, R0, receiver_cid == kOneByteStringCid ? 1 : 2);
-  __ AddImmediate(R2, R2, other_cid == kOneByteStringCid ? 1 : 2);
+  __ AddImmediate(R3, 1);
+  __ AddImmediate(R0, receiver_cid == kOneByteStringCid ? 1 : 2);
+  __ AddImmediate(R2, other_cid == kOneByteStringCid ? 1 : 2);
   __ cmp(R3, Operand(R9));
   __ b(&loop, LT);
 
@@ -1997,8 +1998,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ mov(R8, Operand(length_reg));  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
-  const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
-  __ AddImmediate(length_reg, fixed_size);
+  const intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawString) + kObjectAlignment - 1;
+  __ AddImmediate(length_reg, fixed_size_plus_alignment_padding);
   __ bic(length_reg, length_reg, Operand(kObjectAlignment - 1));
 
   const intptr_t cid = kOneByteStringCid;
@@ -2236,7 +2238,7 @@ void Intrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ ldr(R2, Address(SP, kRegExpParamOffset));
   __ ldr(R1, Address(SP, kStringParamOffset));
   __ LoadClassId(R1, R1);
-  __ AddImmediate(R1, R1, -kOneByteStringCid);
+  __ AddImmediate(R1, -kOneByteStringCid);
   __ add(R1, R2, Operand(R1, LSL, kWordSizeLog2));
   __ ldr(R0,
          FieldAddress(R1, RegExp::function_offset(kOneByteStringCid, sticky)));

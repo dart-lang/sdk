@@ -11,7 +11,7 @@ import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart' show LibraryEntity;
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart'
@@ -24,7 +24,8 @@ import 'package:compiler/src/parser/node_listener.dart' show NodeListener;
 import 'package:compiler/src/parser/diet_parser_task.dart' show PartialParser;
 import 'package:compiler/src/platform_configuration.dart' as platform;
 import 'package:compiler/src/source_file_provider.dart';
-import 'package:compiler/src/universe/world_impact.dart' show WorldImpact;
+import 'package:compiler/src/universe/world_impact.dart'
+    show WorldImpactBuilderImpl;
 import 'package:front_end/src/fasta/parser.dart' show Listener, Parser;
 import 'package:front_end/src/fasta/scanner.dart' show Token, scan;
 import 'package:package_config/discovery.dart' show findPackages;
@@ -293,13 +294,7 @@ class _Loader {
   }
 
   Future<SourceFile> _readFile(Uri uri) async {
-    var data = await inputProvider.readFromUri(uri);
-    if (data is List<int>) return new Utf8BytesSourceFile(uri, data);
-    if (data is String) return new StringSourceFile.fromUri(uri, data);
-    // TODO(sigmund): properly handle errors, just report, return null, wrap
-    // above and continue...
-    throw "Expected a 'String' or a 'List<int>' from the input "
-        "provider, but got: ${data.runtimeType}.";
+    return await inputProvider.readFromUri(uri, inputKind: InputKind.utf8);
   }
 
   Uri _translateUri(Uri uri) {
@@ -345,10 +340,11 @@ class MyCompiler extends CompilerImpl {
       : super(provider, null, handler, options) {}
 
   /// Performs the compilation when all libraries have been loaded.
-  void compileLoadedLibraries() =>
+  void compileLoadedLibraries(LibraryEntity rootLibrary) =>
       selfTask.measureSubtask('KernelCompiler.compileLoadedLibraries', () {
         ResolutionEnqueuer resolutionEnqueuer = startResolution();
-        WorldImpact mainImpact = computeMain();
+        WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
+        mainFunction = frontEndStrategy.computeMain(rootLibrary, mainImpact);
         mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
 
         deferredLoadTask.beforeResolution(this);
@@ -361,15 +357,13 @@ class MyCompiler extends CompilerImpl {
         resolutionEnqueuer.applyImpact(mainImpact);
         // Note: we enqueue everything in the program so we measure generating
         // kernel for the entire code, not just what's reachable from main.
-        libraryLoader.libraries.forEach((LibraryElement library) {
+        libraryLoader.libraries.forEach((LibraryEntity library) {
           resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
         });
 
-        if (deferredLoadTask.isProgramSplit) {
-          resolutionEnqueuer
-              .applyImpact(backend.computeDeferredLoadingImpact());
+        if (commonElements.mirrorsLibrary != null) {
+          resolveLibraryMetadata();
         }
-        resolveLibraryMetadata();
         reporter.log('Resolving...');
         processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries);
         resolutionEnqueuer.logSummary(reporter.log);
@@ -383,6 +377,7 @@ class MyCompiler extends CompilerImpl {
           exit(1);
         }
 
+        backend.onResolutionEnd();
         closeResolution();
         var program = (backend as dynamic).kernelTask.program;
         print('total libraries: ${program.libraries.length}');

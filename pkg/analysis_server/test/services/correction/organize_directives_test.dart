@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring.organize_directives;
+import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart'
-    hide AnalysisError;
 import 'package:analysis_server/src/services/correction/organize_directives.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    hide AnalysisError;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,8 +24,8 @@ main() {
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
   List<AnalysisError> testErrors;
 
-  void test_keep_duplicateImports_withDifferentPrefix() {
-    _computeUnitAndErrors(r'''
+  test_keep_duplicateImports_withDifferentPrefix() async {
+    await _computeUnitAndErrors(r'''
 import 'dart:async' as async1;
 import 'dart:async' as async2;
 
@@ -46,8 +47,8 @@ main() {
         removeUnused: true);
   }
 
-  void test_remove_duplicateImports() {
-    _computeUnitAndErrors(r'''
+  test_remove_duplicateImports() async {
+    await _computeUnitAndErrors(r'''
 import 'dart:async';
 import 'dart:async';
 
@@ -66,8 +67,8 @@ main() {
         removeUnused: true);
   }
 
-  void test_remove_duplicateImports_differentText_uri() {
-    _computeUnitAndErrors(r'''
+  test_remove_duplicateImports_differentText_uri() async {
+    await _computeUnitAndErrors(r'''
 import 'dart:async' as async;
 import "dart:async" as async;
 
@@ -86,8 +87,8 @@ main() {
         removeUnused: true);
   }
 
-  void test_remove_duplicateImports_withSamePrefix() {
-    _computeUnitAndErrors(r'''
+  test_remove_duplicateImports_withSamePrefix() async {
+    await _computeUnitAndErrors(r'''
 import 'dart:async' as async;
 import 'dart:async' as async;
 
@@ -106,10 +107,10 @@ main() {
         removeUnused: true);
   }
 
-  void test_remove_unresolvedDirectives() {
+  test_remove_unresolvedDirectives() async {
     addSource('/existing_part1.dart', 'part of lib;');
     addSource('/existing_part2.dart', 'part of lib;');
-    _computeUnitAndErrors(r'''
+    await _computeUnitAndErrors(r'''
 library lib;
 
 import 'dart:async';
@@ -149,8 +150,8 @@ main() {
         removeUnresolved: true);
   }
 
-  void test_remove_unusedImports() {
-    _computeUnitAndErrors(r'''
+  test_remove_unusedImports() async {
+    await _computeUnitAndErrors(r'''
 library lib;
 
 import 'dart:async';
@@ -179,8 +180,8 @@ main() {
         removeUnused: true);
   }
 
-  void test_remove_unusedImports2() {
-    _computeUnitAndErrors(r'''
+  test_remove_unusedImports2() async {
+    await _computeUnitAndErrors(r'''
 import 'dart:async';
 import 'dart:math';
 
@@ -203,8 +204,8 @@ main() {
         removeUnused: true);
   }
 
-  void test_sort() {
-    _computeUnitAndErrors(r'''
+  test_sort() async {
+    await _computeUnitAndErrors(r'''
 library lib;
 
 export 'dart:bbb';
@@ -265,8 +266,8 @@ main() {
 ''');
   }
 
-  void test_sort_hasComments() {
-    _computeUnitAndErrors(r'''
+  test_sort_hasComments() async {
+    await _computeUnitAndErrors(r'''
 // header
 library lib;
 
@@ -296,8 +297,8 @@ main() {
 ''');
   }
 
-  void test_sort_imports_packageAndPath() {
-    _computeUnitAndErrors(r'''
+  test_sort_imports_packageAndPath() async {
+    await _computeUnitAndErrors(r'''
 library lib;
 
 import 'package:product.ui.api.bbb/manager1.dart';
@@ -330,9 +331,10 @@ import 'package:product2.client/entity.dart';
     expect(result, expectedCode);
   }
 
-  void _computeUnitAndErrors(String code) {
+  Future<Null> _computeUnitAndErrors(String code) async {
     addTestSource(code);
-    testUnit = context.resolveCompilationUnit2(testSource, testSource);
-    testErrors = context.computeErrors(testSource);
+    AnalysisResult result = await driver.getResult(testSource.fullName);
+    testUnit = result.unit;
+    testErrors = result.errors;
   }
 }

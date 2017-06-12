@@ -51,8 +51,6 @@
     "Run optimizing compilation in background")                                \
   R(background_compilation_stop_alot, false, bool, false,                      \
     "Stress test system: stop background compiler often.")                     \
-  P(background_finalization, bool, false,                                      \
-    "Run weak handle finalizers in background")                                \
   R(break_at_isolate_spawn, false, bool, false,                                \
     "Insert a one-time breakpoint at the entrypoint for all spawned isolates") \
   C(collect_code, false, true, bool, true,                                     \
@@ -77,9 +75,6 @@
     "Emit DWARF line number and inlining info"                                 \
     "in dylib snapshots and don't symbolize stack traces.")                    \
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
-  R(enable_malloc_hooks, false, bool, false,                                   \
-    "Enable native memory statistic collection. Enabled by default in Debug "  \
-    "mode")                                                                    \
   C(enable_mirrors, false, false, bool, true,                                  \
     "Disable to make importing dart:mirrors an error.")                        \
   R(enable_type_checks, false, bool, false, "Enable type checks.")             \
@@ -140,11 +135,17 @@
     "Print additional memory and latency metrics for benchmarking.")           \
   R(print_ssa_liveranges, false, bool, false,                                  \
     "Print live ranges after allocation.")                                     \
+  R(print_stacktrace_at_api_error, false, bool, false,                         \
+    "Attempt to print a native stack trace when an API error is created.")     \
   C(print_stop_message, false, false, bool, false, "Print stop message.")      \
   D(print_variable_descriptors, bool, false,                                   \
     "Print variable descriptors in disassembly.")                              \
   R(profiler, false, bool, !USING_DBC && !USING_FUCHSIA,                       \
     "Enable the profiler.")                                                    \
+  R(profiler_native_memory, false, bool, false,                                \
+    "Enable native memory statistic collection.")                              \
+  P(reify_generic_functions, bool, false,                                      \
+    "Enable reification of generic functions (not yet supported).")            \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(causal_async_stacks, false, false, bool, true, "Improved async stacks")    \
   C(stress_async_stacks, false, false, bool, false,                            \

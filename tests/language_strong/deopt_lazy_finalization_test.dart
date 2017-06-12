@@ -29,7 +29,7 @@ part2() {
 
 class A {
   foo() => 2;
-  
+
   loop() {
     var sum = 0;
     for (int i = 0; i < 10000; i++) {
@@ -39,9 +39,7 @@ class A {
   }
 }
 
-class Aa extends A {
-
-}
+class Aa extends A {}
 
 class B extends Aa {
   foo() => -2;

@@ -610,8 +610,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitPartDirective(PartDirective node) {
-    Element element = node.element;
-    recordUriReference(element, node);
+    CompilationUnitElement element = node.element;
+    if (element?.source != null) {
+      recordUriReference(element, node);
+    }
     super.visitPartDirective(node);
   }
 

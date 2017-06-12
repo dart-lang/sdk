@@ -21,8 +21,7 @@ main() {
             lib6.loadLibrary().then((_) {
               lib7.loadLibrary().then((_) {
                 lib8.loadLibrary().then((_) {
-                  lib9.loadLibrary().then((_) {
-                  });
+                  lib9.loadLibrary().then((_) {});
                 });
               });
             });

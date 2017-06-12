@@ -10,10 +10,9 @@ library inline_super_field_test;
 import 'package:expect/expect.dart';
 import "inline_super_field_lib.dart";
 
-class S {
-}
+class S {}
 
-class C extends S with M1 { }
+class C extends S with M1 {}
 
 void main() {
   var c = new C();

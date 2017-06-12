@@ -6,7 +6,6 @@ part of html;
 
 /** A Set that stores the CSS class names for an element. */
 abstract class CssClassSet implements Set<String> {
-
   /**
    * Adds the class [value] to the element if it is not on it, removes it if it
    * is.

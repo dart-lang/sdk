@@ -16,10 +16,7 @@ class Bar {
 
 Object baz(Object x) => x;
 
-var map = <String, Func>{
-  'baz': baz,
-  'bar': new Bar()
-};
+var map = <String, Func>{'baz': baz, 'bar': new Bar()};
 
 Object test(String str, Object arg) {
   return map[str].call(arg);

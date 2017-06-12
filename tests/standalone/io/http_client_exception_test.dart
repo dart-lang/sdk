@@ -10,41 +10,32 @@ import "package:expect/expect.dart";
 
 void testInvalidUrl() {
   HttpClient client = new HttpClient();
-  Expect.throws(
-      () => client.getUrl(Uri.parse('ftp://www.google.com')),
+  Expect.throws(() => client.getUrl(Uri.parse('ftp://www.google.com')),
       (e) => e.toString().contains("Unsupported scheme"));
-  Expect.throws(
-      () => client.getUrl(Uri.parse('httpx://www.google.com')),
+  Expect.throws(() => client.getUrl(Uri.parse('httpx://www.google.com')),
       (e) => e.toString().contains("Unsupported scheme"));
-  Expect.throws(
-      () => client.getUrl(Uri.parse('http://::1')),
+  Expect.throws(() => client.getUrl(Uri.parse('http://::1')),
       (e) => e is FormatException);
-  Expect.throws(
-      () => client.getUrl(Uri.parse('http://user@:1')),
+  Expect.throws(() => client.getUrl(Uri.parse('http://user@:1')),
       (e) => e.toString().contains("No host specified"));
-  Expect.throws(
-      () => client.getUrl(Uri.parse('http:///')),
+  Expect.throws(() => client.getUrl(Uri.parse('http:///')),
       (e) => e.toString().contains("No host specified"));
-  Expect.throws(
-      () => client.getUrl(Uri.parse('http:///index.html')),
+  Expect.throws(() => client.getUrl(Uri.parse('http:///index.html')),
       (e) => e.toString().contains("No host specified"));
-  Expect.throws(
-      () => client.getUrl(Uri.parse('///')),
+  Expect.throws(() => client.getUrl(Uri.parse('///')),
       (e) => e.toString().contains("No host specified"));
-  Expect.throws(
-      () => client.getUrl(Uri.parse('///index.html')),
+  Expect.throws(() => client.getUrl(Uri.parse('///index.html')),
       (e) => e.toString().contains("No host specified"));
 }
 
 void testBadHostName() {
   asyncStart();
   HttpClient client = new HttpClient();
-  client.get("some.bad.host.name.7654321", 0, "/")
-    .then((request) {
-      Expect.fail("Should not open a request on bad hostname");
-    }).catchError((error) {
-      asyncEnd();  // We expect onError to be called, due to bad host name.
-    }, test: (error) => error is! String);
+  client.get("some.bad.host.name.7654321", 0, "/").then((request) {
+    Expect.fail("Should not open a request on bad hostname");
+  }).catchError((error) {
+    asyncEnd(); // We expect onError to be called, due to bad host name.
+  }, test: (error) => error is! String);
 }
 
 void main() {

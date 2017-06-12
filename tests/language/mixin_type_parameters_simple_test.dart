@@ -14,7 +14,7 @@ class M2<Y> {
   m2() => Y;
 }
 
-class A<T> extends S with M1<T> , M2<T> { }
+class A<T> extends S with M1<T>, M2<T> {}
 
 main() {
   var a = new A<int>();

@@ -5,16 +5,16 @@
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SetSubscriptionsTest);
-    defineReflectiveTests(SetSubscriptionsTest_Driver);
+    defineReflectiveTests(SetSubscriptionsInvalidTest);
   });
 }
 
-class AbstractSetSubscriptionsTest
+@reflectiveTest
+class SetSubscriptionsInvalidTest
     extends AbstractAnalysisServerIntegrationTest {
   test_setSubscriptions_invalidService() {
     // TODO(paulberry): verify that if an invalid service is specified, the
@@ -27,13 +27,4 @@ class AbstractSetSubscriptionsTest
       // The expected error occurred.
     });
   }
-}
-
-@reflectiveTest
-class SetSubscriptionsTest extends AbstractSetSubscriptionsTest {}
-
-@reflectiveTest
-class SetSubscriptionsTest_Driver extends AbstractSetSubscriptionsTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

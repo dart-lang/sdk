@@ -23,7 +23,7 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+      password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -61,9 +61,7 @@ void testInvalidBind() {
   // Bind to a port already in use.
   asyncStart();
   SecureServerSocket.bind(HOST, 0, serverContext).then((s) {
-    SecureServerSocket.bind(HOST,
-                            s.port,
-                            serverContext).then((t) {
+    SecureServerSocket.bind(HOST, s.port, serverContext).then((t) {
       Expect.fail("Multiple listens on same port");
     }).catchError((error) {
       Expect.isTrue(error is SocketException);
@@ -95,38 +93,34 @@ void testSimpleConnect() {
 }
 
 void testSimpleConnectFail(SecurityContext serverContext,
-                           SecurityContext clientContext,
-                           bool cancelOnError) {
+    SecurityContext clientContext, bool cancelOnError) {
   print('$serverContext $clientContext $cancelOnError');
   asyncStart();
   SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
-    var clientEndFuture =
-        SecureSocket.connect(HOST, server.port, context: clientContext)
-      .then((clientEnd) {
-        Expect.fail("No client connection expected.");
-      })
-      .catchError((error) {
-        // TODO(whesse): When null context is supported, disallow
-        // the ArgumentError type here.
-        Expect.isTrue(error is ArgumentError ||
-                      error is HandshakeException ||
-                      error is SocketException);
-      });
-    server.listen((serverEnd) {
-      Expect.fail("No server connection expected.");
-    },
-    onError: (error) {
+    var clientEndFuture = SecureSocket
+        .connect(HOST, server.port, context: clientContext)
+        .then((clientEnd) {
+      Expect.fail("No client connection expected.");
+    }).catchError((error) {
       // TODO(whesse): When null context is supported, disallow
       // the ArgumentError type here.
       Expect.isTrue(error is ArgumentError ||
-                    error is HandshakeException ||
-                    error is SocketException);
+          error is HandshakeException ||
+          error is SocketException);
+    });
+    server.listen((serverEnd) {
+      Expect.fail("No server connection expected.");
+    }, onError: (error) {
+      // TODO(whesse): When null context is supported, disallow
+      // the ArgumentError type here.
+      Expect.isTrue(error is ArgumentError ||
+          error is HandshakeException ||
+          error is SocketException);
       clientEndFuture.then((_) {
         if (!cancelOnError) server.close();
         asyncEnd();
       });
-    },
-    cancelOnError: cancelOnError);
+    }, cancelOnError: cancelOnError);
   });
 }
 
@@ -180,40 +174,37 @@ void testSimpleReadWrite() {
       int bytesWritten = 0;
       List<int> data = new List<int>(messageSize);
 
-      client.listen(
-        (buffer) {
-          Expect.isTrue(bytesWritten == 0);
-          data.setRange(bytesRead, bytesRead + buffer.length, buffer);
-          bytesRead += buffer.length;
-          if (bytesRead == data.length) {
-            verifyTestData(data);
-            client.add(data);
-            client.close();
-          }
-        },
-        onDone: () {
-          server.close();
-        });
+      client.listen((buffer) {
+        Expect.isTrue(bytesWritten == 0);
+        data.setRange(bytesRead, bytesRead + buffer.length, buffer);
+        bytesRead += buffer.length;
+        if (bytesRead == data.length) {
+          verifyTestData(data);
+          client.add(data);
+          client.close();
+        }
+      }, onDone: () {
+        server.close();
+      });
     });
 
-    SecureSocket.connect(HOST, server.port, context: clientContext)
-    .then((socket) {
+    SecureSocket
+        .connect(HOST, server.port, context: clientContext)
+        .then((socket) {
       int bytesRead = 0;
       int bytesWritten = 0;
       List<int> dataSent = createTestData();
       List<int> dataReceived = new List<int>(dataSent.length);
       socket.add(dataSent);
-      socket.close();  // Can also be delayed.
-      socket.listen(
-        (List<int> buffer) {
-          dataReceived.setRange(bytesRead, bytesRead + buffer.length, buffer);
-          bytesRead += buffer.length;
-        },
-        onDone: () {
-          verifyTestData(dataReceived);
-          socket.close();
-          asyncEnd();
-        });
+      socket.close(); // Can also be delayed.
+      socket.listen((List<int> buffer) {
+        dataReceived.setRange(bytesRead, bytesRead + buffer.length, buffer);
+        bytesRead += buffer.length;
+      }, onDone: () {
+        verifyTestData(dataReceived);
+        socket.close();
+        asyncEnd();
+      });
     });
   });
 }

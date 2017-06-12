@@ -16,19 +16,21 @@ class M2 {
   var baz = "M2-baz";
 }
 
-class C extends S with M1 { }
-class D extends S with M1, M2 { }
-class E extends S with M2, M1 { }
+class C extends S with M1 {}
+
+class D extends S with M1, M2 {}
+
+class E extends S with M2, M1 {}
 
 class F extends E {
   var fez = "F-fez";
 }
 
 main() {
-  var c = new C();
-  var d = new D();
-  var e = new E();
-  var f = new F();
+  dynamic c = new C();
+  dynamic d = new D();
+  dynamic e = new E();
+  dynamic f = new F();
 
   Expect.equals("S-foo", c.foo);
   Expect.equals("S-foo", d.foo);

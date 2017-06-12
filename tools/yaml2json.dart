@@ -19,7 +19,7 @@ main(List<String> arguments) async {
   Uri input = Uri.base.resolve(arguments[0]);
   Uri output = Uri.base.resolve(arguments[1]);
   var yaml = loadYaml(await new File.fromUri(input).readAsString());
-  await new File.fromUri(output).writeAsString(
-      const JsonEncoder.withIndent("  ").convert(yaml));
+  await new File.fromUri(output)
+      .writeAsString(const JsonEncoder.withIndent("  ").convert(yaml));
   port.close();
 }

@@ -650,6 +650,29 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'dart2js chrome package tests',
         'dart2js chrome co19 tests',
         'dart2js chrome extra tests',
+      ], isActive: false), // Replaced by 'win8-ie11' and 'win7-chrome'.
+      const BuildSubgroup(shardNames: const <String>[
+        'dart2js-win8-ie11-1-4-be',
+        'dart2js-win8-ie11-2-4-be',
+        'dart2js-win8-ie11-3-4-be',
+        'dart2js-win8-ie11-4-4-be'
+      ], testSteps: const <String>[
+        'dart2js ie11 tests',
+        'dart2js ie11 co19 tests',
+        'dart2js ie11 fast-startup tests',
+        'dart2js ie11 co19 fast-startup tests',
+      ]),
+      const BuildSubgroup(shardNames: const <String>[
+        'dart2js-win7-chrome-1-4-be',
+        'dart2js-win7-chrome-2-4-be',
+        'dart2js-win7-chrome-3-4-be',
+        'dart2js-win7-chrome-4-4-be'
+      ], testSteps: const <String>[
+        'dart2js chrome tests',
+        'dart2js chrome observatory_ui tests',
+        'dart2js chrome package tests',
+        'dart2js chrome co19 tests',
+        'dart2js chrome extra tests',
         'dart2js chrome fast-startup tests',
         'dart2js chrome observatory_ui fast-startup tests',
         'dart2js chrome package fast-startup tests',
@@ -697,21 +720,18 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
       ], testSteps: const <String>[
         'package unit tests',
         'third_party/pkg_tested unit tests',
-        'pub get dependencies',
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'pkg-linux-release-be',
       ], testSteps: const <String>[
         'package unit tests',
         'third_party/pkg_tested unit tests',
-        'pub get dependencies',
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'pkg-win7-release-be',
       ], testSteps: const <String>[
         'package unit tests',
         'third_party/pkg_tested unit tests',
-        'pub get dependencies',
       ]),
     ],
   ),
@@ -785,9 +805,10 @@ class BuildGroup {
 
   /// Returns the [BuildUri] corresponding to the build steps for shards in this
   /// group.
-  List<BuildUri> createUris(int buildNumber) {
+  List<BuildUri> createUris(int buildNumber, {bool includeInactive: false}) {
     List<BuildUri> uriList = <BuildUri>[];
     for (BuildSubgroup subgroup in subgroups) {
+      if (!subgroup.isActive && !includeInactive) continue;
       uriList.addAll(subgroup.createUris(buildNumber));
     }
     return uriList;
@@ -805,16 +826,36 @@ class BuildSubgroup {
   /// `dart2js ie10 tests`, `dart2js ie10 co19 tests`, etc.
   final List<String> testSteps;
 
-  const BuildSubgroup({this.shardNames, this.testSteps});
+  /// Whether this subgroup is currently on the buildbot.
+  ///
+  /// Set this to `false` to preserve data for older build structures. The data
+  /// will continuously be available through logdog.
+  final bool isActive;
+
+  const BuildSubgroup({this.shardNames, this.testSteps, this.isActive: true});
+
+  Map<String, String> get logDogPaths {
+    Map<String, String> paths = <String, String>{};
+    for (String shardName in shardNames) {
+      paths[shardName] = 'chromium/bb/client.dart/$shardName';
+    }
+    return paths;
+  }
 
   /// Returns the [BuildUri] corresponding to the build steps for all shards
   /// in this subgroup.
   List<BuildUri> createUris(int buildNumber) {
     List<BuildUri> uriList = <BuildUri>[];
     for (String shardName in shardNames) {
-      for (String testStep in testSteps) {
-        uriList.add(new BuildUri.fromData(shardName, buildNumber, testStep));
-      }
+      uriList.addAll(createShardUris(shardName, buildNumber));
+    }
+    return uriList;
+  }
+
+  List<BuildUri> createShardUris(String shardName, int buildNumber) {
+    List<BuildUri> uriList = <BuildUri>[];
+    for (String testStep in testSteps) {
+      uriList.add(new BuildUri.fromData(shardName, buildNumber, testStep));
     }
     return uriList;
   }

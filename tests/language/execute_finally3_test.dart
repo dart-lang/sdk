@@ -6,9 +6,8 @@
 
 import "package:expect/expect.dart";
 
-
 class Helper {
-  Helper() : i = 0 { }
+  Helper() : i = 0 {}
 
   int f1() {
     try {
@@ -27,26 +26,26 @@ class Helper {
                 while (j < 50) {
                   j += func();
                   if (j > 30) {
-                    continue L1;  // Break out of nested try blocks.
+                    continue L1; // Break out of nested try blocks.
                   }
                 }
-                i = 200000;  // Should not get executed.
+                i = 200000; // Should not get executed.
               } finally {
-                i = i + 200;  // Should get executed when we break out.
+                i = i + 200; // Should get executed when we break out.
               }
             } finally {
-              i = i + 400;  // Should get executed when we break out.
+              i = i + 400; // Should get executed when we break out.
             }
           }
         }
       } finally {
-        i = i + 800;  // Should get executed as normal control flow.
+        i = i + 800; // Should get executed as normal control flow.
       }
-      return i;  // Value of i should be 1401.
+      return i; // Value of i should be 1401.
     } finally {
-        i = i + 1600;  // Should get executed as part of return above.
+      i = i + 1600; // Should get executed as part of return above.
     }
-    i = i + 2000000;  // Should not get executed.
+    i = i + 2000000; // Should not get executed.
     return 1;
   }
 

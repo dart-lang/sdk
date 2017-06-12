@@ -4,11 +4,17 @@
 
 library fasta.target_implementation;
 
-import 'package:kernel/target/vm.dart' show VmTarget;
+import 'package:kernel/target/targets.dart' as backend show Target;
 
 import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
+import 'parser/dart_vm_native.dart' as vm show skipNativeClause;
+
+import '../scanner/token.dart' show Token;
+
 import 'loader.dart' show Loader;
+
+import 'quote.dart' show unescapeString;
 
 import 'target.dart' show Target;
 
@@ -19,11 +25,15 @@ import 'translate_uri.dart' show TranslateUri;
 /// Provides the implementation details used by a loader for a target.
 abstract class TargetImplementation extends Target {
   final TranslateUri uriTranslator;
+
+  final backend.Target backendTarget;
+
   Builder cachedCompileTimeError;
   Builder cachedAbstractClassInstantiationError;
   Builder cachedNativeAnnotation;
 
-  TargetImplementation(Ticker ticker, this.uriTranslator) : super(ticker);
+  TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
+      : super(ticker);
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
   /// already.
@@ -73,10 +83,15 @@ abstract class TargetImplementation extends Target {
   }
 
   void loadExtraRequiredLibraries(Loader loader) {
-    for (String uri in new VmTarget(null).extraRequiredLibraries) {
+    for (String uri in backendTarget.extraRequiredLibraries) {
       loader.read(Uri.parse(uri));
     }
   }
+
+  Token skipNativeClause(Token token) => vm.skipNativeClause(token);
+
+  String extractNativeMethodName(Token token) =>
+      unescapeString(token.next.lexeme);
 
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode);

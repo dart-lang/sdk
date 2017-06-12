@@ -6,6 +6,7 @@
 // other than the main isolate.
 
 library CrossIsolateMessageTest;
+
 import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 import "remote_unittest_helper.dart";
@@ -27,7 +28,7 @@ void crossIsolate1(SendPort mainIsolate) {
   local.first.then((msg) {
     // Message from crossIsolate2
     expect(msg[0], "fromIsolate2");
-    mainIsolate.send(["fromIsolate1", msg[1] + 58]);  // 100.
+    mainIsolate.send(["fromIsolate1", msg[1] + 58]); // 100.
   });
 }
 
@@ -40,7 +41,7 @@ void main([args, port]) {
   test("send message cross isolates ", () {
     ReceivePort fromIsolate1 = new ReceivePort();
     Isolate.spawn(crossIsolate1, fromIsolate1.sendPort);
-    var done = expectAsync((){});
+    var done = expectAsync(() {});
     fromIsolate1.listen((msg) {
       switch (msg[0]) {
         case "ready1":

@@ -32,11 +32,24 @@ class _Platform {
   external static String _packageRoot();
   external static String _packageConfig();
   external static String _version();
+  external static String _localeName();
 
   static String executable = _executable();
   static String resolvedExecutable = _resolvedExecutable();
   static String packageRoot = _packageRoot();
   static String packageConfig = _packageConfig();
+
+  static String _cachedLocaleName;
+  static String get localeName {
+    if (_cachedLocaleName == null) {
+      var result = _localeName();
+      if (result is OSError) {
+        throw result;
+      }
+      _cachedLocaleName = result;
+    }
+    return _cachedLocaleName;
+  }
 
   // Cache the OS environment. This can be an OSError instance if
   // retrieving the environment failed.

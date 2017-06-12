@@ -5,12 +5,11 @@
 part of ServerTest;
 
 abstract class TestingServer {
-
   static const HOST = "127.0.0.1";
   static const INIT = 0;
   static const SHUTDOWN = -1;
 
-  void onConnection(Socket connection);  // Abstract.
+  void onConnection(Socket connection); // Abstract.
 
   void errorHandlerServer(e, trace) {
     String msg = "Server socket error $e";
@@ -22,12 +21,12 @@ abstract class TestingServer {
 
   Future<int> init() {
     _closePort = new ReceivePort();
-    _closePort.first.then((_) { close(); });
+    _closePort.first.then((_) {
+      close();
+    });
     return ServerSocket.bind(HOST, 0).then((server) {
       _server = server;
-      _server.listen(
-          onConnection,
-          onError: errorHandlerServer);
+      _server.listen(onConnection, onError: errorHandlerServer);
       return _server.port;
     });
   }

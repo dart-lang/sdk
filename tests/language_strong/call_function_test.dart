@@ -4,14 +4,18 @@
 
 import "package:expect/expect.dart";
 
-Object bar(Object x) { return x; }
+Object bar(Object x) {
+  return x;
+}
 
 Function baz = bar;
 
 dynamic dyn = bar;
 
 class Foo {
-  Object call(Object x) { return 'Foo$x'; }
+  Object call(Object x) {
+    return 'Foo$x';
+  }
 }
 
 typedef Object FooType(Object x);

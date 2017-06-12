@@ -12,15 +12,27 @@ import 'package:expect/expect.dart';
 class A {
   var req1, opt1, opt2;
   A.a0([opt1]) : this.opt1 = opt1;
-  A.b0([opt1, opt2]) : this.opt1 = opt1, this.opt2 = opt2;
+  A.b0([opt1, opt2])
+      : this.opt1 = opt1,
+        this.opt2 = opt2;
   A.c0([opt1 = 499]) : this.opt1 = opt1;
-  A.d0([opt1 = 499, opt2 = 42]) : this.opt1 = opt1, this.opt2 = opt2;
-  A.a1(req1, [opt1]) : this.req1 = req1, this.opt1 = opt1;
+  A.d0([opt1 = 499, opt2 = 42])
+      : this.opt1 = opt1,
+        this.opt2 = opt2;
+  A.a1(req1, [opt1])
+      : this.req1 = req1,
+        this.opt1 = opt1;
   A.b1(req1, [opt1, opt2])
-      : this.req1 = req1, this.opt1 = opt1, this.opt2 = opt2;
-  A.c1(req1, [opt1 = 499]) : this.req1 = req1, this.opt1 = opt1;
+      : this.req1 = req1,
+        this.opt1 = opt1,
+        this.opt2 = opt2;
+  A.c1(req1, [opt1 = 499])
+      : this.req1 = req1,
+        this.opt1 = opt1;
   A.d1(req1, [opt1 = 499, opt2 = 42])
-      : this.req1 = req1, this.opt1 = opt1, this.opt2 = opt2;
+      : this.req1 = req1,
+        this.opt1 = opt1,
+        this.opt2 = opt2;
 }
 
 main() {

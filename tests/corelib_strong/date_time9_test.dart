@@ -33,7 +33,7 @@ main() {
   Expect.isTrue(dt2.compareTo(dt3b) < 0);
   Expect.isTrue(dt4.compareTo(dt5b) < 0);
 
-   Expect.isTrue(dt3.compareTo(dt2) > 0);
+  Expect.isTrue(dt3.compareTo(dt2) > 0);
   Expect.isTrue(dt4.compareTo(dt3) > 0);
   Expect.isTrue(dt5.compareTo(dt4) > 0);
 

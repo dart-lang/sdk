@@ -40,19 +40,21 @@ main() {
       if (testJson.existsSync()) testJson.deleteSync();
       assert(!testJson.existsSync());
 
-      expect(convert(lib_uri, testJsonPath)
-          .then((bool anyErrors) {
-        expect(anyErrors, isFalse);
+      expect(
+          convert(lib_uri, testJsonPath).then((bool anyErrors) {
+            expect(anyErrors, isFalse);
 
-        // We should have a file now.
-        expect(testJson.existsSync(), isTrue);
+            // We should have a file now.
+            expect(testJson.existsSync(), isTrue);
 
-        // Ensure that there's nothing different between the new JSON and old.
-        expect(testJson.readAsStringSync(), equals(oldJson.readAsStringSync()));
+            // Ensure that there's nothing different between the new JSON and old.
+            expect(testJson.readAsStringSync(),
+                equals(oldJson.readAsStringSync()));
 
-        // Ensure that the old JSON file didn't actually change.
-        expect(oldJsonModified, equals(oldJson.lastModifiedSync()));
-      }), completes);
+            // Ensure that the old JSON file didn't actually change.
+            expect(oldJsonModified, equals(oldJson.lastModifiedSync()));
+          }),
+          completes);
     });
   });
 }

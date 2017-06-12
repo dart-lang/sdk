@@ -7,8 +7,14 @@ import "package:expect/expect.dart";
 // Dart test for testing binary operations.
 
 class UnaryTest {
-  static foo() { return 4; }
-  static moo() { return 5; }
+  static foo() {
+    return 4;
+  }
+
+  static moo() {
+    return 5;
+  }
+
   static testMain() {
     Expect.equals(9.0, (UnaryTest.foo() + UnaryTest.moo()));
   }

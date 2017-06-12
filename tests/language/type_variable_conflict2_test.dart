@@ -8,11 +8,10 @@ import "package:expect/expect.dart";
 
 class C<T> {
   noSuchMethod(Invocation im) {
-    Expect.equals(#T, im.memberName);
-    return 42;
+    throw "noSuchMethod shouldn't be called in this test.";
   }
 
-  // Class 'C' has no instance method 'T': call noSuchMethod.
+  // This is equivalent to (T).call(). See issue 19725
   foo() => T(); // //# 01: static type warning
 
   // T is in scope, even in static context. Compile-time error to call this.T().
@@ -44,7 +43,7 @@ class C<T> {
 }
 
 main() {
-  Expect.equals(42, new C().foo()); // //# 01: continued
+  Expect.throws(() => new C().foo(), (e) => e is NoSuchMethodError); //# 01: continued
   C.bar(); // //# 02: continued
   Expect.throws(() => C.baz(), (e) => e is NoSuchMethodError); // //# 03: continued
   Expect.throws(() => C.qux(), (e) => e is NoSuchMethodError); // //# 04: continued

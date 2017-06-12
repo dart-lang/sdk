@@ -15,7 +15,6 @@ add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_break
 ###
 ### Kernel works slightly different. At least for now allow errors.
 ###
-library_dependency_test: RuntimeError # There are no imports and exports in kernel.
 get_isolate_after_language_error_test: CompileTimeError
 developer_extension_test: CompileTimeError
 step_through_arithmetic_test: RuntimeError # probably constant evaluator pre-evaluating e.g. 1+2
@@ -58,10 +57,14 @@ vm_restart_test: Crash
 pause_on_unhandled_async_exceptions2_test: RuntimeError
 pause_on_unhandled_async_exceptions_test: RuntimeError
 
-###
-### Uncategorized.
-###
-object_graph_vm_test: RuntimeError
-
 # Inherited from service.status
 isolate_lifecycle_test: Pass, RuntimeError
+
+
+[ $compiler == dartk && $mode == debug ]
+isolate_lifecycle_test: Skip # Flaky.
+pause_idle_isolate_test: Skip # Flaky
+
+# Deferred loading kernel issue 28335.
+[ $compiler == dartk ]
+library_dependency_test: CompileTimeError # Deferred loading kernel issue 28335.

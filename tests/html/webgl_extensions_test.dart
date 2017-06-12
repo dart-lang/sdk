@@ -20,7 +20,6 @@ main() {
 
   if (!RenderingContext.supported) return;
 
-
   const allExtensions = const [
     'ANGLE_instanced_arrays',
     'EXT_blend_minmax',

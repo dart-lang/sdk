@@ -4,7 +4,7 @@
 
 library fasta.messages;
 
-import 'package:kernel/ast.dart' show Location, Program;
+import 'package:kernel/ast.dart' show Location;
 
 import 'util/relativize.dart' show relativizeUri;
 
@@ -61,18 +61,28 @@ String colorNit(String message) {
 String format(Uri uri, int charOffset, String message) {
   if (uri != null) {
     String path = relativizeUri(uri);
-    String position =
-        charOffset == -1 ? path : "${getLocation(path, charOffset)}";
-    return "$position: $message";
+    Location location = charOffset == -1 ? null : getLocation(path, charOffset);
+    String sourceLine = getSourceLine(location);
+    if (sourceLine == null) {
+      sourceLine = "";
+    } else {
+      sourceLine = "\n$sourceLine\n"
+          "${' ' * (location.column - 1)}^";
+    }
+    String position = location?.toString() ?? path;
+    return "$position: $message$sourceLine";
   } else {
     return message;
   }
 }
 
 Location getLocation(String path, int charOffset) {
-  if (CompilerContext.current.uriToSource[path] == null) {
-    return new Location(path, 1, 1);
-  }
-  return new Program(null, CompilerContext.current.uriToSource)
-      .getLocation(path, charOffset);
+  return CompilerContext.current.uriToSource[path]
+      ?.getLocation(path, charOffset);
+}
+
+String getSourceLine(Location location) {
+  if (location == null) return null;
+  return CompilerContext.current.uriToSource[location.file]
+      ?.getTextLine(location.line);
 }

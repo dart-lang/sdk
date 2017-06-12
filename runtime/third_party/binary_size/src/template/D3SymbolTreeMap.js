@@ -192,7 +192,7 @@ D3SymbolTreeMap.prototype._crunchStats = function(node) {
 /**
  * Invoke the specified visitor function on all data elements currently shown
  * in the treemap including any and all of their children, starting at the
- * currently-displayed root and descening recursively. The function will be
+ * currently-displayed root and descending recursively. The function will be
  * passed the datum element representing each node. No traversal guarantees
  * are made.
  */

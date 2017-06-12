@@ -294,7 +294,6 @@ def GetBuildConf(mode, arch, conf_os=None):
     host_arch = ARCH_GUESS
     cross_build = ''
     if GetArchFamily(host_arch) != GetArchFamily(arch):
-      print "GetBuildConf: Cross-build of %s on %s\n" % (arch, host_arch)
       cross_build = 'X'
     return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
 
@@ -405,7 +404,7 @@ def GetArchiveVersion():
   version = ReadVersionFile()
   if not version:
     raise 'Could not get the archive version, parsing the version file failed'
-  if version.channel == 'be':
+  if version.channel in ['be', 'integration']:
     return GetGitNumber()
   return GetSemanticSDKVersion()
 
@@ -722,22 +721,28 @@ class SiteConfigBotoFileDisabler(object):
     if self._old_boto:
       os.environ['BOTO_CONFIG'] = self._old_boto
 
-class PosixCoredumpEnabler(object):
+class PosixCoreDumpEnabler(object):
   def __init__(self):
     self._old_limits = None
 
   def __enter__(self):
     self._old_limits = resource.getrlimit(resource.RLIMIT_CORE)
-
-    # Bump core limits to unlimited if core_pattern is correctly configured.
-    if CheckLinuxCoreDumpPattern(fatal=False):
-      resource.setrlimit(resource.RLIMIT_CORE, (-1, -1))
+    resource.setrlimit(resource.RLIMIT_CORE, (-1, -1))
 
   def __exit__(self, *_):
     resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
-    CheckLinuxCoreDumpPattern(fatal=True)
 
-class WindowsCoredumpEnabler(object):
+class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):
+  def __enter__(self):
+    # Bump core limits to unlimited if core_pattern is correctly configured.
+    if CheckLinuxCoreDumpPattern(fatal=False):
+      super(LinuxCoreDumpEnabler, self).__enter__()
+
+  def __exit__(self, *args):
+    CheckLinuxCoreDumpPattern(fatal=True)
+    super(LinuxCoreDumpEnabler, self).__exit__(*args)
+
+class WindowsCoreDumpEnabler(object):
   """Configure Windows Error Reporting to store crash dumps.
 
   The documentation can be found here:
@@ -780,7 +785,7 @@ class WindowsCoredumpEnabler(object):
           self.winreg.SetValueEx(wer, "Disabled", 0, self.winreg.REG_DWORD, 1)
 
           coredump_folder = os.path.join(
-              os.getcwd(), WindowsCoredumpEnabler.WINDOWS_COREDUMP_FOLDER)
+              os.getcwd(), WindowsCoreDumpEnabler.WINDOWS_COREDUMP_FOLDER)
 
           # Create the directory which will contain the dumps
           if not os.path.exists(coredump_folder):
@@ -944,15 +949,18 @@ class BaseCoreDumpArchiver(object):
       os.unlink(binary)
     return found
 
-class LinuxCoreDumpArchiver(BaseCoreDumpArchiver):
-  def __init__(self):
-    super(self.__class__, self).__init__(os.getcwd())
+class PosixCoreDumpArchiver(BaseCoreDumpArchiver):
+  def __init__(self, search_dir):
+    super(PosixCoreDumpArchiver, self).__init__(search_dir)
 
   def _cleanup(self):
-    found = super(self.__class__, self)._cleanup()
+    found = super(PosixCoreDumpArchiver, self)._cleanup()
     for core in glob.glob(os.path.join(self._search_dir, 'core.*')):
       found = True
-      os.unlink(core)
+      try:
+        os.unlink(core)
+      except:
+        pass
     return found
 
   def _find_coredump_file(self, crash):
@@ -960,13 +968,21 @@ class LinuxCoreDumpArchiver(BaseCoreDumpArchiver):
     if os.path.exists(core_filename):
       return core_filename
 
+class LinuxCoreDumpArchiver(PosixCoreDumpArchiver):
+  def __init__(self):
+    super(LinuxCoreDumpArchiver, self).__init__(os.getcwd())
+
+class MacOSCoreDumpArchiver(PosixCoreDumpArchiver):
+  def __init__(self):
+    super(MacOSCoreDumpArchiver, self).__init__('/cores')
+
 class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
   def __init__(self):
-    super(self.__class__, self).__init__(os.path.join(
-        os.getcwd(), WindowsCoredumpEnabler.WINDOWS_COREDUMP_FOLDER))
+    super(WindowsCoreDumpArchiver, self).__init__(os.path.join(
+        os.getcwd(), WindowsCoreDumpEnabler.WINDOWS_COREDUMP_FOLDER))
 
   def _cleanup(self):
-    found = super(self.__class__, self)._cleanup()
+    found = super(WindowsCoreDumpArchiver, self)._cleanup()
     for core in glob.glob(os.path.join(self._search_dir, '*')):
       found = True
       os.unlink(core)
@@ -980,7 +996,7 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
   def _report_missing_crashes(self, missing, throw=True):
     # Let's only print the debugging information and not throw. We'll do more
     # validation for werfault.exe and throw afterwards.
-    super(self.__class__, self)._report_missing_crashes(missing, throw=False)
+    super(WindowsCoreDumpArchiver, self)._report_missing_crashes(missing, throw=False)
 
     # Let's check again for the image execution options for werfault. Maybe
     # puppet came a long during testing and reverted our change.
@@ -991,7 +1007,7 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
     for wowbit in [winreg.KEY_WOW64_64KEY, winreg.KEY_WOW64_32KEY]:
       try:
          with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
-                             WindowsCoredumpEnabler.IMGEXEC_NAME,
+                             WindowsCoreDumpEnabler.IMGEXEC_NAME,
                              0,
                              winreg.KEY_READ | wowbit) as handle:
           raise Exception(
@@ -1010,7 +1026,6 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
 def NooptCoreDumpArchiver():
   yield
 
-
 def CoreDumpArchiver(args):
   enabled = '--copy-coredumps' in args
 
@@ -1019,10 +1034,13 @@ def CoreDumpArchiver(args):
 
   osname = GuessOS()
   if osname == 'linux':
-    return contextlib.nested(PosixCoredumpEnabler(),
+    return contextlib.nested(LinuxCoreDumpEnabler(),
                              LinuxCoreDumpArchiver())
+  elif osname == 'macos':
+    return contextlib.nested(PosixCoreDumpEnabler(),
+                             MacOSCoreDumpArchiver())
   elif osname == 'win32':
-    return contextlib.nested(WindowsCoredumpEnabler(),
+    return contextlib.nested(WindowsCoreDumpEnabler(),
                              WindowsCoreDumpArchiver())
   else:
     # We don't have support for MacOS yet.

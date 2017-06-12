@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library server.constants;
-
 //
 // Server methods
 //
@@ -78,29 +76,30 @@ const String CONTENT = 'content';
 const String CORRECTION = 'correction';
 const String DART_DOC = 'dartdoc';
 const String DEFAULT = 'default';
+const String DIAGNOSTIC_GET_DIAGNOSTICS = 'diagnostic.getDiagnostics';
+const String DIAGNOSTIC_GET_SERVER_PORT = 'diagnostic.getServerPort';
 const String DISPLAY_NAME = 'displayName';
 const String EDIT_FORMAT = 'edit.format';
 const String EDIT_GET_ASSISTS = 'edit.getAssists';
-const String EDIT_GET_AVAILABLE_REFACTORINGS = 'edit.getAvailableRefactorings';
 
 //
 // Execution methods
 //
+const String EDIT_GET_AVAILABLE_REFACTORINGS = 'edit.getAvailableRefactorings';
 const String EDIT_GET_FIXES = 'edit.getFixes';
 const String EDIT_GET_REFACTORING = 'edit.getRefactoring';
-const String EDIT_ORGANIZE_DIRECTIVES = 'edit.organizeDirectives';
-const String EDIT_SORT_MEMBERS = 'edit.sortMembers';
+const String EDIT_GET_STATEMENT_COMPLETION = "edit.getStatementCompletion";
 
 //
 // Execution notifications
 //
-const String EDITS = 'edits';
+const String EDIT_ORGANIZE_DIRECTIVES = 'edit.organizeDirectives';
 
 //
 // Diagnostics methods
 //
-const String DIAGNOSTIC_GET_DIAGNOSTICS = 'diagnostic.getDiagnostics';
-const String DIAGNOSTIC_GET_SERVER_PORT = 'diagnostic.getServerPort';
+const String EDIT_SORT_MEMBERS = 'edit.sortMembers';
+const String EDITS = 'edits';
 
 //
 // Analysis option names

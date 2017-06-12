@@ -11,7 +11,7 @@ import "package:expect/expect.dart";
 import 'dart:math';
 
 main() {
-  var seed = new Random().nextInt(1<<16);
+  var seed = new Random().nextInt(1 << 16);
   print("coin_test seed: $seed");
   var rnd = new Random(seed);
   var heads = 0;
@@ -24,9 +24,9 @@ main() {
     }
   }
   print("Heads: $heads\n"
-        "Tails: $tails\n"
-        "Ratio: ${heads/tails}\n");
-  Expect.approxEquals(1.0, heads/tails, 0.1);
+      "Tails: $tails\n"
+      "Ratio: ${heads/tails}\n");
+  Expect.approxEquals(1.0, heads / tails, 0.1);
 
   heads = 0;
   tails = 0;
@@ -39,9 +39,9 @@ main() {
     }
   }
   print("Heads: $heads\n"
-        "Tails: $tails\n"
-        "Ratio: ${heads/tails}\n");
-  Expect.approxEquals(1.0, heads/tails, 0.1);
+      "Tails: $tails\n"
+      "Ratio: ${heads/tails}\n");
+  Expect.approxEquals(1.0, heads / tails, 0.1);
 
   // A sequence of newly allocated Random number generators should have fair
   // initial tosses.
@@ -56,7 +56,7 @@ main() {
     }
   }
   print("Heads: $heads\n"
-        "Tails: $tails\n"
-        "Ratio: ${heads/tails}\n");
-  Expect.approxEquals(1.0, heads/tails, 0.1);
+      "Tails: $tails\n"
+      "Ratio: ${heads/tails}\n");
+  Expect.approxEquals(1.0, heads / tails, 0.1);
 }

@@ -53,7 +53,6 @@ class IntTest {
   }
 }
 
-
 main() {
   IntTest.testMain();
 }

@@ -26,39 +26,42 @@ InternetAddress HOST;
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext(String certType, String password) =>
-  new SecurityContext()
-  ..useCertificateChain(localFile(
-      'certificates/server_chain.$certType'), password: password)
-  ..usePrivateKey(localFile(
-      'certificates/server_key.$certType'), password: password)
-  ..setTrustedCertificates(localFile(
-      'certificates/client_authority.$certType'), password: password)
-  ..setClientAuthorities(localFile(
-      'certificates/client_authority.$certType'), password: password);
+    new SecurityContext()
+      ..useCertificateChain(localFile('certificates/server_chain.$certType'),
+          password: password)
+      ..usePrivateKey(localFile('certificates/server_key.$certType'),
+          password: password)
+      ..setTrustedCertificates(
+          localFile('certificates/client_authority.$certType'),
+          password: password)
+      ..setClientAuthorities(
+          localFile('certificates/client_authority.$certType'),
+          password: password);
 
 SecurityContext clientCertContext(String certType, String password) =>
-  new SecurityContext()
-  ..setTrustedCertificates(localFile(
-      'certificates/trusted_certs.$certType'), password: password)
-  ..useCertificateChain(localFile(
-      'certificates/client1.$certType'), password: password)
-  ..usePrivateKey(localFile(
-      'certificates/client1_key.$certType'), password: password);
+    new SecurityContext()
+      ..setTrustedCertificates(
+          localFile('certificates/trusted_certs.$certType'),
+          password: password)
+      ..useCertificateChain(localFile('certificates/client1.$certType'),
+          password: password)
+      ..usePrivateKey(localFile('certificates/client1_key.$certType'),
+          password: password);
 
 SecurityContext clientNoCertContext(String certType, String password) =>
-  new SecurityContext()
-  ..setTrustedCertificates(localFile(
-      'certificates/trusted_certs.$certType'), password: password);
+    new SecurityContext()
+      ..setTrustedCertificates(
+          localFile('certificates/trusted_certs.$certType'),
+          password: password);
 
 Future testClientCertificate(
     {bool required, bool sendCert, String certType, String password}) async {
-  var server = await SecureServerSocket.bind(HOST, 0,
-      serverContext(certType, password),
-      requestClientCertificate: true,
-      requireClientCertificate: required);
-  var clientContext = sendCert ?
-      clientCertContext(certType, password) :
-      clientNoCertContext(certType, password);
+  var server = await SecureServerSocket.bind(
+      HOST, 0, serverContext(certType, password),
+      requestClientCertificate: true, requireClientCertificate: required);
+  var clientContext = sendCert
+      ? clientCertContext(certType, password)
+      : clientNoCertContext(certType, password);
   var clientEndFuture =
       SecureSocket.connect(HOST, server.port, context: clientContext);
   if (required && !sendCert) {

@@ -101,13 +101,13 @@ void equalElementsTest() {
 }
 
 void genericTypeTest() {
-  var map = new LinkedHashMap<int, String>.fromIterable(
-      <int>[1, 2, 3], value: (x) => '$x');
+  var map = new LinkedHashMap<int, String>.fromIterable(<int>[1, 2, 3],
+      value: (x) => '$x');
   Expect.isTrue(map is Map<int, String>);
   Expect.isTrue(map is LinkedHashMap<int, String>);
 
-  map = new LinkedHashMap<String, String>.fromIterable(
-      <int>[1, 2, 3], key: (x) => '$x', value: (x) => '$x');
+  map = new LinkedHashMap<String, String>.fromIterable(<int>[1, 2, 3],
+      key: (x) => '$x', value: (x) => '$x');
   Expect.isTrue(map is Map<String, String>);
   Expect.isTrue(map is LinkedHashMap<String, String>);
 

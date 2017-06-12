@@ -5,9 +5,8 @@
 // Test that a setter has a single argument
 
 // too many arguments
-set m(var value, var extra) { }
+set m(var value, var extra) {}
 
 main() {
   m = 1;
 }
-

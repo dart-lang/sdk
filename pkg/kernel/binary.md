@@ -47,28 +47,42 @@ type List<T> {
   T[length] items;
 }
 
-type String {
-  List<Byte> utf8Bytes;
+// Untagged pairs.
+type Pair<T0, T1> {
+  T0 first;
+  T1 second;
 }
+```
 
+A string table consists of an array of end offsets and a payload array of
+strings encoded as UTF-8.  The array of end offsets maps a string index to the
+offset of the _next_ string in the table or the offset of the end of the array
+for the last string.  These offsets are relative to the string payload array.
+Thus, string number 0 consists of the UTF-8 encoded string stretching from
+offset 0 (inclusive) to endOffset[0] (exclusive); and string number N for N > 0
+consists of the UTF-8 encoded string stretching from offset endOffset[N-1]
+(inclusive) to endOffset[N] (exclusive).
+
+``` scala
 type StringTable {
-  List<String> strings;
+  List<UInt> endOffsets;
+  Byte[endOffsets.last] utf8Bytes;
 }
 
 type StringReference {
-  UInt index; // Index into the StringTable strings.
+  UInt index; // Index into the Program's strings.
 }
 
 type Source {
-  String source;
+  List<Byte> utf8Bytes;
   // Line starts are delta-encoded (they are encoded as line lengths).  The list
   // [0, 10, 25, 32, 42] is encoded as [0, 10, 15, 7, 10].
   List<Uint> lineStarts;
 }
 
 type UriSource {
-  List<String> uris;
-  Source[uris.length] source;
+  StringTable uris;
+  Source[uris.endOffsets.length] source;
 }
 
 type UriReference {
@@ -152,19 +166,28 @@ type Library {
   StringReference name;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
-  List<DeferredImport> deferredImports;
+  List<Expression> annotations;
+  List<LibraryDependency> libraryDependencies;
   List<Class> classes;
   List<Field> fields;
   List<Procedure> procedures;
 }
 
-type DeferredImport {
-  LibraryReference importedLibrary;
+type LibraryDependency {
+  Byte flags (isExport, isDeferred);
+  List<Expression> annotations;
+  LibraryReference targetLibrary;
   StringReference name;
+  List<Combinator> combinators;
 }
 
-type DeferredImportReference {
-  // Index into deferredImports in the enclosing Library.
+type Combinator {
+  Byte flags (isShow);
+  List<String> names;
+}
+
+type LibraryDependencyReference {
+  // Index into libraryDependencies in the enclosing Library.
   UInt index;
 }
 
@@ -338,6 +361,7 @@ type InvalidExpression extends Expression {
 type VariableGet extends Expression {
   Byte tag = 20;
   FileOffset fileOffset;
+  UInt variableDeclarationPosition; // Byte offset in the binary for the variable declaration.
   VariableReference variable;
 }
 
@@ -345,11 +369,13 @@ type SpecializedVariableGet extends Expression {
   Byte tag = 128 + N; // Where 0 <= N < 8.
   // Equivalent to a VariableGet with index N.
   FileOffset fileOffset;
+  UInt variableDeclarationPosition; // Byte offset in the binary for the variable declaration.
 }
 
 type VariableSet extends Expression {
   Byte tag = 21;
   FileOffset fileOffset;
+  UInt variableDeclarationPosition; // Byte offset in the binary for the variable declaration.
   VariableReference variable;
   Expression value;
 }
@@ -357,6 +383,7 @@ type VariableSet extends Expression {
 type SpecializedVariableSet extends Expression {
   Byte tag = 136 + N; // Where 0 <= N < 8.
   FileOffset fileOffset;
+  UInt variableDeclarationPosition; // Byte offset in the binary for the variable declaration.
   Expression value;
   // Equivalent to VariableSet with index N.
 }
@@ -421,6 +448,7 @@ type StaticSet extends Expression {
 
 type Arguments {
   // Note: there is no tag on Arguments.
+  UInt numArguments; // equals positional.length + named.length
   List<DartType> types;
   List<Expression> positional;
   List<NamedExpression> named;
@@ -650,12 +678,12 @@ type Let extends Expression {
 
 type LoadLibrary extends Expression {
   Byte tag = 14;
-  DeferredImportReference import;
+  LibraryDependencyReference deferredImport;
 }
 
 type CheckLibraryIsLoaded extends Expression {
   Byte tag = 13;
-  DeferredImportReference import;
+  LibraryDependencyReference deferredImport;
 }
 
 type VectorCreation extends Expression {
@@ -679,6 +707,13 @@ type VectorSet extends Expression {
 type VectorCopy extends Expression {
   Byte tag = 105;
   Expression vectorExpression;
+}
+
+type ClosureCreation extends Expression {
+  Byte tag = 106;
+  MemberReference topLevelFunctionReference;
+  Expression contextVector;
+  FunctionType functionType;
 }
 
 abstract type Statement extends Node {}
@@ -767,8 +802,7 @@ type SwitchStatement extends Statement {
 
 type SwitchCase {
   // Note: there is no tag on SwitchCase
-  List<Expression> expressions;
-  FileOffset[expressions.length] expressionOffsets; // 1-to-1 with expressions.
+  List<Pair<FileOffset, Expression>> expressions;
   Byte isDefault; // 1 if default, 0 is not default.
   Statement body;
 }
@@ -804,6 +838,7 @@ type ReturnStatement extends Statement {
 type TryCatch extends Statement {
   Byte tag = 75;
   Statement body;
+  Byte anyCatchNeedsStackTrace; // 1 if any catch needs a stacktrace (have a stacktrace variable).
   List<Catch> catches;
 }
 
@@ -867,6 +902,10 @@ type FunctionDeclaration extends Statement {
 
 abstract type DartType extends Node {}
 
+type VectorType extends DartType {
+  Byte tag = 88;
+}
+
 type InvalidType extends DartType {
   Byte tag = 90;
 }
@@ -895,6 +934,7 @@ type FunctionType extends DartType {
   Byte tag = 94;
   List<TypeParameter> typeParameters;
   UInt requiredParameterCount;
+  UInt totalParameterCount; // positionalParameters.length + namedParameters.length
   List<DartType> positionalParameters;
   List<NamedDartType> namedParameters;
   DartType returnType;
@@ -934,10 +974,11 @@ type TypeParameterType extends DartType {
   // the class type parameters in a constructor refer to those declared on the
   // class.
   UInt index;
-}
 
-type VectorType extends DartType {
-  Byte tag = 88;
+  // Byte offset in the binary for the type declaration.
+  // Note: This can also be 0, which is a 'forward reference' and is not to be used.
+  UInt typeParameterPosition;
+  Option<DartType> bound;
 }
 
 type TypeParameter {

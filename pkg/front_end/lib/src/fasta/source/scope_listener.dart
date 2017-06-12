@@ -4,13 +4,11 @@
 
 library fasta.scope_listener;
 
-import '../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show Token;
 
 import 'unhandled_listener.dart' show NullValue, UnhandledListener;
 
-import '../builder/scope.dart' show Scope;
-
-export '../builder/scope.dart' show Scope;
+import '../scope.dart' show Scope;
 
 export 'unhandled_listener.dart' show NullValue, Unhandled;
 
@@ -27,7 +25,7 @@ abstract class ScopeListener<J> extends UnhandledListener {
 
   J continueTarget;
 
-  ScopeListener(this.scope);
+  ScopeListener(Scope scope) : scope = scope ?? new Scope.immutable();
 
   J createJumpTarget(JumpTargetKind kind, int charOffset);
 

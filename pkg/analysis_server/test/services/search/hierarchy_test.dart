@@ -2,17 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.src.search.hierarchy;
-
 import 'dart:async';
 
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,13 +15,17 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HierarchyTest);
-    defineReflectiveTests(HierarchyTest_Driver);
   });
 }
 
 @reflectiveTest
-abstract class AbstractHierarchyTest extends AbstractSingleUnitTest {
-  SearchEngine get searchEngine;
+class HierarchyTest extends AbstractSingleUnitTest {
+  SearchEngineImpl2 searchEngine;
+
+  void setUp() {
+    super.setUp();
+    searchEngine = new SearchEngineImpl2([driver]);
+  }
 
   test_getClassMembers() async {
     await _indexTestUnit('''
@@ -358,40 +356,6 @@ class F implements A {}
     }
   }
 
-  Future<Null> _indexTestUnit(String code);
-}
-
-@reflectiveTest
-class HierarchyTest extends AbstractHierarchyTest {
-  Index index;
-  SearchEngineImpl searchEngine;
-
-  void setUp() {
-    super.setUp();
-    index = createMemoryIndex();
-    searchEngine =
-        new SearchEngineImpl(index, (_) => new AstProviderForContext(context));
-  }
-
-  Future<Null> _indexTestUnit(String code) async {
-    await resolveTestUnit(code);
-    index.indexUnit(testUnit);
-  }
-}
-
-@reflectiveTest
-class HierarchyTest_Driver extends AbstractHierarchyTest {
-  SearchEngineImpl2 searchEngine;
-
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  void setUp() {
-    super.setUp();
-    searchEngine = new SearchEngineImpl2([driver]);
-  }
-
-  @override
   Future<Null> _indexTestUnit(String code) async {
     await resolveTestUnit(code);
   }

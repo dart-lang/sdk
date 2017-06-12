@@ -7,7 +7,9 @@
 import "package:expect/expect.dart";
 
 class A<T> {}
+
 class B<T1, T2 extends A<T1>> {}
+
 class C<T1 extends A<T2>, T2> {}
 
 main() {
@@ -17,13 +19,13 @@ main() {
   Expect.isTrue(a is Object);
   Expect.isTrue(a is A<Object>);
   Expect.isTrue(a is A<String>);
-  Expect.isTrue(a is !A<int>);
+  Expect.isTrue(a is! A<int>);
   Expect.isTrue(b is Object);
   Expect.isTrue(b is B<Object, A<Object>>);
   Expect.isTrue(b is B<String, A<String>>);
-  Expect.isTrue(b is !B<int, A<int>>);
+  Expect.isTrue(b is! B<int, A<int>>);
   Expect.isTrue(c is Object);
   Expect.isTrue(c is C<A<Object>, Object>);
   Expect.isTrue(c is C<A<String>, String>);
-  Expect.isTrue(c is !C<A<int>, int>);
+  Expect.isTrue(c is! C<A<int>, int>);
 }

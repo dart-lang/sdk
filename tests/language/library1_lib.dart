@@ -6,5 +6,7 @@ part of Library1Lib;
 
 class A {
   A() {}
-  String foo() { return "foo-rty two"; }
+  String foo() {
+    return "foo-rty two";
+  }
 }

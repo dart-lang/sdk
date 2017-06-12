@@ -7,17 +7,51 @@ import "package:expect/expect.dart";
 main() {
   // Test that we accept radix 2 to 36 and that we use lower-case
   // letters.
-  var expected = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-                  'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                  'u', 'v', 'w', 'x', 'y', 'z'];
+  var expected = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+    'g',
+    'h',
+    'i',
+    'j',
+    'k',
+    'l',
+    'm',
+    'n',
+    'o',
+    'p',
+    'q',
+    'r',
+    's',
+    't',
+    'u',
+    'v',
+    'w',
+    'x',
+    'y',
+    'z'
+  ];
   for (var radix = 2; radix <= 36; radix++) {
     for (var i = 0; i < radix; i++) {
       Expect.equals(expected[i], i.toRadixString(radix));
     }
   }
 
-  var illegalRadices = [ -1, 0, 1, 37 ];
+  var illegalRadices = [-1, 0, 1, 37];
   for (var radix in illegalRadices) {
     try {
       42.toRadixString(radix);
@@ -32,7 +66,7 @@ main() {
     0x80000000,
     0x100000000,
     0x10000000000000,
-    0x10000000000001,  // 53 significant bits.
+    0x10000000000001, // 53 significant bits.
     0x20000000000000,
     0x20000000000002,
     0x1000000000000000,
@@ -54,8 +88,8 @@ main() {
     for (int radix = 2; radix <= 36; radix++) {
       String digits = bignum.toRadixString(radix);
       int result = int.parse(digits, radix: radix);
-      Expect.equals(bignum, result,
-                    "${bignum.toRadixString(16)} -> $digits/$radix");
+      Expect.equals(
+          bignum, result, "${bignum.toRadixString(16)} -> $digits/$radix");
     }
   }
 }

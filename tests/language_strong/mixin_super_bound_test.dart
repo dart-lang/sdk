@@ -6,23 +6,23 @@ import "package:expect/expect.dart";
 
 bool inCheckedMode() {
   try {
-    var i = 42;
-    String s = i;
+    String s = 42 as dynamic;
   } on TypeError catch (e) {
     return true;
   }
   return false;
 }
 
-class M<U extends V, V> { }
+class M<U extends V, V> {}
 
-class N<U, V extends U> { }
+class N<U, V extends U> {}
 
-class S<T> { }
+class S<T> {}
 
-class MNA<U, V, W> extends S<List<U>> with M<V, U>, N<List<W>, List<W>> { }
+class MNA<U, V extends U, W> extends S<List<U>>
+    with M<V, U>, N<List<W>, List<W>> {}
 
-class MNA2<U, V, W> = S<List<U>> with M<V, U>, N<List<W>, List<W>>;
+class MNA2<U, V extends U, W> = S<List<U>> with M<V, U>, N<List<W>, List<W>>;
 
 main() {
   new MNA<num, int, bool>();
@@ -39,4 +39,3 @@ main() {
     new MNA2<int, num, bool>();
   }
 }
-

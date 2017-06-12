@@ -6,7 +6,7 @@ library fasta.scanner;
 
 import 'dart:convert' show UNICODE_REPLACEMENT_CHARACTER_RUNE, UTF8;
 
-import 'scanner/token.dart' show Token;
+import '../scanner/token.dart' show Token;
 
 import 'scanner/string_scanner.dart' show StringScanner;
 
@@ -17,10 +17,8 @@ import 'scanner/recover.dart' show defaultRecoveryStrategy;
 export 'scanner/token.dart'
     show
         BeginGroupToken,
-        KeywordToken,
         StringToken,
         SymbolToken,
-        Token,
         isBinaryOperator,
         isMinusOperator,
         isTernaryOperator,
@@ -36,7 +34,7 @@ export 'scanner/utf8_bytes_scanner.dart' show Utf8BytesScanner;
 
 export 'scanner/string_scanner.dart' show StringScanner;
 
-export 'scanner/keyword.dart' show Keyword;
+export '../scanner/token.dart' show Keyword, Token;
 
 const int unicodeReplacementCharacter = UNICODE_REPLACEMENT_CHARACTER_RUNE;
 
@@ -62,22 +60,30 @@ class ScannerResult {
 /// Scan/tokenize the given UTF8 [bytes].
 /// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scan(List<int> bytes,
-    {bool includeComments: false, Recover recover}) {
+    {bool includeComments: false,
+    bool scanGenericMethodComments: false,
+    Recover recover}) {
   if (bytes.last != 0) {
     throw new ArgumentError("[bytes]: the last byte must be null.");
   }
-  Scanner scanner =
-      new Utf8BytesScanner(bytes, includeComments: includeComments);
+  Scanner scanner = new Utf8BytesScanner(bytes,
+      includeComments: includeComments,
+      scanGenericMethodComments: scanGenericMethodComments);
   return _tokenizeAndRecover(scanner, recover, bytes: bytes);
 }
 
 /// Scan/tokenize the given [source].
 /// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scanString(String source,
-    {bool includeComments: false, Recover recover}) {
+    {bool includeComments: false,
+    bool scanGenericMethodComments: false,
+    bool scanLazyAssignmentOperators: false,
+    Recover recover}) {
   assert(source != null, 'source must not be null');
-  StringScanner scanner =
-      new StringScanner(source, includeComments: includeComments);
+  StringScanner scanner = new StringScanner(source,
+      includeComments: includeComments,
+      scanGenericMethodComments: scanGenericMethodComments,
+      scanLazyAssignmentOperators: scanLazyAssignmentOperators);
   return _tokenizeAndRecover(scanner, recover, source: source);
 }
 

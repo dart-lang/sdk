@@ -4,14 +4,15 @@
 
 import "package:expect/expect.dart";
 
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 confuse(x) => x;
 
 Iterable<int> foo() sync* {
- var a = confuse(1);
- if (a < 10) {
-   yield 2;
- }
+  var a = confuse(1);
+  if (a < 10) {
+    yield 2;
+  }
 }
 
 main() {

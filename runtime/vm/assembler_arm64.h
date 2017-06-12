@@ -1071,13 +1071,13 @@ class Assembler : public ValueObject {
     ASSERT(reg != PP);  // Only pop PP with PopAndUntagPP().
     ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
   }
-  void PushPair(Register first, Register second) {
-    ASSERT((first != PP) && (second != PP));
-    stp(second, first, Address(SP, -2 * kWordSize, Address::PairPreIndex));
+  void PushPair(Register low, Register high) {
+    ASSERT((low != PP) && (high != PP));
+    stp(low, high, Address(SP, -2 * kWordSize, Address::PairPreIndex));
   }
-  void PopPair(Register first, Register second) {
-    ASSERT((first != PP) && (second != PP));
-    ldp(second, first, Address(SP, 2 * kWordSize, Address::PairPostIndex));
+  void PopPair(Register low, Register high) {
+    ASSERT((low != PP) && (high != PP));
+    ldp(low, high, Address(SP, 2 * kWordSize, Address::PairPostIndex));
   }
   void PushFloat(VRegister reg) {
     fstrs(reg, Address(SP, -1 * kFloatSize, Address::PreIndex));
@@ -1144,6 +1144,11 @@ class Assembler : public ValueObject {
     b(label, NE);
   }
 
+  void BranchIfSmi(Register reg, Label* label) {
+    tsti(reg, Immediate(kSmiTagMask));
+    b(label, EQ);
+  }
+
   void Branch(const StubEntry& stub_entry,
               Register pp,
               Patchability patchable = kNotPatchable);
@@ -1159,6 +1164,10 @@ class Assembler : public ValueObject {
   // that have the same equivalence marker.
   void BranchLinkWithEquivalence(const StubEntry& stub_entry,
                                  const Object& equivalence);
+
+  void AddImmediate(Register dest, int64_t imm) {
+    AddImmediate(dest, dest, imm);
+  }
 
   // Macros accepting a pp Register argument may attempt to load values from
   // the object pool when possible. Unless you are sure that the untagged object

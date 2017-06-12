@@ -2459,7 +2459,7 @@
           "/**",
           "   * Returns a copy of this node.",
           "   *",
-          "   * If [deep] is `true`, then all of this node's children and decendents are",
+          "   * If [deep] is `true`, then all of this node's children and descendents are",
           "   * copied as well. If [deep] is `false`, then only this node is copied.",
           "   *",
           "   * ## Other resources",
@@ -2626,7 +2626,7 @@
         ],
         "textContent": [
           "/**",
-          "   * All text within this node and its decendents.",
+          "   * All text within this node and its descendents.",
           "   *",
           "   * ## Other resources",
           "   *",
@@ -3219,7 +3219,7 @@
           "   *",
           "   * This method accepts data of type [Blob], [ByteBuffer], [String], or",
           "   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],",
-          "   * or [sendTypedData], in constrast, only accept data of the specified type.",
+          "   * or [sendTypedData], in contrast, only accept data of the specified type.",
           "   */"
         ]
       }
@@ -4154,7 +4154,7 @@
           "/**",
           "   * Stop the current request.",
           "   *",
-          "   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or",
+          "   * The request can only be stopped if readyState is `HEADERS_RECEIVED` or",
           "   * `LOADING`. If this method is not in the process of being sent, the method",
           "   * has no effect.",
           "   */"
@@ -4201,7 +4201,7 @@
           "   *",
           "   * Note: Most simple HTTP requests can be accomplished using the [getString],",
           "   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this",
-          "   * `open` method is intended only for more complext HTTP requests where",
+          "   * `open` method is intended only for more complex HTTP requests where",
           "   * finer-grained control is needed.",
           "   */"
         ],
@@ -4298,7 +4298,7 @@
           "   *",
           "   * Note: Most simple HTTP requests can be accomplished using the [getString],",
           "   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this",
-          "   * `send` method is intended only for more complext HTTP requests where",
+          "   * `send` method is intended only for more complex HTTP requests where",
           "   * finer-grained control is needed.",
           "   *",
           "   * ## Other resources",
@@ -4309,7 +4309,7 @@
         ],
         "setRequestHeader": [
           "/**",
-          "   * Sets the value of an HTTP requst header.",
+          "   * Sets the value of an HTTP request header.",
           "   *",
           "   * This method should be called after the request is opened, but before",
           "   * the request is sent.",
@@ -4340,7 +4340,8 @@
         ],
         "timeout": [
           "/**",
-          "   * Length of time before a request is automatically terminated.",
+          "   * Length of time in milliseconds before a request is automatically",
+          "   * terminated.",
           "   *",
           "   * When the time has passed, a [TimeoutEvent] is dispatched.",
           "   *",

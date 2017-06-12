@@ -100,9 +100,6 @@ invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
 lookup_map/dead_entry_through_mirrors_test: SkipByDesign # Test for tree-shaking, vm never tree-shakes
 unconditional_dartio_import_test: SkipByDesign # dart2js only test
 
-[ $compiler == dart2js ]
-big_allocation_expression_test: Crash # Issue 24635
-
 [ $compiler == dart2js && $runtime == chrome && $system == windows ]
 class_test: Pass, Slow # Issue 25940
 consistent_codeUnitAt_error_test: Pass, Slow # Issue 25940
@@ -126,11 +123,7 @@ bailout_on_continue_test: RuntimeError # Issue 27394
 closure_type_reflection2_test: Crash # Issue 27394
 closure_type_reflection_test: Crash # Issue 27394
 deferred/deferred_constant3_test: RuntimeError # Issue 27394
-deferred/deferred_function_test: RuntimeError # Issue 27394
 deferred/deferred_mirrors2_test: Crash # Issue 27394
-first_class_types_hashcode_test: RuntimeError # Issue 27394
-generics_factories_test: RuntimeError # Issue 27394
-generics_is_check1_test: RuntimeError # Issue 27394
 inference_super_set_call_test: RuntimeError # Issue 27394
 invalid_annotation2_test/01: Crash # Issue 27394
 invalid_annotation2_test/none: Crash # Issue 27394
@@ -162,7 +155,7 @@ mirrors_used_native_test: Crash # Issue 27394
 reflect_native_types_test: Crash # Issue 27394
 runtime_type_test: RuntimeError # Issue 27394
 type_argument_factory_nocrash_test: RuntimeError # Issue 27394
-typevariable_substitution_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+js_dispatch_property_test: Crash # Issue 27394
 regress/4562_test/01: Crash # Issue 27394

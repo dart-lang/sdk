@@ -116,19 +116,19 @@ class FormatException implements Exception {
     }
     int lineNum = 1;
     int lineStart = 0;
-    bool lastWasCR;
+    bool previousCharWasCR = false;
     for (int i = 0; i < offset; i++) {
       int char = source.codeUnitAt(i);
       if (char == 0x0a) {
-        if (lineStart != i || !lastWasCR) {
+        if (lineStart != i || !previousCharWasCR) {
           lineNum++;
         }
         lineStart = i + 1;
-        lastWasCR = false;
+        previousCharWasCR = false;
       } else if (char == 0x0d) {
         lineNum++;
         lineStart = i + 1;
-        lastWasCR = true;
+        previousCharWasCR = true;
       }
     }
     if (lineNum > 1) {

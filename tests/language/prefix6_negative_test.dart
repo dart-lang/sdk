@@ -4,6 +4,7 @@
 //
 
 library Prefix6NegativeTest.dart;
+
 import "library10.dart" as lib10;
 
 class Prefix6NegativeTest {
@@ -11,7 +12,7 @@ class Prefix6NegativeTest {
     // Variables in the local scope hide the library prefix.
     var lib10 = 0;
     var result = 0;
-    result += lib10.Library10.static_func();  // This should fail.
+    result += lib10.Library10.static_func(); // This should fail.
   }
 }
 

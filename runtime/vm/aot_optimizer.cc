@@ -17,6 +17,7 @@
 #include "vm/flow_graph_range_analysis.h"
 #include "vm/hash_map.h"
 #include "vm/il_printer.h"
+#include "vm/jit_optimizer.h"
 #include "vm/intermediate_language.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -112,23 +113,11 @@ bool AotOptimizer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
   // There is only a single function Object.get:runtimeType that can be invoked
   // by this call. Convert dynamic invocation to a static one.
   const Class& cls = Class::Handle(Z, I->object_store()->object_class());
-  const Array& args_desc_array = Array::Handle(
-      Z,
-      ArgumentsDescriptor::New(call->ArgumentCount(), call->argument_names()));
-  ArgumentsDescriptor args_desc(args_desc_array);
   const Function& function =
-      Function::Handle(Z, Resolver::ResolveDynamicForReceiverClass(
-                              cls, call->function_name(), args_desc));
+      Function::Handle(Z, call->ResolveForReceiverClass(cls));
   ASSERT(!function.IsNull());
-
-  ZoneGrowableArray<PushArgumentInstr*>* args =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(call->ArgumentCount());
-  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-    args->Add(call->PushArgumentAt(i));
-  }
-  StaticCallInstr* static_call = new (Z) StaticCallInstr(
-      call->token_pos(), Function::ZoneHandle(Z, function.raw()),
-      call->argument_names(), args, call->deopt_id());
+  const Function& target = Function::ZoneHandle(Z, function.raw());
+  StaticCallInstr* static_call = StaticCallInstr::FromCall(Z, call, target);
   static_call->set_result_cid(kTypeCid);
   call->ReplaceWith(static_call, current_iterator());
   return true;
@@ -177,9 +166,12 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return false;
   }
   GrowableArray<intptr_t> class_ids(call->ic_data()->NumArgsTested());
-  ASSERT(call->ic_data()->NumArgsTested() <= call->ArgumentCount());
+  const intptr_t receiver_idx = call->FirstParamIndex();
+  ASSERT(call->ic_data()->NumArgsTested() <=
+         call->ArgumentCountWithoutTypeArgs());
   for (intptr_t i = 0; i < call->ic_data()->NumArgsTested(); i++) {
-    class_ids.Add(call->PushArgumentAt(i)->value()->Type()->ToCid());
+    class_ids.Add(
+        call->PushArgumentAt(receiver_idx + i)->value()->Type()->ToCid());
   }
 
   const Token::Kind op_kind = call->token_kind();
@@ -221,13 +213,8 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
       // finalized yet.
       return false;
     }
-    const Array& args_desc_array =
-        Array::Handle(Z, ArgumentsDescriptor::New(call->ArgumentCount(),
-                                                  call->argument_names()));
-    ArgumentsDescriptor args_desc(args_desc_array);
-    const Function& function = Function::Handle(
-        Z, Resolver::ResolveDynamicForReceiverClass(
-               receiver_class, call->function_name(), args_desc));
+    const Function& function =
+        Function::Handle(Z, call->ResolveForReceiverClass(receiver_class));
     if (function.IsNull()) {
       return false;
     }
@@ -252,11 +239,18 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
     // Check if the target is unique.
     Function& target_function = Function::Handle(Z);
     GetUniqueDynamicTarget(isolate(), call->function_name(), &target_function);
-    // Calls with named arguments must be resolved/checked at runtime.
+    // Calls passing named arguments and calls to a function taking named
+    // arguments must be resolved/checked at runtime.
+    // Calls passing a type argument vector and calls to a generic function must
+    // be resolved/checked at runtime.
     if (!target_function.IsNull() &&
         !target_function.HasOptionalNamedParameters() &&
-        target_function.AreValidArgumentCounts(call->ArgumentCount(), 0,
-                                               /* error_message = */ NULL)) {
+        !target_function.IsGeneric() &&
+        target_function.AreValidArgumentCounts(
+            call->type_args_len(), call->ArgumentCountWithoutTypeArgs(),
+            call->argument_names().IsNull() ? 0
+                                            : call->argument_names().Length(),
+            /* error_message = */ NULL)) {
       const Class& cls = Class::Handle(Z, target_function.Owner());
       if (!CHA::IsImplemented(cls) && !CHA::HasSubclasses(cls)) {
         const ICData& ic_data =
@@ -447,35 +441,23 @@ void AotOptimizer::AddCheckSmi(Definition* to_check,
 }
 
 
-Instruction* AotOptimizer::GetCheckClass(Definition* to_check,
-                                         const ICData& unary_checks,
-                                         intptr_t deopt_id,
-                                         TokenPosition token_pos) {
-  if ((unary_checks.NumberOfUsedChecks() == 1) &&
-      unary_checks.HasReceiverClassId(kSmiCid)) {
-    return new (Z) CheckSmiInstr(new (Z) Value(to_check), deopt_id, token_pos);
-  }
-  return new (Z) CheckClassInstr(new (Z) Value(to_check), deopt_id,
-                                 unary_checks, token_pos);
-}
-
-
 void AotOptimizer::AddCheckClass(Definition* to_check,
-                                 const ICData& unary_checks,
+                                 const Cids& cids,
                                  intptr_t deopt_id,
                                  Environment* deopt_environment,
                                  Instruction* insert_before) {
   // Type propagation has not run yet, we cannot eliminate the check.
-  Instruction* check = GetCheckClass(to_check, unary_checks, deopt_id,
-                                     insert_before->token_pos());
+  Instruction* check = flow_graph_->CreateCheckClass(
+      to_check, cids, deopt_id, insert_before->token_pos());
   InsertBefore(insert_before, check, deopt_environment, FlowGraph::kEffect);
 }
 
 
-void AotOptimizer::AddReceiverCheck(InstanceCallInstr* call) {
-  AddCheckClass(call->ArgumentAt(0),
-                ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks()),
-                call->deopt_id(), call->env(), call);
+void AotOptimizer::AddChecksForArgNr(InstanceCallInstr* call,
+                                     Definition* instr,
+                                     int argument_number) {
+  const Cids* cids = Cids::Create(Z, *call->ic_data(), argument_number);
+  AddCheckClass(instr, *cids, call->deopt_id(), call->env(), call);
 }
 
 
@@ -496,12 +478,11 @@ static bool ArgIsAlways(intptr_t cid,
 }
 
 
-bool AotOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
+bool AotOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call,
+                                           const ICData* unary_checks) {
   // Check for monomorphic IC data.
-  if (!call->HasICData()) return false;
-  const ICData& ic_data =
-      ICData::Handle(Z, call->ic_data()->AsUnaryClassChecks());
-  if (!ic_data.NumberOfChecksIs(1)) {
+  ASSERT(unary_checks->NumberOfChecks() > 0);
+  if (unary_checks->NumberOfChecksIs(1)) {
     return false;
   }
   return FlowGraphInliner::TryReplaceInstanceCallWithInline(
@@ -574,9 +555,7 @@ bool AotOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
       right_val = new (Z) Value(right_instr->char_code()->definition());
       to_remove_right = right_instr;
     } else {
-      const ICData& unary_checks_1 =
-          ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecksForArgNr(1));
-      AddCheckClass(right, unary_checks_1, call->deopt_id(), call->env(), call);
+      AddChecksForArgNr(call, right, /* arg_number = */ 1);
       // String-to-char-code instructions returns -1 (illegal charcode) if
       // string is not of length one.
       StringToCharCodeInstr* char_code_right = new (Z)
@@ -627,6 +606,7 @@ bool AotOptimizer::TryReplaceWithHaveSameRuntimeType(InstanceCallInstr* call) {
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.NumArgsTested() == 2);
 
+  ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 2);
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
@@ -648,10 +628,12 @@ bool AotOptimizer::TryReplaceWithHaveSameRuntimeType(InstanceCallInstr* call) {
     arg = new (Z) PushArgumentInstr(new (Z) Value(right->ArgumentAt(0)));
     InsertBefore(call, arg, NULL, FlowGraph::kEffect);
     args->Add(arg);
-    StaticCallInstr* static_call =
-        new (Z) StaticCallInstr(call->token_pos(), have_same_runtime_type,
-                                Object::null_array(),  // argument_names
-                                args, call->deopt_id());
+    const intptr_t kTypeArgsLen = 0;
+    ASSERT(call->type_args_len() == kTypeArgsLen);
+    StaticCallInstr* static_call = new (Z)
+        StaticCallInstr(call->token_pos(), have_same_runtime_type, kTypeArgsLen,
+                        Object::null_array(),  // argument_names
+                        args, call->deopt_id(), call->CallCount());
     static_call->set_result_cid(kBoolCid);
     ReplaceCall(call, static_call);
     return true;
@@ -666,9 +648,10 @@ bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.NumArgsTested() == 2);
 
+  ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 2);
-  Definition* left = call->ArgumentAt(0);
-  Definition* right = call->ArgumentAt(1);
+  Definition* const left = call->ArgumentAt(0);
+  Definition* const right = call->ArgumentAt(1);
 
   intptr_t cid = kIllegalCid;
   if (HasOnlyTwoOf(ic_data, kOneByteStringCid)) {
@@ -712,13 +695,9 @@ bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
     smi_or_null.Add(kNullCid);
     if (ICDataHasOnlyReceiverArgumentClassIds(ic_data, smi_or_null,
                                               smi_or_null)) {
-      const ICData& unary_checks_0 =
-          ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
-      AddCheckClass(left, unary_checks_0, call->deopt_id(), call->env(), call);
+      AddChecksForArgNr(call, left, /* arg_number = */ 0);
+      AddChecksForArgNr(call, right, /* arg_number = */ 1);
 
-      const ICData& unary_checks_1 =
-          ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecksForArgNr(1));
-      AddCheckClass(right, unary_checks_1, call->deopt_id(), call->env(), call);
       cid = kSmiCid;
     } else {
       // Shortcut for equality with null.
@@ -752,6 +731,7 @@ bool AotOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.NumArgsTested() == 2);
 
+  ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 2);
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
@@ -901,6 +881,7 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       UNREACHABLE();
   }
 
+  ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 2);
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
@@ -989,6 +970,7 @@ bool AotOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
 
 bool AotOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
                                          Token::Kind op_kind) {
+  ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 1);
   Definition* input = call->ArgumentAt(0);
   Definition* unary_op = NULL;
@@ -1075,17 +1057,13 @@ bool AotOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
   if (!ShouldInlineSimd()) {
     return false;
   }
+  ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 2);
-  Definition* left = call->ArgumentAt(0);
-  Definition* right = call->ArgumentAt(1);
-  // Type check left.
-  AddCheckClass(left, ICData::ZoneHandle(
-                          Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(), call->env(), call);
-  // Type check right.
-  AddCheckClass(right, ICData::ZoneHandle(
-                           Z, call->ic_data()->AsUnaryClassChecksForArgNr(1)),
-                call->deopt_id(), call->env(), call);
+  Definition* const left = call->ArgumentAt(0);
+  Definition* const right = call->ArgumentAt(1);
+  // Type check left and right.
+  AddChecksForArgNr(call, left, /* arg_number = */ 0);
+  AddChecksForArgNr(call, right, /* arg_number = */ 1);
   // Replace call.
   BinaryFloat32x4OpInstr* float32x4_bin_op = new (Z) BinaryFloat32x4OpInstr(
       op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
@@ -1100,17 +1078,13 @@ bool AotOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
   if (!ShouldInlineSimd()) {
     return false;
   }
+  ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 2);
-  Definition* left = call->ArgumentAt(0);
-  Definition* right = call->ArgumentAt(1);
-  // Type check left.
-  AddCheckClass(left, ICData::ZoneHandle(
-                          Z, call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                call->deopt_id(), call->env(), call);
-  // Type check right.
-  AddCheckClass(right, ICData::ZoneHandle(
-                           Z, call->ic_data()->AsUnaryClassChecksForArgNr(1)),
-                call->deopt_id(), call->env(), call);
+  Definition* const left = call->ArgumentAt(0);
+  Definition* const right = call->ArgumentAt(1);
+  // Type check left and right.
+  AddChecksForArgNr(call, left, /* arg_number = */ 0);
+  AddChecksForArgNr(call, right, /* arg_number = */ 1);
   // Replace call.
   BinaryInt32x4OpInstr* int32x4_bin_op = new (Z) BinaryInt32x4OpInstr(
       op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
@@ -1124,17 +1098,13 @@ bool AotOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
   if (!ShouldInlineSimd()) {
     return false;
   }
+  ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 2);
-  Definition* left = call->ArgumentAt(0);
-  Definition* right = call->ArgumentAt(1);
-  // Type check left.
-  AddCheckClass(
-      left, ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-      call->deopt_id(), call->env(), call);
-  // Type check right.
-  AddCheckClass(
-      right, ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecksForArgNr(1)),
-      call->deopt_id(), call->env(), call);
+  Definition* const left = call->ArgumentAt(0);
+  Definition* const right = call->ArgumentAt(1);
+  // Type check left and right.
+  AddChecksForArgNr(call, left, /* arg_number = */ 0);
+  AddChecksForArgNr(call, right, /* arg_number = */ 1);
   // Replace call.
   BinaryFloat64x2OpInstr* float64x2_bin_op = new (Z) BinaryFloat64x2OpInstr(
       op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
@@ -1171,6 +1141,7 @@ bool AotOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 void AotOptimizer::ReplaceWithMathCFunction(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
+  ASSERT(call->type_args_len() == 0);
   AddReceiverCheck(call);
   ZoneGrowableArray<Value*>* args =
       new (Z) ZoneGrowableArray<Value*>(call->ArgumentCount());
@@ -1448,15 +1419,19 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
 void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
-  Definition* type_args = NULL;
+  Definition* instantiator_type_args = NULL;
+  Definition* function_type_args = NULL;
   AbstractType& type = AbstractType::ZoneHandle(Z);
+  ASSERT(call->type_args_len() == 0);
   if (call->ArgumentCount() == 2) {
-    type_args = flow_graph()->constant_null();
+    instantiator_type_args = flow_graph()->constant_null();
+    function_type_args = flow_graph()->constant_null();
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
     type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
   } else {
-    type_args = call->ArgumentAt(1);
-    type = AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value()).raw();
+    instantiator_type_args = call->ArgumentAt(1);
+    function_type_args = call->ArgumentAt(2);
+    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
   }
 
   if (TypeCheckAsClassEquality(type)) {
@@ -1511,10 +1486,11 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       ASSERT(!target.IsNull());
       ASSERT(target.IsRecognized() && target.always_inline());
 
+      const intptr_t kTypeArgsLen = 0;
       StaticCallInstr* new_call =
-          new (Z) StaticCallInstr(call->token_pos(), target,
+          new (Z) StaticCallInstr(call->token_pos(), target, kTypeArgsLen,
                                   Object::null_array(),  // argument_names
-                                  args, call->deopt_id());
+                                  args, call->deopt_id(), call->CallCount());
       Environment* copy = call->env()->DeepCopy(
           Z, call->env()->Length() - call->ArgumentCount());
       for (intptr_t i = 0; i < args->length(); ++i) {
@@ -1550,8 +1526,8 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   }
 
   InstanceOfInstr* instance_of = new (Z) InstanceOfInstr(
-      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
-      NULL,  // TODO(regis): Pass function type args.
+      call->token_pos(), new (Z) Value(left),
+      new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
       type, call->deopt_id());
   ReplaceCall(call, instance_of);
 }
@@ -1560,11 +1536,131 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 // TODO(srdjan): Apply optimizations as in ReplaceWithInstanceOf (TestCids).
 void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeCastOperator(call->token_kind()));
+  ASSERT(call->type_args_len() == 0);
   Definition* left = call->ArgumentAt(0);
-  Definition* type_args = call->ArgumentAt(1);
+  Definition* instantiator_type_args = call->ArgumentAt(1);
+  Definition* function_type_args = call->ArgumentAt(2);
   const AbstractType& type =
-      AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value());
+      AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value());
   ASSERT(!type.IsMalformedOrMalbounded());
+
+  if (TypeCheckAsClassEquality(type)) {
+    LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
+    InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
+    const intptr_t type_cid = Class::ZoneHandle(Z, type.type_class()).id();
+    ConstantInstr* cid =
+        flow_graph()->GetConstant(Smi::ZoneHandle(Z, Smi::New(type_cid)));
+    ConstantInstr* pos = flow_graph()->GetConstant(
+        Smi::ZoneHandle(Z, Smi::New(call->token_pos().Pos())));
+
+    ZoneGrowableArray<PushArgumentInstr*>* args =
+        new (Z) ZoneGrowableArray<PushArgumentInstr*>(5);
+    PushArgumentInstr* arg = new (Z) PushArgumentInstr(new (Z) Value(pos));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+    arg = new (Z) PushArgumentInstr(new (Z) Value(left));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+    arg = new (Z)
+        PushArgumentInstr(new (Z) Value(flow_graph()->GetConstant(type)));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+    arg = new (Z) PushArgumentInstr(new (Z) Value(left_cid));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+    arg = new (Z) PushArgumentInstr(new (Z) Value(cid));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+
+    const Library& dart_internal = Library::Handle(Z, Library::CoreLibrary());
+    const String& target_name = Symbols::_classIdEqualsAssert();
+    const Function& target = Function::ZoneHandle(
+        Z, dart_internal.LookupFunctionAllowPrivate(target_name));
+    ASSERT(!target.IsNull());
+    ASSERT(target.IsRecognized());
+    ASSERT(target.always_inline());
+
+    const intptr_t kTypeArgsLen = 0;
+    StaticCallInstr* new_call =
+        new (Z) StaticCallInstr(call->token_pos(), target, kTypeArgsLen,
+                                Object::null_array(),  // argument_names
+                                args, call->deopt_id(), call->CallCount());
+    Environment* copy =
+        call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
+    for (intptr_t i = 0; i < args->length(); ++i) {
+      copy->PushValue(new (Z) Value((*args)[i]->value()->definition()));
+    }
+    call->RemoveEnvironment();
+    ReplaceCall(call, new_call);
+    copy->DeepCopyTo(Z, new_call);
+    return;
+  }
+
+  if (precompiler_ != NULL) {
+    TypeRangeCache* cache = precompiler_->type_range_cache();
+    intptr_t lower_limit, upper_limit;
+    if (cache != NULL &&
+        cache->InstanceOfHasClassRange(type, &lower_limit, &upper_limit)) {
+      // left.instanceof(type) =>
+      //     _classRangeCheck(left.cid, lower_limit, upper_limit)
+
+      LoadClassIdInstr* left_cid =
+          new (Z) LoadClassIdInstr(new (Z) Value(left));
+      InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
+      ConstantInstr* lower_cid =
+          flow_graph()->GetConstant(Smi::ZoneHandle(Z, Smi::New(lower_limit)));
+      ConstantInstr* upper_cid =
+          flow_graph()->GetConstant(Smi::ZoneHandle(Z, Smi::New(upper_limit)));
+      ConstantInstr* pos = flow_graph()->GetConstant(
+          Smi::ZoneHandle(Z, Smi::New(call->token_pos().Pos())));
+
+      ZoneGrowableArray<PushArgumentInstr*>* args =
+          new (Z) ZoneGrowableArray<PushArgumentInstr*>(6);
+      PushArgumentInstr* arg = new (Z) PushArgumentInstr(new (Z) Value(pos));
+      InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+      args->Add(arg);
+      arg = new (Z) PushArgumentInstr(new (Z) Value(left));
+      InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+      args->Add(arg);
+      arg = new (Z)
+          PushArgumentInstr(new (Z) Value(flow_graph()->GetConstant(type)));
+      InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+      args->Add(arg);
+      arg = new (Z) PushArgumentInstr(new (Z) Value(left_cid));
+      InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+      args->Add(arg);
+      arg = new (Z) PushArgumentInstr(new (Z) Value(lower_cid));
+      InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+      args->Add(arg);
+      arg = new (Z) PushArgumentInstr(new (Z) Value(upper_cid));
+      InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+      args->Add(arg);
+
+      const Library& dart_internal = Library::Handle(Z, Library::CoreLibrary());
+      const String& target_name = Symbols::_classRangeAssert();
+      const Function& target = Function::ZoneHandle(
+          Z, dart_internal.LookupFunctionAllowPrivate(target_name));
+      ASSERT(!target.IsNull());
+      ASSERT(target.IsRecognized());
+      ASSERT(target.always_inline());
+
+      const intptr_t kTypeArgsLen = 0;
+      StaticCallInstr* new_call =
+          new (Z) StaticCallInstr(call->token_pos(), target, kTypeArgsLen,
+                                  Object::null_array(),  // argument_names
+                                  args, call->deopt_id(), call->CallCount());
+      Environment* copy = call->env()->DeepCopy(
+          Z, call->env()->Length() - call->ArgumentCount());
+      for (intptr_t i = 0; i < args->length(); ++i) {
+        copy->PushValue(new (Z) Value((*args)[i]->value()->definition()));
+      }
+      call->RemoveEnvironment();
+      ReplaceCall(call, new_call);
+      copy->DeepCopyTo(Z, new_call);
+      return;
+    }
+  }
+
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
@@ -1593,8 +1689,8 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
     }
   }
   AssertAssignableInstr* assert_as = new (Z) AssertAssignableInstr(
-      call->token_pos(), new (Z) Value(left), new (Z) Value(type_args),
-      NULL,  // TODO(regis): Pass function type arguments.
+      call->token_pos(), new (Z) Value(left),
+      new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
       type, Symbols::InTypeCast(), call->deopt_id());
   ReplaceCall(call, assert_as);
 }
@@ -1610,6 +1706,7 @@ bool AotOptimizer::IsAllowedForInlining(intptr_t call_deopt_id) {
 
 
 static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
+  ASSERT(instr->type_args_len() == 0);
   // Phis with at least one known smi are // guessed to be likely smi as well.
   for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
     PhiInstr* phi = instr->ArgumentAt(i)->AsPhi();
@@ -1679,10 +1776,12 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
   if (IsAllowedForInlining(instr->deopt_id()) && number_of_checks > 0) {
-    if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
+    if ((op_kind == Token::kINDEX) &&
+        TryReplaceWithIndexedOp(instr, &unary_checks)) {
       return;
     }
-    if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
+    if ((op_kind == Token::kASSIGN_INDEX) &&
+        TryReplaceWithIndexedOp(instr, &unary_checks)) {
       return;
     }
     if ((op_kind == Token::kEQ) && TryReplaceWithEqualityOp(instr, op_kind)) {
@@ -1721,10 +1820,10 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     RawFunction::Kind function_kind =
         Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
     if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
-      PolymorphicInstanceCallInstr* call =
-          new (Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                               /* with_checks = */ false,
-                                               /* complete = */ true);
+      CallTargets* targets = CallTargets::Create(Z, unary_checks);
+      ASSERT(targets->HasSingleTarget());
+      const Function& target = targets->FirstTarget();
+      StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -1778,24 +1877,11 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
-
-    const Array& args_desc_array =
-        Array::Handle(Z, ArgumentsDescriptor::New(instr->ArgumentCount(),
-                                                  instr->argument_names()));
-    ArgumentsDescriptor args_desc(args_desc_array);
-    const Function& function = Function::Handle(
-        Z, Resolver::ResolveDynamicForReceiverClass(
-               receiver_class, instr->function_name(), args_desc));
+    const Function& function =
+        Function::Handle(Z, instr->ResolveForReceiverClass(receiver_class));
     if (!function.IsNull()) {
-      const ICData& ic_data = ICData::Handle(
-          ICData::New(flow_graph_->function(), instr->function_name(),
-                      args_desc_array, Thread::kNoDeoptId,
-                      /* args_tested = */ 1, false));
-      ic_data.AddReceiverCheck(receiver_class.id(), function);
-      PolymorphicInstanceCallInstr* call =
-          new (Z) PolymorphicInstanceCallInstr(instr, ic_data,
-                                               /* with_checks = */ false,
-                                               /* complete = */ true);
+      const Function& target = Function::ZoneHandle(Z, function.raw());
+      StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -1830,20 +1916,14 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       // targets with appropriate checks.
       Function& single_target = Function::Handle(Z);
       ICData& ic_data = ICData::Handle(Z);
-
       const Array& args_desc_array =
-          Array::Handle(Z, ArgumentsDescriptor::New(instr->ArgumentCount(),
-                                                    instr->argument_names()));
-      ArgumentsDescriptor args_desc(args_desc_array);
-
+          Array::Handle(Z, instr->GetArgumentsDescriptor());
       Function& target = Function::Handle(Z);
       Class& cls = Class::Handle(Z);
       for (intptr_t i = 0; i < class_ids.length(); i++) {
         const intptr_t cid = class_ids[i];
         cls = isolate()->class_table()->At(cid);
-        target = Resolver::ResolveDynamicForReceiverClass(
-            cls, instr->function_name(), args_desc);
-
+        target = instr->ResolveForReceiverClass(cls);
         if (target.IsNull()) {
           // Can't resolve the target. It might be a noSuchMethod,
           // call through getter or closurization.
@@ -1904,21 +1984,15 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
         // We have computed that there is only a single target for this call
         // within the whole hierarchy. Replace InstanceCall with StaticCall.
-        ZoneGrowableArray<PushArgumentInstr*>* args = new (Z)
-            ZoneGrowableArray<PushArgumentInstr*>(instr->ArgumentCount());
-        for (intptr_t i = 0; i < instr->ArgumentCount(); i++) {
-          args->Add(instr->PushArgumentAt(i));
-        }
-        StaticCallInstr* call = new (Z) StaticCallInstr(
-            instr->token_pos(), Function::ZoneHandle(Z, single_target.raw()),
-            instr->argument_names(), args, instr->deopt_id());
+        const Function& target = Function::ZoneHandle(Z, single_target.raw());
+        StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
         instr->ReplaceWith(call, current_iterator());
         return;
       } else if ((ic_data.raw() != ICData::null()) &&
                  !ic_data.NumberOfChecksIs(0)) {
+        CallTargets* targets = CallTargets::Create(Z, ic_data);
         PolymorphicInstanceCallInstr* call =
-            new (Z) PolymorphicInstanceCallInstr(instr, ic_data,
-                                                 /* with_checks = */ true,
+            new (Z) PolymorphicInstanceCallInstr(instr, *targets,
                                                  /* complete = */ true);
         instr->ReplaceWith(call, current_iterator());
         return;
@@ -1932,9 +2006,9 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     ASSERT(!FLAG_polymorphic_with_deopt);
     // OK to use checks with PolymorphicInstanceCallInstr since no
     // deoptimization is allowed.
+    CallTargets* targets = CallTargets::Create(Z, *instr->ic_data());
     PolymorphicInstanceCallInstr* call =
-        new (Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                             /* with_checks = */ true,
+        new (Z) PolymorphicInstanceCallInstr(instr, *targets,
                                              /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
     return;
@@ -1944,24 +2018,17 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
 void AotOptimizer::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
-  if (call->with_checks()) {
-    const intptr_t receiver_cid =
-        call->PushArgumentAt(0)->value()->Type()->ToCid();
-    if (receiver_cid != kDynamicCid) {
-      const Class& receiver_class =
-          Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
-
-      const Array& args_desc_array = Array::Handle(
-          Z, ArgumentsDescriptor::New(call->ArgumentCount(),
-                                      call->instance_call()->argument_names()));
-      ArgumentsDescriptor args_desc(args_desc_array);
-      const Function& function = Function::Handle(
-          Z, Resolver::ResolveDynamicForReceiverClass(
-                 receiver_class, call->instance_call()->function_name(),
-                 args_desc));
-      if (!function.IsNull()) {
-        call->set_with_checks(false);
-      }
+  const intptr_t receiver_cid =
+      call->PushArgumentAt(0)->value()->Type()->ToCid();
+  if (receiver_cid != kDynamicCid) {
+    const Class& receiver_class =
+        Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
+    const Function& function = Function::ZoneHandle(
+        Z, call->instance_call()->ResolveForReceiverClass(receiver_class));
+    if (!function.IsNull()) {
+      // Only one target. Replace by static call.
+      StaticCallInstr* new_call = StaticCallInstr::FromCall(Z, call, function);
+      call->ReplaceWith(new_call, current_iterator());
     }
   }
 }
@@ -2018,12 +2085,11 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
           MathMinMaxInstr* min_max = new (Z) MathMinMaxInstr(
               recognized_kind, new (Z) Value(call->ArgumentAt(0)),
               new (Z) Value(call->ArgumentAt(1)), call->deopt_id(), result_cid);
-          const ICData& unary_checks =
-              ICData::ZoneHandle(Z, ic_data.AsUnaryClassChecks());
-          AddCheckClass(min_max->left()->definition(), unary_checks,
-                        call->deopt_id(), call->env(), call);
-          AddCheckClass(min_max->right()->definition(), unary_checks,
-                        call->deopt_id(), call->env(), call);
+          const Cids* cids = Cids::Create(Z, ic_data, /* argument_number =*/0);
+          AddCheckClass(min_max->left()->definition(), *cids, call->deopt_id(),
+                        call->env(), call);
+          AddCheckClass(min_max->right()->definition(), *cids, call->deopt_id(),
+                        call->env(), call);
           ReplaceCall(call, min_max);
         }
       }

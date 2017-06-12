@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library lib1;
+
 import 'library_same_name_used_lib2.dart' as lib2;
 
-abstract class X {
-}
+abstract class X {}
 
-X makeX() { return new lib2.X(); }
+X makeX() {
+  return new lib2.X();
+}

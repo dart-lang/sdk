@@ -107,10 +107,11 @@ void main() {
 
   var regexp8 = new RegExp(r"^(.*)blah.*$");
   shouldBeNull(regexp8.firstMatch('test'));
-  shouldBe(regexp8.firstMatch('blah'), ['blah','']);
-  shouldBe(regexp8.firstMatch('1blah'), ['1blah','1']);
-  shouldBe(regexp8.firstMatch('blah1'), ['blah1','']);
-  shouldBe(regexp8.firstMatch('blah blah blah'), ['blah blah blah','blah blah ']);
+  shouldBe(regexp8.firstMatch('blah'), ['blah', '']);
+  shouldBe(regexp8.firstMatch('1blah'), ['1blah', '1']);
+  shouldBe(regexp8.firstMatch('blah1'), ['blah1', '']);
+  shouldBe(
+      regexp8.firstMatch('blah blah blah'), ['blah blah blah', 'blah blah ']);
   shouldBeNull(regexp8.firstMatch('blah\nsecond'));
   shouldBeNull(regexp8.firstMatch('first\nblah'));
   shouldBeNull(regexp8.firstMatch('first\nblah\nthird'));

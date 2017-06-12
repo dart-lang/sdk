@@ -4,19 +4,19 @@
 
 import 'dart:collection' show IterableMixin;
 
-import '../common.dart';
-import '../elements/elements.dart' show MetadataAnnotation;
-import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
-    show FUNCTION_INFO;
+import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
 import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
 import 'package:front_end/src/fasta/scanner/token_constants.dart' as Tokens
     show PLUS_TOKEN;
 import 'package:front_end/src/fasta/scanner/characters.dart';
+import 'package:front_end/src/scanner/token.dart' show TokenType;
+
+import '../common.dart';
+import '../elements/elements.dart' show MetadataAnnotation;
 import '../util/util.dart';
 import 'dartstring.dart';
 import 'prettyprint.dart';
 import 'unparser.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
 
 abstract class Visitor<R> {
   const Visitor();
@@ -239,7 +239,7 @@ abstract class Visitor1<R, A> {
   R visitNewExpression(NewExpression node, A arg) => visitExpression(node, arg);
   R visitNodeList(NodeList node, A arg) => visitNode(node, arg);
   R visitNominalTypeAnnotation(NominalTypeAnnotation node, A arg) {
-    visitTypeAnnotation(node, arg);
+    return visitTypeAnnotation(node, arg);
   }
 
   R visitOperator(Operator node, A arg) => visitIdentifier(node, arg);
@@ -1218,7 +1218,7 @@ class LiteralInt extends Literal<int> {
       }
       return int.parse(valueToken.lexeme);
     } on FormatException catch (ex) {
-      (this.handler)(token, ex);
+      throw handler(token, ex);
     }
   }
 
@@ -1241,7 +1241,7 @@ class LiteralDouble extends Literal<double> {
       }
       return double.parse(valueToken.lexeme);
     } on FormatException catch (ex) {
-      (this.handler)(token, ex);
+      throw handler(token, ex);
     }
   }
 
@@ -1527,7 +1527,7 @@ class Return extends Statement {
   bool get hasExpression => expression != null;
 
   /// `true` if this return is of the form `=> e;`.
-  bool get isArrowBody => beginToken.info == Precedence.FUNCTION_INFO;
+  bool get isArrowBody => beginToken.type == TokenType.FUNCTION;
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 
@@ -1977,6 +1977,7 @@ class Modifiers extends Node {
   static const int FLAG_CONST = FLAG_VAR << 1;
   static const int FLAG_FACTORY = FLAG_CONST << 1;
   static const int FLAG_EXTERNAL = FLAG_FACTORY << 1;
+  static const int FLAG_COVARIANT = FLAG_EXTERNAL << 1;
 
   Modifiers(NodeList nodes) : this.withFlags(nodes, computeFlags(nodes.nodes));
 
@@ -2000,6 +2001,8 @@ class Modifiers extends Node {
         flags |= FLAG_FACTORY;
       else if (identical(value, 'external'))
         flags |= FLAG_EXTERNAL;
+      else if (identical(value, 'covariant'))
+        flags |= FLAG_COVARIANT;
       else
         throw 'internal error: ${nodes.head}';
     }
@@ -2036,6 +2039,7 @@ class Modifiers extends Node {
   bool get isConst => (flags & FLAG_CONST) != 0;
   bool get isFactory => (flags & FLAG_FACTORY) != 0;
   bool get isExternal => (flags & FLAG_EXTERNAL) != 0;
+  bool get isCovariant => (flags & FLAG_COVARIANT) != 0;
 
   Node getStatic() => findModifier('static');
 
@@ -2053,7 +2057,8 @@ class Modifiers extends Node {
         isVar: isVar,
         isConst: isConst,
         isFactory: isFactory,
-        isExternal: isExternal);
+        isExternal: isExternal,
+        isCovariant: isCovariant);
   }
 }
 

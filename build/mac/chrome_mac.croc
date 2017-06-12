@@ -6,7 +6,7 @@
   'rules' : [
     # Specify inclusions before exclusions, since rules are in order.
 
-    # Don't include chromeos, linux, or windows specific files
+    # Don't include ChromeOS, linux, or windows specific files
     {
       'regexp' : '.*(_|/)(chromeos|linux|win|views)(\\.|_)',
       'include' : 0,

@@ -7,14 +7,23 @@ import "package:expect/expect.dart";
 
 main() {
   var a;
-  Expect.throws(() { true && (a = 5); }, (error) => error is TypeError);
-  Expect.throws(() { (a = 5) && true; }, (error) => error is TypeError);
-  Expect.throws(() { false || (a = 5); }, (error) => error is TypeError);
-  Expect.throws(() { (a = 5) || false; }, (error) => error is TypeError);
-  Expect.throws(() { (a = 5) || true; }, (error) => error is TypeError);
+  Expect.throws(() {
+    true && (a = 5);
+  }, (error) => error is TypeError);
+  Expect.throws(() {
+    (a = 5) && true;
+  }, (error) => error is TypeError);
+  Expect.throws(() {
+    false || (a = 5);
+  }, (error) => error is TypeError);
+  Expect.throws(() {
+    (a = 5) || false;
+  }, (error) => error is TypeError);
+  Expect.throws(() {
+    (a = 5) || true;
+  }, (error) => error is TypeError);
 
   // No exceptions thrown.
   false && (a = 5);
   true || (a = 5);
 }
-

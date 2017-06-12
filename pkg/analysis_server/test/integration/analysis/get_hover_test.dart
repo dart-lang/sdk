@@ -4,21 +4,21 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../integration_tests.dart';
+import '../support/integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetHoverIntegrationTest);
-    defineReflectiveTests(AnalysisGetHoverIntegrationTest_Driver);
   });
 }
 
-class AbstractAnalysisGetHoverIntegrationTest
+@reflectiveTest
+class AnalysisGetHoverIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   /**
    * Pathname of the file containing Dart code.
@@ -186,15 +186,4 @@ main() {
       return Future.wait(tests);
     });
   }
-}
-
-@reflectiveTest
-class AnalysisGetHoverIntegrationTest
-    extends AbstractAnalysisGetHoverIntegrationTest {}
-
-@reflectiveTest
-class AnalysisGetHoverIntegrationTest_Driver
-    extends AbstractAnalysisGetHoverIntegrationTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

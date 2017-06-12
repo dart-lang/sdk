@@ -5,9 +5,7 @@
 
 import "package:expect/expect.dart";
 
-
 class Helper {
-
   static int ticks;
 
   // Helper function to prevent endless loops in case labels or
@@ -33,7 +31,9 @@ class Helper {
   static test2() {
     // Make sure we break out to default label.
     var i = 1;
-    L: while (doAgain()) { // unused label
+    L:
+    while (doAgain()) {
+      // unused label
       if (i > 0) break;
       return 0;
     }
@@ -43,7 +43,8 @@ class Helper {
   static test3() {
     // Make sure we break out of outer loop.
     var i = 1;
-    L: while (doAgain()) {
+    L:
+    while (doAgain()) {
       while (doAgain()) {
         if (i > 0) break L;
         return 0;
@@ -56,7 +57,9 @@ class Helper {
   static test4() {
     // Make sure we break out of inner loop.
     var i = 100;
-    L: while (doAgain()) { // unused label
+    L:
+    while (doAgain()) {
+      // unused label
       while (doAgain()) {
         if (i > 0) break;
         return 0;
@@ -79,14 +82,18 @@ class Helper {
 
   static test6() {
     // Make sure we jump to loop condition.
-    L: for (int i = 10; i > 0; i--) { // unreferenced label, should warn
+    L:
+    for (int i = 10; i > 0; i--) {
+      // unreferenced label, should warn
       if (true) continue; // without the if the following return is dead code.
       return 0;
     }
     // Make sure this L does not conflict with previous L.
     var k = 20;
-    L: while (doAgain()) {
-      L0: while (doAgain()) break L; // unreferenced label L0, should warn
+    L:
+    while (doAgain()) {
+      L0:
+      while (doAgain()) break L; // unreferenced label L0, should warn
       return 1;
     }
     return 111;
@@ -95,8 +102,10 @@ class Helper {
   static test7() {
     // Just weird stuff.
     var i = 10;
-    L: do {
-      L: while (doAgain()) {
+    L:
+    do {
+      L:
+      while (doAgain()) {
         if (true) break L; // without the if the following line is dead code.
         continue L;
       }
@@ -107,7 +116,8 @@ class Helper {
   }
 
   static test8() {
-    L: while (false) {
+    L:
+    while (false) {
       var L = 33; // OK, shouldn't collide with label.
       if (true) break L;
     }
@@ -116,16 +126,20 @@ class Helper {
 
   static test9() {
     var i = 111;
-    L1: if (i == 0) { // unreferenced label, should warn
+    L1:
+    if (i == 0) {
+      // unreferenced label, should warn
       return 0;
     }
 
-    L2: while (i == 0) { // unreferenced label, should warn
+    L2:
+    while (i == 0) {
+      // unreferenced label, should warn
       return 0;
     }
 
     L3: // useless label, should warn
-      return i;
+    return i;
   }
 
   // Labels should be allowed on block/if/for/switch/while/do stmts.
@@ -133,7 +147,8 @@ class Helper {
     int i = 111;
     // block
     while (doAgain()) {
-      L: {
+      L:
+      {
         while (doAgain()) {
           break L;
         }
@@ -143,19 +158,9 @@ class Helper {
     }
     Expect.equals(111, i);
 
-    while(doAgain()) {
-      L: if (doAgain()) {  
-        while(doAgain()) {
-          break L;
-        }
-        i--;
-      }
-      break;
-    }
-    Expect.equals(111, i);
-
-    while(doAgain()) {
-      L: for (;doAgain();) {
+    while (doAgain()) {
+      L:
+      if (doAgain()) {
         while (doAgain()) {
           break L;
         }
@@ -165,40 +170,56 @@ class Helper {
     }
     Expect.equals(111, i);
 
-    L: for (i in [111]) {
-      while(doAgain()) {
-         break L;
-       }
-       i--;
-       break;
-    }
-    Expect.equals(111, i);
-
-    L: for (var j in [111]) {
-       while(doAgain()) {
-         break L;
-       }
-       i--;
+    while (doAgain()) {
+      L:
+      for (; doAgain();) {
+        while (doAgain()) {
+          break L;
+        }
+        i--;
+      }
       break;
     }
     Expect.equals(111, i);
 
-    while(doAgain()) {
-      L: switch (i) {  
+    L:
+    for (i in [111]) {
+      while (doAgain()) {
+        break L;
+      }
+      i--;
+      break;
+    }
+    Expect.equals(111, i);
+
+    L:
+    for (var j in [111]) {
+      while (doAgain()) {
+        break L;
+      }
+      i--;
+      break;
+    }
+    Expect.equals(111, i);
+
+    while (doAgain()) {
+      L:
+      switch (i) {
         case 111:
-        while(doAgain()) {
-          break L;
-        }
+          while (doAgain()) {
+            break L;
+          }
         default:
-        i--;
+          i--;
       }
       break;
     }
     Expect.equals(111, i);
 
-    while(doAgain()) {
-      L: do {  
-        while(doAgain()) {
+    while (doAgain()) {
+      L:
+      do {
+        while (doAgain()) {
           break L;
         }
         i--;
@@ -207,14 +228,14 @@ class Helper {
     }
     Expect.equals(111, i);
 
-    while(doAgain()) {
-      L: try {  
-        while(doAgain()) {
+    while (doAgain()) {
+      L:
+      try {
+        while (doAgain()) {
           break L;
         }
         i--;
-      } finally {
-      }
+      } finally {}
       break;
     }
     Expect.equals(111, i);
@@ -222,77 +243,89 @@ class Helper {
     return i;
   }
 
-   static test11() {
-     // Kind of odd, but is valid and shouldn't be flagged as useless either.
-     L: break L;
-     return 111;
-   }
+  static test11() {
+    // Kind of odd, but is valid and shouldn't be flagged as useless either.
+    L:
+    break L;
+    return 111;
+  }
 
-   static test12() {
-     int i = 111;
+  static test12() {
+    int i = 111;
 
-     // label the inner block on compound stmts
-     if (true) L: {
-       while (doAgain()) {
-         break L;
-       }
-       i--;
-     }
-     Expect.equals(111, i);
+    // label the inner block on compound stmts
+    if (true)
+      L:
+      {
+        while (doAgain()) {
+          break L;
+        }
+        i--;
+      }
+    Expect.equals(111, i);
 
-     // loop will execute each time, but won't execute code below the break
-     var forCount = 0;
-     for (forCount = 0 ; forCount < 2 ; forCount++) L: {
-       while(doAgain()) {
-         break L;
-       }
-       i--;
-       break;
-     }
-     Expect.equals(111, i);
-     Expect.equals(forCount, 2);
-
-     for (i in [111]) L: {
-       while(doAgain()) {
-         break L;
-       }
-       i--;
-       break;
-     }
-     Expect.equals(111, i);
-
-     for (var j in [111]) L: {
-       while(doAgain()) {
-         break L;
-       }
-       i--;
-       break;
-     }
-     Expect.equals(111, i);
-
-     if (false) { 
-     } else L: {
-       while (doAgain()) {
-         break L;
-       }
-       i--;
-     }
-     Expect.equals(111, i);
-
-     int whileCount = 0;
-     while (whileCount < 2) L: {
-        whileCount++;
-        while(doAgain()) {
-   	  break L;
+    // loop will execute each time, but won't execute code below the break
+    var forCount = 0;
+    for (forCount = 0; forCount < 2; forCount++)
+      L:
+      {
+        while (doAgain()) {
+          break L;
         }
         i--;
         break;
-     }
-     Expect.equals(111, i);
-     Expect.equals(2, whileCount);
+      }
+    Expect.equals(111, i);
+    Expect.equals(forCount, 2);
 
-     return i;
-   }
+    for (i in [111])
+      L:
+      {
+        while (doAgain()) {
+          break L;
+        }
+        i--;
+        break;
+      }
+    Expect.equals(111, i);
+
+    for (var j in [111])
+      L:
+      {
+        while (doAgain()) {
+          break L;
+        }
+        i--;
+        break;
+      }
+    Expect.equals(111, i);
+
+    if (false) {} else
+      L:
+      {
+        while (doAgain()) {
+          break L;
+        }
+        i--;
+      }
+    Expect.equals(111, i);
+
+    int whileCount = 0;
+    while (whileCount < 2)
+      L:
+      {
+        whileCount++;
+        while (doAgain()) {
+          break L;
+        }
+        i--;
+        break;
+      }
+    Expect.equals(111, i);
+    Expect.equals(2, whileCount);
+
+    return i;
+  }
 }
 
 class LabelTest {

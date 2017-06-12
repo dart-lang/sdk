@@ -8,7 +8,6 @@ import "dart:io";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-
 void testPauseList() {
   asyncStart();
   // TOTAL should be bigger the our directory listing buffer.
@@ -43,7 +42,6 @@ void testPauseList() {
   });
 }
 
-
 void testPauseResumeCancelList() {
   asyncStart();
   // TOTAL should be bigger the our directory listing buffer.
@@ -61,6 +59,7 @@ void testPauseResumeCancelList() {
         d.deleteSync(recursive: true);
         asyncEnd();
       }
+
       var future = subscription.cancel();
       if (future != null) {
         future.whenComplete(close);

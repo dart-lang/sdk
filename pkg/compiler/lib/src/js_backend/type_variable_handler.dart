@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common.dart';
 import '../common_elements.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../elements/resolution_types.dart';
-import '../elements/elements.dart';
+import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js_emitter/js_emitter.dart'
     show CodeEmitterTask, MetadataCollector, Placeholder;
@@ -16,7 +15,6 @@ import '../universe/use.dart' show ConstantUse;
 import '../universe/world_impact.dart';
 import 'backend.dart';
 import 'backend_usage.dart' show BackendUsageBuilder;
-import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'mirrors_data.dart';
 
@@ -44,7 +42,7 @@ class TypeVariableResolutionAnalysis {
     return impactBuilder.flush();
   }
 
-  void registerClassWithTypeVariables(ClassElement cls) {
+  void registerClassWithTypeVariables(ClassEntity cls) {
     // On first encounter, we have to ensure that the support classes get
     // resolved.
     if (!_seenClassesWithTypeVariables) {
@@ -58,29 +56,31 @@ class TypeVariableResolutionAnalysis {
 
 /// Codegen handler that creates TypeVariable constants needed at runtime.
 class TypeVariableCodegenAnalysis {
+  final ElementEnvironment _elementEnvironment;
   final JavaScriptBackend _backend;
-  final BackendHelpers _helpers;
+  final CommonElements _commonElements;
   final MirrorsData _mirrorsData;
 
   /**
    *  Maps a class element to a list with indices that point to type variables
    *  constants for each of the class' type variables.
    */
-  Map<ClassElement, List<jsAst.Expression>> _typeVariables =
-      new Map<ClassElement, List<jsAst.Expression>>();
+  Map<ClassEntity, List<jsAst.Expression>> _typeVariables =
+      new Map<ClassEntity, List<jsAst.Expression>>();
 
   /**
    *  Maps a TypeVariableType to the index pointing to the constant representing
    *  the corresponding type variable at runtime.
    */
-  Map<TypeVariableElement, jsAst.Expression> _typeVariableConstants =
-      new Map<TypeVariableElement, jsAst.Expression>();
+  Map<TypeVariableEntity, jsAst.Expression> _typeVariableConstants =
+      new Map<TypeVariableEntity, jsAst.Expression>();
 
   /// Impact builder used for the codegen world computation.
   final StagedWorldImpactBuilder _impactBuilder =
       new StagedWorldImpactBuilder();
 
-  TypeVariableCodegenAnalysis(this._backend, this._helpers, this._mirrorsData);
+  TypeVariableCodegenAnalysis(this._elementEnvironment, this._backend,
+      this._commonElements, this._mirrorsData);
 
   CodeEmitterTask get _task => _backend.emitter;
   MetadataCollector get _metadataCollector => _task.metadataCollector;
@@ -91,32 +91,34 @@ class TypeVariableCodegenAnalysis {
     return _impactBuilder.flush();
   }
 
-  void registerClassWithTypeVariables(ClassElement cls) {
-    if (_mirrorsData.isAccessibleByReflection(cls)) {
+  void registerClassWithTypeVariables(ClassEntity cls) {
+    if (_mirrorsData.isClassAccessibleByReflection(cls)) {
       processTypeVariablesOf(cls);
     }
   }
 
-  void processTypeVariablesOf(ClassElement cls) {
+  void processTypeVariablesOf(ClassEntity cls) {
     // Do not process classes twice.
     if (_typeVariables.containsKey(cls)) return;
 
     List<jsAst.Expression> constants = <jsAst.Expression>[];
 
-    for (ResolutionTypeVariableType currentTypeVariable in cls.typeVariables) {
-      TypeVariableElement typeVariableElement = currentTypeVariable.element;
+    InterfaceType thisType = _elementEnvironment.getThisType(cls);
+    for (TypeVariableType currentTypeVariable in thisType.typeArguments) {
+      TypeVariableEntity typeVariableElement = currentTypeVariable.element;
 
-      jsAst.Expression boundIndex =
-          _metadataCollector.reifyType(typeVariableElement.bound);
+      jsAst.Expression boundIndex = _metadataCollector.reifyType(
+          _elementEnvironment.getTypeVariableBound(typeVariableElement));
       ConstantValue boundValue = new SyntheticConstantValue(
           SyntheticConstantKind.TYPEVARIABLE_REFERENCE, boundIndex);
-      ClassElement typeVariableClass = _helpers.typeVariableClass;
+      ClassEntity typeVariableClass = _commonElements.typeVariableClass;
       ConstantExpression constant = new ConstructedConstantExpression(
-          typeVariableClass.thisType,
-          _helpers.typeVariableConstructor,
+          _elementEnvironment.getThisType(typeVariableClass),
+          _commonElements.typeVariableConstructor,
           const CallStructure.unnamed(3), [
-        new TypeConstantExpression(cls.rawType, cls.name),
-        new StringConstantExpression(currentTypeVariable.name),
+        new TypeConstantExpression(
+            _elementEnvironment.getRawType(cls), cls.name),
+        new StringConstantExpression(typeVariableElement.name),
         new SyntheticConstantExpression(boundValue)
       ]);
 
@@ -139,7 +141,7 @@ class TypeVariableCodegenAnalysis {
    * there, otherwise a new entry for [c] is created.
    */
   jsAst.Expression _reifyTypeVariableConstant(
-      ConstantValue c, TypeVariableElement variable) {
+      ConstantValue c, TypeVariableEntity variable) {
     jsAst.Expression name = _task.constantReference(c);
     jsAst.Expression result = _metadataCollector.reifyExpression(name);
     if (_typeVariableConstants.containsKey(variable)) {
@@ -160,7 +162,7 @@ class TypeVariableCodegenAnalysis {
    * [reifyTypeVariableConstant] will be called and the constant will be added
    * on the allocated entry.
    */
-  jsAst.Expression reifyTypeVariable(TypeVariableElement variable) {
+  jsAst.Expression reifyTypeVariable(TypeVariableEntity variable) {
     if (_typeVariableConstants.containsKey(variable)) {
       return _typeVariableConstants[variable];
     }
@@ -170,7 +172,7 @@ class TypeVariableCodegenAnalysis {
     return _typeVariableConstants[variable] = placeholder;
   }
 
-  List<jsAst.Expression> typeVariablesOf(ClassElement classElement) {
+  List<jsAst.Expression> typeVariablesOf(ClassEntity classElement) {
     List<jsAst.Expression> result = _typeVariables[classElement];
     if (result == null) {
       result = const <jsAst.Expression>[];

@@ -250,7 +250,8 @@ external getValue(obj, index);
 external setValue(obj, index, value);
 
 @JS()
-external callListMethodOnTarget(List target, object, String methodName, List args);
+external callListMethodOnTarget(
+    List target, object, String methodName, List args);
 
 @JS()
 external newArray();
@@ -455,8 +456,7 @@ main() {
   group("js snippet tests", () {
     test("enumerate indices", () {
       var list = ["a", "b", "c", "d"];
-      var indices =
-          jsEnumerateIndices(list);
+      var indices = jsEnumerateIndices(list);
       expect(indices.length, equals(4));
       for (int i = 0; i < 4; i++) {
         expect(indices[i], equals('$i'));
@@ -483,19 +483,13 @@ main() {
 
     test("get element", () {
       var list = ["a", "b", "c", "d"];
-      expect(getValue(list, 0),
-          equals("a"));
-      expect(getValue(list, 1),
-          equals("b"));
-      expect(getValue(list, 6),
-          equals(null));
-      expect(getValue(list, -1),
-          equals(null));
+      expect(getValue(list, 0), equals("a"));
+      expect(getValue(list, 1), equals("b"));
+      expect(getValue(list, 6), equals(null));
+      expect(getValue(list, -1), equals(null));
 
-      expect(getValue(list, "0"),
-          equals("a"));
-      expect(getValue(list, "1"),
-          equals("b"));
+      expect(getValue(list, "0"), equals("a"));
+      expect(getValue(list, "1"), equals("b"));
     });
 
     test("is array", () {
@@ -562,40 +556,25 @@ main() {
     });
 
     test("every greater than zero", () {
-      expect(
-          everyGreaterThanZero([1, 5]),
-          isTrue);
-      expect(
-          everyGreaterThanZeroCheckThisArg([1, 5]),
-          isTrue);
-      expect(
-          everyGreaterThanZero([1, 0]),
-          isFalse);
-      expect(everyGreaterThanZero([]),
-          isTrue);
+      expect(everyGreaterThanZero([1, 5]), isTrue);
+      expect(everyGreaterThanZeroCheckThisArg([1, 5]), isTrue);
+      expect(everyGreaterThanZero([1, 0]), isFalse);
+      expect(everyGreaterThanZero([]), isTrue);
     });
 
     test("filter greater than 42", () {
       expect(filterGreater42([1, 5]), equals([]));
-      expect(
-          filterGreater42([43, 5, 49]),
-          equals([43, 49]));
-      expect(
-          filterGreater42(["43", "5", "49"]),
-          equals(["43", "49"]));
+      expect(filterGreater42([43, 5, 49]), equals([43, 49]));
+      expect(filterGreater42(["43", "5", "49"]), equals(["43", "49"]));
     });
 
     test("for each collect result", () {
-      expect(
-          forEachCollectResult([1, 5, 7]),
-          equals([2, 10, 14]));
+      expect(forEachCollectResult([1, 5, 7]), equals([2, 10, 14]));
     });
 
     test("some", () {
-      expect(someEqual42([1, 5, 9]),
-          isFalse);
-      expect(someEqual42([1, 42, 9]),
-          isTrue);
+      expect(someEqual42([1, 5, 9]), isFalse);
+      expect(someEqual42([1, 42, 9]), isTrue);
     });
 
     test("sort backwards", () {

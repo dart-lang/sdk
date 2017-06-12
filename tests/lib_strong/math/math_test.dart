@@ -3,28 +3,29 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library math_test;
+
 import "package:expect/expect.dart";
 import 'dart:math';
 
 class MathTest {
   static void testConstants() {
     // Source for mathematical constants is Wolfram Alpha.
-    Expect.equals(2.7182818284590452353602874713526624977572470936999595749669,
-                  E);
-    Expect.equals(2.3025850929940456840179914546843642076011014886287729760333,
-                  LN10);
-    Expect.equals(0.6931471805599453094172321214581765680755001343602552541206,
-                  LN2);
-    Expect.equals(1.4426950408889634073599246810018921374266459541529859341354,
-                  LOG2E);
-    Expect.equals(0.4342944819032518276511289189166050822943970058036665661144,
-                  LOG10E);
-    Expect.equals(3.1415926535897932384626433832795028841971693993751058209749,
-                  PI);
-    Expect.equals(0.7071067811865475244008443621048490392848359376884740365883,
-                  SQRT1_2);
-    Expect.equals(1.4142135623730950488016887242096980785696718753769480731766,
-                  SQRT2);
+    Expect.equals(
+        2.7182818284590452353602874713526624977572470936999595749669, E);
+    Expect.equals(
+        2.3025850929940456840179914546843642076011014886287729760333, LN10);
+    Expect.equals(
+        0.6931471805599453094172321214581765680755001343602552541206, LN2);
+    Expect.equals(
+        1.4426950408889634073599246810018921374266459541529859341354, LOG2E);
+    Expect.equals(
+        0.4342944819032518276511289189166050822943970058036665661144, LOG10E);
+    Expect.equals(
+        3.1415926535897932384626433832795028841971693993751058209749, PI);
+    Expect.equals(
+        0.7071067811865475244008443621048490392848359376884740365883, SQRT1_2);
+    Expect.equals(
+        1.4142135623730950488016887242096980785696718753769480731766, SQRT2);
   }
 
   static checkClose(double a, double b, EPSILON) {
@@ -68,7 +69,6 @@ class MathTest {
     checkClose(PI / 2.0, asin(1.0), EPSILON);
     checkClose(-PI / 2.0, asin(-1.0), EPSILON);
   }
-
 
   static void testAcos() {
     // Given the imprecision of PI we can't expect better results than this.
@@ -128,7 +128,7 @@ class MathTest {
     checkVeryClose(SQRT1_2, sqrt(0.5));
     checkVeryClose(1e50, sqrt(1e100));
     checkVeryClose(1.1111111061110855443054405046358901279277111935183977e56,
-                   sqrt(12345678901234e99));
+        sqrt(12345678901234e99));
   }
 
   static void testExp() {
@@ -201,7 +201,7 @@ class MathTest {
     Expect.equals(9, int.parse(" 09 "));
     Expect.equals(-9, int.parse("-09"));
     Expect.equals(0x1234567890, int.parse("+0x1234567890"));
-    Expect.equals(0x1234567890,int.parse("   +0x1234567890   "));
+    Expect.equals(0x1234567890, int.parse("   +0x1234567890   "));
     Expect.equals(0x100, int.parse("+0x100"));
     Expect.equals(0x100, int.parse("   +0x100   "));
     Expect.equals(true, parseIntThrowsFormatException("1b"));

@@ -21,8 +21,8 @@ main() {
   bool sawError = false;
   try {
     sleep(new Duration(milliseconds: -1));
-    expect(false, isTrue);  // should not reach here.
-  } on ArgumentError catch(e) {
+    expect(false, isTrue); // should not reach here.
+  } on ArgumentError catch (e) {
     sawError = true;
   }
   expect(sawError, isTrue);

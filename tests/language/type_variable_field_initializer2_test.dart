@@ -11,8 +11,7 @@ class A<T> {
   var c = new X<T>();
 }
 
-class B<T> extends A<T> {
-}
+class B<T> extends A<T> {}
 
 class X<T> {}
 

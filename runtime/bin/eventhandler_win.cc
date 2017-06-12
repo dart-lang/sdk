@@ -1570,7 +1570,7 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
   }
 
   // Initialize Winsock32
-  if (!Socket::Initialize()) {
+  if (!SocketBase::Initialize()) {
     FATAL("Failed to initialized Windows sockets");
   }
 }

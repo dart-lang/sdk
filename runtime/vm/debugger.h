@@ -328,7 +328,9 @@ class ActivationFrame : public ZoneAllocated {
   const Context& GetSavedCurrentContext();
   RawObject* GetAsyncOperation();
 
-  RawObject* Evaluate(const String& expr);
+  RawObject* Evaluate(const String& expr,
+                      const GrowableObjectArray& names,
+                      const GrowableObjectArray& values);
 
   // Print the activation frame into |jsobj|. if |full| is false, script
   // and local variable objects are only references. if |full| is true,
@@ -487,7 +489,6 @@ class Debugger {
                                                   intptr_t line_number,
                                                   intptr_t column_number);
 
-
   void RemoveBreakpoint(intptr_t bp_id);
   Breakpoint* GetBreakpointById(intptr_t id);
 
@@ -607,6 +608,8 @@ class Debugger {
   // Callback to the debugger to continue frame rewind, post-deoptimization.
   void RewindPostDeopt();
 
+  static DebuggerStackTrace* CollectAwaiterReturnStackTrace();
+
  private:
   RawError* PauseRequest(ServiceEvent::EventKind kind);
 
@@ -641,6 +644,8 @@ class Debugger {
                                     TokenPosition last_token_pos,
                                     intptr_t requested_line,
                                     intptr_t requested_column);
+  bool RemoveBreakpointFromTheList(intptr_t bp_id, BreakpointLocation** list);
+  Breakpoint* GetBreakpointByIdInTheList(intptr_t id, BreakpointLocation* list);
   void RemoveUnlinkedCodeBreakpoints();
   void UnlinkCodeBreakpoints(BreakpointLocation* bpt_location);
   BreakpointLocation* GetLatentBreakpoint(const String& url,
@@ -656,6 +661,8 @@ class Debugger {
   CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
 
   void SyncBreakpointLocation(BreakpointLocation* loc);
+  void PrintBreakpointsListToJSONArray(BreakpointLocation* sbpt,
+                                       JSONArray* jsarr) const;
 
   ActivationFrame* TopDartFrame() const;
   static ActivationFrame* CollectDartFrame(
@@ -681,7 +688,6 @@ class Debugger {
                                Array* deopt_frame);
   static DebuggerStackTrace* CollectStackTrace();
   static DebuggerStackTrace* CollectAsyncCausalStackTrace();
-  static DebuggerStackTrace* CollectAwaiterReturnStackTrace();
   void SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt);
 
   intptr_t nextId() { return next_id_++; }

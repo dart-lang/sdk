@@ -27,8 +27,7 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  "This test checks regular expressions using extended (> 255) characters and character classes."
-  );
+      "This test checks regular expressions using extended (> 255) characters and character classes.");
 
   shouldBeNull((new RegExp("[\u0100-\u0101]")).firstMatch("a"));
   shouldBeNull((new RegExp("[\u0100]")).firstMatch("a"));
@@ -38,7 +37,9 @@ void main() {
   assertEquals((new RegExp("[\u0100a]")).firstMatch("a").group(0), "a");
   assertEquals((new RegExp("\u0061")).firstMatch("a").group(0), "a");
   assertEquals((new RegExp("[a-\u0100]")).firstMatch("a").group(0), "a");
-  assertEquals((new RegExp("[\u0100]")).firstMatch("\u0100").group(0), "\u0100");
-  assertEquals((new RegExp("[\u0100-\u0101]")).firstMatch("\u0100").group(0), "\u0100");
+  assertEquals(
+      (new RegExp("[\u0100]")).firstMatch("\u0100").group(0), "\u0100");
+  assertEquals(
+      (new RegExp("[\u0100-\u0101]")).firstMatch("\u0100").group(0), "\u0100");
   assertEquals((new RegExp("\u0100")).firstMatch("\u0100").group(0), "\u0100");
 }

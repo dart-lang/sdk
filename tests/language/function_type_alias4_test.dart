@@ -6,17 +6,14 @@
 
 import "package:expect/expect.dart";
 
-typedef bool F<bool>(bool a);  // 'bool' is not the boolean type.
+typedef bool F<bool>(bool a); // 'bool' is not the boolean type.
 
-bool bar(bool a) {
-}
+bool bar(bool a) {}
 
-int baz(int a) {
-}
+int baz(int a) {}
 
 class A<T> {
-  T foo(T a) {
-  }
+  T foo(T a) {}
 }
 
 main() {
@@ -24,8 +21,8 @@ main() {
   Expect.isTrue(baz is F);
   Expect.isTrue(bar is F<bool>);
   Expect.isTrue(baz is F<int>);
-  Expect.isTrue(bar is !F<int>);
-  Expect.isTrue(baz is !F<bool>);
+  Expect.isTrue(bar is! F<int>);
+  Expect.isTrue(baz is! F<bool>);
 
   var b = new A<bool>();
   var i = new A<int>();
@@ -33,6 +30,6 @@ main() {
   Expect.isTrue(i.foo is F);
   Expect.isTrue(b.foo is F<bool>);
   Expect.isTrue(i.foo is F<int>);
-  Expect.isTrue(b.foo is !F<int>);
-  Expect.isTrue(i.foo is !F<bool>);
+  Expect.isTrue(b.foo is! F<int>);
+  Expect.isTrue(i.foo is! F<bool>);
 }

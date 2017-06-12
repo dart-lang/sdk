@@ -1,4 +1,5 @@
 library streams_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:async';
@@ -57,11 +58,12 @@ main() {
       expect(childCallCount, 0);
     });
 
-    Element.focusEvent.forTarget(helper.element, useCapture: true).listen(
-        (Event e) {
-          ++childCallCount;
-          expect(parentCallCount, 1);
-        });
+    Element.focusEvent
+        .forTarget(helper.element, useCapture: true)
+        .listen((Event e) {
+      ++childCallCount;
+      expect(parentCallCount, 1);
+    });
 
     helper.pulse();
     expect(childCallCount, 1);

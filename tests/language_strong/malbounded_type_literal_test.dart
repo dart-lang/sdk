@@ -5,6 +5,7 @@
 import 'package:expect/expect.dart';
 
 class Super<T extends num> {}
+
 class Malbounded extends Super<String> {}
 
 main() {

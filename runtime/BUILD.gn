@@ -29,8 +29,6 @@ declare_args() {
   # Available options are: arm, arm64, mips, x64 and ia32
   dart_target_arch = ""
 
-  dart_experimental_interpreter = false
-
   # The optimization level to use for debug builds.
   dart_debug_optimization_level = "2"
 }
@@ -58,33 +56,6 @@ config("dart_maybe_product_config") {
   }
 }
 
-# Adds the DART_PRECOMPILED_RUNTIME define if Flutter has specified "profile" or
-# "release" for dart_runtime_mode.
-config("dart_maybe_precompiled_runtime_config") {
-  defines = []
-
-  if (dart_runtime_mode != "develop" && dart_runtime_mode != "profile" &&
-      dart_runtime_mode != "release") {
-    print("Invalid |dart_runtime_mode|")
-    assert(false)
-  }
-
-  if (dart_runtime_mode == "release") {
-    if (dart_debug) {
-      print("Debug and release mode are mutually exclusive.")
-    }
-    assert(!dart_debug)
-
-    if (!dart_experimental_interpreter) {
-      defines += [ "DART_PRECOMPILED_RUNTIME" ]
-    }
-  } else if (dart_runtime_mode == "profile") {
-    if (!dart_experimental_interpreter) {
-      defines += [ "DART_PRECOMPILED_RUNTIME" ]
-    }
-  }
-}
-
 config("dart_precompiled_runtime_config") {
   defines = []
   defines += [ "DART_PRECOMPILED_RUNTIME" ]
@@ -103,10 +74,6 @@ config("dart_no_snapshot_config") {
 
 config("dart_config") {
   defines = []
-
-  if (dart_experimental_interpreter) {
-    dart_target_arch = "dbc"
-  }
 
   if (target_os == "android") {
     defines += [ "TARGET_OS_ANDROID" ]
@@ -168,6 +135,11 @@ config("dart_config") {
     include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]
   }
 
+  if (is_fuchsia) {
+    defines += [ "DART_USE_JEMALLOC" ]
+    include_dirs += [ "//magenta/third_party/ulib/jemalloc/include" ]
+  }
+
   if (!is_win) {
     cflags = [
       "-Werror",
@@ -201,6 +173,16 @@ config("dart_config") {
       ldflags += [ "-fsanitize=thread" ]
     }
   }
+}
+
+source_set("dart_api") {
+  public_configs = [ ":dart_public_config" ]
+  sources = [
+    "include/dart_api.h",
+    "include/dart_mirrors_api.h",
+    "include/dart_native_api.h",
+    "include/dart_tools_api.h",
+  ]
 }
 
 template("libdart_library") {
@@ -240,11 +222,10 @@ template("libdart_library") {
   }
 }
 
-libdart_library("libdart") {
-  extra_configs = [ ":dart_maybe_precompiled_runtime_config" ]
+libdart_library("libdart_jit") {
   extra_deps = [
-    "vm:libdart_lib",
-    "vm:libdart_vm",
+    "vm:libdart_lib_jit",
+    "vm:libdart_vm_jit",
   ]
 }
 
@@ -253,17 +234,6 @@ libdart_library("libdart_precompiled_runtime") {
   extra_deps = [
     "vm:libdart_lib_precompiled_runtime",
     "vm:libdart_vm_precompiled_runtime",
-  ]
-}
-
-libdart_library("libdart_nosnapshot") {
-  extra_configs = [
-    ":dart_no_snapshot_config",
-    ":dart_maybe_precompiled_runtime_config",
-  ]
-  extra_deps = [
-    "vm:libdart_lib_nosnapshot",
-    "vm:libdart_vm_nosnapshot",
   ]
 }
 
@@ -318,10 +288,10 @@ executable("libdart_dependency_helper") {
   ]
   deps = [
     "third_party/double-conversion/src:libdouble_conversion",
-    "vm:libdart_lib",
-    "vm:libdart_lib_nosnapshot",
-    "vm:libdart_vm",
-    "vm:libdart_vm_nosnapshot",
+    "vm:libdart_lib_jit",
+    "vm:libdart_lib_nosnapshot_with_precompiler",
+    "vm:libdart_vm_jit",
+    "vm:libdart_vm_nosnapshot_with_precompiler",
   ]
   sources = [
     "vm/libdart_dependency_helper.cc",

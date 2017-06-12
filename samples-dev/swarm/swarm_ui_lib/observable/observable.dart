@@ -35,10 +35,8 @@ abstract class Observable {
   bool removeChangeListener(ChangeListener listener);
 }
 
-
 /** Common functionality for observable objects. */
 class AbstractObservable implements Observable {
-
   /** Unique id to identify this model in an event batch. */
   final int uid;
 
@@ -59,8 +57,8 @@ class AbstractObservable implements Observable {
   }
 
   AbstractObservable([Observable this.parent = null])
-    : uid = EventBatch.genUid(),
-      listeners = new List<ChangeListener>();
+      : uid = EventBatch.genUid(),
+        listeners = new List<ChangeListener>();
 
   bool addChangeListener(ChangeListener listener) {
     if (listeners.indexOf(listener, 0) == -1) {
@@ -82,8 +80,8 @@ class AbstractObservable implements Observable {
   }
 
   void recordPropertyUpdate(String propertyName, newValue, oldValue) {
-    recordEvent(new ChangeEvent.property(
-        this, propertyName, newValue, oldValue));
+    recordEvent(
+        new ChangeEvent.property(this, propertyName, newValue, oldValue));
   }
 
   void recordListUpdate(int index, newValue, oldValue) {
@@ -92,13 +90,13 @@ class AbstractObservable implements Observable {
   }
 
   void recordListInsert(int index, newValue) {
-    recordEvent(new ChangeEvent.list(
-        this, ChangeEvent.INSERT, index, newValue, null));
+    recordEvent(
+        new ChangeEvent.list(this, ChangeEvent.INSERT, index, newValue, null));
   }
 
   void recordListRemove(int index, oldValue) {
-    recordEvent(new ChangeEvent.list(
-        this, ChangeEvent.REMOVE, index, null, oldValue));
+    recordEvent(
+        new ChangeEvent.list(this, ChangeEvent.REMOVE, index, null, oldValue));
   }
 
   void recordGlobalChange() {
@@ -113,7 +111,7 @@ class AbstractObservable implements Observable {
 
     if (EventBatch.current != null) {
       // Already in a batch, so just add it.
-      assert (!EventBatch.current.sealed);
+      assert(!EventBatch.current.sealed);
       // TODO(sigmund): measure the performance implications of this indirection
       // and consider whether caching the summary object in this instance helps.
       var summary = EventBatch.current.getEvents(this);
@@ -121,22 +119,23 @@ class AbstractObservable implements Observable {
     } else {
       // Not in a batch, so create a one-off one.
       // TODO(rnystrom): Needing to do ignore and (null) here is awkward.
-      EventBatch.wrap((ignore) { recordEvent(event); })(null);
+      EventBatch.wrap((ignore) {
+        recordEvent(event);
+      })(null);
     }
   }
 }
 
 /** A growable list that fires events when it's modified. */
-class ObservableList<T>
-    extends AbstractObservable
+class ObservableList<T> extends AbstractObservable
     implements List<T>, Observable {
-
   /** Underlying list. */
   // TODO(rnystrom): Make this final if we get list.remove().
   List<T> _internal;
 
   ObservableList([Observable parent = null])
-    : super(parent), _internal = new List<T>();
+      : super(parent),
+        _internal = new List<T>();
 
   T operator [](int index) => _internal[index];
 
@@ -246,7 +245,8 @@ class ObservableList<T>
 
     if (srcStart < dstStart) {
       for (int i = srcStart + count - 1, j = dstStart + count - 1;
-           i >= srcStart; i--, j--) {
+          i >= srcStart;
+          i--, j--) {
         dst[j] = src[i];
       }
     } else {
@@ -288,8 +288,8 @@ class ObservableList<T>
     throw new UnimplementedError();
   }
 
-  dynamic fold(var initialValue,
-               dynamic combine(var previousValue, T element)) {
+  dynamic fold(
+      var initialValue, dynamic combine(var previousValue, T element)) {
     throw new UnimplementedError();
   }
 
@@ -303,11 +303,15 @@ class ObservableList<T>
   List<T> take(int count) => _internal.take(count);
   bool every(bool f(T element)) => _internal.every(f);
   bool any(bool f(T element)) => _internal.any(f);
-  void forEach(void f(T element)) { _internal.forEach(f); }
+  void forEach(void f(T element)) {
+    _internal.forEach(f);
+  }
+
   String join([String separator = ""]) => _internal.join(separator);
   dynamic firstWhere(bool test(T value), {Object orElse()}) {
     return _internal.firstWhere(test, orElse: orElse);
   }
+
   dynamic lastWhere(bool test(T value), {Object orElse()}) {
     return _internal.lastWhere(test, orElse: orElse);
   }
@@ -316,7 +320,7 @@ class ObservableList<T>
   bool remove(T element) => throw new UnimplementedError();
   void removeWhere(bool test(T element)) => throw new UnimplementedError();
   void retainWhere(bool test(T element)) => throw new UnimplementedError();
-  List<T> toList({bool growable:true}) => throw new UnimplementedError();
+  List<T> toList({bool growable: true}) => throw new UnimplementedError();
   Set<T> toSet() => throw new UnimplementedError();
   Iterable<T> takeWhile(bool test(T value)) => throw new UnimplementedError();
   Iterable<T> skipWhile(bool test(T value)) => throw new UnimplementedError();
@@ -324,13 +328,14 @@ class ObservableList<T>
   T singleWhere(bool test(T value)) {
     return _internal.singleWhere(test);
   }
+
   T elementAt(int index) {
     return _internal.elementAt(index);
   }
+
   Map<int, T> asMap() {
     return _internal.asMap();
   }
-
 
   bool get isEmpty => length == 0;
 
@@ -346,7 +351,8 @@ class ObservableList<T>
 /** A wrapper around a single value whose change can be observed. */
 class ObservableValue<T> extends AbstractObservable {
   ObservableValue(T value, [Observable parent = null])
-    : super(parent), _value = value;
+      : super(parent),
+        _value = value;
 
   T get value => _value;
 

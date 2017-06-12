@@ -53,6 +53,14 @@ class IsolateData {
   char* packages_file;
   uint8_t* udp_receive_buffer;
 
+  void UpdatePackagesFile(const char* packages_file_) {
+    if (packages_file != NULL) {
+      free(packages_file);
+      packages_file = NULL;
+    }
+    packages_file = strdup(packages_file_);
+  }
+
   // While loading a loader is associated with the isolate.
   bool HasLoader() const { return loader_ != NULL; }
   Loader* loader() const {

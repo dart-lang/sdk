@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 getNonArray() => new A();
 
 class A {
-  operator[](index) => index;
+  operator [](index) => index;
 }
 
 main() {

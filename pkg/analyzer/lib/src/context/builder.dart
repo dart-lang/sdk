@@ -7,6 +7,7 @@ library analyzer.src.context.context_builder;
 import 'dart:collection';
 import 'dart:core';
 
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
@@ -17,9 +18,8 @@ import 'package:analyzer/src/command_line/arguments.dart'
         applyAnalysisOptionFlags,
         bazelAnalysisOptionsPath,
         flutterAnalysisOptionsPath;
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriver, AnalysisDriverScheduler, PerformanceLog;
+    show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/bazel.dart';
@@ -32,6 +32,8 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:args/args.dart';
+import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -53,7 +55,7 @@ import 'package:yaml/yaml.dart';
  * 3. Look in each package for an SDK extension file (_sdkext). For each such
  *    file, add the specified files to the SDK.
  *
- * 4. Look for an analysis options file (`analyis_options.yaml` or
+ * 4. Look for an analysis options file (`analysis_options.yaml` or
  *    `.analysis_options`) and process the options in the file.
  *
  * 5. Create a new context. Initialize its source factory based on steps 1, 2
@@ -157,7 +159,8 @@ class ContextBuilder {
    * Return an analysis driver that is configured correctly to analyze code in
    * the directory with the given [path].
    */
-  AnalysisDriver buildDriver(String path) {
+  AnalysisDriver buildDriver(ContextRoot contextRoot) {
+    String path = contextRoot.root;
     AnalysisOptions options = getAnalysisOptions(path);
     //_processAnalysisOptions(context, optionMap);
     final sf = createSourceFactory(path, options);
@@ -167,7 +170,7 @@ class ContextBuilder {
         resourceProvider,
         byteStore,
         fileContentOverlay,
-        path,
+        contextRoot,
         sf,
         options);
     // temporary plugin support:
@@ -815,7 +818,10 @@ class _BasicWorkspace extends Workspace {
       throw new ArgumentError('not absolute: $path');
     }
     path = context.normalize(path);
-
+    Resource resource = provider.getResource(path);
+    if (resource is File) {
+      path = resource.parent.path;
+    }
     return new _BasicWorkspace._(provider, path, builder);
   }
 }

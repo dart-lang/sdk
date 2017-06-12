@@ -7,7 +7,6 @@
 import "package:expect/expect.dart";
 
 class FunctionTypeParameterTest {
-
   static var formatter;
 
   static SetFormatter([String fmt(int i) = null]) {

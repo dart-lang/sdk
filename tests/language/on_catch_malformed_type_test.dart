@@ -11,9 +11,9 @@ catchUnresolvedBefore() {
   try {
     throw "foo";
     Expect.fail("This code shouldn't be executed");
-  } on String catch(oks) {
+  } on String catch (oks) {
     // This is tested before the catch block below.
-  } on Unavailable catch(ex) {
+  } on Unavailable catch (ex) {
     Expect.fail("This code shouldn't be executed");
   }
 }
@@ -23,10 +23,10 @@ catchUnresolvedAfter() {
     try {
       throw "foo";
       Expect.fail("This code shouldn't be executed");
-    } on Unavailable catch(ex) {
+    } on Unavailable catch (ex) {
       // This is tested before the catch block below.
       // In both production and checked mode the test causes a type error.
-    } on String catch(oks) {
+    } on String catch (oks) {
       Expect.fail("This code shouldn't be executed");
     }
   }, (e) => e is TypeError);

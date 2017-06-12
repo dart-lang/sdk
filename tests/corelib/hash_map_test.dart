@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 // Test program for the HashMap class.
 
 class HashMapTest {
-
   static testMain() {
     var m = new Map();
     Expect.equals(0, m.length);

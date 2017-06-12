@@ -9,23 +9,20 @@ main() {
   List<int> list2 = const <int>[4, 5, 6];
   List<String> list3 = <String>[];
   Set<int> set1 = new Set<int>();
-  set1..add(11)
-      ..add(12)
-      ..add(13);
+  set1..add(11)..add(12)..add(13);
   Set set2 = new Set();
 
   Expect.equals(2, list1.singleWhere((x) => x.isEven));
   Expect.equals(3, list1.singleWhere((x) => x == 3));
-  Expect.throws(() => list1.singleWhere((x) => x.isOdd),
-                (e) => e is StateError);
+  Expect.throws(
+      () => list1.singleWhere((x) => x.isOdd), (e) => e is StateError);
 
   Expect.equals(6, list2.singleWhere((x) => x == 6));
   Expect.equals(5, list2.singleWhere((x) => x.isOdd));
-  Expect.throws(() => list2.singleWhere((x) => x.isEven),
-                (e) => e is StateError);
+  Expect.throws(
+      () => list2.singleWhere((x) => x.isEven), (e) => e is StateError);
 
-  Expect.throws(() => list3.singleWhere((x) => x == 0),
-                (e) => e is StateError);
+  Expect.throws(() => list3.singleWhere((x) => x == 0), (e) => e is StateError);
 
   Expect.equals(12, set1.singleWhere((x) => x.isEven));
   Expect.equals(11, set1.singleWhere((x) => x == 11));

@@ -1,7 +1,7 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug
+// VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug --async_debugger
 
 import 'dart:developer';
 import 'package:observatory/models.dart' as M;
@@ -41,11 +41,6 @@ var tests = [
   resumeIsolate,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
-  (Isolate isolate) async {
-    ServiceMap stack = await isolate.getStack();
-    // No awaiter frames because there is no awaiter.
-    expect(stack['awaiterFrames'], isNull);
-  },
   resumeIsolate,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),

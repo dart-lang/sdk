@@ -9,15 +9,15 @@ import "deferred_mixin_lib1.dart" deferred as lib1;
 import "deferred_mixin_lib2.dart" deferred as lib2;
 
 class NonDeferredMixin {
- foo() => "NonDeferredMixin";
+  foo() => "NonDeferredMixin";
 }
 
 class NonDeferredMixin1 {
- foo() => "NonDeferredMixin1";
+  foo() => "NonDeferredMixin1";
 }
 
 class NonDeferredMixin2 {
- foo() => "NonDeferredMixin2";
+  foo() => "NonDeferredMixin2";
 }
 
 main() {

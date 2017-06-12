@@ -6,15 +6,14 @@
 // This file contains the library.
 
 library HelloScriptLib;
+
 import "package:expect/expect.dart";
 part "hello_script_lib_source.dart";
 
 class HelloLib {
-
   static doTest() {
     x = 17;
     Expect.equals(17, x++);
     print("Hello from Lib!");
   }
-
 }

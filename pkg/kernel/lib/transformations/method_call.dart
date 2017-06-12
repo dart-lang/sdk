@@ -785,7 +785,8 @@ class MethodCallTransformer extends Transformer {
           initializer: orgVar.initializer,
           type: orgVar.type,
           isFinal: orgVar.isFinal,
-          isConst: orgVar.isConst)..parent = newStuffParent;
+          isConst: orgVar.isConst)
+        ..parent = newStuffParent;
       variableDeclaration.initializer?.parent = variableDeclaration;
       newParameterDeclarations.add(variableDeclaration);
       orgVar.initializer = null;
@@ -799,7 +800,8 @@ class MethodCallTransformer extends Transformer {
           initializer: orgVar.initializer,
           type: orgVar.type,
           isFinal: orgVar.isFinal,
-          isConst: orgVar.isConst)..parent = newStuffParent;
+          isConst: orgVar.isConst)
+        ..parent = newStuffParent;
       variableDeclaration.initializer?.parent = variableDeclaration;
       newNamedParameterDeclarations.add(variableDeclaration);
       orgVar.initializer = null;
@@ -888,7 +890,7 @@ class MethodCallTransformer extends Transformer {
   ConstructorInvocation _createInvocation(
       String methodName, Arguments callArguments) {
     if (_invocationMirrorConstructor == null) {
-      Class clazz = coreTypes.getClass('dart:core', '_InvocationMirror');
+      Class clazz = coreTypes.invocationMirrorClass;
       _invocationMirrorConstructor = clazz.constructors[0];
     }
 
@@ -932,7 +934,7 @@ class MethodCallTransformer extends Transformer {
 
   /// Create a fixed length list containing given expressions.
   Expression _fixedLengthList(List<Expression> list) {
-    _listFrom ??= coreTypes.getMember('dart:core', 'List', 'from');
+    _listFrom ??= coreTypes.listFromConstructor;
     return new StaticInvocation(
         _listFrom,
         new Arguments([new ListLiteral(list)],

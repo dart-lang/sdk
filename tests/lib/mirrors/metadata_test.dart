@@ -4,6 +4,7 @@
 
 library test.metadata_test;
 
+@MirrorsUsed(targets: "test.metadata_test")
 import 'dart:mirrors';
 
 const string = 'a metadata string';
@@ -12,13 +13,18 @@ const symbol = const Symbol('symbol');
 
 const hest = 'hest';
 
-@symbol @string
+@symbol
+@string
 class MyClass {
-  @hest @hest @symbol
+  @hest
+  @hest
+  @symbol
   var x;
   var y;
 
-  @string @symbol @string
+  @string
+  @symbol
+  @string
   myMethod() => 1;
   myOtherMethod() => 2;
 }
@@ -42,7 +48,9 @@ checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
   print(metadata);
 }
 
-@symbol @string @symbol
+@symbol
+@string
+@symbol
 main() {
   if (MirrorSystem.getName(symbol) != 'symbol') {
     // This happened in dart2js due to how early library metadata is

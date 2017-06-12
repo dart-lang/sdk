@@ -7,9 +7,13 @@
 import 'package:expect/expect.dart';
 
 class M<T> {
-  var field = () { return T; } ();
+  var field = () {
+    return T;
+  }();
 }
+
 class A<U> {}
+
 class C1<V> = Object with M<V>;
 class C2 = Object with M<int>;
 class C3 = Object with M<String>;

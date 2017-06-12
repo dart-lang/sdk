@@ -64,22 +64,32 @@ void main() {
     firstMatch("This is an ASCII string that could take forever", re);
   }
 
-  NoHang(new RegExp(r"(((.*)*)*x)Ā")); // Continuation after loop is filtered, so is loop.
+  NoHang(new RegExp(
+      r"(((.*)*)*x)Ā")); // Continuation after loop is filtered, so is loop.
   NoHang(new RegExp(r"(((.*)*)*Ā)foo")); // Body of loop filtered.
-  NoHang(new RegExp(r"Ā(((.*)*)*x)")); // Everything after a filtered character is filtered.
-  NoHang(new RegExp(r"(((.*)*)*x)Ā")); // Everything before a filtered character is filtered.
-  NoHang(new RegExp(r"[ćăĀ](((.*)*)*x)")); // Everything after a filtered class is filtered.
-  NoHang(new RegExp(r"(((.*)*)*x)[ćăĀ]")); // Everything before a filtered class is filtered.
+  NoHang(new RegExp(
+      r"Ā(((.*)*)*x)")); // Everything after a filtered character is filtered.
+  NoHang(new RegExp(
+      r"(((.*)*)*x)Ā")); // Everything before a filtered character is filtered.
+  NoHang(new RegExp(
+      r"[ćăĀ](((.*)*)*x)")); // Everything after a filtered class is filtered.
+  NoHang(new RegExp(
+      r"(((.*)*)*x)[ćăĀ]")); // Everything before a filtered class is filtered.
   NoHang(new RegExp(r"[^\x00-\xff](((.*)*)*x)")); // After negated class.
   NoHang(new RegExp(r"(((.*)*)*x)[^\x00-\xff]")); // Before negated class.
   NoHang(new RegExp(r"(?!(((.*)*)*x)Ā)foo")); // Negative lookahead is filtered.
-  NoHang(new RegExp(r"(?!(((.*)*)*x))Ā")); // Continuation branch of negative lookahead.
+  NoHang(new RegExp(
+      r"(?!(((.*)*)*x))Ā")); // Continuation branch of negative lookahead.
   NoHang(new RegExp(r"(?=(((.*)*)*x)Ā)foo")); // Positive lookahead is filtered.
-  NoHang(new RegExp(r"(?=(((.*)*)*x))Ā")); // Continuation branch of positive lookahead.
-  NoHang(new RegExp(r"(?=Ā)(((.*)*)*x)")); // Positive lookahead also prunes continuation.
-  NoHang(new RegExp(r"(æ|ø|Ā)(((.*)*)*x)")); // All branches of alternation are filtered.
+  NoHang(new RegExp(
+      r"(?=(((.*)*)*x))Ā")); // Continuation branch of positive lookahead.
+  NoHang(new RegExp(
+      r"(?=Ā)(((.*)*)*x)")); // Positive lookahead also prunes continuation.
+  NoHang(new RegExp(
+      r"(æ|ø|Ā)(((.*)*)*x)")); // All branches of alternation are filtered.
   NoHang(new RegExp(r"(a|b|(((.*)*)*x))Ā")); // 1 out of 3 branches pruned.
-  NoHang(new RegExp(r"(a|(((.*)*)*x)ă|(((.*)*)*x)Ā)")); // 2 out of 3 branches pruned.
+  NoHang(new RegExp(
+      r"(a|(((.*)*)*x)ă|(((.*)*)*x)Ā)")); // 2 out of 3 branches pruned.
 
   var s = "Don't prune based on a repetition of length 0";
   assertEquals(null, firstMatch(s, new RegExp(r"å{1,1}prune")));
@@ -110,9 +120,11 @@ void main() {
   var regex10 = new RegExp(re, caseSensitive: false);
   regex10.firstMatch(input0);
 
-  var regex11 = new RegExp(r"^(?:[^\u0000-\u0080]|[0-9a-z?,.!&\s#()])+$", caseSensitive: false);
+  var regex11 = new RegExp(r"^(?:[^\u0000-\u0080]|[0-9a-z?,.!&\s#()])+$",
+      caseSensitive: false);
   regex11.firstMatch(input0);
 
-  var regex12 = new RegExp(r"u(\xf0{8}?\D*?|( ? !)$h??(|)*?(||)+?\6((?:\W\B|--\d-*-|)?$){0, }?|^Y( ? !1)\d+)+a");
+  var regex12 = new RegExp(
+      r"u(\xf0{8}?\D*?|( ? !)$h??(|)*?(||)+?\6((?:\W\B|--\d-*-|)?$){0, }?|^Y( ? !1)\d+)+a");
   regex12.firstMatch("");
 }

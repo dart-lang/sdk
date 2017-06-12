@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring.convert_getter_to_method;
-
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' hide ElementKind;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
@@ -17,7 +15,6 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertGetterToMethodTest);
-    defineReflectiveTests(ConvertGetterToMethodTest_Driver);
   });
 }
 
@@ -165,10 +162,4 @@ main() {
     ExecutableElement element = findNodeElementAtString(search);
     _createRefactoringForElement(element);
   }
-}
-
-@reflectiveTest
-class ConvertGetterToMethodTest_Driver extends ConvertGetterToMethodTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
 }

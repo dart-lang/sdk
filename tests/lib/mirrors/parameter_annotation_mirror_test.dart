@@ -15,33 +15,32 @@ class ParameterAnnotation {
 class Foo {
   Foo(@ParameterAnnotation("vogel") p) {}
   Foo.named(@ParameterAnnotation("hamster") p) {}
-  Foo.named2(@ParameterAnnotation("hamster") p,
-             @ParameterAnnotation("wurm") p2) {}
+  Foo.named2(
+      @ParameterAnnotation("hamster") p, @ParameterAnnotation("wurm") p2) {}
 
   f1(@ParameterAnnotation("hest") p) {}
   f2(@ParameterAnnotation("hest") @ParameterAnnotation("fisk") p) {}
   f3(a, @ParameterAnnotation("fugl") p) {}
-  f4(@ParameterAnnotation("fisk") a,
-     {@ParameterAnnotation("hval") p}) {}
-  f5(@ParameterAnnotation("fisk") a,
-     [@ParameterAnnotation("hval") p]) {}
-  f6({@ParameterAnnotation("fisk") z,
-      @ParameterAnnotation("hval") p}) {}
+  f4(@ParameterAnnotation("fisk") a, {@ParameterAnnotation("hval") p}) {}
+  f5(@ParameterAnnotation("fisk") a, [@ParameterAnnotation("hval") p]) {}
+  f6({@ParameterAnnotation("fisk") z, @ParameterAnnotation("hval") p}) {}
 
   set s1(@ParameterAnnotation("cheval") p) {}
 }
 
-expectAnnotations(Type type, Symbol method, int parameterIndex,
-                  List<String> expectedValues) {
+expectAnnotations(
+    Type type, Symbol method, int parameterIndex, List<String> expectedValues) {
   MethodMirror mirror = reflectClass(type).declarations[method];
   ParameterMirror parameter = mirror.parameters[parameterIndex];
   List<InstanceMirror> annotations = parameter.metadata;
   Expect.equals(annotations.length, expectedValues.length,
-                "wrong number of parameter annotations");
+      "wrong number of parameter annotations");
   for (int i = 0; i < annotations.length; i++) {
-    Expect.equals(expectedValues[i], annotations[i].reflectee.value,
-                  "annotation #$i of parameter #$parameterIndex "
-                  "of $type.$method.");
+    Expect.equals(
+        expectedValues[i],
+        annotations[i].reflectee.value,
+        "annotation #$i of parameter #$parameterIndex "
+        "of $type.$method.");
   }
 }
 

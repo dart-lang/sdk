@@ -15,7 +15,8 @@ void testClampedList() {
   // Force lookup of Uint8List first.
   Expect.isTrue(inscrutable(new Uint8List(1)) is Uint8List);
 
-  Expect.isFalse(new Uint8ClampedList(1) is Uint8List,
+  Expect.isFalse(
+      new Uint8ClampedList(1) is Uint8List,
       'Uint8ClampedList should not be a subtype of Uint8List '
       'in optimizable test');
   Expect.isFalse(inscrutable(new Uint8ClampedList(1)) is Uint8List,
@@ -35,7 +36,6 @@ void implementsTypedData() {
   Expect.isTrue(inscrutable(new Uint16List(1)) is TypedData);
   Expect.isTrue(inscrutable(new Uint32List(1)) is TypedData);
 }
-
 
 void implementsList() {
   Expect.isTrue(inscrutable(new Float32List(1)) is List<double>);

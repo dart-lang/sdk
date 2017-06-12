@@ -28,8 +28,7 @@ class Mixin {
   }
 }
 
-class Sub extends Base with Mixin {
-}
+class Sub extends Base with Mixin {}
 
 main() {
   var object = new Sub();

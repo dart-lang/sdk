@@ -27,8 +27,7 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-  "This page tests for length miscalculations in regular expression processing."
-  );
+      "This page tests for length miscalculations in regular expression processing.");
 
   var re = new RegExp(r"b|[^b]");
   assertEquals('a'.indexOf(re, 1), -1);

@@ -9,6 +9,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/universe/call_structure.dart' show CallStructure;
@@ -22,14 +23,10 @@ Future<Compiler> applyPatch(String script, String patch,
     {bool analyzeAll: false,
     bool analyzeOnly: false,
     bool runCompiler: false,
-    String main: "",
-    String patchVersion}) async {
+    String main: ""}) async {
   Map<String, String> core = <String, String>{'script': script};
   MockCompiler compiler = new MockCompiler.internal(
-      coreSource: core,
-      analyzeAll: analyzeAll,
-      analyzeOnly: analyzeOnly,
-      patchVersion: patchVersion);
+      coreSource: core, analyzeAll: analyzeAll, analyzeOnly: analyzeOnly);
   compiler.diagnosticHandler = createHandler(compiler, '');
   var uri = Uri.parse("patch:core");
   compiler.registerSource(uri, "$DEFAULT_PATCH_CORE_SOURCE\n$patch");
@@ -216,72 +213,6 @@ Future testPatchFunctionGenericDifferentNames() async {
   Expect.equals(1, collector.errors.length);
   Expect.isTrue(collector.errors.first.message.kind ==
       MessageKind.PATCH_TYPE_VARIABLES_MISMATCH);
-}
-
-Future testPatchVersioned() async {
-  String fullPatch = "test(){return 'string';}";
-  String lazyPatch = "test(){return 'new and improved string';}";
-
-  String patchSource = """
-      @patch_full $fullPatch
-      @patch_lazy $lazyPatch
-      """;
-
-  Future test(String patchVersion,
-      {String patchText,
-      bool expectIsPatched: true,
-      String expectedError,
-      String defaultPatch: '',
-      String expectedInternalError}) async {
-    return applyPatch(
-        "external test();",
-        """
-        $defaultPatch
-        $patchSource
-        """,
-        patchVersion: patchVersion).then((compiler) {
-      Element origin = ensure(
-          compiler, "test", compiler.commonElements.coreLibrary.find,
-          expectIsPatched: expectIsPatched, checkHasBody: true);
-      if (expectIsPatched) {
-        AstElement patch = ensure(
-            compiler, "test", compiler.commonElements.coreLibrary.patch.find,
-            expectIsPatch: true, checkHasBody: true);
-        Expect.equals(origin.patch, patch);
-        Expect.equals(patch.origin, origin);
-        Expect.equals(patchText, patch.node.toString());
-      }
-
-      compiler.resolution.computeWorldImpact(origin);
-      compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
-
-      DiagnosticCollector collector = compiler.diagnosticCollector;
-      Expect.isTrue(collector.warnings.isEmpty,
-          "Unexpected warnings: ${collector.warnings}");
-      if (expectedError != null) {
-        Expect.equals(expectedError, collector.errors.first.message.toString());
-      } else {
-        Expect.isTrue(
-            collector.errors.isEmpty, "Unexpected errors: ${collector.errors}");
-      }
-    }).catchError((error) {
-      if (expectedInternalError != null) {
-        Expect.equals(
-            'Internal Error: $expectedInternalError', error.toString());
-      } else {
-        throw error;
-      }
-    });
-  }
-
-  await test('full', patchText: fullPatch);
-  await test('lazy', patchText: lazyPatch);
-  await test('unknown',
-      expectIsPatched: false,
-      expectedError: 'External method without an implementation.');
-  await test('full',
-      defaultPatch: "@patch test(){}",
-      expectedInternalError: "Trying to patch a function more than once.");
 }
 
 Future testPatchConstructor() async {
@@ -1150,8 +1081,6 @@ main() {
     await testInjectedFunction();
     await testInjectedPublicFunction();
     await testPatchSignatureCheck();
-
-    await testPatchVersioned();
 
     await testExternalWithoutImplementationTopLevel();
     await testExternalWithoutImplementationMember();

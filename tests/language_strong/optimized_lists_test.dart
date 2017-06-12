@@ -13,11 +13,10 @@ main() {
   }
 }
 
-
 test(n) {
   var a = new List(); //    Growable list.
-  var b = new List(10);  // Fixed size list.
-  var c = const [1, 2, 3, 4];  // Constant aray.
+  var b = new List(10); // Fixed size list.
+  var c = const [1, 2, 3, 4]; // Constant aray.
   // In optimized mode the class checks will be eliminated since the
   // constructors above provide information about exact types.
   a.add(4);

@@ -11,7 +11,6 @@ part of observable;
  * AbstractObservable, which works with this class to implement batching.
  */
 class EventBatch {
-
   /** The current active batch, if any. */
   static EventBatch current;
 
@@ -32,7 +31,7 @@ class EventBatch {
   EventBatch._internal() : summaries = new Map<int, EventSummary>();
 
   /**
-   * Ensure there is an event batch where [userFunction] can accumuluate events.
+   * Ensure there is an event batch where [userFunction] can accumulate events.
    * When the batch is complete, fire all events at once.
    */
   static Function wrap(userFunction(var a)) {
@@ -88,7 +87,7 @@ class EventBatch {
     int uid = obj.uid;
     EventSummary summary = summaries[uid];
     if (summary == null) {
-      assert (!sealed);
+      assert(!sealed);
       summary = new EventSummary(obj);
       summaries[uid] = summary;
     }

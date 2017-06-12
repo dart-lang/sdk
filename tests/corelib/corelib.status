@@ -20,6 +20,7 @@ compare_to2_test: Fail    # Bug 4018
 symbol_test/01: Fail, Pass # bug 11669
 
 # With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_reserved_word_test/05: CompileTimeError # bug 20191
 symbol_reserved_word_test/06: RuntimeError # bug 11669
 symbol_reserved_word_test/09: RuntimeError # bug 11669
 symbol_reserved_word_test/12: RuntimeError # bug 11669
@@ -28,7 +29,7 @@ symbol_test/none: Fail # bug 11669
 symbol_operator_test/03: Fail # bug 11669
 string_case_test/01: Fail # Bug 18061
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == vm)]
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == vm || $runtime == flutter)]
 string_trimlr_test/02: RuntimeError # Issue 29060
 
 [ $compiler == precompiler || $compiler == app_jit ]
@@ -37,7 +38,6 @@ string_trimlr_test/02: RuntimeError # Issue 29060
 # #void should be a valid symbol.
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit || $compiler == dart2js ]
 symbol_reserved_word_test/02: CompileTimeError # bug 20191
-symbol_reserved_word_test/05: CompileTimeError # bug 20191
 
 # With the exception of 'void', const Symbol() should not accept reserved
 # words.
@@ -63,6 +63,7 @@ integer_to_radix_string_test: RuntimeError # issue 22045
 int_modulo_arith_test/bignum: RuntimeError # No bigints.
 int_modulo_arith_test/modPow: RuntimeError # No bigints.
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
+symbol_reserved_word_test/05: Crash # bug 20191
 
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
@@ -135,7 +136,7 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
 string_case_test/01: Fail, OK  # Bug in Firefox.
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) && $fast_startup == false]
+[ $compiler == dart2js && $runtime == jsshell && $fast_startup == false]
 list_test/none: RuntimeError # Issue 27871, Issue 28014, proably Bug in jsshell / Firefox
 list_test/01: RuntimeError # Issue 27871, Issue 28014, proably Bug in jsshell / Firefox
 
@@ -178,7 +179,7 @@ regexp/*: Skip
 [ $runtime == d8 ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
-[ $runtime == vm || $runtime == dart_precompiled ]
+[ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter]
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
 regexp/pcre_test: Pass, Slow, Timeout # Issues 21593 and 22008
 
@@ -217,6 +218,7 @@ regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interp
 
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_parsed_mul_div_vm_test: Pass, Slow # Slow.
+big_integer_huge_mul_vm_test: Pass, Slow # Slow
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
 error_stack_trace1_test: Pass # Issue 27394
@@ -225,13 +227,10 @@ bool_from_environment_test: RuntimeError # Issue 27394
 data_uri_test: RuntimeError # Issue 27394
 date_time7_test: RuntimeError # Issue 27394
 date_time_test: RuntimeError # Issue 27394
-duration_test: RuntimeError # Issue 27394
 growable_list_test: RuntimeError # Issue 27394
 int_from_environment2_test: RuntimeError # Issue 27394
 int_from_environment_test: RuntimeError # Issue 27394
 iterable_empty_test: RuntimeError # Issue 27394
-iterable_generate_test/01: RuntimeError # Issue 27394
-iterable_generate_test/none: RuntimeError # Issue 27394
 iterable_return_type_test/none: RuntimeError # Issue 27394
 iterable_to_list_test/none: RuntimeError # Issue 27394
 iterable_to_set_test: RuntimeError # Issue 27394
@@ -240,11 +239,7 @@ linked_hash_map_from_iterables_test: RuntimeError # Issue 27394
 list_filled_type_argument_test: RuntimeError # Issue 27394
 map_from_iterable_test: RuntimeError # Issue 27394
 map_from_iterables_test: RuntimeError # Issue 27394
-map_keys2_test: RuntimeError # Issue 27394
 map_test: Crash # Issue 27394
-map_values2_test: RuntimeError # Issue 27394
-map_values3_test: RuntimeError # Issue 27394
-map_values4_test: RuntimeError # Issue 27394
 reg_exp1_test: RuntimeError # Issue 27394
 regexp/compile_test: RuntimeError # Issue 27394
 regexp/default_arguments_test: RuntimeError # Issue 27394
@@ -253,8 +248,6 @@ regexp/parentheses_test: RuntimeError # Issue 27394
 regexp/pcre-test-4_test: RuntimeError # Issue 27394
 regexp/pcre_test: RuntimeError # Issue 27394
 set_test: RuntimeError # Issue 27394
-splay_tree_from_iterable_test: RuntimeError # Issue 27394
-splay_tree_from_iterables_test: RuntimeError # Issue 27394
 string_from_environment2_test: RuntimeError # Issue 27394
 string_from_environment_test: RuntimeError # Issue 27394
 symbol_operator_test/03: RuntimeError # Issue 27394
@@ -291,9 +284,7 @@ string_from_environment3_test/04: MissingCompileTimeError
 string_from_environment3_test/05: MissingCompileTimeError
 string_trimlr_test/02: RuntimeError
 symbol_operator_test/03: RuntimeError
-symbol_reserved_word_test/02: DartkCrash
 symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: DartkCrash
 symbol_reserved_word_test/06: RuntimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: RuntimeError
@@ -304,3 +295,58 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 unicode_test: RuntimeError
+
+# dartk: checked mode failures
+[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+symbol_test/01: Pass
+symbol_test/02: Pass
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+
+[ $runtime == flutter ]
+
+# No support for mirrors
+apply3_test: CompileTimeError
+
+# Possible bugs
+format_exception_test: RuntimeError # Flutter Issue 9111
+string_from_environment_test: Fail # Flutter Issue 9111
+string_from_environment2_test: Fail # Flutter Issue 9111
+bool_from_environment_test: Fail # Flutter Issue 9111
+int_from_environment_test: Fail # Flutter Issue 9111
+int_from_environment2_test: Fail # Flutter Issue 9111
+from_environment_const_type_test/none: Fail # Flutter Issue 9111
+from_environment_const_type_test/01: Fail # Flutter Issue 9111
+from_environment_const_type_test/05: Fail # Flutter Issue 9111
+from_environment_const_type_test/10: Fail # Flutter Issue 9111
+from_environment_const_type_test/15: Fail # Flutter Issue 9111
+from_environment_const_type_test/02: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/03: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/04: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/06: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/07: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/08: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/09: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/12: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/11: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/13: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/14: MissingCompileTimeError # Flutter Issue 9111
+from_environment_const_type_test/16: MissingCompileTimeError # Flutter Issue 9111
+string_trimlr_test/02: RuntimeError # Flutter Issue 9111
+main_test: RuntimeError # Flutter Issue 9111

@@ -1,0 +1,6 @@
+library test;
+import self as self;
+
+static field dynamic i;
+static method main() → dynamic
+  ;

@@ -13,10 +13,9 @@ main() {
   var isDivElement = predicate((x) => x is DivElement, 'is a DivElement');
   var isText = predicate((x) => x is Text, 'is a Text');
 
-  void expectNoSuchMethod(void fn()) =>
-    expect(fn, throwsNoSuchMethodError);
+  void expectNoSuchMethod(void fn()) => expect(fn, throwsNoSuchMethodError);
 
-   group('append', () {
+  group('append', () {
     test('htmlelement', () {
       var el = new DivElement();
       el.append(new SpanElement());

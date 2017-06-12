@@ -930,10 +930,10 @@ static DART_NOINLINE bool InvokeRuntime(Thread* thread,
 }
 
 
-static DART_NOINLINE bool InvokeNative(Thread* thread,
-                                       Simulator* sim,
-                                       SimulatorBootstrapNativeCall f,
-                                       NativeArguments* args) {
+static DART_NOINLINE bool InvokeBootstrapNative(Thread* thread,
+                                                Simulator* sim,
+                                                SimulatorBootstrapNativeCall f,
+                                                NativeArguments* args) {
   SimulatorSetjmpBuffer buffer(sim);
   if (!setjmp(buffer.buffer_)) {
     thread->set_vm_tag(reinterpret_cast<uword>(f));
@@ -947,15 +947,33 @@ static DART_NOINLINE bool InvokeNative(Thread* thread,
 }
 
 
-static DART_NOINLINE bool InvokeNativeWrapper(Thread* thread,
-                                              Simulator* sim,
-                                              Dart_NativeFunction f,
-                                              NativeArguments* args) {
+static DART_NOINLINE bool InvokeNativeNoScopeWrapper(Thread* thread,
+                                                     Simulator* sim,
+                                                     Dart_NativeFunction f,
+                                                     NativeArguments* args) {
   SimulatorSetjmpBuffer buffer(sim);
   if (!setjmp(buffer.buffer_)) {
     thread->set_vm_tag(reinterpret_cast<uword>(f));
-    NativeEntry::NativeCallWrapper(reinterpret_cast<Dart_NativeArguments>(args),
-                                   f);
+    NativeEntry::NoScopeNativeCallWrapper(
+        reinterpret_cast<Dart_NativeArguments>(args), f);
+    thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_top_exit_frame_info(0);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+
+static DART_NOINLINE bool InvokeNativeAutoScopeWrapper(Thread* thread,
+                                                       Simulator* sim,
+                                                       Dart_NativeFunction f,
+                                                       NativeArguments* args) {
+  SimulatorSetjmpBuffer buffer(sim);
+  if (!setjmp(buffer.buffer_)) {
+    thread->set_vm_tag(reinterpret_cast<uword>(f));
+    NativeEntry::AutoScopeNativeCallWrapper(
+        reinterpret_cast<Dart_NativeArguments>(args), f);
     thread->set_vm_tag(VMTag::kDartTagId);
     thread->set_top_exit_frame_info(0);
     return true;
@@ -1092,13 +1110,18 @@ static DART_NOINLINE bool InvokeNativeWrapper(Thread* thread,
     HANDLE_EXCEPTION;                                                          \
   }
 
-#define INVOKE_NATIVE(Func, Args)                                              \
-  if (!InvokeNative(thread, this, Func, &Args)) {                              \
+#define INVOKE_BOOTSTRAP_NATIVE(Func, Args)                                    \
+  if (!InvokeBootstrapNative(thread, this, Func, &Args)) {                     \
     HANDLE_EXCEPTION;                                                          \
   }
 
-#define INVOKE_NATIVE_WRAPPER(Func, Args)                                      \
-  if (!InvokeNativeWrapper(thread, this, Func, &Args)) {                       \
+#define INVOKE_NATIVE_NO_SCOPE(Func, Args)                                     \
+  if (!InvokeNativeNoScopeWrapper(thread, this, Func, &Args)) {                \
+    HANDLE_EXCEPTION;                                                          \
+  }
+
+#define INVOKE_NATIVE_AUTO_SCOPE(Func, Args)                                   \
+  if (!InvokeNativeAutoScopeWrapper(thread, this, Func, &Args)) {              \
     HANDLE_EXCEPTION;                                                          \
   }
 
@@ -1249,7 +1272,7 @@ RawObject* Simulator::Call(const Code& code,
   RawBool* true_value = Bool::True().raw();
   RawBool* false_value = Bool::False().raw();
   RawObject* null_value = Object::null();
-  RawObject* empty_context = thread->isolate()->object_store()->empty_context();
+  RawObject* empty_context = Object::empty_context().raw();
 
 #if defined(DEBUG)
   Function& function_h = Function::Handle();
@@ -1564,50 +1587,58 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(InstantiateType, A_D);
+    // Stack: instantiator type args, function type args
     RawObject* type = LOAD_CONSTANT(rD);
     SP[1] = type;
-    SP[2] = SP[0];
-    SP[0] = null_value;
-    Exit(thread, FP, SP + 3, pc);
+    SP[2] = SP[-1];
+    SP[3] = SP[0];
+    Exit(thread, FP, SP + 4, pc);
     {
-      NativeArguments args(thread, 2, SP + 1, SP);
+      NativeArguments args(thread, 3, SP + 1, SP - 1);
       INVOKE_RUNTIME(DRT_InstantiateType, args);
     }
+    SP -= 1;
     DISPATCH();
   }
 
   {
     BYTECODE(InstantiateTypeArgumentsTOS, A_D);
+    // Stack: instantiator type args, function type args
     RawTypeArguments* type_arguments =
         static_cast<RawTypeArguments*>(LOAD_CONSTANT(rD));
 
-    RawObject* instantiator = SP[0];
-    // If the instantiator is null and if the type argument vector
+    RawObject* instantiator_type_args = SP[-1];
+    RawObject* function_type_args = SP[0];
+    // If both instantiators are null and if the type argument vector
     // instantiated from null becomes a vector of dynamic, then use null as
     // the type arguments.
-    if (rA == 0 || null_value != instantiator) {
+    if ((rA == 0) || (null_value != instantiator_type_args) ||
+        (null_value != function_type_args)) {
       // First lookup in the cache.
       RawArray* instantiations = type_arguments->ptr()->instantiations_;
       for (intptr_t i = 0;
            instantiations->ptr()->data()[i] != NULL;  // kNoInstantiator
-           i += 2) {
-        if (instantiations->ptr()->data()[i] == instantiator) {
+           i += 3) {  // kInstantiationSizeInWords
+        if ((instantiations->ptr()->data()[i] == instantiator_type_args) &&
+            (instantiations->ptr()->data()[i + 1] == function_type_args)) {
           // Found in the cache.
-          SP[0] = instantiations->ptr()->data()[i + 1];
+          SP[-1] = instantiations->ptr()->data()[i + 2];
           goto InstantiateTypeArgumentsTOSDone;
         }
       }
 
       // Cache lookup failed, call runtime.
       SP[1] = type_arguments;
-      SP[2] = instantiator;
+      SP[2] = instantiator_type_args;
+      SP[3] = function_type_args;
 
-      Exit(thread, FP, SP + 3, pc);
-      NativeArguments args(thread, 2, SP + 1, SP);
+      Exit(thread, FP, SP + 4, pc);
+      NativeArguments args(thread, 3, SP + 1, SP - 1);
       INVOKE_RUNTIME(DRT_InstantiateTypeArguments, args);
     }
 
   InstantiateTypeArgumentsTOSDone:
+    SP -= 1;
     DISPATCH();
   }
 
@@ -1894,13 +1925,13 @@ RawObject* Simulator::Call(const Code& code,
     SP[-1] = null_value;
     Exit(thread, FP, SP + 1, pc);
     NativeArguments args(thread, argc_tag, incoming_args, SP - 1);
-    INVOKE_NATIVE(native_target, args);
+    INVOKE_BOOTSTRAP_NATIVE(native_target, args);
     SP -= 1;
     DISPATCH();
   }
 
   {
-    BYTECODE(NativeCall, 0);
+    BYTECODE(NativeNoScopeCall, 0);
     RawFunction* function = FrameFunction(FP);
     RawObject** incoming_args =
         (function->ptr()->num_optional_parameters_ == 0)
@@ -1914,7 +1945,27 @@ RawObject* Simulator::Call(const Code& code,
     SP[-1] = null_value;
     Exit(thread, FP, SP + 1, pc);
     NativeArguments args(thread, argc_tag, incoming_args, SP - 1);
-    INVOKE_NATIVE_WRAPPER(native_target, args);
+    INVOKE_NATIVE_NO_SCOPE(native_target, args);
+    SP -= 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(NativeAutoScopeCall, 0);
+    RawFunction* function = FrameFunction(FP);
+    RawObject** incoming_args =
+        (function->ptr()->num_optional_parameters_ == 0)
+            ? FrameArguments(FP, function->ptr()->num_fixed_parameters_)
+            : FP;
+
+    Dart_NativeFunction native_target =
+        reinterpret_cast<Dart_NativeFunction>(SP[-1]);
+    intptr_t argc_tag = reinterpret_cast<intptr_t>(SP[-0]);
+    SP[-0] = 0;  // argc_tag is not smi tagged!
+    SP[-1] = null_value;
+    Exit(thread, FP, SP + 1, pc);
+    NativeArguments args(thread, argc_tag, incoming_args, SP - 1);
+    INVOKE_NATIVE_AUTO_SCOPE(native_target, args);
     SP -= 1;
     DISPATCH();
   }
@@ -2906,15 +2957,17 @@ RawObject* Simulator::Call(const Code& code,
     BYTECODE(CreateArrayOpt, A_B_C);
     const intptr_t length = Smi::Value(RAW_CAST(Smi, FP[rB]));
     if (LIKELY(static_cast<uintptr_t>(length) <= Array::kMaxElements)) {
-      const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+      const intptr_t fixed_size_plus_alignment_padding =
+          sizeof(RawArray) + kObjectAlignment - 1;
       const intptr_t instance_size =
-          (fixed_size + length * kWordSize) & ~(kObjectAlignment - 1);
+          (fixed_size_plus_alignment_padding + length * kWordSize) &
+          ~(kObjectAlignment - 1);
       const uword start =
           thread->heap()->new_space()->TryAllocate(instance_size);
       if (LIKELY(start != 0)) {
         const intptr_t cid = kArrayCid;
         uword tags = 0;
-        if (LIKELY(instance_size < RawObject::SizeTag::kMaxSizeTag)) {
+        if (LIKELY(instance_size <= RawObject::SizeTag::kMaxSizeTag)) {
           tags = RawObject::SizeTag::update(instance_size, tags);
         }
         tags = RawObject::ClassIdTag::update(cid, tags);
@@ -2946,9 +2999,12 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(InstanceOf, 0);  // Stack: instance, type args, type, cache
-    RawInstance* instance = static_cast<RawInstance*>(SP[-3]);
+    BYTECODE(InstanceOf, 0);
+    // Stack: instance, instantiator type args, function type args, type, cache
+    RawInstance* instance = static_cast<RawInstance*>(SP[-4]);
     RawTypeArguments* instantiator_type_arguments =
+        static_cast<RawTypeArguments*>(SP[-3]);
+    RawTypeArguments* function_type_arguments =
         static_cast<RawTypeArguments*>(SP[-2]);
     RawAbstractType* type = static_cast<RawAbstractType*>(SP[-1]);
     RawSubtypeTestCache* cache = static_cast<RawSubtypeTestCache*>(SP[0]);
@@ -2961,7 +3017,11 @@ RawObject* Simulator::Call(const Code& code,
       RawObject* instance_cid_or_function;
       if (cid == kClosureCid) {
         RawClosure* closure = static_cast<RawClosure*>(instance);
-        instance_type_arguments = closure->ptr()->instantiator_;
+        if (closure->ptr()->function_type_arguments_ != TypeArguments::null()) {
+          // Cache cannot be used for generic closures.
+          goto InstanceOfCallRuntime;
+        }
+        instance_type_arguments = closure->ptr()->instantiator_type_arguments_;
         instance_cid_or_function = closure->ptr()->function_;
       } else {
         instance_cid_or_function = Smi::New(cid);
@@ -2984,8 +3044,10 @@ RawObject* Simulator::Call(const Code& code,
             (entries[SubtypeTestCache::kInstanceTypeArguments] ==
              instance_type_arguments) &&
             (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
-             instantiator_type_arguments)) {
-          SP[-3] = entries[SubtypeTestCache::kTestResult];
+             instantiator_type_arguments) &&
+            (entries[SubtypeTestCache::kFunctionTypeArguments] ==
+             function_type_arguments)) {
+          SP[-4] = entries[SubtypeTestCache::kTestResult];
           goto InstanceOfOk;
         }
       }
@@ -2997,37 +3059,40 @@ RawObject* Simulator::Call(const Code& code,
       SP[1] = instance;
       SP[2] = type;
       SP[3] = instantiator_type_arguments;
-      SP[4] = cache;
-      Exit(thread, FP, SP + 5, pc);
-      NativeArguments native_args(thread, 4, SP + 1, SP - 3);
+      SP[4] = function_type_arguments;
+      SP[5] = cache;
+      Exit(thread, FP, SP + 6, pc);
+      NativeArguments native_args(thread, 5, SP + 1, SP - 4);
       INVOKE_RUNTIME(DRT_Instanceof, native_args);
     }
   // clang-format on
 
   InstanceOfOk:
-    SP -= 3;
+    SP -= 4;
     DISPATCH();
   }
 
   {
-    BYTECODE(BadTypeError, 0);  // Stack: instance, type args, type, name
-    RawObject** args = SP - 3;
+    BYTECODE(BadTypeError, 0);
+    // Stack: instance, instantiator type args, function type args, type, name
+    RawObject** args = SP - 4;
     if (args[0] != null_value) {
       SP[1] = args[0];  // instance.
-      SP[2] = args[3];  // name.
-      SP[3] = args[2];  // type.
+      SP[2] = args[4];  // name.
+      SP[3] = args[3];  // type.
       Exit(thread, FP, SP + 4, pc);
-      NativeArguments native_args(thread, 3, SP + 1, SP - 3);
+      NativeArguments native_args(thread, 3, SP + 1, SP - 4);
       INVOKE_RUNTIME(DRT_BadTypeError, native_args);
       UNREACHABLE();
     }
-    SP -= 3;
+    SP -= 4;
     DISPATCH();
   }
 
   {
-    BYTECODE(AssertAssignable, A_D);  // Stack: instance, type args, type, name
-    RawObject** args = SP - 3;
+    BYTECODE(AssertAssignable, A_D);
+    // Stack: instance, instantiator type args, function type args, type, name
+    RawObject** args = SP - 4;
     const bool may_be_smi = (rA == 1);
     const bool is_smi =
         ((reinterpret_cast<intptr_t>(args[0]) & kSmiTagMask) == kSmiTag);
@@ -3039,6 +3104,8 @@ RawObject* Simulator::Call(const Code& code,
         RawInstance* instance = static_cast<RawInstance*>(args[0]);
         RawTypeArguments* instantiator_type_arguments =
             static_cast<RawTypeArguments*>(args[1]);
+        RawTypeArguments* function_type_arguments =
+            static_cast<RawTypeArguments*>(args[2]);
 
         const intptr_t cid = SimulatorHelpers::GetClassId(instance);
 
@@ -3047,7 +3114,13 @@ RawObject* Simulator::Call(const Code& code,
         RawObject* instance_cid_or_function;
         if (cid == kClosureCid) {
           RawClosure* closure = static_cast<RawClosure*>(instance);
-          instance_type_arguments = closure->ptr()->instantiator_;
+          if (closure->ptr()->function_type_arguments_ !=
+              TypeArguments::null()) {
+            // Cache cannot be used for generic closures.
+            goto AssertAssignableCallRuntime;
+          }
+          instance_type_arguments =
+              closure->ptr()->instantiator_type_arguments_;
           instance_cid_or_function = closure->ptr()->function_;
         } else {
           instance_cid_or_function = Smi::New(cid);
@@ -3070,7 +3143,9 @@ RawObject* Simulator::Call(const Code& code,
               (entries[SubtypeTestCache::kInstanceTypeArguments] ==
                instance_type_arguments) &&
               (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
-               instantiator_type_arguments)) {
+               instantiator_type_arguments) &&
+              (entries[SubtypeTestCache::kFunctionTypeArguments] ==
+               function_type_arguments)) {
             if (true_value == entries[SubtypeTestCache::kTestResult]) {
               goto AssertAssignableOk;
             } else {
@@ -3082,17 +3157,18 @@ RawObject* Simulator::Call(const Code& code,
 
     AssertAssignableCallRuntime:
       SP[1] = args[0];  // instance
-      SP[2] = args[2];  // type
-      SP[3] = args[1];  // type args
-      SP[4] = args[3];  // name
-      SP[5] = cache;
-      Exit(thread, FP, SP + 6, pc);
-      NativeArguments native_args(thread, 5, SP + 1, SP - 3);
+      SP[2] = args[3];  // type
+      SP[3] = args[1];  // instantiator type args
+      SP[4] = args[2];  // function type args
+      SP[5] = args[4];  // name
+      SP[6] = cache;
+      Exit(thread, FP, SP + 7, pc);
+      NativeArguments native_args(thread, 6, SP + 1, SP - 4);
       INVOKE_RUNTIME(DRT_TypeCheck, native_args);
     }
 
   AssertAssignableOk:
-    SP -= 3;
+    SP -= 4;
     DISPATCH();
   }
 
@@ -3180,7 +3256,19 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(CheckDenseSwitch, A_D);
+    BYTECODE(CheckClassIdRange, A_D);
+    const intptr_t actual_cid =
+        reinterpret_cast<intptr_t>(FP[rA]) >> kSmiTagSize;
+    const uintptr_t cid_start = rD;
+    const uintptr_t cid_range = Bytecode::DecodeD(*pc);
+    // Unsigned comparison.  Skip either just the nop or both the nop and the
+    // following instruction.
+    pc += (actual_cid - cid_start <= cid_range) ? 2 : 1;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckBitTest, A_D);
     const intptr_t raw_value = reinterpret_cast<intptr_t>(FP[rA]);
     const bool is_smi = ((raw_value & kSmiTagMask) == kSmiTag);
     const intptr_t cid_min = Bytecode::DecodeD(*pc);

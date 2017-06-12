@@ -97,7 +97,7 @@ class Timeline {
 /// you must first call [pass] to get the task id and then construct a new
 /// [TimelineTask] in the other isolate.
 class TimelineTask {
-  /// Create a task. [taskId] will be set by the system.
+  /// Create a task. The task ID will be set by the system.
   TimelineTask() : _taskId = _getNextAsyncId() {}
 
   /// Create a task with an explicit [taskId]. This is useful if you are

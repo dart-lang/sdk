@@ -33,26 +33,21 @@ void testChunkedBufferSizeMsg() {
       request.response.close();
     });
     var client = new HttpClient();
-    client.get('127.0.0.1', server.port, '/')
-      .then((request) {
-        request.headers.set(HttpHeaders.ACCEPT_ENCODING, "");
-        return request.close();
-      })
-      .then((response) {
-        var buffer = [];
-        response.listen(
-          (data) => buffer.addAll(data),
-          onDone: () {
-            Expect.equals(sendData.length * 8, buffer.length);
-            for (int i = 0; i < buffer.length; i++) {
-              Expect.equals(sendData[i % sendData.length], buffer[i]);
-            }
-            server.close();
-          });
+    client.get('127.0.0.1', server.port, '/').then((request) {
+      request.headers.set(HttpHeaders.ACCEPT_ENCODING, "");
+      return request.close();
+    }).then((response) {
+      var buffer = [];
+      response.listen((data) => buffer.addAll(data), onDone: () {
+        Expect.equals(sendData.length * 8, buffer.length);
+        for (int i = 0; i < buffer.length; i++) {
+          Expect.equals(sendData[i % sendData.length], buffer[i]);
+        }
+        server.close();
       });
+    });
   });
 }
-
 
 void main() {
   testChunkedBufferSizeMsg();

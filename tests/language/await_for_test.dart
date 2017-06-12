@@ -12,14 +12,13 @@ class Trace {
   void record(x) {
     trace += x.toString();
   }
+
   String toString() => trace;
 }
-
 
 Stream makeMeAStream() {
   return timedCounter(5);
 }
-
 
 consumeOne(trace) async {
   // Equivalent to await for (x in makeMeAStream()) { ... }
@@ -32,14 +31,12 @@ consumeOne(trace) async {
   trace.record("X");
 }
 
-
 consumeTwo(trace) async {
   await for (var x in makeMeAStream()) {
     trace.record(x);
   }
   trace.record("Y");
 }
-
 
 consumeNested(trace) async {
   await for (var x in makeMeAStream()) {
@@ -75,7 +72,6 @@ Stream<int> errorOnCancelStream(int n) async* {
     throw cancelError;
   }
 }
-
 
 // Sanity-check that the errorOnCancelStream behaves as expected.
 testErrorOnCancel() {

@@ -7,6 +7,6 @@ library deferred_in_isolate_lib;
 class DeferredObj {
   DeferredObj(this._val);
   toString() => "$_val";
-    
+
   var _val;
 }

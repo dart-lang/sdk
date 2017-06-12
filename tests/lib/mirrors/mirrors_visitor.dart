@@ -45,9 +45,7 @@ abstract class MirrorsVisitor {
     visitTypeMirror(mirror);
   }
 
-  visitDeclarationMirror(DeclarationMirror mirror) {
-
-  }
+  visitDeclarationMirror(DeclarationMirror mirror) {}
 
   visitFunctionTypeMirror(FunctionTypeMirror mirror) {
     visitClassMirror(mirror);
@@ -66,9 +64,7 @@ abstract class MirrorsVisitor {
     visitDeclarationMirror(mirror);
   }
 
-  visitObjectMirror(ObjectMirror mirror) {
-
-  }
+  visitObjectMirror(ObjectMirror mirror) {}
 
   visitParameterMirror(ParameterMirror mirror) {
     visitVariableMirror(mirror);

@@ -4,6 +4,7 @@
 // Dart test program to test operation precedence.
 
 library precedence_test;
+
 import "package:expect/expect.dart";
 
 main() {
@@ -30,7 +31,7 @@ void testBang() {
 
 void testIndexWithPrefixAdd() {
   var x = <int>[3];
-  
+
   Expect.equals(++x[0] + 3, 7);
   Expect.equals(x[0], 4);
   Expect.equals(++x[0] - 3, 2);
@@ -52,7 +53,7 @@ void testIndexWithPrefixAdd() {
 
 void testIndexWithPostfixAdd() {
   var x = <int>[3];
-  
+
   Expect.equals(x[0]++ + 3, 6);
   Expect.equals(x[0], 4);
   Expect.equals(x[0]++ - 3, 1);
@@ -83,7 +84,7 @@ void testTilde() {
   Expect.equals(~x++ + 7, (~4) + 7);
   Expect.equals(x, 5);
 
-  Expect.equals(~--x + 7, (~4) + 7);
+  Expect.equals(~ --x + 7, (~4) + 7);
   Expect.equals(x, 4);
   Expect.equals(~x-- + 7, (~4) + 7);
   Expect.equals(x, 3);
@@ -91,7 +92,7 @@ void testTilde() {
 
 void testUnaryPrefixWithAdd() {
   int x = 3;
-  
+
   Expect.equals(++x + 3, 7);
   Expect.equals(x, 4);
   Expect.equals(++x - 3, 2);
@@ -113,7 +114,7 @@ void testUnaryPrefixWithAdd() {
 
 void testUnaryPostfixWithAdd() {
   int x = 3;
-  
+
   Expect.equals(x++ + 3, 6);
   Expect.equals(x, 4);
   Expect.equals(x++ - 3, 1);
@@ -135,7 +136,7 @@ void testUnaryPostfixWithAdd() {
 
 void testUnaryPrefixWithMultiply() {
   int x = 3;
-  
+
   Expect.equals(++x * 3, 12);
   Expect.equals(x, 4);
   Expect.equals(++x / 5, 1.0);
@@ -157,7 +158,7 @@ void testUnaryPrefixWithMultiply() {
 
 void testUnaryPostfixWithMultiply() {
   int x = 3;
-  
+
   Expect.equals(x++ * 3, 9);
   Expect.equals(x, 4);
   Expect.equals(x++ / 4, 1.0);
@@ -176,4 +177,3 @@ void testUnaryPostfixWithMultiply() {
   Expect.equals(4 / x--, 1.0);
   Expect.equals(x, 3);
 }
-

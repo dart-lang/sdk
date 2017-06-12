@@ -31,5 +31,5 @@ main() {
   for (var i = 0; i < 2000; i++) foo(7);
   Expect.equals(42, foo(2));
   obj = new B();
-  Expect.equals(42, foo(3));  // <-- deoptimization via foo/bar/obj.deopt_here
+  Expect.equals(42, foo(3)); // <-- deoptimization via foo/bar/obj.deopt_here
 }

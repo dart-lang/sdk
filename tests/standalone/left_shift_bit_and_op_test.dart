@@ -29,18 +29,15 @@ main() {
   Expect.equals(4294967296, bar(b));
 }
 
-
 checkshiftAnd32() {
   Expect.equals(1572864, A.shiftAnd32(12, 17));
   Expect.equals(12, A.shiftAnd32(12, 0));
   Expect.equals(285212672, A.shiftAnd32(16779392, 17));
 }
 
-
 checkShiftAnd64() {
   Expect.equals(1125936481173504, A.shiftAnd64(4611694814806147072, 7));
 }
-
 
 class A {
   static const int MASK_32 = (1 << 30) - 1;
@@ -67,11 +64,17 @@ class A {
     return y + x;
   }
 
-  foo(x) { return x & 0xf; }
+  foo(x) {
+    return x & 0xf;
+  }
 }
 
-class B { foo(x) { return x; } }
+class B {
+  foo(x) {
+    return x;
+  }
+}
 
-bar (o) {
+bar(o) {
   return o.foo(1 << 32);
 }

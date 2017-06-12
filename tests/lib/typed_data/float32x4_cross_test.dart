@@ -16,7 +16,7 @@ Float32x4 cross(Float32x4 a, Float32x4 b) {
   t0 = a.shuffle(Float32x4.ZXYW);
   t1 = b.shuffle(Float32x4.YZXW);
   var r = t0 * t1;
-  return l-r;
+  return l - r;
 }
 
 void testCross(Float32x4 a, Float32x4 b, Float32x4 r) {
@@ -44,7 +44,6 @@ main() {
     testCross(y, y, zero);
     testCross(z, z, zero);
     testCross(x, y, cross(-y, x));
-    testCross(x, y+z, cross(x, y) + cross(x, z));
+    testCross(x, y + z, cross(x, y) + cross(x, z));
   }
 }
-

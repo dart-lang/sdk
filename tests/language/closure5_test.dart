@@ -16,5 +16,6 @@ main() {
       return x;
     }
   }
+
   Expect.equals(499, foo((x) => fun(x)));
 }

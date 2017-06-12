@@ -77,7 +77,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   final InferrerEngine inferrer;
   final Compiler compiler;
 
-  static const int MAX_ANALYSIS_COUNT = 16;
+  static const int MAX_ANALYSIS_COUNT =
+      const int.fromEnvironment('dart2js.tracing.limit', defaultValue: 32);
   final Setlet<Element> analyzedElements = new Setlet<Element>();
 
   TracerVisitor(this.tracedType, InferrerEngine inferrer)
@@ -155,6 +156,14 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   void visitAwaitTypeInformation(AwaitTypeInformation info) {
     bailout("Passed through await");
+  }
+
+  void visitYieldTypeInformation(YieldTypeInformation info) {
+    // TODO(29344): The enclosing sync*/async/async* method could have a
+    // tracable TypeInformation for the Iterable / Future / Stream with an
+    // element TypeInformation. Then YieldTypeInformation could connect the
+    // source type information to the tracable element.
+    bailout("Passed through yield");
   }
 
   void visitNarrowTypeInformation(NarrowTypeInformation info) {
@@ -381,7 +390,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Passed to noSuchMethod');
     }
 
-    Iterable<Element> inferredTargetTypes = info.targets.map((element) {
+    Iterable<Element> inferredTargetTypes =
+        info.targets.map((MemberElement element) {
       return inferrer.types.getInferredTypeOf(element);
     });
     if (inferredTargetTypes.any((user) => user == currentUser)) {
@@ -396,7 +406,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
    */
   bool isParameterOfListAddingMethod(Element element) {
     if (!element.isRegularParameter) return false;
-    if (element.enclosingClass != compiler.backend.backendClasses.listClass) {
+    if (element.enclosingClass != compiler.commonElements.jsArrayClass) {
       return false;
     }
     String name = element.enclosingElement.name;
@@ -410,7 +420,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
    */
   bool isParameterOfMapAddingMethod(Element element) {
     if (!element.isRegularParameter) return false;
-    if (element.enclosingClass != compiler.backend.backendClasses.mapClass) {
+    if (element.enclosingClass != compiler.commonElements.mapLiteralClass) {
       return false;
     }
     String name = element.enclosingElement.name;
@@ -440,8 +450,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Returned from a closure');
     }
     if (info.element.isField &&
-        !inferrer.compiler.backend
-            .canFieldBeUsedForGlobalOptimizations(info.element)) {
+        !inferrer.compiler.backend.canFieldBeUsedForGlobalOptimizations(
+            info.element, inferrer.closedWorld)) {
       bailout('Escape to code that has special backend treatment');
     }
     addNewEscapeInformation(info);
@@ -454,7 +464,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     }
     if (!inferrer.compiler.backend
         .canFunctionParametersBeUsedForGlobalOptimizations(
-            element.functionDeclaration)) {
+            element.functionDeclaration, inferrer.closedWorld)) {
       bailout('Escape to code that has special backend treatment');
     }
     if (isParameterOfListAddingMethod(element) ||

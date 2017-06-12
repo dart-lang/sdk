@@ -12,18 +12,17 @@ main() {
   var get = (String what, int code, String text) {
     var c = new Completer();
     HttpClient client = new HttpClient();
-    client.getUrl(Uri.parse("http://127.0.0.1:3456/$what"))
-    .then((HttpClientRequest request) {
+    client
+        .getUrl(Uri.parse("http://127.0.0.1:3456/$what"))
+        .then((HttpClientRequest request) {
       // Prepare the request then call close on it to send it.
       return request.close();
-    })
-    .then((HttpClientResponse response) {
+    }).then((HttpClientResponse response) {
       // Process the response.
       expect(response.statusCode, code);
       var sb = new StringBuffer();
-      response.transform(UTF8.decoder)
-       .listen((data) {
-         sb.write(data);
+      response.transform(UTF8.decoder).listen((data) {
+        sb.write(data);
       }, onDone: () {
         expect(sb.toString(), text);
         c.complete();
@@ -38,4 +37,3 @@ main() {
     return get('fail.txt', 404, "");
   });
 }
-

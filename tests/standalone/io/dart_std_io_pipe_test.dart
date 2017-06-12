@@ -15,21 +15,19 @@ import "dart:io";
 import "process_test_util.dart";
 
 void checkFileEmpty(String fileName) {
-  RandomAccessFile pipeOut  = new File(fileName).openSync();
+  RandomAccessFile pipeOut = new File(fileName).openSync();
   Expect.equals(0, pipeOut.lengthSync());
   pipeOut.closeSync();
 }
 
-
 void checkFileContent(String fileName, String content) {
-  RandomAccessFile pipeOut  = new File(fileName).openSync();
+  RandomAccessFile pipeOut = new File(fileName).openSync();
   int length = pipeOut.lengthSync();
   List data = new List<int>(length);
   pipeOut.readIntoSync(data, 0, length);
   Expect.equals(content, new String.fromCharCodes(data));
   pipeOut.closeSync();
 }
-
 
 void test(String shellScript, String dartScript, String type, bool devNull) {
   Directory dir = Directory.systemTemp.createTempSync('dart_dart_std_io_pipe');
@@ -40,13 +38,14 @@ void test(String shellScript, String dartScript, String type, bool devNull) {
   if (devNull) pipeOutFile = "/dev/null";
   String redirectOutFile = "${dir.path}/redirect";
   String executable = Platform.executable;
-  List args =
-      [executable,
-       dartScript,
-       type,
-       pipeOutFile,
-       redirectOutFile,
-       devNull ? "terminal" : "file"];
+  List args = [
+    executable,
+    dartScript,
+    type,
+    pipeOutFile,
+    redirectOutFile,
+    devNull ? "terminal" : "file"
+  ];
   var future = Process.start(shellScript, args);
   future.then((process) {
     process.exitCode.then((exitCode) {
@@ -77,10 +76,10 @@ void test(String shellScript, String dartScript, String type, bool devNull) {
           checkFileEmpty("${redirectOutFile}.stderr");
         } else {
           checkFileContent("${pipeOutFile}", "Hello\nHello\n");
-          checkFileContent("${redirectOutFile}.stdout",
-                           "Hello\nHello\nHello\nHello\n");
-          checkFileContent("${redirectOutFile}.stderr",
-                           "Hello\nHello\nHello\nHello\n");
+          checkFileContent(
+              "${redirectOutFile}.stdout", "Hello\nHello\nHello\nHello\n");
+          checkFileContent(
+              "${redirectOutFile}.stderr", "Hello\nHello\nHello\nHello\n");
         }
       }
 

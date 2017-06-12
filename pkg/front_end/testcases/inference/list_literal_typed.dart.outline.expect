@@ -1,0 +1,9 @@
+library test;
+import self as self;
+
+static field dynamic a;
+static field dynamic b;
+static field dynamic c;
+static field dynamic d;
+static method main() → dynamic
+  ;
