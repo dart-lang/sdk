@@ -308,7 +308,8 @@ class FunctionType extends AbstractFunctionType {
   List args;
   List optionals;
   final named;
-  dynamic metadata;
+  // TODO(vsm): This is just parameter metadata for now.
+  List metadata = [];
   String _stringValue;
 
   /**
@@ -356,13 +357,13 @@ class FunctionType extends AbstractFunctionType {
     return _memoizeArray(_fnTypeTypeMap, keys, create);
   }
 
-  List _process(List array, metadata) {
+  List _process(List array) {
     var result = [];
     for (var i = 0; JS('bool', '# < #.length', i, array); ++i) {
       var arg = JS('', '#[#]', array, i);
       if (JS('bool', '# instanceof Array', arg)) {
-        metadata.add(JS('', '#.slice(1)', arg));
-        result.add(JS('', '#[0]', arg));
+        JS('', '#.push(#.slice(1))', metadata, arg);
+        JS('', '#.push(#[0])', result, arg);
       } else {
         JS('', '#.push([])', metadata);
         JS('', '#.push(#)', result, arg);
@@ -372,10 +373,8 @@ class FunctionType extends AbstractFunctionType {
   }
 
   FunctionType(this.returnType, this.args, this.optionals, this.named) {
-    // TODO(vsm): This is just parameter metadata for now.
-    metadata = [];
-    this.args = _process(this.args, metadata);
-    this.optionals = _process(this.optionals, metadata);
+    this.args = _process(this.args);
+    this.optionals = _process(this.optionals);
     // TODO(vsm): Add named arguments.
   }
 
@@ -425,16 +424,18 @@ class FunctionType extends AbstractFunctionType {
 
 class Typedef extends AbstractFunctionType {
   dynamic _name;
-  dynamic _closure;
+  AbstractFunctionType Function() _closure;
   AbstractFunctionType _functionType;
 
   Typedef(this._name, this._closure) {}
 
-  toString() => JS('', '# + "(" + #.toString() + ")"', _name, functionType);
+  toString() =>
+      JS('String', '# + "(" + #.toString() + ")"', _name, functionType);
   get name => _name;
 
   AbstractFunctionType get functionType {
-    return _functionType ??= JS('', '#()', _closure);
+    var ft = _functionType;
+    return ft == null ? _functionType = _closure() : ft;
   }
 }
 
@@ -601,7 +602,8 @@ class GenericFunctionType extends AbstractFunctionType {
   }
 }
 
-typedef(name, closure) => new Typedef(name, closure);
+typedef(name, AbstractFunctionType Function() closure) =>
+    new Typedef(name, closure);
 
 /// Create a definite function type.
 ///

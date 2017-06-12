@@ -1006,8 +1006,8 @@ _canonicalMember(obj, name) {
   }
 
   // Check for certain names that we can't use in JS
-  if (name == 'constructor' || name == 'prototype') {
-    name = '+' + name;
+  if (JS('bool', '# == "constructor" || # == "prototype"', name, name)) {
+    JS('', '# = "+" + #', name, name);
   }
   return name;
 }
