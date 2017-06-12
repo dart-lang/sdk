@@ -16,11 +16,12 @@ _dart_root = get_path_info("..", "abspath")
 #   - deps: extra dependencies that must be built ahead of time.
 template("generate_patched_sdk") {
   assert(defined(invoker.input_patches_dir),
-         "Need input_patches_dir in $target_name")
+      "Need input_patches_dir in $target_name")
   assert(defined(invoker.patched_sdk_dir),
-         "Need patched_sdk_dir in $target_name")
+      "Need patched_sdk_dir in $target_name")
   assert(defined(invoker.mode), "Need mode in $target_name")
   action(target_name) {
+
     if (defined(invoker.deps)) {
       deps = invoker.deps
     } else {
@@ -28,7 +29,7 @@ template("generate_patched_sdk") {
     }
 
     if (!prebuilt_dart_exe_works) {
-      deps += [ "$_dart_root/runtime/bin:dart_bootstrap_host_arch($host_toolchain)" ]
+      deps += ["$_dart_root/runtime/bin:dart_bootstrap($host_toolchain)"]
     }
 
     script = "$_dart_root/tools/patch_sdk.py"
@@ -49,10 +50,10 @@ template("generate_patched_sdk") {
     args = [ "--quiet" ]
     if (!prebuilt_dart_exe_works) {
       dart_out_dir = get_label_info(
-              "$_dart_root/runtime/bin:dart_bootstrap_host_arch($host_toolchain)",
-              "root_out_dir")
-      dart_bootstrap = rebase_path(
-              "$dart_out_dir/dart_bootstrap_host_arch$executable_suffix")
+          "$_dart_root/runtime/bin:dart_bootstrap($host_toolchain)",
+          "root_out_dir")
+      dart_bootstrap =
+          rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
       args += [
         "--dart-executable",
         dart_bootstrap,
@@ -67,3 +68,4 @@ template("generate_patched_sdk") {
     ]
   }
 }
+

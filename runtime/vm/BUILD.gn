@@ -46,7 +46,6 @@ static_library("libdart_vm_jit") {
   configs += [
     "..:dart_config",
     "..:dart_maybe_product_config",
-    "..:dart_use_target_arch_config",
   ]
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
@@ -62,7 +61,6 @@ static_library("libdart_vm_precompiled_runtime") {
     "..:dart_config",
     "..:dart_maybe_product_config",
     "..:dart_precompiled_runtime_config",
-    "..:dart_use_target_arch_config",
   ]
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
@@ -78,7 +76,6 @@ static_library("libdart_vm_nosnapshot") {
     "..:dart_config",
     "..:dart_maybe_product_config",
     "..:dart_no_snapshot_config",
-    "..:dart_use_target_arch_config",
   ]
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
@@ -90,23 +87,6 @@ static_library("libdart_vm_nosnapshot") {
 }
 
 static_library("libdart_vm_nosnapshot_with_precompiler") {
-  configs += [
-    "..:dart_config",
-    "..:dart_maybe_product_config",
-    "..:dart_precompiler_config",
-    "..:dart_no_snapshot_config",
-    "..:dart_use_target_arch_config",
-  ]
-  public_configs = [ ":libdart_vm_config" ]
-  set_sources_assignment_filter([
-                                  "*_test.cc",
-                                  "*_test.h",
-                                ])
-  sources = vm_sources_list
-  include_dirs = [ ".." ]
-}
-
-static_library("libdart_vm_nosnapshot_with_precompiler_host_arch") {
   configs += [
     "..:dart_config",
     "..:dart_maybe_product_config",
@@ -127,7 +107,6 @@ static_library("libdart_vm_with_precompiler") {
     "..:dart_config",
     "..:dart_maybe_product_config",
     "..:dart_precompiler_config",
-    "..:dart_use_target_arch_config",
   ]
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
@@ -238,18 +217,6 @@ template("generate_core_libraries") {
       "..:dart_config",
       "..:dart_maybe_product_config",
       "..:dart_precompiler_config",
-      "..:dart_use_target_arch_config",
-    ]
-    deps = libdeps
-    sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
-    include_dirs = [ ".." ]
-  }
-
-  static_library("libdart_lib_nosnapshot_with_precompiler_host_arch") {
-    configs += [
-      "..:dart_config",
-      "..:dart_maybe_product_config",
-      "..:dart_precompiler_config",
     ]
     deps = libdeps
     sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
@@ -261,7 +228,6 @@ template("generate_core_libraries") {
       "..:dart_config",
       "..:dart_maybe_product_config",
       "..:dart_precompiler_config",
-      "..:dart_use_target_arch_config",
     ]
     deps = libdeps
     sources = all_libsources + [ "bootstrap_nocore.cc" ]
@@ -272,7 +238,6 @@ template("generate_core_libraries") {
     configs += [
       "..:dart_config",
       "..:dart_maybe_product_config",
-      "..:dart_use_target_arch_config",
     ]
     sources = all_libsources + [ "bootstrap_nocore.cc" ]
     include_dirs = [ ".." ]
@@ -283,7 +248,6 @@ template("generate_core_libraries") {
       "..:dart_config",
       "..:dart_maybe_product_config",
       "..:dart_precompiled_runtime_config",
-      "..:dart_use_target_arch_config",
     ]
     sources = all_libsources + [ "bootstrap_nocore.cc" ]
     include_dirs = [ ".." ]

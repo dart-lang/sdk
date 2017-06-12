@@ -10,9 +10,6 @@ declare_args() {
   # Default to building app-jit snapshots. The simulator and cross builds
   # override this to script snapshots to cut down on build time.
   dart_snapshot_kind = "app-jit"
-  if (target_cpu != host_cpu) {
-    dart_snapshot_kind = "script"
-  }
 }
 
 template("application_snapshot") {
@@ -28,7 +25,7 @@ template("application_snapshot") {
   if (defined(invoker.deps)) {
     extra_deps += invoker.deps
   }
-  extra_inputs = [ main_dart ]
+  extra_inputs = [main_dart]
   if (defined(invoker.inputs)) {
     extra_inputs += invoker.inputs
   }
@@ -50,22 +47,16 @@ template("application_snapshot") {
     abs_output = rebase_path(output)
     main_file = rebase_path(main_dart)
 
-    args = [
-      "--packages=$dot_packages",
-      "--snapshot=$abs_output",
-    ]
+    args = [ "--packages=$dot_packages",
+             "--snapshot=$abs_output" ]
 
     if (dart_snapshot_kind == "script") {
-      args += [
-        "--snapshot-kind=script",
-        main_file,
-      ]
+      args += ["--snapshot-kind=script",
+               main_file ]
       assert(training_args != "", "Ignoring unused argument")
     } else if (dart_snapshot_kind == "app-jit") {
-      args += [
-                "--snapshot-kind=app-jit",
-                main_file,
-              ] + training_args
+      args += ["--snapshot-kind=app-jit",
+               main_file ] + training_args
     } else {
       assert(false, "Bad dart_snapshot_kind: $dart_snapshot_kind")
     }

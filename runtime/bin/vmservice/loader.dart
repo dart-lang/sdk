@@ -266,6 +266,7 @@ class IsolateLoaderState extends IsolateEmbedderData {
   RawReceivePort _packagesPort;
 
   void _requestPackagesMap([Uri packageConfig]) {
+    assert(_rootScript != null);
     if (_packagesPort != null) {
       // Already scheduled.
       return;
