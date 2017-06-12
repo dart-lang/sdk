@@ -18,10 +18,8 @@ import '../../elements/elements.dart'
     show
         ClassElement,
         ConstructorBodyElement,
-        Element,
         Elements,
         FieldElement,
-        FunctionElement,
         FunctionSignature,
         GetterElement,
         LibraryElement,
@@ -521,7 +519,7 @@ class ProgramBuilder {
         if (_nativeData.isJsInteropClass(cls)) {
           // TODO(johnniwinther): Handle class entities.
           ClassElement e = cls;
-          e.declaration.forEachMember((_, Element member) {
+          e.declaration.forEachMember((_, MemberElement member) {
             var jsName = _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
@@ -543,7 +541,7 @@ class ProgramBuilder {
               var selectors =
                   _worldBuilder.setterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
-                var stubName = _namer.setterForElement(member);
+                var stubName = _namer.setterForMember(member);
                 if (stubNames.add(stubName.key)) {
                   interceptorClass.callStubs.add(_buildStubMethod(stubName,
                       js.js('function(obj, v) { return obj.# = v }', [jsName]),
@@ -558,7 +556,7 @@ class ProgramBuilder {
             ResolutionFunctionType functionType = null;
 
             if (member.isFunction) {
-              FunctionElement fn = member;
+              MethodElement fn = member;
               functionType = fn.type;
             } else if (member.isGetter) {
               if (_options.trustTypeAnnotations) {
@@ -1044,9 +1042,9 @@ class ProgramBuilder {
       ClassEntity cls}) {
     List<Field> fields = <Field>[];
 
-    void visitField(FieldElement field, js.Name name, js.Name accessorName,
+    void visitField(FieldEntity field, js.Name name, js.Name accessorName,
         bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
-      assert(field.isDeclaration, failedAt(field));
+      assert(!(field is FieldElement && !field.isDeclaration), failedAt(field));
 
       int getterFlags = 0;
       if (needsGetter) {

@@ -23,6 +23,7 @@ import '../js_emitter/sorter.dart';
 import '../kernel/element_map.dart';
 import '../kernel/element_map_impl.dart';
 import '../native/behavior.dart';
+import '../options.dart';
 import '../ssa/builder_kernel.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
@@ -95,8 +96,18 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
 
   KernelCodegenWorkItemBuilder(this._backend, this._closedWorld);
 
+  CompilerOptions get _options => _backend.compiler.options;
+
   @override
   CodegenWorkItem createWorkItem(MemberEntity entity) {
+    // Codegen inlines field initializers. It only needs to generate
+    // code for checked setters.
+    if (entity.isField && entity.isInstanceMember) {
+      if (!_options.enableTypeAssertions || entity.enclosingClass.isClosure) {
+        return null;
+      }
+    }
+
     return new KernelCodegenWorkItem(_backend, _closedWorld, entity);
   }
 }

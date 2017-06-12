@@ -414,7 +414,7 @@ abstract class ClassElementCommon implements ClassElement {
    * This method also works if the [fieldMember] is private.
    */
   @override
-  bool hasFieldShadowedBy(Element fieldMember) {
+  bool hasFieldShadowedBy(FieldElement fieldMember) {
     assert(fieldMember.isField);
     String fieldName = fieldMember.name;
     bool isPrivate = Name.isPrivateName(fieldName);

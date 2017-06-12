@@ -1523,7 +1523,7 @@ abstract class ClassElement extends TypeDeclarationElement
   /// implement `Function`.
   bool implementsInterface(ClassElement intrface);
 
-  bool hasFieldShadowedBy(Element fieldMember);
+  bool hasFieldShadowedBy(FieldElement fieldMember);
 
   /// Returns `true` if this class has a @proxy annotation.
   bool get isProxy;

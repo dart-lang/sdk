@@ -35,7 +35,10 @@ const SOURCE = const {
   'main.dart': '''
 foo() => 1;
 bar(a) => !a;
-class Class {}
+class Class {
+  int field;
+  Class();
+}
 main() {
   foo();
   bar(true);

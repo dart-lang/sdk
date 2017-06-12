@@ -868,7 +868,7 @@ class Namer {
    * Returns the disambiguated name for the given field, used for constructing
    * the getter and setter names.
    */
-  jsAst.Name fieldAccessorName(FieldElement element) {
+  jsAst.Name fieldAccessorName(FieldEntity element) {
     return element.isInstanceMember
         ? _disambiguateMember(element.memberName)
         : _disambiguateGlobalMember(element);
@@ -878,7 +878,7 @@ class Namer {
    * Returns name of the JavaScript property used to store a static or instance
    * field.
    */
-  jsAst.Name fieldPropertyName(FieldElement element) {
+  jsAst.Name fieldPropertyName(FieldEntity element) {
     return element.isInstanceMember
         ? instanceFieldPropertyName(element)
         : _disambiguateGlobalMember(element);
@@ -911,8 +911,8 @@ class Namer {
   /**
    * Returns the JavaScript property name used to store an instance field.
    */
-  jsAst.Name instanceFieldPropertyName(FieldElement element) {
-    ClassElement enclosingClass = element.enclosingClass;
+  jsAst.Name instanceFieldPropertyName(FieldEntity element) {
+    ClassEntity enclosingClass = element.enclosingClass;
 
     if (_nativeData.hasFixedBackendName(element)) {
       return new StringBackedName(_nativeData.getFixedBackendName(element));
@@ -925,10 +925,12 @@ class Namer {
     // However, as boxes are not really instances of classes, the usual naming
     // scheme that tries to avoid name clashes with super classes does not
     // apply. So we can directly grab a name.
-    Entity asEntity = element;
-    if (asEntity is JSEntity) {
+    if (element is JSEntity) {
+      var jsEntity = element;
       return _disambiguateInternalMember(
-          element, () => asEntity.declaredEntity.name);
+          jsEntity,
+          // ignore: UNDEFINED_GETTER
+          () => jsEntity.declaredEntity.name);
     }
 
     // If the name of the field might clash with another field,
@@ -951,18 +953,23 @@ class Namer {
     return _disambiguateMember(new Name(element.name, element.library));
   }
 
-  bool _isShadowingSuperField(Element element) {
-    return element.enclosingClass.hasFieldShadowedBy(element);
+  bool _isShadowingSuperField(FieldEntity element) {
+    ClassEntity cls = element.enclosingClass;
+    if (cls is ClassElement) {
+      return cls.hasFieldShadowedBy(element);
+    }
+    // TODO(johnniwinther): Support class entities.
+    return false;
   }
 
   /// True if [class_] is a non-native class that inherits from a native class.
-  bool _isUserClassExtendingNative(ClassElement class_) {
+  bool _isUserClassExtendingNative(ClassEntity class_) {
     return !_nativeData.isNativeClass(class_) &&
-        _nativeData.isNativeOrExtendsNative(class_.superclass);
+        _nativeData.isNativeOrExtendsNative(class_);
   }
 
   /// Annotated name for the setter of [element].
-  jsAst.Name setterForElement(MemberElement element) {
+  jsAst.Name setterForMember(MemberEntity element) {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
     jsAst.Name name = _disambiguateMember(element.memberName);

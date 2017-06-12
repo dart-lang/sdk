@@ -130,7 +130,7 @@ class ClassEmitter extends CodeEmitterHelper {
     bool fieldsAdded = false;
 
     for (Field field in fields) {
-      FieldElement fieldElement = field.element;
+      FieldEntity fieldElement = field.element;
       jsAst.Name name = field.name;
       jsAst.Name accessorName = field.accessorName;
       bool needsGetter = field.needsGetter;
@@ -176,7 +176,7 @@ class ClassEmitter extends CodeEmitterHelper {
           // currently still need to add the additional argument.
           if (field.needsInterceptedGetter || field.needsInterceptedSetter) {
             emitter.interceptorEmitter.interceptorInvocationNames
-                .add(namer.setterForElement(fieldElement));
+                .add(namer.setterForMember(fieldElement));
           }
 
           int code = field.getterFlags + (field.setterFlags << 2);
@@ -197,7 +197,9 @@ class ClassEmitter extends CodeEmitterHelper {
           if (fieldElement.isTopLevel ||
               backend.mirrorsData
                   .isClassAccessibleByReflection(fieldElement.enclosingClass)) {
-            ResolutionDartType type = fieldElement.type;
+            // TODO(johnniwinther): Support field entities.
+            FieldElement element = fieldElement;
+            ResolutionDartType type = element.type;
             fieldNameParts.add(task.metadataCollector.reifyType(type));
           }
         }
@@ -367,13 +369,13 @@ class ClassEmitter extends CodeEmitterHelper {
     String reflectionName =
         emitter.getReflectionClassName(classEntity, className);
     if (reflectionName != null) {
-      // TODO(johnniwinther): Handle class entities.
-      ClassElement classElement = classEntity;
-      if (!backend.mirrorsData.isClassAccessibleByReflection(classElement) ||
+      if (!backend.mirrorsData.isClassAccessibleByReflection(classEntity) ||
           cls.onlyForRti) {
         // TODO(herhut): Fix use of reflection name here.
         enclosingBuilder.addPropertyByName("+$reflectionName", js.number(0));
       } else {
+        // TODO(johnniwinther): Handle class entities.
+        ClassElement classElement = classEntity;
         List<jsAst.Expression> types = <jsAst.Expression>[];
         if (classElement.supertype != null) {
           types.add(task.metadataCollector.reifyType(classElement.supertype));
@@ -389,7 +391,7 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   void recordMangledField(
-      FieldElement member, jsAst.Name accessorName, String memberName) {
+      FieldEntity member, jsAst.Name accessorName, String memberName) {
     if (!backend.mirrorsData.shouldRetainGetter(member)) return;
     String previousName;
     if (member.isInstanceMember) {

@@ -199,13 +199,19 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return _buildMetadataFunction(element);
   }
 
-  bool _mustEmitMetadataForMember(MemberElement element) {
-    return _mirrorsData.mustRetainMetadata &&
-        _mirrorsData.isMemberReferencedFromMirrorSystem(element);
+  bool _mustEmitMetadataForMember(MemberEntity member) {
+    if (!_mirrorsData.mustRetainMetadata) {
+      return false;
+    }
+    // TODO(johnniwinther): Handle member entities.
+    MemberElement element = member;
+    return _mirrorsData.isMemberReferencedFromMirrorSystem(element);
   }
 
-  jsAst.Fun buildFieldMetadataFunction(FieldElement element) {
-    if (!_mustEmitMetadataForMember(element)) return null;
+  jsAst.Fun buildFieldMetadataFunction(FieldEntity field) {
+    if (!_mustEmitMetadataForMember(field)) return null;
+    // TODO(johnniwinther): Handle field entities.
+    FieldElement element = field;
     return _buildMetadataFunction(element);
   }
 
