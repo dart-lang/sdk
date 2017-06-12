@@ -16,7 +16,6 @@ Language/Classes/Constructors/Generative_Constructors/execution_t04: MissingComp
 Language/Classes/Constructors/Generative_Constructors/execution_t05: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t06: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t07: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t09: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t12: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/redirection_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/redirection_t03: MissingCompileTimeError
@@ -182,7 +181,6 @@ Language/Types/Type_Declarations/Typedef/self_reference_t15: MissingCompileTimeE
 Language/Types/Type_Declarations/Typedef/self_reference_t16: MissingCompileTimeError
 Language/Types/Type_Declarations/Typedef/self_reference_t17: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t02: MissingCompileTimeError
-Language/Variables/final_or_static_initialization_t01: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.

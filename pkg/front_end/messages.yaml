@@ -434,3 +434,13 @@ SuperNullAware:
   template: "'super' can't be null."
   tip: "Try replacing '?.' with '.'"
   dart2jsCode: FASTA_IGNORED
+
+ConstFieldWithoutInitializer:
+  template: "A 'const' field must be initialized."
+  tip: "Try adding '= <initializer>'."
+  dart2jsCode: FASTA_IGNORED
+
+FinalFieldWithoutInitializer:
+  template: "A 'final' field must be initialized."
+  tip: "Try adding '= <initializer>'."
+  dart2jsCode: FASTA_IGNORED

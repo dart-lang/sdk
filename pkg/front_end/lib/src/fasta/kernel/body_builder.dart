@@ -5,7 +5,12 @@
 library fasta.body_builder;
 
 import '../fasta_codes.dart'
-    show FastaMessage, codeExpectedButGot, codeExpectedFunctionBody;
+    show
+        FastaMessage,
+        codeConstFieldWithoutInitializer,
+        codeExpectedButGot,
+        codeExpectedFunctionBody,
+        codeFinalFieldWithoutInitializer;
 
 import '../parser/parser.dart'
     show Assert, FormalParameterType, MemberKind, optional;
@@ -985,6 +990,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix}) {
     Builder builder = scope.lookup(name, offsetForToken(token), uri);
+    if (builder != null && member.isField && builder.isInstanceMember) {
+      return new IncompleteError(this, token,
+          "Can't access 'this' in a field initializer to read '$name'.");
+    }
     if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
       Name n = new Name(name, library.library);
       if (prefix != null &&
@@ -995,7 +1004,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             "Deferred loading isn't implemented yet.", offsetForToken(token));
       } else if (!isQualified && isInstanceContext) {
         assert(builder == null);
-        if (constantExpressionRequired) {
+        if (constantExpressionRequired || member.isField) {
           return new UnresolvedAccessor(this, n, token);
         }
         return new ThisPropertyAccessor(this, token, n, null, null);
@@ -1290,8 +1299,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleNoFieldInitializer(Token token) {
     debugEvent("NoFieldInitializer");
     if (constantExpressionRequired) {
-      addCompileTimeError(
-          token.charOffset, "const field must have initializer.");
       // Creating a null value to prevent the Dart VM from crashing.
       push(new KernelNullLiteral()..fileOffset = offsetForToken(token));
     } else {
@@ -2826,7 +2833,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void handleRecoverableError(Token token, FastaMessage message) {
-    bool silent = hasParserError;
+    bool silent = hasParserError ||
+        message.code == codeFinalFieldWithoutInitializer ||
+        message.code == codeConstFieldWithoutInitializer;
     addCompileTimeError(message.charOffset, message.message, silent: silent);
   }
 

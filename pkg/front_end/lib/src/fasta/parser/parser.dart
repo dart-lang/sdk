@@ -19,6 +19,7 @@ import '../fasta_codes.dart'
         codeBuiltInIdentifierAsType,
         codeBuiltInIdentifierInDeclaration,
         codeCatchSyntax,
+        codeConstFieldWithoutInitializer,
         codeEmptyNamedParameterList,
         codeEmptyOptionalParameterList,
         codeEncoding,
@@ -35,6 +36,7 @@ import '../fasta_codes.dart'
         codeExpectedString,
         codeExtraneousModifier,
         codeFactoryNotSync,
+        codeFinalFieldWithoutInitializer,
         codeFunctionTypeDefaultValue,
         codeGeneratorReturnsValue,
         codeGetterWithFormals,
@@ -1329,6 +1331,15 @@ class Parser {
 
   Token parseFields(Token start, Link<Token> modifiers, Token type,
       Token getOrSet, Token name, bool isTopLevel) {
+    Token varFinalOrConst = null;
+    for (Token modifier in modifiers) {
+      if (optional("var", modifier) ||
+          optional("final", modifier) ||
+          optional("const", modifier)) {
+        varFinalOrConst = modifier;
+        break;
+      }
+    }
     Token token = parseModifiers(start,
         isTopLevel ? MemberKind.TopLevelField : MemberKind.NonStaticField,
         isVariable: true);
@@ -1344,10 +1355,12 @@ class Parser {
     token = parseIdentifier(token, context);
 
     int fieldCount = 1;
-    token = parseFieldInitializerOpt(token);
+    token = parseFieldInitializerOpt(token, name, varFinalOrConst, isTopLevel);
     while (optional(',', token)) {
+      name = token.next;
       token = parseIdentifier(token.next, context);
-      token = parseFieldInitializerOpt(token);
+      token =
+          parseFieldInitializerOpt(token, name, varFinalOrConst, isTopLevel);
       ++fieldCount;
     }
     Token semicolon = token;
@@ -1559,13 +1572,21 @@ class Parser {
     return listener.handleMemberName(const Link<Token>());
   }
 
-  Token parseFieldInitializerOpt(Token token) {
+  Token parseFieldInitializerOpt(
+      Token token, Token name, Token varFinalOrConst, bool isTopLevel) {
     if (optional('=', token)) {
       Token assignment = token;
       listener.beginFieldInitializer(token);
       token = parseExpression(token.next);
       listener.endFieldInitializer(assignment, token);
     } else {
+      if (varFinalOrConst != null) {
+        if (optional("const", varFinalOrConst)) {
+          reportRecoverableErrorCode(name, codeConstFieldWithoutInitializer);
+        } else if (isTopLevel && optional("final", varFinalOrConst)) {
+          reportRecoverableErrorCode(name, codeFinalFieldWithoutInitializer);
+        }
+      }
       listener.handleNoFieldInitializer(token);
     }
     return token;

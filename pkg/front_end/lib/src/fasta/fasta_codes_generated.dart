@@ -350,6 +350,26 @@ FastaMessage _formatUnexpectedDollarInString(Uri uri, int charOffset) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_FinalFieldWithoutInitializer>
+    codeFinalFieldWithoutInitializer =
+    const FastaCode<_FinalFieldWithoutInitializer>(
+        "FinalFieldWithoutInitializer",
+        template: r"A 'final' field must be initialized.",
+        tip: r"Try adding '= <initializer>'.",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatFinalFieldWithoutInitializer);
+
+typedef FastaMessage _FinalFieldWithoutInitializer(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatFinalFieldWithoutInitializer(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeFinalFieldWithoutInitializer,
+      message: "A 'final' field must be initialized.",
+      tip: "Try adding '= <initializer>'.",
+      arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExtraneousModifier> codeExtraneousModifier =
     const FastaCode<_ExtraneousModifier>("ExtraneousModifier",
         template: r"Can't have modifier '#lexeme' here.",
@@ -812,6 +832,26 @@ FastaMessage _formatExpectedButGot(Uri uri, int charOffset, String string) {
       message: "Expected '$string' before this.",
       tip: "DONT_KNOW_HOW_TO_FIX,",
       arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_ConstFieldWithoutInitializer>
+    codeConstFieldWithoutInitializer =
+    const FastaCode<_ConstFieldWithoutInitializer>(
+        "ConstFieldWithoutInitializer",
+        template: r"A 'const' field must be initialized.",
+        tip: r"Try adding '= <initializer>'.",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatConstFieldWithoutInitializer);
+
+typedef FastaMessage _ConstFieldWithoutInitializer(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatConstFieldWithoutInitializer(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeConstFieldWithoutInitializer,
+      message: "A 'const' field must be initialized.",
+      tip: "Try adding '= <initializer>'.",
+      arguments: {});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

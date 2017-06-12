@@ -326,7 +326,6 @@ type_parameter_test/06: Fail
 type_variable_bounds4_test/01: RuntimeError
 
 [ $compiler == dartk || $compiler == dartkp ]
-compile_time_constant_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 const_types_test/23: MissingCompileTimeError # Fixed in ahe's dev branch.
 const_types_test/24: MissingCompileTimeError # Fixed in ahe's dev branch.
 const_types_test/25: MissingCompileTimeError # Fixed in ahe's dev branch.
@@ -346,9 +345,6 @@ cyclic_typedef_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
 cyclic_typedef_test/08: MissingCompileTimeError # Fixed in ahe's dev branch.
 cyclic_typedef_test/09: MissingCompileTimeError # Fixed in ahe's dev branch.
 enum_syntax_test/30: MissingCompileTimeError # Fixed in ahe's dev branch.
-final_initializer_instance_reference_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-final_syntax_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
-final_syntax_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
 function_type_alias5_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
 function_type_alias5_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 function_type_alias5_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
@@ -359,4 +355,3 @@ regress_29349_test: CompileTimeError # Fixed in ahe's dev branch.
 
 [ $unchecked && ($compiler == dartk || $compiler == dartkp) ]
 const_conditional_test/08: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-inst_field_initializer1_negative_test: Fail # Fixed in ahe's dev branch.
