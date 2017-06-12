@@ -229,8 +229,9 @@ class FileEditBuilderImpl implements FileEditBuilder {
     try {
       buildEdit(builder);
     } finally {
-      fileEdit.add(builder.sourceEdit);
-      _captureSelection(builder);
+      SourceEdit edit = builder.sourceEdit;
+      fileEdit.add(edit);
+      _captureSelection(builder, edit);
     }
   }
 
@@ -248,8 +249,9 @@ class FileEditBuilderImpl implements FileEditBuilder {
     try {
       buildEdit(builder);
     } finally {
-      fileEdit.add(builder.sourceEdit);
-      _captureSelection(builder);
+      SourceEdit edit = builder.sourceEdit;
+      fileEdit.add(edit);
+      _captureSelection(builder, edit);
     }
   }
 
@@ -259,8 +261,9 @@ class FileEditBuilderImpl implements FileEditBuilder {
     try {
       builder.write(text);
     } finally {
-      fileEdit.add(builder.sourceEdit);
-      _captureSelection(builder);
+      SourceEdit edit = builder.sourceEdit;
+      fileEdit.add(edit);
+      _captureSelection(builder, edit);
     }
   }
 
@@ -270,8 +273,9 @@ class FileEditBuilderImpl implements FileEditBuilder {
     try {
       builder.write(text);
     } finally {
-      fileEdit.add(builder.sourceEdit);
-      _captureSelection(builder);
+      SourceEdit edit = builder.sourceEdit;
+      fileEdit.add(edit);
+      _captureSelection(builder, edit);
     }
   }
 
@@ -289,29 +293,46 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /**
    * Capture the selection offset if one was set.
    */
-  void _captureSelection(EditBuilderImpl builder) {
+  void _captureSelection(EditBuilderImpl builder, SourceEdit edit) {
     int offset = builder._selectionOffset;
     if (offset >= 0) {
       Position position =
-          new Position(fileEdit.file, offset + _deltaToOffset(offset));
+          new Position(fileEdit.file, offset + _deltaToEdit(edit));
       changeBuilder.setSelection(position);
     }
   }
 
   /**
    * Return the current delta caused by edits that will be applied before the
-   * given [offset]. In other words, if all of the edits that have so far been
-   * added were to be applied, then the text at the given `offset` before the
-   * edits will be at `offset + deltaToOffset(offset)` after the edits.
+   * [targetEdit]. In other words, if all of the edits that occur before the
+   * target edit were to be applied, then the text at the offset of the target
+   * edit before the applied edits will be at `offset + _deltaToOffset(offset)`
+   * after the edits.
    */
-  int _deltaToOffset(int targetOffset) {
-    int offset = 0;
-    for (var edit in fileEdit.edits) {
-      if (edit.offset <= targetOffset) {
-        offset += edit.replacement.length - edit.length;
+  int _deltaToEdit(SourceEdit targetEdit) {
+    int delta = 0;
+    for (SourceEdit edit in fileEdit.edits) {
+      if (edit.offset < targetEdit.offset) {
+        delta += edit.replacement.length - edit.length;
       }
     }
-    return offset;
+    return delta;
+  }
+
+  /**
+   * Return the current delta caused by edits that will be applied before the
+   * given [offset]. In other words, if all of the edits that have so far been
+   * added were to be applied, then the text at the given `offset` before the
+   * applied edits will be at `offset + _deltaToOffset(offset)` after the edits.
+   */
+  int _deltaToOffset(int offset) {
+    int delta = 0;
+    for (SourceEdit edit in fileEdit.edits) {
+      if (edit.offset <= offset) {
+        delta += edit.replacement.length - edit.length;
+      }
+    }
+    return delta;
   }
 }
 
