@@ -50,6 +50,8 @@ abstract class KMember implements MemberEntity {
 
   String get name => _name.text;
 
+  Name get memberName => _name;
+
   @override
   bool get isAssignable => false;
 

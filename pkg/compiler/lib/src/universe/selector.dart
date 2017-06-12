@@ -113,7 +113,7 @@ class Selector {
   }
 
   factory Selector.fromElement(MemberEntity element) {
-    Name name = new Name(element.name, element.library);
+    Name name = element.memberName;
     if (element.isFunction) {
       FunctionEntity function = element;
       if (name == Names.INDEX_NAME) {

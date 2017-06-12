@@ -11,7 +11,6 @@ import '../constants/values.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/names.dart';
 import '../enqueue.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
@@ -342,9 +341,7 @@ class MirrorsHandler {
         impactBuilder.registerDynamicUse(dynamicUse);
         if (element.isField) {
           DynamicUse dynamicUse = new DynamicUse(
-              new Selector.setter(
-                  new Name(element.name, element.library, isSetter: true)),
-              null);
+              new Selector.setter(element.memberName.setter), null);
           impactBuilder.registerDynamicUse(dynamicUse);
         }
       }

@@ -21,14 +21,14 @@ import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
     show
         ClassElement,
-        Element,
+        ConstructorBodyElement,
         FieldElement,
-        FunctionSignature,
         LibraryElement,
         MethodElement,
         TypedefElement;
 import '../../elements/entities.dart';
 import '../../elements/entity_utils.dart' as utils;
+import '../../elements/names.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
 import '../../io/location_provider.dart' show LocationCollector;
@@ -405,8 +405,7 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   /// In minified mode we want to keep the name for the most common core types.
-  bool _isNativeTypeNeedingReflectionName(Element element) {
-    if (!element.isClass) return false;
+  bool _isNativeTypeNeedingReflectionName(ClassEntity element) {
     return (element == commonElements.intClass ||
         element == commonElements.doubleClass ||
         element == commonElements.numClass ||
@@ -416,7 +415,35 @@ class Emitter extends js_emitter.EmitterBase {
         element == commonElements.listClass);
   }
 
-  /// Returns the "reflection name" of an [Element] or [Selector].
+  /// Returns the "reflection name" of a [ClassEntity], if needed.
+  ///
+  /// The reflection name of class 'C' is 'C'.
+  /// An anonymous mixin application has no reflection name.
+  ///
+  /// This is used by js_mirrors.dart.
+  String getReflectionClassName(ClassEntity cls, jsAst.Name mangledName) {
+    String name = cls.name;
+    if (backend.mirrorsData.shouldRetainName(name) ||
+        // Make sure to retain names of common native types.
+        _isNativeTypeNeedingReflectionName(cls)) {
+      // TODO(ahe): Enable the next line when I can tell the difference between
+      // an instance method and a global.  They may have the same mangled name.
+      // if (recordedMangledNames.contains(mangledName)) return null;
+      recordedMangledNames.add(mangledName);
+      if (cls.isClosure) {
+        // Closures are synthesized and their name might conflict with existing
+        // globals. Assign an illegal name, and make sure they don't clash
+        // with each other.
+        return " $name";
+      }
+      if (_elementEnvironment.isUnnamedMixinApplication(cls)) return null;
+      return cls.name;
+    }
+    return null;
+  }
+
+  /// Returns the "reflection name" of a [MemberEntity], if needed.
+  ///
   /// The reflection name of a getter 'foo' is 'foo'.
   /// The reflection name of a setter 'foo' is 'foo='.
   /// The reflection name of a method 'foo' is 'foo:N:M:O', where N is the
@@ -424,100 +451,124 @@ class Emitter extends js_emitter.EmitterBase {
   /// O is the named arguments.
   /// The reflection name of a constructor is similar to a regular method but
   /// starts with 'new '.
-  /// The reflection name of class 'C' is 'C'.
-  /// An anonymous mixin application has no reflection name.
+  ///
   /// This is used by js_mirrors.dart.
-  String getReflectionName(elementOrSelector, jsAst.Name mangledName) {
-    String name = elementOrSelector.name;
+  String getReflectionMemberName(MemberEntity member, jsAst.Name mangledName) {
+    String name = member.name;
     if (backend.mirrorsData.shouldRetainName(name) ||
-        elementOrSelector is Element &&
-            // Make sure to retain names of unnamed constructors, and
-            // for common native types.
-            ((name == '' &&
-                    backend.mirrorsData
-                        .isAccessibleByReflection(elementOrSelector)) ||
-                _isNativeTypeNeedingReflectionName(elementOrSelector))) {
+        // Make sure to retain names of unnamed constructors.
+        (name == '' &&
+            backend.mirrorsData.isMemberAccessibleByReflection(member))) {
       // TODO(ahe): Enable the next line when I can tell the difference between
       // an instance method and a global.  They may have the same mangled name.
       // if (recordedMangledNames.contains(mangledName)) return null;
       recordedMangledNames.add(mangledName);
-      return getReflectionNameInternal(elementOrSelector, mangledName);
+      return getReflectionMemberNameInternal(member, mangledName);
     }
     return null;
   }
 
-  String getReflectionNameInternal(elementOrSelector, jsAst.Name mangledName) {
-    String name = namer.privateName(elementOrSelector.memberName);
-    if (elementOrSelector.isGetter) return name;
-    if (elementOrSelector.isSetter) {
-      if (mangledName is! SetterName) return '$name=';
-      SetterName setterName = mangledName;
-      jsAst.Name base = setterName.base;
-      jsAst.Name getter = namer.deriveGetterName(base);
-      mangledFieldNames.putIfAbsent(getter, () => name);
-      assert(mangledFieldNames[getter] == name);
-      recordedMangledNames.add(getter);
-      // TODO(karlklose,ahe): we do not actually need to store information
-      // about the name of this setter in the output, but it is needed for
-      // marking the function as invokable by reflection.
-      return '$name=';
-    }
-    if (elementOrSelector is Element && elementOrSelector.isClosure) {
-      // Closures are synthesized and their name might conflict with existing
-      // globals. Assign an illegal name, and make sure they don't clash
-      // with each other.
-      return " $name";
-    }
-    if (elementOrSelector is Selector ||
-        elementOrSelector.isFunction ||
-        elementOrSelector.isConstructor) {
-      int positionalParameterCount;
-      String namedArguments = '';
-      bool isConstructor = false;
-      if (elementOrSelector is Selector) {
-        CallStructure callStructure = elementOrSelector.callStructure;
-        positionalParameterCount = callStructure.positionalArgumentCount;
-        namedArguments = namedParametersAsReflectionNames(callStructure);
-      } else {
-        MethodElement function = elementOrSelector;
-        if (function.isConstructor) {
-          isConstructor = true;
-          name = utils.reconstructConstructorName(function);
-        }
-        FunctionSignature signature = function.functionSignature;
-        positionalParameterCount = signature.requiredParameterCount;
-        if (signature.optionalParametersAreNamed) {
-          var names = [];
-          for (Element e in signature.optionalParameters) {
-            names.add(e.name);
-          }
-          CallStructure callStructure =
-              new CallStructure(positionalParameterCount, names);
-          namedArguments = namedParametersAsReflectionNames(callStructure);
-        } else {
-          // Named parameters are handled differently by mirrors. For unnamed
-          // parameters, they are actually required if invoked
-          // reflectively. Also, if you have a method c(x) and c([x]) they both
-          // get the same mangled name, so they must have the same reflection
-          // name.
-          positionalParameterCount += signature.optionalParameterCount;
-        }
-      }
-      String suffix = '$name:$positionalParameterCount$namedArguments';
-      return (isConstructor) ? 'new $suffix' : suffix;
-    }
-    Element element = elementOrSelector;
-    if (element.isGenerativeConstructorBody) {
+  String getReflectionMemberNameInternal(
+      MemberEntity member, jsAst.Name mangledName) {
+    if (member is ConstructorBodyElement) {
       return null;
-    } else if (element.isClass) {
-      ClassElement cls = element;
-      if (cls.isUnnamedMixinApplication) return null;
-      return cls.name;
-    } else if (element.isTypedef) {
-      return element.name;
+    }
+    if (member.isGetter) {
+      return _getReflectionGetterName(member.memberName);
+    } else if (member.isSetter) {
+      return _getReflectionSetterName(member.memberName, mangledName);
+    } else if (member.isConstructor) {
+      ConstructorEntity constructor = member;
+      String name = utils.reconstructConstructorName(constructor);
+      return _getReflectionCallStructureName(
+          name, constructor.parameterStructure.callStructure);
+    } else if (member.isFunction) {
+      FunctionEntity function = member;
+      return _getReflectionFunctionName(
+          member.memberName, function.parameterStructure.callStructure);
     }
     throw reporter.internalError(
-        element, 'Do not know how to reflect on this $element.');
+        member, 'Do not know how to reflect on this $member.');
+  }
+
+  /// Returns the "reflection name" of a [Selector], if needed.
+  ///
+  /// The reflection name of a getter 'foo' is 'foo'.
+  /// The reflection name of a setter 'foo' is 'foo='.
+  /// The reflection name of a method 'foo' is 'foo:N:M:O', where N is the
+  /// number of required arguments, M is the number of optional arguments, and
+  /// O is the named arguments.
+  ///
+  /// This is used by js_mirrors.dart.
+  String getReflectionSelectorName(Selector selector, jsAst.Name mangledName) {
+    String name = selector.name;
+    if (backend.mirrorsData.shouldRetainName(name)) {
+      // TODO(ahe): Enable the next line when I can tell the difference between
+      // an instance method and a global.  They may have the same mangled name.
+      // if (recordedMangledNames.contains(mangledName)) return null;
+      recordedMangledNames.add(mangledName);
+      if (selector.isGetter) {
+        return _getReflectionGetterName(selector.memberName);
+      } else if (selector.isSetter) {
+        return _getReflectionSetterName(selector.memberName, mangledName);
+      } else {
+        return _getReflectionFunctionName(
+            selector.memberName, selector.callStructure);
+      }
+    }
+    return null;
+  }
+
+  /// Returns the "reflection name" of a [TypedefElement], if needed.
+  ///
+  /// The reflection name of typedef 'F' is 'F'.
+  ///
+  /// This is used by js_mirrors.dart.
+  String getReflectionTypedefName(
+      TypedefElement typedef, jsAst.Name mangledName) {
+    String name = typedef.name;
+    if (backend.mirrorsData.shouldRetainName(name)) {
+      // TODO(ahe): Enable the next line when I can tell the difference between
+      // an instance method and a global.  They may have the same mangled name.
+      // if (recordedMangledNames.contains(mangledName)) return null;
+      recordedMangledNames.add(mangledName);
+      return typedef.name;
+    }
+    return null;
+  }
+
+  String _getReflectionGetterName(Name memberName) {
+    return namer.privateName(memberName);
+  }
+
+  String _getReflectionSetterName(Name memberName, jsAst.Name mangledName) {
+    String name = namer.privateName(memberName);
+    if (mangledName is! SetterName) return '$name=';
+    SetterName setterName = mangledName;
+    jsAst.Name base = setterName.base;
+    jsAst.Name getter = namer.deriveGetterName(base);
+    mangledFieldNames.putIfAbsent(getter, () => name);
+    assert(mangledFieldNames[getter] == name);
+    recordedMangledNames.add(getter);
+    // TODO(karlklose,ahe): we do not actually need to store information
+    // about the name of this setter in the output, but it is needed for
+    // marking the function as invokable by reflection.
+    return '$name=';
+  }
+
+  String _getReflectionFunctionName(
+      Name memberName, CallStructure callStructure) {
+    String name = namer.privateName(memberName);
+    return _getReflectionCallStructureName(name, callStructure);
+  }
+
+  String _getReflectionCallStructureName(
+      String name, CallStructure callStructure,
+      {bool isConstructor: false}) {
+    int positionalParameterCount = callStructure.positionalArgumentCount;
+    String namedArguments = namedParametersAsReflectionNames(callStructure);
+    String suffix = '$name:$positionalParameterCount$namedArguments';
+    return isConstructor ? 'new $suffix' : suffix;
   }
 
   String namedParametersAsReflectionNames(CallStructure structure) {
@@ -1133,7 +1184,7 @@ class Emitter extends js_emitter.EmitterBase {
       builder.superName = namer.className(commonElements.objectClass);
       jsAst.Node declaration = builder.toObjectInitializer();
       jsAst.Name mangledName = namer.globalPropertyNameForType(typedef);
-      String reflectionName = getReflectionName(typedef, mangledName);
+      String reflectionName = getReflectionTypedefName(typedef, mangledName);
       getLibraryDescriptor(library, mainFragment)
         ..addProperty(mangledName, declaration)
         ..addPropertyByName("+$reflectionName", js.string(''));

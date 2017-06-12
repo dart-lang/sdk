@@ -12,7 +12,6 @@ import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
     show ClassElement, FieldElement, MemberElement;
 import '../../elements/entities.dart';
-import '../../elements/names.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../../js_backend/js_backend.dart' show CompoundName, Namer;
@@ -365,7 +364,8 @@ class ClassEmitter extends CodeEmitterHelper {
         .registerElementAst(classBuilder.element, propertyValue);
     enclosingBuilder.addProperty(className, propertyValue);
 
-    String reflectionName = emitter.getReflectionName(classEntity, className);
+    String reflectionName =
+        emitter.getReflectionClassName(classEntity, className);
     if (reflectionName != null) {
       // TODO(johnniwinther): Handle class entities.
       ClassElement classElement = classEntity;
@@ -447,10 +447,9 @@ class ClassEmitter extends CodeEmitterHelper {
       MemberElement member, jsAst.Name name, ClassBuilder builder,
       {bool isGetter}) {
     Selector selector = isGetter
-        ? new Selector.getter(new Name(member.name, member.library))
-        : new Selector.setter(
-            new Name(member.name, member.library, isSetter: true));
-    String reflectionName = emitter.getReflectionName(selector, name);
+        ? new Selector.getter(member.memberName.getter)
+        : new Selector.setter(member.memberName.setter);
+    String reflectionName = emitter.getReflectionSelectorName(selector, name);
     if (reflectionName != null) {
       var reflectable = js(
           backend.mirrorsData.isMemberAccessibleByReflection(member)

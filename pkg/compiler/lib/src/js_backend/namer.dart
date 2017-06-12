@@ -948,7 +948,7 @@ class Namer {
     // No superclass uses the disambiguated name as a property name, so we can
     // use it for this field. This generates nicer field names since otherwise
     // the field name would have to be mangled.
-    return _disambiguateMember(element.memberName);
+    return _disambiguateMember(new Name(element.name, element.library));
   }
 
   bool _isShadowingSuperField(Element element) {
@@ -987,8 +987,7 @@ class Namer {
   jsAst.Name getterForElement(MemberEntity element) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
-    jsAst.Name name = _disambiguateMember(
-        new Name(element.name, element.library, isSetter: element.isSetter));
+    jsAst.Name name = _disambiguateMember(element.memberName);
     return deriveGetterName(name);
   }
 

@@ -9,6 +9,7 @@ import 'package:front_end/src/fasta/parser/async_modifier.dart'
 
 import '../common.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import 'names.dart';
 
 /// Abstract interface for entities.
 ///
@@ -65,6 +66,10 @@ abstract class TypeVariableEntity extends Entity {
 /// Currently only [MemberElement] but later also kernel based Dart members
 /// and/or Dart-in-JS properties.
 abstract class MemberEntity extends Entity {
+  /// The [Name] of member which takes privacy and getter/setter naming into
+  /// account.
+  Name get memberName;
+
   /// Whether this is a member of a library.
   bool get isTopLevel;
 

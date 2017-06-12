@@ -163,13 +163,13 @@ class ContainerBuilder extends CodeEmitterHelper {
         }
       });
     }
-    Name memberName = new Name(member.name, member.library);
+    Name memberName = member.memberName;
     if (canBeReflected) {
       jsAst.LiteralString reflectionName;
       if (member.isConstructor) {
         // TODO(herhut): This registers name as a mangled name. Do we need this
         //               given that we use a different name below?
-        emitter.getReflectionName(member, name);
+        emitter.getReflectionMemberName(member, name);
         reflectionName = new jsAst.LiteralString(
             '"new ${utils.reconstructConstructorName(member)}"');
       } else {

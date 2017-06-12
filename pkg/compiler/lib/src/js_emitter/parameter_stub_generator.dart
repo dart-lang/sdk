@@ -16,7 +16,6 @@ import '../elements/elements.dart'
         MethodElement,
         ParameterElement;
 import '../elements/entities.dart';
-import '../elements/names.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/constant_handler_javascript.dart'
@@ -285,8 +284,8 @@ class ParameterStubGenerator {
     // Start with the callSelectors since they imply the generation of the
     // non-call version.
     for (Selector selector in callSelectors.keys) {
-      Selector renamedSelector = new Selector.call(
-          new Name(member.name, member.library), selector.callStructure);
+      Selector renamedSelector =
+          new Selector.call(member.memberName, selector.callStructure);
       renamedCallSelectors.add(renamedSelector);
 
       if (!renamedSelector.appliesUnnamed(member)) {
