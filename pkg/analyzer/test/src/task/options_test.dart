@@ -152,7 +152,6 @@ class ErrorCodeValuesTest {
       errorTypeMap.putIfAbsent(code.runtimeType, () => <ErrorCode>[]).add(code);
     }
 
-    int totalCount = 0;
     int missingErrorCodeCount = 0;
     errorTypeMap.forEach((Type errorType, List<ErrorCode> codes) {
       var listedNames = codes.map((ErrorCode code) => code.name).toSet();
@@ -244,7 +243,6 @@ class ErrorCodeValuesTest {
       // Assert that all remaining declared names are in errorCodeValues
 
       for (String declaredName in declaredNames) {
-        ++totalCount;
         if (!listedNames.contains(declaredName)) {
           ++missingErrorCodeCount;
           print('   errorCodeValues is missing $errorType $declaredName');
