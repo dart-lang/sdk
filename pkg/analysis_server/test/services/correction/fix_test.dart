@@ -153,11 +153,7 @@ bool test() {
   }
 
   Future<List<AnalysisError>> _computeErrors() async {
-    if (enableNewAnalysisDriver) {
-      return (await driver.getResult(testFile)).errors;
-    } else {
-      return context.computeErrors(testSource);
-    }
+    return (await driver.getResult(testFile)).errors;
   }
 
   /**
@@ -184,11 +180,7 @@ bool test() {
     });
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    if (enableNewAnalysisDriver) {
-      driver.configure(sourceFactory: sourceFactory);
-    } else {
-      context.sourceFactory = sourceFactory;
-    }
+    driver.configure(sourceFactory: sourceFactory);
     // force 'my_pkg' resolution
     addSource(
         '/tmp/other.dart',
@@ -2244,13 +2236,8 @@ part 'my_part.dart';
     });
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    if (enableNewAnalysisDriver) {
-      driver.configure(sourceFactory: sourceFactory);
-      testUnit = (await driver.getResult(testFile)).unit;
-    } else {
-      context.sourceFactory = sourceFactory;
-      testUnit = await resolveLibraryUnit(testSource);
-    }
+    driver.configure(sourceFactory: sourceFactory);
+    testUnit = (await driver.getResult(testFile)).unit;
     // prepare fix
     AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_FILE, error);
@@ -5896,11 +5883,7 @@ class Required {
     });
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    if (enableNewAnalysisDriver) {
-      driver.configure(sourceFactory: sourceFactory);
-    } else {
-      context.sourceFactory = sourceFactory;
-    }
+    driver.configure(sourceFactory: sourceFactory);
     // force 'flutter' resolution
     addSource(
         '/tmp/other.dart',

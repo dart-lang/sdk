@@ -83,15 +83,10 @@ linter:
 
     await waitForTasksFinished();
     List<Linter> lints;
-    if (enableNewAnalysisDriver) {
-      AnalysisDriver testDriver = (server.contextManager as ContextManagerImpl)
-          .getContextInfoFor(resourceProvider.getFolder(projectPath))
-          .analysisDriver;
-      lints = testDriver.analysisOptions.lintRules;
-    } else {
-      AnalysisContext testContext = server.getContainingContext(testFile);
-      lints = getLints(testContext);
-    }
+    AnalysisDriver testDriver = (server.contextManager as ContextManagerImpl)
+        .getContextInfoFor(resourceProvider.getFolder(projectPath))
+        .analysisDriver;
+    lints = testDriver.analysisOptions.lintRules;
     // Registry should only contain single lint rule.
     expect(lints, hasLength(1));
     LintRule lint = lints.first as LintRule;

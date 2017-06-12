@@ -515,14 +515,7 @@ main() {
     Source appSource = addSource('/app.dart', appCode);
     testSource = addSource('/test.dart', testCode);
     // resolve
-    if (enableNewAnalysisDriver) {
-      await resolveTestUnit(testCode);
-    } else {
-      context.resolveCompilationUnit2(appSource, appSource);
-      testUnit = context.resolveCompilationUnit2(testSource, appSource);
-      testUnitElement = testUnit.element;
-      testLibraryElement = testUnitElement.library;
-    }
+    await resolveTestUnit(testCode);
     // prepare the assist
     offset = findOffset('v = ');
     assist = await _assertHasAssist(DartAssistKind.ADD_TYPE_ANNOTATION);
@@ -4719,11 +4712,7 @@ main() {
     });
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    if (enableNewAnalysisDriver) {
-      driver.configure(sourceFactory: sourceFactory);
-    } else {
-      context.sourceFactory = sourceFactory;
-    }
+    driver.configure(sourceFactory: sourceFactory);
     // force 'flutter' resolution
     addSource(
         '/tmp/other.dart',

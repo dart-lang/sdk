@@ -50,9 +50,6 @@ part of my.app;
 library my.app;
 part 'part.dart';
 ''');
-    if (!enableNewAnalysisDriver) {
-      index.indexUnit(context.resolveCompilationUnit2(unitSource, testSource));
-    }
     // configure refactoring
     _createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Library');
@@ -80,9 +77,6 @@ part of my .  app;
 library my    . app;
 part 'part.dart';
 ''');
-    if (!enableNewAnalysisDriver) {
-      index.indexUnit(context.resolveCompilationUnit2(unitSource, testSource));
-    }
     // configure refactoring
     _createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Library');
