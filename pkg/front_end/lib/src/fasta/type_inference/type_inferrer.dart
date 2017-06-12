@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/errors.dart' show internalError;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/names.dart' show callName;
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
@@ -29,7 +30,11 @@ import 'package:kernel/ast.dart'
         Name,
         Procedure,
         ProcedureKind,
+        PropertyGet,
+        PropertySet,
         Statement,
+        SuperPropertyGet,
+        SuperPropertySet,
         TypeParameterType,
         VoidType;
 import 'package:kernel/class_hierarchy.dart';
@@ -268,6 +273,50 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         silent: silent);
     methodInvocation.interfaceTarget = interfaceMember;
     return interfaceMember;
+  }
+
+  /// Finds a member of [receiverType] called [name], and if it is found,
+  /// reports it through instrumentation and records it in [propertyGet].
+  Member findPropertyGetMember(DartType receiverType, Expression propertyGet,
+      {bool silent: false}) {
+    if (propertyGet is PropertyGet) {
+      var interfaceMember = findInterfaceMember(
+          receiverType, propertyGet.name, propertyGet.fileOffset,
+          silent: silent);
+      propertyGet.interfaceTarget = interfaceMember;
+      return interfaceMember;
+    } else if (propertyGet is SuperPropertyGet) {
+      var interfaceMember = findInterfaceMember(
+          receiverType, propertyGet.name, propertyGet.fileOffset,
+          silent: silent);
+      propertyGet.interfaceTarget = interfaceMember;
+      return interfaceMember;
+    } else {
+      throw internalError(
+          'Unexpected propertyGet type: ${propertyGet.runtimeType}');
+    }
+  }
+
+  /// Finds a member of [receiverType] called [name], and if it is found,
+  /// reports it through instrumentation and records it in [propertySet].
+  Member findPropertySetMember(DartType receiverType, Expression propertySet,
+      {bool silent: false}) {
+    if (propertySet is PropertySet) {
+      var interfaceMember = findInterfaceMember(
+          receiverType, propertySet.name, propertySet.fileOffset,
+          setter: true, silent: silent);
+      propertySet.interfaceTarget = interfaceMember;
+      return interfaceMember;
+    } else if (propertySet is SuperPropertySet) {
+      var interfaceMember = findInterfaceMember(
+          receiverType, propertySet.name, propertySet.fileOffset,
+          setter: true, silent: silent);
+      propertySet.interfaceTarget = interfaceMember;
+      return interfaceMember;
+    } else {
+      throw internalError(
+          'Unexpected propertySet type: ${propertySet.runtimeType}');
+    }
   }
 
   FunctionType getCalleeFunctionType(Member interfaceMember,

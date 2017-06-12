@@ -175,6 +175,8 @@ inference/generic_methods_inference_error: Crash
 inference/generic_methods_iterable_and_future: Crash
 inference/generic_methods_nested_generic_instantiation: Crash
 inference/generic_methods_uses_greatest_lower_bound: Crash
+inference/infer_assign_to_implicit_this: Crash
+inference/infer_assign_to_implicit_this_upwards: Crash
 inference/infer_assign_to_index: Crash
 inference/infer_assign_to_index_full: Crash
 inference/infer_assign_to_index_set_vs_get: Crash
@@ -183,6 +185,12 @@ inference/infer_assign_to_local: Crash
 inference/infer_assign_to_local_upwards: Crash
 inference/infer_assign_to_property: Crash
 inference/infer_assign_to_property_custom: Crash
+inference/infer_assign_to_property_full: Crash
+inference/infer_assign_to_property_null_aware: Crash
+inference/infer_assign_to_property_null_aware_upwards: Crash
+inference/infer_assign_to_property_super: Crash
+inference/infer_assign_to_property_super_upwards: Crash
+inference/infer_assign_to_property_upwards: Crash
 inference/infer_assign_to_ref: Crash
 inference/infer_assign_to_static: Crash
 inference/infer_assign_to_static_upwards: Crash

@@ -206,6 +206,12 @@ class TypeInferenceListener
   void nullLiteralExit(NullLiteral expression, DartType inferredType) =>
       debugExpressionExit("nullLiteral", expression, inferredType);
 
+  bool propertyAssignEnter(Expression expression, DartType typeContext) =>
+      debugExpressionEnter("propertyAssign", expression, typeContext);
+
+  void propertyAssignExit(Expression expression, DartType inferredType) =>
+      debugExpressionExit("propertyAssign", expression, inferredType);
+
   bool propertyGetEnter(PropertyGet expression, DartType typeContext) =>
       debugExpressionEnter("propertyGet", expression, typeContext);
 
