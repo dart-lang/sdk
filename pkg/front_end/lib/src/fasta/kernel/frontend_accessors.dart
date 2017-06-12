@@ -73,12 +73,13 @@ abstract class Accessor {
   /// [voidContext] is true, in which case it may evaluate to anything.
   ///
   /// [type] is the static type of the RHS.
-  Expression buildNullAwareAssignment(Expression value, DartType type,
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     var complexAssignment = startComplexAssignment(value);
     if (voidContext) {
       var nullAwareCombiner = new KernelConditionalExpression(
-          buildIsNull(_makeRead(complexAssignment)),
+          buildIsNull(_makeRead(complexAssignment), offset),
           _makeWrite(value, false, complexAssignment),
           new NullLiteral());
       complexAssignment?.nullAwareCombiner = nullAwareCombiner;
@@ -86,7 +87,7 @@ abstract class Accessor {
     }
     var tmp = new VariableDeclaration.forValue(_makeRead(complexAssignment));
     var nullAwareCombiner = new KernelConditionalExpression(
-        buildIsNull(new VariableGet(tmp)),
+        buildIsNull(new VariableGet(tmp), offset),
         _makeWrite(value, false, complexAssignment),
         new VariableGet(tmp));
     complexAssignment?.nullAwareCombiner = nullAwareCombiner;
@@ -348,7 +349,9 @@ class NullAwarePropertyAccessor extends Accessor {
   Expression _finish(
       Expression body, KernelComplexAssignment complexAssignment) {
     var nullAwareGuard = new KernelConditionalExpression(
-        buildIsNull(receiverAccess()), new NullLiteral(), body)
+        buildIsNull(receiverAccess(), offsetForToken(token)),
+        new NullLiteral(),
+        body)
       ..fileOffset = offsetForToken(token);
     body = makeLet(receiver, nullAwareGuard);
     if (complexAssignment != null) {
@@ -720,7 +723,7 @@ Expression makeBinary(
     ..fileOffset = offset;
 }
 
-Expression buildIsNull(Expression value, {int offset: TreeNode.noOffset}) {
+Expression buildIsNull(Expression value, int offset) {
   return makeBinary(value, equalsName, null, new NullLiteral(), offset: offset);
 }
 

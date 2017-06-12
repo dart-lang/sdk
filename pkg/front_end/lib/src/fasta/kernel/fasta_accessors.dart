@@ -277,7 +277,8 @@ abstract class ErrorAccessor implements FastaAccessor {
   }
 
   @override
-  Expression buildNullAwareAssignment(Expression value, DartType type,
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return buildError(new KernelArguments(<Expression>[value]), isSetter: true);
   }
@@ -393,7 +394,8 @@ class ThisAccessor extends FastaAccessor {
     return buildAssignmentError();
   }
 
-  Expression buildNullAwareAssignment(Expression value, DartType type,
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return buildAssignmentError();
   }
@@ -504,7 +506,8 @@ class SendAccessor extends IncompleteSend {
         isNullAware: isNullAware);
   }
 
-  Expression buildNullAwareAssignment(Expression value, DartType type,
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return internalError("Unhandled");
   }
@@ -569,7 +572,8 @@ class IncompletePropertyAccessor extends IncompleteSend {
         helper, token, helper.toValue(receiver), name, null, null, isNullAware);
   }
 
-  Expression buildNullAwareAssignment(Expression value, DartType type,
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return internalError("Unhandled");
   }

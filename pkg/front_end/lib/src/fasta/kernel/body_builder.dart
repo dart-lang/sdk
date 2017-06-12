@@ -797,8 +797,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
     push(makeLet(
         variable,
-        new KernelConditionalExpression(buildIsNull(new VariableGet(variable)),
-            b, new VariableGet(variable))));
+        new KernelConditionalExpression(
+            buildIsNull(new VariableGet(variable), offsetForToken(token)),
+            b,
+            new VariableGet(variable))));
   }
 
   /// Handle `a?.b(...)`.
@@ -3081,7 +3083,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return makeLet(
           variable,
           new KernelConditionalExpression(
-              buildIsNull(new VariableGet(variable)),
+              buildIsNull(new VariableGet(variable), offset),
               new NullLiteral(),
               new MethodInvocation(new VariableGet(variable), name, arguments)
                 ..fileOffset = offset));
@@ -3169,7 +3171,8 @@ abstract class ContextAccessor extends FastaAccessor {
     return makeInvalidWrite(value);
   }
 
-  Expression buildNullAwareAssignment(Expression value, DartType type,
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return makeInvalidWrite(value);
   }
@@ -3254,7 +3257,8 @@ class DelayedAssignment extends ContextAccessor {
       return accessor.buildCompoundAssignment(rightShiftName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("??=", assignmentOperator)) {
-      return accessor.buildNullAwareAssignment(value, const DynamicType(),
+      return accessor.buildNullAwareAssignment(
+          value, const DynamicType(), offsetForToken(token),
           voidContext: voidContext);
     } else if (identical("^=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(caretName, value,

@@ -328,7 +328,8 @@ abstract class KernelComplexAssignment extends Expression
     if (nullAwareCombiner != null) {
       var rhsType = inferrer.inferExpression(rhs, writeContext, true);
       MethodInvocation equalsInvocation = nullAwareCombiner.condition;
-      inferrer.findMethodInvocationMember(writeContext, equalsInvocation);
+      inferrer.findMethodInvocationMember(writeContext, equalsInvocation,
+          silent: true);
       return inferrer.typeSchemaEnvironment
           .getLeastUpperBound(inferredType, rhsType);
     } else if (combiner != null) {
