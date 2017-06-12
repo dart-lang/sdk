@@ -30,8 +30,6 @@ final _variables = {
   "runtime": new _Variable(_runtimeName, Runtime.names),
   "strong": new _Variable.bool((c) => c.isStrong),
   "system": new _Variable((c) => c.system.name, System.names),
-  "unchecked": new _Variable.bool((c) => !c.isChecked),
-  "unminified": new _Variable.bool((c) => !c.isMinified),
   "use_sdk": new _Variable.bool((c) => c.useSdk)
 };
 
