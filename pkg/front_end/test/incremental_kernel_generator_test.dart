@@ -700,9 +700,13 @@ import 'a.dart';
 ''');
 
     var usedFiles = <Uri>[];
+    var unusedFiles = <Uri>[];
     watchFn = (Uri uri, bool used) {
-      expect(used, isTrue);
-      usedFiles.add(uri);
+      if (used) {
+        usedFiles.add(uri);
+      } else {
+        unusedFiles.add(uri);
+      }
       return new Future.value();
     };
 
@@ -712,6 +716,7 @@ import 'a.dart';
       expect(usedFiles, contains(cUri));
       expect(usedFiles, contains(aUri));
       usedFiles.clear();
+      expect(unusedFiles, isEmpty);
     }
 
     // Update c.dart to reference also b.dart file.
@@ -727,6 +732,23 @@ import 'b.dart';
       // The only new file is b.dart now.
       expect(usedFiles, [bUri]);
       usedFiles.clear();
+      expect(unusedFiles, isEmpty);
+    }
+
+    // Update c.dart to stop referencing b.dart file.
+    writeFile(
+        cPath,
+        r'''
+import 'a.dart';
+''');
+    incrementalKernelGenerator.invalidate(cUri);
+    {
+      await incrementalKernelGenerator.computeDelta();
+      // No new used files.
+      expect(usedFiles, isEmpty);
+      // The file b.dart is not used anymore.
+      expect(unusedFiles, [bUri]);
+      unusedFiles.clear();
     }
   }
 

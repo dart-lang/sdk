@@ -60,6 +60,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The URI of the program entry point.
   final Uri _entryPoint;
 
+  /// The function to notify when files become used or unused, or `null`.
+  final WatchUsedFilesFn _watchFn;
+
   /// The salt to mix into all hashes used as keys for serialized data.
   List<int> _salt;
 
@@ -77,12 +80,13 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       this._options, this._uriTranslator, this._entryPoint,
       {WatchUsedFilesFn watch})
       : _logger = _options.logger,
-        _byteStore = _options.byteStore {
+        _byteStore = _options.byteStore,
+        _watchFn = watch {
     _computeSalt();
 
     Future<Null> onFileAdded(Uri uri) {
-      if (watch != null) {
-        return watch(uri, true);
+      if (_watchFn != null) {
+        return _watchFn(uri, true);
       }
       return new Future.value();
     }
@@ -314,7 +318,12 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       }
 
       // The file graph might have changed, perform GC.
-      _fsState.gc(_entryPoint);
+      var removedFiles = _fsState.gc(_entryPoint);
+      if (removedFiles.isNotEmpty && _watchFn != null) {
+        for (var removedFile in removedFiles) {
+          await _watchFn(removedFile.fileUri, false);
+        }
+      }
     });
   }
 

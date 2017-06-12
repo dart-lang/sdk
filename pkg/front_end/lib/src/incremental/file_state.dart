@@ -314,7 +314,8 @@ class FileSystemState {
   Iterable<Uri> get fileUris => _fileUriToFile.keys;
 
   /// Perform mark and sweep garbage collection of [FileState]s.
-  void gc(Uri entryPoint) {
+  /// Return [FileState]s that became garbage.
+  List<FileState> gc(Uri entryPoint) {
     void mark(FileState file) {
       if (!file._gcMarked) {
         file._gcMarked = true;
@@ -323,16 +324,18 @@ class FileSystemState {
     }
 
     var file = _uriToFile[entryPoint];
-    if (file == null) return;
+    if (file == null) return const [];
 
     mark(file);
 
+    var filesToRemove = <FileState>[];
     var urisToRemove = new Set<Uri>();
     var fileUrisToRemove = new Set<Uri>();
     for (var file in _uriToFile.values) {
       if (file._gcMarked) {
         file._gcMarked = false;
       } else {
+        filesToRemove.add(file);
         urisToRemove.add(file.uri);
         fileUrisToRemove.add(file.fileUri);
       }
@@ -340,6 +343,7 @@ class FileSystemState {
 
     urisToRemove.forEach(_uriToFile.remove);
     fileUrisToRemove.forEach(_fileUriToFile.remove);
+    return filesToRemove;
   }
 
   /// Return the [FileState] for the given [absoluteUri], or `null` if the

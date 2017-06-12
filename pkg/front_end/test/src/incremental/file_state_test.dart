@@ -163,7 +163,7 @@ import "d.dart";
     expect(fsState.fileUris, contains(d));
 
     // No changes after GC.
-    fsState.gc(e);
+    expect(fsState.gc(e), isEmpty);
     expect(fsState.fileUris, contains(e));
     expect(fsState.fileUris, contains(a));
     expect(fsState.fileUris, contains(b));
@@ -178,7 +178,10 @@ import "d.dart";
 import "d.dart";
 ''');
     await eFile.refresh();
-    fsState.gc(e);
+    {
+      var gcFiles = fsState.gc(e);
+      expect(gcFiles.map((file) => file.uri), unorderedEquals([a, c]));
+    }
     expect(fsState.fileUris, contains(e));
     expect(fsState.fileUris, isNot(contains(a)));
     expect(fsState.fileUris, contains(b));
