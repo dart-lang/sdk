@@ -487,6 +487,19 @@ class GenericFunctionType extends AbstractFunctionType {
     return _typeFormals;
   }
 
+  checkBounds(List typeArgs) {
+    var bounds = instantiateTypeBounds(typeArgs);
+    var typeFormals = this.typeFormals;
+    for (var i = 0; i < typeArgs.length; i++) {
+      var type = typeArgs[i];
+      var bound = bounds[i];
+      if (!JS('bool', '#', isSubtype(type, bound))) {
+        throwStrongModeError('type `$type` does not extend `$bound`'
+            ' of `${typeFormals[i]}`.');
+      }
+    }
+  }
+
   instantiate(typeArgs) {
     var parts = JS('', '#.apply(null, #)', _instantiateTypeParts, typeArgs);
     return JS('', '#.create(#, #[0], #[1], #[2])', FunctionType, definite,
@@ -788,34 +801,28 @@ isFunctionSubtype(ft1, ft2, isCovariant) => JS(
   return true;
 })()''');
 
-/// TODO(leafp): This duplicates code in operations.dart.
-/// I haven't found a way to factor it out that makes the
-/// code generator happy though.
-_subtypeMemo(f) => JS(
-    '',
-    '''(() => {
-  let memo = new Map();
-  return (t1, t2) => {
-    let map = memo.get(t1);
-    let result;
-    if (map) {
-      result = map.get(t2);
-      if (result !== void 0) return result;
-    } else {
-      memo.set(t1, map = new Map());
-    }
-    result = $f(t1, t2);
-    map.set(t2, result);
-    return result;
-  };
-})()''');
-
 /// Returns true if [t1] <: [t2].
 /// Returns false if [t1] </: [t2] in both spec and strong mode
 /// Returns undefined if [t1] </: [t2] in strong mode, but spec
 ///  mode may differ
-final isSubtype = JS(
-    '', '$_subtypeMemo((t1, t2) => (t1 === t2) || $_isSubtype(t1, t2, true))');
+bool isSubtype(t1, t2) {
+  // TODO(leafp): This duplicates code in operations.dart.
+  // I haven't found a way to factor it out that makes the
+  // code generator happy though.
+  var map = JS('', '#.get(#)', _memo, t1);
+  bool result;
+  if (JS('bool', '# !== void 0', map)) {
+    result = JS('bool', '#.get(#)', map, t2);
+    if (JS('bool', '# !== void 0', result)) return result;
+  } else {
+    JS('', '#.set(#, # = new Map())', _memo, t1, map);
+  }
+  result = JS('', '# === # || #(#, #, true)', t1, t2, _isSubtype, t1, t2);
+  JS('', '#.set(#, #)', map, t2, result);
+  return result;
+}
+
+final _memo = JS('', 'new Map()');
 
 _isBottom(type) => JS('bool', '# == # || # == #', type, bottom, type, Null);
 
@@ -830,7 +837,7 @@ _isTop(type) {
 bool _isFutureOr(type) =>
     JS('bool', '# === #', getGenericClass(type), getGenericClass(FutureOr));
 
-_isSubtype(t1, t2, isCovariant) => JS(
+bool _isSubtype(t1, t2, isCovariant) => JS(
     '',
     '''(() => {
   if ($t1 === $t2) return true;

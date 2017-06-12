@@ -151,7 +151,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'generic_instanceof_test': fail, // runtime strong mode reject
       'generic_instanceof2_test': fail,
       'generic_is_check_test': fail,
-      'generic_methods_bounds_test_02_multi': fail,
       'generic_methods_generic_class_tearoff_test': fail,
       'getter_closure_execution_order_test': fail,
       'gc_test': 'slow',

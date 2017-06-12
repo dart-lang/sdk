@@ -304,6 +304,8 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
           'incorrect number of arguments to generic function ' +
           $typeName($ftype) + ', got <' + $typeArgs + '> expected ' +
           formalCount + '.');
+    } else {
+      $ftype.checkBounds($typeArgs);
     }
     $ftype = $ftype.instantiate($typeArgs);
   } else if ($typeArgs != null) {
