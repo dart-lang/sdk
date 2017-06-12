@@ -123,8 +123,6 @@ vars = {
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "web_socket_channel_tag": "@1.0.4",
   "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
-  "when_tag": "@0.2.0+2",
-  "which_tag": "@0.1.3+1",
   "yaml_tag": "@2.1.12",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
 }
@@ -340,10 +338,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       (Var("github_mirror") % "web_socket_channel") +
       Var("web_socket_channel_tag"),
-  Var("dart_root") + "/third_party/pkg/when":
-      (Var("github_mirror") % "when") + Var("when_tag"),
-  Var("dart_root") + "/third_party/pkg/which":
-      (Var("github_mirror") % "which") + Var("which_tag"),
   Var("dart_root") + "/third_party/pkg/yaml":
       (Var("github_mirror") % "yaml") + Var("yaml_tag"),
 }
