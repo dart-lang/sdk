@@ -247,6 +247,7 @@ Future compilePlatform(Uri patchedSdk, Uri fullOutput,
     if (verbose) {
       c.options.options["--verbose"] = true;
     }
+    c.options.validate();
     return compilePlatformInternal(
         c, ticker, patchedSdk, fullOutput, outlineOutput);
   });
@@ -269,6 +270,7 @@ Future writeDepsFile(Uri script, Uri depsFile, Uri output,
     if (verbose) {
       c.options.options["--verbose"] = true;
     }
+    c.options.validate();
     sdk ??= c.options.sdk;
 
     TranslateUri uriTranslator = await TranslateUri.parse(c.fileSystem, sdk,
