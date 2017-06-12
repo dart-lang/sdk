@@ -39,6 +39,8 @@ class KernelTask extends CompilerTask {
   ir.Program buildProgram(LibraryElement library) {
     var main = library.findExported(Identifiers.main);
     if (main == null) {
+      // TODO(johnniwinther): Issue 29844.
+      // ignore: INVALID_ASSIGNMENT
       main = _compiler.frontendStrategy.commonElements.missingMain;
     }
     return new ir.Program(

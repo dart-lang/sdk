@@ -408,11 +408,6 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  bool isMixinApplication(ClassElement cls) {
-    return cls.isMixinApplication;
-  }
-
-  @override
   bool isUnnamedMixinApplication(ClassElement cls) {
     return cls.isUnnamedMixinApplication;
   }
