@@ -353,5 +353,5 @@ function_type_alias9_test/00: MissingCompileTimeError # Fixed in ahe's dev branc
 metadata_test: CompileTimeError # Fixed in ahe's dev branch.
 regress_29349_test: CompileTimeError # Fixed in ahe's dev branch.
 
-[ $unchecked && ($compiler == dartk || $compiler == dartkp) ]
+[ ! $checked && ($compiler == dartk || $compiler == dartkp) ]
 const_conditional_test/08: MissingCompileTimeError # KernelVM bug: Constant evaluation.

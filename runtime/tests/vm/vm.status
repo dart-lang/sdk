@@ -248,7 +248,7 @@ cc/UseDartApi: Pass,Crash # Issue 28499
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 
-[ ($compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) && $unchecked ]
+[ ($compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) && ! $checked ]
 dart/redirection_type_shuffling_test/00: RuntimeError # Issue 29201
 
 [ ($compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
