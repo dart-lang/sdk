@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+rasta/unsupported_platform_library: RuntimeError # OK, this must report an error at runtime.
+
 # Status file for the kompile_test.dart (notice k, not c) test suite. This is
 # testing generating Analyzer ASTs, that is, code in
 # pkg/fasta/lib/src/analyzer/. Currently, this is behind direct-to-kernel, so
@@ -28,7 +30,7 @@ fibonacci: Crash
 for_in_scope: Crash
 function_in_field: Crash
 function_type_is_check: Crash
-function_type_recovery: Fail
+function_type_recovery: Crash
 functions: Crash
 implicit_scope_test: Crash
 implicit_this: Crash
@@ -79,9 +81,11 @@ inference/block_bodied_lambdas_sync_star: Crash
 inference/block_bodied_lambdas_void_context: Crash
 inference/bottom: Crash
 inference/bottom_in_closure: Crash
+inference/call_corner_cases: Crash
 inference/circular_reference_via_closures: Crash
 inference/circular_reference_via_closures_initializer_types: Crash
 inference/conditional_lub: Crash
+inference/conditional_upwards_inference: Crash
 inference/conflicts_can_happen2: Crash
 inference/conflicts_can_happen: Crash
 inference/constructors_downwards_with_constraint: Fail
@@ -96,6 +100,7 @@ inference/constructors_infer_from_arguments_named: Crash
 inference/constructors_infer_from_arguments_named_factory: Crash
 inference/constructors_infer_from_arguments_redirecting: Crash
 inference/constructors_infer_from_arguments_redirecting_factory: Crash
+inference/constructors_infer_from_arguments_redirecting_factory_to_factory: Crash
 inference/constructors_inference_f_bounded: Crash
 inference/constructors_reverse_type_parameters: Crash
 inference/constructors_too_many_positional_arguments: Fail
@@ -106,9 +111,10 @@ inference/downward_inference_fixes_no_upwards_errors: Crash
 inference/downward_inference_miscellaneous: Crash
 inference/downwards_inference_annotations: Crash
 inference/downwards_inference_async_await: Crash
-inference/downwards_inference_for_each: Fail
+inference/downwards_inference_for_each: Crash
 inference/downwards_inference_initializing_formal_default_formal: Crash
 inference/downwards_inference_inside_top_level: Crash
+inference/downwards_inference_inside_top_level_2: Crash
 inference/downwards_inference_on_constructor_arguments_infer_downwards: Crash
 inference/downwards_inference_on_function_arguments_infer_downwards: Crash
 inference/downwards_inference_on_function_expressions: Crash
@@ -170,9 +176,16 @@ inference/generic_methods_iterable_and_future: Crash
 inference/generic_methods_nested_generic_instantiation: Crash
 inference/generic_methods_uses_greatest_lower_bound: Crash
 inference/infer_assign_to_index: Crash
+inference/infer_assign_to_index_full: Crash
+inference/infer_assign_to_index_set_vs_get: Crash
+inference/infer_assign_to_index_upwards: Crash
+inference/infer_assign_to_local: Crash
+inference/infer_assign_to_local_upwards: Crash
 inference/infer_assign_to_property: Crash
 inference/infer_assign_to_property_custom: Crash
 inference/infer_assign_to_ref: Crash
+inference/infer_assign_to_static: Crash
+inference/infer_assign_to_static_upwards: Crash
 inference/infer_binary_custom: Crash
 inference/infer_binary_double_double: Crash
 inference/infer_binary_double_int: Crash
@@ -235,6 +248,7 @@ inference/infer_variable_void: Crash
 inference/inferred_initializing_formal_checks_default_value: Crash
 inference/inferred_nonstatic_field_depends_on_static_field_complex: Crash
 inference/inferred_nonstatic_field_depends_on_top_level_var_simple: Crash
+inference/inferred_type_block_closure_no_args_no_return_void_context: Crash
 inference/inferred_type_cascade: Crash
 inference/inferred_type_custom_binary_op: Crash
 inference/inferred_type_custom_binary_op_via_interface: Crash
@@ -276,6 +290,7 @@ inference/list_literal_typed: Crash
 inference/list_literals_can_infer_null_top_level: Crash
 inference/list_literals_top_level: Crash
 inference/local_constructor_from_arguments: Crash
+inference/local_return_and_yield: Crash
 inference/map_literals: Fail
 inference/map_literals_can_infer_null: Fail
 inference/map_literals_can_infer_null_top_level: Crash
@@ -285,10 +300,15 @@ inference/method_call_with_type_arguments_instance_method_identifier_sequence: C
 inference/method_call_with_type_arguments_static_method: Crash
 inference/method_call_with_type_arguments_top_level_function: Crash
 inference/null_literal_should_not_infer_as_bottom: Crash
+inference/parameter_defaults_downwards: Crash
+inference/parameter_defaults_upwards: Crash
 inference/propagate_inference_to_field_in_class: Crash
 inference/propagate_inference_to_field_in_class_dynamic_warnings: Crash
 inference/propagate_inference_transitively2: Crash
 inference/propagate_inference_transitively: Crash
+inference/property_get_toplevel: Crash
+inference/property_set: Crash
+inference/property_set_bad_setter: Crash
 inference/reference_to_typedef: Crash
 inference/refine_binary_expression_type_type_parameter_t_double: Crash
 inference/refine_binary_expression_type_type_parameter_t_int: Crash
@@ -299,9 +319,13 @@ inference/simple_literal_int: Crash
 inference/simple_literal_null: Crash
 inference/static_method_tear_off: Crash
 inference/string_literal: Crash
+inference/subexpressions_of_explicitly_typed_fields: Crash
+inference/this_reference: Crash
+inference/top_level_return_and_yield: Crash
 inference/toplevel_inference_toplevel_var: Crash
 inference/type_cast: Crash
 inference/type_promotion_ignores_local_functions: Crash
+inference/type_promotion_not_and_not: Crash
 inference/unsafe_block_closure_inference_closure_call: Crash
 inference/unsafe_block_closure_inference_constructor_call_explicit_dynamic_param: Crash
 inference/unsafe_block_closure_inference_constructor_call_explicit_type_param: Crash
@@ -366,10 +390,10 @@ rasta/issue_000035: Crash
 rasta/issue_000035a: Fail
 rasta/issue_000036: Fail
 rasta/issue_000039: Crash
-rasta/issue_000041: Fail
+rasta/issue_000041: Crash
 rasta/issue_000042: Crash
 rasta/issue_000043: Fail
-rasta/issue_000044: Fail
+rasta/issue_000044: Crash
 rasta/issue_000045: Fail
 rasta/issue_000046: Fail
 rasta/issue_000047: Fail
@@ -384,7 +408,7 @@ rasta/issue_000081: Crash
 rasta/malformed_const_constructor: Fail
 rasta/malformed_function: VerificationError
 rasta/malformed_function_type: Crash
-rasta/mandatory_parameter_initializer: Fail
+rasta/mandatory_parameter_initializer: Crash
 rasta/mixin_library: Crash
 rasta/native_is_illegal: Fail
 rasta/parser_error: Crash
@@ -407,4 +431,3 @@ rasta/unresolved: Fail
 rasta/unresolved_constructor: Crash
 rasta/unresolved_for_in: Crash
 rasta/unresolved_recovery: Fail
-rasta/unsupported_platform_library: Fail

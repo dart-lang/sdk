@@ -31,3 +31,5 @@ Future<List<int>> g3() async {
   return new /*@typeArgs=List<int>*/ MyFuture.value(
       /*@typeArgs=int*/ [3]);
 }
+
+main() {}

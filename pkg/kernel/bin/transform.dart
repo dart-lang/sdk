@@ -7,7 +7,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/closure_conversion.dart' as closures;
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
@@ -74,22 +77,25 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       parseProgramRoots(embedderEntryPointManifests);
 
   var program = loadProgramFromBinary(input);
+  var coreTypes = new CoreTypes(program);
+  var hierarchy = new ClosedWorldClassHierarchy(program);
   switch (options['transformation']) {
     case 'continuation':
-      program = cont.transformProgram(program);
+      program = cont.transformProgram(coreTypes, program);
       break;
     case 'resolve-mixins':
-      program = mix.transformProgram(program);
+      mix.transformLibraries(
+          new NoneTarget(null), coreTypes, hierarchy, program.libraries);
       break;
     case 'closures':
-      program = closures.transformProgram(program);
+      program = closures.transformProgram(coreTypes, program);
       break;
     case 'treeshake':
-      program =
-          treeshaker.transformProgram(program, programRoots: programRoots);
+      program = treeshaker.transformProgram(coreTypes, hierarchy, program,
+          programRoots: programRoots);
       break;
     case 'methodcall':
-      program = method_call.transformProgram(program);
+      program = method_call.transformProgram(coreTypes, hierarchy, program);
       break;
     case 'empty':
       program = empty.transformProgram(program);

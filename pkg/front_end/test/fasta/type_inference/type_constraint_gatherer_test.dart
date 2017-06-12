@@ -6,8 +6,8 @@ import 'package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/testing/mock_sdk_program.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -209,8 +209,8 @@ class TypeConstraintGathererTest {
 
   void _checkConstraints(
       DartType a, DartType b, List<String> expectedConstraints) {
-    var typeSchemaEnvironment =
-        new TypeSchemaEnvironment(coreTypes, new ClassHierarchy(program));
+    var typeSchemaEnvironment = new TypeSchemaEnvironment(
+        coreTypes, new IncrementalClassHierarchy(), true);
     var typeConstraintGatherer = new TypeConstraintGatherer(
         typeSchemaEnvironment, [T1.parameter, T2.parameter]);
     var constraints = typeConstraintGatherer.trySubtypeMatch(a, b)

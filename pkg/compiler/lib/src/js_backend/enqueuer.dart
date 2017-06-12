@@ -10,9 +10,8 @@ import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show WorkItem;
 import '../common.dart';
 import '../common_elements.dart' show ElementEnvironment;
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../enqueue.dart';
 import '../options.dart';
 import '../universe/world_builder.dart';
@@ -98,7 +97,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
         impactSource, worldImpact, _impactVisitor, impactUse);
   }
 
-  void _registerInstantiatedType(ResolutionInterfaceType type,
+  void _registerInstantiatedType(InterfaceType type,
       {bool mirrorUsage: false, bool nativeUsage: false}) {
     task.measure(() {
       _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
@@ -173,7 +172,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void processTypeUse(TypeUse typeUse) {
-    ResolutionDartType type = typeUse.type;
+    DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
         _registerInstantiatedType(type);
@@ -208,7 +207,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     });
   }
 
-  void _registerIsCheck(ResolutionDartType type) {
+  void _registerIsCheck(DartType type) {
     _worldBuilder.registerIsCheck(type);
   }
 

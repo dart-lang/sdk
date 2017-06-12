@@ -5,11 +5,11 @@
 import 'dart:collection' show IterableMixin;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
-import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'package:front_end/src/fasta/scanner/token_constants.dart' as Tokens
     show PLUS_TOKEN;
 import 'package:front_end/src/fasta/scanner/characters.dart';
-import 'package:front_end/src/scanner/token.dart' show TokenType;
+import 'package:front_end/src/scanner/token.dart' show BeginToken, TokenType;
 
 import '../common.dart';
 import '../elements/elements.dart' show MetadataAnnotation;
@@ -1926,10 +1926,10 @@ class While extends Loop {
 
 class ParenthesizedExpression extends Expression {
   final Expression expression;
-  final BeginGroupToken beginToken;
+  final BeginToken beginToken;
 
   ParenthesizedExpression(
-      Expression this.expression, BeginGroupToken this.beginToken);
+      Expression this.expression, BeginToken this.beginToken);
 
   ParenthesizedExpression asParenthesizedExpression() => this;
 
@@ -3261,8 +3261,8 @@ abstract class NullTreeElementMixin implements TreeElementMixin, Spannable {
   // You're not really supposed to access this field anyways.
   Object get _element => null;
   set _element(_) {
-    assert(invariant(this, false,
-        message: "Elements cannot be associated with ${runtimeType}."));
+    assert(false,
+        failedAt(this, "Elements cannot be associated with ${runtimeType}."));
   }
 }
 

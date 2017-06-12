@@ -205,7 +205,8 @@ abstract class ChainContext {
             }
             result = toNegativeTestResult(result);
           }
-          if (!expectedOutcomes.contains(result.outcome)) {
+          if (!expectedOutcomes.contains(result.outcome) &&
+              !expectedOutcomes.contains(result.outcome.canonical)) {
             result.addLog("$sb");
             unexpectedResults[description] = result;
             unexpectedOutcomes[description] = expectedOutcomes;

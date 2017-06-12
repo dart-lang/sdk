@@ -5,10 +5,10 @@ import "dart:core" as core;
 class A<S extends core::Object, T extends core::Object> extends core::Object {
   field self::A::S x;
   field self::A::T y;
-  constructor •(dynamic x, dynamic y) → void
+  constructor •(self::A::S x, self::A::T y) → void
     : self::A::x = x, self::A::y = y, super core::Object::•()
     ;
-  constructor named(dynamic x, dynamic y) → void
+  constructor named(self::A::S x, self::A::T y) → void
     : self::A::x = x, self::A::y = y, super core::Object::•()
     ;
 }

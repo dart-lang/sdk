@@ -1562,6 +1562,68 @@ final Matcher isAnalysisUpdateOptionsParams = new LazyMatcher(() =>
 final Matcher isAnalysisUpdateOptionsResult = isNull;
 
 /**
+ * analytics.enable params
+ *
+ * {
+ *   "value": bool
+ * }
+ */
+final Matcher isAnalyticsEnableParams = new LazyMatcher(
+    () => new MatchesJsonObject("analytics.enable params", {"value": isBool}));
+
+/**
+ * analytics.enable result
+ */
+final Matcher isAnalyticsEnableResult = isNull;
+
+/**
+ * analytics.isEnabled params
+ */
+final Matcher isAnalyticsIsEnabledParams = isNull;
+
+/**
+ * analytics.isEnabled result
+ *
+ * {
+ *   "enabled": bool
+ * }
+ */
+final Matcher isAnalyticsIsEnabledResult = new LazyMatcher(() =>
+    new MatchesJsonObject("analytics.isEnabled result", {"enabled": isBool}));
+
+/**
+ * analytics.sendEvent params
+ *
+ * {
+ *   "action": String
+ * }
+ */
+final Matcher isAnalyticsSendEventParams = new LazyMatcher(() =>
+    new MatchesJsonObject("analytics.sendEvent params", {"action": isString}));
+
+/**
+ * analytics.sendEvent result
+ */
+final Matcher isAnalyticsSendEventResult = isNull;
+
+/**
+ * analytics.sendTiming params
+ *
+ * {
+ *   "event": String
+ *   "millis": int
+ * }
+ */
+final Matcher isAnalyticsSendTimingParams = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "analytics.sendTiming params", {"event": isString, "millis": isInt}));
+
+/**
+ * analytics.sendTiming result
+ */
+final Matcher isAnalyticsSendTimingResult = isNull;
+
+/**
  * completion.getSuggestions params
  *
  * {

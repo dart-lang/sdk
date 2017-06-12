@@ -313,6 +313,12 @@ class PluginManager {
   }
 
   /**
+   * Return a list of all of the plugins that are currently known.
+   */
+  @visibleForTesting
+  List<PluginInfo> get plugins => _pluginMap.values.toList();
+
+  /**
    * Add the plugin with the given [path] to the list of plugins that should be
    * used when analyzing code for the given [contextRoot]. If the plugin had not
    * yet been started, then it will be started by this method.
@@ -742,13 +748,8 @@ class PluginSession {
    */
   void handleOnError(List<String> errorPair) {
     // TODO(brianwilkerson) Decide how we want to handle errors.
-//    String message = errorPair[0];
-//    String stackTrace = errorPair[1];
-//    print('PluginSession.handleOnError');
-//    print('  plugin = ${info.executionPath}');
-//    print('  $message');
-//    print('  ${new StackTrace.fromString(stackTrace)}');
-//    pluginStoppedCompleter.completeError(message, new StackTrace.fromString(stackTrace));
+    info.instrumentationService.logPluginException(
+        info.data, errorPair[0], new StackTrace.fromString(errorPair[1]));
   }
 
   /**

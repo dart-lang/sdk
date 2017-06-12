@@ -7,6 +7,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/dfe.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
@@ -19,6 +20,10 @@ namespace bin {
 
 // Development flag.
 static bool trace_loader = false;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+extern DFE dfe;
+#endif
+
 // Keep in sync with loader.dart.
 static const intptr_t _Dart_kImportExtension = 9;
 static const intptr_t _Dart_kResolveAsFilePath = 10;
@@ -650,9 +655,21 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(result)) {
     return result;
   }
-
-  // Special case for handling dart: imports and parts.
-  if (tag != Dart_kScriptTag) {
+  if (tag == Dart_kScriptTag) {
+    if (dfe.UseDartFrontend()) {
+      Dart_Isolate current = Dart_CurrentIsolate();
+      // Check if we are trying to reload a kernel file or if the '--dfe'
+      // option was specified and we need to compile sources using DFE.
+      if (!Dart_IsServiceIsolate(current) && !Dart_IsKernelIsolate(current)) {
+        // When using DFE the library tag handler should be called only when
+        // we are reloading scripts.
+        return dfe.ReloadScript(current, url_string);
+      }
+    }
+    // TODO(asiva) We need to ensure that the kernel and service isolates
+    // are always loaded from a kernel IR and do not use this path.
+  } else {
+    // Special case for handling dart: imports and parts.
     // Grab the library's url.
     Dart_Handle library_url = Dart_LibraryUrl(library);
     if (Dart_IsError(library_url)) {

@@ -273,7 +273,7 @@ void SemiSpace::InitOnce() {
 }
 
 
-SemiSpace* SemiSpace::New(intptr_t size_in_words) {
+SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
   {
     MutexLocker locker(mutex_);
     // TODO(koda): Cache one entry per size.
@@ -288,7 +288,8 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words) {
   } else {
     intptr_t size_in_bytes = size_in_words << kWordSizeLog2;
     VirtualMemory* reserved = VirtualMemory::Reserve(size_in_bytes);
-    if ((reserved == NULL) || !reserved->Commit(false)) {  // Not executable.
+    const bool kExecutable = false;
+    if ((reserved == NULL) || !reserved->Commit(kExecutable, name)) {
       // TODO(koda): If cache_ is not empty, we could try to delete it.
       delete reserved;
       return NULL;
@@ -346,7 +347,11 @@ Scavenger::Scavenger(Heap* heap,
   const intptr_t initial_semi_capacity_in_words =
       max_semi_capacity_in_words /
       (FLAG_new_gen_growth_factor * FLAG_new_gen_growth_factor);
-  to_ = SemiSpace::New(initial_semi_capacity_in_words);
+
+  const intptr_t kVmNameSize = 128;
+  char vm_name[kVmNameSize];
+  Heap::RegionName(heap_, Heap::kNew, vm_name, kVmNameSize);
+  to_ = SemiSpace::New(initial_semi_capacity_in_words, vm_name);
   if (to_ == NULL) {
     OUT_OF_MEMORY();
   }
@@ -390,7 +395,11 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
   SemiSpace* from = to_;
-  to_ = SemiSpace::New(NewSizeInWords(from->size_in_words()));
+
+  const intptr_t kVmNameSize = 128;
+  char vm_name[kVmNameSize];
+  Heap::RegionName(heap_, Heap::kNew, vm_name, kVmNameSize);
+  to_ = SemiSpace::New(NewSizeInWords(from->size_in_words()), vm_name);
   if (to_ == NULL) {
     // TODO(koda): We could try to recover (collect old space, wait for another
     // isolate to finish scavenge, etc.).
@@ -469,7 +478,7 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
       ASSERT(raw_object->IsRemembered());
       raw_object->ClearRememberedBit();
       visitor->VisitingOldObject(raw_object);
-      raw_object->VisitPointers(visitor);
+      raw_object->VisitPointersNonvirtual(visitor);
     }
     pending->Reset();
     // Return the emptied block for recycling (no need to check threshold).
@@ -550,7 +559,7 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
       RawObject* raw_obj = RawObject::FromAddr(resolved_top_);
       intptr_t class_id = raw_obj->GetClassId();
       if (class_id != kWeakPropertyCid) {
-        resolved_top_ += raw_obj->VisitPointers(visitor);
+        resolved_top_ += raw_obj->VisitPointersNonvirtual(visitor);
       } else {
         RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
         resolved_top_ += ProcessWeakProperty(raw_weak, visitor);
@@ -566,7 +575,7 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         // objects to be resolved in the to space.
         ASSERT(!raw_object->IsRemembered());
         visitor->VisitingOldObject(raw_object);
-        raw_object->VisitPointers(visitor);
+        raw_object->VisitPointersNonvirtual(visitor);
       }
       visitor->VisitingOldObject(NULL);
     }
@@ -593,7 +602,7 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         // Reset the next pointer in the weak property.
         cur_weak->ptr()->next_ = 0;
         if (IsForwarding(header)) {
-          cur_weak->VisitPointers(visitor);
+          cur_weak->VisitPointersNonvirtual(visitor);
         } else {
           EnqueueWeakProperty(cur_weak);
         }
@@ -661,7 +670,7 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
     }
   }
   // Key is gray or black.  Make the weak property black.
-  return raw_weak->VisitPointers(visitor);
+  return raw_weak->VisitPointersNonvirtual(visitor);
 }
 
 

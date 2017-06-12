@@ -1,0 +1,34 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object> extends core::Object {
+  field core::List<self::A::T> x = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  set y(core::List<self::A::T> value) → void {}
+}
+static method main() → dynamic {
+  self::A<core::int> a_int = new self::A::•<core::int>();
+  self::A<core::Object> a_object = new self::A::•<core::Object>();
+  self::A<dynamic> a_dynamic = new self::A::•<dynamic>();
+  core::List<core::int> x_int = a_int.{self::A::x} = <core::int>[0];
+  core::List<core::int> y_int = a_int.{self::A::y} = <core::int>[0];
+  core::List<core::Object> x_object = a_object.{self::A::x} = <core::Object>[0];
+  core::List<core::Object> y_object = a_object.{self::A::y} = <core::Object>[0];
+  core::List<dynamic> x_dynamic = a_dynamic.{self::A::x} = <dynamic>[0];
+  core::List<dynamic> y_dynamic = a_dynamic.{self::A::y} = <dynamic>[0];
+  core::List<core::int> x_int_explicit = a_int.{self::A::x} = <core::int>[0];
+  core::List<core::int> y_int_explicit = a_int.{self::A::y} = <core::int>[0];
+  core::List<core::int> x_object_explicit = a_object.{self::A::x} = <core::int>[0];
+  core::List<core::int> y_object_explicit = a_object.{self::A::y} = <core::int>[0];
+  core::List<core::int> x_dynamic_explicit = a_dynamic.{self::A::x} = <core::int>[0];
+  core::List<core::int> y_dynamic_explicit = a_dynamic.{self::A::y} = <core::int>[0];
+  core::List<core::int> x_int_downward = a_int.{self::A::x} = <core::int>[0];
+  core::List<core::int> y_int_downward = a_int.{self::A::y} = <core::int>[0];
+  core::List<core::int> x_object_downward = a_object.{self::A::x} = <core::Object>[0];
+  core::List<core::int> y_object_downward = a_object.{self::A::y} = <core::Object>[0];
+  core::List<core::int> x_dynamic_downward = a_dynamic.{self::A::x} = <dynamic>[0];
+  core::List<core::int> y_dynamic_downward = a_dynamic.{self::A::y} = <dynamic>[0];
+}

@@ -16,6 +16,7 @@ import '../common_elements.dart' show CommonElements;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
@@ -496,14 +497,16 @@ class Namer {
 
   RuntimeTypesEncoder _rtiEncoder;
   RuntimeTypesEncoder get rtiEncoder {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiEncoder != null,
-        message: "Namer.rtiEncoder has not been set."));
+    assert(_rtiEncoder != null,
+        failedAt(NO_LOCATION_SPANNABLE, "Namer.rtiEncoder has not been set."));
     return _rtiEncoder;
   }
 
   void set rtiEncoder(RuntimeTypesEncoder value) {
-    assert(invariant(NO_LOCATION_SPANNABLE, _rtiEncoder == null,
-        message: "Namer.rtiEncoder has already been set."));
+    assert(
+        _rtiEncoder == null,
+        failedAt(
+            NO_LOCATION_SPANNABLE, "Namer.rtiEncoder has already been set."));
     _rtiEncoder = value;
   }
 
@@ -514,8 +517,7 @@ class Namer {
   /// (see [globalObjectFor]), we currently use a single namespace for all these
   /// names.
   final NamingScope globalScope = new NamingScope();
-  final Map<Element, jsAst.Name> userGlobals =
-      new HashMap<Element, jsAst.Name>();
+  final Map<Entity, jsAst.Name> userGlobals = new HashMap<Entity, jsAst.Name>();
   final Map<String, jsAst.Name> internalGlobals =
       new HashMap<String, jsAst.Name>();
 
@@ -525,8 +527,8 @@ class Namer {
   final NamingScope instanceScope = new NamingScope();
   final Map<String, jsAst.Name> userInstanceMembers =
       new HashMap<String, jsAst.Name>();
-  final Map<Element, jsAst.Name> internalInstanceMembers =
-      new HashMap<Element, jsAst.Name>();
+  final Map<MemberEntity, jsAst.Name> internalInstanceMembers =
+      new HashMap<MemberEntity, jsAst.Name>();
   final Map<String, jsAst.Name> userInstanceOperators =
       new HashMap<String, jsAst.Name>();
 
@@ -767,14 +769,16 @@ class Namer {
   }
 
   /// Name for a constructor body.
-  jsAst.Name constructorBodyName(FunctionElement ctor) {
+  jsAst.Name constructorBodyName(ConstructorBodyElement ctor) {
     return _disambiguateInternalMember(
         ctor, () => _proposeNameForConstructorBody(ctor));
   }
 
   /// Annotated name for [method] encoding arity and named parameters.
-  jsAst.Name instanceMethodName(MethodElement method) {
-    if (method.isGenerativeConstructorBody) {
+  jsAst.Name instanceMethodName(FunctionEntity method) {
+    // TODO(johnniwinther): Avoid the use of [ConstructorBodyElement]. The
+    // codegen model should be explicit about its constructor body elements.
+    if (method is ConstructorBodyElement) {
       return constructorBodyName(method);
     }
     return invocationName(new Selector.fromElement(method));
@@ -864,38 +868,51 @@ class Namer {
    * Returns the disambiguated name for the given field, used for constructing
    * the getter and setter names.
    */
-  jsAst.Name fieldAccessorName(FieldElement element) {
+  jsAst.Name fieldAccessorName(FieldEntity element) {
     return element.isInstanceMember
         ? _disambiguateMember(element.memberName)
-        : _disambiguateGlobal(element);
+        : _disambiguateGlobalMember(element);
   }
 
   /**
    * Returns name of the JavaScript property used to store a static or instance
    * field.
    */
-  jsAst.Name fieldPropertyName(FieldElement element) {
+  jsAst.Name fieldPropertyName(FieldEntity element) {
     return element.isInstanceMember
         ? instanceFieldPropertyName(element)
-        : _disambiguateGlobal(element);
+        : _disambiguateGlobalMember(element);
   }
 
-  /**
-   * Returns a JavaScript property name used to store [element] on one
-   * of the global objects.
-   *
-   * Should be used together with [globalObjectFor], which denotes the object
-   * on which the returned property name should be used.
-   */
-  jsAst.Name globalPropertyName(Element element) {
-    return _disambiguateGlobal(element);
-  }
+  /// Returns a JavaScript property name used to store the member [element] on
+  /// one of the global objects.
+  ///
+  /// Should be used together with [globalObjectForMember], which denotes the
+  /// object on which the returned property name should be used.
+  jsAst.Name globalPropertyNameForMember(MemberEntity element) =>
+      _disambiguateGlobalMember(element);
+
+  /// Returns a JavaScript property name used to store the class [element] on
+  /// one of the global objects.
+  ///
+  /// Should be used together with [globalObjectForClass], which denotes the
+  /// object on which the returned property name should be used.
+  jsAst.Name globalPropertyNameForClass(ClassEntity element) =>
+      _disambiguateGlobalType(element);
+
+  /// Returns a JavaScript property name used to store the type (typedef)
+  /// [element] on one of the global objects.
+  ///
+  /// Should be used together with [globalObjectForType], which denotes the
+  /// object on which the returned property name should be used.
+  jsAst.Name globalPropertyNameForType(TypeDeclarationElement element) =>
+      _disambiguateGlobalType(element);
 
   /**
    * Returns the JavaScript property name used to store an instance field.
    */
-  jsAst.Name instanceFieldPropertyName(FieldElement element) {
-    ClassElement enclosingClass = element.enclosingClass;
+  jsAst.Name instanceFieldPropertyName(FieldEntity element) {
+    ClassEntity enclosingClass = element.enclosingClass;
 
     if (_nativeData.hasFixedBackendName(element)) {
       return new StringBackedName(_nativeData.getFixedBackendName(element));
@@ -908,10 +925,12 @@ class Namer {
     // However, as boxes are not really instances of classes, the usual naming
     // scheme that tries to avoid name clashes with super classes does not
     // apply. So we can directly grab a name.
-    Entity asEntity = element;
-    if (asEntity is JSEntity) {
+    if (element is JSEntity) {
+      var jsEntity = element;
       return _disambiguateInternalMember(
-          element, () => asEntity.declaredEntity.name);
+          jsEntity,
+          // ignore: UNDEFINED_GETTER
+          () => jsEntity.declaredEntity.name);
     }
 
     // If the name of the field might clash with another field,
@@ -931,21 +950,26 @@ class Namer {
     // No superclass uses the disambiguated name as a property name, so we can
     // use it for this field. This generates nicer field names since otherwise
     // the field name would have to be mangled.
-    return _disambiguateMember(element.memberName);
+    return _disambiguateMember(new Name(element.name, element.library));
   }
 
-  bool _isShadowingSuperField(Element element) {
-    return element.enclosingClass.hasFieldShadowedBy(element);
+  bool _isShadowingSuperField(FieldEntity element) {
+    ClassEntity cls = element.enclosingClass;
+    if (cls is ClassElement) {
+      return cls.hasFieldShadowedBy(element);
+    }
+    // TODO(johnniwinther): Support class entities.
+    return false;
   }
 
   /// True if [class_] is a non-native class that inherits from a native class.
-  bool _isUserClassExtendingNative(ClassElement class_) {
+  bool _isUserClassExtendingNative(ClassEntity class_) {
     return !_nativeData.isNativeClass(class_) &&
-        _nativeData.isNativeOrExtendsNative(class_.superclass);
+        _nativeData.isNativeOrExtendsNative(class_);
   }
 
   /// Annotated name for the setter of [element].
-  jsAst.Name setterForElement(MemberElement element) {
+  jsAst.Name setterForMember(MemberEntity element) {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
     jsAst.Name name = _disambiguateMember(element.memberName);
@@ -967,7 +991,7 @@ class Namer {
   }
 
   /// Annotated name for the getter of [element].
-  jsAst.Name getterForElement(MemberElement element) {
+  jsAst.Name getterForElement(MemberEntity element) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
     jsAst.Name name = _disambiguateMember(element.memberName);
@@ -1023,16 +1047,30 @@ class Namer {
     });
   }
 
+  jsAst.Name _disambiguateGlobalMember(MemberEntity element) {
+    return _disambiguateGlobal(element, _proposeNameForMember);
+  }
+
+  jsAst.Name _disambiguateGlobalType(Entity element) {
+    return _disambiguateGlobal(element, _proposeNameForType);
+  }
+
   /// Returns the disambiguated name for a top-level or static element.
   ///
   /// The resulting name is unique within the global-member namespace.
-  jsAst.Name _disambiguateGlobal(Element element) {
+  jsAst.Name _disambiguateGlobal(
+      Entity element, String proposeName(Entity element)) {
     // TODO(asgerf): We can reuse more short names if we disambiguate with
     // a separate namespace for each of the global holder objects.
-    element = element.declaration;
+    if (element is Element) {
+      // Ensures we only work on declarations. Non-[Element] entities do not
+      // have the declaration/implementation separation.
+      Element e = element;
+      element = e.declaration;
+    }
     jsAst.Name newName = userGlobals[element];
     if (newName == null) {
-      String proposedName = _proposeNameForGlobal(element);
+      String proposedName = proposeName(element);
       newName = getFreshName(globalScope, proposedName);
       userGlobals[element] = newName;
     }
@@ -1127,14 +1165,13 @@ class Namer {
   ///
   /// The resulting name is unique within the instance-member namespace.
   jsAst.Name _disambiguateInternalMember(
-      Element element, String proposeName()) {
+      MemberEntity element, String proposeName()) {
     jsAst.Name newName = internalInstanceMembers[element];
     if (newName == null) {
       String name = proposeName();
 
-      Entity asEntity = element;
-      if (asEntity is PrivatelyNamedJSEntity) {
-        NamingScope scope = _getPrivateScopeFor(asEntity);
+      if (element is PrivatelyNamedJSEntity) {
+        NamingScope scope = _getPrivateScopeFor(element);
         newName = getFreshName(scope, name,
             sanitizeForAnnotations: true, sanitizeForNatives: false);
         internalInstanceMembers[element] = newName;
@@ -1247,33 +1284,34 @@ class Namer {
     return name;
   }
 
-  /**
-   * Returns a proposed name for the given top-level or static element.
-   * The returned id is guaranteed to be a valid JavaScript identifier.
-   */
-  String _proposeNameForGlobal(Element element) {
-    assert(!element.isInstanceMember);
-    if (element.isGenerativeConstructor) {
-      return '${element.enclosingClass.name}\$${element.name}';
+  /// Returns a proposed name for the given typedef or class [element].
+  /// The returned id is guaranteed to be a valid JavaScript identifier.
+  String _proposeNameForType(Entity element) {
+    return element.name.replaceAll('+', '_');
+  }
+
+  /// Returns a proposed name for the given top-level or static member
+  /// [element]. The returned id is guaranteed to be a valid JavaScript
+  /// identifier.
+  String _proposeNameForMember(MemberEntity element) {
+    if (element.isConstructor) {
+      return _proposeNameForConstructor(element);
+    } else if (element.enclosingClass != null) {
+      ClassEntity enclosingClass = element.enclosingClass;
+      return '${enclosingClass.name}_${element.name}';
     }
-    if (element.isFactoryConstructor) {
+    return element.name.replaceAll('+', '_');
+  }
+
+  String _proposeNameForConstructor(ConstructorEntity element) {
+    String className = element.enclosingClass.name;
+    if (element.isGenerativeConstructor) {
+      return '${className}\$${element.name}';
+    } else {
       // TODO(johnniwinther): Change factory name encoding as to not include
       // the class-name twice.
-      String className = element.enclosingClass.name;
-      return '${className}_${Elements.reconstructConstructorName(element)}';
+      return '${className}_${utils.reconstructConstructorName(element)}';
     }
-    if (Elements.isStaticOrTopLevel(element)) {
-      if (element.isClassMember) {
-        ClassElement enclosingClass = element.enclosingClass;
-        return '${enclosingClass.name}_${element.name}';
-      }
-      return element.name.replaceAll('+', '_');
-    }
-    if (element.isLibrary) {
-      LibraryElement library = element;
-      return _proposeNameForLibrary(library);
-    }
-    return element.name;
   }
 
   /**
@@ -1319,7 +1357,7 @@ class Namer {
   }
 
   String suffixForGetInterceptor(Iterable<ClassEntity> classes) {
-    String abbreviate(ClassElement cls) {
+    String abbreviate(ClassEntity cls) {
       if (cls == _commonElements.objectClass) return "o";
       if (cls == _commonElements.jsStringClass) return "s";
       if (cls == _commonElements.jsArrayClass) return "a";
@@ -1348,7 +1386,7 @@ class Namer {
 
   /// Property name used for `getInterceptor` or one of its specializations.
   jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes) {
-    MethodElement getInterceptor = _commonElements.getInterceptorMethod;
+    FunctionEntity getInterceptor = _commonElements.getInterceptorMethod;
     if (classes.contains(_commonElements.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes, we
       // need to go through the generic getInterceptorMethod, since any subclass
@@ -1356,7 +1394,7 @@ class Namer {
       // The unspecialized getInterceptor method can also be accessed through
       // its element, so we treat this as a user-space global instead of an
       // internal global.
-      return _disambiguateGlobal(getInterceptor);
+      return _disambiguateGlobalMember(getInterceptor);
     }
     String suffix = suffixForGetInterceptor(classes);
     return _disambiguateInternalGlobal("${getInterceptor.name}\$$suffix");
@@ -1394,7 +1432,7 @@ class Namer {
   /// [operatorIsPrefix] or [operatorAsPrefix]. If this is a function type,
   /// then by convention, an underscore must also separate [operatorIsPrefix]
   /// from the type name.
-  jsAst.Name runtimeTypeName(TypeDeclarationElement element) {
+  jsAst.Name runtimeTypeName(Entity element) {
     if (element == null) return _literalDynamic;
     // The returned name affects both the global and instance member namespaces:
     //
@@ -1407,14 +1445,14 @@ class Namer {
     // To prevent clashes in both namespaces at once, we disambiguate the name
     // as a global here, and in [_sanitizeForAnnotations] we ensure that
     // ordinary instance members cannot start with `$is` or `$as`.
-    return _disambiguateGlobal(element);
+    return _disambiguateGlobalType(element);
   }
 
   /// Returns the disambiguated name of [class_].
   ///
   /// This is both the *runtime type* of the class (see [runtimeTypeName])
   /// and a global property name in which to store its JS constructor.
-  jsAst.Name className(ClassElement class_) => _disambiguateGlobal(class_);
+  jsAst.Name className(ClassEntity class_) => _disambiguateGlobalType(class_);
 
   /// Property name on which [member] can be accessed directly,
   /// without clashing with another JS property name.
@@ -1436,7 +1474,7 @@ class Namer {
   ///         this.super$A$foo(); // super.foo()
   ///     }
   ///
-  jsAst.Name aliasedSuperMemberPropertyName(MemberElement member) {
+  jsAst.Name aliasedSuperMemberPropertyName(MemberEntity member) {
     assert(!member.isField); // Fields do not need super aliases.
     return _disambiguateInternalMember(member, () {
       String invocationName = operatorNameToIdentifier(member.name);
@@ -1450,10 +1488,10 @@ class Namer {
   ///
   /// The name is not necessarily unique to [method], since a static method
   /// may share its name with an instance method.
-  jsAst.Name methodPropertyName(Element method) {
+  jsAst.Name methodPropertyName(FunctionEntity method) {
     return method.isInstanceMember
         ? instanceMethodName(method)
-        : globalPropertyName(method);
+        : globalPropertyNameForMember(method);
   }
 
   /// Returns true if [element] is stored in the static state holder
@@ -1461,40 +1499,51 @@ class Namer {
   /// there, whereas constants are stored in 'C'. Functions, accessors,
   /// classes, etc. are stored in one of the other objects in
   /// [reservedGlobalObjectNames].
-  bool _isPropertyOfStaticStateHolder(Element element) {
+  bool _isPropertyOfStaticStateHolder(MemberEntity element) {
     // TODO(ahe): Make sure this method's documentation is always true and
     // remove the word "intend".
-    return
-        // TODO(ahe): Re-write these tests to be positive (so it only returns
-        // true for static/top-level mutable fields). Right now, a number of
-        // other elements, such as bound closures also live in
-        // [staticStateHolder].
-        !element.isAccessor &&
-            !element.isClass &&
-            !element.isTypedef &&
-            !element.isConstructor &&
-            !element.isFunction &&
-            !element.isLibrary;
+    if (element is MemberElement) {
+      // TODO(johnniwinther): Clean up this method to have a single semantics on
+      // entities.
+      return
+          // TODO(ahe): Re-write these tests to be positive (so it only returns
+          // true for static/top-level mutable fields). Right now, a number of
+          // other elements, such as bound closures also live in
+          // [staticStateHolder].
+          !element.isAccessor &&
+              !element.isClass &&
+              !element.isTypedef &&
+              !element.isConstructor &&
+              !element.isFunction &&
+              !element.isLibrary;
+    }
+    return element.isField;
   }
 
   /// Returns [staticStateHolder] or one of [reservedGlobalObjectNames].
-  // TODO(johnniwinther): Verify that the implementation can be changed to
-  // `globalObjectForLibrary(element.library)`.
-  String globalObjectForMethod(MethodElement element) =>
-      globalObjectFor(element);
-
-  /// Returns [staticStateHolder] or one of [reservedGlobalObjectNames].
-  String globalObjectFor(Element element) {
+  String globalObjectForMember(MemberEntity element) {
     if (_isPropertyOfStaticStateHolder(element)) return staticStateHolder;
     return globalObjectForLibrary(element.library);
   }
 
+  String globalObjectForClass(ClassEntity element) {
+    return globalObjectForLibrary(element.library);
+  }
+
+  String globalObjectForType(Entity element) {
+    if (element is TypedefElement) {
+      return globalObjectForLibrary(element.library);
+    }
+    return globalObjectForClass(element);
+  }
+
   /// Returns the [reservedGlobalObjectNames] for [library].
-  String globalObjectForLibrary(LibraryElement library) {
+  String globalObjectForLibrary(LibraryEntity library) {
     if (library == _commonElements.interceptorsLibrary) return 'J';
-    if (library.isInternalLibrary) return 'H';
-    if (library.isPlatformLibrary) {
-      if ('${library.canonicalUri}' == 'dart:html') return 'W';
+    Uri uri = library.canonicalUri;
+    if (uri.scheme == 'dart') {
+      if (uri.path == 'html') return 'W';
+      if (uri.path.startsWith('_')) return 'H';
       return 'P';
     }
     return userGlobalObjects[library.name.hashCode % userGlobalObjects.length];
@@ -1505,15 +1554,15 @@ class Namer {
     return new CompoundName([_literalLazyGetterPrefix, name]);
   }
 
-  jsAst.Name lazyInitializerName(Element element) {
-    assert(Elements.isStaticOrTopLevelField(element));
-    jsAst.Name name = _disambiguateGlobal(element);
+  jsAst.Name lazyInitializerName(FieldEntity element) {
+    assert(element.isTopLevel || element.isStatic);
+    jsAst.Name name = _disambiguateGlobalMember(element);
     // These are not real dart getters, so do not use GetterName;
     return deriveLazyInitializerName(name);
   }
 
-  jsAst.Name staticClosureName(Element element) {
-    assert(Elements.isStaticOrTopLevelFunction(element));
+  jsAst.Name staticClosureName(FunctionEntity element) {
+    assert(element.isTopLevel || element.isStatic);
     String enclosing =
         element.enclosingClass == null ? "" : element.enclosingClass.name;
     String library = _proposeNameForLibrary(element.library);
@@ -1578,7 +1627,7 @@ class Namer {
     return operatorIs(interfaceType.element);
   }
 
-  jsAst.Name operatorIs(ClassElement element) {
+  jsAst.Name operatorIs(ClassEntity element) {
     // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
     return new CompoundName(
         [new StringBackedName(operatorIsPrefix), runtimeTypeName(element)]);
@@ -1593,7 +1642,7 @@ class Namer {
     return name;
   }
 
-  jsAst.Name substitutionName(ClassElement element) {
+  jsAst.Name substitutionName(ClassEntity element) {
     return new CompoundName(
         [new StringBackedName(operatorAsPrefix), runtimeTypeName(element)]);
   }

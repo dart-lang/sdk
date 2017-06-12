@@ -6,6 +6,13 @@ import("gypi_contents.gni")
 import("../runtime_args.gni")
 import("../../build/compiled_action.gni")
 
+declare_args() {
+  # Controls the kind of core snapshot linked into the standalone VM. Using a
+  # core-jit snapshot breaks the ability to change various flags that affect
+  # code generation.
+  dart_core_snapshot_kind = "core"
+}
+
 # Generate a resources.cc file for the service isolate without Observatory.
 action("gen_resources_cc") {
   visibility = [ ":*" ]  # Only targets in this file can see this.
@@ -293,6 +300,8 @@ executable("gen_snapshot") {
     # Very limited native resolver provided.
     "builtin_common.cc",
     "builtin_gen_snapshot.cc",
+    "dfe.cc",
+    "dfe.h",
     "gen_snapshot.cc",
     "vmservice_impl.cc",
     "vmservice_impl.h",
@@ -408,9 +417,9 @@ template("dart_io") {
       if (is_mac) {
         libs += [ "CoreServices.framework" ]
       }
-    } else {
-      deps += [ "//third_party/boringssl" ]
     }
+
+    deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
       libs = [ "launchpad" ]
@@ -455,77 +464,121 @@ dart_io("standalone_dart_io") {
   extra_sources = []
 }
 
-action("generate_snapshot_bin") {
-  deps = [
-    "../bin:gen_snapshot($host_toolchain)",
-  ]
+compiled_action("generate_snapshot_bin") {
+  vm_snapshot_data = "$target_gen_dir/vm_snapshot_data.bin"
+  vm_snapshot_instructions = "$target_gen_dir/vm_snapshot_instructions.bin"
+  isolate_snapshot_data = "$target_gen_dir/isolate_snapshot_data.bin"
+  isolate_snapshot_instructions =
+      "$target_gen_dir/isolate_snapshot_instructions.bin"
 
-  vm_isolate_snapshot = "$target_gen_dir/vm_isolate_snapshot.bin"
-  isolate_snapshot = "$target_gen_dir/isolate_snapshot.bin"
-  gen_snapshot_stamp_file = "$target_gen_dir/gen_snapshot.stamp"
+  inputs = []
   outputs = [
-    vm_isolate_snapshot,
-    isolate_snapshot,
-    gen_snapshot_stamp_file,
+    vm_snapshot_data,
+    vm_snapshot_instructions,
+    isolate_snapshot_data,
+    isolate_snapshot_instructions,
   ]
-
-  gen_snapshot_dir =
-      get_label_info("../bin:gen_snapshot($host_toolchain)", "root_out_dir")
-
-  script = rebase_path("../tools/create_snapshot_bin.py")
+  tool = ":gen_snapshot"
   args = [
-    "--executable",
-    rebase_path("$gen_snapshot_dir/gen_snapshot"),
-    "--snapshot_kind",
-    "core",
-    "--vm_output_bin",
-    rebase_path(vm_isolate_snapshot, root_build_dir),
-    "--isolate_output_bin",
-    rebase_path(isolate_snapshot, root_build_dir),
-    "--target_os",
-    current_os,
-    "--timestamp_file",
-    rebase_path(gen_snapshot_stamp_file, root_build_dir),
+    "--snapshot_kind=" + dart_core_snapshot_kind,
+    "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
+    "--vm_snapshot_instructions=" +
+        rebase_path(vm_snapshot_instructions, root_build_dir),
+    "--isolate_snapshot_data=" +
+        rebase_path(isolate_snapshot_data, root_build_dir),
+    "--isolate_snapshot_instructions=" +
+        rebase_path(isolate_snapshot_instructions, root_build_dir),
   ]
 }
 
-action("generate_snapshot_file") {
+# Generates an assembly file defining a given symbol with the bytes from a
+# binary file. Places the symbol in a text section if 'executable' is true,
+# otherwise places the symbol in a read-only data section.
+template("bin_to_assembly") {
+  assert(defined(invoker.deps), "Must define deps")
+  assert(defined(invoker.input), "Must define input binary file")
+  assert(defined(invoker.output), "Must define output assembly file")
+  assert(defined(invoker.symbol), "Must define symbol name")
+  assert(defined(invoker.executable), "Must define boolean executable")
+
+  action(target_name) {
+    deps = invoker.deps
+    script = "../tools/bin_to_assembly.py"
+    args = [
+      "--input",
+      rebase_path(invoker.input),
+      "--output",
+      rebase_path(invoker.output),
+      "--symbol_name",
+      invoker.symbol,
+      "--target_os",
+      current_os,
+    ]
+    if (invoker.executable) {
+      args += [ "--executable" ]
+    }
+    inputs = [
+      script,
+      invoker.input,
+    ]
+    outputs = [
+      invoker.output,
+    ]
+  }
+}
+
+bin_to_assembly("vm_snapshot_data_assembly") {
   deps = [
     ":generate_snapshot_bin",
   ]
+  input = "$target_gen_dir/vm_snapshot_data.bin"
+  output = "$target_gen_dir/vm_snapshot_data.S"
+  symbol = "kDartVmSnapshotData"
+  executable = false
+}
 
-  snapshot_in_cc_file = "snapshot_in.cc"
-  inputs = [
-    "../tools/create_snapshot_file.py",
-    snapshot_in_cc_file,
-    "$target_gen_dir/vm_isolate_snapshot.bin",
-    "$target_gen_dir/isolate_snapshot.bin",
+bin_to_assembly("vm_snapshot_instructions_assembly") {
+  deps = [
+    ":generate_snapshot_bin",
   ]
-  output = "$root_gen_dir/dart_snapshot.cc"
-  outputs = [
-    output,
-  ]
+  input = "$target_gen_dir/vm_snapshot_instructions.bin"
+  output = "$target_gen_dir/vm_snapshot_instructions.S"
+  symbol = "kDartVmSnapshotInstructions"
+  executable = true
+}
 
-  script = "../tools/create_snapshot_file.py"
-  args = [
-    "--vm_input_bin",
-    rebase_path("$target_gen_dir/vm_isolate_snapshot.bin"),
-    "--input_bin",
-    rebase_path("$target_gen_dir/isolate_snapshot.bin"),
-    "--input_cc",
-    rebase_path(snapshot_in_cc_file),
-    "--output",
-    rebase_path(output),
+bin_to_assembly("isolate_snapshot_data_assembly") {
+  deps = [
+    ":generate_snapshot_bin",
   ]
+  input = "$target_gen_dir/isolate_snapshot_data.bin"
+  output = "$target_gen_dir/isolate_snapshot_data.S"
+  symbol = "kDartCoreIsolateSnapshotData"
+  executable = false
+}
+
+bin_to_assembly("isolate_snapshot_instructions_assembly") {
+  deps = [
+    ":generate_snapshot_bin",
+  ]
+  input = "$target_gen_dir/isolate_snapshot_instructions.bin"
+  output = "$target_gen_dir/isolate_snapshot_instructions.S"
+  symbol = "kDartCoreIsolateSnapshotInstructions"
+  executable = true
 }
 
 source_set("dart_snapshot_cc") {
-  sources = [
-    "$root_gen_dir/dart_snapshot.cc",
-  ]
-
   deps = [
-    ":generate_snapshot_file",
+    ":isolate_snapshot_data_assembly",
+    ":isolate_snapshot_instructions_assembly",
+    ":vm_snapshot_data_assembly",
+    ":vm_snapshot_instructions_assembly",
+  ]
+  sources = [
+    "$target_gen_dir/isolate_snapshot_data.S",
+    "$target_gen_dir/isolate_snapshot_instructions.S",
+    "$target_gen_dir/vm_snapshot_data.S",
+    "$target_gen_dir/vm_snapshot_instructions.S",
   ]
 }
 
@@ -622,6 +675,8 @@ dart_executable("dart") {
   ]
   extra_sources = [
     "builtin_nolib.cc",
+    "dfe.cc",
+    "dfe.h",
     "loader.cc",
     "loader.h",
   ]
@@ -668,6 +723,8 @@ dart_executable("dart_bootstrap") {
   extra_sources = [
     "builtin.cc",
     "builtin.h",
+    "dfe.cc",
+    "dfe.h",
     "loader.cc",
     "loader.h",
     "observatory_assets_empty.cc",
@@ -810,6 +867,8 @@ executable("run_vm_tests") {
               "snapshot_utils.h",
               "builtin_nolib.cc",
               "run_vm_tests.cc",
+              "dfe.cc",
+              "dfe.h",
             ] + builtin_impl_tests_list + vm_tests
 
   if (!is_win) {

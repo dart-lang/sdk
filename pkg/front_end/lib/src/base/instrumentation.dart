@@ -26,14 +26,14 @@ abstract class InstrumentationValue {
   bool matches(String description) => description == toString();
 }
 
-/// Instance of [InstrumentationValue] describing a [Procedure].
-class InstrumentationValueForProcedure extends InstrumentationValue {
-  final Procedure procedure;
+/// Instance of [InstrumentationValue] describing a [Member].
+class InstrumentationValueForMember extends InstrumentationValue {
+  final Member member;
 
-  InstrumentationValueForProcedure(this.procedure);
+  InstrumentationValueForMember(this.member);
 
   @override
-  String toString() => procedure
+  String toString() => member
       .toString()
       .replaceAll('dart.core::', '')
       .replaceAll('dart.async::', '')

@@ -79,7 +79,7 @@ export_ambiguous_main_negative_test: Fail # Issue 14763
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit || $compiler == dartk || $compiler == dartkp) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium || $runtime == flutter) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478
 
-[ $compiler == none && $runtime == dartium && $unchecked ]
+[ $compiler == none && $runtime == dartium && ! $checked ]
 assertion_test: Fail # Issue 14651.
 generic_test: Fail # Issue 14651.
 list_literal4_test: Fail # Issue 14651.
@@ -240,7 +240,7 @@ stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 library_env_test/has_io_support: RuntimeError, OK
 library_env_test/has_no_html_support: RuntimeError, OK
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $browser != true ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ! $browser ]
 # The following tests are supposed to fail.
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
@@ -295,12 +295,8 @@ conditional_import_string_test: Crash # Requires deferred libraries
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
 vm/optimized_stacktrace_test: Pass, Slow
 
-[$runtime != vm || $compiler != none]
-assert_initializer_test: SKIP  # not implemented yet, experiment is VM only.
-
-[$runtime == vm && $compiler == none && $unchecked]
-assert_initializer_test/*: MissingCompileTimeError, OK  # asserts shouldn't fail in unchecked mode.
-assert_initializer_test/none: pass
+[ ($runtime != vm && $compiler != dartk && $compiler != dartkp ) || ($compiler != none && $compiler != dartk && $compiler != dartkp )]
+assert_initializer_test/*: SKIP  # not implemented yet, experiment is VM only.
 
 [($runtime == vm || $runtime == flutter) && $compiler == none && $checked]
 # The VM doesn't enforce that potentially const expressions are actually

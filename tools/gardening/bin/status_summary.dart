@@ -12,20 +12,31 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:gardening/src/util.dart';
 
+void help(ArgParser argParser) {
+  print('Prints all status-file entries for the given tests.');
+  print('The test-names must be a substring (or full match) of the lines in ');
+  print('the status file. They can not be fully qualified');
+  print('Usage: status_summary [options] <test-name1> [<test-name2> ...]');
+  print('where options are:');
+  print(argParser.usage);
+}
+
 main(List<String> args) async {
   ArgParser argParser = createArgParser();
   ArgResults argResults = argParser.parse(args);
   processArgResults(argResults);
-  if (argResults.rest.length == 0) {
-    print('Usage: status_summary [options] <test-name1> [<test-name2> ...]');
-    print('where options are:');
-    print(argParser.usage);
+  if (argResults.rest.length == 0 || argResults['help']) {
+    help(argParser);
+    if (argResults['help']) return;
     exit(1);
   }
   int maxStatusWidth = 0;
   int maxConfigWidth = 0;
 
-  List<Uri> statusFiles = await findStatusFiles('tests');
+  Directory testDirectory = findTestDirectory('tests');
+  List<Uri> statusFiles = await findStatusFiles(testDirectory);
+  Directory pkgDirectory = findTestDirectory('pkg');
+  statusFiles.addAll(await findStatusFiles(pkgDirectory));
   Map<String, List<StatusFile>> statusMap = <String, List<StatusFile>>{};
   for (Uri uri in statusFiles) {
     Map<String, StatusFile> currentMap = <String, StatusFile>{};
@@ -79,11 +90,20 @@ main(List<String> args) async {
   });
 }
 
+/// Finds the test directory.
+///
+/// First looks at a test-directory that is relative to the current
+Directory findTestDirectory(String directoryName) {
+  var directory = new Directory(directoryName);
+  if (directory.existsSync()) return directory;
+  return new Directory.fromUri(
+      Platform.script.resolve("../../../$directoryName"));
+}
+
 /// Returns the [Uri]s for all `.status` files in [path] and subdirectories.
-Future<List<Uri>> findStatusFiles(String path) async {
+Future<List<Uri>> findStatusFiles(Directory testDirectory) async {
   List<Uri> statusFiles = <Uri>[];
-  await for (FileSystemEntity entity
-      in new Directory(path).list(recursive: true)) {
+  await for (FileSystemEntity entity in testDirectory.list(recursive: true)) {
     if (entity.path.endsWith('.status')) {
       statusFiles.add(entity.uri);
     }

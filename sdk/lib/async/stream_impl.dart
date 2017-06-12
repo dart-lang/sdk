@@ -996,7 +996,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
       _stateData = future;
       return future;
     }
-    return new _Future<bool>.immediate(false);
+    return Future._falseFuture;
   }
 
   Future cancel() {

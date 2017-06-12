@@ -11,10 +11,9 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType, MemberKind, Parser;
+    show Assert, FormalParameterType, MemberKind, Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
-import 'package:front_end/src/fasta/scanner/token.dart'
-    show BeginGroupToken, CommentToken;
+import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
 import 'package:front_end/src/scanner/token.dart' as analyzer;
 
 import 'package:front_end/src/fasta/errors.dart' show internalError;
@@ -35,7 +34,6 @@ import 'element_store.dart'
         ElementStore,
         KernelClassElement;
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'token_utils.dart' show toAnalyzerToken, toAnalyzerCommentToken;
 
 class AstBuilder extends ScopeListener {
   final AstFactory ast = standard.astFactory;
@@ -60,8 +58,12 @@ class AstBuilder extends ScopeListener {
   /// being parsed.
   String className;
 
+  /// If true, this is building a full AST. Otherwise, only create method
+  /// bodies.
+  final bool isFullAst;
+
   AstBuilder(this.errorReporter, this.library, this.member, this.elementStore,
-      Scope scope,
+      Scope scope, this.isFullAst,
       [Uri uri])
       : uri = uri ?? library.fileUri,
         super(scope);
@@ -80,8 +82,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("NamedArgument");
     Expression expression = pop();
     SimpleIdentifier name = pop();
-    push(ast.namedExpression(
-        ast.label(name, toAnalyzerToken(colon)), expression));
+    push(ast.namedExpression(ast.label(name, colon), expression));
   }
 
   @override
@@ -98,7 +99,7 @@ class AstBuilder extends ScopeListener {
     TypeArgumentList typeArguments = pop();
     Identifier typeNameIdentifier = pop();
     push(ast.constructorName(ast.typeName(typeNameIdentifier, typeArguments),
-        toAnalyzerToken(periodBeforeName), constructorName));
+        periodBeforeName, constructorName));
   }
 
   @override
@@ -116,7 +117,7 @@ class AstBuilder extends ScopeListener {
     MethodInvocation arguments = pop();
     ConstructorName constructorName = pop();
     push(ast.instanceCreationExpression(
-        toAnalyzerToken(token), constructorName, arguments.argumentList));
+        token, constructorName, arguments.argumentList));
   }
 
   @override
@@ -126,11 +127,10 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleParenthesizedExpression(BeginGroupToken token) {
+  void handleParenthesizedExpression(analyzer.BeginToken token) {
     debugEvent("ParenthesizedExpression");
     Expression expression = pop();
-    push(ast.parenthesizedExpression(
-        toAnalyzerToken(token), expression, toAnalyzerToken(token.endGroup)));
+    push(ast.parenthesizedExpression(token, expression, token.endGroup));
   }
 
   void handleStringPart(Token token) {
@@ -139,7 +139,7 @@ class AstBuilder extends ScopeListener {
   }
 
   void doStringPart(Token token) {
-    push(ast.simpleStringLiteral(toAnalyzerToken(token), token.lexeme));
+    push(ast.simpleStringLiteral(token, token.lexeme));
   }
 
   void endLiteralString(int interpolationCount, Token endToken) {
@@ -147,20 +147,19 @@ class AstBuilder extends ScopeListener {
     if (interpolationCount == 0) {
       Token token = pop();
       String value = unescapeString(token.lexeme);
-      push(ast.simpleStringLiteral(toAnalyzerToken(token), value));
+      push(ast.simpleStringLiteral(token, value));
     } else {
       List parts = popList(1 + interpolationCount * 2);
       Token first = parts.first;
       Token last = parts.last;
       Quote quote = analyzeQuote(first.lexeme);
       List<InterpolationElement> elements = <InterpolationElement>[];
-      elements.add(ast.interpolationString(toAnalyzerToken(first),
-          unescapeFirstStringPart(first.lexeme, quote)));
+      elements.add(ast.interpolationString(
+          first, unescapeFirstStringPart(first.lexeme, quote)));
       for (int i = 1; i < parts.length - 1; i++) {
         var part = parts[i];
         if (part is Token) {
-          elements
-              .add(ast.interpolationString(toAnalyzerToken(part), part.lexeme));
+          elements.add(ast.interpolationString(part, part.lexeme));
         } else if (part is Expression) {
           elements.add(ast.interpolationExpression(null, part, null));
         } else {
@@ -169,14 +168,14 @@ class AstBuilder extends ScopeListener {
         }
       }
       elements.add(ast.interpolationString(
-          toAnalyzerToken(last), unescapeLastStringPart(last.lexeme, quote)));
+          last, unescapeLastStringPart(last.lexeme, quote)));
       push(ast.stringInterpolation(elements));
     }
   }
 
   void handleScript(Token token) {
     debugEvent("Script");
-    push(ast.scriptTag(toAnalyzerToken(token)));
+    push(ast.scriptTag(token));
   }
 
   void handleStringJuxtaposition(int literalCount) {
@@ -187,14 +186,14 @@ class AstBuilder extends ScopeListener {
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
     List expressions = popList(count);
-    ArgumentList arguments = ast.argumentList(
-        toAnalyzerToken(beginToken), expressions, toAnalyzerToken(endToken));
+    ArgumentList arguments =
+        ast.argumentList(beginToken, expressions, endToken);
     push(ast.methodInvocation(null, null, null, null, arguments));
   }
 
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
-    analyzer.Token analyzerToken = toAnalyzerToken(token);
+    analyzer.Token analyzerToken = token;
 
     if (context.inSymbol) {
       push(analyzerToken);
@@ -261,7 +260,7 @@ class AstBuilder extends ScopeListener {
 
   void endExpressionStatement(Token token) {
     debugEvent("ExpressionStatement");
-    push(ast.expressionStatement(pop(), toAnalyzerToken(token)));
+    push(ast.expressionStatement(pop(), token));
   }
 
   @override
@@ -270,13 +269,13 @@ class AstBuilder extends ScopeListener {
     // TODO(scheglov) Change the parser to not produce these modifiers.
     pop(); // star
     pop(); // async
-    push(ast.emptyFunctionBody(toAnalyzerToken(semicolon)));
+    push(ast.emptyFunctionBody(semicolon));
   }
 
   @override
   void handleEmptyStatement(Token token) {
     debugEvent("EmptyStatement");
-    push(ast.emptyStatement(toAnalyzerToken(token)));
+    push(ast.emptyStatement(token));
   }
 
   void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
@@ -285,8 +284,7 @@ class AstBuilder extends ScopeListener {
     if (beginToken != null) {
       exitLocalScope();
     }
-    Block block = ast.block(
-        toAnalyzerToken(beginToken), statements, toAnalyzerToken(endToken));
+    Block block = ast.block(beginToken, statements, endToken);
     analyzer.Token star = pop();
     analyzer.Token asyncKeyword = pop();
     push(ast.blockFunctionBody(asyncKeyword, star, block));
@@ -334,12 +332,12 @@ class AstBuilder extends ScopeListener {
 
   void handleOperator(Token token) {
     debugEvent("Operator");
-    push(toAnalyzerToken(token));
+    push(token);
   }
 
   void handleSymbolVoid(Token token) {
     debugEvent("SymbolVoid");
-    push(toAnalyzerToken(token));
+    push(token);
   }
 
   void handleBinaryExpression(Token token) {
@@ -351,7 +349,7 @@ class AstBuilder extends ScopeListener {
     } else {
       Expression right = pop();
       Expression left = pop();
-      push(ast.binaryExpression(left, toAnalyzerToken(token), right));
+      push(ast.binaryExpression(left, token, right));
     }
   }
 
@@ -360,17 +358,15 @@ class AstBuilder extends ScopeListener {
     Expression receiver = pop();
     if (identifierOrInvoke is SimpleIdentifier) {
       if (receiver is SimpleIdentifier && identical('.', token.stringValue)) {
-        push(ast.prefixedIdentifier(
-            receiver, toAnalyzerToken(token), identifierOrInvoke));
+        push(ast.prefixedIdentifier(receiver, token, identifierOrInvoke));
       } else {
-        push(ast.propertyAccess(
-            receiver, toAnalyzerToken(token), identifierOrInvoke));
+        push(ast.propertyAccess(receiver, token, identifierOrInvoke));
       }
     } else if (identifierOrInvoke is MethodInvocation) {
       assert(identifierOrInvoke.target == null);
       identifierOrInvoke
         ..target = receiver
-        ..operator = toAnalyzerToken(token);
+        ..operator = token;
       push(identifierOrInvoke);
     } else {
       internalError(
@@ -380,7 +376,7 @@ class AstBuilder extends ScopeListener {
 
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    push(ast.integerLiteral(toAnalyzerToken(token), int.parse(token.lexeme)));
+    push(ast.integerLiteral(token, int.parse(token.lexeme)));
   }
 
   void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
@@ -389,39 +385,29 @@ class AstBuilder extends ScopeListener {
     analyzer.Token star = pop();
     analyzer.Token asyncKeyword = pop();
     assert(star == null);
-    push(ast.expressionFunctionBody(asyncKeyword, toAnalyzerToken(arrowToken),
-        expression, toAnalyzerToken(endToken)));
+    push(ast.expressionFunctionBody(
+        asyncKeyword, arrowToken, expression, endToken));
   }
 
   void endReturnStatement(
       bool hasExpression, Token beginToken, Token endToken) {
     debugEvent("ReturnStatement");
     Expression expression = hasExpression ? pop() : null;
-    push(ast.returnStatement(
-        toAnalyzerToken(beginToken), expression, toAnalyzerToken(endToken)));
+    push(ast.returnStatement(beginToken, expression, endToken));
   }
 
   void endIfStatement(Token ifToken, Token elseToken) {
     Statement elsePart = popIfNotNull(elseToken);
     Statement thenPart = pop();
     Expression condition = pop();
-    BeginGroupToken leftParenthesis = ifToken.next;
-    push(ast.ifStatement(
-        toAnalyzerToken(ifToken),
-        toAnalyzerToken(ifToken.next),
-        condition,
-        toAnalyzerToken(leftParenthesis.endGroup),
-        thenPart,
-        toAnalyzerToken(elseToken),
-        elsePart));
-  }
-
-  void prepareInitializers() {
-    debugEvent("prepareInitializers");
+    analyzer.BeginToken leftParenthesis = ifToken.next;
+    push(ast.ifStatement(ifToken, ifToken.next, condition,
+        leftParenthesis.endGroup, thenPart, elseToken, elsePart));
   }
 
   void handleNoInitializers() {
     debugEvent("NoInitializers");
+    if (!isFullAst) return;
     push(NullValue.ConstructorInitializerSeparator);
     push(NullValue.ConstructorInitializers);
   }
@@ -429,6 +415,7 @@ class AstBuilder extends ScopeListener {
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
     List<Object> initializerObjects = popList(count) ?? const [];
+    if (!isFullAst) return;
 
     push(beginToken);
 
@@ -492,8 +479,7 @@ class AstBuilder extends ScopeListener {
     Expression initializer = pop();
     Identifier identifier = pop();
     // TODO(ahe): Don't push initializers, instead install them.
-    push(ast.variableDeclaration(
-        identifier, toAnalyzerToken(assignmentOperator), initializer));
+    push(ast.variableDeclaration(identifier, assignmentOperator, initializer));
   }
 
   @override
@@ -503,12 +489,8 @@ class AstBuilder extends ScopeListener {
     ParenthesizedExpression condition = pop();
     exitContinueTarget();
     exitBreakTarget();
-    push(ast.whileStatement(
-        toAnalyzerToken(whileKeyword),
-        condition.leftParenthesis,
-        condition.expression,
-        condition.rightParenthesis,
-        body));
+    push(ast.whileStatement(whileKeyword, condition.leftParenthesis,
+        condition.expression, condition.rightParenthesis, body));
   }
 
   @override
@@ -516,8 +498,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("YieldStatement");
     assert(endToken.lexeme == ';');
     Expression expression = pop();
-    push(ast.yieldStatement(toAnalyzerToken(yieldToken),
-        toAnalyzerToken(starToken), expression, toAnalyzerToken(endToken)));
+    push(ast.yieldStatement(yieldToken, starToken, expression, endToken));
   }
 
   @override
@@ -541,8 +522,12 @@ class AstBuilder extends ScopeListener {
       internalError("unhandled identifier: ${node.runtimeType}");
     }
     push(variable);
-    scope[variable.name.name] = variable.name.staticElement =
-        new AnalyzerLocalVariableElemment(variable);
+    scope.declare(
+        variable.name.name,
+        variable.name.staticElement =
+            new AnalyzerLocalVariableElemment(variable),
+        nameToken.charOffset,
+        uri);
   }
 
   void endVariablesDeclaration(int count, Token endToken) {
@@ -555,23 +540,22 @@ class AstBuilder extends ScopeListener {
     Comment comment = pop();
     push(ast.variableDeclarationStatement(
         ast.variableDeclarationList(
-            comment, metadata, toAnalyzerToken(keyword), type, variables),
-        toAnalyzerToken(endToken)));
+            comment, metadata, keyword, type, variables),
+        endToken));
   }
 
   void handleAssignmentExpression(Token token) {
     debugEvent("AssignmentExpression");
     Expression rhs = pop();
     Expression lhs = pop();
-    push(ast.assignmentExpression(lhs, toAnalyzerToken(token), rhs));
+    push(ast.assignmentExpression(lhs, token, rhs));
   }
 
   void endBlock(int count, Token beginToken, Token endToken) {
     debugEvent("Block");
     List<Statement> statements = popList(count) ?? <Statement>[];
     exitLocalScope();
-    push(ast.block(
-        toAnalyzerToken(beginToken), statements, toAnalyzerToken(endToken)));
+    push(ast.block(beginToken, statements, endToken));
   }
 
   void endForStatement(Token forKeyword, Token leftSeparator,
@@ -584,7 +568,7 @@ class AstBuilder extends ScopeListener {
     exitLocalScope();
     exitContinueTarget();
     exitBreakTarget();
-    BeginGroupToken leftParenthesis = forKeyword.next;
+    analyzer.BeginToken leftParenthesis = forKeyword.next;
 
     VariableDeclarationList variableList;
     Expression initializer;
@@ -604,15 +588,15 @@ class AstBuilder extends ScopeListener {
     }
 
     push(ast.forStatement(
-        toAnalyzerToken(forKeyword),
-        toAnalyzerToken(leftParenthesis),
+        forKeyword,
+        leftParenthesis,
         variableList,
         initializer,
-        toAnalyzerToken(leftSeparator),
+        leftSeparator,
         condition,
         rightSeparator,
         updates,
-        toAnalyzerToken(leftParenthesis.endGroup),
+        leftParenthesis.endGroup,
         body));
   }
 
@@ -621,36 +605,36 @@ class AstBuilder extends ScopeListener {
     debugEvent("LiteralList");
     List<Expression> expressions = popList(count);
     TypeArgumentList typeArguments = pop();
-    push(ast.listLiteral(toAnalyzerToken(constKeyword), typeArguments,
-        toAnalyzerToken(beginToken), expressions, toAnalyzerToken(endToken)));
+    push(ast.listLiteral(
+        constKeyword, typeArguments, beginToken, expressions, endToken));
   }
 
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
-    push(toAnalyzerToken(asyncToken) ?? NullValue.FunctionBodyAsyncToken);
-    push(toAnalyzerToken(starToken) ?? NullValue.FunctionBodyStarToken);
+    push(asyncToken ?? NullValue.FunctionBodyAsyncToken);
+    push(starToken ?? NullValue.FunctionBodyStarToken);
   }
 
   void endAwaitExpression(Token beginToken, Token endToken) {
     debugEvent("AwaitExpression");
-    push(ast.awaitExpression(toAnalyzerToken(beginToken), pop()));
+    push(ast.awaitExpression(beginToken, pop()));
   }
 
   void handleLiteralBool(Token token) {
     debugEvent("LiteralBool");
     bool value = identical(token.stringValue, "true");
     assert(value || identical(token.stringValue, "false"));
-    push(ast.booleanLiteral(toAnalyzerToken(token), value));
+    push(ast.booleanLiteral(token, value));
   }
 
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
-    push(ast.doubleLiteral(toAnalyzerToken(token), double.parse(token.lexeme)));
+    push(ast.doubleLiteral(token, double.parse(token.lexeme)));
   }
 
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
-    push(ast.nullLiteral(toAnalyzerToken(token)));
+    push(ast.nullLiteral(token));
   }
 
   void handleLiteralMap(
@@ -658,33 +642,33 @@ class AstBuilder extends ScopeListener {
     debugEvent("LiteralMap");
     List<MapLiteralEntry> entries = popList(count) ?? <MapLiteralEntry>[];
     TypeArgumentList typeArguments = pop();
-    push(ast.mapLiteral(toAnalyzerToken(constKeyword), typeArguments,
-        toAnalyzerToken(beginToken), entries, toAnalyzerToken(endToken)));
+    push(ast.mapLiteral(
+        constKeyword, typeArguments, beginToken, entries, endToken));
   }
 
   void endLiteralMapEntry(Token colon, Token endToken) {
     debugEvent("LiteralMapEntry");
     Expression value = pop();
     Expression key = pop();
-    push(ast.mapLiteralEntry(key, toAnalyzerToken(colon), value));
+    push(ast.mapLiteralEntry(key, colon, value));
   }
 
   void endLiteralSymbol(Token hashToken, int tokenCount) {
     debugEvent("LiteralSymbol");
     List<analyzer.Token> components = popList(tokenCount);
-    push(ast.symbolLiteral(toAnalyzerToken(hashToken), components));
+    push(ast.symbolLiteral(hashToken, components));
   }
 
   @override
   void handleSuperExpression(Token token, IdentifierContext context) {
     debugEvent("SuperExpression");
-    push(ast.superExpression(toAnalyzerToken(token)));
+    push(ast.superExpression(token));
   }
 
   @override
   void handleThisExpression(Token token, IdentifierContext context) {
     debugEvent("ThisExpression");
-    push(ast.thisExpression(toAnalyzerToken(token)));
+    push(ast.thisExpression(token));
   }
 
   void handleType(Token beginToken, Token endToken) {
@@ -698,26 +682,20 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+  void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
       Token comma, Token rightParenthesis, Token semicolon) {
-    debugEvent("AssertStatement");
+    debugEvent("Assert");
     Expression message = popIfNotNull(comma);
     Expression condition = pop();
-    push(ast.assertStatement(
-        toAnalyzerToken(assertKeyword),
-        toAnalyzerToken(leftParenthesis),
-        condition,
-        toAnalyzerToken(comma),
-        message,
-        toAnalyzerToken(rightParenthesis),
-        toAnalyzerToken(semicolon)));
+    push(ast.assertStatement(assertKeyword, leftParenthesis, condition, comma,
+        message, rightParenthesis, semicolon));
   }
 
   void handleAsOperator(Token operator, Token endToken) {
     debugEvent("AsOperator");
     TypeAnnotation type = pop();
     Expression expression = pop();
-    push(ast.asExpression(expression, toAnalyzerToken(operator), type));
+    push(ast.asExpression(expression, operator, type));
   }
 
   @override
@@ -725,8 +703,7 @@ class AstBuilder extends ScopeListener {
       bool hasTarget, Token breakKeyword, Token semicolon) {
     debugEvent("BreakStatement");
     SimpleIdentifier label = hasTarget ? pop() : null;
-    push(ast.breakStatement(
-        toAnalyzerToken(breakKeyword), label, toAnalyzerToken(semicolon)));
+    push(ast.breakStatement(breakKeyword, label, semicolon));
   }
 
   @override
@@ -734,16 +711,14 @@ class AstBuilder extends ScopeListener {
       bool hasTarget, Token continueKeyword, Token semicolon) {
     debugEvent("ContinueStatement");
     SimpleIdentifier label = hasTarget ? pop() : null;
-    push(ast.continueStatement(
-        toAnalyzerToken(continueKeyword), label, toAnalyzerToken(semicolon)));
+    push(ast.continueStatement(continueKeyword, label, semicolon));
   }
 
   void handleIsOperator(Token operator, Token not, Token endToken) {
     debugEvent("IsOperator");
     TypeAnnotation type = pop();
     Expression expression = pop();
-    push(ast.isExpression(
-        expression, toAnalyzerToken(operator), toAnalyzerToken(not), type));
+    push(ast.isExpression(expression, operator, not, type));
   }
 
   void handleConditionalExpression(Token question, Token colon) {
@@ -751,8 +726,8 @@ class AstBuilder extends ScopeListener {
     Expression elseExpression = pop();
     Expression thenExpression = pop();
     Expression condition = pop();
-    push(ast.conditionalExpression(condition, toAnalyzerToken(question),
-        thenExpression, toAnalyzerToken(colon), elseExpression));
+    push(ast.conditionalExpression(
+        condition, question, thenExpression, colon, elseExpression));
   }
 
   @override
@@ -768,15 +743,14 @@ class AstBuilder extends ScopeListener {
   @override
   void endRethrowStatement(Token rethrowToken, Token endToken) {
     debugEvent("RethrowStatement");
-    RethrowExpression expression =
-        ast.rethrowExpression(toAnalyzerToken(rethrowToken));
+    RethrowExpression expression = ast.rethrowExpression(rethrowToken);
     // TODO(scheglov) According to the specification, 'rethrow' is a statement.
-    push(ast.expressionStatement(expression, toAnalyzerToken(endToken)));
+    push(ast.expressionStatement(expression, endToken));
   }
 
   void endThrowExpression(Token throwToken, Token endToken) {
     debugEvent("ThrowExpression");
-    push(ast.throwExpression(toAnalyzerToken(throwToken), pop()));
+    push(ast.throwExpression(throwToken, pop()));
   }
 
   @override
@@ -797,8 +771,8 @@ class AstBuilder extends ScopeListener {
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
     TypeAnnotation returnType = pop();
-    push(ast.genericFunctionType(returnType, toAnalyzerToken(functionToken),
-        typeParameters, parameters));
+    push(ast.genericFunctionType(
+        returnType, functionToken, typeParameters, parameters));
   }
 
   void handleFormalParameterWithoutValue(Token token) {
@@ -823,30 +797,30 @@ class AstBuilder extends ScopeListener {
     exitBreakTarget();
     if (variableOrDeclaration is SimpleIdentifier) {
       push(ast.forEachStatementWithReference(
-          toAnalyzerToken(awaitToken),
-          toAnalyzerToken(forToken),
-          toAnalyzerToken(leftParenthesis),
+          awaitToken,
+          forToken,
+          leftParenthesis,
           variableOrDeclaration,
-          toAnalyzerToken(inKeyword),
+          inKeyword,
           iterator,
-          toAnalyzerToken(rightParenthesis),
+          rightParenthesis,
           body));
     } else {
       var statement = variableOrDeclaration as VariableDeclarationStatement;
       VariableDeclarationList variableList = statement.variables;
       push(ast.forEachStatementWithDeclaration(
-          toAnalyzerToken(awaitToken),
-          toAnalyzerToken(forToken),
-          toAnalyzerToken(leftParenthesis),
+          awaitToken,
+          forToken,
+          leftParenthesis,
           ast.declaredIdentifier(
               variableList.documentationComment,
               variableList.metadata,
               variableList.keyword,
               variableList.type,
               variableList.variables.single.name),
-          toAnalyzerToken(inKeyword),
+          inKeyword,
           iterator,
-          toAnalyzerToken(rightParenthesis),
+          rightParenthesis,
           body));
     }
   }
@@ -874,8 +848,8 @@ class AstBuilder extends ScopeListener {
       if (thisKeyword == null) {
         node = ast.simpleFormalParameter2(
             comment: comment,
-            covariantKeyword: toAnalyzerToken(covariantKeyword),
-            keyword: toAnalyzerToken(keyword),
+            covariantKeyword: covariantKeyword,
+            keyword: keyword,
             type: type,
             identifier: name);
       } else {
@@ -885,24 +859,27 @@ class AstBuilder extends ScopeListener {
             : null;
         node = ast.fieldFormalParameter2(
             comment: comment,
-            covariantKeyword: toAnalyzerToken(covariantKeyword),
-            keyword: toAnalyzerToken(keyword),
+            covariantKeyword: covariantKeyword,
+            keyword: keyword,
             type: type,
-            thisKeyword: toAnalyzerToken(thisKeyword),
-            period: toAnalyzerToken(period),
+            thisKeyword: thisKeyword,
+            period: period,
             identifier: name);
       }
     }
 
     ParameterKind analyzerKind = _toAnalyzerParameterKind(kind);
     if (analyzerKind != ParameterKind.REQUIRED) {
-      node = ast.defaultFormalParameter(node, analyzerKind,
-          toAnalyzerToken(defaultValue?.separator), defaultValue?.value);
+      node = ast.defaultFormalParameter(
+          node, analyzerKind, defaultValue?.separator, defaultValue?.value);
     }
 
     if (name != null) {
-      scope[name.name] =
-          name.staticElement = new AnalyzerParameterElement(node);
+      scope.declare(
+          name.name,
+          name.staticElement = new AnalyzerParameterElement(node),
+          name.offset,
+          uri);
     }
     push(node);
   }
@@ -927,7 +904,7 @@ class AstBuilder extends ScopeListener {
     if (thisKeyword == null) {
       node = ast.functionTypedFormalParameter2(
           comment: comment,
-          covariantKeyword: toAnalyzerToken(covariantKeyword),
+          covariantKeyword: covariantKeyword,
           returnType: returnType,
           identifier: name,
           typeParameters: typeParameters,
@@ -939,16 +916,20 @@ class AstBuilder extends ScopeListener {
           : null;
       node = ast.fieldFormalParameter2(
           comment: comment,
-          covariantKeyword: toAnalyzerToken(covariantKeyword),
+          covariantKeyword: covariantKeyword,
           type: returnType,
-          thisKeyword: toAnalyzerToken(thisKeyword),
-          period: toAnalyzerToken(period),
+          thisKeyword: thisKeyword,
+          period: period,
           identifier: name,
           typeParameters: typeParameters,
           parameters: formalParameters);
     }
 
-    scope[name.name] = name.staticElement = new AnalyzerParameterElement(node);
+    scope.declare(
+        name.name,
+        name.staticElement = new AnalyzerParameterElement(node),
+        name.offset,
+        uri);
     push(node);
   }
 
@@ -969,11 +950,7 @@ class AstBuilder extends ScopeListener {
       }
     }
     push(ast.formalParameterList(
-        toAnalyzerToken(beginToken),
-        parameters,
-        toAnalyzerToken(leftDelimiter),
-        toAnalyzerToken(rightDelimiter),
-        toAnalyzerToken(endToken)));
+        beginToken, parameters, leftDelimiter, rightDelimiter, endToken));
   }
 
   @override
@@ -1052,9 +1029,9 @@ class AstBuilder extends ScopeListener {
       }
     }
     push(ast.catchClause(
-        toAnalyzerToken(onKeyword),
+        onKeyword,
         type,
-        toAnalyzerToken(catchKeyword),
+        catchKeyword,
         catchParameterList?.leftParenthesis,
         exception,
         null,
@@ -1073,8 +1050,8 @@ class AstBuilder extends ScopeListener {
     Block finallyBlock = popIfNotNull(finallyKeyword);
     List<CatchClause> catchClauses = popList(catchCount);
     Block body = pop();
-    push(ast.tryStatement(toAnalyzerToken(tryKeyword), body, catchClauses,
-        toAnalyzerToken(finallyKeyword), finallyBlock));
+    push(ast.tryStatement(
+        tryKeyword, body, catchClauses, finallyKeyword, finallyBlock));
   }
 
   @override
@@ -1099,18 +1076,12 @@ class AstBuilder extends ScopeListener {
       Token token = peek();
       push(receiver);
       IndexExpression expression = ast.indexExpressionForCascade(
-          toAnalyzerToken(token),
-          toAnalyzerToken(openCurlyBracket),
-          index,
-          toAnalyzerToken(closeCurlyBracket));
+          token, openCurlyBracket, index, closeCurlyBracket);
       assert(expression.isCascaded);
       push(expression);
     } else {
       push(ast.indexExpressionForTarget(
-          target,
-          toAnalyzerToken(openCurlyBracket),
-          index,
-          toAnalyzerToken(closeCurlyBracket)));
+          target, openCurlyBracket, index, closeCurlyBracket));
     }
   }
 
@@ -1134,8 +1105,7 @@ class AstBuilder extends ScopeListener {
         StringLiteral name = pop();
         pop(); // star
         pop(); // async
-        push(ast.nativeFunctionBody(
-            toAnalyzerToken(nativeKeyword), name, toAnalyzerToken(semicolon)));
+        push(ast.nativeFunctionBody(nativeKeyword, name, semicolon));
         return token;
       }
     } else if (message.code == codeExpectedExpression) {
@@ -1145,7 +1115,7 @@ class AstBuilder extends ScopeListener {
             ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
             token.charOffset,
             token.charCount);
-        push(ast.simpleIdentifier(toAnalyzerToken(token)));
+        push(ast.simpleIdentifier(token));
         return token;
       }
     }
@@ -1154,17 +1124,17 @@ class AstBuilder extends ScopeListener {
 
   void handleUnaryPrefixExpression(Token token) {
     debugEvent("UnaryPrefixExpression");
-    push(ast.prefixExpression(toAnalyzerToken(token), pop()));
+    push(ast.prefixExpression(token, pop()));
   }
 
   void handleUnaryPrefixAssignmentExpression(Token token) {
     debugEvent("UnaryPrefixAssignmentExpression");
-    push(ast.prefixExpression(toAnalyzerToken(token), pop()));
+    push(ast.prefixExpression(token, pop()));
   }
 
   void handleUnaryPostfixAssignmentExpression(Token token) {
     debugEvent("UnaryPostfixAssignmentExpression");
-    push(ast.postfixExpression(pop(), toAnalyzerToken(token)));
+    push(ast.postfixExpression(pop(), token));
   }
 
   void handleModifier(Token token) {
@@ -1189,7 +1159,7 @@ class AstBuilder extends ScopeListener {
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
-    analyzer.Token propertyKeyword = toAnalyzerToken(getOrSet);
+    analyzer.Token propertyKeyword = getOrSet;
     TypeAnnotation returnType = pop();
     _Modifiers modifiers = pop();
     Token externalKeyword = modifiers?.externalKeyword;
@@ -1198,7 +1168,7 @@ class AstBuilder extends ScopeListener {
     push(ast.functionDeclaration(
         comment,
         metadata,
-        toAnalyzerToken(externalKeyword),
+        externalKeyword,
         returnType,
         propertyKeyword,
         name,
@@ -1257,14 +1227,14 @@ class AstBuilder extends ScopeListener {
     push(ast.importDirective(
         comment,
         metadata,
-        toAnalyzerToken(importKeyword),
+        importKeyword,
         uri,
         configurations,
-        toAnalyzerToken(deferredKeyword),
-        toAnalyzerToken(asKeyword),
+        deferredKeyword,
+        asKeyword,
         prefix,
         combinators,
-        toAnalyzerToken(semicolon)));
+        semicolon));
   }
 
   void endExport(Token exportKeyword, Token semicolon) {
@@ -1275,8 +1245,8 @@ class AstBuilder extends ScopeListener {
     List<Annotation> metadata = pop();
     assert(metadata == null);
     Comment comment = pop();
-    push(ast.exportDirective(comment, metadata, toAnalyzerToken(exportKeyword),
-        uri, configurations, combinators, toAnalyzerToken(semicolon)));
+    push(ast.exportDirective(comment, metadata, exportKeyword, uri,
+        configurations, combinators, semicolon));
   }
 
   @override
@@ -1295,13 +1265,13 @@ class AstBuilder extends ScopeListener {
     exitContinueTarget();
     exitBreakTarget();
     push(ast.doStatement(
-        toAnalyzerToken(doKeyword),
+        doKeyword,
         body,
-        toAnalyzerToken(whileKeyword),
+        whileKeyword,
         condition.leftParenthesis,
         condition.expression,
         condition.rightParenthesis,
-        toAnalyzerToken(semicolon)));
+        semicolon));
   }
 
   void endConditionalUri(Token ifKeyword, Token equalitySign) {
@@ -1320,14 +1290,8 @@ class AstBuilder extends ScopeListener {
     // recovery and then report both the ifKeyword and leftParen tokens to the
     // listener.
     Token leftParen = ifKeyword.next;
-    push(ast.configuration(
-        toAnalyzerToken(ifKeyword),
-        toAnalyzerToken(leftParen),
-        name,
-        toAnalyzerToken(equalitySign),
-        value,
-        toAnalyzerToken(rightParen),
-        libraryUri));
+    push(ast.configuration(ifKeyword, leftParen, name, equalitySign, value,
+        rightParen, libraryUri));
   }
 
   @override
@@ -1346,14 +1310,14 @@ class AstBuilder extends ScopeListener {
   void endShow(Token showKeyword) {
     debugEvent("Show");
     List<SimpleIdentifier> shownNames = pop();
-    push(ast.showCombinator(toAnalyzerToken(showKeyword), shownNames));
+    push(ast.showCombinator(showKeyword, shownNames));
   }
 
   @override
   void endHide(Token hideKeyword) {
     debugEvent("Hide");
     List<SimpleIdentifier> hiddenNames = pop();
-    push(ast.hideCombinator(toAnalyzerToken(hideKeyword), hiddenNames));
+    push(ast.hideCombinator(hideKeyword, hiddenNames));
   }
 
   @override
@@ -1382,8 +1346,7 @@ class AstBuilder extends ScopeListener {
     ImplementsClause implementsClause;
     if (implementsKeyword != null) {
       List<TypeName> interfaces = popList(interfacesCount);
-      implementsClause =
-          ast.implementsClause(toAnalyzerToken(implementsKeyword), interfaces);
+      implementsClause = ast.implementsClause(implementsKeyword, interfaces);
     }
     ExtendsClause extendsClause;
     WithClause withClause;
@@ -1391,13 +1354,10 @@ class AstBuilder extends ScopeListener {
     if (supertype == null) {
       // No extends clause
     } else if (supertype is TypeName) {
-      extendsClause =
-          ast.extendsClause(toAnalyzerToken(extendsKeyword), supertype);
+      extendsClause = ast.extendsClause(extendsKeyword, supertype);
     } else if (supertype is _MixinApplication) {
-      extendsClause = ast.extendsClause(
-          toAnalyzerToken(extendsKeyword), supertype.supertype);
-      withClause = ast.withClause(
-          toAnalyzerToken(supertype.withKeyword), supertype.mixinTypes);
+      extendsClause = ast.extendsClause(extendsKeyword, supertype.supertype);
+      withClause = ast.withClause(supertype.withKeyword, supertype.mixinTypes);
     } else {
       internalError('Unexpected kind of supertype ${supertype.runtimeType}');
     }
@@ -1412,16 +1372,16 @@ class AstBuilder extends ScopeListener {
     push(ast.classDeclaration(
         comment,
         metadata,
-        toAnalyzerToken(abstractKeyword),
-        toAnalyzerToken(classKeyword),
+        abstractKeyword,
+        classKeyword,
         name,
         typeParameters,
         extendsClause,
         withClause,
         implementsClause,
-        toAnalyzerToken(body.beginToken),
+        body.beginToken,
         body.members,
-        toAnalyzerToken(body.endToken)));
+        body.endToken));
   }
 
   @override
@@ -1439,15 +1399,13 @@ class AstBuilder extends ScopeListener {
     ImplementsClause implementsClause;
     if (implementsKeyword != null) {
       List<TypeName> interfaces = pop();
-      implementsClause =
-          ast.implementsClause(toAnalyzerToken(implementsKeyword), interfaces);
+      implementsClause = ast.implementsClause(implementsKeyword, interfaces);
     }
     _MixinApplication mixinApplication = pop();
     var superclass = mixinApplication.supertype;
     var withClause = ast.withClause(
-        toAnalyzerToken(mixinApplication.withKeyword),
-        mixinApplication.mixinTypes);
-    analyzer.Token equals = toAnalyzerToken(equalsToken);
+        mixinApplication.withKeyword, mixinApplication.mixinTypes);
+    analyzer.Token equals = equalsToken;
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
     _Modifiers modifiers = pop();
@@ -1457,15 +1415,15 @@ class AstBuilder extends ScopeListener {
     push(ast.classTypeAlias(
         comment,
         metadata,
-        toAnalyzerToken(classKeyword),
+        classKeyword,
         name,
         typeParameters,
         equals,
-        toAnalyzerToken(abstractKeyword),
+        abstractKeyword,
         superclass,
         withClause,
         implementsClause,
-        toAnalyzerToken(endToken)));
+        endToken));
   }
 
   @override
@@ -1483,8 +1441,8 @@ class AstBuilder extends ScopeListener {
     var name = ast.libraryIdentifier(libraryName);
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.libraryDirective(comment, metadata,
-        toAnalyzerToken(libraryKeyword), name, toAnalyzerToken(semicolon)));
+    push(ast.libraryDirective(
+        comment, metadata, libraryKeyword, name, semicolon));
   }
 
   @override
@@ -1498,7 +1456,7 @@ class AstBuilder extends ScopeListener {
     } else if (prefix is SimpleIdentifier) {
       // TODO(paulberry): resolve [identifier].  Note that BodyBuilder handles
       // this situation using SendAccessor.
-      push(ast.prefixedIdentifier(prefix, toAnalyzerToken(period), identifier));
+      push(ast.prefixedIdentifier(prefix, period, identifier));
     } else {
       // TODO(paulberry): implement.
       logEvent('Qualified with >1 dot');
@@ -1511,8 +1469,7 @@ class AstBuilder extends ScopeListener {
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.partDirective(comment, metadata, toAnalyzerToken(partKeyword), uri,
-        toAnalyzerToken(semicolon)));
+    push(ast.partDirective(comment, metadata, partKeyword, uri, semicolon));
   }
 
   @override
@@ -1526,8 +1483,8 @@ class AstBuilder extends ScopeListener {
     var ofKeyword = partKeyword.next;
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.partOfDirective(comment, metadata, toAnalyzerToken(partKeyword),
-        toAnalyzerToken(ofKeyword), uri, name, toAnalyzerToken(semicolon)));
+    push(ast.partOfDirective(
+        comment, metadata, partKeyword, ofKeyword, uri, name, semicolon));
   }
 
   void endUnnamedFunction(Token beginToken, Token token) {
@@ -1563,7 +1520,7 @@ class AstBuilder extends ScopeListener {
     } else if (bodyObject is _RedirectingFactoryBody) {
       separator = bodyObject.equalToken;
       redirectedConstructor = bodyObject.constructorName;
-      body = ast.emptyFunctionBody(toAnalyzerToken(semicolon));
+      body = ast.emptyFunctionBody(semicolon);
     } else {
       internalError('Unexpected body object: ${bodyObject.runtimeType}');
     }
@@ -1592,14 +1549,14 @@ class AstBuilder extends ScopeListener {
     push(ast.constructorDeclaration(
         comment,
         metadata,
-        toAnalyzerToken(modifiers?.externalKeyword),
-        toAnalyzerToken(modifiers?.finalConstOrVarKeyword),
-        toAnalyzerToken(factoryKeyword),
+        modifiers?.externalKeyword,
+        modifiers?.finalConstOrVarKeyword,
+        factoryKeyword,
         ast.simpleIdentifier(returnType.token),
         period,
         name,
         parameters,
-        toAnalyzerToken(separator),
+        separator,
         null,
         redirectedConstructor,
         body));
@@ -1609,8 +1566,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("FieldInitializer");
     Expression initializer = pop();
     SimpleIdentifier name = pop();
-    push(ast.variableDeclaration(
-        name, toAnalyzerToken(assignment), initializer));
+    push(ast.variableDeclaration(name, assignment, initializer));
   }
 
   @override
@@ -1647,12 +1603,12 @@ class AstBuilder extends ScopeListener {
     TypeAnnotation type = pop();
     _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
-    var variableList = ast.variableDeclarationList(
-        null, null, toAnalyzerToken(keyword), type, variables);
+    var variableList =
+        ast.variableDeclarationList(null, null, keyword, type, variables);
     List<Annotation> metadata = pop();
     Comment comment = pop();
     push(ast.topLevelVariableDeclaration(
-        comment, metadata, variableList, toAnalyzerToken(endToken)));
+        comment, metadata, variableList, endToken));
   }
 
   @override
@@ -1666,16 +1622,14 @@ class AstBuilder extends ScopeListener {
     SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.typeParameter(
-        comment, metadata, name, toAnalyzerToken(extendsOrSuper), bound));
+    push(ast.typeParameter(comment, metadata, name, extendsOrSuper, bound));
   }
 
   @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
     List<TypeParameter> typeParameters = popList(count);
-    push(ast.typeParameterList(toAnalyzerToken(beginToken), typeParameters,
-        toAnalyzerToken(endToken)));
+    push(ast.typeParameterList(beginToken, typeParameters, endToken));
   }
 
   @override
@@ -1698,14 +1652,14 @@ class AstBuilder extends ScopeListener {
       push(ast.constructorDeclaration(
           comment,
           metadata,
-          toAnalyzerToken(modifiers?.externalKeyword),
-          toAnalyzerToken(modifiers?.finalConstOrVarKeyword),
+          modifiers?.externalKeyword,
+          modifiers?.finalConstOrVarKeyword,
           null, // TODO(paulberry): factoryKeyword
           ast.simpleIdentifier(returnType.token),
           period,
           name,
           parameters,
-          toAnalyzerToken(separator),
+          separator,
           initializers,
           redirectedConstructor,
           body));
@@ -1715,12 +1669,11 @@ class AstBuilder extends ScopeListener {
       push(ast.methodDeclaration(
           comment,
           metadata,
-          toAnalyzerToken(modifiers?.externalKeyword),
-          toAnalyzerToken(
-              modifiers?.abstractKeyword ?? modifiers?.staticKeyword),
+          modifiers?.externalKeyword,
+          modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
           returnType,
-          toAnalyzerToken(getOrSet),
-          toAnalyzerToken(operatorKeyword),
+          getOrSet,
+          operatorKeyword,
           name,
           typeParameters,
           parameters,
@@ -1768,15 +1721,8 @@ class AstBuilder extends ScopeListener {
       TypeAnnotation returnType = pop();
       List<Annotation> metadata = pop();
       Comment comment = pop();
-      push(ast.functionTypeAlias(
-          comment,
-          metadata,
-          toAnalyzerToken(typedefKeyword),
-          returnType,
-          name,
-          typeParameters,
-          parameters,
-          toAnalyzerToken(endToken)));
+      push(ast.functionTypeAlias(comment, metadata, typedefKeyword, returnType,
+          name, typeParameters, parameters, endToken));
     } else {
       TypeAnnotation type = pop();
       TypeParameterList templateParameters = pop();
@@ -1788,15 +1734,8 @@ class AstBuilder extends ScopeListener {
         // this).
         type = null;
       }
-      push(ast.genericTypeAlias(
-          comment,
-          metadata,
-          toAnalyzerToken(typedefKeyword),
-          name,
-          templateParameters,
-          toAnalyzerToken(equals),
-          type,
-          toAnalyzerToken(endToken)));
+      push(ast.genericTypeAlias(comment, metadata, typedefKeyword, name,
+          templateParameters, equals, type, endToken));
     }
   }
 
@@ -1805,29 +1744,22 @@ class AstBuilder extends ScopeListener {
     debugEvent("Enum");
     List<EnumConstantDeclaration> constants = popList(count);
     // TODO(paulberry,ahe): the parser should pass in the openBrace token.
-    var openBrace = enumKeyword.next.next as BeginGroupToken;
+    var openBrace = enumKeyword.next.next as analyzer.BeginToken;
     // TODO(paulberry): what if the '}' is missing and the parser has performed
     // error recovery?
     Token closeBrace = openBrace.endGroup;
     SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
-    push(ast.enumDeclaration(
-        comment,
-        metadata,
-        toAnalyzerToken(enumKeyword),
-        name,
-        toAnalyzerToken(openBrace),
-        constants,
-        toAnalyzerToken(closeBrace)));
+    push(ast.enumDeclaration(comment, metadata, enumKeyword, name, openBrace,
+        constants, closeBrace));
   }
 
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
     List<TypeAnnotation> arguments = popList(count);
-    push(ast.typeArgumentList(
-        toAnalyzerToken(beginToken), arguments, toAnalyzerToken(endToken)));
+    push(ast.typeArgumentList(beginToken, arguments, endToken));
   }
 
   @override
@@ -1836,25 +1768,25 @@ class AstBuilder extends ScopeListener {
     List<VariableDeclaration> variables = popList(count);
     TypeAnnotation type = pop();
     _Modifiers modifiers = pop();
-    var variableList = ast.variableDeclarationList(null, null,
-        toAnalyzerToken(modifiers?.finalConstOrVarKeyword), type, variables);
+    var variableList = ast.variableDeclarationList(
+        null, null, modifiers?.finalConstOrVarKeyword, type, variables);
     Token covariantKeyword = modifiers?.covariantKeyword;
     List<Annotation> metadata = pop();
     Comment comment = pop();
     push(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
-        covariantKeyword: toAnalyzerToken(covariantKeyword),
-        staticKeyword: toAnalyzerToken(modifiers?.staticKeyword),
+        covariantKeyword: covariantKeyword,
+        staticKeyword: modifiers?.staticKeyword,
         fieldList: variableList,
-        semicolon: toAnalyzerToken(endToken)));
+        semicolon: endToken));
   }
 
   @override
   void handleOperatorName(Token operatorKeyword, Token token) {
     debugEvent("OperatorName");
-    push(new _OperatorName(operatorKeyword,
-        ast.simpleIdentifier(toAnalyzerToken(token), isDeclaration: true)));
+    push(new _OperatorName(
+        operatorKeyword, ast.simpleIdentifier(token, isDeclaration: true)));
   }
 
   @override
@@ -1874,11 +1806,7 @@ class AstBuilder extends ScopeListener {
     SimpleIdentifier constructorName = periodBeforeName != null ? pop() : null;
     pop(); // Type arguments, not allowed.
     Identifier name = pop();
-    push(ast.annotation(
-        toAnalyzerToken(beginToken),
-        name,
-        toAnalyzerToken(periodBeforeName),
-        constructorName,
+    push(ast.annotation(beginToken, name, periodBeforeName, constructorName,
         invocation?.argumentList));
   }
 
@@ -1900,7 +1828,7 @@ class AstBuilder extends ScopeListener {
     // unified, refactor the code in analyzer's parser that handles
     // documentation comments so that it is reusable, and reuse it here.
     // See Parser.parseCommentAndMetadata
-    var tokens = <analyzer.Token>[toAnalyzerCommentToken(comments)];
+    var tokens = <analyzer.Token>[comments];
     var references = <CommentReference>[];
     return ast.documentationComment(tokens, references);
   }
@@ -1986,6 +1914,12 @@ class AstBuilder extends ScopeListener {
       return null;
     }
     return firstToken;
+  }
+
+  @override
+  void addCompileTimeErrorFromMessage(FastaMessage message) {
+    library.addCompileTimeError(message.charOffset, message.message,
+        fileUri: message.uri);
   }
 }
 

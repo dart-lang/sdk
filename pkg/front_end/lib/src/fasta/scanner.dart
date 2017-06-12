@@ -16,9 +16,7 @@ import 'scanner/recover.dart' show defaultRecoveryStrategy;
 
 export 'scanner/token.dart'
     show
-        BeginGroupToken,
         StringToken,
-        SymbolToken,
         isBinaryOperator,
         isMinusOperator,
         isTernaryOperator,
@@ -82,8 +80,7 @@ ScannerResult scanString(String source,
   assert(source != null, 'source must not be null');
   StringScanner scanner = new StringScanner(source,
       includeComments: includeComments,
-      scanGenericMethodComments: scanGenericMethodComments,
-      scanLazyAssignmentOperators: scanLazyAssignmentOperators);
+      scanGenericMethodComments: scanGenericMethodComments);
   return _tokenizeAndRecover(scanner, recover, source: source);
 }
 

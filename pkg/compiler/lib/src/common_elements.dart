@@ -159,10 +159,9 @@ class CommonElements {
 
   /// Whether [element] is the same as [symbolConstructor]. Used to check
   /// for the constructor without computing it until it is likely to be seen.
-  // TODO(johnniwinther): Change type of [e] to [MemberEntity].
-  bool isSymbolConstructor(Entity e) {
-    return e == symbolConstructorTarget ||
-        e == _findConstructor(symbolClass, '', required: false);
+  bool isSymbolConstructor(ConstructorEntity element) {
+    return element == symbolConstructorTarget ||
+        element == _findConstructor(symbolClass, '', required: false);
   }
 
   /// The `MirrorSystem` class in dart:mirrors.
@@ -333,16 +332,12 @@ class CommonElements {
   }
 
   /// Returns `true` if [element] is a superclass of `String` or `num`.
-  // TODO(johnniwinther): Change types to `ClassEntity` when these are not
-  // called with unrelated elements.
-  bool isNumberOrStringSupertype(/*Class*/ Entity element) {
+  bool isNumberOrStringSupertype(ClassEntity element) {
     return element == _findClass(coreLibrary, 'Comparable', required: false);
   }
 
   /// Returns `true` if [element] is a superclass of `String`.
-  // TODO(johnniwinther): Change types to `ClassEntity` when these are not
-  // called with unrelated elements.
-  bool isStringOnlySupertype(/*Class*/ Entity element) {
+  bool isStringOnlySupertype(ClassEntity element) {
     return element == _findClass(coreLibrary, 'Pattern', required: false);
   }
 
@@ -931,6 +926,9 @@ class CommonElements {
   FunctionEntity get throwRuntimeError =>
       _findHelperFunction('throwRuntimeError');
 
+  FunctionEntity get throwUnsupportedError =>
+      _findHelperFunction('throwUnsupportedError');
+
   FunctionEntity get throwTypeError => _findHelperFunction('throwTypeError');
 
   FunctionEntity get throwAbstractClassInstantiationError =>
@@ -1150,8 +1148,11 @@ class CommonElements {
 
 /// Interface for accessing libraries, classes and members.
 ///
-/// The _env makes private and injected members directly available and
-/// should therefore not be used to determine scopes.
+/// The element environment makes private and injected members directly
+/// available and should therefore not be used to determine scopes.
+///
+/// The properties exposed are Dart-centric and should therefore, long-term, not
+/// be used during codegen, expect for mirrors.
 // TODO(johnniwinther): Split this into an element environment and a type query
 // interface, the first should only be used during resolution and the latter in
 // both resolution and codegen.
@@ -1164,6 +1165,9 @@ abstract class ElementEnvironment {
 
   /// Returns all known libraries.
   Iterable<LibraryEntity> get libraries;
+
+  /// Returns the library name of [library] or '' if the library is unnamed.
+  String getLibraryName(LibraryEntity library);
 
   /// Lookup the library with the canonical [uri], fail if the library is
   /// missing and [required];
@@ -1249,6 +1253,9 @@ abstract class ElementEnvironment {
 
   /// Returns `true` if [cls] is generic.
   bool isGenericClass(ClassEntity cls);
+
+  /// Returns `true` if [cls] is an unnamed mixin application.
+  bool isUnnamedMixinApplication(ClassEntity cls);
 
   /// The upper bound on the [typeVariable]. If not explicitly declared, this is
   /// `Object`.

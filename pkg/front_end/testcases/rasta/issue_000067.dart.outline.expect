@@ -15,7 +15,7 @@ class C extends self::A {
   static field dynamic _redirecting# = <dynamic>[self::C::bar];
   constructor •() → void
     ;
-  static factory bar() → self::D
+  static factory bar() → self::C
     let final dynamic #t2 = self::D::• in invalid-expression;
   method m() → core::int
     ;

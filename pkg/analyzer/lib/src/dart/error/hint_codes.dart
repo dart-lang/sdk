@@ -257,6 +257,19 @@ class HintCode extends ErrorCode {
           "Try changing the bounds on the type parameters so that they are compatible.");
 
   /**
+   * This hint is generated anywhere where `@required` annotates a non named
+   * parameter or a named parameter with default value.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_REQUIRED_PARAM = const HintCode(
+      'INVALID_REQUIRED_PARAM',
+      "The type parameter '{0}' is annotated with @required but only named "
+      "parameters without default value can be annotated with it.",
+      "Remove @required.");
+
+  /**
    * This hint is generated anywhere where a member annotated with `@protected`
    * is used outside an instance member of a subclass.
    *

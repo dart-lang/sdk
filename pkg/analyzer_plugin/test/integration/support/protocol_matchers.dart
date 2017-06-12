@@ -908,6 +908,35 @@ final Matcher isAnalysisFoldingParams = new LazyMatcher(() =>
         {"file": isFilePath, "regions": isListOf(isFoldingRegion)}));
 
 /**
+ * analysis.getNavigation params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+final Matcher isAnalysisGetNavigationParams = new LazyMatcher(() =>
+    new MatchesJsonObject("analysis.getNavigation params",
+        {"file": isFilePath, "offset": isInt, "length": isInt}));
+
+/**
+ * analysis.getNavigation result
+ *
+ * {
+ *   "files": List<FilePath>
+ *   "targets": List<NavigationTarget>
+ *   "regions": List<NavigationRegion>
+ * }
+ */
+final Matcher isAnalysisGetNavigationResult = new LazyMatcher(
+    () => new MatchesJsonObject("analysis.getNavigation result", {
+          "files": isListOf(isFilePath),
+          "targets": isListOf(isNavigationTarget),
+          "regions": isListOf(isNavigationRegion)
+        }));
+
+/**
  * analysis.handleWatchEvents params
  *
  * {

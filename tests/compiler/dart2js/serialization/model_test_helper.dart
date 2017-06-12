@@ -160,12 +160,10 @@ void checkElements(
   if (element1.isFunction ||
       element1.isConstructor ||
       (element1.isField && element1.isInstanceMember)) {
-    AstElement astElement1 = element1;
-    AstElement astElement2 = element2;
-    ClosureClassMap closureData1 = compiler1.closureToClassMapper
-        .getClosureToClassMapping(astElement1.resolvedAst);
-    ClosureClassMap closureData2 = compiler2.closureToClassMapper
-        .getClosureToClassMapping(astElement2.resolvedAst);
+    ClosureClassMap closureData1 =
+        compiler1.closureToClassMapper.getClosureToClassMapping(element1);
+    ClosureClassMap closureData2 =
+        compiler2.closureToClassMapper.getClosureToClassMapping(element2);
 
     checkElementIdentities(
         closureData1,
@@ -243,7 +241,7 @@ bool areLocalsEquivalent(Local a, Local b) {
   }
 }
 
-bool areCapturedVariablesEquivalent(CapturedVariable a, CapturedVariable b) {
+bool areCapturedVariablesEquivalent(FieldEntity a, FieldEntity b) {
   if (a == b) return true;
   if (a == null || b == null) return false;
   if (a is ClosureFieldElement && b is ClosureFieldElement) {

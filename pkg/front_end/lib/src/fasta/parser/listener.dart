@@ -6,13 +6,11 @@ library fasta.parser.listener;
 
 import '../fasta_codes.dart' show FastaMessage;
 
-import '../../scanner/token.dart' show Token, TokenType;
-
-import '../scanner/token.dart' show BeginGroupToken, SymbolToken;
+import '../../scanner/token.dart' show BeginToken, Token, TokenType;
 
 import '../util/link.dart' show Link;
 
-import 'parser.dart' show FormalParameterType, MemberKind;
+import 'parser.dart' show Assert, FormalParameterType, MemberKind;
 
 import 'identifier_context.dart' show IdentifierContext;
 
@@ -68,7 +66,7 @@ class Listener {
   void beginCaseExpression(Token caseKeyword) {}
 
   void endCaseExpression(Token colon) {
-    // logEvent("CaseExpression");
+    logEvent("CaseExpression");
   }
 
   void beginClassBody(Token token) {}
@@ -170,9 +168,17 @@ class Listener {
   void beginExpressionStatement(Token token) {}
 
   /// Called by [ClassMemberParser] after skipping an expression as error
-  /// recovery.
-  void handleRecoverExpression(Token token) {
+  /// recovery. For a stack-based listener, the suggested action is to push
+  /// `null` or a synthetic erroneous expression.
+  void handleRecoverExpression(Token token, FastaMessage message) {
     logEvent("RecoverExpression");
+  }
+
+  /// Called by [Parser] after parsing an extraneous expression as error
+  /// recovery. For a stack-based listener, the suggested action is to discard
+  /// an expression from the stack.
+  void handleExtraneousExpression(Token token, FastaMessage message) {
+    logEvent("ExtraneousExpression");
   }
 
   void endExpressionStatement(Token token) {
@@ -859,9 +865,11 @@ class Listener {
     logEvent("EmptyStatement");
   }
 
-  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+  void beginAssert(Token assertKeyword, Assert kind) {}
+
+  void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
       Token commaToken, Token rightParenthesis, Token semicolonToken) {
-    logEvent("AssertStatement");
+    logEvent("Assert");
   }
 
   /** Called with either the token containing a double literal, or
@@ -943,7 +951,7 @@ class Listener {
     logEvent("OperatorName");
   }
 
-  void handleParenthesizedExpression(BeginGroupToken token) {
+  void handleParenthesizedExpression(BeginToken token) {
     logEvent("ParenthesizedExpression");
   }
 
@@ -1067,7 +1075,7 @@ class Listener {
   /// If [next] is `null`, `null` is returned.
   Token newSyntheticToken(Token next) {
     if (next == null) return null;
-    return new SymbolToken(TokenType.RECOVERY, next.charOffset)..next = next;
+    return new Token(TokenType.RECOVERY, next.charOffset)..next = next;
   }
 }
 

@@ -354,6 +354,302 @@ class AnalysisFoldingParams implements HasToJson {
 }
 
 /**
+ * analysis.getNavigation params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisGetNavigationParams implements RequestParams {
+  String _file;
+
+  int _offset;
+
+  int _length;
+
+  /**
+   * The file in which navigation information is being requested.
+   */
+  String get file => _file;
+
+  /**
+   * The file in which navigation information is being requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The offset of the region for which navigation information is being
+   * requested.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the region for which navigation information is being
+   * requested.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The length of the region for which navigation information is being
+   * requested.
+   */
+  int get length => _length;
+
+  /**
+   * The length of the region for which navigation information is being
+   * requested.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  AnalysisGetNavigationParams(String file, int offset, int length) {
+    this.file = file;
+    this.offset = offset;
+    this.length = length;
+  }
+
+  factory AnalysisGetNavigationParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "length");
+      }
+      return new AnalysisGetNavigationParams(file, offset, length);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.getNavigation params", json);
+    }
+  }
+
+  factory AnalysisGetNavigationParams.fromRequest(Request request) {
+    return new AnalysisGetNavigationParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["offset"] = offset;
+    result["length"] = length;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "analysis.getNavigation", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisGetNavigationParams) {
+      return file == other.file &&
+          offset == other.offset &&
+          length == other.length;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analysis.getNavigation result
+ *
+ * {
+ *   "files": List<FilePath>
+ *   "targets": List<NavigationTarget>
+ *   "regions": List<NavigationRegion>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisGetNavigationResult implements ResponseResult {
+  List<String> _files;
+
+  List<NavigationTarget> _targets;
+
+  List<NavigationRegion> _regions;
+
+  /**
+   * A list of the paths of files that are referenced by the navigation
+   * targets.
+   */
+  List<String> get files => _files;
+
+  /**
+   * A list of the paths of files that are referenced by the navigation
+   * targets.
+   */
+  void set files(List<String> value) {
+    assert(value != null);
+    this._files = value;
+  }
+
+  /**
+   * A list of the navigation targets that are referenced by the navigation
+   * regions.
+   */
+  List<NavigationTarget> get targets => _targets;
+
+  /**
+   * A list of the navigation targets that are referenced by the navigation
+   * regions.
+   */
+  void set targets(List<NavigationTarget> value) {
+    assert(value != null);
+    this._targets = value;
+  }
+
+  /**
+   * A list of the navigation regions within the requested region of the file.
+   */
+  List<NavigationRegion> get regions => _regions;
+
+  /**
+   * A list of the navigation regions within the requested region of the file.
+   */
+  void set regions(List<NavigationRegion> value) {
+    assert(value != null);
+    this._regions = value;
+  }
+
+  AnalysisGetNavigationResult(List<String> files,
+      List<NavigationTarget> targets, List<NavigationRegion> regions) {
+    this.files = files;
+    this.targets = targets;
+    this.regions = regions;
+  }
+
+  factory AnalysisGetNavigationResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<String> files;
+      if (json.containsKey("files")) {
+        files = jsonDecoder.decodeList(
+            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "files");
+      }
+      List<NavigationTarget> targets;
+      if (json.containsKey("targets")) {
+        targets = jsonDecoder.decodeList(
+            jsonPath + ".targets",
+            json["targets"],
+            (String jsonPath, Object json) =>
+                new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "targets");
+      }
+      List<NavigationRegion> regions;
+      if (json.containsKey("regions")) {
+        regions = jsonDecoder.decodeList(
+            jsonPath + ".regions",
+            json["regions"],
+            (String jsonPath, Object json) =>
+                new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "regions");
+      }
+      return new AnalysisGetNavigationResult(files, targets, regions);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.getNavigation result", json);
+    }
+  }
+
+  factory AnalysisGetNavigationResult.fromResponse(Response response) {
+    return new AnalysisGetNavigationResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["files"] = files;
+    result["targets"] =
+        targets.map((NavigationTarget value) => value.toJson()).toList();
+    result["regions"] =
+        regions.map((NavigationRegion value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisGetNavigationResult) {
+      return listEqual(files, other.files, (String a, String b) => a == b) &&
+          listEqual(targets, other.targets,
+              (NavigationTarget a, NavigationTarget b) => a == b) &&
+          listEqual(regions, other.regions,
+              (NavigationRegion a, NavigationRegion b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    hash = JenkinsSmiHash.combine(hash, targets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * analysis.handleWatchEvents params
  *
  * {

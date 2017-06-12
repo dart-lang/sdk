@@ -45,7 +45,8 @@ class BeginToken extends SimpleToken {
    * [offset].
    */
   BeginToken(TokenType type, int offset) : super(type, offset) {
-    assert(type == TokenType.OPEN_CURLY_BRACKET ||
+    assert(type == TokenType.LT ||
+        type == TokenType.OPEN_CURLY_BRACKET ||
         type == TokenType.OPEN_PAREN ||
         type == TokenType.OPEN_SQUARE_BRACKET ||
         type == TokenType.STRING_INTERPOLATION_EXPRESSION);
@@ -53,6 +54,18 @@ class BeginToken extends SimpleToken {
 
   @override
   Token copy() => new BeginToken(type, offset);
+
+  /**
+   * The token that corresponds to this token.
+   */
+  Token get endGroup => endToken;
+
+  /**
+   * Set the token that corresponds to this token.
+   */
+  set endGroup(Token token) {
+    endToken = token;
+  }
 }
 
 /**
@@ -703,15 +716,37 @@ class SyntheticKeywordToken extends KeywordToken {
  * A token whose value is independent of it's type.
  */
 class SyntheticStringToken extends StringToken {
+  final int _length;
+
   /**
    * Initialize a newly created token to represent a token of the given [type]
-   * with the given [value] at the given [offset].
+   * with the given [value] at the given [offset]. If the [length] is
+   * not specified, then it defaults to the length of [value].
    */
-  SyntheticStringToken(TokenType type, String value, int offset)
+  SyntheticStringToken(TokenType type, String value, int offset, [this._length])
       : super(type, value, offset);
 
   @override
   bool get isSynthetic => true;
+
+  @override
+  int get length => _length ?? super.length;
+
+  @override
+  Token copy() => new SyntheticStringToken(type, _value, offset);
+}
+
+/**
+ * A synthetic token.
+ */
+class SyntheticToken extends SimpleToken {
+  SyntheticToken(TokenType type, int offset) : super(type, offset);
+
+  @override
+  int get length => 0;
+
+  @override
+  Token copy() => new SyntheticToken(type, offset);
 }
 
 /**
@@ -725,6 +760,19 @@ abstract class Token implements SyntacticEntity {
    * Initialize a newly created token to have the given [type] and [offset].
    */
   factory Token(TokenType type, int offset) = SimpleToken;
+
+  /**
+   * Initialize a newly created end-of-file token to have the given [offset].
+   */
+  factory Token.eof(int offset, [CommentToken precedingComments]) {
+    Token eof = precedingComments == null
+        ? new SimpleToken(TokenType.EOF, offset)
+        : new TokenWithComment(TokenType.EOF, offset, precedingComments);
+    // EOF points to itself so there's always infinite look-ahead.
+    eof.previous = eof;
+    eof.next = eof;
+    return eof;
+  }
 
   /**
    * The number of characters parsed by this token.
@@ -1109,8 +1157,12 @@ class TokenType {
       isOperator: true);
 
   // This is not yet part of the language and not supported by fasta
-  static const TokenType AMPERSAND_AMPERSAND_EQ =
-      const TokenType('&&=', 'AMPERSAND_AMPERSAND_EQ', 1, -1);
+  static const TokenType AMPERSAND_AMPERSAND_EQ = const TokenType(
+      '&&=',
+      'AMPERSAND_AMPERSAND_EQ',
+      ASSIGNMENT_PRECEDENCE,
+      AMPERSAND_AMPERSAND_EQ_TOKEN,
+      isOperator: true);
 
   static const TokenType AMPERSAND_EQ = const TokenType(
       '&=', 'AMPERSAND_EQ', ASSIGNMENT_PRECEDENCE, AMPERSAND_EQ_TOKEN,
@@ -1139,8 +1191,9 @@ class TokenType {
       isOperator: true);
 
   // This is not yet part of the language and not supported by fasta
-  static const TokenType BAR_BAR_EQ =
-      const TokenType('||=', 'BAR_BAR_EQ', 1, -1);
+  static const TokenType BAR_BAR_EQ = const TokenType(
+      '||=', 'BAR_BAR_EQ', ASSIGNMENT_PRECEDENCE, BAR_BAR_EQ_TOKEN,
+      isOperator: true);
 
   static const TokenType BAR_EQ = const TokenType(
       '|=', 'BAR_EQ', ASSIGNMENT_PRECEDENCE, BAR_EQ_TOKEN,
@@ -1177,6 +1230,9 @@ class TokenType {
       '==', 'EQ_EQ', EQUALITY_PRECEDENCE, EQ_EQ_TOKEN,
       isOperator: true, isUserDefinableOperator: true);
 
+  /// The `===` operator is not supported in the Dart language
+  /// but is parsed as such by the scanner to support better recovery
+  /// when a JavaScript code snippet is pasted into a Dart file.
   static const TokenType EQ_EQ_EQ =
       const TokenType('===', 'EQ_EQ_EQ', EQUALITY_PRECEDENCE, EQ_EQ_EQ_TOKEN);
 

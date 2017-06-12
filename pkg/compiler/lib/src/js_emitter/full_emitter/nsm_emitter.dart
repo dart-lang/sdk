@@ -51,7 +51,8 @@ class NsmEmitter extends CodeEmitterHelper {
     List<jsAst.Name> names = addedJsNames.keys.toList()..sort();
     for (jsAst.Name jsName in names) {
       Selector selector = addedJsNames[jsName];
-      String reflectionName = emitter.getReflectionName(selector, jsName);
+      String reflectionName =
+          emitter.getReflectionSelectorName(selector, jsName);
 
       if (reflectionName != null) {
         emitter.mangledFieldNames[jsName] = reflectionName;

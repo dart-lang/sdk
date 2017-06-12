@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -47,6 +49,9 @@ Future f;
     writeFile(pathname, text);
 
     await analysisFinished;
+    // The errors (at least sometimes) don't get sent until after analysis has
+    // completed. Wait long enough to see whether new errors are reported.
+    await new Future.delayed(new Duration(milliseconds: 1000));
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
 

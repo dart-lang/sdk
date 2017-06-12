@@ -519,6 +519,7 @@ LayoutTests/fast/forms/autofocus-readonly-attribute_t01: Skip # Times out. co19-
 LayoutTests/fast/forms/button-baseline-and-collapsing_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/button/button-disabled-blur_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/clone-input-with-dirty-value_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/forms/date/date-interactive-validation-required_t01: Pass, RuntimeError # Issue 29742
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-change-layout-by-value_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue-onfocusremoved_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/datetimelocal-multiple-fields/datetimelocal-multiple-fields-change-layout-by-value_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.

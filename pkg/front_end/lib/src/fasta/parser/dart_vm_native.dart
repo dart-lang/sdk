@@ -45,6 +45,7 @@ Token skipNativeClause(Token token) {
 /// This method designed to be called from [Listener.handleMemberName].
 Link<Token> removeNativeClause(Link<Token> identifiers) {
   Link<Token> result = identifiers.tail;
+  if (result.isEmpty) return identifiers;
   if (result.head.kind != STRING_TOKEN) return identifiers;
   result = result.tail;
   if (result.isEmpty) return identifiers;

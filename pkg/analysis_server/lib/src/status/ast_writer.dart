@@ -87,6 +87,8 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['propagated element'] = node.propagatedElement;
       properties['propagated invoke type'] = node.propagatedInvokeType;
       properties['propagated type'] = node.propagatedType;
+    } else if (node is GenericFunctionType) {
+      properties['type'] = node.type;
     } else if (node is ImportDirective) {
       properties['element'] = node.element;
       properties['selectedSource'] = node.selectedSource;

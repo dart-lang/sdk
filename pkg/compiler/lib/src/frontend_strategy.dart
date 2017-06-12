@@ -14,7 +14,6 @@ import 'environment.dart';
 import 'enqueue.dart';
 import 'js_backend/backend.dart';
 import 'js_backend/backend_usage.dart';
-import 'js_backend/custom_elements_analysis.dart';
 import 'js_backend/interceptor_data.dart';
 import 'js_backend/mirrors_analysis.dart';
 import 'js_backend/mirrors_data.dart';
@@ -31,7 +30,7 @@ import 'universe/world_impact.dart';
 
 /// Strategy pattern that defines the connection between the input format and
 /// the resolved element model.
-abstract class FrontEndStrategy {
+abstract class FrontendStrategy {
   /// Creates library loader task for this strategy.
   LibraryLoaderTask createLibraryLoader(
       ResolvedUriTranslator uriTranslator,
@@ -47,6 +46,10 @@ abstract class FrontEndStrategy {
   /// Returns the [ElementEnvironment] for the element model used in this
   /// strategy.
   ElementEnvironment get elementEnvironment;
+
+  /// Returns the [CommonElements] for the element model used in this
+  /// strategy.
+  CommonElements get commonElements;
 
   /// Returns the [DartTypes] for the element model used in this strategy.
   DartTypes get dartTypes;
@@ -83,10 +86,6 @@ abstract class FrontEndStrategy {
       LibraryEntity mainLibrary, WorldImpactBuilder impactBuilder);
 
   // TODO(johnniwinther): Reuse the following classes between strategies:
-
-  /// Creates the [CustomElementsResolutionAnalysis] for this strategy.
-  CustomElementsResolutionAnalysis createCustomElementsResolutionAnalysis(
-      NativeBasicData nativeBasicData, BackendUsageBuilder backendUsageBuilder);
 
   /// Creates the [MirrorsDataBuilder] for this strategy.
   MirrorsDataBuilder createMirrorsDataBuilder();

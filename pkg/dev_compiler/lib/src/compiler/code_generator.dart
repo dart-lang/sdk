@@ -690,7 +690,6 @@ class CodeGenerator extends Object
     var to = node.type.type;
 
     JS.Expression jsFrom = _visit(fromExpr);
-    if (_inWhitelistCode(node)) return jsFrom;
 
     // Skip the cast if it's not needed.
     if (rules.isSubtypeOf(from, to)) return jsFrom;
@@ -724,7 +723,8 @@ class CodeGenerator extends Object
     var type = node.type.type;
     var lhs = _visit(node.expression);
     var typeofName = _jsTypeofName(type);
-    if (typeofName != null) {
+    // Inline primitives other than int (which requires a Math.floor check).
+    if (typeofName != null && type != types.intType) {
       result = js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     } else {
       // Always go through a runtime helper, because implicit interfaces.
@@ -1603,15 +1603,16 @@ class CodeGenerator extends Object
       fnBody = js.call('#._check(#)', [_emitType(method.returnType), fnBody]);
     }
 
-    var fn = new JS.Fun(fnArgs, js.statement('{ return #; }', [fnBody]),
-        typeParams: _emitTypeFormals(method.type.typeFormals));
+    var fn = _makeGenericFunction(new JS.Fun(
+        fnArgs, js.statement('{ return #; }', [fnBody]),
+        typeParams: _emitTypeFormals(method.type.typeFormals)));
 
     // TODO(jmesserly): generic type arguments will get dropped.
     // We have a similar issue with `dgsend` helpers.
     return new JS.Method(
         _declareMemberName(method,
             useExtension: _extensionTypes.isNativeClass(type.element)),
-        _makeGenericFunction(fn),
+        fn,
         isGetter: method is PropertyAccessorElement && method.isGetter,
         isSetter: method is PropertyAccessorElement && method.isSetter,
         isStatic: false);
@@ -2378,8 +2379,7 @@ class CodeGenerator extends Object
           resolutionMap.elementDeclaredByFormalParameter(param).type;
       if (node is MethodDeclaration &&
           (resolutionMap.elementDeclaredByFormalParameter(param).isCovariant ||
-              _unsoundCovariant(paramType, true)) &&
-          !_inWhitelistCode(node)) {
+              _unsoundCovariant(paramType, true))) {
         var castType = _emitType(paramType,
             nameType: options.nameTypeTests || options.hoistTypeTests,
             hoistType: options.hoistTypeTests);
@@ -2444,16 +2444,6 @@ class CodeGenerator extends Object
       fn = _emitNativeFunctionBody(node);
     } else {
       fn = _emitFunctionBody(node.element, node.parameters, node.body);
-
-      if (node.operatorKeyword != null &&
-          node.name.name == '[]=' &&
-          fn.params.isNotEmpty) {
-        // []= methods need to return the value. We could also address this at
-        // call sites, but it's cleaner to instead transform the operator method.
-        fn = _alwaysReturnLastParameter(fn);
-      }
-
-      fn = _makeGenericFunction(fn);
     }
 
     return annotate(
@@ -2469,20 +2459,15 @@ class CodeGenerator extends Object
   ///
   /// This is useful for indexed set methods, which otherwise would not have
   /// the right return value in JS.
-  JS.Fun _alwaysReturnLastParameter(JS.Fun fn) {
-    var body = fn.body;
-    if (JS.Return.foundIn(fn)) {
+  JS.Node _alwaysReturnLastParameter(JS.Node body, JS.Parameter lastParam) {
+    if (JS.Return.foundIn(body)) {
       // If a return is inside body, transform `(params) { body }` to
       // `(params) { (() => { body })(); return value; }`.
       // TODO(jmesserly): we could instead generate the return differently,
       // and avoid the immediately invoked function.
-      body = new JS.Call(new JS.ArrowFun([], fn.body), []).toStatement();
+      body = new JS.Call(new JS.ArrowFun([], body), []).toStatement();
     }
-    // Rewrite the function to include the return.
-    return new JS.Fun(
-        fn.params, new JS.Block([body, new JS.Return(fn.params.last)]),
-        typeParams: fn.typeParams, returnType: fn.returnType)
-      ..sourceInformation = fn.sourceInformation;
+    return new JS.Block([body, new JS.Return(lastParam)]);
   }
 
   @override
@@ -2631,7 +2616,23 @@ class CodeGenerator extends Object
   }
 
   JS.ArrowFun _emitArrowFunction(FunctionExpression node) {
-    JS.Fun f = _emitFunctionBody(node.element, node.parameters, node.body);
+    JS.Fun fn = _emitFunctionBody(node.element, node.parameters, node.body);
+
+    return annotate(_toArrowFunction(fn), node);
+  }
+
+  JS.Fun _makeGenericFunction(JS.Fun fn) {
+    if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
+
+    return new JS.Fun(
+        fn.typeParams,
+        new JS.Block([
+          // Convert the function to an => function, to ensure `this` binding.
+          new JS.Return(_toArrowFunction(fn))
+        ]));
+  }
+
+  JS.ArrowFun _toArrowFunction(JS.Fun f) {
     JS.Node body = f.body;
 
     // Simplify `=> { return e; }` to `=> e`
@@ -2645,28 +2646,9 @@ class CodeGenerator extends Object
 
     // Convert `function(...) { ... }` to `(...) => ...`
     // This is for readability, but it also ensures correct `this` binding.
-    var fn = new JS.ArrowFun(f.params, body,
-        typeParams: f.typeParams, returnType: f.returnType);
-
-    return annotate(_makeGenericArrowFun(fn), node);
-  }
-
-  JS.ArrowFun _makeGenericArrowFun(JS.ArrowFun fn) {
-    if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
-    return new JS.ArrowFun(fn.typeParams, fn);
-  }
-
-  JS.Fun _makeGenericFunction(JS.Fun fn) {
-    if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
-
-    // TODO(jmesserly): we could make these default to `dynamic`.
-    return new JS.Fun(
-        fn.typeParams,
-        new JS.Block([
-          // Convert the function to an => function, to ensure `this` binding.
-          new JS.Return(new JS.ArrowFun(fn.params, fn.body,
-              typeParams: fn.typeParams, returnType: fn.returnType))
-        ]));
+    return new JS.ArrowFun(f.params, body,
+        typeParams: f.typeParams, returnType: f.returnType)
+      ..sourceInformation = f.sourceInformation;
   }
 
   /// Emits a non-arrow FunctionExpression node.
@@ -2677,8 +2659,8 @@ class CodeGenerator extends Object
   ///
   /// Contrast with [visitFunctionExpression].
   JS.Fun _emitFunction(FunctionExpression node) {
-    var fn = _emitFunctionBody(node.element, node.parameters, node.body);
-    return annotate(_makeGenericFunction(fn), node);
+    return annotate(
+        _emitFunctionBody(node.element, node.parameters, node.body), node);
   }
 
   JS.Fun _emitFunctionBody(ExecutableElement element,
@@ -2700,8 +2682,15 @@ class CodeGenerator extends Object
         code
       ]);
     }
-    return new JS.Fun(formals, code,
-        typeParams: typeFormals, returnType: returnType);
+
+    if (element.isOperator && element.name == '[]=' && formals.isNotEmpty) {
+      // []= methods need to return the value. We could also address this at
+      // call sites, but it's cleaner to instead transform the operator method.
+      code = _alwaysReturnLastParameter(code, formals.last);
+    }
+
+    return _makeGenericFunction(new JS.Fun(formals, code,
+        typeParams: typeFormals, returnType: returnType));
   }
 
   JS.Expression _emitGeneratorFunctionBody(ExecutableElement element,
@@ -2813,8 +2802,8 @@ class CodeGenerator extends Object
   JS.Expression _emitSimpleIdentifier(SimpleIdentifier node) {
     var accessor = resolutionMap.staticElementForIdentifier(node);
     if (accessor == null) {
-      return js.commentExpression(
-          'Unimplemented unknown name', new JS.Identifier(node.name));
+      return _callHelper('throw("compile error: unresolved identifier: " + #)',
+          js.escapedString(node.name ?? '<null>'));
     }
 
     // Get the original declaring element. If we had a property accessor, this
@@ -3294,22 +3283,6 @@ class CodeGenerator extends Object
     }
 
     if (target != null && isDynamicInvoke(target)) {
-      if (_inWhitelistCode(lhs)) {
-        var vars = <JS.MetaLetVariable, JS.Expression>{};
-        var l = _visit(_bindValue(vars, 'l', target));
-        var name = _emitMemberName(id.name);
-        return new JS.MetaLet(vars, [
-          js.call('(#[(#[#._extensionType]) ? #[#] : #] = #)', [
-            l,
-            l,
-            _runtimeModule,
-            _extensionSymbolsModule,
-            name,
-            name,
-            _visit(rhs)
-          ])
-        ]);
-      }
       return _callHelper('#(#, #, #)', [
         _emitDynamicOperationName('dput'),
         _visit(target),
@@ -3617,23 +3590,6 @@ class CodeGenerator extends Object
 
     JS.Expression jsTarget = _emitTarget(target, element, isStatic);
     if (isDynamicInvoke(target) || isDynamicInvoke(node.methodName)) {
-      if (_inWhitelistCode(target)) {
-        var vars = <JS.MetaLetVariable, JS.Expression>{};
-        var l = _visit(_bindValue(vars, 'l', target));
-        jsTarget = new JS.MetaLet(vars, [
-          js.call('(#[(#[#._extensionType]) ? #[#] : #]).bind(#)', [
-            l,
-            l,
-            _runtimeModule,
-            _extensionSymbolsModule,
-            memberName,
-            memberName,
-            l
-          ])
-        ]);
-        if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
-        return new JS.Call(jsTarget, args);
-      }
       if (typeArgs != null) {
         return _callHelper('#(#, #, #, #)', [
           _emitDynamicOperationName('dgsend'),
@@ -3665,9 +3621,6 @@ class CodeGenerator extends Object
       return _callHelper(
           'dgcall(#, #, #)', [fn, new JS.ArrayInitializer(typeArgs), args]);
     } else {
-      if (_inWhitelistCode(node, isCall: true)) {
-        return new JS.Call(fn, args);
-      }
       return _callHelper('dcall(#, #)', [fn, args]);
     }
   }
@@ -4139,14 +4092,11 @@ class CodeGenerator extends Object
       bool isFactory = false;
       bool isNative = false;
       if (element == null) {
-        // TODO(jmesserly): this only happens if we had a static error.
-        // Should we generate a throw instead?
-        ctor = _emitConstructorAccess(type,
-            nameType: options.hoistInstanceCreation,
-            hoistType: options.hoistInstanceCreation);
-        if (name != null) {
-          ctor = new JS.PropertyAccess(ctor, _propertyName(name.name));
-        }
+        ctor = _callHelper(
+            'throw("compile error: unresolved constructor: " + # + "." + #)', [
+          js.escapedString(type?.name ?? '<null>'),
+          js.escapedString(name?.name ?? '<unnamed>')
+        ]);
       } else {
         ctor = _emitConstructorName(element, type, name);
         isFactory = element.isFactory;
@@ -4972,14 +4922,6 @@ class CodeGenerator extends Object
     var name = _emitMemberName(memberName,
         type: getStaticType(target), isStatic: isStatic, element: member);
     if (isDynamicInvoke(target)) {
-      if (_inWhitelistCode(target)) {
-        var vars = <JS.MetaLetVariable, JS.Expression>{};
-        var l = _visit(_bindValue(vars, 'l', target));
-        return new JS.MetaLet(vars, [
-          js.call('(#[#._extensionType]) ? #[#[#]] : #.#',
-              [l, _runtimeModule, l, _extensionSymbolsModule, name, l, name])
-        ]);
-      }
       return _callHelper('#(#, #)',
           [_emitDynamicOperationName('dload'), _visit(target), name]);
     }
@@ -5036,22 +4978,6 @@ class CodeGenerator extends Object
     var type = getStaticType(target);
     var memberName = _emitMemberName(name, type: type);
     if (isDynamicInvoke(target)) {
-      if (_inWhitelistCode(target)) {
-        var vars = <JS.MetaLetVariable, JS.Expression>{};
-        var l = _visit(_bindValue(vars, 'l', target));
-        return new JS.MetaLet(vars, [
-          js.call('(#[(#[#._extensionType]) ? #[#] : #]).call(#, #)', [
-            l,
-            l,
-            _runtimeModule,
-            _extensionSymbolsModule,
-            memberName,
-            memberName,
-            l,
-            _visitList(args)
-          ])
-        ]);
-      }
       // dynamic dispatch
       var dynamicHelper = const {'[]': 'dindex', '[]=': 'dsetindex'}[name];
       if (dynamicHelper != null) {
@@ -5835,56 +5761,6 @@ class CodeGenerator extends Object
       args = [_runtimeModule, args];
     }
     return js.statement('#.$code', args);
-  }
-
-  // TODO(kevmoo): https://github.com/dart-lang/sdk/issues/27255
-  // TODO(kevmoo): Remove once pkg/angular2 has moved to the new compiler
-  //               See https://github.com/dart-lang/angular2/issues/48
-  /// Temporary workaround *cough* total hack *cough*.
-  ///
-  /// Maps whitelisted files to a list of whitelisted methods
-  /// within the file.
-  ///
-  /// If the value is null, the entire file is whitelisted.
-  ///
-  static const Map<String, List<String>> _uncheckedWhitelist = const {
-    'dom_renderer.dart': const ['moveNodesAfterSibling'],
-    'template_ref.dart': const ['createEmbeddedView'],
-    'ng_class.dart': const ['_applyIterableChanges'],
-    'ng_for.dart': const ['_bulkRemove', '_bulkInsert'],
-    'view_container_ref.dart': const ['createEmbeddedView'],
-    'default_iterable_differ.dart': null,
-  };
-
-  static Set<String> _uncheckedWhitelistCalls = new Set()
-    ..add('ng_zone_impl.dart')
-    ..add('stack_zone_specification.dart')
-    ..add('view_manager.dart')
-    ..add('view.dart');
-
-  bool _inWhitelistCode(AstNode node, {isCall: false}) {
-    if (!options.useAngular2Whitelist) return false;
-    var path = currentElement.source.fullName;
-    var filename = path.split("/").last;
-    if (_uncheckedWhitelist.containsKey(filename)) {
-      var whitelisted = _uncheckedWhitelist[filename];
-      if (whitelisted == null) return true;
-      var enclosing = node;
-      while (enclosing != null &&
-          !(enclosing is ClassMember || enclosing is FunctionDeclaration)) {
-        enclosing = enclosing.parent;
-      }
-      String name = (enclosing as dynamic)?.element?.name;
-      if (name != null) {
-        return whitelisted.contains(name);
-      }
-    }
-
-    // Dynamic calls are less risky so there is no need to whitelist at the
-    // method level.
-    if (isCall && _uncheckedWhitelistCalls.contains(filename)) return true;
-
-    return path.endsWith(".template.dart");
   }
 
   _unreachable(AstNode node) {

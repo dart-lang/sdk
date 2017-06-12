@@ -245,8 +245,8 @@ class LocalsHandler {
   final TypeSystem types;
   final InferrerEngine inferrer;
   final VariableScope locals;
-  final Map<Local, Element> captured;
-  final Map<Local, Element> capturedAndBoxed;
+  final Map<Local, FieldEntity> captured;
+  final Map<Local, FieldEntity> capturedAndBoxed;
   final FieldInitializationScope fieldScope;
   LocalsHandler tryBlock;
   bool seenReturnOrThrow = false;
@@ -261,8 +261,8 @@ class LocalsHandler {
   LocalsHandler(this.inferrer, this.types, this.options, Node block,
       [this.fieldScope])
       : locals = new VariableScope(block),
-        captured = new Map<Local, Element>(),
-        capturedAndBoxed = new Map<Local, Element>(),
+        captured = new Map<Local, FieldEntity>(),
+        capturedAndBoxed = new Map<Local, FieldEntity>(),
         tryBlock = null;
 
   LocalsHandler.from(LocalsHandler other, Node block,
@@ -355,11 +355,11 @@ class LocalsHandler {
     }
   }
 
-  void setCaptured(Local local, Element field) {
+  void setCaptured(Local local, FieldEntity field) {
     captured[local] = field;
   }
 
-  void setCapturedAndBoxed(Local local, Element field) {
+  void setCapturedAndBoxed(Local local, FieldEntity field) {
     capturedAndBoxed[local] = field;
   }
 

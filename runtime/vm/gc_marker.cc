@@ -192,7 +192,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         // The key is marked so we make sure to properly visit all pointers
         // originating from this weak property.
         VisitingOldObject(cur_weak);
-        cur_weak->VisitPointers(this);
+        cur_weak->VisitPointersNonvirtual(this);
       } else {
         // Requeue this weak property to be handled later.
         EnqueueWeakProperty(cur_weak);
@@ -220,7 +220,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         VisitingOldObject(raw_obj);
         const intptr_t class_id = raw_obj->GetClassId();
         if (class_id != kWeakPropertyCid) {
-          marked_bytes_ += raw_obj->VisitPointers(this);
+          marked_bytes_ += raw_obj->VisitPointersNonvirtual(this);
         } else {
           RawWeakProperty* raw_weak =
               reinterpret_cast<RawWeakProperty*>(raw_obj);
@@ -272,7 +272,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       return raw_weak->Size();
     }
     // Key is gray or black. Make the weak property black.
-    return raw_weak->VisitPointers(this);
+    return raw_weak->VisitPointersNonvirtual(this);
   }
 
   // Called when all marking is complete.

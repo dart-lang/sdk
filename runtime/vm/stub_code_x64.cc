@@ -1880,7 +1880,7 @@ void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
 // checks.
 // TOS + 0: return address
 // Result in RAX.
-void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
+void StubCode::GenerateGetCStackPointerStub(Assembler* assembler) {
   __ leaq(RAX, Address(RSP, kWordSize));
   __ ret();
 }

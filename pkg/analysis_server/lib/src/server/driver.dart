@@ -389,6 +389,10 @@ class Driver implements ServerStarter {
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
     analysisServerOptions.newAnalysisDriverLog =
         results[NEW_ANALYSIS_DRIVER_LOG];
+
+    analysisServerOptions.clientId = results[CLIENT_ID];
+    analysisServerOptions.clientVersion = results[CLIENT_VERSION];
+
     analysisServerOptions.enableVerboseFlutterCompletions =
         results[VERBOSE_FLUTTER_COMPLETIONS];
 
@@ -532,6 +536,7 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addFlag(HELP_OPTION,
         help: "print this help message without starting a server",
+        abbr: 'h',
         defaultsTo: false,
         negatable: false);
     parser.addOption(INCREMENTAL_RESOLUTION_LOG,

@@ -25,7 +25,7 @@ template("application_snapshot") {
   if (defined(invoker.deps)) {
     extra_deps += invoker.deps
   }
-  extra_inputs = []
+  extra_inputs = [main_dart]
   if (defined(invoker.inputs)) {
     extra_inputs += invoker.inputs
   }

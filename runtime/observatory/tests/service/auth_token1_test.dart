@@ -24,7 +24,7 @@ Future<Null> testeeBefore() async {
   var url = Uri.parse('http://localhost:$port');
   var httpClient = new io.HttpClient();
   try {
-    var request = await httpClient.getUrl(url);
+    await httpClient.getUrl(url);
     expect(true, true);
   } catch (e) {
     expect(true, false);

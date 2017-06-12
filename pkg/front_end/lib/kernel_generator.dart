@@ -13,6 +13,8 @@ import 'src/fasta/dill/dill_target.dart' show DillTarget;
 import 'src/fasta/errors.dart' show InputError;
 import 'src/fasta/kernel/kernel_target.dart' show KernelTarget;
 import 'package:kernel/kernel.dart' show Program;
+import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 import 'src/fasta/ticker.dart' show Ticker;
 import 'src/fasta/translate_uri.dart' show TranslateUri;
 import 'src/simple_error.dart';
@@ -52,15 +54,15 @@ Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
   try {
     TranslateUri uriTranslator = await pOptions.getUriTranslator();
 
-    var dillTarget =
-        new DillTarget(new Ticker(isVerbose: false), uriTranslator, "vm");
+    var dillTarget = new DillTarget(new Ticker(isVerbose: false), uriTranslator,
+        new VmFastaTarget(new TargetFlags(strongMode: options.strongMode)));
     var summary = await pOptions.sdkSummaryProgram;
     if (summary != null) {
       dillTarget.loader.appendLibraries(summary);
     }
 
-    var kernelTarget = new KernelTarget(
-        options.fileSystem, dillTarget, uriTranslator, options.strongMode);
+    var kernelTarget =
+        new KernelTarget(options.fileSystem, dillTarget, uriTranslator);
     kernelTarget.read(source);
 
     await dillTarget.buildOutlines();
@@ -148,8 +150,8 @@ Future<Program> kernelForBuildUnit(
   try {
     TranslateUri uriTranslator = await pOptions.getUriTranslator();
 
-    var dillTarget =
-        new DillTarget(new Ticker(isVerbose: false), uriTranslator, "vm");
+    var dillTarget = new DillTarget(new Ticker(isVerbose: false), uriTranslator,
+        new VmFastaTarget(new TargetFlags(strongMode: options.strongMode)));
     var summary = await pOptions.sdkSummaryProgram;
     if (summary != null) {
       dillTarget.loader.appendLibraries(summary);
@@ -164,8 +166,8 @@ Future<Program> kernelForBuildUnit(
 
     await dillTarget.buildOutlines();
 
-    var kernelTarget = new KernelTarget(
-        options.fileSystem, dillTarget, uriTranslator, options.strongMode);
+    var kernelTarget =
+        new KernelTarget(options.fileSystem, dillTarget, uriTranslator);
     sources.forEach(kernelTarget.read);
     await kernelTarget.buildOutlines();
 

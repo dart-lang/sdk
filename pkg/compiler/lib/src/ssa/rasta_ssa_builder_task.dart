@@ -23,7 +23,7 @@ class RastaSsaBuilderTask extends SsaAstBuilderBase {
 
   HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
-      if (handleConstantField(work)) {
+      if (handleConstantField(work, closedWorld)) {
         // No code is generated for `work.element`.
         return null;
       }
@@ -32,15 +32,23 @@ class RastaSsaBuilderTask extends SsaAstBuilderBase {
       Kernel kernel = backend.kernelTask.kernel;
       KernelAstAdapter astAdapter = new KernelAstAdapter(kernel, backend,
           work.resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
+      KernelAstTypeInferenceMap typeInferenceMap =
+          new KernelAstTypeInferenceMap(astAdapter);
       KernelSsaBuilder builder = new KernelSsaBuilder(
           element,
           element.contextClass,
+          astAdapter.getInitialKernelNode(element),
           backend.compiler,
           astAdapter,
+          typeInferenceMap,
+          astAdapter,
           closedWorld,
+          backend.compiler.codegenWorldBuilder,
           work.registry,
-          sourceInformationFactory.createBuilderForContext(resolvedAst),
-          resolvedAst.kind == ResolvedAstKind.PARSED ? resolvedAst.node : null);
+          backend.compiler.closureToClassMapper,
+          sourceInformationFactory.createBuilderForContext(work.element),
+          resolvedAst.kind == ResolvedAstKind.PARSED ? resolvedAst.node : null,
+          targetIsConstructorBody: element is ConstructorBodyElement);
       HGraph graph = builder.build();
 
       if (backend.tracer.isEnabled) {

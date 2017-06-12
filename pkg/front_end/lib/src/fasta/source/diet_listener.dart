@@ -4,16 +4,13 @@
 
 library fasta.diet_listener;
 
-import 'package:front_end/src/fasta/kernel/kernel_ast_factory.dart'
-    show KernelAstFactory;
-
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
     show TypeInferenceEngine;
 
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
     show TypeInferenceListener;
 
-import 'package:kernel/ast.dart' show AsyncMarker;
+import 'package:kernel/ast.dart' show AsyncMarker, Class, InterfaceType;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -23,9 +20,7 @@ import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
 
 import '../parser/parser.dart' show MemberKind, Parser, optional;
 
-import '../scanner/token.dart' show BeginGroupToken;
-
-import '../../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show BeginToken, Token;
 
 import '../parser/dart_vm_native.dart' show removeNativeClause;
 
@@ -48,7 +43,7 @@ class DietListener extends StackListener {
 
   final CoreTypes coreTypes;
 
-  final bool isDartLibrary;
+  final bool enableNative;
 
   final TypeInferenceEngine typeInferenceEngine;
 
@@ -66,7 +61,7 @@ class DietListener extends StackListener {
       : library = library,
         uri = library.fileUri,
         memberScope = library.scope,
-        isDartLibrary = library.uri.scheme == "dart";
+        enableNative = library.loader.target.enableNative(library);
 
   void discard(int n) {
     for (int i = 0; i < n; i++) {
@@ -370,7 +365,7 @@ class DietListener extends StackListener {
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     debugEvent("FactoryMethod");
-    BeginGroupToken bodyToken = pop();
+    BeginToken bodyToken = pop();
     String name = pop();
     checkEmpty(beginToken.charOffset);
     if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
@@ -408,20 +403,17 @@ class DietListener extends StackListener {
       MemberBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope]) {
     var listener = new TypeInferenceListener();
+    InterfaceType thisType;
+    if (builder.isClassMember) {
+      // Note: we set thisType regardless of whether we are building a static
+      // member, since that provides better error recovery.
+      Class cls = builder.parent.target;
+      thisType = cls.thisType;
+    }
     var typeInferrer =
-        typeInferenceEngine.createLocalTypeInferrer(uri, listener);
-    return new BodyBuilder(
-        library,
-        builder,
-        memberScope,
-        formalParameterScope,
-        hierarchy,
-        coreTypes,
-        currentClass,
-        isInstanceMember,
-        uri,
-        typeInferrer,
-        new KernelAstFactory())
+        typeInferenceEngine.createLocalTypeInferrer(uri, listener, thisType);
+    return new BodyBuilder(library, builder, memberScope, formalParameterScope,
+        hierarchy, coreTypes, currentClass, isInstanceMember, uri, typeInferrer)
       ..constantExpressionRequired = builder.isConstructor && builder.isConst;
   }
 
@@ -500,7 +492,7 @@ class DietListener extends StackListener {
 
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
-    if (isDartLibrary && message.code == codeExpectedBlockToSkip) {
+    if (enableNative && message.code == codeExpectedBlockToSkip) {
       Token recover = library.loader.target.skipNativeClause(token);
       if (recover != null) return recover;
     }
@@ -509,7 +501,7 @@ class DietListener extends StackListener {
 
   @override
   Link<Token> handleMemberName(Link<Token> identifiers) {
-    if (!isDartLibrary || identifiers.isEmpty) return identifiers;
+    if (!enableNative || identifiers.isEmpty) return identifiers;
     return removeNativeClause(identifiers);
   }
 
@@ -521,7 +513,6 @@ class DietListener extends StackListener {
       token = parser.parseFormalParametersOpt(token, kind);
       var formals = listener.pop();
       listener.checkEmpty(token.charOffset);
-      listener.prepareInitializers();
       token = parser.parseInitializersOpt(token);
       token = parser.parseAsyncModifier(token);
       AsyncMarker asyncModifier = getAsyncMarker(listener) ?? AsyncMarker.Sync;
@@ -529,10 +520,6 @@ class DietListener extends StackListener {
       bool allowAbstract = asyncModifier == AsyncMarker.Sync;
       parser.parseFunctionBody(token, isExpression, allowAbstract);
       var body = listener.pop();
-      if (listener.stack.length == 2) {
-        listener.pop(); // constructor initializers
-        listener.pop(); // separator before constructor initializers
-      }
       listener.checkEmpty(token.charOffset);
       listener.finishFunction(formals, asyncModifier, body);
     } on InputError {
@@ -582,6 +569,14 @@ class DietListener extends StackListener {
       return inputError(uri, token.charOffset, "Duplicated name: $name");
     }
     return builder;
+  }
+
+  @override
+  void addCompileTimeErrorFromMessage(FastaMessage message) {
+    library.addCompileTimeError(message.charOffset, message.message,
+        fileUri: message.uri,
+        // We assume this error has already been reported by OutlineBuilder.
+        silent: true);
   }
 
   @override

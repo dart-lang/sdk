@@ -17,13 +17,13 @@ import '../elements/elements.dart'
         ConstructorElement,
         Element,
         FieldElement,
-        FunctionElement,
         FunctionSignature,
         LibraryElement,
         MemberElement,
         MethodElement,
         MetadataAnnotation,
         ParameterElement;
+import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/constant_handler_javascript.dart';
@@ -181,29 +181,37 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     _globalMetadataMap = new Map<String, _BoundMetadataEntry>();
   }
 
-  jsAst.Fun buildLibraryMetadataFunction(LibraryElement element) {
+  jsAst.Fun buildLibraryMetadataFunction(LibraryEntity element) {
     if (!_mirrorsData.mustRetainMetadata ||
         !_mirrorsData.isLibraryReferencedFromMirrorSystem(element)) {
       return null;
     }
-    return _buildMetadataFunction(element);
+    return _buildMetadataFunction(element as LibraryElement);
   }
 
-  jsAst.Fun buildClassMetadataFunction(ClassElement element) {
+  jsAst.Fun buildClassMetadataFunction(ClassEntity cls) {
     if (!_mirrorsData.mustRetainMetadata ||
-        !_mirrorsData.isClassReferencedFromMirrorSystem(element)) {
+        !_mirrorsData.isClassReferencedFromMirrorSystem(cls)) {
       return null;
     }
+    // TODO(johnniwinther): Handle class entities.
+    ClassElement element = cls;
     return _buildMetadataFunction(element);
   }
 
-  bool _mustEmitMetadataForMember(MemberElement element) {
-    return _mirrorsData.mustRetainMetadata &&
-        _mirrorsData.isMemberReferencedFromMirrorSystem(element);
+  bool _mustEmitMetadataForMember(MemberEntity member) {
+    if (!_mirrorsData.mustRetainMetadata) {
+      return false;
+    }
+    // TODO(johnniwinther): Handle member entities.
+    MemberElement element = member;
+    return _mirrorsData.isMemberReferencedFromMirrorSystem(element);
   }
 
-  jsAst.Fun buildFieldMetadataFunction(FieldElement element) {
-    if (!_mustEmitMetadataForMember(element)) return null;
+  jsAst.Fun buildFieldMetadataFunction(FieldEntity field) {
+    if (!_mustEmitMetadataForMember(field)) return null;
+    // TODO(johnniwinther): Handle field entities.
+    FieldElement element = field;
     return _buildMetadataFunction(element);
   }
 
@@ -231,7 +239,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     });
   }
 
-  List<jsAst.DeferredNumber> reifyDefaultArguments(FunctionElement function) {
+  List<jsAst.DeferredNumber> reifyDefaultArguments(MethodElement function) {
     function = function.implementation;
     FunctionSignature signature = function.functionSignature;
     if (signature.optionalParameterCount == 0) return const [];

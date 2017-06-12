@@ -42,6 +42,7 @@ import 'io/source_information.dart' show SourceInformation;
 import 'io/source_file.dart' show Binary;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/element_strategy.dart' show ElementBackendStrategy;
+import 'kernel/kernel_backend_strategy.dart';
 import 'kernel/kernel_strategy.dart';
 import 'library_loader.dart'
     show
@@ -85,7 +86,7 @@ abstract class Compiler {
 
   final IdGenerator idGenerator = new IdGenerator();
   DartTypes types;
-  FrontEndStrategy frontEndStrategy;
+  FrontendStrategy frontendStrategy;
   BackendStrategy backendStrategy;
   CommonElements _commonElements;
   ElementEnvironment _elementEnvironment;
@@ -194,15 +195,15 @@ abstract class Compiler {
     } else {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
-    frontEndStrategy = options.loadFromDill
+    frontendStrategy = options.loadFromDill
         ? new KernelFrontEndStrategy(reporter, environment)
         : new ResolutionFrontEndStrategy(this);
     backendStrategy = options.loadFromDill
         ? new KernelBackendStrategy(this)
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
-    _elementEnvironment = frontEndStrategy.elementEnvironment;
-    _commonElements = new CommonElements(_elementEnvironment);
+    _elementEnvironment = frontendStrategy.elementEnvironment;
+    _commonElements = frontendStrategy.commonElements;
     types = new Types(_resolution);
 
     if (options.verbose) {
@@ -217,7 +218,7 @@ abstract class Compiler {
       scanner = createScannerTask(),
       serialization = new SerializationTask(this),
       patchParser = new PatchParserTask(this),
-      libraryLoader = frontEndStrategy.createLibraryLoader(
+      libraryLoader = frontendStrategy.createLibraryLoader(
           resolvedUriTranslator,
           options.compileOnly
               ? new _NoScriptLoader(this)
@@ -286,8 +287,10 @@ abstract class Compiler {
   ResolutionWorldBuilder get resolutionWorldBuilder =>
       enqueuer.resolution.worldBuilder;
   CodegenWorldBuilder get codegenWorldBuilder {
-    assert(invariant(NO_LOCATION_SPANNABLE, _codegenWorldBuilder != null,
-        message: "CodegenWorldBuilder has not been created yet."));
+    assert(
+        _codegenWorldBuilder != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "CodegenWorldBuilder has not been created yet."));
     return _codegenWorldBuilder;
   }
 
@@ -425,7 +428,7 @@ abstract class Compiler {
         }
       }
     }
-    backend.onLibrariesLoaded(loadedLibraries);
+    backend.onLibrariesLoaded(frontendStrategy.commonElements, loadedLibraries);
     return loadedLibraries;
   }
 
@@ -518,7 +521,7 @@ abstract class Compiler {
       selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
         ResolutionEnqueuer resolutionEnqueuer = startResolution();
         WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-        mainFunction = frontEndStrategy.computeMain(rootLibrary, mainImpact);
+        mainFunction = frontendStrategy.computeMain(rootLibrary, mainImpact);
 
         if (!options.loadFromDill) {
           // TODO(johnniwinther): Support mirrors usages analysis from dill.
@@ -575,7 +578,9 @@ abstract class Compiler {
         _reporter.reportSuppressedMessagesSummary();
 
         if (compilationFailed) {
-          if (!options.generateCodeWithCompileTimeErrors) return;
+          if (!options.generateCodeWithCompileTimeErrors || options.useKernel) {
+            return;
+          }
           if (mainFunction == null) return;
           if (!backend
               .enableCodegenWithErrorsIfSupported(NO_LOCATION_SPANNABLE)) {
@@ -1129,11 +1134,11 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
         api.Diagnostic.CRASH);
   }
 
-  /// Using [frontEndStrategy] to compute a [SourceSpan] from spannable using
+  /// Using [frontendStrategy] to compute a [SourceSpan] from spannable using
   /// the [currentElement] as context.
   SourceSpan _spanFromStrategy(Spannable spannable) {
     SourceSpan span =
-        compiler.frontEndStrategy.spanFromSpannable(spannable, currentElement);
+        compiler.frontendStrategy.spanFromSpannable(spannable, currentElement);
     if (span != null) return span;
     throw 'No error location.';
   }
@@ -1164,8 +1169,8 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   // TODO(johnniwinther): Move this to the parser listeners.
   @override
   SourceSpan spanFromToken(Token token) {
-    if (compiler.frontEndStrategy is ResolutionFrontEndStrategy) {
-      ResolutionFrontEndStrategy strategy = compiler.frontEndStrategy;
+    if (compiler.frontendStrategy is ResolutionFrontEndStrategy) {
+      ResolutionFrontEndStrategy strategy = compiler.frontendStrategy;
       return strategy.spanFromToken(currentElement, token);
     }
     throw 'No error location.';
@@ -1377,8 +1382,8 @@ class CompilerResolution implements Resolution {
 
   @override
   bool hasResolvedAst(ExecutableElement element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element $element must be the declaration."));
     if (_compiler.serialization.isDeserialized(element)) {
       return _compiler.serialization.hasResolvedAst(element);
     }
@@ -1388,10 +1393,10 @@ class CompilerResolution implements Resolution {
 
   @override
   ResolvedAst getResolvedAst(ExecutableElement element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
-    assert(invariant(element, hasResolvedAst(element),
-        message: "ResolvedAst not available for $element."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element $element must be the declaration."));
+    assert(hasResolvedAst(element),
+        failedAt(element, "ResolvedAst not available for $element."));
     if (_compiler.serialization.isDeserialized(element)) {
       return _compiler.serialization.getResolvedAst(element);
     }
@@ -1406,8 +1411,8 @@ class CompilerResolution implements Resolution {
 
   @override
   bool hasResolutionImpact(Element element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element $element must be the declaration."));
     if (_compiler.serialization.isDeserialized(element)) {
       return _compiler.serialization.hasResolutionImpact(element);
     }
@@ -1416,26 +1421,26 @@ class CompilerResolution implements Resolution {
 
   @override
   ResolutionImpact getResolutionImpact(Element element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element $element must be the declaration."));
     ResolutionImpact resolutionImpact;
     if (_compiler.serialization.isDeserialized(element)) {
       resolutionImpact = _compiler.serialization.getResolutionImpact(element);
     } else {
       resolutionImpact = _resolutionImpactCache[element];
     }
-    assert(invariant(element, resolutionImpact != null,
-        message: "ResolutionImpact not available for $element."));
+    assert(resolutionImpact != null,
+        failedAt(element, "ResolutionImpact not available for $element."));
     return resolutionImpact;
   }
 
   @override
   WorldImpact getWorldImpact(Element element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element $element must be the declaration."));
     WorldImpact worldImpact = _worldImpactCache[element];
-    assert(invariant(element, worldImpact != null,
-        message: "WorldImpact not computed for $element."));
+    assert(worldImpact != null,
+        failedAt(element, "WorldImpact not computed for $element."));
     return worldImpact;
   }
 
@@ -1443,23 +1448,26 @@ class CompilerResolution implements Resolution {
   WorldImpact computeWorldImpact(Element element) {
     return _compiler.selfTask.measureSubtask("Resolution.computeWorldImpact",
         () {
-      assert(invariant(
-          element,
+      assert(
           element.impliesType ||
               element.isField ||
               element.isFunction ||
               element.isConstructor ||
               element.isGetter ||
               element.isSetter,
-          message: 'Unexpected element kind: ${element.kind}'));
-      assert(invariant(element, element is AnalyzableElement,
-          message: 'Element $element is not analyzable.'));
-      assert(invariant(element, element.isDeclaration,
-          message: "Element $element must be the declaration."));
+          failedAt(element, 'Unexpected element kind: ${element.kind}'));
+      // `true ==` prevents analyzer type inference from strengthening element
+      // to AnalyzableElement which incompatible with some down-cast to ElementX
+      // uses.
+      // TODO(29712): Can this be made to work as we expect?
+      assert(true == element is AnalyzableElement,
+          failedAt(element, 'Element $element is not analyzable.'));
+      assert(element.isDeclaration,
+          failedAt(element, "Element $element must be the declaration."));
       return _worldImpactCache.putIfAbsent(element, () {
         assert(_compiler.parser != null);
         Node tree = _compiler.parser.parse(element);
-        assert(invariant(element, !element.isSynthesized || tree == null));
+        assert(!element.isSynthesized || tree == null, failedAt(element));
         ResolutionImpact resolutionImpact = _compiler.resolver.resolve(element);
 
         if (_compiler.serialization.supportSerialization ||
@@ -1493,12 +1501,12 @@ class CompilerResolution implements Resolution {
 
   @override
   void uncacheWorldImpact(Element element) {
-    assert(invariant(element, element.isDeclaration,
-        message: "Element $element must be the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element $element must be the declaration."));
     if (retainCachesForTesting) return;
     if (_compiler.serialization.isDeserialized(element)) return;
-    assert(invariant(element, _worldImpactCache[element] != null,
-        message: "WorldImpact not computed for $element."));
+    assert(_worldImpactCache[element] != null,
+        failedAt(element, "WorldImpact not computed for $element."));
     _worldImpactCache[element] = const WorldImpact();
     _resolutionImpactCache.remove(element);
   }

@@ -16,6 +16,7 @@ import 'options.dart';
 import 'elements/entities.dart';
 import 'elements/resolution_types.dart' show ResolutionTypedefType;
 import 'elements/types.dart';
+import 'js_backend/enqueuer.dart';
 import 'universe/world_builder.dart';
 import 'universe/use.dart'
     show
@@ -33,6 +34,7 @@ import 'world.dart' show ClosedWorld;
 
 class EnqueueTask extends CompilerTask {
   ResolutionEnqueuer _resolution;
+  CodegenEnqueuer codegenEnqueuerForTesting;
   final Compiler compiler;
 
   String get name => 'Enqueue';
@@ -46,8 +48,10 @@ class EnqueueTask extends CompilerTask {
 
   // TODO(johnniwinther): Remove the need for this.
   ResolutionEnqueuer get resolution {
-    assert(invariant(NO_LOCATION_SPANNABLE, _resolution != null,
-        message: "ResolutionEnqueuer has not been created yet."));
+    assert(
+        _resolution != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "ResolutionEnqueuer has not been created yet."));
     return _resolution;
   }
 
@@ -57,7 +61,8 @@ class EnqueueTask extends CompilerTask {
   }
 
   Enqueuer createCodegenEnqueuer(ClosedWorld closedWorld) {
-    return compiler.backend.createCodegenEnqueuer(this, compiler, closedWorld);
+    return codegenEnqueuerForTesting =
+        compiler.backend.createCodegenEnqueuer(this, compiler, closedWorld);
   }
 }
 

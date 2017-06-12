@@ -10,8 +10,11 @@ import '../core_types.dart';
 import '../type_environment.dart';
 import '../library_index.dart';
 
-Program transformProgram(Program program, {List<ProgramRoot> programRoots}) {
-  new TreeShaker(program, programRoots: programRoots).transform(program);
+Program transformProgram(
+    CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
+    {List<ProgramRoot> programRoots}) {
+  new TreeShaker(coreTypes, hierarchy, program, programRoots: programRoots)
+      .transform(program);
   return program;
 }
 
@@ -88,9 +91,9 @@ class ProgramRoot {
 //
 // TODO(asgerf): Tree shake unused instance fields.
 class TreeShaker {
-  final Program program;
-  final ClassHierarchy hierarchy;
   final CoreTypes coreTypes;
+  final ClosedWorldClassHierarchy hierarchy;
+  final Program program;
   final bool strongMode;
   final List<ProgramRoot> programRoots;
 
@@ -167,13 +170,9 @@ class TreeShaker {
   /// the mirrors library.
   bool get forceShaking => programRoots != null && programRoots.isNotEmpty;
 
-  TreeShaker(Program program,
-      {ClassHierarchy hierarchy,
-      CoreTypes coreTypes,
-      bool strongMode: false,
-      List<ProgramRoot> programRoots})
-      : this._internal(program, hierarchy ?? new ClassHierarchy(program),
-            coreTypes ?? new CoreTypes(program), strongMode, programRoots);
+  TreeShaker(CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
+      {bool strongMode: false, List<ProgramRoot> programRoots})
+      : this._internal(coreTypes, hierarchy, program, strongMode, programRoots);
 
   bool isMemberBodyUsed(Member member) {
     return _usedMembers.containsKey(member);
@@ -208,10 +207,9 @@ class TreeShaker {
     new _TreeShakingTransformer(this).transform(program);
   }
 
-  TreeShaker._internal(this.program, ClassHierarchy hierarchy, this.coreTypes,
+  TreeShaker._internal(this.coreTypes, this.hierarchy, this.program,
       this.strongMode, this.programRoots)
-      : this.hierarchy = hierarchy,
-        this._dispatchedNames = new List<Set<Name>>(hierarchy.classes.length),
+      : this._dispatchedNames = new List<Set<Name>>(hierarchy.classes.length),
         this._usedMembersWithHost =
             new List<Set<Member>>(hierarchy.classes.length),
         this._classRetention = new List<ClassRetention>.filled(
@@ -239,7 +237,7 @@ class TreeShaker {
       _addInstantiatedExternalSubclass(coreTypes.listClass);
       _addInstantiatedExternalSubclass(coreTypes.stringClass);
     }
-    _addDispatchedName(hierarchy.rootClass, new Name('noSuchMethod'));
+    _addDispatchedName(coreTypes.objectClass, new Name('noSuchMethod'));
     _addPervasiveUses();
     _addUsedMember(null, program.mainMethod);
     if (programRoots != null) {

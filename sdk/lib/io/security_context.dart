@@ -149,8 +149,10 @@ abstract class SecurityContext {
   void setClientAuthoritiesBytes(List<int> authCertBytes, {String password});
 
   /**
-   * Whether the platform supports ALPN.
+   * Whether the platform supports ALPN. This always returns true and will be
+   * removed in a future release.
    */
+  @deprecated
   external static bool get alpnSupported;
 
   /**

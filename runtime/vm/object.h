@@ -3817,6 +3817,7 @@ class Library : public Object {
   RawObject* LookupImportedObject(const String& name) const;
   RawClass* LookupClass(const String& name) const;
   RawClass* LookupClassAllowPrivate(const String& name) const;
+  RawClass* SlowLookupClassAllowMultiPartPrivate(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
   RawField* LookupFieldAllowPrivate(const String& name) const;
   RawField* LookupLocalField(const String& name) const;

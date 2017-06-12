@@ -40,13 +40,6 @@ import 'package:kernel/ast.dart'
         VariableGet,
         VoidType;
 
-import 'package:kernel/transformations/erasure.dart' show Erasure;
-
-import 'package:kernel/transformations/continuation.dart' as transformAsync;
-
-import 'package:kernel/transformations/mixin_full_resolution.dart'
-    show MixinFullResolution;
-
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import '../source/source_loader.dart' show SourceLoader;
@@ -90,29 +83,34 @@ class KernelTarget extends TargetImplementation {
   /// The [FileSystem] which should be used to access files.
   final FileSystem fileSystem;
 
-  final bool strongMode;
-
   final DillTarget dillTarget;
 
   /// Shared with [CompilerContext].
   final Map<String, Source> uriToSource;
 
   SourceLoader<Library> loader;
-  Program _program;
+
+  Program program;
 
   final List<String> errors = <String>[];
 
   final TypeBuilder dynamicType =
       new KernelNamedTypeBuilder("dynamic", null, -1, null);
 
-  KernelTarget(this.fileSystem, DillTarget dillTarget,
-      TranslateUri uriTranslator, this.strongMode,
+  bool get strongMode => backendTarget.strongMode;
+
+  KernelTarget(
+      this.fileSystem, DillTarget dillTarget, TranslateUri uriTranslator,
       [Map<String, Source> uriToSource])
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     resetCrashReporting();
     loader = createLoader();
+  }
+
+  bool get hasErrors {
+    return errors.isNotEmpty || loader.collectCompileTimeErrors().isNotEmpty;
   }
 
   void addError(file, int charOffset, String message) {
@@ -133,17 +131,17 @@ class KernelTarget extends TargetImplementation {
   }
 
   void read(Uri uri) {
-    loader.read(uri);
+    loader.read(uri, -1);
   }
 
-  LibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri) {
+  LibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, bool isPatch) {
     if (dillTarget.isLoaded) {
       var builder = dillTarget.loader.builders[uri];
       if (builder != null) {
         return builder;
       }
     }
-    return new KernelLibraryBuilder(uri, fileUri, loader);
+    return new KernelLibraryBuilder(uri, fileUri, loader, isPatch);
   }
 
   void forEachDirectSupertype(ClassBuilder cls, void f(NamedTypeBuilder type)) {
@@ -223,7 +221,7 @@ class KernelTarget extends TargetImplementation {
       print(message);
       errors.add(message);
     }
-    _program = erroneousProgram(isFullProgram);
+    program = erroneousProgram(isFullProgram);
   }
 
   @override
@@ -245,9 +243,9 @@ class KernelTarget extends TargetImplementation {
       installDefaultConstructors(sourceClasses);
       loader.resolveConstructors();
       loader.finishTypeVariables(objectClassBuilder);
-      _program =
+      program =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
-      loader.computeHierarchy(_program);
+      loader.computeHierarchy(program);
       loader.checkOverrides(sourceClasses);
       loader.prepareInitializerInference();
       loader.performInitializerInference();
@@ -256,7 +254,7 @@ class KernelTarget extends TargetImplementation {
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
-    return _program;
+    return program;
   }
 
   /// Build the kernel representation of the program loaded by this target. The
@@ -267,7 +265,9 @@ class KernelTarget extends TargetImplementation {
   ///
   /// When [trimDependencies] is true, this also runs a tree-shaker that deletes
   /// anything from the [DillTarget] that is not needed for the source program,
-  /// this includes function bodies and types that are not reachable.
+  /// this includes function bodies and types that are not reachable. This
+  /// option is currently in flux and the internal implementation might change.
+  /// See [trimDependenciesInProgram] for more details.
   ///
   /// If [verify], run the default kernel verification on the resulting program.
   @override
@@ -277,8 +277,7 @@ class KernelTarget extends TargetImplementation {
     if (errors.isNotEmpty) {
       handleInputError(null,
           isFullProgram: true, trimDependencies: trimDependencies);
-      if (trimDependencies) trimDependenciesInProgram();
-      return _program;
+      return program;
     }
 
     try {
@@ -286,7 +285,9 @@ class KernelTarget extends TargetImplementation {
       loader.finishStaticInvocations();
       finishAllConstructors();
       loader.finishNativeMethods();
-      runBuildTransformations();
+      if (!hasErrors) {
+        runBuildTransformations();
+      }
 
       if (verify) this.verify();
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
@@ -301,7 +302,7 @@ class KernelTarget extends TargetImplementation {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
     if (trimDependencies) trimDependenciesInProgram();
-    return _program;
+    return program;
   }
 
   Future writeDepsFile(Uri output, Uri depsFile,
@@ -352,7 +353,7 @@ class KernelTarget extends TargetImplementation {
     Uri uri = loader.first?.uri ?? Uri.parse("error:error");
     Uri fileUri = loader.first?.fileUri ?? uri;
     KernelLibraryBuilder library =
-        new KernelLibraryBuilder(uri, fileUri, loader);
+        new KernelLibraryBuilder(uri, fileUri, loader, false);
     loader.first = library;
     if (isFullProgram) {
       // If this is an outline, we shouldn't add an executable main
@@ -375,10 +376,8 @@ class KernelTarget extends TargetImplementation {
     Map<String, Source> uriToSource =
         new Map<String, Source>.from(this.uriToSource);
 
-    List<Library> extraLibraries = dillTarget.loader.libraries;
-    libraries.addAll(extraLibraries);
-    // TODO(scheglov) Should we also somehow update `uriToSource`?
-//    uriToSource.addAll(binary.uriToSource);
+    libraries.addAll(dillTarget.loader.libraries);
+    uriToSource.addAll(dillTarget.loader.uriToSource);
 
     // TODO(ahe): Remove this line. Kernel seems to generate a default line map
     // that used when there's no fileUri on an element. Instead, ensure all
@@ -655,35 +654,28 @@ class KernelTarget extends TargetImplementation {
   /// Run all transformations that are needed when building a program for the
   /// first time.
   void runBuildTransformations() {
-    transformMixinApplications();
-    otherTransformations();
-  }
-
-  void transformMixinApplications() {
-    new MixinFullResolution(backendTarget).transform(_program);
-    ticker.logMs("Transformed mixin applications");
-  }
-
-  void otherTransformations() {
-    // TODO(ahe): Don't generate type variables in the first place.
-    if (!strongMode) {
-      _program.accept(new Erasure());
-      ticker.logMs("Erased type variables in generic methods");
-    }
-    // TODO(kmillikin): Make this run on a per-method basis.
-    transformAsync.transformProgram(_program);
-    ticker.logMs("Transformed async methods");
+    backendTarget.performModularTransformationsOnLibraries(
+        loader.coreTypes, loader.hierarchy, loader.libraries,
+        logger: (String msg) => ticker.logMs(msg));
+    backendTarget.performGlobalTransformations(loader.coreTypes, program,
+        logger: (String msg) => ticker.logMs(msg));
   }
 
   void verify() {
-    var verifyErrors = verifyProgram(_program);
+    var verifyErrors = verifyProgram(program);
     errors.addAll(verifyErrors.map((error) => '$error'));
     ticker.logMs("Verified program");
   }
 
   /// Tree-shakes most code from the [dillTarget] by visiting all other
-  /// libraries in [_program] and marking the APIs from the [dillTarget]
+  /// libraries in [program] and marking the APIs from the [dillTarget]
   /// libraries that are in use.
+  ///
+  /// Note: while it's likely we'll do some trimming of programs for modular
+  /// compilation, it is unclear at this time when and how that trimming should
+  /// happen. We are likely going to remove the extra visitor my either marking
+  /// things while code is built, or by handling tree-shaking after the fact
+  /// (e.g. during serialization).
   trimDependenciesInProgram() {
     var toShake =
         dillTarget.loader.libraries.map((lib) => lib.importUri).toSet();
@@ -692,8 +684,8 @@ class KernelTarget extends TargetImplementation {
     // TODO(sigmund): replace this step with data that is directly computed from
     // the builders: we should know the tree-shaking roots without having to do
     // a second visit over the tree.
-    new RootsMarker(data).run(_program, isIncluded);
-    trimProgram(_program, data, isIncluded);
+    new RootsMarker(loader.coreTypes, data).run(program, isIncluded);
+    trimProgram(program, data, isIncluded);
   }
 
   /// Return `true` if the given [library] was built by this [KernelTarget]

@@ -457,11 +457,13 @@ class FlowGraphCompiler : public ValueObject {
   Condition EmitEqualityRegConstCompare(Register reg,
                                         const Object& obj,
                                         bool needs_number_check,
-                                        TokenPosition token_pos);
+                                        TokenPosition token_pos,
+                                        intptr_t deopt_id);
   Condition EmitEqualityRegRegCompare(Register left,
                                       Register right,
                                       bool needs_number_check,
-                                      TokenPosition token_pos);
+                                      TokenPosition token_pos,
+                                      intptr_t deopt_id);
 
   bool NeedsEdgeCounter(TargetEntryInstr* block);
 

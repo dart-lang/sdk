@@ -28,7 +28,7 @@ class D extends core::Object {
 }
 static method main() → void {
   self::D d1 = new self::D::•();
-  core::print(d1.c.b.a.x);
+  core::print(d1.{self::D::c}.{self::C::b}.{self::B::a}.{self::A::x});
   self::D d2 = new self::D::•();
-  core::print(d2.c.b.a.x);
+  core::print(d2.{self::D::c}.{self::C::b}.{self::B::a}.{self::A::x});
 }

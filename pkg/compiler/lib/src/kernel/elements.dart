@@ -50,6 +50,8 @@ abstract class KMember implements MemberEntity {
 
   String get name => _name.text;
 
+  Name get memberName => _name;
+
   @override
   bool get isAssignable => false;
 
@@ -92,9 +94,10 @@ abstract class KMember implements MemberEntity {
 abstract class KFunction extends KMember implements FunctionEntity {
   final ParameterStructure parameterStructure;
   final bool isExternal;
+  final AsyncMarker asyncMarker;
 
   KFunction(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
-      this.parameterStructure,
+      this.parameterStructure, this.asyncMarker,
       {bool isStatic: false, this.isExternal: false})
       : super(memberIndex, library, enclosingClass, name, isStatic: isStatic);
 }
@@ -105,7 +108,7 @@ abstract class KConstructor extends KFunction implements ConstructorEntity {
   KConstructor(int memberIndex, KClass enclosingClass, Name name,
       ParameterStructure parameterStructure, {bool isExternal, this.isConst})
       : super(memberIndex, enclosingClass.library, enclosingClass, name,
-            parameterStructure,
+            parameterStructure, AsyncMarker.SYNC,
             isExternal: isExternal);
 
   @override
@@ -119,6 +122,9 @@ abstract class KConstructor extends KFunction implements ConstructorEntity {
 
   @override
   bool get isTopLevel => false;
+
+  @override
+  bool get isFromEnvironmentConstructor => false;
 
   String get _kind => 'constructor';
 }
@@ -137,8 +143,12 @@ class KGenerativeConstructor extends KConstructor {
 }
 
 class KFactoryConstructor extends KConstructor {
+  @override
+  final bool isFromEnvironmentConstructor;
+
   KFactoryConstructor(int memberIndex, KClass enclosingClass, Name name,
-      ParameterStructure parameterStructure, {bool isExternal, bool isConst})
+      ParameterStructure parameterStructure,
+      {bool isExternal, bool isConst, this.isFromEnvironmentConstructor})
       : super(memberIndex, enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
 
@@ -153,9 +163,10 @@ class KMethod extends KFunction {
   final bool isAbstract;
 
   KMethod(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
-      ParameterStructure parameterStructure,
+      ParameterStructure parameterStructure, AsyncMarker asyncMarker,
       {bool isStatic, bool isExternal, this.isAbstract})
       : super(memberIndex, library, enclosingClass, name, parameterStructure,
+            asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
   @override
@@ -168,9 +179,10 @@ class KGetter extends KFunction {
   final bool isAbstract;
 
   KGetter(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
+      AsyncMarker asyncMarker,
       {bool isStatic, bool isExternal, this.isAbstract})
       : super(memberIndex, library, enclosingClass, name,
-            const ParameterStructure.getter(),
+            const ParameterStructure.getter(), asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
   @override
@@ -185,7 +197,7 @@ class KSetter extends KFunction {
   KSetter(int memberIndex, KLibrary library, KClass enclosingClass, Name name,
       {bool isStatic, bool isExternal, this.isAbstract})
       : super(memberIndex, library, enclosingClass, name,
-            const ParameterStructure.setter(),
+            const ParameterStructure.setter(), AsyncMarker.SYNC,
             isStatic: isStatic, isExternal: isExternal);
 
   @override

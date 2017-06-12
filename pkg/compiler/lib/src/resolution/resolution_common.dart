@@ -7,6 +7,7 @@ library dart2js.resolution.common;
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
 import '../elements/elements.dart';
+import '../elements/entities.dart' show AsyncMarker;
 import '../enqueue.dart' show DeferredAction;
 import '../tree/tree.dart';
 import 'registry.dart' show ResolutionRegistry;

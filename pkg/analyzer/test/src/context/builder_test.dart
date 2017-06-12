@@ -4,6 +4,7 @@
 
 library analyzer.test.src.context.context_builder_test;
 
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -890,6 +891,23 @@ linter:
 
     AnalysisOptions options = builder.getAnalysisOptions(path);
     _expectEqualOptions(options, new AnalysisOptionsImpl());
+  }
+
+  void test_getAnalysisOptions_optionsPath() {
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+    resourceProvider.newFile(
+        filePath,
+        '''
+linter:
+  rules:
+    - empty_constructor_bodies
+''');
+
+    ContextRoot root = new ContextRoot(path, []);
+    builder.getAnalysisOptions(path, contextRoot: root);
+    expect(root.optionsFilePath, equals(filePath));
   }
 
   void test_getAnalysisOptions_noDefault_overrides() {

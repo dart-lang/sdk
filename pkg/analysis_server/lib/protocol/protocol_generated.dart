@@ -4025,6 +4025,478 @@ class AnalysisUpdateOptionsResult implements ResponseResult {
 }
 
 /**
+ * analytics.enable params
+ *
+ * {
+ *   "value": bool
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalyticsEnableParams implements RequestParams {
+  bool _value;
+
+  /**
+   * Enable or disable analytics.
+   */
+  bool get value => _value;
+
+  /**
+   * Enable or disable analytics.
+   */
+  void set value(bool value) {
+    assert(value != null);
+    this._value = value;
+  }
+
+  AnalyticsEnableParams(bool value) {
+    this.value = value;
+  }
+
+  factory AnalyticsEnableParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      bool value;
+      if (json.containsKey("value")) {
+        value = jsonDecoder.decodeBool(jsonPath + ".value", json["value"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "value");
+      }
+      return new AnalyticsEnableParams(value);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analytics.enable params", json);
+    }
+  }
+
+  factory AnalyticsEnableParams.fromRequest(Request request) {
+    return new AnalyticsEnableParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["value"] = value;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "analytics.enable", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalyticsEnableParams) {
+      return value == other.value;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, value.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analytics.enable result
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalyticsEnableResult implements ResponseResult {
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{};
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: null);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalyticsEnableResult) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 237990792;
+  }
+}
+
+/**
+ * analytics.isEnabled params
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalyticsIsEnabledParams implements RequestParams {
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{};
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "analytics.isEnabled", null);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalyticsIsEnabledParams) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 57215544;
+  }
+}
+
+/**
+ * analytics.isEnabled result
+ *
+ * {
+ *   "enabled": bool
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalyticsIsEnabledResult implements ResponseResult {
+  bool _enabled;
+
+  /**
+   * Whether sending analytics is enabled or not.
+   */
+  bool get enabled => _enabled;
+
+  /**
+   * Whether sending analytics is enabled or not.
+   */
+  void set enabled(bool value) {
+    assert(value != null);
+    this._enabled = value;
+  }
+
+  AnalyticsIsEnabledResult(bool enabled) {
+    this.enabled = enabled;
+  }
+
+  factory AnalyticsIsEnabledResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      bool enabled;
+      if (json.containsKey("enabled")) {
+        enabled =
+            jsonDecoder.decodeBool(jsonPath + ".enabled", json["enabled"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "enabled");
+      }
+      return new AnalyticsIsEnabledResult(enabled);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analytics.isEnabled result", json);
+    }
+  }
+
+  factory AnalyticsIsEnabledResult.fromResponse(Response response) {
+    return new AnalyticsIsEnabledResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["enabled"] = enabled;
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalyticsIsEnabledResult) {
+      return enabled == other.enabled;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, enabled.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analytics.sendEvent params
+ *
+ * {
+ *   "action": String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalyticsSendEventParams implements RequestParams {
+  String _action;
+
+  /**
+   * The value used to indicate which action was performed.
+   */
+  String get action => _action;
+
+  /**
+   * The value used to indicate which action was performed.
+   */
+  void set action(String value) {
+    assert(value != null);
+    this._action = value;
+  }
+
+  AnalyticsSendEventParams(String action) {
+    this.action = action;
+  }
+
+  factory AnalyticsSendEventParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String action;
+      if (json.containsKey("action")) {
+        action = jsonDecoder.decodeString(jsonPath + ".action", json["action"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "action");
+      }
+      return new AnalyticsSendEventParams(action);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analytics.sendEvent params", json);
+    }
+  }
+
+  factory AnalyticsSendEventParams.fromRequest(Request request) {
+    return new AnalyticsSendEventParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["action"] = action;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "analytics.sendEvent", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalyticsSendEventParams) {
+      return action == other.action;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, action.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analytics.sendEvent result
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalyticsSendEventResult implements ResponseResult {
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{};
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: null);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalyticsSendEventResult) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 227063188;
+  }
+}
+
+/**
+ * analytics.sendTiming params
+ *
+ * {
+ *   "event": String
+ *   "millis": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalyticsSendTimingParams implements RequestParams {
+  String _event;
+
+  int _millis;
+
+  /**
+   * The name of the event.
+   */
+  String get event => _event;
+
+  /**
+   * The name of the event.
+   */
+  void set event(String value) {
+    assert(value != null);
+    this._event = value;
+  }
+
+  /**
+   * The duration of the event in milliseconds.
+   */
+  int get millis => _millis;
+
+  /**
+   * The duration of the event in milliseconds.
+   */
+  void set millis(int value) {
+    assert(value != null);
+    this._millis = value;
+  }
+
+  AnalyticsSendTimingParams(String event, int millis) {
+    this.event = event;
+    this.millis = millis;
+  }
+
+  factory AnalyticsSendTimingParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String event;
+      if (json.containsKey("event")) {
+        event = jsonDecoder.decodeString(jsonPath + ".event", json["event"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "event");
+      }
+      int millis;
+      if (json.containsKey("millis")) {
+        millis = jsonDecoder.decodeInt(jsonPath + ".millis", json["millis"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "millis");
+      }
+      return new AnalyticsSendTimingParams(event, millis);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analytics.sendTiming params", json);
+    }
+  }
+
+  factory AnalyticsSendTimingParams.fromRequest(Request request) {
+    return new AnalyticsSendTimingParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["event"] = event;
+    result["millis"] = millis;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "analytics.sendTiming", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalyticsSendTimingParams) {
+      return event == other.event && millis == other.millis;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, event.hashCode);
+    hash = JenkinsSmiHash.combine(hash, millis.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analytics.sendTiming result
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalyticsSendTimingResult implements ResponseResult {
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{};
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: null);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalyticsSendTimingResult) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 875010924;
+  }
+}
+
+/**
  * completion.getSuggestions params
  *
  * {

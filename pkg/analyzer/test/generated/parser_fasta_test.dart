@@ -229,7 +229,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
   void test_parseListLiteral_empty_oneToken_withComment() {
     super.test_parseListLiteral_empty_oneToken_withComment();
   }
@@ -273,6 +272,7 @@ class FastaParserTestCase extends Object
     with ParserTestHelpers
     implements AbstractParserTestCase {
   ParserProxy _parserProxy;
+  analyzer.Token _fastaTokens;
 
   /**
    * Whether generic method comments should be enabled for the test.
@@ -332,7 +332,8 @@ class FastaParserTestCase extends Object
   void createParser(String content) {
     var scanner = new StringScanner(content, includeComments: true);
     scanner.scanGenericMethodComments = enableGenericMethodComments;
-    _parserProxy = new ParserProxy(scanner.tokenize(),
+    _fastaTokens = scanner.tokenize();
+    _parserProxy = new ParserProxy(_fastaTokens,
         enableGenericMethodComments: enableGenericMethodComments);
   }
 
@@ -476,14 +477,12 @@ class FastaParserTestCase extends Object
 
   @override
   CompilationUnitMember parseFullCompilationUnitMember() {
-    return _parserProxy._run((parser) => parser.parseTopLevelDeclaration)
-        as CompilationUnitMember;
+    return _parserProxy._run((parser) => parser.parseTopLevelDeclaration);
   }
 
   @override
   Directive parseFullDirective() {
-    return _parserProxy._run((parser) => parser.parseTopLevelDeclaration)
-        as Directive;
+    return _parserProxy._run((parser) => parser.parseTopLevelDeclaration);
   }
 
   @override
@@ -724,6 +723,30 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     super
         .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
   }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_noType() {
+    super.test_parseNormalFormalParameter_field_const_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_type() {
+    super.test_parseNormalFormalParameter_field_const_type();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_simple_const_noType() {
+    super.test_parseNormalFormalParameter_simple_const_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_simple_const_type() {
+    super.test_parseNormalFormalParameter_simple_const_type();
+  }
 }
 
 /**
@@ -748,6 +771,12 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
   Uri get fileUri => uri;
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  void addCompileTimeError(int charOffset, Object message,
+      {Uri fileUri, bool silent: false}) {
+    fail('$message');
+  }
 }
 
 /**
@@ -784,7 +813,8 @@ class ParserProxy implements analyzer.Parser {
     var member = new BuilderProxy();
     var elementStore = new ElementStoreProxy();
     var scope = new ScopeProxy();
-    var astBuilder = new AstBuilder(null, library, member, elementStore, scope);
+    var astBuilder =
+        new AstBuilder(null, library, member, elementStore, scope, true);
     astBuilder.parseGenericMethodComments = enableGenericMethodComments;
     var fastaParser = new fasta.Parser(astBuilder);
     astBuilder.parser = fastaParser;
@@ -830,8 +860,9 @@ class ScopeProxy implements Scope {
   final _locals = <String, Builder>{};
 
   @override
-  void operator []=(String name, Builder member) {
-    _locals[name] = member;
+  declare(String name, Builder builder, int charOffset, Uri fileUri) {
+    _locals[name] = builder;
+    return null;
   }
 
   @override
@@ -958,5 +989,17 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // TODO(paulberry,ahe): URIs in "part of" declarations are not supported by
     // Fasta.
     super.test_parsePartOfDirective_uri();
+  }
+
+  @override
+  @failingTest
+  void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
+    super.test_parseCompilationUnit_operatorAsPrefix_parameterized();
+  }
+
+  @override
+  @failingTest
+  void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
+    super.test_parseCompilationUnit_abstractAsPrefix_parameterized();
   }
 }

@@ -29,3 +29,5 @@ Future<int> g3(bool x) async {
       x ? 42 : new /*@typeArgs=dynamic*/ MyFuture.value(42);
   return /*info:DOWN_CAST_COMPOSITE*/ y;
 }
+
+main() {}

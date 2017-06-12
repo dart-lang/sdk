@@ -14,6 +14,8 @@ import 'dart:io' as io show stderr, stdout;
 
 import 'chain.dart' show Result;
 
+import 'expectation.dart' show ExpectationSet;
+
 class StdioProcess {
   final int exitCode;
 
@@ -25,7 +27,8 @@ class StdioProcess {
     if (exitCode == expected) {
       return new Result<int>.pass(exitCode);
     } else {
-      return new Result<int>.fail(exitCode, output);
+      return new Result<int>(
+          exitCode, ExpectationSet.Default["RuntimeError"], output, null);
     }
   }
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'environment.dart';
+
 /// A parsed Boolean expression AST.
 abstract class Expression {
   /// Parses Boolean expressions in a .status file for Dart.
@@ -11,7 +13,8 @@ abstract class Expression {
   ///     expression := or
   ///     or         := and ( "||" and )*
   ///     and        := primary ( "&&" primary )*
-  ///     primary    := "$" identifier ( ( "==" | "!=" ) identifier )? |
+  ///     primary    := "$" identifier ( "==" | "!=" ) identifier |
+  ///                   "!"? "$" identifier |
   ///                   "(" expression ")"
   ///     identifier := regex "\w+"
   ///
@@ -20,9 +23,17 @@ abstract class Expression {
   static Expression parse(String expression) =>
       new _ExpressionParser(expression).parse();
 
+  /// Validates that this expression does not contain any invalid uses of
+  /// variables.
+  ///
+  /// Ensures that any variable names are known and that any literal values are
+  /// allowed for their corresponding variable. If an invalid variable or value
+  /// is found, adds appropriate error messages to [errors].
+  void validate(List<String> errors);
+
   /// Evaluates the expression where all variables are defined by the given
   /// [environment].
-  bool evaluate(Map<String, dynamic> environment);
+  bool evaluate(Environment environment);
 }
 
 /// Keyword token strings.
@@ -34,6 +45,7 @@ class _Token {
   static const notEqual = "!=";
   static const and = "&&";
   static const or = "||";
+  static const not = "!";
 }
 
 /// A reference to a variable.
@@ -42,8 +54,8 @@ class _Variable {
 
   _Variable(this.name);
 
-  String lookup(Map<String, dynamic> environment) {
-    var value = environment[name];
+  String lookup(Environment environment) {
+    var value = environment.lookUp(name);
     if (value == null) {
       throw new Exception("Could not find '$name' in environment "
           "while evaluating status file expression.");
@@ -60,8 +72,10 @@ class _Variable {
 }
 
 /// Tests whether a given variable is or is not equal some literal value, as in:
-///
-///     $variable == someValue
+/// ```
+/// $variable == someValue
+/// ```
+/// Negate the result if [negate] is true.
 class _ComparisonExpression implements Expression {
   final _Variable left;
   final String right;
@@ -69,7 +83,11 @@ class _ComparisonExpression implements Expression {
 
   _ComparisonExpression(this.left, this.right, this.negate);
 
-  bool evaluate(Map<String, dynamic> environment) {
+  void validate(List<String> errors) {
+    Environment.validate(left.name, right, errors);
+  }
+
+  bool evaluate(Environment environment) {
     return negate != (left.lookup(environment) == right);
   }
 
@@ -78,17 +96,36 @@ class _ComparisonExpression implements Expression {
 
 /// A reference to a variable defined in the environment. The expression
 /// evaluates to true if the variable's stringified value is "true".
-///
+/// ```
 ///     $variable
+/// ```
+/// is equivalent to
+/// ```
+///     $variable == true
+/// ```
+/// Negates result if [negate] is true, so
+/// ```
+///     !$variable
+/// ```
+/// is equivalent to
+/// ```
+///     $variable != true
+/// ```
 class _VariableExpression implements Expression {
   final _Variable variable;
+  final bool negate;
 
-  _VariableExpression(this.variable);
+  _VariableExpression(this.variable, {this.negate = false});
 
-  bool evaluate(Map<String, dynamic> environment) =>
-      variable.lookup(environment) == "true";
+  void validate(List<String> errors) {
+    // It must be a Boolean, so it should allow either Boolean value.
+    Environment.validate(variable.name, "true", errors);
+  }
 
-  String toString() => "(bool \$${variable.name})";
+  bool evaluate(Environment environment) =>
+      negate != (variable.lookup(environment) == "true");
+
+  String toString() => "(bool ${negate ? "! " : ""}\$${variable.name})";
 }
 
 /// A logical `||` or `&&` expression.
@@ -101,7 +138,12 @@ class _LogicExpression implements Expression {
 
   _LogicExpression(this.op, this.left, this.right);
 
-  bool evaluate(Map<String, dynamic> environment) => (op == _Token.and)
+  void validate(List<String> errors) {
+    left.validate(errors);
+    right.validate(errors);
+  }
+
+  bool evaluate(Environment environment) => (op == _Token.and)
       ? left.evaluate(environment) && right.evaluate(environment)
       : left.evaluate(environment) || right.evaluate(environment);
 
@@ -155,6 +197,11 @@ class _ExpressionParser {
       return value;
     }
 
+    var negate = false;
+    if (_scanner.match(_Token.not)) {
+      negate = true;
+    }
+
     // The only atomic booleans are of the form $variable == value or
     // of the form $variable.
     if (!_scanner.match(_Token.dollar)) {
@@ -170,9 +217,10 @@ class _ExpressionParser {
     var left = new _Variable(_scanner.current);
     _scanner.advance();
 
-    if (_scanner.current == _Token.equals ||
-        _scanner.current == _Token.notEqual) {
-      var negate = _scanner.advance() == _Token.notEqual;
+    if (!negate &&
+        (_scanner.current == _Token.equals ||
+            _scanner.current == _Token.notEqual)) {
+      var isNotEquals = _scanner.advance() == _Token.notEqual;
 
       if (!_scanner.isIdentifier) {
         throw new FormatException(
@@ -180,22 +228,24 @@ class _ExpressionParser {
       }
 
       var right = _scanner.advance();
-      return new _ComparisonExpression(left, right, negate);
+      return new _ComparisonExpression(left, right, isNotEquals);
     } else {
-      return new _VariableExpression(left);
+      return new _VariableExpression(left, negate: negate);
     }
   }
 }
 
 /// An iterator that allows peeking at the current token.
 class _Scanner {
-  /// Tokens are "(", ")", "$", "&&", "||", "==", "!=", and (maximal) \w+.
-  static final _testPattern =
-      new RegExp(r"^([()$\w\s]|(\&\&)|(\|\|)|(\=\=)|(\!\=))+$");
-  static final _tokenPattern =
-      new RegExp(r"[()$]|(\&\&)|(\|\|)|(\=\=)|(\!\=)|\w+");
+  /// Tokens are "(", ")", "$", "&&", "||", "!", ==", "!=", and (maximal) \w+.
+  static final _testPattern = new RegExp(r"^(?:[()$\w\s]|&&|\|\||==|!=?)+$");
+  static final _tokenPattern = new RegExp(r"[()$]|&&|\|\||==|!=?|\w+");
 
-  static final _identifierPattern = new RegExp(r"^\w+$");
+  /// Pattern that recognizes identifier tokens.
+  ///
+  /// Only checks the first character, since no non-identifier token can start
+  /// with a word character.
+  static final _identifierPattern = new RegExp(r"^\w");
 
   /// The token strings being iterated.
   final Iterator<String> tokenIterator;
@@ -220,7 +270,10 @@ class _Scanner {
   bool get hasMore => current != null;
 
   /// Returns `true` if the current token is an identifier.
-  bool get isIdentifier => _identifierPattern.hasMatch(current);
+  // All non-identifier tokens are one or two characters,
+  // so a longer token must be an identifier.
+  bool get isIdentifier =>
+      current.length > 2 || _identifierPattern.hasMatch(current);
 
   /// If the current token is [token], consumes it and returns `true`.
   bool match(String token) {

@@ -765,8 +765,8 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
   }
 
   // From Set.
-  bool contains(Object object) {
-    return _validKey(object) && _splay(object as dynamic/*=E*/) == 0;
+  bool contains(Object element) {
+    return _validKey(element) && _splay(element as dynamic/*=E*/) == 0;
   }
 
   bool add(E element) {

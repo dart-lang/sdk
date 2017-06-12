@@ -85,8 +85,12 @@ const char* CanonicalFunction(const char* func);
 
 #define RETURN_NULL_ERROR(parameter)                                           \
   return Api::NewError("%s expects argument '%s' to be non-null.",             \
-                       CURRENT_FUNC, #parameter);
+                       CURRENT_FUNC, #parameter)
 
+#define CHECK_NULL(parameter)                                                  \
+  if (parameter == NULL) {                                                     \
+    RETURN_NULL_ERROR(parameter);                                              \
+  }
 
 #define CHECK_LENGTH(length, max_elements)                                     \
   do {                                                                         \

@@ -230,6 +230,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitFormalParameterList(FormalParameterList node) {
+    _checkRequiredParameter(node);
+    return super.visitFormalParameterList(node);
+  }
+
+  @override
   Object visitForStatement(ForStatement node) {
     _checkForPossibleNullCondition(node.condition);
     return super.visitForStatement(node);
@@ -1018,6 +1024,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(
             HintCode.MISSING_RETURN, returnType, [returnTypeType.displayName]);
       }
+    }
+  }
+
+  void _checkRequiredParameter(FormalParameterList node) {
+    final requiredParameters =
+        node.parameters.where((p) => p.element?.isRequired == true);
+    final nonNamedParamsWithRequired =
+        requiredParameters.where((p) => p.kind != ParameterKind.NAMED);
+    final namedParamsWithRequiredAndDefault = requiredParameters
+        .where((p) => p.kind == ParameterKind.NAMED)
+        .where((p) => p.element.defaultValueCode != null);
+    final paramsToHint = [
+      nonNamedParamsWithRequired,
+      namedParamsWithRequiredAndDefault
+    ].expand((e) => e);
+    for (final param in paramsToHint) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_REQUIRED_PARAM, param, [param.identifier.name]);
     }
   }
 
@@ -4954,6 +4978,22 @@ class ResolverErrorCode extends ErrorCode {
   static const ResolverErrorCode MISSING_LIBRARY_DIRECTIVE_WITH_PART =
       const ResolverErrorCode('MISSING_LIBRARY_DIRECTIVE_WITH_PART',
           "Libraries that have parts must have a library directive");
+
+  /**
+   * Parts: It is a static warning if the referenced part declaration
+   * <i>p</i> names a library that does not have a library tag.
+   *
+   * Parameters:
+   * 0: the URI of the expected library
+   * 1: the non-matching actual library name from the "part of" declaration
+   */
+  static const ResolverErrorCode PART_OF_UNNAMED_LIBRARY =
+      const ResolverErrorCode(
+          'PART_OF_UNNAMED_LIBRARY',
+          "Library is unnamed. Expected a URI not a library name '{0}' in the "
+          "part-of directive.",
+          "Try changing the part-of directive to a URI, or try including a"
+          " different part.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message

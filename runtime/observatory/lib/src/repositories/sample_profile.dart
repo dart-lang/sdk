@@ -70,7 +70,6 @@ class SampleProfileLoadingProgress extends M.SampleProfileLoadingProgress {
                 .invokeRpc('_getCpuProfile', {'tags': _tagToString(tag)});
       } else if (type == M.SampleProfileType.memory) {
         assert(owner is M.VM);
-        M.VM vm = owner as M.VM;
         response = await owner.invokeRpc(
             '_getNativeAllocationSamples', {'tags': _tagToString(tag)});
       } else {

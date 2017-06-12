@@ -4,10 +4,10 @@
 
 part of world_builder;
 
-abstract class _AbstractUsage<T> {
+abstract class AbstractUsage<T> {
   final EnumSet<T> _pendingUse = new EnumSet<T>();
 
-  _AbstractUsage() {
+  AbstractUsage() {
     _pendingUse.addAll(_originalUse);
   }
 
@@ -21,10 +21,17 @@ abstract class _AbstractUsage<T> {
 
   /// `true` if the [appliedUse] is non-empty.
   bool get hasUse => appliedUse.isNotEmpty;
+
+  /// Returns `true` if [other] has the same original and pending usage as this.
+  bool hasSameUsage(AbstractUsage<T> other) {
+    if (identical(this, other)) return true;
+    return _originalUse.value == other._originalUse.value &&
+        _pendingUse.value == other._pendingUse.value;
+  }
 }
 
 /// Registry for the observed use of a member [entity] in the open world.
-abstract class _MemberUsage extends _AbstractUsage<MemberUse> {
+abstract class _MemberUsage extends AbstractUsage<MemberUse> {
   // TODO(johnniwinther): Change [Entity] to [MemberEntity].
   final Entity entity;
 
@@ -95,7 +102,7 @@ abstract class _MemberUsage extends _AbstractUsage<MemberUse> {
     return entity == other.entity;
   }
 
-  String toString() => entity.toString();
+  String toString() => '$entity:${appliedUse.iterable(MemberUse.values)}';
 }
 
 class _FieldUsage extends _MemberUsage {
@@ -287,7 +294,7 @@ typedef void MemberUsedCallback(MemberEntity member, EnumSet<MemberUse> useSet);
 
 /// Registry for the observed use of a class [entity] in the open world.
 // TODO(johnniwinther): Merge this with [InstantiationInfo].
-class _ClassUsage extends _AbstractUsage<ClassUse> {
+class _ClassUsage extends AbstractUsage<ClassUse> {
   bool isInstantiated = false;
   bool isImplemented = false;
 
@@ -314,7 +321,7 @@ class _ClassUsage extends _AbstractUsage<ClassUse> {
   @override
   EnumSet<ClassUse> get _originalUse => ClassUses.ALL;
 
-  String toString() => cls.toString();
+  String toString() => '$cls:${appliedUse.iterable(ClassUse.values)}';
 }
 
 /// Enum class for the possible kind of use of [ClassEntity] objects.
@@ -333,7 +340,7 @@ class ClassUses {
 typedef void ClassUsedCallback(ClassEntity cls, EnumSet<ClassUse> useSet);
 
 // TODO(johnniwinther): Merge this with [_MemberUsage].
-abstract class _StaticMemberUsage extends _AbstractUsage<MemberUse> {
+abstract class _StaticMemberUsage extends AbstractUsage<MemberUse> {
   final Entity entity;
 
   bool hasNormalUse = false;
@@ -354,7 +361,7 @@ abstract class _StaticMemberUsage extends _AbstractUsage<MemberUse> {
   @override
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
-  String toString() => entity.toString();
+  String toString() => '$entity:${appliedUse.iterable(MemberUse.values)}';
 }
 
 class _GeneralStaticMemberUsage extends _StaticMemberUsage {

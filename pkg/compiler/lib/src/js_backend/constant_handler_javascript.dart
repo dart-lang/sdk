@@ -113,9 +113,6 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
  */
 class JavaScriptConstantCompiler extends ConstantCompilerBase
     implements BackendConstantEnvironment {
-  /** Set of all registered compiled constants. */
-  final Set<ConstantValue> compiledConstants = new Set<ConstantValue>();
-
   // TODO(johnniwinther): Move this to the backend constant handler.
   /** Caches the statics where the initial value cannot be eagerly compiled. */
   final Set<FieldElement> lazyStatics = new Set<FieldElement>();
@@ -153,41 +150,8 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     lazyStatics.add(element);
   }
 
-  void addCompileTimeConstantForEmission(ConstantValue constant) {
-    compiledConstants.add(constant);
-  }
-
   List<FieldElement> getLazilyInitializedFieldsForEmission() {
     return new List<FieldElement>.from(lazyStatics);
-  }
-
-  /**
-   * Returns a list of constants topologically sorted so that dependencies
-   * appear before the dependent constant.  [preSortCompare] is a comparator
-   * function that gives the constants a consistent order prior to the
-   * topological sort which gives the constants an ordering that is less
-   * sensitive to perturbations in the source code.
-   */
-  List<ConstantValue> getConstantsForEmission([preSortCompare]) {
-    // We must emit dependencies before their uses.
-    Set<ConstantValue> seenConstants = new Set<ConstantValue>();
-    List<ConstantValue> result = new List<ConstantValue>();
-
-    void addConstant(ConstantValue constant) {
-      if (!seenConstants.contains(constant)) {
-        constant.getDependencies().forEach(addConstant);
-        assert(!seenConstants.contains(constant));
-        result.add(constant);
-        seenConstants.add(constant);
-      }
-    }
-
-    List<ConstantValue> sorted = compiledConstants.toList();
-    if (preSortCompare != null) {
-      sorted.sort(preSortCompare);
-    }
-    sorted.forEach(addConstant);
-    return result;
   }
 
   ConstantExpression compileNode(Node node, TreeElements elements,

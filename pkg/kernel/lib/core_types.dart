@@ -57,6 +57,7 @@ class CoreTypes {
   Class _invocationMirrorClass;
   Constructor _invocationMirrorDefaultConstructor;
   Class _noSuchMethodErrorClass;
+  Constructor _noSuchMethodErrorImplementationConstructor;
   Procedure _listFromConstructor;
   Procedure _printProcedure;
   Procedure _identicalProcedure;
@@ -204,6 +205,13 @@ class CoreTypes {
   Class get noSuchMethodErrorClass {
     return _noSuchMethodErrorClass ??=
         _index.getClass('dart:core', 'NoSuchMethodError');
+  }
+
+  /// An implementation-specific constructor suitable for use by
+  /// `Target.instantiateNoSuchMethodError`.
+  Constructor get noSuchMethodErrorImplementationConstructor {
+    return _noSuchMethodErrorImplementationConstructor ??=
+        _index.getMember('dart:core', 'NoSuchMethodError', '_withType');
   }
 
   Class get nullClass {

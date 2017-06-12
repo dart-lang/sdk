@@ -15,6 +15,7 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
+import 'package:compiler/src/js_backend/enqueuer.dart';
 import 'package:compiler/src/js_backend/native_data.dart';
 import 'package:compiler/src/js_backend/interceptor_data.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
@@ -26,7 +27,8 @@ import 'check_helpers.dart';
 void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
     {TestStrategy strategy: const TestStrategy(),
     bool allowExtra: false,
-    bool verbose: false}) {
+    bool verbose: false,
+    bool allowMissingClosureClasses: false}) {
   if (verbose) {
     print(closedWorld1.dump());
     print(closedWorld2.dump());
@@ -39,7 +41,8 @@ void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
       closedWorld2
           .getClassHierarchyNode(closedWorld2.commonElements.objectClass),
       strategy.elementEquivalence,
-      verbose: verbose);
+      verbose: verbose,
+      allowMissingClosureClasses: allowMissingClosureClasses);
 
   checkNativeData(closedWorld1.nativeData, closedWorld2.nativeData,
       strategy: strategy, allowExtra: allowExtra, verbose: verbose);
@@ -152,7 +155,8 @@ void checkClassHierarchyNodes(
     ClassHierarchyNode node1,
     ClassHierarchyNode node2,
     bool elementEquivalence(Entity a, Entity b),
-    {bool verbose: false}) {
+    {bool verbose: false,
+    bool allowMissingClosureClasses: false}) {
   if (verbose) {
     print('Checking $node1 vs $node2');
   }
@@ -180,12 +184,13 @@ void checkClassHierarchyNodes(
       if (elementEquivalence(child1, child2)) {
         checkClassHierarchyNodes(
             closedWorld1, closedWorld2, child, other, elementEquivalence,
-            verbose: verbose);
+            verbose: verbose,
+            allowMissingClosureClasses: allowMissingClosureClasses);
         found = true;
         break;
       }
     }
-    if (!found) {
+    if (!found && (!child.cls.isClosure || !allowMissingClosureClasses)) {
       if (child.isInstantiated) {
         print('Missing subclass ${child.cls} of ${node1.cls} '
             'in ${node2.directSubclasses}');
@@ -203,6 +208,10 @@ void checkClassHierarchyNodes(
   checkMixinUses(
       closedWorld1, closedWorld2, node1.cls, node2.cls, elementEquivalence,
       verbose: verbose);
+  Expect.isNotNull(
+      closedWorld1.getClassSet(cls1), "Missing ClassSet for $cls1");
+  Expect.isNotNull(
+      closedWorld2.getClassSet(cls2), "Missing ClassSet for $cls2");
 }
 
 void checkMixinUses(
@@ -611,6 +620,10 @@ bool areInstancesEquivalent(Instance instance1, Instance instance2,
       instance1.isRedirection == instance2.isRedirection;
 }
 
+bool areAbstractUsagesEquivalent(AbstractUsage usage1, AbstractUsage usage2) {
+  return usage1.hasSameUsage(usage2);
+}
+
 void checkResolutionEnqueuers(
     BackendUsage backendUsage1,
     BackendUsage backendUsage2,
@@ -619,20 +632,20 @@ void checkResolutionEnqueuers(
     {bool elementEquivalence(Entity a, Entity b): areElementsEquivalent,
     bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
     bool elementFilter(Element element),
-    bool verbose: false}) {
+    bool verbose: false,
+    bool skipClassUsageTesting: false}) {
+  elementFilter ??= (_) => true;
+
   ResolutionWorldBuilderBase worldBuilder1 = enqueuer1.worldBuilder;
   ResolutionWorldBuilderBase worldBuilder2 = enqueuer2.worldBuilder;
 
-  checkSets(
-      enqueuer1.worldBuilder.instantiatedTypes,
-      enqueuer2.worldBuilder.instantiatedTypes,
-      "Instantiated types mismatch",
-      typeEquivalence,
+  checkSets(worldBuilder1.instantiatedTypes, worldBuilder2.instantiatedTypes,
+      "Instantiated types mismatch", typeEquivalence,
       verbose: verbose);
 
   checkSets(
-      enqueuer1.worldBuilder.directlyInstantiatedClasses,
-      enqueuer2.worldBuilder.directlyInstantiatedClasses,
+      worldBuilder1.directlyInstantiatedClasses,
+      worldBuilder2.directlyInstantiatedClasses,
       "Directly instantiated classes mismatch",
       elementEquivalence,
       verbose: verbose);
@@ -647,12 +660,49 @@ void checkResolutionEnqueuers(
       verbose: verbose);
 
   checkSets(enqueuer1.processedEntities, enqueuer2.processedEntities,
-      "Processed element mismatch", elementEquivalence, elementFilter: (e) {
-    return elementFilter != null ? elementFilter(e) : true;
-  }, verbose: verbose);
+      "Processed element mismatch", elementEquivalence,
+      elementFilter: elementFilter, verbose: verbose);
 
-  checkSets(enqueuer1.worldBuilder.isChecks, enqueuer2.worldBuilder.isChecks,
-      "Is-check mismatch", typeEquivalence,
+  checkSets(worldBuilder1.isChecks, worldBuilder2.isChecks, "Is-check mismatch",
+      typeEquivalence,
+      verbose: verbose);
+
+  checkSets(worldBuilder1.closurizedMembers, worldBuilder2.closurizedMembers,
+      "closurizedMembers", elementEquivalence,
+      verbose: verbose);
+  checkSets(worldBuilder1.fieldSetters, worldBuilder2.fieldSetters,
+      "fieldSetters", elementEquivalence,
+      verbose: verbose);
+  checkSets(
+      worldBuilder1.methodsNeedingSuperGetter,
+      worldBuilder2.methodsNeedingSuperGetter,
+      "methodsNeedingSuperGetter",
+      elementEquivalence,
+      verbose: verbose);
+
+  if (!skipClassUsageTesting) {
+    checkMaps(
+        worldBuilder1.classUsageForTesting,
+        worldBuilder2.classUsageForTesting,
+        'classUsageForTesting',
+        elementEquivalence,
+        areAbstractUsagesEquivalent,
+        verbose: verbose);
+  }
+  checkMaps(
+      worldBuilder1.staticMemberUsageForTesting,
+      worldBuilder2.staticMemberUsageForTesting,
+      'staticMemberUsageForTesting',
+      elementEquivalence,
+      areAbstractUsagesEquivalent,
+      keyFilter: elementFilter,
+      verbose: verbose);
+  checkMaps(
+      worldBuilder1.instanceMemberUsageForTesting,
+      worldBuilder2.instanceMemberUsageForTesting,
+      'instanceMemberUsageForTesting',
+      elementEquivalence,
+      areAbstractUsagesEquivalent,
       verbose: verbose);
 
   Expect.equals(backendUsage1.isInvokeOnUsed, backendUsage2.isInvokeOnUsed,
@@ -667,4 +717,80 @@ void checkResolutionEnqueuers(
       "JavaScriptBackend.hasRuntimeTypeSupport mismatch");
   Expect.equals(backendUsage1.isIsolateInUse, backendUsage2.isIsolateInUse,
       "JavaScriptBackend.hasIsolateSupport mismatch");
+}
+
+void checkCodegenEnqueuers(CodegenEnqueuer enqueuer1, CodegenEnqueuer enqueuer2,
+    {bool elementEquivalence(Entity a, Entity b): areElementsEquivalent,
+    bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
+    bool elementFilter(Element element),
+    bool verbose: false}) {
+  CodegenWorldBuilderImpl worldBuilder1 = enqueuer1.worldBuilder;
+  CodegenWorldBuilderImpl worldBuilder2 = enqueuer2.worldBuilder;
+
+  checkSets(worldBuilder1.instantiatedTypes, worldBuilder2.instantiatedTypes,
+      "Instantiated types mismatch", typeEquivalence,
+      verbose: verbose);
+
+  checkSets(
+      worldBuilder1.directlyInstantiatedClasses,
+      worldBuilder2.directlyInstantiatedClasses,
+      "Directly instantiated classes mismatch",
+      elementEquivalence,
+      verbose: verbose);
+
+  checkSets(enqueuer1.processedEntities, enqueuer2.processedEntities,
+      "Processed element mismatch", elementEquivalence, elementFilter: (e) {
+    return elementFilter != null ? elementFilter(e) : true;
+  }, verbose: verbose);
+
+  checkSets(worldBuilder1.isChecks, worldBuilder2.isChecks, "Is-check mismatch",
+      typeEquivalence,
+      verbose: verbose);
+
+  checkSets(
+      worldBuilder1.allReferencedStaticFields,
+      worldBuilder2.allReferencedStaticFields,
+      "Directly instantiated classes mismatch",
+      elementEquivalence,
+      verbose: verbose);
+  checkSets(worldBuilder1.closurizedMembers, worldBuilder2.closurizedMembers,
+      "closurizedMembers", elementEquivalence,
+      verbose: verbose);
+  checkSets(worldBuilder1.processedClasses, worldBuilder2.processedClasses,
+      "processedClasses", elementEquivalence,
+      verbose: verbose);
+  checkSets(
+      worldBuilder1.methodsNeedingSuperGetter,
+      worldBuilder2.methodsNeedingSuperGetter,
+      "methodsNeedingSuperGetter",
+      elementEquivalence,
+      verbose: verbose);
+  checkSets(
+      worldBuilder1.staticFunctionsNeedingGetter,
+      worldBuilder2.staticFunctionsNeedingGetter,
+      "staticFunctionsNeedingGetter",
+      elementEquivalence,
+      verbose: verbose);
+
+  checkMaps(
+      worldBuilder1.classUsageForTesting,
+      worldBuilder2.classUsageForTesting,
+      'classUsageForTesting',
+      elementEquivalence,
+      areAbstractUsagesEquivalent,
+      verbose: verbose);
+  checkMaps(
+      worldBuilder1.staticMemberUsageForTesting,
+      worldBuilder2.staticMemberUsageForTesting,
+      'staticMemberUsageForTesting',
+      elementEquivalence,
+      areAbstractUsagesEquivalent,
+      verbose: verbose);
+  checkMaps(
+      worldBuilder1.instanceMemberUsageForTesting,
+      worldBuilder2.instanceMemberUsageForTesting,
+      'instanceMemberUsageForTesting',
+      elementEquivalence,
+      areAbstractUsagesEquivalent,
+      verbose: verbose);
 }

@@ -43,7 +43,8 @@ main(List<String> arguments) {
     compiler.processLoadedLibraries(libraries);
     JavaScriptBackend backend = compiler.backend;
     ir.Program program = backend.kernelTask.buildProgram(libraries.rootLibrary);
-    ClassHierarchy hierarchy = new ClassHierarchy(program);
+    ClosedWorldClassHierarchy hierarchy =
+        new ClosedWorldClassHierarchy(program);
 
     ir.Class getClass(String name) {
       for (ir.Class cls in hierarchy.classes) {

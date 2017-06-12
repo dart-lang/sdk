@@ -6,9 +6,9 @@ import "package:expect/expect.dart" as exp;
 class A<N extends core::Object, S extends core::Object, U extends core::Object> extends core::Object {
   final field core::List<self::A::U> field;
   constructor •(self::A::N n, self::A::S s) → void
-    : self::A::field = core::List::_internal<self::A::U>(core::_GROWABLE_ARRAY_MARKER), super core::Object::•() {
-    exp::Expect::isTrue(n is self::A::N, null);
-    exp::Expect::isTrue(s is self::A::S, null);
+    : self::A::field = core::List::_internal<self::A::U>(), super core::Object::•() {
+    exp::Expect::isTrue(n is self::A::N);
+    exp::Expect::isTrue(s is self::A::S);
   }
   constructor empty() → void
     : self::A::field = null, super core::Object::•() {}
@@ -16,7 +16,7 @@ class A<N extends core::Object, S extends core::Object, U extends core::Object> 
     : self::A::field = const <dynamic>[null], super core::Object::•()
     ;
   static factory f<N extends core::Object, S extends core::Object, U extends core::Object>(self::A::f::S s) → self::A<self::A::f::N, self::A::f::S, self::A::f::U> {
-    exp::Expect::isTrue(s is self::A::f::S, null);
+    exp::Expect::isTrue(s is self::A::f::S);
     return new self::A::empty<dynamic, dynamic, dynamic>();
   }
   get getter() → core::List<self::A::U> {

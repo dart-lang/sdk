@@ -8,7 +8,7 @@ import 'package:front_end/src/fasta/parser/parser.dart'
     show FormalParameterType, MemberKind;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
-import 'package:front_end/src/fasta/scanner.dart' show SymbolToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'package:front_end/src/scanner/token.dart' show TokenType;
 
 import '../common.dart';
@@ -16,6 +16,8 @@ import '../elements/elements.dart' show CompilationUnitElement;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'element_listener.dart' show ElementListener, ScannerOptions;
+
+import 'package:front_end/src/fasta/parser/parser.dart' as fasta show Assert;
 
 class NodeListener extends ElementListener {
   NodeListener(ScannerOptions scannerOptions, DiagnosticReporter reporter,
@@ -718,8 +720,7 @@ class NodeListener extends ElementListener {
     NodeList arguments =
         makeNodeList(1, openSquareBracket, closeSquareBracket, null);
     Node receiver = popNode();
-    Token token =
-        new SymbolToken(TokenType.INDEX, openSquareBracket.charOffset);
+    Token token = new Token(TokenType.INDEX, openSquareBracket.charOffset);
     Node selector = new Operator(token);
     pushNode(new Send(receiver, selector, arguments));
   }
@@ -962,7 +963,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+  void endAssert(Token assertKeyword, fasta.Assert kind, Token leftParenthesis,
       Token commaToken, Token rightParenthesis, Token semicolonToken) {
     Node message;
     Node condition;

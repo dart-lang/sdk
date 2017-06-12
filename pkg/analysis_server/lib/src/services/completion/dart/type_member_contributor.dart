@@ -5,13 +5,12 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/local_declaration_visitor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 
 import '../../../protocol_server.dart' show CompletionSuggestion;
 
@@ -96,7 +95,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     // Build the suggestions
     if (type is InterfaceType) {
       _SuggestionBuilder builder = new _SuggestionBuilder(containingLibrary);
-      builder.buildSuggestions(type, containingMethodName, request.ideOptions);
+      builder.buildSuggestions(type, containingMethodName);
       return builder.suggestions.toList();
     }
     return EMPTY_LIST;
@@ -275,8 +274,7 @@ class _SuggestionBuilder {
    * If the 'dot' completion is a super expression, then [containingMethodName]
    * is the name of the method in which the completion is requested.
    */
-  void buildSuggestions(
-      InterfaceType type, String containingMethodName, IdeOptions ideOptions) {
+  void buildSuggestions(InterfaceType type, String containingMethodName) {
     // Visit all of the types in the class hierarchy, collecting possible
     // completions.  If multiple elements are found that complete to the same
     // identifier, addSuggestion will discard all but the first (with a few
@@ -288,7 +286,7 @@ class _SuggestionBuilder {
         if (!method.isStatic) {
           // Boost the relevance of a super expression
           // calling a method of the same name as the containing method
-          _addSuggestion(method, ideOptions,
+          _addSuggestion(method,
               relevance: method.name == containingMethodName
                   ? DART_RELEVANCE_HIGH
                   : DART_RELEVANCE_DEFAULT);
@@ -299,10 +297,10 @@ class _SuggestionBuilder {
           if (propertyAccessor.isSynthetic) {
             // Avoid visiting a field twice
             if (propertyAccessor.isGetter) {
-              _addSuggestion(propertyAccessor.variable, ideOptions);
+              _addSuggestion(propertyAccessor.variable);
             }
           } else {
-            _addSuggestion(propertyAccessor, ideOptions);
+            _addSuggestion(propertyAccessor);
           }
         }
       }
@@ -313,7 +311,7 @@ class _SuggestionBuilder {
    * Add a suggestion based upon the given element, provided that it is not
    * shadowed by a previously added suggestion.
    */
-  void _addSuggestion(Element element, IdeOptions options,
+  void _addSuggestion(Element element,
       {int relevance: DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
@@ -368,7 +366,7 @@ class _SuggestionBuilder {
       return;
     }
     CompletionSuggestion suggestion =
-        createSuggestion(element, options, relevance: relevance);
+        createSuggestion(element, relevance: relevance);
     if (suggestion != null) {
       _suggestionMap[suggestion.completion] = suggestion;
     }

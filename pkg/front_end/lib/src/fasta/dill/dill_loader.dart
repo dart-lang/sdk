@@ -6,7 +6,7 @@ library fasta.dill_loader;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/ast.dart' show Library, Program;
+import 'package:kernel/ast.dart' show Library, Program, Source;
 
 import '../loader.dart' show Loader;
 import '../target_implementation.dart' show TargetImplementation;
@@ -15,6 +15,9 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 class DillLoader extends Loader<Library> {
   /// Source targets are compiled against these binary libraries.
   final libraries = <Library>[];
+
+  /// Sources for all appended programs.
+  final Map<String, Source> uriToSource = <String, Source>{};
 
   DillLoader(TargetImplementation target) : super(target);
 
@@ -26,15 +29,14 @@ class DillLoader extends Loader<Library> {
     for (Library library in program.libraries) {
       if (filter == null || filter(library.importUri)) {
         libraries.add(library);
-        DillLibraryBuilder builder = read(library.importUri);
+        DillLibraryBuilder builder = read(library.importUri, -1);
         builder.library = library;
         builders.add(builder);
       }
     }
+    uriToSource.addAll(program.uriToSource);
     return builders;
   }
-
-  DillLibraryBuilder read(Uri uri, [Uri fileUri]) => super.read(uri, fileUri);
 
   Future<Null> buildOutline(DillLibraryBuilder builder) async {
     builder.library.classes.forEach(builder.addClass);

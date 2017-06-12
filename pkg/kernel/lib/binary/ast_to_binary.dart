@@ -19,7 +19,7 @@ class BinaryPrinter extends Visitor {
   LabelIndexer _labelIndexer;
   SwitchCaseIndexer _switchCaseIndexer;
   final TypeParameterIndexer _typeParameterIndexer = new TypeParameterIndexer();
-  final StringIndexer _stringIndexer = new StringIndexer();
+  final StringIndexer stringIndexer;
   final StringIndexer _sourceUriIndexer = new StringIndexer();
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
@@ -34,7 +34,9 @@ class BinaryPrinter extends Visitor {
   /// If multiple binaries are to be written based on the same IR, a shared
   /// [globalIndexer] may be passed in to avoid rebuilding the same indices
   /// in every printer.
-  BinaryPrinter(Sink<List<int>> sink) : _sink = new BufferedSink(sink);
+  BinaryPrinter(Sink<List<int>> sink, {StringIndexer stringIndexer})
+      : _sink = new BufferedSink(sink),
+        stringIndexer = stringIndexer ?? new StringIndexer();
 
   void _flush() {
     _sink.flushAndDestroy();
@@ -90,7 +92,7 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeStringReference(String string) {
-    writeUInt30(_stringIndexer[string]);
+    writeUInt30(stringIndexer[string]);
   }
 
   void writeStringReferenceList(List<String> strings) {
@@ -137,10 +139,28 @@ class BinaryPrinter extends Visitor {
     }
 
     for (var library in program.libraries) {
+      if (!shouldWriteLibraryCanonicalNames(library)) continue;
       visitCanonicalName(library.canonicalName);
     }
+    addCanonicalNamesForLinkTable(list);
     writeList(list, writeCanonicalNameEntry);
   }
+
+  /// Compute canonical names for the whole program or parts of it.
+  void computeCanonicalNames(Program program) {
+    program.computeCanonicalNames();
+  }
+
+  /// Return `true` if all canonical names of the [library] should be written
+  /// into the link table.  If some libraries of the program are skipped,
+  /// then [addCanonicalNamesForLinkTable] should append all the additional
+  /// names referenced by the libraries that are written by [writeLibraries].
+  bool shouldWriteLibraryCanonicalNames(Library library) => true;
+
+  /// Append additional names for entities that are referenced by the
+  /// libraries that are written by [writeLibraries], but declared outside
+  /// of these libraries.
+  void addCanonicalNamesForLinkTable(List<CanonicalName> list) {}
 
   void writeCanonicalNameEntry(CanonicalName node) {
     var parent = node.parent;
@@ -153,15 +173,25 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeProgramFile(Program program) {
-    program.computeCanonicalNames();
+    computeCanonicalNames(program);
     writeMagicWord(Tag.ProgramFile);
-    _stringIndexer.scanProgram(program);
-    writeStringTable(_stringIndexer);
+    buildStringIndex(program);
+    writeStringTable(stringIndexer);
     writeUriToSource(program);
     writeLinkTable(program);
-    writeList(program.libraries, writeNode);
+    writeLibraries(program);
     writeMemberReference(program.mainMethod, allowNull: true);
     _flush();
+  }
+
+  /// Fill the [stringIndexer] with all strings we are going to reference.
+  void buildStringIndex(Program program) {
+    stringIndexer.scanProgram(program);
+  }
+
+  /// Write all of some of the libraries of the [program].
+  void writeLibraries(Program program) {
+    writeList(program.libraries, writeNode);
   }
 
   void writeUriToSource(Program program) {
@@ -1089,8 +1119,8 @@ class LibraryFilteringBinaryPrinter extends BinaryPrinter {
   void writeProgramFile(Program program) {
     program.computeCanonicalNames();
     writeMagicWord(Tag.ProgramFile);
-    _stringIndexer.scanProgram(program);
-    writeStringTable(_stringIndexer);
+    stringIndexer.scanProgram(program);
+    writeStringTable(stringIndexer);
     writeUriToSource(program);
     writeLinkTable(program);
     writeList(program.libraries.where(predicate).toList(), writeNode);
@@ -1197,8 +1227,19 @@ class StringIndexer extends RecursiveVisitor<Null> {
 
   int get numberOfStrings => index.length;
 
-  void scanProgram(Node node) {
-    node.accept(this);
+  /// Scan all the [program] libraries and [finish] indexing.
+  void scanProgram(Program program) {
+    program.accept(this);
+    finish();
+  }
+
+  /// Scan the given library, but don't [finish] indexing yet.
+  void scanLibrary(Library library) {
+    library.accept(this);
+  }
+
+  /// Finish building of the index - sort and assign indices for entries.
+  void finish() {
     entries.sort();
     for (int i = 0; i < entries.length; ++i) {
       index[entries[i].value] = i;

@@ -7,7 +7,6 @@ library dart2js.resolution.compute_members;
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names;
 import '../common/resolution.dart' show Resolution;
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart'
     show
         ClassElement,
@@ -17,6 +16,8 @@ import '../elements/elements.dart'
         MemberElement,
         MemberSignature,
         MixinApplicationElement;
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../elements/names.dart';
 import '../util/util.dart';
 
@@ -34,8 +35,8 @@ abstract class MembersCreator {
 
   MembersCreator(
       this.resolution, this.cls, this.computedMemberNames, this.classMembers) {
-    assert(invariant(cls, cls.isDeclaration,
-        message: "Members may only be computed on declarations."));
+    assert(cls.isDeclaration,
+        failedAt(cls, "Members may only be computed on declarations."));
   }
 
   DiagnosticReporter get reporter => resolution.reporter;
@@ -213,7 +214,7 @@ abstract class MembersCreator {
           name = name.setter;
           addDeclaredMember(name, type, functionType);
         } else {
-          assert(invariant(element, element.isFunction));
+          assert(element.isFunction, failedAt(element));
           ResolutionFunctionType type = element.computeType(resolution);
           addDeclaredMember(name, type, type);
         }
@@ -366,8 +367,8 @@ abstract class MembersCreator {
         for (Member inherited in superMember.declarations) {
           if (cls == inherited.declarer.element) {
             // An error should already have been reported.
-            assert(invariant(
-                declared.element, resolution.reporter.hasReportedError));
+            assert(resolution.reporter.hasReportedError,
+                failedAt(declared.element));
             continue;
           }
 
@@ -389,9 +390,11 @@ abstract class MembersCreator {
         } else if (cls == inherited.declarer.element) {
           // An error should already have been reported.
           assert(
-              invariant(declared.element, resolution.reporter.hasReportedError,
-                  message: "Member $inherited inherited from its "
-                      "declaring class: ${cls}."));
+              resolution.reporter.hasReportedError,
+              failedAt(
+                  declared.element,
+                  "Member $inherited inherited from its "
+                  "declaring class: ${cls}."));
           continue;
         }
 

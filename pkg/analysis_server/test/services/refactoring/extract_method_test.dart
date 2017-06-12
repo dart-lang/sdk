@@ -859,6 +859,52 @@ class A {
 ''');
   }
 
+  test_closure_atArgumentName() async {
+    await indexTestUnit('''
+void process({int fff(int x)}) {}
+class C {
+  main() {
+    process(fff: (int x) => x * 2);
+  }
+}
+''');
+    _createRefactoring(findOffset('ff: (int x)'), 0);
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void process({int fff(int x)}) {}
+class C {
+  main() {
+    process(fff: res);
+  }
+
+  int res(int x) => x * 2;
+}
+''');
+  }
+
+  test_closure_atParameters() async {
+    await indexTestUnit('''
+void process(num f(int x)) {}
+class C {
+  main() {
+    process((int x) => x * 2);
+  }
+}
+''');
+    _createRefactoring(findOffset('x) =>'), 0);
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void process(num f(int x)) {}
+class C {
+  main() {
+    process(res);
+  }
+
+  num res(int x) => x * 2;
+}
+''');
+  }
+
   test_closure_bad_referencesLocalVariable() async {
     await indexTestUnit('''
 process(f(x)) {}

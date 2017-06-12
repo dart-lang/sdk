@@ -1887,7 +1887,7 @@ void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
 
 
 // Return the current stack pointer address, used to do stack alignment checks.
-void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
+void StubCode::GenerateGetCStackPointerStub(Assembler* assembler) {
   __ mov(R0, Operand(SP));
   __ Ret();
 }

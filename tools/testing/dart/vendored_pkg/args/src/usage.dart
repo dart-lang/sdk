@@ -144,13 +144,13 @@ class Usage {
     columnWidths = [abbr, title];
   }
 
-  newline() {
+  void newline() {
     newlinesNeeded++;
     currentColumn = 0;
     numHelpLines = 0;
   }
 
-  write(int column, String text) {
+  void write(int column, String text) {
     var lines = text.split('\n');
 
     // Strip leading and trailing empty lines.
@@ -167,7 +167,7 @@ class Usage {
     }
   }
 
-  writeLine(int column, String text) {
+  void writeLine(int column, String text) {
     // Write any pending newlines.
     while (newlinesNeeded > 0) {
       buffer.writeln('');
@@ -208,7 +208,7 @@ class Usage {
     }
   }
 
-  buildAllowedList(Option option) {
+  String buildAllowedList(Option option) {
     var allowedBuffer = new StringBuffer();
     allowedBuffer.write('[');
     bool first = true;

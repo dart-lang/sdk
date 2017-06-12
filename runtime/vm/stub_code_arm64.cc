@@ -1933,8 +1933,8 @@ void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
-  __ mov(R0, SP);
+void StubCode::GenerateGetCStackPointerStub(Assembler* assembler) {
+  __ mov(R0, CSP);
   __ ret();
 }
 

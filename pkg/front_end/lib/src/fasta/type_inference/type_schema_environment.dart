@@ -36,7 +36,11 @@ class TypeConstraint {
 }
 
 class TypeSchemaEnvironment extends TypeEnvironment {
-  TypeSchemaEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy)
+  @override
+  final bool strongMode;
+
+  TypeSchemaEnvironment(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, this.strongMode)
       : super(coreTypes, hierarchy);
 
   /// Modify the given [constraint]'s lower bound to include [lower].
@@ -232,7 +236,7 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     // are implied by this.
     var gatherer = new TypeConstraintGatherer(this, typeParametersToInfer);
 
-    if (returnContextType != null) {
+    if (!isEmptyContext(returnContextType)) {
       gatherer.trySubtypeMatch(declaredReturnType, returnContextType);
     }
 
@@ -383,6 +387,16 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     } else {
       return super.isBottom(t);
     }
+  }
+
+  bool isEmptyContext(DartType context) {
+    if (context is DynamicType) {
+      // Analyzer treats a type context of `dynamic` as equivalent to an empty
+      // context.  TODO(paulberry): this is not spec'ed anywhere; do we still
+      // want to do this?
+      return true;
+    }
+    return context == null;
   }
 
   @override

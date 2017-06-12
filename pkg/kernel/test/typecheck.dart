@@ -4,6 +4,7 @@
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/type_checker.dart';
 import 'dart:io';
 
@@ -20,7 +21,7 @@ main(List<String> args) {
   }
   var program = loadProgramFromBinary(args[0]);
   var coreTypes = new CoreTypes(program);
-  var hierarchy = new ClassHierarchy(program);
+  var hierarchy = new IncrementalClassHierarchy();
   new TestTypeChecker(coreTypes, hierarchy).checkProgram(program);
 }
 

@@ -127,8 +127,8 @@ Future<ResultKind> mainInternal(List<String> args,
   ElementEnvironment environment1 = compiler.elementEnvironment;
 
   Compiler compiler2 = compilers.b;
-  KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-  KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
+  KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
+  KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
   Expect.isFalse(compiler2.compilationFailed);
 
   KernelEquivalence equivalence = new KernelEquivalence(elementMap);

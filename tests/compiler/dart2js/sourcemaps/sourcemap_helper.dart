@@ -11,6 +11,7 @@ import 'package:compiler/src/apiimpl.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/null_compiler_output.dart' show NullSink;
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/helpers/helpers.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/code_output.dart';
@@ -200,8 +201,8 @@ class RecordingSourceInformationStrategy
   RecordingSourceInformationStrategy(this.strategy);
 
   @override
-  SourceInformationBuilder createBuilderForContext(ResolvedAst resolvedAst) {
-    return strategy.createBuilderForContext(resolvedAst);
+  SourceInformationBuilder createBuilderForContext(MemberEntity member) {
+    return strategy.createBuilderForContext(member);
   }
 
   @override

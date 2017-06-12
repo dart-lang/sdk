@@ -118,7 +118,7 @@ main() {
       // Exception expected
       return errorToken;
     }).then((result) {
-      expect(result, same(errorToken));
+      expect(result, new isInstanceOf<CompletionGetSuggestionsResult>());
     });
   }
 }

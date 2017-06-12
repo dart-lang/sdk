@@ -876,7 +876,8 @@ import 'dart:async';
 Future test() async {
   dynamic d;
   List<int> l0 = await /*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d];
-  List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value([d]);
+  List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(
+      /*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d]);
 }
 ''');
   }
@@ -1754,7 +1755,12 @@ main() {
   }
 
   test_futureUnion_asyncConditional() async {
-    String build({String declared, String downwards, String upwards}) => '''
+    String build(
+            {String declared,
+            String downwards,
+            String upwards,
+            String expectedInfo: ''}) =>
+        '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
@@ -1768,16 +1774,23 @@ $downwards<int> g1(bool x) async {
 $downwards<int> g2(bool x) async =>
   /*info:DOWN_CAST_COMPOSITE*/x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
 $downwards<int> g3(bool x) async {
-  var y = x ? 42 : new $upwards.value(42);
+  var y = x ? 42 : ${expectedInfo}new $upwards.value(42);
   return /*info:DOWN_CAST_COMPOSITE*/y;
 }
     ''';
-    await checkFileElement(build(downwards: "Future", upwards: "Future"));
+    await checkFileElement(build(
+        downwards: "Future",
+        upwards: "Future",
+        expectedInfo: '/*info:INFERRED_TYPE_ALLOCATION*/'));
     await checkFileElement(build(downwards: "Future", upwards: "MyFuture"));
   }
 
   test_futureUnion_downwards() async {
-    String build({String declared, String downwards, String upwards}) {
+    String build(
+        {String declared,
+        String downwards,
+        String upwards,
+        String expectedError: ''}) {
       return '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
@@ -1790,7 +1803,7 @@ class MyFuture<T> implements Future<T> {
 $declared f;
 // Instantiates Future<int>
 $downwards<int> t1 = f.then((_) =>
-   /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value('hi'));
+   /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value($expectedError'hi'));
 
 // Instantiates List<int>
 $downwards<List<int>> t2 = f.then((_) => /*info:INFERRED_TYPE_LITERAL*/[3]);
@@ -1801,12 +1814,18 @@ $downwards<List<int>> g3() async {
 ''';
     }
 
-    await checkFileElement(
-        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
+    await checkFileElement(build(
+        declared: "MyFuture",
+        downwards: "Future",
+        upwards: "Future",
+        expectedError: '/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'));
     await checkFileElement(
         build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
-    await checkFileElement(
-        build(declared: "Future", downwards: "Future", upwards: "Future"));
+    await checkFileElement(build(
+        declared: "Future",
+        downwards: "Future",
+        upwards: "Future",
+        expectedError: '/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'));
     await checkFileElement(
         build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
   }

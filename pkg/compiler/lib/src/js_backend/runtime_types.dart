@@ -12,8 +12,7 @@ import '../elements/resolution_types.dart'
         MalformedType,
         MethodTypeVariableType,
         ResolutionDartTypeVisitor,
-        ResolutionTypedefType,
-        Types;
+        ResolutionTypedefType;
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
@@ -383,7 +382,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     // Check local functions and closurized members.
     void checkClosures({DartType potentialSubtypeOf}) {
       bool checkFunctionType(FunctionType functionType) {
-        ClassEntity contextClass = Types.getClassContext(functionType);
+        ClassEntity contextClass = DartTypes.getClassContext(functionType);
         if (contextClass != null &&
             (potentialSubtypeOf == null ||
                 types.isPotentialSubtype(functionType, potentialSubtypeOf))) {
@@ -417,7 +416,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
           potentiallyAddForRti(itf.element);
         }
       } else {
-        ClassEntity contextClass = Types.getClassContext(type);
+        ClassEntity contextClass = DartTypes.getClassContext(type);
         if (contextClass != null) {
           // [type] contains type variables (declared in [contextClass]) if
           // [contextClass] is non-null. This handles checks against type
@@ -831,7 +830,7 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
 
   jsAst.Expression getTypeEncoding(Emitter emitter, DartType type,
       {bool alwaysGenerateFunction: false}) {
-    ClassEntity contextClass = Types.getClassContext(type);
+    ClassEntity contextClass = DartTypes.getClassContext(type);
     jsAst.Expression onVariable(TypeVariableType v) {
       return new jsAst.VariableUse(v.element.name);
     }
@@ -857,7 +856,7 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   @override
   jsAst.Expression getSignatureEncoding(
       Emitter emitter, DartType type, jsAst.Expression this_) {
-    ClassEntity contextClass = Types.getClassContext(type);
+    ClassEntity contextClass = DartTypes.getClassContext(type);
     jsAst.Expression encoding =
         getTypeEncoding(emitter, type, alwaysGenerateFunction: true);
     if (contextClass != null) {
@@ -930,6 +929,11 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
     if (type is ResolutionTypedefType) {
       return namer.uniqueNameForTypeConstantElement(
           type.element.library, type.element);
+    }
+    if (type is FunctionType) {
+      // TODO(johnniwinther): Add naming scheme for function type literals.
+      // These currently only occur from kernel.
+      return '()->';
     }
     InterfaceType interface = type;
     String name = namer.uniqueNameForTypeConstantElement(

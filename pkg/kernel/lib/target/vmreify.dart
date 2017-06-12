@@ -4,9 +4,9 @@
 library kernel.target.vmreify;
 
 import '../ast.dart' show Program;
+import '../core_types.dart' show CoreTypes;
 import '../transformations/generic_types_reification.dart' as reify
     show transformProgram;
-
 import 'targets.dart' show TargetFlags;
 import 'vmcc.dart' as vmcc_target;
 
@@ -27,10 +27,11 @@ class VmGenericTypesReifiedTarget extends vmcc_target.VmClosureConvertedTarget {
   }
 
   @override
-  void performGlobalTransformations(Program program) {
-    super.performGlobalTransformations(program);
+  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+      {void logger(String msg)}) {
+    super.performGlobalTransformations(coreTypes, program);
     // TODO(dmitryas) this transformation should be made modular
-    reify.transformProgram(program);
+    reify.transformProgram(coreTypes, program);
   }
 
   // Disable tree shaking for Generic Types Reification. There are some runtime
@@ -39,7 +40,7 @@ class VmGenericTypesReifiedTarget extends vmcc_target.VmClosureConvertedTarget {
   // the transformation.
   // TODO(dmitryas): remove this when the libraries are in dart:_internal
   @override
-  void performTreeShaking(Program program) {}
+  void performTreeShaking(CoreTypes coreTypes, Program program) {}
 
   // Here we disable Erasure pass of VmTarget class. The information deleted by
   // the Erasure pass is required for Generic Type Reification. Also, reify

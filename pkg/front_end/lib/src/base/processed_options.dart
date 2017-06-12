@@ -135,7 +135,8 @@ class ProcessedOptions {
       await _getPackages();
       // TODO(scheglov) Load SDK libraries from whatever format we decide.
       // TODO(scheglov) Remove the field "_raw.dartLibraries".
-      _uriTranslator = new TranslateUri(_packages, _raw.dartLibraries);
+      _uriTranslator = new TranslateUri(
+          _packages, _raw.dartLibraries, const <String, List<Uri>>{});
       _uriTranslator.dartLibraries.addAll(_raw.dartLibraries);
     }
     return _uriTranslator;

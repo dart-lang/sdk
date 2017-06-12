@@ -125,11 +125,12 @@ Future<ResultKind> mainInternal(List<String> args,
   ResolutionEnqueuer enqueuer1 = compiler1.enqueuer.resolution;
   ClosedWorld closedWorld1 = compiler1.resolutionWorldBuilder.closeWorld();
 
-  Compiler compiler2 =
-      await compileWithDill(entryPoint, const {}, printSteps: true);
+  Compiler compiler2 = await compileWithDill(
+      entryPoint, const {}, [Flags.analyzeOnly, Flags.enableAssertMessage],
+      printSteps: true);
 
-  KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-  KernelToElementMap elementMap = frontEndStrategy.elementMap;
+  KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
+  KernelToElementMap elementMap = frontendStrategy.elementMap;
 
   Expect.isFalse(compiler2.compilationFailed);
 

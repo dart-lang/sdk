@@ -85,8 +85,8 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
   bool get hasNode => cachedNode != null;
 
   FunctionExpression get node {
-    assert(invariant(this, cachedNode != null,
-        message: "Node has not been computed for $this."));
+    assert(cachedNode != null,
+        failedAt(this, "Node has not been computed for $this."));
     return cachedNode;
   }
 
@@ -341,7 +341,7 @@ class PartialMetadataAnnotation extends MetadataAnnotationX
   bool get hasNode => cachedNode != null;
 
   Node get node {
-    assert(invariant(this, hasNode));
+    assert(hasNode, failedAt(this));
     return cachedNode;
   }
 }
@@ -371,8 +371,8 @@ class PartialClassElement extends ClassElementX with PartialElement {
   bool get hasNode => cachedNode != null;
 
   ClassNode get node {
-    assert(invariant(this, cachedNode != null,
-        message: "Node has not been computed for $this."));
+    assert(cachedNode != null,
+        failedAt(this, "Node has not been computed for $this."));
     return cachedNode;
   }
 
@@ -388,9 +388,10 @@ class PartialClassElement extends ClassElementX with PartialElement {
           Token token = parser.parseTopLevelDeclaration(beginToken);
           assert(identical(token, endToken.next));
           cachedNode = listener.popNode();
-          assert(invariant(
-              reporter.spanFromToken(beginToken), listener.nodes.isEmpty,
-              message: "Non-empty listener stack: ${listener.nodes}"));
+          assert(
+              listener.nodes.isEmpty,
+              failedAt(reporter.spanFromToken(beginToken),
+                  "Non-empty listener stack: ${listener.nodes}"));
         } on ParserError {
           // TODO(ahe): Often, a ParserError is thrown while parsing the class
           // body. This means that the stack actually contains most of the

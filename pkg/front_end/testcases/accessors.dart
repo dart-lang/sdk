@@ -28,7 +28,7 @@ class C {
 }
 
 class D extends C {
-  String get onlySetter() => "D.onlySetter called.";
+  String get onlySetter => "D.onlySetter called.";
 
   void set onlySetter(value) {
     print("D.onlySetter called with $value.");

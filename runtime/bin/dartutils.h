@@ -33,14 +33,6 @@ static inline Dart_Handle ThrowIfError(Dart_Handle handle) {
   return handle;
 }
 
-// Tries to read [script_uri] as a Kernel IR file.  If successful this function
-// returns `true` and sets [kernel_file] and [kernel_length] to be the memory
-// contents.
-//
-// The caller is responsible for free()ing [kernel_file] if `true` was returned.
-bool TryReadKernel(const char* script_uri,
-                   const uint8_t** kernel_file,
-                   intptr_t* kernel_length);
 
 class CommandLineOptions {
  public:

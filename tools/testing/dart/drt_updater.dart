@@ -4,12 +4,11 @@
 
 // TODO(antonm): rename to something like test_runner_updater.
 
-library drt_updater;
+import 'dart:async';
+import 'dart:io';
 
-import "dart:async";
-import "dart:io";
-
-import "test_suite.dart";
+import 'configuration.dart';
+import 'utils.dart';
 
 typedef void Action();
 
@@ -70,16 +69,16 @@ class _DartiumUpdater {
 _DartiumUpdater _contentShellUpdater;
 _DartiumUpdater _dartiumUpdater;
 
-_DartiumUpdater runtimeUpdater(Map configuration) {
-  String runtime = configuration['runtime'];
-  if (runtime == 'drt' && configuration['drt'] == '') {
+_DartiumUpdater runtimeUpdater(
+    Runtime runtime, String drtPath, String dartiumPath) {
+  if (runtime == Runtime.drt && drtPath == null) {
     // Download the default content shell from Google Storage.
     if (_contentShellUpdater == null) {
       _contentShellUpdater =
           new _DartiumUpdater('Content Shell', 'tools/get_archive.py', 'drt');
     }
     return _contentShellUpdater;
-  } else if (runtime == 'dartium' && configuration['dartium'] == '') {
+  } else if (runtime == Runtime.dartium && dartiumPath == null) {
     // Download the default Dartium from Google Storage.
     if (_dartiumUpdater == null) {
       _dartiumUpdater = new _DartiumUpdater(

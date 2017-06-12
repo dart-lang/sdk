@@ -4,8 +4,12 @@
 
 library entities;
 
+import 'package:front_end/src/fasta/parser/async_modifier.dart'
+    show AsyncModifier;
+
 import '../common.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import 'names.dart';
 
 /// Abstract interface for entities.
 ///
@@ -62,6 +66,10 @@ abstract class TypeVariableEntity extends Entity {
 /// Currently only [MemberElement] but later also kernel based Dart members
 /// and/or Dart-in-JS properties.
 abstract class MemberEntity extends Entity {
+  /// The [Name] of member which takes privacy and getter/setter naming into
+  /// account.
+  Name get memberName;
+
   /// Whether this is a member of a library.
   bool get isTopLevel;
 
@@ -123,6 +131,61 @@ abstract class FunctionEntity extends MemberEntity {
 
   /// The structure of the function parameters.
   ParameterStructure get parameterStructure;
+
+  /// The synchronous/asynchronous marker on this function.
+  AsyncMarker get asyncMarker;
+}
+
+/// Enum for the synchronous/asynchronous function body modifiers.
+class AsyncMarker {
+  /// The default function body marker.
+  static const AsyncMarker SYNC = const AsyncMarker._(AsyncModifier.Sync);
+
+  /// The `sync*` function body marker.
+  static const AsyncMarker SYNC_STAR =
+      const AsyncMarker._(AsyncModifier.SyncStar, isYielding: true);
+
+  /// The `async` function body marker.
+  static const AsyncMarker ASYNC =
+      const AsyncMarker._(AsyncModifier.Async, isAsync: true);
+
+  /// The `async*` function body marker.
+  static const AsyncMarker ASYNC_STAR = const AsyncMarker._(
+      AsyncModifier.AsyncStar,
+      isAsync: true,
+      isYielding: true);
+
+  /// Is `true` if this marker defines the function body to have an
+  /// asynchronous result, that is, either a [Future] or a [Stream].
+  final bool isAsync;
+
+  /// Is `true` if this marker defines the function body to have a plural
+  /// result, that is, either an [Iterable] or a [Stream].
+  final bool isYielding;
+
+  final AsyncModifier asyncParserState;
+
+  const AsyncMarker._(this.asyncParserState,
+      {this.isAsync: false, this.isYielding: false});
+
+  String toString() {
+    return '${isAsync ? 'async' : 'sync'}${isYielding ? '*' : ''}';
+  }
+
+  /// Canonical list of marker values.
+  ///
+  /// Added to make [AsyncMarker] enum-like.
+  static const List<AsyncMarker> values = const <AsyncMarker>[
+    SYNC,
+    SYNC_STAR,
+    ASYNC,
+    ASYNC_STAR
+  ];
+
+  /// Index to this marker within [values].
+  ///
+  /// Added to make [AsyncMarker] enum-like.
+  int get index => values.indexOf(this);
 }
 
 /// Stripped down super interface for constructor like entities.
@@ -137,6 +200,10 @@ abstract class ConstructorEntity extends FunctionEntity {
 
   /// Whether this is a factory constructor, possibly redirecting.
   bool get isFactoryConstructor;
+
+  /// Whether this is a `fromEnvironment` const constructor in `int`, `bool` or
+  /// `String`.
+  bool get isFromEnvironmentConstructor;
 }
 
 /// An entity that defines a local entity (memory slot) in generated code.

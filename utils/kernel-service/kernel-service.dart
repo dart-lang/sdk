@@ -21,7 +21,7 @@
 library runtime.tools.kernel_service;
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' hide FileSystemEntity;
 import 'dart:isolate';
 
 import 'package:front_end/file_system.dart';
@@ -29,6 +29,7 @@ import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/vm.dart'
     show CompilationResult, Status, parseScriptInFileSystem;
+import 'package:front_end/src/testing/hybrid_file_system.dart';
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
 
@@ -69,7 +70,7 @@ Future _processLoadRequest(request) async {
   final SendPort port = request[1];
   final String inputFileUrl = request[2];
   FileSystem fileSystem = request.length > 3
-      ? _buildMemoryFileSystem(request[3])
+      ? _buildFileSystem(request[3])
       : PhysicalFileSystem.instance;
 
   CompilationResult result;
@@ -97,18 +98,21 @@ Future _processLoadRequest(request) async {
   }
 }
 
-// Given namedSources list of interleaved file name string and
-// raw file content Uint8List this function builds up and returns
-// MemoryFileSystem instance that can be used instead of
-// PhysicalFileSystem.instance by the frontend.
-MemoryFileSystem _buildMemoryFileSystem(List namedSources) {
+/// Creates a file system containing the files specified in [namedSources] and
+/// that delegates to the underlying file system for any other file request.
+/// The [namedSources] list interleaves file name string and
+/// raw file content Uint8List.
+///
+/// The result can be used instead of PhysicalFileSystem.instance by the
+/// frontend.
+FileSystem _buildFileSystem(List namedSources) {
   MemoryFileSystem fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
   for (int i = 0; i < namedSources.length ~/ 2; i++) {
     fileSystem
         .entityForUri(Uri.parse(namedSources[i * 2]))
         .writeAsBytesSync(namedSources[i * 2 + 1]);
   }
-  return fileSystem;
+  return new HybridFileSystem(fileSystem);
 }
 
 train(String scriptUri) {

@@ -227,7 +227,7 @@ class AnalyzerImpl {
     int totalTime = currentTimeMillis - startTime;
     int otherTime = totalTime;
     for (PerformanceTag tag in PerformanceTag.all) {
-      if (tag != PerformanceTag.UNKNOWN) {
+      if (tag != PerformanceTag.unknown) {
         int tagTime = tag.elapsedMs;
         outSink.writeln('${tag.label}-cold:$tagTime');
         otherTime -= tagTime;

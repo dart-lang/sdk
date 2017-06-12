@@ -1,4 +1,29 @@
-## 1.24.0
+## 1.25.0
+
+### Language
+
+#### Strong Mode
+
+### Core library changes
+
+* `dart:io`
+  * Unified backends for `SecureSocket`, `SecurityContext`, and
+    `X509Certificate` to be consistent across all platforms. All
+    `SecureSocket`, `SecurityContext`, and `X509Certificate` properties and
+    methods are now supported on iOS and OSX.
+  * Deprecated `SecurityContext.alpnSupported` as ALPN is now supported on all
+    platforms.
+
+### Dart VM
+
+### Tool Changes
+
+* Pub
+
+  * `pub get` and `pub upgrade` properly produce an error message and exit code
+    when no network is present.
+
+## 1.24.0 - 12-06-2017
 
 ### Language
 * During a dynamic type check, `void` is not required to be `null` anymore.

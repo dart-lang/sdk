@@ -5,10 +5,11 @@
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/scanner/token.dart';
+import 'package:front_end/src/scanner/errors.dart' as analyzer;
 import 'package:front_end/src/scanner/reader.dart' as analyzer;
+import 'package:front_end/src/scanner/scanner.dart' as analyzer;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'scanner_roundtrip_test.dart' show TestScanner;
 
 main() {
   defineReflectiveSuite(() {
@@ -103,8 +104,8 @@ class Foo {
     while (!token1.isEof) {
       if (token1 is fasta.StringToken) stringTokenFound = true;
       if (token1 is KeywordToken) keywordTokenFound = true;
-      if (token1 is fasta.SymbolToken) symbolTokenFound = true;
-      if (token1 is fasta.BeginGroupToken) beginGroupTokenFound = true;
+      if (token1.type == TokenType.OPEN_PAREN) symbolTokenFound = true;
+      if (token1 is BeginToken) beginGroupTokenFound = true;
 
       var copy1 = token1.copy();
       expect(copy1, isNotNull);
@@ -206,5 +207,16 @@ class Foo {
     token = token.next;
     expect(token.lexeme, '"home"');
     expect(token.value(), '"home"');
+  }
+}
+
+class TestScanner extends analyzer.Scanner {
+  TestScanner(analyzer.CharacterReader reader) : super.create(reader);
+
+  @override
+  void reportError(
+      analyzer.ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+    fail('Unexpected error $errorCode while scanning offset $offset\n'
+        '   arguments: $arguments');
   }
 }

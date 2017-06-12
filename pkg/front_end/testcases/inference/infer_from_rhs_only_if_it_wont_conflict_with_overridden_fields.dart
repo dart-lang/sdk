@@ -14,6 +14,6 @@ class B implements A {
 }
 
 foo() {
-  String y = /*info:DYNAMIC_CAST*/ new B().x;
-  int z = /*info:DYNAMIC_CAST*/ new B().x;
+  String y = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
+  int z = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
 }

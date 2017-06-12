@@ -1070,13 +1070,10 @@ class ResolutionPotentialSubtypeVisitor extends PotentialSubtypeVisitor
  * substitute for the bound of [typeVariable]. [bound] holds the bound against
  * which [typeArgument] should be checked.
  */
-typedef void CheckTypeVariableBound(
-    GenericType type,
-    ResolutionDartType typeArgument,
-    ResolutionTypeVariableType typeVariable,
-    ResolutionDartType bound);
+typedef void CheckTypeVariableBound<T extends GenericType>(T type,
+    DartType typeArgument, TypeVariableType typeVariable, DartType bound);
 
-class Types implements DartTypes {
+class Types extends DartTypes {
   final Resolution resolution;
   final ResolutionMoreSpecificVisitor moreSpecificVisitor;
   final ResolutionSubtypeVisitor subtypeVisitor;
@@ -1101,6 +1098,17 @@ class Types implements DartTypes {
   @override
   InterfaceType asInstanceOf(ResolutionInterfaceType type, ClassEntity cls) {
     return type.asInstanceOf(cls);
+  }
+
+  @override
+  ResolutionDartType substByContext(
+      ResolutionDartType base, ResolutionInterfaceType context) {
+    return base.substByContext(context);
+  }
+
+  @override
+  InterfaceType getThisType(ClassElement cls) {
+    return cls.thisType;
   }
 
   @override
@@ -1177,20 +1185,18 @@ class Types implements DartTypes {
     return subtypeVisitor.isAssignable(r, s);
   }
 
-  static const int IS_SUBTYPE = 1;
-  static const int MAYBE_SUBTYPE = 0;
-  static const int NOT_SUBTYPE = -1;
-
-  int computeSubtypeRelation(ResolutionDartType t, ResolutionDartType s) {
-    // TODO(johnniwinther): Compute this directly in [isPotentialSubtype].
-    if (isSubtype(t, s)) return IS_SUBTYPE;
-    return isPotentialSubtype(t, s) ? MAYBE_SUBTYPE : NOT_SUBTYPE;
-  }
-
   bool isPotentialSubtype(ResolutionDartType t, ResolutionDartType s) {
     // TODO(johnniwinther): Return a set of variable points in the positive
     // cases.
     return potentialSubtypeVisitor.isSubtype(t, s);
+  }
+
+  @override
+  void checkTypeVariableBounds(
+      ResolutionInterfaceType type,
+      void checkTypeVariableBound(InterfaceType type, DartType typeArgument,
+          TypeVariableType typeVariable, DartType bound)) {
+    genericCheckTypeVariableBounds(type, checkTypeVariableBound);
   }
 
   /**
@@ -1198,8 +1204,8 @@ class Types implements DartTypes {
    * declared on [element]. Calls [checkTypeVariableBound] on each type
    * argument and bound.
    */
-  void checkTypeVariableBounds(
-      GenericType type, CheckTypeVariableBound checkTypeVariableBound) {
+  void genericCheckTypeVariableBounds<T extends GenericType>(
+      T type, CheckTypeVariableBound<T> checkTypeVariableBound) {
     TypeDeclarationElement element = type.element;
     List<ResolutionDartType> typeArguments = type.typeArguments;
     List<ResolutionDartType> typeVariables = element.typeVariables;
@@ -1233,27 +1239,6 @@ class Types implements DartTypes {
     });
     // Use the new List only if necessary.
     return changed ? result : types;
-  }
-
-  /**
-   * Returns the [ClassElement] which declares the type variables occurring in
-   * [type], or [:null:] if [type] does not contain type variables.
-   */
-  static ClassEntity getClassContext(DartType type) {
-    ClassEntity contextClass;
-    type.forEachTypeVariable((TypeVariableType typeVariable) {
-      if (typeVariable.element.typeDeclaration is! ClassEntity) return;
-      contextClass = typeVariable.element.typeDeclaration;
-    });
-    // GENERIC_METHODS: When generic method support is complete enough to
-    // include a runtime value for method type variables this must be updated.
-    // For full support the global assumption that all type variables are
-    // declared by the same enclosing class will not hold: Both an enclosing
-    // method and an enclosing class may define type variables, so the return
-    // type cannot be [ClassElement] and the caller must be prepared to look in
-    // two locations, not one. Currently we ignore method type variables by
-    // returning in the next statement.
-    return contextClass;
   }
 
   /**

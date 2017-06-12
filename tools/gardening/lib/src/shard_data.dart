@@ -72,11 +72,11 @@ const Map<String, List<String>> shardGroups = const {
     'vm-mac-release-simdbc64-reload-be',
   ],
   'dart2js-d8-hostchecked': const <String>[
-    'dart2js-linux-d8-hostchecked-1-5-be',
-    'dart2js-linux-d8-hostchecked-2-5-be',
-    'dart2js-linux-d8-hostchecked-3-5-be',
-    'dart2js-linux-d8-hostchecked-4-5-be',
-    'dart2js-linux-d8-hostchecked-5-5-be',
+    'dart2js-linux-d8-hostchecked-unittest-1-5-be',
+    'dart2js-linux-d8-hostchecked-unittest-2-5-be',
+    'dart2js-linux-d8-hostchecked-unittest-3-5-be',
+    'dart2js-linux-d8-hostchecked-unittest-4-5-be',
+    'dart2js-linux-d8-hostchecked-unittest-5-5-be',
   ],
   'dart2js-d8-minified': const <String>[
     'dart2js-linux-d8-minified-1-5-be',
@@ -90,9 +90,6 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-linux-jsshell-2-4-be',
     'dart2js-linux-jsshell-3-4-be',
     'dart2js-linux-jsshell-4-4-be',
-  ],
-  'dart2js': const <String>[
-    'dart2js-dump-info-be',
   ],
   'analyzer': const <String>[
     'analyze-linux-be',
@@ -145,8 +142,6 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-win7-ie11ff-4-4-be',
   ],
   'pub-pkg': const <String>[
-    'pub-mac-be',
-    'pub-linux-be',
     'pkg-mac10.11-release-be',
     'pkg-linux-release-be',
     'pkg-win7-release-be',
@@ -157,8 +152,8 @@ const Map<String, List<String>> shardGroups = const {
     'dartium-win-ia32-be',
   ],
   'misc': const <String>[
-    'version-checker-be',
-    'linux-distribution-support-debian_wheezy-be',
+    'versionchecker-linux-be',
+    'debianpackage-linux-be',
   ],
   'vm-app-dev': const <String>[
     'app-linux-debug-x64-dev',
@@ -225,11 +220,11 @@ const Map<String, List<String>> shardGroups = const {
     'vm-mac-release-simdbc64-reload-dev',
   ],
   'dart2js-d8-hostchecked-dev': const <String>[
-    'dart2js-linux-d8-hostchecked-1-5-dev',
-    'dart2js-linux-d8-hostchecked-2-5-dev',
-    'dart2js-linux-d8-hostchecked-3-5-dev',
-    'dart2js-linux-d8-hostchecked-4-5-dev',
-    'dart2js-linux-d8-hostchecked-5-5-dev',
+    'dart2js-linux-d8-hostchecked-unittest-1-5-dev',
+    'dart2js-linux-d8-hostchecked-unittest-2-5-dev',
+    'dart2js-linux-d8-hostchecked-unittest-3-5-dev',
+    'dart2js-linux-d8-hostchecked-unittest-4-5-dev',
+    'dart2js-linux-d8-hostchecked-unittest-5-5-dev',
   ],
   'dart2js-d8-minified-dev': const <String>[
     'dart2js-linux-d8-minified-1-5-dev',
@@ -243,9 +238,6 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-linux-jsshell-2-4-dev',
     'dart2js-linux-jsshell-3-4-dev',
     'dart2js-linux-jsshell-4-4-dev',
-  ],
-  'dart2js-dev': const <String>[
-    'dart2js-dump-info-dev',
   ],
   'analyzer-dev': const <String>[
     'analyze-linux-dev',
@@ -293,8 +285,6 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-win7-ie11ff-4-4-dev',
   ],
   'pub-pkg-dev': const <String>[
-    'pub-mac-dev',
-    'pub-linux-dev',
     'pkg-mac10.11-release-dev',
     'pkg-linux-release-dev',
     'pkg-win7-release-dev',
@@ -305,8 +295,8 @@ const Map<String, List<String>> shardGroups = const {
     'dartium-win-ia32-dev',
   ],
   'misc-dev': const <String>[
-    'version-checker-dev',
-    'linux-distribution-support-debian_wheezy-dev',
+    'versionchecker-linux-dev',
+    'debianpackage-linux-dev',
   ],
   'vm-app-stable': const <String>[
     'app-linux-debug-x64-stable',
@@ -373,11 +363,11 @@ const Map<String, List<String>> shardGroups = const {
     'vm-linux-release-simarm64-stable',
   ],
   'dart2js-d8-hostchecked-stable': const <String>[
-    'dart2js-linux-d8-hostchecked-1-5-stable',
-    'dart2js-linux-d8-hostchecked-2-5-stable',
-    'dart2js-linux-d8-hostchecked-3-5-stable',
-    'dart2js-linux-d8-hostchecked-4-5-stable',
-    'dart2js-linux-d8-hostchecked-5-5-stable',
+    'dart2js-linux-d8-hostchecked-unittest-1-5-stable',
+    'dart2js-linux-d8-hostchecked-unittest-2-5-stable',
+    'dart2js-linux-d8-hostchecked-unittest-3-5-stable',
+    'dart2js-linux-d8-hostchecked-unittest-4-5-stable',
+    'dart2js-linux-d8-hostchecked-unittest-5-5-stable',
   ],
   'dart2js-d8-minified-stable': const <String>[
     'dart2js-linux-d8-minified-1-5-stable',
@@ -391,9 +381,6 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-linux-jsshell-2-4-stable',
     'dart2js-linux-jsshell-3-4-stable',
     'dart2js-linux-jsshell-4-4-stable',
-  ],
-  'dart2js-stable': const <String>[
-    'dart2js-dump-info-stable',
   ],
   'analyzer-stable': const <String>[
     'analyze-linux-stable',
@@ -441,8 +428,6 @@ const Map<String, List<String>> shardGroups = const {
     'dart2js-win7-ie11ff-4-4-stable',
   ],
   'pub-pkg-stable': const <String>[
-    'pub-mac-stable',
-    'pub-linux-stable',
     'pkg-mac10.11-release-stable',
     'pkg-linux-release-stable',
     'pkg-win7-release-stable',
@@ -453,8 +438,8 @@ const Map<String, List<String>> shardGroups = const {
     'dartium-win-ia32-stable',
   ],
   'misc-stable': const <String>[
-    'version-checker-stable',
-    'linux-distribution-support-debian_wheezy-stable',
+    'versionchecker-linux-stable',
+    'debianpackage-linux-stable',
   ],
   'dartium-inc-integration': const <String>[
     'dartium-linux-x64-inc-integration',

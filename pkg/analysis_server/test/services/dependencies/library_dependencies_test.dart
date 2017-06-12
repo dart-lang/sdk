@@ -49,6 +49,6 @@ class LibraryDependenciesTest extends AbstractContextTest {
   }
 
   void _performAnalysis() {
-    while (context.performAnalysisTask().hasMoreWork);
+    while (context.performAnalysisTask().hasMoreWork) {}
   }
 }

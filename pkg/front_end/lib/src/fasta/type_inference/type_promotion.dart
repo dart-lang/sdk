@@ -25,7 +25,7 @@ import 'package:kernel/ast.dart';
 /// This class abstracts away the representation of the underlying AST using
 /// generic parameters.  Derived classes should set E and V to the class they
 /// use to represent expressions and variable declarations, respectively.
-abstract class TypePromoter<E, V> {
+abstract class TypePromoter {
   /// Returns the current type promotion scope.
   TypePromotionScope get currentScope;
 
@@ -34,8 +34,8 @@ abstract class TypePromoter<E, V> {
   ///
   /// [mutatedInClosure] indicates whether the variable was mutated in a closure
   /// somewhere in the method.
-  DartType computePromotedType(TypePromotionFact<V> fact,
-      TypePromotionScope scope, bool mutatedInClosure);
+  DartType computePromotedType(
+      TypePromotionFact fact, TypePromotionScope scope, bool mutatedInClosure);
 
   /// Updates the state to reflect the fact that we are entering an "else"
   /// branch.
@@ -44,7 +44,7 @@ abstract class TypePromoter<E, V> {
   /// Updates the state to reflect the fact that the "condition" part of an "if"
   /// statement or conditional expression has just been parsed, and we are
   /// entering the "then" branch.
-  void enterThen(E condition);
+  void enterThen(Expression condition);
 
   /// Updates the state to reflect the fact that we have exited the "else"
   /// branch of an "if" statement or conditional expression.
@@ -59,55 +59,56 @@ abstract class TypePromoter<E, V> {
   ///
   /// [functionNestingLevel] should be the current nesting level of closures.
   /// This is used to determine if the variable was accessed in a closure.
-  TypePromotionFact<V> getFactForAccess(V variable, int functionNestingLevel);
+  TypePromotionFact getFactForAccess(
+      VariableDeclaration variable, int functionNestingLevel);
 
   /// Updates the state to reflect the fact that an "is" check of a local
   /// variable was just parsed.
-  void handleIsCheck(E isExpression, bool isInverted, V variable, DartType type,
-      int functionNestingLevel);
+  void handleIsCheck(Expression isExpression, bool isInverted,
+      VariableDeclaration variable, DartType type, int functionNestingLevel);
 
   /// Updates the state to reflect the fact that the given [variable] was
   /// mutated.
-  void mutateVariable(V variable, int functionNestingLevel);
+  void mutateVariable(VariableDeclaration variable, int functionNestingLevel);
 }
 
 /// Derived class containing generic implementations of [TypePromoter].
 ///
 /// This class contains as much of the implementation of type promotion as
-/// possible without knowing the identity of the type parameters.  It defers to
-/// abstract methods for everything else.
-abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
+/// possible without needing access to private members of shadow objects.  It
+/// defers to abstract methods for everything else.
+abstract class TypePromoterImpl extends TypePromoter {
   /// [TypePromotionFact] representing the initial state (no facts have been
   /// determined yet).
   ///
   /// All linked lists of facts terminate in this object.
-  final _NullFact<V> _nullFacts;
+  final _NullFact _nullFacts;
 
   /// Map from variable declaration to the most recent [TypePromotionFact]
   /// associated with the variable.
   ///
   /// [TypePromotionFact]s that are not associated with any variable show up in
   /// this map under the key `null`.
-  final _factCache = <V, TypePromotionFact<V>>{};
+  final _factCache = <VariableDeclaration, TypePromotionFact>{};
 
   /// Linked list of [TypePromotionFact]s that was current at the time the
   /// [_factCache] was last updated.
-  TypePromotionFact<V> _factCacheState;
+  TypePromotionFact _factCacheState;
 
   /// Linked list of [TypePromotionFact]s describing what is known to be true
   /// after execution of the expression or statement that was most recently
   /// parsed.
-  TypePromotionFact<V> _currentFacts;
+  TypePromotionFact _currentFacts;
 
   /// The most recently parsed expression whose outcome potentially affects what
   /// is known to be true (e.g. an "is" check or a logical expression).  May be
   /// `null` if no such expression has been encountered yet.
-  E _promotionExpression;
+  Expression _promotionExpression;
 
   /// Linked list of [TypePromotionFact]s describing what is known to be true
   /// after execution of [_promotionExpression], assuming that
   /// [_promotionExpression] evaluates to `true`.
-  TypePromotionFact<V> _trueFactsForPromotionExpression;
+  TypePromotionFact _trueFactsForPromotionExpression;
 
   /// Linked list of [TypePromotionScope]s describing the nesting structure that
   /// contains the expressoin or statement that was most recently parsed.
@@ -117,9 +118,9 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
   /// created.
   int _lastFactSequenceNumber = 0;
 
-  TypePromoterImpl() : this._(new _NullFact<V>());
+  TypePromoterImpl() : this._(new _NullFact());
 
-  TypePromoterImpl._(_NullFact<V> this._nullFacts)
+  TypePromoterImpl._(_NullFact this._nullFacts)
       : _factCacheState = _nullFacts,
         _currentFacts = _nullFacts {
     _factCache[null] = _nullFacts;
@@ -129,8 +130,8 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
   TypePromotionScope get currentScope => _currentScope;
 
   @override
-  DartType computePromotedType(TypePromotionFact<V> fact,
-      TypePromotionScope scope, bool mutatedInClosure) {
+  DartType computePromotedType(
+      TypePromotionFact fact, TypePromotionScope scope, bool mutatedInClosure) {
     if (mutatedInClosure) return null;
     return fact?._computePromotedType(this, scope);
   }
@@ -154,7 +155,7 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
   }
 
   @override
-  void enterThen(E condition) {
+  void enterThen(Expression condition) {
     debugEvent('enterThen');
     // Figure out what the facts are based on possible condition outcomes.
     var trueFacts = _factsWhenTrue(condition);
@@ -183,7 +184,8 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
   }
 
   @override
-  TypePromotionFact<V> getFactForAccess(V variable, int functionNestingLevel) {
+  TypePromotionFact getFactForAccess(
+      VariableDeclaration variable, int functionNestingLevel) {
     debugEvent('getFactForAccess');
     var fact = _computeCurrentFactMap()[variable];
     TypePromotionFact._recordAccessedInScope(
@@ -192,23 +194,21 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
   }
 
   /// Returns the nesting level that was in effect when [variable] was declared.
-  int getVariableFunctionNestingLevel(V variable);
+  int getVariableFunctionNestingLevel(VariableDeclaration variable);
 
   @override
-  void handleIsCheck(E isExpression, bool isInverted, V variable, DartType type,
-      int functionNestingLevel) {
+  void handleIsCheck(Expression isExpression, bool isInverted,
+      VariableDeclaration variable, DartType type, int functionNestingLevel) {
     debugEvent('handleIsCheck');
     if (!isPromotionCandidate(variable)) return;
-    var isCheck = new _IsCheck<V>(
+    var isCheck = new _IsCheck(
         ++_lastFactSequenceNumber,
         variable,
         _currentFacts,
         _computeCurrentFactMap()[variable],
         functionNestingLevel,
         type);
-    if (isInverted) {
-      _recordPromotionExpression(isExpression, _currentFacts, isCheck);
-    } else {
+    if (!isInverted) {
       _recordPromotionExpression(isExpression, isCheck, _currentFacts);
     }
   }
@@ -219,11 +219,11 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
   /// This is needed because in kernel, [VariableDeclaration] objects are
   /// sometimes used to represent local functions, which are not subject to
   /// promotion.
-  bool isPromotionCandidate(V variable);
+  bool isPromotionCandidate(VariableDeclaration variable);
 
   /// Updates the state to reflect the fact that the given [variable] was
   /// mutated.
-  void mutateVariable(V variable, int functionNestingLevel) {
+  void mutateVariable(VariableDeclaration variable, int functionNestingLevel) {
     debugEvent('mutateVariable');
     var fact = _computeCurrentFactMap()[variable];
     TypePromotionFact._recordMutatedInScope(fact, _currentScope);
@@ -235,28 +235,28 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
 
   /// Determines whether [a] and [b] represent the same expression, after
   /// dropping redundant enclosing parentheses.
-  bool sameExpressions(E a, E b);
+  bool sameExpressions(Expression a, Expression b);
 
   /// Records that the given variable was mutated somewhere inside the method.
-  void setVariableMutatedAnywhere(V variable);
+  void setVariableMutatedAnywhere(VariableDeclaration variable);
 
   /// Records that the given variable was mutated inside a closure.
-  void setVariableMutatedInClosure(V variable);
+  void setVariableMutatedInClosure(VariableDeclaration variable);
 
   /// Indicates whether [setVariableMutatedAnywhere] has been called for the
   /// given [variable].
-  bool wasVariableMutatedAnywhere(V variable);
+  bool wasVariableMutatedAnywhere(VariableDeclaration variable);
 
   /// Returns a map from variable declaration to the most recent
   /// [TypePromotionFact] associated with the variable.
-  Map<V, TypePromotionFact<V>> _computeCurrentFactMap() {
+  Map<VariableDeclaration, TypePromotionFact> _computeCurrentFactMap() {
     // Roll back any map entries associated with facts that are no longer in
     // effect, and set [commonAncestor] to the fact that is an ancestor of
     // the current state and the previously cached state.  To do this, we set a
     // variable pointing to [_currentFacts], and then walk both it and
     // [_factCacheState] back to their common ancestor, updating [_factCache] as
     // we go.
-    TypePromotionFact<V> commonAncestor = _currentFacts;
+    TypePromotionFact commonAncestor = _currentFacts;
     while (commonAncestor.sequenceNumber != _factCacheState.sequenceNumber) {
       if (commonAncestor.sequenceNumber > _factCacheState.sequenceNumber) {
         // The currently cached state is older than the common ancestor guess,
@@ -275,7 +275,7 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
     // Roll forward any map entries associated with facts that are newly in
     // effect.  Since newer facts link to older ones, it is easiest to do roll
     // forward the most recent facts first.
-    for (TypePromotionFact<V> newState = _currentFacts;
+    for (TypePromotionFact newState = _currentFacts;
         !identical(newState, commonAncestor);
         newState = newState.previous) {
       var currentlyCached = _factCache[newState.variable];
@@ -294,7 +294,7 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
   /// assuming it evaluates to `false`.
   ///
   /// [e] must be the most resently parsed expression or statement.
-  TypePromotionFact<V> _factsWhenFalse(E e) {
+  TypePromotionFact _factsWhenFalse(Expression e) {
     // Type promotion currently only occurs when an "is" or logical expression
     // evaluates to `true`, so no special logic is required; we just use
     // [_currentFacts].
@@ -308,15 +308,14 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
   /// assuming it evaluates to `true`.
   ///
   /// [e] must be the most resently parsed expression or statement.
-  TypePromotionFact<V> _factsWhenTrue(E e) =>
+  TypePromotionFact _factsWhenTrue(Expression e) =>
       sameExpressions(_promotionExpression, e)
           ? _trueFactsForPromotionExpression
           : _currentFacts;
 
   /// Returns the set of facts known to be true after two branches of execution
   /// rejoin.
-  TypePromotionFact<V> _mergeFacts(
-      TypePromotionFact<V> a, TypePromotionFact<V> b) {
+  TypePromotionFact _mergeFacts(TypePromotionFact a, TypePromotionFact b) {
     // Type promotion currently doesn't support any mechanism for facts to
     // accumulate along a straight-line execution path (they can only accumulate
     // when entering a scope), so we can simply find the common ancestor fact.
@@ -342,7 +341,7 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
   /// For internal debugging use, prints the current state followed by the event
   /// name.
   void _printEvent(String name) {
-    Iterable<TypePromotionFact<V>> factChain(TypePromotionFact<V> fact) sync* {
+    Iterable<TypePromotionFact> factChain(TypePromotionFact fact) sync* {
       while (fact != null) {
         yield fact;
         fact = fact.previousForVariable;
@@ -365,8 +364,8 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
   /// need to split [ifFalse] into two cases, one for when the expression
   /// evaluated to `false`, and one where the truth value of the expression
   /// doesn't matter.
-  void _recordPromotionExpression(
-      E expression, TypePromotionFact<V> ifTrue, TypePromotionFact<V> ifFalse) {
+  void _recordPromotionExpression(Expression expression,
+      TypePromotionFact ifTrue, TypePromotionFact ifFalse) {
     _promotionExpression = expression;
     _trueFactsForPromotionExpression = ifTrue;
     _currentFacts = ifFalse;
@@ -394,14 +393,14 @@ abstract class TypePromoterImpl<E, V> extends TypePromoter<E, V> {
 /// It's possible that the fact will be overshadowed by a later fact, or its
 /// effect will be cancelled by a later assignment.  The final detemination of
 /// whether promotion occurs is left to [_computePromotedType].
-abstract class TypePromotionFact<V> {
+abstract class TypePromotionFact {
   /// The variable this fact records information about, or `null` if this fact
   /// records information about general flow control.
-  final V variable;
+  final VariableDeclaration variable;
 
   /// The fact chain that was in effect prior to execution of the statement or
   /// expression that caused this fact to be true.
-  final TypePromotionFact<V> previous;
+  final TypePromotionFact previous;
 
   /// Integer associated with this fact.  Each time a fact is created it is
   /// given a sequence number one greater than the previously generated fact.
@@ -412,7 +411,7 @@ abstract class TypePromotionFact<V> {
 
   /// The most recent fact appearing in the fact chain [previous] whose
   /// [variable] matches this one, or `null` if there is no such fact.
-  final TypePromotionFact<V> previousForVariable;
+  final TypePromotionFact previousForVariable;
 
   /// The function nesting level of the expression that led to this fact.
   final int functionNestingLevel;
@@ -439,7 +438,7 @@ abstract class TypePromotionFact<V> {
   ///
   /// Should not be called until after parsing of the entire method is complete.
   DartType _computePromotedType(
-      TypePromoterImpl<dynamic, V> promoter, TypePromotionScope scope);
+      TypePromoterImpl promoter, TypePromotionScope scope);
 
   /// Records the fact that the variable referenced by [fact] was accessed
   /// within the given scope, at the given function nesting level.
@@ -509,27 +508,27 @@ class TypePromotionScope {
 
 /// [TypePromotionScope] representing the "then" and "else" bodies of an "if"
 /// statement or conditional expression.
-class _ConditionalScope<V> extends TypePromotionScope {
+class _ConditionalScope extends TypePromotionScope {
   /// The fact state in effect at the top of the "else" block.
-  final TypePromotionFact<V> beforeElse;
+  final TypePromotionFact beforeElse;
 
   /// The fact state which was in effect at the bottom of the "then" block.
-  TypePromotionFact<V> afterTrue;
+  TypePromotionFact afterTrue;
 
   _ConditionalScope(TypePromotionScope enclosing, this.beforeElse)
       : super(enclosing);
 }
 
 /// [TypePromotionFact] representing an "is" check which succeeded.
-class _IsCheck<V> extends TypePromotionFact<V> {
+class _IsCheck extends TypePromotionFact {
   /// The type appearing on the right hand side of "is".
   final DartType checkedType;
 
   _IsCheck(
       int sequenceNumber,
-      V variable,
-      TypePromotionFact<V> previous,
-      TypePromotionFact<V> previousForVariable,
+      VariableDeclaration variable,
+      TypePromotionFact previous,
+      TypePromotionFact previousForVariable,
       int functionNestingLevel,
       this.checkedType)
       : super(sequenceNumber, variable, previous, previousForVariable,
@@ -540,7 +539,7 @@ class _IsCheck<V> extends TypePromotionFact<V> {
 
   @override
   DartType _computePromotedType(
-      TypePromoterImpl<dynamic, V> promoter, TypePromotionScope scope) {
+      TypePromoterImpl promoter, TypePromotionScope scope) {
     // TODO(paulberry): add a subtype check.  For example:
     //     f(Object x) {
     //       if (x is int) { // promotes x to int
@@ -577,7 +576,7 @@ class _IsCheck<V> extends TypePromotionFact<V> {
 
 /// Instance of [TypePromotionFact] representing the facts which are known on
 /// entry to the method (i.e. nothing).
-class _NullFact<V> extends TypePromotionFact<V> {
+class _NullFact extends TypePromotionFact {
   _NullFact() : super(0, null, null, null, 0);
 
   @override
@@ -585,7 +584,7 @@ class _NullFact<V> extends TypePromotionFact<V> {
 
   @override
   DartType _computePromotedType(
-      TypePromoter<dynamic, V> promoter, TypePromotionScope scope) {
+      TypePromoter promoter, TypePromotionScope scope) {
     throw new StateError('Tried to create promoted type for no variable');
   }
 }

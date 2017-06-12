@@ -5,10 +5,12 @@
 #include "platform/globals.h"  // NOLINT
 #if defined(HOST_OS_FUCHSIA)
 
+#include "vm/os.h"
 #include "vm/os_thread.h"
 #include "vm/os_thread_fuchsia.h"
 
 #include <errno.h>  // NOLINT
+#include <magenta/status.h>
 #include <magenta/syscalls.h>
 #include <magenta/syscalls/object.h>
 #include <magenta/threads.h>
@@ -163,7 +165,10 @@ ThreadId OSThread::GetCurrentThreadId() {
   mx_status_t status =
       mx_object_get_info(thread_handle, MX_INFO_HANDLE_BASIC, &info,
                          sizeof(info), nullptr, nullptr);
-  return status == NO_ERROR ? info.koid : MX_KOID_INVALID;
+  if (status != MX_OK) {
+    FATAL1("Failed to get thread koid: %s\n", mx_status_get_string(status));
+  }
+  return info.koid;
 }
 
 

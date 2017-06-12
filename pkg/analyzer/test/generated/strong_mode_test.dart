@@ -3121,8 +3121,11 @@ void main() {
   var foo = p.then((r) => new Future<String>.value(3));
 }
 ''';
-    // This should produce no hints or warnings.
-    await resolveTestUnit(code);
+    await resolveTestUnit(code, noErrors: false);
+    // Note: this correctly reports the error
+    // StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE when run with the driver;
+    // when run without the driver, it reports no errors.  So we don't bother
+    // checking whether the correct errors were reported.
     expectInitializerType('foo', 'Future<String>', isNull);
   }
 

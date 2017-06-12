@@ -35,7 +35,6 @@ import '../diagnostics/spannable.dart' show Spannable;
 import '../elements/elements.dart'
     show
         AstElement,
-        AsyncMarker,
         ClassElement,
         ConstructorElement,
         Element,
@@ -53,6 +52,7 @@ import '../elements/elements.dart'
         ParameterElement,
         PrefixElement,
         TypeVariableElement;
+import '../elements/entities.dart' show AsyncMarker;
 import '../elements/names.dart' show Name;
 import '../elements/operators.dart'
     show AssignmentOperator, BinaryOperator, IncDecOperator, UnaryOperator;
@@ -1240,7 +1240,7 @@ class KernelVisitor extends Object
   @override
   ir.InvocationExpression visitBoolFromEnvironmentConstructorInvoke(
       NewExpression node, BoolFromEnvironmentConstantExpression constant, _) {
-    return buildConstructorInvoke(node, isConst: true);
+    return associateNode(buildConstructorInvoke(node, isConst: true), node);
   }
 
   ir.TypeLiteral buildTypeLiteral(TypeConstantExpression constant) {
@@ -1737,7 +1737,7 @@ class KernelVisitor extends Object
   @override
   ir.InvocationExpression visitIntFromEnvironmentConstructorInvoke(
       NewExpression node, IntFromEnvironmentConstantExpression constant, _) {
-    return buildConstructorInvoke(node, isConst: true);
+    return associateNode(buildConstructorInvoke(node, isConst: true), node);
   }
 
   ir.IsExpression buildIs(Node expression, ResolutionDartType type) {
@@ -2352,7 +2352,7 @@ class KernelVisitor extends Object
   @override
   ir.InvocationExpression visitStringFromEnvironmentConstructorInvoke(
       NewExpression node, StringFromEnvironmentConstantExpression constant, _) {
-    return buildConstructorInvoke(node, isConst: true);
+    return associateNode(buildConstructorInvoke(node, isConst: true), node);
   }
 
   @override

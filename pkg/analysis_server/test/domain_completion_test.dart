@@ -224,7 +224,6 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @failingTest
   test_html() {
     //
     // We no longer support the analysis of non-dart files.
@@ -706,7 +705,8 @@ class B extends A {m() {^}}
     ''');
     PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
     plugin.CompletionGetSuggestionsResult result =
-        new plugin.CompletionGetSuggestionsResult(1, 2, <CompletionSuggestion>[
+        new plugin.CompletionGetSuggestionsResult(
+            testFile.indexOf('^'), 0, <CompletionSuggestion>[
       new CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
           DART_RELEVANCE_DEFAULT, 'plugin completion', 3, 0, false, false)
     ]);

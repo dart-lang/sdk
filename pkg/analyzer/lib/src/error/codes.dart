@@ -3414,7 +3414,8 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'CONFLICTING_DART_IMPORT',
           "Element '{0}' from SDK library '{1}' is implicitly hidden by '{2}'.",
-          "Try adding an explicit hide combinator.");
+          "Try adding an explicit hide combinator.",
+          false);
 
   /**
    * 7.2 Getters: It is a static warning if a class <i>C</i> declares an

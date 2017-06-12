@@ -7,7 +7,7 @@ class C<T extends core::Object> extends core::Object {
     : super core::Object::•()
     ;
 }
-static field self::C<core::int> v = new self::C::•<core::int>(() → dynamic {
+static field self::C<core::int> v = new self::C::•<core::int>(() → core::int {
   return 1;
 });
 static method main() → dynamic {

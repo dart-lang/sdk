@@ -815,8 +815,11 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     __ CompareImmediate(cid_reg, test_cid);
     __ b(result ? labels.true_label : labels.false_label, EQ);
   }
-  // No match found, deoptimize or false.
+  // No match found, deoptimize or default action.
   if (deopt == NULL) {
+    // If the cid is not in the list, jump to the opposite label from the cids
+    // that are in the list.  These must be all the same (see asserts in the
+    // constructor).
     Label* target = result ? labels.false_label : labels.true_label;
     if (target != labels.fall_through) {
       __ b(target);
@@ -7153,13 +7156,15 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Condition true_condition;
   if (left.IsConstant()) {
     true_condition = compiler->EmitEqualityRegConstCompare(
-        right.reg(), left.constant(), needs_number_check(), token_pos());
+        right.reg(), left.constant(), needs_number_check(), token_pos(),
+        deopt_id_);
   } else if (right.IsConstant()) {
     true_condition = compiler->EmitEqualityRegConstCompare(
-        left.reg(), right.constant(), needs_number_check(), token_pos());
+        left.reg(), right.constant(), needs_number_check(), token_pos(),
+        deopt_id_);
   } else {
     true_condition = compiler->EmitEqualityRegRegCompare(
-        left.reg(), right.reg(), needs_number_check(), token_pos());
+        left.reg(), right.reg(), needs_number_check(), token_pos(), deopt_id_);
   }
   if (kind() != Token::kEQ_STRICT) {
     ASSERT(kind() == Token::kNE_STRICT);
@@ -7229,7 +7234,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
   __ BranchLinkPatchable(*StubCode::DebugStepCheck_entry());
-  compiler->AddCurrentDescriptor(stub_kind_, Thread::kNoDeoptId, token_pos());
+  compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
   compiler->RecordSafepoint(locs());
 }
 

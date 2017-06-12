@@ -34,7 +34,29 @@ class Expectation {
 
   const Expectation(this.name, this.group);
 
+  /// Returns the canonical expectation representing [group]. That is, one of
+  /// the above expectations (except for `Meta` which returns `this`).
+  Expectation get canonical => fromGroup(group) ?? this;
+
   String toString() => name;
+
+  static Expectation fromGroup(ExpectationGroup group) {
+    switch (group) {
+      case ExpectationGroup.Crash:
+        return Expectation.Crash;
+      case ExpectationGroup.Fail:
+        return Expectation.Fail;
+      case ExpectationGroup.Meta:
+        return null;
+      case ExpectationGroup.Pass:
+        return Expectation.Pass;
+      case ExpectationGroup.Skip:
+        return Expectation.Skip;
+      case ExpectationGroup.Timeout:
+        return Expectation.Timeout;
+    }
+    throw "Unhandled group: '$group'.";
+  }
 }
 
 class ExpectationSet {
@@ -49,6 +71,7 @@ class ExpectationSet {
         const Expectation("MissingCompileTimeError", ExpectationGroup.Fail),
     "missingruntimeerror":
         const Expectation("MissingRuntimeError", ExpectationGroup.Fail),
+    "runtimeerror": const Expectation("RuntimeError", ExpectationGroup.Fail),
   });
 
   final Map<String, Expectation> internalMap;

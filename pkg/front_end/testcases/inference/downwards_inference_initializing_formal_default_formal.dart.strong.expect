@@ -1,0 +1,17 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef Function2 = <S extends core::Object, T extends core::Object>([S]) → T;
+class Foo extends core::Object {
+  field core::List<core::int> x;
+  constructor •([core::List<core::int> x = const <core::int>[1]]) → void
+    : self::Foo::x = x, super core::Object::•()
+    ;
+  constructor named([core::List<core::int> x = const <core::int>[1]]) → void
+    : self::Foo::x = null, super core::Object::•()
+    ;
+}
+static field ([core::List<core::int>]) → core::String g = ([core::List<core::int> llll = const <core::int>[1]]) → core::String => "hello";
+static method f([core::List<core::int> l = const <core::int>[1]]) → void {}
+static method main() → dynamic {}

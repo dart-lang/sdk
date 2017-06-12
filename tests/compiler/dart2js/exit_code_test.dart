@@ -87,9 +87,9 @@ class TestCompiler extends apiimpl.CompilerImpl {
           onTest(testMarker, testType);
           assert(false);
           break;
-        case 'invariant':
+        case 'failedAt':
           onTest(testMarker, testType);
-          invariant(NO_LOCATION_SPANNABLE, false, message: marker);
+          failedAt(NO_LOCATION_SPANNABLE, marker);
           break;
         case 'warning':
           onTest(testMarker, testType);
@@ -270,7 +270,7 @@ void main() {
         '': 0,
         'NoSuchMethodError': 253,
         'assert': isCheckedMode ? 253 : 0,
-        'invariant': 253
+        'failedAt': 253
       };
     }
 
@@ -279,7 +279,7 @@ void main() {
       '': 0,
       'NoSuchMethodError': 253,
       'assert': isCheckedMode ? 253 : 0,
-      'invariant': 253,
+      'failedAt': 253,
       'warning': fatalWarnings ? 1 : 0,
       'error': 1,
       'internalError': 253,

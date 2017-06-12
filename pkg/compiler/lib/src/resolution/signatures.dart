@@ -8,6 +8,7 @@ import '../common.dart';
 import '../common/resolution.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart' show AsyncMarker;
 import '../elements/modelx.dart'
     show
         ErroneousFieldElementX,
@@ -147,8 +148,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
         computeInlineFunctionType(
             link.head.asSend().selector.asFunctionExpression());
       } else {
-        assert(invariant(currentDefinitions,
-            link.head.asIdentifier() != null || link.head.asSend() != null));
+        assert(link.head.asIdentifier() != null || link.head.asSend() != null,
+            failedAt(currentDefinitions));
         if (fieldElement != null) {
           element.typeCache = fieldElement.computeType(resolution);
         } else {
@@ -364,7 +365,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
           // reported. In the case of parse errors, it is possible that there
           // are formal parameters, but something else in the method failed to
           // parse. So we suppress the message about missing formals.
-          assert(invariant(element, reporter.hasReportedError));
+          assert(reporter.hasReportedError, failedAt(element));
         } else {
           reporter.reportErrorMessage(element, MessageKind.MISSING_FORMALS);
         }

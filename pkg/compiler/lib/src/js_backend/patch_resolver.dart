@@ -34,6 +34,14 @@ class PatchResolverTask extends CompilerTask {
       checkMatchingPatchSignatures(element, patch);
       element = patch;
     } else {
+      if (element.isConstructor) {
+        // Note: currently we allow a couple external methods without a patch,
+        // namely the *.fromEnvironment const constructors in int, bool, and
+        // String.  In the future we might also represent native DOM methods in
+        // dart:html this way.
+        ConstructorElementX constructor = element;
+        if (constructor.isFromEnvironmentConstructor) return element;
+      }
       reporter.reportErrorMessage(
           element, MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
     }
@@ -54,8 +62,8 @@ class PatchResolverTask extends CompilerTask {
       if (!originParameter.isPatched) {
         originParameter.applyPatch(patchParameter);
       } else {
-        assert(invariant(origin, originParameter.patch == patchParameter,
-            message: "Inconsistent repatch of $originParameter."));
+        assert(originParameter.patch == patchParameter,
+            failedAt(origin, "Inconsistent repatch of $originParameter."));
       }
       ResolutionDartType originParameterType =
           originParameter.computeType(resolution);

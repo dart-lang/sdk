@@ -19,5 +19,5 @@ static method main() → dynamic {
   };
   core::Iterable<dynamic> y = f.call();
   core::Iterable<core::String> z = f.call();
-  core::String s = f.call().first;
+  core::String s = f.call().{core::Iterable::first};
 }

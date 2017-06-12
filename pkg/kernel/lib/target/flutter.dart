@@ -4,10 +4,12 @@
 library kernel.target.flutter;
 
 import '../ast.dart';
+import '../class_hierarchy.dart';
+import '../core_types.dart';
 import '../transformations/continuation.dart' as cont;
 import '../transformations/erasure.dart';
-import '../transformations/sanitize_for_vm.dart';
 import '../transformations/mixin_full_resolution.dart' as mix;
+import '../transformations/sanitize_for_vm.dart';
 import '../transformations/setup_builtin_library.dart' as setup_builtin_library;
 import 'targets.dart';
 
@@ -49,12 +51,15 @@ class FlutterTarget extends Target {
         'dart:vmservice_sky',
       ];
 
-  void performModularTransformations(Program program) {
-    new mix.MixinFullResolution(this).transform(program);
+  void performModularTransformationsOnLibraries(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+      {void logger(String msg)}) {
+    mix.transformLibraries(this, coreTypes, hierarchy, libraries);
   }
 
-  void performGlobalTransformations(Program program) {
-    cont.transformProgram(program);
+  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+      {void logger(String msg)}) {
+    cont.transformProgram(coreTypes, program);
 
     // Repair `_getMainClosure()` function in dart:{_builtin,ui} libraries.
     setup_builtin_library.transformProgram(program);
@@ -68,8 +73,25 @@ class FlutterTarget extends Target {
   }
 
   @override
-  Expression instantiateInvocation(Member target, Expression receiver,
+  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
+    // TODO(ahe): This should probably return the same as VmTarget does.
+    return new InvalidExpression();
+  }
+
+  @override
+  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
+      Expression receiver, String name, Arguments arguments, int offset,
+      {bool isMethod: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isField: false,
+      bool isLocalVariable: false,
+      bool isDynamic: false,
+      bool isSuper: false,
+      bool isStatic: false,
+      bool isConstructor: false,
+      bool isTopLevel: false}) {
     // TODO(ahe): This should probably return the same as VmTarget does.
     return new InvalidExpression();
   }

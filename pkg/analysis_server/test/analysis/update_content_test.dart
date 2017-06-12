@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -103,23 +102,23 @@ class UpdateContentTest extends AbstractAnalysisTest {
     if (!enableNewAnalysisDriver) return;
     throw 'is this test used by the new analysis driver?';
 
-    var testUnitMatcher = compilationUnitMatcher(testFile) as dynamic;
-    createProject();
-    addTestFile('main() { print(1); }');
-    await server.onAnalysisComplete;
-    verify(server.index.indexUnit(testUnitMatcher)).times(1);
-    // add an overlay
-    server.updateContent(
-        '1', {testFile: new AddContentOverlay('main() { print(2); }')});
-    // Perform the next single operation: analysis.
-    // It will schedule an indexing operation.
-    await server.test_onOperationPerformed;
-    // Update the file and remove an overlay.
-    resourceProvider.updateFile(testFile, 'main() { print(2); }');
-    server.updateContent('2', {testFile: new RemoveContentOverlay()});
-    // Validate that at the end the unit was indexed.
-    await server.onAnalysisComplete;
-    verify(server.index.indexUnit(testUnitMatcher)).times(3);
+//    var testUnitMatcher = compilationUnitMatcher(testFile) as dynamic;
+//    createProject();
+//    addTestFile('main() { print(1); }');
+//    await server.onAnalysisComplete;
+//    verify(server.index.indexUnit(testUnitMatcher)).times(1);
+//    // add an overlay
+//    server.updateContent(
+//        '1', {testFile: new AddContentOverlay('main() { print(2); }')});
+//    // Perform the next single operation: analysis.
+//    // It will schedule an indexing operation.
+//    await server.test_onOperationPerformed;
+//    // Update the file and remove an overlay.
+//    resourceProvider.updateFile(testFile, 'main() { print(2); }');
+//    server.updateContent('2', {testFile: new RemoveContentOverlay()});
+//    // Validate that at the end the unit was indexed.
+//    await server.onAnalysisComplete;
+//    verify(server.index.indexUnit(testUnitMatcher)).times(3);
   }
 
   test_multiple_contexts() async {
@@ -228,21 +227,21 @@ f() {}
     if (!enableNewAnalysisDriver) return;
     throw 'is this test used by the new analysis driver?';
 
-    createProject();
-    addTestFile('main() { print(1); }');
-    await server.onAnalysisComplete;
-    CompilationUnit unit = _getTestUnit();
-    // add an overlay
-    server.updateContent(
-        '1', {testFile: new AddContentOverlay('main() { print(2); }')});
-    // it was an incremental change
-    await server.onAnalysisComplete;
-    expect(_getTestUnit(), same(unit));
-    // remove overlay
-    server.updateContent('2', {testFile: new RemoveContentOverlay()});
-    // it was an incremental change
-    await server.onAnalysisComplete;
-    expect(_getTestUnit(), same(unit));
+//    createProject();
+//    addTestFile('main() { print(1); }');
+//    await server.onAnalysisComplete;
+//    CompilationUnit unit = _getTestUnit();
+//    // add an overlay
+//    server.updateContent(
+//        '1', {testFile: new AddContentOverlay('main() { print(2); }')});
+//    // it was an incremental change
+//    await server.onAnalysisComplete;
+//    expect(_getTestUnit(), same(unit));
+//    // remove overlay
+//    server.updateContent('2', {testFile: new RemoveContentOverlay()});
+//    // it was an incremental change
+//    await server.onAnalysisComplete;
+//    expect(_getTestUnit(), same(unit));
   }
 
   test_sendNoticesAfterNopChange() async {
@@ -331,12 +330,12 @@ f() {}
     expect(overlay, new isInstanceOf<plugin.RemoveContentOverlay>());
   }
 
-  CompilationUnit _getTestUnit() {
-    ContextSourcePair pair = server.getContextSourcePair(testFile);
-    AnalysisContext context = pair.context;
-    Source source = pair.source;
-    return context.getResolvedCompilationUnit2(source, source);
-  }
+//  CompilationUnit _getTestUnit() {
+//    ContextSourcePair pair = server.getContextSourcePair(testFile);
+//    AnalysisContext context = pair.context;
+//    Source source = pair.source;
+//    return context.getResolvedCompilationUnit2(source, source);
+//  }
 
   List<Source> _getUserSources(AnalysisContext context) {
     List<Source> sources = <Source>[];

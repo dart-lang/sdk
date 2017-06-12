@@ -8,7 +8,7 @@ library test;
 import 'dart:math';
 
 // T max<T extends num>(T x, T y);
-main() {
+f() {
   num x;
   dynamic y;
 
@@ -22,3 +22,5 @@ main() {
   var /*@type=dynamic*/ d = /*error:COULD_NOT_INFER*/ /*@typeArgs=dynamic*/ max(
       x, y);
 }
+
+main() {}

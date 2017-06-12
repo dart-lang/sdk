@@ -181,7 +181,7 @@ class _JsonMap implements Map<String, dynamic> {
     }
   }
 
-  void addAll(Map other) {
+  void addAll(Map<String, dynamic> other) {
     other.forEach((key, value) {
       this[key] = value;
     });
@@ -230,7 +230,7 @@ class _JsonMap implements Map<String, dynamic> {
     }
   }
 
-  void forEach(void f(key, value)) {
+  void forEach(void f(String key, value)) {
     if (_isUpgraded) return _upgradedMap.forEach(f);
     List<String> keys = _computeKeys();
     for (int i = 0; i < keys.length; i++) {
@@ -263,7 +263,7 @@ class _JsonMap implements Map<String, dynamic> {
 
   bool get _isUpgraded => _processed == null;
 
-  Map get _upgradedMap {
+  Map<String, dynamic> get _upgradedMap {
     assert(_isUpgraded);
     // 'cast' the union type to LinkedHashMap.  It would be even better if we
     // could 'cast' to the implementation type, since LinkedHashMap includes
@@ -285,7 +285,7 @@ class _JsonMap implements Map<String, dynamic> {
 
     // Copy all the (key, value) pairs to a freshly allocated
     // linked hash map thus preserving the ordering.
-    Map result = <String, dynamic>{};
+    var result = <String, dynamic>{};
     List<String> keys = _computeKeys();
     for (int i = 0; i < keys.length; i++) {
       String key = keys[i];

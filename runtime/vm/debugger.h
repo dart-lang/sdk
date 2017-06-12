@@ -350,8 +350,10 @@ class ActivationFrame : public ZoneAllocated {
   void PrintContextMismatchError(intptr_t ctx_slot,
                                  intptr_t frame_ctx_level,
                                  intptr_t var_ctx_level);
+  void PrintDescriptorsError(const char* message);
 
   intptr_t TryIndex();
+  intptr_t DeoptId();
   void GetPcDescriptors();
   void GetVarDescriptors();
   void GetDescIndices();
@@ -396,6 +398,7 @@ class ActivationFrame : public ZoneAllocated {
   bool token_pos_initialized_;
   TokenPosition token_pos_;
   intptr_t try_index_;
+  intptr_t deopt_id_;
 
   intptr_t line_number_;
   intptr_t column_number_;
@@ -631,7 +634,10 @@ class Debugger {
                              TokenPosition start_pos,
                              TokenPosition end_pos,
                              GrowableObjectArray* function_list);
-  RawFunction* FindBestFit(const Script& script, TokenPosition token_pos);
+  bool FindBestFit(const Script& script,
+                   TokenPosition token_pos,
+                   TokenPosition last_token_pos,
+                   Function* best_fit);
   RawFunction* FindInnermostClosure(const Function& function,
                                     TokenPosition token_pos);
   TokenPosition ResolveBreakpointPos(const Function& func,

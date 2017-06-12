@@ -7,11 +7,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/instrumentation.dart' as fasta;
 import 'package:front_end/src/fasta/compiler_context.dart' as fasta;
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
@@ -35,31 +37,6 @@ main() {
 
 /// Set this to `true` to cause expectation comments to be updated.
 const bool fixProblems = false;
-
-void _appendElementName(StringBuffer buffer, Element element) {
-  // Synthetic FunctionElement(s) don't have a name or enclosing library.
-  if (element.isSynthetic && element is FunctionElement) {
-    return;
-  }
-
-  LibraryElement library = element.library;
-  if (library == null) {
-    throw new StateError('Unexpected element without library: $element');
-  }
-  String libraryName = library.name;
-
-  String name = element.name ?? '';
-  if (libraryName != 'dart.core' &&
-      libraryName != 'dart.async' &&
-      libraryName != 'test') {
-    buffer.write('$libraryName::');
-  }
-  var enclosing = element.enclosingElement;
-  if (enclosing is ClassElement) {
-    buffer.write('${enclosing.name}::');
-  }
-  buffer.write('$name');
-}
 
 @reflectiveTest
 class RunFrontEndInferenceTest {
@@ -109,6 +86,50 @@ class RunFrontEndInferenceTest {
   }
 }
 
+class _ElementNamer {
+  final ConstructorElement currentFactoryConstructor;
+
+  _ElementNamer(this.currentFactoryConstructor);
+
+  void appendElementName(StringBuffer buffer, Element element) {
+    // Synthetic FunctionElement(s) don't have a name or enclosing library.
+    if (element.isSynthetic && element is FunctionElement) {
+      return;
+    }
+
+    var enclosing = element.enclosingElement;
+    if (enclosing is CompilationUnitElement) {
+      enclosing = enclosing.enclosingElement;
+    } else if (enclosing is ClassElement &&
+        currentFactoryConstructor != null &&
+        identical(enclosing, currentFactoryConstructor.enclosingElement) &&
+        element is TypeParameterElement) {
+      enclosing = currentFactoryConstructor;
+    }
+    if (enclosing != null) {
+      if (enclosing is LibraryElement &&
+          (enclosing.name == 'dart.core' ||
+              enclosing.name == 'dart.async' ||
+              enclosing.name == 'test')) {
+        // For brevity, omit library name
+      } else {
+        appendElementName(buffer, enclosing);
+        buffer.write('::');
+      }
+    }
+
+    String name = element.name ?? '';
+    if (element is ConstructorElement && name == '') {
+      name = '•';
+    } else if (name.endsWith('=') &&
+        element is PropertyAccessorElement &&
+        element.isSetter) {
+      name = name.substring(0, name.length - 1);
+    }
+    buffer.write(name);
+  }
+}
+
 class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
   Future<String> runTest(String path, String code) async {
     Uri uri = provider.pathContext.toUri(path);
@@ -129,7 +150,7 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
 
     if (validation.hasProblems) {
       if (fixProblems) {
-        validation.fixSource(uri);
+        validation.fixSource(uri, true);
         return null;
       } else {
         return validation.problemsAsString;
@@ -140,16 +161,18 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
   }
 }
 
-/// Instance of [InstrumentationValue] describing a [MethodElement].
-class _InstrumentationValueForMethodElement extends fasta.InstrumentationValue {
-  final MethodElement element;
+/// Instance of [InstrumentationValue] describing an [ExecutableElement].
+class _InstrumentationValueForExecutableElement
+    extends fasta.InstrumentationValue {
+  final ExecutableElement element;
+  final _ElementNamer elementNamer;
 
-  _InstrumentationValueForMethodElement(this.element);
+  _InstrumentationValueForExecutableElement(this.element, this.elementNamer);
 
   @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
-    _appendElementName(buffer, element);
+    elementNamer.appendElementName(buffer, element);
     return buffer.toString();
   }
 }
@@ -159,8 +182,9 @@ class _InstrumentationValueForMethodElement extends fasta.InstrumentationValue {
  */
 class _InstrumentationValueForType extends fasta.InstrumentationValue {
   final DartType type;
+  final _ElementNamer elementNamer;
 
-  _InstrumentationValueForType(this.type);
+  _InstrumentationValueForType(this.type, this.elementNamer);
 
   @override
   String toString() {
@@ -189,24 +213,52 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
 
   void _appendParameters(
       StringBuffer buffer, List<ParameterElement> parameters) {
-    _appendList<ParameterElement>(buffer, '(', ')', parameters, ', ',
-        (parameter) {
+    buffer.write('(');
+    bool first = true;
+    ParameterKind lastKind = ParameterKind.REQUIRED;
+    for (var parameter in parameters) {
+      if (!first) {
+        buffer.write(', ');
+      }
+      if (lastKind != parameter.parameterKind) {
+        if (parameter.parameterKind == ParameterKind.POSITIONAL) {
+          buffer.write('[');
+        } else if (parameter.parameterKind == ParameterKind.NAMED) {
+          buffer.write('{');
+        }
+      }
+      if (parameter.parameterKind == ParameterKind.NAMED) {
+        buffer.write(parameter.name);
+        buffer.write(': ');
+      }
       _appendType(buffer, parameter.type);
-    }, includeEmpty: true);
+      lastKind = parameter.parameterKind;
+      first = false;
+    }
+    if (lastKind == ParameterKind.POSITIONAL) {
+      buffer.write(']');
+    } else if (lastKind == ParameterKind.NAMED) {
+      buffer.write('}');
+    }
+    buffer.write(')');
   }
 
   void _appendType(StringBuffer buffer, DartType type) {
     if (type is FunctionType) {
-      _appendTypeArguments(buffer, type.typeArguments);
+      if (type.typeFormals.isNotEmpty) {
+        _appendTypeArguments(buffer, type.typeArguments);
+      }
       _appendParameters(buffer, type.parameters);
       buffer.write(' -> ');
       _appendType(buffer, type.returnType);
     } else if (type is InterfaceType) {
       ClassElement element = type.element;
-      _appendElementName(buffer, element);
+      elementNamer.appendElementName(buffer, element);
       _appendTypeArguments(buffer, type.typeArguments);
     } else if (type.isBottom) {
       buffer.write('<BottomType>');
+    } else if (type is TypeParameterType) {
+      elementNamer.appendElementName(buffer, type.element);
     } else {
       buffer.write(type.toString());
     }
@@ -223,12 +275,14 @@ class _InstrumentationValueForType extends fasta.InstrumentationValue {
  */
 class _InstrumentationValueForTypeArgs extends fasta.InstrumentationValue {
   final List<DartType> types;
+  final _ElementNamer elementNamer;
 
-  const _InstrumentationValueForTypeArgs(this.types);
+  const _InstrumentationValueForTypeArgs(this.types, this.elementNamer);
 
   @override
   String toString() => types
-      .map((type) => new _InstrumentationValueForType(type).toString())
+      .map((type) =>
+          new _InstrumentationValueForType(type, elementNamer).toString())
       .join(', ');
 }
 
@@ -238,12 +292,48 @@ class _InstrumentationValueForTypeArgs extends fasta.InstrumentationValue {
 class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
   final fasta.Instrumentation _instrumentation;
   final Uri uri;
+  _ElementNamer elementNamer = new _ElementNamer(null);
 
   _InstrumentationVisitor(this._instrumentation, this.uri);
 
   visitBinaryExpression(BinaryExpression node) {
     super.visitBinaryExpression(node);
-    _recordMethodTarget(node.operator.charOffset, node.staticElement);
+    _recordTarget(node.operator.charOffset, node.staticElement);
+  }
+
+  @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    _ElementNamer oldElementNamer = elementNamer;
+    if (node.factoryKeyword != null) {
+      // Factory constructors are represented in kernel as static methods, so
+      // their type parameters get replicated, e.g.:
+      //     class C<T> {
+      //       factory C.ctor() {
+      //         T t; // Refers to C::T
+      //         ...
+      //       }
+      //     }
+      // gets converted to:
+      //     class C<T> {
+      //       static C<T> C.ctor<T>() {
+      //         T t; // Refers to C::ctor::T
+      //         ...
+      //       }
+      //     }
+      // So to match kernel behavior, we have to arrange for this renaming to
+      // happen during output.
+      elementNamer = new _ElementNamer(node.element);
+    }
+    super.visitConstructorDeclaration(node);
+    elementNamer = oldElementNamer;
+  }
+
+  @override
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    super.visitDeclaredIdentifier(node);
+    if (node.type == null) {
+      _recordType(node.identifier.offset, node.element.type);
+    }
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -251,12 +341,17 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     if (node.parent is! FunctionDeclaration) {
       DartType type = node.staticType;
       if (type is FunctionType) {
-        _instrumentation.record(uri, node.offset, 'returnType',
-            new _InstrumentationValueForType(type.returnType));
+        _instrumentation.record(uri, node.parameters.offset, 'returnType',
+            new _InstrumentationValueForType(type.returnType, elementNamer));
         List<FormalParameter> parameters = node.parameters.parameters;
         for (int i = 0; i < parameters.length; i++) {
           FormalParameter parameter = parameters[i];
-          if (parameter is SimpleFormalParameter && parameter.type == null) {
+          NormalFormalParameter normalParameter =
+              parameter is DefaultFormalParameter
+                  ? parameter.parameter
+                  : parameter;
+          if (normalParameter is SimpleFormalParameter &&
+              normalParameter.type == null) {
             _recordType(parameter.offset, type.parameters[i].type);
           }
         }
@@ -264,9 +359,33 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
+  @override
+  visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    super.visitFunctionExpressionInvocation(node);
+    var receiverType = node.function.staticType;
+    if (receiverType is InterfaceType) {
+      // This is a hack since analyzer doesn't record .call targets
+      var target = receiverType.element.lookUpMethod('call', null) ??
+          receiverType.element.lookUpGetter('call', null);
+      if (target != null) {
+        _recordTarget(node.argumentList.offset, target);
+      }
+    }
+    if (node.typeArguments == null) {
+      var inferredTypeArguments = _getInferredFunctionTypeArguments(
+              node.function.staticType,
+              node.staticInvokeType,
+              node.typeArguments)
+          .toList();
+      if (inferredTypeArguments.isNotEmpty) {
+        _recordTypeArguments(node.argumentList.offset, inferredTypeArguments);
+      }
+    }
+  }
+
   visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
-    _recordMethodTarget(node.leftBracket.charOffset, node.staticElement);
+    _recordTarget(node.leftBracket.charOffset, node.staticElement);
   }
 
   visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -302,7 +421,6 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
 
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
-    _recordMethodTarget(node.methodName.offset, node.methodName.staticElement);
     if (node.typeArguments == null) {
       var inferredTypeArguments = _getInferredFunctionTypeArguments(
               node.function.staticType,
@@ -317,19 +435,27 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
 
   visitPrefixExpression(PrefixExpression node) {
     super.visitPrefixExpression(node);
-    _recordMethodTarget(node.operator.charOffset, node.staticElement);
+    if (node.operator.type != TokenType.PLUS_PLUS &&
+        node.operator.type != TokenType.MINUS_MINUS) {
+      _recordTarget(node.operator.charOffset, node.staticElement);
+    }
   }
 
   visitSimpleIdentifier(SimpleIdentifier node) {
     super.visitSimpleIdentifier(node);
     Element element = node.staticElement;
+    if (_elementRequiresMethodDispatch(element) &&
+        !node.inDeclarationContext() &&
+        (node.inGetterContext() || node.inSetterContext())) {
+      _recordTarget(node.offset, element);
+    }
     void recordPromotions(DartType elementType) {
       if (node.inGetterContext() && !node.inDeclarationContext()) {
         int offset = node.offset;
         DartType type = node.staticType;
         if (!identical(type, elementType)) {
           _instrumentation.record(uri, offset, 'promotedType',
-              new _InstrumentationValueForType(type));
+              new _InstrumentationValueForType(type, elementNamer));
         }
       }
     }
@@ -355,6 +481,19 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
+  bool _elementRequiresMethodDispatch(Element element) {
+    if (element is ConstructorElement) {
+      return false;
+    } else if (element is ClassMemberElement) {
+      return !element.isStatic;
+    } else if (element is ExecutableElement &&
+        element.enclosingElement is ClassElement) {
+      return !element.isStatic;
+    } else {
+      return false;
+    }
+  }
+
   /// Based on DDC code generator's `_emitFunctionTypeArguments`
   Iterable<DartType> _getInferredFunctionTypeArguments(
       DartType g, DartType f, TypeArgumentList typeArgs) {
@@ -368,26 +507,26 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
-  void _recordMethodTarget(int offset, Element element) {
-    if (element is MethodElement) {
+  void _recordTarget(int offset, Element element) {
+    if (element is ExecutableElement) {
       _instrumentation.record(uri, offset, 'target',
-          new _InstrumentationValueForMethodElement(element));
+          new _InstrumentationValueForExecutableElement(element, elementNamer));
     }
   }
 
   void _recordTopType(int offset, DartType type) {
-    _instrumentation.record(
-        uri, offset, 'topType', new _InstrumentationValueForType(type));
+    _instrumentation.record(uri, offset, 'topType',
+        new _InstrumentationValueForType(type, elementNamer));
   }
 
   void _recordType(int offset, DartType type) {
-    _instrumentation.record(
-        uri, offset, 'type', new _InstrumentationValueForType(type));
+    _instrumentation.record(uri, offset, 'type',
+        new _InstrumentationValueForType(type, elementNamer));
   }
 
   void _recordTypeArguments(int offset, List<DartType> typeArguments) {
     _instrumentation.record(uri, offset, 'typeArgs',
-        new _InstrumentationValueForTypeArgs(typeArguments));
+        new _InstrumentationValueForTypeArgs(typeArguments, elementNamer));
   }
 
   /// Based on DDC code generator's `_recoverTypeArguments`

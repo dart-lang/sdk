@@ -292,14 +292,14 @@ abstract class AstElementMixinZ implements AstElement, ElementZ {
 
   @override
   ResolvedAst get resolvedAst {
-    assert(invariant(this, _resolvedAst != null,
-        message: "ResolvedAst has not been set for $this."));
+    assert(_resolvedAst != null,
+        failedAt(this, "ResolvedAst has not been set for $this."));
     return _resolvedAst;
   }
 
   void set resolvedAst(ResolvedAst value) {
-    assert(invariant(this, _resolvedAst == null,
-        message: "ResolvedAst has already been set for $this."));
+    assert(_resolvedAst == null,
+        failedAt(this, "ResolvedAst has already been set for $this."));
     _resolvedAst = value;
   }
 }
@@ -2035,8 +2035,8 @@ class SyntheticTypeVariableElementZ extends ElementZ
 
   @override
   ResolutionTypeVariableType get type {
-    assert(invariant(this, _type != null,
-        message: "Type variable type has not been set on $this."));
+    assert(_type != null,
+        failedAt(this, "Type variable type has not been set on $this."));
     return _type;
   }
 
@@ -2050,8 +2050,8 @@ class SyntheticTypeVariableElementZ extends ElementZ
   Element get enclosingClass => typeDeclaration;
 
   ResolutionDartType get bound {
-    assert(invariant(this, _bound != null,
-        message: "Type variable bound has not been set on $this."));
+    assert(_bound != null,
+        failedAt(this, "Type variable bound has not been set on $this."));
     return _bound;
   }
 

@@ -78,8 +78,12 @@ enum Feature {
   /// static method.
   THROW_NO_SUCH_METHOD,
 
-  /// An implicit throw of a runtime error, like
+  /// An implicit throw of a runtime error, like in a runtime type check.
   THROW_RUNTIME_ERROR,
+
+  /// An implicit throw of a `UnsupportedError`, like calling `new
+  /// bool.fromEnvironment`.
+  THROW_UNSUPPORTED_ERROR,
 
   /// The need for a type variable bound check, like instantiation of a generic
   /// type whose type variable have non-trivial bounds.

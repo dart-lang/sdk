@@ -6,7 +6,7 @@
 library test;
 
 main() {
-  var /*@type=List<int>*/ v = (f)(
+  var /*@type=List<int>*/ v = (f) /*@typeArgs=int*/ (
       /*@returnType=int*/ () {
     return 1;
   });

@@ -61,6 +61,8 @@ class KernelLibraryBuilder
     extends SourceLibraryBuilder<KernelTypeBuilder, Library> {
   final Library library;
 
+  final bool isPatch;
+
   final Map<String, SourceClassBuilder> mixinApplicationClasses =
       <String, SourceClassBuilder>{};
 
@@ -71,7 +73,7 @@ class KernelLibraryBuilder
   final List<KernelTypeVariableBuilder> boundlessTypeVariables =
       <KernelTypeVariableBuilder>[];
 
-  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader)
+  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.isPatch)
       : library = new Library(uri, fileUri: relativizeUri(fileUri)),
         super(loader, fileUri);
 
@@ -461,6 +463,7 @@ class KernelLibraryBuilder
     checkTypeVariables(typeVariables, supertype.builder);
   }
 
+  @override
   void addField(List<MetadataBuilder> metadata, int modifiers,
       KernelTypeBuilder type, String name, int charOffset, Token initializer) {
     addBuilder(
@@ -542,6 +545,7 @@ class KernelLibraryBuilder
           charEndOffset,
           nativeMethodName);
     }
+    checkTypeVariables(typeVariables, procedure);
     addBuilder(name, procedure, charOffset);
     if (nativeMethodName != null) {
       addNativeMethod(procedure);
@@ -558,6 +562,8 @@ class KernelLibraryBuilder
       int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName) {
+    KernelTypeBuilder returnType = addNamedType(
+        currentDeclaration.parent.name, <KernelTypeBuilder>[], charOffset);
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
         endNestedDeclaration();
@@ -571,7 +577,7 @@ class KernelLibraryBuilder
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
         metadata,
         staticMask | modifiers,
-        null,
+        returnType,
         name,
         <TypeVariableBuilder>[],
         formals,
@@ -593,8 +599,8 @@ class KernelLibraryBuilder
       List<Object> constantNamesAndOffsets, int charOffset, int charEndOffset) {
     addBuilder(
         name,
-        new KernelEnumBuilder(loader.astFactory, metadata, name,
-            constantNamesAndOffsets, this, charOffset, charEndOffset),
+        new KernelEnumBuilder(metadata, name, constantNamesAndOffsets, this,
+            charOffset, charEndOffset),
         charOffset);
   }
 
@@ -607,6 +613,7 @@ class KernelLibraryBuilder
       int charOffset) {
     FunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
         metadata, returnType, name, typeVariables, formals, this, charOffset);
+    checkTypeVariables(typeVariables, typedef);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration().resolveTypes(typeVariables, this);
     addBuilder(name, typedef, charOffset);
@@ -617,8 +624,10 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset) {
-    return addType(new KernelFunctionTypeBuilder(
-        charOffset, fileUri, returnType, typeVariables, formals));
+    var builder = new KernelFunctionTypeBuilder(
+        charOffset, fileUri, returnType, typeVariables, formals);
+    checkTypeVariables(typeVariables, builder);
+    return addType(builder);
   }
 
   KernelFormalParameterBuilder addFormalParameter(
@@ -744,14 +753,11 @@ class KernelLibraryBuilder
           });
       }
     }
-    if (isExport) {
-      addNit(charOffset,
-          "'$name' is exported from both '${uri}' and '${otherUri}'.");
-    } else {
-      addNit(charOffset,
-          "'$name' is imported from both '${uri}' and '${otherUri}'.");
-    }
-    return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
+    String message = isExport
+        ? "'$name' is exported from both '${uri}' and '${otherUri}'."
+        : "'$name' is imported from both '${uri}' and '${otherUri}'.";
+    addNit(charOffset, message);
+    return new KernelInvalidTypeBuilder(name, charOffset, fileUri, message);
   }
 
   int finishStaticInvocations() {

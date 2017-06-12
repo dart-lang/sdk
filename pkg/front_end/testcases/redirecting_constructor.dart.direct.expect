@@ -7,7 +7,7 @@ class A extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  static factory fisk() → dynamic
+  static factory fisk() → self::A
     let final dynamic #t1 = self::B::• in invalid-expression;
 }
 class B extends self::A {

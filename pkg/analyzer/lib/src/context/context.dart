@@ -1174,7 +1174,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   AnalysisResult performAnalysisTask() {
-    return PerformanceStatistics.performAnalysis.makeCurrentWhile(() {
+    return PerformanceStatistics.analysis.makeCurrentWhile(() {
       _evaluatePendingFutures();
       bool done = !driver.performAnalysisTask();
       List<ChangeNotice> notices = _getChangeNotices(done);

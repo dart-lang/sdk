@@ -98,8 +98,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
     final button = new ButtonElement()..text = 'show next ${count}';
     button.onClick.listen((_) async {
       button.disabled = true;
-      _loadedInstance =
-          await _objects.get(_isolate, _instance.id, count: count * 2);
+      _loadedInstance = await _objects.get(_isolate, _instance.id);
       _r.dirty();
     });
     return [button];

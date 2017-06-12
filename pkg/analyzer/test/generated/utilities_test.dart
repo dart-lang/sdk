@@ -61,7 +61,7 @@ class AstCloneComparator extends AstComparator {
       fail('Failed to copy token: ${first.lexeme} (${first.offset})');
       return false;
     }
-    if (first is TokenWithComment) {
+    if (first?.precedingComments != null) {
       CommentToken comment = first.precedingComments;
       if (comment.parent != first) {
         fail('Failed to link the comment "$comment" with the token "$first".');

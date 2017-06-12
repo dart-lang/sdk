@@ -168,12 +168,6 @@ class int {
   static int parse(String source, {int radix, int onError(String source)}) {
     return Primitives.parseInt(source, radix, onError);
   }
-
-  @patch
-  factory int.fromEnvironment(String name, {int defaultValue}) {
-    throw new UnsupportedError(
-        'int.fromEnvironment can only be used as a const constructor');
-  }
 }
 
 @patch
@@ -414,12 +408,6 @@ class String {
     return Primitives.stringFromCharCode(charCode);
   }
 
-  @patch
-  factory String.fromEnvironment(String name, {String defaultValue}) {
-    throw new UnsupportedError(
-        'String.fromEnvironment can only be used as a const constructor');
-  }
-
   static String _stringFromJSArray(List list, int start, int endOrNull) {
     int len = list.length;
     int end = RangeError.checkValidRange(start, endOrNull, len);
@@ -465,12 +453,6 @@ class String {
 
 @patch
 class bool {
-  @patch
-  factory bool.fromEnvironment(String name, {bool defaultValue: false}) {
-    throw new UnsupportedError(
-        'bool.fromEnvironment can only be used as a const constructor');
-  }
-
   @patch
   int get hashCode => super.hashCode;
 }
@@ -604,6 +586,13 @@ class NoSuchMethodError {
           "Found: $memberName($formalParameters)";
     }
   }
+}
+
+class _CompileTimeError extends Error {
+  final String _errorMsg;
+  // TODO(sigmund): consider calling `JS("", "debugger")`.
+  _CompileTimeError(this._errorMsg);
+  String toString() => _errorMsg;
 }
 
 @patch

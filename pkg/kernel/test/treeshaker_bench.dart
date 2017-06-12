@@ -50,7 +50,7 @@ void main(List<String> args) {
   ClassHierarchy buildClassHierarchy() {
     return options['basic']
         ? new BasicClassHierarchy(program)
-        : new ClassHierarchy(program);
+        : new ClosedWorldClassHierarchy(program);
   }
 
   CoreTypes coreTypes = new CoreTypes(program);
@@ -58,9 +58,7 @@ void main(List<String> args) {
   var watch = new Stopwatch()..start();
   ClassHierarchy sharedClassHierarchy = buildClassHierarchy();
   int coldHierarchyTime = watch.elapsedMicroseconds;
-  var shaker = new TreeShaker(program,
-      hierarchy: sharedClassHierarchy,
-      coreTypes: coreTypes,
+  var shaker = new TreeShaker(coreTypes, sharedClassHierarchy, program,
       strongMode: strongMode);
   if (options['diagnose']) {
     print(shaker.getDiagnosticString());
@@ -82,8 +80,7 @@ void main(List<String> args) {
     watch.reset();
     var hierarchy = getClassHierarchy();
     hotHierarchyTime += watch.elapsedMicroseconds;
-    new TreeShaker(program,
-        hierarchy: hierarchy, coreTypes: coreTypes, strongMode: strongMode);
+    new TreeShaker(coreTypes, hierarchy, program, strongMode: strongMode);
     hotTreeShakingTime += watch.elapsedMicroseconds;
   }
   hotHierarchyTime ~/= numberOfTrials;

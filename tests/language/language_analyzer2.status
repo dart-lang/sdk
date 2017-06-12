@@ -11,6 +11,8 @@ regress_26668_test: Fail # Issue 26678
 regress_27617_test/1: MissingCompileTimeError
 regress_29025_test: StaticWarning # Issue 29081
 regress_29405_test: StaticWarning # Issue 29421
+regress_29349_test: CompileTimeError # Issue 29744
+regress_29481_test: Crash # Issue 29755
 
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
@@ -441,6 +443,8 @@ for_in_side_effects_test: StaticWarning, OK # Test uses custom class that does n
 initializing_formal_type_test: StaticWarning # Issue 26658
 
 regress_27572_test: StaticWarning # Warning about undefined method expected.
+
+part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649

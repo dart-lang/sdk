@@ -344,7 +344,7 @@ class MyCompiler extends CompilerImpl {
       selfTask.measureSubtask('KernelCompiler.compileLoadedLibraries', () {
         ResolutionEnqueuer resolutionEnqueuer = startResolution();
         WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-        mainFunction = frontEndStrategy.computeMain(rootLibrary, mainImpact);
+        mainFunction = frontendStrategy.computeMain(rootLibrary, mainImpact);
         mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
 
         deferredLoadTask.beforeResolution(this);

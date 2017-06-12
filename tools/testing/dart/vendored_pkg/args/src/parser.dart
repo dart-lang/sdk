@@ -35,7 +35,7 @@ class Parser {
   final List<String> args;
 
   /** The accumulated parsed options. */
-  final Map results = {};
+  final Map<String, dynamic> results = {};
 
   Parser(this.commandName, this.grammar, this.args, [this.parent]);
 
@@ -44,7 +44,7 @@ class Parser {
 
   /** Parses the arguments. This can only be called once. */
   ArgResults parse() {
-    var commandResults = null;
+    ArgResults commandResults;
 
     // Initialize flags to their defaults.
     grammar.options.forEach((name, option) {
@@ -260,12 +260,12 @@ class Parser {
    * Called during parsing to validate the arguments. Throws a
    * [FormatException] if [condition] is `false`.
    */
-  validate(bool condition, String message) {
+  void validate(bool condition, String message) {
     if (!condition) throw new FormatException(message);
   }
 
   /** Validates and stores [value] as the value for [option]. */
-  setOption(Map results, Option option, value) {
+  void setOption(Map results, Option option, dynamic value) {
     // See if it's one of the allowed values.
     if (option.allowed != null) {
       validate(option.allowed.any((allow) => allow == value),

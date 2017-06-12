@@ -11,6 +11,8 @@ import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart';
 import 'package:kernel/target/targets.dart';
@@ -69,7 +71,10 @@ scheduleTest(String name, {bool selected}) async {
     JavaScriptBackend backend = compiler.backend;
     StringBuffer buffer = new StringBuffer();
     Program program = backend.kernelTask.buildProgram(library);
-    new MixinFullResolution(new NoneTarget(null)).transform(program);
+    CoreTypes coreTypes = new CoreTypes(program);
+    ClassHierarchy hierarchy = new ClosedWorldClassHierarchy(program);
+    new MixinFullResolution(new NoneTarget(null), coreTypes, hierarchy)
+        .transform(program.libraries);
     new Printer(buffer).writeLibraryFile(program.mainMethod.enclosingLibrary);
     String actual = buffer.toString();
     String expected =

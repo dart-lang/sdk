@@ -9,6 +9,7 @@ library dart2js.kernel.compiler_helper;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/names.dart';
@@ -68,8 +69,8 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
           ]);
       ElementResolutionWorldBuilder.useInstantiationMap = true;
       compiler2.resolution.retainCachesForTesting = true;
-      KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-      KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
+      KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
+      KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
       ir.Program program = new ir.Program(
           libraries:
               compiler.backend.kernelTask.kernel.libraryDependencies(uri));
@@ -114,8 +115,8 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
       ]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler2.resolution.retainCachesForTesting = true;
-  KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-  KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
+  KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
+  KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
   compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
       elementMap,
       compiler2.reporter,
@@ -139,8 +140,10 @@ class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
 }
 
 Future<Compiler> compileWithDill(
-    Uri entryPoint, Map<String, String> memorySourceFiles,
-    {bool printSteps: false}) async {
+    Uri entryPoint, Map<String, String> memorySourceFiles, List<String> options,
+    {bool printSteps: false,
+    CompilerOutput compilerOutput,
+    void beforeRun(Compiler compiler)}) async {
   if (memorySourceFiles.isNotEmpty) {
     Directory dir = await Directory.systemTemp.createTemp('dart2js-with-dill');
     if (printSteps) {
@@ -156,21 +159,26 @@ Future<Compiler> compileWithDill(
   }
 
   Uri dillFile = Uri.parse('$entryPoint.dill');
+  String buildDir = Platform.isMacOS ? 'xcodebuild' : 'out';
+  String configuration =
+      Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
   await generate.main([
-    '--platform=out/ReleaseX64/patched_dart2js_sdk/platform.dill',
+    '--platform=$buildDir/$configuration/patched_dart2js_sdk/platform.dill',
     '$entryPoint'
   ]);
 
   if (printSteps) {
-    print('---- closed world from dill $dillFile ----------------------------');
+    print('---- compile from dill $dillFile ---------------------------------');
   }
-  Compiler compiler = compilerFor(entryPoint: dillFile, options: [
-    Flags.analyzeOnly,
-    Flags.enableAssertMessage,
-    Flags.loadFromDill
-  ]);
+  Compiler compiler = compilerFor(
+      entryPoint: dillFile,
+      options: [Flags.loadFromDill]..addAll(options),
+      outputProvider: compilerOutput);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler.resolution.retainCachesForTesting = true;
+  if (beforeRun != null) {
+    beforeRun(compiler);
+  }
   await compiler.run(dillFile);
   return compiler;
 }

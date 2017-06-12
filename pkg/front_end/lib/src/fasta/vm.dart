@@ -18,6 +18,9 @@ import 'package:front_end/physical_file_system.dart';
 
 import 'fasta.dart' as fasta;
 
+import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+
 /// Compilation status codes.
 ///
 /// Note: The [index] property of these constants must match
@@ -84,9 +87,9 @@ Future<CompilationResult> parseScriptInFileSystem(
   }
 
   try {
-    return await fasta.parseScriptInFileSystem(
-        script, fileSystem, packagesUri, patchedSdk,
-        verbose: verbose, strongMode: strongMode);
+    return await fasta.parseScriptInFileSystem(script, fileSystem, packagesUri,
+        patchedSdk, new VmFastaTarget(new TargetFlags(strongMode: strongMode)),
+        verbose: verbose);
   } catch (err, stack) {
     return new CompilationResult.crash(err, stack);
   }

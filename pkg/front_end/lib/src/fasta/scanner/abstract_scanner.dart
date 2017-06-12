@@ -8,7 +8,7 @@ import 'dart:collection' show ListMixin;
 
 import 'dart:typed_data' show Uint16List, Uint32List;
 
-import '../../scanner/token.dart' show Token, TokenType;
+import '../../scanner/token.dart' show BeginToken, Token, TokenType;
 
 import '../scanner.dart'
     show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
@@ -17,8 +17,7 @@ import 'error_token.dart' show UnterminatedToken;
 
 import 'keyword_state.dart' show KeywordState;
 
-import 'token.dart'
-    show BeginGroupToken, CommentToken, DartDocToken, SymbolToken;
+import 'token.dart' show CommentToken, DartDocToken;
 
 import 'token_constants.dart';
 
@@ -32,14 +31,6 @@ abstract class AbstractScanner implements Scanner {
    * `/*=T*/` and `/*<T>*/`.  The flag [includeComments] must be set to `true`.
    */
   bool scanGenericMethodComments = false;
-
-  /**
-   * A flag indicating whether the lazy compound assignment operators '&&=' and
-   * '||=' are enabled.
-   */
-  // TODO(paulberry): once lazyAssignmentOperators are fully supported by
-  // Dart, remove this flag.
-  bool scanLazyAssignmentOperators = false;
 
   /**
    * The string offset for the next token that will be created.
@@ -57,7 +48,7 @@ abstract class AbstractScanner implements Scanner {
    * is not exposed to clients of the scanner, which are expected to invoke
    * [firstToken] to access the token stream.
    */
-  final Token tokens = new SymbolToken.eof(-1);
+  final Token tokens = new Token.eof(-1);
 
   /**
    * A pointer to the last scanned token.
@@ -79,7 +70,6 @@ abstract class AbstractScanner implements Scanner {
   final List<int> lineStarts;
 
   AbstractScanner(this.includeComments, this.scanGenericMethodComments,
-      this.scanLazyAssignmentOperators,
       {int numberOfBytesHint})
       : lineStarts = new LineStarts(numberOfBytesHint) {
     this.tail = this.tokens;
@@ -172,6 +162,16 @@ abstract class AbstractScanner implements Scanner {
   void appendSubstringToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset]);
 
+  /**
+   * Appends a substring from the scan offset [start] to the current
+   * [scanOffset] plus [closingQuotes]. The closing quote(s) will be added
+   * to the unterminated string literal's lexeme but the returned
+   * token's length will *not* include those closing quotes
+   * so as to be true to the original source.
+   */
+  void appendSyntheticSubstringToken(
+      TokenType type, int start, bool asciiOnly, String closingQuotes);
+
   /** Documentation in subclass [ArrayBasedScanner]. */
   void appendPrecedenceToken(TokenType type);
 
@@ -231,6 +231,9 @@ abstract class AbstractScanner implements Scanner {
 
   /** Documentation in subclass [ArrayBasedScanner]. */
   void discardOpenLt();
+
+  /** Documentation in subclass [ArrayBasedScanner]. */
+  void discardInterpolation();
 
   /// Return true when at EOF.
   bool atEndOfFile();
@@ -499,7 +502,7 @@ abstract class AbstractScanner implements Scanner {
     next = advance();
     if (identical(next, $BAR)) {
       next = advance();
-      if (scanLazyAssignmentOperators && identical(next, $EQ)) {
+      if (identical(next, $EQ)) {
         appendPrecedenceToken(TokenType.BAR_BAR_EQ);
         return advance();
       }
@@ -519,7 +522,7 @@ abstract class AbstractScanner implements Scanner {
     next = advance();
     if (identical(next, $AMPERSAND)) {
       next = advance();
-      if (scanLazyAssignmentOperators && identical(next, $EQ)) {
+      if (identical(next, $EQ)) {
         appendPrecedenceToken(TokenType.AMPERSAND_AMPERSAND_EQ);
         return advance();
       }
@@ -888,12 +891,13 @@ abstract class AbstractScanner implements Scanner {
     tail.next = token;
     tail.next.previous = tail;
     tail = tail.next;
-    if (comments != null) {
-      // It is the responsibility of the caller to construct the token
-      // being appended with preceeding comments if any
-      assert(identical(token.precedingComments, comments));
+    if (comments != null && comments == token.precedingComments) {
       comments = null;
       commentsTail = null;
+    } else {
+      // It is the responsibility of the caller to construct the token
+      // being appended with preceeding comments if any
+      assert(comments == null || token.isSynthetic);
     }
   }
 
@@ -1030,7 +1034,8 @@ abstract class AbstractScanner implements Scanner {
               identical(next, $CR) ||
               identical(next, $EOF))) {
         if (!asciiOnly) handleUnicode(start);
-        return unterminatedString(quoteChar);
+        return unterminatedString(quoteChar, start,
+            asciiOnly: asciiOnly, isMultiLine: false, isRaw: false);
       }
       if (next > 127) asciiOnly = false;
       next = advance();
@@ -1060,7 +1065,11 @@ abstract class AbstractScanner implements Scanner {
     while (!identical(next, $EOF) && !identical(next, $STX)) {
       next = bigSwitch(next);
     }
-    if (identical(next, $EOF)) return next;
+    if (identical(next, $EOF)) {
+      beginToken();
+      discardInterpolation();
+      return next;
+    }
     next = advance(); // Move past the $STX.
     beginToken(); // The string interpolation suffix starts here.
     return next;
@@ -1075,6 +1084,8 @@ abstract class AbstractScanner implements Scanner {
       beginToken(); // The identifier starts here.
       next = tokenizeKeywordOrIdentifier(next, false);
     } else {
+      beginToken(); // The synthetic identifier starts here.
+      appendSyntheticSubstringToken(TokenType.IDENTIFIER, scanOffset, true, '');
       unterminated(r'$', shouldAdvance: false);
     }
     beginToken(); // The string interpolation suffix starts here.
@@ -1091,14 +1102,16 @@ abstract class AbstractScanner implements Scanner {
         return next;
       } else if (identical(next, $LF) || identical(next, $CR)) {
         if (!asciiOnly) handleUnicode(start);
-        return unterminatedRawString(quoteChar);
+        return unterminatedString(quoteChar, start,
+            asciiOnly: asciiOnly, isMultiLine: false, isRaw: true);
       } else if (next > 127) {
         asciiOnly = false;
       }
       next = advance();
     }
     if (!asciiOnly) handleUnicode(start);
-    return unterminatedRawString(quoteChar);
+    return unterminatedString(quoteChar, start,
+        asciiOnly: asciiOnly, isMultiLine: false, isRaw: true);
   }
 
   int tokenizeMultiLineRawString(int quoteChar, int start) {
@@ -1136,7 +1149,8 @@ abstract class AbstractScanner implements Scanner {
       }
     }
     if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    return unterminatedRawMultiLineString(quoteChar);
+    return unterminatedString(quoteChar, start,
+        asciiOnly: asciiOnlyLine, isMultiLine: true, isRaw: true);
   }
 
   int tokenizeMultiLineString(int quoteChar, int start, bool raw) {
@@ -1187,7 +1201,8 @@ abstract class AbstractScanner implements Scanner {
       next = advance();
     }
     if (!asciiOnlyLine) handleUnicode(unicodeStart);
-    return unterminatedMultiLineString(quoteChar);
+    return unterminatedString(quoteChar, start,
+        asciiOnly: asciiOnlyString, isMultiLine: true, isRaw: false);
   }
 
   int unexpected(int character) {
@@ -1200,22 +1215,15 @@ abstract class AbstractScanner implements Scanner {
     return advanceAfterError(shouldAdvance);
   }
 
-  int unterminatedString(int quoteChar) {
-    return unterminated(new String.fromCharCodes([quoteChar]));
-  }
+  int unterminatedString(int quoteChar, int start,
+      {bool asciiOnly, bool isMultiLine, bool isRaw}) {
+    String suffix = new String.fromCharCodes(
+        isMultiLine ? [quoteChar, quoteChar, quoteChar] : [quoteChar]);
+    String prefix = isRaw ? 'r$suffix' : suffix;
 
-  int unterminatedRawString(int quoteChar) {
-    return unterminated('r${new String.fromCharCodes([quoteChar])}');
-  }
-
-  int unterminatedMultiLineString(int quoteChar) {
-    return unterminated(
-        new String.fromCharCodes([quoteChar, quoteChar, quoteChar]));
-  }
-
-  int unterminatedRawMultiLineString(int quoteChar) {
-    return unterminated(
-        'r${new String.fromCharCodes([quoteChar, quoteChar, quoteChar])}');
+    appendSyntheticSubstringToken(TokenType.STRING, start, asciiOnly, suffix);
+    beginToken();
+    return unterminated(prefix);
   }
 
   int advanceAfterError(bool shouldAdvance) {
@@ -1228,7 +1236,7 @@ abstract class AbstractScanner implements Scanner {
   }
 }
 
-TokenType closeBraceInfoFor(BeginGroupToken begin) {
+TokenType closeBraceInfoFor(BeginToken begin) {
   return const {
     '(': TokenType.CLOSE_PAREN,
     '[': TokenType.CLOSE_SQUARE_BRACKET,

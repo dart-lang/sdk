@@ -58,9 +58,25 @@ abstract class EditBuilder {
       String groupName, void buildLinkedEdit(LinkedEditBuilder builder));
 
   /**
-   * Set the selection to the given location within the edit being built.
+   * Add the given text as a linked edit group with the given [groupName]. If
+   * both a [kind] and a list of [suggestions] are provided, they will be added
+   * as suggestions to the group with the given kind.
+   *
+   * Throws an [ArgumentError] if either [kind] or [suggestions] are provided
+   * without the other.
    */
-  @experimental
+  void addSimpleLinkedEdit(String groupName, String text,
+      {LinkedEditSuggestionKind kind, List<String> suggestions});
+
+  /**
+   * Set the selection to the given location within the edit being built.
+   *
+   * This method only works correctly if all of the edits that will applied to
+   * text before the current edit have already been created. Those edits are
+   * needed in order to convert the current offset (as of the time this method
+   * is invoked) into an offset relative to the text resulting from applying all
+   * of the edits.
+   */
   void selectHere();
 
   /**
@@ -104,6 +120,11 @@ abstract class FileEditBuilder {
    * source. This is typically used to include pre-existing regions of text in a
    * group. If the region to be included is part of newly generated text, then
    * the method [EditBuilder.addLinkedEdit] should be used instead.
+   *
+   * This method only works correctly if all of the edits that will applied to
+   * text before the given range have already been created. Those edits are
+   * needed in order to convert the range into a range relative to the text
+   * resulting from applying all of the edits.
    */
   void addLinkedPosition(SourceRange range, String groupName);
 

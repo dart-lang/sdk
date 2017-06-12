@@ -60,39 +60,6 @@ MagicNumberData snapshot_magic_number = {{0xf5, 0xf5, 0xdc, 0xdc}, true};
 MagicNumberData kernel_magic_number = {{0x90, 0xab, 0xcd, 0xef}, false};
 
 
-bool TryReadKernel(const char* script_uri,
-                   const uint8_t** kernel_file,
-                   intptr_t* kernel_length) {
-  *kernel_file = NULL;
-  *kernel_length = -1;
-  bool is_kernel_file = false;
-  void* script_file = DartUtils::OpenFile(script_uri, false);
-  if (script_file != NULL) {
-    const uint8_t* buffer = NULL;
-    DartUtils::ReadFile(&buffer, kernel_length, script_file);
-    DartUtils::CloseFile(script_file);
-    if (*kernel_length > 0 && buffer != NULL) {
-      // We need a temporary variable because SniffForMagicNumber modifies the
-      // buffer pointer to skip snapshot magic number.
-      const uint8_t* temp = buffer;
-      if (DartUtils::SniffForMagicNumber(&temp, kernel_length) !=
-          DartUtils::kKernelMagicNumber) {
-        free(const_cast<uint8_t*>(buffer));
-        *kernel_file = NULL;
-      } else {
-        // Do not free buffer if this is a kernel file - kernel_file will be
-        // backed by the same memory as the buffer and caller will own it.
-        // Caller is responsible for freeing the buffer when this function
-        // returns true.
-        is_kernel_file = true;
-        *kernel_file = buffer;
-      }
-    }
-  }
-  return is_kernel_file;
-}
-
-
 static bool IsWindowsHost() {
 #if defined(HOST_OS_WINDOWS)
   return true;

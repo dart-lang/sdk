@@ -18,13 +18,10 @@ import 'package:front_end/src/fasta/translate_uri.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
-import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart' hide Source;
-
-dynamic unimplemented() {
-  // TODO(paulberry): get rid of this.
-  throw new UnimplementedError();
-}
+import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 
 class ByteSink implements Sink<List<int>> {
   final BytesBuilder builder = new BytesBuilder();
@@ -57,9 +54,6 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The logger to report compilation progress.
   final PerformanceLog _logger;
 
-  /// The current file system state.
-  final FileSystemState _fsState;
-
   /// The byte storage to get and put serialized data.
   final ByteStore _byteStore;
 
@@ -69,6 +63,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The salt to mix into all hashes used as keys for serialized data.
   List<int> _salt;
 
+  /// The current file system state.
+  FileSystemState _fsState;
+
   /// Latest compilation signatures produced by [computeDelta] for libraries.
   final Map<Uri, String> _latestSignature = {};
 
@@ -77,21 +74,25 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   final Set<Uri> _invalidatedFiles = new Set<Uri>();
 
   IncrementalKernelGeneratorImpl(
-      this._options, this._uriTranslator, this._entryPoint)
+      this._options, this._uriTranslator, this._entryPoint,
+      {WatchUsedFilesFn watch})
       : _logger = _options.logger,
-        _fsState = new FileSystemState(_options.fileSystem, _uriTranslator),
         _byteStore = _options.byteStore {
     _computeSalt();
+    _fsState = new FileSystemState(
+        _options.fileSystem, _uriTranslator, _salt, (uri) => watch(uri, true));
   }
 
   @override
-  Future<DeltaProgram> computeDelta(
-      {Future<Null> watch(Uri uri, bool used)}) async {
+  Future<DeltaProgram> computeDelta() async {
     return await _logger.runAsync('Compute delta', () async {
       await _refreshInvalidatedFiles();
 
       // Ensure that the graph starting at the entry point is ready.
-      FileState entryLibrary = await _fsState.getFile(_entryPoint);
+      FileState entryLibrary =
+          await _logger.runAsync('Build graph of files', () async {
+        return await _fsState.getFile(_entryPoint);
+      });
 
       List<LibraryCycle> cycles = _logger.run('Compute library cycles', () {
         List<LibraryCycle> cycles = entryLibrary.topologicalOrder;
@@ -100,8 +101,10 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       });
 
       CanonicalName nameRoot = new CanonicalName.root();
-      DillTarget dillTarget =
-          new DillTarget(new Ticker(isVerbose: false), _uriTranslator, "vm");
+      DillTarget dillTarget = new DillTarget(
+          new Ticker(isVerbose: false),
+          _uriTranslator,
+          new VmFastaTarget(new TargetFlags(strongMode: _options.strongMode)));
 
       List<_LibraryCycleResult> results = [];
       await _logger.runAsync('Compute results for cycles', () async {
@@ -121,6 +124,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           if (_latestSignature[uri] != result.signature) {
             _latestSignature[uri] = result.signature;
             program.libraries.add(library);
+            library.parent = program;
           }
         }
       }
@@ -129,6 +133,18 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       // For now the corresponding test works because we use full library
       // contents to compute signatures (not just API parts). So, every library
       // that imports a changed one, is affected.
+
+      // Set the main method.
+      if (program.libraries.isNotEmpty) {
+        for (Library library in results.last.kernelLibraries) {
+          if (library.importUri == _entryPoint) {
+            program.mainMethod = library.procedures.firstWhere(
+                (procedure) => procedure.name.name == 'main',
+                orElse: () => null);
+            break;
+          }
+        }
+      }
 
       return new DeltaProgram(program);
     });
@@ -140,7 +156,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   }
 
   @override
-  void invalidateAll() => unimplemented();
+  void invalidateAll() {
+    _invalidatedFiles.addAll(_fsState.fileUris);
+  }
 
   /// Ensure that [dillTarget] includes the [cycle] libraries.  It already
   /// contains all the libraries that sorted before the given [cycle] in
@@ -203,8 +221,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       }
 
       // Create KernelTarget and configure it for compiling the cycle URIs.
-      KernelTarget kernelTarget = new KernelTarget(_fsState.fileSystemView,
-          dillTarget, _uriTranslator, _options.strongMode);
+      KernelTarget kernelTarget =
+          new KernelTarget(_fsState.fileSystemView, dillTarget, _uriTranslator);
       for (FileState library in cycle.libraries) {
         kernelTarget.read(library.uri);
       }
@@ -224,7 +242,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           .toList();
 
       _logger.run('Serialize ${kernelLibraries.length} libraries', () {
-        program.unbindCanonicalNames();
+        program.uriToSource.clear();
         List<int> bytes = _writeProgramBytes(program, kernelLibraries.contains);
         _byteStore.put(kernelKey, bytes);
         _logger.writeln('Stored ${bytes.length} bytes.');
@@ -246,7 +264,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         FileState file = uriToFile[library.uri];
         for (NamespaceExport export in file.exports) {
           DillLibraryBuilder exportedLibrary =
-              dillTarget.loader.read(export.library.uri);
+              dillTarget.loader.read(export.library.uri, -1, accessor: library);
           if (exportedLibrary != null) {
             exportedLibrary.exports.forEach((name, member) {
               if (export.isExposed(name) &&
@@ -274,18 +292,24 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// Refresh all the invalidated files and update dependencies.
   Future<Null> _refreshInvalidatedFiles() async {
     await _logger.runAsync('Refresh invalidated files', () async {
-      for (var fileUri in _invalidatedFiles) {
-        var file = await _fsState.getFile(fileUri);
-        await file.refresh();
-      }
+      // Create a copy to avoid concurrent modifications.
+      var invalidatedFiles = _invalidatedFiles.toList();
       _invalidatedFiles.clear();
+
+      // Refresh the files.
+      for (var fileUri in invalidatedFiles) {
+        var file = _fsState.getFileByFileUri(fileUri);
+        if (file != null) {
+          _logger.writeln('Refresh $fileUri');
+          await file.refresh();
+        }
+      }
     });
   }
 
   List<int> _writeProgramBytes(Program program, bool filter(Library library)) {
     ByteSink byteSink = new ByteSink();
-    new LibraryFilteringBinaryPrinter(byteSink, filter)
-        .writeProgramFile(program);
+    new LimitedBinaryPrinter(byteSink, filter).writeProgramFile(program);
     return byteSink.builder.takeBytes();
   }
 }

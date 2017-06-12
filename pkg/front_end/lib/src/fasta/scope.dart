@@ -6,7 +6,7 @@ library fasta.scope;
 
 import 'builder/builder.dart' show Builder, TypeVariableBuilder;
 
-import 'errors.dart' show internalError;
+import 'errors.dart' show InputError, internalError;
 
 class MutableScope {
   /// Names declared in this scope.
@@ -30,6 +30,8 @@ class Scope extends MutableScope {
   Map<String, Builder> labels;
 
   Map<String, Builder> forwardDeclaredLabels;
+
+  Map<String, int> usedNames;
 
   Scope(Map<String, Builder> local, Map<String, Builder> setters, Scope parent,
       {this.isModifiable: true})
@@ -89,6 +91,13 @@ class Scope extends MutableScope {
     return new Scope(local, setters, parent, isModifiable: true);
   }
 
+  void recordUse(String name, int charOffset, Uri fileUri) {
+    if (isModifiable) {
+      usedNames ??= <String, int>{};
+      usedNames.putIfAbsent(name, () => charOffset);
+    }
+  }
+
   Builder lookupIn(String name, int charOffset, Uri fileUri,
       Map<String, Builder> map, bool isInstanceScope) {
     Builder builder = map[name];
@@ -104,6 +113,7 @@ class Scope extends MutableScope {
 
   Builder lookup(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope: true}) {
+    recordUse(name, charOffset, fileUri);
     Builder builder =
         lookupIn(name, charOffset, fileUri, local, isInstanceScope);
     if (builder != null) return builder;
@@ -120,6 +130,7 @@ class Scope extends MutableScope {
 
   Builder lookupSetter(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope: true}) {
+    recordUse(name, charOffset, fileUri);
     Builder builder =
         lookupIn(name, charOffset, fileUri, setters, isInstanceScope);
     if (builder != null) return builder;
@@ -167,13 +178,24 @@ class Scope extends MutableScope {
     return (labels == null ? null : labels[name]) ?? parent?.lookupLabel(name);
   }
 
-  // TODO(ahe): Rename to extend or something.
-  void operator []=(String name, Builder member) {
+  /// Declares that the meaning of [name] in this scope is [builder].
+  ///
+  /// If name was used previously in this scope, this method returns an error
+  /// that should be reported as a compile-time error. The position of this
+  /// error is given by [charOffset] and [fileUri].
+  InputError declare(
+      String name, Builder builder, int charOffset, Uri fileUri) {
     if (isModifiable) {
-      local[name] = member;
+      if (usedNames?.containsKey(name) ?? false) {
+        return new InputError(
+            fileUri, usedNames[name], "Previous use of '$name'.");
+      }
+      recordUse(name, charOffset, fileUri);
+      local[name] = builder;
     } else {
       internalError("Can't extend an unmodifiable scope.");
     }
+    return null;
   }
 
   void merge(Scope scope,

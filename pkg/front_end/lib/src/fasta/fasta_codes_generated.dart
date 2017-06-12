@@ -29,6 +29,21 @@ FastaMessage _formatExpectedClassBodyToSkip(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_FunctionTypeDefaultValue> codeFunctionTypeDefaultValue =
+    const FastaCode<_FunctionTypeDefaultValue>("FunctionTypeDefaultValue",
+        template: r"Can't have a default value in a function type.",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatFunctionTypeDefaultValue);
+
+typedef FastaMessage _FunctionTypeDefaultValue(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatFunctionTypeDefaultValue(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeFunctionTypeDefaultValue,
+      message: "Can't have a default value in a function type.", arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_StackOverflow> codeStackOverflow =
     const FastaCode<_StackOverflow>("StackOverflow",
         template: r"Stack overflow.",
@@ -41,6 +56,21 @@ typedef FastaMessage _StackOverflow(Uri uri, int charOffset);
 FastaMessage _formatStackOverflow(Uri uri, int charOffset) {
   return new FastaMessage(uri, charOffset, codeStackOverflow,
       message: "Stack overflow.", arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_AssertExtraneousArgument> codeAssertExtraneousArgument =
+    const FastaCode<_AssertExtraneousArgument>("AssertExtraneousArgument",
+        template: r"`assert` can't have more than two arguments.",
+        dart2jsCode: "FASTA_FATAL",
+        format: _formatAssertExtraneousArgument);
+
+typedef FastaMessage _AssertExtraneousArgument(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatAssertExtraneousArgument(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeAssertExtraneousArgument,
+      message: "`assert` can't have more than two arguments.", arguments: {});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -90,6 +120,40 @@ typedef FastaMessage _FactoryNotSync(Uri uri, int charOffset);
 FastaMessage _formatFactoryNotSync(Uri uri, int charOffset) {
   return new FastaMessage(uri, charOffset, codeFactoryNotSync,
       message: "Factories can't use 'async', 'async*', or 'sync*'.",
+      arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_SuperNullAware> codeSuperNullAware =
+    const FastaCode<_SuperNullAware>("SuperNullAware",
+        template: r"'super' can't be null.",
+        tip: r"Try replacing '?.' with '.'",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatSuperNullAware);
+
+typedef FastaMessage _SuperNullAware(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatSuperNullAware(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeSuperNullAware,
+      message: "'super' can't be null.",
+      tip: "Try replacing '?.' with '.'",
+      arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_PrivateNamedParameter> codePrivateNamedParameter =
+    const FastaCode<_PrivateNamedParameter>("PrivateNamedParameter",
+        template: r"An optional named parameter can't start with '_'.",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatPrivateNamedParameter);
+
+typedef FastaMessage _PrivateNamedParameter(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatPrivateNamedParameter(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codePrivateNamedParameter,
+      message: "An optional named parameter can't start with '_'.",
       arguments: {});
 }
 
@@ -282,6 +346,26 @@ FastaMessage _formatUnexpectedDollarInString(Uri uri, int charOffset) {
       message:
           "A '\$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).",
       tip: "Try adding a backslash (\) to escape the '\$'.",
+      arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_FinalFieldWithoutInitializer>
+    codeFinalFieldWithoutInitializer =
+    const FastaCode<_FinalFieldWithoutInitializer>(
+        "FinalFieldWithoutInitializer",
+        template: r"A 'final' field must be initialized.",
+        tip: r"Try adding '= <initializer>'.",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatFinalFieldWithoutInitializer);
+
+typedef FastaMessage _FinalFieldWithoutInitializer(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatFinalFieldWithoutInitializer(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeFinalFieldWithoutInitializer,
+      message: "A 'final' field must be initialized.",
+      tip: "Try adding '= <initializer>'.",
       arguments: {});
 }
 
@@ -553,6 +637,45 @@ FastaMessage _formatInvalidSyncModifier(Uri uri, int charOffset) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_GetterWithFormals> codeGetterWithFormals =
+    const FastaCode<_GetterWithFormals>("GetterWithFormals",
+        template: r"A getter can't have formal parameters.",
+        tip: r"Try removing '(...)'.",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatGetterWithFormals);
+
+typedef FastaMessage _GetterWithFormals(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatGetterWithFormals(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeGetterWithFormals,
+      message: "A getter can't have formal parameters.",
+      tip: "Try removing '(...)'.",
+      arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_NoFormals> codeNoFormals = const FastaCode<_NoFormals>(
+    "NoFormals",
+    template: r"A function should have formal parameters.",
+    tip:
+        r"Try adding '()' after '#lexeme', or add 'get' before '#lexeme' to declare a getter.",
+    dart2jsCode: "FASTA_IGNORED",
+    format: _formatNoFormals);
+
+typedef FastaMessage _NoFormals(Uri uri, int charOffset, Token token);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatNoFormals(Uri uri, int charOffset, Token token) {
+  String lexeme = token.lexeme;
+  return new FastaMessage(uri, charOffset, codeNoFormals,
+      message: "A function should have formal parameters.",
+      tip:
+          "Try adding '()' after '$lexeme', or add 'get' before '$lexeme' to declare a getter.",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedOpenParens> codeExpectedOpenParens =
     const FastaCode<_ExpectedOpenParens>("ExpectedOpenParens",
         template: r"Expected '('.",
@@ -581,6 +704,28 @@ typedef FastaMessage _UnterminatedComment(Uri uri, int charOffset);
 FastaMessage _formatUnterminatedComment(Uri uri, int charOffset) {
   return new FastaMessage(uri, charOffset, codeUnterminatedComment,
       message: "Comment starting with '/*' must end with '*/'.", arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_CatchSyntax> codeCatchSyntax = const FastaCode<_CatchSyntax>(
+    "CatchSyntax",
+    template:
+        r"'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
+    tip:
+        r"No types are needed, the first is given by 'on', the second is always 'StackTrace'.",
+    dart2jsCode: "FASTA_IGNORED",
+    format: _formatCatchSyntax);
+
+typedef FastaMessage _CatchSyntax(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatCatchSyntax(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeCatchSyntax,
+      message:
+          "'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
+      tip:
+          "No types are needed, the first is given by 'on', the second is always 'StackTrace'.",
+      arguments: {});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -690,6 +835,26 @@ FastaMessage _formatExpectedButGot(Uri uri, int charOffset, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_ConstFieldWithoutInitializer>
+    codeConstFieldWithoutInitializer =
+    const FastaCode<_ConstFieldWithoutInitializer>(
+        "ConstFieldWithoutInitializer",
+        template: r"A 'const' field must be initialized.",
+        tip: r"Try adding '= <initializer>'.",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatConstFieldWithoutInitializer);
+
+typedef FastaMessage _ConstFieldWithoutInitializer(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatConstFieldWithoutInitializer(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeConstFieldWithoutInitializer,
+      message: "A 'const' field must be initialized.",
+      tip: "Try adding '= <initializer>'.",
+      arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_AwaitForNotAsync> codeAwaitForNotAsync = const FastaCode<
         _AwaitForNotAsync>("AwaitForNotAsync",
     template:
@@ -756,6 +921,21 @@ FastaMessage _formatYieldAsIdentifier(Uri uri, int charOffset) {
       message:
           "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.",
       arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_AssertAsExpression> codeAssertAsExpression =
+    const FastaCode<_AssertAsExpression>("AssertAsExpression",
+        template: r"`assert` can't be used as an expression.",
+        dart2jsCode: "FASTA_FATAL",
+        format: _formatAssertAsExpression);
+
+typedef FastaMessage _AssertAsExpression(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatAssertAsExpression(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeAssertAsExpression,
+      message: "`assert` can't be used as an expression.", arguments: {});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

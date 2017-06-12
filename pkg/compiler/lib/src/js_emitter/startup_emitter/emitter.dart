@@ -11,13 +11,13 @@ import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue;
 import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart'
-    show ClassElement, Element, FieldElement, MethodElement;
+import '../../elements/elements.dart' show ClassElement, MethodElement;
+import '../../elements/entities.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
 import '../../world.dart' show ClosedWorld;
 import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
-import '../js_emitter.dart' as emitterTask show Emitter, EmitterFactory;
+import '../js_emitter.dart' as emitterTask show EmitterBase, EmitterFactory;
 import '../model.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
 import 'model_emitter.dart';
@@ -38,7 +38,7 @@ class EmitterFactory implements emitterTask.EmitterFactory {
   }
 }
 
-class Emitter implements emitterTask.Emitter {
+class Emitter extends emitterTask.EmitterBase {
   final Compiler _compiler;
   final Namer namer;
   final ModelEmitter _emitter;
@@ -91,17 +91,12 @@ class Emitter implements emitterTask.Emitter {
     return js.js('function() {}');
   }
 
-  js.PropertyAccess _globalPropertyAccess(Element element) {
-    js.Name name = namer.globalPropertyName(element);
-    js.PropertyAccess pa = new js.PropertyAccess(
-        new js.VariableUse(namer.globalObjectFor(element)), name);
-    return pa;
-  }
-
   @override
-  js.Expression isolateLazyInitializerAccess(FieldElement element) {
-    return js.js('#.#',
-        [namer.globalObjectFor(element), namer.lazyInitializerName(element)]);
+  js.Expression isolateLazyInitializerAccess(FieldEntity element) {
+    return js.js('#.#', [
+      namer.globalObjectForMember(element),
+      namer.lazyInitializerName(element)
+    ]);
   }
 
   @override
@@ -110,36 +105,11 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.PropertyAccess staticFieldAccess(FieldElement element) {
-    return _globalPropertyAccess(element);
-  }
-
-  @override
-  js.PropertyAccess staticFunctionAccess(MethodElement element) {
-    return _globalPropertyAccess(element);
-  }
-
-  @override
-  js.PropertyAccess constructorAccess(ClassElement element) {
-    return _globalPropertyAccess(element);
-  }
-
-  @override
   js.PropertyAccess prototypeAccess(
       ClassElement element, bool hasBeenInstantiated) {
     js.Expression constructor =
         hasBeenInstantiated ? constructorAccess(element) : typeAccess(element);
     return js.js('#.prototype', constructor);
-  }
-
-  @override
-  js.Expression interceptorClassAccess(ClassElement element) {
-    return _globalPropertyAccess(element);
-  }
-
-  @override
-  js.Expression typeAccess(Element element) {
-    return _globalPropertyAccess(element);
   }
 
   @override

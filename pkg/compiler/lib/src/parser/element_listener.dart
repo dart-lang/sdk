@@ -27,7 +27,7 @@ import '../id_generator.dart';
 import '../native/native.dart' as native;
 import '../string_validator.dart' show StringValidator;
 import 'package:front_end/src/fasta/scanner.dart'
-    show BeginGroupToken, ErrorToken, StringToken, Token;
+    show ErrorToken, StringToken, Token;
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link, LinkBuilder;
@@ -35,7 +35,8 @@ import 'package:front_end/src/fasta/parser.dart'
     show Listener, ParserError, optional;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
-import 'package:front_end/src/scanner/token.dart' show KeywordToken, TokenType;
+import 'package:front_end/src/scanner/token.dart'
+    show BeginToken, KeywordToken, TokenType;
 import 'partial_elements.dart'
     show
         PartialClassElement,
@@ -485,7 +486,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void handleParenthesizedExpression(BeginGroupToken token) {
+  void handleParenthesizedExpression(BeginToken token) {
     Expression expression = popNode();
     pushNode(new ParenthesizedExpression(expression, token));
   }
@@ -787,8 +788,8 @@ class ElementListener extends Listener {
   }
 
   void pushElement(ElementX element) {
-    assert(invariant(element, element.declarationSite != null,
-        message: 'Missing declaration site for $element.'));
+    assert(element.declarationSite != null,
+        failedAt(element, 'Missing declaration site for $element.'));
     popMetadata(element);
     compilationUnitElement.addMember(element, reporter);
   }

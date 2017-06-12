@@ -15,9 +15,13 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   const JSString();
 
   int codeUnitAt(int index) {
-    if (index is! int) throw diagnoseIndexError(this, index);
-    if (index < 0) throw diagnoseIndexError(this, index);
-    if (index >= length) throw diagnoseIndexError(this, index);
+    // Suppress 2nd null check on index and null check on length
+    // (JS String.length cannot be null).
+    if (index == null ||
+        JS('int', '#', index) < 0 ||
+        JS('int', '#', index) >= JS('int', '#.length', this)) {
+      throw diagnoseIndexError(this, index);
+    }
     return JS('int', r'#.charCodeAt(#)', this, index);
   }
 
@@ -134,14 +138,16 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   }
 
   bool startsWith(Pattern pattern, [int index = 0]) {
-    checkInt(index);
-    if (index < 0 || index > this.length) {
+    // Suppress null check on length and all but the first
+    // reference to index.
+    int length = JS('int', '#.length', this);
+    if (index < 0 || JS('int', '#', index) > length) {
       throw new RangeError.range(index, 0, this.length);
     }
     if (pattern is String) {
       String other = pattern;
-      int otherLength = other.length;
-      int endIndex = index + otherLength;
+      int otherLength = JS('int', '#.length', other);
+      int endIndex = JS('int', '#', index) + otherLength;
       if (endIndex > length) return false;
       return other == JS('String', r'#.substring(#, #)', this, index, endIndex);
     }
@@ -427,12 +433,12 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     return stringContainsUnchecked(this, other, startIndex);
   }
 
-  bool get isEmpty => length == 0;
+  bool get isEmpty => JS('int', '#.length', this) == 0;
 
   bool get isNotEmpty => !isEmpty;
 
   int compareTo(String other) {
-    if (other is! String) throw argumentErrorValue(other);
+    if (other == null) throw argumentErrorValue(other);
     return this == other ? 0 : JS('bool', r'# < #', this, other) ? -1 : 1;
   }
 
@@ -449,6 +455,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     // TODO(ahe): This method shouldn't have to use JS. Update when our
     // optimizations are smarter.
     int hash = 0;
+    int length = JS('int', '#.length', this);
     for (int i = 0; i < length; i++) {
       hash = 0x1fffffff & (hash + JS('int', r'#.charCodeAt(#)', this, i));
       hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
@@ -464,8 +471,11 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   int get length => JS('int', r'#.length', this);
 
   String operator [](int index) {
-    if (index is! int) throw diagnoseIndexError(this, index);
-    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
+    if (index == null ||
+        JS('int', '#', index) >= JS('int', '#.length', this) ||
+        JS('int', '#', index) < 0) {
+      throw diagnoseIndexError(this, index);
+    }
     return JS('String', '#[#]', this, index);
   }
 }

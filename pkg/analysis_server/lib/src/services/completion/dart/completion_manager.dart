@@ -4,17 +4,14 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
-import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -28,6 +25,8 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
+import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 /**
  * [DartCompletionManager] determines if a completion request is Dart specific
@@ -106,9 +105,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   final AnalysisResult result;
 
   @override
-  IdeOptions ideOptions;
-
-  @override
   final LibraryElement coreLib;
 
   @override
@@ -149,8 +145,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       this.offset,
       CompilationUnit unit,
       this._originalRequest,
-      this.performance,
-      this.ideOptions) {
+      this.performance) {
     _updateTargets(unit);
   }
 
@@ -260,8 +255,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
         request.offset,
         unit,
         request,
-        performance,
-        request.ideOptions);
+        performance);
 
     performance.logElapseTime(BUILD_REQUEST_TAG);
     return dartRequest;

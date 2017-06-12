@@ -385,6 +385,10 @@ def parse_args(args):
       help='Disable MSAN',
       dest='msan',
       action='store_false')
+  other_group.add_argument('--gn-args',
+      help='Set extra GN args',
+      dest='gn_args',
+      action='append')
   other_group.add_argument('--platform-sdk',
       help='Directs the create_sdk target to create a smaller "Platform" SDK',
       default=MakePlatformSDK(),
@@ -458,6 +462,8 @@ def Main(argv):
         out_dir = GetOutDir(mode, arch, target_os)
         command = [gn, 'gen', out_dir, '--check']
         gn_args = ToCommandLine(ToGnArgs(args, mode, arch, target_os))
+        if args.gn_args != None:
+          gn_args += args.gn_args
         if args.verbose:
           print "gn gen --check in %s" % out_dir
         if args.ide:

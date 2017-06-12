@@ -15,22 +15,24 @@ class C3 extends core::Object {
     ;
 }
 class A<T extends core::Object> extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::A::a, self::A::b, self::A::c];
   constructor internal() → void
     ;
   static factory a<T extends core::Object>() → self::A<self::A::a::T>
-    invalid-statement;
+    let final dynamic #t1 = self::B::a in invalid-expression;
   static factory b<T extends core::Object>() → self::A<self::A::b::T>
-    invalid-statement;
+    let final dynamic #t2 = self::B::a in invalid-expression;
   static factory c<T extends core::Object>() → self::A<self::A::c::T>
-    throw "Missing constructor: Missing";
+    throw new core::NoSuchMethodError::_withType(null, #Missing, -1, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
 }
 class B<S extends core::Object> extends self::A<self::B::S> {
+  static field dynamic _redirecting# = <dynamic>[self::B::a, self::B::b];
   constructor internal() → void
     ;
   static factory a<S extends core::Object>() → self::B<self::B::a::S>
-    invalid-statement;
+    let final dynamic #t3 = self::C::• in invalid-expression;
   static factory b<S extends core::Object>() → self::B<self::B::b::S>
-    invalid-statement;
+    let final dynamic #t4 = self::C::• in invalid-expression;
 }
 class C<U extends core::Object> extends self::B<self::C::U> {
   constructor •() → void

@@ -6,6 +6,8 @@
 # testing generating Kernel ASTs directly, that is, code in
 # pkg/fasta/lib/src/kernel/.
 
+rasta/unsupported_platform_library: RuntimeError # OK, this must report an error at runtime.
+
 DeltaBlue: Fail # Missing types on constructor parameters.
 async_function: Fail # Async transformer should be optional.
 await: Fail
@@ -330,8 +332,6 @@ rasta/issue_000044: Fail
 rasta/issue_000045: Fail
 rasta/issue_000046: Fail
 rasta/issue_000047: Fail
-rasta/issue_000067: Fail
-rasta/issue_000070: Fail
 rasta/issue_000081: Fail
 rasta/malformed_const_constructor: Fail
 rasta/malformed_function: Fail
@@ -345,14 +345,12 @@ rasta/super_initializer: Fail
 rasta/super_mixin: Fail
 rasta/super_operator: Fail
 rasta/supports_reflection: VerificationError
-rasta/switch_execution_case_t02: Fail
 rasta/switch_fall_through: Fail
 rasta/try_label: Fail
-rasta/type_literals: VerificationError
+rasta/type_literals: Fail
 rasta/type_with_parse_error: Fail
-rasta/typedef: VerificationError
+rasta/typedef: Fail
 rasta/unresolved: Fail
 rasta/unresolved_constructor: Fail
 rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
-rasta/unsupported_platform_library: Fail

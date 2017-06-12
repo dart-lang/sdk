@@ -17,7 +17,6 @@ import 'elements/elements.dart'
     show
         AbstractFieldElement,
         AstElement,
-        AsyncMarker,
         ClassElement,
         ConstructorElement,
         Element,
@@ -37,6 +36,7 @@ import 'elements/elements.dart'
         TypeDeclarationElement,
         TypedElement,
         VariableElement;
+import 'elements/entities.dart' show AsyncMarker;
 import 'elements/names.dart';
 import 'enqueue.dart' show DeferredAction;
 import 'resolution/class_members.dart' show MembersCreator, ErroneousMember;
@@ -646,8 +646,8 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
     ResolutionDartType type;
     ResolutionDartType returnType;
     final FunctionElement element = elements.getFunctionDefinition(node);
-    assert(invariant(node, element != null,
-        message: 'FunctionExpression with no element'));
+    assert(
+        element != null, failedAt(node, 'FunctionExpression with no element'));
     if (Elements.isUnresolved(element)) return const ResolutionDynamicType();
     if (element.isGenerativeConstructor) {
       type = const ResolutionDynamicType();
@@ -690,11 +690,9 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
       return superType;
     } else {
       TypedElement element = elements[node];
-      assert(invariant(node, element != null,
-          message: 'Missing element for identifier'));
-      assert(invariant(
-          node, element.isVariable || element.isParameter || element.isField,
-          message: 'Unexpected context element ${element}'));
+      assert(element != null, failedAt(node, 'Missing element for identifier'));
+      assert(element.isVariable || element.isParameter || element.isField,
+          failedAt(node, 'Unexpected context element ${element}'));
       return element.computeType(resolution);
     }
   }
@@ -1028,8 +1026,8 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
             // Skip cases like `prefix?.topLevel`.
             return const DynamicAccess();
           }
-          assert(invariant(node, element != null,
-              message: 'Prefixed node has no element.'));
+          assert(
+              element != null, failedAt(node, 'Prefixed node has no element.'));
           return computeResolvedAccess(node, name, element, memberKind);
         }
       }
@@ -1179,8 +1177,8 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
           // foo() where foo is erroneous
           return analyzeInvocation(node, const DynamicAccess());
         } else {
-          assert(invariant(node, element.isLocal,
-              message: "Unexpected element $element in closure send."));
+          assert(element.isLocal,
+              failedAt(node, "Unexpected element $element in closure send."));
           // foo() where foo is a local or a parameter.
           return analyzeInvocation(node, createPromotedAccess(element));
         }
@@ -1301,8 +1299,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
       if (identical(name, '-') && node.arguments.isEmpty) {
         operatorName = 'unary-';
       }
-      assert(invariant(
-          node,
+      assert(
           identical(name, '+') ||
               identical(name, '=') ||
               identical(name, '-') ||
@@ -1321,7 +1318,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
               identical(name, '<=') ||
               identical(name, '>=') ||
               identical(name, '[]'),
-          message: 'Unexpected operator $name'));
+          failedAt(node, 'Unexpected operator $name'));
 
       // TODO(karlklose): handle `void` in expression context by calling
       // [analyzeNonVoid] instead of [analyze].
@@ -1380,7 +1377,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
    */
   ResolutionDartType checkAssignmentOperator(SendSet node, String operatorName,
       Node valueNode, ResolutionDartType value) {
-    assert(invariant(node, !node.isIndex));
+    assert(!node.isIndex, failedAt(node));
     Element setterElement = elements[node];
     Element getterElement = elements[node.selector];
     Identifier selector = node.selector;
@@ -1415,7 +1412,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
    */
   ResolutionDartType checkIndexAssignmentOperator(SendSet node,
       String operatorName, Node valueNode, ResolutionDartType value) {
-    assert(invariant(node, node.isIndex));
+    assert(node.isIndex, failedAt(node));
     final ResolutionDartType base = analyze(node.receiver);
     final Node keyNode = node.arguments.head;
     final ResolutionDartType key = analyze(keyNode);
@@ -1647,8 +1644,8 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
     checkPrivateAccess(node, element, element.name);
 
     ResolutionDartType newType = elements.getType(node);
-    assert(invariant(node, newType != null,
-        message: "No new type registered in $elements."));
+    assert(newType != null,
+        failedAt(node, "No new type registered in $elements."));
     ResolutionDartType constructorType =
         computeConstructorType(element, newType);
     analyzeArguments(node.send, element, constructorType);
@@ -1799,8 +1796,8 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
         !link.isEmpty;
         link = link.tail) {
       Node definition = link.head;
-      invariant(definition, definition is Identifier || definition is SendSet,
-          message: 'expected identifier or initialization');
+      assert(definition is Identifier || definition is SendSet,
+          failedAt(definition, 'expected identifier or initialization'));
       if (definition is SendSet) {
         SendSet initialization = definition;
         analyzeVariableInitializer(initialization.assignmentOperator, type,

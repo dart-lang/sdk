@@ -2212,6 +2212,118 @@
     </result>
   </request>
 </domain>
+<domain name="analytics" experimental="true">
+  <p>
+    The analytics domain contains APIs related to reporting analytics.
+  </p>
+  <p>
+    This API allows clients to expose a UI option to enable and disable the
+    analysis server's reporting of analytics. This value is shared with other
+    tools and can change outside of this API; because of this, clients should
+    use the analysis server's flag as the system of record. Clients can choose
+    to send in additional analytics (see <tt>sendEvent</tt> and
+    <tt>sendTiming</tt>) if they so choose. Dart command-line tools provide a
+    disclaimer similar to:
+    <tt>
+      Dart SDK tools anonymously report feature usage statistics and basic crash
+      reports to help improve Dart tools over time. See Google's privacy policy:
+      https://www.google.com/intl/en/policies/privacy/.
+    </tt>
+  </p>
+  <p>
+    The analysis server will send it's own analytics data (for example, operations
+    performed, operating system type, SDK version). No data (from the analysis
+    server or from clients) will be sent if analytics is disabled.
+  </p>
+  <request method="isEnabled">
+    <p>Query whether analytics is enabled.</p>
+    <p>
+      This flag controls whether the analysis server sends any analytics data to
+      the cloud. If disabled, the analysis server does not send any analytics
+      data, and any data sent to it by clients (from <tt>sendEvent</tt> and
+      <tt>sendTiming</tt>) will be ignored.
+    </p>
+    <p>
+      The value of this flag can be changed by other tools outside of the
+      analysis server's process. When you query the flag, you get the value of
+      the flag at a given moment. Clients should not use the value returned to
+      decide whether or not to send the <tt>sendEvent</tt> and <tt>sendTiming</tt>
+      requests. Those requests should be used unconditionally and server will
+      determine whether or not it is appropriate to forward the information to
+      the cloud at the time each request is received.
+    </p>
+    <result>
+      <field name="enabled">
+        <ref>bool</ref>
+        <p>Whether sending analytics is enabled or not.</p>
+      </field>
+    </result>
+  </request>
+  <request method="enable">
+    <p>
+      Enable or disable the sending of analytics data. Note that there are other
+      ways for users to change this setting, so clients cannot assume that they
+      have complete control over this setting. In particular, there is no
+      guarantee that the result returned by the <tt>isEnabled</tt> request will
+      match the last value set via this request.
+    </p>
+    <params>
+      <field name="value">
+        <ref>bool</ref>
+        <p>Enable or disable analytics.</p>
+      </field>
+    </params>
+  </request>
+  <request method="sendEvent">
+    <p>Send information about client events.</p>
+    <p>
+      Ask the analysis server to include the fact that an action was performed
+      in the client as part of the analytics data being sent. The data will only
+      be included if the sending of analytics data is enabled at the time the
+      request is processed. The action that was performed is indicated by the
+      value of the <tt>action</tt> field.
+    </p>
+    <p>
+      The value of the action field should not include the identity of the
+      client. The analytics data sent by server will include the client id
+      passed in using the <tt>--client-id</tt> command-line argument. The
+      request will be ignored if the client id was not provided when server was
+      started.
+    </p>
+    <params>
+      <field name="action">
+        <ref>String</ref>
+        <p>The value used to indicate which action was performed.</p>
+      </field>
+    </params>
+  </request>
+  <request method="sendTiming">
+    <p>Send timing information for client events (e.g. code completions).</p>
+    <p>
+      Ask the analysis server to include the fact that a timed event occurred as
+      part of the analytics data being sent. The data will only be included if
+      the sending of analytics data is enabled at the time the request is
+      processed.
+    </p>
+    <p>
+      The value of the event field should not include the identity of the
+      client. The analytics data sent by server will include the client id
+      passed in using the <tt>--client-id</tt> command-line argument. The
+      request will be ignored if the client id was not provided when server was
+      started.
+    </p>
+    <params>
+      <field name="event">
+        <ref>String</ref>
+        <p>The name of the event.</p>
+      </field>
+      <field name="millis">
+        <ref>int</ref>
+        <p>The duration of the event in milliseconds.</p>
+      </field>
+    </params>
+  </request>
+</domain>
 <types>
   <h2 class="domain"><a name="types">Types</a></h2>
   <p>

@@ -11,9 +11,7 @@ import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;
 import '../constants/expressions.dart';
 import '../common_elements.dart' show ElementEnvironment;
-import '../elements/elements.dart' show AsyncMarker;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart' show Types;
 import '../elements/types.dart';
 import '../native/enqueue.dart';
 import '../native/native.dart' as native;
@@ -139,6 +137,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case Feature.THROW_RUNTIME_ERROR:
           registerImpact(_impacts.throwRuntimeError);
           break;
+        case Feature.THROW_UNSUPPORTED_ERROR:
+          registerImpact(_impacts.throwUnsupportedError);
+          break;
         case Feature.TYPE_VARIABLE_BOUNDS_CHECK:
           registerImpact(_impacts.typeVariableBoundCheck);
           break;
@@ -263,8 +264,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           registerImpact(_impacts.stringLiteral);
           break;
         default:
-          assert(invariant(NO_LOCATION_SPANNABLE, false,
-              message: "Unexpected constant literal: ${constant.kind}."));
+          assert(
+              false,
+              failedAt(NO_LOCATION_SPANNABLE,
+                  "Unexpected constant literal: ${constant.kind}."));
       }
     }
 
@@ -285,7 +288,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     // defined (that is the enclosing class of the current element being
     // resolved) and the class of [type]. If the class of [type] requires RTI,
     // then the class of the type variable does too.
-    ClassEntity contextClass = Types.getClassContext(interfaceType);
+    ClassEntity contextClass = DartTypes.getClassContext(interfaceType);
     if (contextClass != null) {
       _rtiNeedBuilder.registerRtiDependency(
           interfaceType.element, contextClass);

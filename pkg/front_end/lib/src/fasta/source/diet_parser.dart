@@ -12,9 +12,7 @@ import '../parser/listener.dart' show Listener;
 
 import '../parser/parser.dart' show MemberKind, optional;
 
-import '../scanner/token.dart' show BeginGroupToken;
-
-import '../../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show BeginToken, Token;
 
 // TODO(ahe): Move this to parser package.
 class DietParser extends ClassMemberParser {
@@ -33,7 +31,7 @@ class DietParser extends ClassMemberParser {
       }
       return reportUnexpectedToken(token).next;
     }
-    BeginGroupToken beginGroupToken = token;
+    BeginToken beginGroupToken = token;
     Token endToken = beginGroupToken.endGroup;
     listener.endFormalParameters(0, token, endToken, kind);
     return endToken.next;

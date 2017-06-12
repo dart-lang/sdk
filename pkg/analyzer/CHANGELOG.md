@@ -8,7 +8,7 @@
 * Removed `Element.docRange`.
 
 ## 0.28.2-alpha.0
-* Corresponds with the analyzer/server in the `1.20.0-dev.1.0 ` SDK.
+* Corresponds with the analyzer/server in the `1.20.0-dev.1.0` SDK.
 
 ## 0.28.0-alpha.2
 * Fixed PubSummaryManager linking when a listed package does not have the unlinked bundle.

@@ -164,9 +164,11 @@ class DeferredLoadTask extends CompilerTask {
   DiagnosticReporter get reporter => compiler.reporter;
 
   /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForElement(Element element) {
+  OutputUnit outputUnitForElement(Entity entity) {
+    // TODO(johnniwinther): Support use of entities by splitting maps by
+    // entity kind.
     if (!isProgramSplit) return mainOutputUnit;
-
+    Element element = entity;
     element = element.implementation;
     while (!_elementToOutputUnit.containsKey(element)) {
       // TODO(21051): workaround: it looks like we output annotation constants
@@ -184,12 +186,12 @@ class DeferredLoadTask extends CompilerTask {
   }
 
   /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForClass(ClassElement element) {
+  OutputUnit outputUnitForClass(ClassEntity element) {
     return outputUnitForElement(element);
   }
 
   /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForMember(MemberElement element) {
+  OutputUnit outputUnitForMember(MemberEntity element) {
     return outputUnitForElement(element);
   }
 
@@ -406,15 +408,20 @@ class DeferredLoadTask extends CompilerTask {
           if (backend.constants.hasConstantValue(expression)) {
             ConstantValue value =
                 backend.constants.getConstantValue(expression);
-            assert(invariant(node, value != null,
-                message: "Constant expression without value: "
+            assert(
+                value != null,
+                failedAt(
+                    node,
+                    "Constant expression without value: "
                     "${expression.toStructuredText()}."));
             constants.add(value);
           } else {
             assert(
-                invariant(node, expression.isImplicit || expression.isPotential,
-                    message: "Unexpected unevaluated constant expression: "
-                        "${expression.toStructuredText()}."));
+                expression.isImplicit || expression.isPotential,
+                failedAt(
+                    node,
+                    "Unexpected unevaluated constant expression: "
+                    "${expression.toStructuredText()}."));
           }
         });
       }

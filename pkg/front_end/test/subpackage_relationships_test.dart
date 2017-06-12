@@ -62,7 +62,6 @@ final subpackageRules = {
     'lib/src/fasta',
     'lib/src/fasta/parser',
     'lib/src/fasta/source',
-    'lib/src/fasta/type_inference',
     'lib/src/fasta/util',
   ]),
   'lib/src/fasta/dill': new SubpackageRules(allowedDependencies: [
@@ -103,7 +102,6 @@ final subpackageRules = {
     'lib/src/fasta/dill',
     'lib/src/fasta/kernel',
     'lib/src/fasta/parser',
-    'lib/src/fasta/scanner',
     'lib/src/fasta/type_inference',
     'lib/src/fasta/util',
     'lib/src/scanner',
@@ -128,6 +126,7 @@ final subpackageRules = {
     'lib/src/base',
     'lib/src/fasta',
     'lib/src/fasta/parser',
+    'lib/src/fasta/scanner',
     'lib/src/fasta/source',
   ]),
   'lib/src/scanner': new SubpackageRules(allowedDependencies: [
@@ -137,6 +136,10 @@ final subpackageRules = {
     // fasta scanner produces analyzer scanner tokens
     'lib/src/fasta/scanner',
   ]),
+  'lib/src/testing': new SubpackageRules(allowedDependencies: [
+    'lib',
+  ]),
+  'lib/src/vm': new SubpackageRules(allowedDependencies: []),
 };
 
 /// Rules for what a subpackage may depend directly on.

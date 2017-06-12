@@ -9,7 +9,7 @@ class C extends core::Object {
   method f(dynamic x) → core::double
     return 1.0;
 }
-static field core::double v = new self::C::•().f(() → dynamic {
+static field core::double v = new self::C::•().{self::C::f}(() → core::int {
   return 1;
 });
 static method main() → dynamic {

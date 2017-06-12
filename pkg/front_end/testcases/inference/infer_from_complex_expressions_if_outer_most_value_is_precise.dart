@@ -24,7 +24,7 @@ var /*@topType=List<dynamic>*/ c2 = /*@typeArgs=dynamic*/ const [];
 var /*@topType=Map<dynamic, dynamic>*/ d = <dynamic, dynamic>{
   'a': 'b'
 }; // map literals
-var /*@topType=A*/ e = new A()..x = 3; // cascades
+var /*@topType=A*/ e = new A().. /*@target=A::x*/ x = 3; // cascades
 var /*@topType=int*/ f =
     2 /*@target=num::+*/ + 3; // binary expressions are OK if the left operand
 // is from a library in a different strongest

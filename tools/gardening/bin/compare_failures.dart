@@ -11,18 +11,36 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:gardening/src/buildbot_structures.dart';
-import 'package:gardening/src/buildbot_loading.dart';
+import 'package:gardening/src/client.dart';
 import 'package:gardening/src/util.dart';
+
+void help(ArgParser argParser) {
+  print('Given a <log-uri> finds all failing tests in that stdout. Then ');
+  print('fetches earlier runs of the same bot and compares the results.');
+  print('This tool is particularly useful to detect flakes and their ');
+  print('frequency.');
+  print('Usage: compare_failures [options] <log-uri>');
+  print('where <log-uri> is the uri the stdio output of a failing test step');
+  print('and options are:');
+  print(argParser.usage);
+}
 
 main(List<String> args) async {
   ArgParser argParser = createArgParser();
+  argParser.addOption("run-count",
+      defaultsTo: "10", help: "How many previous runs should be fetched");
   ArgResults argResults = argParser.parse(args);
   processArgResults(argResults);
-  if (argResults.rest.length != 1) {
-    print('Usage: compare_failures [options] <log-uri>');
-    print('where <log-uri> is the uri the stdio output of a failing test step');
-    print('and options are:');
-    print(argParser.usage);
+
+  BuildbotClient client = argResults['logdog']
+      ? new LogdogBuildbotClient()
+      : new HttpBuildbotClient();
+
+  var runCount = int.parse(argResults['run-count'], onError: (_) => null);
+
+  if (argResults.rest.length != 1 || argResults['help'] || runCount == null) {
+    help(argParser);
+    if (argResults['help']) return;
     exit(1);
   }
   String url = argResults.rest.first;
@@ -31,9 +49,9 @@ main(List<String> args) async {
     url += '/text';
   }
   Uri uri = Uri.parse(url);
-  HttpClient client = new HttpClient();
   BuildUri buildUri = new BuildUri(uri);
-  List<BuildResult> results = await readBuildResults(client, buildUri);
+  List<BuildResult> results =
+      await readBuildResults(client, buildUri, runCount);
   print(generateBuildResultsSummary(buildUri, results));
   client.close();
 }
@@ -41,14 +59,15 @@ main(List<String> args) async {
 /// Creates a [BuildResult] for [buildUri] and, if it contains failures, the
 /// [BuildResult]s for the previous 5 builds.
 Future<List<BuildResult>> readBuildResults(
-    HttpClient client, BuildUri buildUri) async {
+    BuildbotClient client, BuildUri buildUri, int runCount) async {
   List<BuildResult> summaries = <BuildResult>[];
-  BuildResult firstSummary = await readBuildResult(client, buildUri);
-  summaries.add(firstSummary);
-  if (firstSummary.hasFailures) {
-    for (int i = 0; i < 10; i++) {
-      buildUri = buildUri.prev();
-      summaries.add(await readBuildResult(client, buildUri));
+  BuildResult summary = await client.readResult(buildUri);
+  summaries.add(summary);
+  if (summary.hasFailures) {
+    for (int i = 0; i < runCount; i++) {
+      buildUri = summary.buildUri.prev();
+      summary = await client.readResult(buildUri);
+      summaries.add(summary);
     }
   }
   return summaries;
@@ -64,8 +83,6 @@ String generateBuildResultsSummary(
     timeoutIds.addAll(result.timeouts.map((TestFailure failure) => failure.id));
   }
   if (timeoutIds.isNotEmpty) {
-    int firstBuildNumber = results.first.buildUri.buildNumber;
-    int lastBuildNumber = results.last.buildUri.buildNumber;
     Map<TestConfiguration, Map<int, Map<String, Timing>>> map =
         <TestConfiguration, Map<int, Map<String, Timing>>>{};
     Set<String> stepNames = new Set<String>();
@@ -84,9 +101,8 @@ String generateBuildResultsSummary(
       sb.write('$id\n');
       sb.write(
           '${' ' * 8} ${stepNames.map((t) => padRight(t, 14)).join(' ')}\n');
-      for (int buildNumber = firstBuildNumber;
-          buildNumber >= lastBuildNumber;
-          buildNumber--) {
+      for (BuildResult result in results) {
+        int buildNumber = result.buildUri.buildNumber;
         Map<String, Timing> steps = timings[buildNumber] ?? const {};
         sb.write(padRight(' ${buildNumber}: ', 8));
         for (String stepName in stepNames) {
@@ -107,8 +123,6 @@ String generateBuildResultsSummary(
     errorIds.addAll(result.errors.map((TestFailure failure) => failure.id));
   }
   if (errorIds.isNotEmpty) {
-    int firstBuildNumber = results.first.buildUri.buildNumber;
-    int lastBuildNumber = results.last.buildUri.buildNumber;
     Map<TestConfiguration, Map<int, TestFailure>> map =
         <TestConfiguration, Map<int, TestFailure>>{};
     for (BuildResult result in results) {
@@ -122,9 +136,8 @@ String generateBuildResultsSummary(
     map.forEach((TestConfiguration id, Map<int, TestFailure> failures) {
       if (!errorIds.contains(id)) return;
       sb.write('$id\n');
-      for (int buildNumber = firstBuildNumber;
-          buildNumber >= lastBuildNumber;
-          buildNumber--) {
+      for (BuildResult result in results) {
+        int buildNumber = result.buildUri.buildNumber;
         TestFailure failure = failures[buildNumber];
         sb.write(padRight(' ${buildNumber}: ', 8));
         if (failure != null) {

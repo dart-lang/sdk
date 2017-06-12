@@ -11,12 +11,12 @@ class A<T> {
 
 class B<E> extends A<E> {
   E y;
-  get x => y;
+  get x => /*@target=B::y*/ y;
 }
 
 foo() {
-  int y = /*error:INVALID_ASSIGNMENT*/ new B<String>().x;
-  String z = new B<String>().x;
+  int y = /*error:INVALID_ASSIGNMENT*/ new B<String>(). /*@target=B::x*/ x;
+  String z = new B<String>(). /*@target=B::x*/ x;
 }
 
 main() {

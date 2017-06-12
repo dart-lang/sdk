@@ -14,5 +14,5 @@ class D<T extends core::Object> extends core::Object {
     : super core::Object::•()
     ;
 }
-static field self::D<core::int> f = new self::C::•().f<core::int>();
+static field self::D<core::int> f = new self::C::•().{self::C::f}<core::int>();
 static method main() → dynamic {}

@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object> extends core::Object {
+  field self::C::T t = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  static factory named<T extends core::Object>(self::C::named::T t) → self::C<self::C::named::T> {
+    self::C<self::C::named::T> x = new self::C::•<self::C::named::T>();
+    x.{self::C::t} = t;
+    return x;
+  }
+}
+static method main() → dynamic {
+  self::C<core::int> x = self::C::named<core::int>(42);
+}

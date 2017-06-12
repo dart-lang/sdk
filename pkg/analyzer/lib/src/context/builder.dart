@@ -161,7 +161,8 @@ class ContextBuilder {
    */
   AnalysisDriver buildDriver(ContextRoot contextRoot) {
     String path = contextRoot.root;
-    AnalysisOptions options = getAnalysisOptions(path);
+    AnalysisOptions options =
+        getAnalysisOptions(path, contextRoot: contextRoot);
     //_processAnalysisOptions(context, optionMap);
     final sf = createSourceFactory(path, options);
     AnalysisDriver driver = new AnalysisDriver(
@@ -390,7 +391,7 @@ class ContextBuilder {
    * information about the analysis options selection process.
    */
   AnalysisOptions getAnalysisOptions(String path,
-      {void verbosePrint(String text)}) {
+      {void verbosePrint(String text), ContextRoot contextRoot}) {
     void verbose(String text) {
       if (verbosePrint != null) {
         verbosePrint(text);
@@ -411,6 +412,9 @@ class ContextBuilder {
     if (optionsFile != null) {
       try {
         optionMap = optionsProvider.getOptionsFromFile(optionsFile);
+        if (contextRoot != null) {
+          contextRoot.optionsFilePath = optionsFile.path;
+        }
         verbose('Loaded analysis options from ${optionsFile.path}');
       } catch (e) {
         // Ignore exceptions thrown while trying to load the options file.
@@ -431,6 +435,9 @@ class ContextBuilder {
         if (source != null && source.exists()) {
           try {
             optionMap = optionsProvider.getOptionsFromSource(source);
+            if (contextRoot != null) {
+              contextRoot.optionsFilePath = source.fullName;
+            }
             verbose('Loaded analysis options from ${source.fullName}');
           } catch (e) {
             // Ignore exceptions thrown while trying to load the options file.

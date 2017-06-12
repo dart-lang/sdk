@@ -192,6 +192,15 @@ abstract class ServerPlugin {
   AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot);
 
   /**
+   * Handle an 'analysis.getNavigation' request.
+   */
+  Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
+      AnalysisGetNavigationParams params) async {
+    return new AnalysisGetNavigationResult(
+        <String>[], <NavigationTarget>[], <NavigationRegion>[]);
+  }
+
+  /**
    * Handle an 'analysis.handleWatchEvents' request.
    */
   Future<AnalysisHandleWatchEventsResult> handleAnalysisHandleWatchEvents(
@@ -492,6 +501,10 @@ abstract class ServerPlugin {
   Future<Response> _getResponse(Request request, int requestTime) async {
     ResponseResult result = null;
     switch (request.method) {
+      case ANALYSIS_REQUEST_GET_NAVIGATION:
+        var params = new AnalysisGetNavigationParams.fromRequest(request);
+        result = await handleAnalysisGetNavigation(params);
+        break;
       case ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS:
         var params = new AnalysisHandleWatchEventsParams.fromRequest(request);
         result = await handleAnalysisHandleWatchEvents(params);

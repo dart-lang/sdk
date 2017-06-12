@@ -4,12 +4,14 @@
 library kernel.target.targets;
 
 import '../ast.dart';
+import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../transformations/treeshaker.dart' show ProgramRoot;
-import 'flutter.dart';
-import 'vm.dart';
-import 'vmcc.dart';
-import 'vmreify.dart';
+import 'flutter.dart' show FlutterTarget;
+import 'vm.dart' show VmTarget;
+import 'vm_fasta.dart' show VmFastaTarget;
+import 'vmcc.dart' show VmClosureConvertedTarget;
+import 'vmreify.dart' show VmGenericTypesReifiedTarget;
 
 final List<String> targetNames = targets.keys.toList();
 
@@ -31,6 +33,7 @@ typedef Target _TargetBuilder(TargetFlags flags);
 final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
   'none': (TargetFlags flags) => new NoneTarget(flags),
   'vm': (TargetFlags flags) => new VmTarget(flags),
+  'vm_fasta': (TargetFlags flags) => new VmFastaTarget(flags),
   'vmcc': (TargetFlags flags) => new VmClosureConvertedTarget(flags),
   'vmreify': (TargetFlags flags) => new VmGenericTypesReifiedTarget(flags),
   'flutter': (TargetFlags flags) => new FlutterTarget(flags),
@@ -67,23 +70,65 @@ abstract class Target {
   /// If true, the SDK should be loaded in strong mode.
   bool get strongModeSdk => strongMode;
 
-  /// Perform target-specific modular transformations.
+  /// Perform target-specific modular transformations on the given program.
   ///
   /// These transformations should not be whole-program transformations.  They
   /// should expect that the program will contain external libraries.
-  void performModularTransformations(Program program);
+  void performModularTransformationsOnProgram(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
+      {void logger(String msg)}) {
+    performModularTransformationsOnLibraries(
+        coreTypes, hierarchy, program.libraries,
+        logger: logger);
+  }
+
+  /// Perform target-specific modular transformations on the given libraries.
+  ///
+  /// The intent of this method is to perform the transformations only on some
+  /// subset of the program libraries and avoid packing them into a temporary
+  /// [Program] instance to pass into [performModularTransformationsOnProgram].
+  ///
+  /// Note that the following should be equivalent:
+  ///
+  ///     target.performModularTransformationsOnProgram(coreTypes, program);
+  ///
+  /// and
+  ///
+  ///     target.performModularTransformationsOnLibraries(
+  ///         coreTypes, program.libraries);
+  void performModularTransformationsOnLibraries(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+      {void logger(String msg)});
 
   /// Perform target-specific whole-program transformations.
   ///
   /// These transformations should be optimizations and not required for
   /// correctness.  Everything should work if a simple and fast linker chooses
   /// not to apply these transformations.
-  void performGlobalTransformations(Program program);
+  ///
+  /// Note that [performGlobalTransformations] doesn't have -OnProgram and
+  /// -OnLibraries alternatives, because the global knowledge required by the
+  /// transformations is assumed to be retrieved from a [Program] instance.
+  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+      {void logger(String msg)});
 
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
-  Expression instantiateInvocation(Member target, Expression receiver,
+  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper);
+
+  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
+      Expression receiver, String name, Arguments arguments, int offset,
+      {bool isMethod: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isField: false,
+      bool isLocalVariable: false,
+      bool isDynamic: false,
+      bool isSuper: false,
+      bool isStatic: false,
+      bool isConstructor: false,
+      bool isTopLevel: false});
 
   String toString() => 'Target($name)';
 }
@@ -96,12 +141,31 @@ class NoneTarget extends Target {
   bool get strongMode => flags.strongMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
-  void performModularTransformations(Program program) {}
-  void performGlobalTransformations(Program program) {}
+  void performModularTransformationsOnLibraries(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+      {void logger(String msg)}) {}
+  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+      {void logger(String msg)}) {}
 
   @override
-  Expression instantiateInvocation(Member target, Expression receiver,
+  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
+    return new InvalidExpression();
+  }
+
+  @override
+  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
+      Expression receiver, String name, Arguments arguments, int offset,
+      {bool isMethod: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isField: false,
+      bool isLocalVariable: false,
+      bool isDynamic: false,
+      bool isSuper: false,
+      bool isStatic: false,
+      bool isConstructor: false,
+      bool isTopLevel: false}) {
     return new InvalidExpression();
   }
 }

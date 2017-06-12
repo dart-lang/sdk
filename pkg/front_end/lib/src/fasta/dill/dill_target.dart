@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import 'package:kernel/ast.dart' show Class;
 
-import 'package:kernel/target/targets.dart' show getTarget;
+import 'package:kernel/target/targets.dart' show Target;
 
 import '../errors.dart' show internalError;
 import '../kernel/kernel_builder.dart' show ClassBuilder;
@@ -22,9 +22,8 @@ class DillTarget extends TargetImplementation {
   bool isLoaded = false;
   DillLoader loader;
 
-  DillTarget(
-      Ticker ticker, TranslateUri uriTranslator, String backendTargetName)
-      : super(ticker, uriTranslator, getTarget(backendTargetName, null)) {
+  DillTarget(Ticker ticker, TranslateUri uriTranslator, Target backendTarget)
+      : super(ticker, uriTranslator, backendTarget) {
     loader = new DillLoader(this);
   }
 
@@ -50,7 +49,8 @@ class DillTarget extends TargetImplementation {
     isLoaded = true;
   }
 
-  DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri) {
+  DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, bool isPatch) {
+    assert(!isPatch);
     return new DillLibraryBuilder(uri, loader);
   }
 

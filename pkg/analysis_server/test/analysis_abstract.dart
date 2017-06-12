@@ -299,6 +299,12 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
+  List<PluginInfo> get plugins {
+    fail('Unexpected invocation of plugins');
+    return null;
+  }
+
+  @override
   ResourceProvider get resourceProvider {
     fail('Unexpected invocation of resourceProvider');
     return null;

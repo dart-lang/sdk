@@ -11,7 +11,7 @@ import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart'
-    show AsyncMarker, JumpTarget, LabelDefinition, MethodElement, ResolvedAst;
+    show JumpTarget, LabelDefinition, MethodElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
@@ -19,7 +19,6 @@ import '../js/js.dart' as js;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/checked_mode_helpers.dart';
-import '../js_backend/element_strategy.dart' show ElementCodegenWorkItem;
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/runtime_types.dart';
@@ -47,8 +46,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   String get name => 'SSA code generator';
 
   js.Fun buildJavaScriptFunction(
-      ResolvedAst resolvedAst, List<js.Parameter> parameters, js.Block body) {
-    MethodElement element = resolvedAst.element;
+      FunctionEntity element, List<js.Parameter> parameters, js.Block body) {
     js.AsyncModifier asyncModifier = element.asyncMarker.isAsync
         ? (element.asyncMarker.isYielding
             ? const js.AsyncModifier.asyncStar()
@@ -59,12 +57,12 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
     return new js.Fun(parameters, body, asyncModifier: asyncModifier)
         .withSourceInformation(sourceInformationFactory
-            .createBuilderForContext(resolvedAst)
-            .buildDeclaration(resolvedAst));
+            .createBuilderForContext(element)
+            .buildDeclaration(element));
   }
 
   js.Expression generateCode(
-      ElementCodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     if (work.element.isField) {
       return generateLazyInitializer(work, graph, closedWorld);
     } else {
@@ -73,12 +71,12 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   js.Expression generateLazyInitializer(
-      ElementCodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     return measure(() {
       backend.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationFactory
-          .createBuilderForContext(work.resolvedAst)
-          .buildDeclaration(work.resolvedAst);
+          .createBuilderForContext(work.element)
+          .buildDeclaration(work.element);
       SsaCodeGenerator codegen = new SsaCodeGenerator(
           backend.compiler.options,
           backend.emitter,
@@ -98,9 +96,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   js.Expression generateMethod(
-      ElementCodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     return measure(() {
-      MethodElement element = work.element;
+      FunctionEntity element = work.element;
       if (element.asyncMarker != AsyncMarker.SYNC) {
         work.registry.registerAsyncMarker(element.asyncMarker);
       }
@@ -119,7 +117,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       codegen.visitGraph(graph);
       backend.tracer.traceGraph("codegen", graph);
       return buildJavaScriptFunction(
-          work.resolvedAst, codegen.parameters, codegen.body);
+          work.element, codegen.parameters, codegen.body);
     });
   }
 }

@@ -68,7 +68,10 @@ bool VirtualMemory::FreeSubSegment(int32_t handle,
 }
 
 
-bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
+bool VirtualMemory::Commit(uword addr,
+                           intptr_t size,
+                           bool executable,
+                           const char* name) {
   ASSERT(Contains(addr));
   ASSERT(Contains(addr + size) || (addr + size == end()));
   int prot = PROT_READ | PROT_WRITE | (executable ? PROT_EXEC : 0);

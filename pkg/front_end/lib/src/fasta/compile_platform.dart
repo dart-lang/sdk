@@ -67,14 +67,14 @@ Future compilePlatformInternal(CompilerContext c, Ticker ticker, Uri patchedSdk,
     print("Compiling $patchedSdk to $fullOutput");
   }
 
-  TranslateUri uriTranslator =
-      await TranslateUri.parse(c.fileSystem, patchedSdk, c.options.packages);
+  TranslateUri uriTranslator = await TranslateUri
+      .parse(c.fileSystem, patchedSdk, packages: c.options.packages);
   ticker.logMs("Read packages file");
 
   DillTarget dillTarget =
       new DillTarget(ticker, uriTranslator, c.options.target);
-  KernelTarget kernelTarget = new KernelTarget(c.fileSystem, dillTarget,
-      uriTranslator, c.options.strongMode, c.uriToSource);
+  KernelTarget kernelTarget =
+      new KernelTarget(c.fileSystem, dillTarget, uriTranslator, c.uriToSource);
 
   kernelTarget.read(Uri.parse("dart:core"));
   await dillTarget.buildOutlines();

@@ -10,8 +10,8 @@ class A extends core::Object {
 }
 static method test5() → dynamic {
   self::A a1 = new self::A::•();
-  a1.x = "hi";
+  a1.{self::A::x} = "hi";
   self::A a2 = new self::A::•();
-  a2.x = "hi";
+  a2.{self::A::x} = "hi";
 }
 static method main() → dynamic {}

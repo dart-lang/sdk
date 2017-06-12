@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library co19_test_config;
-
+import 'configuration.dart';
 import 'path.dart';
 import 'test_suite.dart';
 
 class Co19TestSuite extends StandardTestSuite {
   RegExp _testRegExp = new RegExp(r"t[0-9]{2}.dart$");
 
-  Co19TestSuite(Map configuration)
+  Co19TestSuite(Configuration configuration)
       : super(configuration, "co19", new Path("tests/co19/src"), [
           "tests/co19/co19-co19.status",
           "tests/co19/co19-analyzer.status",

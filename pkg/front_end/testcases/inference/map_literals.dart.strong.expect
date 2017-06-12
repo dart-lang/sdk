@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test1() → dynamic {
+  core::Map<core::int, core::String> x = <core::int, core::String>{1: "x", 2: "y"};
+  x.{core::Map::[]=}(3, "z");
+  x.{core::Map::[]=}("hi", "w");
+  x.{core::Map::[]=}(4.0, "u");
+  x.{core::Map::[]=}(3, 42);
+  core::Map<core::num, core::String> y = x;
+}
+static method test2() → dynamic {
+  core::Map<core::num, core::Pattern> x = <core::num, core::Pattern>{1: "x", 2: "y", 3.0: core::RegExp::•(".")};
+  x.{core::Map::[]=}(3, "z");
+  x.{core::Map::[]=}("hi", "w");
+  x.{core::Map::[]=}(4.0, "u");
+  x.{core::Map::[]=}(3, 42);
+  core::Pattern p = null;
+  x.{core::Map::[]=}(2, p);
+  core::Map<core::int, core::String> y = x;
+}
+static method main() → dynamic {}

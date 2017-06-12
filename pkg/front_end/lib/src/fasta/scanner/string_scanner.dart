@@ -4,7 +4,9 @@
 
 library dart2js.scanner.string_scanner;
 
-import '../../scanner/token.dart' show TokenType;
+import '../../scanner/token.dart' show SyntheticStringToken, TokenType;
+
+import '../../scanner/token.dart' as analyzer show StringToken;
 
 import 'array_based_scanner.dart' show ArrayBasedScanner;
 
@@ -26,8 +28,7 @@ class StringScanner extends ArrayBasedScanner {
       bool scanGenericMethodComments: false,
       bool scanLazyAssignmentOperators: false})
       : string = ensureZeroTermination(string),
-        super(includeComments, scanGenericMethodComments,
-            scanLazyAssignmentOperators);
+        super(includeComments, scanGenericMethodComments);
 
   static String ensureZeroTermination(String string) {
     return (string.isEmpty || string.codeUnitAt(string.length - 1) != 0)
@@ -46,11 +47,20 @@ class StringScanner extends ArrayBasedScanner {
   void handleUnicode(int startScanOffset) {}
 
   @override
-  StringToken createSubstringToken(TokenType type, int start, bool asciiOnly,
+  analyzer.StringToken createSubstringToken(
+      TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new StringToken.fromSubstring(
         type, string, start, scanOffset + extraOffset, tokenStart,
         canonicalize: true, precedingComments: comments);
+  }
+
+  @override
+  analyzer.StringToken createSyntheticSubstringToken(
+      TokenType type, int start, bool asciiOnly, String closingQuotes) {
+    String source = string.substring(start, scanOffset);
+    return new SyntheticStringToken(
+        type, source + closingQuotes, start, source.length);
   }
 
   @override

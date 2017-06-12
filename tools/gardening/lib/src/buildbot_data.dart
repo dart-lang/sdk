@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'buildbot_structures.dart';
+import 'logdog.dart' as logdog;
+import 'util.dart';
 
 /// Data describing the steps of the buildbots.
 const List<BuildGroup> buildGroups = const <BuildGroup>[
@@ -344,6 +347,7 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'dart2js d8 package tests',
         'dart2js d8 co19 tests',
         'dart2js d8 extra tests',
+        'dart2js-with-kernel d8 tests',
         'dart2js d8 fast-startup tests',
         'dart2js d8 observatory_ui fast-startup tests',
         'dart2js d8 package fast-startup tests',
@@ -478,18 +482,10 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
     subgroups: const <BuildSubgroup>[
       const BuildSubgroup(shardNames: const <String>[
         'dart-sdk-linux-be',
-      ], testSteps: const <String>[
-        'annotated_steps',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
         'dart-sdk-windows-be',
-      ], testSteps: const <String>[
-        'annotated_steps',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
         'dart-sdk-mac-be',
       ], testSteps: const <String>[
-        'annotated_steps',
+        'generate_sdks',
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'sdk-trigger-be',
@@ -503,18 +499,13 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
     subgroups: const <BuildSubgroup>[
       const BuildSubgroup(shardNames: const <String>[
         'dartium-linux-x64-inc-be',
-      ], testSteps: const <String>[
-        'annotated steps',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
         'dartium-mac-x64-inc-be',
-      ], testSteps: const <String>[
-        'annotated steps',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
         'dartium-win-ia32-inc-be',
       ], testSteps: const <String>[
-        'annotated steps',
+        'drt_layout_unchecked_tests',
+        'drt_layout_checked_tests',
+        'dartium_core_unchecked_tests',
+        'dartium_core_checked_tests',
       ]),
     ],
   ),
@@ -837,7 +828,7 @@ class BuildSubgroup {
   Map<String, String> get logDogPaths {
     Map<String, String> paths = <String, String>{};
     for (String shardName in shardNames) {
-      paths[shardName] = 'chromium/bb/client.dart/$shardName';
+      paths[shardName] = getLogDogPath(shardName);
     }
     return paths;
   }
@@ -859,4 +850,107 @@ class BuildSubgroup {
     }
     return uriList;
   }
+}
+
+/// Computes the logdog path for a build bot with the given [botName].
+String getLogDogPath(String botName) {
+  return 'chromium/bb/client.dart/$botName';
+}
+
+/// Pulls the list of the build numbers (in decreasing order) of the available
+/// builds for [botName] using logdog.
+Future<List<int>> lookupBotBuildNumbers(String botName) async {
+  String subgroupPath = getLogDogPath(botName);
+  List<int> buildNumbers = <int>[];
+  log('Lookup build numbers for $subgroupPath');
+  String text = await logdog.ls(subgroupPath);
+  for (String line in text.split('\n')) {
+    line = line.trim();
+    if (line.isNotEmpty) {
+      buildNumbers.add(int.parse(line));
+    }
+  }
+  buildNumbers.sort((a, b) => -a.compareTo(b));
+  return buildNumbers;
+}
+
+/// Returns the index of [buildNumber] in the decreasing list of
+/// [absoluteBuildNumbers].
+///
+/// If [buildNumber] is negative it is interpreted as a relative number; -1
+/// is the last build number (the largest), -2 is the second-to-last build
+/// number etc.
+///
+/// If [buildNumber] is non-negative and not in [absoluteBuildNumbers], the
+/// index of the next available build number: looking up 3 in [5, 4, 2, 1]
+/// returns index 2 (the index of 2).
+///
+/// If no index is found, `null` is returned.
+int getBuildNumberIndex(List<int> absoluteBuildNumbers, int buildNumber) {
+  if (buildNumber < 0) {
+    int buildNumberIndex = -buildNumber - 1;
+    if (buildNumberIndex < absoluteBuildNumbers.length) {
+      return buildNumberIndex;
+    } else {
+      return null;
+    }
+  } else {
+    for (int i = 0; i < absoluteBuildNumbers.length; i++) {
+      if (absoluteBuildNumbers[i] <= buildNumber) return i;
+    }
+    return null;
+  }
+}
+
+Future<int> lookupAbsoluteBuildNumber(
+    String botName, int relativeBuildNumber) async {
+  if (relativeBuildNumber >= 0) return relativeBuildNumber;
+  List<int> absoluteBuildNumbers = await lookupBotBuildNumbers(botName);
+  int buildNumberIndex =
+      getBuildNumberIndex(absoluteBuildNumbers, relativeBuildNumber);
+  return buildNumberIndex != null
+      ? absoluteBuildNumbers[buildNumberIndex]
+      : null;
+}
+
+Map<BuildSubgroup, List<String>> findSubgroupsByName(String name) {
+  Map<BuildSubgroup, List<String>> subgroups = <BuildSubgroup, List<String>>{};
+  for (BuildGroup group in buildGroups) {
+    if (group.groupName == name) {
+      for (BuildSubgroup subgroup in group.subgroups) {
+        subgroups[subgroup] = subgroup.shardNames;
+      }
+    } else {
+      for (BuildSubgroup subgroup in group.subgroups) {
+        List<String> shardNames = <String>[];
+        for (String shardName in subgroup.shardNames) {
+          if (shardName.contains(name)) {
+            shardNames.add(shardName);
+          }
+        }
+        if (shardNames.isNotEmpty) {
+          subgroups[subgroup] = shardNames;
+        }
+      }
+    }
+  }
+  return subgroups;
+}
+
+Map<BuildSubgroup, List<String>> findSubgroupsByStep(String stepName) {
+  Map<BuildSubgroup, List<String>> subgroups = <BuildSubgroup, List<String>>{};
+  for (BuildGroup group in buildGroups) {
+    for (BuildSubgroup subgroup in group.subgroups) {
+      List<String> stepNames = <String>[];
+      for (String step in subgroup.testSteps) {
+        if (step.contains(stepName)) {
+          stepNames.add(step);
+        }
+      }
+      if (stepNames.isNotEmpty) {
+        subgroups[subgroup] = stepNames;
+      }
+    }
+  }
+  return subgroups;
 }

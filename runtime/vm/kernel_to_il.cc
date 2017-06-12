@@ -2013,15 +2013,18 @@ FlowGraphBuilder::FlowGraphBuilder(
     TreeNode* node,
     ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
+    ZoneGrowableArray<intptr_t>* context_level_array,
     InlineExitCollector* exit_collector,
     intptr_t osr_id,
     intptr_t first_block_id)
     : translation_helper_(Thread::Current()),
+      thread_(translation_helper_.thread()),
       zone_(translation_helper_.zone()),
       node_(node),
       parsed_function_(parsed_function),
       osr_id_(osr_id),
       ic_data_array_(ic_data_array),
+      context_level_array_(context_level_array),
       exit_collector_(exit_collector),
       next_block_id_(first_block_id),
       next_function_id_(0),
@@ -2248,9 +2251,9 @@ Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
 Fragment FlowGraphBuilder::InstantiateType(const AbstractType& type) {
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
-  InstantiateTypeInstr* instr =
-      new (Z) InstantiateTypeInstr(TokenPosition::kNoSource, type,
-                                   instantiator_type_args, function_type_args);
+  InstantiateTypeInstr* instr = new (Z) InstantiateTypeInstr(
+      TokenPosition::kNoSource, type, instantiator_type_args,
+      function_type_args, GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }
@@ -2262,7 +2265,7 @@ Fragment FlowGraphBuilder::InstantiateTypeArguments(
   Value* instantiator_type_args = Pop();
   InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
       TokenPosition::kNoSource, type_arguments, *active_class_.klass,
-      instantiator_type_args, function_type_args);
+      instantiator_type_args, function_type_args, GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }
@@ -2352,8 +2355,9 @@ Fragment FlowGraphBuilder::StrictCompare(Token::Kind kind,
                                          bool number_check /* = false */) {
   Value* right = Pop();
   Value* left = Pop();
-  StrictCompareInstr* compare = new (Z) StrictCompareInstr(
-      TokenPosition::kNoSource, kind, left, right, number_check);
+  StrictCompareInstr* compare =
+      new (Z) StrictCompareInstr(TokenPosition::kNoSource, kind, left, right,
+                                 number_check, GetNextDeoptId());
   Push(compare);
   return Fragment(compare);
 }
@@ -2381,8 +2385,8 @@ Fragment FlowGraphBuilder::BranchIfEqual(TargetEntryInstr** then_entry,
   Value* left_value = Pop();
   StrictCompareInstr* compare = new (Z) StrictCompareInstr(
       TokenPosition::kNoSource, negate ? Token::kNE_STRICT : Token::kEQ_STRICT,
-      left_value, right_value, false);
-  BranchInstr* branch = new (Z) BranchInstr(compare);
+      left_value, right_value, false, GetNextDeoptId());
+  BranchInstr* branch = new (Z) BranchInstr(compare, GetNextDeoptId());
   *then_entry = *branch->true_successor_address() = BuildTargetEntry();
   *otherwise_entry = *branch->false_successor_address() = BuildTargetEntry();
   return Fragment(branch).closed();
@@ -2394,9 +2398,10 @@ Fragment FlowGraphBuilder::BranchIfStrictEqual(
     TargetEntryInstr** otherwise_entry) {
   Value* rhs = Pop();
   Value* lhs = Pop();
-  StrictCompareInstr* compare = new (Z) StrictCompareInstr(
-      TokenPosition::kNoSource, Token::kEQ_STRICT, lhs, rhs, false);
-  BranchInstr* branch = new (Z) BranchInstr(compare);
+  StrictCompareInstr* compare =
+      new (Z) StrictCompareInstr(TokenPosition::kNoSource, Token::kEQ_STRICT,
+                                 lhs, rhs, false, GetNextDeoptId());
+  BranchInstr* branch = new (Z) BranchInstr(compare, GetNextDeoptId());
   *then_entry = *branch->true_successor_address() = BuildTargetEntry();
   *otherwise_entry = *branch->false_successor_address() = BuildTargetEntry();
   return Fragment(branch).closed();
@@ -2415,8 +2420,7 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
       false,                     // Not an artifact of compilation.
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
       handler_index, *CurrentException(), *CurrentStackTrace(),
-      needs_stacktrace, H.thread()->GetNextDeoptId(),
-      should_restore_closure_context);
+      needs_stacktrace, GetNextDeoptId(), should_restore_closure_context);
   graph_entry_->AddCatchEntry(entry);
   Fragment instructions(entry);
 
@@ -2446,8 +2450,8 @@ Fragment FlowGraphBuilder::TryCatch(int try_handler_index) {
   // => We therefore create a block for the body (fresh try index) and another
   //    join block (with current try index).
   Fragment body;
-  JoinEntryInstr* entry =
-      new (Z) JoinEntryInstr(AllocateBlockId(), try_handler_index);
+  JoinEntryInstr* entry = new (Z)
+      JoinEntryInstr(AllocateBlockId(), try_handler_index, GetNextDeoptId());
   body += LoadLocal(parsed_function_->current_context_var());
   body += StoreLocal(TokenPosition::kNoSource, CurrentCatchContext());
   body += Drop();
@@ -2468,8 +2472,8 @@ Fragment FlowGraphBuilder::CheckStackOverflowInPrologue() {
 
 
 Fragment FlowGraphBuilder::CheckStackOverflow() {
-  return Fragment(
-      new (Z) CheckStackOverflowInstr(TokenPosition::kNoSource, loop_depth_));
+  return Fragment(new (Z) CheckStackOverflowInstr(
+      TokenPosition::kNoSource, loop_depth_, GetNextDeoptId()));
 }
 
 
@@ -2478,8 +2482,8 @@ Fragment FlowGraphBuilder::CloneContext() {
 
   Fragment instructions = LoadLocal(context_variable);
 
-  CloneContextInstr* clone_instruction =
-      new (Z) CloneContextInstr(TokenPosition::kNoSource, Pop());
+  CloneContextInstr* clone_instruction = new (Z)
+      CloneContextInstr(TokenPosition::kNoSource, Pop(), GetNextDeoptId());
   instructions <<= clone_instruction;
   Push(clone_instruction);
 
@@ -2499,16 +2503,17 @@ Fragment FlowGraphBuilder::Constant(const Object& value) {
 
 Fragment FlowGraphBuilder::CreateArray() {
   Value* element_count = Pop();
-  CreateArrayInstr* array = new (Z) CreateArrayInstr(TokenPosition::kNoSource,
-                                                     Pop(),  // Element type.
-                                                     element_count);
+  CreateArrayInstr* array =
+      new (Z) CreateArrayInstr(TokenPosition::kNoSource,
+                               Pop(),  // Element type.
+                               element_count, GetNextDeoptId());
   Push(array);
   return Fragment(array);
 }
 
 
 Fragment FlowGraphBuilder::Goto(JoinEntryInstr* destination) {
-  return Fragment(new (Z) GotoInstr(destination)).closed();
+  return Fragment(new (Z) GotoInstr(destination, GetNextDeoptId())).closed();
 }
 
 
@@ -2536,9 +2541,9 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         intptr_t num_args_checked) {
   ArgumentArray arguments = GetArguments(argument_count);
   const intptr_t kTypeArgsLen = 0;  // Generic instance calls not yet supported.
-  InstanceCallInstr* call = new (Z)
-      InstanceCallInstr(position, name, kind, arguments, kTypeArgsLen,
-                        argument_names, num_args_checked, ic_data_array_);
+  InstanceCallInstr* call = new (Z) InstanceCallInstr(
+      position, name, kind, arguments, kTypeArgsLen, argument_names,
+      num_args_checked, ic_data_array_, GetNextDeoptId());
   Push(call);
   return Fragment(call);
 }
@@ -2549,9 +2554,9 @@ Fragment FlowGraphBuilder::ClosureCall(int argument_count,
   Value* function = Pop();
   ArgumentArray arguments = GetArguments(argument_count);
   const intptr_t kTypeArgsLen = 0;  // Generic closures not yet supported.
-  ClosureCallInstr* call =
-      new (Z) ClosureCallInstr(function, arguments, kTypeArgsLen,
-                               argument_names, TokenPosition::kNoSource);
+  ClosureCallInstr* call = new (Z)
+      ClosureCallInstr(function, arguments, kTypeArgsLen, argument_names,
+                       TokenPosition::kNoSource, GetNextDeoptId());
   Push(call);
   return Fragment(call);
 }
@@ -2560,7 +2565,8 @@ Fragment FlowGraphBuilder::ClosureCall(int argument_count,
 Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
   Fragment instructions;
   instructions += Drop();
-  instructions += Fragment(new (Z) ThrowInstr(position)).closed();
+  instructions +=
+      Fragment(new (Z) ThrowInstr(position, GetNextDeoptId())).closed();
   // Use it's side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
@@ -2576,8 +2582,9 @@ Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
   Fragment instructions;
   instructions += Drop();
   instructions += Drop();
-  instructions +=
-      Fragment(new (Z) ReThrowInstr(position, catch_try_index)).closed();
+  instructions += Fragment(new (Z) ReThrowInstr(position, catch_try_index,
+                                                GetNextDeoptId()))
+                      .closed();
   // Use it's side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
@@ -2657,8 +2664,8 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
 
 
 Fragment FlowGraphBuilder::InitStaticField(const dart::Field& field) {
-  InitStaticFieldInstr* init =
-      new (Z) InitStaticFieldInstr(Pop(), MayCloneField(Z, field));
+  InitStaticFieldInstr* init = new (Z)
+      InitStaticFieldInstr(Pop(), MayCloneField(Z, field), GetNextDeoptId());
   return Fragment(init);
 }
 
@@ -2721,7 +2728,8 @@ Fragment FlowGraphBuilder::Return(TokenPosition position) {
     instructions += Drop();
   }
 
-  ReturnInstr* return_instr = new (Z) ReturnInstr(position, value);
+  ReturnInstr* return_instr =
+      new (Z) ReturnInstr(position, value, GetNextDeoptId());
   if (exit_collector_ != NULL) exit_collector_->AddExit(return_instr);
 
   instructions <<= return_instr;
@@ -2767,7 +2775,7 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
   const intptr_t kTypeArgsLen = 0;  // Generic static calls not yet supported.
   StaticCallInstr* call =
       new (Z) StaticCallInstr(position, target, kTypeArgsLen, argument_names,
-                              arguments, ic_data_array_);
+                              arguments, ic_data_array_, GetNextDeoptId());
   const intptr_t list_cid =
       GetResultCidOfListFactory(Z, target, argument_count);
   if (list_cid != kDynamicCid) {
@@ -2828,9 +2836,9 @@ Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(
   if (I->use_field_guards()) {
     LocalVariable* store_expression = MakeTemporary();
     instructions += LoadLocal(store_expression);
-    instructions += GuardFieldClass(field_clone, H.thread()->GetNextDeoptId());
+    instructions += GuardFieldClass(field_clone, GetNextDeoptId());
     instructions += LoadLocal(store_expression);
-    instructions += GuardFieldLength(field_clone, H.thread()->GetNextDeoptId());
+    instructions += GuardFieldLength(field_clone, GetNextDeoptId());
   }
   instructions += StoreInstanceField(field_clone, is_initialization_store);
   return instructions;
@@ -2881,7 +2889,7 @@ Fragment FlowGraphBuilder::StoreStaticField(TokenPosition position,
 Fragment FlowGraphBuilder::StringInterpolate(TokenPosition position) {
   Value* array = Pop();
   StringInterpolateInstr* interpolate =
-      new (Z) StringInterpolateInstr(array, position);
+      new (Z) StringInterpolateInstr(array, position, GetNextDeoptId());
   Push(interpolate);
   return Fragment(interpolate);
 }
@@ -3504,11 +3512,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
     instructions += StaticCall(TokenPosition::kNoSource, target, 1);
     instructions += Drop();
 
+    // TODO(29737): This sequence should be generated in order.
     body = instructions + body;
     context_depth_ = current_context_depth;
   }
 
   if (NeedsDebugStepCheck(dart_function, function->position())) {
+    const intptr_t current_context_depth = context_depth_;
+    context_depth_ = 0;
+
     // If a switch was added above: Start the switch by injecting a debuggable
     // safepoint so stepping over an await works.
     // If not, still start the body with a debuggable safepoint to ensure
@@ -3528,7 +3540,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
       check_pos = function->position();
       ASSERT(check_pos.IsDebugPause());
     }
+
+    // TODO(29737): This sequence should be generated in order.
     body = DebugStepCheck(check_pos) + body;
+    context_depth_ = current_context_depth;
   }
 
   normal_entry->LinkTo(body.entry);
@@ -3791,6 +3806,18 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   fragment += AllocateObject(closure_class, target);
   LocalVariable* closure = MakeTemporary();
 
+  // The function signature can have uninstantiated class type parameters.
+  //
+  // TODO(regis): Also handle the case of a function signature that has
+  // uninstantiated function type parameters.
+  if (!target.HasInstantiatedSignature(kCurrentClass)) {
+    fragment += LoadLocal(closure);
+    fragment += LoadInstantiatorTypeArguments();
+    fragment +=
+        StoreInstanceField(TokenPosition::kNoSource,
+                           Closure::instantiator_type_arguments_offset());
+  }
+
   // Allocate a context that closes over `this`.
   fragment += AllocateContext(1);
   LocalVariable* context = MakeTemporary();
@@ -3875,8 +3902,8 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
 }
 
 Fragment FlowGraphBuilder::DebugStepCheck(TokenPosition position) {
-  return Fragment(
-      new (Z) DebugStepCheckInstr(position, RawPcDescriptors::kRuntimeCall));
+  return Fragment(new (Z) DebugStepCheckInstr(
+      position, RawPcDescriptors::kRuntimeCall, GetNextDeoptId()));
 }
 
 
@@ -3931,8 +3958,8 @@ Fragment FlowGraphBuilder::CheckAssignableInCheckedMode(
 
 Fragment FlowGraphBuilder::AssertBool() {
   Value* value = Pop();
-  AssertBooleanInstr* instr =
-      new (Z) AssertBooleanInstr(TokenPosition::kNoSource, value);
+  AssertBooleanInstr* instr = new (Z)
+      AssertBooleanInstr(TokenPosition::kNoSource, value, GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }
@@ -3959,7 +3986,7 @@ Fragment FlowGraphBuilder::AssertAssignable(const AbstractType& dst_type,
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
       TokenPosition::kNoSource, value, instantiator_type_args,
-      function_type_args, dst_type, dst_name, H.thread()->GetNextDeoptId());
+      function_type_args, dst_type, dst_name, GetNextDeoptId());
   Push(instr);
 
   instructions += Fragment(instr);
@@ -4271,17 +4298,19 @@ void FlowGraphBuilder::SetupDefaultParameterValues(FunctionNode* function) {
 
 
 TargetEntryInstr* FlowGraphBuilder::BuildTargetEntry() {
-  return new (Z) TargetEntryInstr(AllocateBlockId(), CurrentTryIndex());
+  return new (Z)
+      TargetEntryInstr(AllocateBlockId(), CurrentTryIndex(), GetNextDeoptId());
 }
 
 
 JoinEntryInstr* FlowGraphBuilder::BuildJoinEntry(intptr_t try_index) {
-  return new (Z) JoinEntryInstr(AllocateBlockId(), try_index);
+  return new (Z) JoinEntryInstr(AllocateBlockId(), try_index, GetNextDeoptId());
 }
 
 
 JoinEntryInstr* FlowGraphBuilder::BuildJoinEntry() {
-  return new (Z) JoinEntryInstr(AllocateBlockId(), CurrentTryIndex());
+  return new (Z)
+      JoinEntryInstr(AllocateBlockId(), CurrentTryIndex(), GetNextDeoptId());
 }
 
 
@@ -5869,7 +5898,7 @@ void FlowGraphBuilder::VisitWhileStatement(WhileStatement* node) {
     Fragment loop(join);
     loop += CheckStackOverflow();
     loop += condition;
-    entry = new (Z) GotoInstr(join);
+    entry = new (Z) GotoInstr(join, GetNextDeoptId());
   } else {
     entry = condition.entry;
   }
@@ -5905,7 +5934,7 @@ void FlowGraphBuilder::VisitDoStatement(DoStatement* node) {
   Fragment repeat(loop_repeat);
   repeat += Goto(join);
 
-  fragment_ = Fragment(new (Z) GotoInstr(join), loop_exit);
+  fragment_ = Fragment(new (Z) GotoInstr(join, GetNextDeoptId()), loop_exit);
   --loop_depth_;
 }
 
@@ -6688,7 +6717,17 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
   Fragment instructions = AllocateObject(closure_class, function);
   LocalVariable* closure = MakeTemporary();
 
-  // TODO(27590): Generic closures need type arguments.
+  // The function signature can have uninstantiated class type parameters.
+  //
+  // TODO(regis): Also handle the case of a function signature that has
+  // uninstantiated function type parameters.
+  if (!function.HasInstantiatedSignature(kCurrentClass)) {
+    instructions += LoadLocal(closure);
+    instructions += LoadInstantiatorTypeArguments();
+    instructions +=
+        StoreInstanceField(TokenPosition::kNoSource,
+                           Closure::instantiator_type_arguments_offset());
+  }
 
   // Store the function and the context in the closure.
   instructions += LoadLocal(closure);

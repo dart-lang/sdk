@@ -7,14 +7,23 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:front_end/file_system.dart';
+import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
 import 'package:front_end/src/fasta/parser/dart_vm_native.dart';
+import 'package:front_end/src/fasta/parser/listener.dart' show Listener;
+import 'package:front_end/src/fasta/parser/parser.dart' show Parser, optional;
 import 'package:front_end/src/fasta/parser/top_level_parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
+import 'package:front_end/src/fasta/scanner/token_constants.dart'
+    show STRING_TOKEN;
 import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
 import 'package:kernel/target/vm.dart';
+
+/// This function is called for each newly discovered file, and the returned
+/// [Future] is awaited before reading the file content.
+typedef Future<Null> NewFileFn(Uri uri);
 
 /// Information about a file being compiled, explicitly or implicitly.
 ///
@@ -35,6 +44,7 @@ class FileState {
   bool _exists;
   List<int> _content;
   List<int> _contentHash;
+  List<int> _apiSignature;
 
   List<NamespaceExport> _exports;
   List<FileState> _importedLibraries;
@@ -45,6 +55,10 @@ class FileState {
   List<FileState> _directReferencedLibraries = <FileState>[];
 
   FileState._(this._fsState, this.uri, this.fileUri);
+
+  /// The MD5 signature of the file API as a byte array.
+  /// It depends on all non-comment tokens outside the block bodies.
+  List<int> get apiSignature => _apiSignature;
 
   /// The content of the file.
   List<int> get content => _content;
@@ -117,10 +131,15 @@ class FileState {
     // Compute the content hash.
     _contentHash = md5.convert(_content).bytes;
 
+    // Scan the content.
+    ScannerResult scanResult = _scan();
+
+    // Compute the API signature.
+    _apiSignature = _computeApiSignature(scanResult.tokens);
+
     // Parse directives.
-    ScannerResult scannerResults = _scan();
     var listener = new _DirectiveListenerWithNative();
-    new TopLevelParser(listener).parseUnit(scannerResults.tokens);
+    new TopLevelParser(listener).parseUnit(scanResult.tokens);
 
     // Build the graph.
     _importedLibraries = <FileState>[];
@@ -187,6 +206,49 @@ class FileState {
     }
   }
 
+  /// Compute and return the API signature of the file.
+  ///
+  /// The signature is based on non-comment tokens of the file outside
+  /// of function bodies.
+  List<int> _computeApiSignature(Token token) {
+    var parser = new _BodySkippingParser();
+    parser.parseUnit(token);
+
+    ApiSignature apiSignature = new ApiSignature();
+    apiSignature.addBytes(_fsState._salt);
+
+    // Iterate over tokens and skip bodies.
+    Iterator<_BodyRange> bodyIterator = parser.bodyRanges.iterator;
+    bodyIterator.moveNext();
+    for (; token.kind != EOF_TOKEN; token = token.next) {
+      // Move to the body range that ends after the token.
+      while (bodyIterator.current != null &&
+          bodyIterator.current.last < token.charOffset) {
+        bodyIterator.moveNext();
+      }
+      // If the current body range starts before or at the token, skip it.
+      if (bodyIterator.current != null &&
+          bodyIterator.current.first <= token.charOffset) {
+        continue;
+      }
+      // The token is outside of a function body, add it.
+      apiSignature.addString(token.lexeme);
+    }
+
+    return apiSignature.toByteList();
+  }
+
+  /// Exclude all `native 'xyz';` token sequences.
+  void _excludeNativeClauses(Token token) {
+    for (; token.kind != EOF_TOKEN; token = token.next) {
+      if (optional('native', token) &&
+          token.next.kind == STRING_TOKEN &&
+          optional(';', token.next.next)) {
+        token.previous.next = token.next.next;
+      }
+    }
+  }
+
   /// Return the [FileState] for the given [relativeUri] or `null` if the URI
   /// cannot be parsed, cannot correspond any file, etc.
   Future<FileState> _getFileForRelativeUri(String relativeUri) async {
@@ -210,7 +272,9 @@ class FileState {
   ScannerResult _scan() {
     var zeroTerminatedBytes = new Uint8List(_content.length + 1);
     zeroTerminatedBytes.setRange(0, _content.length, _content);
-    return scan(zeroTerminatedBytes);
+    ScannerResult result = scan(zeroTerminatedBytes);
+    _excludeNativeClauses(result.tokens);
+    return result;
   }
 }
 
@@ -218,16 +282,21 @@ class FileState {
 class FileSystemState {
   final FileSystem fileSystem;
   final TranslateUri uriTranslator;
+  final List<int> _salt;
+  final NewFileFn _newFileFn;
 
   _FileSystemView _fileSystemView;
 
-  /// Mapping from file URIs to corresponding [FileState]s.
+  /// Mapping from import URIs to corresponding [FileState]s. For example, this
+  /// may contain an entry for `dart:core`.
   final Map<Uri, FileState> _uriToFile = {};
 
-  /// Mapping from file URIs to corresponding [FileState]s.
+  /// Mapping from file URIs to corresponding [FileState]s. This map should only
+  /// contain `file:*` URIs as keys.
   final Map<Uri, FileState> _fileUriToFile = {};
 
-  FileSystemState(this.fileSystem, this.uriTranslator);
+  FileSystemState(
+      this.fileSystem, this.uriTranslator, this._salt, this._newFileFn);
 
   /// Return the [FileSystem] that is backed by this [FileSystemState].  The
   /// files in this [FileSystem] always have the same content as the
@@ -236,6 +305,9 @@ class FileSystemState {
   FileSystem get fileSystemView {
     return _fileSystemView ??= new _FileSystemView(this);
   }
+
+  /// The `file:` URI of all files currently tracked by this instance.
+  Iterable<Uri> get fileUris => _fileUriToFile.keys;
 
   /// Return the [FileState] for the given [absoluteUri], or `null` if the
   /// [absoluteUri] cannot be resolved into a file URI.
@@ -257,11 +329,20 @@ class FileSystemState {
       _uriToFile[absoluteUri] = file;
       _fileUriToFile[fileUri] = file;
 
+      // Notify the function about a new file.
+      if (_newFileFn != null) {
+        await _newFileFn(fileUri);
+      }
+
       // Build the sub-graph of the file.
       await file.refresh();
     }
     return file;
   }
+
+  /// Return the [FileState] for the given [fileUri], or `null` if the
+  /// [fileUri] does not yet correspond to any referenced [FileState].
+  FileState getFileByFileUri(Uri fileUri) => _fileUriToFile[fileUri];
 }
 
 /// List of libraries that reference each other, so form a cycle.
@@ -302,6 +383,37 @@ class NamespaceExport {
       }
     }
     return true;
+  }
+}
+
+/// The char range of a function body.
+class _BodyRange {
+  /// The char offset of the first token in the range.
+  final int first;
+
+  /// The char offset of the last token in the range.
+  final int last;
+
+  _BodyRange(this.first, this.last);
+
+  @override
+  String toString() => '[$first, $last]';
+}
+
+/// The [Parser] that skips function bodies and remembers their token ranges.
+class _BodySkippingParser extends Parser {
+  final List<_BodyRange> bodyRanges = [];
+
+  _BodySkippingParser() : super(new Listener());
+
+  @override
+  Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
+    if (identical('{', token.lexeme)) {
+      Token close = skipBlock(token);
+      bodyRanges.add(new _BodyRange(token.charOffset, close.charOffset));
+      return close;
+    }
+    return super.parseFunctionBody(token, isExpression, allowAbstract);
   }
 }
 

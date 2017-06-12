@@ -19,35 +19,60 @@ import 'package:expect/expect.dart';
 @AssumeDynamic()
 confuse(f) => f;
 
-final bool inCheckedMode =
-    (() { bool result = false; assert(result = true); return result; })();
+final bool inCheckedMode = (() {
+  bool result = false;
+  assert(result = true);
+  return result;
+})();
 
-
-typedef F0<T> = int Function(List<T> x);
-typedef F1<T> = List<Function> Function(int y, {List<Function> x});
-typedef F2<T> = List<T> Function(int x0, {Function x});
-typedef F3<T> = void Function({int x});
-typedef F4<T> = A Function<A>(List<T> x);
-typedef F5<T> = int Function(int x0, {Function x}) Function();
-typedef F6<T> = int Function([List<T> x]) Function();
-typedef F7<T> = Function Function(int y, [Function x]) Function();
-typedef F8<T> = Function Function(int x1, [core.List<core.int> x2]) Function();
-typedef F9<T> = List<Function> Function({int x}) Function();
-typedef F10<T> = List<Function> Function(core.List<core.int> x) Function();
-typedef F11<T> = core.List<core.int> Function(int x0, [int x]) Function();
-typedef F12<T> = core.List<core.int> Function([List<Function> x1]) Function();
-typedef F13<T> = core.List<core.int> Function({List<T> x}) Function();
-typedef F14<T> = List<T> Function(int y, {Function x}) Function();
-typedef F15<T> = List<T> Function(int x0, [List<T> x]) Function();
-typedef F16<T> = Function(Function x0) Function();
-typedef F17<T> = Function(int x, [core.List<core.int> x2]) Function();
-typedef F18<T> = void Function(int x0, {int x}) Function();
-typedef F19<T> = void Function([core.List<core.int> x]) Function();
-typedef F20<T> = int Function<A>(core.List<core.int> x) Function();
-typedef F21<T> = core.List<core.int> Function<A>(List<T> x) Function();
-typedef F22<T> = A Function<A>() Function();
-typedef F23<T> = B Function(core.List<core.int> x) Function<B extends core.int>();
-
+typedef F0<T>
+    = int Function(List<T> x);
+typedef F1<T>
+    = List<Function> Function(int y, {List<Function> x});
+typedef F2<T>
+    = List<T> Function(int x0, {Function x});
+typedef F3<T>
+    = void Function({int x});
+typedef F4<T>
+    = A Function<A>(List<T> x);
+typedef F5<T>
+    = int Function(int x0, {Function x}) Function();
+typedef F6<T>
+    = int Function([List<T> x]) Function();
+typedef F7<T>
+    = Function Function(int y, [Function x]) Function();
+typedef F8<T>
+    = Function Function(int x1, [core.List<core.int> x2]) Function();
+typedef F9<T>
+    = List<Function> Function({int x}) Function();
+typedef F10<T>
+    = List<Function> Function(core.List<core.int> x) Function();
+typedef F11<T>
+    = core.List<core.int> Function(int x0, [int x]) Function();
+typedef F12<T>
+    = core.List<core.int> Function([List<Function> x1]) Function();
+typedef F13<T>
+    = core.List<core.int> Function({List<T> x}) Function();
+typedef F14<T>
+    = List<T> Function(int y, {Function x}) Function();
+typedef F15<T>
+    = List<T> Function(int x0, [List<T> x]) Function();
+typedef F16<T>
+    = Function(Function x0) Function();
+typedef F17<T>
+    = Function(int x, [core.List<core.int> x2]) Function();
+typedef F18<T>
+    = void Function(int x0, {int x}) Function();
+typedef F19<T>
+    = void Function([core.List<core.int> x]) Function();
+typedef F20<T>
+    = int Function<A>(core.List<core.int> x) Function();
+typedef F21<T>
+    = core.List<core.int> Function<A>(List<T> x) Function();
+typedef F22<T>
+    = A Function<A>() Function();
+typedef F23<T>
+    = B Function(core.List<core.int> x) Function<B extends core.int>();
 
 int f0(List<int> x) => null;
 List<Function> f1(int y, {List<Function> x}) => null;
@@ -73,7 +98,6 @@ int Function<A>(core.List<core.int> x) f20() => null;
 core.List<core.int> Function<A>(List<int> x) f21() => null;
 A Function<A>() f22() => null;
 B Function(core.List<core.int> x) f23<B extends core.int>() => null;
-
 
 class U44<T> {
   final bool tIsBool;
@@ -105,7 +129,6 @@ class U44<T> {
   A Function<A>() Function() x22;
   B Function(core.List<core.int> x) Function<B extends core.int>() x23;
 
-
   U44({this.tIsBool: false, this.tIsInt: false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
@@ -133,7 +156,6 @@ class U44<T> {
   core.List<core.int> Function<A>(List<T> x) m21() => null;
   A Function<A>() m22() => null;
   B Function(core.List<core.int> x) m23<B extends core.int>() => null;
-
 
   runTests() {
     testF0();
@@ -193,11 +215,19 @@ class U44<T> {
       Expect.equals(tIsDynamic, confuse(m0) is F0<bool>);
     } else {
       if (inCheckedMode) {
-        Expect.throws(() { x0 = (f0 as dynamic); });
-        Expect.throws(() { x0 = confuse(f0); });
+        Expect.throws(() {
+          x0 = (f0 as dynamic);
+        });
+        Expect.throws(() {
+          x0 = confuse(f0);
+        });
         int Function(List<T> x) l0;
-        Expect.throws(() { l0 = (f0 as dynamic); });
-        Expect.throws(() { l0 = confuse(f0); });
+        Expect.throws(() {
+          l0 = (f0 as dynamic);
+        });
+        Expect.throws(() {
+          l0 = confuse(f0);
+        });
       }
       int Function(List<T> x) l0 = m0;
       // In checked mode, verifies the type.
@@ -228,7 +258,6 @@ class U44<T> {
     l1 = m1;
     x1 = confuse(m1);
     l1 = confuse(m1);
-
   }
 
   /// List<T> Function(int x0, {Function x})
@@ -262,11 +291,19 @@ class U44<T> {
       Expect.equals(tIsDynamic, confuse(m2) is F2<bool>);
     } else {
       if (inCheckedMode) {
-        Expect.throws(() { x2 = (f2 as dynamic); });
-        Expect.throws(() { x2 = confuse(f2); });
+        Expect.throws(() {
+          x2 = (f2 as dynamic);
+        });
+        Expect.throws(() {
+          x2 = confuse(f2);
+        });
         List<T> Function(int x0, {Function x}) l2;
-        Expect.throws(() { l2 = (f2 as dynamic); });
-        Expect.throws(() { l2 = confuse(f2); });
+        Expect.throws(() {
+          l2 = (f2 as dynamic);
+        });
+        Expect.throws(() {
+          l2 = confuse(f2);
+        });
       }
       List<T> Function(int x0, {Function x}) l2 = m2;
       // In checked mode, verifies the type.
@@ -297,7 +334,6 @@ class U44<T> {
     l3 = m3;
     x3 = confuse(m3);
     l3 = confuse(m3);
-
   }
 
   /// A Function<A>(List<T> x)
@@ -331,11 +367,19 @@ class U44<T> {
       Expect.equals(tIsDynamic, confuse(m4) is F4<bool>);
     } else {
       if (inCheckedMode) {
-        Expect.throws(() { x4 = (f4 as dynamic); });
-        Expect.throws(() { x4 = confuse(f4); });
+        Expect.throws(() {
+          x4 = (f4 as dynamic);
+        });
+        Expect.throws(() {
+          x4 = confuse(f4);
+        });
         A Function<A>(List<T> x) l4;
-        Expect.throws(() { l4 = (f4 as dynamic); });
-        Expect.throws(() { l4 = confuse(f4); });
+        Expect.throws(() {
+          l4 = (f4 as dynamic);
+        });
+        Expect.throws(() {
+          l4 = confuse(f4);
+        });
       }
       A Function<A>(List<T> x) l4 = m4;
       // In checked mode, verifies the type.
@@ -366,7 +410,6 @@ class U44<T> {
     l5 = m5;
     x5 = confuse(m5);
     l5 = confuse(m5);
-
   }
 
   /// int Function([List<T> x]) Function()
@@ -400,11 +443,19 @@ class U44<T> {
       Expect.equals(tIsDynamic, confuse(m6) is F6<bool>);
     } else {
       if (inCheckedMode) {
-        Expect.throws(() { x6 = (f6 as dynamic); });
-        Expect.throws(() { x6 = confuse(f6); });
+        Expect.throws(() {
+          x6 = (f6 as dynamic);
+        });
+        Expect.throws(() {
+          x6 = confuse(f6);
+        });
         int Function([List<T> x]) Function() l6;
-        Expect.throws(() { l6 = (f6 as dynamic); });
-        Expect.throws(() { l6 = confuse(f6); });
+        Expect.throws(() {
+          l6 = (f6 as dynamic);
+        });
+        Expect.throws(() {
+          l6 = confuse(f6);
+        });
       }
       int Function([List<T> x]) Function() l6 = m6;
       // In checked mode, verifies the type.
@@ -435,7 +486,6 @@ class U44<T> {
     l7 = m7;
     x7 = confuse(m7);
     l7 = confuse(m7);
-
   }
 
   /// Function Function(int x1, [core.List<core.int> x2]) Function()
@@ -453,14 +503,14 @@ class U44<T> {
     }
 
     Expect.isTrue(m8 is F8);
-    Expect.isTrue(m8 is Function Function(int x1, [core.List<core.int> x2]) Function());
+    Expect.isTrue(
+        m8 is Function Function(int x1, [core.List<core.int> x2]) Function());
     Expect.isTrue(confuse(m8) is F8);
     // In checked mode, verifies the type.
     x8 = m8;
     l8 = m8;
     x8 = confuse(m8);
     l8 = confuse(m8);
-
   }
 
   /// List<Function> Function({int x}) Function()
@@ -485,7 +535,6 @@ class U44<T> {
     l9 = m9;
     x9 = confuse(m9);
     l9 = confuse(m9);
-
   }
 
   /// List<Function> Function(core.List<core.int> x) Function()
@@ -503,14 +552,14 @@ class U44<T> {
     }
 
     Expect.isTrue(m10 is F10);
-    Expect.isTrue(m10 is List<Function> Function(core.List<core.int> x) Function());
+    Expect.isTrue(
+        m10 is List<Function> Function(core.List<core.int> x) Function());
     Expect.isTrue(confuse(m10) is F10);
     // In checked mode, verifies the type.
     x10 = m10;
     l10 = m10;
     x10 = confuse(m10);
     l10 = confuse(m10);
-
   }
 
   /// core.List<core.int> Function(int x0, [int x]) Function()
@@ -528,14 +577,14 @@ class U44<T> {
     }
 
     Expect.isTrue(m11 is F11);
-    Expect.isTrue(m11 is core.List<core.int> Function(int x0, [int x]) Function());
+    Expect.isTrue(
+        m11 is core.List<core.int> Function(int x0, [int x]) Function());
     Expect.isTrue(confuse(m11) is F11);
     // In checked mode, verifies the type.
     x11 = m11;
     l11 = m11;
     x11 = confuse(m11);
     l11 = confuse(m11);
-
   }
 
   /// core.List<core.int> Function([List<Function> x1]) Function()
@@ -553,14 +602,14 @@ class U44<T> {
     }
 
     Expect.isTrue(m12 is F12);
-    Expect.isTrue(m12 is core.List<core.int> Function([List<Function> x1]) Function());
+    Expect.isTrue(
+        m12 is core.List<core.int> Function([List<Function> x1]) Function());
     Expect.isTrue(confuse(m12) is F12);
     // In checked mode, verifies the type.
     x12 = m12;
     l12 = m12;
     x12 = confuse(m12);
     l12 = confuse(m12);
-
   }
 
   /// core.List<core.int> Function({List<T> x}) Function()
@@ -594,11 +643,19 @@ class U44<T> {
       Expect.equals(tIsDynamic, confuse(m13) is F13<bool>);
     } else {
       if (inCheckedMode) {
-        Expect.throws(() { x13 = (f13 as dynamic); });
-        Expect.throws(() { x13 = confuse(f13); });
+        Expect.throws(() {
+          x13 = (f13 as dynamic);
+        });
+        Expect.throws(() {
+          x13 = confuse(f13);
+        });
         core.List<core.int> Function({List<T> x}) Function() l13;
-        Expect.throws(() { l13 = (f13 as dynamic); });
-        Expect.throws(() { l13 = confuse(f13); });
+        Expect.throws(() {
+          l13 = (f13 as dynamic);
+        });
+        Expect.throws(() {
+          l13 = confuse(f13);
+        });
       }
       core.List<core.int> Function({List<T> x}) Function() l13 = m13;
       // In checked mode, verifies the type.
@@ -638,11 +695,19 @@ class U44<T> {
       Expect.equals(tIsDynamic, confuse(m14) is F14<bool>);
     } else {
       if (inCheckedMode) {
-        Expect.throws(() { x14 = (f14 as dynamic); });
-        Expect.throws(() { x14 = confuse(f14); });
+        Expect.throws(() {
+          x14 = (f14 as dynamic);
+        });
+        Expect.throws(() {
+          x14 = confuse(f14);
+        });
         List<T> Function(int y, {Function x}) Function() l14;
-        Expect.throws(() { l14 = (f14 as dynamic); });
-        Expect.throws(() { l14 = confuse(f14); });
+        Expect.throws(() {
+          l14 = (f14 as dynamic);
+        });
+        Expect.throws(() {
+          l14 = confuse(f14);
+        });
       }
       List<T> Function(int y, {Function x}) Function() l14 = m14;
       // In checked mode, verifies the type.
@@ -682,11 +747,19 @@ class U44<T> {
       Expect.equals(tIsDynamic, confuse(m15) is F15<bool>);
     } else {
       if (inCheckedMode) {
-        Expect.throws(() { x15 = (f15 as dynamic); });
-        Expect.throws(() { x15 = confuse(f15); });
+        Expect.throws(() {
+          x15 = (f15 as dynamic);
+        });
+        Expect.throws(() {
+          x15 = confuse(f15);
+        });
         List<T> Function(int x0, [List<T> x]) Function() l15;
-        Expect.throws(() { l15 = (f15 as dynamic); });
-        Expect.throws(() { l15 = confuse(f15); });
+        Expect.throws(() {
+          l15 = (f15 as dynamic);
+        });
+        Expect.throws(() {
+          l15 = confuse(f15);
+        });
       }
       List<T> Function(int x0, [List<T> x]) Function() l15 = m15;
       // In checked mode, verifies the type.
@@ -717,7 +790,6 @@ class U44<T> {
     l16 = m16;
     x16 = confuse(m16);
     l16 = confuse(m16);
-
   }
 
   /// Function(int x, [core.List<core.int> x2]) Function()
@@ -742,7 +814,6 @@ class U44<T> {
     l17 = m17;
     x17 = confuse(m17);
     l17 = confuse(m17);
-
   }
 
   /// void Function(int x0, {int x}) Function()
@@ -767,7 +838,6 @@ class U44<T> {
     l18 = m18;
     x18 = confuse(m18);
     l18 = confuse(m18);
-
   }
 
   /// void Function([core.List<core.int> x]) Function()
@@ -792,7 +862,6 @@ class U44<T> {
     l19 = m19;
     x19 = confuse(m19);
     l19 = confuse(m19);
-
   }
 
   /// int Function<A>(core.List<core.int> x) Function()
@@ -817,7 +886,6 @@ class U44<T> {
     l20 = m20;
     x20 = confuse(m20);
     l20 = confuse(m20);
-
   }
 
   /// core.List<core.int> Function<A>(List<T> x) Function()
@@ -851,11 +919,19 @@ class U44<T> {
       Expect.equals(tIsDynamic, confuse(m21) is F21<bool>);
     } else {
       if (inCheckedMode) {
-        Expect.throws(() { x21 = (f21 as dynamic); });
-        Expect.throws(() { x21 = confuse(f21); });
+        Expect.throws(() {
+          x21 = (f21 as dynamic);
+        });
+        Expect.throws(() {
+          x21 = confuse(f21);
+        });
         core.List<core.int> Function<A>(List<T> x) Function() l21;
-        Expect.throws(() { l21 = (f21 as dynamic); });
-        Expect.throws(() { l21 = confuse(f21); });
+        Expect.throws(() {
+          l21 = (f21 as dynamic);
+        });
+        Expect.throws(() {
+          l21 = confuse(f21);
+        });
       }
       core.List<core.int> Function<A>(List<T> x) Function() l21 = m21;
       // In checked mode, verifies the type.
@@ -886,7 +962,6 @@ class U44<T> {
     l22 = m22;
     x22 = confuse(m22);
     l22 = confuse(m22);
-
   }
 
   /// B Function(core.List<core.int> x) Function<B extends core.int>()
@@ -904,17 +979,15 @@ class U44<T> {
     }
 
     Expect.isTrue(m23 is F23);
-    Expect.isTrue(m23 is B Function(core.List<core.int> x) Function<B extends core.int>());
+    Expect.isTrue(m23 is B Function(
+        core.List<core.int> x) Function<B extends core.int>());
     Expect.isTrue(confuse(m23) is F23);
     // In checked mode, verifies the type.
     x23 = m23;
     l23 = m23;
     x23 = confuse(m23);
     l23 = confuse(m23);
-
   }
-
-
 }
 
 void main() {
@@ -922,4 +995,3 @@ void main() {
   new U44<int>(tIsInt: true).runTests();
   new U44<bool>(tIsBool: true).runTests();
 }
-    

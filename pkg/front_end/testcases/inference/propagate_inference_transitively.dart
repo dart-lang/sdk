@@ -11,10 +11,10 @@ class A {
 
 test5() {
   var /*@type=A*/ a1 = new A();
-  a1.x = /*error:INVALID_ASSIGNMENT*/ "hi";
+  a1. /*@target=A::x*/ x = /*error:INVALID_ASSIGNMENT*/ "hi";
 
   A a2 = new A();
-  a2.x = /*error:INVALID_ASSIGNMENT*/ "hi";
+  a2. /*@target=A::x*/ x = /*error:INVALID_ASSIGNMENT*/ "hi";
 }
 
 main() {}

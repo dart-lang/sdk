@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
 import 'package:front_end/src/incremental/file_state.dart';
@@ -19,17 +21,124 @@ main() {
 @reflectiveTest
 class FileSystemStateTest {
   final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
-  final TranslateUri uriTranslator = new TranslateUri({}, {});
+  final TranslateUri uriTranslator = new TranslateUri({}, {}, {});
   FileSystemState fsState;
 
   Uri _coreUri;
+  List<Uri> _newFileUris = <Uri>[];
 
   void setUp() {
     Map<String, Uri> dartLibraries = createSdkFiles(fileSystem);
     uriTranslator.dartLibraries.addAll(dartLibraries);
     _coreUri = Uri.parse('dart:core');
     expect(_coreUri, isNotNull);
-    fsState = new FileSystemState(fileSystem, uriTranslator);
+    fsState = new FileSystemState(fileSystem, uriTranslator, <int>[], (uri) {
+      _newFileUris.add(uri);
+      return new Future.value();
+    });
+  }
+
+  test_apiSignature() async {
+    var path = '/a.dart';
+    var uri = writeFile(path, '');
+    FileState file = await fsState.getFile(uri);
+
+    List<int> lastSignature = file.apiSignature;
+
+    /// Assert that the given [newCode] has the same API signature as
+    /// the last computed.
+    Future<Null> assertSameSignature(String newCode) async {
+      writeFile(path, newCode);
+      await file.refresh();
+      List<int> newSignature = file.apiSignature;
+      expect(newSignature, lastSignature);
+    }
+
+    /// Assert that the given [newCode] does not have the same API signature as
+    /// the last computed, and update the last signature to the new one.
+    Future<Null> assertNotSameSignature(String newCode) async {
+      writeFile(path, newCode);
+      await file.refresh();
+      List<int> newSignature = file.apiSignature;
+      expect(newSignature, isNot(lastSignature));
+      lastSignature = newSignature;
+    }
+
+    await assertNotSameSignature('''
+var v = 1;
+foo() {
+  print(2);
+}
+bar() {
+  print(3);
+}
+baz() => 4;
+''');
+
+    // [S] Add comments.
+    await assertSameSignature('''
+var v = 1; // comment
+/// comment 1
+/// comment 2
+foo() {
+  print(2);
+}
+bar() {
+  print(3);
+}
+/**
+ *  Comment
+ */
+baz() => 4;
+''');
+
+    // [S] Remove comments.
+    await assertSameSignature('''
+var v = 1;
+foo() {
+  print(2);
+}
+bar() {
+  print(3);
+}
+baz() => 4;
+''');
+
+    // [NS] Change the top-level variable initializer.
+    await assertNotSameSignature('''
+var v = 11;
+foo() {
+  print(2);
+}
+bar() {
+  print(3);
+}
+baz() => 4;
+''');
+
+    // [S] Change in a block function body.
+    await assertSameSignature('''
+var v = 11;
+foo() {
+  print(22);
+}
+bar() {
+  print(33);
+}
+baz() => 4;
+''');
+
+    // [NS] Change in an expression function body.
+    await assertNotSameSignature('''
+var v = 11;
+foo() {
+  print(22);
+}
+bar() {
+  print(33);
+}
+baz() => 44;
+''');
   }
 
   test_getFile() async {
@@ -125,6 +234,36 @@ export "c.dart" show A, B, C, D hide C show A, D;
       expect(export_.isExposed('C'), isFalse);
       expect(export_.isExposed('D'), isTrue);
     }
+  }
+
+  test_newFileListener() async {
+    var a = writeFile('/a.dart', '');
+    var b = writeFile('/b.dart', '');
+    var c = writeFile(
+        '/c.dart',
+        r'''
+import 'a.dart';
+''');
+
+    FileState cFile = await fsState.getFile(c);
+
+    // c.dart uses c.dart and a.dart, but not b.dart yet.
+    expect(_newFileUris, contains(c));
+    expect(_newFileUris, contains(a));
+    expect(_newFileUris, isNot(contains(b)));
+    _newFileUris.clear();
+
+    // Update c.dart to use b.dart too.
+    writeFile(
+        '/c.dart',
+        r'''
+import 'a.dart';
+import 'b.dart';
+''');
+    await cFile.refresh();
+
+    // b.dart is the only new file.
+    expect(_newFileUris, [b]);
   }
 
   test_topologicalOrder_cycleBeforeTarget() async {

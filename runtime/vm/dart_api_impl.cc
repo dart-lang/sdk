@@ -6,10 +6,11 @@
 #include "include/dart_mirrors_api.h"
 #include "include/dart_native_api.h"
 
-#include "platform/assert.h"
 #include "lib/stacktrace.h"
+#include "platform/assert.h"
 #include "vm/class_finalizer.h"
 #include "vm/clustered_snapshot.h"
+#include "vm/compilation_trace.h"
 #include "vm/compiler.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"
@@ -23,25 +24,25 @@
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
-#include "vm/lockers.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
+#include "vm/lockers.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
-#include "vm/os_thread.h"
 #include "vm/os.h"
+#include "vm/os_thread.h"
 #include "vm/port.h"
 #include "vm/precompiler.h"
 #include "vm/profiler.h"
 #include "vm/program_visitor.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
+#include "vm/service.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
-#include "vm/service.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
@@ -1579,12 +1580,8 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   if (vm_snapshot_data_buffer != NULL && vm_snapshot_data_size == NULL) {
     RETURN_NULL_ERROR(vm_snapshot_data_size);
   }
-  if (isolate_snapshot_data_buffer == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_data_buffer);
-  }
-  if (isolate_snapshot_data_size == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_data_size);
-  }
+  CHECK_NULL(isolate_snapshot_data_buffer);
+  CHECK_NULL(isolate_snapshot_data_size);
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(state)) {
@@ -1600,7 +1597,7 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
 
   Symbols::Compact(I);
 
-  FullSnapshotWriter writer(Snapshot::kCore, vm_snapshot_data_buffer,
+  FullSnapshotWriter writer(Snapshot::kFull, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
                             NULL /* vm_image_writer */,
                             NULL /* isolate_image_writer */);
@@ -1619,12 +1616,8 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
-  if (script_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(script_snapshot_buffer);
-  }
-  if (script_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(script_snapshot_size);
-  }
+  CHECK_NULL(script_snapshot_buffer);
+  CHECK_NULL(script_snapshot_size);
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(state)) {
@@ -3902,7 +3895,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   if (constructor.IsGenerativeConstructor()) {
 #if defined(DEBUG)
     if (!cls.is_allocated() &&
-        (Dart::vm_snapshot_kind() == Snapshot::kAppAOT)) {
+        (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
       return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
     }
 #endif
@@ -3997,7 +3990,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kAppAOT)) {
+  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -4027,7 +4020,7 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kAppAOT)) {
+  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -6497,6 +6490,37 @@ DART_EXPORT void Dart_SetThreadName(const char* name) {
 
 
 DART_EXPORT
+Dart_Handle Dart_SaveCompilationTrace(uint8_t** buffer,
+                                      intptr_t* buffer_length) {
+  API_TIMELINE_DURATION;
+  Thread* thread = Thread::Current();
+  DARTSCOPE(thread);
+  CHECK_NULL(buffer);
+  CHECK_NULL(buffer_length);
+  CompilationTraceSaver saver(thread->zone());
+  ProgramVisitor::VisitFunctions(&saver);
+  saver.StealBuffer(buffer, buffer_length);
+  return Api::Success();
+}
+
+
+DART_EXPORT
+Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length) {
+  Thread* thread = Thread::Current();
+  API_TIMELINE_DURATION;
+  DARTSCOPE(thread);
+  CHECK_NULL(buffer);
+  CompilationTraceLoader loader(thread);
+  const Object& error =
+      Object::Handle(loader.CompileTrace(buffer, buffer_length));
+  if (error.IsError()) {
+    return Api::NewHandle(T, Error::Cast(error).raw());
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT
 Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("No JIT feedback to save on an AOT runtime.");
@@ -6652,7 +6676,7 @@ Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
 #endif
 }
 
-DART_EXPORT void Dart_SortClasses() {
+DART_EXPORT Dart_Handle Dart_SortClasses() {
   DARTSCOPE(Thread::Current());
   // We don't have mechanisms to change class-ids that are embedded in code and
   // ICData.
@@ -6661,6 +6685,7 @@ DART_EXPORT void Dart_SortClasses() {
   // the heap so that they are not found by the heap verifier.
   Isolate::Current()->heap()->CollectAllGarbage();
   ClassFinalizer::SortClasses();
+  return Api::Success();
 }
 
 DART_EXPORT Dart_Handle
@@ -6715,12 +6740,8 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
         "Did you forget to call Dart_Precompile?");
   }
   ASSERT(FLAG_load_deferred_eagerly);
-  if (assembly_buffer == NULL) {
-    RETURN_NULL_ERROR(assembly_buffer);
-  }
-  if (assembly_size == NULL) {
-    RETURN_NULL_ERROR(assembly_size);
-  }
+  CHECK_NULL(assembly_buffer);
+  CHECK_NULL(assembly_size);
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppAOTSnapshot"));
@@ -6728,7 +6749,7 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
                                    2 * MB /* initial_size */);
   uint8_t* vm_snapshot_data_buffer = NULL;
   uint8_t* isolate_snapshot_data_buffer = NULL;
-  FullSnapshotWriter writer(Snapshot::kAppAOT, &vm_snapshot_data_buffer,
+  FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, ApiReallocate,
                             &image_writer, &image_writer);
 
@@ -6770,30 +6791,14 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
         "Did you forget to call Dart_Precompile?");
   }
   ASSERT(FLAG_load_deferred_eagerly);
-  if (vm_snapshot_data_buffer == NULL) {
-    RETURN_NULL_ERROR(vm_snapshot_data_buffer);
-  }
-  if (vm_snapshot_data_size == NULL) {
-    RETURN_NULL_ERROR(vm_snapshot_data_size);
-  }
-  if (vm_snapshot_instructions_buffer == NULL) {
-    RETURN_NULL_ERROR(vm_snapshot_instructions_buffer);
-  }
-  if (vm_snapshot_instructions_size == NULL) {
-    RETURN_NULL_ERROR(vm_snapshot_instructions_size);
-  }
-  if (isolate_snapshot_data_buffer == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_data_buffer);
-  }
-  if (isolate_snapshot_data_size == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_data_size);
-  }
-  if (isolate_snapshot_instructions_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_snapshot_blob_buffer);
-  }
-  if (isolate_snapshot_instructions_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_snapshot_blob_size);
-  }
+  CHECK_NULL(vm_snapshot_data_buffer);
+  CHECK_NULL(vm_snapshot_data_size);
+  CHECK_NULL(vm_snapshot_instructions_buffer);
+  CHECK_NULL(vm_snapshot_instructions_size);
+  CHECK_NULL(isolate_snapshot_data_buffer);
+  CHECK_NULL(isolate_snapshot_data_size);
+  CHECK_NULL(isolate_snapshot_instructions_buffer);
+  CHECK_NULL(isolate_snapshot_instructions_size);
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppAOTSnapshot"));
@@ -6802,11 +6807,75 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
   BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
                                        ApiReallocate,
                                        2 * MB /* initial_size */);
-  FullSnapshotWriter writer(Snapshot::kAppAOT, vm_snapshot_data_buffer,
+  FullSnapshotWriter writer(Snapshot::kFullAOT, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
 
   writer.WriteFullSnapshot();
+  *vm_snapshot_data_size = writer.VmIsolateSnapshotSize();
+  *vm_snapshot_instructions_size = vm_image_writer.InstructionsBlobSize();
+  *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
+  *isolate_snapshot_instructions_size =
+      isolate_image_writer.InstructionsBlobSize();
+
+  return Api::Success();
+#endif
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
+    uint8_t** vm_snapshot_data_buffer,
+    intptr_t* vm_snapshot_data_size,
+    uint8_t** vm_snapshot_instructions_buffer,
+    intptr_t* vm_snapshot_instructions_size,
+    uint8_t** isolate_snapshot_data_buffer,
+    intptr_t* isolate_snapshot_data_size,
+    uint8_t** isolate_snapshot_instructions_buffer,
+    intptr_t* isolate_snapshot_instructions_size) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("Snapshots with code are not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("Snapshots with code are not supported on DBC.");
+#elif defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("JIT app snapshots cannot be taken from an AOT runtime");
+#else
+  API_TIMELINE_DURATION;
+  DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
+  if (!FLAG_load_deferred_eagerly) {
+    return Api::NewError(
+        "Creating full snapshots requires --load_deferred_eagerly");
+  }
+  CHECK_NULL(vm_snapshot_data_buffer);
+  CHECK_NULL(vm_snapshot_data_size);
+  CHECK_NULL(vm_snapshot_instructions_buffer);
+  CHECK_NULL(vm_snapshot_instructions_size);
+  CHECK_NULL(isolate_snapshot_data_buffer);
+  CHECK_NULL(isolate_snapshot_data_size);
+  CHECK_NULL(isolate_snapshot_instructions_buffer);
+  CHECK_NULL(isolate_snapshot_instructions_size);
+  // Finalize all classes if needed.
+  Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
+  I->StopBackgroundCompiler();
+
+  ProgramVisitor::Dedup();
+  Symbols::Compact(I);
+
+  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
+                                            "WriteCoreJITSnapshot"));
+  BlobImageWriter vm_image_writer(vm_snapshot_instructions_buffer,
+                                  ApiReallocate, 2 * MB /* initial_size */);
+  BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
+                                       ApiReallocate,
+                                       2 * MB /* initial_size */);
+  FullSnapshotWriter writer(Snapshot::kFullJIT, vm_snapshot_data_buffer,
+                            isolate_snapshot_data_buffer, ApiReallocate,
+                            &vm_image_writer, &isolate_image_writer);
+  writer.WriteFullSnapshot();
+
   *vm_snapshot_data_size = writer.VmIsolateSnapshotSize();
   *vm_snapshot_instructions_size = vm_image_writer.InstructionsBlobSize();
   *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
@@ -6837,18 +6906,10 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
     return Api::NewError(
         "Creating full snapshots requires --load_deferred_eagerly");
   }
-  if (isolate_snapshot_data_buffer == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_data_buffer);
-  }
-  if (isolate_snapshot_data_size == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_data_size);
-  }
-  if (isolate_snapshot_instructions_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_snapshot_blob_buffer);
-  }
-  if (isolate_snapshot_instructions_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_snapshot_blob_size);
-  }
+  CHECK_NULL(isolate_snapshot_data_buffer);
+  CHECK_NULL(isolate_snapshot_data_size);
+  CHECK_NULL(isolate_snapshot_instructions_buffer);
+  CHECK_NULL(isolate_snapshot_instructions_size);
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(state)) {
@@ -6864,7 +6925,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
                                        ApiReallocate,
                                        2 * MB /* initial_size */);
-  FullSnapshotWriter writer(Snapshot::kAppJIT, NULL,
+  FullSnapshotWriter writer(Snapshot::kFullJIT, NULL,
                             isolate_snapshot_data_buffer, ApiReallocate, NULL,
                             &isolate_image_writer);
   writer.WriteFullSnapshot();

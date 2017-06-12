@@ -5,10 +5,10 @@
 library kernel.transformation.generic_types_reification;
 
 import '../ast.dart' show Program;
-
+import '../core_types.dart' show CoreTypes;
 import '../transformations/reify/reify_transformer.dart' as reify
     show transformProgram;
 
-Program transformProgram(Program program) {
-  return reify.transformProgram(program);
+Program transformProgram(CoreTypes coreTypes, Program program) {
+  return reify.transformProgram(coreTypes, program);
 }

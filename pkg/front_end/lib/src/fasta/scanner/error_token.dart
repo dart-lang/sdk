@@ -4,7 +4,7 @@
 
 library dart_scanner.error_token;
 
-import '../../scanner/token.dart' show TokenType, TokenWithComment;
+import '../../scanner/token.dart' show BeginToken, TokenType, TokenWithComment;
 
 import '../fasta_codes.dart'
     show
@@ -21,8 +21,7 @@ import '../fasta_codes.dart'
         codeUnterminatedString,
         codeUnterminatedToken;
 
-import '../scanner.dart'
-    show BeginGroupToken, Token, unicodeReplacementCharacter;
+import '../scanner.dart' show Token, unicodeReplacementCharacter;
 
 ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
   if (character < 0x1f) {
@@ -86,7 +85,7 @@ abstract class ErrorToken extends TokenWithComment {
 
   int get endOffset => null;
 
-  BeginGroupToken get begin => null;
+  BeginToken get begin => null;
 
   @override
   Token copy() {
@@ -211,9 +210,9 @@ class UnterminatedToken extends ErrorToken {
 /// In this case, brace means any of `(`, `{`, `[`, and `<`, parenthesis, curly
 /// brace, square brace, and angle brace, respectively.
 class UnmatchedToken extends ErrorToken {
-  final BeginGroupToken begin;
+  final BeginToken begin;
 
-  UnmatchedToken(BeginGroupToken begin)
+  UnmatchedToken(BeginToken begin)
       : this.begin = begin,
         super(begin.charOffset);
 

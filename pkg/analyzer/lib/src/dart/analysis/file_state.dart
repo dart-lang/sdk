@@ -64,6 +64,11 @@ class FileContentOverlay {
       _map[path] = content;
     }
   }
+
+  /**
+   * Return the paths currently being overridden.
+   */
+  Iterable<String> get paths => _map.keys;
 }
 
 /**
@@ -376,13 +381,24 @@ class FileState {
    * Return a new parsed unresolved [CompilationUnit].
    */
   CompilationUnit parse(AnalysisErrorListener errorListener) {
+    return PerformanceStatistics.parse.makeCurrentWhile(() {
+      return _parse(errorListener);
+    });
+  }
+
+  CompilationUnit _parse(AnalysisErrorListener errorListener) {
     AnalysisOptions analysisOptions = _fsState._analysisOptions;
 
     if (USE_FASTA_PARSER) {
       try {
-        fasta.ScannerResult scanResult = fasta.scan(_contentBytes,
+        fasta.ScannerResult scanResult =
+            PerformanceStatistics.scan.makeCurrentWhile(() {
+          return fasta.scan(
+            _contentBytes,
             includeComments: true,
-            scanGenericMethodComments: analysisOptions.strongMode);
+            scanGenericMethodComments: analysisOptions.strongMode,
+          );
+        });
 
         var astBuilder = new fasta.AstBuilder(
             new ErrorReporter(errorListener, source),
@@ -390,6 +406,7 @@ class FileState {
             null,
             new _FastaElementStoreProxy(),
             new fasta.Scope.top(isModifiable: true),
+            true,
             uri);
         astBuilder.parseGenericMethodComments = analysisOptions.strongMode;
 
@@ -410,7 +427,9 @@ class FileState {
       CharSequenceReader reader = new CharSequenceReader(content);
       Scanner scanner = new Scanner(source, reader, errorListener);
       scanner.scanGenericMethodComments = analysisOptions.strongMode;
-      Token token = scanner.tokenize();
+      Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
+        return scanner.tokenize();
+      });
       LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
       Parser parser = new Parser(source, errorListener);

@@ -11,7 +11,7 @@ class DeltaBlue extends core::Object {
 class Strength extends core::Object {
   final field core::int value;
   final field core::String name;
-  const constructor •(dynamic value, dynamic name) → void
+  const constructor •(core::int value, core::String name) → void
     ;
   method nextWeaker() → self::Strength
     ;
@@ -26,7 +26,7 @@ class Strength extends core::Object {
 }
 abstract class Constraint extends core::Object {
   final field self::Strength strength;
-  const constructor •(dynamic strength) → void
+  const constructor •(self::Strength strength) → void
     ;
   abstract method isSatisfied() → core::bool;
   abstract method markUnsatisfied() → void;
@@ -50,7 +50,7 @@ abstract class Constraint extends core::Object {
 abstract class UnaryConstraint extends self::Constraint {
   final field self::Variable myOutput;
   field core::bool satisfied;
-  constructor •(dynamic myOutput, self::Strength strength) → void
+  constructor •(self::Variable myOutput, self::Strength strength) → void
     ;
   method addToGraph() → void
     ;
@@ -89,7 +89,7 @@ abstract class BinaryConstraint extends self::Constraint {
   field self::Variable v1;
   field self::Variable v2;
   field core::int direction;
-  constructor •(dynamic v1, dynamic v2, self::Strength strength) → void
+  constructor •(self::Variable v1, self::Variable v2, self::Strength strength) → void
     ;
   method chooseMethod(core::int mark) → void
     ;
@@ -115,7 +115,7 @@ abstract class BinaryConstraint extends self::Constraint {
 class ScaleConstraint extends self::BinaryConstraint {
   final field self::Variable scale;
   final field self::Variable offset;
-  constructor •(self::Variable src, dynamic scale, dynamic offset, self::Variable dest, self::Strength strength) → void
+  constructor •(self::Variable src, self::Variable scale, self::Variable offset, self::Variable dest, self::Strength strength) → void
     ;
   method addToGraph() → void
     ;
@@ -142,7 +142,7 @@ class Variable extends core::Object {
   field core::bool stay;
   field core::int value;
   final field core::String name;
-  constructor •(dynamic name, dynamic value) → void
+  constructor •(core::String name, core::int value) → void
     ;
   method addConstraint(self::Constraint c) → void
     ;

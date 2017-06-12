@@ -138,8 +138,10 @@ class ModelEmitter {
   }
 
   js.Expression generateStaticClosureAccess(MethodElement element) {
-    return js.js('#.#()',
-        [namer.globalObjectFor(element), namer.staticClosureName(element)]);
+    return js.js('#.#()', [
+      namer.globalObjectForMember(element),
+      namer.staticClosureName(element)
+    ]);
   }
 
   js.Expression generateConstantReference(ConstantValue value) {

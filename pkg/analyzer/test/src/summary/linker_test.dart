@@ -351,6 +351,34 @@ var y = C.x;
         '(D) → dynamic');
   }
 
+  void test_inferredType_implicitFunctionTypeIndices() {
+    var bundle = createPackageBundle(
+        '''
+class A {
+  void foo(void bar(int arg)) {}
+}
+class B extends A {
+  void foo(bar) {}
+}
+''',
+        path: '/a.dart');
+    addBundle('/a.ds', bundle);
+    createLinker('''
+import 'a.dart';
+class C extends B {
+  void foo(bar) {}
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    ClassElementForLink_Class cls = library.getContainedName('C');
+    expect(cls.methods, hasLength(1));
+    MethodElementForLink foo = cls.methods[0];
+    expect(foo.parameters, hasLength(1));
+    FunctionType barType = foo.parameters[0].type;
+    expect(barType.parameters[0].type.toString(), 'int');
+  }
+
   void test_inferredType_instanceField_conditional_genericFunctions() {
     createLinker('''
 class C {
@@ -428,6 +456,32 @@ class C extends B {
     ClassElementForLink_Class cls = library.getContainedName('C');
     expect(cls.methods, hasLength(1));
     expect(cls.methods[0].returnType.toString(), 'void');
+  }
+
+  void test_inferredType_parameter_genericFunctionType() {
+    var bundle = createPackageBundle(
+        '''
+class A<T> {
+  A<R> map<R>(R Function(T) f) => null;
+}
+''',
+        path: '/a.dart');
+    addBundle('/a.ds', bundle);
+    createLinker('''
+import 'a.dart';
+class C extends A<int> {
+  map<R2>(f) => null;
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    ClassElementForLink_Class c = library.getContainedName('C');
+    expect(c.methods, hasLength(1));
+    MethodElementForLink map = c.methods[0];
+    expect(map.parameters, hasLength(1));
+    FunctionType fType = map.parameters[0].type;
+    expect(fType.returnType.toString(), 'R2');
+    expect(fType.parameters[0].type.toString(), 'int');
   }
 
   void test_inferredType_staticField_dynamic() {

@@ -10,11 +10,13 @@ import 'dart:io' show File;
 
 import 'dart:convert' show JSON;
 
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
+
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     show ValidatingInstrumentation;
 
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
+import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
+    show computeDartVm, computePatchedSdk;
 
 import 'package:kernel/ast.dart' show Program;
 
@@ -27,6 +29,8 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription,
         StdioProcess;
+
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/errors.dart' show InputError;
 
@@ -45,6 +49,10 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:kernel/kernel.dart' show loadProgramFromBytes;
+
+import 'package:kernel/target/targets.dart' show TargetFlags;
+
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
@@ -141,8 +149,8 @@ class FastaContext extends ChainContext {
     Uri sdk = await computePatchedSdk();
     Uri vm = computeDartVm(sdk);
     Uri packages = Uri.base.resolve(".packages");
-    TranslateUri uriTranslator =
-        await TranslateUri.parse(PhysicalFileSystem.instance, packages);
+    TranslateUri uriTranslator = await TranslateUri
+        .parse(PhysicalFileSystem.instance, sdk, packages: packages);
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
@@ -172,10 +180,12 @@ class Run extends Step<Uri, int, FastaContext> {
   bool get isRuntime => true;
 
   Future<Result<int>> run(Uri uri, FastaContext context) async {
+    if (context.platformUri == null) {
+      throw "Executed `Run` step before initializing the context.";
+    }
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      await context.ensurePlatformUris();
       var platformDill = context.platformUri.toFilePath();
       var args = ['--platform=$platformDill', generated.path, "Hello, World!"];
       process = await StdioProcess.run(context.vm.toFilePath(), args);
@@ -207,15 +217,25 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   Future<Result<Program>> run(
       TestDescription description, FastaContext context) async {
+    // Disable colors to ensure that expectation files are the same across
+    // platforms and independent of stdin/stderr.
+    CompilerContext.current.disableColors();
     Program platformOutline = await context.loadPlatformOutline();
     Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator, "vm");
+    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
+        new VmFastaTarget(new TargetFlags(strongMode: strongMode)));
     platformOutline.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platformOutline);
+    // We create a new URI translator to avoid reading plaform libraries from
+    // file system.
+    TranslateUri uriTranslator = new TranslateUri(
+        context.uriTranslator.packages,
+        const <String, Uri>{},
+        const <String, List<Uri>>{});
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
-        ? new AnalyzerTarget(dillTarget, context.uriTranslator, strongMode)
-        : new KernelTarget(PhysicalFileSystem.instance, dillTarget,
-            context.uriTranslator, strongMode);
+        ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
+        : new KernelTarget(
+            PhysicalFileSystem.instance, dillTarget, uriTranslator);
 
     Program p;
     try {
@@ -233,7 +253,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
         instrumentation?.finish();
         if (instrumentation != null && instrumentation.hasProblems) {
           if (updateComments) {
-            await instrumentation.fixSource(description.uri);
+            await instrumentation.fixSource(description.uri, false);
           } else {
             return fail(null, instrumentation.problemsAsString);
           }

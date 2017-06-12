@@ -829,8 +829,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/getter_setter_in_lib_test',
   'language/getters_setters2_test_02_multi',
   'language/getters_setters2_test_03_multi',
-  'language/hidden_import_test_01_multi',
-  'language/hidden_import_test_02_multi',
   'language/identical_const_test_01_multi',
   'language/identical_const_test_02_multi',
   'language/identical_const_test_03_multi',

@@ -1,0 +1,37 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method foo([core::List<core::String> list1 = const <core::String>[], core::List<core::String> list2 = const <core::String>[42]]) → void {}
+static method main() → void {
+  {
+    core::List<core::int> l0 = <core::int>[];
+    core::List<core::int> l1 = <core::int>[3];
+    core::List<core::int> l2 = <core::int>["hello"];
+    core::List<core::int> l3 = <core::int>["hello", 3];
+  }
+  {
+    core::List<dynamic> l0 = <dynamic>[];
+    core::List<dynamic> l1 = <dynamic>[3];
+    core::List<dynamic> l2 = <dynamic>["hello"];
+    core::List<dynamic> l3 = <dynamic>["hello", 3];
+  }
+  {
+    core::List<core::int> l0 = <core::num>[];
+    core::List<core::int> l1 = <core::num>[3];
+    core::List<core::int> l2 = <core::num>["hello"];
+    core::List<core::int> l3 = <core::num>["hello", 3];
+  }
+  {
+    core::Iterable<core::int> i0 = <core::int>[];
+    core::Iterable<core::int> i1 = <core::int>[3];
+    core::Iterable<core::int> i2 = <core::int>["hello"];
+    core::Iterable<core::int> i3 = <core::int>["hello", 3];
+  }
+  {
+    const core::List<core::int> c0 = const <core::int>[];
+    const core::List<core::int> c1 = const <core::int>[3];
+    const core::List<core::int> c2 = const <core::int>["hello"];
+    const core::List<core::int> c3 = const <core::int>["hello", 3];
+  }
+}

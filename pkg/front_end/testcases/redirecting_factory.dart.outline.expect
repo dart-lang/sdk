@@ -5,17 +5,17 @@ import "dart:core" as core;
 abstract class FooBase<Tf extends core::Object> extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::FooBase::•];
   abstract get x() → core::int;
-  static factory •<Tf extends core::Object>(core::int x) → dynamic
+  static factory •<Tf extends core::Object>(core::int x) → self::FooBase<self::FooBase::•::Tf>
     let final dynamic #t1 = self::Foo::• in invalid-expression;
 }
 abstract class Foo<T extends core::Object> extends core::Object implements self::FooBase<dynamic> {
   static field dynamic _redirecting# = <dynamic>[self::Foo::•];
-  static factory •<T extends core::Object>(core::int x) → dynamic
+  static factory •<T extends core::Object>(core::int x) → self::Foo<self::Foo::•::T>
     let final dynamic #t2 = self::Bar::• in invalid-expression;
 }
 class Bar<Sb extends core::Object, Tb extends core::Object> extends core::Object implements self::Foo<self::Bar::Tb> {
   field core::int x;
-  constructor •(dynamic x) → void
+  constructor •(core::int x) → void
     ;
 }
 class Builder<X extends core::Object> extends core::Object {
@@ -26,12 +26,12 @@ class Builder<X extends core::Object> extends core::Object {
 }
 class SimpleCase<A extends core::Object, B extends core::Object> extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::SimpleCase::•];
-  static factory •<A extends core::Object, B extends core::Object>() → dynamic
+  static factory •<A extends core::Object, B extends core::Object>() → self::SimpleCase<self::SimpleCase::•::A, self::SimpleCase::•::B>
     let final dynamic #t3 = self::SimpleCaseImpl::• in invalid-expression;
 }
 class SimpleCaseImpl<Ai extends core::Object, Bi extends core::Object> extends core::Object implements self::SimpleCase<self::SimpleCaseImpl::Ai, self::SimpleCaseImpl::Bi> {
   static field dynamic _redirecting# = <dynamic>[self::SimpleCaseImpl::•];
-  static factory •<Ai extends core::Object, Bi extends core::Object>() → dynamic
+  static factory •<Ai extends core::Object, Bi extends core::Object>() → self::SimpleCaseImpl<self::SimpleCaseImpl::•::Ai, self::SimpleCaseImpl::•::Bi>
     let final dynamic #t4 = self::SimpleCaseImpl2::• in invalid-expression;
 }
 class SimpleCaseImpl2<Ai2 extends core::Object, Bi2 extends core::Object> extends core::Object implements self::SimpleCaseImpl<self::SimpleCaseImpl2::Ai2, self::SimpleCaseImpl2::Bi2> {

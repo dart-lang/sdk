@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -16,11 +18,15 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DartChangeBuilder extends ChangeBuilder {
+abstract class DartChangeBuilder implements ChangeBuilder {
   /**
    * Initialize a newly created change builder.
    */
   factory DartChangeBuilder(AnalysisDriver driver) = DartChangeBuilderImpl;
+
+  @override
+  Future<Null> addFileEdit(String path, int fileStamp,
+      void buildFileEdit(DartFileEditBuilder builder));
 }
 
 /**
@@ -28,7 +34,11 @@ abstract class DartChangeBuilder extends ChangeBuilder {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DartEditBuilder extends EditBuilder {
+abstract class DartEditBuilder implements EditBuilder {
+  @override
+  void addLinkedEdit(
+      String groupName, void buildLinkedEdit(DartLinkedEditBuilder builder));
+
   /**
    * Write the code for a declaration of a class with the given [name]. If a
    * list of [interfaces] is provided, then the class will implement those
@@ -176,8 +186,13 @@ abstract class DartEditBuilder extends EditBuilder {
   /**
    * Write the code for a list of [parameters], including the surrounding
    * parentheses.
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
    */
-  void writeParameters(Iterable<ParameterElement> parameters);
+  void writeParameters(Iterable<ParameterElement> parameters,
+      {ExecutableElement methodBeingCopied});
 
   /**
    * Write the code for a list of parameters that would match the given list of
@@ -188,8 +203,13 @@ abstract class DartEditBuilder extends EditBuilder {
   /**
    * Write the code for a single parameter with the given [type] and [name].
    * The [type] can be `null` if no type is to be specified for the parameter.
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
    */
-  void writeParameterSource(DartType type, String name);
+  void writeParameterSource(DartType type, String name,
+      {ExecutableElement methodBeingCopied});
 
   /**
    * Write the code for a type annotation for the given [type]. If the [type] is
@@ -202,10 +222,15 @@ abstract class DartEditBuilder extends EditBuilder {
    * name. If the [groupName] is not `null` and [addSupertypeProposals] is
    * `true`, then all of the supertypes of the [type] will be added as
    * suggestions for alternatives to the type name.
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
    */
   bool writeType(DartType type,
       {bool addSupertypeProposals: false,
       String groupName,
+      ExecutableElement methodBeingCopied,
       bool required: false});
 
   /**
@@ -226,7 +251,14 @@ abstract class DartEditBuilder extends EditBuilder {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DartFileEditBuilder extends FileEditBuilder {
+abstract class DartFileEditBuilder implements FileEditBuilder {
+  @override
+  void addInsertion(int offset, void buildEdit(DartEditBuilder builder));
+
+  @override
+  void addReplacement(
+      SourceRange range, void buildEdit(DartEditBuilder builder));
+
   /**
    * Create one or more edits that will convert the given function [body] from
    * being synchronous to be asynchronous. This includes adding the `async`
@@ -262,7 +294,7 @@ abstract class DartFileEditBuilder extends FileEditBuilder {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DartLinkedEditBuilder extends LinkedEditBuilder {
+abstract class DartLinkedEditBuilder implements LinkedEditBuilder {
   /**
    * Add the given [type] and all of its supertypes (other than mixins) as
    * suggestions for the current linked edit group.

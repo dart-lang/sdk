@@ -10,7 +10,7 @@ import 'dart:collection' show Queue;
 
 import 'builder/builder.dart' show Builder, LibraryBuilder;
 
-import 'errors.dart' show InputError, firstSourceUri;
+import 'errors.dart' show InputError, firstSourceUri, printUnexpected;
 
 import 'target_implementation.dart' show TargetImplementation;
 
@@ -24,6 +24,8 @@ abstract class Loader<L> {
   final List<L> libraries = <L>[];
 
   final TargetImplementation target;
+
+  final List<InputError> errors = <InputError>[];
 
   LibraryBuilder coreLibrary;
 
@@ -43,7 +45,13 @@ abstract class Loader<L> {
   ///
   /// Canonical URIs have schemes like "dart", or "package", and the actual
   /// location is often a file URI.
-  LibraryBuilder read(Uri uri, [Uri fileUri]) {
+  ///
+  /// The [accessor] is the library that's trying to import, export, or include
+  /// as part [uri], and [charOffset] is the location of the corresponding
+  /// directive. If [accessor] isn't allowed to access [uri], it's a
+  /// compile-time error.
+  LibraryBuilder read(Uri uri, int charOffset,
+      {Uri fileUri, LibraryBuilder accessor, bool isPatch: false}) {
     firstSourceUri ??= uri;
     LibraryBuilder builder = builders.putIfAbsent(uri, () {
       if (fileUri == null) {
@@ -58,10 +66,14 @@ abstract class Loader<L> {
             break;
         }
       }
-      LibraryBuilder library = target.createLibraryBuilder(uri, fileUri);
+      LibraryBuilder library =
+          target.createLibraryBuilder(uri, fileUri, isPatch);
       if (uri.scheme == "dart" && uri.path == "core") {
         coreLibrary = library;
         target.loadExtraRequiredLibraries(this);
+      }
+      if (uri.scheme == "dart") {
+        target.readPatchFiles(library);
       }
       first ??= library;
       if (library.loader == this) {
@@ -69,12 +81,20 @@ abstract class Loader<L> {
       }
       return library;
     });
+    if (accessor != null &&
+        uri.scheme == "dart" &&
+        uri.path.startsWith("_") &&
+        accessor.uri.scheme != "dart") {
+      const String message = "Can't access platform private library.";
+      printUnexpected(accessor.fileUri, charOffset, message);
+      errors.add(new InputError(accessor.fileUri, charOffset, message));
+    }
     return builder;
   }
 
   void ensureCoreLibrary() {
     if (coreLibrary == null) {
-      read(Uri.parse("dart:core"));
+      read(Uri.parse("dart:core"), -1);
       assert(coreLibrary != null);
     }
   }
@@ -127,7 +147,7 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   Future<Null> buildBody(covariant LibraryBuilder library);
 
   List<InputError> collectCompileTimeErrors() {
-    List<InputError> errors = <InputError>[];
+    List<InputError> errors = <InputError>[]..addAll(this.errors);
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
         errors.addAll(library.compileTimeErrors);
@@ -136,13 +156,19 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
     return errors;
   }
 
-  Builder getCompileTimeError() => target.getCompileTimeError(this);
-
-  Builder getNativeAnnotation() => target.getNativeAnnotation(this);
-
   Builder getAbstractClassInstantiationError() {
     return target.getAbstractClassInstantiationError(this);
   }
+
+  Builder getCompileTimeError() => target.getCompileTimeError(this);
+
+  Builder getDuplicatedFieldInitializerError() {
+    return target.getDuplicatedFieldInitializerError(this);
+  }
+
+  Builder getFallThroughError() => target.getFallThroughError(this);
+
+  Builder getNativeAnnotation() => target.getNativeAnnotation(this);
 }
 
 String format(double d, int fractionDigits, int width) {

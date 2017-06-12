@@ -25,7 +25,6 @@ import '../enqueue.dart';
 import '../frontend_strategy.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
-import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/mirrors_analysis.dart';
 import '../js_backend/mirrors_data.dart';
@@ -46,13 +45,23 @@ import 'no_such_method_resolver.dart';
 
 /// [FrontendStrategy] that loads '.dart' files and creates a resolved element
 /// model using the resolver.
-class ResolutionFrontEndStrategy implements FrontEndStrategy {
+class ResolutionFrontEndStrategy implements FrontendStrategy {
   final Compiler _compiler;
   final ElementEnvironment elementEnvironment;
+  final CommonElements commonElements;
+
   AnnotationProcessor _annotationProcessor;
 
-  ResolutionFrontEndStrategy(this._compiler)
-      : elementEnvironment = new _CompilerElementEnvironment(_compiler);
+  factory ResolutionFrontEndStrategy(Compiler compiler) {
+    ElementEnvironment elementEnvironment =
+        new _CompilerElementEnvironment(compiler);
+    CommonElements commonElements = new CommonElements(elementEnvironment);
+    return new ResolutionFrontEndStrategy.internal(
+        compiler, elementEnvironment, commonElements);
+  }
+
+  ResolutionFrontEndStrategy.internal(
+      this._compiler, this.elementEnvironment, this.commonElements);
 
   DartTypes get dartTypes => _compiler.types;
 
@@ -93,17 +102,6 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
 
   NoSuchMethodResolver createNoSuchMethodResolver() =>
       new ResolutionNoSuchMethodResolver();
-
-  CustomElementsResolutionAnalysis createCustomElementsResolutionAnalysis(
-      NativeBasicData nativeBasicData,
-      BackendUsageBuilder backendUsageBuilder) {
-    return new CustomElementsResolutionAnalysis(
-        _compiler.resolution,
-        _compiler.backend.constantSystem,
-        _compiler.commonElements,
-        nativeBasicData,
-        backendUsageBuilder);
-  }
 
   MirrorsDataBuilder createMirrorsDataBuilder() {
     return new MirrorsDataImpl(
@@ -159,7 +157,7 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
         errorElement = new ErroneousElementX(MessageKind.MISSING_MAIN,
             {'main': Identifiers.main}, Identifiers.main, mainApp);
       }
-      mainFunction = _compiler.backend.helperForMissingMain();
+      mainFunction = commonElements.missingMain;
     } else if (main.isError && main.isSynthesized) {
       if (main is ErroneousElement) {
         errorElement = main;
@@ -167,11 +165,11 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
         _compiler.reporter
             .internalError(main, 'Problem with ${Identifiers.main}.');
       }
-      mainFunction = _compiler.backend.helperForBadMain();
+      mainFunction = commonElements.badMain;
     } else if (!main.isFunction) {
       errorElement = new ErroneousElementX(MessageKind.MAIN_NOT_A_FUNCTION,
           {'main': Identifiers.main}, Identifiers.main, main);
-      mainFunction = _compiler.backend.helperForBadMain();
+      mainFunction = commonElements.badMain;
     } else {
       mainFunction = main;
       mainFunction.computeType(_compiler.resolution);
@@ -189,7 +187,7 @@ class ResolutionFrontEndStrategy implements FrontEndStrategy {
           impactBuilder.registerStaticUse(
               new StaticUse.staticInvoke(mainFunction, CallStructure.NO_ARGS));
 
-          mainFunction = _compiler.backend.helperForMainArity();
+          mainFunction = commonElements.mainHasTooManyParameters;
         });
       }
     }
@@ -390,6 +388,9 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   Iterable<LibraryEntity> get libraries => _compiler.libraryLoader.libraries;
 
   @override
+  String getLibraryName(LibraryElement library) => library.libraryName;
+
+  @override
   ResolutionInterfaceType getThisType(ClassElement cls) {
     cls.ensureResolved(_resolution);
     return cls.thisType;
@@ -404,6 +405,11 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   @override
   bool isGenericClass(ClassEntity cls) {
     return getThisType(cls).typeArguments.isNotEmpty;
+  }
+
+  @override
+  bool isUnnamedMixinApplication(ClassElement cls) {
+    return cls.isUnnamedMixinApplication;
   }
 
   @override
@@ -599,6 +605,9 @@ class _CompilerElementEnvironment implements ElementEnvironment {
 
   @override
   ResolutionFunctionType getFunctionType(MethodElement method) {
+    if (method is ConstructorBodyElement) {
+      return method.constructor.type;
+    }
     method.computeType(_resolution);
     return method.type;
   }

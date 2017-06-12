@@ -6,7 +6,7 @@ library dart2js.selector;
 
 import '../common.dart';
 import '../common/names.dart' show Names;
-import '../elements/elements.dart' show Element, Elements, FunctionSignature;
+import '../elements/elements.dart' show Elements;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/operators.dart';
@@ -112,30 +112,22 @@ class Selector {
     return result;
   }
 
-  factory Selector.fromElement(Element element) {
-    Name name = new Name(element.name, element.library);
+  factory Selector.fromElement(MemberEntity element) {
+    Name name = element.memberName;
     if (element.isFunction) {
+      FunctionEntity function = element;
       if (name == Names.INDEX_NAME) {
         return new Selector.index();
       } else if (name == Names.INDEX_SET_NAME) {
         return new Selector.indexSet();
       }
-      FunctionSignature signature =
-          element.asFunctionElement().functionSignature;
-      int arity = signature.parameterCount;
-      List<String> namedArguments = null;
-      if (signature.optionalParametersAreNamed) {
-        namedArguments =
-            signature.orderedOptionalParameters.map((e) => e.name).toList();
-      }
-      if (element.isOperator) {
+      CallStructure callStructure = function.parameterStructure.callStructure;
+      if (isOperatorName(element.name)) {
         // Operators cannot have named arguments, however, that doesn't prevent
         // a user from declaring such an operator.
-        return new Selector(SelectorKind.OPERATOR, name,
-            new CallStructure(arity, namedArguments));
+        return new Selector(SelectorKind.OPERATOR, name, callStructure);
       } else {
-        return new Selector.call(
-            name, new CallStructure(arity, namedArguments));
+        return new Selector.call(name, callStructure);
       }
     } else if (element.isSetter) {
       return new Selector.setter(name);

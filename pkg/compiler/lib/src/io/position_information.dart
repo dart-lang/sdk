@@ -9,7 +9,7 @@ library dart2js.source_information.position;
 
 import '../common.dart';
 import '../elements/elements.dart'
-    show AstElement, ResolvedAst, ResolvedAstKind;
+    show AstElement, MemberElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
@@ -101,8 +101,8 @@ class PositionSourceInformationStrategy
   const PositionSourceInformationStrategy();
 
   @override
-  SourceInformationBuilder createBuilderForContext(ResolvedAst resolvedAst) {
-    return new PositionSourceInformationBuilder(resolvedAst);
+  SourceInformationBuilder createBuilderForContext(MemberElement member) {
+    return new PositionSourceInformationBuilder(member);
   }
 
   @override
@@ -144,12 +144,13 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   final String name;
   final ResolvedAst resolvedAst;
 
-  PositionSourceInformationBuilder(ResolvedAst resolvedAst)
-      : this.resolvedAst = resolvedAst,
-        sourceFile = computeSourceFile(resolvedAst),
-        name = computeElementNameForSourceMaps(resolvedAst.element);
+  PositionSourceInformationBuilder(MemberElement member)
+      : this.resolvedAst = member.resolvedAst,
+        sourceFile = computeSourceFile(member.resolvedAst),
+        name = computeElementNameForSourceMaps(member.resolvedAst.element);
 
-  SourceInformation buildDeclaration(ResolvedAst resolvedAst) {
+  SourceInformation buildDeclaration(MemberElement member) {
+    ResolvedAst resolvedAst = member.resolvedAst;
     if (resolvedAst.kind != ResolvedAstKind.PARSED) {
       SourceSpan span = resolvedAst.element.sourcePosition;
       return new PositionSourceInformation(
@@ -250,8 +251,8 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   }
 
   @override
-  SourceInformationBuilder forContext(ResolvedAst resolvedAst) {
-    return new PositionSourceInformationBuilder(resolvedAst);
+  SourceInformationBuilder forContext(MemberElement member) {
+    return new PositionSourceInformationBuilder(member);
   }
 
   @override
@@ -653,8 +654,12 @@ class CallPosition {
       return new CallPosition(
           node.target, CodePositionKind.END, SourcePositionKind.INNER);
     } else {
-      assert(invariant(NO_LOCATION_SPANNABLE, false,
-          message: "Unexpected property access ${nodeToString(node)}:\n"
+      // TODO(johnniwinther): Maybe remove this assertion.
+      assert(
+          false,
+          failedAt(
+              NO_LOCATION_SPANNABLE,
+              "Unexpected property access ${nodeToString(node)}:\n"
               "${DebugPrinter.prettyPrint(node)}"));
       // Don't know....
       return new CallPosition(

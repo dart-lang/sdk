@@ -53,12 +53,16 @@ import '../visitor.dart';
 ///   var b = new B();
 ///   b.foo(499, named1: 88);
 /// }
-Program transformProgram(Program program, [debug = false]) {
-  new MethodCallTransformer(debug).visitProgram(program);
+Program transformProgram(
+    CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
+    [debug = false]) {
+  new MethodCallTransformer(coreTypes, hierarchy, debug).visitProgram(program);
   return program;
 }
 
 class MethodCallTransformer extends Transformer {
+  final CoreTypes coreTypes;
+
   /// Keep track of "visited" procedures and constructors to not visit already
   /// visited stuff, nor visit newly created stubs.
   Set<Member> _visited = new Set<Member>();
@@ -105,17 +109,13 @@ class MethodCallTransformer extends Transformer {
 
   /// For noSuchMethod calls.
   ClassHierarchy hierarchy;
-  CoreTypes coreTypes;
   Constructor _invocationMirrorConstructor; // cached
   Procedure _listFrom; // cached
 
-  MethodCallTransformer(this._debug);
+  MethodCallTransformer(this.coreTypes, this.hierarchy, this._debug);
 
   @override
   TreeNode visitProgram(Program node) {
-    hierarchy = new ClassHierarchy(node);
-    coreTypes = new CoreTypes(node);
-
     // First move body of all procedures that takes optional positional or named
     // parameters and record which non-static procedure names have optional
     // positional arguments.
@@ -851,7 +851,7 @@ class MethodCallTransformer extends Transformer {
     } else {
       // Get noSuchMethod on Object then...
       noSuchMethod = hierarchy.getDispatchTarget(
-          hierarchy.rootClass, new Name("noSuchMethod"));
+          coreTypes.objectClass, new Name("noSuchMethod"));
       ConstructorInvocation invocation = _createInvocation(
           procedureName.name, new Arguments(newParameterVariableGets));
       ConstructorInvocation invocationPrime =

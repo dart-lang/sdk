@@ -1352,7 +1352,8 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     Register reg,
     const Object& obj,
     bool needs_number_check,
-    TokenPosition token_pos) {
+    TokenPosition token_pos,
+    intptr_t deopt_id) {
   if (needs_number_check) {
     ASSERT(!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint());
     __ Push(reg);
@@ -1364,10 +1365,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
       __ BranchLinkPatchable(
           *StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
     }
-    if (token_pos.IsReal()) {
-      AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, Thread::kNoDeoptId,
-                           token_pos);
-    }
+    AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, deopt_id, token_pos);
     // Stub returns result in flags (result of a cmp, we need Z computed).
     __ Drop(1);   // Discard constant.
     __ Pop(reg);  // Restore 'reg'.
@@ -1378,11 +1376,11 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
 }
 
 
-Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
-    Register left,
-    Register right,
-    bool needs_number_check,
-    TokenPosition token_pos) {
+Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
+                                                       Register right,
+                                                       bool needs_number_check,
+                                                       TokenPosition token_pos,
+                                                       intptr_t deopt_id) {
   if (needs_number_check) {
     __ Push(left);
     __ Push(right);
@@ -1393,10 +1391,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
       __ BranchLinkPatchable(
           *StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
     }
-    if (token_pos.IsReal()) {
-      AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, Thread::kNoDeoptId,
-                           token_pos);
-    }
+    AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, deopt_id, token_pos);
     // Stub returns result in flags (result of a cmp, we need Z computed).
     __ Pop(right);
     __ Pop(left);

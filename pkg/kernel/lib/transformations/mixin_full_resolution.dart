@@ -7,12 +7,13 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../clone.dart';
 import '../core_types.dart';
-import '../target/targets.dart' show NoneTarget, Target;
+import '../target/targets.dart' show Target;
 import '../type_algebra.dart';
 
-Program transformProgram(Program program) {
-  new MixinFullResolution(new NoneTarget(null)).transform(program);
-  return program;
+void transformLibraries(Target targetInfo, CoreTypes coreTypes,
+    ClassHierarchy hierarchy, List<Library> libraries) {
+  new MixinFullResolution(targetInfo, coreTypes, hierarchy)
+      .transform(libraries);
 }
 
 /// Replaces all mixin applications with regular classes, cloning all fields
@@ -23,31 +24,40 @@ Program transformProgram(Program program) {
 /// to their targets in this pass.
 class MixinFullResolution {
   final Target targetInfo;
+  final CoreTypes coreTypes;
 
+  /// The [ClassHierarchy] that should be used after applying this transformer.
+  /// If any class was updated, in general we need to create a new
+  /// [ClassHierarchy] instance, with new dispatch targets; or at least let
+  /// the existing instance know that some of its dispatch tables are not
+  /// valid anymore.
   ClassHierarchy hierarchy;
-  CoreTypes coreTypes;
 
-  MixinFullResolution(this.targetInfo);
+  MixinFullResolution(this.targetInfo, this.coreTypes, this.hierarchy);
 
-  void transform(Program program) {
+  /// Transform the given new [libraries].  It is expected that all other
+  /// libraries have already been transformed.
+  void transform(List<Library> libraries) {
+    if (libraries.isEmpty) return;
+
     var transformedClasses = new Set<Class>();
 
     // Desugar all mixin application classes by copying in fields/methods from
     // the mixin and constructors from the base class.
     var processedClasses = new Set<Class>();
-    for (var library in program.libraries) {
+    for (var library in libraries) {
       if (library.isExternal) continue;
 
       for (var class_ in library.classes) {
-        transformClass(processedClasses, transformedClasses, class_);
+        transformClass(libraries, processedClasses, transformedClasses, class_);
       }
     }
 
-    hierarchy = new ClassHierarchy(program);
-    coreTypes = new CoreTypes(program);
+    // We might need to update the class hierarchy.
+    hierarchy = hierarchy.applyChanges(transformedClasses);
 
     // Resolve all super call expressions and super initializers.
-    for (var library in program.libraries) {
+    for (var library in libraries) {
       if (library.isExternal) continue;
 
       for (var class_ in library.classes) {
@@ -76,7 +86,10 @@ class MixinFullResolution {
     }
   }
 
-  transformClass(Set<Class> processedClasses, Set<Class> transformedClasses,
+  transformClass(
+      List<Library> librariesToBeTransformed,
+      Set<Class> processedClasses,
+      Set<Class> transformedClasses,
       Class class_) {
     // If this class was already handled then so were all classes up to the
     // [Object] class.
@@ -85,12 +98,14 @@ class MixinFullResolution {
     // Ensure super classes have been transformed before this class.
     if (class_.superclass != null &&
         class_.superclass.level.index >= ClassLevel.Mixin.index) {
-      transformClass(processedClasses, transformedClasses, class_.superclass);
+      transformClass(librariesToBeTransformed, processedClasses,
+          transformedClasses, class_.superclass);
     }
 
     // If this is not a mixin application we don't need to make forwarding
     // constructors in this class.
     if (!class_.isMixinApplication) return;
+    assert(librariesToBeTransformed.contains(class_.enclosingLibrary));
 
     if (class_.mixedInClass.level.index < ClassLevel.Mixin.index) {
       throw new Exception(
@@ -182,7 +197,6 @@ class SuperCallResolutionTransformer extends Transformer {
   final CoreTypes coreTypes;
   final Class lookupClass;
   final Target targetInfo;
-  Constructor _invocationMirrorConstructor; // cached
 
   SuperCallResolutionTransformer(
       this.hierarchy, this.coreTypes, this.lookupClass, this.targetInfo);
@@ -264,7 +278,7 @@ class SuperCallResolutionTransformer extends Transformer {
       // Incorrect noSuchMethod method: Call noSuchMethod on Object
       // with Invocation of noSuchMethod as the method that did not exist.
       noSuchMethod = hierarchy.getDispatchTarget(
-          hierarchy.rootClass, new Name("noSuchMethod"));
+          coreTypes.objectClass, new Name("noSuchMethod"));
       ConstructorInvocation invocation = _createInvocation(
           methodNameUsed, methodArguments, isSuper, new ThisExpression());
       ConstructorInvocation invocationPrime = _createInvocation("noSuchMethod",
@@ -278,13 +292,8 @@ class SuperCallResolutionTransformer extends Transformer {
   /// Creates an "new _InvocationMirror(...)" invocation.
   ConstructorInvocation _createInvocation(String methodName,
       Arguments callArguments, bool isSuperInvocation, Expression receiver) {
-    if (_invocationMirrorConstructor == null) {
-      Class clazz = coreTypes.invocationMirrorClass;
-      _invocationMirrorConstructor = clazz.constructors[0];
-    }
-
-    return targetInfo.instantiateInvocation(_invocationMirrorConstructor,
-        receiver, methodName, callArguments, -1, isSuperInvocation);
+    return targetInfo.instantiateInvocation(
+        coreTypes, receiver, methodName, callArguments, -1, isSuperInvocation);
   }
 
   /// Check that a call to the targetFunction is legal given the arguments.

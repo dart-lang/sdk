@@ -274,6 +274,13 @@ class Parser : public ValueObject {
 
   static void ParseFunction(ParsedFunction* parsed_function);
 
+  // Return true if |field| has a function literal initializer.
+  // When true is returned, |start| and |end| will hold the token
+  // range of the function literal.
+  static bool FieldHasFunctionLiteralInitializer(const Field& field,
+                                                 TokenPosition* start,
+                                                 TokenPosition* end);
+
   // Parse and evaluate the metadata expressions at token_pos in the
   // class namespace of class cls (which can be the implicit toplevel
   // class if the metadata is at the top-level).
@@ -420,6 +427,7 @@ class Parser : public ValueObject {
   TokenPosition SkipMetadata();
   bool IsPatchAnnotation(TokenPosition pos);
   void SkipTypeArguments();
+  void SkipTypeParameters();
   void SkipType(bool allow_void);
   void SkipTypeOrFunctionType(bool allow_void);
   void SkipInitializers();
@@ -858,6 +866,9 @@ class Parser : public ValueObject {
   void CheckInstanceFieldAccess(TokenPosition field_pos,
                                 const String& field_name);
   bool ParsingStaticMember() const;
+  bool GetFunctionLiteralInitializerRange(const Field& field,
+                                          TokenPosition* start,
+                                          TokenPosition* end);
   const AbstractType* ReceiverType(const Class& cls);
   bool IsInstantiatorRequired() const;
   bool InGenericFunctionScope() const;
@@ -948,6 +959,10 @@ class Parser : public ValueObject {
 
   Thread* thread_;    // Cached current thread.
   Isolate* isolate_;  // Cached current isolate.
+
+  // It is Heap::kNew for mutator thread and Heap::kOld for other threads (e.g.
+  // background compiler).
+  Heap::Space allocation_space_;
 
   Script& script_;
   TokenStream::Iterator tokens_iterator_;

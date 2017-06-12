@@ -518,8 +518,8 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
 
   if (needs_number_check() && token_pos().IsReal()) {
     compiler->RecordSafepoint(locs());
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
-                                   Thread::kNoDeoptId, token_pos());
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, deopt_id_,
+                                   token_pos());
   }
 
   return condition;
@@ -646,11 +646,14 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     __ Nop(result ? 1 : 0, compiler->ToEmbeddableCid(test_cid, this));
   }
 
-  // No match found, deoptimize or false.
+  // No match found, deoptimize or default action.
   if (CanDeoptimize()) {
     compiler->EmitDeopt(deopt_id(), ICData::kDeoptTestCids,
                         licm_hoisted_ ? ICData::kHoisted : 0);
   } else {
+    // If the cid is not in the list, jump to the opposite label from the cids
+    // that are in the list.  These must be all the same (see asserts in the
+    // constructor).
     Label* target = result ? labels.false_label : labels.true_label;
     __ Jump(target);
   }
@@ -920,6 +923,8 @@ EMIT_NATIVE_CODE(StringInterpolate,
   // StringInterpolateInstr::ArgumentCount() is 0. However
   // internally it does a call with 1 argument which needs to
   // be reflected in the lazy deoptimization environment.
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
+                                 token_pos());
   compiler->RecordAfterCallHelper(token_pos(), deopt_id(), kArgumentCount,
                                   FlowGraphCompiler::kHasResult, locs());
   if (compiler->is_optimizing()) {
@@ -1287,7 +1292,7 @@ EMIT_NATIVE_CODE(InstantiateTypeArguments,
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ DebugStep();
-  compiler->AddCurrentDescriptor(stub_kind_, Thread::kNoDeoptId, token_pos());
+  compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
 }
 
 

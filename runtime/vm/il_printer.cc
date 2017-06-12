@@ -565,11 +565,19 @@ void StrictCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
 void TestCidsInstr::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(" %s [", Token::Str(kind()));
-  for (intptr_t i = 0; i < cid_results().length(); i += 2) {
+  intptr_t length = cid_results().length();
+  for (intptr_t i = 0; i < length; i += 2) {
     f->Print("0x%" Px ":%s ", cid_results()[i],
              cid_results()[i + 1] == 0 ? "false" : "true");
   }
   f->Print("] ");
+  if (CanDeoptimize()) {
+    ASSERT(deopt_id() != Thread::kNoDeoptId);
+    f->Print("else deoptimize ");
+  } else {
+    ASSERT(deopt_id() == Thread::kNoDeoptId);
+    f->Print("else %s ", cid_results()[length - 1] != 0 ? "false" : "true");
+  }
 }
 
 

@@ -1,0 +1,43 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef Function2 = <S extends core::Object, T extends core::Object>(S) → T;
+static method main() → void {
+  {
+    (core::int) → core::String l0 = (core::int x) → core::String => null;
+    (core::int) → core::String l1 = (core::int x) → core::String => "hello";
+    (core::int) → core::String l2 = (core::String x) → core::String => "hello";
+    (core::int) → core::String l3 = (core::int x) → core::int => 3;
+    (core::int) → core::String l4 = (core::int x) → core::String {
+      return 3;
+    };
+  }
+  {
+    (core::int) → core::String l0 = (core::int x) → core::String => null;
+    (core::int) → core::String l1 = (core::int x) → core::String => "hello";
+    (core::int) → core::String l2 = (core::int x) → core::int => 3;
+    (core::int) → core::String l3 = (core::int x) → core::String {
+      return 3;
+    };
+    (core::int) → core::String l4 = (core::int x) → core::String {
+      return x;
+    };
+  }
+  {
+    (core::int) → core::List<core::String> l0 = (core::int x) → core::List<core::String> => null;
+    (core::int) → core::List<core::String> l1 = (core::int x) → core::List<core::String> => <core::String>["hello"];
+    (core::int) → core::List<core::String> l2 = (core::String x) → core::List<core::String> => <core::String>["hello"];
+    (core::int) → core::List<core::String> l3 = (core::int x) → core::List<core::String> => <core::String>[3];
+    (core::int) → core::List<core::String> l4 = (core::int x) → core::List<core::String> {
+      return <core::String>[3];
+    };
+  }
+  {
+    (core::int) → core::int l0 = (core::int x) → core::int => x;
+    (core::int) → core::int l1 = (core::int x) → core::int => x.{core::num::+}(1);
+    (core::int) → core::String l2 = (core::int x) → core::int => x;
+    (core::int) → core::String l3 = (core::int x) → core::String => x.substring(3);
+    (core::String) → core::String l4 = (core::String x) → core::String => x.{core::String::substring}(3);
+  }
+}

@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "bin/dartutils.h"
+#include "bin/dfe.h"
 #include "bin/file.h"
 #include "bin/loader.h"
 #include "bin/platform.h"
@@ -14,17 +15,33 @@
 #include "vm/dart.h"
 #include "vm/unit_test.h"
 
+extern "C" {
+extern const uint8_t kDartVmSnapshotData[];
+extern const uint8_t kDartVmSnapshotInstructions[];
+extern const uint8_t kDartCoreIsolateSnapshotData[];
+extern const uint8_t kDartCoreIsolateSnapshotInstructions[];
+}
 
 // TODO(iposva, asiva): This is a placeholder for the real unittest framework.
 namespace dart {
 
+namespace bin {
+DFE dfe;
+}
+
 // Defined in vm/os_thread_win.cc
 extern bool private_flag_windows_run_tls_destructors;
 
-// vm_snapshot_data_buffer points to a snapshot for the vm isolate if we
-// link in a snapshot otherwise it is initialized to NULL.
-extern const uint8_t* bin::vm_snapshot_data;
-extern const uint8_t* bin::vm_snapshot_instructions;
+// Snapshot pieces when we link in a snapshot.
+#if defined(DART_NO_SNAPSHOT)
+#error "run_vm_tests must be built with a snapshot"
+#else
+const uint8_t* bin::vm_snapshot_data = kDartVmSnapshotData;
+const uint8_t* bin::vm_snapshot_instructions = kDartVmSnapshotInstructions;
+const uint8_t* bin::core_isolate_snapshot_data = kDartCoreIsolateSnapshotData;
+const uint8_t* bin::core_isolate_snapshot_instructions =
+    kDartCoreIsolateSnapshotInstructions;
+#endif
 
 // Only run tests that match the filter string. The default does not match any
 // tests.

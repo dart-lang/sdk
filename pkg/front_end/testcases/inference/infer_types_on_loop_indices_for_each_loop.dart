@@ -11,7 +11,7 @@ class Foo {
 
 class Bar<T extends Iterable<String>> {
   void foo(T t) {
-    for (var i in t) {
+    for (var /*@type=String*/ i in t) {
       int x = /*error:INVALID_ASSIGNMENT*/ i;
     }
   }
@@ -19,7 +19,7 @@ class Bar<T extends Iterable<String>> {
 
 class Baz<T, E extends Iterable<T>, S extends E> {
   void foo(S t) {
-    for (var i in t) {
+    for (var /*@type=Baz::T*/ i in t) {
       int x = /*error:INVALID_ASSIGNMENT*/ i;
       T y = i;
     }
@@ -28,7 +28,7 @@ class Baz<T, E extends Iterable<T>, S extends E> {
 
 test() {
   var /*@type=List<Foo>*/ list = <Foo>[];
-  for (var x in list) {
+  for (var /*@type=Foo*/ x in list) {
     String y = /*error:INVALID_ASSIGNMENT*/ x;
   }
 
@@ -57,13 +57,13 @@ test() {
 
   var /*@type=Map<String, Foo>*/ map = <String, Foo>{};
   // Error: map must be an Iterable.
-  for (var x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
+  for (var /*@type=dynamic*/ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
     String y = /*info:DYNAMIC_CAST*/ x;
   }
 
   // We're not properly inferring that map.keys is an Iterable<String>
   // and that x is a String.
-  for (var x in map.keys) {
+  for (var /*@type=String*/ x in map. /*@target=Map::keys*/ keys) {
     String y = x;
   }
 }

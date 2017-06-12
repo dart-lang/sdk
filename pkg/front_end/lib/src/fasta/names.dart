@@ -6,8 +6,6 @@ library front_end.src.fasta.names;
 
 import 'package:kernel/ast.dart' show Name;
 
-export 'kernel/frontend_accessors.dart' show indexGetName, indexSetName;
-
 final Name ampersandName = new Name("&");
 
 final Name barName = new Name("|");
@@ -20,13 +18,23 @@ final Name divisionName = new Name("/");
 
 final Name emptyName = new Name("");
 
+final Name equalsName = new Name('==');
+
+final Name indexGetName = new Name("[]");
+
+final Name indexSetName = new Name("[]=");
+
 final Name leftShiftName = new Name("<<");
+
+final Name lengthName = new Name("length");
 
 final Name minusName = new Name("-");
 
 final Name multiplyName = new Name("*");
 
 final Name mustacheName = new Name("~/");
+
+final Name noSuchMethodName = new Name("noSuchMethod");
 
 final Name percentName = new Name("%");
 

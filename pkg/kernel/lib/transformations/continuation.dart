@@ -12,8 +12,16 @@ import '../visitor.dart';
 
 import 'async.dart';
 
-Program transformProgram(Program program) {
-  var helper = new HelperNodes.fromProgram(program);
+void transformLibraries(CoreTypes coreTypes, List<Library> libraries) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes);
+  var rewriter = new RecursiveContinuationRewriter(helper);
+  for (var library in libraries) {
+    rewriter.rewriteLibrary(library);
+  }
+}
+
+Program transformProgram(CoreTypes coreTypes, Program program) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes);
   var rewriter = new RecursiveContinuationRewriter(helper);
   return rewriter.rewriteProgram(program);
 }
@@ -29,6 +37,10 @@ class RecursiveContinuationRewriter extends Transformer {
   RecursiveContinuationRewriter(this.helper);
 
   Program rewriteProgram(Program node) {
+    return node.accept(this);
+  }
+
+  Library rewriteLibrary(Library node) {
     return node.accept(this);
   }
 
@@ -912,8 +924,7 @@ class HelperNodes {
       this.awaitHelper,
       this.coreTypes);
 
-  factory HelperNodes.fromProgram(Program program) {
-    var coreTypes = new CoreTypes(program);
+  factory HelperNodes.fromCoreTypes(CoreTypes coreTypes) {
     return new HelperNodes(
         coreTypes.asyncLibrary,
         coreTypes.coreLibrary,

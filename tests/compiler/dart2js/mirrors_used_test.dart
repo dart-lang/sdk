@@ -16,7 +16,8 @@ import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import 'package:compiler/src/constants/values.dart'
     show ConstantValue, TypeConstantValue;
 
-import 'package:compiler/src/elements/elements.dart' show Element, Elements;
+import 'package:compiler/src/elements/elements.dart'
+    show ClassElement, Elements;
 
 import 'package:compiler/src/js_backend/js_backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/js_backend/mirrors_analysis.dart';
@@ -26,6 +27,8 @@ import 'package:compiler/src/js_emitter/full_emitter/emitter.dart' as full
 
 import 'package:compiler/src/old_to_new_api.dart'
     show LegacyCompilerDiagnostics;
+
+import 'package:compiler/src/universe/world_builder.dart';
 
 void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
   if (kind.name == 'verbose info') {
@@ -85,7 +88,7 @@ void main() {
     ]; // The name of Foo.instanceMethod.
 
     // We always include the names of some native classes.
-    List<Element> nativeClasses = [
+    List<ClassElement> nativeClasses = [
       compiler.commonElements.intClass,
       compiler.commonElements.doubleClass,
       compiler.commonElements.numClass,
@@ -142,7 +145,9 @@ void main() {
     }
 
     int metadataCount = 0;
-    Set<ConstantValue> compiledConstants = backend.constants.compiledConstants;
+    CodegenWorldBuilderImpl codegenWorldBuilder = compiler.codegenWorldBuilder;
+    Set<ConstantValue> compiledConstants =
+        codegenWorldBuilder.compiledConstants;
     // Make sure that most of the metadata constants aren't included in the
     // generated code.
     MirrorsResolutionAnalysisImpl mirrorsResolutionAnalysis =

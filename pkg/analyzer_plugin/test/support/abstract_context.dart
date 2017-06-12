@@ -56,6 +56,11 @@ class AbstractContextTest {
 
   AnalysisDriver get driver => _driver;
 
+  /**
+   * Return `true` if strong mode should be enabled for this test.
+   */
+  bool get enableStrongMode => false;
+
   Source addMetaPackageSource() => addPackageSource(
       'meta',
       'meta.dart',
@@ -77,6 +82,9 @@ class Required {
   }
 
   Source addSource(String path, String content, [Uri uri]) {
+    if (path.startsWith('/')) {
+      path = provider.convertPath(path);
+    }
     driver.addFile(path);
     driver.changeFile(path);
     _fileContentOverlay[path] = content;
@@ -114,6 +122,8 @@ class Required {
         [new DartUriResolver(sdk), packageResolver, resourceResolver]);
     PerformanceLog log = new PerformanceLog(_logBuffer);
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl()
+      ..strongMode = enableStrongMode;
     _driver = new AnalysisDriver(
         scheduler,
         log,
@@ -122,7 +132,7 @@ class Required {
         _fileContentOverlay,
         null,
         sourceFactory,
-        new AnalysisOptionsImpl());
+        options);
     scheduler.start();
     AnalysisEngine.instance.logger = PrintLogger.instance;
   }

@@ -6,7 +6,9 @@ library fasta.scanner.utf8_bytes_scanner;
 
 import 'dart:convert' show UNICODE_BOM_CHARACTER_RUNE, UTF8;
 
-import '../../scanner/token.dart' show TokenType;
+import '../../scanner/token.dart' show SyntheticStringToken, TokenType;
+
+import '../../scanner/token.dart' as analyzer show StringToken;
 
 import '../scanner.dart' show unicodeReplacementCharacter;
 
@@ -80,11 +82,8 @@ class Utf8BytesScanner extends ArrayBasedScanner {
    * is not the case, the entire array is copied before scanning.
    */
   Utf8BytesScanner(this.bytes,
-      {bool includeComments: false,
-      bool scanGenericMethodComments: false,
-      bool scanLazyAssignmentOperators: false})
+      {bool includeComments: false, bool scanGenericMethodComments: false})
       : super(includeComments, scanGenericMethodComments,
-            scanLazyAssignmentOperators,
             numberOfBytesHint: bytes.length) {
     assert(bytes.last == 0);
     // Skip a leading BOM.
@@ -201,11 +200,20 @@ class Utf8BytesScanner extends ArrayBasedScanner {
   }
 
   @override
-  StringToken createSubstringToken(TokenType type, int start, bool asciiOnly,
+  analyzer.StringToken createSubstringToken(
+      TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
     return new StringToken.fromUtf8Bytes(
         type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart,
         precedingComments: comments);
+  }
+
+  @override
+  analyzer.StringToken createSyntheticSubstringToken(
+      TokenType type, int start, bool asciiOnly, String closingQuotes) {
+    String source = StringToken.decodeUtf8(bytes, start, byteOffset, asciiOnly);
+    return new SyntheticStringToken(
+        type, source + closingQuotes, start, source.length);
   }
 
   @override

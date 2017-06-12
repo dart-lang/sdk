@@ -10,9 +10,10 @@ import 'dart:async';
 foo() async {
   Future<List<A>> f1 = null;
   Future<List<A>> f2 = null;
-  List<List<A>> merged =
-      await Future. /*@typeArgs=List<A>*/ /*@target=Future::wait*/ wait(
-          /*@typeArgs=Future<List<A>>*/ [f1, f2]);
+  List<List<A>> merged = await Future. /*@typeArgs=List<A>*/ wait(
+      /*@typeArgs=Future<List<A>>*/ [f1, f2]);
 }
 
 class A {}
+
+main() {}

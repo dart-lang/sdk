@@ -786,6 +786,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   FlowGraphBuilder(TreeNode* node,
                    ParsedFunction* parsed_function,
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
+                   ZoneGrowableArray<intptr_t>* context_level_array,
                    InlineExitCollector* exit_collector,
                    intptr_t osr_id,
                    intptr_t first_block_id = 1);
@@ -1042,6 +1043,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   void InlineBailout(const char* reason);
 
   TranslationHelper translation_helper_;
+  Thread* thread_;
   Zone* zone_;
 
   // The node we are currently compiling (e.g. FunctionNode, Constructor,
@@ -1051,10 +1053,22 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   ParsedFunction* parsed_function_;
   intptr_t osr_id_;
   const ZoneGrowableArray<const ICData*>& ic_data_array_;
+  // Contains (deopt_id, context_level) pairs.
+  ZoneGrowableArray<intptr_t>* context_level_array_;
   InlineExitCollector* exit_collector_;
 
   intptr_t next_block_id_;
   intptr_t AllocateBlockId() { return next_block_id_++; }
+
+  intptr_t GetNextDeoptId() {
+    intptr_t deopt_id = thread_->GetNextDeoptId();
+    if (context_level_array_ != NULL) {
+      intptr_t level = context_depth_;
+      context_level_array_->Add(deopt_id);
+      context_level_array_->Add(level);
+    }
+    return deopt_id;
+  }
 
   intptr_t next_function_id_;
   intptr_t AllocateFunctionId() { return next_function_id_++; }

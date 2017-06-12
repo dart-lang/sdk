@@ -140,10 +140,10 @@ class TreeElementMapping extends TreeElements {
       return true;
     }, failedAt(node));
     // TODO(ahe): Investigate why the invariant below doesn't hold.
-    // assert(invariant(node,
-    //                  getTreeElement(node) == element ||
-    //                  getTreeElement(node) == null,
-    //                  message: '${getTreeElement(node)}; $element'));
+    // assert(
+    //     getTreeElement(node) == element ||
+    //     getTreeElement(node) == null,
+    //     failedAt(node, '${getTreeElement(node)}; $element'));
 
     setTreeElement(node, element);
   }

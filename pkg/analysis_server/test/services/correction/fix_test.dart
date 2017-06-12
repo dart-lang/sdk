@@ -1270,7 +1270,7 @@ class A {}
 class Test {
 }
 ''');
-    expect(change.linkedEditGroups, isEmpty);
+    expect(change.linkedEditGroups, hasLength(1));
   }
 
   test_createClass_innerLocalFunction() async {
@@ -3430,6 +3430,7 @@ int main() async {
 library main;
 
 import 'dart:async';
+
 Future<int> main() async {
 }
 ''');
@@ -4529,7 +4530,7 @@ main() {
   test(throw 42);
 }
 
-void test(arg0) {
+void test(param0) {
 }
 ''');
   }
@@ -4732,7 +4733,7 @@ main() {
   test(null);
 }
 
-void test(arg0) {
+void test(param0) {
 }
 ''');
   }
@@ -5101,7 +5102,7 @@ class A<T> {
 }
 
 class B {
-  dynamic compute() {}
+  compute() {}
 }
 ''');
   }

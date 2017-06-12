@@ -14,13 +14,14 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       {pattern: 'lib/js/amd/dart_sdk.js', included: false},
+      {pattern: 'gen/codegen_output/*.js', included: false},
       {pattern: 'gen/codegen_output/pkg/*.js', included: false},
       {pattern: 'gen/codegen_output/language/**/*.js', included: false},
       {pattern: 'gen/codegen_output/corelib/**/*.js', included: false},
       {pattern: 'gen/codegen_output/lib/**/*.js', included: false},
       {pattern: 'gen/codegen_tests/lib/**/*.txt', included: false},
       {pattern: 'test/browser/*.js', included: false},
-      {pattern: 'node_modules/is_js/*.js', included: false},      
+      {pattern: 'node_modules/is_js/*.js', included: false},
       'test-main.js',
     ],
 

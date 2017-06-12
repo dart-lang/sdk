@@ -16,6 +16,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart' show AsyncMarker;
 import '../elements/modelx.dart'
     show
         ConstructorElementX,
@@ -3721,7 +3722,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         redirectionTarget,
         redirectionTarget.enclosingClass.thisType
             .subst(type.typeArguments, targetClass.typeVariables)));
-    if (resolution.commonElements.isSymbolConstructor(enclosingElement)) {
+    if (resolution.commonElements.isSymbolConstructor(constructor)) {
       registry.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
     }
     if (isValidAsConstant) {
@@ -3851,6 +3852,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       argumentsResult =
           inConstantContext(() => resolveArguments(node.send.argumentsNode));
     } else {
+      if (!node.isConst && constructor.isFromEnvironmentConstructor) {
+        // TODO(sigmund): consider turning this into a compile-time-error.
+        reporter.reportHintMessage(
+            node,
+            MessageKind.FROM_ENVIRONMENT_MUST_BE_CONST,
+            {'className': constructor.enclosingClass.name});
+        registry.registerFeature(Feature.THROW_UNSUPPORTED_ERROR);
+      }
       argumentsResult = resolveArguments(node.send.argumentsNode);
     }
     // TODO(johnniwinther): Avoid the need for a [Selector].

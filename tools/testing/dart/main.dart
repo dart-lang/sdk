@@ -22,9 +22,9 @@
 /// `factory StandardTestSuite.forDirectory`.
 import "dart:io";
 
+import "options.dart";
 import "test_configurations.dart";
-import "test_options.dart";
-import "test_suite.dart";
+import 'utils.dart';
 
 /// Runs all of the tests specified by the given command line [arguments].
 void main(List<String> arguments) {
@@ -32,9 +32,9 @@ void main(List<String> arguments) {
   TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
 
   // Parse the command line arguments to a configuration.
-  var optionsParser = new TestOptionsParser();
-  var configurations = optionsParser.parse(arguments);
-  if (configurations == null || configurations.isEmpty) return;
+  var parser = new OptionsParser();
+  var configurations = parser.parse(arguments);
+  if (configurations.isEmpty) return;
 
   // Run all of the configured tests.
   // TODO(26372): Ensure that all tasks complete and return a future from this

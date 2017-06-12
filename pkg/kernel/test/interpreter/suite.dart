@@ -8,9 +8,13 @@ import 'dart:async' show Future;
 
 import 'dart:io' show File;
 
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
+
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
+
+import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
+    show computePatchedSdk;
 
 import 'package:kernel/ast.dart' show Program, Library;
 
@@ -30,6 +34,10 @@ import 'package:front_end/src/fasta/errors.dart' show InputError;
 import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
 
 import 'package:kernel/kernel.dart' show loadProgramFromBinary;
+
+import 'package:kernel/target/targets.dart' show TargetFlags;
+
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 
 import 'package:kernel/interpreter/interpreter.dart';
 
@@ -58,10 +66,11 @@ class InterpreterContext extends ChainContext {
 
   static Future<InterpreterContext> create(
       Chain suite, Map<String, String> environment) async {
+    Uri sdk = await computePatchedSdk();
     Uri packages = Uri.base.resolve(".packages");
     bool strongMode = environment.containsKey(STRONG_MODE);
-    TranslateUri uriTranslator =
-        await TranslateUri.parse(PhysicalFileSystem.instance, packages);
+    TranslateUri uriTranslator = await TranslateUri
+        .parse(PhysicalFileSystem.instance, sdk, packages: packages);
     return new InterpreterContext(strongMode, uriTranslator);
   }
 }
@@ -75,11 +84,12 @@ class FastaCompile extends Step<TestDescription, Program, InterpreterContext> {
       TestDescription description, InterpreterContext context) async {
     Program platform = await context.loadPlatform();
     Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator, "vm");
+    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
+        new VmFastaTarget(new TargetFlags(strongMode: context.strongMode)));
     platform.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platform);
-    KernelTarget sourceTarget = new KernelTarget(PhysicalFileSystem.instance,
-        dillTarget, context.uriTranslator, context.strongMode);
+    KernelTarget sourceTarget = new KernelTarget(
+        PhysicalFileSystem.instance, dillTarget, context.uriTranslator);
 
     Program p;
     try {

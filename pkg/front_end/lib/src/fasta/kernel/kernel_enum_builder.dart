@@ -4,8 +4,6 @@
 
 library fasta.kernel_enum_builder;
 
-import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -30,7 +28,7 @@ import 'package:kernel/ast.dart'
         ThisExpression,
         VariableGet;
 
-import '../errors.dart' show inputError;
+import 'package:front_end/src/scanner/token.dart' show Token;
 
 import '../modifier.dart' show constMask, finalMask, staticMask;
 
@@ -88,7 +86,6 @@ class KernelEnumBuilder extends SourceClassBuilder
             null, charOffset, cls);
 
   factory KernelEnumBuilder(
-      AstFactory astFactory,
       List<MetadataBuilder> metadata,
       String name,
       List<Object> constantNamesAndOffsets,
@@ -123,7 +120,14 @@ class KernelEnumBuilder extends SourceClassBuilder
     ///       String toString() => { 0: ‘E.id0’, . . ., n-1: ‘E.idn-1’}[index]
     ///     }
     members["index"] = new KernelFieldBuilder(
-        null, intType, "index", finalMask, parent, charOffset, null);
+        null,
+        intType,
+        "index",
+        finalMask,
+        parent,
+        charOffset,
+        // Synthetic token to signal this field is initialized.
+        new Token.eof(charOffset));
     KernelConstructorBuilder constructorBuilder = new KernelConstructorBuilder(
         null,
         constMask,
@@ -141,8 +145,15 @@ class KernelEnumBuilder extends SourceClassBuilder
     constructors[""] = constructorBuilder;
     int index = 0;
     List<MapEntry> toStringEntries = <MapEntry>[];
-    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(null, listType,
-        "values", constMask | staticMask, parent, charOffset, null);
+    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(
+        null,
+        listType,
+        "values",
+        constMask | staticMask,
+        parent,
+        charOffset,
+        // Synthetic token to signal this field is initialized.
+        new Token.eof(charOffset));
     members["values"] = valuesBuilder;
     KernelProcedureBuilder toStringBuilder = new KernelProcedureBuilder(
         null,
@@ -162,11 +173,27 @@ class KernelEnumBuilder extends SourceClassBuilder
       String name = constantNamesAndOffsets[i];
       int charOffset = constantNamesAndOffsets[i + 1];
       if (members.containsKey(name)) {
-        inputError(null, null, "Duplicated name: $name");
+        parent.addCompileTimeError(charOffset, "Duplicated name: '$name'.");
+        constantNamesAndOffsets[i] = null;
         continue;
       }
-      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(null, selfType,
-          name, constMask | staticMask, parent, charOffset, null);
+      if (name == className) {
+        parent.addCompileTimeError(
+            charOffset,
+            "Name of enum constant '$name' can't be the same as the enum's "
+            "own name.");
+        constantNamesAndOffsets[i] = null;
+        continue;
+      }
+      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
+          null,
+          selfType,
+          name,
+          constMask | staticMask,
+          parent,
+          charOffset,
+          // Synthetic token to signal this field is initialized.
+          new Token.eof(charOffset));
       members[name] = fieldBuilder;
       toStringEntries.add(new MapEntry(
           new IntLiteral(index), new StringLiteral("$className.$name")));
@@ -230,8 +257,10 @@ class KernelEnumBuilder extends SourceClassBuilder
     List<Expression> values = <Expression>[];
     for (int i = 0; i < constantNamesAndOffsets.length; i += 2) {
       String name = constantNamesAndOffsets[i];
-      KernelFieldBuilder builder = this[name];
-      values.add(new StaticGet(builder.build(libraryBuilder)));
+      if (name != null) {
+        KernelFieldBuilder builder = this[name];
+        values.add(new StaticGet(builder.build(libraryBuilder)));
+      }
     }
     KernelFieldBuilder valuesBuilder = this["values"];
     valuesBuilder.build(libraryBuilder);
@@ -245,8 +274,8 @@ class KernelEnumBuilder extends SourceClassBuilder
             new VariableGet(constructor.function.positionalParameters.single))
           ..parent = constructor);
     KernelClassBuilder objectClass = objectType.builder;
-    MemberBuilder superConstructor =
-        objectClass.findConstructorOrFactory("", charOffset, fileUri);
+    MemberBuilder superConstructor = objectClass.findConstructorOrFactory(
+        "", charOffset, fileUri, libraryBuilder);
     if (superConstructor == null || !superConstructor.isConstructor) {
       // TODO(ahe): Ideally, we would also want to check that [Object]'s
       // unnamed constructor requires no arguments. But that information isn't
@@ -261,18 +290,21 @@ class KernelEnumBuilder extends SourceClassBuilder
     int index = 0;
     for (int i = 0; i < constantNamesAndOffsets.length; i += 2) {
       String constant = constantNamesAndOffsets[i];
-      KernelFieldBuilder field = this[constant];
-      field.build(libraryBuilder);
-      Arguments arguments =
-          new Arguments(<Expression>[new IntLiteral(index++)]);
-      field.initializer =
-          new ConstructorInvocation(constructor, arguments, isConst: true);
+      if (constant != null) {
+        KernelFieldBuilder field = this[constant];
+        field.build(libraryBuilder);
+        Arguments arguments =
+            new Arguments(<Expression>[new IntLiteral(index++)]);
+        field.initializer =
+            new ConstructorInvocation(constructor, arguments, isConst: true);
+      }
     }
     return super.build(libraryBuilder, coreLibrary);
   }
 
   @override
-  Builder findConstructorOrFactory(String name, int charOffset, Uri uri) {
+  Builder findConstructorOrFactory(
+      String name, int charOffset, Uri uri, LibraryBuilder library) {
     return null;
   }
 }

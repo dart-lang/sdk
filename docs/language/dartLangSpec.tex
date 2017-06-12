@@ -7187,35 +7187,46 @@ It's a compile-time error if the same library contains two part directives with 
 \LMLabel{scripts}
 
 \LMHash{}
-A {\em script} is a library whose exported namespace  (\ref{exports}) includes a top-level member named  \code{main}. It is a static warning if the static type of \code{main} is not assignable to a function type or is a function type with more than two required parameters.
+A {\em script} is a library whose exported namespace (\ref{exports}) includes
+a top-level function declaration named \code{main}
+that has either zero, one or two required arguments.
 
-A script $S$ may be executed as follows:
+A script $S$ is executed as follows:
 
 \LMHash{}
-First, $S$ is compiled as a library as specified above. Then, the top-level function \code{main} that is in the exported namespace of $S$ is invoked. If \code{main} has no positional parameters, it is invoked with no arguments. Otherwise if \code{main} has exactly one positional parameter, it is invoked with a single actual argument whose runtime type implements \code{List<String>}.  Otherwise \code{main} is invoked with the following two actual arguments:
+First, $S$ is compiled as a library as specified above.
+Then, the top-level function defined by \code{main}
+in the exported namespace of $S$ is invoked (\ref{functionInvocation})
+as follows:
+If \code{main} can be be called with with two positional arguments,
+it is invoked with the following two actual arguments:
 \begin{enumerate}
 \item An object whose runtime type implements \code{List<String>}.
-\item The initial message of the current isolate $i$ as determined by the invocation of \code{Isolate.spawnUri} that spawned $i$.
+\item An object specified when the current isolate $i$ was created,
+for example through the invocation of \code{Isolate.spawnUri} that spawned $i$,
+or \NULL{} if no such object was supplied.
 \end{enumerate}
+If \code{main} cannot be called with two positional arguments,
+but it can be called with one positional argument,
+it is invoked with an object whose runtime type implements \code{List<String>}
+as the only argument.
+If \code{main} cannot be called with one or two positional arguments,
+it is invoked with no arguments.
 
-\LMHash{}
-It is a run time error if $S$ does not declare or export either:
-\begin{itemize}
-\item  A top-level function named  \code{main}, or
-\item A top-level getter named  \code{main} that returns a function.
-\end{itemize}
-
-\commentary {
-Note that if \code{main} requires more than two arguments, a run time error will occur.
+\commentary{
+Note that if \code{main} requires more than two positional arguments,
+the library is not considered a script.
 }
 
-\rationale{
-The names of scripts are optional, in the interests of interactive, informal use. However, any script of long term value should be given a name as a matter of good practice.
-}
-
-\commentary {
+\commentary{
 A Dart program will typically be executed by executing a script.
 }
+
+\LMHash{}
+If a non-script library is provided where a script is expected,
+it precludes execution.
+As such, it should be reported as a compile-time error,
+even if that library compiles successfully as a non-script library.
 
 \subsection{URIs}
 \LMLabel{uris}

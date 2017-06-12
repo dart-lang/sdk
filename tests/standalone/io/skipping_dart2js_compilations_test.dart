@@ -20,10 +20,9 @@ import 'package:expect/expect.dart';
 import 'package:path/path.dart';
 import 'dart:async';
 import 'dart:io';
+import '../../../tools/testing/dart/options.dart' as options;
 import '../../../tools/testing/dart/path.dart';
-import '../../../tools/testing/dart/test_suite.dart' as suite;
 import '../../../tools/testing/dart/test_runner.dart' as runner;
-import '../../../tools/testing/dart/test_options.dart' as options;
 import '../../../tools/testing/dart/utils.dart';
 
 /**
@@ -58,9 +57,8 @@ class FileUtils {
     }
     if (createJsDeps) {
       testJsDeps = _createFile(testJsDepsFilePath);
-      var path = suite.TestUtils
-          .absolutePath(new Path(tempDir.path))
-          .append("test.dart");
+      var path =
+          TestUtils.absolutePath(new Path(tempDir.path)).append("test.dart");
       _writeToFile(testJsDeps, "file://$path");
     }
   }
@@ -81,27 +79,25 @@ class FileUtils {
   }
 
   Path get scriptOutputPath {
-    return suite.TestUtils.absolutePath(
+    return TestUtils.absolutePath(
         new Path(tempDir.path).append('created_if_command_did_run.txt'));
   }
 
   Path get testDartFilePath {
-    return suite.TestUtils
-        .absolutePath(new Path(tempDir.path).append('test.dart'));
+    return TestUtils.absolutePath(new Path(tempDir.path).append('test.dart'));
   }
 
   Path get testJsFilePath {
-    return suite.TestUtils
-        .absolutePath(new Path(tempDir.path).append('test.js'));
+    return TestUtils.absolutePath(new Path(tempDir.path).append('test.js'));
   }
 
   Path get testJsDepsFilePath {
-    return suite.TestUtils
+    return TestUtils
         .absolutePath(new Path(tempDir.path).append('test.js.deps'));
   }
 
   Path get testSnapshotFilePath {
-    return suite.TestUtils
+    return TestUtils
         .absolutePath(new Path(tempDir.path).append('test_dart2js.snapshot'));
   }
 
@@ -151,7 +147,7 @@ class CommandCompletedHandler {
 }
 
 runner.Command makeCompilationCommand(String testName, FileUtils fileUtils) {
-  var config = new options.TestOptionsParser().parse(['--timeout', '2'])[0];
+  var config = new options.OptionsParser().parse(['--timeout', '2'])[0];
   var createFileScript = Platform.script
       .resolve('skipping_dart2js_compilations_helper.dart')
       .toFilePath();
@@ -169,7 +165,7 @@ runner.Command makeCompilationCommand(String testName, FileUtils fileUtils) {
 
 void main() {
   // This script is in [sdk]/tests/standalone/io.
-  suite.TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
+  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
 
   var fs_noTestJs = new FileUtils(
       createJs: false,

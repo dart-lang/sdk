@@ -8,7 +8,7 @@
       "name": "closures",
       "kind": "Chain",
       "source": "suite.dart",
-      "path": "../../testcases/closures",
+      "path": "../../testcases/closures/",
       "status": "closures.status",
       "pattern": [
         "\\.dart$"

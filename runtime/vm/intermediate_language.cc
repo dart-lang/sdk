@@ -604,7 +604,9 @@ const Object& Value::BoundConstant() const {
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                  TargetEntryInstr* normal_entry,
                                  intptr_t osr_id)
-    : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex),
+    : BlockEntryInstr(0,
+                      CatchClauseNode::kInvalidTryIndex,
+                      Thread::Current()->GetNextDeoptId()),
       parsed_function_(parsed_function),
       normal_entry_(normal_entry),
       catch_entries_(),
@@ -1109,7 +1111,8 @@ bool BlockEntryInstr::PruneUnreachable(GraphEntryInstr* graph_entry,
       // we can simply jump to the beginning of the block.
       ASSERT(instr->previous() == this);
 
-      GotoInstr* goto_join = new GotoInstr(AsJoinEntry());
+      GotoInstr* goto_join =
+          new GotoInstr(AsJoinEntry(), Thread::Current()->GetNextDeoptId());
       goto_join->CopyDeoptIdFrom(*parent);
       graph_entry->normal_entry()->LinkTo(goto_join);
       return true;
@@ -1336,7 +1339,7 @@ BlockEntryInstr* GotoInstr::SuccessorAt(intptr_t index) const {
 
 
 void Instruction::Goto(JoinEntryInstr* entry) {
-  LinkTo(new GotoInstr(entry));
+  LinkTo(new GotoInstr(entry, Thread::Current()->GetNextDeoptId()));
 }
 
 
@@ -2733,6 +2736,30 @@ Instruction* CheckClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+TestCidsInstr::TestCidsInstr(TokenPosition token_pos,
+                             Token::Kind kind,
+                             Value* value,
+                             const ZoneGrowableArray<intptr_t>& cid_results,
+                             intptr_t deopt_id)
+    : TemplateComparison(token_pos, kind, deopt_id),
+      cid_results_(cid_results),
+      licm_hoisted_(false) {
+  ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
+  SetInputAt(0, value);
+  set_operation_cid(kObjectCid);
+#ifdef DEBUG
+  ASSERT(cid_results[0] == kSmiCid);
+  if (deopt_id == Thread::kNoDeoptId) {
+    // The entry for Smi can be special, but all other entries have
+    // to match in the no-deopt case.
+    for (intptr_t i = 4; i < cid_results.length(); i += 2) {
+      ASSERT(cid_results[i + 1] == cid_results[3]);
+    }
+  }
+#endif
+}
+
+
 Definition* TestCidsInstr::Canonicalize(FlowGraph* flow_graph) {
   CompileType* in_type = left()->Type();
   intptr_t cid = in_type->ToCid();
@@ -2748,7 +2775,13 @@ Definition* TestCidsInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
-  // TODO(sra): Handle misses if the instruction is not deoptimizing.
+  if (!CanDeoptimize()) {
+    ASSERT(deopt_id() == Thread::kNoDeoptId);
+    return (data[data.length() - 1] == true_result)
+               ? flow_graph->GetConstant(Bool::False())
+               : flow_graph->GetConstant(Bool::True());
+  }
+
   // TODO(sra): Handle nullable input, possibly canonicalizing to a compare
   // against `null`.
   return this;
@@ -3222,8 +3255,9 @@ StrictCompareInstr::StrictCompareInstr(TokenPosition token_pos,
                                        Token::Kind kind,
                                        Value* left,
                                        Value* right,
-                                       bool needs_number_check)
-    : TemplateComparison(token_pos, kind, Thread::Current()->GetNextDeoptId()),
+                                       bool needs_number_check,
+                                       intptr_t deopt_id)
+    : TemplateComparison(token_pos, kind, deopt_id),
       needs_number_check_(needs_number_check) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
   SetInputAt(0, left);
@@ -3834,7 +3868,7 @@ ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
 ComparisonInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,
                                                          Value* new_right) {
   return new StrictCompareInstr(token_pos(), kind(), new_left, new_right,
-                                needs_number_check());
+                                needs_number_check(), Thread::kNoDeoptId);
 }
 
 

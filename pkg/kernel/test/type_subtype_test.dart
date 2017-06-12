@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:test/test.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -16,6 +17,8 @@ var classEnvironment = <String, List<String>>{
   'double': ['num'],
   'Iterable<T>': ['Object'],
   'List<T>': ['Iterable<T>'],
+  'Future<T>': ['Object'],
+  'FutureOr<T>': ['Object'],
 };
 
 List<TestCase> testCases = <TestCase>[
@@ -84,43 +87,76 @@ List<TestCase> testCases = <TestCase>[
   notSubtype('<E>(E,List<Object>) => List<E>', '<F:List<F>>(F,F) => F'),
   notSubtype('<E>(E,List<Object>) => int', '<F:List<F>>(F,F) => F'),
   subtype('<E>(E,List<Object>) => E', '<F:List<F>>(F,F) => void'),
+
+  subtype('int', 'FutureOr<int>', strongMode: true),
+  subtype('int', 'FutureOr<num>', strongMode: true),
+  subtype('Future<int>', 'FutureOr<int>', strongMode: true),
+  subtype('Future<int>', 'FutureOr<num>', strongMode: true),
+  subtype('Future<int>', 'FutureOr<Object>', strongMode: true),
+  subtype('FutureOr<int>', 'FutureOr<int>', strongMode: true),
+  subtype('FutureOr<int>', 'FutureOr<num>', strongMode: true),
+  subtype('FutureOr<int>', 'Object', strongMode: true),
+  notSubtype('int', 'FutureOr<double>', strongMode: true),
+  notSubtype('FutureOr<double>', 'int', strongMode: true),
+  notSubtype('FutureOr<int>', 'Future<num>', strongMode: true),
+  notSubtype('FutureOr<int>', 'num', strongMode: true),
 ];
 
 /// Assert that [subtype] is a subtype of [supertype], and that [supertype]
 /// is not a subtype of [subtype] (unless the two strings are equal).
-TestCase subtype(String subtype_, String supertype) {
-  return new TestCase(subtype_, supertype, isSubtype: true);
+TestCase subtype(String subtype_, String supertype, {bool strongMode: false}) {
+  return new TestCase(subtype_, supertype,
+      isSubtype: true, strongMode: strongMode);
 }
 
 /// Assert that neither type is a subtype of the other.
-TestCase notSubtype(String subtype_, String supertype) {
-  return new TestCase(subtype_, supertype, isSubtype: false);
+TestCase notSubtype(String subtype_, String supertype,
+    {bool strongMode: false}) {
+  return new TestCase(subtype_, supertype,
+      isSubtype: false, strongMode: strongMode);
 }
 
 class TestCase {
   String subtype;
   String supertype;
   bool isSubtype;
-  TestCase(this.subtype, this.supertype, {this.isSubtype});
+  bool strongMode;
 
-  String toString() =>
-      isSubtype ? '$subtype <: $supertype' : '$subtype </: $supertype';
+  TestCase(this.subtype, this.supertype,
+      {this.isSubtype, this.strongMode: false});
+
+  String toString() {
+    var description =
+        isSubtype ? '$subtype <: $supertype' : '$subtype </: $supertype';
+    if (strongMode) {
+      description += ' (strong mode)';
+    }
+    return description;
+  }
 }
 
 class MockSubtypeTester extends SubtypeTester {
   ClassHierarchy hierarchy;
   InterfaceType objectType;
   InterfaceType rawFunctionType;
+  Class futureClass;
+  Class futureOrClass;
   LazyTypeEnvironment environment;
+  bool strongMode = false;
 
-  MockSubtypeTester(
-      this.hierarchy, this.objectType, this.rawFunctionType, this.environment);
+  InterfaceType futureType(DartType type) =>
+      new InterfaceType(futureClass, [type]);
+
+  MockSubtypeTester(this.hierarchy, this.objectType, this.rawFunctionType,
+      this.futureClass, this.futureOrClass, this.environment);
 }
 
 MockSubtypeTester makeSubtypeTester(Map<String, List<String>> testcase) {
   LazyTypeEnvironment environment = new LazyTypeEnvironment();
   Class objectClass = environment.lookup('Object');
   Class functionClass = environment.lookup('Function');
+  Class futureClass = environment.lookup('Future');
+  Class futureOrClass = environment.lookup('FutureOr');
   functionClass.supertype = objectClass.asRawSupertype;
   for (var typeString in testcase.keys) {
     InterfaceType type = environment.parseFresh(typeString);
@@ -136,10 +172,9 @@ MockSubtypeTester makeSubtypeTester(Map<String, List<String>> testcase) {
       }
     }
   }
-  var program = new Program(libraries: [environment.dummyLibrary]);
-  var hierarchy = new ClassHierarchy(program);
-  return new MockSubtypeTester(
-      hierarchy, objectClass.rawType, functionClass.rawType, environment);
+  var hierarchy = new IncrementalClassHierarchy();
+  return new MockSubtypeTester(hierarchy, objectClass.rawType,
+      functionClass.rawType, futureClass, futureOrClass, environment);
 }
 
 main() {
@@ -147,6 +182,7 @@ main() {
   var environment = tester.environment;
   for (var testCase in testCases) {
     test('$testCase', () {
+      tester.strongMode = testCase.strongMode;
       var subtype = environment.parseFresh(testCase.subtype);
       var supertype = environment.parseFresh(testCase.supertype);
       if (tester.isSubtypeOf(subtype, supertype) != testCase.isSubtype) {

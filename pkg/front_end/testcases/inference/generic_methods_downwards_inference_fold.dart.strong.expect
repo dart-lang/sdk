@@ -1,0 +1,17 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  core::List<core::int> o;
+  core::int y = o.{core::Iterable::fold}<core::int>(0, (core::int x, core::int y) → core::int => x.{core::num::+}(y));
+  dynamic z = o.{core::Iterable::fold}<dynamic>(0, (dynamic x, core::int y) → dynamic => x.+(y));
+  y = z;
+}
+static method functionExpressionInvocation() → void {
+  core::List<core::int> o;
+  core::int y = o.{core::Iterable::fold}.call<core::int>(0, (core::int x, core::int y) → core::int => x.{core::num::+}(y));
+  dynamic z = o.{core::Iterable::fold}.call<dynamic>(0, (dynamic x, core::int y) → dynamic => x.+(y));
+  y = z;
+}
+static method main() → dynamic {}

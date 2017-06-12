@@ -782,6 +782,10 @@ class CompilationUnitElementX extends ElementX
       String content = libraryReference.dartString.slowToString();
       Uri uri = this.script.readableUri.resolve(content);
       Uri expectedUri = library.canonicalUri;
+      // Also allow `string.dart` to refer to `dart:core` as `core.dart`.
+      if (library.isPlatformLibrary && !uri.isScheme("dart")) {
+        expectedUri = library.entryCompilationUnit.script.readableUri;
+      }
       if (uri != expectedUri) {
         // Consider finding a relative URI reference for the error message.
         reporter.reportWarningMessage(tag.name,
@@ -1570,8 +1574,9 @@ abstract class VariableElementX extends ElementX
         definitionCache = initializedIdentifier;
       }
     }
-    invariant(definitions, definitionCache != null,
-        message: "Could not find '$name'.");
+    if (definitionCache == null) {
+      failedAt(definitionCache, "Could not find '$name'.");
+    }
     definitionsCache = definitions;
   }
 
@@ -2478,20 +2483,17 @@ class ConstructorBodyElementX extends BaseFunctionElementX
     if (node.hasEmptyBody) return null;
     ClassElement classElement = constructor.enclosingClass;
     ConstructorBodyElement bodyElement;
-    classElement.forEachBackendMember((Element backendMember) {
-      if (backendMember.isGenerativeConstructorBody) {
-        ConstructorBodyElement body = backendMember;
-        if (body.constructor == constructor) {
-          // TODO(kasperl): Find a way of stopping the iteration
-          // through the backend members.
-          bodyElement = backendMember;
-        }
+    classElement.forEachConstructorBody((ConstructorBodyElement body) {
+      if (body.constructor == constructor) {
+        // TODO(kasperl): Find a way of stopping the iteration
+        // through the backend members.
+        bodyElement = body;
       }
     });
     if (bodyElement == null) {
       bodyElement =
           new ConstructorBodyElementX(constructorResolvedAst, constructor);
-      classElement.addBackendMember(bodyElement);
+      classElement.addConstructorBody(bodyElement);
 
       if (constructor.isPatch) {
         // Create origin body element for patched constructors.
@@ -2499,7 +2501,7 @@ class ConstructorBodyElementX extends BaseFunctionElementX
         ConstructorBodyElementX origin = new ConstructorBodyElementX(
             constructorResolvedAst, constructor.origin);
         origin.applyPatch(patch);
-        classElement.origin.addBackendMember(bodyElement.origin);
+        classElement.origin.addConstructorBody(bodyElement.origin);
       }
     }
     assert(bodyElement.isGenerativeConstructorBody);

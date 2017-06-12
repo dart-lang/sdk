@@ -258,7 +258,6 @@ class StatsPage extends PageWriter {
           sink.write(method);
           sink.writeln('</td></tr>');
         }
-        ;
         sink.writeln('</table>');
       });
     }

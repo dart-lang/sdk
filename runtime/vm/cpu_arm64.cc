@@ -12,7 +12,9 @@
 #include "vm/simulator.h"
 
 #if !defined(USING_SIMULATOR)
+#if !defined(HOST_OS_FUCHSIA)
 #include <sys/syscall.h> /* NOLINT */
+#endif
 #include <unistd.h>      /* NOLINT */
 #endif
 

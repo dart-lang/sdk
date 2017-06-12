@@ -15,8 +15,8 @@ class BuildUri {
   final String suffix;
 
   factory BuildUri(Uri uri) {
-    List<String> parts =
-        split(uri.path, ['/builders/', '/builds/', '/steps/', '/logs/']);
+    List<String> parts = split(Uri.decodeFull(uri.path),
+        ['/builders/', '/builds/', '/steps/', '/logs/']);
     String botName = parts[1];
     int buildNumber = int.parse(parts[2]);
     String stepName = parts[3];
@@ -34,6 +34,8 @@ class BuildUri {
   BuildUri withBuildNumber(int buildNumber) {
     return new BuildUri.fromData(botName, buildNumber, stepName);
   }
+
+  int get absoluteBuildNumber => buildNumber >= 0 ? buildNumber : null;
 
   String get shortBuildName => '$botName/$stepName';
 

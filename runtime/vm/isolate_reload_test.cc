@@ -3387,7 +3387,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError3) {
 }
 
 
-TEST_CASE(IsolateREload_RunNewFieldInitialiazersSuperClass) {
+TEST_CASE(IsolateReload_RunNewFieldInitialiazersSuperClass) {
   const char* kScript =
       "class Super {\n"
       "  static var foo = 'right';\n"
@@ -3425,6 +3425,80 @@ TEST_CASE(IsolateREload_RunNewFieldInitialiazersSuperClass) {
   // Verify that we ran field initializers on existing instances in the
   // correct scope.
   EXPECT_STREQ("right", SimpleInvokeStr(lib, "main"));
+}
+
+
+TEST_CASE(IsolateReload_TypedefToNotTypedef) {
+  const char* kScript =
+      "typedef bool Predicate(dynamic x);\n"
+      "main() {\n"
+      "  return (42 is Predicate).toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("false", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class Predicate {\n"
+      "  bool call(dynamic x) { return false; }\n"
+      "}\n"
+      "main() {\n"
+      "  return (42 is Predicate).toString();\n"
+      "}\n";
+
+  Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(result,
+               "Typedef class cannot be redefined to be a non-typedef class");
+}
+
+
+TEST_CASE(IsolateReload_NotTypedefToTypedef) {
+  const char* kScript =
+      "class Predicate {\n"
+      "  bool call(dynamic x) { return false; }\n"
+      "}\n"
+      "main() {\n"
+      "  return (42 is Predicate).toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("false", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "typedef bool Predicate(dynamic x);\n"
+      "main() {\n"
+      "  return (42 is Predicate).toString();\n"
+      "}\n";
+
+  Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(result, "Class cannot be redefined to be a typedef class");
+}
+
+
+TEST_CASE(IsolateReload_TypedefAddParameter) {
+  const char* kScript =
+      "typedef bool Predicate(dynamic x);\n"
+      "main() {\n"
+      "  bool foo(x) => true;\n"
+      "  return (foo is Predicate).toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "typedef bool Predicate(dynamic x, dynamic y);\n"
+      "main() {\n"
+      "  bool foo(x) => true;\n"
+      "  return (foo is Predicate).toString();\n"
+      "}\n";
+
+  Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(result);
+  EXPECT_STREQ("false", SimpleInvokeStr(lib, "main"));
 }
 
 #endif  // !PRODUCT

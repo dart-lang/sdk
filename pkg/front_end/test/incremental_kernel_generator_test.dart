@@ -8,8 +8,12 @@ import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/incremental_kernel_generator_impl.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/text/ast_to_text.dart';
+import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,6 +29,9 @@ main() {
 class IncrementalKernelGeneratorTest {
   /// Virtual filesystem for testing.
   final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+
+  /// The used file watcher.
+  WatchUsedFilesFn watchFn = (uri, used) {};
 
   /// The object under test.
   IncrementalKernelGenerator incrementalKernelGenerator;
@@ -44,8 +51,8 @@ class IncrementalKernelGeneratorTest {
       ..chaseDependencies = true
       ..dartLibraries = dartLibraries
       ..packagesFileUri = Uri.parse('file:///test/.packages');
-    incrementalKernelGenerator = await IncrementalKernelGenerator.newInstance(
-        compilerOptions, entryPoint);
+    incrementalKernelGenerator = await IncrementalKernelGenerator
+        .newInstance(compilerOptions, entryPoint, watch: watchFn);
     return (await incrementalKernelGenerator.computeDelta()).newProgram;
   }
 
@@ -68,6 +75,7 @@ import 'a.dart';
 import 'b.dart';
 var c1 = a;
 var c2 = b;
+void main() {}
 ''');
 
     {
@@ -86,7 +94,11 @@ import "./b.dart" as b;
 
 static field core::int c1 = a::a;
 static field core::int c2 = b::b;
+static method main() → void {}
 ''');
+      // The main method is set.
+      expect(program.mainMethod, isNotNull);
+      expect(program.mainMethod.enclosingLibrary.fileUri, cUri.toString());
     }
 
     // Update b.dart and recompile c.dart
@@ -114,7 +126,11 @@ import "./b.dart" as b;
 
 static field core::int c1 = a::a;
 static field core::double c2 = b::b;
+static method main() → void {}
 ''');
+      // The main method is set even though not the entry point is updated.
+      expect(program.mainMethod, isNotNull);
+      expect(program.mainMethod.enclosingLibrary.fileUri, cUri.toString());
     }
   }
 
@@ -316,6 +332,152 @@ static field (core::String) → core::int f;
 ''');
   }
 
+  test_invalidateAll() async {
+    writeFile('/test/.packages', '');
+    Uri aUri = writeFile('/test/a.dart', "import 'b.dart';\nint a = b;");
+    Uri bUri = writeFile('/test/b.dart', 'var b = 1;');
+
+    Program program = await getInitialState(aUri);
+    expect(_getLibraryText(_getLibrary(program, aUri)), contains("int a ="));
+    expect(_getLibraryText(_getLibrary(program, bUri)), contains("b = 1"));
+
+    writeFile('/test/a.dart', "import 'b.dart';\ndouble a = b;");
+    writeFile('/test/b.dart', 'var b = 2;');
+    incrementalKernelGenerator.invalidateAll();
+
+    DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+    program = delta.newProgram;
+    _assertLibraryUris(program, includes: [aUri, bUri]);
+    expect(_getLibraryText(_getLibrary(program, aUri)), contains("double a ="));
+    expect(_getLibraryText(_getLibrary(program, bUri)), contains("b = 2"));
+  }
+
+  test_limited_ast_to_binary() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    writeFile(
+        aPath,
+        r'''
+int topField = 0;
+int get topGetter => 0;
+int topFunction({p}) => 0;
+
+abstract class I {
+  int interfaceField;
+  int get interfaceGetter;
+  int interfaceMethod();
+}
+        
+class A implements I {
+  static int staticField;
+  static int get staticGetter => 0;
+  static int staticMethod() => 0;
+
+  int instanceField;
+  int get instanceGetter => 0;
+  int instanceMethod() => 0;
+
+  int interfaceField;
+  int get interfaceGetter => 0;
+  int interfaceMethod() => 0;
+  
+  A();
+  A.named();
+}
+''');
+    Uri bUri = writeFile(
+        bPath,
+        r'''
+import 'a.dart';
+
+class B extends A {
+  B() : super();
+  B.named() : super.named();
+  
+  void foo() {
+    super.instanceMethod();
+    instanceMethod();
+    
+    super.interfaceField;
+    super.interfaceField = 0;
+    super.interfaceGetter;
+    super.interfaceMethod();
+  }
+  
+  int instanceMethod() => 0;
+  
+  int interfaceField;
+  int get interfaceGetter => 0;
+  int interfaceMethod() => 0;
+}
+
+main() {
+  topField;
+  topField = 0;
+  var v1 = topGetter;
+  var v2 = topFunction(p: 0);
+
+  A.staticField;
+  A.staticField = 0;
+  var v3 = A.staticGetter;
+  var v4 = A.staticMethod();
+
+  var a = new A();
+
+  a.instanceField;
+  a.instanceField = 0;
+  var v5 = a.instanceGetter;
+  var v6 = a.instanceMethod();
+
+  a.interfaceField;
+  a.interfaceField = 0;
+  var v7 = a.interfaceGetter;
+  var v8 = a.interfaceMethod();
+}
+''');
+
+    Program program = await getInitialState(bUri);
+
+    String initialKernelText;
+    List<int> bytes;
+    {
+      Library initialLibrary = _getLibrary(program, bUri);
+      initialKernelText = _getLibraryText(initialLibrary);
+
+      var byteSink = new ByteSink();
+      var printer = new LimitedBinaryPrinter(
+          byteSink, (library) => library.importUri == bUri);
+      printer.writeProgramFile(program);
+      bytes = byteSink.builder.takeBytes();
+
+      // Remove b.dart from the program.
+      // So, the program is now ready for re-adding the library.
+      program.mainMethod = null;
+      program.libraries.remove(initialLibrary);
+      program.root.removeChild(initialLibrary.importUri.toString());
+    }
+
+    // Load b.dart from bytes using the initial name root, so that
+    // serialized canonical names can be linked to corresponding nodes.
+    Library loadedLibrary;
+    {
+      var programForLoading = new Program(nameRoot: program.root);
+      var reader = new BinaryBuilder(bytes);
+      reader.readProgram(programForLoading);
+      loadedLibrary = _getLibrary(programForLoading, bUri);
+    }
+
+    // Add the library into the program.
+    program.libraries.add(loadedLibrary);
+    loadedLibrary.parent = program;
+    program.mainMethod = loadedLibrary.procedures
+        .firstWhere((procedure) => procedure.name.name == 'main');
+
+    expect(_getLibraryText(loadedLibrary), initialKernelText);
+    verifyProgram(program);
+  }
+
   test_updateEntryPoint() async {
     writeFile('/test/.packages', 'test:lib/');
     String path = '/test/lib/test.dart';
@@ -376,6 +538,55 @@ import "dart:core" as core;
 static method main() → dynamic {
   core::double v = 2.3;
 }
+''');
+    }
+  }
+
+  test_updatePackageSourceUsingFileUri() async {
+    writeFile('/test/.packages', 'test:lib/');
+    Uri aFileUri = writeFile(
+        '/test/bin/a.dart',
+        r'''
+import 'package:test/b.dart';
+var a = b;
+''');
+    Uri bFileUri = writeFile('/test/lib/b.dart', 'var b = 1;');
+    Uri bPackageUri = Uri.parse('package:test/b.dart');
+
+    // Compute the initial state.
+    {
+      Program program = await getInitialState(aFileUri);
+      Library library = _getLibrary(program, aFileUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "package:test/b.dart" as b;
+
+static field core::int a = b::b;
+''');
+    }
+
+    // Update b.dart and use file URI to invalidate it.
+    // The delta is recomputed even though b.dart is used with the package URI.
+    writeFile('/test/lib/b.dart', 'var b = 1.2;');
+    incrementalKernelGenerator.invalidate(bFileUri);
+    {
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aFileUri, bPackageUri]);
+      Library library = _getLibrary(program, aFileUri);
+      expect(
+          _getLibraryText(library),
+          r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "package:test/b.dart" as b;
+
+static field core::double a = b::b;
 ''');
     }
   }
@@ -472,6 +683,50 @@ static field core::double b = 2.3 /* from file:///test/lib/bar.dart */;
 static field core::String d = self::a /* from file:///test/lib/bar.dart */;
 static method main() → void {}
 ''');
+    }
+  }
+
+  test_watch() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    Uri aUri = writeFile(aPath, '');
+    Uri bUri = writeFile(bPath, '');
+    Uri cUri = writeFile(
+        cPath,
+        r'''
+import 'a.dart';
+''');
+
+    var usedFiles = <Uri>[];
+    watchFn = (Uri uri, bool used) {
+      expect(used, isTrue);
+      usedFiles.add(uri);
+      return new Future.value();
+    };
+
+    {
+      await getInitialState(cUri);
+      // We use at least c.dart and a.dart now.
+      expect(usedFiles, contains(cUri));
+      expect(usedFiles, contains(aUri));
+      usedFiles.clear();
+    }
+
+    // Update c.dart to reference also b.dart file.
+    writeFile(
+        cPath,
+        r'''
+import 'a.dart';
+import 'b.dart';
+''');
+    incrementalKernelGenerator.invalidate(cUri);
+    {
+      await incrementalKernelGenerator.computeDelta();
+      // The only new file is b.dart now.
+      expect(usedFiles, [bUri]);
+      usedFiles.clear();
     }
   }
 

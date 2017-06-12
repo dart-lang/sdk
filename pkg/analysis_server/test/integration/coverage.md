@@ -25,10 +25,10 @@ server calls. This file is validated by `coverage_test.dart`.
 ## edit domain
 - [x] edit.format
 - [x] edit.getAssists
-- [ ] edit.getAvailableRefactorings
+- [x] edit.getAvailableRefactorings
 - [x] edit.getFixes
-- [ ] edit.getRefactoring
-- [ ] edit.getStatementCompletion
+- [x] edit.getRefactoring
+- [x] edit.getStatementCompletion
 - [x] edit.sortMembers
 - [x] edit.organizeDirectives
 
@@ -49,3 +49,9 @@ server calls. This file is validated by `coverage_test.dart`.
 - [x] server.getVersion
 - [x] server.shutdown
 - [x] server.setSubscriptions
+
+## analytics domain
+- [x] analytics.isEnabled
+- [x] analytics.enable
+- [x] analytics.sendEvent
+- [x] analytics.sendTiming

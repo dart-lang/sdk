@@ -5,6 +5,8 @@
 [ $compiler == dart2js ]
 enum_test: Fail # Issue 28340
 regress_28341_test: Fail # Issue 28340
+regress_29349_test: CompileTimeError # Issue 29745
+regress_29481_test: Crash # Issue 29754
 deferred_not_loaded_check_test: Fail # Issue 27577
 getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
@@ -177,7 +179,7 @@ malbounded_type_test_test/04: Fail # Issue 14121
 malbounded_type_test2_test: Fail # Issue 14121
 default_factory2_test/01: Fail # Issue 14121
 
-[ $compiler == dart2js && $unchecked ]
+[ $compiler == dart2js && ! $checked ]
 type_checks_in_factory_method_test: RuntimeError # Issue 12746
 assertion_test: RuntimeError # Issue 12748
 generic_test: RuntimeError, OK
@@ -189,7 +191,7 @@ positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
 
-[ $compiler == dart2js && $unchecked && $minified ]
+[ $compiler == dart2js && ! $checked && $minified ]
 f_bounded_quantification5_test: Fail, OK # Issue 12605
 
 [ $compiler == dart2js && $minified ]
@@ -314,6 +316,8 @@ async_star_take_reyield_test: RuntimeError # Issue 27394
 async_star_test: RuntimeError # Issue 27394
 await_for_test: RuntimeError # Issue 27394
 await_for_use_local_test: RuntimeError # Issue 27394
+black_listed_test/13c: Crash # Issue 27394
+black_listed_test/14c: Crash # Issue 27394
 bootstrap_test: RuntimeError # Issue 27394
 call_nonexistent_static_test/10: Crash # Issue 27394
 closure_in_constructor_test: RuntimeError # Issue 27394
@@ -325,8 +329,6 @@ conditional_property_increment_decrement_test/09: RuntimeError # Issue 27394
 conditional_property_increment_decrement_test/13: RuntimeError # Issue 27394
 const_evaluation_test/01: Crash # Issue 27394
 const_qq_test: Crash # Issue 27394
-constructor10_test/01: Crash # Issue 27394
-constructor10_test/02: Crash # Issue 27394
 constructor_named_arguments_test/none: RuntimeError # Issue 27394
 constructor_redirect2_test/02: Crash # Issue 27394
 constructor_redirect2_test/04: Crash # Issue 27394
@@ -335,16 +337,10 @@ covariant_test/11: Crash # Issue 27394
 covariant_test/20b: Crash # Issue 27394
 covariant_test/24: Crash # Issue 27394
 cyclic_default_values_test: RuntimeError # Issue 27394
-deferred_constraints_constants_test/constructor1: Crash # Issue 27394
-deferred_constraints_constants_test/constructor2: Crash # Issue 27394
-deferred_constraints_constants_test/default_argument1: Crash # Issue 27394
-deferred_constraints_constants_test/default_argument2: Crash # Issue 27394
 deferred_constraints_constants_test/metadata1: Crash # Issue 27394
 deferred_constraints_constants_test/metadata2: Crash # Issue 27394
 deferred_constraints_constants_test/metadata3: Crash # Issue 27394
 deferred_constraints_constants_test/none: Crash # Issue 27394
-deferred_constraints_constants_test/reference1: Crash # Issue 27394
-deferred_constraints_constants_test/reference2: Crash # Issue 27394
 deferred_constraints_constants_test/reference_after_load: Crash # Issue 27394
 deferred_constraints_type_annotation_test/as_operation: Crash # Issue 27394
 deferred_inheritance_constraints_test/mixin: Crash # Issue 27394
@@ -398,19 +394,12 @@ issue21079_test: Crash # Issue 27394
 issue9602_test: Crash # Issue 27394
 issue_25671a_test/01: Crash # Issue 27394
 issue_25671b_test/01: Crash # Issue 27394
-library_env_test/has_html_support: RuntimeError # Issue 27394
-library_env_test/has_io_support: RuntimeError # Issue 27394
-library_env_test/has_mirror_support: RuntimeError # Issue 27394
-library_env_test/none: RuntimeError # Issue 27394
 list_is_test: RuntimeError # Issue 27394
 list_test: RuntimeError # Issue 27394
 main_not_a_function_test/01: Crash # Issue 27394
-malformed_inheritance_test/02: Crash # Issue 27394
 malformed_inheritance_test/03: Crash # Issue 27394
-malformed_inheritance_test/04: Crash # Issue 27394
 malformed_inheritance_test/09: Crash # Issue 27394
 malformed_inheritance_test/10: Crash # Issue 27394
-malformed_test/06: Crash # Issue 27394
 malformed_test/none: Crash # Issue 27394
 many_generic_instanceof_test: RuntimeError # Issue 27394
 many_method_calls_test: Pass # Issue 27394
@@ -468,9 +457,6 @@ named_parameters_passing_zero_test: RuntimeError # Issue 27394
 named_parameters_test/01: MissingRuntimeError # Issue 27394
 null_is_bottom_test/14: RuntimeError # Issue 27394
 null_is_bottom_test/16: RuntimeError # Issue 27394
-null_test/01: Crash # Issue 27394
-null_test/02: Crash # Issue 27394
-null_test/03: Crash # Issue 27394
 null_test/none: Crash # Issue 27394
 nullaware_opt_test: RuntimeError # Issue 27394
 optional_named_parameters_test/none: RuntimeError # Issue 27394
@@ -480,7 +466,6 @@ redirecting_factory_reflection_test: Crash # Issue 27394
 regress_18535_test: Crash # Issue 27394
 regress_18713_test: Crash # Issue 27394
 regress_22666_test: Crash # Issue 27394
-regress_23408_test: Crash # Issue 27394
 regress_23996_test: RuntimeError # Issue 27394
 regress_25246_1_test: Crash # Issue 27394
 regress_28255_test: Crash # Issue 27394
@@ -581,9 +566,6 @@ generic_function_typedef_test: Crash # Issue 27394
 getter_setter_in_lib_test: Crash # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-class_cycle2_test/01: Crash # Issue 27394
-class_cycle_test/00: Crash # Issue 27394
-class_cycle_test/01: Crash # Issue 27394
 conditional_method_invocation_test/02: Crash # Issue 27394
 conditional_method_invocation_test/04: Crash # Issue 27394
 conditional_method_invocation_test/06: Crash # Issue 27394
@@ -596,17 +578,16 @@ const_types_test/28: Crash # Issue 27394
 const_types_test/29: Crash # Issue 27394
 const_types_test/30: Crash # Issue 27394
 const_types_test/41: Crash # Issue 27394
-cyclic_class_member_test/01: Crash # Issue 27394
 deferred_global_test: Crash # Issue 27394
 factory6_test/00: Crash # Issue 27394
 factory_redirection_test/01: Crash # Issue 27394
 factory_redirection_test/02: Crash # Issue 27394
 factory_redirection_test/03: Crash # Issue 27394
-mixin_cyclic_test/02: Crash # Issue 27394
-mixin_illegal_cycles_test/01: Crash # Issue 27394
-mixin_illegal_cycles_test/05: Crash # Issue 27394
 named_parameters_test/01: Crash # Issue 27394
 named_parameters_test/03: Crash # Issue 27394
 named_parameters_test/05: Crash # Issue 27394
 named_parameters_test/07: Crash # Issue 27394
 named_parameters_test/09: Crash # Issue 27394
+
+[ $compiler == dart2js && $csp ]
+regress_18713_test: RuntimeError # Issue 29843
