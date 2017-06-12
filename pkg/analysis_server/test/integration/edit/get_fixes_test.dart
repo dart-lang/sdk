@@ -46,12 +46,12 @@ Future f;
     expect(change.edits.first.edits, hasLength(1));
     SourceEdit edit = change.edits.first.edits.first;
     text = text.replaceRange(edit.offset, edit.end, edit.replacement);
-    writeFile(pathname, text);
 
-    await analysisFinished;
-    // The errors (at least sometimes) don't get sent until after analysis has
-    // completed. Wait long enough to see whether new errors are reported.
-    await new Future.delayed(new Duration(milliseconds: 1000));
+    // save the fixed text as an overlay
+    Future analysisFinishedFuture = analysisFinished;
+    sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
+    await analysisFinishedFuture;
+
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
 
