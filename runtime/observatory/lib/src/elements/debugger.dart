@@ -5,18 +5,14 @@
 library debugger_page_element;
 
 import 'dart:async';
+import 'dart:svg';
 import 'dart:html';
 import 'dart:math';
-import 'dart:svg';
-
-import 'package:logging/logging.dart';
+import 'package:observatory/event.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
-import 'package:observatory/event.dart';
-import 'package:observatory/models.dart' as M;
-import 'package:observatory/service.dart' as S;
-import 'package:observatory/service_common.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
@@ -31,6 +27,8 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/source_inset.dart';
 import 'package:observatory/src/elements/source_link.dart';
+import 'package:observatory/service.dart' as S;
+import 'package:logging/logging.dart';
 
 // TODO(turnidge): Move Debugger, DebuggerCommand to debugger library.
 abstract class DebuggerCommand extends Command {
@@ -1203,8 +1201,7 @@ class VmListCommand extends DebuggerCommand {
     var maxNameLen = 'NAME'.length;
 
     for (var vm in vmList) {
-      maxAddrLen = max(
-          maxAddrLen, (vm as CommonWebSocketVM).target.networkAddress.length);
+      maxAddrLen = max(maxAddrLen, vm.target.networkAddress.length);
       maxNameLen = max(maxNameLen, vm.name.length);
     }
 
@@ -1690,7 +1687,7 @@ class ObservatoryDebugger extends Debugger {
   void onEvent(S.ServiceEvent event) {
     switch (event.kind) {
       case S.ServiceEvent.kVMUpdate:
-        CommonWebSocketVM vm = event.owner;
+        var vm = event.owner;
         console.print("VM ${vm.target.networkAddress} renamed to '${vm.name}'");
         break;
 

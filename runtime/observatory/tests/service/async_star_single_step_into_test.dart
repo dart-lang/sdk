@@ -4,10 +4,18 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug --async_debugger
 
 import 'dart:developer';
-import 'dart:io';
-
+import 'package:observatory/models.dart' as M;
+import 'package:observatory/service_io.dart';
+import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
+
+const LINE_A = 21;
+const LINE_B = 22;
+const LINE_C = 26;
+const LINE_D = 29;
+const LINE_E = 35;
+const LINE_F = 36;
 
 foobar() async* {
   yield 1; // LINE_A.
@@ -29,32 +37,30 @@ testMain() {
   print('z');
 }
 
-final ScriptLineParser lineParser = new ScriptLineParser(Platform.script);
-
 var tests = [
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_E')),
+  stoppedAtLine(LINE_E),
   stepOver, // print.
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_F')),
+  stoppedAtLine(LINE_F),
   stepInto,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_C')),
+  stoppedAtLine(LINE_C),
   stepOver, // print.
   hasStoppedAtBreakpoint,
   stepInto,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_A')),
+  stoppedAtLine(LINE_A),
   // Resume here to exit the generator function.
   // TODO(johnmccutchan): Implement support for step-out of async functions.
   resumeIsolate,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_D')),
+  stoppedAtLine(LINE_D),
   stepOver, // print.
   hasStoppedAtBreakpoint,
   stepInto,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_B')),
+  stoppedAtLine(LINE_B),
   resumeIsolate,
 ];
 

@@ -3,11 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug --async_debugger
 
+import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
-
+import 'package:observatory/models.dart' as M;
+import 'package:observatory/service_io.dart';
+import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
+
+const LINE_A = 23;
+const LINE_B = 24;
+const LINE_C = 30;
+const LINE_D = 32;
+const LINE_E = 35;
+const LINE_F = 38;
+const LINE_G = 40;
 
 helper() async {
   print('helper'); // LINE_A.
@@ -30,35 +40,33 @@ testMain() async {
   print('z'); // LINE_G.
 }
 
-final ScriptLineParser lineParser = new ScriptLineParser(Platform.script);
-
 var tests = [
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_C')),
+  stoppedAtLine(LINE_C),
   stepOver, // print.
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_D')),
+  stoppedAtLine(LINE_D),
   stepInto,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_A')),
+  stoppedAtLine(LINE_A),
   stepOver, // print.
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_B')), // throw 'a'.
+  stoppedAtLine(LINE_B), // throw 'a'.
   stepInto, // exit helper via a throw.
   hasStoppedAtBreakpoint,
   stepInto, // exit helper via a throw.
   hasStoppedAtBreakpoint,
   stepInto, // step once from entry to main.
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_E')), // print(error)
+  stoppedAtLine(LINE_E), // print(error)
   stepOver,
   hasStoppedAtBreakpoint,
   stepOver,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_F')), // print(foo)
+  stoppedAtLine(LINE_F), // print(foo)
   stepOver,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(lineParser.lineFor('LINE_G')), // print(z)
+  stoppedAtLine(LINE_G), // print(z)
   resumeIsolate
 ];
 

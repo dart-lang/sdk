@@ -53,8 +53,4 @@ class IsolateMock implements M.Isolate {
       this.pauseEvent,
       this.rootLibrary,
       this.entry});
-
-  Future collectAllGarbage() async {
-    throw "Unimplemented";
-  }
 }
