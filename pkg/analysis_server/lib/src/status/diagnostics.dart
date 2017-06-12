@@ -141,10 +141,13 @@ class AstPage extends DiagnosticPageWithNav {
   String get description => _description ?? super.description;
 
   @override
+  bool get showInNav => false;
+
+  @override
   Future<Null> generatePage(Map<String, String> params) async {
     try {
       String path = params['file'];
-      _description = path == null ? null : 'The AST for $path.';
+      _description = path;
       await super.generatePage(params);
     } finally {
       _description = null;
@@ -209,9 +212,8 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
 
     // Add non-nav pages.
     pages.add(new FeedbackPage(this));
-
-    secondaryPages.add(new AstPage(this));
-    secondaryPages.add(new ElementModelPage(this));
+    pages.add(new AstPage(this));
+    pages.add(new ElementModelPage(this));
   }
 
   String get customCss => kCustomCss;
@@ -309,12 +311,18 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
       {String description})
       : super(site, id, title, description: description);
 
+  bool get showInNav => true;
+
   Future<Null> generateContainer(Map<String, String> params) async {
     buf.writeln('<div class="columns docs-layout">');
 
+    bool shouldShowInNav(Page page) {
+      return page is DiagnosticPageWithNav && page.showInNav;
+    }
+
     buf.writeln('<div class="one-fifth column">');
     buf.writeln('<nav class="menu docs-menu">');
-    for (Page page in site.pages.where((p) => p is DiagnosticPageWithNav)) {
+    for (Page page in site.pages.where(shouldShowInNav)) {
       buf.write('<a class="menu-item ${page == this ? ' selected' : ''}" '
           'href="${page.path}">${escape(page.title)}');
       String detail = (page as DiagnosticPageWithNav).navDetail;
@@ -353,10 +361,13 @@ class ElementModelPage extends DiagnosticPageWithNav {
   String get description => _description ?? super.description;
 
   @override
+  bool get showInNav => false;
+
+  @override
   Future<Null> generatePage(Map<String, String> params) async {
     try {
       String path = params['file'];
-      _description = path == null ? null : 'The element model for $path.';
+      _description = path;
       await super.generatePage(params);
     } finally {
       _description = null;
@@ -719,11 +730,9 @@ class ContextsPage extends DiagnosticPageWithNav {
       String elementPath = '/element?file=${Uri.encodeQueryComponent(file)}';
 
       buf.write(file);
-      buf.write(' (');
-      buf.writeln('<a href="$astPath">ast</a>');
+      buf.writeln(' <a href="$astPath">ast</a>');
       buf.write(' ');
       buf.writeln('<a href="$elementPath">element</a>');
-      buf.write(')');
     }
 
     h4('Priority files ${lenCounter(priorityFiles)}', raw: true);

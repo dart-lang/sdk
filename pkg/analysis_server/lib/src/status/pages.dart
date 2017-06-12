@@ -12,7 +12,6 @@ import 'package:intl/intl.dart';
 abstract class Site {
   final String title;
   List<Page> pages = [];
-  List<Page> secondaryPages = [];
 
   Site(this.title);
 
@@ -28,16 +27,6 @@ abstract class Site {
       }
 
       for (Page page in pages) {
-        if (page.path == path) {
-          HttpResponse response = request.response;
-          response.headers.contentType = ContentType.HTML;
-          response.write(await page.generate(request.uri.queryParameters));
-          response.close();
-          return;
-        }
-      }
-
-      for (Page page in secondaryPages) {
         if (page.path == path) {
           HttpResponse response = request.response;
           response.headers.contentType = ContentType.HTML;
