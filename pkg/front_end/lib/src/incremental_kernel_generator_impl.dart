@@ -79,8 +79,16 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       : _logger = _options.logger,
         _byteStore = _options.byteStore {
     _computeSalt();
+
+    Future<Null> onFileAdded(Uri uri) {
+      if (watch != null) {
+        return watch(uri, true);
+      }
+      return new Future.value();
+    }
+
     _fsState = new FileSystemState(
-        _options.fileSystem, _uriTranslator, _salt, (uri) => watch(uri, true));
+        _options.fileSystem, _uriTranslator, _salt, onFileAdded);
   }
 
   @override
@@ -304,6 +312,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           await file.refresh();
         }
       }
+
+      // The file graph might have changed, perform GC.
+      _fsState.gc(_entryPoint);
     });
   }
 

@@ -141,6 +141,51 @@ baz() => 44;
 ''');
   }
 
+  test_gc() async {
+    var a = writeFile('/a.dart', '');
+    var b = writeFile('/b.dart', '');
+    var c = writeFile('/c.dart', 'import "a.dart";');
+    var d = writeFile('/d.dart', 'import "b.dart";');
+    var e = writeFile(
+        '/e.dart',
+        r'''
+import "c.dart";
+import "d.dart";
+''');
+
+    var eFile = await fsState.getFile(e);
+
+    // The root and four files.
+    expect(fsState.fileUris, contains(e));
+    expect(fsState.fileUris, contains(a));
+    expect(fsState.fileUris, contains(b));
+    expect(fsState.fileUris, contains(c));
+    expect(fsState.fileUris, contains(d));
+
+    // No changes after GC.
+    fsState.gc(e);
+    expect(fsState.fileUris, contains(e));
+    expect(fsState.fileUris, contains(a));
+    expect(fsState.fileUris, contains(b));
+    expect(fsState.fileUris, contains(c));
+    expect(fsState.fileUris, contains(d));
+
+    // Update e.dart so that it does not reference c.dart anymore.
+    // Then GC removes both c.dart and a.dart it references.
+    writeFile(
+        '/e.dart',
+        r'''
+import "d.dart";
+''');
+    await eFile.refresh();
+    fsState.gc(e);
+    expect(fsState.fileUris, contains(e));
+    expect(fsState.fileUris, isNot(contains(a)));
+    expect(fsState.fileUris, contains(b));
+    expect(fsState.fileUris, isNot(contains(c)));
+    expect(fsState.fileUris, contains(d));
+  }
+
   test_getFile() async {
     var a = writeFile('/a.dart', '');
     var b = writeFile('/b.dart', '');

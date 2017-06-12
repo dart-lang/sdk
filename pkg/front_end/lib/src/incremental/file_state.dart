@@ -54,6 +54,10 @@ class FileState {
   Set<FileState> _directReferencedFiles = new Set<FileState>();
   List<FileState> _directReferencedLibraries = <FileState>[];
 
+  /// This flag is set to `true` during the mark phase of garbage collection
+  /// and set back to `false` for survived instances.
+  bool _gcMarked = false;
+
   FileState._(this._fsState, this.uri, this.fileUri);
 
   /// The MD5 signature of the file API as a byte array.
@@ -308,6 +312,35 @@ class FileSystemState {
 
   /// The `file:` URI of all files currently tracked by this instance.
   Iterable<Uri> get fileUris => _fileUriToFile.keys;
+
+  /// Perform mark and sweep garbage collection of [FileState]s.
+  void gc(Uri entryPoint) {
+    void mark(FileState file) {
+      if (!file._gcMarked) {
+        file._gcMarked = true;
+        file._directReferencedFiles.forEach(mark);
+      }
+    }
+
+    var file = _uriToFile[entryPoint];
+    if (file == null) return;
+
+    mark(file);
+
+    var urisToRemove = new Set<Uri>();
+    var fileUrisToRemove = new Set<Uri>();
+    for (var file in _uriToFile.values) {
+      if (file._gcMarked) {
+        file._gcMarked = false;
+      } else {
+        urisToRemove.add(file.uri);
+        fileUrisToRemove.add(file.fileUri);
+      }
+    }
+
+    urisToRemove.forEach(_uriToFile.remove);
+    fileUrisToRemove.forEach(_fileUriToFile.remove);
+  }
 
   /// Return the [FileState] for the given [absoluteUri], or `null` if the
   /// [absoluteUri] cannot be resolved into a file URI.
