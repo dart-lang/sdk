@@ -327,17 +327,6 @@ type_variable_bounds4_test/01: RuntimeError
 
 [ $compiler == dartk || $compiler == dartkp ]
 compile_time_constant_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_constructor_mixin2_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_constructor_mixin3_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_constructor_mixin_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_constructor_super_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_constructor_syntax_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_constructor_syntax_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_constructor_syntax_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_constructor_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_for_in_variable_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_syntax_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_syntax_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
 const_types_test/23: MissingCompileTimeError # Fixed in ahe's dev branch.
 const_types_test/24: MissingCompileTimeError # Fixed in ahe's dev branch.
 const_types_test/25: MissingCompileTimeError # Fixed in ahe's dev branch.
@@ -347,7 +336,6 @@ const_types_test/28: MissingCompileTimeError # Fixed in ahe's dev branch.
 const_types_test/29: MissingCompileTimeError # Fixed in ahe's dev branch.
 const_types_test/30: MissingCompileTimeError # Fixed in ahe's dev branch.
 const_types_test/41: MissingCompileTimeError # Fixed in ahe's dev branch.
-constant_locals_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 cyclic_typedef_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 cyclic_typedef_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
 cyclic_typedef_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
@@ -363,8 +351,6 @@ deferred_duplicate_prefix3_test/01: MissingCompileTimeError # Fixed in ahe's dev
 enum_syntax_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
 enum_syntax_test/30: MissingCompileTimeError # Fixed in ahe's dev branch.
 final_initializer_instance_reference_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-final_syntax_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-final_syntax_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
 final_syntax_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
 final_syntax_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
 function_type_alias5_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.

@@ -410,6 +410,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     ProcedureBuilder member = this.member;
     scope = member.computeFormalParameterInitializerScope(scope);
     if (member is KernelConstructorBuilder) {
+      if (member.isConst &&
+          (classBuilder.cls.superclass?.isMixinApplication ?? false)) {
+        addCompileTimeError(member.charOffset,
+            "Can't extend a mixin application and be 'const'.");
+      }
       if (member.formals != null) {
         for (KernelFormalParameterBuilder formal in member.formals) {
           if (formal.hasThis) {
@@ -1214,7 +1219,22 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleNoVariableInitializer(Token token) {
     debugEvent("NoVariableInitializer");
-    pushNewLocalVariable(null);
+    bool isConst = (currentLocalVariableModifiers & constMask) != 0;
+    bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
+    Expression initializer;
+    if (!optional("in", token)) {
+      // A for-in loop-variable can't have an initializer. So let's remain
+      // silent if the next token is `in`. Since a for-in loop can only have
+      // one variable it must be followed by `in`.
+      if (isConst) {
+        initializer = buildCompileTimeError(
+            "A 'const' variable must be initialized.", token.charOffset);
+      } else if (isFinal) {
+        initializer = buildCompileTimeError(
+            "A 'final' variable must be initialized.", token.charOffset);
+      }
+    }
+    pushNewLocalVariable(initializer);
   }
 
   void pushNewLocalVariable(Expression initializer, {Token equalsToken}) {
@@ -1981,6 +2001,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           target.name.name, arguments, charOffset);
     }
     if (target is Constructor) {
+      if (isConst && !target.isConst) {
+        return buildCompileTimeError("Not a const constructor.", charOffset);
+      }
       return new KernelConstructorInvocation(target, initialTarget, arguments,
           isConst: isConst)
         ..fileOffset = charOffset;
@@ -1990,6 +2013,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           isConst: isConst)
         ..fileOffset = charOffset;
     } else {
+      Procedure factory = target;
+      if (isConst && !factory.isConst) {
+        return buildCompileTimeError("Not a const factory.", charOffset);
+      }
       return new KernelStaticInvocation(target, arguments, isConst: isConst)
         ..fileOffset = charOffset;
     }
@@ -2341,6 +2368,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (lvalue is VariableDeclaration) {
       declaresVariable = true;
       variable = lvalue;
+      if (variable.isConst) {
+        addCompileTimeError(
+            variable.fileOffset, "A for-in loop-variable can't be 'const'.");
+      }
     } else if (lvalue is FastaAccessor) {
       /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
       ///
@@ -2888,6 +2919,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Initializer buildSuperInitializer(
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]) {
+    if (member.isConst && !constructor.isConst) {
+      return buildInvalidInitializer(
+          buildCompileTimeError("Super constructor isn't const.", charOffset),
+          charOffset);
+    }
     needsImplicitSuperInitializer = false;
     return new SuperInitializer(constructor, arguments)
       ..fileOffset = charOffset;

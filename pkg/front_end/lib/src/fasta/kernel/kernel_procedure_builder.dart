@@ -88,6 +88,10 @@ abstract class KernelFunctionBuilder
         return library.addCompileTimeError(
             newBody.fileOffset, "An external method can't have a body.");
       }
+      if (isConstructor && isConst) {
+        return library.addCompileTimeError(
+            newBody.fileOffset, "A const constructor can't have a body.");
+      }
     }
     actualBody = newBody;
     if (function != null) {

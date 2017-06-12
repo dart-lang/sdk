@@ -4,9 +4,6 @@
 
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError
-Language/Classes/Constructors/Constant_Constructors/non_final_instance_variable_t02: MissingCompileTimeError
-Language/Classes/Constructors/Constant_Constructors/superinitializer_t01: MissingCompileTimeError
-Language/Classes/Constructors/Constant_Constructors/superinitializer_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeError
@@ -41,9 +38,6 @@ Language/Classes/Setters/parameter_t08: MissingCompileTimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
-Language/Classes/declarations_t02: MissingCompileTimeError
-Language/Classes/declarations_t03: MissingCompileTimeError
-Language/Classes/declarations_t04: MissingCompileTimeError
 Language/Classes/declarations_t06: MissingCompileTimeError
 Language/Classes/declarations_t08: MissingCompileTimeError
 Language/Classes/declarations_t25: MissingCompileTimeError
@@ -76,8 +70,6 @@ Language/Expressions/Function_Invocation/Binding_Actuals_to_Formals/same_name_ar
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError
-Language/Expressions/Instance_Creation/Const/constant_constructor_name_t02: MissingCompileTimeError
-Language/Expressions/Instance_Creation/Const/constant_constructor_same_name_as_class_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
@@ -192,15 +184,9 @@ Language/Types/Type_Declarations/Typedef/self_reference_t15: MissingCompileTimeE
 Language/Types/Type_Declarations/Typedef/self_reference_t16: MissingCompileTimeError
 Language/Types/Type_Declarations/Typedef/self_reference_t17: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t02: MissingCompileTimeError
-Language/Variables/constant_variable_t05: MissingCompileTimeError
-Language/Variables/constant_variable_t06: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t01: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
-Language/Variables/final_t04: MissingCompileTimeError
-Language/Variables/final_t05: MissingCompileTimeError
-Language/Variables/final_t06: MissingCompileTimeError
-Language/Variables/final_t07: MissingCompileTimeError
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
 LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
