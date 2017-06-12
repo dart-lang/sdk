@@ -44,6 +44,7 @@ class FileState {
   bool _exists;
   List<int> _content;
   List<int> _contentHash;
+  bool _hasMixinApplication;
   List<int> _apiSignature;
 
   List<NamespaceExport> _exports;
@@ -84,6 +85,15 @@ class FileState {
 
   @override
   int get hashCode => uri.hashCode;
+
+  /// Whether the file has a mixin application.
+  bool get hasMixinApplication => _hasMixinApplication;
+
+  /// Whether a unit of the library has a mixin application.
+  bool get hasMixinApplicationLibrary {
+    return _hasMixinApplication ||
+        _partFiles.any((part) => part._hasMixinApplication);
+  }
 
   /// The list of the libraries imported by this library.
   List<FileState> get importedLibraries => _importedLibraries;
@@ -138,8 +148,8 @@ class FileState {
     // Scan the content.
     ScannerResult scanResult = _scan();
 
-    // Compute the API signature.
-    _apiSignature = _computeApiSignature(scanResult.tokens);
+    // Compute syntactic properties.
+    _computeSyntacticProperties(scanResult.tokens);
 
     // Parse directives.
     var listener = new _DirectiveListenerWithNative();
@@ -210,13 +220,15 @@ class FileState {
     }
   }
 
-  /// Compute and return the API signature of the file.
+  /// Compute syntactic properties of the file: [_apiSignature] and [_hasMixinApplication].
   ///
   /// The signature is based on non-comment tokens of the file outside
   /// of function bodies.
-  List<int> _computeApiSignature(Token token) {
+  void _computeSyntacticProperties(Token token) {
     var parser = new _BodySkippingParser();
     parser.parseUnit(token);
+
+    _hasMixinApplication = parser.hasMixin;
 
     ApiSignature apiSignature = new ApiSignature();
     apiSignature.addBytes(_fsState._salt);
@@ -239,7 +251,8 @@ class FileState {
       apiSignature.addString(token.lexeme);
     }
 
-    return apiSignature.toByteList();
+    // Store the API signature.
+    _apiSignature = apiSignature.toByteList();
   }
 
   /// Exclude all `native 'xyz';` token sequences.
@@ -439,6 +452,7 @@ class _BodyRange {
 
 /// The [Parser] that skips function bodies and remembers their token ranges.
 class _BodySkippingParser extends Parser {
+  bool hasMixin = false;
   final List<_BodyRange> bodyRanges = [];
 
   _BodySkippingParser() : super(new Listener());
@@ -451,6 +465,11 @@ class _BodySkippingParser extends Parser {
       return close;
     }
     return super.parseFunctionBody(token, isExpression, allowAbstract);
+  }
+
+  Token parseMixinApplication(Token token) {
+    hasMixin = true;
+    return super.parseMixinApplication(token);
   }
 }
 
