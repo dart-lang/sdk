@@ -30,8 +30,6 @@ import 'package:kernel/ast.dart'
 
 import 'package:front_end/src/scanner/token.dart' show Token;
 
-import '../errors.dart' show inputError;
-
 import '../modifier.dart' show constMask, finalMask, staticMask;
 
 import '../names.dart' show indexGetName;
@@ -175,7 +173,16 @@ class KernelEnumBuilder extends SourceClassBuilder
       String name = constantNamesAndOffsets[i];
       int charOffset = constantNamesAndOffsets[i + 1];
       if (members.containsKey(name)) {
-        inputError(null, null, "Duplicated name: $name");
+        parent.addCompileTimeError(charOffset, "Duplicated name: '$name'.");
+        constantNamesAndOffsets[i] = null;
+        continue;
+      }
+      if (name == className) {
+        parent.addCompileTimeError(
+            charOffset,
+            "Name of enum constant '$name' can't be the same as the enum's "
+            "own name.");
+        constantNamesAndOffsets[i] = null;
         continue;
       }
       KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
@@ -250,8 +257,10 @@ class KernelEnumBuilder extends SourceClassBuilder
     List<Expression> values = <Expression>[];
     for (int i = 0; i < constantNamesAndOffsets.length; i += 2) {
       String name = constantNamesAndOffsets[i];
-      KernelFieldBuilder builder = this[name];
-      values.add(new StaticGet(builder.build(libraryBuilder)));
+      if (name != null) {
+        KernelFieldBuilder builder = this[name];
+        values.add(new StaticGet(builder.build(libraryBuilder)));
+      }
     }
     KernelFieldBuilder valuesBuilder = this["values"];
     valuesBuilder.build(libraryBuilder);
@@ -281,12 +290,14 @@ class KernelEnumBuilder extends SourceClassBuilder
     int index = 0;
     for (int i = 0; i < constantNamesAndOffsets.length; i += 2) {
       String constant = constantNamesAndOffsets[i];
-      KernelFieldBuilder field = this[constant];
-      field.build(libraryBuilder);
-      Arguments arguments =
-          new Arguments(<Expression>[new IntLiteral(index++)]);
-      field.initializer =
-          new ConstructorInvocation(constructor, arguments, isConst: true);
+      if (constant != null) {
+        KernelFieldBuilder field = this[constant];
+        field.build(libraryBuilder);
+        Arguments arguments =
+            new Arguments(<Expression>[new IntLiteral(index++)]);
+        field.initializer =
+            new ConstructorInvocation(constructor, arguments, isConst: true);
+      }
     }
     return super.build(libraryBuilder, coreLibrary);
   }

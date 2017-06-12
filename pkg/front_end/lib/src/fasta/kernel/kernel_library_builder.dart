@@ -545,6 +545,7 @@ class KernelLibraryBuilder
           charEndOffset,
           nativeMethodName);
     }
+    checkTypeVariables(typeVariables, procedure);
     addBuilder(name, procedure, charOffset);
     if (nativeMethodName != null) {
       addNativeMethod(procedure);
@@ -612,6 +613,7 @@ class KernelLibraryBuilder
       int charOffset) {
     FunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
         metadata, returnType, name, typeVariables, formals, this, charOffset);
+    checkTypeVariables(typeVariables, typedef);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration().resolveTypes(typeVariables, this);
     addBuilder(name, typedef, charOffset);
@@ -622,8 +624,10 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset) {
-    return addType(new KernelFunctionTypeBuilder(
-        charOffset, fileUri, returnType, typeVariables, formals));
+    var builder = new KernelFunctionTypeBuilder(
+        charOffset, fileUri, returnType, typeVariables, formals);
+    checkTypeVariables(typeVariables, builder);
+    return addType(builder);
   }
 
   KernelFormalParameterBuilder addFormalParameter(

@@ -345,7 +345,6 @@ cyclic_typedef_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
 cyclic_typedef_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
 cyclic_typedef_test/08: MissingCompileTimeError # Fixed in ahe's dev branch.
 cyclic_typedef_test/09: MissingCompileTimeError # Fixed in ahe's dev branch.
-enum_syntax_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
 enum_syntax_test/30: MissingCompileTimeError # Fixed in ahe's dev branch.
 final_initializer_instance_reference_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
 final_syntax_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
@@ -356,8 +355,6 @@ function_type_alias5_test/02: MissingCompileTimeError # Fixed in ahe's dev branc
 function_type_alias6_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
 function_type_alias9_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
 metadata_test: CompileTimeError # Fixed in ahe's dev branch.
-named_parameters_aggregated_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
-named_parameters_aggregated_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
 regress_29349_test: CompileTimeError # Fixed in ahe's dev branch.
 
 [ $unchecked && ($compiler == dartk || $compiler == dartkp) ]

@@ -68,6 +68,7 @@ class SourceClassBuilder extends KernelClassBuilder {
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             scope, constructors, parent, charOffset);
 
+  @override
   int resolveTypes(LibraryBuilder library) {
     int count = 0;
     if (typeVariables != null) {

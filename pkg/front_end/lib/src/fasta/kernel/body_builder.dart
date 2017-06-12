@@ -618,6 +618,33 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           arguments.getRange(0, firstNamedArgumentIndex));
       List<NamedExpression> named = new List<NamedExpression>.from(
           arguments.getRange(firstNamedArgumentIndex, arguments.length));
+      if (named.length == 2) {
+        if (named[0].name == named[1].name) {
+          named = <NamedExpression>[
+            new NamedExpression(
+                named[1].name,
+                buildCompileTimeError(
+                    "Duplicated named argument '${named[1].name}'.",
+                    named[1].fileOffset))
+          ];
+        }
+      } else if (named.length > 2) {
+        Map<String, NamedExpression> seenNames = <String, NamedExpression>{};
+        bool hasProblem = false;
+        for (NamedExpression expression in named) {
+          if (seenNames.containsKey(expression.name)) {
+            hasProblem = true;
+            seenNames[expression.name].value = buildCompileTimeError(
+                "Duplicated named argument '${expression.name}'.",
+                expression.fileOffset);
+          } else {
+            seenNames[expression.name] = expression;
+          }
+        }
+        if (hasProblem) {
+          named = new List<NamedExpression>.from(seenNames.values);
+        }
+      }
       push(new KernelArguments(positional, named: named)
         ..fileOffset = beginToken.charOffset);
     } else {
@@ -2216,6 +2243,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         name.name, functionNestingLevel,
         isFinal: true, isLocalFunction: true)
       ..fileOffset = offsetForToken(name.token);
+    if (scope.local[variable.name] != null) {
+      addCompileTimeError(offsetForToken(name.token),
+          "'${variable.name}' already declared in this scope.");
+    }
     push(new KernelFunctionDeclaration(
         variable,
         // The function node is created later.
