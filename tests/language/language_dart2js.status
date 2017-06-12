@@ -351,7 +351,6 @@ export_ambiguous_main_negative_test: Crash # Issue 27394
 f_bounded_quantification5_test: RuntimeError # Issue 27394
 final_for_in_variable_test/01: MissingRuntimeError # Issue 27394
 final_param_test/01: MissingRuntimeError # Issue 27394
-final_syntax_test/none: RuntimeError # Issue 27394
 final_variable_assignment_test/01: MissingRuntimeError # Issue 27394
 first_class_types_constants_test: RuntimeError # Issue 27394
 first_class_types_test: RuntimeError # Issue 27394

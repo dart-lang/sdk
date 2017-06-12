@@ -36,8 +36,9 @@ const SOURCE = const {
 foo() => 1;
 bar(a) => !a;
 class Class {
-  int field;
-  Class();
+  var field;
+  static var staticField;
+  Class(this.field);
 }
 main() {
   foo();
@@ -45,7 +46,8 @@ main() {
   [];
   {};
   new Object();
-  new Class();
+  new Class('');
+  Class.staticField;
   var x = null;
   return x;
 }

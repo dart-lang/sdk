@@ -99,6 +99,15 @@ class KernelAstAdapter extends KernelToElementMapMixin
     return value;
   }
 
+  @override
+  ConstantValue getFieldConstantValue(ir.Field field) {
+    FieldElement element = getField(field);
+    if (element.constant != null) {
+      return computeConstantValue(element.constant);
+    }
+    return null;
+  }
+
   /// Called to find the corresponding Kernel element for a particular Element
   /// before traversing over it with a Kernel visitor.
   ir.Node getInitialKernelNode(MemberElement originTarget) {
@@ -217,15 +226,6 @@ class KernelAstAdapter extends KernelToElementMapMixin
           variable, () => new SyntheticLocal("x", null, null));
     }
     return getElement(variable) as LocalElement;
-  }
-
-  // Is the member a lazy initialized static or top-level member?
-  bool isLazyStatic(ir.Member member) {
-    if (member is ir.Field) {
-      FieldElement field = _nodeToElement[member];
-      return field.constant == null;
-    }
-    return false;
   }
 
   KernelJumpTarget getJumpTarget(ir.TreeNode node,

@@ -2025,33 +2025,23 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // Invoke the getter
       _pushStaticInvocation(getter, const <HInstruction>[],
           _typeInferenceMap.getReturnTypeOf(getter));
-    } else if (staticTarget is ir.Field &&
-        (staticTarget.isConst ||
-            staticTarget.isFinal && !_isLazyStatic(staticTarget))) {
-      ConstantValue value = _elementMap.getConstantValue(
-          staticTarget.initializer,
-          requireConstant: staticTarget.isConst);
+    } else if (staticTarget is ir.Field) {
+      FieldEntity field = _elementMap.getField(staticTarget);
+      ConstantValue value = _elementMap.getFieldConstantValue(staticTarget);
       if (value != null) {
-        stack.add(graph.addConstant(value, closedWorld));
+        if (!field.isAssignable) {
+          stack.add(graph.addConstant(value, closedWorld));
+        } else {
+          push(new HStatic(field, _typeInferenceMap.getInferredTypeOf(field)));
+        }
       } else {
-        FieldEntity field = _elementMap.getField(staticTarget);
         push(
             new HLazyStatic(field, _typeInferenceMap.getInferredTypeOf(field)));
       }
     } else {
-      if (_isLazyStatic(staticTarget)) {
-        FieldEntity field = _elementMap.getField(staticTarget);
-        push(
-            new HLazyStatic(field, _typeInferenceMap.getInferredTypeOf(field)));
-      } else {
-        MemberEntity member = _elementMap.getMember(staticTarget);
-        push(new HStatic(member, _typeInferenceMap.getInferredTypeOf(member)));
-      }
+      MemberEntity member = _elementMap.getMember(staticTarget);
+      push(new HStatic(member, _typeInferenceMap.getInferredTypeOf(member)));
     }
-  }
-
-  bool _isLazyStatic(ir.Member target) {
-    return astAdapter.isLazyStatic(target);
   }
 
   @override

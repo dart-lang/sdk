@@ -139,6 +139,11 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     return _constantEnvironment.getConstantValue(constant);
   }
 
+  @override
+  ConstantValue getFieldConstantValue(ir.Field field) {
+    return getConstantValue(field.initializer, requireConstant: field.isConst);
+  }
+
   LibraryEntity lookupLibrary(Uri uri) {
     _KLibraryEnv libraryEnv = _env.lookupLibrary(uri);
     if (libraryEnv == null) return null;
