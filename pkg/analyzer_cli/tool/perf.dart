@@ -24,15 +24,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:package_config/discovery.dart';
 
-/// Cumulative total number of chars scanned.
-int scanTotalChars = 0;
-
-/// Cumulative time spent scanning.
-Stopwatch scanTimer = new Stopwatch();
-
-/// Factory to load and resolve app, packages, and sdk sources.
-SourceFactory sources;
-
 main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
   if (args.length < 2) {
@@ -64,18 +55,89 @@ main(List<String> args) async {
   report("total", totalTimer.elapsedMicroseconds);
 }
 
-/// Sets up analyzer to be able to load and resolve app, packages, and sdk
-/// sources.
-Future setup(Uri entryUri) async {
-  var provider = PhysicalResourceProvider.INSTANCE;
-  var packageMap = new ContextBuilder(provider, null, null)
-      .convertPackagesToMap(await findPackages(entryUri));
-  sources = new SourceFactory([
-    new ResourceUriResolver(provider),
-    new PackageMapUriResolver(provider, packageMap),
-    new DartUriResolver(
-        new FolderBasedDartSdk(provider, provider.getFolder("sdk"))),
-  ]);
+/// Cumulative time spent scanning.
+Stopwatch scanTimer = new Stopwatch();
+
+/// Cumulative total number of chars scanned.
+int scanTotalChars = 0;
+
+/// Factory to load and resolve app, packages, and sdk sources.
+SourceFactory sources;
+
+/// Add to [files] all sources reachable from [start].
+void collectSources(Source start, Set<Source> files) {
+  if (!files.add(start)) return;
+  var unit = parseDirectives(start);
+  for (var directive in unit.directives) {
+    if (directive is UriBasedDirective) {
+      var next = sources.resolveUri(start, directive.uri.stringValue);
+      collectSources(next, files);
+    }
+  }
+}
+
+/// Uses the diet-parser to parse only directives in [source].
+CompilationUnit parseDirectives(Source source) {
+  var token = tokenize(source);
+  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+  return parser.parseDirectives(token);
+}
+
+/// Parses every file in [files] and reports the time spent doing so.
+void parseFiles(Set<Source> files) {
+  // The code below will record again how many chars are scanned and how long it
+  // takes to scan them, even though we already did so in [scanReachableFiles].
+  // Recording and reporting this twice is unnecessary, but we do so for now to
+  // validate that the results are consistent.
+  scanTimer = new Stopwatch();
+  var old = scanTotalChars;
+  scanTotalChars = 0;
+  var parseTimer = new Stopwatch()..start();
+  for (var source in files) {
+    parseFull(source);
+  }
+  parseTimer.stop();
+
+  // Report size and scanning time again. See discussion above.
+  if (old != scanTotalChars) print('input size changed? ${old} chars');
+  report("scan", scanTimer.elapsedMicroseconds);
+
+  var pTime = parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
+  report("parse", pTime);
+}
+
+/// Parse the full body of [source] and return it's compilation unit.
+CompilationUnit parseFull(Source source) {
+  var token = tokenize(source);
+  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+  return parser.parseCompilationUnit(token);
+}
+
+/// Report that metric [name] took [time] micro-seconds to process
+/// [scanTotalChars] characters.
+void report(String name, int time) {
+  var sb = new StringBuffer();
+  sb.write('$name: $time us, ${time ~/ 1000} ms');
+  sb.write(', ${scanTotalChars * 1000 ~/ time} chars/ms');
+  print('$sb');
+}
+
+/// Scans every file in [files] and reports the time spent doing so.
+void scanFiles(Set<Source> files) {
+  // The code below will record again how many chars are scanned and how long it
+  // takes to scan them, even though we already did so in [scanReachableFiles].
+  // Recording and reporting this twice is unnecessary, but we do so for now to
+  // validate that the results are consistent.
+  scanTimer = new Stopwatch();
+  var old = scanTotalChars;
+  scanTotalChars = 0;
+  for (var source in files) {
+    tokenize(source);
+  }
+
+  // Report size and scanning time again. See discussion above.
+  if (old != scanTotalChars) print('input size changed? ${old} chars');
+  report("scan", scanTimer.elapsedMicroseconds);
 }
 
 /// Load and scans all files we need to process: files reachable from the
@@ -112,71 +174,18 @@ Set<Source> scanReachableFiles(Uri entryUri) {
   return files;
 }
 
-/// Scans every file in [files] and reports the time spent doing so.
-void scanFiles(Set<Source> files) {
-  // The code below will record again how many chars are scanned and how long it
-  // takes to scan them, even though we already did so in [scanReachableFiles].
-  // Recording and reporting this twice is unnecessary, but we do so for now to
-  // validate that the results are consistent.
-  scanTimer = new Stopwatch();
-  var old = scanTotalChars;
-  scanTotalChars = 0;
-  for (var source in files) {
-    tokenize(source);
-  }
-
-  // Report size and scanning time again. See discussion above.
-  if (old != scanTotalChars) print('input size changed? ${old} chars');
-  report("scan", scanTimer.elapsedMicroseconds);
-}
-
-/// Parses every file in [files] and reports the time spent doing so.
-void parseFiles(Set<Source> files) {
-  // The code below will record again how many chars are scanned and how long it
-  // takes to scan them, even though we already did so in [scanReachableFiles].
-  // Recording and reporting this twice is unnecessary, but we do so for now to
-  // validate that the results are consistent.
-  scanTimer = new Stopwatch();
-  var old = scanTotalChars;
-  scanTotalChars = 0;
-  var parseTimer = new Stopwatch()..start();
-  for (var source in files) {
-    parseFull(source);
-  }
-  parseTimer.stop();
-
-  // Report size and scanning time again. See discussion above.
-  if (old != scanTotalChars) print('input size changed? ${old} chars');
-  report("scan", scanTimer.elapsedMicroseconds);
-
-  var pTime = parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
-  report("parse", pTime);
-}
-
-/// Add to [files] all sources reachable from [start].
-void collectSources(Source start, Set<Source> files) {
-  if (!files.add(start)) return;
-  var unit = parseDirectives(start);
-  for (var directive in unit.directives) {
-    if (directive is UriBasedDirective) {
-      var next = sources.resolveUri(start, directive.uri.stringValue);
-      collectSources(next, files);
-    }
-  }
-}
-
-/// Uses the diet-parser to parse only directives in [source].
-CompilationUnit parseDirectives(Source source) {
-  var token = tokenize(source);
-  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
-  return parser.parseDirectives(token);
-}
-
-/// Parse the full body of [source] and return it's compilation unit.
-CompilationUnit parseFull(Source source) {
-  var token = tokenize(source);
-  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
-  return parser.parseCompilationUnit(token);
+/// Sets up analyzer to be able to load and resolve app, packages, and sdk
+/// sources.
+Future setup(Uri entryUri) async {
+  var provider = PhysicalResourceProvider.INSTANCE;
+  var packageMap = new ContextBuilder(provider, null, null)
+      .convertPackagesToMap(await findPackages(entryUri));
+  sources = new SourceFactory([
+    new ResourceUriResolver(provider),
+    new PackageMapUriResolver(provider, packageMap),
+    new DartUriResolver(
+        new FolderBasedDartSdk(provider, provider.getFolder("sdk"))),
+  ]);
 }
 
 /// Scan [source] and return the first token produced by the scanner.
@@ -192,13 +201,4 @@ Token tokenize(Source source) {
   var token = scanner.tokenize();
   scanTimer.stop();
   return token;
-}
-
-/// Report that metric [name] took [time] micro-seconds to process
-/// [scanTotalChars] characters.
-void report(String name, int time) {
-  var sb = new StringBuffer();
-  sb.write('$name: $time us, ${time ~/ 1000} ms');
-  sb.write(', ${scanTotalChars * 1000 ~/ time} chars/ms');
-  print('$sb');
 }

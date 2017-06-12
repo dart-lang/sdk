@@ -65,6 +65,36 @@ class GnWorkspace extends Workspace {
 
   Packages get packages => _packages ??= _createPackages();
 
+  @override
+  UriResolver get packageUriResolver =>
+      new PackageMapUriResolver(provider, packageMap);
+
+  @override
+  SourceFactory createSourceFactory(DartSdk sdk) {
+    List<UriResolver> resolvers = <UriResolver>[];
+    if (sdk != null) {
+      resolvers.add(new DartUriResolver(sdk));
+    }
+    resolvers.add(packageUriResolver);
+    resolvers.add(new ResourceUriResolver(provider));
+    return new SourceFactory(resolvers, packages, provider);
+  }
+
+  /**
+   * Return the file with the given [absolutePath].
+   *
+   * Return `null` if the given [absolutePath] is not in the workspace [root].
+   */
+  File findFile(String absolutePath) {
+    try {
+      File writableFile = provider.getFile(absolutePath);
+      if (writableFile.exists) {
+        return writableFile;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   /**
    * Creates an alternate representation for available packages.
    */
@@ -122,34 +152,45 @@ class GnWorkspace extends Workspace {
     }
   }
 
-  @override
-  UriResolver get packageUriResolver =>
-      new PackageMapUriResolver(provider, packageMap);
-
-  @override
-  SourceFactory createSourceFactory(DartSdk sdk) {
-    List<UriResolver> resolvers = <UriResolver>[];
-    if (sdk != null) {
-      resolvers.add(new DartUriResolver(sdk));
-    }
-    resolvers.add(packageUriResolver);
-    resolvers.add(new ResourceUriResolver(provider));
-    return new SourceFactory(resolvers, packages, provider);
-  }
-
   /**
-   * Return the file with the given [absolutePath].
+   * Find the GN workspace that contains the given [path].
    *
-   * Return `null` if the given [absolutePath] is not in the workspace [root].
+   * Return `null` if a workspace could not be found.
    */
-  File findFile(String absolutePath) {
-    try {
-      File writableFile = provider.getFile(absolutePath);
-      if (writableFile.exists) {
-        return writableFile;
+  static GnWorkspace find(ResourceProvider provider, String path) {
+    Context context = provider.pathContext;
+
+    // Ensure that the path is absolute and normalized.
+    if (!context.isAbsolute(path)) {
+      throw new ArgumentError('Not an absolute path: $path');
+    }
+    path = context.normalize(path);
+
+    Folder folder = provider.getFolder(path);
+    while (true) {
+      Folder parent = folder.parent;
+      if (parent == null) {
+        return null;
       }
-    } catch (_) {}
-    return null;
+
+      // Found the .jiri_root file, must be a non-git workspace.
+      if (folder.getChildAssumingFolder(_jiriRootName).exists) {
+        String root = folder.path;
+        List<String> packagesFiles =
+            _findPackagesFile(provider, root, path, forHost: false);
+        if (packagesFiles.isEmpty) {
+          packagesFiles =
+              _findPackagesFile(provider, root, path, forHost: true);
+        }
+        if (packagesFiles.isEmpty) {
+          return null;
+        }
+        return new GnWorkspace._(provider, path, packagesFiles);
+      }
+
+      // Go up the folder.
+      folder = parent;
+    }
   }
 
   /**
@@ -206,46 +247,5 @@ class GnWorkspace extends Workspace {
         .where((File file) => pathContext.extension(file.path) == '.packages')
         .map((File file) => file.path)
         .toList();
-  }
-
-  /**
-   * Find the GN workspace that contains the given [path].
-   *
-   * Return `null` if a workspace could not be found.
-   */
-  static GnWorkspace find(ResourceProvider provider, String path) {
-    Context context = provider.pathContext;
-
-    // Ensure that the path is absolute and normalized.
-    if (!context.isAbsolute(path)) {
-      throw new ArgumentError('Not an absolute path: $path');
-    }
-    path = context.normalize(path);
-
-    Folder folder = provider.getFolder(path);
-    while (true) {
-      Folder parent = folder.parent;
-      if (parent == null) {
-        return null;
-      }
-
-      // Found the .jiri_root file, must be a non-git workspace.
-      if (folder.getChildAssumingFolder(_jiriRootName).exists) {
-        String root = folder.path;
-        List<String> packagesFiles =
-            _findPackagesFile(provider, root, path, forHost: false);
-        if (packagesFiles.isEmpty) {
-          packagesFiles =
-              _findPackagesFile(provider, root, path, forHost: true);
-        }
-        if (packagesFiles.isEmpty) {
-          return null;
-        }
-        return new GnWorkspace._(provider, path, packagesFiles);
-      }
-
-      // Go up the folder.
-      folder = parent;
-    }
   }
 }

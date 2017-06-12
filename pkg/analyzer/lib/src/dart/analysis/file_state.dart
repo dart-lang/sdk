@@ -45,6 +45,11 @@ class FileContentOverlay {
   final _map = <String, String>{};
 
   /**
+   * Return the paths currently being overridden.
+   */
+  Iterable<String> get paths => _map.keys;
+
+  /**
    * Return the content of the file with the given [path], or `null` the
    * overlay does not override the content of the file.
    *
@@ -64,11 +69,6 @@ class FileContentOverlay {
       _map[path] = content;
     }
   }
-
-  /**
-   * Return the paths currently being overridden.
-   */
-  Iterable<String> get paths => _map.keys;
 }
 
 /**
@@ -386,61 +386,6 @@ class FileState {
     });
   }
 
-  CompilationUnit _parse(AnalysisErrorListener errorListener) {
-    AnalysisOptions analysisOptions = _fsState._analysisOptions;
-
-    if (USE_FASTA_PARSER) {
-      try {
-        fasta.ScannerResult scanResult =
-            PerformanceStatistics.scan.makeCurrentWhile(() {
-          return fasta.scan(
-            _contentBytes,
-            includeComments: true,
-            scanGenericMethodComments: analysisOptions.strongMode,
-          );
-        });
-
-        var astBuilder = new fasta.AstBuilder(
-            new ErrorReporter(errorListener, source),
-            null,
-            null,
-            new _FastaElementStoreProxy(),
-            new fasta.Scope.top(isModifiable: true),
-            true,
-            uri);
-        astBuilder.parseGenericMethodComments = analysisOptions.strongMode;
-
-        var parser = new fasta.Parser(astBuilder);
-        astBuilder.parser = parser;
-        parser.parseUnit(scanResult.tokens);
-        var unit = astBuilder.pop() as CompilationUnit;
-
-        LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
-        unit.lineInfo = lineInfo;
-        return unit;
-      } catch (e, st) {
-        print(e);
-        print(st);
-        rethrow;
-      }
-    } else {
-      CharSequenceReader reader = new CharSequenceReader(content);
-      Scanner scanner = new Scanner(source, reader, errorListener);
-      scanner.scanGenericMethodComments = analysisOptions.strongMode;
-      Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
-        return scanner.tokenize();
-      });
-      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-
-      Parser parser = new Parser(source, errorListener);
-      parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
-      parser.parseGenericMethodComments = analysisOptions.strongMode;
-      CompilationUnit unit = parser.parseCompilationUnit(token);
-      unit.lineInfo = lineInfo;
-      return unit;
-    }
-  }
-
   /**
    * Read the file content and ensure that all of the file properties are
    * consistent with the read content, including API signature.
@@ -610,6 +555,61 @@ class FileState {
     }
 
     return _fsState.getFileForUri(absoluteUri);
+  }
+
+  CompilationUnit _parse(AnalysisErrorListener errorListener) {
+    AnalysisOptions analysisOptions = _fsState._analysisOptions;
+
+    if (USE_FASTA_PARSER) {
+      try {
+        fasta.ScannerResult scanResult =
+            PerformanceStatistics.scan.makeCurrentWhile(() {
+          return fasta.scan(
+            _contentBytes,
+            includeComments: true,
+            scanGenericMethodComments: analysisOptions.strongMode,
+          );
+        });
+
+        var astBuilder = new fasta.AstBuilder(
+            new ErrorReporter(errorListener, source),
+            null,
+            null,
+            new _FastaElementStoreProxy(),
+            new fasta.Scope.top(isModifiable: true),
+            true,
+            uri);
+        astBuilder.parseGenericMethodComments = analysisOptions.strongMode;
+
+        var parser = new fasta.Parser(astBuilder);
+        astBuilder.parser = parser;
+        parser.parseUnit(scanResult.tokens);
+        var unit = astBuilder.pop() as CompilationUnit;
+
+        LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
+        unit.lineInfo = lineInfo;
+        return unit;
+      } catch (e, st) {
+        print(e);
+        print(st);
+        rethrow;
+      }
+    } else {
+      CharSequenceReader reader = new CharSequenceReader(content);
+      Scanner scanner = new Scanner(source, reader, errorListener);
+      scanner.scanGenericMethodComments = analysisOptions.strongMode;
+      Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
+        return scanner.tokenize();
+      });
+      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+
+      Parser parser = new Parser(source, errorListener);
+      parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
+      parser.parseGenericMethodComments = analysisOptions.strongMode;
+      CompilationUnit unit = parser.parseCompilationUnit(token);
+      unit.lineInfo = lineInfo;
+      return unit;
+    }
   }
 
   /**

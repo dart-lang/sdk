@@ -1381,31 +1381,13 @@ class A {
     verify([source]);
   }
 
-  test_invalidRequiredParam_valid() async {
+  test_invalidRequiredParam_on_named_parameter_with_default() async {
     Source source = addNamedSource(
         '/lib1.dart',
         r'''
 import 'package:meta/meta.dart';
 
-m1() => null;
-m2(a) => null;
-m3([a]) => null;
-m4({a}) => null;
-m5({@required a}) => null;
-m6({a, @required b}) => null;
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_invalidRequiredParam_on_required_parameter() async {
-    Source source = addNamedSource(
-        '/lib1.dart',
-        r'''
-import 'package:meta/meta.dart';
-
-m(@required a) => null;
+m({@required a = 1}) => null;
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.INVALID_REQUIRED_PARAM]);
@@ -1438,16 +1420,34 @@ m([@required a = 1]) => null;
     verify([source]);
   }
 
-  test_invalidRequiredParam_on_named_parameter_with_default() async {
+  test_invalidRequiredParam_on_required_parameter() async {
     Source source = addNamedSource(
         '/lib1.dart',
         r'''
 import 'package:meta/meta.dart';
 
-m({@required a = 1}) => null;
+m(@required a) => null;
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.INVALID_REQUIRED_PARAM]);
+    verify([source]);
+  }
+
+  test_invalidRequiredParam_valid() async {
+    Source source = addNamedSource(
+        '/lib1.dart',
+        r'''
+import 'package:meta/meta.dart';
+
+m1() => null;
+m2(a) => null;
+m3([a]) => null;
+m4({a}) => null;
+m5({@required a}) => null;
+m6({a, @required b}) => null;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 

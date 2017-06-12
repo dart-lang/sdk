@@ -21,6 +21,10 @@ main() {
   });
 }
 
+/// A matcher for ConflictingSummaryException.
+const Matcher isConflictingSummaryException =
+    const _ConflictingSummaryException();
+
 UnlinkedPublicNamespace _namespaceWithParts(List<String> parts) {
   UnlinkedPublicNamespace namespace = new _UnlinkedPublicNamespaceMock();
   when(namespace.parts).thenReturn(parts);
@@ -159,29 +163,6 @@ class SummaryDataStoreTest {
   LinkedLibrary linkedLibrary1 = new _LinkedLibraryMock();
   LinkedLibrary linkedLibrary2 = new _LinkedLibraryMock();
 
-  void _setupDataStore(SummaryDataStore store) {
-    // bundle1
-    when(unlinkedUnit11.publicNamespace)
-        .thenReturn(_namespaceWithParts(['package:p1/u2.dart']));
-    when(unlinkedUnit12.publicNamespace).thenReturn(_namespaceWithParts([]));
-    when(bundle1.unlinkedUnitUris)
-        .thenReturn(<String>['package:p1/u1.dart', 'package:p1/u2.dart']);
-    when(bundle1.unlinkedUnits)
-        .thenReturn(<UnlinkedUnit>[unlinkedUnit11, unlinkedUnit12]);
-    when(bundle1.linkedLibraryUris).thenReturn(<String>['package:p1/u1.dart']);
-    when(bundle1.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary1]);
-    when(bundle1.apiSignature).thenReturn('signature1');
-    store.addBundle('/p1.ds', bundle1);
-    // bundle2
-    when(unlinkedUnit21.publicNamespace).thenReturn(_namespaceWithParts([]));
-    when(bundle2.unlinkedUnitUris).thenReturn(<String>['package:p2/u1.dart']);
-    when(bundle2.unlinkedUnits).thenReturn(<UnlinkedUnit>[unlinkedUnit21]);
-    when(bundle2.linkedLibraryUris).thenReturn(<String>['package:p2/u1.dart']);
-    when(bundle2.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary2]);
-    when(bundle2.apiSignature).thenReturn('signature2');
-    store.addBundle('/p2.ds', bundle2);
-  }
-
   void setUp() {
     _setupDataStore(dataStore);
   }
@@ -296,6 +277,34 @@ class SummaryDataStoreTest {
     List<String> uris = dataStore.getContainingLibraryUris(partUri);
     expect(uris, isNull);
   }
+
+  void _setupDataStore(SummaryDataStore store) {
+    // bundle1
+    when(unlinkedUnit11.publicNamespace)
+        .thenReturn(_namespaceWithParts(['package:p1/u2.dart']));
+    when(unlinkedUnit12.publicNamespace).thenReturn(_namespaceWithParts([]));
+    when(bundle1.unlinkedUnitUris)
+        .thenReturn(<String>['package:p1/u1.dart', 'package:p1/u2.dart']);
+    when(bundle1.unlinkedUnits)
+        .thenReturn(<UnlinkedUnit>[unlinkedUnit11, unlinkedUnit12]);
+    when(bundle1.linkedLibraryUris).thenReturn(<String>['package:p1/u1.dart']);
+    when(bundle1.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary1]);
+    when(bundle1.apiSignature).thenReturn('signature1');
+    store.addBundle('/p1.ds', bundle1);
+    // bundle2
+    when(unlinkedUnit21.publicNamespace).thenReturn(_namespaceWithParts([]));
+    when(bundle2.unlinkedUnitUris).thenReturn(<String>['package:p2/u1.dart']);
+    when(bundle2.unlinkedUnits).thenReturn(<UnlinkedUnit>[unlinkedUnit21]);
+    when(bundle2.linkedLibraryUris).thenReturn(<String>['package:p2/u1.dart']);
+    when(bundle2.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary2]);
+    when(bundle2.apiSignature).thenReturn('signature2');
+    store.addBundle('/p2.ds', bundle2);
+  }
+}
+
+class _ConflictingSummaryException extends TypeMatcher {
+  const _ConflictingSummaryException() : super("ConflictingSummaryException");
+  bool matches(item, Map matchState) => item is ConflictingSummaryException;
 }
 
 class _InternalAnalysisContextMock extends TypedMock
@@ -342,12 +351,3 @@ class _UnlinkedPublicNamespaceMock extends TypedMock
     implements UnlinkedPublicNamespace {}
 
 class _UnlinkedUnitMock extends TypedMock implements UnlinkedUnit {}
-
-/// A matcher for ConflictingSummaryException.
-const Matcher isConflictingSummaryException =
-    const _ConflictingSummaryException();
-
-class _ConflictingSummaryException extends TypeMatcher {
-  const _ConflictingSummaryException() : super("ConflictingSummaryException");
-  bool matches(item, Map matchState) => item is ConflictingSummaryException;
-}

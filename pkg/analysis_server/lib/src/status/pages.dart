@@ -8,6 +8,123 @@ import 'dart:io';
 
 import 'package:intl/intl.dart';
 
+final NumberFormat numberFormat = new NumberFormat.decimalPattern();
+
+String escape(String text) => text == null ? '' : HTML_ESCAPE.convert(text);
+
+String printInteger(int value) => numberFormat.format(value);
+
+String printMilliseconds(num value) => '${numberFormat.format(value)} ms';
+
+String printPercentage(num value) => '${(value * 100).toStringAsFixed(1)}%';
+
+/// An entity that knows how to serve itself over http.
+abstract class Page {
+  final StringBuffer buf = new StringBuffer();
+
+  final String id;
+  final String title;
+  final String description;
+
+  Page(this.id, this.title, {this.description});
+
+  String get path => '/$id';
+
+  Future<Null> asyncDiv(void gen(), {String classes}) async {
+    if (classes != null) {
+      buf.writeln('<div class="$classes">');
+    } else {
+      buf.writeln('<div>');
+    }
+    await gen();
+    buf.writeln('</div>');
+  }
+
+  void blankslate(String str) {
+    div(() => buf.writeln(str), classes: 'blankslate');
+  }
+
+  void div(void gen(), {String classes}) {
+    if (classes != null) {
+      buf.writeln('<div class="$classes">');
+    } else {
+      buf.writeln('<div>');
+    }
+    gen();
+    buf.writeln('</div>');
+  }
+
+  Future<String> generate(Map<String, String> params) async {
+    buf.clear();
+    await generatePage(params);
+    return buf.toString();
+  }
+
+  void generatePage(Map<String, String> params);
+
+  void h1(String text, {String classes}) {
+    if (classes != null) {
+      buf.writeln('<h1 class="$classes">${escape(text)}</h1>');
+    } else {
+      buf.writeln('<h1>${escape(text)}</h1>');
+    }
+  }
+
+  void h2(String text) {
+    buf.writeln('<h2>${escape(text)}</h2>');
+  }
+
+  void h3(String text, {bool raw: false}) {
+    buf.writeln('<h3>${raw ? text : escape(text)}</h3>');
+  }
+
+  void h4(String text, {bool raw: false}) {
+    buf.writeln('<h4>${raw ? text : escape(text)}</h4>');
+  }
+
+  void inputList<T>(Iterable<T> items, void gen(T item)) {
+    buf.writeln('<select size="8" style="width: 100%">');
+    for (T item in items) {
+      buf.write('<option>');
+      gen(item);
+      buf.write('</option>');
+    }
+    buf.writeln('</select>');
+  }
+
+  bool isCurrentPage(String pathToTest) => path == pathToTest;
+
+  void p(String text, {String style, bool raw: false, String classes}) {
+    String c = classes == null ? '' : ' class="$classes"';
+
+    if (style != null) {
+      buf.writeln('<p$c style="$style">${raw ? text : escape(text)}</p>');
+    } else {
+      buf.writeln('<p$c>${raw ? text : escape(text)}</p>');
+    }
+  }
+
+  void pre(void gen(), {String classes}) {
+    if (classes != null) {
+      buf.write('<pre class="$classes">');
+    } else {
+      buf.write('<pre>');
+    }
+    gen();
+    buf.writeln('</pre>');
+  }
+
+  void ul<T>(Iterable<T> items, void gen(T item), {String classes}) {
+    buf.writeln('<ul${classes == null ? '' : ' class=$classes'}>');
+    for (T item in items) {
+      buf.write('<li>');
+      gen(item);
+      buf.write('</li>');
+    }
+    buf.writeln('</ul>');
+  }
+}
+
 /// Contains a collection of Pages.
 abstract class Site {
   final String title;
@@ -16,6 +133,10 @@ abstract class Site {
   Site(this.title);
 
   String get customCss => '';
+
+  Page createExceptionPage(String message, StackTrace trace);
+
+  Page createUnknownPage(String unknownPath);
 
   Future<Null> handleGetRequest(HttpRequest request) async {
     try {
@@ -51,10 +172,6 @@ abstract class Site {
     }
   }
 
-  Page createUnknownPage(String unknownPath);
-
-  Page createExceptionPage(String message, StackTrace trace);
-
   Future<Null> respond(HttpRequest request, Page page,
       [int code = HttpStatus.OK]) async {
     HttpResponse response = request.response;
@@ -70,120 +187,3 @@ abstract class Site {
     response.redirect(request.uri.resolve(pathFragment));
   }
 }
-
-/// An entity that knows how to serve itself over http.
-abstract class Page {
-  final StringBuffer buf = new StringBuffer();
-
-  final String id;
-  final String title;
-  final String description;
-
-  Page(this.id, this.title, {this.description});
-
-  String get path => '/$id';
-
-  Future<String> generate(Map<String, String> params) async {
-    buf.clear();
-    await generatePage(params);
-    return buf.toString();
-  }
-
-  void generatePage(Map<String, String> params);
-
-  void h1(String text, {String classes}) {
-    if (classes != null) {
-      buf.writeln('<h1 class="$classes">${escape(text)}</h1>');
-    } else {
-      buf.writeln('<h1>${escape(text)}</h1>');
-    }
-  }
-
-  void h2(String text) {
-    buf.writeln('<h2>${escape(text)}</h2>');
-  }
-
-  void h3(String text, {bool raw: false}) {
-    buf.writeln('<h3>${raw ? text : escape(text)}</h3>');
-  }
-
-  void h4(String text, {bool raw: false}) {
-    buf.writeln('<h4>${raw ? text : escape(text)}</h4>');
-  }
-
-  void ul<T>(Iterable<T> items, void gen(T item), {String classes}) {
-    buf.writeln('<ul${classes == null ? '' : ' class=$classes'}>');
-    for (T item in items) {
-      buf.write('<li>');
-      gen(item);
-      buf.write('</li>');
-    }
-    buf.writeln('</ul>');
-  }
-
-  void inputList<T>(Iterable<T> items, void gen(T item)) {
-    buf.writeln('<select size="8" style="width: 100%">');
-    for (T item in items) {
-      buf.write('<option>');
-      gen(item);
-      buf.write('</option>');
-    }
-    buf.writeln('</select>');
-  }
-
-  Future<Null> asyncDiv(void gen(), {String classes}) async {
-    if (classes != null) {
-      buf.writeln('<div class="$classes">');
-    } else {
-      buf.writeln('<div>');
-    }
-    await gen();
-    buf.writeln('</div>');
-  }
-
-  void div(void gen(), {String classes}) {
-    if (classes != null) {
-      buf.writeln('<div class="$classes">');
-    } else {
-      buf.writeln('<div>');
-    }
-    gen();
-    buf.writeln('</div>');
-  }
-
-  void p(String text, {String style, bool raw: false, String classes}) {
-    String c = classes == null ? '' : ' class="$classes"';
-
-    if (style != null) {
-      buf.writeln('<p$c style="$style">${raw ? text : escape(text)}</p>');
-    } else {
-      buf.writeln('<p$c>${raw ? text : escape(text)}</p>');
-    }
-  }
-
-  void pre(void gen(), {String classes}) {
-    if (classes != null) {
-      buf.write('<pre class="$classes">');
-    } else {
-      buf.write('<pre>');
-    }
-    gen();
-    buf.writeln('</pre>');
-  }
-
-  void blankslate(String str) {
-    div(() => buf.writeln(str), classes: 'blankslate');
-  }
-
-  bool isCurrentPage(String pathToTest) => path == pathToTest;
-}
-
-String escape(String text) => text == null ? '' : HTML_ESCAPE.convert(text);
-
-final NumberFormat numberFormat = new NumberFormat.decimalPattern();
-
-String printInteger(int value) => numberFormat.format(value);
-
-String printMilliseconds(num value) => '${numberFormat.format(value)} ms';
-
-String printPercentage(num value) => '${(value * 100).toStringAsFixed(1)}%';

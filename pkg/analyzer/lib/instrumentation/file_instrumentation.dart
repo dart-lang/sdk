@@ -22,10 +22,10 @@ class FileInstrumentationServer implements InstrumentationServer {
   }
 
   @override
-  String get sessionId => '';
+  String get describe => "file: $filePath";
 
   @override
-  String get describe => "file: $filePath";
+  String get sessionId => '';
 
   @override
   void log(String message) {

@@ -38,6 +38,49 @@ main() {
 }
 
 @reflectiveTest
+class HtmlWorkManagerIntegrationTest {
+  InternalAnalysisContext context = new AnalysisContextImpl();
+  HtmlWorkManager manager;
+
+  Source source1 = new TestSource('1.html');
+  Source source2 = new TestSource('2.html');
+  CacheEntry entry1;
+  CacheEntry entry2;
+
+  void expect_sourceQueue(List<Source> sources) {
+    expect(manager.sourceQueue, unorderedEquals(sources));
+  }
+
+  void setUp() {
+    manager = new HtmlWorkManager(context);
+    entry1 = context.getCacheEntry(source1);
+    entry2 = context.getCacheEntry(source2);
+  }
+
+  void
+      test_onResultInvalidated_scheduleInvalidatedLibrariesAfterSetSourceFactory() {
+    // Change the source factory, changing the analysis cache from when
+    // the work manager was constructed. This used to create a failure
+    // case for test_onResultInvalidated_scheduleInvalidLibraries so its
+    // tested here.
+    context.sourceFactory = new _SourceFactoryMock();
+
+    // now just do the same checks as
+    // test_onResultInvalidated_scheduleInvalidLibraries
+
+    // set HTML_ERRORS for source1 and source2
+    entry1.setValue(HTML_ERRORS, [], []);
+    entry2.setValue(HTML_ERRORS, [], []);
+    // invalidate HTML_ERRORS for source1, schedule it
+    entry1.setState(HTML_ERRORS, CacheState.INVALID);
+    expect_sourceQueue([source1]);
+    // invalidate HTML_ERRORS for source2, schedule it
+    entry2.setState(HTML_ERRORS, CacheState.INVALID);
+    expect_sourceQueue([source1, source2]);
+  }
+}
+
+@reflectiveTest
 class HtmlWorkManagerTest {
   InternalAnalysisContext context = new _InternalAnalysisContextMock();
   AnalysisCache cache;
@@ -305,51 +348,6 @@ class HtmlWorkManagerTest {
   }
 }
 
-@reflectiveTest
-class HtmlWorkManagerIntegrationTest {
-  InternalAnalysisContext context = new AnalysisContextImpl();
-  HtmlWorkManager manager;
-
-  Source source1 = new TestSource('1.html');
-  Source source2 = new TestSource('2.html');
-  CacheEntry entry1;
-  CacheEntry entry2;
-
-  void expect_sourceQueue(List<Source> sources) {
-    expect(manager.sourceQueue, unorderedEquals(sources));
-  }
-
-  void setUp() {
-    manager = new HtmlWorkManager(context);
-    entry1 = context.getCacheEntry(source1);
-    entry2 = context.getCacheEntry(source2);
-  }
-
-  void
-      test_onResultInvalidated_scheduleInvalidatedLibrariesAfterSetSourceFactory() {
-    // Change the source factory, changing the analysis cache from when
-    // the work manager was constructed. This used to create a failure
-    // case for test_onResultInvalidated_scheduleInvalidLibraries so its
-    // tested here.
-    context.sourceFactory = new _SourceFactoryMock();
-
-    // now just do the same checks as
-    // test_onResultInvalidated_scheduleInvalidLibraries
-
-    // set HTML_ERRORS for source1 and source2
-    entry1.setValue(HTML_ERRORS, [], []);
-    entry2.setValue(HTML_ERRORS, [], []);
-    // invalidate HTML_ERRORS for source1, schedule it
-    entry1.setState(HTML_ERRORS, CacheState.INVALID);
-    expect_sourceQueue([source1]);
-    // invalidate HTML_ERRORS for source2, schedule it
-    entry2.setState(HTML_ERRORS, CacheState.INVALID);
-    expect_sourceQueue([source1, source2]);
-  }
-}
-
-class _SourceFactoryMock extends TypedMock implements SourceFactory {}
-
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {
   @override
@@ -361,15 +359,15 @@ class _InternalAnalysisContextMock extends TypedMock
   // The production version is a stream that carries messages from the cache
   // since the cache changes. Here, we can just pass the inner stream because
   // it doesn't change.
-  @override
-  get onResultInvalidated => analysisCache.onResultInvalidated;
-
   Map<Source, ChangeNoticeImpl> _pendingNotices = <Source, ChangeNoticeImpl>{};
 
   _InternalAnalysisContextMock() {
     privateAnalysisCachePartition = new UniversalCachePartition(this);
     analysisCache = new AnalysisCache([privateAnalysisCachePartition]);
   }
+
+  @override
+  get onResultInvalidated => analysisCache.onResultInvalidated;
 
   @override
   CacheEntry getCacheEntry(AnalysisTarget target) {
@@ -400,3 +398,5 @@ class _InternalAnalysisContextMock extends TypedMock
         source, () => new ChangeNoticeImpl(source));
   }
 }
+
+class _SourceFactoryMock extends TypedMock implements SourceFactory {}

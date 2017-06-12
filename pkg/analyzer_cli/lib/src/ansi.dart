@@ -16,20 +16,20 @@ bool terminalSupportsAnsi() {
 class AnsiLogger {
   final bool useAnsi;
 
+  AnsiLogger(this.useAnsi);
+  String get blue => _code('\u001b[34m');
+  String get bold => _code('\u001b[1m');
+  String get bullet => (runningTests || !Platform.isWindows) ? '•' : '-';
   String get cyan => _code('\u001b[36m');
+  String get gray => _code('\u001b[1;30m');
   String get green => _code('\u001b[32m');
   String get magenta => _code('\u001b[35m');
-  String get red => _code('\u001b[31m');
-  String get yellow => _code('\u001b[33m');
-  String get blue => _code('\u001b[34m');
-  String get gray => _code('\u001b[1;30m');
-  String get none => _code('\u001b[0m');
   String get noColor => _code('\u001b[39m');
-  String get bold => _code('\u001b[1m');
+  String get none => _code('\u001b[0m');
 
-  AnsiLogger(this.useAnsi);
+  String get red => _code('\u001b[31m');
 
-  String get bullet => (runningTests || !Platform.isWindows) ? '•' : '-';
+  String get yellow => _code('\u001b[33m');
 
   String _code(String ansiCode) => useAnsi ? ansiCode : '';
 }

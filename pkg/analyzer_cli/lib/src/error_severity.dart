@@ -8,28 +8,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer_cli/src/options.dart';
 
-/// Check various configuration options to get a desired severity for this
-/// [error] (or `null` if it's to be suppressed).
-ErrorSeverity determineProcessedSeverity(AnalysisError error,
-    CommandLineOptions commandLineOptions, AnalysisOptions analysisOptions) {
-  ErrorSeverity severity =
-      computeSeverity(error, commandLineOptions, analysisOptions);
-  // Skip TODOs categorically unless escalated to ERROR or HINT (#26215).
-  if (error.errorCode.type == ErrorType.TODO &&
-      severity == ErrorSeverity.INFO) {
-    return null;
-  }
-
-  // TODO(devoncarew): We should not filter hints here.
-  // If not overridden, some "natural" severities get globally filtered.
-  // Check for global hint filtering.
-  if (severity == ErrorSeverity.INFO && commandLineOptions.disableHints) {
-    return null;
-  }
-
-  return severity;
-}
-
 /// Compute the severity of the error; however:
 /// - if [options.enableTypeChecks] is false, then de-escalate checked-mode
 ///   compile time errors to a severity of [ErrorSeverity.INFO].
@@ -56,4 +34,26 @@ ErrorSeverity computeSeverity(
   }
 
   return error.errorCode.errorSeverity;
+}
+
+/// Check various configuration options to get a desired severity for this
+/// [error] (or `null` if it's to be suppressed).
+ErrorSeverity determineProcessedSeverity(AnalysisError error,
+    CommandLineOptions commandLineOptions, AnalysisOptions analysisOptions) {
+  ErrorSeverity severity =
+      computeSeverity(error, commandLineOptions, analysisOptions);
+  // Skip TODOs categorically unless escalated to ERROR or HINT (#26215).
+  if (error.errorCode.type == ErrorType.TODO &&
+      severity == ErrorSeverity.INFO) {
+    return null;
+  }
+
+  // TODO(devoncarew): We should not filter hints here.
+  // If not overridden, some "natural" severities get globally filtered.
+  // Check for global hint filtering.
+  if (severity == ErrorSeverity.INFO && commandLineOptions.disableHints) {
+    return null;
+  }
+
+  return severity;
 }

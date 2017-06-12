@@ -3046,14 +3046,14 @@ class IgnoreInfo {
   bool get hasIgnores => ignores.isNotEmpty || _ignoreForFileSet.isNotEmpty;
 
   /**
-   * Map of line numbers to associated ignored error codes.
-   */
-  Map<int, Iterable<String>> get ignores => _ignoreMap;
-
-  /**
    * Iterable of error codes ignored for the whole file.
    */
   Iterable<String> get ignoreForFiles => _ignoreForFileSet;
+
+  /**
+   * Map of line numbers to associated ignored error codes.
+   */
+  Map<int, Iterable<String>> get ignores => _ignoreMap;
 
   /**
    * Ignore this [errorCode] at [line].

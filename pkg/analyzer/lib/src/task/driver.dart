@@ -16,14 +16,14 @@ import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
 
-final PerformanceTag _taskDriverTag =
-    PerformanceStatistics.analyzer.createChild('taskDriver');
-
 final PerformanceTag analysisDriverProcessOutputs =
     _taskDriverTag.createChild('processOutputs');
 
 final PerformanceTag workOrderMoveNextPerformanceTag =
     _taskDriverTag.createChild('workOrderMoveNext');
+
+final PerformanceTag _taskDriverTag =
+    PerformanceStatistics.analyzer.createChild('taskDriver');
 
 /**
  * An object that is used to cause analysis to be performed until all of the

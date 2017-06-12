@@ -109,17 +109,27 @@ class _Scanner2 implements Scanner {
   }
 
   @override
+  bool get hasUnmatchedGroups {
+    throw 'unsupported operation';
+  }
+
+  @override
+  set preserveComments(bool preserveComments) {
+    this._preserveComments = preserveComments;
+  }
+
+  @override
+  Token get tail {
+    throw 'unsupported operation';
+  }
+
+  @override
   void appendToken(Token token) {
     throw 'unsupported operation';
   }
 
   @override
   int bigSwitch(int next) {
-    throw 'unsupported operation';
-  }
-
-  @override
-  bool get hasUnmatchedGroups {
     throw 'unsupported operation';
   }
 
@@ -146,11 +156,6 @@ class _Scanner2 implements Scanner {
       lineStarts.add(1);
     }
     lineStarts.add(offset - column + 1);
-  }
-
-  @override
-  Token get tail {
-    throw 'unsupported operation';
   }
 
   @override
@@ -184,10 +189,5 @@ class _Scanner2 implements Scanner {
       } while (!token.isEof);
     }
     return firstToken;
-  }
-
-  @override
-  set preserveComments(bool preserveComments) {
-    this._preserveComments = preserveComments;
   }
 }
