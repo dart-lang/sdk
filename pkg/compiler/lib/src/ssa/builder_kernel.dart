@@ -602,10 +602,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       ResolvedAst resolvedAst = astElement.resolvedAst;
       localsHandler.closureData = newClosureData;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        localsHandler.enterScope(
-            newClosureData.capturingScopes[resolvedAst.node],
-            forGenerativeConstructorBody:
-                astElement.isGenerativeConstructorBody);
+        // TODO(efortuna): Take out the test below for null once we are no
+        // longer dealing with the ClosureClassMap interface directly.
+        if (newClosureData.capturingScopes[resolvedAst.node] != null) {
+          localsHandler.enterScope(
+              newClosureData.capturingScopes[resolvedAst.node],
+              forGenerativeConstructorBody:
+                  astElement.isGenerativeConstructorBody);
+        }
       }
     }
     inlinedFrom(astElement, () {
@@ -896,7 +900,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     loopHandler.handleLoop(
-        forStatement, buildInitializer, buildCondition, buildUpdate, buildBody);
+        forStatement,
+        closureToClassMapper.getClosureRepresentationInfoForLoop(forStatement),
+        buildInitializer,
+        buildCondition,
+        buildUpdate,
+        buildBody);
   }
 
   @override
@@ -1018,8 +1027,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       localsHandler.updateLocal(indexVariable, addInstruction);
     }
 
-    loopHandler.handleLoop(forInStatement, buildInitializer, buildCondition,
-        buildUpdate, buildBody);
+    loopHandler.handleLoop(
+        forInStatement,
+        closureToClassMapper
+            .getClosureRepresentationInfoForLoop(forInStatement),
+        buildInitializer,
+        buildCondition,
+        buildUpdate,
+        buildBody);
   }
 
   _buildForInIterator(ir.ForInStatement forInStatement) {
@@ -1064,7 +1079,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     loopHandler.handleLoop(
-        forInStatement, buildInitializer, buildCondition, () {}, buildBody);
+        forInStatement,
+        closureToClassMapper
+            .getClosureRepresentationInfoForLoop(forInStatement),
+        buildInitializer,
+        buildCondition,
+        () {},
+        buildBody);
   }
 
   void _buildAsyncForIn(ir.ForInStatement forInStatement) {
@@ -1104,8 +1125,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // Creates a synthetic try/finally block in case anything async goes amiss.
     TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(this);
     // Build fake try body:
-    loopHandler.handleLoop(forInStatement, buildInitializer, buildCondition,
-        buildUpdate, buildBody);
+    loopHandler.handleLoop(
+        forInStatement,
+        closureToClassMapper
+            .getClosureRepresentationInfoForLoop(forInStatement),
+        buildInitializer,
+        buildCondition,
+        buildUpdate,
+        buildBody);
 
     void finalizerFunction() {
       _pushDynamicInvocation(forInStatement, null, [streamIterator],
@@ -1149,7 +1176,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return popBoolified();
     }
 
-    loopHandler.handleLoop(whileStatement, () {}, buildCondition, () {}, () {
+    loopHandler.handleLoop(
+        whileStatement,
+        closureToClassMapper
+            .getClosureRepresentationInfoForLoop(whileStatement),
+        () {},
+        buildCondition,
+        () {}, () {
       whileStatement.body.accept(this);
     });
   }
@@ -1159,7 +1192,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // TODO(efortuna): I think this can be rewritten using
     // LoopHandler.handleLoop with some tricks about when the "update" happens.
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-    localsHandler.startLoop(astAdapter.getNode(doStatement));
+    localsHandler.startLoop(
+        closureToClassMapper.getClosureRepresentationInfoForLoop(doStatement));
     JumpHandler jumpHandler = loopHandler.beginLoopHeader(doStatement);
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock loopEntryBlock = current;
@@ -1176,7 +1210,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // Using a separate block is just a simple workaround.
       bodyEntryBlock = openNewBlock();
     }
-    localsHandler.enterLoopBody(astAdapter.getNode(doStatement));
+    localsHandler.enterLoopBody(
+        closureToClassMapper.getClosureRepresentationInfoForLoop(doStatement));
     doStatement.body.accept(this);
 
     // If there are no continues we could avoid the creation of the condition
@@ -1677,7 +1712,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     void buildLoop() {
       loopHandler.handleLoop(
-          switchStatement, () {}, buildCondition, () {}, buildSwitch);
+          switchStatement,
+          closureToClassMapper
+              .getClosureRepresentationInfoForLoop(switchStatement),
+          () {},
+          buildCondition,
+          () {},
+          buildSwitch);
     }
 
     if (hasDefault) {
