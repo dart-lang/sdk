@@ -30,7 +30,7 @@ import 'universe/world_impact.dart';
 
 /// Strategy pattern that defines the connection between the input format and
 /// the resolved element model.
-abstract class FrontEndStrategy {
+abstract class FrontendStrategy {
   /// Creates library loader task for this strategy.
   LibraryLoaderTask createLibraryLoader(
       ResolvedUriTranslator uriTranslator,

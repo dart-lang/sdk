@@ -69,8 +69,8 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
           ]);
       ElementResolutionWorldBuilder.useInstantiationMap = true;
       compiler2.resolution.retainCachesForTesting = true;
-      KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-      KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
+      KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
+      KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
       ir.Program program = new ir.Program(
           libraries:
               compiler.backend.kernelTask.kernel.libraryDependencies(uri));
@@ -115,8 +115,8 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
       ]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler2.resolution.retainCachesForTesting = true;
-  KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-  KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
+  KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
+  KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
   compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
       elementMap,
       compiler2.reporter,

@@ -86,7 +86,7 @@ abstract class Compiler {
 
   final IdGenerator idGenerator = new IdGenerator();
   DartTypes types;
-  FrontEndStrategy frontEndStrategy;
+  FrontendStrategy frontendStrategy;
   BackendStrategy backendStrategy;
   CommonElements _commonElements;
   ElementEnvironment _elementEnvironment;
@@ -195,14 +195,14 @@ abstract class Compiler {
     } else {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
-    frontEndStrategy = options.loadFromDill
+    frontendStrategy = options.loadFromDill
         ? new KernelFrontEndStrategy(reporter, environment)
         : new ResolutionFrontEndStrategy(this);
     backendStrategy = options.loadFromDill
         ? new KernelBackendStrategy(this)
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
-    _elementEnvironment = frontEndStrategy.elementEnvironment;
+    _elementEnvironment = frontendStrategy.elementEnvironment;
     _commonElements = new CommonElements(_elementEnvironment);
     types = new Types(_resolution);
 
@@ -218,7 +218,7 @@ abstract class Compiler {
       scanner = createScannerTask(),
       serialization = new SerializationTask(this),
       patchParser = new PatchParserTask(this),
-      libraryLoader = frontEndStrategy.createLibraryLoader(
+      libraryLoader = frontendStrategy.createLibraryLoader(
           resolvedUriTranslator,
           options.compileOnly
               ? new _NoScriptLoader(this)
@@ -521,7 +521,7 @@ abstract class Compiler {
       selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
         ResolutionEnqueuer resolutionEnqueuer = startResolution();
         WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-        mainFunction = frontEndStrategy.computeMain(rootLibrary, mainImpact);
+        mainFunction = frontendStrategy.computeMain(rootLibrary, mainImpact);
 
         if (!options.loadFromDill) {
           // TODO(johnniwinther): Support mirrors usages analysis from dill.
@@ -1134,11 +1134,11 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
         api.Diagnostic.CRASH);
   }
 
-  /// Using [frontEndStrategy] to compute a [SourceSpan] from spannable using
+  /// Using [frontendStrategy] to compute a [SourceSpan] from spannable using
   /// the [currentElement] as context.
   SourceSpan _spanFromStrategy(Spannable spannable) {
     SourceSpan span =
-        compiler.frontEndStrategy.spanFromSpannable(spannable, currentElement);
+        compiler.frontendStrategy.spanFromSpannable(spannable, currentElement);
     if (span != null) return span;
     throw 'No error location.';
   }
@@ -1169,8 +1169,8 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   // TODO(johnniwinther): Move this to the parser listeners.
   @override
   SourceSpan spanFromToken(Token token) {
-    if (compiler.frontEndStrategy is ResolutionFrontEndStrategy) {
-      ResolutionFrontEndStrategy strategy = compiler.frontEndStrategy;
+    if (compiler.frontendStrategy is ResolutionFrontEndStrategy) {
+      ResolutionFrontEndStrategy strategy = compiler.frontendStrategy;
       return strategy.spanFromToken(currentElement, token);
     }
     throw 'No error location.';

@@ -52,8 +52,8 @@ class KernelBackendStrategy implements BackendStrategy {
   @override
   Sorter get sorter {
     if (_sorter == null) {
-      KernelFrontEndStrategy frontEndStrategy = _compiler.frontEndStrategy;
-      _sorter = new KernelSorter(frontEndStrategy.elementMap);
+      KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
+      _sorter = new KernelSorter(frontendStrategy.elementMap);
     }
     return _sorter;
   }
@@ -123,8 +123,8 @@ class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
   KernelSsaBuilderTask(this._compiler) : super(_compiler.measurer);
 
   KernelToElementMapImpl get _elementMap {
-    KernelFrontEndStrategy frontEndStrategy = _compiler.frontEndStrategy;
-    return frontEndStrategy.elementMap;
+    KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
+    return frontendStrategy.elementMap;
   }
 
   @override

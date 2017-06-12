@@ -129,8 +129,8 @@ Future<ResultKind> mainInternal(List<String> args,
       entryPoint, const {}, [Flags.analyzeOnly, Flags.enableAssertMessage],
       printSteps: true);
 
-  KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-  KernelToElementMap elementMap = frontEndStrategy.elementMap;
+  KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
+  KernelToElementMap elementMap = frontendStrategy.elementMap;
 
   Expect.isFalse(compiler2.compilationFailed);
 

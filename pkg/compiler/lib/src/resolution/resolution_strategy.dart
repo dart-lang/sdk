@@ -45,7 +45,7 @@ import 'no_such_method_resolver.dart';
 
 /// [FrontendStrategy] that loads '.dart' files and creates a resolved element
 /// model using the resolver.
-class ResolutionFrontEndStrategy implements FrontEndStrategy {
+class ResolutionFrontEndStrategy implements FrontendStrategy {
   final Compiler _compiler;
   final ElementEnvironment elementEnvironment;
   AnnotationProcessor _annotationProcessor;

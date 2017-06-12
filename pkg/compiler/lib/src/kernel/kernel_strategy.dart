@@ -37,7 +37,7 @@ import 'element_map_impl.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
-class KernelFrontEndStrategy implements FrontEndStrategy {
+class KernelFrontEndStrategy implements FrontendStrategy {
   KernelToElementMapImpl elementMap;
 
   KernelAnnotationProcessor _annotationProcesser;

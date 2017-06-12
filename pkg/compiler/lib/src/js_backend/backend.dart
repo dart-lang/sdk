@@ -457,7 +457,7 @@ class JavaScriptBackend {
       bool useNewSourceInfo: false,
       bool useKernel: false})
       : _rti = new RuntimeTypesImpl(
-            compiler.elementEnvironment, compiler.frontEndStrategy.dartTypes),
+            compiler.elementEnvironment, compiler.frontendStrategy.dartTypes),
         optimizerHints = new OptimizerHintsForTests(
             compiler.elementEnvironment, compiler.commonElements),
         this.sourceInformationStrategy =
@@ -465,10 +465,10 @@ class JavaScriptBackend {
         constantCompilerTask = new JavaScriptConstantTask(compiler),
         _nativeDataResolver = new NativeDataResolverImpl(compiler),
         _rtiNeedBuilder =
-            compiler.frontEndStrategy.createRuntimeTypesNeedBuilder() {
+            compiler.frontendStrategy.createRuntimeTypesNeedBuilder() {
     _target = new JavaScriptBackendTarget(this);
     impacts = new BackendImpacts(compiler.options, commonElements);
-    _mirrorsData = compiler.frontEndStrategy.createMirrorsDataBuilder();
+    _mirrorsData = compiler.frontendStrategy.createMirrorsDataBuilder();
     _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements);
     _checkedModeHelpers = new CheckedModeHelpers(commonElements);
     emitter =
@@ -478,12 +478,12 @@ class JavaScriptBackend {
         compiler.elementEnvironment, impacts, _backendUsageBuilder);
     jsInteropAnalysis = new JsInteropAnalysis(this);
     _mirrorsResolutionAnalysis =
-        compiler.frontEndStrategy.createMirrorsResolutionAnalysis(this);
+        compiler.frontendStrategy.createMirrorsResolutionAnalysis(this);
     lookupMapResolutionAnalysis =
         new LookupMapResolutionAnalysis(reporter, compiler.elementEnvironment);
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(
-        commonElements, compiler.frontEndStrategy.createNoSuchMethodResolver());
+        commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
     kernelTask = new KernelTask(compiler);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = new SsaFunctionCompiler(
@@ -737,7 +737,7 @@ class JavaScriptBackend {
 
   /// Called when the resolution queue has been closed.
   void onResolutionEnd() {
-    compiler.frontEndStrategy.annotationProcesser
+    compiler.frontendStrategy.annotationProcesser
         .processJsInteropAnnotations(nativeBasicData, nativeDataBuilder);
   }
 
@@ -800,9 +800,9 @@ class JavaScriptBackend {
         compiler.options,
         compiler.elementEnvironment,
         commonElements,
-        compiler.frontEndStrategy.dartTypes,
+        compiler.frontendStrategy.dartTypes,
         _backendUsageBuilder,
-        compiler.frontEndStrategy.createNativeClassFinder(nativeBasicData));
+        compiler.frontendStrategy.createNativeClassFinder(nativeBasicData));
     _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
     _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
         constantSystem,
@@ -849,13 +849,13 @@ class JavaScriptBackend {
             _nativeResolutionEnqueuer,
             compiler.deferredLoadTask,
             kernelTask),
-        compiler.frontEndStrategy.createResolutionWorldBuilder(
+        compiler.frontendStrategy.createResolutionWorldBuilder(
             nativeBasicData,
             _nativeDataBuilder,
             interceptorDataBuilder,
             _backendUsageBuilder,
             const OpenWorldStrategy()),
-        compiler.frontEndStrategy.createResolutionWorkItemBuilder(
+        compiler.frontendStrategy.createResolutionWorkItemBuilder(
             nativeBasicData, _nativeDataBuilder, impactTransformer));
   }
 
@@ -881,7 +881,7 @@ class JavaScriptBackend {
         compiler.options,
         compiler.elementEnvironment,
         commonElements,
-        compiler.frontEndStrategy.dartTypes,
+        compiler.frontendStrategy.dartTypes,
         emitter,
         _nativeResolutionEnqueuer,
         closedWorld.nativeData);
@@ -1029,7 +1029,7 @@ class JavaScriptBackend {
   void setAnnotations(LibraryEntity library) {
     if (!compiler.serialization.isDeserialized(library)) {
       AnnotationProcessor processor =
-          compiler.frontEndStrategy.annotationProcesser;
+          compiler.frontendStrategy.annotationProcesser;
       if (canLibraryUseNative(library)) {
         processor.extractNativeAnnotations(library, nativeBasicDataBuilder);
       }
