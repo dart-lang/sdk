@@ -222,7 +222,6 @@ custom_html_constructors = monitored.Set(
 # browser. They are exposed simply by placing an underscore in front of the
 # name.
 private_html_members = monitored.Set('htmlrenamer.private_html_members', [
-  'AudioContext.decodeAudioData',
   'AudioNode.connect',
   'Cache.add',
   'Cache.delete',
@@ -534,6 +533,7 @@ for member in convert_to_future_members:
 # TODO(jacobr): cleanup and augment this list.
 removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Attr.textContent', # Not needed as it is the same as Node.textContent.
+    'AudioContext.decodeAudioData',
     'AudioBufferSourceNode.looping', # TODO(vsm): Use deprecated IDL annotation
     'CSSStyleDeclaration.getPropertyCSSValue',
     'CanvasRenderingContext2D.clearShadow',
