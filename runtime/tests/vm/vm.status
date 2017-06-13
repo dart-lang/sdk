@@ -416,6 +416,7 @@ cc/Profiler_SourcePositionOptimized: Fail
 cc/ScriptSnapshot1: Fail
 cc/ScriptSnapshot2: Crash
 cc/ScriptSnapshot: Crash
+cc/ScriptSnapshotsUpdateSubclasses: Crash # Issue 29850
 cc/SetField_CheckIsolate: Fail
 cc/SetField_FunnyValue: Fail
 cc/SourcePosition_Async: Crash
