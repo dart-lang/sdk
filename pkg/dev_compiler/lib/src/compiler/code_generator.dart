@@ -1775,12 +1775,27 @@ class CodeGenerator extends Object
       return;
     }
 
+    bool foundConstructor = false;
     for (var ctor in ctors) {
       var element = ctor.element;
       if (element.isFactory || _externalOrNative(ctor)) continue;
 
       addConstructor(
           element, _emitConstructor(ctor, fields, isCallable, className));
+      foundConstructor = true;
+    }
+
+    // If classElement has only factory constructors, and it can be mixed in,
+    // then we need to emit a special hidden default constructor for use by
+    // mixins.
+    if (!foundConstructor && classElem.supertype.isObject) {
+      body.add(
+          js.statement('(#[#] = function() { # }).prototype = #.prototype;', [
+        className,
+        _callHelper('mixinNew'),
+        [_initializeFields(fields)],
+        className
+      ]));
     }
   }
 
