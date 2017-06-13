@@ -877,16 +877,21 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       message = "Method not found: '$errorName'.";
     }
     if (constantExpressionRequired) {
+      // TODO(ahe): Use error below instead of building a compile-time error,
+      // should be:
+      //    return library.loader.throwCompileConstantError(error, charOffset);
       return buildCompileTimeError(message, charOffset);
+    } else {
+      Expression error = library.loader.instantiateNoSuchMethodError(
+          receiver, name, arguments, charOffset,
+          isMethod: !isGetter && !isSetter,
+          isGetter: isGetter,
+          isSetter: isSetter,
+          isStatic: isStatic,
+          isTopLevel: !isStatic && !isSuper);
+      warning(message, charOffset);
+      return new Throw(error);
     }
-    warning(message, charOffset);
-    return new Throw(library.loader.instantiateNoSuchMethodError(
-        receiver, name, arguments, charOffset,
-        isMethod: !isGetter && !isSetter,
-        isGetter: isGetter,
-        isSetter: isSetter,
-        isStatic: isStatic,
-        isTopLevel: !isStatic && !isSuper));
   }
 
   @override
@@ -2883,11 +2888,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // extracted. Similar for statements and initializers. See also [issue
     // 29717](https://github.com/dart-lang/sdk/issues/29717)
     addCompileTimeError(charOffset, error);
-    String message = formatUnexpected(uri, charOffset, error);
-    Builder constructor = library.loader.getCompileTimeError();
-    return new Throw(buildStaticInvocation(constructor.target,
-        new KernelArguments(<Expression>[new StringLiteral(message)]),
-        charOffset: charOffset));
+    return library.loader.throwCompileConstantError(library.loader
+        .buildCompileTimeError(
+            formatUnexpected(uri, charOffset, error), charOffset));
   }
 
   Expression wrapInCompileTimeError(Expression expression, String message) {

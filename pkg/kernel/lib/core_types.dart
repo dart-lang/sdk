@@ -61,6 +61,8 @@ class CoreTypes {
   Procedure _listFromConstructor;
   Procedure _printProcedure;
   Procedure _identicalProcedure;
+  Constructor _constantExpressionErrorDefaultConstructor;
+  Constructor _compileTimeErrorDefaultConstructor;
 
   Class _internalSymbolClass;
 
@@ -254,5 +256,15 @@ class CoreTypes {
 
   Class get typeClass {
     return _typeClass ??= _index.getClass('dart:core', 'Type');
+  }
+
+  Constructor get constantExpressionErrorDefaultConstructor {
+    return _constantExpressionErrorDefaultConstructor ??=
+        _index.getMember('dart:core', '_ConstantExpressionError', '');
+  }
+
+  Constructor get compileTimeErrorDefaultConstructor {
+    return _compileTimeErrorDefaultConstructor ??=
+        _index.getMember('dart:core', '_CompileTimeError', '');
   }
 }
