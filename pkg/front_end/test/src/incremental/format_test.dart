@@ -4,7 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:front_end/src/base/flat_buffers.dart' as fb;
 import 'package:front_end/src/incremental/format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -17,79 +16,57 @@ main() {
 
 @reflectiveTest
 class FormatTest {
-  void test_UnlinkedCombinator_hides() {
-    Uint8List bytes;
-    {
-      fb.Builder fbBuilder = new fb.Builder();
-      fb.Offset offset =
-          new UnlinkedCombinatorBuilder(hides: ['a', 'bb', 'ccc'])
-              .finish(fbBuilder);
-      bytes = fbBuilder.finish(offset);
-    }
+  void test_UnlinkedCombinator_isShow_false() {
+    Uint8List bytes = new UnlinkedCombinatorBuilder(
+        isShow: false, names: ['aaa', 'bbb', 'ccc']).toBytes();
 
     var combinator = new UnlinkedCombinator(bytes);
-    expect(combinator.shows, isEmpty);
-    expect(combinator.hides, ['a', 'bb', 'ccc']);
+    expect(combinator.isShow, isFalse);
+    expect(combinator.names, ['aaa', 'bbb', 'ccc']);
   }
 
-  void test_UnlinkedCombinator_shows() {
-    Uint8List bytes;
-    {
-      fb.Builder fbBuilder = new fb.Builder();
-      fb.Offset offset =
-          new UnlinkedCombinatorBuilder(shows: ['a', 'bb', 'ccc'])
-              .finish(fbBuilder);
-      bytes = fbBuilder.finish(offset);
-    }
+  void test_UnlinkedCombinator_isShow_true() {
+    Uint8List bytes = new UnlinkedCombinatorBuilder(
+        isShow: true, names: ['aaa', 'bbb', 'ccc']).toBytes();
 
     var combinator = new UnlinkedCombinator(bytes);
-    expect(combinator.shows, ['a', 'bb', 'ccc']);
-    expect(combinator.hides, isEmpty);
+    expect(combinator.isShow, isTrue);
+    expect(combinator.names, ['aaa', 'bbb', 'ccc']);
   }
 
   void test_UnlinkedNamespaceDirective() {
-    Uint8List bytes;
-    {
-      fb.Builder fbBuilder = new fb.Builder();
-      fb.Offset offset = new UnlinkedNamespaceDirectiveBuilder(
-          uri: 'package:foo/foo.dart',
-          combinators: [
-            new UnlinkedCombinatorBuilder(shows: ['aaa']),
-            new UnlinkedCombinatorBuilder(hides: ['bbb', 'ccc'])
-          ]).finish(fbBuilder);
-      bytes = fbBuilder.finish(offset);
-    }
+    Uint8List bytes = new UnlinkedNamespaceDirectiveBuilder(
+        uri: 'package:foo/foo.dart',
+        combinators: [
+          new UnlinkedCombinatorBuilder(isShow: true, names: ['aaa']),
+          new UnlinkedCombinatorBuilder(isShow: false, names: ['bbb', 'ccc'])
+        ]).toBytes();
 
     var directive = new UnlinkedNamespaceDirective(bytes);
     expect(directive.uri, 'package:foo/foo.dart');
     expect(directive.combinators, hasLength(2));
-    expect(directive.combinators[0].shows, ['aaa']);
-    expect(directive.combinators[0].hides, isEmpty);
-    expect(directive.combinators[1].shows, isEmpty);
-    expect(directive.combinators[1].hides, ['bbb', 'ccc']);
+    expect(directive.combinators[0].isShow, isTrue);
+    expect(directive.combinators[0].names, ['aaa']);
+    expect(directive.combinators[1].isShow, isFalse);
+    expect(directive.combinators[1].names, ['bbb', 'ccc']);
   }
 
   void test_UnlinkedUnit() {
-    Uint8List bytes;
-    {
-      fb.Builder fbBuilder = new fb.Builder();
-      fb.Offset offset = new UnlinkedUnitBuilder(apiSignature: [
-        0,
-        1,
-        2,
-        3,
-        4
-      ], imports: [
-        new UnlinkedNamespaceDirectiveBuilder(uri: 'a.dart')
-      ], exports: [
-        new UnlinkedNamespaceDirectiveBuilder(uri: 'b.dart')
-      ], parts: [
-        new UnlinkedNamespaceDirectiveBuilder(uri: 'p1.dart'),
-        new UnlinkedNamespaceDirectiveBuilder(uri: 'p2.dart'),
-      ], hasMixinApplication: true)
-          .finish(fbBuilder);
-      bytes = fbBuilder.finish(offset);
-    }
+    Uint8List bytes = new UnlinkedUnitBuilder(apiSignature: [
+      0,
+      1,
+      2,
+      3,
+      4
+    ], imports: [
+      new UnlinkedNamespaceDirectiveBuilder(uri: 'a.dart')
+    ], exports: [
+      new UnlinkedNamespaceDirectiveBuilder(uri: 'b.dart')
+    ], parts: [
+      'p1.dart',
+      'p2.dart',
+    ], hasMixinApplication: true)
+        .toBytes();
 
     var unit = new UnlinkedUnit(bytes);
     expect(unit.apiSignature, [0, 1, 2, 3, 4]);
@@ -100,21 +77,14 @@ class FormatTest {
     expect(unit.exports, hasLength(1));
     expect(unit.exports[0].uri, 'b.dart');
 
-    expect(unit.parts, hasLength(2));
-    expect(unit.parts[0].uri, 'p1.dart');
-    expect(unit.parts[1].uri, 'p2.dart');
+    expect(unit.parts, ['p1.dart', 'p2.dart']);
 
     expect(unit.hasMixinApplication, isTrue);
   }
 
   void test_UnlinkedUnit_hasMixinApplication_false() {
-    Uint8List bytes;
-    {
-      fb.Builder fbBuilder = new fb.Builder();
-      fb.Offset offset =
-          new UnlinkedUnitBuilder(hasMixinApplication: false).finish(fbBuilder);
-      bytes = fbBuilder.finish(offset);
-    }
+    Uint8List bytes =
+        new UnlinkedUnitBuilder(hasMixinApplication: false).toBytes();
 
     var unit = new UnlinkedUnit(bytes);
     expect(unit.hasMixinApplication, isFalse);

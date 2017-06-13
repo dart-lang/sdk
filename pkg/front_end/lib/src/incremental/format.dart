@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data' show Uint8List;
+
 import 'package:front_end/src/base/flat_buffers.dart' as fb;
 
 /// Unlinked information about a `show` or `hide` combinator in an import or
@@ -12,52 +14,44 @@ abstract class UnlinkedCombinator {
     return const _UnlinkedCombinatorReader().read(rootRef, 0);
   }
 
-  /// List of names which are hidden.
-  /// Empty if this is a `show` combinator.
-  List<String> get hides;
+  /// Whether a `show` combinator.
+  bool get isShow;
 
-  /// List of names which are shown.
-  /// Empty if this is a `hide` combinator.
-  List<String> get shows;
+  /// List of names which are shown or hidden.
+  /// Empty if this is a `show` combinator.
+  List<String> get names;
 }
 
 /// Builder of [UnlinkedCombinator]s.
 class UnlinkedCombinatorBuilder {
-  List<String> _shows;
-  List<String> _hides;
+  final bool _isShow;
+  final List<String> _names;
 
-  UnlinkedCombinatorBuilder({List<String> shows, List<String> hides})
-      : _shows = shows,
-        _hides = hides;
-
-  void set hides(List<String> value) {
-    this._hides = value;
-  }
-
-  void set shows(List<String> value) {
-    this._shows = value;
-  }
+  UnlinkedCombinatorBuilder({bool isShow, List<String> names})
+      : _isShow = isShow,
+        _names = names;
 
   /// Finish building, and store into the [fbBuilder].
   fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_shows;
-    fb.Offset offset_hides;
-    if (!(_shows == null || _shows.isEmpty)) {
-      offset_shows = fbBuilder
-          .writeList(_shows.map((b) => fbBuilder.writeString(b)).toList());
-    }
-    if (!(_hides == null || _hides.isEmpty)) {
-      offset_hides = fbBuilder
-          .writeList(_hides.map((b) => fbBuilder.writeString(b)).toList());
+    fb.Offset offset_names;
+    if (!(_names == null || _names.isEmpty)) {
+      offset_names = fbBuilder
+          .writeList(_names.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
-    if (offset_shows != null) {
-      fbBuilder.addOffset(0, offset_shows);
+    if (_isShow == true) {
+      fbBuilder.addBool(0, _isShow);
     }
-    if (offset_hides != null) {
-      fbBuilder.addOffset(1, offset_hides);
+    if (offset_names != null) {
+      fbBuilder.addOffset(1, offset_names);
     }
     return fbBuilder.endTable();
+  }
+
+  Uint8List toBytes() {
+    fb.Builder fbBuilder = new fb.Builder();
+    fb.Offset offset = finish(fbBuilder);
+    return fbBuilder.finish(offset);
   }
 }
 
@@ -77,21 +71,13 @@ abstract class UnlinkedNamespaceDirective {
 
 /// Builder of [UnlinkedNamespaceDirective]s.
 class UnlinkedNamespaceDirectiveBuilder {
-  String _uri;
-  List<UnlinkedCombinatorBuilder> _combinators;
+  final String _uri;
+  final List<UnlinkedCombinatorBuilder> _combinators;
 
   UnlinkedNamespaceDirectiveBuilder(
       {String uri, List<UnlinkedCombinatorBuilder> combinators})
       : _uri = uri,
         _combinators = combinators;
-
-  void set combinators(List<UnlinkedCombinatorBuilder> value) {
-    this._combinators = value;
-  }
-
-  void set uri(String value) {
-    this._uri = value;
-  }
 
   /// Finish building, and store into the [fbBuilder].
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -108,6 +94,12 @@ class UnlinkedNamespaceDirectiveBuilder {
     fbBuilder.addOffset(0, offset_uri);
     fbBuilder.addOffset(1, offset_combinators);
     return fbBuilder.endTable();
+  }
+
+  Uint8List toBytes() {
+    fb.Builder fbBuilder = new fb.Builder();
+    fb.Offset offset = finish(fbBuilder);
+    return fbBuilder.finish(offset);
   }
 }
 
@@ -130,45 +122,29 @@ abstract class UnlinkedUnit {
   /// Import directives in the compilation unit.
   List<UnlinkedNamespaceDirective> get imports;
 
-  /// Part directives in the compilation unit.
-  List<UnlinkedNamespaceDirective> get parts;
+  /// URIs of part directives in the compilation unit.
+  List<String> get parts;
 }
 
 /// Builder of [UnlinkedUnit]s.
 class UnlinkedUnitBuilder {
-  List<int> _apiSignature;
-  List<UnlinkedNamespaceDirectiveBuilder> _imports;
-  List<UnlinkedNamespaceDirectiveBuilder> _exports;
-  List<UnlinkedNamespaceDirectiveBuilder> _parts;
-  bool _hasMixinApplication;
+  final List<int> _apiSignature;
+  final List<UnlinkedNamespaceDirectiveBuilder> _imports;
+  final List<UnlinkedNamespaceDirectiveBuilder> _exports;
+  final List<String> _parts;
+  final bool _hasMixinApplication;
 
   UnlinkedUnitBuilder(
       {List<int> apiSignature,
       List<UnlinkedNamespaceDirectiveBuilder> imports,
       List<UnlinkedNamespaceDirectiveBuilder> exports,
-      List<UnlinkedNamespaceDirectiveBuilder> parts,
+      List<String> parts,
       bool hasMixinApplication})
       : _apiSignature = apiSignature,
         _imports = imports,
         _exports = exports,
         _parts = parts,
         _hasMixinApplication = hasMixinApplication;
-
-  void set exports(List<UnlinkedNamespaceDirectiveBuilder> value) {
-    this._exports = value;
-  }
-
-  void set hasMixinApplication(bool value) {
-    this._hasMixinApplication = value;
-  }
-
-  void set imports(List<UnlinkedNamespaceDirectiveBuilder> value) {
-    this._imports = value;
-  }
-
-  void set parts(List<UnlinkedNamespaceDirectiveBuilder> value) {
-    this._parts = value;
-  }
 
   /// Finish building, and store into the [fbBuilder].
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -188,8 +164,8 @@ class UnlinkedUnitBuilder {
           .writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_parts == null || _parts.isEmpty)) {
-      offset_parts =
-          fbBuilder.writeList(_parts.map((b) => b.finish(fbBuilder)).toList());
+      offset_parts = fbBuilder
+          .writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
     if (offset_apiSignature != null) {
@@ -209,29 +185,34 @@ class UnlinkedUnitBuilder {
     }
     return fbBuilder.endTable();
   }
+
+  Uint8List toBytes() {
+    fb.Builder fbBuilder = new fb.Builder();
+    fb.Offset offset = finish(fbBuilder);
+    return fbBuilder.finish(offset);
+  }
 }
 
 class _UnlinkedCombinatorImpl implements UnlinkedCombinator {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  List<String> _shows;
-  List<String> _hides;
+  bool _isShow;
+  List<String> _names;
 
   _UnlinkedCombinatorImpl(this._bc, this._bcOffset);
 
   @override
-  List<String> get hides {
-    _hides ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
-    return _hides;
+  bool get isShow {
+    _isShow ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 0, false);
+    return _isShow;
   }
 
   @override
-  List<String> get shows {
-    _shows ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 0, const <String>[]);
-    return _shows;
+  List<String> get names {
+    _names ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    return _names;
   }
 }
 
@@ -285,7 +266,7 @@ class _UnlinkedUnitImpl implements UnlinkedUnit {
   List<int> _apiSignature;
   List<UnlinkedNamespaceDirective> _imports;
   List<UnlinkedNamespaceDirective> _exports;
-  List<UnlinkedNamespaceDirective> _parts;
+  List<String> _parts;
   bool _hasMixinApplication;
 
   _UnlinkedUnitImpl(this._bc, this._bcOffset);
@@ -321,10 +302,9 @@ class _UnlinkedUnitImpl implements UnlinkedUnit {
   }
 
   @override
-  List<UnlinkedNamespaceDirective> get parts {
-    _parts ??= const fb.ListReader<UnlinkedNamespaceDirective>(
-            const _UnlinkedNamespaceDirectiveReader())
-        .vTableGet(_bc, _bcOffset, 3, const <UnlinkedNamespaceDirective>[]);
+  List<String> get parts {
+    _parts ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 3, const <String>[]);
     return _parts;
   }
 }
