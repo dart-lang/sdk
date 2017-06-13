@@ -17,3 +17,18 @@ var /*@topType=bool*/ a_less = 1.0 /*@target=num::<*/ < 2;
 var /*@topType=bool*/ a_greaterEqual = 1.0 /*@target=num::>=*/ >= 2;
 var /*@topType=bool*/ a_lessEqual = 1.0 /*@target=num::<=*/ <= 2;
 var /*@topType=double*/ a_modulo = 1.0 /*@target=double::%*/ % 2;
+
+main() {
+  a_equal;
+  a_notEqual;
+  a_add;
+  a_subtract;
+  a_multiply;
+  a_divide;
+  a_floorDivide;
+  a_greater;
+  a_less;
+  a_greaterEqual;
+  a_lessEqual;
+  a_modulo;
+}
