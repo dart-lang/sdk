@@ -656,3 +656,9 @@ class StackTrace {
     return getTraceFromException(JS('', 'new Error()'));
   }
 }
+
+@patch
+class _ConstantExpressionError {
+  @patch
+  _throw(error) => throw error;
+}
