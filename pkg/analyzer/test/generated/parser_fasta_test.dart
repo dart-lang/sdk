@@ -772,7 +772,7 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
 
   @override
   void addCompileTimeError(int charOffset, Object message,
-      {Uri fileUri, bool silent: false}) {
+      {Uri fileUri, bool silent: false, bool wasHandled: false}) {
     fail('$message');
   }
 

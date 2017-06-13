@@ -44,6 +44,10 @@ class RecursiveContinuationRewriter extends Transformer {
     return node.accept(this);
   }
 
+  visitProcedure(Procedure node) {
+    return node.isAbstract ? node : super.visitProcedure(node);
+  }
+
   visitFunctionNode(FunctionNode node) {
     switch (node.asyncMarker) {
       case AsyncMarker.Sync:
@@ -824,7 +828,7 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     completerVariable = new VariableDeclaration(":completer",
         initializer: new StaticInvocation(helper.completerConstructor,
             new Arguments([], types: completerTypeArguments))
-          ..fileOffset = enclosingFunction.body.fileOffset,
+          ..fileOffset = enclosingFunction.body?.fileOffset ?? -1,
         isFinal: true,
         type: completerType);
     statements.add(completerVariable);

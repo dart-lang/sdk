@@ -25,6 +25,7 @@ class CoreTypes {
       'Type',
       'Function',
       'Invocation',
+      '_ConstantExpressionError',
     ],
     'dart:_internal': [
       'Symbol',

@@ -1,5 +1,30 @@
-library;
+library test;
 import self as self;
+import "dart:core" as core;
 
-static method main() → dynamic
-  throw "pkg/front_end/testcases/inference/infer_local_function_return_type.dart:32:3: Error: Can't declare 'f9' because it was already used in this scope.\n  f9() => f5();\n  ^\npkg/front_end/testcases/inference/infer_local_function_return_type.dart:31:51: Error: Previous use of 'f9'.\n  f8() => /*error:REFERENCED_BEFORE_DECLARATION*/ f9();\n                                                  ^";
+const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/infer_local_function_return_type.dart:31:51: Error: Previous use of 'f9'.\n  f8() => /*error:REFERENCED_BEFORE_DECLARATION*/ f9();\n                                                  ^"]/* from null */;
+static method main() → dynamic {
+  function f0() → dynamic
+    return 42;
+  function f1() → dynamic async 
+    return 42;
+  function f2() → dynamic {
+    return 42;
+  }
+  function f3() → dynamic async {
+    return 42;
+  }
+  function f4() → dynamic sync* {
+    yield 42;
+  }
+  function f5() → dynamic async* {
+    yield 42;
+  }
+  function f6() → core::num
+    return 42;
+  function f7() → dynamic
+    return f7.call();
+  function f8() → dynamic
+    return throw new core::NoSuchMethodError::_withType(null, #f9, 32, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
+  const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_local_function_return_type.dart:32:3: Error: Can't declare 'f9' because it was already used in this scope.\n  f9() => f5();\n  ^"));
+}

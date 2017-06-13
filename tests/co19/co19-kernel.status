@@ -3,6 +3,16 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
+Language/Classes/Constructors/Generative_Constructors/initializers_t12: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+Language/Classes/Constructors/Generative_Constructors/redirection_t09: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+Language/Expressions/Conditional/syntax_t04: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+Language/Expressions/Throw/no_catch_clause_t02: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+Language/Expressions/Throw/no_catch_clause_t03: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+Language/Statements/For/syntax_t09: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+Language/Statements/For/syntax_t16: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+
+Language/Overview/Scoping/conflicting_names_t38: DartkCrash # Fasta bug: Bad error recovery.
+
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError
 Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError

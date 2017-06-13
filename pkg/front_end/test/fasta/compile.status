@@ -10,7 +10,6 @@ rasta/unsupported_platform_library: RuntimeError # OK, this must report an error
 
 DeltaBlue: Fail # Missing types on constructor parameters.
 call: Fail # Test can't run.
-cycles: Fail # Compile-time error handling destroys program.
 fallthrough: Fail # Missing FallThroughError.
 function_type_recovery: Fail
 invocations: Fail

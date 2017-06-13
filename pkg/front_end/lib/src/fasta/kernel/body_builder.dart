@@ -1011,8 +1011,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           prefix.deferred &&
           builder == null &&
           "loadLibrary" == name) {
-        return buildCompileTimeError(
-            "Deferred loading isn't implemented yet.", offsetForToken(token));
+        int offset = offsetForToken(token);
+        const String message = "Deferred loading isn't implemented yet.";
+        // We report the error twice, the first time silently and marking it as
+        // unhandled. This ensures that the compile-time error is reported
+        // eagerly by kernel-service, thus preventing any attempts from running
+        // a program that uses deferred loading. Obviously, this is a temporary
+        // solution until we can fully implement deferred loading.
+        addCompileTimeError(offset, message, wasHandled: false, silent: true);
+        return buildCompileTimeError(message, offset);
       } else if (!isQualified && isInstanceContext) {
         assert(builder == null);
         if (constantExpressionRequired || member.isField) {
@@ -2036,6 +2043,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Expression buildStaticInvocation(Member target, Arguments arguments,
       {bool isConst: false, int charOffset: -1, Member initialTarget}) {
+    initialTarget ??= target;
     List<TypeParameter> typeParameters = target.function.typeParameters;
     if (target is Constructor) {
       assert(!target.enclosingClass.isAbstract);
@@ -2353,7 +2361,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
       // TODO(paulberry): ensure that when integrating with analyzer, type
       // inference is still performed for the dropped declaration.
-      assert(library.compileTimeErrors.isNotEmpty);
+      assert(library.hasCompileTimeErrors);
     }
     push(declaration);
   }
@@ -2887,7 +2895,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // it in a class (TBD) from which the erroneous expression can be easily
     // extracted. Similar for statements and initializers. See also [issue
     // 29717](https://github.com/dart-lang/sdk/issues/29717)
-    addCompileTimeError(charOffset, error);
+    addCompileTimeError(charOffset, error, wasHandled: true);
     return library.loader.throwCompileConstantError(library.loader
         .buildCompileTimeError(
             formatUnexpected(uri, charOffset, error), charOffset));
@@ -3021,11 +3029,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   dynamic addCompileTimeError(int charOffset, String message,
-      {bool silent: false}) {
+      {bool silent: false, bool wasHandled: false}) {
     // TODO(ahe): If constantExpressionRequired is set, set it to false to
     // avoid a long list of errors.
     return library.addCompileTimeError(charOffset, message,
-        fileUri: uri, silent: silent);
+        fileUri: uri, silent: silent, wasHandled: wasHandled);
   }
 
   @override

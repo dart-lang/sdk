@@ -6,7 +6,7 @@ library fasta.library_builder;
 
 import '../combinator.dart' show Combinator;
 
-import '../errors.dart' show InputError, internalError, printUnexpected;
+import '../errors.dart' show internalError;
 
 import '../export.dart' show Export;
 
@@ -38,13 +38,14 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   final List<Export> exporters = <Export>[];
 
-  final List<InputError> compileTimeErrors = <InputError>[];
-
   final Uri fileUri;
 
   final String relativeFileUri;
 
   LibraryBuilder partOfLibrary;
+
+  /// True if a compile-time error has been reported in this library.
+  bool hasCompileTimeErrors = false;
 
   LibraryBuilder(Uri fileUri, this.scope, this.exports)
       : fileUri = fileUri,
@@ -64,13 +65,15 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
+  /// See `Loader.addCompileTimeError` for an explanation of the arguments
+  /// passed to this method.
+  ///
+  /// If [fileUri] is null, it defaults to `this.fileUri`.
   void addCompileTimeError(int charOffset, Object message,
-      {Uri fileUri, bool silent: false}) {
-    fileUri ??= this.fileUri;
-    if (!silent) {
-      printUnexpected(fileUri, charOffset, message);
-    }
-    compileTimeErrors.add(new InputError(fileUri, charOffset, message));
+      {Uri fileUri, bool silent: false, bool wasHandled: false}) {
+    hasCompileTimeErrors = true;
+    loader.addCompileTimeError(fileUri ?? this.fileUri, charOffset, message,
+        silent: silent, wasHandled: wasHandled);
   }
 
   void addWarning(int charOffset, Object message,

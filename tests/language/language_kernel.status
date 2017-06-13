@@ -199,6 +199,15 @@ generic_function_typedef_test: RuntimeError # Fasta bug: resolution of type vari
 
 constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
 
+assignable_expression_test/50: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+missing_const_constructor_test/02: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+missing_const_constructor_test/03: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+missing_const_constructor_test/05: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+missing_const_constructor_test/06: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+syntax_test/64: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+syntax_test/65: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+try_catch_syntax_test/16: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+
 # dartk: JIT & AOT failures (debug)
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 const_instance_field_test/01: Crash

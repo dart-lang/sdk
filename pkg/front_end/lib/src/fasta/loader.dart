@@ -25,7 +25,19 @@ abstract class Loader<L> {
 
   final TargetImplementation target;
 
-  final List<InputError> errors = <InputError>[];
+  /// List of all handled compile-time errors seen so far by libraries loaded
+  /// by this loader.
+  ///
+  /// A handled error is an error that has been added to the generated AST
+  /// already, for example, as a throw expression.
+  final List<InputError> handledErrors = <InputError>[];
+
+  /// List of all unhandled compile-time errors seen so far by libraries loaded
+  /// by this loader.
+  ///
+  /// An unhandled error is an error that hasn't been handled, see
+  /// [handledErrors].
+  final List<InputError> unhandledErrors = <InputError>[];
 
   LibraryBuilder coreLibrary;
 
@@ -85,9 +97,8 @@ abstract class Loader<L> {
         uri.scheme == "dart" &&
         uri.path.startsWith("_") &&
         accessor.uri.scheme != "dart") {
-      const String message = "Can't access platform private library.";
-      printUnexpected(accessor.fileUri, charOffset, message);
-      errors.add(new InputError(accessor.fileUri, charOffset, message));
+      accessor.addCompileTimeError(
+          charOffset, "Can't access platform private library.");
     }
     return builder;
   }
@@ -146,14 +157,20 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   /// Builds all the method bodies found in the given [library].
   Future<Null> buildBody(covariant LibraryBuilder library);
 
-  List<InputError> collectCompileTimeErrors() {
-    List<InputError> errors = <InputError>[]..addAll(this.errors);
-    for (LibraryBuilder library in builders.values) {
-      if (library.loader == this) {
-        errors.addAll(library.compileTimeErrors);
-      }
+  /// Register [message] as a compile-time error.
+  ///
+  /// If [silent] is true, no error is printed as it is assumed the error has
+  /// been previously reported.
+  ///
+  /// If [wasHandled] is true, this error is added to [handledErrors],
+  /// otherwise it is added to [unhandledErrors].
+  void addCompileTimeError(Uri fileUri, int charOffset, Object message,
+      {bool silent: false, bool wasHandled: false}) {
+    if (!silent) {
+      printUnexpected(fileUri, charOffset, message);
     }
-    return errors;
+    (wasHandled ? handledErrors : unhandledErrors)
+        .add(new InputError(fileUri, charOffset, message));
   }
 
   Builder getAbstractClassInstantiationError() {
