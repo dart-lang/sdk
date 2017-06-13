@@ -46,6 +46,17 @@ abstract class CompletionCollector {
   void set offset(int offset);
 
   /**
+   * Indicates if the collector's offset has been set (and ultimately the
+   * length too).
+   */
+  bool get offsetIsSet;
+
+  /**
+   * Returns length of suggestions currently held.
+   */
+  int get suggestionsLength;
+
+  /**
    * Record the given completion [suggestion].
    */
   void addSuggestion(CompletionSuggestion suggestion);
@@ -104,6 +115,9 @@ class CompletionGenerator {
     } on AbortCompletion {
       return new GeneratorResult(null, notifications);
     }
+    collector.offset ??= request.offset;
+    collector.length ??= 0;
+
     CompletionGetSuggestionsResult result = new CompletionGetSuggestionsResult(
         collector.offset, collector.length, collector.suggestions);
     return new GeneratorResult(result, notifications);
