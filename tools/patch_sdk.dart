@@ -168,19 +168,6 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
       "profiler/profiler.dart",
       maturity: Maturity.DEPRECATED,
       documented: false),
-
-  "_vmservice": const LibraryInfo(
-      "vmservice/vmservice.dart",
-      implementation: true,
-      documented: false,
-      platforms: VM_PLATFORM),
-
-  "vmservice_io": const LibraryInfo(
-      "vmservice_io/vmservice_io.dart",
-      implementation: true,
-      documented: false,
-      platforms: VM_PLATFORM),
-
 ''');
   _writeSync(
       path.join(
@@ -214,6 +201,7 @@ _copyExtraVmLibraries(String sdkOut, Map<String, String> locations) {
     _writeSync(libraryOut, readInputFile(libraryIn));
   }
   locations["vmservice_io"] = "vmservice_io/vmservice_io.dart";
+  locations["_vmservice"] = "vmservice/vmservice.dart";
 }
 
 _applyPatch(SdkLibrary library, String sdkLibIn, String patchIn, String sdkOut,

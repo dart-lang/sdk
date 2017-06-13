@@ -514,7 +514,6 @@ mirrors/generics_double_substitution_test/01: RuntimeError
 mirrors/generics_double_substitution_test/none: RuntimeError
 mirrors/generics_dynamic_test: RuntimeError
 mirrors/generics_substitution_test: RuntimeError
-mirrors/hierarchy_invariants_test: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
 mirrors/inherit_field_test: RuntimeError
