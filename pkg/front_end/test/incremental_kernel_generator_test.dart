@@ -34,7 +34,7 @@ class IncrementalKernelGeneratorTest {
   WatchUsedFilesFn watchFn = (uri, used) {};
 
   /// The object under test.
-  IncrementalKernelGenerator incrementalKernelGenerator;
+  IncrementalKernelGeneratorImpl incrementalKernelGenerator;
 
   /// Compute the initial [Program] for the given [entryPoint].
   Future<Program> getInitialState(Uri entryPoint) async {
@@ -292,10 +292,9 @@ b() {
     }
 
     // Update c.dart and compute the delta.
-    // It should include the changed c.dart, the affected b.dart, and
-    // also a.dart because VM requires this (because of possible inlining).
-    // But d.dart is not on the path from main() to the changed c.dart,
-    // so it is not included.
+    // It should include the changed c.dart, plus b.dart and a.dart because VM
+    // requires this (because of possible inlining). But d.dart is not on the
+    // path from main() to the changed c.dart, so it is not included.
     writeFile(cPath, 'c() { print(1); }');
     incrementalKernelGenerator.invalidate(cUri);
     {
@@ -304,7 +303,78 @@ b() {
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri],
           excludes: [dUri, Uri.parse('dart:core')]);
+      // While a.dart and b.dart are is included (VM needs them), they were not
+      // recompiled, because the change to c.dart was in the function body.
+      _assertCompiledUris([cUri]);
     }
+  }
+
+  test_compile_recompileMixin() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+
+    Uri aUri = writeFile(
+        aPath,
+        r'''
+import 'b.dart';
+main() {
+  new B().foo();
+}
+''');
+    Uri bUri = writeFile(
+        bPath,
+        r'''
+import 'c.dart';
+class B extends Object with C {}
+''');
+    Uri cUri = writeFile(
+        cPath,
+        r'''
+class C {
+  void foo() {
+    print(0);
+  }
+}
+''');
+
+    {
+      Program program = await getInitialState(aUri);
+      _assertLibraryUris(program,
+          includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
+    }
+
+    // Update c.dart and compute the delta.
+    // Includes: c.dart, b.dart and a.dart files.
+    // Compiled: c.dart (changed) and b.dart (has mixin), but not a.dart file.
+    writeFile(
+        cPath,
+        r'''
+class C {
+  void foo() {
+    print(1);
+  }
+}
+''');
+    incrementalKernelGenerator.invalidate(cUri);
+    {
+      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program,
+          includes: [aUri, bUri, cUri], excludes: [Uri.parse('dart:core')]);
+      // Compiled: c.dart (changed), and b.dart (has mixin).
+      _assertCompiledUris([cUri, bUri]);
+    }
+  }
+
+  void _assertCompiledUris(Iterable<Uri> expected) {
+    var compiledCycles = incrementalKernelGenerator.test.compiledCycles;
+    Set<Uri> compiledUris = compiledCycles
+        .map((cycle) => cycle.libraries.map((file) => file.uri))
+        .expand((uris) => uris)
+        .toSet();
+    expect(compiledUris, unorderedEquals(expected));
   }
 
   test_compile_typedef() async {
