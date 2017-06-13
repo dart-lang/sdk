@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class ReachableSourceCollectorTest extends AbstractContextTest {
   Map<String, List<String>> importsFor(Source source) =>
-      new ReachableSourceCollector(source, context).collectSources();
+      new ReachableSourceCollector(source, null).collectSources();
 
   test_null_context() {
     Source lib = addSource('/lib.dart', '');
@@ -30,7 +30,7 @@ class ReachableSourceCollectorTest extends AbstractContextTest {
   test_null_source() {
     // See https://github.com/dart-lang/sdk/issues/29311
     fail('The analysis.getReachableSources is not implemented.');
-    expect(() => new ReachableSourceCollector(null, context),
+    expect(() => new ReachableSourceCollector(null, null),
         throwsA(new isInstanceOf<ArgumentError>()));
   }
 

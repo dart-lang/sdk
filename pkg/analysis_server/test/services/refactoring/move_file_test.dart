@@ -5,10 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -45,7 +41,6 @@ export '333/d.dart';
 part 'a.dart';
 part '/absolute/uri.dart';
 ''');
-    _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -75,7 +70,6 @@ part '/absolute/uri.dart';
 import 'sub/folder/test.dart';
 ''');
     addTestSource('');
-    _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/new/folder/name/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -98,7 +92,6 @@ import '../new/folder/name/new_name.dart';
 import 'test.dart';
 ''');
     addTestSource('');
-    _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -116,14 +109,15 @@ import '22/new_name.dart';
     // configure packages
     testFile = '/packages/my_pkg/lib/aaa/test.dart';
     provider.newFile(testFile, '');
-    Map<String, List<Folder>> packageMap = {
-      'my_pkg': <Folder>[provider.getResource('/packages/my_pkg/lib')]
-    };
-    context.sourceFactory = new SourceFactory([
-      new DartUriResolver(sdk),
-      new PackageMapUriResolver(provider, packageMap),
-      resourceResolver
-    ]);
+    // TODO(brianwilkerson) Figure out what this should be replaced with.
+//    Map<String, List<Folder>> packageMap = {
+//      'my_pkg': <Folder>[provider.getResource('/packages/my_pkg/lib')]
+//    };
+//    context.sourceFactory = new SourceFactory([
+//      new DartUriResolver(sdk),
+//      new PackageMapUriResolver(provider, packageMap),
+//      resourceResolver
+//    ]);
     // do testing
     String pathA = '/project/bin/a.dart';
     addSource(
@@ -132,7 +126,6 @@ import '22/new_name.dart';
 import 'package:my_pkg/aaa/test.dart';
 ''');
     addTestSource('', Uri.parse('package:my_pkg/aaa/test.dart'));
-    _performAnalysis();
     // perform refactoring
     _createRefactoring('/packages/my_pkg/lib/bbb/ccc/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -155,7 +148,6 @@ import 'package:my_pkg/bbb/ccc/new_name.dart';
 import '22/test.dart';
 ''');
     addTestSource('');
-    _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/1111/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -181,7 +173,6 @@ part '22/test.dart';
     addTestSource('''
 part of lib;
 ''');
-    _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -215,7 +206,6 @@ part '1111/22/test.dart';
     addTestSource('''
 part of lib;
 ''');
-    _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -254,18 +244,17 @@ import 'package:testName/myLib.dart';
 export 'package:testName/myLib.dart';
 ''');
     // configure Uri resolves
-    context.sourceFactory = new SourceFactory([
-      new DartUriResolver(sdk),
-      new PackageMapUriResolver(provider, <String, List<Folder>>{
-        'testName': <Folder>[provider.getResource('/testName/lib')]
-      }),
-      resourceResolver,
-    ]);
-    // analyze
-    _performAnalysis();
+    // TODO(brianwilkerson) Figure out what this should be replaced with.
+//    context.sourceFactory = new SourceFactory([
+//      new DartUriResolver(sdk),
+//      new PackageMapUriResolver(provider, <String, List<Folder>>{
+//        'testName': <Folder>[provider.getResource('/testName/lib')]
+//      }),
+//      resourceResolver,
+//    ]);
     // perform refactoring
     refactoring = new MoveFileRefactoring(
-        provider, searchEngine, context, null, '/testName');
+        provider, searchEngine, null, null, '/testName');
     refactoring.newFile = '/newName';
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(
@@ -292,22 +281,8 @@ export 'package:newName/myLib.dart';
   }
 
   void _createRefactoring(String newName) {
-    refactoring = new MoveFileRefactoring(
-        provider, searchEngine, context, testSource, null);
+    refactoring =
+        new MoveFileRefactoring(provider, searchEngine, null, testSource, null);
     refactoring.newFile = newName;
-  }
-
-  void _performAnalysis() {
-    while (true) {
-      AnalysisResult result = context.performAnalysisTask();
-      if (!result.hasMoreWork) {
-        break;
-      }
-      for (ChangeNotice notice in result.changeNotices) {
-        if (notice.source.fullName.startsWith('/project/')) {
-          index.indexUnit(notice.resolvedDartUnit);
-        }
-      }
-    }
   }
 }

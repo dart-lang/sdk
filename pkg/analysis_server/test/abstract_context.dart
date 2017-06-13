@@ -50,32 +50,11 @@ class AbstractContextTest {
   Map<String, List<Folder>> packageMap;
   UriResolver resourceResolver;
 
-  AnalysisContext _context;
-
   StringBuffer _logBuffer = new StringBuffer();
   FileContentOverlay _fileContentOverlay = new FileContentOverlay();
   AnalysisDriver _driver;
 
-  AnalysisContext get context {
-    if (enableNewAnalysisDriver) {
-      throw new StateError('Should not be used with the new analysis driver.');
-    }
-    return _context;
-  }
-
-  AnalysisDriver get driver {
-    if (enableNewAnalysisDriver) {
-      return _driver;
-    }
-    throw new StateError('Should be used with the new analysis driver.');
-  }
-
-  /**
-   * Return `true` if the new analysis driver should be used by these tests.
-   *
-   * Remove this after there are no subclasses that override it.
-   */
-  bool get enableNewAnalysisDriver => true;
+  AnalysisDriver get driver => _driver;
 
   Source addMetaPackageSource() => addPackageSource(
       'meta',
@@ -103,16 +82,9 @@ class Required {
     }
     File file = newFile(path, content);
     Source source = file.createSource(uri);
-    if (enableNewAnalysisDriver) {
-      driver.addFile(path);
-      driver.changeFile(path);
-      _fileContentOverlay[path] = content;
-    } else {
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.addedSource(source);
-      context.applyChanges(changeSet);
-      context.setContents(source, content);
-    }
+    driver.addFile(path);
+    driver.changeFile(path);
+    _fileContentOverlay[path] = content;
     return source;
   }
 
@@ -122,31 +94,12 @@ class Required {
   Folder newFolder(String path) =>
       provider.newFolder(provider.convertPath(path));
 
-  /**
-   * Performs all analysis tasks in [context].
-   */
-  void performAllAnalysisTasks() {
-    if (enableNewAnalysisDriver) {
-      return;
-    }
-    while (true) {
-      engine.AnalysisResult result = context.performAnalysisTask();
-      if (!result.hasMoreWork) {
-        break;
-      }
-    }
-  }
-
   void processRequiredPlugins() {
     AnalysisEngine.instance.processRequiredPlugins();
   }
 
   Future<CompilationUnit> resolveLibraryUnit(Source source) async {
-    if (enableNewAnalysisDriver) {
-      return (await driver.getResult(source.fullName))?.unit;
-    } else {
-      return context.resolveCompilationUnit2(source, source);
-    }
+    return (await driver.getResult(source.fullName))?.unit;
   }
 
   void setUp() {
@@ -159,23 +112,18 @@ class Required {
         new PackageMapUriResolver(provider, packageMap);
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), packageResolver, resourceResolver]);
-    if (enableNewAnalysisDriver) {
-      PerformanceLog log = new PerformanceLog(_logBuffer);
-      AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-      _driver = new AnalysisDriver(
-          scheduler,
-          log,
-          provider,
-          new MemoryByteStore(),
-          _fileContentOverlay,
-          null,
-          sourceFactory,
-          new AnalysisOptionsImpl()..strongMode = true);
-      scheduler.start();
-    } else {
-      _context = AnalysisEngine.instance.createAnalysisContext();
-      context.sourceFactory = sourceFactory;
-    }
+    PerformanceLog log = new PerformanceLog(_logBuffer);
+    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+    _driver = new AnalysisDriver(
+        scheduler,
+        log,
+        provider,
+        new MemoryByteStore(),
+        _fileContentOverlay,
+        null,
+        sourceFactory,
+        new AnalysisOptionsImpl()..strongMode = true);
+    scheduler.start();
     AnalysisEngine.instance.logger = PrintLogger.instance;
   }
 
@@ -184,7 +132,6 @@ class Required {
   }
 
   void tearDown() {
-    _context = null;
     provider = null;
     AnalysisEngine.instance.clearCaches();
     AnalysisEngine.instance.logger = null;
