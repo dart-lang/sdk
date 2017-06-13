@@ -4,7 +4,7 @@ server calls. This file is validated by `coverage_test.dart`.
 ## analysis domain
 - [x] analysis.getErrors
 - [x] analysis.getHover
-- [x] analysis.getReachableSources (failing - see #329311)
+- [x] analysis.getReachableSources (failing - see #29311)
 - [x] analysis.getLibraryDependencies (failing - see #29310)
 - [x] analysis.getNavigation (failing - see #28799)
 - [x] analysis.reanalyze

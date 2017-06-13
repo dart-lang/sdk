@@ -24,9 +24,6 @@ main() {
 
 @reflectiveTest
 class RefactoringLocationTest extends AbstractSingleUnitTest {
-  @override
-  bool get enableNewAnalysisDriver => false;
-
   test_createLocation_forElement() async {
     await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
@@ -39,7 +36,9 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     expect(location.startColumn, 7);
   }
 
+  @failingTest
   test_createLocation_forMatch() async {
+    // The class SearchMatchImpl has not been converted to use the new driver.
     await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     SourceRange sourceRange = range.elementName(element);

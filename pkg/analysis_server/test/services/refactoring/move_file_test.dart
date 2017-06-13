@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
@@ -23,10 +24,9 @@ main() {
 class MoveFileTest extends RefactoringTest {
   MoveFileRefactoring refactoring;
 
-  @override
-  bool get enableNewAnalysisDriver => false;
-
+  @failingTest
   test_file_definingUnit() async {
+    fail('The move file refactoring is not supported under the new driver');
     String pathA = '/project/000/1111/a.dart';
     String pathB = '/project/000/1111/b.dart';
     String pathC = '/project/000/1111/22/c.dart';
@@ -64,7 +64,9 @@ part '/absolute/uri.dart';
 ''');
   }
 
+  @failingTest
   test_file_importedLibrary() async {
+    fail('The move file refactoring is not supported under the new driver');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/sub/folder/test.dart';
     addSource(
@@ -85,7 +87,9 @@ import '../new/folder/name/new_name.dart';
     assertNoFileChange(testFile);
   }
 
+  @failingTest
   test_file_importedLibrary_down() async {
+    fail('The move file refactoring is not supported under the new driver');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/test.dart';
     addSource(
@@ -106,7 +110,9 @@ import '22/new_name.dart';
     assertNoFileChange(testFile);
   }
 
+  @failingTest
   test_file_importedLibrary_package() async {
+    fail('The move file refactoring is not supported under the new driver');
     // configure packages
     testFile = '/packages/my_pkg/lib/aaa/test.dart';
     provider.newFile(testFile, '');
@@ -138,7 +144,9 @@ import 'package:my_pkg/bbb/ccc/new_name.dart';
     assertNoFileChange(testFile);
   }
 
+  @failingTest
   test_file_importedLibrary_up() async {
+    fail('The move file refactoring is not supported under the new driver');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(
@@ -159,7 +167,9 @@ import 'new_name.dart';
     assertNoFileChange(testFile);
   }
 
+  @failingTest
   test_file_sourcedUnit() async {
+    fail('The move file refactoring is not supported under the new driver');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(
@@ -184,7 +194,9 @@ part '22/new_name.dart';
     assertNoFileChange(testFile);
   }
 
+  @failingTest
   test_file_sourcedUnit_multipleLibraries() async {
+    fail('The move file refactoring is not supported under the new driver');
     String pathA = '/project/000/1111/a.dart';
     String pathB = '/project/000/b.dart';
     testFile = '/project/000/1111/22/test.dart';
@@ -222,7 +234,9 @@ part '1111/22/new_name.dart';
     assertNoFileChange(testFile);
   }
 
+  @failingTest
   test_project() async {
+    fail('The move file refactoring is not supported under the new driver');
     String pubspecPath = '/testName/pubspec.yaml';
     String appPath = '/testName/bin/myApp.dart';
     provider.newFile(

@@ -42,9 +42,6 @@ class PackageIndexAssemblerTest extends AbstractSingleUnitTest {
   PackageIndex packageIndex;
   UnitIndex unitIndex;
 
-  @override
-  bool get enableNewAnalysisDriver => false;
-
   _ElementIndexAssert assertThat(Element element) {
     List<_Relation> relations = _getElementRelations(element);
     return new _ElementIndexAssert(this, element, relations);
@@ -92,6 +89,7 @@ class A {
   }
 
   test_definedName_classMember_setter() async {
+    verifyNoTestUnitErrors = false;
     await _indexTestUnit('''
 class A {
   int set s (_) {}
@@ -139,6 +137,7 @@ int get g => 0;
   }
 
   test_definedName_topLevel_setter() async {
+    verifyNoTestUnitErrors = false;
     await _indexTestUnit('''
 int set s (_) {}
 ''');
@@ -173,6 +172,7 @@ class M extends Object with A {}
   }
 
   test_hasAncestor_ClassTypeAlias() async {
+    verifyNoTestUnitErrors = false;
     await _indexTestUnit('''
 class A {}
 class B extends A {}
@@ -566,6 +566,7 @@ part 'my_unit.dart';
   }
 
   test_isReferencedBy_ConstructorElement() async {
+    verifyNoTestUnitErrors = false;
     await _indexTestUnit('''
 class A implements B {
   A() {}
@@ -598,6 +599,7 @@ main() {
   }
 
   test_isReferencedBy_ConstructorElement_classTypeAlias() async {
+    verifyNoTestUnitErrors = false;
     await _indexTestUnit('''
 class M {}
 class A implements B {
@@ -625,6 +627,7 @@ main() {
   }
 
   test_isReferencedBy_ConstructorElement_classTypeAlias_cycle() async {
+    verifyNoTestUnitErrors = false;
     await _indexTestUnit('''
 class M {}
 class A = B with M;
@@ -682,6 +685,7 @@ main() {
   }
 
   test_isReferencedBy_DynamicElement() async {
+    verifyNoTestUnitErrors = false;
     await _indexTestUnit('''
 dynamic f() {
 }''');

@@ -25,9 +25,6 @@ main() {
 class IndexTest extends AbstractSingleUnitTest {
   Index index = createMemoryIndex();
 
-  @override
-  bool get enableNewAnalysisDriver => false;
-
   /**
    * Return the [Location] with given properties, or fail.
    */
@@ -168,7 +165,8 @@ class C extends A {} // C
 main(int a, int b) {
 }
 ''');
-    ClassElement intElement = context.typeProvider.intType.element;
+    ClassElement intElement =
+        testUnitElement.context.typeProvider.intType.element;
     List<Location> locations = await index.getRelations(
         intElement, IndexRelationKind.IS_REFERENCED_BY);
     findLocationTest(locations, 'int a', false);
@@ -311,7 +309,7 @@ class A {}
     expect(await index.getDefinedNames(regExp, IndexNameKind.topLevel),
         hasLength(1));
     // remove the context - no top-level declarations
-    index.removeContext(context);
+    index.removeContext(testUnitElement.context);
     expect(
         await index.getDefinedNames(regExp, IndexNameKind.topLevel), isEmpty);
   }
@@ -332,7 +330,7 @@ class A {}
           unorderedEquals([sourceA.uri.toString(), sourceB.uri.toString()]));
     }
     // remove a.dart - no a.dart location
-    index.removeUnit(context, sourceA, sourceA);
+    index.removeUnit(unitA.element.context, sourceA, sourceA);
     {
       List<Location> locations =
           await index.getDefinedNames(regExp, IndexNameKind.topLevel);
