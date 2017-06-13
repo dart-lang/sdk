@@ -295,6 +295,7 @@ regress_26855_test/4: Crash # Issue 26867
 switch_case_warn_test: SKIP # Analyzer only, see language_analyzer2.status
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
+constants_test/01: Crash
 abstract_beats_arguments_test: RuntimeError # Issue 27394
 abstract_runtime_error_test/01: RuntimeError # Issue 27394
 abstract_runtime_error_test/02: RuntimeError # Issue 27394
