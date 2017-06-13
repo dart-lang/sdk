@@ -61,7 +61,6 @@ final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
 final_syntax_test/03: Fail # Issue 11124
-metadata_test: fail # Issue 11545
 get_set_syntax_test/none: fail # Issue 11575
 implicit_this_test/none: fail # Issue 11575
 interface_test/none: fail # Issue 11575
