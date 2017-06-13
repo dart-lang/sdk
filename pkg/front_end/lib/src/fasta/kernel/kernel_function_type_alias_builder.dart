@@ -15,7 +15,6 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
-import '../messages.dart' show warning;
 import 'kernel_builder.dart'
     show
         FormalParameterBuilder,
@@ -58,9 +57,8 @@ class KernelFunctionTypeAliasBuilder
     if (thisType != null) {
       if (thisType == const InvalidType()) {
         thisType = const DynamicType();
-        // TODO(ahe): Build an error somehow.
-        warning(
-            parent.uri, -1, "The typedef '$name' has a reference to itself.");
+        library.addCompileTimeError(
+            charOffset, "The typedef '$name' has a reference to itself.");
       }
       return thisType;
     }
