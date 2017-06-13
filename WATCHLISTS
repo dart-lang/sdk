@@ -41,7 +41,7 @@
         '^runtime/bin/vmservice*|'
         '^runtime/observatory/|'
         '^runtime/vm/service/|'
-        '^runtime/vm/service*|'
+        '^runtime/vm/service*'
       )
     },
     'runtime': {
