@@ -124,6 +124,9 @@ abstract class UnlinkedUnit {
   /// Export directives in the compilation unit.
   List<UnlinkedNamespaceDirective> get exports;
 
+  /// Whether the unit has a mixin application.
+  bool get hasMixinApplication;
+
   /// Import directives in the compilation unit.
   List<UnlinkedNamespaceDirective> get imports;
 
@@ -137,19 +140,26 @@ class UnlinkedUnitBuilder {
   List<UnlinkedNamespaceDirectiveBuilder> _imports;
   List<UnlinkedNamespaceDirectiveBuilder> _exports;
   List<UnlinkedNamespaceDirectiveBuilder> _parts;
+  bool _hasMixinApplication;
 
   UnlinkedUnitBuilder(
       {List<int> apiSignature,
       List<UnlinkedNamespaceDirectiveBuilder> imports,
       List<UnlinkedNamespaceDirectiveBuilder> exports,
-      List<UnlinkedNamespaceDirectiveBuilder> parts})
+      List<UnlinkedNamespaceDirectiveBuilder> parts,
+      bool hasMixinApplication})
       : _apiSignature = apiSignature,
         _imports = imports,
         _exports = exports,
-        _parts = parts;
+        _parts = parts,
+        _hasMixinApplication = hasMixinApplication;
 
   void set exports(List<UnlinkedNamespaceDirectiveBuilder> value) {
     this._exports = value;
+  }
+
+  void set hasMixinApplication(bool value) {
+    this._hasMixinApplication = value;
   }
 
   void set imports(List<UnlinkedNamespaceDirectiveBuilder> value) {
@@ -193,6 +203,9 @@ class UnlinkedUnitBuilder {
     }
     if (offset_parts != null) {
       fbBuilder.addOffset(3, offset_parts);
+    }
+    if (_hasMixinApplication == true) {
+      fbBuilder.addBool(4, _hasMixinApplication);
     }
     return fbBuilder.endTable();
   }
@@ -273,6 +286,7 @@ class _UnlinkedUnitImpl implements UnlinkedUnit {
   List<UnlinkedNamespaceDirective> _imports;
   List<UnlinkedNamespaceDirective> _exports;
   List<UnlinkedNamespaceDirective> _parts;
+  bool _hasMixinApplication;
 
   _UnlinkedUnitImpl(this._bc, this._bcOffset);
 
@@ -289,6 +303,13 @@ class _UnlinkedUnitImpl implements UnlinkedUnit {
             const _UnlinkedNamespaceDirectiveReader())
         .vTableGet(_bc, _bcOffset, 2, const <UnlinkedNamespaceDirective>[]);
     return _exports;
+  }
+
+  @override
+  bool get hasMixinApplication {
+    _hasMixinApplication ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
+    return _hasMixinApplication;
   }
 
   @override

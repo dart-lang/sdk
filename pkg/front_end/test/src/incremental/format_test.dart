@@ -86,21 +86,37 @@ class FormatTest {
       ], parts: [
         new UnlinkedNamespaceDirectiveBuilder(uri: 'p1.dart'),
         new UnlinkedNamespaceDirectiveBuilder(uri: 'p2.dart'),
-      ]).finish(fbBuilder);
+      ], hasMixinApplication: true)
+          .finish(fbBuilder);
       bytes = fbBuilder.finish(offset);
     }
 
-    var directive = new UnlinkedUnit(bytes);
-    expect(directive.apiSignature, [0, 1, 2, 3, 4]);
+    var unit = new UnlinkedUnit(bytes);
+    expect(unit.apiSignature, [0, 1, 2, 3, 4]);
 
-    expect(directive.imports, hasLength(1));
-    expect(directive.imports[0].uri, 'a.dart');
+    expect(unit.imports, hasLength(1));
+    expect(unit.imports[0].uri, 'a.dart');
 
-    expect(directive.exports, hasLength(1));
-    expect(directive.exports[0].uri, 'b.dart');
+    expect(unit.exports, hasLength(1));
+    expect(unit.exports[0].uri, 'b.dart');
 
-    expect(directive.parts, hasLength(2));
-    expect(directive.parts[0].uri, 'p1.dart');
-    expect(directive.parts[1].uri, 'p2.dart');
+    expect(unit.parts, hasLength(2));
+    expect(unit.parts[0].uri, 'p1.dart');
+    expect(unit.parts[1].uri, 'p2.dart');
+
+    expect(unit.hasMixinApplication, isTrue);
+  }
+
+  void test_UnlinkedUnit_hasMixinApplication_false() {
+    Uint8List bytes;
+    {
+      fb.Builder fbBuilder = new fb.Builder();
+      fb.Offset offset =
+          new UnlinkedUnitBuilder(hasMixinApplication: false).finish(fbBuilder);
+      bytes = fbBuilder.finish(offset);
+    }
+
+    var unit = new UnlinkedUnit(bytes);
+    expect(unit.hasMixinApplication, isFalse);
   }
 }
