@@ -10,6 +10,7 @@ import 'package:path/path.dart';
 import 'codegen_dart_protocol.dart' as codegen_dart_protocol;
 import 'codegen_inttest_methods.dart' as codegen_inttest_methods;
 import 'codegen_matchers.dart' as codegen_matchers;
+import 'codegen_protocol_common.dart' as codegen_protocol_common;
 import 'codegen_protocol_constants.dart' as codegen_protocol_constants;
 import 'to_html.dart' as to_html;
 
@@ -27,9 +28,10 @@ main() {
  */
 List<GeneratedContent> get allTargets {
   List<GeneratedContent> targets = <GeneratedContent>[];
-  targets.add(codegen_dart_protocol.target);
+  targets.add(codegen_dart_protocol.target(true));
   targets.add(codegen_inttest_methods.target);
   targets.add(codegen_matchers.target);
+  targets.add(codegen_protocol_common.target(true));
   targets.add(codegen_protocol_constants.target);
   targets.add(to_html.target);
   return targets;

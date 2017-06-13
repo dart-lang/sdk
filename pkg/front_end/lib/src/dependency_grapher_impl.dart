@@ -125,11 +125,11 @@ class _WalkerNode extends Node<_WalkerNode> {
     }
 
     for (var dep in listener.imports) {
-      handleDependency(uri.resolve(dep));
+      handleDependency(uri.resolve(dep.uri));
     }
 
     for (var dep in listener.exports) {
-      handleDependency(uri.resolve(dep));
+      handleDependency(uri.resolve(dep.uri));
     }
 
     if (!coreUriFound) {

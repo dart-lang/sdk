@@ -16,7 +16,7 @@ ArgParser argParser = new ArgParser()
       defaultsTo: '300');
 
 String usage = """
-Usage: class_hierarchy_membench [options] FILE.dart
+Usage: class_hierarchy_membench [options] FILE.dill
 
 Options:
 ${argParser.usage}
@@ -43,10 +43,10 @@ main(List<String> args) {
   ClassHierarchy buildHierarchy() {
     return options['basic']
         ? new BasicClassHierarchy(program)
-        : new ClassHierarchy(program);
+        : new ClosedWorldClassHierarchy(program);
   }
 
-  List<ClassHierarchy> keepAlive = <ClassHierarchy>[];
+  List<ClosedWorldClassHierarchy> keepAlive = <ClosedWorldClassHierarchy>[];
   for (int i = 0; i < copyCount; ++i) {
     keepAlive.add(buildHierarchy());
   }

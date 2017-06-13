@@ -2,5 +2,7 @@ analyzer:
   strong-mode: true
 linter:
   rules:
-    - unnecessary_brace_in_string_interp
     - empty_constructor_bodies
+    - empty_statements
+    - unnecessary_brace_in_string_interp
+    - valid_regexps

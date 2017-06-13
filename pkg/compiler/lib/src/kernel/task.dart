@@ -39,9 +39,12 @@ class KernelTask extends CompilerTask {
   ir.Program buildProgram(LibraryElement library) {
     var main = library.findExported(Identifiers.main);
     if (main == null) {
-      main = _compiler.backend.helperForMissingMain();
+      // TODO(johnniwinther): Issue 29844.
+      // ignore: INVALID_ASSIGNMENT
+      main = _compiler.frontendStrategy.commonElements.missingMain;
     }
-    return new ir.Program(kernel.libraryDependencies(library.canonicalUri))
+    return new ir.Program(
+        libraries: kernel.libraryDependencies(library.canonicalUri))
       ..mainMethod = kernel.functionToIr(main);
   }
 }

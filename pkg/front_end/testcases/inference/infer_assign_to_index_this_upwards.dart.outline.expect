@@ -1,0 +1,84 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class Test1 extends core::Object {
+  constructor •() → void
+    ;
+  abstract operator [](core::String s) → core::int;
+  abstract operator []=(core::String s, core::int v) → void;
+  method test() → void
+    ;
+}
+abstract class Test2 extends core::Object {
+  constructor •() → void
+    ;
+  abstract operator [](core::String s) → core::int;
+  abstract operator []=(core::String s, core::num v) → void;
+  method test() → void
+    ;
+}
+abstract class Test3 extends core::Object {
+  constructor •() → void
+    ;
+  abstract operator [](core::String s) → core::int;
+  abstract operator []=(core::String s, core::double v) → void;
+  method test() → void
+    ;
+}
+abstract class Test4 extends core::Object {
+  constructor •() → void
+    ;
+  abstract operator [](core::String s) → core::num;
+  abstract operator []=(core::String s, core::int v) → void;
+  method test() → void
+    ;
+}
+abstract class Test5 extends core::Object {
+  constructor •() → void
+    ;
+  abstract operator [](core::String s) → core::num;
+  abstract operator []=(core::String s, core::num v) → void;
+  method test() → void
+    ;
+}
+abstract class Test6 extends core::Object {
+  constructor •() → void
+    ;
+  abstract operator [](core::String s) → core::num;
+  abstract operator []=(core::String s, core::double v) → void;
+  method test() → void
+    ;
+}
+abstract class Test7 extends core::Object {
+  constructor •() → void
+    ;
+  abstract operator [](core::String s) → core::double;
+  abstract operator []=(core::String s, core::int v) → void;
+  method test() → void
+    ;
+}
+abstract class Test8 extends core::Object {
+  constructor •() → void
+    ;
+  abstract operator [](core::String s) → core::double;
+  abstract operator []=(core::String s, core::num v) → void;
+  method test() → void
+    ;
+}
+abstract class Test9 extends core::Object {
+  constructor •() → void
+    ;
+  abstract operator [](core::String s) → core::double;
+  abstract operator []=(core::String s, core::double v) → void;
+  method test() → void
+    ;
+}
+static method getInt() → core::int
+  ;
+static method getNum() → core::num
+  ;
+static method getDouble() → core::double
+  ;
+static method main() → dynamic
+  ;

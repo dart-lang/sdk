@@ -14,9 +14,6 @@ sample_extension: Skip
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $cps_ir && $checked ]
-sample_extension: Crash # Unable to compile UnsupportedError.message.
-
 [ $compiler == dart2analyzer ]
 build_dart: Skip
 

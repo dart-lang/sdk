@@ -201,7 +201,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     passThrough(argument);
   }
 
-  String getDepsOutput(Map<Uri, SourceFile> sourceFiles) {
+  String getDepsOutput(Map<Uri, api.Input> sourceFiles) {
     var filenames = sourceFiles.keys.map((uri) => '$uri').toList();
     filenames.sort();
     return filenames.join("\n");
@@ -1037,12 +1037,13 @@ class _CompilerInput implements api.CompilerInput {
   _CompilerInput(this._input, this._data);
 
   @override
-  Future readFromUri(Uri uri) {
+  Future<api.Input> readFromUri(Uri uri,
+      {api.InputKind inputKind: api.InputKind.utf8}) {
     String data = _data[uri];
     if (data != null) {
-      return new Future.value(data);
+      return new Future.value(new StringSourceFile.fromUri(uri, data));
     }
-    return _input.readFromUri(uri);
+    return _input.readFromUri(uri, inputKind: inputKind);
   }
 }
 

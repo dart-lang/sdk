@@ -40,7 +40,7 @@ public class RefactoringProblemSeverity {
    * name of a local variable being extracted conflicts with another name in the scope, or duplicate
    * parameter names in the method being extracted, or a conflict between a parameter name and a
    * local variable, etc. In some cases the location of the problem is also provided, so the IDE can
-   * show user the location and the problem, and let the user decide whether she wants to perform the
+   * show user the location and the problem, and let the user decide whether they want to perform the
    * refactoring. For example the name conflict might be expected, and the user wants to fix it
    * afterwards.
    */

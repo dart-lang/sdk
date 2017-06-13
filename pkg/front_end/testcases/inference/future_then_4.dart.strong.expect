@@ -1,0 +1,34 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class MyFuture<T extends core::Object> extends core::Object implements asy::Future<self::MyFuture::T> {
+  constructor •() → void
+    : super core::Object::•() {}
+  constructor value(self::MyFuture::T x) → void
+    : super core::Object::•() {}
+  abstract method noSuchMethod(dynamic invocation) → dynamic;
+  method then<S extends core::Object>((self::MyFuture::T) → asy::FutureOr<self::MyFuture::then::S> f, {core::Function onError = null}) → self::MyFuture<self::MyFuture::then::S>
+    return null;
+}
+static method test() → void {
+  self::MyFuture<dynamic> f;
+  self::MyFuture<core::int> t1 = f.{self::MyFuture::then}<core::int>((dynamic _) → asy::Future<core::int> async => await new self::MyFuture::value<core::int>(3));
+  self::MyFuture<core::int> t2 = f.{self::MyFuture::then}<core::int>((dynamic _) → asy::Future<core::int> async {
+    return await new self::MyFuture::value<core::int>(3);
+  });
+  self::MyFuture<core::int> t3 = f.{self::MyFuture::then}<core::int>((dynamic _) → asy::Future<core::int> async => 3);
+  self::MyFuture<core::int> t4 = f.{self::MyFuture::then}<core::int>((dynamic _) → asy::Future<core::int> async {
+    return 3;
+  });
+  self::MyFuture<core::int> t5 = f.{self::MyFuture::then}<core::int>((dynamic _) → self::MyFuture<core::int> => new self::MyFuture::value<core::int>(3));
+  self::MyFuture<core::int> t6 = f.{self::MyFuture::then}<core::int>((dynamic _) → self::MyFuture<core::int> {
+    return new self::MyFuture::value<core::int>(3);
+  });
+  self::MyFuture<core::int> t7 = f.{self::MyFuture::then}<core::int>((dynamic _) → asy::Future<core::int> async => new self::MyFuture::value<core::int>(3));
+  self::MyFuture<core::int> t8 = f.{self::MyFuture::then}<core::int>((dynamic _) → asy::Future<core::int> async {
+    return new self::MyFuture::value<core::int>(3);
+  });
+}
+static method main() → dynamic {}

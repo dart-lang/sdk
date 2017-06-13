@@ -212,8 +212,8 @@ class CheckedModeHelpers {
       return typeCast ? 'functionTypeCast' : 'functionTypeCheck';
     }
 
-    assert(invariant(NO_LOCATION_SPANNABLE, type.isInterfaceType,
-        message: "Unexpected type: $type"));
+    assert(type.isInterfaceType,
+        failedAt(NO_LOCATION_SPANNABLE, "Unexpected type: $type"));
     InterfaceType interfaceType = type;
     ClassEntity element = interfaceType.element;
     bool nativeCheck = true;

@@ -58,10 +58,13 @@ class IDLNode(object):
   etc.
   """
 
-  def __init__(self, ast):
+  def __init__(self, ast, id=None):
     """Initializes an IDLNode from a PegParser AST output."""
-    self.id = self._find_first(ast, 'Id') if ast is not None else None
-
+    if ast:
+      self.id = self._find_first(ast, 'Id') if ast is not None else None
+    else:
+      # Support synthesized IDLNode created w/o an AST (e.g., setlike support).
+      self.id = id
 
   def __repr__(self):
     """Generates string of the form <class id extra extra ... 0x12345678>."""
@@ -570,90 +573,95 @@ class IDLExtAttrFunctionValue(IDLNode):
 class IDLType(IDLNode):
   """IDLType is used to describe constants, attributes and operations'
   return and input types. IDLType matches AST labels such as ScopedName,
-  StringType, VoidType, IntegerType, etc."""
+  StringType, VoidType, IntegerType, etc.
+  NOTE: AST of None implies synthesize IDLType the id is passed in used by
+        setlike."""
 
-  def __init__(self, ast):
+  def __init__(self, ast, id=None):
     global _unions_to_any
 
-    IDLNode.__init__(self, ast)
+    IDLNode.__init__(self, ast, id)
 
-    if ast:
-      self.nullable = self._has(ast, 'Nullable')
-      # Search for a 'ScopedName' or any label ending with 'Type'.
-      if isinstance(ast, list):
-        self.id = self._find_first(ast, 'ScopedName')
-        if not self.id:
-          # FIXME: use regexp search instead
-          def findType(ast):
-            for label, childAst in ast:
-              if label.endswith('Type'):
-                type = self._label_to_type(label, ast)
-                if type != 'sequence':
-                  return type
-                type_ast = self._find_first(childAst, 'Type')
-                if not type_ast:
-                  return type
-                return 'sequence<%s>' % findType(type_ast)
-            raise Exception('No type declaration found in %s' % ast)
-          self.id = findType(ast)
-        # TODO(terry): Remove array_modifiers id has [] appended, keep for old
-        #              parsing.
-        array_modifiers = self._find_first(ast, 'ArrayModifiers')
-        if array_modifiers:
-          self.id += array_modifiers
-      elif isinstance(ast, tuple):
-        (label, value) = ast
-        if label == 'ScopedName':
-          self.id = value
-        else:
-          self.id = self._label_to_type(label, ast)
-      elif isinstance(ast, str):
-        self.id = ast
-      # New blink handling.
-      elif ast.__module__ == "idl_types":
-        if isinstance(ast, IdlType) or isinstance(ast, IdlArrayOrSequenceType) or \
-           isinstance(ast, IdlNullableType):
-          if isinstance(ast, IdlNullableType) and ast.inner_type.is_union_type:
-            # Report of union types mapped to any.
-            if not(self.id in _unions_to_any):
-              _unions_to_any.append(self.id)
-            # TODO(terry): For union types use any otherwise type is unionType is
-            #              not found and is removed during merging.
-            self.id = 'any'
-          else:
-            type_name = str(ast)
-            # TODO(terry): For now don't handle unrestricted types see
-            #              https://code.google.com/p/chromium/issues/detail?id=354298
-            type_name = type_name.replace('unrestricted ', '', 1);
-  
-            # TODO(terry): Handled USVString as a DOMString.
-            type_name = type_name.replace('USVString', 'DOMString', 1)
-  
-            # TODO(terry); WindowTimers setInterval/setTimeout overloads with a
-            #              Function type - map to any until the IDL uses union.
-            type_name = type_name.replace('Function', 'any', 1)
-  
-            self.id = type_name
-        else:
-          # IdlUnionType
-          if ast.is_union_type:
-            if not(self.id in _unions_to_any):
-              _unions_to_any.append(self.id)
-            # TODO(terry): For union types use any otherwise type is unionType is
-            #              not found and is removed during merging.
-            self.id = 'any'
-            # TODO(terry): Any union type e.g. 'type1 or type2 or type2',
-            #                            'typedef (Type1 or Type2) UnionType'
-            # Is a problem we need to extend IDLType and IDLTypeDef to handle more
-            # than one type.
-            #
-            # Also for typedef's e.g.,
-            #                 typedef (Type1 or Type2) UnionType
-            # should consider synthesizing a new interface (e.g., UnionType) that's
-            # both Type1 and Type2.
+    if not ast:
+      # Support synthesized IDLType with no AST (e.g., setlike support).
+      return
+
+    self.nullable = self._has(ast, 'Nullable')
+    # Search for a 'ScopedName' or any label ending with 'Type'.
+    if isinstance(ast, list):
+      self.id = self._find_first(ast, 'ScopedName')
       if not self.id:
-        print '>>>> __module__ %s' % ast.__module__
-        raise SyntaxError('Could not parse type %s' % (ast))
+        # FIXME: use regexp search instead
+        def findType(ast):
+          for label, childAst in ast:
+            if label.endswith('Type'):
+              type = self._label_to_type(label, ast)
+              if type != 'sequence':
+                return type
+              type_ast = self._find_first(childAst, 'Type')
+              if not type_ast:
+                return type
+              return 'sequence<%s>' % findType(type_ast)
+          raise Exception('No type declaration found in %s' % ast)
+        self.id = findType(ast)
+      # TODO(terry): Remove array_modifiers id has [] appended, keep for old
+      #              parsing.
+      array_modifiers = self._find_first(ast, 'ArrayModifiers')
+      if array_modifiers:
+        self.id += array_modifiers
+    elif isinstance(ast, tuple):
+      (label, value) = ast
+      if label == 'ScopedName':
+        self.id = value
+      else:
+        self.id = self._label_to_type(label, ast)
+    elif isinstance(ast, str):
+      self.id = ast
+    # New blink handling.
+    elif ast.__module__ == "idl_types":
+      if isinstance(ast, IdlType) or isinstance(ast, IdlArrayOrSequenceType) or \
+         isinstance(ast, IdlNullableType):
+        if isinstance(ast, IdlNullableType) and ast.inner_type.is_union_type:
+          # Report of union types mapped to any.
+          if not(self.id in _unions_to_any):
+            _unions_to_any.append(self.id)
+          # TODO(terry): For union types use any otherwise type is unionType is
+          #              not found and is removed during merging.
+          self.id = 'any'
+        else:
+          type_name = str(ast)
+          # TODO(terry): For now don't handle unrestricted types see
+          #              https://code.google.com/p/chromium/issues/detail?id=354298
+          type_name = type_name.replace('unrestricted ', '', 1);
+
+          # TODO(terry): Handled USVString as a DOMString.
+          type_name = type_name.replace('USVString', 'DOMString', 1)
+
+          # TODO(terry); WindowTimers setInterval/setTimeout overloads with a
+          #              Function type - map to any until the IDL uses union.
+          type_name = type_name.replace('Function', 'any', 1)
+
+          self.id = type_name
+      else:
+        # IdlUnionType
+        if ast.is_union_type:
+          if not(self.id in _unions_to_any):
+            _unions_to_any.append(self.id)
+          # TODO(terry): For union types use any otherwise type is unionType is
+          #              not found and is removed during merging.
+          self.id = 'any'
+          # TODO(terry): Any union type e.g. 'type1 or type2 or type2',
+          #                            'typedef (Type1 or Type2) UnionType'
+          # Is a problem we need to extend IDLType and IDLTypeDef to handle more
+          # than one type.
+          #
+          # Also for typedef's e.g.,
+          #                 typedef (Type1 or Type2) UnionType
+          # should consider synthesizing a new interface (e.g., UnionType) that's
+          # both Type1 and Type2.
+    if not self.id:
+      print '>>>> __module__ %s' % ast.__module__
+      raise SyntaxError('Could not parse type %s' % (ast))
 
   def _label_to_type(self, label, ast):
     if label == 'LongLongType':
@@ -717,6 +725,72 @@ class IDLDictionaryMembers(IDLDictNode):
       value = IDLDictionaryMember(member, js_name)
       self[name] = value
 
+def generate_operation(interface_name, result_type_name, oper_name, arguments):
+  """ Synthesize an IDLOperation with no AST used for support of setlike."""
+  """ Arguments is a list of argument where each argument is:
+          [IDLType, argument_name, optional_boolean] """
+
+  syn_op = IDLOperation(None, interface_name, oper_name)
+
+  syn_op.type = IDLType(None, result_type_name)
+  syn_op.type = resolveTypedef(syn_op.type)
+
+  for argument in arguments:
+    arg = IDLArgument(None, argument[1]);
+    arg.type = argument[0];
+    arg.optional = argument[2] if len(argument) > 2 else False
+    syn_op.arguments.append(arg)
+
+  return syn_op
+
+def generate_setLike_operations_properties(interface, set_like):
+  """
+  Need to create (in our database) a number of operations.  This is a new IDL
+  syntax, the implied operations for a set now use setlike<T> where T is a known
+  type e.g., setlike<FontFace> setlike implies these operations are generated:
+
+       void forEach(any callback, optional any thisArg);
+       boolean has(FontFace fontFace);
+       boolean has(FontFace fontFace);
+  
+  if setlike is not read-only these operations are generated:
+
+           FontFaceSet add(FontFace value);
+           boolean delete(FontFace value);
+           void clear();
+  """
+  setlike_ops = []
+  """
+  Need to create a typedef for a function callback e.g.,
+  a setlike will need a callback that has the proper args in FontFaceSet that is
+  three arguments, etc.
+  
+      typedef void FontFaceSetForEachCallback(
+        FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
+    
+      void forEach(FontFaceSetForEachCallback callback, [Object thisArg]);
+  """
+  callback_name = '%sForEachCallback' % interface.id
+  set_op = generate_operation(interface.id, 'void', 'forEach',
+                              [[IDLType(None, callback_name), 'callback'],
+                               [IDLType(None, 'any'), 'thisArg', True]])
+  setlike_ops.append(set_op)
+
+  set_op = generate_operation(interface.id, 'boolean', 'has',
+                              [[IDLType(None, set_like.value_type.base_type), 'arg']])
+  setlike_ops.append(set_op)
+
+  if not set_like.is_read_only:
+    set_op = generate_operation(interface.id, interface.id, 'add',
+                                [[IDLType(None, set_like.value_type.base_type), 'arg']])
+    setlike_ops.append(set_op)
+    set_op = generate_operation(interface.id, 'boolean', 'delete',
+                                [[IDLType(None, set_like.value_type.base_type), 'arg']])
+    setlike_ops.append(set_op)
+    set_op = generate_operation(interface.id, 'void', 'clear', [])
+    setlike_ops.append(set_op)
+
+  return setlike_ops
 
 class IDLInterface(IDLNode):
   """IDLInterface node contains operations, attributes, constants,
@@ -742,6 +816,12 @@ class IDLInterface(IDLNode):
 
     self.operations = self._convert_all(ast, 'Operation',
       lambda ast: IDLOperation(ast, self.doc_js_name))
+
+    if ast.setlike:
+      setlike_ops = generate_setLike_operations_properties(self, ast.setlike)
+      for op in setlike_ops:
+        self.operations.append(op)
+
     self.attributes = self._convert_all(ast, 'Attribute',
       lambda ast: IDLAttribute(ast, self.doc_js_name))
     self.constants = self._convert_all(ast, 'Const',
@@ -751,7 +831,6 @@ class IDLInterface(IDLNode):
     # TODO(terry): Can eliminate Suppressed when we're only using blink parser.
     self.is_fc_suppressed = 'Suppressed' in self.ext_attrs or \
                             'DartSuppress' in self.ext_attrs
-
 
   def reset_id(self, new_id):
     """Reset the id of the Interface and corresponding the JS names."""
@@ -785,9 +864,16 @@ class IDLParentInterface(IDLNode):
 
 class IDLMember(IDLNode):
   """A base class for constants, attributes and operations."""
-
-  def __init__(self, ast, doc_js_interface_name):
-    IDLNode.__init__(self, ast)
+  def __init__(self, ast, doc_js_interface_name, member_id=None):
+    if ast:
+      IDLNode.__init__(self, ast)
+    else:
+      # The ast is None to support synthesizing an IDLMember, member_id is only
+      # used when ast is None.
+      IDLNode.__init__(self, ast, member_id)
+      self.type = None
+      self.doc_js_interface_name = doc_js_interface_name
+      return
 
     self.type = self._convert_first(ast, 'Type', IDLType)
     self.type = resolveTypedef(self.type)
@@ -802,8 +888,18 @@ class IDLMember(IDLNode):
 
 class IDLOperation(IDLMember):
   """IDLNode specialization for 'type name(args)' declarations."""
-  def __init__(self, ast, doc_js_interface_name):
-    IDLMember.__init__(self, ast, doc_js_interface_name)
+  def __init__(self, ast, doc_js_interface_name, id=None):
+    IDLMember.__init__(self, ast, doc_js_interface_name, id)
+
+    if not ast:
+      # Synthesize an IDLOperation with no ast used for setlike.
+      self.ext_attrs = IDLExtAttrs()
+      self.annotations = IDLAnnotations()
+      self.is_fc_suppressed = False
+      self.specials = []
+      self.is_static = False
+      self.arguments = []
+      return;
 
     self.type = self._convert_first(ast, 'ReturnType', IDLType)
     self.type = resolveTypedef(self.type)
@@ -837,6 +933,9 @@ class IDLOperation(IDLMember):
         operation_category = 'Named' if arg.type.id == 'DOMString' else 'Indexed'
         self.ext_attrs.setdefault('ImplementedAs', 'anonymous%s%s' % (operation_category, _operation_suffix_map[self.id]))
 
+  def __repr__(self):
+    return '<IDLOperation(id = %s)>' % (self.id)
+
   def _extra_repr(self):
     return [self.arguments]
 
@@ -867,8 +966,16 @@ class IDLConstant(IDLMember):
 
 class IDLArgument(IDLNode):
   """IDLNode specialization for operation arguments."""
-  def __init__(self, ast):
-    IDLNode.__init__(self, ast)
+  def __init__(self, ast, id=None):
+    if ast:
+      IDLNode.__init__(self, ast)
+    else:
+      # Synthesize an IDLArgument with no ast used for setlike.
+      IDLNode.__init__(self, ast, id)
+      self.ext_attrs = IDLExtAttrs()
+      self.default_value = None
+      self.default_value_is_null = False
+      return
 
     self.default_value = None
     self.default_value_is_null = False

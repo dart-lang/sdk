@@ -1362,7 +1362,8 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     Register reg,
     const Object& obj,
     bool needs_number_check,
-    TokenPosition token_pos) {
+    TokenPosition token_pos,
+    intptr_t deopt_id) {
   __ Comment("EqualityRegConstCompare");
   ASSERT(!needs_number_check ||
          (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()));
@@ -1379,10 +1380,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
       __ BranchLinkPatchable(
           *StubCode::UnoptimizedIdenticalWithNumberCheck_entry());
     }
-    if (token_pos.IsReal()) {
-      AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, Thread::kNoDeoptId,
-                           token_pos);
-    }
+    AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, deopt_id, token_pos);
     __ Comment("EqualityRegConstCompare return");
     // Stub returns result in CMPRES1 (if it is 0, then reg and obj are equal).
     __ lw(reg, Address(SP, 1 * kWordSize));      // Restore 'reg'.
@@ -1396,11 +1394,11 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
 }
 
 
-Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
-    Register left,
-    Register right,
-    bool needs_number_check,
-    TokenPosition token_pos) {
+Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
+                                                       Register right,
+                                                       bool needs_number_check,
+                                                       TokenPosition token_pos,
+                                                       intptr_t deopt_id) {
   __ Comment("EqualityRegRegCompare");
   if (needs_number_check) {
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
@@ -1554,18 +1552,17 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid() {
 
 
 int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
-                                               const CidRangeTarget& target,
+                                               const CidRange& range,
                                                int bias) {
-  intptr_t cid_start = target.cid_start;
-  intptr_t cid_end = target.cid_end;
-  if (cid_start == cid_end) {
+  intptr_t cid_start = range.cid_start;
+  if (range.IsSingleCid()) {
     __ BranchNotEqual(T2, Immediate(cid_start - bias), next_label);
   } else {
     __ AddImmediate(T2, T2, bias - cid_start);
     bias = cid_start;
     // TODO(erikcorry): We should use sltiu instead of the temporary TMP if
     // the range is small enough.
-    __ LoadImmediate(TMP, cid_end - cid_end);
+    __ LoadImmediate(TMP, range.Extent());
     // Reverse comparison so we get 1 if biased cid > tmp ie cid is out of
     // range.
     __ sltu(TMP, TMP, T2);

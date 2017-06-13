@@ -100,7 +100,7 @@ class ObjectGraph : public StackResource {
 
   // Write the isolate's object graph to 'stream'. Smis and nulls are omitted.
   // Returns the number of nodes in the stream, including the root.
-  // If collect_garabage is false, the graph will include weakly-reachable
+  // If collect_garbage is false, the graph will include weakly-reachable
   // objects.
   // TODO(koda): Document format; support streaming/chunking.
   intptr_t Serialize(WriteStream* stream,

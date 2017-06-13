@@ -3005,7 +3005,8 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * Information about analysis `//ignore:` comments within a source file.
+ * Information about analysis `//ignore:` and `//ignore_for_file` comments
+ * within a source file.
  */
 class IgnoreInfo {
   /**
@@ -3024,12 +3025,30 @@ class IgnoreInfo {
   static final RegExp _IGNORE_MATCHER =
       new RegExp(r'//[ ]*ignore:(.*)$', multiLine: true);
 
+  /**
+   * A regular expression for matching 'ignore_for_file' comments.  Produces
+   * matches containing 2 groups.  For example:
+   *
+   *     * ['//ignore_for_file: error_code', 'error_code']
+   *
+   * Resulting codes may be in a list ('error_code_1,error_code2').
+   */
+  static final RegExp _IGNORE_FOR_FILE_MATCHER =
+      new RegExp(r'//[ ]*ignore_for_file:(.*)$', multiLine: true);
+
   final Map<int, List<String>> _ignoreMap = new HashMap<int, List<String>>();
+
+  final Set<String> _ignoreForFileSet = new HashSet<String>();
 
   /**
    * Whether this info object defines any ignores.
    */
-  bool get hasIgnores => ignores.isNotEmpty;
+  bool get hasIgnores => ignores.isNotEmpty || _ignoreForFileSet.isNotEmpty;
+
+  /**
+   * Iterable of error codes ignored for the whole file.
+   */
+  Iterable<String> get ignoreForFiles => _ignoreForFileSet;
 
   /**
    * Map of line numbers to associated ignored error codes.
@@ -3051,9 +3070,17 @@ class IgnoreInfo {
   }
 
   /**
+   * Ignore these [errorCodes] in the whole file.
+   */
+  void addAllForFile(Iterable<String> errorCodes) {
+    _ignoreForFileSet.addAll(errorCodes);
+  }
+
+  /**
    * Test whether this [errorCode] is ignored at the given [line].
    */
   bool ignoredAt(String errorCode, int line) =>
+      _ignoreForFileSet.contains(errorCode) ||
       _ignoreMap[line]?.contains(errorCode) == true;
 
   /**
@@ -3061,7 +3088,8 @@ class IgnoreInfo {
    */
   static IgnoreInfo calculateIgnores(String content, LineInfo info) {
     Iterable<Match> matches = _IGNORE_MATCHER.allMatches(content);
-    if (matches.isEmpty) {
+    Iterable<Match> fileMatches = _IGNORE_FOR_FILE_MATCHER.allMatches(content);
+    if (matches.isEmpty && fileMatches.isEmpty) {
       return _EMPTY_INFO;
     }
 
@@ -3073,6 +3101,13 @@ class IgnoreInfo {
           .split(',')
           .map((String code) => code.trim().toLowerCase());
       ignoreInfo.addAll(info.getLocation(match.start).lineNumber, codes);
+    }
+    for (Match match in fileMatches) {
+      Iterable<String> codes = match
+          .group(1)
+          .split(',')
+          .map((String code) => code.trim().toLowerCase());
+      ignoreInfo.addAllForFile(codes);
     }
     return ignoreInfo;
   }

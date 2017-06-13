@@ -22,9 +22,9 @@ namespace dart {
 
 bool StackFrame::IsStubFrame() const {
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
-#if !defined(HOST_OS_WINDOWS)
-  // On Windows, the profiler calls this from a separate thread where
-  // Thread::Current() is NULL, so we cannot create a NoSafepointScope.
+#if !defined(HOST_OS_WINDOWS) && !defined(HOST_OS_FUCHSIA)
+  // On Windows and Fuchsia, the profiler calls this from a separate thread
+  // where Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
 #endif
   RawCode* code = GetCodeObject();
@@ -218,9 +218,9 @@ RawCode* StackFrame::LookupDartCode() const {
 // We add a no gc scope to ensure that the code below does not trigger
 // a GC as we are handling raw object references here. It is possible
 // that the code is called while a GC is in progress, that is ok.
-#if !defined(HOST_OS_WINDOWS)
-  // On Windows, the profiler calls this from a separate thread where
-  // Thread::Current() is NULL, so we cannot create a NoSafepointScope.
+#if !defined(HOST_OS_WINDOWS) && !defined(HOST_OS_FUCHSIA)
+  // On Windows and Fuchsia, the profiler calls this from a separate thread
+  // where Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
 #endif
   RawCode* code = GetCodeObject();

@@ -6,15 +6,16 @@
 library test;
 
 class C {
-  T m<T>(T x) => /*@promotedType=none*/ x;
+  T m<T>(T x) => x;
 }
 
 class D extends C {
-/*error:INVALID_METHOD_OVERRIDE*/ m(x) => /*@promotedType=none*/ x;
+/*error:INVALID_METHOD_OVERRIDE*/ m(x) => x;
 }
 
 main() {
   int y = /*info:DYNAMIC_CAST*/ new D()
-      . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ m<int>(42);
-  print(/*@promotedType=none*/ y);
+      . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D::m*/ m<int>(
+          42);
+  print(y);
 }

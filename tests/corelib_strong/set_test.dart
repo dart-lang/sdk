@@ -269,7 +269,9 @@ void testTypeAnnotations(Set<int> set) {
   testLength(1, set);
 }
 
-void testRetainWhere(Set create([equals, hashCode, validKey, compare])) {
+void testRetainWhere(
+    Set<CE> create(
+        [CEEq equals, CEHash hashCode, ValidKey validKey, CECompare compare])) {
   // The retainWhere method must not collapse the argument Iterable
   // in a way that doesn't match the equality of the set.
   // It must not throw away equal elements that are different in the
@@ -280,7 +282,7 @@ void testRetainWhere(Set create([equals, hashCode, validKey, compare])) {
   // If set equality is natural equality, using different but equal objects
   // must work. Can't use an identity set internally (as was done at some point
   // during development).
-  Set set = create();
+  var set = create();
   set.addAll([new CE(0), new CE(1), new CE(2)]);
   Expect.equals(3, set.length); // All different.
   set.retainAll([new CE(0), new CE(2)]);
@@ -365,15 +367,18 @@ class CE implements Comparable<CE> {
   final int id;
   const CE(this.id);
   int get hashCode => id;
-  bool operator ==(Object other) => other is CE && id == (other as CE).id;
+  bool operator ==(Object other) => other is CE && id == other.id;
   int compareTo(CE other) => id - other.id;
   String toString() => "CE($id)";
 }
 
 typedef int CECompare(CE e1, CE e2);
+typedef int CEHash(CE e1);
+typedef bool CEEq(CE e1, CE e2);
+typedef bool ValidKey(Object o);
 // Equality of Id objects based on id modulo value.
-Function customEq(int mod) => (CE e1, CE e2) => ((e1.id - e2.id) % mod) == 0;
-Function customHash(int mod) => (CE e) => e.id % mod;
+CEEq customEq(int mod) => (CE e1, CE e2) => ((e1.id - e2.id) % mod) == 0;
+CEHash customHash(int mod) => (CE e) => e.id % mod;
 CECompare customCompare(int mod) =>
     (CE e1, CE e2) => (e1.id % mod) - (e2.id % mod);
 bool validKey(Object o) => o is CE;

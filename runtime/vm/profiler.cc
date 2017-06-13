@@ -451,8 +451,9 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
         stack_lower_(stack_lower),
         has_exit_frame_(exited_dart_code) {
     if (exited_dart_code) {
-// On windows the profiler does not run on the thread being profiled.
-#if defined(_WIN32)
+// On Windows and Fuchsia the profiler does not run on the thread being
+// profiled.
+#if defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
       const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
           StackFrameIterator::kAllowCrossThreadIteration;
 #else

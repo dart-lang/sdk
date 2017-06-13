@@ -136,7 +136,7 @@ class SubSequenceReader extends CharSequenceReader {
   }
 
   @override
-  String getContents() => super.getContents().substring(_offsetDelta);
+  String getContents() => super.getContents();
 
   @override
   String getString(int start, int endDelta) =>

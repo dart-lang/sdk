@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/errors.dart';
-import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/scanner/token.dart' show BeginToken, Token;
 
 /// Provides the capability of inserting tokens into a token stream by rewriting
 /// the previous token to point to the inserted token.
@@ -26,8 +26,7 @@ class TokenStreamRewriter {
   /// Creates a [TokenStreamRewriter] which is prepared to rewrite the token
   /// stream whose first token is [firstToken].
   TokenStreamRewriter(Token firstToken)
-      : _head =
-            firstToken.previous ?? (new SymbolToken.eof(-1)..next = firstToken);
+      : _head = firstToken.previous ?? (new Token.eof(-1)..next = firstToken);
 
   /// Gets the first token in the stream (which may not be the same token that
   /// was passed to the constructor, if something was inserted before it).
@@ -88,7 +87,7 @@ class TokenStreamRewriter {
   Token _scanForPreviousToken(Token target, Token pos) {
     while (!identical(pos.next, target)) {
       Token nextPos;
-      if (pos is BeginGroupToken &&
+      if (pos is BeginToken &&
           pos.endGroup != null &&
           pos.endGroup.charOffset < target.charOffset) {
         nextPos = pos.endGroup;

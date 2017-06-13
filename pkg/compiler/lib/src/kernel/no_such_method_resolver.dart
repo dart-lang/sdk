@@ -65,27 +65,6 @@ class KernelNoSuchMethodResolver implements NoSuchMethodResolver {
 
   @override
   FunctionEntity getSuperNoSuchMethod(FunctionEntity method) {
-    ClassEntity cls = method.enclosingClass;
-    while (cls != null) {
-      cls = _elementEnvironment.getSuperClass(cls);
-      MemberEntity member =
-          _elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
-      if (member != null) {
-        if (member.isFunction) {
-          FunctionEntity function = member;
-          if (function.parameterStructure.positionalParameters >= 1) {
-            return function;
-          }
-        }
-        // If [member] is not a valid `noSuchMethod` the target is
-        // `Object.superNoSuchMethod`.
-        break;
-      }
-    }
-    FunctionEntity function = _elementEnvironment.lookupClassMember(
-        _commonElements.objectClass, Identifiers.noSuchMethod_);
-    assert(invariant(method, function != null,
-        message: "No super noSuchMethod found for $method."));
-    return function;
+    return elementMap.getSuperNoSuchMethod(method.enclosingClass);
   }
 }

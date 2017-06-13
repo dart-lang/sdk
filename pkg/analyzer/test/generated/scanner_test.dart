@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/src/scanner/scanner.dart' as fe;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -79,10 +80,10 @@ class CharacterRangeReaderTest extends EngineTestCase {
 @reflectiveTest
 class LineInfoTest extends EngineTestCase {
   void test_lineInfo_multilineComment() {
-    String source = "/*\r *\r */";
+    String source = "/*\r\n *\r\n */";
     _assertLineInfo(source, [
       new ScannerTest_ExpectedLocation(0, 1, 1),
-      new ScannerTest_ExpectedLocation(4, 2, 2),
+      new ScannerTest_ExpectedLocation(5, 2, 2),
       new ScannerTest_ExpectedLocation(source.length - 1, 3, 3)
     ]);
   }
@@ -121,6 +122,18 @@ class LineInfoTest extends EngineTestCase {
       new ScannerTest_ExpectedLocation(0, 1, 1),
       new ScannerTest_ExpectedLocation(source.indexOf("}"), 2, 1)
     ]);
+  }
+
+  void test_linestarts() {
+    String source = "var\r\ni\n=\n1;\n";
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner =
+        new Scanner(null, new CharSequenceReader(source), listener);
+    var token = scanner.tokenize();
+    expect(token.lexeme, 'var');
+    var lineStarts = scanner.lineStarts;
+    expect(
+        lineStarts, orderedEquals([0, 5, 7, 9, fe.Scanner.useFasta ? 12 : 11]));
   }
 
   void _assertLineInfo(

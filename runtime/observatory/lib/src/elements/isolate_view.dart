@@ -364,7 +364,6 @@ class IsolateViewElement extends HtmlElement implements Renderable {
   }
 
   DivElement _populateThreadInfo(M.Thread t) {
-    int index = 0;
     return new DivElement()
       ..classes = ['indent']
       ..children = [

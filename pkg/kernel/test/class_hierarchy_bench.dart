@@ -18,7 +18,7 @@ ArgParser argParser = new ArgParser()
       defaultsTo: '1');
 
 String usage = '''
-Usage: class_hierarchy_bench [options] FILE.dart
+Usage: class_hierarchy_bench [options] FILE.dill
 
 Options:
 ${argParser.usage}
@@ -41,7 +41,7 @@ main(List<String> args) {
   ClassHierarchy buildHierarchy() {
     return options['basic']
         ? new BasicClassHierarchy(program)
-        : new ClassHierarchy(program);
+        : new ClosedWorldClassHierarchy(program);
   }
 
   var watch = new Stopwatch()..start();
@@ -55,13 +55,13 @@ main(List<String> args) {
   int hotBuildTime = watch.elapsedMilliseconds ~/ numBuildTrials;
 
   int hierarchyCount = int.parse(options['cycle']);
-  var hierarchies = <ClassHierarchy>[];
+  var hierarchies = <ClosedWorldClassHierarchy>[];
   for (int i = 0; i < hierarchyCount; i++) {
     hierarchies.add(buildHierarchy());
   }
 
   int currentHierarchy = 0;
-  ClassHierarchy getClassHierarchy() {
+  ClosedWorldClassHierarchy getClassHierarchy() {
     currentHierarchy = (currentHierarchy + 1) % hierarchies.length;
     return hierarchies[currentHierarchy];
   }

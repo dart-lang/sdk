@@ -274,6 +274,13 @@ class Parser : public ValueObject {
 
   static void ParseFunction(ParsedFunction* parsed_function);
 
+  // Return true if |field| has a function literal initializer.
+  // When true is returned, |start| and |end| will hold the token
+  // range of the function literal.
+  static bool FieldHasFunctionLiteralInitializer(const Field& field,
+                                                 TokenPosition* start,
+                                                 TokenPosition* end);
+
   // Parse and evaluate the metadata expressions at token_pos in the
   // class namespace of class cls (which can be the implicit toplevel
   // class if the metadata is at the top-level).
@@ -420,6 +427,7 @@ class Parser : public ValueObject {
   TokenPosition SkipMetadata();
   bool IsPatchAnnotation(TokenPosition pos);
   void SkipTypeArguments();
+  void SkipTypeParameters();
   void SkipType(bool allow_void);
   void SkipTypeOrFunctionType(bool allow_void);
   void SkipInitializers();
@@ -616,7 +624,8 @@ class Parser : public ValueObject {
                                 ArgumentListNode* arguments,
                                 bool resolve_getter,
                                 bool* is_no_such_method);
-  AstNode* ParseSuperCall(const String& function_name);
+  AstNode* ParseSuperCall(const String& function_name,
+                          const TypeArguments& func_type_args);
   AstNode* ParseSuperFieldAccess(const String& field_name,
                                  TokenPosition field_pos);
   AstNode* ParseSuperOperator();
@@ -833,16 +842,20 @@ class Parser : public ValueObject {
 
   // An implicit argument, if non-null, is prepended to the returned list.
   ArgumentListNode* ParseActualParameters(ArgumentListNode* implicit_arguments,
+                                          const TypeArguments& func_type_args,
                                           bool require_const);
   AstNode* ParseStaticCall(const Class& cls,
                            const String& method_name,
                            TokenPosition ident_pos,
+                           const TypeArguments& func_type_args,
                            const LibraryPrefix* prefix = NULL);
   AstNode* ParseInstanceCall(AstNode* receiver,
                              const String& method_name,
                              TokenPosition ident_pos,
+                             const TypeArguments& func_type_args,
                              bool is_conditional);
-  AstNode* ParseClosureCall(AstNode* closure);
+  AstNode* ParseClosureCall(AstNode* closure,
+                            const TypeArguments& func_type_args);
   AstNode* GenerateStaticFieldLookup(const Field& field,
                                      TokenPosition ident_pos);
   AstNode* GenerateStaticFieldAccess(const Class& cls,
@@ -853,6 +866,9 @@ class Parser : public ValueObject {
   void CheckInstanceFieldAccess(TokenPosition field_pos,
                                 const String& field_name);
   bool ParsingStaticMember() const;
+  bool GetFunctionLiteralInitializerRange(const Field& field,
+                                          TokenPosition* start,
+                                          TokenPosition* end);
   const AbstractType* ReceiverType(const Class& cls);
   bool IsInstantiatorRequired() const;
   bool InGenericFunctionScope() const;
@@ -943,6 +959,10 @@ class Parser : public ValueObject {
 
   Thread* thread_;    // Cached current thread.
   Isolate* isolate_;  // Cached current isolate.
+
+  // It is Heap::kNew for mutator thread and Heap::kOld for other threads (e.g.
+  // background compiler).
+  Heap::Space allocation_space_;
 
   Script& script_;
   TokenStream::Iterator tokens_iterator_;

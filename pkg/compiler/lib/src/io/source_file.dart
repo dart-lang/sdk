@@ -9,14 +9,16 @@ import 'dart:math';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:kernel/ast.dart' as kernel show Location, Source;
-
 import 'location_provider.dart' show LocationProvider;
+import '../../compiler_new.dart';
 
 /// Represents a file of source code. The content can be either a [String] or
 /// a UTF-8 encoded [List<int>] of bytes.
-abstract class SourceFile implements LocationProvider {
+abstract class SourceFile<T> implements Input<T>, LocationProvider {
   /// The absolute URI of the source file.
   Uri get uri;
+
+  InputKind get inputKind => InputKind.utf8;
 
   kernel.Source cachedKernelSource;
 
@@ -166,7 +168,7 @@ List<int> _zeroTerminateIfNecessary(List<int> bytes) {
   return result;
 }
 
-class Utf8BytesSourceFile extends SourceFile {
+class Utf8BytesSourceFile extends SourceFile<List<int>> {
   final Uri uri;
 
   /// The UTF-8 encoded content of the source file.
@@ -178,6 +180,8 @@ class Utf8BytesSourceFile extends SourceFile {
   /// the constructor clones the content and adds a trailing 0.
   Utf8BytesSourceFile(this.uri, List<int> content)
       : this.zeroTerminatedContent = _zeroTerminateIfNecessary(content);
+
+  List<int> get data => zeroTerminatedContent;
 
   String slowText() {
     // Don't convert the trailing zero byte.
@@ -220,7 +224,7 @@ class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
   }
 }
 
-class StringSourceFile extends SourceFile {
+class StringSourceFile extends SourceFile<String> {
   final Uri uri;
   final String filename;
   final String text;
@@ -233,6 +237,8 @@ class StringSourceFile extends SourceFile {
   StringSourceFile.fromName(String filename, String text)
       : this(new Uri(path: filename), filename, text);
 
+  String get data => text;
+
   int get length => text.length;
   set length(int v) {}
 
@@ -243,4 +249,14 @@ class StringSourceFile extends SourceFile {
   }
 
   String slowSubstring(int start, int end) => text.substring(start, end);
+}
+
+/// Binary input data.
+class Binary implements Input<List<int>> {
+  final Uri uri;
+  final List<int> data;
+
+  Binary(this.uri, this.data);
+
+  InputKind get inputKind => InputKind.binary;
 }

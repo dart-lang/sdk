@@ -8,11 +8,9 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/cancelable_future.dart';
@@ -21,7 +19,6 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
@@ -55,16 +52,6 @@ typedef T PendingFutureComputer<T>(CacheEntry entry);
  * An [AnalysisContext] in which analysis can be performed.
  */
 class AnalysisContextImpl implements InternalAnalysisContext {
-  /**
-   * The next context identifier.
-   */
-  static int _NEXT_ID = 0;
-
-  /**
-   * The unique identifier of this context.
-   */
-  final int _id = _NEXT_ID++;
-
   /**
    * The flag that is `true` if the context is being analyzed.
    */
@@ -1070,12 +1057,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (newContents != null) {
       if (changed) {
         entry.modificationTime = _contentCache.getModificationStamp(source);
-        if (!analysisOptions.incremental ||
-            !_tryPoorMansIncrementalResolution(source, newContents)) {
-          // Don't compare with old contents because the cache has already been
-          // updated, and we know at this point that it changed.
-          _sourceChanged(source, compareWithOld: false);
-        }
+        // Don't compare with old contents because the cache has already been
+        // updated, and we know at this point that it changed.
+        _sourceChanged(source, compareWithOld: false);
         entry.setValue(CONTENT, newContents, TargetedResult.EMPTY_LIST);
       } else {
         entry.modificationTime = _contentCache.getModificationStamp(source);
@@ -1095,9 +1079,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // If not the same content (e.g. the file is being closed without save),
       // then force analysis.
       if (changed) {
-        if (newContents == null ||
-            !analysisOptions.incremental ||
-            !_tryPoorMansIncrementalResolution(source, newContents)) {
+        if (newContents == null) {
           _sourceChanged(source);
         }
       }
@@ -1192,7 +1174,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   AnalysisResult performAnalysisTask() {
-    return PerformanceStatistics.performAnalysis.makeCurrentWhile(() {
+    return PerformanceStatistics.analysis.makeCurrentWhile(() {
       _evaluatePendingFutures();
       bool done = !driver.performAnalysisTask();
       List<ChangeNotice> notices = _getChangeNotices(done);
@@ -1528,30 +1510,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return a [CompilationUnit] for the given library and unit sources, which
-   * can be incrementally resolved.
-   */
-  CompilationUnit _getIncrementallyResolvableUnit(
-      Source librarySource, Source unitSource) {
-    LibrarySpecificUnit target =
-        new LibrarySpecificUnit(librarySource, unitSource);
-    for (ResultDescriptor<CompilationUnit> result in [
-      RESOLVED_UNIT,
-      RESOLVED_UNIT12,
-      RESOLVED_UNIT11,
-      RESOLVED_UNIT10,
-      RESOLVED_UNIT9,
-      RESOLVED_UNIT8
-    ]) {
-      CompilationUnit unit = getResult(target, result);
-      if (unit != null) {
-        return unit;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Return a list containing all of the sources known to this context that have
    * the given [kind].
    */
@@ -1856,81 +1814,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     driver.reset();
     _removeFromCache(source);
     _removeFromPriorityOrder(source);
-  }
-
-  /**
-   * TODO(scheglov) A hackish, limited incremental resolution implementation.
-   */
-  bool _tryPoorMansIncrementalResolution(Source unitSource, String newCode) {
-    return PerformanceStatistics.incrementalAnalysis.makeCurrentWhile(() {
-      incrementalResolutionValidation_lastUnitSource = null;
-      incrementalResolutionValidation_lastLibrarySource = null;
-      incrementalResolutionValidation_lastUnit = null;
-      // prepare the source entry
-      CacheEntry sourceEntry = _cache.get(unitSource);
-      if (sourceEntry == null) {
-        return false;
-      }
-      // prepare the (only) library source
-      List<Source> librarySources = getLibrariesContaining(unitSource);
-      if (librarySources.length != 1) {
-        return false;
-      }
-      Source librarySource = librarySources[0];
-      // prepare the unit entry
-      CacheEntry unitEntry =
-          _cache.get(new LibrarySpecificUnit(librarySource, unitSource));
-      if (unitEntry == null) {
-        return false;
-      }
-      // prepare the existing unit
-      CompilationUnit oldUnit =
-          _getIncrementallyResolvableUnit(librarySource, unitSource);
-      if (oldUnit == null) {
-        return false;
-      }
-      // do resolution
-      Stopwatch perfCounter = new Stopwatch()..start();
-      PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
-          typeProvider,
-          unitSource,
-          _cache,
-          sourceEntry,
-          unitEntry,
-          oldUnit,
-          analysisOptions.incrementalApi);
-      bool success = resolver.resolve(newCode);
-      AnalysisEngine.instance.instrumentationService.logPerformance(
-          AnalysisPerformanceKind.INCREMENTAL,
-          perfCounter,
-          'success=$success,context_id=$_id,code_length=${newCode.length}');
-      if (!success) {
-        return false;
-      }
-      // if validation, remember the result, but throw it away
-      if (analysisOptions.incrementalValidation) {
-        CompilationUnitElement compilationUnitElement =
-            resolutionMap.elementDeclaredByCompilationUnit(oldUnit);
-        incrementalResolutionValidation_lastUnitSource =
-            compilationUnitElement.source;
-        incrementalResolutionValidation_lastLibrarySource =
-            compilationUnitElement.library.source;
-        incrementalResolutionValidation_lastUnit = oldUnit;
-        return false;
-      }
-      // prepare notice
-      {
-        ChangeNoticeImpl notice = getNotice(unitSource);
-        notice.resolvedDartUnit = oldUnit;
-        AnalysisErrorInfo errorInfo = getErrors(unitSource);
-        notice.setErrors(errorInfo.errors, errorInfo.lineInfo);
-      }
-      // schedule
-      dartWorkManager.unitIncrementallyResolved(librarySource, unitSource);
-      // OK
-      driver.reset();
-      return true;
-    });
   }
 
   static bool _samePatchPaths(

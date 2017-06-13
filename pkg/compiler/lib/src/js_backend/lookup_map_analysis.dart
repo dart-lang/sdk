@@ -19,9 +19,9 @@ import '../constants/values.dart'
         NullConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../elements/elements.dart' show ClassElement, FieldElement;
+import '../elements/elements.dart' show FieldElement;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart' show ResolutionInterfaceType;
+import '../elements/types.dart';
 import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
@@ -115,7 +115,7 @@ class LookupMapResolutionAnalysis {
 // TODO(sigmund): add support for const expressions, currently this
 // implementation only supports Type literals. To support const expressions we
 // need to change some of the invariants below (e.g. we can no longer use the
-// ClassElement of a type to refer to keys we need to discover).
+// ClassEntity of a type to refer to keys we need to discover).
 // TODO(sigmund): detect uses of mirrors
 class LookupMapAnalysis {
   const LookupMapAnalysis._();
@@ -157,16 +157,16 @@ class LookupMapAnalysis {
 
     ClassEntity typeLookupMapClass =
         elementEnvironment.lookupClass(analysis.lookupMapLibrary, 'LookupMap');
-    FieldElement entriesField =
+    FieldEntity entriesField =
         elementEnvironment.lookupClassMember(typeLookupMapClass, '_entries');
-    FieldElement keyField =
+    FieldEntity keyField =
         elementEnvironment.lookupClassMember(typeLookupMapClass, '_key');
-    FieldElement valueField =
+    FieldEntity valueField =
         elementEnvironment.lookupClassMember(typeLookupMapClass, '_value');
     // TODO(sigmund): Maybe inline nested maps to make the output code smaller?
 
-    return new _LookupMapAnalysis(constantSystem, commonElements, entriesField,
-        keyField, valueField, typeLookupMapClass);
+    return new _LookupMapAnalysis(constantSystem, elementEnvironment,
+        commonElements, entriesField, keyField, valueField, typeLookupMapClass);
   }
 
   /// Compute the [WorldImpact] for the constants registered since last flush.
@@ -179,14 +179,14 @@ class LookupMapAnalysis {
   void registerLookupMapReference(ConstantValue lookupMap) {}
 
   /// Callback from the enqueuer, invoked when [element] is instantiated.
-  void registerInstantiatedClass(ClassElement element) {}
+  void registerInstantiatedClass(ClassEntity element) {}
 
   /// Callback from the enqueuer, invoked when [type] is instantiated.
-  void registerInstantiatedType(ResolutionInterfaceType type) {}
+  void registerInstantiatedType(InterfaceType type) {}
 
   /// Callback from the codegen enqueuer, invoked when a constant (which is
   /// possibly a const key or a type literal) is used in the program.
-  void registerTypeConstant(ClassElement element) {}
+  void registerTypeConstant(ClassEntity element) {}
 
   void registerConstantKey(ConstantValue constant) {}
 
@@ -201,30 +201,33 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
 
   final ConstantSystem _constantSystem;
 
+  final ElementEnvironment _elementEnvironment;
+
   final CommonElements _commonElements;
 
-  /// The resolved [ClassElement] associated with `LookupMap`.
-  final ClassElement _typeLookupMapClass;
+  /// The resolved [ClassEntity] associated with `LookupMap`.
+  final ClassEntity _typeLookupMapClass;
 
-  /// The resolved [FieldElement] for `LookupMap._entries`.
-  final FieldElement _entriesField;
+  /// The resolved [FieldEntity] for `LookupMap._entries`.
+  final FieldEntity _entriesField;
 
-  /// The resolved [FieldElement] for `LookupMap._key`.
-  final FieldElement _keyField;
+  /// The resolved [FieldEntity] for `LookupMap._key`.
+  final FieldEntity _keyField;
 
-  /// The resolved [FieldElement] for `LookupMap._value`.
-  final FieldElement _valueField;
+  /// The resolved [FieldEntity] for `LookupMap._value`.
+  final FieldEntity _valueField;
 
   /// Constant instances of `LookupMap` and information about them tracked by
   /// this analysis.
   final Map<ConstantValue, _LookupMapInfo> _lookupMaps = {};
 
   /// Keys that we have discovered to be in use in the program.
-  final _inUse = new Set<ConstantValue>();
+  final Set<ConstantValue> _inUse = new Set<ConstantValue>();
 
   /// Internal helper to memoize the mapping between class elements and their
   /// corresponding type constants.
-  final _typeConstants = <ClassElement, TypeConstantValue>{};
+  final Map<ClassEntity, TypeConstantValue> _typeConstants =
+      <ClassEntity, TypeConstantValue>{};
 
   /// Internal helper to memoize which classes (ignoring Type) override equals.
   ///
@@ -233,7 +236,7 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
   /// runtime. Technically if we limit lookup-maps to check for identical keys,
   /// we could allow const instances of these types.  However, we internally use
   /// a hash map within lookup-maps today, so we need this restriction.
-  final _typesWithEquals = <ClassElement, bool>{};
+  final Map<ClassEntity, bool> _typesWithEquals = <ClassEntity, bool>{};
 
   /// Pending work to do if we discover that a new key is in use. For each key
   /// that we haven't seen, we record the list of lookup-maps that contain an
@@ -245,6 +248,7 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
 
   _LookupMapAnalysis(
       this._constantSystem,
+      this._elementEnvironment,
       this._commonElements,
       this._entriesField,
       this._keyField,
@@ -259,8 +263,12 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
   /// Whether [constant] is an instance of a `LookupMap`.
   bool isLookupMap(ConstantValue constant) {
     if (constant is ConstructedConstantValue) {
-      ResolutionInterfaceType type = constant.type;
-      return type.element.isSubclassOf(_typeLookupMapClass);
+      InterfaceType type = constant.type;
+      ClassEntity superclass = type.element;
+      while (superclass != null) {
+        if (superclass == _typeLookupMapClass) return true;
+        superclass = _elementEnvironment.getSuperClass(superclass);
+      }
     }
     return false;
   }
@@ -275,9 +283,19 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
   /// Whether [key] is a constant value whose type overrides equals.
   bool _overridesEquals(ConstantValue key) {
     if (key is ConstructedConstantValue) {
-      ClassElement element = key.type.element;
-      return _typesWithEquals.putIfAbsent(
-          element, () => !element.lookupMember('==').enclosingClass.isObject);
+      ClassEntity element = key.type.element;
+      return _typesWithEquals.putIfAbsent(element, () {
+        ClassEntity cls = element;
+        while (cls != _commonElements.objectClass) {
+          MemberEntity member =
+              _elementEnvironment.lookupClassMember(cls, '==');
+          if (member != null) {
+            return true;
+          }
+          cls = _elementEnvironment.getSuperClass(cls);
+        }
+        return false;
+      });
     }
     return false;
   }
@@ -288,9 +306,11 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
   bool _shouldKeep(ConstantValue key) =>
       key.isPrimitive || _inUse.contains(key) || _overridesEquals(key);
 
-  void _addClassUse(ClassElement cls) {
+  void _addClassUse(ClassEntity cls) {
     ConstantValue key = _typeConstants.putIfAbsent(
-        cls, () => _constantSystem.createType(_commonElements, cls.rawType));
+        cls,
+        () => _constantSystem.createType(
+            _commonElements, _elementEnvironment.getRawType(cls)));
     _addUse(key);
   }
 
@@ -304,9 +324,8 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
 
   /// If [key] is a type, cache it in [_typeConstants].
   _registerTypeKey(ConstantValue key) {
-    if (key is TypeConstantValue &&
-        key.representedType is ResolutionInterfaceType) {
-      ResolutionInterfaceType type = key.representedType;
+    if (key is TypeConstantValue && key.representedType is InterfaceType) {
+      InterfaceType type = key.representedType;
       _typeConstants[type.element] = key;
     } else {
       // TODO(sigmund): report error?
@@ -314,13 +333,13 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
   }
 
   /// Callback from the enqueuer, invoked when [element] is instantiated.
-  void registerInstantiatedClass(ClassElement element) {
+  void registerInstantiatedClass(ClassEntity element) {
     // TODO(sigmund): only add if .runtimeType is ever used
     _addClassUse(element);
   }
 
   /// Callback from the enqueuer, invoked when [type] is instantiated.
-  void registerInstantiatedType(ResolutionInterfaceType type) {
+  void registerInstantiatedType(InterfaceType type) {
     // TODO(sigmund): only add if .runtimeType is ever used
     _addClassUse(type.element);
     // TODO(sigmund): only do this when type-argument expressions are used?
@@ -329,10 +348,10 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
 
   /// Records generic type arguments in [type], in case they are retrieved and
   /// returned using a type-argument expression.
-  void _addGenerics(ResolutionInterfaceType type) {
-    if (!type.isGeneric) return;
-    for (var arg in type.typeArguments) {
-      if (arg is ResolutionInterfaceType) {
+  void _addGenerics(InterfaceType type) {
+    if (type.typeArguments.isEmpty) return;
+    for (DartType arg in type.typeArguments) {
+      if (arg is InterfaceType) {
         _addClassUse(arg.element);
         // Note: this call was needed to generate correct code for
         // type_lookup_map/generic_type_test
@@ -348,7 +367,7 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
 
   /// Callback from the codegen enqueuer, invoked when a constant (which is
   /// possibly a const key or a type literal) is used in the program.
-  void registerTypeConstant(ClassElement element) {
+  void registerTypeConstant(ClassEntity element) {
     _addClassUse(element);
   }
 
@@ -482,7 +501,7 @@ class _LookupMapInfo {
   /// Restores [original] to contain all of the entries marked as possibly used.
   void _prepareForEmission() {
     ListConstantValue originalEntries = original.fields[analysis._entriesField];
-    ResolutionInterfaceType listType = originalEntries.type;
+    InterfaceType listType = originalEntries.type;
     List<ConstantValue> keyValuePairs = <ConstantValue>[];
     usedEntries.forEach((key, value) {
       keyValuePairs.add(key);

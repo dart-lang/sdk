@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/ast/visitor.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
@@ -13,6 +12,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart' as engine;
 import 'package:analyzer/src/dart/element/element.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -332,7 +332,7 @@ class A {
       expect(location.startColumn, 16);
     }
     expect(element.parameters, isNull);
-    expect(element.returnType, 'dynamic');
+    expect(element.returnType, 'int');
     expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
   }
 

@@ -234,9 +234,9 @@ _toDisplayName(name) => JS(
 
 Symbol _dartSymbol(name) {
   return (JS('bool', 'typeof # === "symbol"', name))
-      ? JS('', '#(new #(#, #))', const_, _internal.PrivateSymbol,
+      ? JS('Symbol', '#(new #.new(#, #))', const_, _internal.PrivateSymbol,
           _toSymbolName(name), name)
-      : JS('', '#(#.new(#))', const_, Symbol, _toDisplayName(name));
+      : JS('Symbol', '#(#.new(#))', const_, Symbol, _toDisplayName(name));
 }
 
 /// Extracts the named argument array from a list of arguments, and returns it.
@@ -260,7 +260,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
   let originalTarget = obj === void 0 ? f : obj;
 
   function callNSM() {
-    return $noSuchMethod(originalTarget, new $InvocationImpl(
+    return $noSuchMethod(originalTarget, new $InvocationImpl.new(
         $name, $args,
         {namedArguments: $extractNamedArgs($args), isMethod: true}));
   }
@@ -304,6 +304,8 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
           'incorrect number of arguments to generic function ' +
           $typeName($ftype) + ', got <' + $typeArgs + '> expected ' +
           formalCount + '.');
+    } else {
+      $ftype.checkBounds($typeArgs);
     }
     $ftype = $ftype.instantiate($typeArgs);
   } else if ($typeArgs != null) {
@@ -481,7 +483,10 @@ bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS(
     return true;
   }
   if (result === false) return false;
-  if (!$_ignoreWhitelistedErrors || ($ignoreFromWhiteList == void 0)) return result;
+  if (!dart.__ignoreWhitelistedErrors ||
+      ($ignoreFromWhiteList == void 0)) {
+    return result;
+  }
   if ($_ignoreTypeFailure(actual, $type)) return true;
   return result;
 })()''');
@@ -506,11 +511,16 @@ instanceOf(obj, type) => JS(
   }
   let result = $strongInstanceOf($obj, $type);
   if (result !== null) return result;
-  if (!$_failForWeakModeIsChecks) return false;
+  if (!dart.__failForWeakModeIsChecks) return false;
   let actual = $getReifiedType($obj);
-  $throwStrongModeError('Strong mode is-check failure: ' +
-    $typeName(actual) + ' does not soundly subtype ' +
-    $typeName($type));
+  let message = 'Strong mode is-check failure: ' +
+      $typeName(actual) + ' does not soundly subtype ' +
+      $typeName($type);
+  if (!dart.__ignoreAllErrors) {
+    $throwStrongModeError(message);
+  }
+  console.error(message);
+  return true; // Match Dart 1.0 Semantics when ignoring errors.
 })()''');
 
 @JSExportName('as')
@@ -518,14 +528,24 @@ cast(obj, type) {
   if (JS('bool', '# == #', type, dynamic) || obj == null) return obj;
   bool result = strongInstanceOf(obj, type, true);
   if (JS('bool', '#', result)) return obj;
-  _throwCastError(obj, type, result);
+  if (JS('bool', '!dart.__ignoreAllErrors')) {
+    _throwCastError(obj, type, result);
+  }
+  JS('', 'console.error(#)',
+      'Actual: ${typeName(getReifiedType(obj))} Expected: ${typeName(type)}');
+  return obj;
 }
 
 check(obj, type) {
   if (JS('bool', '# == #', type, dynamic) || obj == null) return obj;
   bool result = strongInstanceOf(obj, type, true);
   if (JS('bool', '#', result)) return obj;
-  _throwTypeError(obj, type, result);
+  if (JS('bool', '!dart.__ignoreAllErrors')) {
+    _throwTypeError(obj, type, result);
+  }
+  JS('', 'console.error(#)',
+      'Actual: ${typeName(getReifiedType(obj))} Expected: ${typeName(type)}');
+  return obj;
 }
 
 bool test(obj) {
@@ -988,8 +1008,8 @@ _canonicalMember(obj, name) {
   }
 
   // Check for certain names that we can't use in JS
-  if (name == 'constructor' || name == 'prototype') {
-    name = '+' + name;
+  if (JS('bool', '# == "constructor" || # == "prototype"', name, name)) {
+    JS('', '# = "+" + #', name, name);
   }
   return name;
 }

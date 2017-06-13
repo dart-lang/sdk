@@ -201,8 +201,11 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
         if (compiler.serialization.supportsDeserialization) {
           evaluate(element.constant);
         }
-        assert(invariant(element, hasConstantValue(element.constant),
-            message: "Constant expression has not been evaluated: "
+        assert(
+            hasConstantValue(element.constant),
+            failedAt(
+                element,
+                "Constant expression has not been evaluated: "
                 "${element.constant.toStructuredText()}."));
       }
       return element.constant;
@@ -293,8 +296,10 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       element.constant = expression;
       initialVariableValues[element.declaration] = expression;
     } else {
-      assert(invariant(element, !isConst,
-          message: "Variable $element does not compile to a constant."));
+      assert(
+          !isConst,
+          failedAt(
+              element, "Variable $element does not compile to a constant."));
     }
     pendingVariables.remove(element);
     return expression;
@@ -325,8 +330,10 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
 
   @override
   ConstantValue getConstantValue(ConstantExpression expression) {
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE, expression != null,
-        message: "ConstantExpression is null in getConstantValue."));
+    assert(
+        expression != null,
+        failedAt(CURRENT_ELEMENT_SPANNABLE,
+            "ConstantExpression is null in getConstantValue."));
     // TODO(johnniwinther): ensure expressions have been evaluated at this
     // point. This can't be enabled today due to dartbug.com/26406.
     if (compiler.serialization.supportsDeserialization) {
@@ -406,8 +413,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     // TODO(johnniwinther): should there be a visitErrorNode?
     if (node is ErrorNode) return new ErroneousAstConstant(context, node);
     AstConstant result = node.accept(this);
-    assert(invariant(node, !isEvaluatingConstant || result != null,
-        message: "No AstConstant computed for the node."));
+    assert(!isEvaluatingConstant || result != null,
+        failedAt(node, "No AstConstant computed for the node."));
     return result;
   }
 
@@ -416,8 +423,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     isEvaluatingConstant = true;
     AstConstant result = node.accept(this);
     isEvaluatingConstant = oldIsEvaluatingConstant;
-    assert(invariant(node, result != null,
-        message: "No AstConstant computed for the node."));
+    assert(result != null,
+        failedAt(node, "No AstConstant computed for the node."));
     return result;
   }
 
@@ -844,7 +851,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       Link<Node> arguments,
       ConstructorElement target,
       {AstConstant compileArgument(Node node)}) {
-    assert(invariant(node, target.isImplementation));
+    assert(target.isImplementation, failedAt(node));
 
     AstConstant compileDefaultValue(VariableElement element) {
       ConstantExpression constant = handler.compileConstant(element);
@@ -1093,16 +1100,20 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       List<AstConstant> normalizedArguments) {
     if (target.isRedirectingFactory) {
       // This happens in case of cyclic redirection.
-      assert(invariant(node, compiler.compilationFailed,
-          message: "makeConstructedConstant can only be called with the "
+      assert(
+          compiler.compilationFailed,
+          failedAt(
+              node,
+              "makeConstructedConstant can only be called with the "
               "effective target: $constructor"));
       return new ErroneousAstConstant(context, node);
     }
-    assert(invariant(
-        node,
+    assert(
         callStructure.signatureApplies(constructor.parameterStructure) ||
             compiler.compilationFailed,
-        message: "Call structure $callStructure does not apply to constructor "
+        failedAt(
+            node,
+            "Call structure $callStructure does not apply to constructor "
             "$constructor."));
 
     ConstructorEvaluator evaluator =
@@ -1177,7 +1188,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         this.resolvedAst =
             compiler.resolution.computeResolvedAst(constructor.declaration),
         super(handler, null, compiler, isConst: true) {
-    assert(invariant(constructor, constructor.isImplementation));
+    assert(constructor.isImplementation, failedAt(constructor));
   }
 
   @override

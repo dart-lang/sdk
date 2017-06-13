@@ -22,8 +22,6 @@
  *       ...
  *     }
  */
-library analysis_server.plugin.edit.assist.assist;
-
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:plugin/plugin.dart';

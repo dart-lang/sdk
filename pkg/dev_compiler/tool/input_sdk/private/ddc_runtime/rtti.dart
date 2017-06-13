@@ -110,7 +110,7 @@ _checkPrimitiveType(obj) {
 
 getFunctionType(obj) {
   // TODO(vsm): Encode this properly on the function for Dart-generated code.
-  var args = JS('', 'Array(#.length).fill(#)', obj, dynamic);
+  var args = JS('List', 'Array(#.length).fill(#)', obj, dynamic);
   return fnType(bottom, args, JS('', 'void 0'));
 }
 
@@ -157,7 +157,7 @@ wrapType(type) {
   if (JS('bool', '#.hasOwnProperty(#)', type, _typeObject)) {
     return JS('', '#[#]', type, _typeObject);
   }
-  return JS('', '#[#] = new #(#)', type, _typeObject, WrappedType, type);
+  return JS('', '#[#] = #', type, _typeObject, new WrappedType(type));
 }
 
 var _lazyJSTypes = JS('', 'new Map()');
@@ -167,7 +167,7 @@ lazyJSType(getJSTypeCallback, name) {
   if (JS('bool', '#.has(#)', _lazyJSTypes, key)) {
     return JS('', '#.get(#)', _lazyJSTypes, key);
   }
-  var ret = JS('', 'new #(#, #)', LazyJSType, getJSTypeCallback, name);
+  var ret = new LazyJSType(getJSTypeCallback, name);
   JS('', '#.set(#, #)', _lazyJSTypes, key, ret);
   return ret;
 }
@@ -178,7 +178,7 @@ lazyAnonymousJSType(name) {
   if (JS('bool', '#.has(#)', _lazyJSTypes, name)) {
     return JS('', '#.get(#)', _lazyJSTypes, name);
   }
-  var ret = JS('', 'new #(null, #)', LazyJSType, name);
+  var ret = new LazyJSType(null, name);
   JS('', '#.set(#, #)', _lazyJSTypes, name, ret);
   return ret;
 }

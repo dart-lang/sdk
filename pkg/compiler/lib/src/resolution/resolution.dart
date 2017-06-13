@@ -22,6 +22,7 @@ import '../constants/values.dart' show ConstantValue;
 import '../common_elements.dart' show CommonElements;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart' show AsyncMarker;
 import '../elements/modelx.dart'
     show
         BaseClassElementX,
@@ -82,8 +83,10 @@ class ResolverTask extends CompilerTask {
     return measure(() {
       if (Elements.isMalformed(element)) {
         // TODO(johnniwinther): Add a predicate for this.
-        assert(invariant(element, element is! ErroneousElement,
-            message: "Element $element expected to have parse errors."));
+        assert(
+            element is! ErroneousElement,
+            failedAt(
+                element, "Element $element expected to have parse errors."));
         _ensureTreeElements(element);
         return const ResolutionImpact();
       }
@@ -120,8 +123,11 @@ class ResolverTask extends CompilerTask {
 
   void resolveRedirectingConstructor(InitializerResolver resolver, Node node,
       FunctionElement constructor, FunctionElement redirection) {
-    assert(invariant(node, constructor.isImplementation,
-        message: 'Redirecting constructors must be resolved on implementation '
+    assert(
+        constructor.isImplementation,
+        failedAt(
+            node,
+            'Redirecting constructors must be resolved on implementation '
             'elements.'));
     Setlet<FunctionElement> seen = new Setlet<FunctionElement>();
     seen.add(constructor);
@@ -293,20 +299,21 @@ class ResolverTask extends CompilerTask {
 
   /// Returns `true` if [element] has been processed by the resolution enqueuer.
   bool _hasBeenProcessed(MemberElement element) {
-    assert(invariant(element, element == element.analyzableElement.declaration,
-        message: "Unexpected element $element"));
+    assert(element == element.analyzableElement.declaration,
+        failedAt(element, "Unexpected element $element"));
     return enqueuer.processedEntities.contains(element);
   }
 
   WorldImpact resolveMethodElement(FunctionElementX element) {
-    assert(invariant(element, element.isDeclaration));
+    assert(element.isDeclaration, failedAt(element));
     return reporter.withCurrentElement(element, () {
       if (_hasBeenProcessed(element)) {
         // TODO(karlklose): Remove the check for [isConstructor]. [elememts]
         // should never be non-null, not even for constructors.
-        assert(invariant(element, element.isConstructor,
-            message: 'Non-constructor element $element '
-                'has already been analyzed.'));
+        assert(
+            element.isConstructor,
+            failedAt(element,
+                'Non-constructor element $element has already been analyzed.'));
         return const ResolutionImpact();
       }
       if (element.isSynthesized) {
@@ -381,14 +388,15 @@ class ResolverTask extends CompilerTask {
       // declared in the same declaration.
       if (tree.type != null) {
         ResolutionDartType type = visitor.resolveTypeAnnotation(tree.type);
-        assert(invariant(
-            element,
+        assert(
             element.variables.type == null ||
                 // Crude check but we have no equivalence relation that
                 // equates malformed types, like matching creations of type
                 // `Foo<Unresolved>`.
                 element.variables.type.toString() == type.toString(),
-            message: "Unexpected type computed for $element. "
+            failedAt(
+                element,
+                "Unexpected type computed for $element. "
                 "Was ${element.variables.type}, computed $type."));
         element.variables.type = type;
       } else if (element.variables.type == null) {
@@ -460,8 +468,8 @@ class ResolverTask extends CompilerTask {
     if (annotation == null) return const ResolutionDynamicType();
     ResolutionDartType result =
         visitorFor(element).resolveTypeAnnotation(annotation);
-    assert(invariant(annotation, result != null,
-        message: "No type computed for $annotation."));
+    assert(result != null,
+        failedAt(annotation, "No type computed for $annotation."));
     if (result == null) {
       // TODO(karklose): warning.
       return const ResolutionDynamicType();
@@ -482,9 +490,10 @@ class ResolverTask extends CompilerTask {
         // interface?
         targetType =
             target.computeEffectiveTargetType(target.enclosingClass.thisType);
-        assert(invariant(target, targetType != null,
-            message: 'Redirection target type has not been computed for '
-                '$target'));
+        assert(
+            targetType != null,
+            failedAt(target,
+                'Redirection target type has not been computed for $target'));
         target = target.effectiveTarget;
         break;
       }
@@ -522,8 +531,8 @@ class ResolverTask extends CompilerTask {
     while (!seen.isEmpty) {
       ConstructorElementX factory = seen.removeLast();
       ResolvedAst resolvedAst = factory.resolvedAst;
-      assert(invariant(node, resolvedAst != null,
-          message: 'No ResolvedAst for $factory.'));
+      assert(
+          resolvedAst != null, failedAt(node, 'No ResolvedAst for $factory.'));
       RedirectingFactoryBody redirectionNode = resolvedAst.body;
       ResolutionDartType factoryType =
           resolvedAst.elements.getType(redirectionNode);
@@ -552,8 +561,8 @@ class ResolverTask extends CompilerTask {
         cls.allSupertypesAndSelf = objectClass.allSupertypesAndSelf
             .extendClass(cls.computeType(resolution));
         cls.supertype = cls.allSupertypes.head;
-        assert(invariant(from, cls.supertype != null,
-            message: 'Missing supertype on cyclic class $cls.'));
+        assert(cls.supertype != null,
+            failedAt(from, 'Missing supertype on cyclic class $cls.'));
         cls.interfaces = const Link<ResolutionDartType>();
         return;
       }
@@ -803,7 +812,7 @@ class ResolverTask extends CompilerTask {
   }
 
   void checkClassMembers(ClassElement cls) {
-    assert(invariant(cls, cls.isDeclaration));
+    assert(cls.isDeclaration, failedAt(cls));
     if (cls.isObject) return;
     // TODO(johnniwinther): Should this be done on the implementation element as
     // well?
@@ -1079,8 +1088,11 @@ class ResolverTask extends CompilerTask {
                 // The annotation is resolved in the scope of [classElement].
                 classElement.ensureResolved(resolution);
               }
-              assert(invariant(node, context != null,
-                  message: "No context found for metadata annotation "
+              assert(
+                  context != null,
+                  failedAt(
+                      node,
+                      "No context found for metadata annotation "
                       "on $annotatedElement."));
               ResolverVisitor visitor =
                   visitorFor(context, useEnclosingScope: true);
@@ -1148,8 +1160,8 @@ abstract class AnalyzableElementX implements AnalyzableElement {
   bool get hasTreeElements => _treeElements != null;
 
   TreeElements get treeElements {
-    assert(invariant(this, _treeElements != null,
-        message: "TreeElements have not been computed for $this."));
+    assert(_treeElements != null,
+        failedAt(this, "TreeElements have not been computed for $this."));
     return _treeElements;
   }
 

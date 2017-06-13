@@ -189,6 +189,19 @@ class BinaryOperator {
 
   static BinaryOperator parse(String value) {
     switch (value) {
+      case '&&':
+        return LOGICAL_AND;
+      case '||':
+        return LOGICAL_OR;
+      case '??':
+        return IF_NULL;
+      default:
+        return parseUserDefinable(value);
+    }
+  }
+
+  static BinaryOperator parseUserDefinable(String value) {
+    switch (value) {
       case '==':
         return EQ;
       case '!=':
@@ -225,12 +238,6 @@ class BinaryOperator {
         return XOR;
       case '|':
         return OR;
-      case '&&':
-        return LOGICAL_AND;
-      case '||':
-        return LOGICAL_OR;
-      case '??':
-        return IF_NULL;
       default:
         return null;
     }

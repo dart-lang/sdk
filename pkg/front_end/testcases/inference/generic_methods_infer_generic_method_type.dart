@@ -6,14 +6,14 @@
 library test;
 
 class C {
-  T m<T>(T x) => /*@promotedType=none*/ x;
+  T m<T>(T x) => x;
 }
 
 class D extends C {
-  m<S>(x) => /*@promotedType=none*/ x;
+  m<S>(x) => x;
 }
 
 main() {
-  int y = new D(). /*@typeArgs=int*/ m<int>(42);
-  print(/*@promotedType=none*/ y);
+  int y = new D(). /*@target=D::m*/ m<int>(42);
+  print(y);
 }

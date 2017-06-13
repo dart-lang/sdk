@@ -6,9 +6,10 @@ library dart2js.selector;
 
 import '../common.dart';
 import '../common/names.dart' show Names;
-import '../elements/elements.dart' show Element, Elements, FunctionSignature;
+import '../elements/elements.dart' show Elements;
 import '../elements/entities.dart';
 import '../elements/names.dart';
+import '../elements/operators.dart';
 import '../util/util.dart' show Hashing;
 import 'call_structure.dart' show CallStructure;
 
@@ -52,32 +53,41 @@ class Selector {
 
   LibraryEntity get library => memberName.library;
 
+  static bool isOperatorName(String name) {
+    if (name == Names.INDEX_SET_NAME.text) {
+      return true;
+    } else if (name == UnaryOperator.NEGATE.selectorName) {
+      return true;
+    } else if (name == UnaryOperator.COMPLEMENT.selectorName) {
+      return true;
+    } else {
+      return BinaryOperator.parseUserDefinable(name) != null;
+    }
+  }
+
   Selector.internal(
       this.kind, this.memberName, this.callStructure, this.hashCode) {
-    assert(invariant(
-        NO_LOCATION_SPANNABLE,
+    assert(
         kind == SelectorKind.INDEX ||
             (memberName != Names.INDEX_NAME &&
                 memberName != Names.INDEX_SET_NAME),
-        message: "kind=$kind,memberName=$memberName,"
-            "callStructure:$callStructure"));
-    assert(invariant(
-        NO_LOCATION_SPANNABLE,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "kind=$kind,memberName=$memberName,callStructure:$callStructure"));
+    assert(
         kind == SelectorKind.OPERATOR ||
             kind == SelectorKind.INDEX ||
-            !Elements.isOperatorName(memberName.text) ||
+            !isOperatorName(memberName.text) ||
             memberName.text == '??',
-        message: "kind=$kind,memberName=$memberName,"
-            "callStructure:$callStructure"));
-    assert(invariant(
-        NO_LOCATION_SPANNABLE,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "kind=$kind,memberName=$memberName,callStructure:$callStructure"));
+    assert(
         kind == SelectorKind.CALL ||
             kind == SelectorKind.GETTER ||
             kind == SelectorKind.SETTER ||
-            Elements.isOperatorName(memberName.text) ||
+            isOperatorName(memberName.text) ||
             memberName.text == '??',
-        message: "kind=$kind,memberName=$memberName,"
-            "callStructure:$callStructure"));
+        failedAt(NO_LOCATION_SPANNABLE,
+            "kind=$kind,memberName=$memberName,callStructure:$callStructure"));
   }
 
   // TODO(johnniwinther): Extract caching.
@@ -102,30 +112,22 @@ class Selector {
     return result;
   }
 
-  factory Selector.fromElement(Element element) {
-    Name name = new Name(element.name, element.library);
+  factory Selector.fromElement(MemberEntity element) {
+    Name name = element.memberName;
     if (element.isFunction) {
+      FunctionEntity function = element;
       if (name == Names.INDEX_NAME) {
         return new Selector.index();
       } else if (name == Names.INDEX_SET_NAME) {
         return new Selector.indexSet();
       }
-      FunctionSignature signature =
-          element.asFunctionElement().functionSignature;
-      int arity = signature.parameterCount;
-      List<String> namedArguments = null;
-      if (signature.optionalParametersAreNamed) {
-        namedArguments =
-            signature.orderedOptionalParameters.map((e) => e.name).toList();
-      }
-      if (element.isOperator) {
+      CallStructure callStructure = function.parameterStructure.callStructure;
+      if (isOperatorName(element.name)) {
         // Operators cannot have named arguments, however, that doesn't prevent
         // a user from declaring such an operator.
-        return new Selector(SelectorKind.OPERATOR, name,
-            new CallStructure(arity, namedArguments));
+        return new Selector(SelectorKind.OPERATOR, name, callStructure);
       } else {
-        return new Selector.call(
-            name, new CallStructure(arity, namedArguments));
+        return new Selector.call(name, callStructure);
       }
     } else if (element.isSetter) {
       return new Selector.setter(name);

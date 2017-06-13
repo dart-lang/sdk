@@ -6,10 +6,10 @@
 library test;
 
 main() {
-  var /*@type=List<int>*/ v = (f)(
+  var /*@type=List<int>*/ v = (f) /*@typeArgs=int*/ (
       /*@returnType=int*/ () {
     return 1;
   });
 }
 
-List<T> f<T>(T g()) => <T>[/*@promotedType=none*/ g()];
+List<T> f<T>(T g()) => <T>[g()];

@@ -915,7 +915,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
     ClosureClassMap closureData =
-        compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
+        compiler.closureToClassMapper.getClosureToClassMapping(analyzedElement);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);
     });
@@ -1098,8 +1098,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
     // a previous closure.
-    ClosureClassMap nestedClosureData = compiler.closureToClassMapper
-        .getClosureToClassMapping(element.resolvedAst);
+    ClosureClassMap nestedClosureData =
+        compiler.closureToClassMapper.getClosureToClassMapping(element);
     nestedClosureData.forEachCapturedVariable((variable, field) {
       if (!nestedClosureData.isVariableBoxed(variable)) {
         if (variable == nestedClosureData.thisLocal) {
@@ -2325,7 +2325,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       if (!target.isRedirectingFactory) break;
       target = target.effectiveTarget.implementation;
     }
-    if (compiler.backend.isForeign(target)) {
+    if (compiler.backend.isForeign(closedWorld.commonElements, target)) {
       return handleForeignSend(node, target);
     }
     Selector selector = elements.getSelector(node);
@@ -2413,7 +2413,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   /// Handle invocation of a top level or static [function].
   TypeInformation handleStaticFunctionInvoke(
       ast.Send node, MethodElement function) {
-    if (compiler.backend.isForeign(function)) {
+    if (compiler.backend.isForeign(closedWorld.commonElements, function)) {
       return handleForeignSend(node, function);
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);

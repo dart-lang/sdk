@@ -650,6 +650,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     {"dart:core", "AbstractClassInstantiationError",
      "AbstractClassInstantiationError._create"},
     {"dart:core", "ArgumentError", "ArgumentError."},
+    {"dart:core", "ArgumentError", "ArgumentError.value"},
     {"dart:core", "CyclicInitializationError", "CyclicInitializationError."},
     {"dart:core", "FallThroughError", "FallThroughError._create"},
     {"dart:core", "FormatException", "FormatException."},
@@ -823,11 +824,13 @@ void Precompiler::CollectCallbackFields() {
         // Create arguments descriptor with fixed parameters from
         // signature of field_type.
         function = Type::Cast(field_type).signature();
+        if (function.IsGeneric()) continue;
         if (function.HasOptionalParameters()) continue;
         if (FLAG_trace_precompiler) {
           THR_Print("Found callback field %s\n", field_name.ToCString());
         }
-        args_desc = ArgumentsDescriptor::New(function.num_fixed_parameters());
+        args_desc = ArgumentsDescriptor::New(0,  // No type argument vector.
+                                             function.num_fixed_parameters());
         cids.Clear();
         if (T->cha()->ConcreteSubclasses(cls, &cids)) {
           for (intptr_t j = 0; j < cids.length(); ++j) {
@@ -1197,7 +1200,7 @@ void Precompiler::AddField(const Field& field) {
         if (FLAG_trace_precompiler) {
           THR_Print("Precompiling initializer for %s\n", field.ToCString());
         }
-        ASSERT(Dart::vm_snapshot_kind() != Snapshot::kAppAOT);
+        ASSERT(Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
         const Function& initializer = Function::Handle(
             Z, CompileStaticInitializer(field, /* compute_type = */ true));
         ASSERT(!initializer.IsNull());
@@ -2513,9 +2516,8 @@ void Precompiler::PopulateWithICData(const Function& function,
       if (instr->IsInstanceCall()) {
         InstanceCallInstr* call = instr->AsInstanceCall();
         if (!call->HasICData()) {
-          const Array& arguments_descriptor = Array::Handle(
-              zone, ArgumentsDescriptor::New(call->ArgumentCount(),
-                                             call->argument_names()));
+          const Array& arguments_descriptor =
+              Array::Handle(zone, call->GetArgumentsDescriptor());
           const ICData& ic_data = ICData::ZoneHandle(
               zone, ICData::New(function, call->function_name(),
                                 arguments_descriptor, call->deopt_id(),
@@ -2525,9 +2527,8 @@ void Precompiler::PopulateWithICData(const Function& function,
       } else if (instr->IsStaticCall()) {
         StaticCallInstr* call = instr->AsStaticCall();
         if (!call->HasICData()) {
-          const Array& arguments_descriptor = Array::Handle(
-              zone, ArgumentsDescriptor::New(call->ArgumentCount(),
-                                             call->argument_names()));
+          const Array& arguments_descriptor =
+              Array::Handle(zone, call->GetArgumentsDescriptor());
           const Function& target = call->function();
           MethodRecognizer::Kind recognized_kind =
               MethodRecognizer::RecognizeKind(target);

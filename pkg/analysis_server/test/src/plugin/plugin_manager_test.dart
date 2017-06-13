@@ -13,6 +13,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart'
     hide ContextRoot;
 import 'package:path/path.dart' as path;
@@ -22,7 +23,8 @@ import 'package:watcher/watcher.dart' as watcher;
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PluginInfoTest);
+    defineReflectiveTests(BuiltInPluginInfoTest);
+    defineReflectiveTests(DiscoveredPluginInfoTest);
     defineReflectiveTests(PluginManagerTest);
     defineReflectiveTests(PluginManagerFromDiskTest);
     defineReflectiveTests(PluginSessionTest);
@@ -31,18 +33,88 @@ main() {
 }
 
 @reflectiveTest
-class PluginInfoTest {
+class BuiltInPluginInfoTest {
+  TestNotificationManager notificationManager;
+  BuiltInPluginInfo plugin;
+
+  void setUp() {
+    notificationManager = new TestNotificationManager();
+    plugin = new BuiltInPluginInfo(null, 'test plugin', notificationManager,
+        InstrumentationService.NULL_SERVICE);
+  }
+
+  test_addContextRoot() {
+    ContextRoot contextRoot1 = new ContextRoot('/pkg1', []);
+    plugin.addContextRoot(contextRoot1);
+    expect(plugin.contextRoots, [contextRoot1]);
+    plugin.addContextRoot(contextRoot1);
+    expect(plugin.contextRoots, [contextRoot1]);
+  }
+
+  test_creation() {
+    expect(plugin.pluginId, 'test plugin');
+    expect(plugin.notificationManager, notificationManager);
+    expect(plugin.contextRoots, isEmpty);
+    expect(plugin.currentSession, isNull);
+  }
+
+  test_removeContextRoot() {
+    ContextRoot contextRoot1 = new ContextRoot('/pkg1', []);
+    ContextRoot contextRoot2 = new ContextRoot('/pkg2', []);
+    plugin.addContextRoot(contextRoot1);
+    expect(plugin.contextRoots, unorderedEquals([contextRoot1]));
+    plugin.addContextRoot(contextRoot2);
+    expect(plugin.contextRoots, unorderedEquals([contextRoot1, contextRoot2]));
+    plugin.removeContextRoot(contextRoot1);
+    expect(plugin.contextRoots, unorderedEquals([contextRoot2]));
+    plugin.removeContextRoot(contextRoot2);
+    expect(plugin.contextRoots, isEmpty);
+  }
+
+  @failingTest
+  test_start_notRunning() {
+    fail('Not tested');
+  }
+
+  test_start_running() async {
+    plugin.currentSession = new PluginSession(plugin);
+    try {
+      await plugin.start('', '');
+      fail('Expected a StateError');
+    } on StateError {
+      // Expected.
+    }
+  }
+
+  test_stop_notRunning() {
+    expect(() => plugin.stop(), throwsA(new isInstanceOf<StateError>()));
+  }
+
+  test_stop_running() async {
+    PluginSession session = new PluginSession(plugin);
+    TestServerCommunicationChannel channel =
+        new TestServerCommunicationChannel(session);
+    plugin.currentSession = session;
+    await plugin.stop();
+    expect(plugin.currentSession, isNull);
+    expect(channel.sentRequests, hasLength(1));
+    expect(channel.sentRequests[0].method, 'plugin.shutdown');
+  }
+}
+
+@reflectiveTest
+class DiscoveredPluginInfoTest {
   MemoryResourceProvider resourceProvider;
   TestNotificationManager notificationManager;
   String pluginPath = '/pluginDir';
   String executionPath = '/pluginDir/bin/plugin.dart';
   String packagesPath = '/pluginDir/.packages';
-  PluginInfo plugin;
+  DiscoveredPluginInfo plugin;
 
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
     notificationManager = new TestNotificationManager();
-    plugin = new PluginInfo(pluginPath, executionPath, packagesPath,
+    plugin = new DiscoveredPluginInfo(pluginPath, executionPath, packagesPath,
         notificationManager, InstrumentationService.NULL_SERVICE);
   }
 
@@ -83,7 +155,7 @@ class PluginInfoTest {
   test_start_running() async {
     plugin.currentSession = new PluginSession(plugin);
     try {
-      await plugin.start('');
+      await plugin.start('', '');
       fail('Expected a StateError');
     } on StateError {
       // Expected.
@@ -94,12 +166,12 @@ class PluginInfoTest {
     expect(() => plugin.stop(), throwsA(new isInstanceOf<StateError>()));
   }
 
-  test_stop_running() {
+  test_stop_running() async {
     PluginSession session = new PluginSession(plugin);
     TestServerCommunicationChannel channel =
         new TestServerCommunicationChannel(session);
     plugin.currentSession = session;
-    plugin.stop();
+    await plugin.stop();
     expect(plugin.currentSession, isNull);
     expect(channel.sentRequests, hasLength(1));
     expect(channel.sentRequests[0].method, 'plugin.shutdown');
@@ -113,8 +185,9 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 
   void setUp() {
     super.setUp();
-    manager = new PluginManager(resourceProvider, byteStorePath,
+    manager = new PluginManager(resourceProvider, byteStorePath, '',
         notificationManager, InstrumentationService.NULL_SERVICE);
+    manager.whitelistEverything();
   }
 
   test_addPluginToContextRoot() async {
@@ -189,8 +262,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           List<PluginInfo> plugins = manager.pluginsForContextRoot(contextRoot);
           expect(plugins, hasLength(1));
           watcher.WatchEvent watchEvent = new watcher.WatchEvent(
-              watcher.ChangeType.MODIFY,
-              path.join(plugin1Path, 'lib', 'lib.dart'));
+              watcher.ChangeType.MODIFY, path.join(pkgPath, 'lib', 'lib.dart'));
           List<Future<Response>> responses =
               await manager.broadcastWatchEvent(watchEvent);
           expect(responses, hasLength(1));
@@ -218,8 +290,9 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
                 List<PluginInfo> plugins =
                     manager.pluginsForContextRoot(contextRoot);
                 expect(plugins, hasLength(2));
-                List<String> paths =
-                    plugins.map((PluginInfo plugin) => plugin.path).toList();
+                List<String> paths = plugins
+                    .map((PluginInfo plugin) => plugin.pluginId)
+                    .toList();
                 expect(paths, unorderedEquals([plugin1Path, plugin2Path]));
 
                 await manager.stopAll();
@@ -237,7 +310,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 
       List<PluginInfo> plugins = manager.pluginsForContextRoot(contextRoot);
       expect(plugins, hasLength(1));
-      expect(plugins[0].path, pluginPath);
+      expect(plugins[0].pluginId, pluginPath);
 
       await manager.stopAll();
     });
@@ -263,14 +336,16 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 class PluginManagerTest {
   MemoryResourceProvider resourceProvider;
   String byteStorePath;
+  String sdkPath;
   TestNotificationManager notificationManager;
   PluginManager manager;
 
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
-    byteStorePath = '/byteStore';
+    byteStorePath = resourceProvider.convertPath('/byteStore');
+    sdkPath = resourceProvider.convertPath('/sdk');
     notificationManager = new TestNotificationManager();
-    manager = new PluginManager(resourceProvider, byteStorePath,
+    manager = new PluginManager(resourceProvider, byteStorePath, sdkPath,
         notificationManager, InstrumentationService.NULL_SERVICE);
   }
 
@@ -285,6 +360,7 @@ class PluginManagerTest {
   void test_creation() {
     expect(manager.resourceProvider, resourceProvider);
     expect(manager.byteStorePath, byteStorePath);
+    expect(manager.sdkPath, sdkPath);
     expect(manager.notificationManager, notificationManager);
   }
 
@@ -306,11 +382,15 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
       String mainPath = path.join(pluginPath, 'bin', 'plugin.dart');
       String byteStorePath = path.join(pluginPath, 'byteStore');
       new io.Directory(byteStorePath).createSync();
-      PluginInfo plugin = new PluginInfo(pluginPath, mainPath, packagesPath,
-          notificationManager, InstrumentationService.NULL_SERVICE);
+      PluginInfo plugin = new DiscoveredPluginInfo(
+          pluginPath,
+          mainPath,
+          packagesPath,
+          notificationManager,
+          InstrumentationService.NULL_SERVICE);
       PluginSession session = new PluginSession(plugin);
       plugin.currentSession = session;
-      expect(await session.start(byteStorePath), isTrue);
+      expect(await session.start(byteStorePath, ''), isTrue);
       await session.stop();
     });
   }
@@ -320,16 +400,21 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
 class PluginSessionTest {
   MemoryResourceProvider resourceProvider;
   TestNotificationManager notificationManager;
-  String pluginPath = '/pluginDir';
-  String executionPath = '/pluginDir/bin/plugin.dart';
-  String packagesPath = '/pluginDir/.packages';
+  String pluginPath;
+  String executionPath;
+  String packagesPath;
+  String sdkPath;
   PluginInfo plugin;
   PluginSession session;
 
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
     notificationManager = new TestNotificationManager();
-    plugin = new PluginInfo(pluginPath, executionPath, packagesPath,
+    pluginPath = resourceProvider.convertPath('/pluginDir');
+    executionPath = resourceProvider.convertPath('/pluginDir/bin/plugin.dart');
+    packagesPath = resourceProvider.convertPath('/pluginDir/.packages');
+    sdkPath = resourceProvider.convertPath('/sdk');
+    plugin = new DiscoveredPluginInfo(pluginPath, executionPath, packagesPath,
         notificationManager, InstrumentationService.NULL_SERVICE);
     session = new PluginSession(plugin);
   }
@@ -363,9 +448,9 @@ class PluginSessionTest {
     Response response = new PluginVersionCheckResult(
             true, 'name', 'version', <String>[],
             contactInfo: 'contactInfo')
-        .toResponse('0');
+        .toResponse('0', 1);
     Future<Response> future =
-        session.sendRequest(new PluginVersionCheckParams('', ''));
+        session.sendRequest(new PluginVersionCheckParams('', '', ''));
     expect(session.pendingRequests, hasLength(1));
     session.handleResponse(response);
     expect(session.pendingRequests, hasLength(0));
@@ -382,20 +467,21 @@ class PluginSessionTest {
   void test_sendRequest() {
     TestServerCommunicationChannel channel =
         new TestServerCommunicationChannel(session);
-    session.sendRequest(new PluginVersionCheckParams('', ''));
+    session.sendRequest(new PluginVersionCheckParams('', '', ''));
     expect(channel.sentRequests, hasLength(1));
     expect(channel.sentRequests[0].method, 'plugin.versionCheck');
   }
 
   test_start_notCompatible() async {
     session.isCompatible = false;
-    expect(await session.start(path.join(pluginPath, 'byteStore')), isFalse);
+    expect(await session.start(path.join(pluginPath, 'byteStore'), sdkPath),
+        isFalse);
   }
 
   test_start_running() async {
     new TestServerCommunicationChannel(session);
     try {
-      await session.start(null);
+      await session.start(null, '');
       fail('Expected a StateError to be thrown');
     } on StateError {
       // Expected behavior
@@ -406,10 +492,10 @@ class PluginSessionTest {
     expect(() => session.stop(), throwsA(new isInstanceOf<StateError>()));
   }
 
-  void test_stop_running() {
+  test_stop_running() async {
     TestServerCommunicationChannel channel =
         new TestServerCommunicationChannel(session);
-    session.stop();
+    await session.stop();
     expect(channel.sentRequests, hasLength(1));
     expect(channel.sentRequests[0].method, 'plugin.shutdown');
   }
@@ -586,16 +672,21 @@ class TestNotificationManager implements NotificationManager {
 }
 
 class TestServerCommunicationChannel implements ServerCommunicationChannel {
+  final PluginSession session;
   int closeCount = 0;
   List<Request> sentRequests = <Request>[];
 
-  TestServerCommunicationChannel(PluginSession session) {
+  TestServerCommunicationChannel(this.session) {
     session.channel = this;
   }
 
   @override
   void close() {
     closeCount++;
+  }
+
+  void kill() {
+    fail('Unexpected invocation of kill');
   }
 
   @override
@@ -608,5 +699,8 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
   @override
   void sendRequest(Request request) {
     sentRequests.add(request);
+    if (request.method == 'plugin.shutdown') {
+      session.handleOnDone();
+    }
   }
 }

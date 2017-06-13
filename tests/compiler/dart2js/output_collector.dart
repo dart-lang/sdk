@@ -21,6 +21,10 @@ class BufferedOutputSink implements OutputSink {
     text = sb.toString();
     sb = null;
   }
+
+  String toString() {
+    return text ?? sb.toString();
+  }
 }
 
 class CloningOutputSink implements OutputSink {

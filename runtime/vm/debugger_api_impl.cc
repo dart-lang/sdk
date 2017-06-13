@@ -565,7 +565,11 @@ Dart_ActivationFrameEvaluate(Dart_ActivationFrame activation_frame,
   CHECK_DEBUGGER(T->isolate());
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
   UNWRAP_AND_CHECK_PARAM(String, expr, expr_in);
-  return Api::NewHandle(T, frame->Evaluate(expr));
+  const GrowableObjectArray& names =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const GrowableObjectArray& values =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  return Api::NewHandle(T, frame->Evaluate(expr, names, values));
 }
 
 

@@ -113,7 +113,8 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
       }
     }
   }
-  return new BuildResult(buildUri, buildNumber, results, failures, timings);
+  return new BuildResult(buildUri, buildNumber ?? buildUri.absoluteBuildNumber,
+      results, failures, timings);
 }
 
 /// Create the [Timing]s for the [line] as found in the top-20 timings of a

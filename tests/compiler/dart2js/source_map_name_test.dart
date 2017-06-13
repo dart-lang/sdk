@@ -108,7 +108,7 @@ main() {
       check(element, expectedName);
       if (element.isConstructor) {
         var constructorBody =
-            element.enclosingClass.lookupBackendMember(element.name);
+            element.enclosingClass.lookupConstructorBody(element.name);
         Expect.isNotNull(
             element, "Constructor body '${element.name}' not found.");
         check(constructorBody, expectedName);

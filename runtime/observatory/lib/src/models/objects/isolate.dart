@@ -14,6 +14,9 @@ abstract class IsolateRef {
 
   /// A name identifying this isolate. Not guaranteed to be unique.
   String get name;
+
+  /// Trigger a full GC, collecting all unreachable or weakly reachable objects.
+  Future collectAllGarbage();
 }
 
 enum IsolateStatus { loading, idle, running, paused }

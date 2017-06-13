@@ -347,6 +347,17 @@ abstract class MockFunctionElement extends MockElement
   FunctionDeclaration computeNode() => internalError("not supported.");
 }
 
+abstract class MockFunctionTypeAliasElement extends MockElement
+    implements FunctionTypeAliasElement {
+  MockFunctionTypeAliasElement() : super(ElementKind.FUNCTION_TYPE_ALIAS);
+
+  CompilationUnitElement get enclosingElement {
+    return internalError("not supported.");
+  }
+
+  TypeAlias computeNode() => internalError("not supported.");
+}
+
 abstract class MockParameterElement extends MockElement
     implements ParameterElement {
   MockParameterElement() : super(ElementKind.PARAMETER);

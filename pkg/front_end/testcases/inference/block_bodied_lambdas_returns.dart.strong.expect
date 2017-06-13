@@ -1,0 +1,88 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  () → core::Null a = () → core::Null {};
+  () → core::Null b = () → core::Null {
+    return;
+  };
+  () → core::Null c = () → core::Null {
+    return null;
+  };
+  () → core::int d = () → core::int {
+    return 0;
+  };
+  (core::bool) → core::Null e = (core::bool b) → core::Null {
+    if(b) {
+      return;
+    }
+    else {
+      return;
+    }
+  };
+  (core::bool) → core::Null f = (core::bool b) → core::Null {
+    if(b) {
+      return;
+    }
+    else {
+      return null;
+    }
+  };
+  (core::bool) → core::int g = (core::bool b) → core::int {
+    if(b) {
+      return;
+    }
+    else {
+      return 0;
+    }
+  };
+  (core::bool) → core::Null h = (core::bool b) → core::Null {
+    if(b) {
+      return null;
+    }
+    else {
+      return;
+    }
+  };
+  (core::bool) → core::Null i = (core::bool b) → core::Null {
+    if(b) {
+      return null;
+    }
+    else {
+      return null;
+    }
+  };
+  (core::bool) → core::int j = (core::bool b) → core::int {
+    if(b) {
+      return null;
+    }
+    else {
+      return 0;
+    }
+  };
+  (core::bool) → core::int k = (core::bool b) → core::int {
+    if(b) {
+      return 0;
+    }
+    else {
+      return;
+    }
+  };
+  (core::bool) → core::int l = (core::bool b) → core::int {
+    if(b) {
+      return 0;
+    }
+    else {
+      return null;
+    }
+  };
+  (core::bool) → core::int m = (core::bool b) → core::int {
+    if(b) {
+      return 0;
+    }
+    else {
+      return 0;
+    }
+  };
+}

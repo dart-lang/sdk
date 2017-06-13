@@ -9,4 +9,8 @@ D<T> f<T>() => null;
 
 class D<T> {}
 
-var /*@topType=D<int>*/ g = /*@typeArgs=int*/ f<int>();
+var /*@topType=D<int>*/ g = f<int>();
+
+main() {
+  g;
+}

@@ -87,9 +87,9 @@ class TestCompiler extends apiimpl.CompilerImpl {
           onTest(testMarker, testType);
           assert(false);
           break;
-        case 'invariant':
+        case 'failedAt':
           onTest(testMarker, testType);
-          invariant(NO_LOCATION_SPANNABLE, false, message: marker);
+          failedAt(NO_LOCATION_SPANNABLE, marker);
           break;
         case 'warning':
           onTest(testMarker, testType);
@@ -125,8 +125,7 @@ class TestBackend extends JavaScriptBackend {
             generateSourceMap: compiler.options.generateSourceMap,
             useStartupEmitter: compiler.options.useStartupEmitter,
             useMultiSourceInfo: compiler.options.useMultiSourceInfo,
-            useNewSourceInfo: compiler.options.useNewSourceInfo,
-            useKernel: compiler.options.useKernel);
+            useNewSourceInfo: compiler.options.useNewSourceInfo);
 
   @override
   WorldImpact codegen(CodegenWorkItem work, ClosedWorld closedWorld) {
@@ -271,7 +270,7 @@ void main() {
         '': 0,
         'NoSuchMethodError': 253,
         'assert': isCheckedMode ? 253 : 0,
-        'invariant': 253
+        'failedAt': 253
       };
     }
 
@@ -280,7 +279,7 @@ void main() {
       '': 0,
       'NoSuchMethodError': 253,
       'assert': isCheckedMode ? 253 : 0,
-      'invariant': 253,
+      'failedAt': 253,
       'warning': fatalWarnings ? 1 : 0,
       'error': 1,
       'internalError': 253,

@@ -10,6 +10,6 @@ main() {
     yield 1;
     yield* /*@typeArgs=num*/ [3, 4.0];
   };
-  Iterable<num> g = /*@promotedType=none*/ f();
-  Iterable<int> h = /*info:ASSIGNMENT_CAST*/ /*@promotedType=none*/ f();
+  Iterable<num> g = f();
+  Iterable<int> h = /*info:ASSIGNMENT_CAST*/ f();
 }

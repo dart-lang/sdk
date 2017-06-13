@@ -4,6 +4,8 @@
 
 library analyzer.test.src.task.options_test;
 
+import 'dart:mirrors';
+
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
@@ -24,6 +26,7 @@ import '../context/abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ContextConfigurationTest);
+    defineReflectiveTests(ErrorCodeValuesTest);
     defineReflectiveTests(GenerateNewOptionsErrorsTaskTest);
     defineReflectiveTests(GenerateOldOptionsErrorsTaskTest);
     defineReflectiveTests(OptionsFileValidatorTest);
@@ -138,6 +141,122 @@ analyzer:
   strong-mode: foo
 ''');
     expect(analysisOptions.strongMode, false);
+  }
+}
+
+@reflectiveTest
+class ErrorCodeValuesTest {
+  test_errorCodes() {
+    var errorTypeMap = <Type, List<ErrorCode>>{};
+    for (ErrorCode code in errorCodeValues) {
+      errorTypeMap.putIfAbsent(code.runtimeType, () => <ErrorCode>[]).add(code);
+    }
+
+    int missingErrorCodeCount = 0;
+    errorTypeMap.forEach((Type errorType, List<ErrorCode> codes) {
+      var listedNames = codes.map((ErrorCode code) => code.name).toSet();
+
+      var declaredNames = reflectClass(errorType)
+          .declarations
+          .values
+          .map((DeclarationMirror declarationMirror) {
+        String name = declarationMirror.simpleName.toString();
+        //TODO(danrubel): find a better way to extract the text from the symbol
+        assert(name.startsWith('Symbol("') && name.endsWith('")'));
+        return name.substring(8, name.length - 2);
+      }).where((String name) {
+        return name == name.toUpperCase();
+      }).toList();
+
+      // Remove declared names that are not supposed to be in errorCodeValues
+
+      if (errorType == AnalysisOptionsErrorCode) {
+        declaredNames
+            .remove(AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR.name);
+      } else if (errorType == AnalysisOptionsWarningCode) {
+        declaredNames
+            .remove(AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND.name);
+        declaredNames
+            .remove(AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING.name);
+      } else if (errorType == StaticWarningCode) {
+        declaredNames.remove(
+            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS.name +
+                '_PLUS');
+      } else if (errorType == StrongModeCode) {
+        void removeCode(StrongModeCode code) {
+          String name = code.name;
+          declaredNames.remove(name);
+          if (name.startsWith('STRONG_MODE_')) {
+            declaredNames.remove(name.substring(12));
+          }
+        }
+
+        removeCode(StrongModeCode.DOWN_CAST_COMPOSITE);
+        removeCode(StrongModeCode.DOWN_CAST_IMPLICIT);
+        removeCode(StrongModeCode.DOWN_CAST_IMPLICIT_ASSIGN);
+        removeCode(StrongModeCode.DYNAMIC_CAST);
+        removeCode(StrongModeCode.ASSIGNMENT_CAST);
+        removeCode(StrongModeCode.INVALID_PARAMETER_DECLARATION);
+        removeCode(StrongModeCode.COULD_NOT_INFER);
+        removeCode(StrongModeCode.INFERRED_TYPE);
+        removeCode(StrongModeCode.INFERRED_TYPE_LITERAL);
+        removeCode(StrongModeCode.INFERRED_TYPE_ALLOCATION);
+        removeCode(StrongModeCode.INFERRED_TYPE_CLOSURE);
+        removeCode(StrongModeCode.INVALID_CAST_LITERAL);
+        removeCode(StrongModeCode.INVALID_CAST_LITERAL_LIST);
+        removeCode(StrongModeCode.INVALID_CAST_LITERAL_MAP);
+        removeCode(StrongModeCode.INVALID_CAST_FUNCTION_EXPR);
+        removeCode(StrongModeCode.INVALID_CAST_NEW_EXPR);
+        removeCode(StrongModeCode.INVALID_CAST_METHOD);
+        removeCode(StrongModeCode.INVALID_CAST_FUNCTION);
+        removeCode(StrongModeCode.INVALID_SUPER_INVOCATION);
+        removeCode(StrongModeCode.NON_GROUND_TYPE_CHECK_INFO);
+        removeCode(StrongModeCode.DYNAMIC_INVOKE);
+        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE);
+        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE);
+        removeCode(StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN);
+        removeCode(StrongModeCode.INVALID_FIELD_OVERRIDE);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_RETURN);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_FIELD);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_TYPE);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_METHOD);
+        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_INVOKE);
+        removeCode(StrongModeCode.NO_DEFAULT_BOUNDS);
+        removeCode(StrongModeCode.NOT_INSTANTIATED_BOUND);
+        removeCode(StrongModeCode.TOP_LEVEL_CYCLE);
+        removeCode(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK);
+        removeCode(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_PARAMETER);
+        removeCode(StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE);
+        removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER);
+        removeCode(StrongModeCode.TOP_LEVEL_TYPE_ARGUMENTS);
+        removeCode(StrongModeCode.TOP_LEVEL_UNSUPPORTED);
+        removeCode(StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE);
+      } else if (errorType == TodoCode) {
+        declaredNames.remove('TODO_REGEX');
+      }
+
+      // Assert that all remaining declared names are in errorCodeValues
+
+      for (String declaredName in declaredNames) {
+        if (!listedNames.contains(declaredName)) {
+          ++missingErrorCodeCount;
+          print('   errorCodeValues is missing $errorType $declaredName');
+        }
+      }
+    });
+    expect(missingErrorCodeCount, 0, reason: 'missing error code names');
+
+    // Apparently, duplicate error codes are allowed
+    //    expect(
+    //      ErrorFilterOptionValidator.errorCodes.length,
+    //      errorCodeValues.length,
+    //      reason: 'some errorCodeValues have the same name',
+    //    );
   }
 }
 

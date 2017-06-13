@@ -24,7 +24,7 @@ import 'dart:io';
 
 import 'package:front_end/src/codegen/tools.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
-import 'package:front_end/src/fasta/scanner/token.dart';
+import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:path/path.dart';
 
 import 'idl_model.dart' as idlModel;
@@ -433,10 +433,12 @@ class _CodeGenerator {
     outputHeader();
     out('library analyzer.src.summary.format;');
     out();
-    out("import 'flat_buffers.dart' as fb;");
-    out("import 'idl.dart' as idl;");
     out("import 'dart:convert' as convert;");
-    out("import 'api_signature.dart' as api_sig;");
+    out();
+    out("import 'package:front_end/src/base/api_signature.dart' as api_sig;");
+    out("import 'package:front_end/src/base/flat_buffers.dart' as fb;");
+    out();
+    out("import 'idl.dart' as idl;");
     out();
     for (idlModel.EnumDeclaration enm in _idl.enums.values) {
       _generateEnumReader(enm);

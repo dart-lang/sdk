@@ -2,19 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.local_lib;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show createSuggestion, ElementSuggestionBuilder;
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
@@ -49,8 +46,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       int relevance = optype.typeNameSuggestionsFilter(
           element.type, DART_RELEVANCE_DEFAULT);
       if (relevance != null) {
-        addSuggestion(element, request.ideOptions,
-            prefix: prefix, relevance: relevance);
+        addSuggestion(element, prefix: prefix, relevance: relevance);
       }
     }
     if (optype.includeConstructorSuggestions) {
@@ -87,13 +83,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     DartType returnType = element.returnType;
     if (returnType != null && returnType.isVoid) {
       if (optype.includeVoidReturnSuggestions) {
-        addSuggestion(element, request.ideOptions,
-            prefix: prefix, relevance: relevance);
+        addSuggestion(element, prefix: prefix, relevance: relevance);
       }
     } else {
       if (optype.includeReturnValueSuggestions) {
-        addSuggestion(element, request.ideOptions,
-            prefix: prefix, relevance: relevance);
+        addSuggestion(element, prefix: prefix, relevance: relevance);
       }
     }
   }
@@ -104,8 +98,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       int relevance = element.library == containingLibrary
           ? DART_RELEVANCE_LOCAL_FUNCTION
           : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, request.ideOptions,
-          prefix: prefix, relevance: relevance);
+      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
   }
 
@@ -127,8 +120,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       } else {
         relevance = DART_RELEVANCE_DEFAULT;
       }
-      addSuggestion(element, request.ideOptions,
-          prefix: prefix, relevance: relevance);
+      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
   }
 
@@ -138,8 +130,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       int relevance = element.library == containingLibrary
           ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
           : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, request.ideOptions,
-          prefix: prefix, relevance: relevance);
+      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
   }
 
@@ -150,9 +141,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     String className = classElem.name;
     for (ConstructorElement constructor in classElem.constructors) {
       if (!constructor.isPrivate) {
-        CompletionSuggestion suggestion = createSuggestion(
-            constructor, request.ideOptions,
-            relevance: relevance);
+        CompletionSuggestion suggestion =
+            createSuggestion(constructor, relevance: relevance);
         if (suggestion != null) {
           String name = suggestion.completion;
           name = name.length > 0 ? '$className.$name' : className;
@@ -181,20 +171,11 @@ class LocalLibraryContributor extends DartCompletionContributor {
       return EMPTY_LIST;
     }
 
-    List<CompilationUnitElement> libraryUnits = await request.resolveUnits();
+    List<CompilationUnitElement> libraryUnits =
+        request.result.unit.element.library.units;
     if (libraryUnits == null) {
       return EMPTY_LIST;
     }
-
-    AstNode node = request.target.containingNode;
-
-    // If the target is in an expression
-    // then resolve the outermost/entire expression
-    await request.resolveContainingExpression(node);
-
-    // Discard any cached target information
-    // because it may have changed as a result of the resolution
-    node = request.target.containingNode;
 
     OpType optype = (request as DartCompletionRequestImpl).opType;
     LibraryElementSuggestionBuilder visitor =

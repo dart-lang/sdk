@@ -51,11 +51,12 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   final CompilerOptions _options;
   final ElementEnvironment _elementEnvironment;
+  final DartTypes _dartTypes;
   final CommonElements _commonElements;
 
   /// Subclasses of [NativeEnqueuerBase] are constructed by the backend.
-  NativeEnqueuerBase(
-      this._options, this._elementEnvironment, this._commonElements);
+  NativeEnqueuerBase(this._options, this._elementEnvironment,
+      this._commonElements, this._dartTypes);
 
   bool get enableLiveTypeAnalysis => _options.enableNativeLiveTypeAnalysis;
 
@@ -109,7 +110,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
             type == _commonElements.stringType ||
             type == _commonElements.nullType ||
             type == _commonElements.boolType ||
-            _elementEnvironment.isSubtype(type,
+            _dartTypes.isSubtype(type,
                 _elementEnvironment.getRawType(_commonElements.jsArrayClass))) {
           registerInstantiation(type);
         }
@@ -126,7 +127,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
               _elementEnvironment.getThisType(nativeClass);
           InterfaceType specType =
               _elementEnvironment.getThisType(type.element);
-          return _elementEnvironment.isSubtype(nativeType, specType);
+          return _dartTypes.isSubtype(nativeType, specType);
         }));
       } else if (type.isDynamic) {
         matchingClasses.addAll(_unusedClasses);
@@ -195,9 +196,10 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
       CompilerOptions options,
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
+      DartTypes dartTypes,
       this._backendUsageBuilder,
       this._nativeClassFinder)
-      : super(options, elementEnvironment, commonElements);
+      : super(options, elementEnvironment, commonElements, dartTypes);
 
   Iterable<ClassEntity> get nativeClassesForTesting => _nativeClasses;
 
@@ -238,12 +240,13 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
       CompilerOptions options,
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
+      DartTypes dartTypes,
       this._emitter,
       this._resolutionEnqueuer,
       this._nativeData)
-      : super(options, elementEnvironment, commonElements);
+      : super(options, elementEnvironment, commonElements, dartTypes);
 
-  WorldImpact processNativeClasses(Iterable<LibraryElement> libraries) {
+  WorldImpact processNativeClasses(Iterable<LibraryEntity> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     _unusedClasses.addAll(_resolutionEnqueuer._nativeClasses);
 

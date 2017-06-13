@@ -10,13 +10,15 @@ import 'dart:io' show File;
 
 import 'dart:convert' show JSON;
 
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
+
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     show ValidatingInstrumentation;
 
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
+import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
+    show computeDartVm, computePatchedSdk;
 
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Library, Program;
 
 import 'package:testing/testing.dart'
     show
@@ -27,6 +29,8 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription,
         StdioProcess;
+
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/errors.dart' show InputError;
 
@@ -44,7 +48,15 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
-import 'package:kernel/kernel.dart' show loadProgramFromBinary;
+import 'package:kernel/kernel.dart' show loadProgramFromBytes;
+
+import 'package:kernel/target/targets.dart' show TargetFlags;
+
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
@@ -82,11 +94,14 @@ class FastaContext extends ChainContext {
   final TranslateUri uriTranslator;
   final List<Step> steps;
   final Uri vm;
+  final Map<Program, KernelTarget> programToTarget = <Program, KernelTarget>{};
+  Uri sdk;
+  Uri platformUri;
+  Uri outlineUri;
+  List<int> outlineBytes;
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(JSON.decode(EXPECTATIONS));
-
-  Future<Program> platform;
 
   FastaContext(
       this.vm,
@@ -109,16 +124,30 @@ class FastaContext extends ChainContext {
               updateExpectations: updateExpectations)
         ] {
     if (fullCompile && !skipVm) {
+      steps.add(const Transform());
       steps.add(const WriteDill());
       steps.add(const Run());
     }
   }
 
-  Future<Program> loadPlatform() {
-    return platform ??= new Future<Program>(() async {
-      Uri sdk = await computePatchedSdk();
-      return loadProgramFromBinary(sdk.resolve('platform.dill').toFilePath());
-    });
+  Future ensurePlatformUris() async {
+    if (sdk == null) {
+      sdk = await computePatchedSdk();
+      platformUri = sdk.resolve('platform.dill');
+      outlineUri = sdk.resolve('outline.dill');
+    }
+  }
+
+  Future<Program> loadPlatformOutline() async {
+    if (outlineBytes == null) {
+      await ensurePlatformUris();
+      outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
+    }
+    // Note: we rebuild the platform outline on every test because the compiler
+    // currently mutates the in-memory representation of the program without
+    // cloning it.
+    // TODO(sigmund): investigate alternatives to this approach.
+    return loadProgramFromBytes(outlineBytes);
   }
 
   static Future<FastaContext> create(
@@ -126,8 +155,8 @@ class FastaContext extends ChainContext {
     Uri sdk = await computePatchedSdk();
     Uri vm = computeDartVm(sdk);
     Uri packages = Uri.base.resolve(".packages");
-    TranslateUri uriTranslator =
-        await TranslateUri.parse(PhysicalFileSystem.instance, packages);
+    TranslateUri uriTranslator = await TranslateUri
+        .parse(PhysicalFileSystem.instance, sdk, packages: packages);
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
@@ -157,11 +186,15 @@ class Run extends Step<Uri, int, FastaContext> {
   bool get isRuntime => true;
 
   Future<Result<int>> run(Uri uri, FastaContext context) async {
+    if (context.platformUri == null) {
+      throw "Executed `Run` step before initializing the context.";
+    }
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      process = await StdioProcess
-          .run(context.vm.toFilePath(), [generated.path, "Hello, World!"]);
+      var platformDill = context.platformUri.toFilePath();
+      var args = ['--platform=$platformDill', generated.path, "Hello, World!"];
+      process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
     } finally {
       generated.parent.delete(recursive: true);
@@ -190,34 +223,43 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
 
   Future<Result<Program>> run(
       TestDescription description, FastaContext context) async {
-    Program platform = await context.loadPlatform();
+    // Disable colors to ensure that expectation files are the same across
+    // platforms and independent of stdin/stderr.
+    CompilerContext.current.disableColors();
+    Program platformOutline = await context.loadPlatformOutline();
     Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
-    dillTarget.loader
-      ..input = Uri.parse("org.dartlang:platform") // Make up a name.
-      ..setProgram(platform);
+    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
+        new TestVmFastaTarget(new TargetFlags(strongMode: strongMode)));
+    platformOutline.unbindCanonicalNames();
+    dillTarget.loader.appendLibraries(platformOutline);
+    // We create a new URI translator to avoid reading plaform libraries from
+    // file system.
+    TranslateUri uriTranslator = new TranslateUri(
+        context.uriTranslator.packages,
+        const <String, Uri>{},
+        const <String, List<Uri>>{});
     KernelTarget sourceTarget = astKind == AstKind.Analyzer
-        ? new AnalyzerTarget(dillTarget, context.uriTranslator, strongMode)
-        : new KernelTarget(PhysicalFileSystem.instance, dillTarget,
-            context.uriTranslator, strongMode);
+        ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
+        : new KernelTarget(
+            PhysicalFileSystem.instance, dillTarget, uriTranslator);
 
     Program p;
     try {
       sourceTarget.read(description.uri);
-      await dillTarget.writeOutline(null);
+      await dillTarget.buildOutlines();
       ValidatingInstrumentation instrumentation;
       if (strongMode) {
         instrumentation = new ValidatingInstrumentation();
         await instrumentation.loadExpectations(description.uri);
         sourceTarget.loader.instrumentation = instrumentation;
       }
-      p = await sourceTarget.writeOutline(null);
+      p = await sourceTarget.buildOutlines();
       if (fullCompile) {
-        p = await sourceTarget.writeProgram(null);
+        p = await sourceTarget.buildProgram(trimDependencies: true);
         instrumentation?.finish();
         if (instrumentation != null && instrumentation.hasProblems) {
           if (updateComments) {
-            await instrumentation.fixSource(description.uri);
+            await instrumentation.fixSource(description.uri, false);
           } else {
             return fail(null, instrumentation.problemsAsString);
           }
@@ -226,6 +268,52 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     } on InputError catch (e, s) {
       return fail(null, e.error, s);
     }
+    context.programToTarget[p] = sourceTarget;
     return pass(p);
+  }
+}
+
+class Transform extends Step<Program, Program, FastaContext> {
+  const Transform();
+
+  String get name => "transform program";
+
+  Future<Result<Program>> run(Program program, FastaContext context) async {
+    KernelTarget sourceTarget = context.programToTarget[program];
+    TestVmFastaTarget backendTarget = sourceTarget.backendTarget;
+    backendTarget.enabled = true;
+    try {
+      if (sourceTarget.loader.coreTypes != null) {
+        sourceTarget.runBuildTransformations();
+      }
+    } finally {
+      backendTarget.enabled = false;
+    }
+    return pass(program);
+  }
+}
+
+class TestVmFastaTarget extends VmFastaTarget {
+  bool enabled = false;
+
+  TestVmFastaTarget(TargetFlags flags) : super(flags);
+
+  String get name => "vm_fasta";
+
+  void performModularTransformationsOnLibraries(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+      {void logger(String msg)}) {
+    if (enabled) {
+      super.performModularTransformationsOnLibraries(
+          coreTypes, hierarchy, libraries,
+          logger: logger);
+    }
+  }
+
+  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+      {void logger(String msg)}) {
+    if (enabled) {
+      super.performGlobalTransformations(coreTypes, program, logger: logger);
+    }
   }
 }

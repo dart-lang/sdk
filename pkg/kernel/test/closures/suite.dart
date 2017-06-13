@@ -6,9 +6,15 @@ library test.kernel.closures.suite;
 
 import 'dart:async' show Future;
 
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
+
+import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
+    show computePatchedSdk;
 
 import 'package:kernel/ast.dart' show Program;
 
@@ -32,6 +38,10 @@ import 'package:front_end/src/fasta/errors.dart' show InputError;
 import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
 
 import 'package:kernel/kernel.dart' show loadProgramFromBinary;
+
+import 'package:kernel/target/targets.dart' show TargetFlags;
+
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 
 const String STRONG_MODE = " strong mode ";
 
@@ -65,11 +75,12 @@ class ClosureConversionContext extends ChainContext {
 
   static Future<ClosureConversionContext> create(
       Chain suite, Map<String, String> environment) async {
+    Uri sdk = await computePatchedSdk();
     Uri packages = Uri.base.resolve(".packages");
     bool strongMode = environment.containsKey(STRONG_MODE);
     bool updateExpectations = environment["updateExpectations"] == "true";
-    TranslateUri uriTranslator =
-        await TranslateUri.parse(PhysicalFileSystem.instance, packages);
+    TranslateUri uriTranslator = await TranslateUri
+        .parse(PhysicalFileSystem.instance, sdk, packages: packages);
     return new ClosureConversionContext(
         strongMode, updateExpectations, uriTranslator);
   }
@@ -92,19 +103,19 @@ class FastaCompile
       TestDescription description, ClosureConversionContext context) async {
     Program platform = await context.loadPlatform();
     Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
-    dillTarget.loader
-      ..input = Uri.parse("org.dartlang:platform") // Make up a name.
-      ..setProgram(platform);
-    KernelTarget sourceTarget = new KernelTarget(PhysicalFileSystem.instance,
-        dillTarget, context.uriTranslator, context.strongMode);
+    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
+        new VmFastaTarget(new TargetFlags(strongMode: context.strongMode)));
+    platform.unbindCanonicalNames();
+    dillTarget.loader.appendLibraries(platform);
+    KernelTarget sourceTarget = new KernelTarget(
+        PhysicalFileSystem.instance, dillTarget, context.uriTranslator);
 
     Program p;
     try {
       sourceTarget.read(description.uri);
-      await dillTarget.writeOutline(null);
-      await sourceTarget.writeOutline(null);
-      p = await sourceTarget.writeProgram(null);
+      await dillTarget.buildOutlines();
+      await sourceTarget.buildOutlines();
+      p = await sourceTarget.buildProgram();
     } on InputError catch (e, s) {
       return fail(null, e.error, s);
     }
@@ -121,7 +132,8 @@ class ClosureConversion
   Future<Result<Program>> run(
       Program program, ClosureConversionContext testContext) async {
     try {
-      program = closure_conversion.transformProgram(program);
+      CoreTypes coreTypes = new CoreTypes(program);
+      program = closure_conversion.transformProgram(coreTypes, program);
       return pass(program);
     } catch (e, s) {
       return crash(e, s);

@@ -13,6 +13,7 @@ part of dart2js.js_emitter.program_builder;
 class Collector {
   final CompilerOptions _options;
   final CommonElements _commonElements;
+  final ElementEnvironment _elementEnvironment;
   final DeferredLoadTask _deferredLoadTask;
   final CodegenWorldBuilder _worldBuilder;
   // TODO(floitsch): the code-emitter task should not need a namer.
@@ -25,7 +26,7 @@ class Collector {
   final MirrorsData _mirrorsData;
   final ClosedWorld _closedWorld;
   final Set<ClassEntity> _rtiNeededClasses;
-  final Map<MemberElement, js.Expression> _generatedCode;
+  final Map<MemberEntity, js.Expression> _generatedCode;
   final Sorter _sorter;
 
   final Set<ClassEntity> neededClasses = new Set<ClassEntity>();
@@ -54,6 +55,7 @@ class Collector {
   Collector(
       this._options,
       this._commonElements,
+      this._elementEnvironment,
       this._deferredLoadTask,
       this._worldBuilder,
       this._namer,
@@ -70,8 +72,7 @@ class Collector {
 
   Set<ClassElement> computeInterceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
-    JavaScriptConstantCompiler handler = _constantHandler;
-    List<ConstantValue> constants = handler.getConstantsForEmission();
+    List<ConstantValue> constants = _worldBuilder.getConstantsForEmission();
     for (ConstantValue constant in constants) {
       if (constant is InterceptorConstantValue) {
         InterceptorConstantValue interceptorConstant = constant;
@@ -153,9 +154,9 @@ class Collector {
         final onlyForRti = classesOnlyNeededForRti.contains(cls);
         if (!onlyForRti) {
           _mirrorsData.retainMetadataOfClass(cls);
-          new FieldVisitor(_options, _worldBuilder, _nativeData, _mirrorsData,
-                  _namer, _closedWorld)
-              .visitFields(cls, false, (FieldElement member,
+          new FieldVisitor(_options, _elementEnvironment, _worldBuilder,
+                  _nativeData, _mirrorsData, _namer, _closedWorld)
+              .visitFields((FieldElement member,
                   js.Name name,
                   js.Name accessorName,
                   bool needsGetter,
@@ -166,15 +167,14 @@ class Collector {
                 _mirrorsData.isMemberAccessibleByReflection(member)) {
               _mirrorsData.retainMetadataOfMember(member);
             }
-          });
+          }, cls: cls);
         }
       }
       typedefsNeededForReflection.forEach(_mirrorsData.retainMetadataOfTypedef);
     }
 
-    JavaScriptConstantCompiler handler = _constantHandler;
     List<ConstantValue> constants =
-        handler.getConstantsForEmission(_emitter.compareConstants);
+        _worldBuilder.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (_emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
 
@@ -203,24 +203,24 @@ class Collector {
         .toList());
 
     // Compute needed classes.
-    Set<ClassElement> instantiatedClasses =
+    Set<ClassEntity> instantiatedClasses =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
         _worldBuilder.directlyInstantiatedClasses
             .where(computeClassFilter())
             .toSet();
 
-    void addClassWithSuperclasses(ClassElement cls) {
+    void addClassWithSuperclasses(ClassEntity cls) {
       neededClasses.add(cls);
-      for (ClassElement superclass = cls.superclass;
+      for (ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
           superclass != null;
-          superclass = superclass.superclass) {
+          superclass = _elementEnvironment.getSuperClass(superclass)) {
         neededClasses.add(superclass);
       }
     }
 
-    void addClassesWithSuperclasses(Iterable<ClassElement> classes) {
-      for (ClassElement cls in classes) {
+    void addClassesWithSuperclasses(Iterable<ClassEntity> classes) {
+      for (ClassEntity cls in classes) {
         addClassWithSuperclasses(cls);
       }
     }
@@ -229,10 +229,12 @@ class Collector {
     addClassesWithSuperclasses(instantiatedClasses);
 
     // 2. Add all classes used as mixins.
-    Set<ClassElement> mixinClasses = neededClasses
-        .where((ClassElement element) => element.isMixinApplication)
-        .map(computeMixinClass)
-        .toSet();
+    Set<ClassEntity> mixinClasses = new Set<ClassEntity>();
+    for (ClassEntity cls in neededClasses) {
+      _elementEnvironment.forEachMixin(cls, (ClassEntity mixinClass) {
+        mixinClasses.add(mixinClass);
+      });
+    }
     neededClasses.addAll(mixinClasses);
 
     // 3. Find all classes needed for rti.
@@ -280,15 +282,15 @@ class Collector {
           !classesOnlyNeededForRti.contains(cls)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClassesAndSubclasses.add(cls);
-        assert(invariant(cls, !_deferredLoadTask.isDeferredClass(cls)));
+        assert(!_deferredLoadTask.isDeferredClass(cls), failedAt(cls));
         outputClassLists
-            .putIfAbsent(_deferredLoadTask.mainOutputUnit,
-                () => new List<ClassElement>())
+            .putIfAbsent(
+                _deferredLoadTask.mainOutputUnit, () => new List<ClassEntity>())
             .add(cls);
       } else {
         outputClassLists
             .putIfAbsent(_deferredLoadTask.outputUnitForClass(cls),
-                () => new List<ClassElement>())
+                () => new List<ClassEntity>())
             .add(cls);
       }
     }

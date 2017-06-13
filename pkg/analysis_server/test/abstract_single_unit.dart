@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.src.index.abstract_single_file;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';

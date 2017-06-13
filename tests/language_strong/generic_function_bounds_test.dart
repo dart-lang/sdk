@@ -17,10 +17,10 @@ void testInstantiateToBounds() {
 
   i<T extends Iterable<T>>() => null;
   j<T extends Iterable<S>, S extends T>() => null;
-  Expect.throws(() => (i as dynamic)(),
-      (e) => '$e'.contains('Instantiate to bounds'));
-  Expect.throws(() => (j as dynamic)(),
-      (e) => '$e'.contains('Instantiate to bounds'));
+  Expect.throws(
+      () => (i as dynamic)(), (e) => '$e'.contains('Instantiate to bounds'));
+  Expect.throws(
+      () => (j as dynamic)(), (e) => '$e'.contains('Instantiate to bounds'));
 }
 
 void testChecksBound() {
@@ -28,9 +28,17 @@ void testChecksBound() {
   Expect.equals((f as dynamic)(42), 42);
   Expect.throws(() => (f as dynamic)('42'));
 
+  msg(t1, t2, tf) => Expect.throws(() => (f as dynamic)<Object>(42),
+      (e) => '$e' == 'type `Object` does not extend `num` of `T');
+
   g<T extends U, U extends num>(T x, U y) => x;
   Expect.equals((g as dynamic)(42.0, 100), 42.0);
   Expect.throws(() => (g as dynamic)('hi', 100));
+  Expect.throws(() => (g as dynamic)<double, int>(42.0, 100),
+      (e) => '$e' == 'type `double` does not extend `int` of `T`.');
+
+  Expect.throws(() => (g as dynamic)<num, Object>(42.0, 100),
+      (e) => '$e' == 'type `Object` does not extend `num` of `U`.');
 }
 
 typedef G<U> = T Function<T extends U>(T x);
@@ -56,8 +64,8 @@ void testToString() {
   num f<T extends num, U extends T>(T x, U y) => min(x, y as num);
   num g<T, U>(T x, U y) => max(x as num, y as num);
   String h<T, U>(T x, U y) => h.runtimeType.toString();
-  Expect.equals(f.runtimeType.toString(),
-      '<T extends num, U extends T>(T, U) -> num');
+  Expect.equals(
+      f.runtimeType.toString(), '<T extends num, U extends T>(T, U) -> num');
   Expect.equals(g.runtimeType.toString(), '<T, U>(T, U) -> num');
   Expect.equals(h(42, 123.0), '<T, U>(T, U) -> String');
 }

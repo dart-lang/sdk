@@ -9,9 +9,10 @@ class A {
   int x = 2;
 }
 
-test() {
+main() {
   var /*@type=A*/ a = new A();
-  A b = /*@promotedType=none*/ a; // doesn't require down cast
-  print(/*@promotedType=none*/ a.x); // doesn't require dynamic invoke
-  print(/*@promotedType=none*/ a.x + 2); // ok to use in bigger expression
+  A b = a; // doesn't require down cast
+  print(a. /*@target=A::x*/ x); // doesn't require dynamic invoke
+  print(a. /*@target=A::x*/ x /*@target=num::+*/ +
+      2); // ok to use in bigger expression
 }

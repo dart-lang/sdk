@@ -1,0 +1,29 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  constructor •() → void
+    : super self::A::•()
+    ;
+}
+class C extends self::A {
+  constructor •() → void
+    : super self::A::•()
+    ;
+}
+static method main() → dynamic async {
+  asy::Future<self::B> b = asy::Future::value<self::B>(new self::B::•());
+  asy::Future<self::C> c = asy::Future::value<self::C>(new self::C::•());
+  core::List<asy::Future<self::A>> lll = <asy::Future<self::A>>[b, c];
+  core::List<self::A> result = await asy::Future::wait<self::A>(lll);
+  core::List<self::A> result2 = await asy::Future::wait<self::A>(<asy::Future<self::A>>[b, c]);
+  core::List<self::A> list = result;
+  list = result2;
+}

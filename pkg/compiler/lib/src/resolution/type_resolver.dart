@@ -422,7 +422,7 @@ class TypeResolver {
       }
     }
 
-    types.checkTypeVariableBounds(type, checkTypeVariableBound);
+    types.genericCheckTypeVariableBounds(type, checkTypeVariableBound);
   }
 
   /**

@@ -247,30 +247,34 @@ void ObjectStore::InitKnownObjects() {
   Function& function = Function::Handle(zone);
   function_name ^= async_lib.PrivateName(Symbols::SetAsyncThreadStackTrace());
   ASSERT(!function_name.IsNull());
-  function ^= Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                      function_name, 1, Object::null_array());
+  function ^=
+      Resolver::ResolveStatic(async_lib, Object::null_string(), function_name,
+                              0, 1, Object::null_array());
   ASSERT(!function.IsNull());
   set_async_set_thread_stack_trace(function);
 
   function_name ^= async_lib.PrivateName(Symbols::ClearAsyncThreadStackTrace());
   ASSERT(!function_name.IsNull());
-  function ^= Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                      function_name, 0, Object::null_array());
+  function ^=
+      Resolver::ResolveStatic(async_lib, Object::null_string(), function_name,
+                              0, 0, Object::null_array());
   ASSERT(!function.IsNull());
   set_async_clear_thread_stack_trace(function);
 
 
   function_name ^= async_lib.PrivateName(Symbols::AsyncStarMoveNextHelper());
   ASSERT(!function_name.IsNull());
-  function ^= Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                      function_name, 1, Object::null_array());
+  function ^=
+      Resolver::ResolveStatic(async_lib, Object::null_string(), function_name,
+                              0, 1, Object::null_array());
   ASSERT(!function.IsNull());
   set_async_star_move_next_helper(function);
 
   function_name ^= async_lib.PrivateName(Symbols::_CompleteOnAsyncReturn());
   ASSERT(!function_name.IsNull());
-  function ^= Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                      function_name, 2, Object::null_array());
+  function ^=
+      Resolver::ResolveStatic(async_lib, Object::null_string(), function_name,
+                              0, 2, Object::null_array());
   ASSERT(!function.IsNull());
   set_complete_on_async_return(function);
   if (FLAG_async_debugger) {

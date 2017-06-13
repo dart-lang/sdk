@@ -34,7 +34,6 @@ import 'elements/elements.dart'
         TypedefElement;
 import 'elements/entities.dart';
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
-import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'resolution/resolution.dart' show AnalyzableElementX;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart' as ast;
@@ -44,6 +43,7 @@ import 'universe/world_impact.dart'
 import 'util/setlet.dart' show Setlet;
 import 'util/uri_extras.dart' as uri_extras;
 import 'util/util.dart' show makeUnique;
+import 'world.dart' show ClosedWorld;
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.
@@ -162,12 +162,13 @@ class DeferredLoadTask extends CompilerTask {
 
   JavaScriptBackend get backend => compiler.backend;
   DiagnosticReporter get reporter => compiler.reporter;
-  BackendUsage get _backendUsage => backend.backendUsage;
 
   /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForElement(Element element) {
+  OutputUnit outputUnitForElement(Entity entity) {
+    // TODO(johnniwinther): Support use of entities by splitting maps by
+    // entity kind.
     if (!isProgramSplit) return mainOutputUnit;
-
+    Element element = entity;
     element = element.implementation;
     while (!_elementToOutputUnit.containsKey(element)) {
       // TODO(21051): workaround: it looks like we output annotation constants
@@ -185,12 +186,12 @@ class DeferredLoadTask extends CompilerTask {
   }
 
   /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForClass(ClassElement element) {
+  OutputUnit outputUnitForClass(ClassEntity element) {
     return outputUnitForElement(element);
   }
 
   /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForMember(MemberElement element) {
+  OutputUnit outputUnitForMember(MemberEntity element) {
     return outputUnitForElement(element);
   }
 
@@ -407,15 +408,20 @@ class DeferredLoadTask extends CompilerTask {
           if (backend.constants.hasConstantValue(expression)) {
             ConstantValue value =
                 backend.constants.getConstantValue(expression);
-            assert(invariant(node, value != null,
-                message: "Constant expression without value: "
+            assert(
+                value != null,
+                failedAt(
+                    node,
+                    "Constant expression without value: "
                     "${expression.toStructuredText()}."));
             constants.add(value);
           } else {
             assert(
-                invariant(node, expression.isImplicit || expression.isPotential,
-                    message: "Unexpected unevaluated constant expression: "
-                        "${expression.toStructuredText()}."));
+                expression.isImplicit || expression.isPotential,
+                failedAt(
+                    node,
+                    "Unexpected unevaluated constant expression: "
+                    "${expression.toStructuredText()}."));
           }
         });
       }
@@ -676,7 +682,7 @@ class DeferredLoadTask extends CompilerTask {
     }
   }
 
-  void onResolutionComplete(FunctionEntity main) {
+  void onResolutionComplete(FunctionEntity main, ClosedWorld closedWorld) {
     if (!isProgramSplit) {
       allOutputUnits.add(mainOutputUnit);
       return;
@@ -700,12 +706,12 @@ class DeferredLoadTask extends CompilerTask {
               // particular element, for example, startRootIsolate.  This set
               // also contains elements for which we lack precise information.
               for (MethodElement element
-                  in _backendUsage.globalFunctionDependencies) {
+                  in closedWorld.backendUsage.globalFunctionDependencies) {
                 _mapDependencies(
                     element: element.implementation, import: _fakeMainImport);
               }
               for (ClassElement element
-                  in _backendUsage.globalClassDependencies) {
+                  in closedWorld.backendUsage.globalClassDependencies) {
                 _mapDependencies(
                     element: element.implementation, import: _fakeMainImport);
               }

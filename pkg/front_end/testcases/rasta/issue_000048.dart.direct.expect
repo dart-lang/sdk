@@ -15,8 +15,7 @@ class M1 extends core::Object {
     : super core::Object::•()
     ;
 }
-class C extends self::A implements self::M1 {
-  field core::num v2 = 0;
+class C = self::A with self::M1 {
   constructor •(core::bool v1, core::num v2) → void
     : super self::A::•(v1, v2)
     ;

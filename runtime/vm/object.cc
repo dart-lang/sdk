@@ -3570,7 +3570,7 @@ TokenPosition Class::ComputeEndTokenPos() const {
 
   const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
   if (tkns.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kAppAOT);
+    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return TokenPosition::kNoSource;
   }
   TokenStream::Iterator tkit(zone, tkns, token_pos(),
@@ -4816,7 +4816,9 @@ void TypeArguments::set_instantiations(const Array& value) const {
 
 
 intptr_t TypeArguments::Length() const {
-  ASSERT(!IsNull());
+  if (IsNull()) {
+    return 0;
+  }
   return Smi::Value(raw_ptr()->length_);
 }
 
@@ -6198,9 +6200,24 @@ intptr_t Function::NumImplicitParameters() const {
 }
 
 
-bool Function::AreValidArgumentCounts(intptr_t num_arguments,
+bool Function::AreValidArgumentCounts(intptr_t num_type_arguments,
+                                      intptr_t num_arguments,
                                       intptr_t num_named_arguments,
                                       String* error_message) const {
+  if ((num_type_arguments != 0) &&
+      (num_type_arguments != NumTypeParameters())) {
+    if (error_message != NULL) {
+      const intptr_t kMessageBufferSize = 64;
+      char message_buffer[kMessageBufferSize];
+      OS::SNPrint(message_buffer, kMessageBufferSize,
+                  "%" Pd " type arguments passed, but %" Pd " expected",
+                  num_type_arguments, NumTypeParameters());
+      // Allocate in old space because it can be invoked in background
+      // optimizing compilation.
+      *error_message = String::New(message_buffer, Heap::kOld);
+    }
+    return false;  // Too many type arguments.
+  }
   if (num_named_arguments > NumOptionalNamedParameters()) {
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
@@ -6257,13 +6274,14 @@ bool Function::AreValidArgumentCounts(intptr_t num_arguments,
 }
 
 
-bool Function::AreValidArguments(intptr_t num_arguments,
+bool Function::AreValidArguments(intptr_t num_type_arguments,
+                                 intptr_t num_arguments,
                                  const Array& argument_names,
                                  String* error_message) const {
   const intptr_t num_named_arguments =
       argument_names.IsNull() ? 0 : argument_names.Length();
-  if (!AreValidArgumentCounts(num_arguments, num_named_arguments,
-                              error_message)) {
+  if (!AreValidArgumentCounts(num_type_arguments, num_arguments,
+                              num_named_arguments, error_message)) {
     return false;
   }
   // Verify that all argument names are valid parameter names.
@@ -6304,11 +6322,12 @@ bool Function::AreValidArguments(intptr_t num_arguments,
 
 bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
                                  String* error_message) const {
+  const intptr_t num_type_arguments = args_desc.TypeArgsLen();
   const intptr_t num_arguments = args_desc.Count();
   const intptr_t num_named_arguments = args_desc.NamedCount();
 
-  if (!AreValidArgumentCounts(num_arguments, num_named_arguments,
-                              error_message)) {
+  if (!AreValidArgumentCounts(num_type_arguments, num_arguments,
+                              num_named_arguments, error_message)) {
     return false;
   }
   // Verify that all argument names are valid parameter names.
@@ -7937,7 +7956,7 @@ RawString* Field::InitializingExpression() const {
   ASSERT(!scr.IsNull());
   const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
   if (tkns.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kAppAOT);
+    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return String::null();
   }
   TokenStream::Iterator tkit(zone, tkns, token_pos());
@@ -9090,7 +9109,7 @@ RawString* Script::GenerateSource() const {
 
   const TokenStream& token_stream = TokenStream::Handle(tokens());
   if (token_stream.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kAppAOT);
+    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return String::null();
   }
   return token_stream.GenerateSource();
@@ -9455,7 +9474,7 @@ void Script::GetTokenLocation(TokenPosition token_pos,
 
   const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   if (tkns.IsNull()) {
-    ASSERT((Dart::vm_snapshot_kind() == Snapshot::kAppAOT));
+    ASSERT((Dart::vm_snapshot_kind() == Snapshot::kFullAOT));
     *line = -1;
     if (column != NULL) {
       *column = -1;
@@ -9613,7 +9632,7 @@ int32_t Script::SourceFingerprint(TokenPosition start,
 RawString* Script::GetLine(intptr_t line_number, Heap::Space space) const {
   const String& src = String::Handle(Source());
   if (src.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kAppAOT);
+    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return Symbols::OptimizedOut().raw();
   }
   intptr_t relative_line_number = line_number - line_offset();
@@ -9663,7 +9682,7 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t to_column) const {
   const String& src = String::Handle(Source());
   if (src.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kAppAOT);
+    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return Symbols::OptimizedOut().raw();
   }
   intptr_t length = src.Length();
@@ -10831,6 +10850,26 @@ RawClass* Library::LookupClassAllowPrivate(const String& name) const {
 }
 
 
+// Mixin applications can have multiple private keys from different libraries.
+RawClass* Library::SlowLookupClassAllowMultiPartPrivate(
+    const String& name) const {
+  Array& dict = Array::Handle(dictionary());
+  Object& entry = Object::Handle();
+  String& cls_name = String::Handle();
+  for (intptr_t i = 0; i < dict.Length(); i++) {
+    entry = dict.At(i);
+    if (entry.IsClass()) {
+      cls_name = Class::Cast(entry).Name();
+      // Warning: comparison is not symmetric.
+      if (String::EqualsIgnoringPrivateKey(cls_name, name)) {
+        return Class::Cast(entry).raw();
+      }
+    }
+  }
+  return Class::null();
+}
+
+
 RawLibraryPrefix* Library::LookupLocalLibraryPrefix(const String& name) const {
   const Object& obj = Object::Handle(LookupLocalObject(name));
   if (obj.IsLibraryPrefix()) {
@@ -11560,7 +11599,7 @@ bool LibraryPrefix::LoadLibrary() const {
   }
   ASSERT(is_deferred_load());
   ASSERT(num_imports() == 1);
-  if (Dart::vm_snapshot_kind() == Snapshot::kAppAOT) {
+  if (Dart::vm_snapshot_kind() == Snapshot::kFullAOT) {
     // The library list was tree-shaken away.
     this->set_is_loaded();
     return true;
@@ -12565,12 +12604,13 @@ static int PrintVarInfo(char* buffer,
   const RawLocalVarDescriptors::VarInfoKind kind = info.kind();
   const int32_t index = info.index();
   if (kind == RawLocalVarDescriptors::kContextLevel) {
-    return OS::SNPrint(buffer, len, "%2" Pd
-                                    " %-13s level=%-3d scope=%-3d"
-                                    " begin=%-3d end=%d\n",
+    return OS::SNPrint(buffer, len,
+                       "%2" Pd
+                       " %-13s level=%-3d"
+                       " begin=%-3d end=%d\n",
                        i, LocalVarDescriptors::KindToCString(kind), index,
-                       info.scope_id, static_cast<int>(info.begin_pos.Pos()),
-                       static_cast<int>(info.end_pos.Pos()));
+                       static_cast<int>(info.begin_pos.value()),
+                       static_cast<int>(info.end_pos.value()));
   } else if (kind == RawLocalVarDescriptors::kContextVar) {
     return OS::SNPrint(
         buffer, len, "%2" Pd
@@ -13026,7 +13066,7 @@ const char* ICData::ToCString() const {
 RawFunction* ICData::Owner() const {
   Object& obj = Object::Handle(raw_ptr()->owner_);
   if (obj.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kAppAOT);
+    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return Function::null();
   } else if (obj.IsFunction()) {
     return Function::Cast(obj).raw();
@@ -14223,7 +14263,7 @@ RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
   uword code_entry = instrs.PayloadStart();
   const Array& table = Array::Handle(deopt_info_array());
   if (table.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kAppAOT);
+    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return TypedData::null();
   }
   // Linear search for the PC offset matching the target PC.
@@ -15858,6 +15898,7 @@ bool Instance::IsInstanceOf(
       }
       if (instantiated_other.IsDynamicType() ||
           instantiated_other.IsObjectType() ||
+          instantiated_other.IsVoidType() ||
           instantiated_other.IsDartFunctionType()) {
         return true;
       }
@@ -15908,7 +15949,8 @@ bool Instance::IsInstanceOf(
     if (instantiated_other.IsTypeRef()) {
       instantiated_other = TypeRef::Cast(instantiated_other).type();
     }
-    if (instantiated_other.IsDynamicType()) {
+    if (instantiated_other.IsDynamicType() ||
+        instantiated_other.IsObjectType() || instantiated_other.IsVoidType()) {
       return true;
     }
   }
@@ -15943,7 +15985,7 @@ bool Instance::IsInstanceOf(
   if (IsNull()) {
     ASSERT(cls.IsNullClass());
     // As of Dart 1.5, the null instance and Null type are handled differently.
-    // We already checked for other.IsDynamicType().
+    // We already checked other for dynamic and void.
     return other_class.IsNullClass() || other_class.IsObjectClass();
   }
   return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
@@ -21337,7 +21379,9 @@ RawOneByteString* OneByteString::New(intptr_t len, Heap::Space space) {
     NoSafepointScope no_safepoint;
     RawOneByteString* result = reinterpret_cast<RawOneByteString*>(raw);
     result->StoreSmi(&(result->ptr()->length_), Smi::New(len));
+#if !defined(HASH_IN_OBJECT_HEADER)
     result->StoreSmi(&(result->ptr()->hash_), Smi::New(0));
+#endif
     return result;
   }
 }

@@ -4,9 +4,9 @@ import "dart:core" as core;
 
 static method main() → dynamic {
   core::print("Hello, World!");
-  throw new core::NoSuchMethodError::•(null, #z, <dynamic>["Hello, World!"], <dynamic, dynamic>{}, null);
-  (throw new core::NoSuchMethodError::•(null, #z, <dynamic>[], <dynamic, dynamic>{}, null)).print("Hello, World!");
-  (throw new core::NoSuchMethodError::•(null, #y, <dynamic>[], <dynamic, dynamic>{}, null)).z.print("Hello, World!");
-  (throw new core::NoSuchMethodError::•(null, #x, <dynamic>[], <dynamic, dynamic>{}, null)).y.z.print("Hello, World!");
-  1.+(core::print("Hello, World!")).+(throw new core::NoSuchMethodError::•(null, #z, <dynamic>["Hello, World!"], <dynamic, dynamic>{}, null)).+((throw new core::NoSuchMethodError::•(null, #z, <dynamic>[], <dynamic, dynamic>{}, null)).print("Hello, World!")).+((throw new core::NoSuchMethodError::•(null, #y, <dynamic>[], <dynamic, dynamic>{}, null)).z.print("Hello, World!")).+((throw new core::NoSuchMethodError::•(null, #x, <dynamic>[], <dynamic, dynamic>{}, null)).y.z.print("Hello, World!"));
+  throw new core::NoSuchMethodError::_withType(null, #z, 32, <dynamic>["Hello, World!"].toList(growable: false), <dynamic, dynamic>{}, null);
+  throw new core::NoSuchMethodError::_withType(null, #z, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
+  throw new core::NoSuchMethodError::_withType(null, #y, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
+  throw new core::NoSuchMethodError::_withType(null, #x, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
+  1.+(core::print("Hello, World!")).+(throw new core::NoSuchMethodError::_withType(null, #z, 32, <dynamic>["Hello, World!"].toList(growable: false), <dynamic, dynamic>{}, null)).+(throw new core::NoSuchMethodError::_withType(null, #z, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null)).+(throw new core::NoSuchMethodError::_withType(null, #y, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null)).+(throw new core::NoSuchMethodError::_withType(null, #x, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null));
 }

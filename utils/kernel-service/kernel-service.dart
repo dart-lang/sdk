@@ -21,17 +21,22 @@
 library runtime.tools.kernel_service;
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' hide FileSystemEntity;
 import 'dart:isolate';
 
+import 'package:front_end/file_system.dart';
+import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/fasta/vm.dart'
-    show CompilationResult, Status, parseScript;
+    show CompilationResult, Status, parseScriptInFileSystem;
+import 'package:front_end/src/testing/hybrid_file_system.dart';
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
 
 const bool strongMode = const bool.fromEnvironment('DFE_STRONG_MODE');
 
-Future<CompilationResult> _processLoadRequestImpl(String inputFilePathOrUri) {
+Future<CompilationResult> _processLoadRequestImpl(
+    String inputFilePathOrUri, FileSystem fileSystem) {
   Uri scriptUri = Uri.parse(inputFilePathOrUri);
 
   // Because we serve both Loader and bootstrapping requests we need to
@@ -48,8 +53,8 @@ Future<CompilationResult> _processLoadRequestImpl(String inputFilePathOrUri) {
     return new Future<CompilationResult>.value(new CompilationResult.error(
         "Expected 'file' scheme for a script uri: got ${scriptUri.scheme}"));
   }
-
-  return parseScript(scriptUri, verbose: verbose, strongMode: strongMode);
+  return parseScriptInFileSystem(scriptUri, fileSystem,
+      verbose: verbose, strongMode: strongMode);
 }
 
 // Process a request from the runtime. See KernelIsolate::CompileToKernel in
@@ -64,10 +69,13 @@ Future _processLoadRequest(request) async {
   int tag = request[0];
   final SendPort port = request[1];
   final String inputFileUrl = request[2];
+  FileSystem fileSystem = request.length > 3
+      ? _buildFileSystem(request[3])
+      : PhysicalFileSystem.instance;
 
   CompilationResult result;
   try {
-    result = await _processLoadRequestImpl(inputFileUrl);
+    result = await _processLoadRequestImpl(inputFileUrl, fileSystem);
   } catch (error, stack) {
     result = new CompilationResult.crash(error, stack);
   }
@@ -88,6 +96,23 @@ Future _processLoadRequest(request) async {
     }
     port.send([tag, inputFileUrl, inputFileUrl, null, result.payload]);
   }
+}
+
+/// Creates a file system containing the files specified in [namedSources] and
+/// that delegates to the underlying file system for any other file request.
+/// The [namedSources] list interleaves file name string and
+/// raw file content Uint8List.
+///
+/// The result can be used instead of PhysicalFileSystem.instance by the
+/// frontend.
+FileSystem _buildFileSystem(List namedSources) {
+  MemoryFileSystem fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+  for (int i = 0; i < namedSources.length ~/ 2; i++) {
+    fileSystem
+        .entityForUri(Uri.parse(namedSources[i * 2]))
+        .writeAsBytesSync(namedSources[i * 2 + 1]);
+  }
+  return new HybridFileSystem(fileSystem);
 }
 
 train(String scriptUri) {

@@ -22,6 +22,8 @@ import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 import 'package:front_end/src/fasta/translate_uri.dart';
 import 'package:front_end/src/fasta/parser/dart_vm_native.dart'
     show skipNativeClause;
+import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 
 /// Cumulative total number of chars scanned.
 int inputSize = 0;
@@ -163,8 +165,8 @@ Set<String> extractDirectiveUris(List<int> contents) {
   var listener = new DirectiveListenerWithNative();
   new TopLevelParser(listener).parseUnit(tokenize(contents));
   return new Set<String>()
-    ..addAll(listener.imports)
-    ..addAll(listener.exports)
+    ..addAll(listener.imports.map((directive) => directive.uri))
+    ..addAll(listener.exports.map((directive) => directive.uri))
     ..addAll(listener.parts);
 }
 
@@ -197,7 +199,7 @@ parseFull(Uri uri, List<int> source) {
 // Note: AstBuilder doesn't build compilation-units or classes, only method
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
-  _PartialAstBuilder(Uri uri) : super(null, null, null, null, null, uri);
+  _PartialAstBuilder(Uri uri) : super(null, null, null, null, null, true, uri);
 
   // Note: this method converts the body to kernel, so we skip that here.
   @override
@@ -214,9 +216,10 @@ generateKernel(Uri entryUri,
 
   var timer = new Stopwatch()..start();
   final Ticker ticker = new Ticker();
-  final DillTarget dillTarget = new DillTarget(ticker, uriResolver);
-  final KernelTarget kernelTarget = new KernelTarget(
-      PhysicalFileSystem.instance, dillTarget, uriResolver, strongMode);
+  final DillTarget dillTarget = new DillTarget(ticker, uriResolver,
+      new VmFastaTarget(new TargetFlags(strongMode: strongMode)));
+  final KernelTarget kernelTarget =
+      new KernelTarget(PhysicalFileSystem.instance, dillTarget, uriResolver);
   var entrypoints = [
     entryUri,
     // These extra libraries are added to match the same set of libraries
@@ -239,9 +242,9 @@ generateKernel(Uri entryUri,
     dillTarget.read(
         Uri.base.resolve(Platform.resolvedExecutable).resolve('platform.dill'));
   }
-  await dillTarget.writeOutline(null);
-  var program = await kernelTarget.writeOutline(null);
-  program = await kernelTarget.writeProgram(null);
+  await dillTarget.buildOutlines();
+  await kernelTarget.buildOutlines();
+  var program = await kernelTarget.buildProgram();
   if (kernelTarget.errors.isNotEmpty) {
     throw kernelTarget.errors.first;
   }

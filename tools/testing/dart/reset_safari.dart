@@ -10,7 +10,7 @@ library testing.reset_safari;
 
 import 'dart:async' show Future, Timer;
 
-import 'dart:io' show Directory, File, Platform, Process, ProcessResult;
+import 'dart:io' show Directory, File, Platform, Process;
 
 const String defaultSafariBundleLocation = "/Applications/Safari.app/";
 
@@ -111,20 +111,19 @@ String signalArgument(String defaultSignal,
 
 Future<int> kill(List<String> pids,
     {bool force: false, bool testOnly: false}) async {
-  List<String> arguments = <String>[
-    signalArgument("-TERM", force: force, testOnly: testOnly)
-  ]..addAll(pids);
-  ProcessResult result = await Process.run(killLocation, arguments);
+  var arguments = [signalArgument("-TERM", force: force, testOnly: testOnly)]
+    ..addAll(pids);
+  var result = await Process.run(killLocation, arguments);
   return result.exitCode;
 }
 
 Future<int> pkill(String pattern,
     {bool force: false, bool testOnly: false}) async {
-  List<String> arguments = <String>[
+  var arguments = [
     signalArgument("-HUP", force: force, testOnly: testOnly),
     pattern
   ];
-  ProcessResult result = await Process.run(pkillLocation, arguments);
+  var result = await Process.run(pkillLocation, arguments);
   return result.exitCode;
 }
 
@@ -138,18 +137,18 @@ Uri validatedBundleName(Uri bundle) {
 
 Future<Null> killSafari({Uri bundle}) async {
   bundle = validatedBundleName(bundle);
-  Uri safariBinary = bundle.resolve(relativeSafariLocation);
-  ProcessResult result =
+  var safariBinary = bundle.resolve(relativeSafariLocation);
+  var result =
       await Process.run(lsofLocation, ["-t", safariBinary.toFilePath()]);
   if (result.exitCode == 0) {
-    String stdout = result.stdout;
-    List<String> pids = new List<String>.from(
-        stdout.split("\n").where((String line) => !line.isEmpty));
-    Timer timer = new Timer(const Duration(seconds: 10), () {
+    var stdout = result.stdout as String;
+    var pids =
+        stdout.split("\n").where((String line) => !line.isEmpty).toList();
+    var timer = new Timer(const Duration(seconds: 10), () {
       print("Kill -9 Safari $pids");
       kill(pids, force: true);
     });
-    int exitCode = await kill(pids);
+    var exitCode = await kill(pids);
     while (exitCode == 0) {
       await pollDelay;
       print("Polling Safari $pids");
@@ -157,11 +156,11 @@ Future<Null> killSafari({Uri bundle}) async {
     }
     timer.cancel();
   }
-  Timer timer = new Timer(const Duration(seconds: 10), () {
+  var timer = new Timer(const Duration(seconds: 10), () {
     print("Kill -9 $safari");
     pkill(safari, force: true);
   });
-  int exitCode = await pkill(safari);
+  var exitCode = await pkill(safari);
   while (exitCode == 0) {
     await pollDelay;
     print("Polling $safari");
@@ -171,12 +170,12 @@ Future<Null> killSafari({Uri bundle}) async {
 }
 
 Future<Null> deleteIfExists(Uri uri) async {
-  Directory directory = new Directory.fromUri(uri);
+  var directory = new Directory.fromUri(uri);
   if (await directory.exists()) {
     print("Deleting directory '$uri'.");
     await directory.delete(recursive: true);
   } else {
-    File file = new File.fromUri(uri);
+    var file = new File.fromUri(uri);
     if (await file.exists()) {
       print("Deleting file '$uri'.");
       await file.delete();
@@ -187,15 +186,15 @@ Future<Null> deleteIfExists(Uri uri) async {
 }
 
 Future<Null> resetSafariSettings() async {
-  String home = Platform.environment["HOME"];
+  var home = Platform.environment["HOME"];
   if (!home.endsWith("/")) {
     home = "$home/";
   }
-  Uri homeDirectory = Uri.base.resolve(home);
+  var homeDirectory = Uri.base.resolve(home);
   for (String setting in safariSettings) {
     await deleteIfExists(homeDirectory.resolve(setting));
   }
-  ProcessResult result = await Process
+  var result = await Process
       .run(defaultsLocation, <String>["write", safari, knownSafariPreference]);
   if (result.exitCode != 0) {
     throw "Unable to reset Safari settings: ${result.stdout}${result.stderr}";

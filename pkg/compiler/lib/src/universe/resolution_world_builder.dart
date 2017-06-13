@@ -285,13 +285,21 @@ abstract class ResolutionWorldBuilderBase
   final Map<ClassEntity, _ClassUsage> _processedClasses =
       <ClassEntity, _ClassUsage>{};
 
+  Map<ClassEntity, _ClassUsage> get classUsageForTesting => _processedClasses;
+
   /// Map of registered usage of static members of live classes.
   final Map<Entity, _StaticMemberUsage> _staticMemberUsage =
       <Entity, _StaticMemberUsage>{};
 
+  Map<Entity, _StaticMemberUsage> get staticMemberUsageForTesting =>
+      _staticMemberUsage;
+
   /// Map of registered usage of instance members of live classes.
   final Map<MemberEntity, _MemberUsage> _instanceMemberUsage =
       <MemberEntity, _MemberUsage>{};
+
+  Map<MemberEntity, _MemberUsage> get instanceMemberUsageForTesting =>
+      _instanceMemberUsage;
 
   /// Map containing instance members of live classes that are not yet live
   /// themselves.
@@ -331,10 +339,12 @@ abstract class ResolutionWorldBuilderBase
   final ElementEnvironment _elementEnvironment;
 
   final CommonElements _commonElements;
+  final ConstantSystem _constantSystem;
 
   final NativeBasicData _nativeBasicData;
   final NativeDataBuilder _nativeDataBuilder;
   final InterceptorDataBuilder _interceptorDataBuilder;
+  final BackendUsageBuilder _backendUsageBuilder;
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
@@ -364,9 +374,11 @@ abstract class ResolutionWorldBuilderBase
   ResolutionWorldBuilderBase(
       this._elementEnvironment,
       this._commonElements,
+      this._constantSystem,
       this._nativeBasicData,
       this._nativeDataBuilder,
       this._interceptorDataBuilder,
+      this._backendUsageBuilder,
       this.selectorConstraintsStrategy) {
     _allFunctions = new FunctionSetBuilder();
   }
@@ -628,8 +640,7 @@ abstract class ResolutionWorldBuilderBase
         useSet.addAll(usage.normalUse());
         break;
       case StaticUseKind.DIRECT_INVOKE:
-        invariant(
-            element, 'Direct static use is not supported for resolution.');
+        failedAt(element, 'Direct static use is not supported for resolution.');
         break;
       case StaticUseKind.INLINING:
         throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
@@ -912,41 +923,54 @@ abstract class ResolutionWorldBuilderBase
     // variables to the super constructor.
     forEachInstantiatedClass(addSubtypes);
 
+    _classHierarchyNodes.keys.toList().forEach(_ensureClassSet);
+
     return typesImplementedBySubclasses;
   }
 }
 
 abstract class KernelResolutionWorldBuilderBase
     extends ResolutionWorldBuilderBase {
+  KernelToElementMapImpl get elementMap;
+
   KernelResolutionWorldBuilderBase(
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
+      ConstantSystem constantSystem,
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
             elementEnvironment,
             commonElements,
+            constantSystem,
             nativeBasicData,
             nativeDataBuilder,
             interceptorDataBuilder,
+            backendUsageBuilder,
             selectorConstraintsStrategy);
 
   @override
   ClosedWorld closeWorld() {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
+    _classHierarchyNodes.keys.toList().forEach(_ensureClassSet);
     _closed = true;
-    // TODO(johnniwinther): Implement this.
-    return _closedWorldCache = new KernelClosedWorld(
+    assert(
+        _classHierarchyNodes.length == _classSets.length,
+        "ClassHierarchyNode/ClassSet mismatch: "
+        "$_classHierarchyNodes vs $_classSets");
+    return _closedWorldCache = new KernelClosedWorld(elementMap,
+        elementEnvironment: _elementEnvironment,
         commonElements: _commonElements,
-        // TODO(johnniwinther): Compute these.
-        constantSystem: null,
         nativeData: _nativeDataBuilder.close(),
-        interceptorData: null,
-        backendUsage: null,
+        interceptorData: _interceptorDataBuilder.close(),
+        backendUsage: _backendUsageBuilder.close(),
+        constantSystem: _constantSystem,
         resolutionWorldBuilder: this,
+        implementedClasses: _implementedClasses,
         functionSet: _allFunctions.close(),
         allTypedefs: _allTypedefs,
         mixinUses: _mixinUses,

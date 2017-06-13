@@ -72,6 +72,7 @@ List<List<Object>> getDynamicStats() {
         if (!mappedFrame.contains('dart:_runtime/operations.dart') &&
             !mappedFrame.contains('dart:_runtime/profile.dart')) {
           src = mappedFrame;
+
           break;
         }
       }
@@ -114,10 +115,16 @@ clearDynamicStats() {
   _callMethodRecords.clear();
 }
 
-bool trackProfile = JS('bool', 'dart.global.trackDdcProfile');
+// We need to set this property while the sdk is only partially initialized
+// so we cannot use a regular Dart field.
+bool get _trackProfile => JS('bool', 'dart.__trackProfile');
+
+void trackProfile(bool flag) {
+  JS('', 'dart.__trackProfile = #', flag);
+}
 
 _trackCall(obj) {
-  if (JS('bool', '!#', trackProfile)) return;
+  if (JS('bool', '!#', _trackProfile)) return;
   int index = -1;
   _totalCallRecords++;
   if (_callMethodRecords.length == _callRecordSampleSize) {

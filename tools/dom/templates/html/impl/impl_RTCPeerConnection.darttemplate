@@ -62,5 +62,17 @@ $endif
     _getStats((value) { completer.complete(value); }, selector);
     return completer.future;
   }
+
+  @DomName('RTCPeerConnection.generateCertificate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static Future generateCertificate(/*AlgorithmIdentifier*/ keygenAlgorithm) =>
+$if DART2JS
+      JS('dynamic', 'generateCertificate(#)', keygenAlgorithm);
+$else
+      convertNativePromiseToDartFuture(_blink.BlinkRTCPeerConnection.instance
+          .generateCertificate_Callback_1_(keygenAlgorithm));
+$endif
+
 $!MEMBERS
 }

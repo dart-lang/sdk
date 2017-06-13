@@ -342,46 +342,50 @@ int b = aa;''';
   }
 
   void test_applyChanges_incremental_resetDriver() {
-    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
-    Source source = addSource(
-        "/test.dart",
-        r'''
-main() {
-  print(42);
-}
-''');
-    _performPendingAnalysisTasks();
-    expect(context.getErrors(source).errors, hasLength(0));
-    // Update the source to have a parse error.
-    // This is an incremental change, but we always invalidate DART_ERRORS.
-    context.setContents(
-        source,
-        r'''
-main() {
-  print(42)
-}
-''');
-    AnalysisCache cache = context.analysisCache;
-    expect(cache.getValue(source, PARSE_ERRORS), hasLength(1));
-    expect(cache.getState(source, DART_ERRORS), CacheState.INVALID);
-    // Perform enough analysis to prepare inputs (is not actually tested) for
-    // the DART_ERRORS computing task, but don't compute it yet.
-    context.performAnalysisTask();
-    context.performAnalysisTask();
-    expect(cache.getState(source, DART_ERRORS), CacheState.INVALID);
-    // Update the source so that PARSE_ERRORS is empty.
-    context.setContents(
-        source,
-        r'''
-main() {
-  print(42);
-}
-''');
-    expect(cache.getValue(source, PARSE_ERRORS), hasLength(0));
-    // After full analysis DART_ERRORS should also be empty.
-    _performPendingAnalysisTasks();
-    expect(cache.getValue(source, DART_ERRORS), hasLength(0));
-    expect(context.getErrors(source).errors, hasLength(0));
+    // AnalysisContext incremental analysis has been removed
+    if (context != null) return;
+    throw 'is this test used by the new analysis driver?';
+
+//    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
+//    Source source = addSource(
+//        "/test.dart",
+//        r'''
+//main() {
+//  print(42);
+//}
+//''');
+//    _performPendingAnalysisTasks();
+//    expect(context.getErrors(source).errors, hasLength(0));
+//    // Update the source to have a parse error.
+//    // This is an incremental change, but we always invalidate DART_ERRORS.
+//    context.setContents(
+//        source,
+//        r'''
+//main() {
+//  print(42)
+//}
+//''');
+//    AnalysisCache cache = context.analysisCache;
+//    expect(cache.getValue(source, PARSE_ERRORS), hasLength(1));
+//    expect(cache.getState(source, DART_ERRORS), CacheState.INVALID);
+//    // Perform enough analysis to prepare inputs (is not actually tested) for
+//    // the DART_ERRORS computing task, but don't compute it yet.
+//    context.performAnalysisTask();
+//    context.performAnalysisTask();
+//    expect(cache.getState(source, DART_ERRORS), CacheState.INVALID);
+//    // Update the source so that PARSE_ERRORS is empty.
+//    context.setContents(
+//        source,
+//        r'''
+//main() {
+//  print(42);
+//}
+//''');
+//    expect(cache.getValue(source, PARSE_ERRORS), hasLength(0));
+//    // After full analysis DART_ERRORS should also be empty.
+//    _performPendingAnalysisTasks();
+//    expect(cache.getValue(source, DART_ERRORS), hasLength(0));
+//    expect(context.getErrors(source).errors, hasLength(0));
   }
 
   void test_applyChanges_overriddenSource() {
@@ -473,35 +477,39 @@ import 'libB.dart';''';
    * So, we need to try to use incremental resolution for removing overlays too.
    */
   void test_applyChanges_remove_incremental() {
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-    Source source = resourceProvider
-        .newFile(
-            '/test.dart',
-            r'''
-main() {
-  print(1);
-}
-''')
-        .createSource();
-    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
-    context.applyChanges(new ChangeSet()..addedSource(source));
-    // remember compilation unit
-    _analyzeAll_assertFinished();
-    CompilationUnit unit = context.getResolvedCompilationUnit2(source, source);
-    // add overlay
-    context.setContents(
-        source,
-        r'''
-main() {
-  print(12);
-}
-''');
-    _analyzeAll_assertFinished();
-    expect(context.getResolvedCompilationUnit2(source, source), unit);
-    // remove overlay
-    context.setContents(source, null);
-    _analyzeAll_assertFinished();
-    expect(context.getResolvedCompilationUnit2(source, source), unit);
+    // AnalysisContext incremental analysis has been removed
+    if (context != null) return;
+    throw 'is this test used by the new analysis driver?';
+
+//    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+//    Source source = resourceProvider
+//        .newFile(
+//            '/test.dart',
+//            r'''
+//main() {
+//  print(1);
+//}
+//''')
+//        .createSource();
+//    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
+//    context.applyChanges(new ChangeSet()..addedSource(source));
+//    // remember compilation unit
+//    _analyzeAll_assertFinished();
+//    CompilationUnit unit = context.getResolvedCompilationUnit2(source, source);
+//    // add overlay
+//    context.setContents(
+//        source,
+//        r'''
+//main() {
+//  print(12);
+//}
+//''');
+//    _analyzeAll_assertFinished();
+//    expect(context.getResolvedCompilationUnit2(source, source), unit);
+//    // remove overlay
+//    context.setContents(source, null);
+//    _analyzeAll_assertFinished();
+//    expect(context.getResolvedCompilationUnit2(source, source), unit);
   }
 
   Future test_applyChanges_removeContainer() {
@@ -2770,16 +2778,20 @@ int aa = 0;''';
   }
 
   void test_setContents_null() {
-    Source librarySource = addSource(
-        "/lib.dart",
-        r'''
-library lib;
-int a = 0;''');
-    context.setContents(librarySource, '// different');
-    context.computeLibraryElement(librarySource);
-    context.setContents(librarySource, null);
-    expect(context.getResolvedCompilationUnit2(librarySource, librarySource),
-        isNull);
+    // AnalysisContext incremental analysis has been removed
+    if (context != null) return;
+    throw 'is this test used by the new analysis driver?';
+
+//    Source librarySource = addSource(
+//        "/lib.dart",
+//        r'''
+//library lib;
+//int a = 0;''');
+//    context.setContents(librarySource, '// different');
+//    context.computeLibraryElement(librarySource);
+//    context.setContents(librarySource, null);
+//    expect(context.getResolvedCompilationUnit2(librarySource, librarySource),
+//        isNull);
   }
 
   void test_setContents_unchanged_consistentModificationTime() {

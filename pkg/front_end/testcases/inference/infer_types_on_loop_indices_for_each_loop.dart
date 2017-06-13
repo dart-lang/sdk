@@ -11,61 +11,59 @@ class Foo {
 
 class Bar<T extends Iterable<String>> {
   void foo(T t) {
-    for (var i in /*@promotedType=none*/ t) {
-      int x = /*error:INVALID_ASSIGNMENT*/ /*@promotedType=none*/ i;
+    for (var /*@type=String*/ i in t) {
+      int x = /*error:INVALID_ASSIGNMENT*/ i;
     }
   }
 }
 
 class Baz<T, E extends Iterable<T>, S extends E> {
   void foo(S t) {
-    for (var i in /*@promotedType=none*/ t) {
-      int x = /*error:INVALID_ASSIGNMENT*/ /*@promotedType=none*/ i;
-      T y = /*@promotedType=none*/ i;
+    for (var /*@type=Baz::T*/ i in t) {
+      int x = /*error:INVALID_ASSIGNMENT*/ i;
+      T y = i;
     }
   }
 }
 
 test() {
   var /*@type=List<Foo>*/ list = <Foo>[];
-  for (var x in /*@promotedType=none*/ list) {
-    String y = /*error:INVALID_ASSIGNMENT*/ /*@promotedType=none*/ x;
+  for (var /*@type=Foo*/ x in list) {
+    String y = /*error:INVALID_ASSIGNMENT*/ x;
   }
 
-  for (dynamic x in /*@promotedType=none*/ list) {
-    String y = /*info:DYNAMIC_CAST*/ /*@promotedType=none*/ x;
+  for (dynamic x in list) {
+    String y = /*info:DYNAMIC_CAST*/ x;
   }
 
-  for (String x
-      in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ /*@promotedType=none*/ list) {
-    String y = /*@promotedType=none*/ x;
+  for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ list) {
+    String y = x;
   }
 
   var /*@type=dynamic*/ z;
-  for (z in /*@promotedType=none*/ list) {
-    String y = /*info:DYNAMIC_CAST*/ /*@promotedType=none*/ z;
+  for (z in list) {
+    String y = /*info:DYNAMIC_CAST*/ z;
   }
 
-  Iterable iter = /*@promotedType=none*/ list;
-  for (Foo /*info:DYNAMIC_CAST*/ x in /*@promotedType=none*/ iter) {
-    var /*@type=Foo*/ y = /*@promotedType=none*/ x;
+  Iterable iter = list;
+  for (Foo /*info:DYNAMIC_CAST*/ x in iter) {
+    var /*@type=Foo*/ y = x;
   }
 
-  dynamic iter2 = /*@promotedType=none*/ list;
-  for (Foo /*info:DYNAMIC_CAST*/ x
-      in /*info:DYNAMIC_CAST*/ /*@promotedType=none*/ iter2) {
-    var /*@type=Foo*/ y = /*@promotedType=none*/ x;
+  dynamic iter2 = list;
+  for (Foo /*info:DYNAMIC_CAST*/ x in /*info:DYNAMIC_CAST*/ iter2) {
+    var /*@type=Foo*/ y = x;
   }
 
   var /*@type=Map<String, Foo>*/ map = <String, Foo>{};
   // Error: map must be an Iterable.
-  for (var x in /*error:FOR_IN_OF_INVALID_TYPE*/ /*@promotedType=none*/ map) {
-    String y = /*info:DYNAMIC_CAST*/ /*@promotedType=none*/ x;
+  for (var /*@type=dynamic*/ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
+    String y = /*info:DYNAMIC_CAST*/ x;
   }
 
   // We're not properly inferring that map.keys is an Iterable<String>
   // and that x is a String.
-  for (var x in /*@promotedType=none*/ map.keys) {
-    String y = /*@promotedType=none*/ x;
+  for (var /*@type=String*/ x in map. /*@target=Map::keys*/ keys) {
+    String y = x;
   }
 }

@@ -20,6 +20,7 @@ class BitVector;
 class BlockEntryInstr;
 class BoxIntegerInstr;
 class BufferFormatter;
+class CallTargets;
 class CatchBlockEntryInstr;
 class ComparisonInstr;
 class Definition;
@@ -452,7 +453,7 @@ class EmbeddedArray<T, 0> {
   M(OneByteStringFromCharCode)                                                 \
   M(StringInterpolate)                                                         \
   M(InvokeMathCFunction)                                                       \
-  M(MergedMath)                                                                \
+  M(TruncDivMod)                                                               \
   M(GuardFieldClass)                                                           \
   M(GuardFieldLength)                                                          \
   M(IfThenElse)                                                                \
@@ -549,42 +550,61 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #endif  // !PRODUCT
 
 
-// Represents a mapping from a range of class-ids to a method for a given
-// selector (method name).  Also can contain an indication of how frequently a
-// given method has been called at a call site.  This information can be
-// harvested from the inline caches (ICs).
-struct CidRangeTarget {
+// Represents a range of class-ids for use in class checks and polymorphic
+// dispatches.
+struct CidRange : public ZoneAllocated {
+  CidRange(const CidRange& o)
+      : ZoneAllocated(), cid_start(o.cid_start), cid_end(o.cid_end) {}
+  CidRange(intptr_t cid_start_arg, intptr_t cid_end_arg)
+      : cid_start(cid_start_arg), cid_end(cid_end_arg) {}
+
+  bool IsSingleCid() const { return cid_start == cid_end; }
+  bool Contains(intptr_t cid) { return cid_start <= cid && cid <= cid_end; }
+  int32_t Extent() const { return cid_end - cid_start; }
+
   intptr_t cid_start;
   intptr_t cid_end;
-  Function* target;
-  intptr_t count;
-  CidRangeTarget(intptr_t cid_start_arg,
-                 intptr_t cid_end_arg,
-                 Function* target_arg,
-                 intptr_t count_arg)
-      : cid_start(cid_start_arg),
-        cid_end(cid_end_arg),
+};
+
+
+// Together with CidRange, this represents a mapping from a range of class-ids
+// to a method for a given selector (method name).  Also can contain an
+// indication of how frequently a given method has been called at a call site.
+// This information can be harvested from the inline caches (ICs).
+struct TargetInfo : public CidRange {
+  TargetInfo(intptr_t cid_start_arg,
+             intptr_t cid_end_arg,
+             const Function* target_arg,
+             intptr_t count_arg)
+      : CidRange(cid_start_arg, cid_end_arg),
         target(target_arg),
         count(count_arg) {
     ASSERT(target->IsZoneHandle());
   }
+  const Function* target;
+  intptr_t count;
 };
 
 
-class CallTargets : public ZoneAllocated {
+// A set of class-ids, arranged in ranges. Used for the CheckClass
+// and PolymorphicInstanceCall instructions.
+class Cids : public ZoneAllocated {
  public:
-  // Creates the off-heap CallTargets object that reflects the contents
-  // of the on-VM-heap IC data. Also expands the class-ids to neighbouring
-  // classes that inherit the same method.
-  static CallTargets* Create(Zone* zone, const ICData& ic_data);
+  explicit Cids(Zone* zone) : zone_(zone) {}
+  // Creates the off-heap Cids object that reflects the contents
+  // of the on-VM-heap IC data.
+  static Cids* Create(Zone* zone, const ICData& ic_data, int argument_number);
+  static Cids* CreateMonomorphic(Zone* zone, intptr_t cid);
 
-  void Add(const CidRangeTarget& target) { cid_ranges_.Add(target); }
+  bool Equals(const Cids& other) const;
 
-  CidRangeTarget& operator[](intptr_t index) const {
-    return cid_ranges_[index];
-  }
+  bool HasClassId(intptr_t cid) const;
 
-  CidRangeTarget At(int index) { return cid_ranges_.At(index); }
+  void Add(CidRange* target) { cid_ranges_.Add(target); }
+
+  CidRange& operator[](intptr_t index) const { return *cid_ranges_[index]; }
+
+  CidRange* At(int index) const { return cid_ranges_[index]; }
 
   intptr_t length() const { return cid_ranges_.length(); }
 
@@ -592,21 +612,51 @@ class CallTargets : public ZoneAllocated {
 
   bool is_empty() const { return cid_ranges_.is_empty(); }
 
-  void Sort(int compare(const CidRangeTarget* a, const CidRangeTarget* b)) {
+  void Sort(int compare(CidRange* const* a, CidRange* const* b)) {
     cid_ranges_.Sort(compare);
   }
+
+  bool IsMonomorphic() const;
+  intptr_t MonomorphicReceiverCid() const;
+  bool ContainsExternalizableCids() const;
+  intptr_t ComputeLowestCid() const;
+  intptr_t ComputeHighestCid() const;
+
+ protected:
+  void CreateHelper(Zone* zone,
+                    const ICData& ic_data,
+                    int argument_number,
+                    bool include_targets);
+  GrowableArray<CidRange*> cid_ranges_;
+  Zone* zone_;
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Cids);
+};
+
+
+class CallTargets : public Cids {
+ public:
+  explicit CallTargets(Zone* zone) : Cids(zone) {}
+  // Creates the off-heap CallTargets object that reflects the contents
+  // of the on-VM-heap IC data.
+  static CallTargets* Create(Zone* zone, const ICData& ic_data);
+
+  // This variant also expands the class-ids to neighbouring classes that
+  // inherit the same method.
+  static CallTargets* CreateAndExpand(Zone* zone, const ICData& ic_data);
+
+  TargetInfo* TargetAt(int i) const { return static_cast<TargetInfo*>(At(i)); }
 
   intptr_t AggregateCallCount() const;
 
   bool HasSingleTarget() const;
   bool HasSingleRecognizedTarget() const;
-  Function& FirstTarget() const;
-  Function& MostPopularTarget() const;
-  bool IsMonomorphic() const;
-  intptr_t MonomorphicReceiverCid() const;
+  const Function& FirstTarget() const;
+  const Function& MostPopularTarget() const;
 
  private:
-  GrowableArray<CidRangeTarget> cid_ranges_;
+  void MergeIntoRanges();
 };
 
 
@@ -883,6 +933,8 @@ class Instruction : public ZoneAllocated {
   friend class Scheduler;
   friend class BlockEntryInstr;
   friend class CatchBlockEntryInstr;  // deopt_id_
+  friend class DebugStepCheckInstr;   // deopt_id_
+  friend class StrictCompareInstr;    // deopt_id_
 
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const { return deopt_id_; }
@@ -1212,8 +1264,8 @@ class BlockEntryInstr : public Instruction {
   DEFINE_INSTRUCTION_TYPE_CHECK(BlockEntry)
 
  protected:
-  BlockEntryInstr(intptr_t block_id, intptr_t try_index)
-      : Instruction(Thread::Current()->GetNextDeoptId()),
+  BlockEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t deopt_id)
+      : Instruction(deopt_id),
         block_id_(block_id),
         try_index_(try_index),
         preorder_number_(-1),
@@ -1392,8 +1444,8 @@ class GraphEntryInstr : public BlockEntryInstr {
 
 class JoinEntryInstr : public BlockEntryInstr {
  public:
-  JoinEntryInstr(intptr_t block_id, intptr_t try_index)
-      : BlockEntryInstr(block_id, try_index),
+  JoinEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t deopt_id)
+      : BlockEntryInstr(block_id, try_index, deopt_id),
         predecessors_(2),  // Two is the assumed to be the common case.
         phis_(NULL) {}
 
@@ -1462,8 +1514,8 @@ class PhiIterator : public ValueObject {
 
 class TargetEntryInstr : public BlockEntryInstr {
  public:
-  TargetEntryInstr(intptr_t block_id, intptr_t try_index)
-      : BlockEntryInstr(block_id, try_index),
+  TargetEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t deopt_id)
+      : BlockEntryInstr(block_id, try_index, deopt_id),
         predecessor_(NULL),
         edge_weight_(0.0) {}
 
@@ -1503,8 +1555,10 @@ class IndirectEntryInstr : public JoinEntryInstr {
  public:
   IndirectEntryInstr(intptr_t block_id,
                      intptr_t indirect_id,
-                     intptr_t try_index)
-      : JoinEntryInstr(block_id, try_index), indirect_id_(indirect_id) {}
+                     intptr_t try_index,
+                     intptr_t deopt_id)
+      : JoinEntryInstr(block_id, try_index, deopt_id),
+        indirect_id_(indirect_id) {}
 
   DECLARE_INSTRUCTION(IndirectEntry)
 
@@ -1531,7 +1585,7 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
                        bool needs_stacktrace,
                        intptr_t deopt_id,
                        bool should_restore_closure_context = false)
-      : BlockEntryInstr(block_id, try_index),
+      : BlockEntryInstr(block_id, try_index, deopt_id),
         graph_entry_(graph_entry),
         predecessor_(NULL),
         catch_handler_types_(Array::ZoneHandle(handler_types.raw())),
@@ -1541,9 +1595,7 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
         needs_stacktrace_(needs_stacktrace),
         should_restore_closure_context_(should_restore_closure_context),
         handler_token_pos_(handler_token_pos),
-        is_generated_(is_generated) {
-    deopt_id_ = deopt_id;
-  }
+        is_generated_(is_generated) {}
 
   DECLARE_INSTRUCTION(CatchBlockEntry)
 
@@ -2058,9 +2110,8 @@ inline Definition* Instruction::ArgumentAt(intptr_t index) const {
 
 class ReturnInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  ReturnInstr(TokenPosition token_pos, Value* value)
-      : TemplateInstruction(Thread::Current()->GetNextDeoptId()),
-        token_pos_(token_pos) {
+  ReturnInstr(TokenPosition token_pos, Value* value, intptr_t deopt_id)
+      : TemplateInstruction(deopt_id), token_pos_(token_pos) {
     SetInputAt(0, value);
   }
 
@@ -2088,9 +2139,8 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
 
 class ThrowInstr : public TemplateInstruction<0, Throws> {
  public:
-  explicit ThrowInstr(TokenPosition token_pos)
-      : TemplateInstruction(Thread::Current()->GetNextDeoptId()),
-        token_pos_(token_pos) {}
+  explicit ThrowInstr(TokenPosition token_pos, intptr_t deopt_id)
+      : TemplateInstruction(deopt_id), token_pos_(token_pos) {}
 
   DECLARE_INSTRUCTION(Throw)
 
@@ -2113,8 +2163,10 @@ class ReThrowInstr : public TemplateInstruction<0, Throws> {
  public:
   // 'catch_try_index' can be CatchClauseNode::kInvalidTryIndex if the
   // rethrow has been artificially generated by the parser.
-  ReThrowInstr(TokenPosition token_pos, intptr_t catch_try_index)
-      : TemplateInstruction(Thread::Current()->GetNextDeoptId()),
+  ReThrowInstr(TokenPosition token_pos,
+               intptr_t catch_try_index,
+               intptr_t deopt_id)
+      : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
         catch_try_index_(catch_try_index) {}
 
@@ -2164,8 +2216,8 @@ class StopInstr : public TemplateInstruction<0, NoThrow> {
 
 class GotoInstr : public TemplateInstruction<0, NoThrow> {
  public:
-  explicit GotoInstr(JoinEntryInstr* entry)
-      : TemplateInstruction(Thread::Current()->GetNextDeoptId()),
+  explicit GotoInstr(JoinEntryInstr* entry, intptr_t deopt_id)
+      : TemplateInstruction(deopt_id),
         block_(NULL),
         successor_(entry),
         edge_weight_(0.0),
@@ -2378,10 +2430,8 @@ class TemplateComparison
 
 class BranchInstr : public Instruction {
  public:
-  explicit BranchInstr(ComparisonInstr* comparison)
-      : Instruction(Thread::Current()->GetNextDeoptId()),
-        comparison_(comparison),
-        constant_target_(NULL) {
+  explicit BranchInstr(ComparisonInstr* comparison, intptr_t deopt_id)
+      : Instruction(deopt_id), comparison_(comparison), constant_target_(NULL) {
     ASSERT(comparison->env() == NULL);
     for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
       comparison->InputAt(i)->set_instruction(this);
@@ -2660,9 +2710,8 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
 
 class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
-  AssertBooleanInstr(TokenPosition token_pos, Value* value)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
-        token_pos_(token_pos) {
+  AssertBooleanInstr(TokenPosition token_pos, Value* value, intptr_t deopt_id)
+      : TemplateDefinition(deopt_id), token_pos_(token_pos) {
     SetInputAt(0, value);
   }
 
@@ -2691,8 +2740,8 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
 // a computation, not a value, because it's mutable.
 class CurrentContextInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  CurrentContextInstr()
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()) {}
+  explicit CurrentContextInstr(intptr_t deopt_id)
+      : TemplateDefinition(deopt_id) {}
 
   DECLARE_INSTRUCTION(CurrentContext)
   virtual CompileType ComputeType() const;
@@ -2708,38 +2757,100 @@ class CurrentContextInstr : public TemplateDefinition<0, NoThrow> {
 };
 
 
-class ClosureCallInstr : public TemplateDefinition<1, Throws> {
+struct ArgumentsInfo {
+  ArgumentsInfo(intptr_t type_args_len,
+                intptr_t pushed_argc,
+                const Array& argument_names)
+      : type_args_len(type_args_len),
+        pushed_argc(pushed_argc),
+        argument_names(argument_names) {}
+
+  RawArray* ToArgumentsDescriptor() const {
+    return ArgumentsDescriptor::New(type_args_len,
+                                    pushed_argc - (type_args_len > 0 ? 1 : 0),
+                                    argument_names);
+  }
+
+  intptr_t type_args_len;
+  intptr_t pushed_argc;
+  const Array& argument_names;
+};
+
+
+template <intptr_t kInputCount>
+class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
+ public:
+  TemplateDartCall(intptr_t deopt_id,
+                   intptr_t type_args_len,
+                   const Array& argument_names,
+                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                   TokenPosition token_pos)
+      : TemplateDefinition<kInputCount, Throws>(deopt_id),
+        type_args_len_(type_args_len),
+        argument_names_(argument_names),
+        arguments_(arguments),
+        token_pos_(token_pos) {
+    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
+  }
+
+  intptr_t FirstParamIndex() const { return type_args_len() > 0 ? 1 : 0; }
+  intptr_t ArgumentCountWithoutTypeArgs() const {
+    return arguments_->length() - FirstParamIndex();
+  }
+  // ArgumentCount() includes the type argument vector if any.
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
+  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
+    return (*arguments_)[index];
+  }
+  intptr_t type_args_len() const { return type_args_len_; }
+  const Array& argument_names() const { return argument_names_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
+  RawArray* GetArgumentsDescriptor() const {
+    return ArgumentsDescriptor::New(
+        type_args_len(), ArgumentCountWithoutTypeArgs(), argument_names());
+  }
+
+ private:
+  intptr_t type_args_len_;
+  const Array& argument_names_;
+  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
+  TokenPosition token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(TemplateDartCall);
+};
+
+
+class ClosureCallInstr : public TemplateDartCall<1> {
  public:
   ClosureCallInstr(Value* function,
                    ClosureCallNode* node,
-                   ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
-        argument_names_(node->arguments()->names()),
-        token_pos_(node->token_pos()),
-        arguments_(arguments) {
+                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                   intptr_t deopt_id)
+      : TemplateDartCall(deopt_id,
+                         node->arguments()->type_args_len(),
+                         node->arguments()->names(),
+                         arguments,
+                         node->token_pos()) {
+    ASSERT(!arguments->is_empty());
     SetInputAt(0, function);
   }
 
   ClosureCallInstr(Value* function,
                    ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                   intptr_t type_args_len,
                    const Array& argument_names,
-                   TokenPosition token_pos)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
-        argument_names_(argument_names),
-        token_pos_(token_pos),
-        arguments_(arguments) {
+                   TokenPosition token_pos,
+                   intptr_t deopt_id)
+      : TemplateDartCall(deopt_id,
+                         type_args_len,
+                         argument_names,
+                         arguments,
+                         token_pos) {
+    ASSERT(!arguments->is_empty());
     SetInputAt(0, function);
   }
 
   DECLARE_INSTRUCTION(ClosureCall)
-
-  const Array& argument_names() const { return argument_names_; }
-  virtual TokenPosition token_pos() const { return token_pos_; }
-
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
 
   // TODO(kmillikin): implement exact call counts for closure calls.
   virtual intptr_t CallCount() const { return 1; }
@@ -2751,36 +2862,34 @@ class ClosureCallInstr : public TemplateDefinition<1, Throws> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  const Array& argument_names_;
-  TokenPosition token_pos_;
-  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
-
   DISALLOW_COPY_AND_ASSIGN(ClosureCallInstr);
 };
 
 
-class InstanceCallInstr : public TemplateDefinition<0, Throws> {
+class InstanceCallInstr : public TemplateDartCall<0> {
  public:
   InstanceCallInstr(TokenPosition token_pos,
                     const String& function_name,
                     Token::Kind token_kind,
                     ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                    intptr_t type_args_len,
                     const Array& argument_names,
                     intptr_t checked_argument_count,
-                    const ZoneGrowableArray<const ICData*>& ic_data_array)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
+                    const ZoneGrowableArray<const ICData*>& ic_data_array,
+                    intptr_t deopt_id)
+      : TemplateDartCall(deopt_id,
+                         type_args_len,
+                         argument_names,
+                         arguments,
+                         token_pos),
         ic_data_(NULL),
-        token_pos_(token_pos),
         function_name_(function_name),
         token_kind_(token_kind),
-        arguments_(arguments),
-        argument_names_(argument_names),
         checked_argument_count_(checked_argument_count),
         has_unique_selector_(false) {
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
-    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsEqualityOperator(token_kind) ||
            Token::IsRelationalOperator(token_kind) ||
@@ -2799,18 +2908,16 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
   // ICData can be replaced by optimizer.
   void set_ic_data(const ICData* value) { ic_data_ = value; }
 
-  virtual TokenPosition token_pos() const { return token_pos_; }
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
-  const Array& argument_names() const { return argument_names_; }
   intptr_t checked_argument_count() const { return checked_argument_count_; }
 
   bool has_unique_selector() const { return has_unique_selector_; }
   void set_has_unique_selector(bool b) { has_unique_selector_ = b; }
+
+  virtual intptr_t CallCount() const {
+    return ic_data() == NULL ? 0 : ic_data()->AggregateCount();
+  }
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
@@ -2828,17 +2935,16 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   bool MatchesCoreName(const String& name);
 
+  RawFunction* ResolveForReceiverClass(const Class& cls);
+
  protected:
   friend class JitOptimizer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
 
  private:
   const ICData* ic_data_;
-  const TokenPosition token_pos_;
   const String& function_name_;
   const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
-  ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
-  const Array& argument_names_;
   const intptr_t checked_argument_count_;
   bool has_unique_selector_;
 
@@ -2850,12 +2956,10 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
  public:
   PolymorphicInstanceCallInstr(InstanceCallInstr* instance_call,
                                const CallTargets& targets,
-                               bool with_checks,
                                bool complete)
       : TemplateDefinition(instance_call->deopt_id()),
         instance_call_(instance_call),
         targets_(targets),
-        with_checks_(with_checks),
         complete_(complete) {
     ASSERT(instance_call_ != NULL);
     ASSERT(targets.length() != 0);
@@ -2863,8 +2967,6 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
   }
 
   InstanceCallInstr* instance_call() const { return instance_call_; }
-  bool with_checks() const { return with_checks_; }
-  void set_with_checks(bool b) { with_checks_ = b; }
   bool complete() const { return complete_; }
   virtual TokenPosition token_pos() const {
     return instance_call_->token_pos();
@@ -2878,6 +2980,10 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
   virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     return instance_call()->PushArgumentAt(index);
   }
+  const Array& argument_names() const {
+    return instance_call()->argument_names();
+  }
+  intptr_t type_args_len() const { return instance_call()->type_args_len(); }
 
   bool HasOnlyDispatcherOrImplicitAccessorTargets() const;
 
@@ -2889,9 +2995,9 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
   virtual intptr_t CallCount() const;
 
   // If this polymophic call site was created to cover the remaining cids after
-  // inlinng then we need to keep track of the total number of calls including
-  // the ones that wer inlined. This is different from the CallCount above:  Eg
-  // if there  were 100 calls originally, distributed across three class-ids in
+  // inlining then we need to keep track of the total number of calls including
+  // the ones that we inlined. This is different from the CallCount above:  Eg
+  // if there were 100 calls originally, distributed across three class-ids in
   // the ratio 50, 40, 7, 3.  The first two were inlined, so now we have only
   // 10 calls in the CallCount above, but the heuristics need to know that the
   // last two cids cover 7% and 3% of the calls, not 70% and 30%.
@@ -2914,7 +3020,6 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
  private:
   InstanceCallInstr* instance_call_;
   const CallTargets& targets_;
-  bool with_checks_;
   const bool complete_;
   intptr_t total_call_count_;
 
@@ -2930,7 +3035,8 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
                      Token::Kind kind,
                      Value* left,
                      Value* right,
-                     bool needs_number_check);
+                     bool needs_number_check,
+                     intptr_t deopt_id);
 
   DECLARE_INSTRUCTION(StrictCompare)
 
@@ -3000,21 +3106,19 @@ class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
 
 
 // Checks the input value cid against cids stored in a table and returns either
-// a result or deoptimizes.
+// a result or deoptimizes.  If the cid is not in the list and there is a deopt
+// id, then the instruction deoptimizes.  If there is no deopt id, all the
+// results must be the same (all true or all false) and the instruction returns
+// the opposite for cids not on the list.  The first element in the table must
+// always be the result for the Smi class-id and is allowed to differ from the
+// other results even in the no-deopt case.
 class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
  public:
   TestCidsInstr(TokenPosition token_pos,
                 Token::Kind kind,
                 Value* value,
                 const ZoneGrowableArray<intptr_t>& cid_results,
-                intptr_t deopt_id)
-      : TemplateComparison(token_pos, kind, deopt_id),
-        cid_results_(cid_results),
-        licm_hoisted_(false) {
-    ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
-    SetInputAt(0, value);
-    set_operation_cid(kObjectCid);
-  }
+                intptr_t deopt_id);
 
   const ZoneGrowableArray<intptr_t>& cid_results() const {
     return cid_results_;
@@ -3142,8 +3246,11 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
 // materialization of true and false constants.
 class IfThenElseInstr : public Definition {
  public:
-  IfThenElseInstr(ComparisonInstr* comparison, Value* if_true, Value* if_false)
-      : Definition(Thread::Current()->GetNextDeoptId()),
+  IfThenElseInstr(ComparisonInstr* comparison,
+                  Value* if_true,
+                  Value* if_false,
+                  intptr_t deopt_id)
+      : Definition(deopt_id),
         comparison_(comparison),
         if_true_(Smi::Cast(if_true->BoundConstant()).Value()),
         if_false_(Smi::Cast(if_false->BoundConstant()).Value()) {
@@ -3218,45 +3325,67 @@ class IfThenElseInstr : public Definition {
 };
 
 
-class StaticCallInstr : public TemplateDefinition<0, Throws> {
+class StaticCallInstr : public TemplateDartCall<0> {
  public:
   StaticCallInstr(TokenPosition token_pos,
                   const Function& function,
+                  intptr_t type_args_len,
                   const Array& argument_names,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
-                  const ZoneGrowableArray<const ICData*>& ic_data_array)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
+                  const ZoneGrowableArray<const ICData*>& ic_data_array,
+                  intptr_t deopt_id)
+      : TemplateDartCall(deopt_id,
+                         type_args_len,
+                         argument_names,
+                         arguments,
+                         token_pos),
         ic_data_(NULL),
-        token_pos_(token_pos),
+        call_count_(0),
         function_(function),
-        argument_names_(argument_names),
-        arguments_(arguments),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
         identity_(AliasIdentity::Unknown()) {
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function.IsZoneHandle());
     ASSERT(!function.IsNull());
-    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
   }
 
   StaticCallInstr(TokenPosition token_pos,
                   const Function& function,
+                  intptr_t type_args_len,
                   const Array& argument_names,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
-                  intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
+                  intptr_t deopt_id,
+                  intptr_t call_count)
+      : TemplateDartCall(deopt_id,
+                         type_args_len,
+                         argument_names,
+                         arguments,
+                         token_pos),
         ic_data_(NULL),
-        token_pos_(token_pos),
+        call_count_(call_count),
         function_(function),
-        argument_names_(argument_names),
-        arguments_(arguments),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
         identity_(AliasIdentity::Unknown()) {
     ASSERT(function.IsZoneHandle());
     ASSERT(!function.IsNull());
-    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
+  }
+
+  // Generate a replacement call instruction for an instance call which
+  // has been found to have only one target.
+  template <class C>
+  static StaticCallInstr* FromCall(Zone* zone,
+                                   const C* call,
+                                   const Function& target) {
+    ZoneGrowableArray<PushArgumentInstr*>* args =
+        new (zone) ZoneGrowableArray<PushArgumentInstr*>(call->ArgumentCount());
+    for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+      args->Add(call->PushArgumentAt(i));
+    }
+    return new (zone) StaticCallInstr(
+        call->token_pos(), target, call->type_args_len(),
+        call->argument_names(), args, call->deopt_id(), call->CallCount());
   }
 
   // ICData for static calls carries call count.
@@ -3271,16 +3400,9 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 
   // Accessors forwarded to the AST node.
   const Function& function() const { return function_; }
-  const Array& argument_names() const { return argument_names_; }
-  virtual TokenPosition token_pos() const { return token_pos_; }
-
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
 
   virtual intptr_t CallCount() const {
-    return ic_data() == NULL ? 0 : ic_data()->AggregateCount();
+    return ic_data() == NULL ? call_count_ : ic_data()->AggregateCount();
   }
 
   virtual bool ComputeCanDeoptimize() const { return true; }
@@ -3309,10 +3431,8 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 
  private:
   const ICData* ic_data_;
-  const TokenPosition token_pos_;
+  const intptr_t call_count_;
   const Function& function_;
-  const Array& argument_names_;
-  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
   intptr_t result_cid_;  // For some library functions we know the result.
 
   // 'True' for recognized list constructors.
@@ -3510,8 +3630,12 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
 
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
  public:
-  DebugStepCheckInstr(TokenPosition token_pos, RawPcDescriptors::Kind stub_kind)
-      : token_pos_(token_pos), stub_kind_(stub_kind) {}
+  DebugStepCheckInstr(TokenPosition token_pos,
+                      RawPcDescriptors::Kind stub_kind,
+                      intptr_t deopt_id)
+      : TemplateInstruction<0, NoThrow>(deopt_id),
+        token_pos_(token_pos),
+        stub_kind_(stub_kind) {}
 
   DECLARE_INSTRUCTION(DebugStepCheck)
 
@@ -3934,8 +4058,10 @@ class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
 class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
  public:
-  StringInterpolateInstr(Value* value, TokenPosition token_pos)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
+  StringInterpolateInstr(Value* value,
+                         TokenPosition token_pos,
+                         intptr_t deopt_id)
+      : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         function_(Function::ZoneHandle()) {
     SetInputAt(0, value);
@@ -4270,8 +4396,9 @@ class CreateArrayInstr : public TemplateDefinition<2, Throws> {
  public:
   CreateArrayInstr(TokenPosition token_pos,
                    Value* element_type,
-                   Value* num_elements)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
+                   Value* num_elements,
+                   intptr_t deopt_id)
+      : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         identity_(AliasIdentity::Unknown()) {
     SetInputAt(kElementTypePos, element_type);
@@ -4440,6 +4567,13 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
 
   bool IsImmutableLengthLoad() const;
 
+  // Try evaluating this load against the given constant value of
+  // the instance. Returns true if evaluation succeeded and
+  // puts result into result.
+  // Note: we only evaluate loads when we can ensure that
+  // instance has the field.
+  bool Evaluate(const Object& instance_value, Object* result);
+
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   static MethodRecognizer::Kind RecognizedKindFromArrayCid(intptr_t cid);
@@ -4472,10 +4606,9 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
   InstantiateTypeInstr(TokenPosition token_pos,
                        const AbstractType& type,
                        Value* instantiator_type_arguments,
-                       Value* function_type_arguments)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
-        token_pos_(token_pos),
-        type_(type) {
+                       Value* function_type_arguments,
+                       intptr_t deopt_id)
+      : TemplateDefinition(deopt_id), token_pos_(token_pos), type_(type) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
@@ -4508,8 +4641,9 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
                                 const TypeArguments& type_arguments,
                                 const Class& instantiator_class,
                                 Value* instantiator_type_arguments,
-                                Value* function_type_arguments)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
+                                Value* function_type_arguments,
+                                intptr_t deopt_id)
+      : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         type_arguments_(type_arguments),
         instantiator_class_(instantiator_class) {
@@ -4570,9 +4704,8 @@ class AllocateContextInstr : public TemplateDefinition<0, NoThrow> {
 
 class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
  public:
-  InitStaticFieldInstr(Value* input, const Field& field)
-      : TemplateInstruction(Thread::Current()->GetNextDeoptId()),
-        field_(field) {
+  InitStaticFieldInstr(Value* input, const Field& field, intptr_t deopt_id)
+      : TemplateInstruction(deopt_id), field_(field) {
     SetInputAt(0, input);
     CheckField(field);
   }
@@ -4595,9 +4728,10 @@ class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
 
 class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  CloneContextInstr(TokenPosition token_pos, Value* context_value)
-      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
-        token_pos_(token_pos) {
+  CloneContextInstr(TokenPosition token_pos,
+                    Value* context_value,
+                    intptr_t deopt_id)
+      : TemplateDefinition(deopt_id), token_pos_(token_pos) {
     SetInputAt(0, context_value);
   }
 
@@ -6735,6 +6869,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
                     Value* right,
                     InstanceCallInstr* call)
       : TemplateDefinition(call->deopt_id()), call_(call), op_kind_(op_kind) {
+    ASSERT(call->type_args_len() == 0);
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -6770,6 +6905,7 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
       : TemplateComparison(call->token_pos(), op_kind, call->deopt_id()),
         call_(call),
         is_negated_(false) {
+    ASSERT(call->type_args_len() == 0);
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -6884,7 +7020,8 @@ class BinarySmiOpInstr : public BinaryIntegerOpInstr {
                    Value* left,
                    Value* right,
                    intptr_t deopt_id)
-      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {}
+      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
+        right_range_(NULL) {}
 
   virtual bool ComputeCanDeoptimize() const;
 
@@ -6893,7 +7030,11 @@ class BinarySmiOpInstr : public BinaryIntegerOpInstr {
 
   DECLARE_INSTRUCTION(BinarySmiOp)
 
+  Range* right_range() const { return right_range_; }
+
  private:
+  Range* right_range_;
+
   DISALLOW_COPY_AND_ASSIGN(BinarySmiOpInstr);
 };
 
@@ -6922,7 +7063,11 @@ class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
 
       case Token::kSHL:
       case Token::kSHR:
-        return right->BindsToConstant();
+        if (right->BindsToConstant() && right->BoundConstant().IsSmi()) {
+          const intptr_t value = Smi::Cast(right->BoundConstant()).Value();
+          return 0 <= value && value < kBitsPerWord;
+        }
+        return false;
 
       default:
         return false;
@@ -7044,9 +7189,12 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
                    Value* left,
                    Value* right,
                    intptr_t deopt_id)
-      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {
+      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
+        shift_range_(NULL) {
     ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
   }
+
+  Range* shift_range() const { return shift_range_; }
 
   virtual bool ComputeCanDeoptimize() const {
     return has_shift_count_check() ||
@@ -7066,7 +7214,10 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
   DECLARE_INSTRUCTION(ShiftMintOp)
 
  private:
+  static const intptr_t kMintShiftCountLimit = 63;
   bool has_shift_count_check() const;
+
+  Range* shift_range_;
 
   DISALLOW_COPY_AND_ASSIGN(ShiftMintOpInstr);
 };
@@ -7115,8 +7266,10 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
 class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
  public:
-  CheckStackOverflowInstr(TokenPosition token_pos, intptr_t loop_depth)
-      : TemplateInstruction(Thread::Current()->GetNextDeoptId()),
+  CheckStackOverflowInstr(TokenPosition token_pos,
+                          intptr_t loop_depth,
+                          intptr_t deopt_id)
+      : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
         loop_depth_(loop_depth) {}
 
@@ -7500,90 +7653,45 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
 };
 
 
-class MergedMathInstr : public PureDefinition {
+class TruncDivModInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
-  enum Kind {
-    kTruncDivMod,
-  };
+  TruncDivModInstr(Value* lhs, Value* rhs, intptr_t deopt_id);
 
-  MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
-                  intptr_t original_deopt_id,
-                  MergedMathInstr::Kind kind);
-
-  static intptr_t InputCountFor(MergedMathInstr::Kind kind) {
-    if (kind == kTruncDivMod) {
-      return 2;
-    } else {
-      UNIMPLEMENTED();
-      return -1;
-    }
-  }
-
-  MergedMathInstr::Kind kind() const { return kind_; }
-
-  virtual intptr_t InputCount() const { return inputs_->length(); }
-
-  virtual Value* InputAt(intptr_t i) const { return (*inputs_)[i]; }
-
-  static intptr_t OutputIndexOf(MethodRecognizer::Kind kind);
   static intptr_t OutputIndexOf(Token::Kind token);
 
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const {
-    if (kind_ == kTruncDivMod) {
-      return true;
-    } else {
-      UNIMPLEMENTED();
-      return false;
-    }
-  }
+  virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual Representation representation() const {
-    if (kind_ == kTruncDivMod) {
-      return kPairOfTagged;
-    } else {
-      UNIMPLEMENTED();
-      return kTagged;
-    }
-  }
+  virtual Representation representation() const { return kPairOfTagged; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((0 <= idx) && (idx < InputCount()));
-    if (kind_ == kTruncDivMod) {
-      return kTagged;
-    } else {
-      UNIMPLEMENTED();
-      return kTagged;
-    }
+    return kTagged;
   }
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
-  DECLARE_INSTRUCTION(MergedMath)
+  DECLARE_INSTRUCTION(TruncDivMod)
 
-  virtual bool AttributesEqual(Instruction* other) const {
-    MergedMathInstr* other_invoke = other->AsMergedMath();
-    return other_invoke->kind() == kind();
-  }
-
-  virtual bool MayThrow() const { return false; }
-
-  static const char* KindToCString(MergedMathInstr::Kind kind) {
-    if (kind == kTruncDivMod) return "TruncDivMod";
-    UNIMPLEMENTED();
-    return "";
-  }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  virtual void RawSetInputAt(intptr_t i, Value* value) {
-    (*inputs_)[i] = value;
+  Range* divisor_range() const {
+    // Note: this range is only used to remove check for zero divisor from
+    // the emitted pattern. It is not used for deciding whether instruction
+    // will deoptimize or not - that is why it is ok to access range of
+    // the definition directly. Otherwise range analysis or another pass
+    // needs to cache range of the divisor in the operation to prevent
+    // bugs when range information gets out of sync with the final decision
+    // whether some instruction can deoptimize or not made in
+    // EliminateEnvironments().
+    return InputAt(1)->definition()->range();
   }
-  ZoneGrowableArray<Value*>* inputs_;
-  MergedMathInstr::Kind kind_;
-  DISALLOW_COPY_AND_ASSIGN(MergedMathInstr);
+
+  DISALLOW_COPY_AND_ASSIGN(TruncDivModInstr);
 };
 
 
@@ -7591,7 +7699,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
  public:
   CheckClassInstr(Value* value,
                   intptr_t deopt_id,
-                  const ICData& unary_checks,
+                  const Cids& cids,
                   TokenPosition token_pos);
 
   DECLARE_INSTRUCTION(CheckClass)
@@ -7602,21 +7710,18 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
 
   Value* value() const { return inputs_[0]; }
 
-  const ICData& unary_checks() const { return unary_checks_; }
-
-  const GrowableArray<intptr_t>& cids() const { return cids_; }
+  const Cids& cids() const { return cids_; }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  bool IsNullCheck() const { return DeoptIfNull() || DeoptIfNotNull(); }
+  bool IsNullCheck() const { return IsDeoptIfNull() || IsDeoptIfNotNull(); }
 
-  bool DeoptIfNull() const;
-  bool DeoptIfNotNull() const;
+  bool IsDeoptIfNull() const;
+  bool IsDeoptIfNotNull() const;
 
-  bool IsDenseSwitch() const;
-  static bool IsDenseCidRange(const ICData& unary_checks);
+  bool IsBitTest() const;
+  static bool IsCompactCidRange(const Cids& cids);
   intptr_t ComputeCidMask() const;
-  static bool IsDenseMask(intptr_t mask);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Dependencies() const;
@@ -7629,11 +7734,25 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  const ICData& unary_checks_;
-  GrowableArray<intptr_t> cids_;  // Sorted, lowest first.
+  const Cids& cids_;
   bool licm_hoisted_;
-  bool is_dense_switch_;
+  bool is_bit_test_;
   const TokenPosition token_pos_;
+
+  int EmitCheckCid(FlowGraphCompiler* compiler,
+                   int bias,
+                   intptr_t cid_start,
+                   intptr_t cid_end,
+                   bool is_last,
+                   Label* is_ok,
+                   Label* deopt,
+                   bool use_near_jump);
+  void EmitBitTest(FlowGraphCompiler* compiler,
+                   intptr_t min,
+                   intptr_t max,
+                   intptr_t mask,
+                   Label* deopt);
+  void EmitNullCheck(FlowGraphCompiler* compiler, Label* deopt);
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };
@@ -7672,13 +7791,13 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 
 class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  CheckClassIdInstr(Value* value, intptr_t cid, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id), cid_(cid) {
+  CheckClassIdInstr(Value* value, CidRange cids, intptr_t deopt_id)
+      : TemplateInstruction(deopt_id), cids_(cids) {
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
-  intptr_t cid() const { return cid_; }
+  const CidRange& cids() const { return cids_; }
 
   DECLARE_INSTRUCTION(CheckClassId)
 
@@ -7694,7 +7813,9 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  intptr_t cid_;
+  bool Contains(intptr_t cid) const;
+
+  CidRange cids_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };

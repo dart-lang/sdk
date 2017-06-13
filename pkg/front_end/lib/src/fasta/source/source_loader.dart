@@ -11,11 +11,6 @@ import 'dart:typed_data' show Uint8List;
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/instrumentation.dart' show Instrumentation;
 
-import 'package:front_end/src/fasta/builder/ast_factory.dart' show AstFactory;
-
-import 'package:front_end/src/fasta/kernel/kernel_ast_factory.dart'
-    show KernelAstFactory;
-
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
     show KernelTypeInferenceEngine;
 
@@ -25,11 +20,14 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
     show TypeInferenceEngine;
 
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Arguments, Expression, Program;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/src/incremental_class_hierarchy.dart'
+    show IncrementalClassHierarchy;
 
 import '../builder/builder.dart'
     show
@@ -72,8 +70,6 @@ class SourceLoader<L> extends Loader<L> {
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
   CoreTypes coreTypes;
-
-  final AstFactory astFactory = new KernelAstFactory();
 
   TypeInferenceEngine typeInferenceEngine;
 
@@ -343,6 +339,14 @@ class SourceLoader<L> extends Loader<L> {
     return output;
   }
 
+  /// Whether [library] is allowed to define classes that extend or implement
+  /// restricted types, such as `bool`, `int`, `double`, `num`, and `String`. By
+  /// default this is only allowed within the implementation of `dart:core`, but
+  /// some target implementations may need to override this to allow doing this
+  /// in other internal platform libraries.
+  bool canImplementRestrictedTypes(LibraryBuilder library) =>
+      library == coreLibrary;
+
   void checkSemantics() {
     List<ClassBuilder> allClasses = target.collectAllClasses();
     Iterable<ClassBuilder> candidates = cyclicCandidates(allClasses);
@@ -391,7 +395,7 @@ class SourceLoader<L> extends Loader<L> {
               cls.charOffset,
               "'${supertype.name}' is an enum and can't be extended or "
               "implemented.");
-        } else if (cls.library != coreLibrary &&
+        } else if (!canImplementRestrictedTypes(cls.library) &&
             blackListedClasses.contains(supertype)) {
           cls.addCompileTimeError(
               cls.charOffset,
@@ -439,7 +443,7 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void computeHierarchy(Program program) {
-    hierarchy = new ClassHierarchy(program);
+    hierarchy = new IncrementalClassHierarchy();
     ticker.logMs("Computed class hierarchy");
     coreTypes = new CoreTypes(program);
     ticker.logMs("Computed core types");
@@ -481,4 +485,45 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   List<Uri> getDependencies() => sourceBytes.keys.toList();
+
+  Expression instantiateInvocation(Expression receiver, String name,
+      Arguments arguments, int offset, bool isSuper) {
+    return target.backendTarget.instantiateInvocation(
+        coreTypes, receiver, name, arguments, offset, isSuper);
+  }
+
+  Expression instantiateNoSuchMethodError(
+      Expression receiver, String name, Arguments arguments, int offset,
+      {bool isMethod: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isField: false,
+      bool isLocalVariable: false,
+      bool isDynamic: false,
+      bool isSuper: false,
+      bool isStatic: false,
+      bool isConstructor: false,
+      bool isTopLevel: false}) {
+    return target.backendTarget.instantiateNoSuchMethodError(
+        coreTypes, receiver, name, arguments, offset,
+        isMethod: isMethod,
+        isGetter: isGetter,
+        isSetter: isSetter,
+        isField: isField,
+        isLocalVariable: isLocalVariable,
+        isDynamic: isDynamic,
+        isSuper: isSuper,
+        isStatic: isStatic,
+        isConstructor: isConstructor,
+        isTopLevel: isTopLevel);
+  }
+
+  Expression throwCompileConstantError(Expression error) {
+    return target.backendTarget.throwCompileConstantError(coreTypes, error);
+  }
+
+  Expression buildCompileTimeError(String message, int offset) {
+    return target.backendTarget
+        .buildCompileTimeError(coreTypes, message, offset);
+  }
 }

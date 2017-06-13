@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -859,6 +859,52 @@ class A {
 ''');
   }
 
+  test_closure_atArgumentName() async {
+    await indexTestUnit('''
+void process({int fff(int x)}) {}
+class C {
+  main() {
+    process(fff: (int x) => x * 2);
+  }
+}
+''');
+    _createRefactoring(findOffset('ff: (int x)'), 0);
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void process({int fff(int x)}) {}
+class C {
+  main() {
+    process(fff: res);
+  }
+
+  int res(int x) => x * 2;
+}
+''');
+  }
+
+  test_closure_atParameters() async {
+    await indexTestUnit('''
+void process(num f(int x)) {}
+class C {
+  main() {
+    process((int x) => x * 2);
+  }
+}
+''');
+    _createRefactoring(findOffset('x) =>'), 0);
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void process(num f(int x)) {}
+class C {
+  main() {
+    process(res);
+  }
+
+  num res(int x) => x * 2;
+}
+''');
+  }
+
   test_closure_bad_referencesLocalVariable() async {
     await indexTestUnit('''
 process(f(x)) {}
@@ -894,7 +940,7 @@ main(int k) {
     await indexTestUnit('''
 var X = 1;
 
-var Y = () {
+dynamic Y = () {
   return 1 + X;
 };
 ''');
@@ -903,11 +949,11 @@ var Y = () {
     return _assertSuccessfulRefactoring('''
 var X = 1;
 
-var Y = () {
+dynamic Y = () {
   return res();
 };
 
-num res() => 1 + X;
+int res() => 1 + X;
 ''');
   }
 

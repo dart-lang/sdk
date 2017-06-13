@@ -24,7 +24,8 @@ void main() {
 
     var main = compiler.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
-    compiler.deferredLoadTask.onResolutionComplete(main);
+    compiler.deferredLoadTask.onResolutionComplete(
+        main, compiler.resolutionWorldBuilder.closedWorldForTesting);
 
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 

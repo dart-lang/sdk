@@ -8,44 +8,44 @@ library test;
 void main() {
   {
     String f<S>(int x) => null;
-    var /*@type=f(int) -> String*/ v = f;
-    v = /*@returnType=String*/ <T>(int x) => null;
-    v = /*@returnType=String*/ <T>(int x) => "hello";
-    v = /*error:INVALID_ASSIGNMENT*/ /*@returnType=String*/ <T>(String x) =>
+    var /*@type=(int) -> String*/ v = f;
+    v = <T> /*@returnType=String*/ (int x) => null;
+    v = <T> /*@returnType=String*/ (int x) => "hello";
+    v = /*error:INVALID_ASSIGNMENT*/ <T> /*@returnType=String*/ (String x) =>
         "hello";
-    v = /*error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ <T>(int x) => 3;
-    v = /*@returnType=String*/ <T>(int x) {
+    v = /*error:INVALID_ASSIGNMENT*/ <T> /*@returnType=int*/ (int x) => 3;
+    v = <T> /*@returnType=String*/ (int x) {
       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
     };
   }
   {
     String f<S>(int x) => null;
-    var /*@type=f(int) -> String*/ v = f;
-    v = /*@returnType=String*/ <T>(/*@type=int*/ x) => null;
-    v = /*@returnType=String*/ <T>(/*@type=int*/ x) => "hello";
-    v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ <
-            T>(/*@type=int*/ x) =>
+    var /*@type=(int) -> String*/ v = f;
+    v = <T> /*@returnType=String*/ (/*@type=int*/ x) => null;
+    v = <T> /*@returnType=String*/ (/*@type=int*/ x) => "hello";
+    v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ <
+            T> /*@returnType=int*/ (/*@type=int*/ x) =>
         3;
-    v = /*@returnType=String*/ <T>(/*@type=int*/ x) {
+    v = <T> /*@returnType=String*/ (/*@type=int*/ x) {
       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
     };
-    v = /*@returnType=String*/ <T>(/*@type=int*/ x) {
-      return /*error:RETURN_OF_INVALID_TYPE*/ /*@promotedType=none*/ x;
+    v = <T> /*@returnType=String*/ (/*@type=int*/ x) {
+      return /*error:RETURN_OF_INVALID_TYPE*/ x;
     };
   }
   {
     List<String> f<S>(int x) => null;
-    var /*@type=f(int) -> List<String>*/ v = f;
-    v = /*@returnType=List<String>*/ <T>(int x) => null;
-    v = /*@returnType=List<String>*/ <T>(int x) => /*@typeArgs=String*/ [
+    var /*@type=(int) -> List<String>*/ v = f;
+    v = <T> /*@returnType=List<String>*/ (int x) => null;
+    v = <T> /*@returnType=List<String>*/ (int x) => /*@typeArgs=String*/ [
           "hello"
         ];
-    v = /*error:INVALID_ASSIGNMENT*/ /*@returnType=List<String>*/ <
-        T>(String x) => /*@typeArgs=String*/ ["hello"];
-    v = /*@returnType=List<String>*/ <T>(int x) => /*@typeArgs=String*/ [
+    v = /*error:INVALID_ASSIGNMENT*/ <T> /*@returnType=List<String>*/ (String
+        x) => /*@typeArgs=String*/ ["hello"];
+    v = <T> /*@returnType=List<String>*/ (int x) => /*@typeArgs=String*/ [
           /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
         ];
-    v = /*@returnType=List<String>*/ <T>(int x) {
+    v = <T> /*@returnType=List<String>*/ (int x) {
       return /*@typeArgs=String*/ [
         /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
       ];
@@ -55,18 +55,17 @@ void main() {
     int int2int<S>(int x) => null;
     String int2String<T>(int x) => null;
     String string2String<T>(String x) => null;
-    var /*@type=int2int(int) -> int*/ x = int2int;
-    x = /*@returnType=int*/ <T>(/*@type=int*/ x) => /*@promotedType=none*/ x;
-    x = /*@returnType=int*/ <T>(/*@type=int*/ x) => /*@promotedType=none*/ x +
-        1;
-    var /*@type=int2String(int) -> String*/ y = int2String;
-    y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ <
-            T>(/*@type=int*/ x) =>
-        /*@promotedType=none*/ x;
-    y = /*@returnType=String*/ <
-        T>(/*@type=int*/ x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/ /*@promotedType=none*/ x.substring(3);
-    var /*@type=string2String(String) -> String*/ z = string2String;
-    z = /*@returnType=String*/ <
-        T>(/*@type=String*/ x) => /*@promotedType=none*/ x.substring(3);
+    var /*@type=(int) -> int*/ x = int2int;
+    x = <T> /*@returnType=int*/ (/*@type=int*/ x) => x;
+    x = <T> /*@returnType=int*/ (/*@type=int*/ x) => x /*@target=num::+*/ + 1;
+    var /*@type=(int) -> String*/ y = int2String;
+    y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ <
+            T> /*@returnType=int*/ (/*@type=int*/ x) =>
+        x;
+    y = <T> /*@returnType=String*/ (/*@type=int*/ x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/ x
+        .substring(3);
+    var /*@type=(String) -> String*/ z = string2String;
+    z = <T> /*@returnType=String*/ (/*@type=String*/ x) =>
+        x. /*@target=String::substring*/ substring(3);
   }
 }

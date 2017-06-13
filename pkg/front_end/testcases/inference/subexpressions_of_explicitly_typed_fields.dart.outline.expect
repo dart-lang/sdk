@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::List<core::num> x;
+  constructor •() → void
+    ;
+}
+static field core::List<core::num> y;
+static method main() → dynamic
+  ;

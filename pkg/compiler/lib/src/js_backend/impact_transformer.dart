@@ -11,9 +11,7 @@ import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;
 import '../constants/expressions.dart';
 import '../common_elements.dart' show ElementEnvironment;
-import '../elements/elements.dart' show AsyncMarker;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart' show Types;
 import '../elements/types.dart';
 import '../native/enqueue.dart';
 import '../native/native.dart' as native;
@@ -23,7 +21,6 @@ import '../universe/use.dart'
     show StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
 import '../util/util.dart';
-import 'backend.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
@@ -33,6 +30,7 @@ import 'lookup_map_analysis.dart';
 import 'mirrors_data.dart';
 import 'namer.dart';
 import 'native_data.dart';
+import 'runtime_types.dart';
 
 class JavaScriptImpactTransformer extends ImpactTransformer {
   final CompilerOptions _options;
@@ -138,6 +136,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case Feature.THROW_RUNTIME_ERROR:
           registerImpact(_impacts.throwRuntimeError);
+          break;
+        case Feature.THROW_UNSUPPORTED_ERROR:
+          registerImpact(_impacts.throwUnsupportedError);
           break;
         case Feature.TYPE_VARIABLE_BOUNDS_CHECK:
           registerImpact(_impacts.typeVariableBoundCheck);
@@ -263,8 +264,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           registerImpact(_impacts.stringLiteral);
           break;
         default:
-          assert(invariant(NO_LOCATION_SPANNABLE, false,
-              message: "Unexpected constant literal: ${constant.kind}."));
+          assert(
+              false,
+              failedAt(NO_LOCATION_SPANNABLE,
+                  "Unexpected constant literal: ${constant.kind}."));
       }
     }
 
@@ -285,7 +288,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     // defined (that is the enclosing class of the current element being
     // resolved) and the class of [type]. If the class of [type] requires RTI,
     // then the class of the type variable does too.
-    ClassEntity contextClass = Types.getClassContext(interfaceType);
+    ClassEntity contextClass = DartTypes.getClassContext(interfaceType);
     if (contextClass != null) {
       _rtiNeedBuilder.registerRtiDependency(
           interfaceType.element, contextClass);

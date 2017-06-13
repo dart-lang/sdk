@@ -73,6 +73,21 @@ class CompilerImpl extends Compiler {
         null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
+  /// Report [exception] reading [uri]. Use [element] and [node] to compute
+  /// the error location.
+  void _reportReadError(
+      Uri uri, elements.Element element, Spannable node, exception) {
+    if (element == null || node == null) {
+      reporter.reportErrorMessage(new SourceSpan(uri, 0, 0),
+          MessageKind.READ_SELF_ERROR, {'uri': uri, 'exception': exception});
+    } else {
+      reporter.withCurrentElement(element, () {
+        reporter.reportErrorMessage(node, MessageKind.READ_URI_ERROR,
+            {'uri': uri, 'exception': exception});
+      });
+    }
+  }
+
   /**
    * Reads the script designated by [readableUri].
    */
@@ -87,19 +102,6 @@ class CompilerImpl extends Compiler {
     // asynchronously and therefore need to restore the current element for
     // [node] to be valid.
     elements.Element element = currentElement;
-    void reportReadError(exception) {
-      if (element == null || node == null) {
-        reporter.reportErrorMessage(
-            new SourceSpan(readableUri, 0, 0),
-            MessageKind.READ_SELF_ERROR,
-            {'uri': readableUri, 'exception': exception});
-      } else {
-        reporter.withCurrentElement(element, () {
-          reporter.reportErrorMessage(node, MessageKind.READ_SCRIPT_ERROR,
-              {'uri': readableUri, 'exception': exception});
-        });
-      }
-    }
 
     Uri resourceUri = translateUri(node, readableUri);
     if (resourceUri == null) return _synthesizeScript(readableUri);
@@ -115,7 +117,8 @@ class CompilerImpl extends Compiler {
     // TODO(johnniwinther): Wrap the result from [provider] in a specialized
     // [Future] to ensure that we never execute an asynchronous action without
     // setting up the current element of the compiler.
-    return new Future.sync(() => callUserProvider(resourceUri))
+    return new Future.sync(
+            () => callUserProvider(resourceUri, api.InputKind.utf8))
         .then((SourceFile sourceFile) {
       // We use [readableUri] as the URI for the script since need to preserve
       // the scheme in the script because [Script.uri] is used for resolving
@@ -123,13 +126,33 @@ class CompilerImpl extends Compiler {
       // [LibraryLoader] for more details.
       return new Script(readableUri, resourceUri, sourceFile);
     }).catchError((error) {
-      reportReadError(error);
+      _reportReadError(readableUri, element, node, error);
       return _synthesizeScript(readableUri);
     });
   }
 
   Future<Script> _synthesizeScript(Uri readableUri) {
     return new Future.value(new Script.synthetic(readableUri));
+  }
+
+  Future<Binary> readBinary(Uri resourceUri, [Spannable node]) {
+    if (!resourceUri.isAbsolute) {
+      if (node == null) node = NO_LOCATION_SPANNABLE;
+      reporter.internalError(
+          node, 'Relative uri $resourceUri provided to readScript(Uri).');
+    }
+
+    // We need to store the current element since we are reporting read errors
+    // asynchronously and therefore need to restore the current element for
+    // [node] to be valid.
+    elements.Element element = currentElement;
+
+    return new Future.sync(
+            () => callUserProvider(resourceUri, api.InputKind.binary))
+        .catchError((error) {
+      _reportReadError(resourceUri, element, node, error);
+      return new Binary(resourceUri, null);
+    });
   }
 
   /**
@@ -176,16 +199,10 @@ class CompilerImpl extends Compiler {
       // and we can't depend on 'dart:io' classes.
       packages = new NonFilePackagesDirectoryPackages(options.packageRoot);
     } else if (options.packageConfig != null) {
-      return callUserProvider(options.packageConfig)
-          .then((SourceFile sourceFile) {
-        List<int> configContents = sourceFile.slowUtf8ZeroTerminatedBytes();
-        // The input provider may put a trailing 0 byte when it reads a source
-        // file, which confuses the package config parser.
-        if (configContents.length > 0 && configContents.last == 0) {
-          configContents = configContents.sublist(0, configContents.length - 1);
-        }
+      return callUserProvider(options.packageConfig, api.InputKind.binary)
+          .then((Binary binary) {
         packages =
-            new MapPackages(pkgs.parse(configContents, options.packageConfig));
+            new MapPackages(pkgs.parse(binary.data, options.packageConfig));
       }).catchError((error) {
         reporter.reportErrorMessage(
             NO_LOCATION_SPANNABLE,
@@ -210,7 +227,8 @@ class CompilerImpl extends Compiler {
     if (options.resolutionInputs != null) {
       future = Future.forEach(options.resolutionInputs, (Uri resolutionInput) {
         reporter.log('Reading serialized data from ${resolutionInput}');
-        return callUserProvider(resolutionInput).then((SourceFile sourceFile) {
+        return callUserProvider(resolutionInput, api.InputKind.utf8)
+            .then((SourceFile sourceFile) {
           serialization.deserializeFromText(
               resolutionInput, sourceFile.slowText());
         });
@@ -322,22 +340,10 @@ class CompilerImpl extends Compiler {
     }
   }
 
-  Future<SourceFile> callUserProvider(Uri uri) {
+  Future<api.Input> callUserProvider(Uri uri, api.InputKind inputKind) {
     try {
       return userProviderTask
-          .measureIo(() => provider.readFromUri(uri))
-          .then((data) {
-        SourceFile sourceFile;
-        if (data is List<int>) {
-          sourceFile = new Utf8BytesSourceFile(uri, data);
-        } else if (data is String) {
-          sourceFile = new StringSourceFile.fromUri(uri, data);
-        } else {
-          throw "Expected a 'String' or a 'List<int>' from the input "
-              "provider, but got: ${Error.safeToString(data)}.";
-        }
-        return sourceFile;
-      });
+          .measureIo(() => provider.readFromUri(uri, inputKind: inputKind));
     } catch (ex, s) {
       reportCrashInUserCode('Uncaught exception in input provider', ex, s);
       rethrow;
@@ -371,9 +377,8 @@ class _Environment implements Environment {
   _Environment(this.definitions);
 
   String valueOf(String name) {
-    assert(invariant(
-        NO_LOCATION_SPANNABLE, compiler.resolvedUriTranslator != null,
-        message: "setupSdk() has not been run"));
+    assert(compiler.resolvedUriTranslator != null,
+        failedAt(NO_LOCATION_SPANNABLE, "setupSdk() has not been run"));
 
     var result = definitions[name];
     if (result != null || definitions.containsKey(name)) return result;

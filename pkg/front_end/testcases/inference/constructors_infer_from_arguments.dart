@@ -15,13 +15,13 @@ main() {
 
   num y;
   C<int> c_int = new /*@typeArgs=int*/ C(
-      /*info:DOWN_CAST_IMPLICIT*/ /*@promotedType=none*/ y);
+      /*info:DOWN_CAST_IMPLICIT*/ y);
 
   // These hints are not reported because we resolve with a null error listener.
   C<num> c_num = new /*@typeArgs=num*/ C(123);
-  C<num> c_num2 = (new /*@typeArgs=num*/ C(456))..t = 1.0;
+  C<num> c_num2 = (new /*@typeArgs=num*/ C(456)).. /*@target=C::t*/ t = 1.0;
 
   // Down't infer from explicit dynamic.
   var /*@type=C<dynamic>*/ c_dynamic = new C<dynamic>(42);
-  /*@promotedType=none*/ x.t = /*error:INVALID_ASSIGNMENT*/ 'hello';
+  x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
 }

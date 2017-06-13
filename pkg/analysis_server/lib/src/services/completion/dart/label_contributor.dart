@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.label;
-
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol_generated.dart' as protocol
-    show ElementKind;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
-import 'package:analysis_server/src/services/completion/dart/local_declaration_visitor.dart'
-    show LocalDeclarationVisitor;
-import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
+    show ElementKind;
+import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
+import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
+    show LocalDeclarationVisitor;
 
 /**
  * A contributor for calculating label suggestions.

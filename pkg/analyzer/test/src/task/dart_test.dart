@@ -4360,16 +4360,20 @@ class ScanDartTaskTest extends _AbstractDartTaskTest {
   test_ignore_info() {
     _performScanTask('''
 //ignore: error_code
+//ignore_for_file: error_code
 var x = '';
 foo(); // ignore:   error_code_2
 bar(); //ignore: error_code, error_code_2
+// ignore_for_file:  error_code_2, error_code_3
 ''');
 
     IgnoreInfo info = outputs[IGNORE_INFO];
     expect(info.ignores.keys, hasLength(3));
     expect(info.ignores[1].first, 'error_code');
-    expect(info.ignores[3].first, 'error_code_2');
-    expect(info.ignores[4], unorderedEquals(['error_code', 'error_code_2']));
+    expect(info.ignores[4].first, 'error_code_2');
+    expect(info.ignores[5], unorderedEquals(['error_code', 'error_code_2']));
+    expect(info.ignoreForFiles,
+        unorderedEquals(['error_code', 'error_code_2', 'error_code_3']));
   }
 
   test_perform_errors() {

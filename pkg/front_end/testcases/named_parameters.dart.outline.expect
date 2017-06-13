@@ -9,7 +9,7 @@ class Superclass extends core::Object {
     ;
   method bar({dynamic beta, dynamic alpha}) → dynamic
     ;
-  method namedCallback(dynamic callback) → dynamic
+  method namedCallback(({alpha: core::String, beta: core::int}) → dynamic callback) → dynamic
     ;
 }
 class Subclass extends self::Superclass {
@@ -19,7 +19,7 @@ class Subclass extends self::Superclass {
     ;
   method bar({dynamic alpha, dynamic beta}) → dynamic
     ;
-  method namedCallback(dynamic callback) → dynamic
+  method namedCallback(({alpha: core::String, beta: core::int}) → dynamic callback) → dynamic
     ;
 }
 static method topLevelNamed(dynamic beta, dynamic alpha, {dynamic gamma, dynamic delta}) → dynamic

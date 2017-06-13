@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/results.dart' as results;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
@@ -24,13 +25,20 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, AnalysisOptions;
+    show
+        AnalysisContext,
+        AnalysisEngine,
+        AnalysisOptions,
+        PerformanceStatistics;
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/registry.dart' as linter;
-import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:front_end/src/base/api_signature.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:meta/meta.dart';
 
@@ -449,13 +457,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return AnalysisDriverPriority.nothing;
   }
 
-  /**
-   * Add the file with the given [path] to the set of files to analyze.
-   *
-   * The [path] must be absolute and normalized.
-   *
-   * The results of analysis are eventually produced by the [results] stream.
-   */
+  @override
   void addFile(String path) {
     if (!_fsState.hasUri(path)) {
       return;
@@ -536,11 +538,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return null;
     }
 
-    return new ErrorsResult(
-        path,
-        analysisResult.uri,
-        analysisResult.contentHash,
-        analysisResult.lineInfo,
+    return new ErrorsResult(path, analysisResult.uri, analysisResult.lineInfo,
         analysisResult.errors);
   }
 
@@ -735,8 +733,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fileTracker.verifyApiSignature(path);
     RecordingErrorListener listener = new RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
-    return new ParseResult(file.path, file.uri, file.content, file.contentHash,
-        unit.lineInfo, unit, listener.errors);
+    return new ParseResult(file.path, file.uri, file.content, unit.lineInfo,
+        unit, listener.errors);
   }
 
   @override
@@ -986,7 +984,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
-      List<int> bytes = _byteStore.get(key);
+      List<int> bytes = DriverPerformance.cache.makeCurrentWhile(() {
+        return _byteStore.get(key);
+      });
       if (bytes != null) {
         return _getAnalysisResultFromBytes(file, signature, bytes);
       }
@@ -1067,7 +1067,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       CompilationUnitElement element =
           libraryContext.computeUnitElement(library.source, file.source);
       String signature = library.transitiveSignature;
-      return new UnitElementResult(path, file.contentHash, signature, element);
+      return new UnitElementResult(path, file.uri, signature, element);
     } finally {
       libraryContext.dispose();
     }
@@ -1139,7 +1139,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         file.uri,
         file.exists,
         content,
-        file.contentHash,
         file.lineInfo,
         signature,
         resolvedUnit,
@@ -1346,6 +1345,16 @@ abstract class AnalysisDriverGeneric {
    * Return the priority of work that the driver needs to perform.
    */
   AnalysisDriverPriority get workPriority;
+
+  /**
+   * Add the file with the given [path] to the set of files that are explicitly
+   * being analyzed.
+   *
+   * The [path] must be absolute and normalized.
+   *
+   * The results of analysis are eventually produced by the [results] stream.
+   */
+  void addFile(String path);
 
   /**
    * Notify the driver that the client is going to stop using it.
@@ -1590,9 +1599,9 @@ class AnalysisDriverTestView {
  * Every result is independent, and is not guaranteed to be consistent with
  * any previously returned result, even inside of the same library.
  */
-class AnalysisResult {
+class AnalysisResult implements results.ResolveResult {
   static final _UNCHANGED = new AnalysisResult(
-      null, null, null, null, null, null, null, null, null, null, null, null);
+      null, null, null, null, null, null, null, null, null, null, null);
 
   /**
    * The [AnalysisDriver] that produced this result.
@@ -1604,16 +1613,10 @@ class AnalysisResult {
    */
   final SourceFactory sourceFactory;
 
-  /**
-   * The path of the analysed file, absolute and normalized.
-   */
+  @override
   final String path;
 
-  /**
-   * The URI of the file that corresponded to the [path] in the used
-   * [SourceFactory] at some point. Is it not guaranteed to be still consistent
-   * to the [path], and provided as FYI.
-   */
+  @override
   final Uri uri;
 
   /**
@@ -1621,19 +1624,10 @@ class AnalysisResult {
    */
   final bool exists;
 
-  /**
-   * The content of the file that was scanned, parsed and resolved.
-   */
+  @override
   final String content;
 
-  /**
-   * The MD5 hash of the [content].
-   */
-  final String contentHash;
-
-  /**
-   * Information about lines in the [content].
-   */
+  @override
   final LineInfo lineInfo;
 
   /**
@@ -1643,14 +1637,10 @@ class AnalysisResult {
    */
   final String _signature;
 
-  /**
-   * The fully resolved compilation unit for the [content].
-   */
+  @override
   final CompilationUnit unit;
 
-  /**
-   * The full list of computed analysis errors, both syntactic and semantic.
-   */
+  @override
   final List<AnalysisError> errors;
 
   /**
@@ -1665,12 +1655,28 @@ class AnalysisResult {
       this.uri,
       this.exists,
       this.content,
-      this.contentHash,
       this.lineInfo,
       this._signature,
       this.unit,
       this.errors,
       this._index);
+
+  @override
+  LibraryElement get libraryElement => unit.element.library;
+
+  @override
+  results.ResultState get state =>
+      exists ? results.ResultState.VALID : results.ResultState.NOT_A_FILE;
+
+  @override
+  TypeProvider get typeProvider => unit.element.context.typeProvider;
+}
+
+class DriverPerformance {
+  static final PerformanceTag driver =
+      PerformanceStatistics.analyzer.createChild('driver');
+
+  static final PerformanceTag cache = driver.createChild('cache');
 }
 
 /**
@@ -1698,34 +1704,23 @@ abstract class DriverWatcher {
  * correspond to each other. But none of the results is guaranteed to be
  * consistent with the state of the files.
  */
-class ErrorsResult {
-  /**
-   * The path of the parsed file, absolute and normalized.
-   */
+class ErrorsResult implements results.ErrorsResult {
+  @override
   final String path;
 
-  /**
-   * The URI of the file that corresponded to the [path].
-   */
+  @override
   final Uri uri;
 
-  /**
-   * The MD5 hash of the [content].
-   */
-  final String contentHash;
-
-  /**
-   * Information about lines in the [content].
-   */
+  @override
   final LineInfo lineInfo;
 
-  /**
-   * The full list of computed analysis errors, both syntactic and semantic.
-   */
+  @override
   final List<AnalysisError> errors;
 
-  ErrorsResult(
-      this.path, this.uri, this.contentHash, this.lineInfo, this.errors);
+  ErrorsResult(this.path, this.uri, this.lineInfo, this.errors);
+
+  @override
+  results.ResultState get state => results.ResultState.VALID;
 }
 
 /**
@@ -1762,120 +1757,30 @@ class ExceptionResult {
  * resolved [unit] correspond to each other. But none of the results is
  * guaranteed to be consistent with the state of the files.
  */
-class ParseResult {
-  /**
-   * The path of the parsed file, absolute and normalized.
-   */
+class ParseResult implements results.ParseResult {
+  @override
   final String path;
 
-  /**
-   * The URI of the file that corresponded to the [path].
-   */
+  @override
   final Uri uri;
 
-  /**
-   * The content of the file that was scanned and parsed.
-   */
+  @override
   final String content;
 
-  /**
-   * The MD5 hash of the [content].
-   */
-  final String contentHash;
-
-  /**
-   * Information about lines in the [content].
-   */
+  @override
   final LineInfo lineInfo;
 
-  /**
-   * The parsed, unresolved compilation unit for the [content].
-   */
+  @override
   final CompilationUnit unit;
 
-  /**
-   * The scanning and parsing errors.
-   */
+  @override
   final List<AnalysisError> errors;
 
-  ParseResult(this.path, this.uri, this.content, this.contentHash,
-      this.lineInfo, this.unit, this.errors);
-}
+  ParseResult(
+      this.path, this.uri, this.content, this.lineInfo, this.unit, this.errors);
 
-/**
- * This class is used to gather and print performance information.
- */
-class PerformanceLog {
-  final StringSink sink;
-  int _level = 0;
-
-  PerformanceLog(this.sink);
-
-  /**
-   * Enter a new execution section, which starts at one point of code, runs
-   * some time, and then ends at the other point of code.
-   *
-   * The client must call [PerformanceLogSection.exit] for every [enter].
-   */
-  PerformanceLogSection enter(String msg) {
-    writeln('+++ $msg.');
-    _level++;
-    return new PerformanceLogSection(this, msg);
-  }
-
-  /**
-   * Return the result of the function [f] invocation and log the elapsed time.
-   *
-   * Each invocation of [run] creates a new enclosed section in the log,
-   * which begins with printing [msg], then any log output produced during
-   * [f] invocation, and ends with printing [msg] with the elapsed time.
-   */
-  /*=T*/ run/*<T>*/(String msg, /*=T*/ f()) {
-    Stopwatch timer = new Stopwatch()..start();
-    try {
-      writeln('+++ $msg.');
-      _level++;
-      return f();
-    } finally {
-      _level--;
-      int ms = timer.elapsedMilliseconds;
-      writeln('--- $msg in $ms ms.');
-    }
-  }
-
-  /**
-   * Write a new line into the log.
-   */
-  void writeln(String msg) {
-    if (sink != null) {
-      String indent = '\t' * _level;
-      sink.writeln('$indent$msg');
-    }
-  }
-}
-
-/**
- * The performance measurement section for operations that start and end
- * at different place in code, so cannot be run using [PerformanceLog.run].
- *
- * The client must call [exit] for every [PerformanceLog.enter].
- */
-class PerformanceLogSection {
-  final PerformanceLog _logger;
-  final String _msg;
-  final Stopwatch _timer = new Stopwatch()..start();
-
-  PerformanceLogSection(this._logger, this._msg);
-
-  /**
-   * Stop the timer, log the time.
-   */
-  void exit() {
-    _timer.stop();
-    _logger._level--;
-    int ms = _timer.elapsedMilliseconds;
-    _logger.writeln('--- $_msg in $ms ms.');
-  }
+  @override
+  results.ResultState get state => results.ResultState.VALID;
 }
 
 /**
@@ -1889,16 +1794,12 @@ class PerformanceLogSection {
  * Every result is independent, and is not guaranteed to be consistent with
  * any previously returned result, even inside of the same library.
  */
-class UnitElementResult {
-  /**
-   * The path of the file, absolute and normalized.
-   */
+class UnitElementResult implements results.UnitElementResult {
+  @override
   final String path;
 
-  /**
-   * The MD5 hash of the file content.
-   */
-  final String contentHash;
+  @override
+  final Uri uri;
 
   /**
    * The signature of the [element] is based the APIs of the files of the
@@ -1912,7 +1813,10 @@ class UnitElementResult {
    */
   final CompilationUnitElement element;
 
-  UnitElementResult(this.path, this.contentHash, this.signature, this.element);
+  UnitElementResult(this.path, this.uri, this.signature, this.element);
+
+  @override
+  results.ResultState get state => results.ResultState.VALID;
 }
 
 /**

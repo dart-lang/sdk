@@ -57,11 +57,6 @@ vm_restart_test: Crash
 pause_on_unhandled_async_exceptions2_test: RuntimeError
 pause_on_unhandled_async_exceptions_test: RuntimeError
 
-###
-### Uncategorized.
-###
-object_graph_vm_test: RuntimeError
-
 # Inherited from service.status
 isolate_lifecycle_test: Pass, RuntimeError
 

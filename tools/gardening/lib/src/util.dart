@@ -51,12 +51,16 @@ Future<String> readUriAsText(HttpClient client, Uri uri) async {
 }
 
 ArgParser createArgParser() {
-  ArgParser argParser = new ArgParser();
+  ArgParser argParser = new ArgParser(allowTrailingOptions: true);
+  argParser.addFlag('help', help: "Help");
   argParser.addFlag('verbose',
       abbr: 'v', negatable: false, help: "Turn on logging output.");
+  argParser.addFlag('no-cache', help: "Disable caching.");
   argParser.addOption('cache',
       help: "Use <dir> for caching test output.\n"
           "Defaults to 'temp/gardening-cache/'.");
+  argParser.addFlag('logdog',
+      negatable: false, help: "Pull test results from logdog.");
   return argParser;
 }
 
@@ -66,5 +70,8 @@ void processArgResults(ArgResults argResults) {
   }
   if (argResults['cache'] != null) {
     cache.base = Uri.base.resolve('${argResults['cache']}/');
+  }
+  if (argResults['no-cache']) {
+    cache.base = null;
   }
 }

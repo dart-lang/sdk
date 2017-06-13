@@ -24,8 +24,6 @@
  *       ...
  *     }
  */
-library analysis_server.src.provisional.completion.dart;
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:plugin/plugin.dart';

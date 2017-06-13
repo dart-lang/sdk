@@ -8,11 +8,13 @@ library front_end.kernel_generator;
 import 'compiler_options.dart';
 import 'dart:async' show Future;
 import 'dart:async';
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/base/processed_options.dart';
 import 'src/fasta/dill/dill_target.dart' show DillTarget;
 import 'src/fasta/errors.dart' show InputError;
 import 'src/fasta/kernel/kernel_target.dart' show KernelTarget;
 import 'package:kernel/kernel.dart' show Program;
+import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
 import 'src/fasta/ticker.dart' show Ticker;
 import 'src/fasta/translate_uri.dart' show TranslateUri;
 import 'src/simple_error.dart';
@@ -29,15 +31,13 @@ import 'src/simple_error.dart';
 /// If `compileSdk` in [options] is true, the generated program will include
 /// code for the SDK.
 ///
-/// If summaries are provided in [options], they may be used to speed up
-/// analysis. If in addition `compileSdk` is false, this will speed up
-/// compilation, as no source of the sdk will be generated.  Note however, that
-/// summaries for application code can also speed up analysis, but they will not
-/// take the place of Dart source code (since the Dart source code is still
-/// needed to access the contents of method bodies).
+/// If summaries are provided in [options], they will be used to speed up
+/// the process. If in addition `compileSdk` is false, then the resulting
+/// program will not contain the sdk contents. This is useful when building apps
+/// for platforms that already embed the sdk (e.g. the VM), so there is no need
+/// to spend time and space rebuilding it.
 Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
   var fs = options.fileSystem;
-
   report(String msg) {
     options.onError(new SimpleError(msg));
     return null;
@@ -47,27 +47,30 @@ Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
     return report("Entry-point file not found: $source");
   }
 
-  if (!await validateOptions(options)) return null;
+  var pOptions = new ProcessedOptions(options);
+
+  if (!await pOptions.validateOptions()) return null;
 
   try {
-    TranslateUri uriTranslator = await TranslateUri.parse(
-        PhysicalFileSystem.instance, null, options.packagesFileUri);
+    TranslateUri uriTranslator = await pOptions.getUriTranslator();
 
-    var dillTarget =
-        new DillTarget(new Ticker(isVerbose: false), uriTranslator);
-    var summary = options.sdkSummary;
-    if (summary != null) dillTarget.read(summary);
+    var dillTarget = new DillTarget(new Ticker(isVerbose: false), uriTranslator,
+        new VmFastaTarget(new TargetFlags(strongMode: options.strongMode)));
+    var summary = await pOptions.sdkSummaryProgram;
+    if (summary != null) {
+      dillTarget.loader.appendLibraries(summary);
+    }
 
-    var kernelTarget = new KernelTarget(
-        options.fileSystem, dillTarget, uriTranslator, options.strongMode);
+    var kernelTarget =
+        new KernelTarget(options.fileSystem, dillTarget, uriTranslator);
     kernelTarget.read(source);
 
-    await dillTarget.writeOutline(null);
-    await kernelTarget.writeOutline(null);
-    Program program = await kernelTarget.writeProgram(null);
+    await dillTarget.buildOutlines();
+    await kernelTarget.buildOutlines();
+    Program program = await kernelTarget.buildProgram(trimDependencies: true);
 
     if (kernelTarget.errors.isNotEmpty) {
-      kernelTarget.errors.forEach((e) => report('$e'));
+      kernelTarget.errors.forEach(report);
       return null;
     }
 
@@ -121,5 +124,63 @@ Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
 /// obtained from?
 Future<Program> kernelForBuildUnit(
     List<Uri> sources, CompilerOptions options) async {
-  throw new UnimplementedError("kernel for build-unit is not implemented");
+  var fs = options.fileSystem;
+  report(String msg) {
+    options.onError(new SimpleError(msg));
+    return null;
+  }
+
+  if (!options.chaseDependencies) {
+    // TODO(sigmund): add support, most likely we can do so by adding a wrapper
+    // on top of filesystem that restricts reads to a set of known files.
+    report("hermetic mode (chaseDependencies = false) is not implemented");
+    return null;
+  }
+
+  for (var source in sources) {
+    if (!await fs.entityForUri(source).exists()) {
+      return report("Entry-point file not found: $source");
+    }
+  }
+
+  var pOptions = new ProcessedOptions(options);
+
+  if (!await pOptions.validateOptions()) return null;
+
+  try {
+    TranslateUri uriTranslator = await pOptions.getUriTranslator();
+
+    var dillTarget = new DillTarget(new Ticker(isVerbose: false), uriTranslator,
+        new VmFastaTarget(new TargetFlags(strongMode: options.strongMode)));
+    var summary = await pOptions.sdkSummaryProgram;
+    if (summary != null) {
+      dillTarget.loader.appendLibraries(summary);
+    }
+
+    // TODO(sigmund): this is likely not going to work if done naively: if
+    // summaries contain external references we need to ensure they are loaded
+    // in a specific order.
+    for (var inputSummary in await pOptions.inputSummariesPrograms) {
+      dillTarget.loader.appendLibraries(inputSummary);
+    }
+
+    await dillTarget.buildOutlines();
+
+    var kernelTarget =
+        new KernelTarget(options.fileSystem, dillTarget, uriTranslator);
+    sources.forEach(kernelTarget.read);
+    await kernelTarget.buildOutlines();
+
+    Program program = await kernelTarget.buildProgram(trimDependencies: true);
+
+    if (kernelTarget.errors.isNotEmpty) {
+      kernelTarget.errors.forEach(report);
+      return null;
+    }
+
+    return program;
+  } on InputError catch (e) {
+    options.onError(new SimpleError(e.format()));
+    return null;
+  }
 }

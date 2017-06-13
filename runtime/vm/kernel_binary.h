@@ -27,6 +27,7 @@ enum Tag {
 
   kClass = 2,
 
+  kFunctionNode = 3,
   kField = 4,
   kConstructor = 5,
   kProcedure = 6,
@@ -268,19 +269,6 @@ class TypeParameterScope {
 };
 
 
-template <typename T>
-class SwitchCaseScope {
- public:
-  explicit SwitchCaseScope(T* builder) : builder_(builder) {
-    builder_->switch_cases().EnterScope();
-  }
-  ~SwitchCaseScope() { builder_->switch_cases().LeaveScope(); }
-
- private:
-  T* builder_;
-};
-
-
 // Unlike other scopes, labels from enclosing functions are not visible in
 // nested functions.  The LabelScope class is used to hide outer labels.
 template <typename Builder, typename Block>
@@ -308,7 +296,6 @@ class ReaderHelper {
 
   BlockStack<VariableDeclaration>& variables() { return scope_; }
   BlockStack<TypeParameter>& type_parameters() { return type_parameters_; }
-  BlockStack<SwitchCase>& switch_cases() { return switch_cases_; }
 
   BlockStack<LabeledStatement>* labels() { return labels_; }
   void set_labels(BlockStack<LabeledStatement>* labels) { labels_ = labels; }
@@ -317,7 +304,6 @@ class ReaderHelper {
   Program* program_;
   BlockStack<VariableDeclaration> scope_;
   BlockStack<TypeParameter> type_parameters_;
-  BlockStack<SwitchCase> switch_cases_;
   BlockStack<LabeledStatement>* labels_;
 };
 
@@ -422,12 +408,27 @@ class Reader {
 
   uint8_t ReadByte() { return buffer_[offset_++]; }
 
+  uint8_t PeekByte() { return buffer_[offset_]; }
+
   bool ReadBool() { return (ReadByte() & 1) == 1; }
 
   word ReadFlags() { return ReadByte(); }
 
   Tag ReadTag(uint8_t* payload = NULL) {
     uint8_t byte = ReadByte();
+    bool has_payload = (byte & kSpecializedTagHighBit) != 0;
+    if (has_payload) {
+      if (payload != NULL) {
+        *payload = byte & kSpecializedPayloadMask;
+      }
+      return static_cast<Tag>(byte & kSpecializedTagMask);
+    } else {
+      return static_cast<Tag>(byte);
+    }
+  }
+
+  Tag PeekTag(uint8_t* payload = NULL) {
+    uint8_t byte = PeekByte();
     bool has_payload = (byte & kSpecializedTagHighBit) != 0;
     if (has_payload) {
       if (payload != NULL) {

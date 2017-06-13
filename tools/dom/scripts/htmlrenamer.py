@@ -71,6 +71,14 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
 # Interfaces that are suppressed, but need to still exist for Dartium and to
 # properly wrap DOM objects if/when encountered.
 _removed_html_interfaces = [
+  'Bluetooth',
+  'BluetoothAdvertisingData',
+  'BluetoothCharacteristicProperties',
+  'BluetoothDevice',
+  'BluetoothRemoteGATTCharacteristic',
+  'BluetoothRemoteGATTServer',
+  'BluetoothRemoteGATTService',
+  'BluetoothUUID',
   'Cache', # TODO: Symbol conflicts with Angular: dartbug.com/20937
   'CanvasPathMethods',
   'CDataSection',
@@ -80,7 +88,6 @@ _removed_html_interfaces = [
   'Counter',
   'DOMFileSystemSync', # Workers
   'DatabaseSync', # Workers
-  'DataView', # Typed arrays
   'DirectoryEntrySync', # Workers
   'DirectoryReaderSync', # Workers
   'DocumentType',
@@ -97,6 +104,7 @@ _removed_html_interfaces = [
   'HTMLFrameSetElement',
   'HTMLMarqueeElement',
   'IDBAny',
+  'NFC',
   'Notation',
   'PagePopupController',
   'RGBColor',
@@ -128,6 +136,19 @@ _removed_html_interfaces = [
   'SVGTRefElement',
   'SVGVKernElement',
   'SubtleCrypto',
+  'USB',
+  'USBAlternateInterface',
+  'USBConfiguration',
+  'USBConnectionEvent',
+  'USBDevice',
+  'USBEndpoint',
+  'USBInTransferResult',
+  'USBInterface',
+  'USBIsochronousInTransferPacket',
+  'USBIsochronousInTransferResult',
+  'USBIsochronousOutTransferPacket',
+  'USBIsochronousOutTransferResult',
+  'USBOutTransferResult',
   'WebKitCSSFilterValue',
   'WebKitCSSMatrix',
   'WebKitCSSMixFunctionValue',
@@ -140,6 +161,8 @@ _removed_html_interfaces = [
   'WebKitSourceBufferList',
   'WorkerLocation', # Workers
   'WorkerNavigator', # Workers
+  'Worklet', # Rendering Workers
+  'WorkletGlobalScope', # Rendering Workers
   'XMLHttpRequestProgressEvent',
   # Obsolete event for NaCl.
   'ResourceProgressEvent',
@@ -199,7 +222,6 @@ custom_html_constructors = monitored.Set(
 # browser. They are exposed simply by placing an underscore in front of the
 # name.
 private_html_members = monitored.Set('htmlrenamer.private_html_members', [
-  'AudioContext.decodeAudioData',
   'AudioNode.connect',
   'Cache.add',
   'Cache.delete',
@@ -374,14 +396,16 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Touch.radiusX',
   'Touch.radiusY',
   'TouchEvent.initTouchEvent',
-  'UIEvent.charCode',
   'UIEvent.initUIEvent',
-  'UIEvent.keyCode',
   'UIEvent.layerX',
   'UIEvent.layerY',
   'UIEvent.pageX',
   'UIEvent.pageY',
   'UIEvent.which',
+  'KeyboardEvent.charCode',
+  'KeyboardEvent.keyCode',
+  'KeyboardEvent.which',
+
   'WheelEvent.initWebKitWheelEvent',
   'WheelEvent.deltaX',
   'WheelEvent.deltaY',
@@ -409,29 +433,25 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
-    'ConsoleBase.assert': 'assertCondition',
-    'CSSKeyframesRule.insertRule': 'appendRule',
-    'DirectoryEntry.getDirectory': '_getDirectory',
-    'DirectoryEntry.getFile': '_getFile',
-    'Document.createCDATASection': 'createCDataSection',
-    'Document.defaultView': 'window',
-    'Window.CSS': 'css',
+    'ConsoleBase.assert': 'assertCondition', 'CSSKeyframesRule.insertRule':
+    'appendRule', 'DirectoryEntry.getDirectory': '_getDirectory',
+    'DirectoryEntry.getFile': '_getFile', 'Document.createCDATASection':
+    'createCDataSection', 'Document.defaultView': 'window', 'Window.CSS': 'css',
     'Window.webkitNotifications': 'notifications',
     'Window.webkitRequestFileSystem': '_requestFileSystem',
     'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
-    'Navigator.webkitGetUserMedia': '_getUserMedia',
-    'Node.appendChild': 'append',
-    'Node.cloneNode': 'clone',
-    'Node.nextSibling': 'nextNode',
-    'Node.parentElement': 'parent',
-    'Node.previousSibling': 'previousNode',
-    'Node.textContent': 'text',
-    'SVGElement.className': '_svgClassName',
-    'SVGStopElement.offset': 'gradientOffset',
-    'URL.createObjectURL': 'createObjectUrl',
-    'URL.revokeObjectURL': 'revokeObjectUrl',
+    'Navigator.webkitGetUserMedia': '_getUserMedia', 'Node.appendChild':
+    'append', 'Node.cloneNode': 'clone', 'Node.nextSibling': 'nextNode',
+    'Node.parentElement': 'parent', 'Node.previousSibling': 'previousNode',
+    'Node.textContent': 'text', 'SVGElement.className': '_svgClassName',
+    'SVGStopElement.offset': 'gradientOffset', 'URL.createObjectURL':
+    'createObjectUrl', 'URL.revokeObjectURL': 'revokeObjectUrl',
     #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
     #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
+
+    # OfflineAudioContext.suspend has an signature incompatible with shadowed
+    # base class method AudioContext.suspend.
+    'OfflineAudioContext.suspend': 'suspendFor',
 })
 
 # Members that have multiple definitions, but their types are vary, so we rename
@@ -513,6 +533,7 @@ for member in convert_to_future_members:
 # TODO(jacobr): cleanup and augment this list.
 removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Attr.textContent', # Not needed as it is the same as Node.textContent.
+    'AudioContext.decodeAudioData',
     'AudioBufferSourceNode.looping', # TODO(vsm): Use deprecated IDL annotation
     'CSSStyleDeclaration.getPropertyCSSValue',
     'CanvasRenderingContext2D.clearShadow',
@@ -763,9 +784,6 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'HTMLUListElement.compact',
     'HTMLUListElement.type',
     'IDBDatabase.transaction', # We do this in a template without the generated implementation at all.
-    'KeyboardEvent.charCode',
-    'KeyboardEvent.keyCode',
-    'KeyboardEvent.which',
     'Location.valueOf',
     'MessageEvent.data',
     'MessageEvent.ports',
@@ -774,10 +792,12 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'MouseEvent.webkitMovementY',
     'MouseEvent.x',
     'MouseEvent.y',
+    'Navigator.bluetooth',
     'Navigator.registerServiceWorker',
     'Navigator.unregisterServiceWorker',
     'Navigator.isProtocolHandlerRegistered',
     'Navigator.unregisterProtocolHandler',
+    'Navigator.usb',
     'Node.compareDocumentPosition',
     'Node.get:DOCUMENT_POSITION_CONTAINED_BY',
     'Node.get:DOCUMENT_POSITION_CONTAINS',
@@ -802,6 +822,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'NodeList.item',
     'ParentNode.append',
     'ParentNode.prepend',
+    'RTCPeerConnection.generateCertificate',
     'ServiceWorkerMessageEvent.data',
     'ShadowRoot.getElementsByTagNameNS',
     'SVGElement.getPresentationAttribute',
@@ -829,6 +850,37 @@ _library_names = monitored.Dict('htmlrenamer._library_names', {
   'Database': 'web_sql',
   'Navigator': 'html',
   'Window': 'html',
+  'AnalyserNode': 'web_audio',
+  'AudioBufferCallback': 'web_audio',
+  'AudioBuffer': 'web_audio',
+  'AudioBufferSourceNode': 'web_audio',
+  'AudioContext': 'web_audio',
+  'AudioDestinationNode': 'web_audio',
+  'AudioListener': 'web_audio',
+  'AudioNode': 'web_audio',
+  'AudioParam': 'web_audio',
+  'AudioProcessingEvent': 'web_audio',
+  'AudioSourceNode': 'web_audio',
+  'BiquadFilterNode': 'web_audio',
+  'ChannelMergerNode': 'web_audio',
+  'ChannelSplitterNode': 'web_audio',
+  'ConvolverNode': 'web_audio',
+  'DelayNode': 'web_audio',
+  'DynamicsCompressorNode': 'web_audio',
+  'GainNode': 'web_audio',
+  'IIRFilterNode': 'web_audio',
+  'MediaElementAudioSourceNode': 'web_audio',
+  'MediaStreamAudioDestinationNode': 'web_audio',
+  'MediaStreamAudioSourceNode': 'web_audio',
+  'OfflineAudioCompletionEvent': 'web_audio',
+  'OfflineAudioContext': 'web_audio',
+  'OscillatorNode': 'web_audio',
+  'PannerNode': 'web_audio',
+  'PeriodicWave': 'web_audio',
+  'ScriptProcessorNode': 'web_audio',
+  'StereoPannerNode': 'web_audio',
+  'WaveShaperNode': 'web_audio',
+  'WindowWebAudio': 'web_audio',
 })
 
 _library_ids = monitored.Dict('htmlrenamer._library_names', {
@@ -837,6 +889,37 @@ _library_ids = monitored.Dict('htmlrenamer._library_names', {
   'Database': 'WebSql',
   'Navigator': 'Html',
   'Window': 'Html',
+  'AnalyserNode': 'WebAudio',
+  'AudioBufferCallback': 'WebAudio',
+  'AudioBuffer': 'WebAudio',
+  'AudioBufferSourceNode': 'WebAudio',
+  'AudioContext': 'WebAudio',
+  'AudioDestinationNode': 'WebAudio',
+  'AudioListener': 'WebAudio',
+  'AudioNode': 'WebAudio',
+  'AudioParam': 'WebAudio',
+  'AudioProcessingEvent': 'WebAudio',
+  'AudioSourceNode': 'WebAudio',
+  'BiquadFilterNode': 'WebAudio',
+  'ChannelMergerNode': 'WebAudio',
+  'ChannelSplitterNode': 'WebAudio',
+  'ConvolverNode': 'WebAudio',
+  'DelayNode': 'WebAudio',
+  'DynamicsCompressorNode': 'WebAudio',
+  'GainNode': 'WebAudio',
+  'IIRFilterNode': 'WebAudio',
+  'MediaElementAudioSourceNode': 'WebAudio',
+  'MediaStreamAudioDestinationNode': 'WebAudio',
+  'MediaStreamAudioSourceNode': 'WebAudio',
+  'OfflineAudioCompletionEvent': 'WebAudio',
+  'OfflineAudioContext': 'WebAudio',
+  'OscillatorNode': 'WebAudio',
+  'PannerNode': 'WebAudio',
+  'PeriodicWave': 'WebAudio',
+  'ScriptProcessorNode': 'WebAudio',
+  'StereoPannerNode': 'WebAudio',
+  'WaveShaperNode': 'WebAudio',
+  'WindowWebAudio': 'WebAudio',
 })
 
 class HtmlRenamer(object):
@@ -946,8 +1029,10 @@ class HtmlRenamer(object):
     if interface.id in _library_names:
       return _library_names[interface.id]
 
-    # TODO(ager, blois): The conditional has been removed from indexed db,
-    # so we can no longer determine the library based on the conditionals.
+    # Support for IDL conditional has been removed from indexed db, web_sql,
+    # svg and web_gl so we can no longer determine the library based on conditional.
+    # Use interface prefix to do that.  web_audio interfaces have no common prefix
+    # - all audio interfaces added to _library_names/_library_ids.
     if interface.id.startswith("IDB"):
       return 'indexed_db'
     if interface.id.startswith("SQL"):
@@ -957,14 +1042,6 @@ class HtmlRenamer(object):
     if interface.id.startswith("WebGL") or interface.id.startswith("OES") \
         or interface.id.startswith("EXT"):
       return 'web_gl'
-
-    if 'Conditional' in interface.ext_attrs:
-      if 'WEB_AUDIO' in interface.ext_attrs['Conditional']:
-        return 'web_audio'
-      if 'INDEXED_DATABASE' in interface.ext_attrs['Conditional']:
-        return 'indexed_db'
-      if 'SQL_DATABASE' in interface.ext_attrs['Conditional']:
-        return 'web_sql'
 
     if interface.id in typed_array_renames:
       return 'typed_data'
@@ -976,8 +1053,10 @@ class HtmlRenamer(object):
     if interface.id in _library_ids:
       return _library_ids[interface.id]
 
-    # TODO(ager, blois): The conditional has been removed from indexed db,
-    # so we can no longer determine the library based on the conditionals.
+    # Support for IDL conditional has been removed from indexed db, web_sql,
+    # svg and web_gl so we can no longer determine the library based on conditional.
+    # Use interface prefix to do that.  web_audio interfaces have no common prefix
+    # - all audio interfaces added to _library_names/_library_ids.
     if interface.id.startswith("IDB"):
       return 'IndexedDb'
     if interface.id.startswith("SQL"):
@@ -987,14 +1066,6 @@ class HtmlRenamer(object):
     if interface.id.startswith("WebGL") or interface.id.startswith("OES") \
         or interface.id.startswith("EXT"):
       return 'WebGl'
-
-    if 'Conditional' in interface.ext_attrs:
-      if 'WEB_AUDIO' in interface.ext_attrs['Conditional']:
-        return 'WebAudio'
-      if 'INDEXED_DATABASE' in interface.ext_attrs['Conditional']:
-        return 'IndexedDb'
-      if 'SQL_DATABASE' in interface.ext_attrs['Conditional']:
-        return 'WebSql'
 
     if interface.id in typed_array_renames:
       return 'TypedData'

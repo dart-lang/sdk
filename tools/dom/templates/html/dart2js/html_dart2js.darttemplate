@@ -48,7 +48,7 @@ import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
-import 'dart:web_gl' show RenderingContext;
+import 'dart:web_gl' show RenderingContext,RenderingContext2;
 import 'dart:web_sql';
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
@@ -62,7 +62,7 @@ import 'dart:_interceptors' show
     getNativeInterceptor,
     setDispatchProperty;
 import 'dart:_isolate_helper' show IsolateNatives;
-import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT, JS_CONST;
+import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 
 export 'dart:math' show Rectangle, Point;
 
@@ -146,3 +146,12 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
 }
 
 createCustomUpgrader(Type customElementClass, $this) => $this;
+
+/**
+ * Emitted for any setlike IDL entry needs a callback signature.
+ * Today there is only one.
+ */
+@DomName('FontFaceSetForEachCallback')
+@Experimental() // untriaged
+typedef void FontFaceSetForEachCallback(
+    FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);

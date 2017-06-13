@@ -6,7 +6,7 @@ library fasta.scanner;
 
 import 'dart:convert' show UNICODE_REPLACEMENT_CHARACTER_RUNE, UTF8;
 
-import 'scanner/token.dart' show Token;
+import '../scanner/token.dart' show Token;
 
 import 'scanner/string_scanner.dart' show StringScanner;
 
@@ -16,11 +16,7 @@ import 'scanner/recover.dart' show defaultRecoveryStrategy;
 
 export 'scanner/token.dart'
     show
-        BeginGroupToken,
-        KeywordToken,
         StringToken,
-        SymbolToken,
-        Token,
         isBinaryOperator,
         isMinusOperator,
         isTernaryOperator,
@@ -36,7 +32,7 @@ export 'scanner/utf8_bytes_scanner.dart' show Utf8BytesScanner;
 
 export 'scanner/string_scanner.dart' show StringScanner;
 
-export '../scanner/token.dart' show Keyword;
+export '../scanner/token.dart' show Keyword, Token;
 
 const int unicodeReplacementCharacter = UNICODE_REPLACEMENT_CHARACTER_RUNE;
 
@@ -79,6 +75,7 @@ ScannerResult scan(List<int> bytes,
 ScannerResult scanString(String source,
     {bool includeComments: false,
     bool scanGenericMethodComments: false,
+    bool scanLazyAssignmentOperators: false,
     Recover recover}) {
   assert(source != null, 'source must not be null');
   StringScanner scanner = new StringScanner(source,

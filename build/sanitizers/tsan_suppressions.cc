@@ -50,7 +50,7 @@ char kTSanDefaultSuppressions[] =
 "race:base/threading/watchdog.cc\n"
 
 // http://crbug.com/157586
-"race:third_party/libvpx/source/libvpx/vp8/decoder/threading.c\n"
+"race:third_party/libvpx_new/source/libvpx/vp8/decoder/threading.c\n"
 
 // http://crbug.com/158718
 "race:third_party/ffmpeg/libavcodec/pthread.c\n"
@@ -62,8 +62,8 @@ char kTSanDefaultSuppressions[] =
 "race:media::ReleaseData\n"
 
 // http://crbug.com/158922
-"race:third_party/libvpx/source/libvpx/vp8/encoder/*\n"
-"race:third_party/libvpx/source/libvpx/vp9/encoder/*\n"
+"race:third_party/libvpx_new/source/libvpx/vp8/encoder/*\n"
+"race:third_party/libvpx_new/source/libvpx/vp9/encoder/*\n"
 
 // http://crbug.com/189177
 "race:thread_manager\n"

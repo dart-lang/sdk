@@ -2,48 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.services.correction.fix;
-
-import 'dart:async';
-
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
-
-/**
- * Compute and return the fixes available for the given [error]. The error was
- * reported after it's source was analyzed in the given [context]. The [plugin]
- * is used to get the list of fix contributors.
- */
-Future<List<Fix>> computeFixes(
-    ServerPlugin plugin,
-    ResourceProvider resourceProvider,
-    AnalysisContext context,
-    AnalysisError error) async {
-  List<Fix> fixes = <Fix>[];
-  List<FixContributor> contributors = plugin.fixContributors;
-  FixContext fixContext = new FixContextImpl(resourceProvider, context, error);
-  for (FixContributor contributor in contributors) {
-    try {
-      List<Fix> contributedFixes = await contributor.computeFixes(fixContext);
-      if (contributedFixes != null) {
-        fixes.addAll(contributedFixes);
-      }
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          'Exception from fix contributor: ${contributor.runtimeType}',
-          new CaughtException(exception, stackTrace));
-    }
-  }
-  fixes.sort(Fix.SORT_BY_RELEVANCE);
-  return fixes;
-}
 
 /**
  * Return true if this [errorCode] is likely to have a fix associated with it.
@@ -268,15 +233,15 @@ class FixContextImpl implements FixContext {
   final ResourceProvider resourceProvider;
 
   @override
-  final AnalysisContext analysisContext;
+  final AnalysisDriver analysisDriver;
 
   @override
   final AnalysisError error;
 
-  FixContextImpl(this.resourceProvider, this.analysisContext, this.error);
+  FixContextImpl(this.resourceProvider, this.analysisDriver, this.error);
 
   FixContextImpl.from(FixContext other)
       : resourceProvider = other.resourceProvider,
-        analysisContext = other.analysisContext,
+        analysisDriver = other.analysisDriver,
         error = other.error;
 }

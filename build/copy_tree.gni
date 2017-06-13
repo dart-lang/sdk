@@ -1,0 +1,57 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+_dart_root = rebase_path("..")
+
+# copy_tree() copies a directory tree rooted at `source` to `dest`, which should
+# be somewhere under $root_out_dir.
+#
+# Optional parameters:
+# exclude - A comma separated list that is passed to shutil.ignore_patterns()
+#           in tools/copy_tree.py.
+template("copy_tree") {
+  assert(defined(invoker.source), "copy_tree must define 'source'")
+  assert(defined(invoker.dest), "copy_tree must define 'dest'")
+  source = invoker.source
+  dest = invoker.dest
+  action(target_name) {
+    if (defined(invoker.visibility)) {
+      visibility = invoker.visibility
+    }
+
+    deps = []
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+
+    common_args = [
+      "--from",
+      rebase_path(source),
+      "--to",
+      rebase_path(dest),
+    ]
+    if (defined(invoker.exclude)) {
+      common_args += [
+        "--exclude",
+        invoker.exclude,
+      ]
+    }
+
+    dry_run_args = common_args + [ "--dry-run" ]
+    input_files = exec_script("$_dart_root/tools/copy_tree.py",
+                              dry_run_args,
+                              "list lines")
+    inputs = input_files
+    relative_files = rebase_path(input_files, rebase_path(source))
+
+    output_files = []
+    foreach(input, relative_files) {
+      output_files += [ "$dest/$input" ]
+    }
+
+    outputs = output_files
+    script = "$_dart_root/tools/copy_tree.py"
+    args = common_args
+  }
+}

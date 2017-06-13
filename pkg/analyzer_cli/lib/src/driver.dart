@@ -39,6 +39,7 @@ import 'package:analyzer_cli/src/error_severity.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:package_config/discovery.dart' as pkg_discovery;
@@ -747,9 +748,9 @@ class Driver implements CommandLineStarter {
     if (severity == ErrorSeverity.ERROR) {
       return true;
     } else if (severity == ErrorSeverity.WARNING &&
-        (options.warningsAreFatal || options.hintsAreFatal)) {
+        (options.warningsAreFatal || options.infosAreFatal)) {
       return true;
-    } else if (severity == ErrorSeverity.INFO && options.hintsAreFatal) {
+    } else if (severity == ErrorSeverity.INFO && options.infosAreFatal) {
       return true;
     } else {
       return false;

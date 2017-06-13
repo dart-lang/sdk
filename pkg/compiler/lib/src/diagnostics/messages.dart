@@ -16,7 +16,7 @@ library dart2js.messages;
 
 import 'package:front_end/src/fasta/scanner.dart' show ErrorToken, Token;
 import 'generated/shared_messages.dart' as shared_messages;
-import 'invariant.dart' show invariant;
+import 'invariant.dart' show failedAt;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
@@ -155,6 +155,7 @@ enum MessageKind {
   FORIN_NOT_ASSIGNABLE,
   FORMAL_DECLARED_CONST,
   FORMAL_DECLARED_STATIC,
+  FROM_ENVIRONMENT_MUST_BE_CONST,
   FUNCTION_TYPE_FORMAL_WITH_DEFAULT,
   FUNCTION_WITH_INITIALIZER,
   GENERIC,
@@ -349,7 +350,7 @@ enum MessageKind {
   PRIVATE_ACCESS,
   PRIVATE_IDENTIFIER,
   PRIVATE_NAMED_PARAMETER,
-  READ_SCRIPT_ERROR,
+  READ_URI_ERROR,
   READ_SELF_ERROR,
   REDIRECTING_CONSTRUCTOR_CYCLE,
   REDIRECTING_CONSTRUCTOR_HAS_BODY,
@@ -1077,6 +1078,13 @@ main() => new C(0);"""
               MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
               "This const constructor is not allowed due to "
               "non-final fields."),
+
+      MessageKind.FROM_ENVIRONMENT_MUST_BE_CONST: const MessageTemplate(
+          MessageKind.FROM_ENVIRONMENT_MUST_BE_CONST,
+          "#{className}.fromEnvironment can only be used as a "
+          "const constructor.",
+          howToFix: "Try replacing `new` with `const`.",
+          examples: const ["main() { new bool.fromEnvironment('X'); }"]),
 
       MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED: const MessageTemplate(
           MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED,
@@ -2605,8 +2613,8 @@ main() {}
 """
           ]),
 
-      MessageKind.READ_SCRIPT_ERROR: const MessageTemplate(
-          MessageKind.READ_SCRIPT_ERROR, "Can't read '#{uri}' (#{exception}).",
+      MessageKind.READ_URI_ERROR: const MessageTemplate(
+          MessageKind.READ_URI_ERROR, "Can't read '#{uri}' (#{exception}).",
           // Don't know how to fix since the underlying error is unknown.
           howToFix: DONT_KNOW_HOW_TO_FIX,
           examples: const [
@@ -3762,11 +3770,11 @@ class Message {
       arguments.forEach((key, value) {
         message = message.replaceAll('#{${key}}', convertToString(value));
       });
-      assert(invariant(
-          CURRENT_ELEMENT_SPANNABLE,
+      assert(
           kind == MessageKind.GENERIC ||
               !message.contains(new RegExp(r'#\{.+\}')),
-          message: 'Missing arguments in error message: "$message"'));
+          failedAt(CURRENT_ELEMENT_SPANNABLE,
+              'Missing arguments in error message: "$message"'));
       if (!terse && template.hasHowToFix) {
         String howToFix = template.howToFix;
         arguments.forEach((key, value) {

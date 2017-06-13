@@ -244,6 +244,19 @@ class _TypeTest<T> {
   bool test(v) => v is T;
 }
 
+int _dynamicCompare(dynamic a, dynamic b) => Comparable.compare(a, b);
+
+Comparator<K> _defaultCompare<K>() {
+  // If K <: Comparable, then we can just use Comparable.compare
+  // with no casts.
+  Object compare = Comparable.compare;
+  if (compare is Comparator<K>) {
+    return compare;
+  }
+  // Otherwise wrap and cast the arguments on each call.
+  return _dynamicCompare;
+}
+
 /**
  * A [Map] of objects that can be ordered relative to each other.
  *
@@ -277,7 +290,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   _Predicate _validKey;
 
   SplayTreeMap([int compare(K key1, K key2), bool isValidKey(potentialKey)])
-      : _comparator = compare ?? Comparable.compare as Comparator<K>,
+      : _comparator = compare ?? _defaultCompare<K>(),
         _validKey = isValidKey ?? ((v) => v is K);
 
   /**
@@ -705,8 +718,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
    * type parameter: `other is E`.
    */
   SplayTreeSet([int compare(E key1, E key2), bool isValidKey(potentialKey)])
-      : _comparator =
-            compare ?? Comparable.compare as dynamic/*=Comparator<E>*/,
+      : _comparator = compare ?? _defaultCompare<E>(),
         _validKey = isValidKey ?? ((v) => v is E);
 
   /**
@@ -753,8 +765,8 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
   }
 
   // From Set.
-  bool contains(Object object) {
-    return _validKey(object) && _splay(object as dynamic/*=E*/) == 0;
+  bool contains(Object element) {
+    return _validKey(element) && _splay(element as dynamic/*=E*/) == 0;
   }
 
   bool add(E element) {

@@ -43,7 +43,7 @@ part 'stream.dart';
 class Future<T> {
   factory Future(computation()) => null;
   factory Future.delayed(Duration duration, [T computation()]) => null;
-  factory Future.value([value]) => null;
+  factory Future.value([FutureOr<T> result]) => null;
 
   static Future<List/*<T>*/> wait/*<T>*/(
       Iterable<Future/*<T>*/> futures) => null;
@@ -72,6 +72,8 @@ abstract class Stream<T> {
                                { Function onError,
                                  void onDone(),
                                  bool cancelOnError});
+  Stream();
+  factory Stream.fromIterable(Iterable<T> data);
 }
 
 abstract class StreamSubscription<T> {
@@ -167,6 +169,7 @@ class bool extends Object {
 abstract class Invocation {}
 
 abstract class num implements Comparable<num> {
+  bool operator ==(Object other);
   bool operator <(num other);
   bool operator <=(num other);
   bool operator >(num other);
@@ -206,6 +209,8 @@ abstract class int extends num {
   external static int parse(String source,
                             { int radix,
                               int onError(String source) });
+
+  String toString();
 }
 
 abstract class double extends num {
@@ -268,7 +273,14 @@ abstract class Iterable<E> {
 
   Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element));
 
+  Iterable<E> where(bool test(E element));
+  
+  void forEach(void f(E element));
+
   List<E> toList();
+
+  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
+      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
 }
 
 class List<E> implements Iterable<E> {
@@ -283,11 +295,6 @@ class List<E> implements Iterable<E> {
   bool get isEmpty => false;
   E get first => null;
   E get last => null;
-
-  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e)) => null;
-
-  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
-      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
 
 }
 

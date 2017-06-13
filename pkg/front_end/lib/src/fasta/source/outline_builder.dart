@@ -4,15 +4,15 @@
 
 library fasta.outline_builder;
 
-import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
+import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../fasta_codes.dart' show FastaMessage, codeExpectedBlockToSkip;
 
-import '../parser/parser.dart' show FormalParameterType, optional;
+import '../parser/parser.dart' show FormalParameterType, MemberKind, optional;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
-import '../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show Token;
 
 import '../util/link.dart' show Link;
 
@@ -22,7 +22,7 @@ import '../errors.dart' show internalError;
 
 import '../builder/builder.dart';
 
-import '../modifier.dart' show Modifier;
+import '../modifier.dart' show abstractMask, externalMask, Modifier;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -45,36 +45,16 @@ enum MethodBody {
   RedirectingFactoryBody,
 }
 
-AsyncMarker asyncMarkerFromTokens(Token asyncToken, Token starToken) {
-  if (asyncToken == null || identical(asyncToken.stringValue, "sync")) {
-    if (starToken == null) {
-      return AsyncMarker.Sync;
-    } else {
-      assert(identical(starToken.stringValue, "*"));
-      return AsyncMarker.SyncStar;
-    }
-  } else if (identical(asyncToken.stringValue, "async")) {
-    if (starToken == null) {
-      return AsyncMarker.Async;
-    } else {
-      assert(identical(starToken.stringValue, "*"));
-      return AsyncMarker.AsyncStar;
-    }
-  } else {
-    return internalError("Unknown async modifier: $asyncToken");
-  }
-}
-
 class OutlineBuilder extends UnhandledListener {
   final SourceLibraryBuilder library;
 
-  final bool isDartLibrary;
+  final bool enableNative;
 
   String nativeMethodName;
 
   OutlineBuilder(SourceLibraryBuilder library)
       : library = library,
-        isDartLibrary = library.uri.scheme == "dart";
+        enableNative = library.loader.target.enableNative(library);
 
   @override
   Uri get uri => library.fileUri;
@@ -170,7 +150,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleRecoverExpression(Token token) {
+  void handleRecoverExpression(Token token, FastaMessage message) {
     debugEvent("RecoverExpression");
     push(NullValue.Expression);
     push(token.charOffset);
@@ -179,11 +159,11 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void endPart(Token partKeyword, Token semicolon) {
     debugEvent("Part");
-    popCharOffset();
+    int charOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
     if (uri != null) {
-      library.addPart(metadata, uri);
+      library.addPart(metadata, uri, charOffset);
     }
     checkEmpty(partKeyword.charOffset);
   }
@@ -306,7 +286,6 @@ class OutlineBuilder extends UnhandledListener {
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     debugEvent("endTopLevelMethod");
     MethodBody kind = pop();
-    AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -324,7 +303,6 @@ class OutlineBuilder extends UnhandledListener {
         name,
         typeVariables,
         formals,
-        asyncModifier,
         computeProcedureKind(getOrSet),
         charOffset,
         formalsOffset,
@@ -359,7 +337,6 @@ class OutlineBuilder extends UnhandledListener {
       // This will cause an error later.
       pop();
     }
-    AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -396,6 +373,9 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder returnType = pop();
     int modifiers =
         Modifier.validate(pop(), isAbstract: bodyKind == MethodBody.Abstract);
+    if ((modifiers & externalMask) != 0) {
+      modifiers &= ~abstractMask;
+    }
     List<MetadataBuilder> metadata = pop();
     library.addProcedure(
         metadata,
@@ -404,7 +384,6 @@ class OutlineBuilder extends UnhandledListener {
         name,
         typeVariables,
         formals,
-        asyncModifier,
         kind,
         charOffset,
         formalsOffset,
@@ -419,7 +398,8 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("MixinApplication");
     List<TypeBuilder> mixins = pop();
     TypeBuilder supertype = pop();
-    push(library.addMixinApplication(supertype, mixins, -1));
+    push(
+        library.addMixinApplication(supertype, mixins, withKeyword.charOffset));
   }
 
   @override
@@ -482,8 +462,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
-      Token nameToken, FormalParameterType kind) {
+  void endFormalParameter(Token thisKeyword, Token nameToken,
+      FormalParameterType kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     int charOffset = pop();
     String name = pop();
@@ -508,15 +488,16 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void endFunctionTypedFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+      Token thisKeyword, FormalParameterType kind) {
     debugEvent("FunctionTypedFormalParameter");
-    pop(); // Function type parameters.
-    pop(); // Formals offset
-    pop(); // Type variables.
+    List<FormalParameterBuilder> formals = pop();
+    int formalsOffset = pop();
+    List<TypeVariableBuilder> typeVariables = pop();
     int charOffset = pop();
     String name = pop();
-    pop(); // Return type.
-    push(NullValue.Type);
+    TypeBuilder returnType = pop();
+    push(library.addFunctionType(
+        returnType, typeVariables, formals, formalsOffset));
     push(name);
     push(charOffset);
   }
@@ -540,41 +521,66 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFormalParameters(int count, Token beginToken, Token endToken) {
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
-    List formals = popList(count);
-    if (formals != null && formals.isNotEmpty) {
-      var last = formals.last;
+    List<FormalParameterBuilder> formals;
+    if (count == 1) {
+      var last = pop();
       if (last is List) {
-        // TODO(sigmund): change `List newList` back to `var` (this is a
-        // workaround for issue #28651). Eventually, make optional
-        // formals a separate stack entry (#28673).
-        List newList =
-            new List<FormalParameterBuilder>(formals.length - 1 + last.length);
-        newList.setRange(0, formals.length - 1, formals);
-        newList.setRange(formals.length - 1, newList.length, last);
-        for (int i = 0; i < last.length; i++) {
-          newList[i + formals.length - 1] = last[i];
-        }
-        formals = newList;
+        formals = new List<FormalParameterBuilder>.from(last);
+      } else {
+        formals = <FormalParameterBuilder>[last];
       }
+    } else if (count > 1) {
+      var last = pop();
+      count--;
+      if (last is List) {
+        formals = new List<FormalParameterBuilder>.filled(
+            count + last.length, null,
+            growable: true);
+        // ignore: ARGUMENT_TYPE_NOT_ASSIGNABLE
+        formals.setRange(count, formals.length, last);
+      } else {
+        formals = new List<FormalParameterBuilder>.filled(count + 1, null,
+            growable: true);
+        formals[count] = last;
+      }
+      popList(count, formals);
     }
     if (formals != null) {
-      for (var formal in formals) {
-        if (formal is! FormalParameterBuilder) {
-          internalError(formals);
+      if (formals.length == 2) {
+        // The name may be null for generalized function types.
+        if (formals[0].name != null && formals[0].name == formals[1].name) {
+          library.addCompileTimeError(formals[1].charOffset,
+              "Duplicated parameter name '${formals[1].name}'.");
+          library.addCompileTimeError(formals[0].charOffset,
+              "Other parameter named '${formals[1].name}'.");
+        }
+      } else if (formals.length > 2) {
+        Map<String, FormalParameterBuilder> seenNames =
+            <String, FormalParameterBuilder>{};
+        for (FormalParameterBuilder formal in formals) {
+          if (formal.name == null) continue;
+          if (seenNames.containsKey(formal.name)) {
+            library.addCompileTimeError(formal.charOffset,
+                "Duplicated parameter name '${formal.name}'.");
+            library.addCompileTimeError(seenNames[formal.name].charOffset,
+                "Other parameter named '${formal.name}'.");
+          } else {
+            seenNames[formal.name] = formal;
+          }
         }
       }
-      formals = new List<FormalParameterBuilder>.from(formals);
     }
     push(beginToken.charOffset);
     push(formals ?? NullValue.FormalParameters);
   }
 
   @override
-  void handleNoFormalParameters(Token token) {
+  void handleNoFormalParameters(Token token, MemberKind kind) {
     push(token.charOffset);
-    super.handleNoFormalParameters(token);
+    super.handleNoFormalParameters(token, kind);
   }
 
   @override
@@ -648,23 +654,22 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("endTopLevelFields");
-    List namesOffsetsAndInitializers = popList(count * 4);
+    List fieldsInfo = popList(count * 4);
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFields(metadata, modifiers, type, namesOffsetsAndInitializers);
+    library.addFields(metadata, modifiers, type, fieldsInfo);
     checkEmpty(beginToken.charOffset);
   }
 
   @override
-  void endFields(
-      int count, Token covariantToken, Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
-    List namesOffsetsAndInitializers = popList(count * 4);
+    List fieldsInfo = popList(count * 4);
     TypeBuilder type = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFields(metadata, modifiers, type, namesOffsetsAndInitializers);
+    library.addFields(metadata, modifiers, type, fieldsInfo);
   }
 
   @override
@@ -719,7 +724,6 @@ class OutlineBuilder extends UnhandledListener {
     if (kind == MethodBody.RedirectingFactoryBody) {
       redirectionTarget = pop();
     }
-    AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     var name = pop();
@@ -730,7 +734,6 @@ class OutlineBuilder extends UnhandledListener {
         modifiers,
         name,
         formals,
-        asyncModifier,
         redirectionTarget,
         factoryKeyword.next.charOffset,
         formalsOffset,
@@ -748,8 +751,20 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void endFieldInitializer(Token assignmentOperator, Token token) {
     debugEvent("FieldInitializer");
+    Token beforeLast = assignmentOperator.next;
+    Token next = beforeLast.next;
+    while (next != token && !next.isEof) {
+      // To avoid storing the rest of the token stream, we need to identify the
+      // token before [token]. That token will be the last token of the
+      // initializer expression and by setting its tail to EOF we only store
+      // the tokens for the expression.
+      // TODO(ahe): Might be clearer if this search was moved to
+      // `library.addFields`.
+      beforeLast = next;
+      next = next.next;
+    }
     push(assignmentOperator.next);
-    push(token);
+    push(beforeLast);
   }
 
   @override
@@ -785,7 +800,6 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
-    push(asyncMarkerFromTokens(asyncToken, starToken));
   }
 
   @override
@@ -802,7 +816,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
-    if (isDartLibrary && message.code == codeExpectedBlockToSkip) {
+    if (enableNative && message.code == codeExpectedBlockToSkip) {
       var target = library.loader.target;
       Token recover = target.skipNativeClause(token);
       if (recover != null) {
@@ -814,8 +828,14 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void addCompileTimeErrorFromMessage(FastaMessage message) {
+    library.addCompileTimeError(message.charOffset, message.message,
+        fileUri: message.uri);
+  }
+
+  @override
   Link<Token> handleMemberName(Link<Token> identifiers) {
-    if (!isDartLibrary || identifiers.isEmpty) return identifiers;
+    if (!enableNative || identifiers.isEmpty) return identifiers;
     return removeNativeClause(identifiers);
   }
 

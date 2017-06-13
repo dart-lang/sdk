@@ -33,12 +33,10 @@ import '../kernel/kernel_builder.dart'
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
-import '../util/relativize.dart' show relativizeUri;
-
 Class initializeClass(
-    Class cls, String name, LibraryBuilder parent, int charOffset) {
+    Class cls, String name, KernelLibraryBuilder parent, int charOffset) {
   cls ??= new Class(name: name);
-  cls.fileUri ??= relativizeUri(parent.fileUri);
+  cls.fileUri ??= parent.library.fileUri;
   if (cls.fileOffset == TreeNode.noOffset) {
     cls.fileOffset = charOffset;
   }
@@ -70,6 +68,7 @@ class SourceClassBuilder extends KernelClassBuilder {
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             scope, constructors, parent, charOffset);
 
+  @override
   int resolveTypes(LibraryBuilder library) {
     int count = 0;
     if (typeVariables != null) {

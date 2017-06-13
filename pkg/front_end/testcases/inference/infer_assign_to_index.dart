@@ -6,6 +6,7 @@
 library test;
 
 List<double> a = <double>[];
-var /*@topType=dynamic*/ b = (/*error:TOP_LEVEL_UNSUPPORTED*/ a[0] = 1.0);
+var /*@topType=dynamic*/ b =
+    (/*error:TOP_LEVEL_UNSUPPORTED*/ a /*@target=List::[]=*/ [0] = 1.0);
 
 main() {}

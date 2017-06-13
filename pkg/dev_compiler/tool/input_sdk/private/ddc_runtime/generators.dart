@@ -14,12 +14,8 @@ part of dart._runtime;
 final _jsIterator = JS('', 'Symbol("_jsIterator")');
 final _current = JS('', 'Symbol("_current")');
 
-syncStar(gen, E, @rest args) => JS(
-    '',
-    '''(() => {
-  const SyncIterable_E = ${getGenericClass(SyncIterable)}($E);
-  return new SyncIterable_E($gen, $args);
-})()''');
+syncStar(gen, E, @rest args) =>
+    JS('', 'new (${getGenericClass(SyncIterable)}($E).new)($gen, $args)');
 
 @JSExportName('async')
 async_(gen, T, @rest args) => JS(
@@ -79,30 +75,30 @@ async_(gen, T, @rest args) => JS(
   return result;  
 })()''');
 
-// Implementation inspired by _AsyncStarStreamController in
-// dart-lang/sdk's runtime/lib/core_patch.dart
-//
-// Given input like:
-//
-//     foo() async* {
-//       yield 1;
-//       yield* bar();
-//       print(await baz());
-//     }
-//
-// This generates as:
-//
-//    function foo() {
-//      return dart.asyncStar(function*(stream) {
-//        if (stream.add(1)) return;
-//        yield;
-//        if (stream.addStream(bar()) return;
-//        yield;
-//        print(yield baz());
-//      });
-//    }
-//
-// TODO(ochafik): Port back to Dart (which it used to be in the past).
+/// Implementation inspired by _AsyncStarStreamController in
+/// dart-lang/sdk's runtime/lib/core_patch.dart
+///
+/// Given input like:
+///
+///     foo() async* {
+///       yield 1;
+///       yield* bar();
+///       print(await baz());
+///     }
+///
+/// This generates as:
+///
+///     function foo() {
+///       return dart.asyncStar(function*(stream) {
+///         if (stream.add(1)) return;
+///         yield;
+///         if (stream.addStream(bar()) return;
+///         yield;
+///         print(yield baz());
+///      });
+///     }
+///
+// TODO(jmesserly): port back to Dart, based on VM's equivalent class.
 final _AsyncStarStreamController = JS(
     '',
     '''
@@ -245,10 +241,6 @@ final _AsyncStarStreamController = JS(
   }
 ''');
 
-/// Returns a Stream of T implemented by an async* function. */
-///
-asyncStar(gen, T, @rest args) => JS(
-    '',
-    '''(() => {
-  return new $_AsyncStarStreamController($gen, $T, $args).controller.stream;
-})()''');
+/// Returns a Stream of T implemented by an async* function.
+asyncStar(gen, T, @rest args) => JS('', 'new #(#, #, #).controller.stream',
+    _AsyncStarStreamController, gen, T, args);

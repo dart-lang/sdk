@@ -121,8 +121,8 @@ class ResolvedAstSerializer extends Visitor {
       } else if (element.isConstructor) {
         kind = AstKind.ENUM_CONSTRUCTOR;
       } else {
-        assert(invariant(element, element.isConst,
-            message: "Unexpected enum member: $element"));
+        assert(element.isConst,
+            failedAt(element, "Unexpected enum member: $element"));
         kind = AstKind.ENUM_CONSTANT;
       }
     } else {
@@ -148,8 +148,11 @@ class ResolvedAstSerializer extends Visitor {
     objectEncoder.setBool(Key.CONTAINS_TRY, elements.containsTryStatement);
     if (resolvedAst.body != null) {
       int index = nodeIndices[resolvedAst.body];
-      assert(invariant(element, index != null,
-          message: "No index for body of $element: "
+      assert(
+          index != null,
+          failedAt(
+              element,
+              "No index for body of $element: "
               "${resolvedAst.body} ($nodeIndices)."));
       objectEncoder.setInt(Key.BODY, index);
     }
@@ -221,9 +224,9 @@ class ResolvedAstSerializer extends Visitor {
 
   /// Computes the [ObjectEncoder] for serializing data for [node].
   ObjectEncoder getNodeDataEncoder(Node node) {
-    assert(invariant(element, node != null, message: "Node must be non-null."));
+    assert(node != null, failedAt(element, "Node must be non-null."));
     int id = nodeIndices[node];
-    assert(invariant(element, id != null, message: "Node without id: $node"));
+    assert(id != null, failedAt(element, "Node without id: $node"));
     return nodeData.putIfAbsent(id, () {
       ObjectEncoder objectEncoder = nodeDataEncoder.createObject();
       objectEncoder.setInt(Key.ID, id);
@@ -536,7 +539,7 @@ class ResolvedAstDeserializer {
             }
           }
           return doParse((parser) {
-            parser.parseFunction(beginToken, getOrSet);
+            parser.parseMember(beginToken);
           });
       }
     }
@@ -552,8 +555,11 @@ class ResolvedAstDeserializer {
     Node body;
     int bodyNodeIndex = objectDecoder.getInt(Key.BODY, isOptional: true);
     if (bodyNodeIndex != null) {
-      assert(invariant(element, bodyNodeIndex < nodeList.length,
-          message: "Body node index ${bodyNodeIndex} out of range. "
+      assert(
+          bodyNodeIndex < nodeList.length,
+          failedAt(
+              element,
+              "Body node index ${bodyNodeIndex} out of range. "
               "Node count: ${nodeList.length}"));
       body = nodeList[bodyNodeIndex];
     }

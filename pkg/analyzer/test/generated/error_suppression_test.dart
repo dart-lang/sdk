@@ -53,6 +53,27 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
         [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
   }
 
+  test_ignore_for_file() async {
+    Source source = addSource('''
+int x = '';  //INVALID_ASSIGNMENT
+const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// ignore_for_file: invalid_assignment
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+  }
+
+  test_ignore_for_file_whitespace_variant() async {
+    Source source = addSource('''
+//ignore_for_file:   const_initialized_with_non_constant_value , invalid_assignment
+int x = '';  //INVALID_ASSIGNMENT
+const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
+  }
+
   test_ignore_only_trailing() async {
     Source source = addSource('''
 int x = ''; // ignore: invalid_assignment
@@ -133,6 +154,16 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  test_multiple_ignore_for_files() async {
+    Source source = addSource('''
+int x = '';  //INVALID_ASSIGNMENT
+const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// ignore_for_file: invalid_assignment,const_initialized_with_non_constant_value
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, []);
   }
 
   test_multiple_ignores() async {

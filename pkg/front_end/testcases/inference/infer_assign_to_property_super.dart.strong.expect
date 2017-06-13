@@ -1,0 +1,57 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  constructor •() → void
+    : super self::A::•()
+    ;
+  operator +(self::C v) → self::A
+    return null;
+  operator -(core::int i) → self::B
+    return null;
+  operator *(self::B v) → self::B
+    return null;
+  operator &(self::A v) → self::C
+    return null;
+}
+class C extends self::B {
+  constructor •() → void
+    : super self::B::•()
+    ;
+}
+class Base extends core::Object {
+  field self::B member = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Test extends self::Base {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    super.{self::Base::member} = self::f<self::B>();
+    super.{self::Base::member}.{core::Object::==}(null) ? super.{self::Base::member} = self::f<self::B>() : null;
+    super.{self::Base::member} = super.{self::Base::member}.{self::B::+}(self::f<dynamic>());
+    super.{self::Base::member} = super.{self::Base::member}.{self::B::*}(self::f<dynamic>());
+    super.{self::Base::member} = super.{self::Base::member}.{self::B::&}(self::f<dynamic>());
+    super.{self::Base::member} = super.{self::Base::member}.{self::B::-}(1);
+    super.{self::Base::member} = super.{self::Base::member}.{self::B::-}(1);
+    self::B v1 = super.{self::Base::member} = self::f<self::B>();
+    self::B v2 = let final dynamic #t1 = super.{self::Base::member} in #t1.{core::Object::==}(null) ? super.{self::Base::member} = self::f<self::B>() : #t1;
+    self::A v3 = super.{self::Base::member} = super.{self::Base::member}.{self::B::+}(self::f<dynamic>());
+    self::B v4 = super.{self::Base::member} = super.{self::Base::member}.{self::B::*}(self::f<dynamic>());
+    self::C v5 = super.{self::Base::member} = super.{self::Base::member}.{self::B::&}(self::f<dynamic>());
+    self::B v6 = super.{self::Base::member} = super.{self::Base::member}.{self::B::-}(1);
+    self::B v7 = let final dynamic #t2 = super.{self::Base::member} in let final dynamic #t3 = super.{self::Base::member} = #t2.{self::B::-}(1) in #t2;
+  }
+}
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static method main() → dynamic {}

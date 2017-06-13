@@ -1542,7 +1542,7 @@ void Assembler::MarkExceptionHandler(Label* label) {
 void Assembler::Drop(intptr_t stack_elements) {
   ASSERT(stack_elements >= 0);
   if (stack_elements > 0) {
-    AddImmediate(SP, SP, stack_elements * kWordSize);
+    AddImmediate(SP, stack_elements * kWordSize);
   }
 }
 
@@ -1594,7 +1594,7 @@ void Assembler::CheckCodePointer() {
   const intptr_t offset = CodeSize() + Instr::kPCReadOffset +
                           Instructions::HeaderSize() - kHeapObjectTag;
   mov(R0, Operand(PC));
-  AddImmediate(R0, R0, -offset);
+  AddImmediate(R0, -offset);
   ldr(IP, FieldAddress(CODE_REG, Code::saved_instructions_offset()));
   cmp(R0, Operand(IP));
   b(&instructions_ok, EQ);
@@ -3013,11 +3013,6 @@ void Assembler::CopyFloat64x2Field(Register dst,
     StoreToOffset(kWord, tmp2, dst,
                   (Float64x2::value_offset() + 3 * kWordSize) - kHeapObjectTag);
   }
-}
-
-
-void Assembler::AddImmediate(Register rd, int32_t value, Condition cond) {
-  AddImmediate(rd, rd, value, cond);
 }
 
 

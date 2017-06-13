@@ -1,0 +1,37 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method call() → core::int
+    return 0;
+}
+class B extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get call() → self::A
+    return new self::A::•();
+}
+class D extends core::Object {
+  field self::A fieldA = new self::A::•();
+  field self::B fieldB = new self::B::•();
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  get getA() → self::A
+    return new self::A::•();
+  get getB() → self::B
+    return new self::B::•();
+}
+static method main() → dynamic {
+  dynamic callA = new self::A::•().call();
+  dynamic callB = new self::B::•().call();
+  dynamic callFieldA = new self::D::•().fieldA();
+  dynamic callGetA = new self::D::•().getA();
+  dynamic callFieldB = new self::D::•().fieldB();
+  dynamic callGetB = new self::D::•().getB();
+}

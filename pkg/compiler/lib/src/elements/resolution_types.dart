@@ -378,9 +378,11 @@ abstract class GenericType<T extends GenericType> extends ResolutionDartType {
         this.typeArguments = typeArguments,
         this.containsMethodTypeVariableType =
             typeArguments.any(_typeContainsMethodTypeVariableType) {
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE, element != null,
-        message: "Missing element for generic type."));
-    assert(invariant(element, () {
+    assert(
+        element != null,
+        failedAt(
+            CURRENT_ELEMENT_SPANNABLE, "Missing element for generic type."));
+    assert(() {
       if (!checkTypeArgumentCount) return true;
       if (element is TypeDeclarationElementX) {
         return element.thisTypeCache == null ||
@@ -388,7 +390,9 @@ abstract class GenericType<T extends GenericType> extends ResolutionDartType {
       }
       return true;
     },
-        message: () => 'Invalid type argument count on ${element.thisType}. '
+        failedAt(
+            element,
+            'Invalid type argument count on ${element.thisType}. '
             'Provided type arguments: $typeArguments.'));
   }
 
@@ -491,7 +495,7 @@ class ResolutionInterfaceType extends GenericType<ResolutionInterfaceType>
   ResolutionInterfaceType(ClassElement element,
       [List<ResolutionDartType> typeArguments = const <ResolutionDartType>[]])
       : super(element, typeArguments) {
-    assert(invariant(element, element.isDeclaration));
+    assert(element.isDeclaration, failedAt(element));
   }
 
   ResolutionInterfaceType.forUserProvidedBadType(ClassElement element,
@@ -621,8 +625,8 @@ class ResolutionFunctionType extends ResolutionDartType
       List<String> namedParameters = const <String>[],
       List<ResolutionDartType> namedParameterTypes =
           const <ResolutionDartType>[]]) {
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE, element != null));
-    assert(invariant(element, element.isDeclaration));
+    assert(element != null, failedAt(CURRENT_ELEMENT_SPANNABLE));
+    assert(element.isDeclaration, failedAt(element));
     return new ResolutionFunctionType.internal(
         element,
         returnType,
@@ -672,8 +676,8 @@ class ResolutionFunctionType extends ResolutionDartType
             parameterTypes.any(_typeContainsMethodTypeVariableType) ||
             optionalParameterTypes.any(_typeContainsMethodTypeVariableType) ||
             namedParameterTypes.any(_typeContainsMethodTypeVariableType) {
-    assert(invariant(
-        CURRENT_ELEMENT_SPANNABLE, element == null || element.isDeclaration));
+    assert(element == null || element.isDeclaration,
+        failedAt(CURRENT_ELEMENT_SPANNABLE));
     // Assert that optional and named parameters are not used at the same time.
     assert(optionalParameterTypes.isEmpty || namedParameterTypes.isEmpty);
     assert(namedParameters.length == namedParameterTypes.length);
@@ -1066,13 +1070,10 @@ class ResolutionPotentialSubtypeVisitor extends PotentialSubtypeVisitor
  * substitute for the bound of [typeVariable]. [bound] holds the bound against
  * which [typeArgument] should be checked.
  */
-typedef void CheckTypeVariableBound(
-    GenericType type,
-    ResolutionDartType typeArgument,
-    ResolutionTypeVariableType typeVariable,
-    ResolutionDartType bound);
+typedef void CheckTypeVariableBound<T extends GenericType>(T type,
+    DartType typeArgument, TypeVariableType typeVariable, DartType bound);
 
-class Types implements DartTypes {
+class Types extends DartTypes {
   final Resolution resolution;
   final ResolutionMoreSpecificVisitor moreSpecificVisitor;
   final ResolutionSubtypeVisitor subtypeVisitor;
@@ -1100,9 +1101,30 @@ class Types implements DartTypes {
   }
 
   @override
+  ResolutionDartType substByContext(
+      ResolutionDartType base, ResolutionInterfaceType context) {
+    return base.substByContext(context);
+  }
+
+  @override
+  InterfaceType getThisType(ClassElement cls) {
+    return cls.thisType;
+  }
+
+  @override
   ResolutionInterfaceType getSupertype(ClassElement cls) {
     return cls.supertype;
   }
+
+  @override
+  Iterable<InterfaceType> getSupertypes(ClassElement cls) {
+    assert(cls.allSupertypes != null,
+        failedAt(cls, 'Supertypes have not been computed for $cls.'));
+    return cls.allSupertypes;
+  }
+
+  @override
+  FunctionType getCallType(ResolutionInterfaceType type) => type.callType;
 
   /// Flatten [type] by recursively removing enclosing `Future` annotations.
   ///
@@ -1163,20 +1185,18 @@ class Types implements DartTypes {
     return subtypeVisitor.isAssignable(r, s);
   }
 
-  static const int IS_SUBTYPE = 1;
-  static const int MAYBE_SUBTYPE = 0;
-  static const int NOT_SUBTYPE = -1;
-
-  int computeSubtypeRelation(ResolutionDartType t, ResolutionDartType s) {
-    // TODO(johnniwinther): Compute this directly in [isPotentialSubtype].
-    if (isSubtype(t, s)) return IS_SUBTYPE;
-    return isPotentialSubtype(t, s) ? MAYBE_SUBTYPE : NOT_SUBTYPE;
-  }
-
   bool isPotentialSubtype(ResolutionDartType t, ResolutionDartType s) {
     // TODO(johnniwinther): Return a set of variable points in the positive
     // cases.
     return potentialSubtypeVisitor.isSubtype(t, s);
+  }
+
+  @override
+  void checkTypeVariableBounds(
+      ResolutionInterfaceType type,
+      void checkTypeVariableBound(InterfaceType type, DartType typeArgument,
+          TypeVariableType typeVariable, DartType bound)) {
+    genericCheckTypeVariableBounds(type, checkTypeVariableBound);
   }
 
   /**
@@ -1184,8 +1204,8 @@ class Types implements DartTypes {
    * declared on [element]. Calls [checkTypeVariableBound] on each type
    * argument and bound.
    */
-  void checkTypeVariableBounds(
-      GenericType type, CheckTypeVariableBound checkTypeVariableBound) {
+  void genericCheckTypeVariableBounds<T extends GenericType>(
+      T type, CheckTypeVariableBound<T> checkTypeVariableBound) {
     TypeDeclarationElement element = type.element;
     List<ResolutionDartType> typeArguments = type.typeArguments;
     List<ResolutionDartType> typeVariables = element.typeVariables;
@@ -1219,27 +1239,6 @@ class Types implements DartTypes {
     });
     // Use the new List only if necessary.
     return changed ? result : types;
-  }
-
-  /**
-   * Returns the [ClassElement] which declares the type variables occurring in
-   * [type], or [:null:] if [type] does not contain type variables.
-   */
-  static ClassEntity getClassContext(DartType type) {
-    ClassEntity contextClass;
-    type.forEachTypeVariable((TypeVariableType typeVariable) {
-      if (typeVariable.element.typeDeclaration is! ClassEntity) return;
-      contextClass = typeVariable.element.typeDeclaration;
-    });
-    // GENERIC_METHODS: When generic method support is complete enough to
-    // include a runtime value for method type variables this must be updated.
-    // For full support the global assumption that all type variables are
-    // declared by the same enclosing class will not hold: Both an enclosing
-    // method and an enclosing class may define type variables, so the return
-    // type cannot be [ClassElement] and the caller must be prepared to look in
-    // two locations, not one. Currently we ignore method type variables by
-    // returning in the next statement.
-    return contextClass;
   }
 
   /**
@@ -1606,8 +1605,8 @@ class Types implements DartTypes {
           resolution.commonElements.functionType;
       type = functionType;
     }
-    assert(invariant(NO_LOCATION_SPANNABLE, type.isInterfaceType,
-        message: "unexpected type kind ${type.kind}."));
+    assert(type.isInterfaceType,
+        failedAt(NO_LOCATION_SPANNABLE, "unexpected type kind ${type.kind}."));
     return type;
   }
 }

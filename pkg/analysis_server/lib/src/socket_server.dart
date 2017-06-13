@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library socket.server;
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -88,16 +86,11 @@ class SocketServer {
           'File read mode was set to the unknown mode: $analysisServerOptions.fileReadMode');
     }
 
-    Index index = null;
-    if (!analysisServerOptions.noIndex) {
-      index = createMemoryIndex();
-    }
-
     analysisServer = new AnalysisServer(
         serverChannel,
         resourceProvider,
         new PubPackageMapProvider(resourceProvider, defaultSdk),
-        index,
+        createMemoryIndex(),
         serverPlugin,
         analysisServerOptions,
         sdkManager,

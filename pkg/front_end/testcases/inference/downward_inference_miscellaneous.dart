@@ -20,9 +20,7 @@ void main() {
     void f(List<Map<int, String>> l) {}
     ;
     f(/*@typeArgs=Map<int, String>*/ [
-      /*@typeArgs=int, String*/ {
-        /*@promotedType=none*/ y: /*@promotedType=none*/ x
-      }
+      /*@typeArgs=int, String*/ {y: x}
     ]);
   }
   {

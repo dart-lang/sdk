@@ -16,13 +16,16 @@ class MyFuture<T> implements Future<T> {
 
 MyFuture f;
 // Instantiates Future<int>
-Future<int> t1 = f. /*@typeArgs=int*/ then(
+Future<int> t1 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
     /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) =>
         new /*@typeArgs=int*/ Future.value('hi'));
 
 // Instantiates List<int>
-Future<List<int>> t2 = f. /*@typeArgs=List<int>*/ then(
-    /*@returnType=List<int>*/ (/*@type=dynamic*/ _) => /*@typeArgs=int*/ [3]);
+Future<List<int>> t2 =
+    f. /*@typeArgs=List<int>*/ /*@target=MyFuture::then*/ then(
+        /*@returnType=List<int>*/ (/*@type=dynamic*/ _) => /*@typeArgs=int*/ [
+              3
+            ]);
 Future<List<int>> g2() async {
   return /*@typeArgs=int*/ [3];
 }
@@ -31,3 +34,5 @@ Future<List<int>> g3() async {
   return new /*@typeArgs=List<int>*/ Future.value(
       /*@typeArgs=int*/ [3]);
 }
+
+main() {}

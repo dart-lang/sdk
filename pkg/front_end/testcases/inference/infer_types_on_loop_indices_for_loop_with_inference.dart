@@ -6,8 +6,7 @@
 library test;
 
 test() {
-  for (var /*@type=int*/ i = 0; /*@promotedType=none*/ i <
-      10; /*@promotedType=none*/ i++) {
-    int j = /*@promotedType=none*/ i + 1;
+  for (var /*@type=int*/ i = 0; i /*@target=num::<*/ < 10; i++) {
+    int j = i /*@target=num::+*/ + 1;
   }
 }

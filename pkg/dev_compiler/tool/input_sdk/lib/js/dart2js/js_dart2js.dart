@@ -204,7 +204,7 @@ class JsObject {
    *
    * The type of [property] must be either [String] or [num].
    */
-  operator []=(Object property, value) {
+  void operator []=(Object property, value) {
     if (property is! String && property is! num) {
       throw new ArgumentError("property is not a String or num");
     }
@@ -367,7 +367,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     return super[index] as E;
   }
 
-  void operator []=(Object index, E value) {
+  void operator []=(Object index, value) {
     // TODO(justinfagnani): fix the semantics for non-ints
     // dartbug.com/14605
     if (index is num && index == index.toInt()) {

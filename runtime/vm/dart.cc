@@ -113,7 +113,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
   CHECK_OFFSET(Thread::stack_limit_offset(), 8);
   CHECK_OFFSET(Thread::object_null_offset(), 80);
-  CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 28);
+  CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 26);
   CHECK_OFFSET(Isolate::object_store_offset(), 56);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 208));
 #endif
@@ -215,7 +215,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       vm_snapshot_kind_ = snapshot->kind();
 
       if (Snapshot::IncludesCode(vm_snapshot_kind_)) {
-        if (vm_snapshot_kind_ == Snapshot::kAppAOT) {
+        if (vm_snapshot_kind_ == Snapshot::kFullAOT) {
 #if defined(DART_PRECOMPILED_RUNTIME)
           vm_isolate_->set_compilation_allowed(false);
           if (!FLAG_precompiled_runtime) {
@@ -510,7 +510,7 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
 static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
                                  Snapshot::Kind isolate_kind) {
   if (vm_kind == isolate_kind) return true;
-  if (vm_kind == Snapshot::kCore && isolate_kind == Snapshot::kAppJIT)
+  if (vm_kind == Snapshot::kFull && isolate_kind == Snapshot::kFullJIT)
     return true;
   return Snapshot::IsFull(isolate_kind);
 }
@@ -668,13 +668,26 @@ const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
 #endif
 
   if (Snapshot::IncludesCode(kind)) {
+    if (FLAG_support_debugger) {
+      buffer.AddString(" support-debugger");
+    }
+
     // Checked mode affects deopt ids.
 #define ADD_FLAG(name, isolate_flag, flag)                                     \
   do {                                                                         \
     const bool name = (isolate != NULL) ? isolate->name() : flag;              \
     buffer.AddString(name ? (" " #name) : (" no-" #name));                     \
   } while (0);
-    ISOLATE_FLAG_LIST(ADD_FLAG);
+    ADD_FLAG(type_checks, enable_type_checks, FLAG_enable_type_checks);
+    ADD_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
+    ADD_FLAG(error_on_bad_type, enable_error_on_bad_type,
+             FLAG_error_on_bad_type);
+    ADD_FLAG(error_on_bad_override, enable_error_on_bad_override,
+             FLAG_error_on_bad_override);
+    if (kind == Snapshot::kFullJIT) {
+      ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
+      ADD_FLAG(use_osr, use_osr, FLAG_use_osr);
+    }
 #undef ADD_FLAG
 
 // Generated code must match the host architecture and ABI.

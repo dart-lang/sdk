@@ -9,16 +9,17 @@ import 'common_elements.dart';
 import 'common/backend_api.dart';
 import 'common/tasks.dart';
 import 'elements/entities.dart';
+import 'elements/types.dart';
 import 'environment.dart';
 import 'enqueue.dart';
 import 'js_backend/backend.dart';
 import 'js_backend/backend_usage.dart';
-import 'js_backend/custom_elements_analysis.dart';
 import 'js_backend/interceptor_data.dart';
 import 'js_backend/mirrors_analysis.dart';
 import 'js_backend/mirrors_data.dart';
 import 'js_backend/native_data.dart';
 import 'js_backend/no_such_method_registry.dart';
+import 'js_backend/runtime_types.dart';
 import 'library_loader.dart';
 import 'native/resolver.dart';
 import 'serialization/task.dart';
@@ -29,7 +30,7 @@ import 'universe/world_impact.dart';
 
 /// Strategy pattern that defines the connection between the input format and
 /// the resolved element model.
-abstract class FrontEndStrategy {
+abstract class FrontendStrategy {
   /// Creates library loader task for this strategy.
   LibraryLoaderTask createLibraryLoader(
       ResolvedUriTranslator uriTranslator,
@@ -45,6 +46,13 @@ abstract class FrontEndStrategy {
   /// Returns the [ElementEnvironment] for the element model used in this
   /// strategy.
   ElementEnvironment get elementEnvironment;
+
+  /// Returns the [CommonElements] for the element model used in this
+  /// strategy.
+  CommonElements get commonElements;
+
+  /// Returns the [DartTypes] for the element model used in this strategy.
+  DartTypes get dartTypes;
 
   /// Returns the [AnnotationProcessor] for this strategy.
   AnnotationProcessor get annotationProcesser;
@@ -62,11 +70,14 @@ abstract class FrontEndStrategy {
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy);
 
   /// Creates the [WorkItemBuilder] corresponding to how a resolved model for
   /// a single member is obtained in this strategy.
   WorkItemBuilder createResolutionWorkItemBuilder(
+      NativeBasicData nativeBasicData,
+      NativeDataBuilder nativeDataBuilder,
       ImpactTransformer impactTransformer);
 
   /// Computes the main function from [mainLibrary] adding additional world
@@ -75,10 +86,6 @@ abstract class FrontEndStrategy {
       LibraryEntity mainLibrary, WorldImpactBuilder impactBuilder);
 
   // TODO(johnniwinther): Reuse the following classes between strategies:
-
-  /// Creates the [CustomElementsResolutionAnalysis] for this strategy.
-  CustomElementsResolutionAnalysis createCustomElementsResolutionAnalysis(
-      NativeBasicData nativeBasicData, BackendUsageBuilder backendUsageBuilder);
 
   /// Creates the [MirrorsDataBuilder] for this strategy.
   MirrorsDataBuilder createMirrorsDataBuilder();
@@ -90,6 +97,9 @@ abstract class FrontEndStrategy {
 
   /// Creates the [RuntimeTypesNeedBuilder] for this strategy.
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder();
+
+  /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
+  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement);
 }
 
 /// Class that performs the mechanics to investigate annotations in the code.

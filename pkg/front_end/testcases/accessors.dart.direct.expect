@@ -39,7 +39,7 @@ static set onlySetter(dynamic value) → void {
 }
 static method main() → dynamic {
   try {
-    core::print(throw new core::NoSuchMethodError::•(null, #onlySetter, <dynamic>[], <dynamic, dynamic>{}, null));
+    core::print(throw new core::NoSuchMethodError::_withType(null, #onlySetter, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null));
     throw "No error thrown";
   }
   on core::NoSuchMethodError catch(final dynamic e) {

@@ -5,23 +5,14 @@
 library fasta.dill_library_builder;
 
 import 'package:kernel/ast.dart'
-    show
-        Class,
-        ExpressionStatement,
-        Field,
-        FunctionNode,
-        Let,
-        Library,
-        ListLiteral,
-        Member,
-        Procedure,
-        StaticGet;
+    show Class, Field, Library, ListLiteral, Member, StaticGet, Typedef;
 
 import '../errors.dart' show internalError;
 
 import '../kernel/kernel_builder.dart'
     show
         Builder,
+        InvalidTypeBuilder,
         KernelInvalidTypeBuilder,
         KernelTypeBuilder,
         LibraryBuilder,
@@ -34,6 +25,8 @@ import 'dill_class_builder.dart' show DillClassBuilder;
 import 'dill_member_builder.dart' show DillMemberBuilder;
 
 import 'dill_loader.dart' show DillLoader;
+
+import 'dill_typedef_builder.dart' show DillFunctionTypeAliasBuilder;
 
 class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   final Uri uri;
@@ -54,19 +47,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     cls.constructors.forEach(classBulder.addMember);
     for (Field field in cls.fields) {
       if (field.name.name == "_redirecting#") {
-        // This is a hack / work around for storing redirecting constructors in
-        // dill files. See `buildFactoryConstructor` in
-        // [package:kernel/analyzer/ast_from_analyzer.dart]
-        // (../../../../kernel/lib/analyzer/ast_from_analyzer.dart).
         ListLiteral initializer = field.initializer;
         for (StaticGet get in initializer.expressions) {
-          Procedure factory = get.target;
-          FunctionNode function = factory.function;
-          ExpressionStatement statement = function.body;
-          Let let = statement.expression;
-          StaticGet getTarget = let.variable.initializer;
-          function.body = new RedirectingFactoryBody(getTarget.target)
-            ..parent = function;
+          RedirectingFactoryBody.restoreFromDill(get.target);
         }
         initializer.expressions.clear();
       } else {
@@ -104,8 +87,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     return builder;
   }
 
-  bool addToExportScope(String name, Builder member) {
-    return internalError("Not implemented yet.");
+  void addTypedef(Typedef typedef) {
+    var typedefBuilder = new DillFunctionTypeAliasBuilder(typedef, this);
+    addBuilder(typedef.name, typedefBuilder, typedef.fileOffset);
   }
 
   @override
@@ -117,6 +101,13 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   Builder buildAmbiguousBuilder(
       String name, Builder builder, Builder other, int charOffset,
       {bool isExport: false, bool isImport: false}) {
+    if (builder == other) return builder;
+    if (builder is InvalidTypeBuilder) return builder;
+    if (other is InvalidTypeBuilder) return other;
+    // For each entry mapping key `k` to declaration `d` in `NS` an entry
+    // mapping `k` to `d` is added to the exported namespace of `L` unless a
+    // top-level declaration with the name `k` exists in `L`.
+    if (builder.parent == this) return builder;
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
   }
 

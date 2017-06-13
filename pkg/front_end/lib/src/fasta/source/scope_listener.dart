@@ -4,7 +4,7 @@
 
 library fasta.scope_listener;
 
-import '../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show Token;
 
 import 'unhandled_listener.dart' show NullValue, UnhandledListener;
 

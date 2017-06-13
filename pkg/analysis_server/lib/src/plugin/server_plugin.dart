@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.plugin.server_plugin;
-
 import 'package:analysis_server/plugin/analysis/analysis_domain.dart';
 import 'package:analysis_server/plugin/analysis/analyzed_files.dart';
 import 'package:analysis_server/plugin/analysis/navigation/navigation.dart';
@@ -17,6 +15,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/domain_analytics.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/domain_execution.dart';
@@ -308,6 +307,9 @@ class ServerPlugin implements Plugin {
         (AnalysisServer server) => new ExecutionDomainHandler(server));
     registerExtension(domainId,
         (AnalysisServer server) => new DiagnosticDomainHandler(server));
+    registerExtension(domainId,
+        (AnalysisServer server) => new AnalyticsDomainHandler(server));
+
     //
     // Register fix contributors.
     //

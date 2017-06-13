@@ -5,23 +5,25 @@
 library dart2js.js_emitter.native_emitter;
 
 import '../common.dart';
-import '../compiler.dart' show Compiler;
+import '../common_elements.dart' show CommonElements;
 import '../elements/types.dart' show DartType, FunctionType;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
+import '../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
+import '../world.dart' show ClosedWorld;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
 import 'model.dart';
 
 class NativeEmitter {
-  final CodeEmitterTask emitterTask;
-  final NativeData nativeData;
-  final InterceptorData interceptorData;
+  final CodeEmitterTask _emitterTask;
+  final ClosedWorld _closedWorld;
+  final CodegenWorldBuilder _worldBuilder;
+  final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
   // Whether the application contains native classes.
   bool hasNativeClasses = false;
@@ -37,15 +39,12 @@ class NativeEmitter {
   // Caches the methods that have a native body.
   Set<FunctionEntity> nativeMethods = new Set<FunctionEntity>();
 
-  NativeEmitter(this.emitterTask, this.nativeData, this.interceptorData);
+  NativeEmitter(this._emitterTask, this._closedWorld, this._worldBuilder,
+      this._nativeCodegenEnqueuer);
 
-  Compiler get compiler => emitterTask.compiler;
-
-  JavaScriptBackend get backend => compiler.backend;
-
-  CodegenWorldBuilder get worldBuilder => compiler.codegenWorldBuilder;
-
-  Namer get namer => backend.namer;
+  CommonElements get _commonElements => _closedWorld.commonElements;
+  NativeData get _nativeData => _closedWorld.nativeData;
+  InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
   /**
    * Prepares native classes for emission. Returns the unneeded classes.
@@ -95,11 +94,11 @@ class NativeEmitter {
     Class jsInterceptorClass = null;
 
     void walk(Class cls) {
-      if (cls.element == compiler.commonElements.objectClass) {
+      if (cls.element == _commonElements.objectClass) {
         objectClass = cls;
         return;
       }
-      if (cls.element == compiler.commonElements.jsInterceptorClass) {
+      if (cls.element == _commonElements.jsInterceptorClass) {
         jsInterceptorClass = cls;
         return;
       }
@@ -144,10 +143,10 @@ class NativeEmitter {
       } else if (extensionPoints.containsKey(cls)) {
         needed = true;
       }
-      if (nativeData.isJsInteropClass(classElement)) {
+      if (_nativeData.isJsInteropClass(classElement)) {
         needed = true; // TODO(jacobr): we don't need all interop classes.
       } else if (cls.isNative &&
-          nativeData.hasNativeTagsForcedNonLeaf(classElement)) {
+          _nativeData.hasNativeTagsForcedNonLeaf(classElement)) {
         needed = true;
         nonLeafClasses.add(cls);
       }
@@ -167,8 +166,8 @@ class NativeEmitter {
     for (Class cls in classes) {
       if (!cls.isNative) continue;
       ClassEntity element = cls.element;
-      if (nativeData.isJsInteropClass(element)) continue;
-      List<String> nativeTags = nativeData.getNativeTagsOfClass(cls.element);
+      if (_nativeData.isJsInteropClass(element)) continue;
+      List<String> nativeTags = _nativeData.getNativeTagsOfClass(cls.element);
 
       if (nonLeafClasses.contains(cls) || extensionPoints.containsKey(cls)) {
         nonleafTags
@@ -203,7 +202,7 @@ class NativeEmitter {
 
     // Add properties containing the information needed to construct maps used
     // by getNativeInterceptor and custom elements.
-    if (backend.nativeCodegenEnqueuer.hasInstantiatedNativeClasses) {
+    if (_nativeCodegenEnqueuer.hasInstantiatedNativeClasses) {
       fillNativeInfo(jsInterceptorClass);
       for (Class cls in classes) {
         if (!cls.isNative || neededClasses.contains(cls)) {
@@ -266,10 +265,10 @@ class NativeEmitter {
 
   void potentiallyConvertDartClosuresToJs(List<jsAst.Statement> statements,
       FunctionEntity member, List<jsAst.Parameter> stubParameters) {
-    FunctionEntity converter = compiler.commonElements.closureConverter;
+    FunctionEntity converter = _commonElements.closureConverter;
     jsAst.Expression closureConverter =
-        emitterTask.staticFunctionAccess(converter);
-    worldBuilder.forEachParameter(member, (DartType type, String name) {
+        _emitterTask.staticFunctionAccess(converter);
+    _worldBuilder.forEachParameter(member, (DartType type, String name) {
       // If [name] is not in [stubParameters], then the parameter is an optional
       // parameter that was not provided for this stub.
       for (jsAst.Parameter stubParameter in stubParameters) {
@@ -312,10 +311,10 @@ class NativeEmitter {
     jsAst.Expression receiver;
     List<jsAst.Expression> arguments;
 
-    assert(invariant(member, nativeMethods.contains(member)));
+    assert(nativeMethods.contains(member), failedAt(member));
     // When calling a JS method, we call it with the native name, and only the
     // arguments up until the last one provided.
-    target = nativeData.getFixedBackendName(member);
+    target = _nativeData.getFixedBackendName(member);
 
     if (isInterceptedMethod) {
       receiver = argumentsBuffer[0];
@@ -323,10 +322,10 @@ class NativeEmitter {
           1, indexOfLastOptionalArgumentInParameters + 1);
     } else {
       // Native methods that are not intercepted must be static.
-      assert(invariant(member, member.isStatic));
+      assert(member.isStatic, failedAt(member));
       arguments = argumentsBuffer.sublist(
           0, indexOfLastOptionalArgumentInParameters + 1);
-      if (nativeData.isJsInteropMember(member)) {
+      if (_nativeData.isJsInteropMember(member)) {
         // fixedBackendPath is allowed to have the form foo.bar.baz for
         // interop. This template is uncached to avoid possibly running out of
         // memory when Dart2Js is run in server mode. In reality the risk of
@@ -335,7 +334,7 @@ class NativeEmitter {
         // unique template.
         receiver = js
             .uncachedExpressionTemplate(
-                nativeData.getFixedBackendMethodPath(member))
+                _nativeData.getFixedBackendMethodPath(member))
             .instantiate([]);
       } else {
         receiver = js('this');
@@ -348,7 +347,7 @@ class NativeEmitter {
   }
 
   bool isSupertypeOfNativeClass(ClassEntity element) {
-    if (interceptorData.isMixedIntoInterceptedClass(element)) {
+    if (_interceptorData.isMixedIntoInterceptedClass(element)) {
       return true;
     }
 
@@ -363,7 +362,7 @@ class NativeEmitter {
     // the type info.  i.e the criteria for whether or not to use an interceptor
     // is whether the receiver can be native, not the type of the test.
     ClassEntity cls = element;
-    if (nativeData.isNativeOrExtendsNative(cls)) return true;
+    if (_nativeData.isNativeOrExtendsNative(cls)) return true;
     return isSupertypeOfNativeClass(element);
   }
 }

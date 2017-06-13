@@ -286,6 +286,7 @@ abstract class AbstractConstExprSerializer {
   }
 
   void _pushInt(int value) {
+    value ??= 0;
     assert(value >= 0);
     if (value >= 0x100000000) {
       int numOfComponents = 0;

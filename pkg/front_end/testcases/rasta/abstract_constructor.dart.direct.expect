@@ -8,5 +8,5 @@ abstract class C extends core::Object {
     ;
 }
 static method main() → dynamic {
-  throw new core::NoSuchMethodError::•(null, #C, <dynamic>[], <dynamic, dynamic>{}, null);
+  throw new core::AbstractClassInstantiationError::•("C");
 }

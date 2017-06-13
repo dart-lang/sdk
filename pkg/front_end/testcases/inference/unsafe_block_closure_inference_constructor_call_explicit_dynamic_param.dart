@@ -12,3 +12,7 @@ class C<T> {
 var /*@topType=C<dynamic>*/ v = new C<dynamic>(/*@returnType=int*/ () {
   return 1;
 });
+
+main() {
+  v;
+}

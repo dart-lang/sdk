@@ -8,11 +8,6 @@ class Mixin extends core::Object {
     : super core::Object::•()
     ;
 }
-class A extends self::Object&Mixin&Mixin {
-  constructor •() → void
-    : super self::Object&Mixin&Mixin::•()
-    ;
-}
 abstract class Object&Mixin extends core::Object implements self::Mixin {
   field dynamic field = null;
   constructor •() → void
@@ -23,5 +18,10 @@ abstract class Object&Mixin&Mixin extends self::Object&Mixin implements self::Mi
   field dynamic field = null;
   constructor •() → void
     : super self::Object&Mixin::•()
+    ;
+}
+class A extends self::Object&Mixin&Mixin {
+  constructor •() → void
+    : super self::Object&Mixin&Mixin::•()
     ;
 }

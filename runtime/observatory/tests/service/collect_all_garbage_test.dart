@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
-import 'dart:async';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 

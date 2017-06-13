@@ -50,7 +50,7 @@ public class Outline {
 
   /**
    * The offset of the first character of the element. This is different than the offset in the
-   * Element, which if the offset of the name of the element. It can be used, for example, to map
+   * Element, which is the offset of the name of the element. It can be used, for example, to map
    * locations in the file back to an outline.
    */
   private int offset;
@@ -141,7 +141,7 @@ public class Outline {
 
   /**
    * The offset of the first character of the element. This is different than the offset in the
-   * Element, which if the offset of the name of the element. It can be used, for example, to map
+   * Element, which is the offset of the name of the element. It can be used, for example, to map
    * locations in the file back to an outline.
    */
   public int getOffset() {
@@ -181,7 +181,7 @@ public class Outline {
 
   /**
    * The offset of the first character of the element. This is different than the offset in the
-   * Element, which if the offset of the name of the element. It can be used, for example, to map
+   * Element, which is the offset of the name of the element. It can be used, for example, to map
    * locations in the file back to an outline.
    */
   public void setOffset(int offset) {

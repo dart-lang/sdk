@@ -17,14 +17,12 @@ import '../type_checker.dart';
 /// Ideally this should be done when initially generating kernel IR, but this
 /// is not practical at the moment.
 class InsertTypeChecks {
-  CoreTypes coreTypes;
+  final CoreTypes coreTypes;
   ClassHierarchy hierarchy;
 
-  InsertTypeChecks({this.coreTypes, this.hierarchy});
+  InsertTypeChecks(this.coreTypes, this.hierarchy);
 
   void transformProgram(Program program) {
-    coreTypes ??= new CoreTypes(program);
-    hierarchy ??= new ClassHierarchy(program);
     new CheckInsertingTypeChecker(coreTypes, hierarchy).checkProgram(program);
   }
 }

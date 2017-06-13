@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library context.directory.manager;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:core';
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -1016,7 +1013,8 @@ class ContextManagerImpl implements ContextManager {
         String contextRoot = info.folder.path;
         ContextBuilder builder =
             callbacks.createContextBuilder(info.folder, defaultContextOptions);
-        AnalysisOptions options = builder.getAnalysisOptions(contextRoot);
+        AnalysisOptions options = builder.getAnalysisOptions(contextRoot,
+            contextRoot: driver.contextRoot);
         SourceFactory factory =
             builder.createSourceFactory(contextRoot, options);
         driver.configure(analysisOptions: options, sourceFactory: factory);
@@ -1044,7 +1042,8 @@ class ContextManagerImpl implements ContextManager {
       String contextRoot = info.folder.path;
       ContextBuilder builder =
           callbacks.createContextBuilder(info.folder, defaultContextOptions);
-      AnalysisOptions options = builder.getAnalysisOptions(contextRoot);
+      AnalysisOptions options = builder.getAnalysisOptions(contextRoot,
+          contextRoot: info.analysisDriver?.contextRoot);
       SourceFactory factory = builder.createSourceFactory(contextRoot, options);
       if (enableNewAnalysisDriver) {
         AnalysisDriver driver = info.analysisDriver;
@@ -1155,9 +1154,7 @@ class ContextManagerImpl implements ContextManager {
           }
         }
 
-        ServerPerformanceStatistics.pub.makeCurrentWhile(() {
-          packageMapInfo = _packageMapProvider.computePackageMap(folder);
-        });
+        packageMapInfo = _packageMapProvider.computePackageMap(folder);
       } finally {
         callbacks.computingPackageMap(false);
       }

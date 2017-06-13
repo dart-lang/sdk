@@ -7,7 +7,9 @@
 library dart2js.kernel.compiler_helper;
 
 import 'dart:async';
+import 'dart:io';
 
+import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/names.dart';
@@ -22,6 +24,7 @@ import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
+import '../../../../pkg/compiler/tool/generate_kernel.dart' as generate;
 
 typedef Future<Compiler> CompileFunction();
 
@@ -66,10 +69,11 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
           ]);
       ElementResolutionWorldBuilder.useInstantiationMap = true;
       compiler2.resolution.retainCachesForTesting = true;
-      KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-      KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
+      KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
+      KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
       ir.Program program = new ir.Program(
-          compiler.backend.kernelTask.kernel.libraryDependencies(uri));
+          libraries:
+              compiler.backend.kernelTask.kernel.libraryDependencies(uri));
       LibraryElement library = compiler.libraryLoader.lookupLibrary(uri);
       Expect.isNotNull(library, 'No library found for $uri');
       program.mainMethod = compiler.backend.kernelTask.kernel
@@ -111,8 +115,8 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
       ]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
   compiler2.resolution.retainCachesForTesting = true;
-  KernelFrontEndStrategy frontEndStrategy = compiler2.frontEndStrategy;
-  KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
+  KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
+  KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
   compiler2.libraryLoader = new MemoryDillLibraryLoaderTask(
       elementMap,
       compiler2.reporter,
@@ -133,4 +137,48 @@ class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
       {bool skipFileWithPartOfTag: false}) async {
     return createLoadedLibraries(program);
   }
+}
+
+Future<Compiler> compileWithDill(
+    Uri entryPoint, Map<String, String> memorySourceFiles, List<String> options,
+    {bool printSteps: false,
+    CompilerOutput compilerOutput,
+    void beforeRun(Compiler compiler)}) async {
+  if (memorySourceFiles.isNotEmpty) {
+    Directory dir = await Directory.systemTemp.createTemp('dart2js-with-dill');
+    if (printSteps) {
+      print('--- create temp directory $dir -------------------------------');
+    }
+    memorySourceFiles.forEach((String name, String source) {
+      new File.fromUri(dir.uri.resolve(name)).writeAsStringSync(source);
+    });
+    entryPoint = dir.uri.resolve(entryPoint.path);
+  }
+  if (printSteps) {
+    print('---- generate dill -----------------------------------------------');
+  }
+
+  Uri dillFile = Uri.parse('$entryPoint.dill');
+  String buildDir = Platform.isMacOS ? 'xcodebuild' : 'out';
+  String configuration =
+      Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
+  await generate.main([
+    '--platform=$buildDir/$configuration/patched_dart2js_sdk/platform.dill',
+    '$entryPoint'
+  ]);
+
+  if (printSteps) {
+    print('---- compile from dill $dillFile ---------------------------------');
+  }
+  Compiler compiler = compilerFor(
+      entryPoint: dillFile,
+      options: [Flags.loadFromDill]..addAll(options),
+      outputProvider: compilerOutput);
+  ElementResolutionWorldBuilder.useInstantiationMap = true;
+  compiler.resolution.retainCachesForTesting = true;
+  if (beforeRun != null) {
+    beforeRun(compiler);
+  }
+  await compiler.run(dillFile);
+  return compiler;
 }

@@ -64,20 +64,6 @@ class AnalyzerImpl {
   AnalyzerImpl(this.analysisOptions, this.context, this.analysisDriver,
       this.librarySource, this.options, this.stats, this.startTime);
 
-  /// Returns the maximal [ErrorSeverity] of the recorded errors.
-  ErrorSeverity computeMaxErrorSeverity() {
-    ErrorSeverity status = ErrorSeverity.NONE;
-    for (AnalysisErrorInfo errorInfo in errorInfos) {
-      for (AnalysisError error in errorInfo.errors) {
-        if (_defaultSeverityProcessor(error) == null) {
-          continue;
-        }
-        status = status.max(computeSeverity(error, options, analysisOptions));
-      }
-    }
-    return status;
-  }
-
   void addCompilationUnitSource(
       CompilationUnitElement unit, Set<CompilationUnitElement> units) {
     if (unit == null || !units.add(unit)) {
@@ -121,6 +107,20 @@ class AnalyzerImpl {
       {int printMode: 1}) async {
     setupForAnalysis();
     return await _analyze(printMode, formatter);
+  }
+
+  /// Returns the maximal [ErrorSeverity] of the recorded errors.
+  ErrorSeverity computeMaxErrorSeverity() {
+    ErrorSeverity status = ErrorSeverity.NONE;
+    for (AnalysisErrorInfo errorInfo in errorInfos) {
+      for (AnalysisError error in errorInfo.errors) {
+        if (_defaultSeverityProcessor(error) == null) {
+          continue;
+        }
+        status = status.max(computeSeverity(error, options, analysisOptions));
+      }
+    }
+    return status;
   }
 
   /// Fills [errorInfos] using [sources].
@@ -188,6 +188,9 @@ class AnalyzerImpl {
     return computeMaxErrorSeverity();
   }
 
+  ErrorSeverity _defaultSeverityProcessor(AnalysisError error) =>
+      determineProcessedSeverity(error, options, analysisOptions);
+
   /// Returns true if we want to report diagnostics for this library.
   bool _isAnalyzedLibrary(LibraryElement library) {
     Source source = library.source;
@@ -204,6 +207,7 @@ class AnalyzerImpl {
     }
   }
 
+  // TODO(devoncarew): This is never called.
   /// Determine whether the given URI refers to a package being analyzed.
   bool _isAnalyzedPackage(Uri uri) {
     if (uri.scheme != 'package' || uri.pathSegments.isEmpty) {
@@ -221,13 +225,12 @@ class AnalyzerImpl {
     }
   }
 
-  // TODO(devoncarew): This is never called.
   void _printColdPerf() {
     // Print cold VM performance numbers.
     int totalTime = currentTimeMillis - startTime;
     int otherTime = totalTime;
     for (PerformanceTag tag in PerformanceTag.all) {
-      if (tag != PerformanceTag.UNKNOWN) {
+      if (tag != PerformanceTag.unknown) {
         int tagTime = tag.elapsedMs;
         outSink.writeln('${tag.label}-cold:$tagTime');
         otherTime -= tagTime;
@@ -236,9 +239,6 @@ class AnalyzerImpl {
     outSink.writeln('other-cold:$otherTime');
     outSink.writeln("total-cold:$totalTime");
   }
-
-  ErrorSeverity _defaultSeverityProcessor(AnalysisError error) =>
-      determineProcessedSeverity(error, options, analysisOptions);
 
   Future<LibraryElement> _resolveLibrary() async {
     PerformanceTag previous = _resolveLibraryTag.makeCurrent();

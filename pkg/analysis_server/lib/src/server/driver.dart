@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library driver;
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
@@ -278,11 +276,6 @@ class Driver implements ServerStarter {
       'verbose-flutter-completions';
 
   /**
-   * The name of the flag used to disable the index.
-   */
-  static const String NO_INDEX = "no-index";
-
-  /**
    * The name of the flag used to enable version 2 of semantic highlight
    * notification.
    */
@@ -391,12 +384,15 @@ class Driver implements ServerStarter {
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.enableNewAnalysisDriver =
         !results[DISABLE_NEW_ANALYSIS_DRIVER];
-    analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
         results[USE_ANALYSIS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
     analysisServerOptions.newAnalysisDriverLog =
         results[NEW_ANALYSIS_DRIVER_LOG];
+
+    analysisServerOptions.clientId = results[CLIENT_ID];
+    analysisServerOptions.clientVersion = results[CLIENT_VERSION];
+
     analysisServerOptions.enableVerboseFlutterCompletions =
         results[VERBOSE_FLUTTER_COMPLETIONS];
 
@@ -540,6 +536,7 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addFlag(HELP_OPTION,
         help: "print this help message without starting a server",
+        abbr: 'h',
         defaultsTo: false,
         negatable: false);
     parser.addOption(INCREMENTAL_RESOLUTION_LOG,
@@ -568,8 +565,6 @@ class Driver implements ServerStarter {
             " status and performance information");
     parser.addOption(INTERNAL_DELAY_FREQUENCY);
     parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
-    parser.addFlag(NO_INDEX,
-        help: "disable indexing sources", defaultsTo: false, negatable: false);
     parser.addFlag(USE_ANALYSIS_HIGHLIGHT2,
         help: "enable version 2 of semantic highlight",
         defaultsTo: false,

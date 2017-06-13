@@ -11,7 +11,7 @@ main() async {
   var /*@type=() -> Stream<Null>*/ f = /*@returnType=Stream<Null>*/ () async* {
     yield null;
   };
-  Stream y = /*@promotedType=none*/ f();
-  Stream<String> z = /*@promotedType=none*/ f();
-  String s = await /*@promotedType=none*/ f().first;
+  Stream y = f();
+  Stream<String> z = f();
+  String s = await f(). /*@target=Stream::first*/ first;
 }

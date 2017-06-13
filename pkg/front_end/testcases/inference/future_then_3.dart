@@ -14,33 +14,35 @@ class MyFuture<T> implements Future<T> {
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
-void main() {
+void test() {
   MyFuture f;
-  MyFuture<int> t1 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+  MyFuture<int> t1 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async =>
           await new Future<int>.value(3));
-  MyFuture<int> t2 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+  MyFuture<int> t2 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
     return await new Future<int>.value(3);
   });
-  MyFuture<int> t3 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+  MyFuture<int> t3 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async => 3);
-  MyFuture<int> t4 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+  MyFuture<int> t4 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
     return 3;
   });
-  MyFuture<int> t5 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+  MyFuture<int> t5 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) =>
           new Future<int>.value(3));
-  MyFuture<int> t6 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+  MyFuture<int> t6 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) {
     return new Future<int>.value(3);
   });
-  MyFuture<int> t7 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+  MyFuture<int> t7 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async =>
           new Future<int>.value(3));
-  MyFuture<int> t8 = /*@promotedType=none*/ f. /*@typeArgs=int*/ then(
+  MyFuture<int> t8 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*@returnType=Future<int>*/ (/*@type=dynamic*/ _) async {
     return new Future<int>.value(3);
   });
 }
+
+main() {}

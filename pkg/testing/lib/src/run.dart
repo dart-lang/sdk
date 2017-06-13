@@ -96,8 +96,8 @@ Future<Null> run(List<String> arguments, List<String> suiteNames,
     List<Suite> suites = root.suites
         .where((Suite suite) => suiteNames.contains(suite.name))
         .toList();
-    SuiteRunner runner = new SuiteRunner(
-        suites, <String, String>{}, null, new Set<String>(), new Set<String>());
+    SuiteRunner runner = new SuiteRunner(suites, <String, String>{},
+        const <String>[], new Set<String>(), new Set<String>());
     String program = await runner.generateDartProgram();
     await runner.analyze(root.packages);
     if (program != null) {

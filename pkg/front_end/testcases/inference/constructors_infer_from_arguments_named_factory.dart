@@ -10,9 +10,9 @@ class C<T> {
   C();
 
   factory C.named(T t) {
-    var /*@type=C<T>*/ x = new C<T>();
-    /*@promotedType=none*/ x.t = /*@promotedType=none*/ t;
-    return /*@promotedType=none*/ x;
+    var /*@type=C<C::named::T>*/ x = new C<T>();
+    x. /*@target=C::t*/ t = t;
+    return x;
   }
 }
 

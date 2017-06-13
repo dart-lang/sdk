@@ -311,11 +311,21 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
   }
 }
 
+// For generic classes, mirrors uses the same representation, [ClassMirror],
+// for the instantiated and uninstantiated type.  Somewhat awkwardly, most APIs
+// (e.g., [newInstance]) treat the uninstantiated type as if instantiated
+// with all dynamic.  The representation below is correspondingly a bit wonky.
+// For an uninstantiated generic class, [_cls] is the instantiated type (with
+// dynamic) and [_raw] is null.  For an instantiated generic class, [_cls] is
+// the instantiated type (with the corresponding type parameters), and [_raw]
+// is the generic factory.
 class JsClassMirror extends JsMirror implements ClassMirror {
   final Type _cls;
   final Symbol simpleName;
-  // Generic class factory
+  // Generic class factory for instantiated types.
   final dynamic _raw;
+
+  ClassMirror _originalDeclaration;
 
   // TODO(vsm): Do this properly
   ClassMirror _mixin = null;
@@ -414,11 +424,11 @@ class JsClassMirror extends JsMirror implements ClassMirror {
     return _declarations;
   }
 
-  JsClassMirror._(Type cls)
+  JsClassMirror._(Type cls, {bool instantiated: true})
       : _cls = cls,
-        _raw = _getGenericClass(_unwrap(cls)),
+        _raw = instantiated ? _getGenericClass(_unwrap(cls)) : null,
         simpleName = new Symbol(JS('String', '#.name', _unwrap(cls))) {
-    var typeArgs = _getGenericArgs(_unwrap(cls));
+    var typeArgs = _getGenericArgs(_unwrap(_cls));
     if (typeArgs == null) {
       _typeArguments = const [];
     } else {
@@ -432,9 +442,8 @@ class JsClassMirror extends JsMirror implements ClassMirror {
     // TODO(vsm): Support factory constructors and named arguments.
     var name = getName(constructorName);
     assert(namedArgs == null || namedArgs.isEmpty);
-    var instance = (name == 'new' || name == '')
-        ? JS('', 'new #(...#)', _unwrap(_cls), args)
-        : JS('', 'new (#.#)(...#)', _unwrap(_cls), name, args);
+    if (name == '') name = 'new';
+    var instance = JS('', 'new (#.#)(...#)', _unwrap(_cls), name, args);
     return reflect(instance);
   }
 
@@ -485,13 +494,15 @@ class JsClassMirror extends JsMirror implements ClassMirror {
   List<TypeMirror> get typeArguments => _typeArguments;
 
   TypeMirror get originalDeclaration {
-    // TODO(vsm): Handle generic case.  How should we represent an original
-    // declaration for a generic class?
     if (_raw == null) {
       return this;
     }
-    throw new UnimplementedError(
-        "ClassMirror.originalDeclaration unimplemented");
+    if (_originalDeclaration != null) {
+      return _originalDeclaration;
+    }
+    _originalDeclaration =
+        new JsClassMirror._(_wrap(JS('', '#()', _raw)), instantiated: false);
+    return _originalDeclaration;
   }
 
   ClassMirror get superclass {

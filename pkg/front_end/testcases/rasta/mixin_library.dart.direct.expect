@@ -11,7 +11,7 @@ class Mixin<T extends core::Object> extends core::Object {
     : super core::Object::•()
     ;
   method foo() → dynamic
-    return (throw new core::NoSuchMethodError::•(null, #foo, <dynamic>[], <dynamic, dynamic>{}, null)).+(self::f());
+    return this.{=core::Object::noSuchMethod}(new core::_InvocationMirror::•("foo", <dynamic>[0, 1, 1].toList(growable: false), <dynamic>[this].toList(growable: false), true)).+(self::f());
   method g(self::Mixin::T a) → self::Mixin::T
     return null;
   method h() → dynamic

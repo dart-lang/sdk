@@ -9,8 +9,127 @@ import 'dart:typed_data';
 import 'src/heap.dart';
 import 'type_algebra.dart';
 
-/// Data structure for answering various subclassing queries.
-class ClassHierarchy {
+/// Interface for answering various subclassing queries.
+/// TODO(scheglov) Several methods are not used, or used only in tests.
+/// Check if these methods are not useful and should be removed .
+abstract class ClassHierarchy {
+  /// Given the [unordered] classes, return them in such order that classes
+  /// occur after their superclasses.  If some superclasses are not in
+  /// [unordered], they are not included.
+  Iterable<Class> getOrderedClasses(Iterable<Class> unordered);
+
+  /// Returns the unique index of the [class_].
+  int getClassIndex(Class class_);
+
+  /// True if the program contains another class that is a subtype of given one.
+  bool hasProperSubtypes(Class class_);
+
+  /// Returns the number of steps in the longest inheritance path from [class_]
+  /// to [Object].
+  int getClassDepth(Class class_);
+
+  /// Returns a list of classes appropriate for use in calculating a least upper
+  /// bound.
+  ///
+  /// The returned list is a list of all classes that [class_] is a subtype of
+  /// (including itself), sorted first by depth (deepest first) and then by
+  /// class index.
+  List<Class> getRankedSuperclasses(Class class_);
+
+  /// Returns the least upper bound of two interface types, as defined by Dart
+  /// 1.0.
+  ///
+  /// Given two interfaces I and J, let S_I be the set of superinterfaces of I,
+  /// let S_J be the set of superinterfaces of J, and let
+  /// S = (I union S_I) intersect (J union S_J).  Furthermore, we define
+  /// S_n = {T | T in S and depth(T) = n} for any finite n where depth(T) is
+  /// the number of steps in the longest inheritance path from T to Object.  Let
+  /// q be the largest number such that S_q has cardinality one.  The least
+  /// upper bound of I and J is the sole element of S_q.
+  ///
+  /// This is called the "classic" least upper bound to distinguish it from the
+  /// strong mode least upper bound, which has special behaviors in the case
+  /// where one type is a subtype of the other, or where both types are based on
+  /// the same class.
+  InterfaceType getClassicLeastUpperBound(
+      InterfaceType type1, InterfaceType type2);
+
+  /// Returns the instantiation of [superclass] that is implemented by [class_],
+  /// or `null` if [class_] does not implement [superclass] at all.
+  Supertype getClassAsInstanceOf(Class class_, Class superclass);
+
+  /// Returns the instantiation of [superclass] that is implemented by [type],
+  /// or `null` if [type] does not implement [superclass] at all.
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
+
+  /// Returns the instance member that would respond to a dynamic dispatch of
+  /// [name] to an instance of [class_], or `null` if no such member exists.
+  ///
+  /// If [setter] is `false`, the name is dispatched as a getter or call,
+  /// and will return a field, getter, method, or operator (or null).
+  ///
+  /// If [setter] is `true`, the name is dispatched as a setter, roughly
+  /// corresponding to `name=` in the Dart specification, but note that the
+  /// returned member will not have a name ending with `=`.  In this case,
+  /// a non-final field or setter (or null) will be returned.
+  ///
+  /// If the class is abstract, abstract members are ignored and the dispatch
+  /// is resolved if the class was not abstract.
+  Member getDispatchTarget(Class class_, Name name, {bool setter: false});
+
+  /// Returns the possibly abstract interface member of [class_] with the given
+  /// [name].
+  ///
+  /// If [setter] is `false`, only fields, methods, and getters with that name
+  /// will be found.  If [setter] is `true`, only non-final fields and setters
+  /// will be found.
+  ///
+  /// If multiple members with that name are inherited and not overridden, the
+  /// member from the first declared supertype is returned.
+  Member getInterfaceMember(Class class_, Name name, {bool setter: false});
+
+  /// Invokes [callback] for every member declared in or inherited by [class_]
+  /// that overrides or implements a member in a supertype of [class_]
+  /// (or in rare cases, overrides a member declared in [class_]).
+  ///
+  /// We use the term "inheritable" for members that are candidates for
+  /// inheritance but may have been overridden.  The "declared" members of a
+  /// mixin application are those declared in the mixed-in type. The callback is
+  /// invoked in the following cases:
+  ///
+  /// 1. A member declared in the class overrides a member inheritable through
+  /// one of the supertypes of the class.
+  ///
+  /// 2. A non-abstract member is inherited from a superclass, and in the
+  /// context of this class, it overrides an abstract member inheritable through
+  /// one of its superinterfaces.
+  ///
+  /// 3. A non-abstract member is inherited from a superclass, and it overrides
+  /// an abstract member declared in this class.
+  ///
+  /// This method will not report that a member overrides itself. A given pair
+  /// may be reported multiple times when there are multiple inheritance paths
+  /// to the overridden member.
+  ///
+  /// It is possible for two methods to override one another in both directions.
+  ///
+  /// Getters and setters are overridden separately.  The [isSetter] callback
+  /// parameter determines which type of access is being overridden.
+  void forEachOverridePair(Class class_,
+      callback(Member declaredMember, Member interfaceMember, bool isSetter));
+
+  /// This method is invoked by the client after it changed the [classes], and
+  /// some of the information that this hierarchy might have cached, is not
+  /// valid anymore. The hierarchy may perform required updates and return the
+  /// same instance, or return a new instance.
+  ClassHierarchy applyChanges(Iterable<Class> classes);
+}
+
+/// Implementation of [ClassHierarchy] for closed world.
+class ClosedWorldClassHierarchy implements ClassHierarchy {
+  /// The [Program] that this class hierarchy represents.
+  final Program _program;
+
   /// All classes in the program.
   ///
   /// The list is ordered so that classes occur after their super classes.
@@ -18,13 +137,17 @@ class ClassHierarchy {
 
   final Map<Class, _ClassInfo> _infoFor = <Class, _ClassInfo>{};
 
-  ClassHierarchy(Program program)
+  ClosedWorldClassHierarchy(Program program)
       : this._internal(program, _countClasses(program));
 
-  Class get rootClass => classes[0];
-
-  /// Returns the index of [class_] in the [classes] list.
+  @override
   int getClassIndex(Class class_) => _infoFor[class_].topologicalIndex;
+
+  @override
+  Iterable<Class> getOrderedClasses(Iterable<Class> unordered) {
+    var unorderedSet = unordered.toSet();
+    return classes.where(unorderedSet.contains);
+  }
 
   /// True if [subclass] inherits from [superclass] though zero or more
   /// `extends` relationships.
@@ -63,16 +186,10 @@ class ClassHierarchy {
     return _infoFor[class_].directImplementers.isNotEmpty;
   }
 
-  /// Returns the number of steps in the longest inheritance path from [class_]
-  /// to [rootClass].
+  @override
   int getClassDepth(Class class_) => _infoFor[class_].depth;
 
-  /// Returns a list of classes appropriate for use in calculating a least upper
-  /// bound.
-  ///
-  /// The returned list is a list of all classes that [class_] is a subtype of
-  /// (including itself), sorted first by depth (deepest first) and then by
-  /// class index.
+  @override
   List<Class> getRankedSuperclasses(Class class_) {
     return _getRankedSuperclassInfos(_infoFor[class_])
         .map((info) => info.classNode)
@@ -102,21 +219,7 @@ class ClassHierarchy {
     return chain;
   }
 
-  /// Returns the least upper bound of two interface types, as defined by Dart
-  /// 1.0.
-  ///
-  /// Given two interfaces I and J, let S_I be the set of superinterfaces of I,
-  /// let S_J be the set of superinterfaces of J, and let
-  /// S = (I union S_I) intersect (J union S_J).  Furthermore, we define
-  /// S_n = {T | T in S and depth(T) = n} for any finite n where depth(T) is
-  /// the number of steps in the longest inheritance path from T to Object.  Let
-  /// q be the largest number such that S_q has cardinality one.  The least
-  /// upper bound of I and J is the sole element of S_q.
-  ///
-  /// This is called the "classic" least upper bound to distinguish it from the
-  /// strong mode least upper bound, which has special behaviors in the case
-  /// where one type is a subtype of the other, or where both types are based on
-  /// the same class.
+  @override
   InterfaceType getClassicLeastUpperBound(
       InterfaceType type1, InterfaceType type2) {
     // The algorithm is: first we compute a list of superclasses for both types,
@@ -212,8 +315,7 @@ class ClassHierarchy {
     }
   }
 
-  /// Returns the instantiation of [superclass] that is implemented by [class_],
-  /// or `null` if [class_] does not implement [superclass] at all.
+  @override
   Supertype getClassAsInstanceOf(Class class_, Class superclass) {
     if (identical(class_, superclass)) return class_.asThisSupertype;
     _ClassInfo info = _infoFor[class_];
@@ -223,8 +325,7 @@ class ClassHierarchy {
     return info.genericSuperTypes[superclass];
   }
 
-  /// Returns the instantiation of [superclass] that is implemented by [type],
-  /// or `null` if [type] does not implement [superclass] at all.
+  @override
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
     Supertype castedType = getClassAsInstanceOf(type.classNode, superclass);
     if (castedType == null) return null;
@@ -233,19 +334,7 @@ class ClassHierarchy {
         .substituteType(castedType.asInterfaceType);
   }
 
-  /// Returns the instance member that would respond to a dynamic dispatch of
-  /// [name] to an instance of [class_], or `null` if no such member exists.
-  ///
-  /// If [setter] is `false`, the name is dispatched as a getter or call,
-  /// and will return a field, getter, method, or operator (or null).
-  ///
-  /// If [setter] is `true`, the name is dispatched as a setter, roughly
-  /// corresponding to `name=` in the Dart specification, but note that the
-  /// returned member will not have a name ending with `=`.  In this case,
-  /// a non-final field or setter (or null) will be returned.
-  ///
-  /// If the class is abstract, abstract members are ignored and the dispatch
-  /// is resolved if the class was not abstract.
+  @override
   Member getDispatchTarget(Class class_, Name name, {bool setter: false}) {
     _ClassInfo info = _infoFor[class_];
     List<Member> list =
@@ -268,15 +357,7 @@ class ClassHierarchy {
     return setters ? info.implementedSetters : info.implementedGettersAndCalls;
   }
 
-  /// Returns the possibly abstract interface member of [class_] with the given
-  /// [name].
-  ///
-  /// If [setters] is `false`, only fields, methods, and getters with that name
-  /// will be found.  If [setters] is `true`, only non-final fields and setters
-  /// will be found.
-  ///
-  /// If multiple members with that name are inherited and not overidden, the
-  /// member from the first declared supertype is returned.
+  @override
   Member getInterfaceMember(Class class_, Name name, {bool setter: false}) {
     List<Member> list = getInterfaceMembers(class_, setters: setter);
     return _findMemberByName(list, name);
@@ -294,33 +375,7 @@ class ClassHierarchy {
     return _buildInterfaceMembers(class_, _infoFor[class_], setters: setters);
   }
 
-  /// Invokes [callback] for every member declared in or inherited by [class_]
-  /// that overrides or implements a member in a supertype of [class_]
-  /// (or in rare cases, overrides a member declared in [class_]).
-  ///
-  /// We use the term "inheritable" for members that are candidates for
-  /// inheritance but may have been overridden.  The "declared" members of a
-  /// mixin application are those declared in the mixed-in type. The callback is
-  /// invoked in the following cases:
-  ///
-  /// 1. A member declared in the class overrides a member inheritable through
-  /// one of the supertypes of the class.
-  ///
-  /// 2. A non-abstract member is inherited from a superclass, and in the
-  /// context of this class, it overrides an abstract member inheritable through
-  /// one of its superinterfaces.
-  ///
-  /// 3. A non-abstract member is inherited from a superclass, and it overrides
-  /// an abstract member declared in this class.
-  ///
-  /// This method will not report that a member overrides itself. A given pair
-  /// may be reported multiple times when there are multiple inheritance paths
-  /// to the overridden member.
-  ///
-  /// It is possible for two methods to override one another in both directions.
-  ///
-  /// Getters and setters are overridden separately.  The [isSetter] callback
-  /// parameter determines which type of access is being overridden.
+  @override
   void forEachOverridePair(Class class_,
       callback(Member declaredMember, Member interfaceMember, bool isSetter)) {
     _ClassInfo info = _infoFor[class_];
@@ -382,7 +437,7 @@ class ClassHierarchy {
     }
   }
 
-  /// True if the program contains another class that is a subtype of given one.
+  @override
   bool hasProperSubtypes(Class class_) {
     // If there are no subtypes then the subtype set contains the class itself.
     return !getSubtypesOf(class_).isSingleton;
@@ -398,10 +453,16 @@ class ClassHierarchy {
     return new ClassSet(this, _infoFor[class_].subclassIntervalList);
   }
 
-  ClassHierarchy._internal(Program program, int numberOfClasses)
+  @override
+  ClassHierarchy applyChanges(Iterable<Class> classes) {
+    if (classes.isEmpty) return this;
+    return new ClosedWorldClassHierarchy(_program);
+  }
+
+  ClosedWorldClassHierarchy._internal(this._program, int numberOfClasses)
       : classes = new List<Class>(numberOfClasses) {
     // Build the class ordering based on a topological sort.
-    for (var library in program.libraries) {
+    for (var library in _program.libraries) {
       for (var classNode in library.classes) {
         _topologicalSortVisit(classNode);
       }
@@ -425,7 +486,7 @@ class ClassHierarchy {
 
     // Run a downward traversal from the root, compute preorder numbers for
     // each class, and build their subtype sets as interval lists.
-    _topDownSortVisit(_infoFor[rootClass]);
+    _topDownSortVisit(_infoFor[classes[0]]);
 
     for (int i = 0; i < classes.length; ++i) {
       var class_ = classes[i];
@@ -1034,7 +1095,7 @@ class _ClassInfo {
 
 /// An immutable set of classes, internally represented as an interval list.
 class ClassSet {
-  final ClassHierarchy _hierarchy;
+  final ClosedWorldClassHierarchy _hierarchy;
   final Uint32List _intervalList;
 
   ClassSet(this._hierarchy, this._intervalList);

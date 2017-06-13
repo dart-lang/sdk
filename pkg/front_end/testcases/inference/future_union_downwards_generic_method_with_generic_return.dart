@@ -7,9 +7,11 @@ library test;
 
 import 'dart:async';
 
-T id<T>(T x) => /*@promotedType=none*/ x;
+T id<T>(T x) => x;
 
-main() async {
+test() async {
   Future<String> f;
-  String s = await /*@typeArgs=FutureOr<String>*/ id(/*@promotedType=none*/ f);
+  String s = await /*@typeArgs=FutureOr<String>*/ id(f);
 }
+
+main() {}

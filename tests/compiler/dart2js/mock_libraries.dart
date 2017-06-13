@@ -280,6 +280,7 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'throwNoSuchMethod':
       'throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}',
   'throwRuntimeError': 'throwRuntimeError(message) {}',
+  'throwUnsupportedError': 'throwUnsupportedError(message) {}',
   'throwTypeError': 'throwTypeError(message) {}',
   'TypeImpl': 'class TypeImpl {}',
   'TypeVariable': '''class TypeVariable {

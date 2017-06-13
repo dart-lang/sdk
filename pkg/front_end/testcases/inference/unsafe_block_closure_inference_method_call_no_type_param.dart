@@ -9,6 +9,10 @@ class C {
   double f(x) => 1.0;
 }
 
-var /*@topType=double*/ v = new C().f(/*@returnType=int*/ () {
+var /*@topType=double*/ v = new C(). /*@target=C::f*/ f(/*@returnType=int*/ () {
   return 1;
 });
+
+main() {
+  v;
+}

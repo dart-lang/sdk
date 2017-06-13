@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method optional_toplevel([core::List<core::int> x = const <dynamic>[]]) → void {}
+static method named_toplevel({core::List<core::int> x = const <dynamic>[]}) → void {}
+static method main() → dynamic {
+  function optional_local([core::List<core::int> x = const <dynamic>[]]) → void {}
+  function named_local({core::List<core::int> x = const <dynamic>[]}) → void {}
+  dynamic optional_closure = ([core::List<core::int> x = const <dynamic>[]]) → dynamic {};
+  dynamic name_closure = ({core::List<core::int> x = const <dynamic>[]}) → dynamic {};
+}

@@ -7,6 +7,8 @@ library test;
 
 test1() {
   var /*@type=Map<Null, Null>*/ x = /*@typeArgs=Null, Null*/ {null: null};
-  /*@promotedType=none*/ x[
+  x /*@target=Map::[]=*/ [
       /*error:INVALID_CAST_LITERAL*/ 3] = /*error:INVALID_CAST_LITERAL*/ 'z';
 }
+
+main() {}

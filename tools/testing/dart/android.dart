@@ -76,8 +76,8 @@ Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
     if (timer != null) timer.cancel();
 
     String command = "$executable ${args.join(' ')}";
-    return new AdbCommandResult(
-        command, results[0], results[1], results[2], timedOut);
+    return new AdbCommandResult(command, results[0] as String,
+        results[1] as String, results[2] as int, timedOut);
   });
 }
 
@@ -145,7 +145,7 @@ class AndroidEmulator {
   }
 
   Future<bool> kill() {
-    var completer = new Completer();
+    var completer = new Completer<bool>();
     if (_emulatorProcess.kill()) {
       _emulatorProcess.exitCode.then((exitCode) {
         // TODO: Should we use exitCode to do something clever?
@@ -209,22 +209,22 @@ class AdbDevice {
    * Polls the 'sys.boot_completed' property. Returns as soon as the property is
    * 1.
    */
-  Future waitForBootCompleted() async {
+  Future<Null> waitForBootCompleted() async {
     while (true) {
       try {
         AdbCommandResult result =
             await _adbCommand(['shell', 'getprop', 'sys.boot_completed']);
         if (result.stdout.trim() == '1') return;
       } catch (_) {}
-      await new Future.delayed(const Duration(seconds: 2));
+      await new Future<Null>.delayed(const Duration(seconds: 2));
     }
   }
 
   /**
    * Put adb in root mode.
    */
-  Future adbRoot() {
-    var adbRootCompleter = new Completer();
+  Future<bool> adbRoot() {
+    var adbRootCompleter = new Completer<bool>();
     _adbCommand(['root']).then((_) {
       // TODO: Figure out a way to wait until the adb daemon was restarted in
       // 'root mode' on the device.
@@ -251,7 +251,7 @@ class AdbDevice {
    * Upload data to the device, unless [local] is the same as the most recently
    * used source for [remote].
    */
-  Future pushCachedData(String local, String remote) {
+  Future<AdbCommandResult> pushCachedData(String local, String remote) {
     if (_cachedData[remote] == local) {
       return new Future.value(
           new AdbCommandResult("Skipped cached push", "", "", 0, false));
@@ -390,7 +390,7 @@ class AdbHelper {
             "stderr: ${result.stderr}]");
       }
       return _deviceLineRegexp
-          .allMatches(result.stdout)
+          .allMatches(result.stdout as String)
           .map((Match m) => m.group(1))
           .toList();
     });
@@ -435,7 +435,7 @@ class AdbDevicePool {
     if (_idleDevices.length > 0) {
       return _idleDevices.removeFirst();
     } else {
-      var completer = new Completer();
+      var completer = new Completer<AdbDevice>();
       _waiter.add(completer);
       return completer.future;
     }

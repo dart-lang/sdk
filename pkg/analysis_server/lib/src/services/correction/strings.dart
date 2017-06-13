@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.correction.strings;
-
 import 'dart:math';
+
+import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 
 /**
  * "$"
@@ -159,46 +159,6 @@ int findCommonSuffix(String a, String b) {
 }
 
 /**
- * Returns a list of words for the given camel case string.
- *
- * 'getCamelWords' => ['get', 'Camel', 'Words']
- * 'getHTMLText' => ['get', 'HTML', 'Text']
- */
-List<String> getCamelWords(String str) {
-  if (str == null || str.isEmpty) {
-    return <String>[];
-  }
-  List<String> parts = <String>[];
-  bool wasLowerCase = false;
-  bool wasUpperCase = false;
-  int wordStart = 0;
-  for (int i = 0; i < str.length; i++) {
-    int c = str.codeUnitAt(i);
-    var newLowerCase = isLowerCase(c);
-    var newUpperCase = isUpperCase(c);
-    // myWord
-    // | ^
-    if (wasLowerCase && newUpperCase) {
-      parts.add(str.substring(wordStart, i));
-      wordStart = i;
-    }
-    // myHTMLText
-    //   |   ^
-    if (wasUpperCase &&
-        newUpperCase &&
-        i + 1 < str.length &&
-        isLowerCase(str.codeUnitAt(i + 1))) {
-      parts.add(str.substring(wordStart, i));
-      wordStart = i;
-    }
-    wasLowerCase = newLowerCase;
-    wasUpperCase = newUpperCase;
-  }
-  parts.add(str.substring(wordStart));
-  return parts;
-}
-
-/**
  * Checks if [str] is `null`, empty or is whitespace.
  */
 bool isBlank(String str) {
@@ -215,10 +175,6 @@ bool isDigit(int c) {
   return c >= 0x30 && c <= 0x39;
 }
 
-bool isEmpty(String str) {
-  return str == null || str.isEmpty;
-}
-
 bool isEOL(int c) {
   return c == 0x0D || c == 0x0A;
 }
@@ -231,15 +187,7 @@ bool isLetterOrDigit(int c) {
   return isLetter(c) || isDigit(c);
 }
 
-bool isLowerCase(int c) {
-  return c >= 0x61 && c <= 0x7A;
-}
-
 bool isSpace(int c) => c == 0x20 || c == 0x09;
-
-bool isUpperCase(int c) {
-  return c >= 0x41 && c <= 0x5A;
-}
 
 bool isWhitespace(int c) {
   return isSpace(c) || isEOL(c);
@@ -258,16 +206,6 @@ String removeEnd(String str, String remove) {
   }
   if (str.endsWith(remove)) {
     return str.substring(0, str.length - remove.length);
-  }
-  return str;
-}
-
-String removeStart(String str, String remove) {
-  if (isEmpty(str) || isEmpty(remove)) {
-    return str;
-  }
-  if (str.startsWith(remove)) {
-    return str.substring(remove.length);
   }
   return str;
 }

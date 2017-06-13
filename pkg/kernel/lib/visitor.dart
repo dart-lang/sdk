@@ -220,7 +220,8 @@ class TreeVisitor<R>
 
   // Other tree nodes
   R visitLibrary(Library node) => defaultTreeNode(node);
-  R visitDeferredImport(DeferredImport node) => defaultTreeNode(node);
+  R visitLibraryDependency(LibraryDependency node) => defaultTreeNode(node);
+  R visitCombinator(Combinator node) => defaultTreeNode(node);
   R visitTypedef(Typedef node) => defaultTreeNode(node);
   R visitTypeParameter(TypeParameter node) => defaultTreeNode(node);
   R visitFunctionNode(FunctionNode node) => defaultTreeNode(node);

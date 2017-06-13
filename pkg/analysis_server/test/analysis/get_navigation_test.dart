@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +24,6 @@ class GetNavigationTest extends AbstractNavigationTest {
 
   @override
   void setUp() {
-    enableNewAnalysisDriver = true;
     generateSummaryFiles = true;
     super.setUp();
     server.handlers = [
@@ -44,9 +44,14 @@ main() {
     assertHasTarget('test = 0');
   }
 
-  test_fileDoesNotExist() {
+  test_fileDoesNotExist() async {
     String file = '$projectPath/doesNotExist.dart';
-    return _checkInvalid(file, -1, -1);
+    Request request = _createGetNavigationRequest(file, 0, 100);
+    Response response = await serverChannel.sendRequest(request);
+    expect(response.error, isNull);
+    expect(response.result['files'], isEmpty);
+    expect(response.result['targets'], isEmpty);
+    expect(response.result['regions'], isEmpty);
   }
 
   test_fileOutsideOfRoot() async {
@@ -226,13 +231,6 @@ main() {
     await _getNavigation(testFile, testCode.indexOf('test);'), 0);
     assertHasRegion('test);');
     assertHasTarget('test = 0');
-  }
-
-  _checkInvalid(String file, int offset, int length) async {
-    Request request = _createGetNavigationRequest(file, offset, length);
-    Response response = await serverChannel.sendRequest(request);
-    expect(response.error, isNotNull);
-    expect(response.error.code, RequestErrorCode.GET_NAVIGATION_INVALID_FILE);
   }
 
   Request _createGetNavigationRequest(String file, int offset, int length) {

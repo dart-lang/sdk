@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library protocol.server;
-
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -21,10 +19,12 @@ import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 export 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 export 'package:analysis_server/protocol/protocol.dart';
 export 'package:analysis_server/protocol/protocol_generated.dart';
+export 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /**
  * Returns a list of AnalysisErrors corresponding to the given list of Engine

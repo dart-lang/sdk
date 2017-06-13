@@ -1,0 +1,22 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+abstract class MyStream<T extends core::Object> extends asy::Stream<self::MyStream::T> {
+  static factory •<T extends core::Object>() → self::MyStream<self::MyStream::•::T>
+    return null;
+}
+static method foo() → asy::Stream<core::List<core::int>> async* {
+  yield<core::int>[];
+  yield self::MyStream::•<dynamic>();
+  yield*<dynamic>[];
+  yield* self::MyStream::•<core::List<core::int>>();
+}
+static method bar() → core::Iterable<core::Map<core::int, core::int>> sync* {
+  yield<core::int, core::int>{};
+  yield core::List::_internal<dynamic>();
+  yield*<dynamic, dynamic>{};
+  yield* core::List::_internal<core::Map<core::int, core::int>>();
+}
+static method main() → dynamic {}

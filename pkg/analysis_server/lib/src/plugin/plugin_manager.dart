@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/gn.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/channel/isolate_channel.dart';
@@ -22,13 +23,41 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart' as watcher;
 
 /**
- * Information about a single plugin.
+ * Information about a plugin that is built-in.
  */
-class PluginInfo {
+class BuiltInPluginInfo extends PluginInfo {
+  /**
+   * The entry point function that will be executed in the plugin's isolate.
+   */
+  final EntryPoint entryPoint;
+
+  @override
+  final String pluginId;
+
+  /**
+   * Initialize a newly created built-in plugin.
+   */
+  BuiltInPluginInfo(
+      this.entryPoint,
+      this.pluginId,
+      NotificationManager notificationManager,
+      InstrumentationService instrumentationService)
+      : super(notificationManager, instrumentationService);
+
+  @override
+  ServerCommunicationChannel _createChannel() {
+    return new ServerIsolateChannel.builtIn(
+        entryPoint, pluginId, instrumentationService);
+  }
+}
+
+/**
+ * Information about a plugin that was discovered.
+ */
+class DiscoveredPluginInfo extends PluginInfo {
   /**
    * The path to the root directory of the definition of the plugin on disk (the
    * directory containing the 'pubspec.yaml' file and the 'bin' directory).
@@ -46,6 +75,33 @@ class PluginInfo {
    */
   final String packagesPath;
 
+  /**
+   * Initialize the newly created information about a plugin.
+   */
+  DiscoveredPluginInfo(
+      this.path,
+      this.executionPath,
+      this.packagesPath,
+      NotificationManager notificationManager,
+      InstrumentationService instrumentationService)
+      : super(notificationManager, instrumentationService);
+
+  @override
+  String get pluginId => path;
+
+  @override
+  ServerCommunicationChannel _createChannel() {
+    return new ServerIsolateChannel.discovered(
+        new Uri.file(executionPath, windows: Platform.isWindows),
+        new Uri.file(packagesPath, windows: Platform.isWindows),
+        instrumentationService);
+  }
+}
+
+/**
+ * Information about a single plugin.
+ */
+abstract class PluginInfo {
   /**
    * The object used to manage the receiving and sending of notifications.
    */
@@ -71,14 +127,18 @@ class PluginInfo {
   /**
    * Initialize the newly created information about a plugin.
    */
-  PluginInfo(this.path, this.executionPath, this.packagesPath,
-      this.notificationManager, this.instrumentationService);
+  PluginInfo(this.notificationManager, this.instrumentationService);
 
   /**
    * Return the data known about this plugin.
    */
   PluginData get data =>
-      new PluginData(path, currentSession?.name, currentSession?.version);
+      new PluginData(pluginId, currentSession?.name, currentSession?.version);
+
+  /**
+   * Return the id of this plugin, used to identify the plugin to users.
+   */
+  String get pluginId;
 
   /**
    * Add the given [contextRoot] to the set of context roots being analyzed by
@@ -88,6 +148,19 @@ class PluginInfo {
     if (contextRoots.add(contextRoot)) {
       _updatePluginRoots();
     }
+  }
+
+  /**
+   * Return `true` if at least one of the context roots being analyzed contains
+   * the file with the given [filePath].
+   */
+  bool isAnalyzing(String filePath) {
+    for (var contextRoot in contextRoots) {
+      if (contextRoot.containsFile(filePath)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -113,12 +186,12 @@ class PluginInfo {
    * Start a new isolate that is running the plugin. Return the state object
    * used to interact with the plugin, or `null` if the plugin could not be run.
    */
-  Future<PluginSession> start(String byteStorePath) async {
+  Future<PluginSession> start(String byteStorePath, String sdkPath) async {
     if (currentSession != null) {
       throw new StateError('Cannot start a plugin that is already running.');
     }
     currentSession = new PluginSession(this);
-    bool isRunning = await currentSession.start(byteStorePath);
+    bool isRunning = await currentSession.start(byteStorePath, sdkPath);
     if (!isRunning) {
       currentSession = null;
     }
@@ -136,6 +209,11 @@ class PluginInfo {
     currentSession = null;
     return doneFuture;
   }
+
+  /**
+   * Create the channel used to communicate with the server.
+   */
+  ServerCommunicationChannel _createChannel();
 
   /**
    * Update the context roots that the plugin should be analyzing.
@@ -157,6 +235,14 @@ class PluginInfo {
  */
 class PluginManager {
   /**
+   * A table, keyed by both a plugin and a request method, to a list of the
+   * times that it took the plugin to return a response to requests with the
+   * method.
+   */
+  static Map<PluginInfo, Map<String, List<int>>> pluginResponseTimes =
+      <PluginInfo, Map<String, List<int>>>{};
+
+  /**
    * The resource provider used to access the file system.
    */
   final ResourceProvider resourceProvider;
@@ -168,6 +254,11 @@ class PluginManager {
   final String byteStorePath;
 
   /**
+   * The absolute path of the directory containing the SDK.
+   */
+  final String sdkPath;
+
+  /**
    * The object used to manage the receiving and sending of notifications.
    */
   final NotificationManager notificationManager;
@@ -176,6 +267,11 @@ class PluginManager {
    * The instrumentation service that is being used by the analysis server.
    */
   final InstrumentationService instrumentationService;
+
+  /**
+   * The list of globs used to match plugin paths that have been whitelisted.
+   */
+  List<Glob> _whitelistGlobs;
 
   /**
    * A table mapping the paths of plugins to information about those plugins.
@@ -207,8 +303,20 @@ class PluginManager {
    * Initialize a newly created plugin manager. The notifications from the
    * running plugins will be handled by the given [notificationManager].
    */
-  PluginManager(this.resourceProvider, this.byteStorePath,
-      this.notificationManager, this.instrumentationService);
+  PluginManager(this.resourceProvider, this.byteStorePath, this.sdkPath,
+      this.notificationManager, this.instrumentationService) {
+    // TODO(brianwilkerson) Figure out the right list of plugin paths.
+    _whitelistGlobs = <Glob>[
+      new Glob(resourceProvider.pathContext.separator,
+          '**/analyze_angular/tools/analysis_plugin')
+    ];
+  }
+
+  /**
+   * Return a list of all of the plugins that are currently known.
+   */
+  @visibleForTesting
+  List<PluginInfo> get plugins => _pluginMap.values.toList();
 
   /**
    * Add the plugin with the given [path] to the list of plugins that should be
@@ -217,6 +325,9 @@ class PluginManager {
    */
   Future<Null> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
+    if (!_isWhitelisted(path)) {
+      return;
+    }
     PluginInfo plugin = _pluginMap[path];
     bool isNew = plugin == null;
     if (isNew) {
@@ -224,11 +335,11 @@ class PluginManager {
       if (pluginPaths == null) {
         return;
       }
-      plugin = new PluginInfo(path, pluginPaths[0], pluginPaths[1],
+      plugin = new DiscoveredPluginInfo(path, pluginPaths[0], pluginPaths[1],
           notificationManager, instrumentationService);
       _pluginMap[path] = plugin;
       if (pluginPaths[0] != null) {
-        PluginSession session = await plugin.start(byteStorePath);
+        PluginSession session = await plugin.start(byteStorePath, sdkPath);
         session?.onDone?.then((_) {
           _pluginMap.remove(path);
         });
@@ -279,14 +390,15 @@ class PluginManager {
      * Return `true` if the given glob [pattern] matches the file being watched.
      */
     bool matches(String pattern) =>
-        new Glob(path.separator, pattern).matches(filePath);
+        new Glob(resourceProvider.pathContext.separator, pattern)
+            .matches(filePath);
 
     WatchEvent event = null;
     List<Future<Response>> responses = <Future<Response>>[];
     for (PluginInfo plugin in _pluginMap.values) {
       PluginSession session = plugin.currentSession;
       if (session != null &&
-          path.isWithin(plugin.path, filePath) &&
+          plugin.isAnalyzing(filePath) &&
           session.interestingFiles.any(matches)) {
         event ??= _convertWatchEvent(watchEvent);
         AnalysisHandleWatchEventsParams params =
@@ -322,7 +434,7 @@ class PluginManager {
     List<PluginInfo> plugins = _pluginMap.values.toList();
     for (PluginInfo plugin in plugins) {
       plugin.removeContextRoot(contextRoot);
-      if (plugin.contextRoots.isEmpty) {
+      if (plugin is DiscoveredPluginInfo && plugin.contextRoots.isEmpty) {
         _pluginMap.remove(plugin.path);
         plugin.stop();
       }
@@ -391,6 +503,16 @@ class PluginManager {
     return Future.wait(_pluginMap.values.map((PluginInfo info) => info.stop()));
   }
 
+  /**
+   * Whitelist all plugins.
+   */
+  @visibleForTesting
+  void whitelistEverything() {
+    _whitelistGlobs = <Glob>[
+      new Glob(resourceProvider.pathContext.separator, '**/*')
+    ];
+  }
+
   WatchEventType _convertChangeType(watcher.ChangeType type) {
     switch (type) {
       case watcher.ChangeType.ADD:
@@ -406,6 +528,18 @@ class PluginManager {
 
   WatchEvent _convertWatchEvent(watcher.WatchEvent watchEvent) {
     return new WatchEvent(_convertChangeType(watchEvent.type), watchEvent.path);
+  }
+
+  /**
+   * Return `true` if the plugin with the given [path] has been whitelisted.
+   */
+  bool _isWhitelisted(String path) {
+    for (Glob glob in _whitelistGlobs) {
+      if (glob.matches(path)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -483,6 +617,17 @@ class PluginManager {
     List<int> bytes = md5.convert(path.codeUnits).bytes;
     return hex.encode(bytes);
   }
+
+  /**
+   * Record the fact that the given [plugin] responded to a request with the
+   * given [method] in the given [time].
+   */
+  static void recordResponseTime(PluginInfo plugin, String method, int time) {
+    pluginResponseTimes
+        .putIfAbsent(plugin, () => <String, List<int>>{})
+        .putIfAbsent(method, () => <int>[])
+        .add(time);
+  }
 }
 
 /**
@@ -490,6 +635,19 @@ class PluginManager {
  */
 @visibleForTesting
 class PluginSession {
+  /**
+   * The maximum number of milliseconds that server should wait for a response
+   * from a plugin before deciding that the plugin is hung.
+   */
+  static const Duration MAXIMUM_RESPONSE_TIME = const Duration(minutes: 2);
+
+  /**
+   * The length of time to wait after sending a 'plugin.shutdown' request before
+   * a failure to terminate will cause the isolate to be killed.
+   */
+  static const Duration WAIT_FOR_SHUTDOWN_DURATION =
+      const Duration(seconds: 10);
+
   /**
    * The information about the plugin being executed.
    */
@@ -514,8 +672,7 @@ class PluginSession {
    * A table mapping the id's of requests to the functions used to handle the
    * response to those requests.
    */
-  Map<String, Completer<Response>> pendingRequests =
-      <String, Completer<Response>>{};
+  Map<String, _PendingRequest> pendingRequests = <String, _PendingRequest>{};
 
   /**
    * A boolean indicating whether the plugin is compatible with the version of
@@ -573,7 +730,8 @@ class PluginSession {
         stop();
       }
     }
-    info.notificationManager.handlePluginNotification(info.path, notification);
+    info.notificationManager
+        .handlePluginNotification(info.pluginId, notification);
   }
 
   /**
@@ -590,13 +748,8 @@ class PluginSession {
    */
   void handleOnError(List<String> errorPair) {
     // TODO(brianwilkerson) Decide how we want to handle errors.
-//    String message = errorPair[0];
-//    String stackTrace = errorPair[1];
-//    print('PluginSession.handleOnError');
-//    print('  plugin = ${info.executionPath}');
-//    print('  $message');
-//    print('  ${new StackTrace.fromString(stackTrace)}');
-//    pluginStoppedCompleter.completeError(message, new StackTrace.fromString(stackTrace));
+    info.instrumentationService.logPluginException(
+        info.data, errorPair[0], new StackTrace.fromString(errorPair[1]));
   }
 
   /**
@@ -604,10 +757,31 @@ class PluginSession {
    * created when the request was sent.
    */
   void handleResponse(Response response) {
-    Completer<Response> completer = pendingRequests.remove(response.id);
+    _PendingRequest requestData = pendingRequests.remove(response.id);
+    int responseTime = new DateTime.now().millisecondsSinceEpoch;
+    int duration = responseTime - requestData.requestTime;
+    PluginManager.recordResponseTime(info, requestData.method, duration);
+    Completer<Response> completer = requestData.completer;
     if (completer != null) {
       completer.complete(response);
     }
+  }
+
+  /**
+   * Return `true` if there are any requests that have not been responded to
+   * within the maximum allowed amount of time.
+   */
+  bool isNonResponsive() {
+    // TODO(brianwilkerson) Figure out when to invoke this method in order to
+    // identify non-responsive plugins and kill them.
+    int cutOffTime = new DateTime.now().millisecondsSinceEpoch -
+        MAXIMUM_RESPONSE_TIME.inMilliseconds;
+    for (var requestData in pendingRequests.values) {
+      if (requestData.requestTime < cutOffTime) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -621,8 +795,11 @@ class PluginSession {
     }
     String id = nextRequestId;
     Completer<Response> completer = new Completer();
-    pendingRequests[id] = completer;
-    channel.sendRequest(parameters.toRequest(id));
+    int requestTime = new DateTime.now().millisecondsSinceEpoch;
+    Request request = parameters.toRequest(id);
+    pendingRequests[id] =
+        new _PendingRequest(request.method, requestTime, completer);
+    channel.sendRequest(request);
     return completer.future;
   }
 
@@ -631,7 +808,7 @@ class PluginSession {
    * the given [byteStorePath]. Return `true` if the plugin is compatible and
    * running.
    */
-  Future<bool> start(String byteStorePath) async {
+  Future<bool> start(String byteStorePath, String sdkPath) async {
     if (channel != null) {
       throw new StateError('Cannot start a plugin that is already running.');
     }
@@ -641,10 +818,7 @@ class PluginSession {
     if (!isCompatible) {
       return false;
     }
-    channel = new ServerIsolateChannel(
-        new Uri.file(info.executionPath, windows: Platform.isWindows),
-        new Uri.file(info.packagesPath, windows: Platform.isWindows),
-        info.instrumentationService);
+    channel = info._createChannel();
     await channel.listen(handleResponse, handleNotification,
         onDone: handleOnDone, onError: handleOnError);
     if (channel == null) {
@@ -652,8 +826,8 @@ class PluginSession {
       // handleOnDone, which will cause `channel` to be set to `null`.
       return false;
     }
-    Response response = await sendRequest(
-        new PluginVersionCheckParams(byteStorePath ?? '', '1.0.0-alpha.0'));
+    Response response = await sendRequest(new PluginVersionCheckParams(
+        byteStorePath ?? '', sdkPath, '1.0.0-alpha.0'));
     PluginVersionCheckResult result =
         new PluginVersionCheckResult.fromResponse(response);
     isCompatible = result.isCompatible;
@@ -675,9 +849,40 @@ class PluginSession {
     if (channel == null) {
       throw new StateError('Cannot stop a plugin that is not running.');
     }
-    // TODO(brianwilkerson) Ensure that the isolate is killed if it does not
-    // terminate normally.
     sendRequest(new PluginShutdownParams());
+    new Future.delayed(WAIT_FOR_SHUTDOWN_DURATION, () {
+      if (channel != null) {
+        channel.kill();
+        channel = null;
+      }
+    });
     return pluginStoppedCompleter.future;
   }
+}
+
+/**
+ * Information about a request that has been sent but for which a response has
+ * not yet been received.
+ */
+class _PendingRequest {
+  /**
+   * The method of the request.
+   */
+  final String method;
+
+  /**
+   * The time at which the request was sent to the plugin.
+   */
+  final int requestTime;
+
+  /**
+   * The completer that will be used to complete the future when the response is
+   * received from the plugin.
+   */
+  final Completer<Response> completer;
+
+  /**
+   * Initialize a pending request.
+   */
+  _PendingRequest(this.method, this.requestTime, this.completer);
 }

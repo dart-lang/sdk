@@ -5,19 +5,39 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
+
+import 'util.dart';
 
 final String cit = Platform.isWindows ? 'cit.bat' : 'cit';
 
+enum LogdogExitKind {
+  /// Normal program termination with a negative exit code.
+  normal,
+
+  /// Program killed due to error output.
+  error,
+
+  /// Program killed due to timeout.
+  timeout,
+}
+
 class LogdogException implements Exception {
+  final List<String> command;
   final int errorCode;
   final String stdout;
   final String stderr;
+  final LogdogExitKind exitKind;
 
-  LogdogException(this.errorCode, this.stdout, this.stderr);
+  LogdogException(
+      this.command, this.errorCode, this.stdout, this.stderr, this.exitKind);
   LogdogException.fromProcessResult(ProcessResult result)
-      : this(result.exitCode, result.stdout, result.stderr);
+      : this(null, result.exitCode, result.stdout, result.stderr,
+            LogdogExitKind.normal);
 
-  toString() => "Error during logdog execution:\n$stderr";
+  toString() => "Error during logdog execution"
+      "${command != null ? ' `${command.join(' ')}`': ''}"
+      ":\n$stderr";
 }
 
 bool logdogCheckDone = false;
@@ -44,22 +64,55 @@ void checkLogdog({bool tryToInstall: true}) {
   }
 }
 
-String logdog(List<String> args) {
+Future<String> logdog(List<String> args,
+    {bool exitOnError: true,
+    Duration timeout: const Duration(seconds: 10)}) async {
   checkLogdog();
   args = args.toList()..insert(0, "logdog");
-  var result = Process.runSync(cit, args);
-  if (result.exitCode == 0) return result.stdout;
-  throw new LogdogException.fromProcessResult(result);
+
+  LogdogExitKind exitKind = LogdogExitKind.normal;
+  Process process = await Process.start(cit, args);
+  StringBuffer stdout = new StringBuffer();
+  StringBuffer stderr = new StringBuffer();
+  StreamSubscription stdoutSubscription =
+      process.stdout.transform(UTF8.decoder).listen(stdout.write);
+  StreamSubscription stderrSubscription =
+      process.stderr.transform(UTF8.decoder).listen((String text) {
+    stderr.write(text);
+    if (exitOnError) {
+      exitKind = LogdogExitKind.error;
+      log('Error on `${args.join(' ')}`: $text');
+      process.kill();
+    }
+  });
+  Timer timer;
+  if (timeout != null) {
+    timer = new Timer(timeout, () {
+      exitKind = LogdogExitKind.timeout;
+      log('Timeout on `${args.join(' ')}`');
+      process.kill();
+    });
+  }
+  int exitCode = await process.exitCode;
+  // Cancel the timer; it might still be running.
+  timer?.cancel();
+  // Cancel the stdout/stderr subscriptions; if the process is killed the
+  // streams might not have closed.
+  stdoutSubscription.cancel();
+  stderrSubscription.cancel();
+  if (exitCode == 0) return stdout.toString();
+  throw new LogdogException(
+      args, exitCode, stdout.toString(), stderr.toString(), exitKind);
 }
 
-String cat(String log) {
+Future<String> cat(String log) async {
   return logdog(["cat", "-raw", log]);
 }
 
 /// Returns the content for [path], for instance the available build numbers
 /// for 'dart2js-linux-chromeff-1-4-be' using the path
 /// `chromium/bb/client.dart/dart2js-linux-chromeff-1-4-be`.
-String ls(String path) {
+Future<String> ls(String path) async {
   return logdog(["ls", path]);
 }
 

@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test_progress;
+import 'dart:convert' show JSON;
+import 'dart:io';
 
-import "dart:convert" show JSON;
-import "dart:io";
-
-import "path.dart";
-import "status_file_parser.dart";
-import "summary_report.dart";
-import "test_runner.dart";
-import "test_suite.dart";
-import "utils.dart";
+import 'configuration.dart';
+import 'expectation.dart';
+import 'path.dart';
+import 'summary_report.dart';
+import 'test_runner.dart';
+import 'utils.dart';
 
 /// Controls how message strings are processed before being displayed.
 class Formatter {
@@ -62,12 +60,12 @@ class ExitCodeSetter extends EventListener {
 }
 
 class IgnoredTestMonitor extends EventListener {
-  static final int maxIgnored = 5;
+  static final int maxIgnored = 10;
 
   int countIgnored = 0;
 
   void done(TestCase test) {
-    if (test.lastCommandOutput.result(test) == Expectation.IGNORE) {
+    if (test.lastCommandOutput.result(test) == Expectation.ignore) {
       countIgnored++;
       if (countIgnored > maxIgnored) {
         print("/nMore than $maxIgnored tests were ignored due to flakes in");
@@ -88,7 +86,7 @@ class IgnoredTestMonitor extends EventListener {
 
 class FlakyLogWriter extends EventListener {
   void done(TestCase test) {
-    if (test.isFlaky && test.result != Expectation.PASS) {
+    if (test.isFlaky && test.result != Expectation.pass) {
       var buf = new StringBuffer();
       for (var l in _buildFailureOutput(test)) {
         buf.write("$l\n");
@@ -135,31 +133,26 @@ class TestOutcomeLogWriter extends EventListener {
    *     }
    *  },
    */
-
-  static final INTERESTED_CONFIGURATION_PARAMETERS = [
-    'mode',
-    'arch',
-    'compiler',
-    'runtime',
-    'checked',
-    'strong',
-    'host_checked',
-    'minified',
-    'csp',
-    'system',
-    'vm_options',
-    'use_sdk',
-    'builder_tag'
-  ];
-
   IOSink _sink;
 
   void done(TestCase test) {
     var name = test.displayName;
-    var configuration = {};
-    for (var key in INTERESTED_CONFIGURATION_PARAMETERS) {
-      configuration[key] = test.configuration[key];
-    }
+    var configuration = {
+      'mode': test.configuration.mode.name,
+      'arch': test.configuration.architecture.name,
+      'compiler': test.configuration.compiler.name,
+      'runtime': test.configuration.runtime.name,
+      'checked': test.configuration.isChecked,
+      'strong': test.configuration.isStrong,
+      'host_checked': test.configuration.isHostChecked,
+      'minified': test.configuration.isMinified,
+      'csp': test.configuration.isCsp,
+      'system': test.configuration.system.name,
+      'vm_options': test.configuration.vmOptions,
+      'use_sdk': test.configuration.useSdk,
+      'builder_tag': test.configuration.builderTag
+    };
+
     var outcome = '${test.lastCommandOutput.result(test)}';
     var expectations =
         test.expectedOutcomes.map((expectation) => "$expectation").toList();
@@ -207,10 +200,10 @@ class UnexpectedCrashLogger extends EventListener {
 
   void done(TestCase test) {
     if (test.unexpectedOutput &&
-        test.result == Expectation.CRASH &&
+        test.result == Expectation.crash &&
         test.lastCommandExecuted is ProcessCommand) {
-      final pid = "${test.lastCommandOutput.pid}";
-      final lastCommand = test.lastCommandExecuted as ProcessCommand;
+      var pid = "${test.lastCommandOutput.pid}";
+      var lastCommand = test.lastCommandExecuted as ProcessCommand;
 
       // We might have a coredump for the process. This coredump will be
       // archived by CoreDumpArchiver (see tools/utils.py).
@@ -220,20 +213,20 @@ class UnexpectedCrashLogger extends EventListener {
       // To simplify the archiving code we simply copy binaries into current
       // folder next to core dumps and name them
       // `binary.${mode}_${arch}_${binary_name}`.
-      final binName = lastCommand.executable;
-      final binFile = new File(binName);
-      final binBaseName = new Path(binName).filename;
+      var binName = lastCommand.executable;
+      var binFile = new File(binName);
+      var binBaseName = new Path(binName).filename;
       if (!archivedBinaries.containsKey(binName) && binFile.existsSync()) {
-        final mode = test.configuration['mode'];
-        final arch = test.configuration['arch'];
-        final archived = "binary.${mode}_${arch}_${binBaseName}";
+        var mode = test.configuration.mode.name;
+        var arch = test.configuration.architecture.name;
+        var archived = "binary.${mode}_${arch}_${binBaseName}";
         TestUtils.copyFile(new Path(binName), new Path(archived));
         archivedBinaries[binName] = archived;
       }
 
       if (archivedBinaries.containsKey(binName)) {
         // We have found and copied the binary.
-        var unexpectedCrashesFile;
+        RandomAccessFile unexpectedCrashesFile;
         try {
           unexpectedCrashesFile =
               new File('unexpected-crashes').openSync(mode: FileMode.APPEND);
@@ -440,22 +433,22 @@ class TestFailurePrinter extends EventListener {
 class ProgressIndicator extends EventListener {
   ProgressIndicator(this._startTime);
 
-  static EventListener fromName(
-      String name, DateTime startTime, Formatter formatter) {
-    switch (name) {
-      case 'compact':
+  static EventListener fromProgress(
+      Progress progress, DateTime startTime, Formatter formatter) {
+    switch (progress) {
+      case Progress.compact:
         return new CompactProgressIndicator(startTime, formatter);
-      case 'line':
+      case Progress.line:
         return new LineProgressIndicator();
-      case 'verbose':
+      case Progress.verbose:
         return new VerboseProgressIndicator(startTime);
-      case 'status':
+      case Progress.status:
         return new ProgressIndicator(startTime);
-      case 'buildbot':
+      case Progress.buildbot:
         return new BuildbotProgressIndicator(startTime);
-      default:
-        throw new ArgumentError('Unknown progress indicator "$name".');
     }
+
+    throw "unreachable";
   }
 
   void testAdded() {
@@ -611,7 +604,7 @@ List<String> _buildFailureOutput(TestCase test,
       if (test.hasRuntimeError) {
         output.add('Runtime error expected.');
       }
-      if (test.configuration['checked'] && test.isNegativeIfChecked) {
+      if (test.configuration.isChecked && test.isNegativeIfChecked) {
         output.add('Dynamic type error expected.');
       }
     }
@@ -644,7 +637,7 @@ List<String> _buildFailureOutput(TestCase test,
 
   if (test is BrowserTestCase) {
     // Additional command for rerunning the steps locally after the fact.
-    var command = test.configuration["_servers_"].httpServerCommandLine();
+    var command = test.configuration.servers.httpServerCommandLine();
     output.add('');
     output.add('To retest, run:  $command');
   }
@@ -662,7 +655,7 @@ List<String> _buildFailureOutput(TestCase test,
   }
 
   var arguments = ['python', 'tools/test.py'];
-  arguments.addAll(test.configuration['_reproducing_arguments_']);
+  arguments.addAll(test.configuration.reproducingArguments);
   arguments.add(test.displayName);
   var testPyCommandline = arguments.map(escapeCommandLineArgument).join(' ');
 

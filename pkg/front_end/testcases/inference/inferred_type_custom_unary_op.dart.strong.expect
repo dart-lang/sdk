@@ -10,7 +10,7 @@ class C extends core::Object {
     return true;
 }
 static field self::C c = new self::C::•();
-static field core::bool x = self::c.unary-();
+static field core::bool x = self::c.{self::C::unary-}();
 static method main() → dynamic {
   self::c;
   self::x;

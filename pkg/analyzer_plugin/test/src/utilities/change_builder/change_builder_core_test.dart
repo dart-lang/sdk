@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:test/test.dart';
@@ -83,6 +83,29 @@ class EditBuilderImplTest {
         builder.addLinkedEdit('a', (LinkedEditBuilder builder) {
           builder.write(text);
         });
+        SourceEdit sourceEdit = (builder as EditBuilderImpl).sourceEdit;
+        expect(sourceEdit.replacement, text);
+      });
+    });
+    SourceChange sourceChange = builder.sourceChange;
+    expect(sourceChange, isNotNull);
+    List<LinkedEditGroup> groups = sourceChange.linkedEditGroups;
+    expect(groups, hasLength(1));
+    LinkedEditGroup group = groups[0];
+    expect(group, isNotNull);
+    expect(group.length, text.length);
+    List<Position> positions = group.positions;
+    expect(positions, hasLength(1));
+    expect(positions[0].offset, offset);
+  }
+
+  test_addSimpleLinkedEdit() async {
+    ChangeBuilderImpl builder = new ChangeBuilderImpl();
+    int offset = 10;
+    String text = 'content';
+    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+      builder.addInsertion(10, (EditBuilder builder) {
+        builder.addSimpleLinkedEdit('a', text);
         SourceEdit sourceEdit = (builder as EditBuilderImpl).sourceEdit;
         expect(sourceEdit.replacement, text);
       });

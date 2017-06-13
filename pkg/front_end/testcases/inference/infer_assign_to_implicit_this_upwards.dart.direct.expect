@@ -1,0 +1,63 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Test1 extends core::Object {
+  field core::int t = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method test() → void {
+    dynamic v1 = this.t = self::getInt();
+    dynamic v2 = this.t = self::getNum();
+    dynamic v4 = let final dynamic #t1 = this.t in #t1.==(null) ? this.t = self::getInt() : #t1;
+    dynamic v5 = let final dynamic #t2 = this.t in #t2.==(null) ? this.t = self::getNum() : #t2;
+    dynamic v7 = this.t = this.t.+(self::getInt());
+    dynamic v8 = this.t = this.t.+(self::getNum());
+    dynamic v10 = this.t = this.t.+(1);
+    dynamic v11 = let final dynamic #t3 = this.t in let final dynamic #t4 = this.t = #t3.+(1) in #t3;
+  }
+}
+class Test2 extends core::Object {
+  field core::num t = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method test() → void {
+    dynamic v1 = this.t = self::getInt();
+    dynamic v2 = this.t = self::getNum();
+    dynamic v3 = this.t = self::getDouble();
+    dynamic v4 = let final dynamic #t5 = this.t in #t5.==(null) ? this.t = self::getInt() : #t5;
+    dynamic v5 = let final dynamic #t6 = this.t in #t6.==(null) ? this.t = self::getNum() : #t6;
+    dynamic v6 = let final dynamic #t7 = this.t in #t7.==(null) ? this.t = self::getDouble() : #t7;
+    dynamic v7 = this.t = this.t.+(self::getInt());
+    dynamic v8 = this.t = this.t.+(self::getNum());
+    dynamic v9 = this.t = this.t.+(self::getDouble());
+    dynamic v10 = this.t = this.t.+(1);
+    dynamic v11 = let final dynamic #t8 = this.t in let final dynamic #t9 = this.t = #t8.+(1) in #t8;
+  }
+}
+class Test3 extends core::Object {
+  field core::double t = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method test3() → void {
+    dynamic v2 = this.t = self::getNum();
+    dynamic v3 = this.t = self::getDouble();
+    dynamic v5 = let final dynamic #t10 = this.t in #t10.==(null) ? this.t = self::getNum() : #t10;
+    dynamic v6 = let final dynamic #t11 = this.t in #t11.==(null) ? this.t = self::getDouble() : #t11;
+    dynamic v7 = this.t = this.t.+(self::getInt());
+    dynamic v8 = this.t = this.t.+(self::getNum());
+    dynamic v9 = this.t = this.t.+(self::getDouble());
+    dynamic v10 = this.t = this.t.+(1);
+    dynamic v11 = let final dynamic #t12 = this.t in let final dynamic #t13 = this.t = #t12.+(1) in #t12;
+  }
+}
+static method getInt() → core::int
+  return 0;
+static method getNum() → core::num
+  return 0;
+static method getDouble() → core::double
+  return 0.0;
+static method main() → dynamic {}

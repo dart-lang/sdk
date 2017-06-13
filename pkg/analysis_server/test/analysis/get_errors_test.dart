@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.analysis.get_errors;
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,6 +22,9 @@ main() {
 @reflectiveTest
 class GetErrorsTest extends AbstractAnalysisTest {
   static const String requestId = 'test-getError';
+
+  @override
+  bool get enableNewAnalysisDriver => false;
 
   @override
   void setUp() {

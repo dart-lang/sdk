@@ -226,15 +226,17 @@ void FlowGraphTypePropagator::VisitCheckArrayBound(
 
 
 void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
-  if (!check->unary_checks().NumberOfChecksIs(1) ||
-      !check->Dependencies().IsNone()) {
+  if (!check->cids().IsMonomorphic()) {
+    return;
+  }
+
+  if (!check->Dependencies().IsNone()) {
     // TODO(vegorov): If check is affected by side-effect we can still propagate
     // the type further but not the cid.
     return;
   }
 
-  SetCid(check->value()->definition(),
-         check->unary_checks().GetReceiverClassIdAt(0));
+  SetCid(check->value()->definition(), check->cids().MonomorphicReceiverCid());
 }
 
 
@@ -247,8 +249,8 @@ void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
 
   LoadClassIdInstr* load_cid =
       check->value()->definition()->OriginalDefinition()->AsLoadClassId();
-  if (load_cid != NULL) {
-    SetCid(load_cid->object()->definition(), check->cid());
+  if (load_cid != NULL && check->cids().IsSingleCid()) {
+    SetCid(load_cid->object()->definition(), check->cids().cid_start);
   }
 }
 
@@ -473,7 +475,7 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
     ASSERT(check->IsCheckClass());
     check_clone = new CheckClassInstr(
         assert->value()->Copy(zone()), assert->env()->deopt_id(),
-        check->AsCheckClass()->unary_checks(), check->token_pos());
+        check->AsCheckClass()->cids(), check->token_pos());
     check_clone->AsCheckClass()->set_licm_hoisted(
         check->AsCheckClass()->licm_hoisted());
   }
@@ -1004,7 +1006,7 @@ CompileType AllocateUninitializedContextInstr::ComputeType() const {
 
 CompileType PolymorphicInstanceCallInstr::ComputeType() const {
   if (!IsSureToCallSingleRecognizedTarget()) return CompileType::Dynamic();
-  const Function& target = *targets_[0].target;
+  const Function& target = *targets_.TargetAt(0)->target;
   return (target.recognized_kind() != MethodRecognizer::kUnknown)
              ? CompileType::FromCid(MethodRecognizer::ResultCid(target))
              : CompileType::Dynamic();
@@ -1022,7 +1024,9 @@ CompileType StaticCallInstr::ComputeType() const {
     return CompileType::FromAbstractType(result_type);
   }
 
-  return CompileType::Dynamic();
+  return (function_.recognized_kind() != MethodRecognizer::kUnknown)
+             ? CompileType::FromCid(MethodRecognizer::ResultCid(function_))
+             : CompileType::Dynamic();
 }
 
 
@@ -1516,7 +1520,7 @@ CompileType InvokeMathCFunctionInstr::ComputeType() const {
 }
 
 
-CompileType MergedMathInstr::ComputeType() const {
+CompileType TruncDivModInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 

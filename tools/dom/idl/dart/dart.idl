@@ -1,13 +1,5 @@
 // This file introduces / supplements and forces Dart declarations.
 
-[DartSupplemental,
- Constructor]
-interface AudioContext {
-  // TODO(ager): Auto-generate this custom method when the info about retaining
-  // typed arrays is in the IDL.
-  [Custom] void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, AudioBufferCallback errorCallback);
-};
-
 [DartSupplemental]
 interface WaveShaperNode {
   // TODO(ager): Auto-generate this custom method when the info about retaining
@@ -137,6 +129,12 @@ interface HTMLMediaElement {
 [DartSupplemental]
 interface RTCPeerConnection {
   [DartSuppress, RaisesException] void addIceCandidate(RTCIceCandidate candidate);
+};
+
+[DartSupplemental]
+interface WebGL2RenderingContextBase {
+    [DartName=readPixels2] void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLintptr offset);
+    [DartName=texImage2D2] void texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, GLintptr offset);
 };
 
 [DartSupplemental]
@@ -438,6 +436,33 @@ interface HTMLCollection {
 
 };
 
+[DartSupplemental]
+interface Performance {
+    [DartSuppress] void webkitClearResourceTimings();
+    [DartSuppress] void webkitSetResourceTimingBufferSize(unsigned long maxSize);
+    [DartSuppress] attribute EventHandler onwebkitresourcetimingbufferfull;
+};
+
+[DartSupplemental]
+interface CalcLength {
+    [DartName=inch] readonly attribute double? in;
+};
+
+[DartSupplemental]
+interface RTCPeerConnection {
+    [DartSuppress] Promise<void> setLocalDescription(RTCSessionDescriptionInit description);
+    [DartSuppress] Promise<void> setRemoteDescription(RTCSessionDescriptionInit description);
+};
+
+[DartSuppress]
+interface DragEvent {};
+
+[DartSuppress]
+interface InputEvent {};
+
+[DartSuppress]
+interface Scale {};
+
 Element implements GlobalEventHandlers;
 
 
@@ -445,4 +470,13 @@ Element implements GlobalEventHandlers;
 // because otherwise iterating CSSRules in Safari can yield unknown JS objects.
 interface CSSCharsetRule : CSSRule {
     [MeasureAs=CSSCharsetRuleEncoding] attribute DOMString encoding;
+};
+
+
+[DartSupplemental]
+interface EventTarget {
+    [DartSuppress] void addEventListener(DOMString type, EventListener? listener, optional (EventListenerOptions or boolean) options);
+    [DartSuppress] void removeEventListener(DOMString type, EventListener? listener, optional (EventListenerOptions or boolean) options);
+    [Custom] void addEventListener(DOMString type, EventListener? listener, optional boolean options);
+    [Custom] void removeEventListener(DOMString type, EventListener? listener, optional boolean options);
 };

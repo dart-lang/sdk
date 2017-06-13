@@ -266,21 +266,11 @@ class RawObject {
     kVMHeapObjectBit = 2,
     kRememberedBit = 3,
     kReservedTagPos = 4,  // kReservedBit{100K,1M,10M}
-#if defined(ARCH_IS_32_BIT)
     kReservedTagSize = 4,
     kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
-#elif defined(ARCH_IS_64_BIT)
-    kReservedTagSize = 12,
-    kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 16
-    kSizeTagSize = 16,
-    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 32
-    kClassIdTagSize = 32,
-#else
-#error Unexpected architecture word size
-#endif
   };
 
   COMPILE_ASSERT(kClassIdTagSize == (sizeof(classid_t) * kBitsPerByte));
@@ -463,8 +453,48 @@ class RawObject {
   }
 
   void Validate(Isolate* isolate) const;
-  intptr_t VisitPointers(ObjectPointerVisitor* visitor);
   bool FindObject(FindObjectVisitor* visitor);
+
+  intptr_t VisitPointers(ObjectPointerVisitor* visitor) {
+    // Fall back to virtual variant for predefined classes
+    intptr_t class_id = GetClassId();
+    if (class_id < kNumPredefinedCids) {
+      return VisitPointersPredefined(visitor, class_id);
+    }
+
+    // Calculate the first and last raw object pointer fields.
+    intptr_t instance_size = Size();
+    uword obj_addr = ToAddr(this);
+    uword from = obj_addr + sizeof(RawObject);
+    uword to = obj_addr + instance_size - kWordSize;
+
+    // Call visitor function virtually
+    visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
+                           reinterpret_cast<RawObject**>(to));
+
+    return instance_size;
+  }
+
+  template <class V>
+  intptr_t VisitPointersNonvirtual(V* visitor) {
+    // Fall back to virtual variant for predefined classes
+    intptr_t class_id = GetClassId();
+    if (class_id < kNumPredefinedCids) {
+      return VisitPointersPredefined(visitor, class_id);
+    }
+
+    // Calculate the first and last raw object pointer fields.
+    intptr_t instance_size = Size();
+    uword obj_addr = ToAddr(this);
+    uword from = obj_addr + sizeof(RawObject);
+    uword to = obj_addr + instance_size - kWordSize;
+
+    // Call visitor function non-virtually
+    visitor->V::VisitPointers(reinterpret_cast<RawObject**>(from),
+                              reinterpret_cast<RawObject**>(to));
+
+    return instance_size;
+  }
 
   static RawObject* FromAddr(uword addr) {
     // We expect the untagged address here.
@@ -522,6 +552,9 @@ class RawObject {
     return reinterpret_cast<RawObject*>(reinterpret_cast<uword>(this) -
                                         kHeapObjectTag);
   }
+
+  intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
+                                   intptr_t class_id);
 
   intptr_t SizeFromClass() const;
 
@@ -614,6 +647,7 @@ class RawObject {
   friend class RawExternalTypedData;
   friend class RawInstructions;
   friend class RawInstance;
+  friend class RawString;
   friend class RawTypedData;
   friend class Scavenger;
   friend class ScavengerVisitor;
@@ -686,10 +720,10 @@ class RawClass : public RawObject {
   }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kCore:
+      case Snapshot::kFull:
       case Snapshot::kScript:
-      case Snapshot::kAppJIT:
-      case Snapshot::kAppAOT:
+      case Snapshot::kFullJIT:
+      case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->direct_subclasses_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
@@ -945,12 +979,12 @@ class RawField : public RawObject {
   }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kCore:
+      case Snapshot::kFull:
       case Snapshot::kScript:
         return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
-      case Snapshot::kAppJIT:
+      case Snapshot::kFullJIT:
         return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
-      case Snapshot::kAppAOT:
+      case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->initializer_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
@@ -1034,10 +1068,10 @@ class RawScript : public RawObject {
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kAppAOT:
+      case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->url_);
-      case Snapshot::kCore:
-      case Snapshot::kAppJIT:
+      case Snapshot::kFull:
+      case Snapshot::kFullJIT:
       case Snapshot::kScript:
         return reinterpret_cast<RawObject**>(&ptr()->tokens_);
       case Snapshot::kMessage:
@@ -1527,11 +1561,11 @@ class RawICData : public RawObject {
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->owner_); }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kAppAOT:
+      case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
-      case Snapshot::kCore:
+      case Snapshot::kFull:
       case Snapshot::kScript:
-      case Snapshot::kAppJIT:
+      case Snapshot::kFullJIT:
         return to();
       case Snapshot::kMessage:
       case Snapshot::kNone:
@@ -1648,11 +1682,11 @@ class RawLibraryPrefix : public RawInstance {
   }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kCore:
+      case Snapshot::kFull:
       case Snapshot::kScript:
-      case Snapshot::kAppJIT:
+      case Snapshot::kFullJIT:
         return reinterpret_cast<RawObject**>(&ptr()->imports_);
-      case Snapshot::kAppAOT:
+      case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->importer_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
@@ -1863,10 +1897,20 @@ class RawString : public RawInstance {
  protected:
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
   RawSmi* length_;
+#if !defined(HASH_IN_OBJECT_HEADER)
   RawSmi* hash_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->hash_); }
+#else
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+#endif
 
+ private:
   friend class Library;
+  friend class OneByteStringSerializationCluster;
+  friend class TwoByteStringSerializationCluster;
+  friend class OneByteStringDeserializationCluster;
+  friend class TwoByteStringDeserializationCluster;
+  friend class RODataSerializationCluster;
 };
 
 
@@ -2452,6 +2496,7 @@ inline intptr_t RawObject::NumberOfTypedDataClasses() {
   COMPILE_ASSERT(kNullCid == kByteBufferCid + 1);
   return (kNullCid - kTypedDataInt8ArrayCid);
 }
+
 
 }  // namespace dart
 

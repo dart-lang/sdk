@@ -5,6 +5,19 @@ library kernel.transformations.erasure;
 
 import '../ast.dart';
 import '../type_algebra.dart';
+import '../core_types.dart';
+
+Program transformProgram(CoreTypes coreTypes, Program program) {
+  program.accept(new Erasure());
+  return program;
+}
+
+void transformLibraries(CoreTypes coreTypes, List<Library> libraries) {
+  Erasure erasure = new Erasure();
+  for (Library library in libraries) {
+    library.accept(erasure);
+  }
+}
 
 /// This pass is a temporary measure to run strong mode code in the VM, which
 /// does not yet have the necessary runtime support.

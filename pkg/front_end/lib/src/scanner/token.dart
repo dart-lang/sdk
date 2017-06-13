@@ -45,7 +45,8 @@ class BeginToken extends SimpleToken {
    * [offset].
    */
   BeginToken(TokenType type, int offset) : super(type, offset) {
-    assert(type == TokenType.OPEN_CURLY_BRACKET ||
+    assert(type == TokenType.LT ||
+        type == TokenType.OPEN_CURLY_BRACKET ||
         type == TokenType.OPEN_PAREN ||
         type == TokenType.OPEN_SQUARE_BRACKET ||
         type == TokenType.STRING_INTERPOLATION_EXPRESSION);
@@ -53,6 +54,18 @@ class BeginToken extends SimpleToken {
 
   @override
   Token copy() => new BeginToken(type, offset);
+
+  /**
+   * The token that corresponds to this token.
+   */
+  Token get endGroup => endToken;
+
+  /**
+   * Set the token that corresponds to this token.
+   */
+  set endGroup(Token token) {
+    endToken = token;
+  }
 }
 
 /**
@@ -82,16 +95,6 @@ class BeginTokenWithComment extends BeginToken implements TokenWithComment {
   void set precedingComments(CommentToken comment) {
     _precedingComment = comment;
     _setCommentParent(_precedingComment);
-  }
-
-  @override
-  void applyDelta(int delta) {
-    super.applyDelta(delta);
-    Token token = precedingComments;
-    while (token != null) {
-      token.applyDelta(delta);
-      token = token.next;
-    }
   }
 
   @override
@@ -382,6 +385,7 @@ class Keyword extends TokenType {
   /**
    * A flag indicating whether the keyword is "built-in" identifier.
    */
+  @override
   final bool isBuiltIn;
 
   @override
@@ -456,8 +460,6 @@ class KeywordToken extends SimpleToken {
   bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
 
   @override
-  // Changed return type from Keyword to Object because
-  // fasta considers pseudo-keywords to be keywords rather than identifiers
   Object value() => keyword;
 }
 
@@ -487,16 +489,6 @@ class KeywordTokenWithComment extends KeywordToken implements TokenWithComment {
   void set precedingComments(CommentToken comment) {
     _precedingComment = comment;
     _setCommentParent(_precedingComment);
-  }
-
-  @override
-  void applyDelta(int delta) {
-    super.applyDelta(delta);
-    Token token = precedingComments;
-    while (token != null) {
-      token.applyDelta(delta);
-      token = token.next;
-    }
   }
 
   @override
@@ -582,11 +574,6 @@ class SimpleToken implements Token {
   String get stringValue => type.stringValue;
 
   @override
-  void applyDelta(int delta) {
-    offset += delta;
-  }
-
-  @override
   Token copy() => new Token(type, offset);
 
   @override
@@ -631,7 +618,7 @@ class SimpleToken implements Token {
   String toString() => lexeme;
 
   @override
-  Object value() => type.lexeme;
+  Object value() => lexeme;
 
   /**
    * Sets the `parent` property to `this` for the given [comment] and all the
@@ -704,16 +691,6 @@ class StringTokenWithComment extends StringToken implements TokenWithComment {
   }
 
   @override
-  void applyDelta(int delta) {
-    super.applyDelta(delta);
-    Token token = precedingComments;
-    while (token != null) {
-      token.applyDelta(delta);
-      token = token.next;
-    }
-  }
-
-  @override
   Token copy() => new StringTokenWithComment(
       type, lexeme, offset, copyComments(precedingComments));
 }
@@ -739,15 +716,37 @@ class SyntheticKeywordToken extends KeywordToken {
  * A token whose value is independent of it's type.
  */
 class SyntheticStringToken extends StringToken {
+  final int _length;
+
   /**
    * Initialize a newly created token to represent a token of the given [type]
-   * with the given [value] at the given [offset].
+   * with the given [value] at the given [offset]. If the [length] is
+   * not specified, then it defaults to the length of [value].
    */
-  SyntheticStringToken(TokenType type, String value, int offset)
+  SyntheticStringToken(TokenType type, String value, int offset, [this._length])
       : super(type, value, offset);
 
   @override
   bool get isSynthetic => true;
+
+  @override
+  int get length => _length ?? super.length;
+
+  @override
+  Token copy() => new SyntheticStringToken(type, _value, offset);
+}
+
+/**
+ * A synthetic token.
+ */
+class SyntheticToken extends SimpleToken {
+  SyntheticToken(TokenType type, int offset) : super(type, offset);
+
+  @override
+  int get length => 0;
+
+  @override
+  Token copy() => new SyntheticToken(type, offset);
 }
 
 /**
@@ -761,6 +760,19 @@ abstract class Token implements SyntacticEntity {
    * Initialize a newly created token to have the given [type] and [offset].
    */
   factory Token(TokenType type, int offset) = SimpleToken;
+
+  /**
+   * Initialize a newly created end-of-file token to have the given [offset].
+   */
+  factory Token.eof(int offset, [CommentToken precedingComments]) {
+    Token eof = precedingComments == null
+        ? new SimpleToken(TokenType.EOF, offset)
+        : new TokenWithComment(TokenType.EOF, offset, precedingComments);
+    // EOF points to itself so there's always infinite look-ahead.
+    eof.previous = eof;
+    eof.next = eof;
+    return eof;
+  }
 
   /**
    * The number of characters parsed by this token.
@@ -896,11 +908,6 @@ abstract class Token implements SyntacticEntity {
   TokenType get type;
 
   /**
-   * Apply (add) the given [delta] to this token's offset.
-   */
-  void applyDelta(int delta);
-
-  /**
    * Return a newly created token that is a copy of this tokens
    * including any [preceedingComment] tokens,
    * but that is not a part of any token stream.
@@ -930,6 +937,17 @@ abstract class Token implements SyntacticEntity {
    * that was passed in.
    */
   Token setNextWithoutSettingPrevious(Token token);
+
+  /**
+   * Returns a textual representation of this token to be used for debugging
+   * purposes. The resulting string might contain information about the
+   * structure of the token, for example 'StringToken(foo)' for the identifier
+   * token 'foo'.
+   *
+   * Use [lexeme] for the text actually parsed by the token.
+   */
+  @override
+  String toString();
 
   /**
    * Return the value of this token. For keyword tokens, this is the keyword
@@ -1139,8 +1157,12 @@ class TokenType {
       isOperator: true);
 
   // This is not yet part of the language and not supported by fasta
-  static const TokenType AMPERSAND_AMPERSAND_EQ =
-      const TokenType('&&=', 'AMPERSAND_AMPERSAND_EQ', 1, -1);
+  static const TokenType AMPERSAND_AMPERSAND_EQ = const TokenType(
+      '&&=',
+      'AMPERSAND_AMPERSAND_EQ',
+      ASSIGNMENT_PRECEDENCE,
+      AMPERSAND_AMPERSAND_EQ_TOKEN,
+      isOperator: true);
 
   static const TokenType AMPERSAND_EQ = const TokenType(
       '&=', 'AMPERSAND_EQ', ASSIGNMENT_PRECEDENCE, AMPERSAND_EQ_TOKEN,
@@ -1169,8 +1191,9 @@ class TokenType {
       isOperator: true);
 
   // This is not yet part of the language and not supported by fasta
-  static const TokenType BAR_BAR_EQ =
-      const TokenType('||=', 'BAR_BAR_EQ', 1, -1);
+  static const TokenType BAR_BAR_EQ = const TokenType(
+      '||=', 'BAR_BAR_EQ', ASSIGNMENT_PRECEDENCE, BAR_BAR_EQ_TOKEN,
+      isOperator: true);
 
   static const TokenType BAR_EQ = const TokenType(
       '|=', 'BAR_EQ', ASSIGNMENT_PRECEDENCE, BAR_EQ_TOKEN,
@@ -1207,6 +1230,9 @@ class TokenType {
       '==', 'EQ_EQ', EQUALITY_PRECEDENCE, EQ_EQ_TOKEN,
       isOperator: true, isUserDefinableOperator: true);
 
+  /// The `===` operator is not supported in the Dart language
+  /// but is parsed as such by the scanner to support better recovery
+  /// when a JavaScript code snippet is pasted into a Dart file.
   static const TokenType EQ_EQ_EQ =
       const TokenType('===', 'EQ_EQ_EQ', EQUALITY_PRECEDENCE, EQ_EQ_EQ_TOKEN);
 
@@ -1568,6 +1594,11 @@ class TokenType {
       this == TokenType.CARET ||
       this == TokenType.PLUS ||
       this == TokenType.STAR;
+
+  /**
+   * A flag indicating whether the keyword is a "built-in" identifier.
+   */
+  bool get isBuiltIn => false;
 
   /**
    * Return `true` if this type of token represents an equality operator.

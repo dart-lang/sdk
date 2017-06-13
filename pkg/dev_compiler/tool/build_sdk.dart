@@ -14,11 +14,7 @@ import 'dart:io';
 import 'package:dev_compiler/src/compiler/command.dart';
 
 main(List<String> arguments) {
-  var args = [
-    '--unsafe-force-compile',
-    '--no-source-map',
-    '--no-emit-metadata'
-  ];
+  var args = ['--no-source-map', '--no-emit-metadata'];
   args.addAll(arguments);
   args.addAll([
     'dart:_runtime',

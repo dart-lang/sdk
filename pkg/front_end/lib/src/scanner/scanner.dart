@@ -129,7 +129,7 @@ abstract class Scanner {
    * A flag indicating whether the [Scanner] factory method
    * will return a fasta based scanner or an analyzer based scanner.
    */
-  static bool useFasta = false;
+  static bool useFasta = const bool.fromEnvironment("useFastaScanner");
 
   /**
    * The reader used to access the characters in the source.
@@ -209,8 +209,7 @@ abstract class Scanner {
    * character [_reader].
    */
   Scanner.create(this._reader) {
-    _tokens = new Token(TokenType.EOF, -1);
-    _tokens.setNext(_tokens);
+    _tokens = new Token.eof(-1);
     _tail = _tokens;
     _tokenStart = -1;
     _lineStarts.add(0);
@@ -545,10 +544,9 @@ abstract class Scanner {
   void _appendEofToken() {
     Token eofToken;
     if (_firstComment == null) {
-      eofToken = new Token(TokenType.EOF, _reader.offset + 1);
+      eofToken = new Token.eof(_reader.offset + 1);
     } else {
-      eofToken = new TokenWithComment(
-          TokenType.EOF, _reader.offset + 1, _firstComment);
+      eofToken = new Token.eof(_reader.offset + 1, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }

@@ -67,11 +67,7 @@ $endif
 
 $if DARTIUM
   bool _hasProperty(String propertyName) =>
-  $if JSINTEROP
-      _blink.BlinkCSSStyleDeclaration.instance.$__propertyQuery___Callback_1_(this, propertyName);
-  $else
-      _blink.BlinkCSSStyleDeclaration.$__propertyQuery___Callback_1(this, propertyName);
-  $endif
+      _blink.BlinkCSSStyleDeclaration.instance.$__get___propertyIsEnumerable_Callback_1_(this, propertyName);
 $endif
 
   @DomName('CSSStyleDeclaration.setProperty')
@@ -107,10 +103,11 @@ $endif
   static String _camelCase(String hyphenated) {
 $if DART2JS
     var replacedMs = JS('String', r'#.replace(/^-ms-/, "ms-")', hyphenated);
-
-    var fToUpper = const JS_CONST(
-        r'function(_, letter) { return letter.toUpperCase(); }');
-    return JS('String', r'#.replace(/-([\da-z])/ig, #)', replacedMs, fToUpper);
+    return JS(
+        'String',
+        r'#.replace(/-([\da-z])/ig,'
+            r'function(_, letter) { return letter.toUpperCase();})',
+        replacedMs);
 $else
     // The "ms" prefix is always lowercased.
     return hyphenated.replaceFirst(new RegExp('^-ms-'), 'ms-').replaceAllMapped(

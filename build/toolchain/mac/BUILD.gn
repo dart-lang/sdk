@@ -171,15 +171,29 @@ template("mac_toolchain") {
     }
 
     tool("link") {
-      outfile = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
+      exename = "{{target_output_name}}{{output_extension}}"
+      outfile = "{{root_out_dir}}/$exename"
       rspfile = "$outfile.rsp"
 
+      if (defined(invoker.strip)) {
+        stripped_outfile = "{{root_out_dir}}/exe.stripped/$exename"
+      }
+
       command = "$ld $sysroot_flags $toolchain_flags {{ldflags}} -Xlinker -rpath -Xlinker @executable_path/Frameworks -o $outfile -Wl,-filelist,$rspfile {{solibs}} {{libs}}"
+      if (defined(invoker.strip)) {
+        strip = invoker.strip
+        strip_command = "${strip} -x -o $stripped_outfile $outfile"
+        command += " && " + strip_command
+      }
+
       description = "LINK $outfile"
       rspfile_content = "{{inputs_newline}}"
       outputs = [
         outfile,
       ]
+      if (defined(invoker.strip)) {
+        outputs += [ stripped_outfile ]
+      }
     }
 
     tool("stamp") {
@@ -216,6 +230,7 @@ mac_toolchain("clang_x64") {
   cc = "${goma_prefix}$prefix/clang"
   cxx = "${goma_prefix}$prefix/clang++"
   ld = cxx
+  strip = "strip"
   is_clang = true
   sysroot_flags = "-isysroot $mac_sdk_path -mmacosx-version-min=$mac_sdk_min"
 }
@@ -229,6 +244,7 @@ mac_toolchain("clang_x86") {
   cc = "${goma_prefix}$prefix/clang"
   cxx = "${goma_prefix}$prefix/clang++"
   ld = cxx
+  strip = "strip"
   is_clang = true
   sysroot_flags = "-isysroot $mac_sdk_path -mmacosx-version-min=$mac_sdk_min"
 }

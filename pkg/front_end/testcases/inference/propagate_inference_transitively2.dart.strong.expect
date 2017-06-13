@@ -1,0 +1,34 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int x = 42;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  field self::A a = new self::A::•();
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  field self::B b = new self::B::•();
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class D extends core::Object {
+  field self::C c = new self::C::•();
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → void {
+  self::D d1 = new self::D::•();
+  core::print(d1.{self::D::c}.{self::C::b}.{self::B::a}.{self::A::x});
+  self::D d2 = new self::D::•();
+  core::print(d2.{self::D::c}.{self::C::b}.{self::B::a}.{self::A::x});
+}

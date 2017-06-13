@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -72,7 +73,6 @@ analyzer:
 
   @override
   void setUp() {
-    enableNewAnalysisDriver = true;
     generateSummaryFiles = true;
     registerLintRules();
     super.setUp();

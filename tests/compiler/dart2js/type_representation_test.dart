@@ -10,8 +10,9 @@ import 'type_test_helper.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/js/js.dart';
 import 'package:compiler/src/elements/elements.dart' show Element, ClassElement;
-import 'package:compiler/src/js_backend/js_backend.dart'
-    show JavaScriptBackend, TypeRepresentationGenerator;
+import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
+import 'package:compiler/src/js_backend/runtime_types.dart'
+    show TypeRepresentationGenerator;
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 
@@ -48,10 +49,10 @@ void testTypeRepresentations() {
         env.compiler.enqueuer.createCodegenEnqueuer(closedWorld);
         env.compiler.backend.onCodegenStart(
             closedWorld,
-            new CodegenWorldBuilderImpl(
+            new ElementCodegenWorldBuilderImpl(
+                env.compiler.elementEnvironment,
                 env.compiler.backend.nativeBasicData,
                 closedWorld,
-                env.compiler.backend.constants,
                 const TypeMaskStrategy()));
         TypeRepresentationGenerator typeRepresentation =
             new TypeRepresentationGenerator(env.compiler.backend.namer);

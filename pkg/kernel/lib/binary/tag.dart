@@ -9,6 +9,8 @@ class Tag {
 
   static const int Class = 2;
 
+  static const int FunctionNode = 3;
+
   static const int Field = 4;
   static const int Constructor = 5;
   static const int Procedure = 6;

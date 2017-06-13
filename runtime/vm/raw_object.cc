@@ -219,73 +219,68 @@ intptr_t RawObject::SizeFromClass() const {
 }
 
 
-intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
+intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
+                                            intptr_t class_id) {
+  ASSERT(class_id < kNumPredefinedCids);
+
   intptr_t size = 0;
 
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
 
-  // Read the necessary data out of the class before visting the class itself.
-  intptr_t class_id = GetClassId();
-
-  if (class_id < kNumPredefinedCids) {
-    switch (class_id) {
+  switch (class_id) {
 #define RAW_VISITPOINTERS(clazz)                                               \
   case k##clazz##Cid: {                                                        \
     Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(this);                 \
     size = Raw##clazz::Visit##clazz##Pointers(raw_obj, visitor);               \
     break;                                                                     \
   }
-      CLASS_LIST_NO_OBJECT(RAW_VISITPOINTERS)
+    CLASS_LIST_NO_OBJECT(RAW_VISITPOINTERS)
 #undef RAW_VISITPOINTERS
 #define RAW_VISITPOINTERS(clazz) case kTypedData##clazz##Cid:
-      CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
-        RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(this);
-        size = RawTypedData::VisitTypedDataPointers(raw_obj, visitor);
-        break;
-      }
+    CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
+      RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(this);
+      size = RawTypedData::VisitTypedDataPointers(raw_obj, visitor);
+      break;
+    }
 #undef RAW_VISITPOINTERS
 #define RAW_VISITPOINTERS(clazz) case kExternalTypedData##clazz##Cid:
-      CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
-        RawExternalTypedData* raw_obj =
-            reinterpret_cast<RawExternalTypedData*>(this);
-        size = RawExternalTypedData::VisitExternalTypedDataPointers(raw_obj,
-                                                                    visitor);
-        break;
-      }
+    CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
+      RawExternalTypedData* raw_obj =
+          reinterpret_cast<RawExternalTypedData*>(this);
+      size = RawExternalTypedData::VisitExternalTypedDataPointers(raw_obj,
+                                                                  visitor);
+      break;
+    }
 #undef RAW_VISITPOINTERS
 #define RAW_VISITPOINTERS(clazz) case kTypedData##clazz##ViewCid:
-      CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS)
-      case kByteDataViewCid:
-      case kByteBufferCid: {
-        RawInstance* raw_obj = reinterpret_cast<RawInstance*>(this);
-        size = RawInstance::VisitInstancePointers(raw_obj, visitor);
-        break;
-      }
-#undef RAW_VISITPOINTERS
-      case kFreeListElement: {
-        uword addr = RawObject::ToAddr(this);
-        FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-        size = element->Size();
-        break;
-      }
-      case kForwardingCorpse: {
-        uword addr = RawObject::ToAddr(this);
-        ForwardingCorpse* forwarder = reinterpret_cast<ForwardingCorpse*>(addr);
-        size = forwarder->Size();
-        break;
-      }
-      case kNullCid:
-        size = Size();
-        break;
-      default:
-        OS::Print("Class Id: %" Pd "\n", class_id);
-        UNREACHABLE();
-        break;
+    CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS)
+    case kByteDataViewCid:
+    case kByteBufferCid: {
+      RawInstance* raw_obj = reinterpret_cast<RawInstance*>(this);
+      size = RawInstance::VisitInstancePointers(raw_obj, visitor);
+      break;
     }
-  } else {
-    RawInstance* raw_obj = reinterpret_cast<RawInstance*>(this);
-    size = RawInstance::VisitInstancePointers(raw_obj, visitor);
+#undef RAW_VISITPOINTERS
+    case kFreeListElement: {
+      uword addr = RawObject::ToAddr(this);
+      FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
+      size = element->Size();
+      break;
+    }
+    case kForwardingCorpse: {
+      uword addr = RawObject::ToAddr(this);
+      ForwardingCorpse* forwarder = reinterpret_cast<ForwardingCorpse*>(addr);
+      size = forwarder->Size();
+      break;
+    }
+    case kNullCid:
+      size = Size();
+      break;
+    default:
+      OS::Print("Class Id: %" Pd "\n", class_id);
+      UNREACHABLE();
+      break;
   }
 
   ASSERT(size != 0);
@@ -821,7 +816,9 @@ intptr_t RawOneByteString::VisitOneByteStringPointers(
     RawOneByteString* raw_obj,
     ObjectPointerVisitor* visitor) {
   ASSERT(!raw_obj->ptr()->length_->IsHeapObject());
+#if !defined(HASH_IN_OBJECT_HEADER)
   ASSERT(!raw_obj->ptr()->hash_->IsHeapObject());
+#endif
   intptr_t length = Smi::Value(raw_obj->ptr()->length_);
   return OneByteString::InstanceSize(length);
 }
@@ -831,7 +828,9 @@ intptr_t RawTwoByteString::VisitTwoByteStringPointers(
     RawTwoByteString* raw_obj,
     ObjectPointerVisitor* visitor) {
   ASSERT(!raw_obj->ptr()->length_->IsHeapObject());
+#if !defined(HASH_IN_OBJECT_HEADER)
   ASSERT(!raw_obj->ptr()->hash_->IsHeapObject());
+#endif
   intptr_t length = Smi::Value(raw_obj->ptr()->length_);
   return TwoByteString::InstanceSize(length);
 }

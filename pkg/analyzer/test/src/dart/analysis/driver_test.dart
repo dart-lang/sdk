@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.driver;
-
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -27,8 +24,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:convert/convert.dart';
-import 'package:crypto/crypto.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -507,8 +503,8 @@ part of lib;
     AnalysisResult libResult = await driver.getResult(lib);
     List<AnalysisError> errors = libResult.errors;
     if (libResult.unit.element.context.analysisOptions.enableUriInPartOf) {
-      // TODO(28522): Should cause an error for wrong library name.
-      expect(errors, hasLength(0));
+      expect(errors, hasLength(1));
+      expect(errors[0].errorCode, ResolverErrorCode.PART_OF_UNNAMED_LIBRARY);
     } else {
       expect(errors, hasLength(1));
       expect(errors[0].errorCode,
@@ -1093,7 +1089,6 @@ bbb() {}
     ErrorsResult result = await driver.getErrors(testFile);
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
-    expect(result.contentHash, _md5(content));
     expect(result.errors, hasLength(1));
   }
 
@@ -1237,7 +1232,6 @@ class Test {}
     expect(result.uri.toString(), 'package:test/test.dart');
     expect(result.exists, isTrue);
     expect(result.content, content);
-    expect(result.contentHash, _md5(content));
     expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
 
@@ -2497,7 +2491,6 @@ class F extends X {}
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
     expect(result.content, content);
-    expect(result.contentHash, _md5(content));
     expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
 
@@ -2537,7 +2530,6 @@ class F extends X {}
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
     expect(result.content, isNull);
-    expect(result.contentHash, _md5(content));
     expect(result.unit, isNull);
     expect(result.errors, hasLength(0));
   }
@@ -2707,10 +2699,6 @@ class F extends X {}
    * Return the [provider] specific path for the given Posix [path].
    */
   String _p(String path) => provider.convertPath(path);
-
-  static String _md5(String content) {
-    return hex.encode(md5.convert(UTF8.encode(content)).bytes);
-  }
 }
 
 @reflectiveTest

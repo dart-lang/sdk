@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.plugin.analysis.occurrences.occurrences_core;
-
-import 'package:analysis_server/protocol/protocol_generated.dart'
-    show Occurrences;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:analyzer_plugin/protocol/protocol_common.dart' show Occurrences;
 
 /**
  * An object that [OccurrencesContributor]s use to record occurrences into.

@@ -468,6 +468,19 @@ bool FlowGraph::InstanceCallNeedsClassCheck(InstanceCallInstr* call,
 }
 
 
+Instruction* FlowGraph::CreateCheckClass(Definition* to_check,
+                                         const Cids& cids,
+                                         intptr_t deopt_id,
+                                         TokenPosition token_pos) {
+  if (cids.IsMonomorphic() && cids.MonomorphicReceiverCid() == kSmiCid) {
+    return new (zone())
+        CheckSmiInstr(new (zone()) Value(to_check), deopt_id, token_pos);
+  }
+  return new (zone())
+      CheckClassInstr(new (zone()) Value(to_check), deopt_id, cids, token_pos);
+}
+
+
 bool FlowGraph::VerifyUseLists() {
   // Verify the initial definitions.
   for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
@@ -1005,7 +1018,8 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
     for (intptr_t i = parameter_count(); i < variable_count(); ++i) {
       if (i == CurrentContextEnvIndex()) {
         if (function().IsClosureFunction()) {
-          CurrentContextInstr* context = new CurrentContextInstr();
+          CurrentContextInstr* context =
+              new CurrentContextInstr(Thread::kNoDeoptId);
           context->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
           AddToInitialDefinitions(context);
           env.Add(context);
@@ -2267,20 +2281,18 @@ void FlowGraph::TryMergeTruncDivMod(
         (*merge_candidates)[k] = NULL;  // Clear it.
         ASSERT(curr_instr->HasUses());
         AppendExtractNthOutputForMerged(
-            curr_instr, MergedMathInstr::OutputIndexOf(curr_instr->op_kind()),
+            curr_instr, TruncDivModInstr::OutputIndexOf(curr_instr->op_kind()),
             kTagged, kSmiCid);
         ASSERT(other_binop->HasUses());
         AppendExtractNthOutputForMerged(
-            other_binop, MergedMathInstr::OutputIndexOf(other_binop->op_kind()),
-            kTagged, kSmiCid);
-
-        ZoneGrowableArray<Value*>* args = new (Z) ZoneGrowableArray<Value*>(2);
-        args->Add(new (Z) Value(curr_instr->left()->definition()));
-        args->Add(new (Z) Value(curr_instr->right()->definition()));
+            other_binop,
+            TruncDivModInstr::OutputIndexOf(other_binop->op_kind()), kTagged,
+            kSmiCid);
 
         // Replace with TruncDivMod.
-        MergedMathInstr* div_mod = new (Z) MergedMathInstr(
-            args, curr_instr->deopt_id(), MergedMathInstr::kTruncDivMod);
+        TruncDivModInstr* div_mod = new (Z) TruncDivModInstr(
+            curr_instr->left()->CopyWithType(),
+            curr_instr->right()->CopyWithType(), curr_instr->deopt_id());
         curr_instr->ReplaceWith(div_mod, NULL);
         other_binop->ReplaceUsesWith(div_mod);
         other_binop->RemoveFromGraph();

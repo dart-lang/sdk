@@ -6,11 +6,13 @@ library fasta.stack_listener;
 
 import '../fasta_codes.dart' show FastaMessage;
 
-import '../parser.dart' show Listener;
+import '../parser.dart' show Listener, MemberKind;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
-import '../scanner.dart' show BeginGroupToken, Token;
+import '../scanner.dart' show Token;
+
+import '../../scanner/token.dart' show BeginToken;
 
 import 'package:kernel/ast.dart' show AsyncMarker;
 
@@ -69,10 +71,6 @@ abstract class StackListener extends Listener {
   // and ast_builder.dart.
   void exitLocalScope() => internalError("Unsupported operation");
 
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
-  // and ast_builder.dart.
-  void prepareInitializers() => internalError("Unsupported operation");
-
   void push(Object node) {
     if (node == null) internalError("null not allowed.");
     stack.push(node);
@@ -86,9 +84,9 @@ abstract class StackListener extends Listener {
     return value == null ? null : pop();
   }
 
-  List popList(int n) {
+  List popList(int n, [List list]) {
     if (n == 0) return null;
-    return stack.popList(n);
+    return stack.popList(n, list);
   }
 
   void debugEvent(String name) {
@@ -180,7 +178,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleNoFormalParameters(Token token) {
+  void handleNoFormalParameters(Token token, MemberKind kind) {
     debugEvent("NoFormalParameters");
     push(NullValue.FormalParameters);
   }
@@ -204,7 +202,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleParenthesizedExpression(BeginGroupToken token) {
+  void handleParenthesizedExpression(BeginToken token) {
     debugEvent("ParenthesizedExpression");
   }
 
@@ -232,8 +230,18 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleRecoverExpression(Token token) {
+  void handleRecoverExpression(Token token, FastaMessage message) {
     debugEvent("RecoverExpression");
+  }
+
+  void handleExtraneousExpression(Token token, FastaMessage message) {
+    debugEvent("ExtraneousExpression");
+    pop(); // Discard the extraneous expression.
+  }
+
+  @override
+  void endCaseExpression(Token colon) {
+    debugEvent("CaseExpression");
   }
 
   @override
@@ -244,8 +252,10 @@ abstract class StackListener extends Listener {
   @override
   void handleRecoverableError(Token token, FastaMessage message) {
     debugEvent("Error: ${message.message}");
-    super.handleRecoverableError(token, message);
+    addCompileTimeErrorFromMessage(message);
   }
+
+  void addCompileTimeErrorFromMessage(FastaMessage message);
 
   @override
   Token handleUnrecoverableError(Token token, FastaMessage message) {
@@ -288,13 +298,13 @@ class Stack {
     return value is NullValue ? null : value;
   }
 
-  List popList(int count) {
+  List popList(int count, List list) {
     assert(arrayLength >= count);
 
     final table = array;
     final length = arrayLength;
 
-    final tailList = new List.filled(count, null, growable: true);
+    final tailList = list ?? new List.filled(count, null, growable: true);
     final startIndex = length - count;
     for (int i = 0; i < count; i++) {
       final value = table[startIndex + i];

@@ -5,6 +5,8 @@ import 'dart:io';
 
 import 'package:analyzer/src/kernel/loader.dart';
 import 'package:kernel/application_root.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
@@ -25,8 +27,12 @@ abstract class TestTarget extends Target {
   Annotator get annotator => null;
 
   // Return a list of strings so that we can accumulate errors.
-  List<String> performModularTransformations(Program program);
-  List<String> performGlobalTransformations(Program program);
+  List<String> performModularTransformationsOnProgram(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, Program program,
+      {void logger(String msg)});
+  List<String> performGlobalTransformations(
+      CoreTypes coreTypes, Program program,
+      {void logger(String msg)});
 }
 
 void runBaselineTests(String folderName, TestTarget target) {
@@ -45,6 +51,8 @@ void runBaselineTests(String folderName, TestTarget target) {
         String filenameOfCurrent = '$outputDirectory/$shortName.current.txt';
 
         var program = new Program();
+        var coreTypes = new CoreTypes(program);
+        var hierarchy = new ClosedWorldClassHierarchy(program);
         var loader = await batch.getLoader(
             program,
             new DartOptions(
@@ -55,9 +63,10 @@ void runBaselineTests(String folderName, TestTarget target) {
         loader.loadProgram(dartPath, target: target);
         verifyProgram(program);
         var errors = <String>[];
-        errors.addAll(target.performModularTransformations(program));
+        errors.addAll(target.performModularTransformationsOnProgram(
+            coreTypes, hierarchy, program));
         verifyProgram(program);
-        errors.addAll(target.performGlobalTransformations(program));
+        errors.addAll(target.performGlobalTransformations(coreTypes, program));
         verifyProgram(program);
 
         var buffer = new StringBuffer();

@@ -73,6 +73,9 @@ config("common_linker_setup") {
     #   exceeds maximum allowable size (80000000)
     # which started happening more regularly after VS2013 Update 4.
     "/maxilksize:2147483647",
+
+    # Force the creation of a .lib file for all executable() targets.
+    "/EXPORT:main",
   ]
 
   # ASLR makes debugging with windbg difficult because Chrome.exe and

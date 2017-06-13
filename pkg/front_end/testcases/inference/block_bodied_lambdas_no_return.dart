@@ -7,7 +7,10 @@ library test;
 
 test1() {
   List<int> o;
-  var /*@type=Iterable<Null>*/ y = /*@promotedType=none*/ o
-      . /*@typeArgs=Null*/ map(/*@returnType=Null*/ (/*@type=int*/ x) {});
-  Iterable<int> z = /*@promotedType=none*/ y;
+  var /*@type=Iterable<Null>*/ y =
+      o. /*@typeArgs=Null*/ /*@target=Iterable::map*/ map(
+          /*@returnType=Null*/ (/*@type=int*/ x) {});
+  Iterable<int> z = y;
 }
+
+main() {}

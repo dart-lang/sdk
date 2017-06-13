@@ -11,7 +11,7 @@
 /// term and replace it with annotations as in `dart2js`.
 library fasta.parser.dart_vm_native;
 
-import '../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show Token;
 
 import '../scanner/token_constants.dart' show STRING_TOKEN;
 
@@ -45,6 +45,7 @@ Token skipNativeClause(Token token) {
 /// This method designed to be called from [Listener.handleMemberName].
 Link<Token> removeNativeClause(Link<Token> identifiers) {
   Link<Token> result = identifiers.tail;
+  if (result.isEmpty) return identifiers;
   if (result.head.kind != STRING_TOKEN) return identifiers;
   result = result.tail;
   if (result.isEmpty) return identifiers;

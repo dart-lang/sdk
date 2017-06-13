@@ -16,7 +16,8 @@ final Uri dartSdk = computeDartSdk();
 
 /// Common arguments when running a dart program. Returns a copy that can
 /// safely be modified by caller.
-List<String> get dartArguments => <String>["-c", "--packages=$packageConfig"];
+List<String> get dartArguments =>
+    <String>["-c", "--packages=${packageConfig.toFilePath()}"];
 
 Stream<TestDescription> listTests(List<Uri> testRoots, {Pattern pattern}) {
   StreamController<TestDescription> controller =

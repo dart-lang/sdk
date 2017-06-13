@@ -22,9 +22,9 @@ library summary.src.scope;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
-export 'package:analyzer/src/summary/api_signature.dart';
 export 'package:analyzer/src/summary/format.dart';
 export 'package:analyzer/src/summary/idl.dart';
+export 'package:front_end/src/base/api_signature.dart';
 
 export 'expressions.dart';
 export 'visitor.dart';

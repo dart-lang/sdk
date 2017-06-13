@@ -28,6 +28,8 @@ using dart::bin::DartUtils;
 
 namespace dart {
 
+DECLARE_FLAG(bool, use_dart_frontend);
+
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
 
@@ -168,9 +170,62 @@ static Dart_Handle ResolvePackageUri(const char* uri_chars) {
 
 static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
 
+static char* CompileTestScriptWithDFE(const char* url,
+                                      const char* source,
+                                      void** kernel_pgm) {
+  Zone* zone = Thread::Current()->zone();
+  char* filename = OS::SCreate(zone, "file:///%s", url);
+  // clang-format off
+  Dart_SourceFile sourcefiles[] = {
+    {
+      filename, source,
+    },
+    {
+      "file:///.packages", "untitled:/"
+    }};
+  // clang-format on
+  int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
+  Dart_KernelCompilationResult compilation_result =
+      Dart_CompileSourcesToKernel(filename, sourcefiles_count, sourcefiles);
+
+  if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+    return OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
+  }
+  const uint8_t* kernel_file = compilation_result.kernel;
+  intptr_t kernel_length = compilation_result.kernel_size;
+  if (kernel_file == NULL) {
+    return OS::SCreate(zone, "front end generated a NULL kernel file");
+  }
+  *kernel_pgm = Dart_ReadKernelBinary(kernel_file, kernel_length);
+  if (*kernel_pgm == NULL) {
+    return OS::SCreate(zone, "Failed to read generated kernel binary");
+  }
+  return NULL;
+}
+
 static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url) {
+  if (FLAG_use_dart_frontend) {
+    // Reload request.
+    ASSERT(script_reload_key != kUnsetThreadLocalKey);
+    const char* script_source = reinterpret_cast<const char*>(
+        OSThread::GetThreadLocal(script_reload_key));
+    ASSERT(script_source != NULL);
+    OSThread::SetThreadLocal(script_reload_key, 0);
+    const char* urlstr = NULL;
+    Dart_Handle result = Dart_StringToCString(url, &urlstr);
+    if (Dart_IsError(result)) {
+      return Dart_NewApiError("accessing url characters failed");
+    }
+    void* kernel_pgm;
+    char* error = CompileTestScriptWithDFE(urlstr, script_source, &kernel_pgm);
+    if (error == NULL) {
+      return Dart_LoadKernel(kernel_pgm);
+    } else {
+      return Dart_NewApiError(error);
+    }
+  }
   if (tag == Dart_kCanonicalizeUrl) {
     Dart_Handle library_url = Dart_LibraryUrl(library);
     if (Dart_IsError(library_url)) {
@@ -258,11 +313,10 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   }
 }
 
-
-Dart_Handle TestCase::LoadTestScript(const char* script,
-                                     Dart_NativeEntryResolver resolver,
-                                     const char* lib_url,
-                                     bool finalize_classes) {
+static Dart_Handle LoadTestScriptWithVMParser(const char* script,
+                                              Dart_NativeEntryResolver resolver,
+                                              const char* lib_url,
+                                              bool finalize_classes) {
   Dart_Handle url = NewString(lib_url);
   Dart_Handle source = NewString(script);
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
@@ -278,6 +332,40 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
   return lib;
 }
 
+static Dart_Handle LoadTestScriptWithDFE(const char* script,
+                                         Dart_NativeEntryResolver resolver,
+                                         const char* lib_url,
+                                         bool finalize_classes) {
+  Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
+  EXPECT_VALID(result);
+  void* kernel_pgm = NULL;
+  char* error = CompileTestScriptWithDFE(lib_url, script, &kernel_pgm);
+  if (error == NULL) {
+    Dart_Handle lib = Dart_LoadKernel(kernel_pgm);
+    DART_CHECK_VALID(lib);
+    result = Dart_SetNativeResolver(lib, resolver, NULL);
+    DART_CHECK_VALID(result);
+    if (finalize_classes) {
+      result = Dart_FinalizeLoading(false);
+      DART_CHECK_VALID(result);
+    }
+    return lib;
+  } else {
+    return Dart_NewApiError(error);
+  }
+}
+
+Dart_Handle TestCase::LoadTestScript(const char* script,
+                                     Dart_NativeEntryResolver resolver,
+                                     const char* lib_url,
+                                     bool finalize_classes) {
+  if (!FLAG_use_dart_frontend) {
+    return LoadTestScriptWithVMParser(script, resolver, lib_url,
+                                      finalize_classes);
+  } else {
+    return LoadTestScriptWithDFE(script, resolver, lib_url, finalize_classes);
+  }
+}
 
 #ifndef PRODUCT
 

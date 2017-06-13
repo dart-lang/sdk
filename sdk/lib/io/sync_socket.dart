@@ -68,8 +68,9 @@ abstract class RawSynchronousSocket {
    * Shutdown a socket in the provided direction.
    *
    * Calling shutdown will never throw an exception and calling it several times
-   * is supported. If both [RECEIVE] and [SEND] directions are closed, the
-   * socket is closed completely, the same as if [closeSync] has been called.
+   * is supported. If both [SocketDirection.RECEIVE] and [SocketDirection.SEND]
+   * directions are closed, the socket is closed completely, the same as if
+   * [closeSync] has been called.
    */
   void shutdown(SocketDirection direction);
 

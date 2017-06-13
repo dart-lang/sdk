@@ -5,10 +5,11 @@
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/scanner/token.dart';
+import 'package:front_end/src/scanner/errors.dart' as analyzer;
 import 'package:front_end/src/scanner/reader.dart' as analyzer;
+import 'package:front_end/src/scanner/scanner.dart' as analyzer;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'scanner_roundtrip_test.dart' show TestScanner;
 
 main() {
   defineReflectiveSuite(() {
@@ -19,16 +20,6 @@ main() {
 /// Assert that fasta PrecedenceInfo implements analyzer TokenType.
 @reflectiveTest
 class TokenTest {
-  void test_applyDelta() {
-    var scanner = new StringScanner('/* 1 */ foo', includeComments: true);
-    var token = scanner.tokenize();
-    expect(token.offset, 8);
-    expect(token.precedingComments.offset, 0);
-    token.applyDelta(12);
-    expect(token.offset, 20);
-    expect(token.precedingComments.offset, 12);
-  }
-
   void test_comments() {
     var source = '''
 /// Single line dartdoc comment
@@ -45,7 +36,7 @@ class Foo {
 }
 ''';
     var scanner = new StringScanner(source, includeComments: true);
-    fasta.Token token = scanner.tokenize();
+    Token token = scanner.tokenize();
 
     Token nextComment() {
       while (!token.isEof) {
@@ -56,7 +47,7 @@ class Foo {
       return null;
     }
 
-    fasta.Token comment = nextComment();
+    Token comment = nextComment();
     expect(comment.lexeme, contains('Single line dartdoc comment'));
     expect(comment.type, TokenType.SINGLE_LINE_COMMENT);
     expect(comment, new isInstanceOf<DocumentationCommentToken>());
@@ -112,9 +103,9 @@ class Foo {
 
     while (!token1.isEof) {
       if (token1 is fasta.StringToken) stringTokenFound = true;
-      if (token1 is fasta.KeywordToken) keywordTokenFound = true;
-      if (token1 is fasta.SymbolToken) symbolTokenFound = true;
-      if (token1 is fasta.BeginGroupToken) beginGroupTokenFound = true;
+      if (token1 is KeywordToken) keywordTokenFound = true;
+      if (token1.type == TokenType.OPEN_PAREN) symbolTokenFound = true;
+      if (token1 is BeginToken) beginGroupTokenFound = true;
 
       var copy1 = token1.copy();
       expect(copy1, isNotNull);
@@ -216,5 +207,16 @@ class Foo {
     token = token.next;
     expect(token.lexeme, '"home"');
     expect(token.value(), '"home"');
+  }
+}
+
+class TestScanner extends analyzer.Scanner {
+  TestScanner(analyzer.CharacterReader reader) : super.create(reader);
+
+  @override
+  void reportError(
+      analyzer.ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+    fail('Unexpected error $errorCode while scanning offset $offset\n'
+        '   arguments: $arguments');
   }
 }

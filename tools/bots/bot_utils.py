@@ -46,7 +46,8 @@ class Channel(object):
   BLEEDING_EDGE = 'be'
   DEV = 'dev'
   STABLE = 'stable'
-  ALL_CHANNELS = [BLEEDING_EDGE, DEV, STABLE]
+  INTEGRATION = 'integration'
+  ALL_CHANNELS = [BLEEDING_EDGE, DEV, STABLE, INTEGRATION]
 
 class ReleaseType(object):
   RAW = 'raw'
@@ -66,7 +67,7 @@ class GCSNamer(object):
 
   For every (channel,revision,release-type) tuple we have a base path:
 
-    gs://dart-archive/channels/{be,dev,stable}
+    gs://dart-archive/channels/{be,dev,stable,integration}
                      /{raw,signed,release}/{revision,latest}/
 
   Under every base path, the following structure is used:
@@ -144,9 +145,8 @@ class GCSNamer(object):
   def sdk_directory(self, revision):
     return self._variant_directory('sdk', revision)
 
-  def linux_packages_directory(self, revision, linux_system):
-    return '/'.join([self._variant_directory('linux_packages', revision),
-                     linux_system])
+  def linux_packages_directory(self, revision):
+    return '/'.join([self._variant_directory('linux_packages', revision)])
 
   def src_directory(self, revision):
     return self._variant_directory('src', revision)

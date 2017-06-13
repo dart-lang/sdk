@@ -2,16 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.provisional.completion.completion_core;
-
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /**
  * An empty list returned by [CompletionContributor]s
@@ -55,16 +51,6 @@ abstract class CompletionContributor {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class CompletionRequest {
-  /**
-   * Return the analysis context in which the completion is being requested.
-   */
-  AnalysisContext get context;
-
-  /**
-   * IDE options for this server instance.
-   */
-  IdeOptions get ideOptions;
-
   /**
    * Return the offset within the source at which the completion is being
    * requested.

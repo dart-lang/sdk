@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.variableName;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart'
@@ -11,9 +9,9 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
-import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 CompletionSuggestion _createNameSuggestion(String name) {
   if (name == null || name.isEmpty) {

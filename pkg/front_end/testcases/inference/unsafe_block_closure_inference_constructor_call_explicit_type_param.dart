@@ -12,3 +12,7 @@ class C<T> {
 var /*@topType=C<int>*/ v = new C<int>(/*@returnType=int*/ () {
   return 1;
 });
+
+main() {
+  v;
+}

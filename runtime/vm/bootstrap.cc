@@ -20,12 +20,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool,
-            use_corelib_source_files,
-            false,
-            "Attempt to use source files directly when loading in the core "
-            "libraries during the bootstrap process");
-
 struct BootstrapLibProps {
   ObjectStore::BootstrapLibraryId index;
   const char* uri;
@@ -35,12 +29,7 @@ struct BootstrapLibProps {
 };
 
 
-enum {
-  kPathsUriOffset = 0,
-  kPathsFileOffset = 1,
-  kPathsSourceOffset = 2,
-  kPathsEntryLength = 3
-};
+enum { kPathsUriOffset = 0, kPathsSourceOffset = 1, kPathsEntryLength = 2 };
 
 
 const char** Bootstrap::profiler_patch_paths_ = NULL;
@@ -70,45 +59,25 @@ static RawString* GetLibrarySourceByIndex(intptr_t index,
   if (source_paths == NULL) {
     return String::null();  // No path mapping information exists for library.
   }
-  const char* source_path = NULL;
   const char* source_data = NULL;
   for (intptr_t i = 0; source_paths[i] != NULL; i += kPathsEntryLength) {
     if (uri.Equals(source_paths[i + kPathsUriOffset])) {
-      source_path = source_paths[i + kPathsFileOffset];
       source_data = source_paths[i + kPathsSourceOffset];
       break;
     }
   }
-  if ((source_path == NULL) && (source_data == NULL)) {
+  if (source_data == NULL) {
     return String::null();  // Uri does not exist in path mapping information.
   }
 
   const uint8_t* utf8_array = NULL;
   intptr_t file_length = -1;
 
-  // If flag to use the core library files directly is specified then try
-  // to read the file and extract it's contents otherwise just use the
-  // source data that has been backed into the binary.
-  if (FLAG_use_corelib_source_files) {
-    Dart_FileOpenCallback file_open = Dart::file_open_callback();
-    Dart_FileReadCallback file_read = Dart::file_read_callback();
-    Dart_FileCloseCallback file_close = Dart::file_close_callback();
-    if ((file_open != NULL) && (file_read != NULL) && (file_close != NULL)) {
-      // Try to open and read the file.
-      void* stream = (*file_open)(source_path, false);
-      if (stream != NULL) {
-        (*file_read)(&utf8_array, &file_length, stream);
-        (*file_close)(stream);
-      }
-    }
-  }
-  if (file_length == -1) {
-    if (source_data != NULL) {
-      file_length = strlen(source_data);
-      utf8_array = reinterpret_cast<const uint8_t*>(source_data);
-    } else {
-      return String::null();
-    }
+  if (source_data != NULL) {
+    file_length = strlen(source_data);
+    utf8_array = reinterpret_cast<const uint8_t*>(source_data);
+  } else {
+    return String::null();
   }
   ASSERT(utf8_array != NULL);
   ASSERT(file_length >= 0);

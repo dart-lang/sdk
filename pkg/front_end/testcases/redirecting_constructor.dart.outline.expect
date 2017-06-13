@@ -6,8 +6,8 @@ class A extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::A::fisk];
   constructor •() → void
     ;
-  static factory fisk() → dynamic
-    let final dynamic #t1 = self::B::• in invalid-expression;
+  static factory fisk() → self::A
+    let dynamic #redirecting_factory = self::B::• in invalid-expression;
 }
 class B extends self::A {
   constructor •() → void

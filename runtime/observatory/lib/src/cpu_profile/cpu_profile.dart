@@ -845,7 +845,7 @@ class CpuProfile extends M.SampleProfile {
         }
 
         if ((owner != null) && (owner is Isolate)) {
-          isolate = owner as Isolate;
+          isolate = owner;
           isolate.resetCachedProfileData();
         }
 

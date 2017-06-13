@@ -26,23 +26,178 @@ import 'dart:async';
 
 class Object {
   const Object();
+  bool operator ==(other) => identical(this, other);
+  String toString() => 'a string';
+  int get hashCode => 0;
+  Type get runtimeType => null;
+  dynamic noSuchMethod(Invocation invocation) => null;
 }
 
 class Null {}
-class Symbol {}
+
+class Symbol {
+  const factory Symbol(String name) {
+    return null;
+  }
+}
+
 class Type {}
+
+abstract class Comparable<T> {
+  int compareTo(T other);
+}
+
+abstract class Pattern {}
+
+abstract class String implements Comparable<String>, Pattern {
+  external factory String.fromCharCodes(Iterable<int> charCodes,
+                                        [int start = 0, int end]);
+  String operator +(String other) => null;
+  bool get isEmpty => false;
+  bool get isNotEmpty => false;
+  int get length => 0;
+  String substring(int len) => null;
+  String toLowerCase();
+  String toUpperCase();
+  List<int> get codeUnits;
+}
+
+abstract class RegExp implements Pattern {
+  external factory RegExp(String source);
+}
+
 class Function {}
 class Invocation {}
 class StackTrace {}
-class bool {}
-class String {}
-class num {}
-class int extends num {}
-class double {}
-class Iterable<T> {}
-class Iterator<T> {}
-class List<T> extends Iterable<T> {}
-class Map<K, V> {}
+
+class bool extends Object {
+  external const factory bool.fromEnvironment(String name,
+                                              {bool defaultValue: false});
+}
+
+abstract class num implements Comparable<num> {
+  bool operator ==(Object other);
+  bool operator <(num other);
+  bool operator <=(num other);
+  bool operator >(num other);
+  bool operator >=(num other);
+  num operator +(num other);
+  num operator -(num other);
+  num operator *(num other);
+  num operator /(num other);
+  int operator ^(int other);
+  int operator |(int other);
+  int operator <<(int other);
+  int operator >>(int other);
+  int operator ~/(num other);
+  num operator %(num other);
+  int operator ~();
+  num operator -();
+  int toInt();
+  double toDouble();
+  num abs();
+  int round();
+}
+
+abstract class int extends num {
+  external const factory int.fromEnvironment(String name, {int defaultValue});
+
+  bool get isNegative;
+  bool get isEven => false;
+
+  int operator &(int other);
+  int operator |(int other);
+  int operator ^(int other);
+  int operator ~();
+  int operator <<(int shiftAmount);
+  int operator >>(int shiftAmount);
+
+  int operator -();
+
+  external static int parse(String source,
+                            { int radix,
+                              int onError(String source) });
+}
+
+abstract class double extends num {
+  static const double NAN = 0.0 / 0.0;
+  static const double INFINITY = 1.0 / 0.0;
+  static const double NEGATIVE_INFINITY = -INFINITY;
+  static const double MIN_POSITIVE = 5e-324;
+  static const double MAX_FINITE = 1.7976931348623157e+308;
+
+  double remainder(num other);
+  double operator +(num other);
+  double operator -(num other);
+  double operator *(num other);
+  double operator %(num other);
+  double operator /(num other);
+  int operator ~/(num other);
+  double operator -();
+  double abs();
+  double get sign;
+  int round();
+  int floor();
+  int ceil();
+  int truncate();
+  double roundToDouble();
+  double floorToDouble();
+  double ceilToDouble();
+  double truncateToDouble();
+  external static double parse(String source,
+                               [double onError(String source)]);
+}
+
+class Iterator<E> {
+  bool moveNext();
+  E get current;
+}
+
+abstract class Iterable<E> {
+  Iterator<E> get iterator;
+  bool get isEmpty;
+  E get first;
+
+  Iterable<R> map<R>(R f(E e));
+
+  R fold<R>(R initialValue, R combine(R previousValue, E element));
+
+  Iterable<T> expand<T>(Iterable<T> f(E element));
+
+  Iterable<E> where(bool test(E element));
+
+  void forEach(void f(E element));
+
+  List<E> toList();
+}
+
+class List<E> implements Iterable<E> {
+  List();
+  void add(E value) {}
+  void addAll(Iterable<E> iterable) {}
+  E operator [](int index) => null;
+  void operator []=(int index, E value) {}
+  Iterator<E> get iterator => null;
+  void clear() {}
+
+  bool get isEmpty => false;
+  E get first => null;
+  E get last => null;
+
+  R fold<R>(R initialValue, R combine(R previousValue, E element)) => null;
+}
+
+class Map<K, V> extends Object {
+  V operator [](K key) => null;
+  void operator []=(K key, V value) {}
+  Iterable<K> get keys => null;
+  int get length;
+  Iterable<V> get values;
+}
+
+class Duration implements Comparable<Duration> {}
+
+external bool identical(Object a, Object b);
 
 void print(Object o) {}
 
@@ -55,8 +210,17 @@ abstract class _SyncIterable implements Iterable {}
 library dart.async;
 
 class Future<T> {
+  factory Future(computation()) => null;
+  factory Future.delayed(Duration duration, [T computation()]) => null;
   factory Future.microtask(FutureOr<T> computation()) => null;
+  factory Future.value([value]) => null;
+
+  static Future<List<T>> wait<T>(Iterable<Future<T>> futures) => null;
+  Future<R> then<R>(FutureOr<R> onValue(T value)) => null;
+
+  Future<T> whenComplete(action());
 }
+
 
 class FutureOr<T> {}
 class Stream<T> {}
@@ -84,14 +248,29 @@ Future _awaitHelper(
   addSdkLibrary('developer', 'library dart.developer;');
   addSdkLibrary('io', 'library dart.io;');
   addSdkLibrary('isolate', 'library dart.isolate;');
-  addSdkLibrary('math', 'library dart.math;');
+  addSdkLibrary(
+      'math',
+      '''
+library dart.math;
+double sin(num radians) => _sin(radians.toDouble());
+double _sin(double x) native "Math_sin";
+''');
   addSdkLibrary('mirrors', 'library dart.mirrors;');
   addSdkLibrary('nativewrappers', 'library dart.nativewrappers;');
   addSdkLibrary('profiler', 'library dart.profiler;');
   addSdkLibrary('typed_data', 'library dart.typed_data;');
   addSdkLibrary('vmservice_io', 'library dart.vmservice_io;');
   addSdkLibrary('_builtin', 'library dart._builtin;');
-  addSdkLibrary('_internal', 'library dart._internal; class Symbol {}');
+  addSdkLibrary(
+      '_internal',
+      '''
+library dart._internal;
+class Symbol {}
+class ExternalName {
+  final String name;
+  const ExternalName(this.name);
+}
+''');
   addSdkLibrary('_vmservice', 'library dart._vmservice;');
 
   return dartLibraries;

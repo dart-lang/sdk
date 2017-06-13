@@ -1,8 +1,9 @@
 analyzer:
+  errors:
+    dead_code: ignore
+    unused_local_variable: ignore
   exclude:
-    - tests/service/address_mapper_test.dart
+    - tests/service/bad_reload/v2/main.dart
+    - tests/service/complex_reload/v2/main.dart
     - tests/service/developer_extension_test.dart
-    - tests/service/evaluate_in_async_star_activation_test.dart
-    - tests/service/evaluate_in_sync_star_activation_test.dart
     - tests/service/get_isolate_after_language_error_test.dart
-    - tests/service/pause_on_unhandled_exceptions_test.dart

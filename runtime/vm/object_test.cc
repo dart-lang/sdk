@@ -3020,8 +3020,10 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
   const intptr_t id = 12;
   const intptr_t num_args_tested = 1;
   const String& target_name = String::Handle(Symbols::New(thread, "Thun"));
-  const Array& args_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(1, Object::null_array()));
+  const intptr_t kTypeArgsLen = 0;
+  const intptr_t kNumArgs = 1;
+  const Array& args_descriptor = Array::Handle(
+      ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
   ICData& o1 = ICData::Handle();
   o1 = ICData::New(function, target_name, args_descriptor, id, num_args_tested,
                    false);
@@ -3842,7 +3844,7 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   // Add invocation dispatcher.
   const String& invocation_dispatcher_name =
       String::Handle(Symbols::New(thread, "myMethod"));
-  const Array& args_desc = Array::Handle(ArgumentsDescriptor::New(1));
+  const Array& args_desc = Array::Handle(ArgumentsDescriptor::New(0, 1));
   Function& invocation_dispatcher = Function::Handle();
   invocation_dispatcher ^= cls.GetInvocationDispatcher(
       invocation_dispatcher_name, args_desc,

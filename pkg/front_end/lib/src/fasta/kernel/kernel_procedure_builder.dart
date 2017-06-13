@@ -80,8 +80,18 @@ abstract class KernelFunctionBuilder
             compilationUnit, charOffset);
 
   void set body(Statement newBody) {
-    if (isAbstract && newBody != null) {
-      return internalError("Attempting to set body on abstract method.");
+    if (newBody != null) {
+      if (isAbstract) {
+        return internalError("Attempting to set body on abstract method.");
+      }
+      if (isExternal) {
+        return library.addCompileTimeError(
+            newBody.fileOffset, "An external method can't have a body.");
+      }
+      if (isConstructor && isConst) {
+        return library.addCompileTimeError(
+            newBody.fileOffset, "A const constructor can't have a body.");
+      }
     }
     actualBody = newBody;
     if (function != null) {
@@ -178,7 +188,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   final Procedure procedure;
   final int charOpenParenOffset;
 
-  AsyncMarker actualAsyncModifier;
+  AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
   final ConstructorReferenceBuilder redirectionTarget;
 
@@ -189,7 +199,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
-      this.actualAsyncModifier,
       ProcedureKind kind,
       KernelLibraryBuilder compilationUnit,
       int charOffset,
@@ -223,6 +232,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
     if (function != null) {
       // No parent, it's an enum.
       function.asyncMarker = actualAsyncModifier;
+      function.dartAsyncMarker = actualAsyncModifier;
     }
   }
 

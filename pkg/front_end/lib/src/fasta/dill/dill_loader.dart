@@ -6,47 +6,46 @@ library fasta.dill_loader;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show File;
-
-import 'package:kernel/kernel.dart' show loadProgramFromBinary;
-
-import 'package:kernel/ast.dart' show Library, Program;
+import 'package:kernel/ast.dart' show Library, Program, Source;
 
 import '../loader.dart' show Loader;
-
 import '../target_implementation.dart' show TargetImplementation;
-
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillLoader extends Loader<Library> {
-  Uri input;
+  /// Source targets are compiled against these binary libraries.
+  final libraries = <Library>[];
 
-  Program program;
+  /// Sources for all appended programs.
+  final Map<String, Source> uriToSource = <String, Source>{};
 
   DillLoader(TargetImplementation target) : super(target);
 
-  DillLibraryBuilder read(Uri uri, [Uri fileUri]) => super.read(uri, fileUri);
+  /// Append compiled libraries from the given [program]. If the [filter] is
+  /// provided, append only libraries whose [Uri] is accepted by the [filter].
+  List<DillLibraryBuilder> appendLibraries(Program program,
+      [bool filter(Uri uri)]) {
+    var builders = <DillLibraryBuilder>[];
+    for (Library library in program.libraries) {
+      if (filter == null || filter(library.importUri)) {
+        libraries.add(library);
+        DillLibraryBuilder builder = read(library.importUri, -1);
+        builder.library = library;
+        builders.add(builder);
+      }
+    }
+    uriToSource.addAll(program.uriToSource);
+    return builders;
+  }
 
   Future<Null> buildOutline(DillLibraryBuilder builder) async {
-    if (program == null) {
-      byteCount = await new File.fromUri(input).length();
-      setProgram(await loadProgramFromBinary(input.toFilePath()));
-    }
     builder.library.classes.forEach(builder.addClass);
     builder.library.procedures.forEach(builder.addMember);
+    builder.library.typedefs.forEach(builder.addTypedef);
     builder.library.fields.forEach(builder.addMember);
   }
 
   Future<Null> buildBody(DillLibraryBuilder builder) {
     return buildOutline(builder);
-  }
-
-  void setProgram(Program program) {
-    assert(input != null);
-    this.program = program;
-    program.unbindCanonicalNames();
-    for (Library library in program.libraries) {
-      read(library.importUri).library = library;
-    }
   }
 }

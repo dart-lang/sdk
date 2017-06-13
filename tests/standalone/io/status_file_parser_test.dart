@@ -7,23 +7,23 @@ library StatusFileParserTest;
 import "package:expect/expect.dart";
 import "dart:io";
 import "../../../tools/testing/dart/path.dart";
-import "../../../tools/testing/dart/status_file_parser.dart";
+import "../../../tools/testing/dart/status_file.dart";
 import "../../../tools/testing/dart/utils.dart";
 
 void main() {
-  TestReadStatusFile("runtime/tests/vm/vm.status");
-  TestReadStatusFile("samples/tests/samples/samples.status");
-  TestReadStatusFile("tests/co19/co19-compiler.status");
-  TestReadStatusFile("tests/co19/co19-runtime.status");
-  TestReadStatusFile("tests/corelib/corelib.status");
-  TestReadStatusFile("tests/dom/dom.status");
-  TestReadStatusFile("tests/html/html.status");
-  TestReadStatusFile("tests/isolate/isolate.status");
-  TestReadStatusFile("tests/language/language.status");
-  TestReadStatusFile("tests/standalone/standalone.status");
+  testReadStatusFile("runtime/tests/vm/vm.status");
+  testReadStatusFile("samples/tests/samples/samples.status");
+  testReadStatusFile("tests/co19/co19-compiler.status");
+  testReadStatusFile("tests/co19/co19-runtime.status");
+  testReadStatusFile("tests/corelib/corelib.status");
+  testReadStatusFile("tests/dom/dom.status");
+  testReadStatusFile("tests/html/html.status");
+  testReadStatusFile("tests/isolate/isolate.status");
+  testReadStatusFile("tests/language/language.status");
+  testReadStatusFile("tests/standalone/standalone.status");
 }
 
-String fixedFilePath(String filePath) {
+String fixFilePath(String filePath) {
   if (new File(filePath).existsSync()) {
     return filePath;
   } else {
@@ -31,12 +31,10 @@ String fixedFilePath(String filePath) {
   }
 }
 
-void TestReadStatusFile(String filePath) {
-  File file = new File(fixedFilePath(filePath));
-  if (file.existsSync()) {
-    List<Section> sections = new List<Section>();
-    ReadConfigurationInto(new Path(file.path), sections, () {
-      Expect.isTrue(sections.length > 0);
-    });
-  }
+void testReadStatusFile(String filePath) {
+  var file = new File(fixFilePath(filePath));
+  if (!file.existsSync()) return;
+
+  var statusFile = new StatusFile.read(file.path);
+  Expect.isTrue(statusFile.sections.length > 0);
 }

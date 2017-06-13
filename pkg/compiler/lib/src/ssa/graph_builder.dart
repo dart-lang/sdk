@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../closure.dart';
+import '../closure.dart' show ClosureClassMaps;
 import '../constants/constant_system.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common_elements.dart';
@@ -10,15 +10,17 @@ import '../compiler.dart';
 import '../deferred_load.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
-import '../elements/entities.dart' show Entity, Local;
-import '../elements/resolution_types.dart';
+import '../elements/entities.dart' show Entity, Local, MemberEntity;
+import '../elements/types.dart';
+import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_handler_javascript.dart';
-import '../js_backend/js_backend.dart';
+import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/js_interop_analysis.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/mirrors_data.dart';
+import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
 import '../resolution/tree_elements.dart';
@@ -69,13 +71,13 @@ abstract class GraphBuilder {
   GlobalTypeInferenceResults get globalInferenceResults =>
       compiler.globalInference.results;
 
-  ClosureTask get closureToClassMapper => compiler.closureToClassMapper;
+  ClosureClassMaps get closureToClassMapper => compiler.closureToClassMapper;
 
   NativeData get nativeData => closedWorld.nativeData;
 
   InterceptorData get interceptorData => closedWorld.interceptorData;
 
-  BackendUsage get backendUsage => backend.backendUsage;
+  BackendUsage get backendUsage => closedWorld.backendUsage;
 
   Namer get namer => backend.namer;
 
@@ -95,7 +97,7 @@ abstract class GraphBuilder {
 
   DeferredLoadTask get deferredLoadTask => compiler.deferredLoadTask;
 
-  Types get types => compiler.types;
+  DartTypes get types => compiler.types;
 
   /// Used to track the locals while building the graph.
   LocalsHandler localsHandler;
@@ -163,8 +165,7 @@ abstract class GraphBuilder {
 
   HParameterValue lastAddedParameter;
 
-  Map<ParameterElement, HInstruction> parameters =
-      <ParameterElement, HInstruction>{};
+  Map<Local, HInstruction> parameters = <Local, HInstruction>{};
 
   HBasicBlock addNewBlock() {
     HBasicBlock block = graph.addNewBlock();
@@ -250,7 +251,7 @@ abstract class GraphBuilder {
         localsHandler.directLocals[local] != null;
   }
 
-  HInstruction callSetRuntimeTypeInfoWithTypeArguments(ResolutionDartType type,
+  HInstruction callSetRuntimeTypeInfoWithTypeArguments(InterfaceType type,
       List<HInstruction> rtiInputs, HInstruction newObject) {
     if (!rtiNeed.classNeedsRti(type.element)) {
       return newObject;
@@ -279,7 +280,7 @@ abstract class GraphBuilder {
       HInstruction typeInfo, HInstruction newObject);
 
   /// The element for which this SSA builder is being used.
-  Element get targetElement;
+  MemberEntity get targetElement;
   TypeBuilder get typeBuilder;
 
   /// Helper to implement JS_GET_FLAG.

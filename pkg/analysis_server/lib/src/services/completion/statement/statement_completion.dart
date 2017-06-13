@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.completion.statement;
-
 import 'dart:async';
+import 'dart:math';
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -18,6 +16,7 @@ import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -201,6 +200,7 @@ class StatementCompletionProcessor {
       }
     }
 
+    _checkExpressions();
     if (node is Statement) {
       if (errors.isEmpty) {
         if (_complete_ifStatement() ||
@@ -285,6 +285,102 @@ class StatementCompletionProcessor {
     return text;
   }
 
+  void _checkExpressions() {
+    // Note: This may queue edits that have to be accounted for later.
+    // See _lengthOfInsertions().
+    AstNode errorMatching(errorCode, {partialMatch = null}) {
+      var error = _findError(errorCode, partialMatch: partialMatch);
+      if (error == null) {
+        return null;
+      }
+      AstNode expr = _selectedNode();
+      return (expr.getAncestor((n) => n is StringInterpolation) == null)
+          ? expr
+          : null;
+    }
+
+    var expr = errorMatching(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
+    if (expr != null) {
+      String source = utils.getNodeText(expr);
+      String content = source;
+      int char = content.codeUnitAt(0);
+      if (char == 'r'.codeUnitAt(0)) {
+        content = source.substring(1);
+        char = content.codeUnitAt(0);
+      }
+      String delimiter;
+      int loc;
+      if (content.length >= 3 &&
+          char == content.codeUnitAt(1) &&
+          char == content.codeUnitAt(2)) {
+        // multi-line string
+        delimiter = content.substring(0, 3);
+        int newlineLoc = source.indexOf(eol, selectionOffset - expr.offset);
+        if (newlineLoc < 0) {
+          newlineLoc = source.length;
+        }
+        loc = newlineLoc + expr.offset;
+      } else {
+        // add first char of src
+        delimiter = content.substring(0, 1);
+        loc = expr.offset + source.length;
+      }
+      _removeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
+      _addInsertEdit(loc, delimiter);
+    }
+    expr = errorMatching(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
+    if (expr != null) {
+      expr = expr.getAncestor((n) => n is ListLiteral);
+      if (expr != null) {
+        ListLiteral lit = expr;
+        if (lit.rightBracket.isSynthetic) {
+          String src = utils.getNodeText(expr).trim();
+          int loc = expr.offset + src.length;
+          if (src.contains(eol)) {
+            String indent = utils.getNodePrefix(node);
+            _addInsertEdit(loc, ',' + eol + indent + ']');
+          } else {
+            _addInsertEdit(loc, ']');
+          }
+          _removeError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
+          var ms =
+              _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
+          if (ms != null) {
+            // Ensure the semicolon gets inserted in the correct location.
+            ms.offset = loc - 1;
+          }
+        }
+      }
+    }
+    // The following code is similar to the code for ']' but does not work well.
+    // A closing brace is recognized as belong to the map even if it is intended
+    // to close a block of code.
+    /*
+    expr = errorMatching(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "'}'");
+    if (expr != null) {
+      expr = expr.getAncestor((n) => n is MapLiteral);
+      if (expr != null) {
+        MapLiteral lit = expr;
+        String src = utils.getNodeText(expr).trim();
+        int loc = expr.offset + src.length;
+        if (lit.entries.last.separator.isSynthetic) {
+          _addInsertEdit(loc, ': ');
+        }
+        if (!src.endsWith('}')/*lit.rightBracket.isSynthetic*/) {
+          _addInsertEdit(loc, '}');
+        }
+        _removeError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "'}'");
+        var ms =
+          _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
+        if (ms != null) {
+          // Ensure the semicolon gets inserted in the correct location.
+          ms.offset = loc - 1;
+        }
+      }
+    }
+    */
+  }
+
   bool _complete_classDeclaration() {
     if (node is! ClassDeclaration) {
       return false;
@@ -322,6 +418,7 @@ class StatementCompletionProcessor {
         outer is WhileStatement)) {
       return false;
     }
+    int previousInsertions = _lengthOfInsertions();
     int delta = 0;
     if (errors.isNotEmpty) {
       var error =
@@ -349,7 +446,7 @@ class StatementCompletionProcessor {
       }
     }
     int offset = _appendNewlinePlusIndentAt(node.parent.end);
-    exitPosition = new Position(file, offset + delta);
+    exitPosition = new Position(file, offset + delta + previousInsertions);
     _setCompletion(DartStatementCompletion.COMPLETE_CONTROL_FLOW_BLOCK);
     return true;
   }
@@ -486,7 +583,7 @@ class StatementCompletionProcessor {
     }
     ForStatement forNode = node;
     SourceBuilder sb;
-    int delta = 0;
+    int replacementLength = 0;
     if (forNode.leftParenthesis.isSynthetic) {
       if (!forNode.rightParenthesis.isSynthetic) {
         return false;
@@ -499,31 +596,40 @@ class StatementCompletionProcessor {
     } else {
       if (!forNode.rightSeparator.isSynthetic) {
         // Fully-defined init, cond, updaters so nothing more needed here.
-        // emptyParts
+        // emptyParts, noError
         sb = new SourceBuilder(file, forNode.rightParenthesis.offset + 1);
       } else if (!forNode.leftSeparator.isSynthetic) {
         if (_isSyntheticExpression(forNode.condition)) {
-          exitPosition = _newPosition(forNode.leftSeparator.offset + 1);
           String text = utils
               .getNodeText(forNode)
               .substring(forNode.leftSeparator.offset - forNode.offset);
-          if (text.startsWith(new RegExp(r';\s*\)'))) {
-            // emptyCondition
-            int end = text.indexOf(')');
+          Match match =
+              new RegExp(r';\s*(/\*.*\*/\s*)?\)[ \t]*').matchAsPrefix(text);
+          if (match != null) {
+            // emptyCondition, emptyInitializersEmptyCondition
+            replacementLength = match.end - match.start;
             sb = new SourceBuilder(file, forNode.leftSeparator.offset);
-            _addReplaceEdit(new SourceRange(sb.offset, end), '; ; ');
-            delta = end - '; '.length;
+            sb.append('; ${match.group(1) == null ? '' : match.group(1)}; )');
+            String suffix = text.substring(match.end);
+            if (suffix.trim().isNotEmpty) {
+              sb.append(' ');
+              sb.append(suffix.trim());
+              replacementLength += suffix.length;
+              if (suffix.endsWith(eol)) {
+                // emptyCondition
+                replacementLength -= eol.length;
+              }
+            }
+            exitPosition = _newPosition(forNode.leftSeparator.offset + 2);
           } else {
-            // emptyInitializersEmptyCondition
-            exitPosition = _newPosition(forNode.rightParenthesis.offset);
-            sb = new SourceBuilder(file, forNode.rightParenthesis.offset);
+            return false; // Line comment in condition
           }
         } else {
           // emptyUpdaters
-          exitPosition = _newPosition(forNode.rightSeparator.offset);
-          sb = new SourceBuilder(file, forNode.rightSeparator.offset);
-          _addReplaceEdit(new SourceRange(sb.offset, 0), '; ');
-          delta = -'; '.length;
+          sb = new SourceBuilder(file, forNode.rightParenthesis.offset);
+          replacementLength = 1;
+          sb.append('; )');
+          exitPosition = _newPosition(forNode.rightSeparator.offset + 2);
         }
       } else if (_isSyntheticExpression(forNode.initialization)) {
         // emptyInitializers
@@ -537,9 +643,8 @@ class StatementCompletionProcessor {
           // missingLeftSeparator
           int end = text.indexOf(')');
           sb = new SourceBuilder(file, start);
-          _addReplaceEdit(new SourceRange(start, end), '; ');
-          delta = end - '; '.length;
-          exitPosition = new Position(file, start);
+          _addReplaceEdit(new SourceRange(start, end), '; ; ');
+          exitPosition = new Position(file, start - (end - '; '.length));
         } else {
           // Not possible; any comment following init is attached to init.
           exitPosition = _newPosition(forNode.rightParenthesis.offset);
@@ -550,13 +655,16 @@ class StatementCompletionProcessor {
     if (!_statementHasValidBody(forNode.forKeyword, forNode.body)) {
       // keywordOnly, noError
       sb.append(' ');
-      _appendEmptyBraces(sb, exitPosition == null);
+      _appendEmptyBraces(sb, true /*exitPosition == null*/);
+    } else if (forNode.body is Block) {
+      Block body = forNode.body;
+      if (body.rightBracket.end <= selectionOffset) {
+        // emptyInitializersAfterBody
+        errors = []; // Ignore errors; they are for previous statement.
+        return false; // If cursor is after closing brace just add newline.
+      }
     }
-    if (delta != 0 && exitPosition != null) {
-      // missingLeftSeparator
-      exitPosition = new Position(file, exitPosition.offset - delta);
-    }
-    _insertBuilder(sb);
+    _insertBuilder(sb, replacementLength);
     _setCompletion(DartStatementCompletion.COMPLETE_FOR_STMT);
     return true;
   }
@@ -565,7 +673,29 @@ class StatementCompletionProcessor {
     if (node is! MethodDeclaration && node is! FunctionDeclaration) {
       return false;
     }
-    SourceBuilder sb = new SourceBuilder(file, node.end - 1);
+    bool needsParen = false;
+    int computeExitPos(FormalParameterList parameters) {
+      if (needsParen = parameters.rightParenthesis.isSynthetic) {
+        var error = _findError(ParserErrorCode.MISSING_CLOSING_PARENTHESIS);
+        if (error != null) {
+          return error.offset - 1;
+        }
+      }
+      return node.end - 1;
+    }
+
+    int paramListEnd;
+    if (node is FunctionDeclaration) {
+      FunctionDeclaration func = node;
+      paramListEnd = computeExitPos(func.functionExpression.parameters);
+    } else {
+      MethodDeclaration meth = node;
+      paramListEnd = computeExitPos(meth.parameters);
+    }
+    SourceBuilder sb = new SourceBuilder(file, paramListEnd);
+    if (needsParen) {
+      sb.append(')');
+    }
     sb.append(' ');
     _appendEmptyBraces(sb, true);
     _insertBuilder(sb);
@@ -621,9 +751,13 @@ class StatementCompletionProcessor {
     if (sb == null) {
       return false;
     }
+    int overshoot = _lengthOfDeletions();
     sb.append(' ');
     _appendEmptyBraces(sb, exitPosition == null);
     _insertBuilder(sb);
+    if (overshoot != 0) {
+      exitPosition = _newPosition(exitPosition.offset - overshoot);
+    }
     _setCompletion(kind);
     return true;
   }
@@ -634,6 +768,20 @@ class StatementCompletionProcessor {
     }
     IfStatement ifNode = node;
     if (ifNode.elseKeyword != null) {
+      if (selectionOffset >= ifNode.elseKeyword.end &&
+          ifNode.elseStatement is EmptyStatement) {
+        SourceBuilder sb = new SourceBuilder(file, selectionOffset);
+        String src = utils.getNodeText(ifNode);
+        if (!src
+            .substring(ifNode.elseKeyword.end - node.offset)
+            .startsWith(new RegExp(r'[ \t]'))) {
+          sb.append(' ');
+        }
+        _appendEmptyBraces(sb, true);
+        _insertBuilder(sb);
+        _setCompletion(DartStatementCompletion.COMPLETE_IF_STMT);
+        return true;
+      }
       return false;
     }
     var stmt = new _KeywordConditionBlockStructure(
@@ -663,7 +811,16 @@ class StatementCompletionProcessor {
         exitPosition = _newPosition(statement.leftParenthesis.offset + 1);
         sb = new SourceBuilder(file, statement.rightParenthesis.offset + 1);
       } else {
-        sb = new SourceBuilder(file, statement.rightParenthesis.offset + 1);
+        int afterParen = statement.rightParenthesis.offset + 1;
+        if (utils
+            .getNodeText(node)
+            .substring(afterParen - node.offset)
+            .startsWith(new RegExp(r'[ \t]'))) {
+          _addReplaceEdit(new SourceRange(afterParen, 1), '');
+          sb = new SourceBuilder(file, afterParen + 1);
+        } else {
+          sb = new SourceBuilder(file, afterParen);
+        }
       }
     }
     return sb;
@@ -675,12 +832,17 @@ class StatementCompletionProcessor {
     if (parenError == null) {
       return false;
     }
-    AstNode argList = _selectedNode(at: parenError.offset - 1)
+    AstNode argList = _selectedNode(at: selectionOffset)
         .getAncestor((n) => n is ArgumentList);
+    if (argList == null) {
+      argList = _selectedNode(at: parenError.offset)
+          .getAncestor((n) => n is ArgumentList);
+    }
     if (argList?.getAncestor((n) => n == node) == null) {
       return false;
     }
-    int loc = argList.end - 1;
+    int previousInsertions = _lengthOfInsertions();
+    int loc = min(selectionOffset, argList.end - 1);
     int delta = 1;
     var semicolonError =
         _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
@@ -695,7 +857,7 @@ class StatementCompletionProcessor {
     String indent = utils.getLinePrefix(selectionOffset);
     int exit = utils.getLineNext(selectionOffset);
     _addInsertEdit(exit, indent + eol);
-    exit += indent.length + eol.length;
+    exit += indent.length + eol.length + previousInsertions;
 
     _setCompletionAt(DartStatementCompletion.SIMPLE_ENTER, exit + delta);
     return true;
@@ -709,7 +871,7 @@ class StatementCompletionProcessor {
       String indent = utils.getLinePrefix(selectionOffset);
       int loc = utils.getLineNext(selectionOffset);
       _addInsertEdit(loc, indent + eol);
-      offset = loc + indent.length + eol.length;
+      offset = loc + indent.length;
     }
     _setCompletionAt(DartStatementCompletion.SIMPLE_ENTER, offset);
     return true;
@@ -721,10 +883,11 @@ class StatementCompletionProcessor {
     }
     var error = _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
     if (error != null) {
+      int previousInsertions = _lengthOfInsertions();
       // TODO(messick) Fix this to find the correct place in all cases.
       int insertOffset = error.offset + error.length;
       _addInsertEdit(insertOffset, ';');
-      int offset = _appendNewlinePlusIndent() + 1 /* ';' */;
+      int offset = _appendNewlinePlusIndent() + 1 /*';'*/ + previousInsertions;
       _setCompletionAt(DartStatementCompletion.SIMPLE_SEMICOLON, offset);
       return true;
     }
@@ -808,7 +971,10 @@ class StatementCompletionProcessor {
     } else if ((catchNode = _findInvalidElement(tryNode.catchClauses)) !=
         null) {
       if (catchNode.onKeyword != null) {
-        if (catchNode.exceptionType.length == 0) {
+        if (catchNode.exceptionType.length == 0 ||
+            null !=
+                _findError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
+                    partialMatch: "name 'catch")) {
           String src = utils.getNodeText(catchNode);
           if (src.startsWith(new RegExp(r'on[ \t]+'))) {
             if (src.startsWith(new RegExp(r'on[ \t][ \t]+'))) {
@@ -969,8 +1135,50 @@ class StatementCompletionProcessor {
     return expr is SimpleIdentifier && expr.isSynthetic;
   }
 
+  int _lengthOfDeletions() {
+    if (change.edits.isEmpty) {
+      return 0;
+    }
+    int length = 0;
+    for (SourceFileEdit edit in change.edits) {
+      for (SourceEdit srcEdit in edit.edits) {
+        if (srcEdit.length > 0) {
+          length += srcEdit.length - srcEdit.replacement.length;
+        }
+      }
+    }
+    return length;
+  }
+
+  int _lengthOfInsertions() {
+    // Any _complete_*() that may follow changes made by _checkExpressions()
+    // must cache the result of this method and add that value to its
+    // exit position. That's assuming all edits are done in increasing position.
+    // There are currently no editing sequences that produce both insertions and
+    // deletions, but if there were this approach would have to be generalized.
+    if (change.edits.isEmpty) {
+      return 0;
+    }
+    int length = 0;
+    for (SourceFileEdit edit in change.edits) {
+      for (SourceEdit srcEdit in edit.edits) {
+        if (srcEdit.length == 0) {
+          length += srcEdit.replacement.length;
+        }
+      }
+    }
+    return length;
+  }
+
   Position _newPosition(int offset) {
     return new Position(file, offset);
+  }
+
+  void _removeError(errorCode, {partialMatch = null}) {
+    var error = _findError(errorCode, partialMatch: partialMatch);
+    if (error != null) {
+      errors.remove(error);
+    }
   }
 
   AstNode _selectedNode({int at: null}) =>
@@ -995,8 +1203,8 @@ class StatementCompletionProcessor {
     String text = _baseNodeText(node);
     text = text.substring(keyword.offset - node.offset);
     int len = keyword.length;
-    if (text.length == len ||
-        !text.substring(len, len + 1).contains(new RegExp(r'\s'))) {
+    if (text.length == len || // onCatchComment
+        !text.substring(len, len + 1).contains(new RegExp(r'[ \t]'))) {
       sb = new SourceBuilder(file, keyword.offset + len);
       sb.append(' ');
     } else {

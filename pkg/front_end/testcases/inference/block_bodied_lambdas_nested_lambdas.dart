@@ -8,7 +8,7 @@ library test;
 main() {
   var /*@type=() -> (int) -> double*/ f = /*@returnType=(int) -> double*/ () {
     return /*@returnType=double*/ (int x) {
-      return 2.0 * /*@promotedType=none*/ x;
+      return 2.0 /*@target=double::**/ * x;
     };
   };
 }

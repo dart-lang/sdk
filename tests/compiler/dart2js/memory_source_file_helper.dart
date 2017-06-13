@@ -7,12 +7,14 @@ library dart2js.test.memory_source_file_helper;
 import 'dart:async' show Future;
 export 'dart:io' show Platform;
 
+import 'package:compiler/compiler_new.dart';
+
 export 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 
 export 'package:compiler/src/filenames.dart' show currentDirectory;
 
 import 'package:compiler/src/io/source_file.dart'
-    show StringSourceFile, SourceFile, Utf8BytesSourceFile;
+    show Binary, StringSourceFile, SourceFile, Utf8BytesSourceFile;
 
 import 'package:compiler/src/source_file_provider.dart' show SourceFileProvider;
 
@@ -26,26 +28,36 @@ class MemorySourceFileProvider extends SourceFileProvider {
   /// file names to binary contents.
   MemorySourceFileProvider(Map<String, dynamic> this.memorySourceFiles);
 
-  Future<List<int>> readUtf8BytesFromUri(Uri resourceUri) {
+  Future<Input> readBytesFromUri(Uri resourceUri, InputKind inputKind) {
     if (resourceUri.scheme != 'memory') {
-      return super.readUtf8BytesFromUri(resourceUri);
+      return super.readBytesFromUri(resourceUri, inputKind);
     }
     var source = memorySourceFiles[resourceUri.path];
     if (source == null) {
       return new Future.error(new Exception(
           'No such memory file $resourceUri in ${memorySourceFiles.keys}'));
     }
-    var sourceFile;
-    if (source is String) {
-      sourceFile = new StringSourceFile.fromUri(resourceUri, source);
-    } else {
-      sourceFile = new Utf8BytesSourceFile(resourceUri, source);
+    Input input;
+    switch (inputKind) {
+      case InputKind.utf8:
+        if (source is String) {
+          input = new StringSourceFile.fromUri(resourceUri, source);
+        } else {
+          input = new Utf8BytesSourceFile(resourceUri, source);
+        }
+        break;
+      case InputKind.binary:
+        if (source is String) {
+          source = source.codeUnits;
+        }
+        input = new Binary(resourceUri, source);
+        break;
     }
-    this.sourceFiles[resourceUri] = sourceFile;
-    return new Future.value(source);
+    this.sourceFiles[resourceUri] = input;
+    return new Future.value(input);
   }
 
-  Future<List<int>> call(Uri resourceUri) => readUtf8BytesFromUri(resourceUri);
+  //Future<List<int>> call(Uri resourceUri) => readBytesFromUri(resourceUri, InputKind.utf8);
 
   SourceFile getSourceFile(Uri resourceUri) {
     if (resourceUri.scheme != 'memory') {
@@ -63,5 +75,7 @@ class MemorySourceFileProvider extends SourceFileProvider {
   }
 
   @override
-  Future readFromUri(Uri resourceUri) => readUtf8BytesFromUri(resourceUri);
+  Future<Input> readFromUri(Uri resourceUri,
+          {InputKind inputKind: InputKind.utf8}) =>
+      readBytesFromUri(resourceUri, inputKind);
 }

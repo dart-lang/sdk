@@ -10,8 +10,8 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/filenames.dart';
 import '../memory_compiler.dart';
+import '../equivalence/check_functions.dart';
 import 'helper.dart';
-import 'test_helper.dart';
 
 main(List<String> args) {
   Arguments arguments = new Arguments.from(args);

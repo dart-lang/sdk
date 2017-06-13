@@ -6,10 +6,11 @@
 #include "include/dart_mirrors_api.h"
 #include "include/dart_native_api.h"
 
-#include "platform/assert.h"
 #include "lib/stacktrace.h"
+#include "platform/assert.h"
 #include "vm/class_finalizer.h"
 #include "vm/clustered_snapshot.h"
+#include "vm/compilation_trace.h"
 #include "vm/compiler.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"
@@ -23,25 +24,25 @@
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
-#include "vm/lockers.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
+#include "vm/lockers.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
-#include "vm/os_thread.h"
 #include "vm/os.h"
+#include "vm/os_thread.h"
 #include "vm/port.h"
 #include "vm/precompiler.h"
 #include "vm/profiler.h"
 #include "vm/program_visitor.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
+#include "vm/service.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
-#include "vm/service.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
@@ -354,9 +355,10 @@ Heap::Space SpaceForExternal(Thread* thread, intptr_t size) {
 
 
 static RawObject* Send0Arg(const Instance& receiver, const String& selector) {
+  const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
   ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Resolver::ResolveDynamic(receiver, selector, args_desc));
   if (function.IsNull()) {
@@ -371,9 +373,10 @@ static RawObject* Send0Arg(const Instance& receiver, const String& selector) {
 static RawObject* Send1Arg(const Instance& receiver,
                            const String& selector,
                            const Instance& argument) {
+  const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 2;
   ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Resolver::ResolveDynamic(receiver, selector, args_desc));
   if (function.IsNull()) {
@@ -1577,12 +1580,8 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   if (vm_snapshot_data_buffer != NULL && vm_snapshot_data_size == NULL) {
     RETURN_NULL_ERROR(vm_snapshot_data_size);
   }
-  if (isolate_snapshot_data_buffer == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_data_buffer);
-  }
-  if (isolate_snapshot_data_size == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_data_size);
-  }
+  CHECK_NULL(isolate_snapshot_data_buffer);
+  CHECK_NULL(isolate_snapshot_data_size);
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(state)) {
@@ -1598,7 +1597,7 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
 
   Symbols::Compact(I);
 
-  FullSnapshotWriter writer(Snapshot::kCore, vm_snapshot_data_buffer,
+  FullSnapshotWriter writer(Snapshot::kFull, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
                             NULL /* vm_image_writer */,
                             NULL /* isolate_image_writer */);
@@ -1617,12 +1616,8 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
-  if (script_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(script_snapshot_buffer);
-  }
-  if (script_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(script_snapshot_size);
-  }
+  CHECK_NULL(script_snapshot_buffer);
+  CHECK_NULL(script_snapshot_size);
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(state)) {
@@ -2725,9 +2720,10 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
     return Api::NewError("Object does not implement the List interface");
   }
   const String& name = String::Handle(Z, Field::GetterName(Symbols::Length()));
+  const int kTypeArgsLen = 0;
   const int kNumArgs = 1;
   ArgumentsDescriptor args_desc(
-      Array::Handle(Z, ArgumentsDescriptor::New(kNumArgs)));
+      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
   const Function& function =
       Function::Handle(Z, Resolver::ResolveDynamic(instance, name, args_desc));
   if (function.IsNull()) {
@@ -2831,9 +2827,10 @@ DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
     // Check and handle a dart object that implements the List interface.
     const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
     if (!instance.IsNull()) {
+      const intptr_t kTypeArgsLen = 0;
       const intptr_t kNumArgs = 2;
       ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+          Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
       const Function& function = Function::Handle(
           Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                       args_desc));
@@ -2889,9 +2886,10 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
     // Check and handle a dart object that implements the List interface.
     const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
     if (!instance.IsNull()) {
+      const intptr_t kTypeArgsLen = 0;
       const intptr_t kNumArgs = 3;
       ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+          Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
       const Function& function = Function::Handle(
           Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                       args_desc));
@@ -3075,9 +3073,10 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   // Check and handle a dart object that implements the List interface.
   const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
   if (!instance.IsNull()) {
+    const int kTypeArgsLen = 0;
     const int kNumArgs = 2;
     ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+        Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
     const Function& function = Function::Handle(
         Z,
         Resolver::ResolveDynamic(instance, Symbols::IndexToken(), args_desc));
@@ -3162,9 +3161,10 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   // Check and handle a dart object that implements the List interface.
   const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
   if (!instance.IsNull()) {
+    const int kTypeArgsLen = 0;
     const int kNumArgs = 3;
     ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+        Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
     const Function& function = Function::Handle(
         Z, Resolver::ResolveDynamic(instance, Symbols::AssignIndexToken(),
                                     args_desc));
@@ -3792,10 +3792,11 @@ static RawObject* ResolveConstructor(const char* current_func,
       return ApiError::New(message);
     }
   }
-  int extra_args = 1;
+  const int kTypeArgsLen = 0;
+  const int extra_args = 1;
   String& error_message = String::Handle();
-  if (!constructor.AreValidArgumentCounts(num_args + extra_args, 0,
-                                          &error_message)) {
+  if (!constructor.AreValidArgumentCounts(kTypeArgsLen, num_args + extra_args,
+                                          0, &error_message)) {
     const String& message = String::Handle(String::NewFormatted(
         "%s: wrong argument count for "
         "constructor '%s': %s.",
@@ -3894,7 +3895,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   if (constructor.IsGenerativeConstructor()) {
 #if defined(DEBUG)
     if (!cls.is_allocated() &&
-        (Dart::vm_snapshot_kind() == Snapshot::kAppAOT)) {
+        (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
       return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
     }
 #endif
@@ -3989,7 +3990,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kAppAOT)) {
+  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -4019,7 +4020,7 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kAppAOT)) {
+  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -4108,10 +4109,11 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
       TypeArguments::Handle(Z, type_obj.arguments());
   const Function& constructor =
       Function::Handle(Z, cls.LookupFunctionAllowPrivate(dot_name));
+  const int kTypeArgsLen = 0;
   const int extra_args = 1;
   if (!constructor.IsNull() && constructor.IsGenerativeConstructor() &&
-      constructor.AreValidArgumentCounts(number_of_arguments + extra_args, 0,
-                                         NULL)) {
+      constructor.AreValidArgumentCounts(
+          kTypeArgsLen, number_of_arguments + extra_args, 0, NULL)) {
     // Create the argument list.
     // Constructors get the uninitialized object.
     if (!type_arguments.IsNull()) {
@@ -4165,6 +4167,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   }
   Dart_Handle result;
   Array& args = Array::Handle(Z);
+  const intptr_t kTypeArgsLen = 0;
   if (obj.IsType()) {
     if (!Type::Cast(obj).IsFinalized()) {
       return Api::NewError(
@@ -4173,9 +4176,10 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     }
 
     const Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
-    const Function& function = Function::Handle(
-        Z, Resolver::ResolveStaticAllowPrivate(
-               cls, function_name, number_of_arguments, Object::empty_array()));
+    const Function& function =
+        Function::Handle(Z, Resolver::ResolveStaticAllowPrivate(
+                                cls, function_name, kTypeArgsLen,
+                                number_of_arguments, Object::empty_array()));
     if (function.IsNull()) {
       const String& cls_name = String::Handle(Z, cls.Name());
       return Api::NewError("%s: did not find static method '%s.%s'.",
@@ -4202,8 +4206,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     // to check here.
     Instance& instance = Instance::Handle(Z);
     instance ^= obj.raw();
-    ArgumentsDescriptor args_desc(
-        Array::Handle(Z, ArgumentsDescriptor::New(number_of_arguments + 1)));
+    ArgumentsDescriptor args_desc(Array::Handle(
+        Z, ArgumentsDescriptor::New(kTypeArgsLen, number_of_arguments + 1)));
     const Function& function = Function::Handle(
         Z, Resolver::ResolveDynamic(instance, function_name, args_desc));
     if (function.IsNull()) {
@@ -4211,8 +4215,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
       result = SetupArguments(T, number_of_arguments, arguments, 1, &args);
       if (!::Dart_IsError(result)) {
         args.SetAt(0, instance);
-        const Array& args_descriptor =
-            Array::Handle(Z, ArgumentsDescriptor::New(args.Length()));
+        const Array& args_descriptor = Array::Handle(
+            Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
         result = Api::NewHandle(
             T, DartEntry::InvokeNoSuchMethod(instance, function_name, args,
                                              args_descriptor));
@@ -4265,7 +4269,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     // LookupFunctionAllowPrivate does not check argument arity, so we
     // do it here.
     String& error_message = String::Handle(Z);
-    if (!function.AreValidArgumentCounts(number_of_arguments, 0,
+    if (!function.AreValidArgumentCounts(kTypeArgsLen, number_of_arguments, 0,
                                          &error_message)) {
       return Api::NewError("%s: wrong argument count for function '%s': %s.",
                            CURRENT_FUNC, function_name.ToCString(),
@@ -4395,12 +4399,13 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
 #endif  // !defined(PRODUCT)
 
     // Invoke the getter and return the result.
+    const int kTypeArgsLen = 0;
     const int kNumArgs = 1;
     const Array& args = Array::Handle(Z, Array::New(kNumArgs));
     args.SetAt(0, instance);
     if (getter.IsNull()) {
-      const Array& args_descriptor =
-          Array::Handle(Z, ArgumentsDescriptor::New(args.Length()));
+      const Array& args_descriptor = Array::Handle(
+          Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
       return Api::NewHandle(
           T, DartEntry::InvokeNoSuchMethod(instance, getter_name, args,
                                            args_descriptor));
@@ -4551,13 +4556,14 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     }
 
     // Invoke the setter and return the result.
+    const int kTypeArgsLen = 0;
     const int kNumArgs = 2;
     const Array& args = Array::Handle(Z, Array::New(kNumArgs));
     args.SetAt(0, instance);
     args.SetAt(1, value_instance);
     if (setter.IsNull()) {
-      const Array& args_descriptor =
-          Array::Handle(Z, ArgumentsDescriptor::New(args.Length()));
+      const Array& args_descriptor = Array::Handle(
+          Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
       return Api::NewHandle(
           T, DartEntry::InvokeNoSuchMethod(instance, setter_name, args,
                                            args_descriptor));
@@ -6045,6 +6051,21 @@ Dart_CompileToKernel(const char* script_uri) {
 #endif
 }
 
+DART_EXPORT Dart_KernelCompilationResult
+Dart_CompileSourcesToKernel(const char* script_uri,
+                            int source_files_count,
+                            Dart_SourceFile sources[]) {
+#ifdef DART_PRECOMPILED_RUNTIME
+  Dart_KernelCompilationResult result;
+  result.status = Dart_KernelCompilationStatus_Unknown;
+  result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
+  return result;
+#else
+  return KernelIsolate::CompileToKernel(script_uri, source_files_count,
+                                        sources);
+#endif
+}
+
 // --- Service support ---
 
 DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
@@ -6098,6 +6119,11 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
 DART_EXPORT Dart_Handle
 Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_mod_callback) {
   return Api::Success();
+}
+
+
+DART_EXPORT bool Dart_IsReloading() {
+  return false;
 }
 
 
@@ -6233,6 +6259,14 @@ Dart_SetFileModifiedCallback(Dart_FileModifiedCallback file_modified_callback) {
   }
   IsolateReloadContext::SetFileModifiedCallback(file_modified_callback);
   return Api::Success();
+}
+
+
+DART_EXPORT bool Dart_IsReloading() {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  CHECK_ISOLATE(isolate);
+  return isolate->IsReloading();
 }
 
 
@@ -6456,6 +6490,37 @@ DART_EXPORT void Dart_SetThreadName(const char* name) {
 
 
 DART_EXPORT
+Dart_Handle Dart_SaveCompilationTrace(uint8_t** buffer,
+                                      intptr_t* buffer_length) {
+  API_TIMELINE_DURATION;
+  Thread* thread = Thread::Current();
+  DARTSCOPE(thread);
+  CHECK_NULL(buffer);
+  CHECK_NULL(buffer_length);
+  CompilationTraceSaver saver(thread->zone());
+  ProgramVisitor::VisitFunctions(&saver);
+  saver.StealBuffer(buffer, buffer_length);
+  return Api::Success();
+}
+
+
+DART_EXPORT
+Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length) {
+  Thread* thread = Thread::Current();
+  API_TIMELINE_DURATION;
+  DARTSCOPE(thread);
+  CHECK_NULL(buffer);
+  CompilationTraceLoader loader(thread);
+  const Object& error =
+      Object::Handle(loader.CompileTrace(buffer, buffer_length));
+  if (error.IsError()) {
+    return Api::NewHandle(T, Error::Cast(error).raw());
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT
 Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("No JIT feedback to save on an AOT runtime.");
@@ -6611,7 +6676,7 @@ Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
 #endif
 }
 
-DART_EXPORT void Dart_SortClasses() {
+DART_EXPORT Dart_Handle Dart_SortClasses() {
   DARTSCOPE(Thread::Current());
   // We don't have mechanisms to change class-ids that are embedded in code and
   // ICData.
@@ -6620,6 +6685,7 @@ DART_EXPORT void Dart_SortClasses() {
   // the heap so that they are not found by the heap verifier.
   Isolate::Current()->heap()->CollectAllGarbage();
   ClassFinalizer::SortClasses();
+  return Api::Success();
 }
 
 DART_EXPORT Dart_Handle
@@ -6674,12 +6740,8 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
         "Did you forget to call Dart_Precompile?");
   }
   ASSERT(FLAG_load_deferred_eagerly);
-  if (assembly_buffer == NULL) {
-    RETURN_NULL_ERROR(assembly_buffer);
-  }
-  if (assembly_size == NULL) {
-    RETURN_NULL_ERROR(assembly_size);
-  }
+  CHECK_NULL(assembly_buffer);
+  CHECK_NULL(assembly_size);
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppAOTSnapshot"));
@@ -6687,7 +6749,7 @@ Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
                                    2 * MB /* initial_size */);
   uint8_t* vm_snapshot_data_buffer = NULL;
   uint8_t* isolate_snapshot_data_buffer = NULL;
-  FullSnapshotWriter writer(Snapshot::kAppAOT, &vm_snapshot_data_buffer,
+  FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, ApiReallocate,
                             &image_writer, &image_writer);
 
@@ -6729,30 +6791,14 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
         "Did you forget to call Dart_Precompile?");
   }
   ASSERT(FLAG_load_deferred_eagerly);
-  if (vm_snapshot_data_buffer == NULL) {
-    RETURN_NULL_ERROR(vm_snapshot_data_buffer);
-  }
-  if (vm_snapshot_data_size == NULL) {
-    RETURN_NULL_ERROR(vm_snapshot_data_size);
-  }
-  if (vm_snapshot_instructions_buffer == NULL) {
-    RETURN_NULL_ERROR(vm_snapshot_instructions_buffer);
-  }
-  if (vm_snapshot_instructions_size == NULL) {
-    RETURN_NULL_ERROR(vm_snapshot_instructions_size);
-  }
-  if (isolate_snapshot_data_buffer == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_data_buffer);
-  }
-  if (isolate_snapshot_data_size == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_data_size);
-  }
-  if (isolate_snapshot_instructions_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_snapshot_blob_buffer);
-  }
-  if (isolate_snapshot_instructions_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_snapshot_blob_size);
-  }
+  CHECK_NULL(vm_snapshot_data_buffer);
+  CHECK_NULL(vm_snapshot_data_size);
+  CHECK_NULL(vm_snapshot_instructions_buffer);
+  CHECK_NULL(vm_snapshot_instructions_size);
+  CHECK_NULL(isolate_snapshot_data_buffer);
+  CHECK_NULL(isolate_snapshot_data_size);
+  CHECK_NULL(isolate_snapshot_instructions_buffer);
+  CHECK_NULL(isolate_snapshot_instructions_size);
 
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppAOTSnapshot"));
@@ -6761,11 +6807,75 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
   BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
                                        ApiReallocate,
                                        2 * MB /* initial_size */);
-  FullSnapshotWriter writer(Snapshot::kAppAOT, vm_snapshot_data_buffer,
+  FullSnapshotWriter writer(Snapshot::kFullAOT, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
 
   writer.WriteFullSnapshot();
+  *vm_snapshot_data_size = writer.VmIsolateSnapshotSize();
+  *vm_snapshot_instructions_size = vm_image_writer.InstructionsBlobSize();
+  *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
+  *isolate_snapshot_instructions_size =
+      isolate_image_writer.InstructionsBlobSize();
+
+  return Api::Success();
+#endif
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
+    uint8_t** vm_snapshot_data_buffer,
+    intptr_t* vm_snapshot_data_size,
+    uint8_t** vm_snapshot_instructions_buffer,
+    intptr_t* vm_snapshot_instructions_size,
+    uint8_t** isolate_snapshot_data_buffer,
+    intptr_t* isolate_snapshot_data_size,
+    uint8_t** isolate_snapshot_instructions_buffer,
+    intptr_t* isolate_snapshot_instructions_size) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("Snapshots with code are not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("Snapshots with code are not supported on DBC.");
+#elif defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("JIT app snapshots cannot be taken from an AOT runtime");
+#else
+  API_TIMELINE_DURATION;
+  DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
+  if (!FLAG_load_deferred_eagerly) {
+    return Api::NewError(
+        "Creating full snapshots requires --load_deferred_eagerly");
+  }
+  CHECK_NULL(vm_snapshot_data_buffer);
+  CHECK_NULL(vm_snapshot_data_size);
+  CHECK_NULL(vm_snapshot_instructions_buffer);
+  CHECK_NULL(vm_snapshot_instructions_size);
+  CHECK_NULL(isolate_snapshot_data_buffer);
+  CHECK_NULL(isolate_snapshot_data_size);
+  CHECK_NULL(isolate_snapshot_instructions_buffer);
+  CHECK_NULL(isolate_snapshot_instructions_size);
+  // Finalize all classes if needed.
+  Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
+  I->StopBackgroundCompiler();
+
+  ProgramVisitor::Dedup();
+  Symbols::Compact(I);
+
+  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
+                                            "WriteCoreJITSnapshot"));
+  BlobImageWriter vm_image_writer(vm_snapshot_instructions_buffer,
+                                  ApiReallocate, 2 * MB /* initial_size */);
+  BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
+                                       ApiReallocate,
+                                       2 * MB /* initial_size */);
+  FullSnapshotWriter writer(Snapshot::kFullJIT, vm_snapshot_data_buffer,
+                            isolate_snapshot_data_buffer, ApiReallocate,
+                            &vm_image_writer, &isolate_image_writer);
+  writer.WriteFullSnapshot();
+
   *vm_snapshot_data_size = writer.VmIsolateSnapshotSize();
   *vm_snapshot_instructions_size = vm_image_writer.InstructionsBlobSize();
   *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
@@ -6796,18 +6906,10 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
     return Api::NewError(
         "Creating full snapshots requires --load_deferred_eagerly");
   }
-  if (isolate_snapshot_data_buffer == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_data_buffer);
-  }
-  if (isolate_snapshot_data_size == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_data_size);
-  }
-  if (isolate_snapshot_instructions_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_snapshot_blob_buffer);
-  }
-  if (isolate_snapshot_instructions_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_snapshot_blob_size);
-  }
+  CHECK_NULL(isolate_snapshot_data_buffer);
+  CHECK_NULL(isolate_snapshot_data_size);
+  CHECK_NULL(isolate_snapshot_instructions_buffer);
+  CHECK_NULL(isolate_snapshot_instructions_size);
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(state)) {
@@ -6823,7 +6925,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   BlobImageWriter isolate_image_writer(isolate_snapshot_instructions_buffer,
                                        ApiReallocate,
                                        2 * MB /* initial_size */);
-  FullSnapshotWriter writer(Snapshot::kAppJIT, NULL,
+  FullSnapshotWriter writer(Snapshot::kFullJIT, NULL,
                             isolate_snapshot_data_buffer, ApiReallocate, NULL,
                             &isolate_image_writer);
   writer.WriteFullSnapshot();

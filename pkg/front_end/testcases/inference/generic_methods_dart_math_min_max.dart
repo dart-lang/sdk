@@ -7,11 +7,11 @@ library test;
 
 import 'dart:math';
 
-void printInt(int x) => print(/*@promotedType=none*/ x);
-void printDouble(double x) => print(/*@promotedType=none*/ x);
+void printInt(int x) => print(x);
+void printDouble(double x) => print(x);
 
 num myMax(num x, num y) =>
-    /*@typeArgs=num*/ max(/*@promotedType=none*/ x, /*@promotedType=none*/ y);
+    /*@typeArgs=num*/ max(x, y);
 
 f() {
   // Okay if static types match.

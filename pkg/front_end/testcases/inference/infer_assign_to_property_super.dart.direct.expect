@@ -1,0 +1,57 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  constructor •() → void
+    : super self::A::•()
+    ;
+  operator +(self::C v) → self::A
+    return null;
+  operator -(core::int i) → self::B
+    return null;
+  operator *(self::B v) → self::B
+    return null;
+  operator &(self::A v) → self::C
+    return null;
+}
+class C extends self::B {
+  constructor •() → void
+    : super self::B::•()
+    ;
+}
+class Base extends core::Object {
+  field self::B member = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Test extends self::Base {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    super.member = self::f<dynamic>();
+    super.member.==(null) ? super.member = self::f<dynamic>() : null;
+    super.member = super.member.+(self::f<dynamic>());
+    super.member = super.member.*(self::f<dynamic>());
+    super.member = super.member.&(self::f<dynamic>());
+    super.member = super.member.-(1);
+    super.member = super.member.-(1);
+    dynamic v1 = super.member = self::f<dynamic>();
+    dynamic v2 = let final dynamic #t1 = super.member in #t1.==(null) ? super.member = self::f<dynamic>() : #t1;
+    dynamic v3 = super.member = super.member.+(self::f<dynamic>());
+    dynamic v4 = super.member = super.member.*(self::f<dynamic>());
+    dynamic v5 = super.member = super.member.&(self::f<dynamic>());
+    dynamic v6 = super.member = super.member.-(1);
+    dynamic v7 = let final dynamic #t2 = super.member in let final dynamic #t3 = super.member = #t2.-(1) in #t2;
+  }
+}
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static method main() → dynamic {}

@@ -473,7 +473,9 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, JSONStream* js)
 }
 
 
-IsolateReloadContext::~IsolateReloadContext() {}
+IsolateReloadContext::~IsolateReloadContext() {
+  ASSERT(saved_class_table_ == NULL);
+}
 
 
 void IsolateReloadContext::ReportError(const Error& error) {
@@ -1149,6 +1151,9 @@ void IsolateReloadContext::Commit() {
   if (HasInstanceMorphers()) {
     // Perform shape shifting of instances if necessary.
     MorphInstances();
+  } else {
+    free(saved_class_table_);
+    saved_class_table_ = NULL;
   }
 
 #ifdef DEBUG

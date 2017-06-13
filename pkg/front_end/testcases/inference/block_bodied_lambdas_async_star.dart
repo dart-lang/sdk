@@ -11,8 +11,8 @@ main() {
   var /*@type=() -> Stream<num>*/ f = /*@returnType=Stream<num>*/ () async* {
     yield 1;
     Stream<double> s;
-    yield* /*@promotedType=none*/ s;
+    yield* s;
   };
-  Stream<num> g = /*@promotedType=none*/ f();
-  Stream<int> h = /*info:ASSIGNMENT_CAST*/ /*@promotedType=none*/ f();
+  Stream<num> g = f();
+  Stream<int> h = /*info:ASSIGNMENT_CAST*/ f();
 }

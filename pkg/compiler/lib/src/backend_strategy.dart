@@ -4,8 +4,13 @@
 
 library dart2js.backend_strategy;
 
-import 'compiler.dart';
+import 'enqueue.dart';
+import 'io/source_information.dart';
+import 'js_backend/js_backend.dart';
+import 'js_backend/native_data.dart';
 import 'js_emitter/sorter.dart';
+import 'ssa/ssa.dart';
+import 'universe/world_builder.dart';
 import 'world.dart';
 
 /// Strategy pattern that defines the element model used in type inference
@@ -19,21 +24,20 @@ abstract class BackendStrategy {
 
   /// The [Sorter] used for sorting elements in the generated code.
   Sorter get sorter;
-}
 
-/// Strategy for using the [Element] model from the resolver as the backend
-/// model.
-class ElementBackendStrategy implements BackendStrategy {
-  final Compiler _compiler;
+  /// Creates the [CodegenWorldBuilder] used by the codegen enqueuer.
+  CodegenWorldBuilder createCodegenWorldBuilder(
+      NativeBasicData nativeBasicData,
+      ClosedWorld closedWorld,
+      SelectorConstraintsStrategy selectorConstraintsStrategy);
 
-  ElementBackendStrategy(this._compiler);
+  /// Creates the [WorkItemBuilder] used by the codegen enqueuer.
+  WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld);
 
-  ClosedWorldRefiner createClosedWorldRefiner(ClosedWorldImpl closedWorld) =>
-      closedWorld;
+  /// Creates the [SsaBuilderTask] used for the element model.
+  SsaBuilderTask createSsaBuilderTask(JavaScriptBackend backend,
+      SourceInformationStrategy sourceInformationStrategy);
 
-  Sorter get sorter => const ElementSorter();
-
-  void convertClosures(ClosedWorldRefiner closedWorldRefiner) {
-    _compiler.closureToClassMapper.createClosureClasses(closedWorldRefiner);
-  }
+  /// Returns the [SourceInformationStrategy] use for the element model.
+  SourceInformationStrategy get sourceInformationStrategy;
 }

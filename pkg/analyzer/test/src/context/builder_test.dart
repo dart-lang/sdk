@@ -4,6 +4,7 @@
 
 library analyzer.test.src.context.context_builder_test;
 
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -814,6 +815,26 @@ analyzer:
     _expectEqualOptions(options, expected);
   }
 
+  void test_getAnalysisOptions_gnWorkspace() {
+    String _p(String path) => resourceProvider.convertPath(path);
+    String projectPath = _p('/workspace/some/path');
+    resourceProvider.newFolder(_p('/workspace/.jiri_root'));
+    resourceProvider.newFile(
+        _p('/workspace/out/debug/gen/dart.sources/foo_pkg'),
+        _p('/workspace/foo_pkg/lib'));
+    resourceProvider.newFolder(projectPath);
+    ArgParser argParser = new ArgParser();
+    defineAnalysisArguments(argParser);
+    ArgResults argResults = argParser.parse([]);
+    builderOptions = createContextBuilderOptions(argResults);
+    expect(builderOptions.packageDefaultAnalysisOptions, isTrue);
+    builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
+        options: builderOptions);
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    AnalysisOptions options = builder.getAnalysisOptions(projectPath);
+    _expectEqualOptions(options, expected);
+  }
+
   void test_getAnalysisOptions_includes() {
     _defineMockLintRules();
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
@@ -910,24 +931,21 @@ analyzer:
     _expectEqualOptions(options, expected);
   }
 
-  void test_getAnalysisOptions_gnWorkspace() {
-    String _p(String path) => resourceProvider.convertPath(path);
-    String projectPath = _p('/workspace/some/path');
-    resourceProvider.newFolder(_p('/workspace/.jiri_root'));
+  void test_getAnalysisOptions_optionsPath() {
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(
-        _p('/workspace/out/debug/gen/dart.sources/foo_pkg'),
-        _p('/workspace/foo_pkg/lib'));
-    resourceProvider.newFolder(projectPath);
-    ArgParser argParser = new ArgParser();
-    defineAnalysisArguments(argParser);
-    ArgResults argResults = argParser.parse([]);
-    builderOptions = createContextBuilderOptions(argResults);
-    expect(builderOptions.packageDefaultAnalysisOptions, isTrue);
-    builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: builderOptions);
-    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    AnalysisOptions options = builder.getAnalysisOptions(projectPath);
-    _expectEqualOptions(options, expected);
+        filePath,
+        '''
+linter:
+  rules:
+    - empty_constructor_bodies
+''');
+
+    ContextRoot root = new ContextRoot(path, []);
+    builder.getAnalysisOptions(path, contextRoot: root);
+    expect(root.optionsFilePath, equals(filePath));
   }
 
   void test_getOptionsFile_explicit() {

@@ -12,6 +12,7 @@
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
+#include "vm/disassembler.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/json_stream.h"
@@ -20,6 +21,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
+#include "vm/parser.h"
 #include "vm/port.h"
 #include "vm/runtime_entry.h"
 #include "vm/service.h"
@@ -263,6 +265,7 @@ ActivationFrame::ActivationFrame(uword pc,
       token_pos_initialized_(false),
       token_pos_(TokenPosition::kNoSource),
       try_index_(-1),
+      deopt_id_(Thread::kNoDeoptId),
       line_number_(-1),
       column_number_(-1),
       context_level_(-1),
@@ -478,14 +481,38 @@ const char* Debugger::QualifiedFunctionName(const Function& func) {
 }
 
 
-// Returns true if function contains the token position in the given script.
-static bool FunctionContains(const Function& func,
+// Returns true if the function |func| overlaps the token range
+// [|token_pos|, |end_token_pos|] in |script|.
+static bool FunctionOverlaps(const Function& func,
                              const Script& script,
-                             TokenPosition token_pos) {
-  if ((func.token_pos() <= token_pos) && (token_pos <= func.end_token_pos())) {
+                             TokenPosition token_pos,
+                             TokenPosition end_token_pos) {
+  TokenPosition func_start = func.token_pos();
+  if (((func_start <= token_pos) && (token_pos <= func.end_token_pos())) ||
+      ((token_pos <= func_start) && (func_start <= end_token_pos))) {
     // Check script equality second because it allocates
     // handles as a side effect.
     return func.script() == script.raw();
+  }
+  return false;
+}
+
+
+static bool IsImplicitFunction(const Function& func) {
+  switch (func.kind()) {
+    case RawFunction::kImplicitGetter:
+    case RawFunction::kImplicitSetter:
+    case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kMethodExtractor:
+    case RawFunction::kNoSuchMethodDispatcher:
+    case RawFunction::kInvokeFieldDispatcher:
+    case RawFunction::kIrregexpFunction:
+      return true;
+    default:
+      if (func.token_pos() == func.end_token_pos()) {
+        // |func| could be an implicit constructor for example.
+        return true;
+      }
   }
   return false;
 }
@@ -501,7 +528,8 @@ bool Debugger::HasBreakpoint(const Function& func, Zone* zone) {
     BreakpointLocation* sbpt = breakpoint_locations_;
     while (sbpt != NULL) {
       script = sbpt->script();
-      if (FunctionContains(func, script, sbpt->token_pos())) {
+      if (FunctionOverlaps(func, script, sbpt->token_pos(),
+                           sbpt->end_token_pos())) {
         return true;
       }
       sbpt = sbpt->next_;
@@ -610,6 +638,7 @@ TokenPosition ActivationFrame::TokenPos() {
       if (iter.PcOffset() == pc_offset) {
         try_index_ = iter.TryIndex();
         token_pos_ = iter.TokenPos();
+        deopt_id_ = iter.DeoptId();
         break;
       }
     }
@@ -623,6 +652,14 @@ intptr_t ActivationFrame::TryIndex() {
     TokenPos();  // Side effect: computes token_pos_initialized_, try_index_.
   }
   return try_index_;
+}
+
+
+intptr_t ActivationFrame::DeoptId() {
+  if (!token_pos_initialized_) {
+    TokenPos();  // Side effect: computes token_pos_initialized_, try_index_.
+  }
+  return deopt_id_;
 }
 
 
@@ -677,41 +714,54 @@ bool ActivationFrame::IsDebuggable() const {
 }
 
 
+void ActivationFrame::PrintDescriptorsError(const char* message) {
+  OS::PrintErr("Bad descriptors: %s\n", message);
+  OS::PrintErr("function %s\n", function().ToQualifiedCString());
+  OS::PrintErr("pc_ %" Px "\n", pc_);
+  OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
+  OS::PrintErr("context_level_ %" Px "\n", context_level_);
+  DisassembleToStdout formatter;
+  code().Disassemble(&formatter);
+  PcDescriptors::Handle(code().pc_descriptors()).Print();
+  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+                            Thread::Current(),
+                            StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* frame = frames.NextFrame();
+  while (frame != NULL) {
+    OS::PrintErr("%s\n", frame->ToCString());
+    frame = frames.NextFrame();
+  }
+  OS::Abort();
+}
+
+
 // Calculate the context level at the current token index of the frame.
 intptr_t ActivationFrame::ContextLevel() {
   const Context& ctx = GetSavedCurrentContext();
   if (context_level_ < 0 && !ctx.IsNull()) {
     ASSERT(!code_.is_optimized());
-    context_level_ = 0;
-    // TODO(hausner): What to do if there is no descriptor entry
-    // for the code position of the frame? For now say we are at context
-    // level 0.
-    TokenPos();
-    if (token_pos_ == TokenPosition::kNoSource) {
-      // No PcDescriptor.
-      return context_level_;
-    }
-    ASSERT(!pc_desc_.IsNull());
-    TokenPosition innermost_begin_pos = TokenPosition::kMinSource;
-    TokenPosition activation_token_pos = TokenPos().FromSynthetic();
-    ASSERT(activation_token_pos.IsReal());
+
     GetVarDescriptors();
+    intptr_t deopt_id = DeoptId();
+    if (deopt_id == Thread::kNoDeoptId) {
+      PrintDescriptorsError("Missing deopt id");
+    }
     intptr_t var_desc_len = var_descriptors_.Length();
+    bool found = false;
     for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
       RawLocalVarDescriptors::VarInfo var_info;
       var_descriptors_.GetInfo(cur_idx, &var_info);
       const int8_t kind = var_info.kind();
       if ((kind == RawLocalVarDescriptors::kContextLevel) &&
-          (var_info.begin_pos <= activation_token_pos) &&
-          (activation_token_pos < var_info.end_pos)) {
-        // This var_descriptors_ entry is a context scope which is in scope
-        // of the current token position. Now check whether it is shadowing
-        // the previous context scope.
-        if (innermost_begin_pos < var_info.begin_pos) {
-          innermost_begin_pos = var_info.begin_pos;
-          context_level_ = var_info.index();
-        }
+          (deopt_id >= var_info.begin_pos.value()) &&
+          (deopt_id <= var_info.end_pos.value())) {
+        context_level_ = var_info.index();
+        found = true;
+        break;
       }
+    }
+    if (!found) {
+      PrintDescriptorsError("Missing context level");
     }
     ASSERT(context_level_ >= 0);
   }
@@ -1290,13 +1340,12 @@ static bool IsPrivateVariableName(const String& var_name) {
 }
 
 
-RawObject* ActivationFrame::Evaluate(const String& expr) {
+RawObject* ActivationFrame::Evaluate(const String& expr,
+                                     const GrowableObjectArray& param_names,
+                                     const GrowableObjectArray& param_values) {
   GetDescIndices();
-  const GrowableObjectArray& param_names =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const GrowableObjectArray& param_values =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
   String& name = String::Handle();
+  String& existing_name = String::Handle();
   Object& value = Instance::Handle();
   intptr_t num_variables = desc_indices_.length();
   for (intptr_t i = 0; i < num_variables; i++) {
@@ -1306,8 +1355,21 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
       if (IsPrivateVariableName(name)) {
         name = String::ScrubName(name);
       }
-      param_names.Add(name);
-      param_values.Add(value);
+      bool conflict = false;
+      for (intptr_t j = 0; j < param_names.Length(); j++) {
+        existing_name ^= param_names.At(j);
+        if (name.Equals(existing_name)) {
+          conflict = true;
+          break;
+        }
+      }
+      // If local has the same name as a binding in the incoming scope, prefer
+      // the one from the incoming scope, since it is logically a child scope
+      // of the activation's current scope.
+      if (!conflict) {
+        param_names.Add(name);
+        param_values.Add(value);
+      }
     }
   }
 
@@ -2637,62 +2699,102 @@ static void SelectBestFit(Function* best_fit, Function* func) {
 }
 
 
-RawFunction* Debugger::FindBestFit(const Script& script,
-                                   TokenPosition token_pos) {
+// Returns true if a best fit is found. A best fit can either be a function
+// or a field. If it is a function, then the best fit function is returned
+// in |best_fit|. If a best fit is a field, it means that a latent
+// breakpoint can be set in the range |token_pos| to |last_token_pos|.
+bool Debugger::FindBestFit(const Script& script,
+                           TokenPosition token_pos,
+                           TokenPosition last_token_pos,
+                           Function* best_fit) {
   Zone* zone = Thread::Current()->zone();
   Class& cls = Class::Handle(zone);
+  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
+      zone, isolate_->object_store()->closure_functions());
   Array& functions = Array::Handle(zone);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
   Function& function = Function::Handle(zone);
-  Function& best_fit = Function::Handle(zone);
+  Array& fields = Array::Handle(zone);
+  Field& field = Field::Handle(zone);
   Error& error = Error::Handle(zone);
 
-  closures = isolate_->object_store()->closure_functions();
   const intptr_t num_closures = closures.Length();
   for (intptr_t i = 0; i < num_closures; i++) {
     function ^= closures.At(i);
-    if (FunctionContains(function, script, token_pos)) {
-      SelectBestFit(&best_fit, &function);
+    if (FunctionOverlaps(function, script, token_pos, last_token_pos)) {
+      // Select the inner most closure.
+      SelectBestFit(best_fit, &function);
     }
+  }
+  if (!best_fit->IsNull()) {
+    // The inner most closure found will be the best fit. Going
+    // over class functions below will not help in any further
+    // narrowing.
+    return true;
   }
 
   const ClassTable& class_table = *isolate_->class_table();
   const intptr_t num_classes = class_table.NumCids();
   for (intptr_t i = 1; i < num_classes; i++) {
-    if (class_table.HasValidClassAt(i)) {
-      cls = class_table.At(i);
-      // Note: if this class has been parsed and finalized already,
-      // we need to check the functions of this class even if
-      // it is defined in a different 'script'. There could
-      // be mixin functions from the given script in this class.
-      // However, if this class is not parsed yet (not finalized),
-      // we can ignore it and avoid the side effect of parsing it.
-      if ((cls.script() != script.raw()) && !cls.is_finalized()) {
-        continue;
+    if (!class_table.HasValidClassAt(i)) {
+      continue;
+    }
+    cls = class_table.At(i);
+    if (cls.script() != script.raw()) {
+      continue;
+    }
+    // Parse class definition if not done yet.
+    error = cls.EnsureIsFinalized(Thread::Current());
+    if (!error.IsNull()) {
+      // Ignore functions in this class.
+      // TODO(hausner): Should we propagate this error? How?
+      // EnsureIsFinalized only returns an error object if there
+      // is no longjump base on the stack.
+      continue;
+    }
+    functions = cls.functions();
+    if (!functions.IsNull()) {
+      const intptr_t num_functions = functions.Length();
+      for (intptr_t pos = 0; pos < num_functions; pos++) {
+        function ^= functions.At(pos);
+        ASSERT(!function.IsNull());
+        if (IsImplicitFunction(function)) {
+          // Implicit functions do not have a user specifiable source
+          // location.
+          continue;
+        }
+        if (FunctionOverlaps(function, script, token_pos, last_token_pos)) {
+          // Closures and inner functions within a class method are not
+          // present in the functions of a class. Hence, we can return
+          // right away as looking through other functions of a class
+          // will not narrow down to any inner function/closure.
+          *best_fit = function.raw();
+          return true;
+        }
       }
-      // Parse class definition if not done yet.
-      error = cls.EnsureIsFinalized(Thread::Current());
-      if (!error.IsNull()) {
-        // Ignore functions in this class.
-        // TODO(hausner): Should we propagate this error? How?
-        // EnsureIsFinalized only returns an error object if there
-        // is no longjump base on the stack.
-        continue;
-      }
-      functions = cls.functions();
-      if (!functions.IsNull()) {
-        const intptr_t num_functions = functions.Length();
-        for (intptr_t pos = 0; pos < num_functions; pos++) {
-          function ^= functions.At(pos);
-          ASSERT(!function.IsNull());
-          if (FunctionContains(function, script, token_pos)) {
-            SelectBestFit(&best_fit, &function);
+    }
+    // If none of the functions in the class contain token_pos, then we
+    // check if it falls within a function literal initializer of a field
+    // that has not been initialized yet. If the field (and hence the
+    // function literal initializer) has already been initialized, then
+    // it would have been found above in the object store as a closure.
+    fields = cls.fields();
+    if (!fields.IsNull()) {
+      const intptr_t num_fields = fields.Length();
+      for (intptr_t pos = 0; pos < num_fields; pos++) {
+        TokenPosition start;
+        TokenPosition end;
+        field ^= fields.At(pos);
+        ASSERT(!field.IsNull());
+        if (Parser::FieldHasFunctionLiteralInitializer(field, &start, &end)) {
+          if ((start <= token_pos && token_pos <= end) ||
+              (token_pos <= start && start <= last_token_pos)) {
+            return true;
           }
         }
       }
     }
   }
-  return best_fit.raw();
+  return false;
 }
 
 
@@ -2702,68 +2804,77 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
                                             intptr_t requested_line,
                                             intptr_t requested_column) {
   Function& func = Function::Handle();
-  func = FindBestFit(script, token_pos);
-  if (func.IsNull()) {
+  if (!FindBestFit(script, token_pos, last_token_pos, &func)) {
     return NULL;
   }
-  // There may be more than one function object for a given function
-  // in source code. There may be implicit closure functions, and
-  // there may be copies of mixin functions. Collect all compiled
-  // functions whose source code range matches exactly the best fit
-  // function we found.
-  GrowableObjectArray& functions =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  FindCompiledFunctions(script, func.token_pos(), func.end_token_pos(),
-                        &functions);
+  if (!func.IsNull()) {
+    // There may be more than one function object for a given function
+    // in source code. There may be implicit closure functions, and
+    // there may be copies of mixin functions. Collect all compiled
+    // functions whose source code range matches exactly the best fit
+    // function we found.
+    GrowableObjectArray& functions =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    FindCompiledFunctions(script, func.token_pos(), func.end_token_pos(),
+                          &functions);
 
-  if (functions.Length() > 0) {
-    // One or more function object containing this breakpoint location
-    // have already been compiled. We can resolve the breakpoint now.
-    DeoptimizeWorld();
-    func ^= functions.At(0);
-    TokenPosition breakpoint_pos =
-        ResolveBreakpointPos(func, token_pos, last_token_pos, requested_column);
-    if (breakpoint_pos.IsReal()) {
-      BreakpointLocation* bpt =
-          GetBreakpointLocation(script, breakpoint_pos, requested_column);
-      if (bpt != NULL) {
-        // A source breakpoint for this location already exists.
+    if (functions.Length() > 0) {
+      // One or more function object containing this breakpoint location
+      // have already been compiled. We can resolve the breakpoint now.
+      DeoptimizeWorld();
+      func ^= functions.At(0);
+      TokenPosition breakpoint_pos = ResolveBreakpointPos(
+          func, token_pos, last_token_pos, requested_column);
+      if (breakpoint_pos.IsReal()) {
+        BreakpointLocation* bpt =
+            GetBreakpointLocation(script, breakpoint_pos, requested_column);
+        if (bpt != NULL) {
+          // A source breakpoint for this location already exists.
+          return bpt;
+        }
+        bpt = new BreakpointLocation(script, token_pos, last_token_pos,
+                                     requested_line, requested_column);
+        bpt->SetResolved(func, breakpoint_pos);
+        RegisterBreakpointLocation(bpt);
+
+        // Create code breakpoints for all compiled functions we found.
+        const intptr_t num_functions = functions.Length();
+        for (intptr_t i = 0; i < num_functions; i++) {
+          func ^= functions.At(i);
+          ASSERT(func.HasCode());
+          MakeCodeBreakpointAt(func, bpt);
+        }
+        if (FLAG_verbose_debug) {
+          intptr_t line_number;
+          intptr_t column_number;
+          script.GetTokenLocation(breakpoint_pos, &line_number, &column_number);
+          OS::Print(
+              "Resolved BP for "
+              "function '%s' at line %" Pd " col %" Pd "\n",
+              func.ToFullyQualifiedCString(), line_number, column_number);
+        }
         return bpt;
       }
-      bpt = new BreakpointLocation(script, token_pos, last_token_pos,
-                                   requested_line, requested_column);
-      bpt->SetResolved(func, breakpoint_pos);
-      RegisterBreakpointLocation(bpt);
-
-      // Create code breakpoints for all compiled functions we found.
-      const intptr_t num_functions = functions.Length();
-      for (intptr_t i = 0; i < num_functions; i++) {
-        func ^= functions.At(i);
-        ASSERT(func.HasCode());
-        MakeCodeBreakpointAt(func, bpt);
-      }
-      if (FLAG_verbose_debug) {
-        intptr_t line_number;
-        intptr_t column_number;
-        script.GetTokenLocation(breakpoint_pos, &line_number, &column_number);
-        OS::Print(
-            "Resolved BP for "
-            "function '%s' at line %" Pd " col %" Pd "\n",
-            func.ToFullyQualifiedCString(), line_number, column_number);
-      }
-      return bpt;
     }
   }
-  // There is no compiled function at this token position.
-  // Register an unresolved breakpoint.
-  if (FLAG_verbose_debug && !func.IsNull()) {
+  // There is either an uncompiled function, or an uncompiled function literal
+  // initializer of a field at |token_pos|. Hence, Register an unresolved
+  // breakpoint.
+  if (FLAG_verbose_debug) {
     intptr_t line_number;
     intptr_t column_number;
     script.GetTokenLocation(token_pos, &line_number, &column_number);
-    OS::Print(
-        "Registering pending breakpoint for "
-        "uncompiled function '%s' at line %" Pd " col %" Pd "\n",
-        func.ToFullyQualifiedCString(), line_number, column_number);
+    if (func.IsNull()) {
+      OS::Print(
+          "Registering pending breakpoint for "
+          "an uncompiled function literal at line %" Pd " col %" Pd "\n",
+          line_number, column_number);
+    } else {
+      OS::Print(
+          "Registering pending breakpoint for "
+          "uncompiled function '%s' at line %" Pd " col %" Pd "\n",
+          func.ToFullyQualifiedCString(), line_number, column_number);
+    }
   }
   BreakpointLocation* bpt =
       GetBreakpointLocation(script, token_pos, requested_column);
@@ -3979,7 +4090,8 @@ void Debugger::NotifyCompilation(const Function& func) {
   for (BreakpointLocation* loc = breakpoint_locations_; loc != NULL;
        loc = loc->next()) {
     script = loc->script();
-    if (FunctionContains(func, script, loc->token_pos())) {
+    if (FunctionOverlaps(func, script, loc->token_pos(),
+                         loc->end_token_pos())) {
       Function& inner_function = Function::Handle(zone);
       inner_function = FindInnermostClosure(func, loc->token_pos());
       if (!inner_function.IsNull()) {

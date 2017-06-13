@@ -43,7 +43,6 @@ fixup_get_tag_test: RuntimeError # Issue 27394
 hash_code_test: RuntimeError # Issue 27394
 is_check_test: CompileTimeError # Issue 27394
 issue9182_test: RuntimeError # Issue 27394
-js_const_test: RuntimeError # Issue 27394
 jsobject_test: RuntimeError # Issue 27394
 load_elim_refinement_test: Crash # Issue 27394
 mirror_intercepted_field_test: Crash # Issue 27394

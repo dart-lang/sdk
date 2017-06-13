@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.plugin.edit.assist.assist_dart;
-
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -20,9 +19,9 @@ import 'package:analyzer/src/generated/source.dart';
  */
 abstract class DartAssistContext {
   /**
-   * The [AnalysisContext] to get assists in.
+   * The analysis driver used to access analysis results.
    */
-  AnalysisContext get analysisContext;
+  AnalysisDriver get analysisDriver;
 
   /**
    * The provider for parsed or resolved ASTs.
@@ -58,22 +57,17 @@ abstract class DartAssistContext {
 abstract class DartAssistContributor implements AssistContributor {
   @override
   Future<List<Assist>> computeAssists(AssistContext context) async {
-    AnalysisContext analysisContext = context.analysisContext;
+    AnalysisDriver driver = context.analysisDriver;
     Source source = context.source;
     if (!AnalysisEngine.isDartFileName(source.fullName)) {
       return Assist.EMPTY_LIST;
     }
-    List<Source> libraries = analysisContext.getLibrariesContaining(source);
-    if (libraries.isEmpty) {
-      return Assist.EMPTY_LIST;
-    }
-    CompilationUnit unit =
-        analysisContext.getResolvedCompilationUnit2(source, libraries[0]);
+    CompilationUnit unit = (await driver.getResult(source.fullName)).unit;
     if (unit == null) {
       return Assist.EMPTY_LIST;
     }
     DartAssistContext dartContext = new _DartAssistContextImpl(
-        new AstProviderForContext(analysisContext), context, unit);
+        new AstProviderForDriver(driver), context, unit);
     return internalComputeAssists(dartContext);
   }
 
@@ -89,37 +83,25 @@ abstract class DartAssistContributor implements AssistContributor {
  * Clients may not extend, implement or mix-in this class.
  */
 class _DartAssistContextImpl implements DartAssistContext {
-  /**
-   * The provider for parsed or resolved ASTs.
-   */
+  @override
   final AstProvider astProvider;
 
   final AssistContext _context;
 
-  /**
-   * The [CompilationUnit] to compute assists in.
-   */
+  @override
   final CompilationUnit unit;
 
   _DartAssistContextImpl(this.astProvider, this._context, this.unit);
 
-  /**
-   * The [AnalysisContext] to get assists in.
-   */
-  AnalysisContext get analysisContext => _context.analysisContext;
+  @override
+  AnalysisDriver get analysisDriver => _context.analysisDriver;
 
-  /**
-   * The length of the selection.
-   */
+  @override
   int get selectionLength => _context.selectionLength;
 
-  /**
-   * The start of the selection.
-   */
+  @override
   int get selectionOffset => _context.selectionOffset;
 
-  /**
-   * The source to get assists in.
-   */
+  @override
   Source get source => _context.source;
 }

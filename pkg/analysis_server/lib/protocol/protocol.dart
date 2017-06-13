@@ -6,13 +6,12 @@
  * Support for client code that needs to interact with the requests, responses
  * and notifications that are part of the analysis server's wire protocol.
  */
-library analysis_server.plugin.protocol.protocol;
-
-import 'dart:collection';
 import 'dart:convert' hide JsonDecoder;
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
+
+export 'package:analyzer_plugin/protocol/protocol.dart' show Enum;
 
 /**
  * A [RequestHandler] that supports [startup] and [shutdown] methods.
@@ -35,20 +34,7 @@ abstract class DomainHandler implements RequestHandler {
 }
 
 /**
- * An interface for enumerated types in the protocol.
- *
- * Clients may not extend, implement or mix-in this class.
- */
-abstract class Enum {
-  /**
-   * The name of the enumerated value. This should match the name of the
-   * static getter which provides access to this enumerated value.
-   */
-  String get name;
-}
-
-/**
- * A notification from the server about an event that occurred.
+ * A notification that can be sent from the server about an event that occurred.
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -77,7 +63,7 @@ class Notification {
 
   /**
    * Initialize a newly created [Notification] to have the given [event] name.
-   * If [_params] is provided, it will be used as the params; otherwise no
+   * If [params] is provided, it will be used as the params; otherwise no
    * params will be used.
    */
   Notification(this.event, [this.params]);
@@ -154,12 +140,12 @@ class Request {
 
   /**
    * Initialize a newly created [Request] to have the given [id] and [method]
-   * name.  If [params] is supplied, it is used as the "params" map for the
-   * request.  Otherwise an empty "params" map is allocated.
+   * name. If [params] is supplied, it is used as the "params" map for the
+   * request. Otherwise an empty "params" map is allocated.
    */
   Request(this.id, this.method,
       [Map<String, Object> params, this.clientRequestTime])
-      : params = params ?? new HashMap<String, Object>();
+      : params = params ?? <String, Object>{};
 
   /**
    * Return a request parsed from the given json, or `null` if the [data] is
@@ -181,7 +167,7 @@ class Request {
    * clientRequestTime must be an int representing the time at which the client
    * issued the request (milliseconds since epoch).
    */
-  factory Request.fromJson(Map<String, dynamic> result) {
+  factory Request.fromJson(Map<String, Object> result) {
     var id = result[Request.ID];
     var method = result[Request.METHOD];
     if (id is! String || method is! String) {
@@ -231,12 +217,26 @@ class Request {
     }
   }
 
+  @override
+  int get hashCode {
+    return id.hashCode;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Request &&
+        id == other.id &&
+        method == other.method &&
+        clientRequestTime == other.clientRequestTime &&
+        _equalMaps(params, other.params);
+  }
+
   /**
    * Return a table representing the structure of the Json object that will be
    * sent to the client to represent this response.
    */
   Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = new HashMap<String, Object>();
+    Map<String, Object> jsonObject = <String, Object>{};
     jsonObject[ID] = id;
     jsonObject[METHOD] = method;
     if (params.isNotEmpty) {
@@ -246,6 +246,68 @@ class Request {
       jsonObject[CLIENT_REQUEST_TIME] = clientRequestTime;
     }
     return jsonObject;
+  }
+
+  bool _equalLists(List first, List second) {
+    if (first == null) {
+      return second == null;
+    }
+    if (second == null) {
+      return false;
+    }
+    int length = first.length;
+    if (length != second.length) {
+      return false;
+    }
+    for (int i = 0; i < length; i++) {
+      if (!_equalObjects(first[i], second[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _equalMaps(Map first, Map second) {
+    if (first == null) {
+      return second == null;
+    }
+    if (second == null) {
+      return false;
+    }
+    if (first.length != second.length) {
+      return false;
+    }
+    for (var key in first.keys) {
+      if (!second.containsKey(key)) {
+        return false;
+      }
+      if (!_equalObjects(first[key], second[key])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _equalObjects(Object first, Object second) {
+    if (first == null) {
+      return second == null;
+    }
+    if (second == null) {
+      return false;
+    }
+    if (first is Map) {
+      if (second is Map) {
+        return _equalMaps(first, second);
+      }
+      return false;
+    }
+    if (first is List) {
+      if (second is List) {
+        return _equalLists(first, second);
+      }
+      return false;
+    }
+    return first == second;
   }
 }
 
@@ -326,7 +388,7 @@ class Response {
    * A table mapping the names of result fields to their values.  Should be
    * `null` if there is no result to send.
    */
-  Map<String, Object> _result;
+  Map<String, Object> result;
 
   /**
    * Initialize a newly created instance to represent a response to a request
@@ -334,8 +396,7 @@ class Response {
    * result; otherwise an empty result will be used.  If an [error] is provided
    * then the response will represent an error condition.
    */
-  Response(this.id, {Map<String, Object> result, this.error})
-      : _result = result;
+  Response(this.id, {Map<String, Object> result, this.error}) : result = result;
 
   /**
    * Create and return the `DEBUG_PORT_COULD_NOT_BE_OPENED` error response.
@@ -478,15 +539,6 @@ class Response {
                 RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
 
   /**
-   * Initialize a newly created instance to represent an error condition caused
-   * by a request that requires an index, but indexing is disabled.
-   */
-  Response.noIndexGenerated(Request request)
-      : this(request.id,
-            error: new RequestError(
-                RequestErrorCode.NO_INDEX_GENERATED, 'Indexing is disabled'));
-
-  /**
    * Initialize a newly created instance to represent the
    * ORGANIZE_DIRECTIVES_ERROR error condition.
    */
@@ -574,23 +626,17 @@ class Response {
                 RequestErrorCode.UNSUPPORTED_FEATURE, message));
 
   /**
-   * Return a table mapping the names of result fields to their values.  Should
-   * be `null` if there is no result to send.
-   */
-  Map<String, Object> get result => _result;
-
-  /**
    * Return a table representing the structure of the Json object that will be
    * sent to the client to represent this response.
    */
   Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = new HashMap<String, Object>();
+    Map<String, Object> jsonObject = <String, Object>{};
     jsonObject[ID] = id;
     if (error != null) {
       jsonObject[ERROR] = error.toJson();
     }
-    if (_result != null) {
-      jsonObject[RESULT] = _result;
+    if (result != null) {
+      jsonObject[RESULT] = result;
     }
     return jsonObject;
   }

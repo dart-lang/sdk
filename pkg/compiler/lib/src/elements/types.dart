@@ -744,13 +744,72 @@ abstract class DartTypes {
   /// type variables in [s] and [t].
   bool isPotentialSubtype(DartType t, DartType s);
 
+  static const int IS_SUBTYPE = 1;
+  static const int MAYBE_SUBTYPE = 0;
+  static const int NOT_SUBTYPE = -1;
+
+  /// Returns [IS_SUBTYPE], [MAYBE_SUBTYPE], or [NOT_SUBTYPE] if [t] is a
+  /// (potential) subtype of [s]
+  int computeSubtypeRelation(DartType t, DartType s) {
+    // TODO(johnniwinther): Compute this directly in [isPotentialSubtype].
+    if (isSubtype(t, s)) return IS_SUBTYPE;
+    return isPotentialSubtype(t, s) ? MAYBE_SUBTYPE : NOT_SUBTYPE;
+  }
+
   /// Returns [type] as an instance of [cls] or `null` if [type] is not a
   /// subtype of [cls].
   ///
   /// For instance `asInstanceOf(List<String>, Iterable) = Iterable<String>`.
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls);
 
+  /// Return [base] where the type variable of `context.element` are replaced
+  /// by the type arguments of [context].
+  ///
+  /// For instance
+  ///
+  ///     substByContext(Iterable<List.E>, List<String>) = Iterable<String>
+  ///
+  DartType substByContext(DartType base, InterfaceType context);
+
+  /// Returns the 'this type' of [cls]. That is, the instantiation of [cls]
+  /// where the type arguments are the type variables of [cls].
+  InterfaceType getThisType(ClassEntity cls);
+
   /// Returns the supertype of [cls], i.e. the type in the `extends` clause of
   /// [cls].
   InterfaceType getSupertype(ClassEntity cls);
+
+  /// Returns all supertypes of [cls].
+  Iterable<InterfaceType> getSupertypes(ClassEntity cls);
+
+  /// Returns the type of the `call` method on [type], or `null` if the class
+  /// of [type] does not have a `call` method.
+  FunctionType getCallType(InterfaceType type);
+
+  /// Checks the type arguments of [type] against the type variable bounds
+  /// declared on `type.element`. Calls [checkTypeVariableBound] on each type
+  /// argument and bound.
+  void checkTypeVariableBounds(
+      InterfaceType type,
+      void checkTypeVariableBound(InterfaceType type, DartType typeArgument,
+          TypeVariableType typeVariable, DartType bound));
+
+  /// Returns the [ClassEntity] which declares the type variables occurring in
+  // [type], or `null` if [type] does not contain type variables.
+  static ClassEntity getClassContext(DartType type) {
+    ClassEntity contextClass;
+    type.forEachTypeVariable((TypeVariableType typeVariable) {
+      if (typeVariable.element.typeDeclaration is! ClassEntity) return;
+      contextClass = typeVariable.element.typeDeclaration;
+    });
+    // GENERIC_METHODS: When generic method support is complete enough to
+    // include a runtime value for method type variables this must be updated.
+    // For full support the global assumption that all type variables are
+    // declared by the same enclosing class will not hold: Both an enclosing
+    // method and an enclosing class may define type variables, so the return
+    // type cannot be [ClassElement] and the caller must be prepared to look in
+    // two locations, not one. Currently we ignore method type variables by
+    // returning in the next statement.
+    return contextClass;
+  }
 }

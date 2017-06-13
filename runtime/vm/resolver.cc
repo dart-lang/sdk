@@ -146,6 +146,7 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
 RawFunction* Resolver::ResolveStatic(const Library& library,
                                      const String& class_name,
                                      const String& function_name,
+                                     intptr_t type_args_len,
                                      intptr_t num_arguments,
                                      const Array& argument_names) {
   ASSERT(!library.IsNull());
@@ -155,12 +156,13 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
     const Object& object = Object::Handle(library.ResolveName(function_name));
     if (!object.IsNull() && object.IsFunction()) {
       function ^= object.raw();
-      if (!function.AreValidArguments(num_arguments, argument_names, NULL)) {
+      if (!function.AreValidArguments(type_args_len, num_arguments,
+                                      argument_names, NULL)) {
         if (FLAG_trace_resolving) {
           String& error_message = String::Handle();
           // Obtain more detailed error message.
-          function.AreValidArguments(num_arguments, argument_names,
-                                     &error_message);
+          function.AreValidArguments(type_args_len, num_arguments,
+                                     argument_names, &error_message);
           THR_Print("ResolveStatic error '%s': %s.\n",
                     function_name.ToCString(), error_message.ToCString());
         }
@@ -178,8 +180,8 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
     // ResolveStatic will return a NULL function object.
     const Class& cls = Class::Handle(library.LookupClass(class_name));
     if (!cls.IsNull()) {
-      function =
-          ResolveStatic(cls, function_name, num_arguments, argument_names);
+      function = ResolveStatic(cls, function_name, type_args_len, num_arguments,
+                               argument_names);
     }
     if (FLAG_trace_resolving && function.IsNull()) {
       THR_Print("ResolveStatic error: function '%s.%s' not found.\n",
@@ -192,6 +194,7 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
 
 RawFunction* Resolver::ResolveStatic(const Class& cls,
                                      const String& function_name,
+                                     intptr_t type_args_len,
                                      intptr_t num_arguments,
                                      const Array& argument_names) {
   ASSERT(!cls.IsNull());
@@ -201,14 +204,15 @@ RawFunction* Resolver::ResolveStatic(const Class& cls,
   const Function& function =
       Function::Handle(cls.LookupStaticFunction(function_name));
   if (function.IsNull() ||
-      !function.AreValidArguments(num_arguments, argument_names, NULL)) {
+      !function.AreValidArguments(type_args_len, num_arguments, argument_names,
+                                  NULL)) {
     // Return a null function to signal to the upper levels to throw a
     // resolution error or maybe throw the error right here.
     if (FLAG_trace_resolving) {
       String& error_message = String::Handle(String::New("function not found"));
       if (!function.IsNull()) {
         // Obtain more detailed error message.
-        function.AreValidArguments(num_arguments, argument_names,
+        function.AreValidArguments(type_args_len, num_arguments, argument_names,
                                    &error_message);
       }
       THR_Print("ResolveStatic error '%s': %s.\n", function_name.ToCString(),
@@ -222,6 +226,7 @@ RawFunction* Resolver::ResolveStatic(const Class& cls,
 
 RawFunction* Resolver::ResolveStaticAllowPrivate(const Class& cls,
                                                  const String& function_name,
+                                                 intptr_t type_args_len,
                                                  intptr_t num_arguments,
                                                  const Array& argument_names) {
   ASSERT(!cls.IsNull());
@@ -231,14 +236,15 @@ RawFunction* Resolver::ResolveStaticAllowPrivate(const Class& cls,
   const Function& function =
       Function::Handle(cls.LookupStaticFunctionAllowPrivate(function_name));
   if (function.IsNull() ||
-      !function.AreValidArguments(num_arguments, argument_names, NULL)) {
+      !function.AreValidArguments(type_args_len, num_arguments, argument_names,
+                                  NULL)) {
     // Return a null function to signal to the upper levels to throw a
     // resolution error or maybe throw the error right here.
     if (FLAG_trace_resolving) {
       String& error_message = String::Handle(String::New("function not found"));
       if (!function.IsNull()) {
         // Obtain more detailed error message.
-        function.AreValidArguments(num_arguments, argument_names,
+        function.AreValidArguments(type_args_len, num_arguments, argument_names,
                                    &error_message);
       }
       THR_Print("ResolveStaticAllowPrivate error '%s': %s.\n",

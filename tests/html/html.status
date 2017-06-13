@@ -6,12 +6,12 @@ interactive_test: Skip # Must be run manually.
 cross_frame_test: Skip # Test reloads itself. Issue 18558
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
-
 mirrors_js_typed_interop_test: Fail # Missing expected failure (Issue 25044)
 js_typed_interop_side_cast_exp_test: Fail, OK # tests dart2js-specific behavior.
 js_typed_interop_type1_test: Fail, OK # tests dart2js-specific behavior.
 js_typed_interop_type2_test: Fail, OK # tests dart2js-specific behavior.
 js_typed_interop_type3_test: Fail, OK # tests dart2js-specific behavior.
+svgelement_test/PathElement: RuntimeError # Issue 25665
 
 native_gc_test: Skip # Dartium JSInterop failure
 js_interop_constructor_name_test/HTMLDivElement-methods: Fail # Investigate.
@@ -36,6 +36,25 @@ js_type_test/dynamic-String-not-Foo: Fail  # Issue 26838
 js_type_test/dynamic-String-not-dynamic-Foo: Fail  # Issue 26838
 js_interop_constructor_name_test/HTMLDivElement-types-erroneous1: Fail # Issue 26838
 js_interop_constructor_name_test/HTMLDivElement-types-erroneous2: Fail # Issue 26838
+# ROLL 50 FAILURES START
+custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
+custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
+custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
+fileapi_test/directoryReader: Pass, Timeout # Roll 50 failure
+fileapi_test/entry: Pass, Timeout # Roll 50 failure
+fileapi_test/fileEntry: Pass, Timeout # Roll 50 failure
+fileapi_test/getDirectory: Pass, Timeout # Roll 50 failure
+fileapi_test/getFile: Pass, Timeout # Roll 50 failure
+indexeddb_1_test/functional: Pass, Timeout # Roll 50 failure
+indexeddb_2_test: Pass, Timeout # Roll 50 failure
+indexeddb_3_test: Pass, Timeout # Roll 50 failure
+indexeddb_4_test: Pass, Timeout # Roll 50 failure
+indexeddb_5_test: Pass, Timeout # Roll 50 failure
+js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
+svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
+websql_test/functional: Pass, Timeout # Roll 50 failure
+xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
+# ROLL 50 FAILURES END
 
 [ $compiler == dart2js && $checked ]
 js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
@@ -114,7 +133,6 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 
 [ $runtime == chrome ]
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
-svgelement_test/PathElement: RuntimeError # Issue 25665
 element_animate_test/timing_dict: RuntimeError # Issue 26730
 
 [ $runtime == chrome && $system == macos ]
@@ -215,7 +233,7 @@ websql_test/supported: Fail
 xhr_test/json: Fail # IE10 returns string, not JSON object
 xsltprocessor_test/supported: Fail
 
-[ $compiler == dart2js && $runtime == drt && $unchecked ]
+[ $compiler == dart2js && $runtime == drt && ! $checked ]
 audiocontext_test/functional: Pass, Fail
 
 [ $runtime == safari || $runtime == safarimobilesim ]
@@ -311,9 +329,6 @@ webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'hea
 [ $runtime == dartium && ($system == windows || $system == linux) ]
 webgl_extensions_test: Fail # WebGL extension tests fail on Dartium without graphics. This is dependent on our bot configuration.
 
-[ $runtime == chrome && ($system == windows || $system == linux) ]
-webgl_extensions_test: Fail # WebGL extension tests fail without graphics. This is dependent on our bot configuration.
-
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
 # TODO(sra): Change these tests to use a same-origin JavaScript script file.
@@ -338,10 +353,6 @@ postmessage_structured_test: SkipByDesign
 
 [ $compiler == dart2js &&  ($runtime == chrome || $runtime == drt) ]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 25787
-
-[ ($runtime == dartium) && ($system == macos || $system == windows || $system == linux)]
-# Desktop operating systems do not support touch events on chrome 34 dartium.
-touchevent_test/supported: Fail
 
 [ (($runtime == dartium || $runtime == drt) && $system == macos) || $system == windows ]
 xhr_test/xhr: Skip # Times out.  Issue 21527

@@ -5,7 +5,7 @@ import "dart:core" as core;
 class A extends core::Object {
   final field core::int x;
   final field core::int y;
-  constructor •(dynamic y) → void
+  constructor •(core::int y) → void
     : self::A::y = y, self::A::x = 42, super core::Object::•()
     ;
   method method() → dynamic {
@@ -20,7 +20,7 @@ class B extends self::A {
     ;
   method method() → dynamic {
     core::print("B.method x: ${this.x} y: ${this.y}");
-    this.{=self::A::method}();
+    super.method();
   }
 }
 static method main() → dynamic {

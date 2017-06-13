@@ -4,7 +4,7 @@
 
 library dart_scanner.error_token;
 
-import '../../scanner/token.dart' show TokenType;
+import '../../scanner/token.dart' show BeginToken, TokenType, TokenWithComment;
 
 import '../fasta_codes.dart'
     show
@@ -21,8 +21,7 @@ import '../fasta_codes.dart'
         codeUnterminatedString,
         codeUnterminatedToken;
 
-import '../scanner.dart'
-    show BeginGroupToken, Token, unicodeReplacementCharacter;
+import '../scanner.dart' show Token, unicodeReplacementCharacter;
 
 ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
   if (character < 0x1f) {
@@ -66,19 +65,15 @@ ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
 ///
 /// It's considered an implementation error to access [lexeme] of an
 /// [ErrorToken].
-abstract class ErrorToken extends Token {
-  ErrorToken(int charOffset) : super(charOffset);
-
-  TokenType get type => TokenType.BAD_INPUT;
+abstract class ErrorToken extends TokenWithComment {
+  ErrorToken(int offset) : super(TokenType.BAD_INPUT, offset, null);
 
   /// This is a token that wraps around an error message. Return 1
   /// instead of the size of the length of the error message.
   @override
-  int get charCount => 1;
+  int get length => 1;
 
   String get lexeme => throw assertionMessage;
-
-  bool get isIdentifier => false;
 
   String get assertionMessage;
 
@@ -90,10 +85,10 @@ abstract class ErrorToken extends Token {
 
   int get endOffset => null;
 
-  BeginGroupToken get begin => null;
+  BeginToken get begin => null;
 
   @override
-  Token copyWithoutComments() {
+  Token copy() {
     throw 'unsupported operation';
   }
 }
@@ -215,9 +210,9 @@ class UnterminatedToken extends ErrorToken {
 /// In this case, brace means any of `(`, `{`, `[`, and `<`, parenthesis, curly
 /// brace, square brace, and angle brace, respectively.
 class UnmatchedToken extends ErrorToken {
-  final BeginGroupToken begin;
+  final BeginToken begin;
 
-  UnmatchedToken(BeginGroupToken begin)
+  UnmatchedToken(BeginToken begin)
       : this.begin = begin,
         super(begin.charOffset);
 

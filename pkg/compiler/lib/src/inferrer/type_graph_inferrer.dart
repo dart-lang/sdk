@@ -63,7 +63,7 @@ class TypeGraphInferrer implements TypesInferrer {
 
   TypeMask get _dynamicType => commonMasks.dynamicType;
 
-  void analyzeMain(Element main) {
+  void analyzeMain(FunctionEntity main) {
     inferrer =
         new InferrerEngine(compiler, closedWorld, closedWorldRefiner, main);
     inferrer.runOverAllElements();

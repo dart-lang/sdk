@@ -11,13 +11,13 @@ import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
-    show ClassElement, Element, FieldElement, MethodElement;
+    show ClassElement, FieldElement, MethodElement;
 import '../../elements/entities.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
 import '../../world.dart' show ClosedWorld;
 import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
-import '../js_emitter.dart' as emitterTask show Emitter, EmitterFactory;
+import '../js_emitter.dart' as emitterTask show EmitterBase, EmitterFactory;
 import '../model.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
 import 'model_emitter.dart';
@@ -29,21 +29,24 @@ class EmitterFactory implements emitterTask.EmitterFactory {
   @override
   Emitter createEmitter(
       CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
-    return new Emitter(task.compiler, namer, task.nativeEmitter);
+    return new Emitter(
+        task.compiler, namer, task.nativeEmitter, closedWorld, task);
   }
 }
 
-class Emitter implements emitterTask.Emitter {
+class Emitter extends emitterTask.EmitterBase {
   final Compiler _compiler;
   final Namer namer;
   final ModelEmitter _emitter;
 
   JavaScriptBackend get _backend => _compiler.backend;
 
-  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter)
+  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter,
+      ClosedWorld closedWorld, CodeEmitterTask task)
       : this._compiler = compiler,
         this.namer = namer,
-        _emitter = new ModelEmitter(compiler, namer, nativeEmitter);
+        _emitter =
+            new ModelEmitter(compiler, namer, nativeEmitter, closedWorld, task);
 
   DiagnosticReporter get reporter => _compiler.reporter;
 
@@ -81,37 +84,17 @@ class Emitter implements emitterTask.Emitter {
     return js.js('function() {}');
   }
 
-  js.PropertyAccess _globalPropertyAccess(Element element) {
-    js.Name name = namer.globalPropertyName(element);
-    js.PropertyAccess pa = new js.PropertyAccess(
-        new js.VariableUse(namer.globalObjectFor(element)), name);
-    return pa;
-  }
-
   @override
   js.Expression isolateLazyInitializerAccess(FieldElement element) {
-    return js.js('#.#',
-        [namer.globalObjectFor(element), namer.lazyInitializerName(element)]);
+    return js.js('#.#', [
+      namer.globalObjectForMember(element),
+      namer.lazyInitializerName(element)
+    ]);
   }
 
   @override
   js.Expression isolateStaticClosureAccess(MethodElement element) {
     return _emitter.generateStaticClosureAccess(element);
-  }
-
-  @override
-  js.PropertyAccess staticFieldAccess(FieldElement element) {
-    return _globalPropertyAccess(element);
-  }
-
-  @override
-  js.PropertyAccess staticFunctionAccess(MethodElement element) {
-    return _globalPropertyAccess(element);
-  }
-
-  @override
-  js.PropertyAccess constructorAccess(ClassElement element) {
-    return _globalPropertyAccess(element);
   }
 
   @override
@@ -123,17 +106,17 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.Expression interceptorClassAccess(ClassElement element) {
+  js.Expression interceptorClassAccess(ClassEntity element) {
     // Some interceptors are eagerly constructed. However, native interceptors
     // aren't.
-    return js.js('#.ensureResolved()', _globalPropertyAccess(element));
+    return js.js('#.ensureResolved()', globalPropertyAccessForClass(element));
   }
 
   @override
   js.Expression typeAccess(Entity element) {
     // TODO(floitsch): minify 'ensureResolved'.
     // TODO(floitsch): don't emit `ensureResolved` for eager classes.
-    return js.js('#.ensureResolved()', _globalPropertyAccess(element));
+    return js.js('#.ensureResolved()', globalPropertyAccessForType(element));
   }
 
   @override

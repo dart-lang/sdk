@@ -922,16 +922,20 @@ dynamic x;
 foo1() async => x;
 Future foo2() async => x;
 Future<int> foo3() async => /*info:DYNAMIC_CAST*/x;
-Future<int> foo4() async => new Future<int>.value(x);
+Future<int> foo4() async => new Future<int>.value(/*info:DYNAMIC_CAST*/x);
 Future<int> foo5() async =>
-    /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(x);
+    /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(
+        /*info:DYNAMIC_CAST*/x);
 
 bar1() async { return x; }
 Future bar2() async { return x; }
 Future<int> bar3() async { return /*info:DYNAMIC_CAST*/x; }
-Future<int> bar4() async { return new Future<int>.value(x); }
+Future<int> bar4() async {
+  return new Future<int>.value(/*info:DYNAMIC_CAST*/x);
+}
 Future<int> bar5() async {
-  return /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(x);
+  return /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(
+      /*info:DYNAMIC_CAST*/x);
 }
 
 int y;
@@ -2201,18 +2205,6 @@ main() {
     await check(implicitCasts: false);
   }
 
-  test_implicitCasts_return() async {
-    addFile(r'''
-import 'dart:async';
-
-Future<List<String>> foo() async {
-  List<Object> x = <Object>["hello", "world"];
-  return /*info:DOWN_CAST_IMPLICIT*/x;
-}
-    ''');
-    await check();
-  }
-
   test_implicitCasts_genericMethods() async {
     addFile('''
 var x = <String>[].map<String>((x) => "");
@@ -2230,6 +2222,18 @@ void f() {
 }
     ''');
     await check(implicitCasts: false);
+  }
+
+  test_implicitCasts_return() async {
+    addFile(r'''
+import 'dart:async';
+
+Future<List<String>> foo() async {
+  List<Object> x = <Object>["hello", "world"];
+  return /*info:DOWN_CAST_IMPLICIT*/x;
+}
+    ''');
+    await check();
   }
 
   test_implicitDynamic_field() async {
@@ -3536,7 +3540,7 @@ void voidFn() => null;
 class A {
   set a(y) => 4;
   set b(y) => voidFn();
-  void set c(y) => /*error:RETURN_OF_INVALID_TYPE*/4;
+  void set c(y) => 4;
   void set d(y) => voidFn();
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set e(y) => 4;
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set f(y) =>

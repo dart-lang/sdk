@@ -520,6 +520,17 @@ void Heap::Init(Isolate* isolate,
 }
 
 
+void Heap::RegionName(Heap* heap, Space space, char* name, intptr_t name_size) {
+  const bool no_isolate_name = (heap == NULL) || (heap->isolate() == NULL) ||
+                               (heap->isolate()->debugger_name() == NULL);
+  const char* isolate_name =
+      no_isolate_name ? "<unknown>" : heap->isolate()->debugger_name();
+  const char* space_name = (space == kNew) ? "newspace" : "oldspace";
+  const char* type_name = (space == kCode) ? "code" : "data";
+  OS::SNPrint(name, name_size, "%s %s %s", isolate_name, space_name, type_name);
+}
+
+
 void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
   new_space_.AddRegionsToObjectSet(set);
   old_space_.AddRegionsToObjectSet(set);

@@ -19,6 +19,7 @@ import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/dart.dart' show COMPILATION_UNIT_ELEMENT;
 import 'package:analyzer/task/dart.dart' show LibrarySpecificUnit;
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 
 /**

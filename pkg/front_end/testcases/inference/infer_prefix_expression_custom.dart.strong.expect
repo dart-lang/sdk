@@ -12,8 +12,8 @@ class A extends core::Object {
     return 2.0;
 }
 static field self::A a = new self::A::•();
-static field core::int v_complement = self::a.~();
-static field core::double v_negate = self::a.unary-();
+static field core::int v_complement = self::a.{self::A::~}();
+static field core::double v_negate = self::a.{self::A::unary-}();
 static method main() → dynamic {
   self::a;
   self::v_complement;

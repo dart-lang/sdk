@@ -12,8 +12,16 @@ import '../visitor.dart';
 
 import 'async.dart';
 
-Program transformProgram(Program program) {
-  var helper = new HelperNodes.fromProgram(program);
+void transformLibraries(CoreTypes coreTypes, List<Library> libraries) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes);
+  var rewriter = new RecursiveContinuationRewriter(helper);
+  for (var library in libraries) {
+    rewriter.rewriteLibrary(library);
+  }
+}
+
+Program transformProgram(CoreTypes coreTypes, Program program) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes);
   var rewriter = new RecursiveContinuationRewriter(helper);
   return rewriter.rewriteProgram(program);
 }
@@ -30,6 +38,14 @@ class RecursiveContinuationRewriter extends Transformer {
 
   Program rewriteProgram(Program node) {
     return node.accept(this);
+  }
+
+  Library rewriteLibrary(Library node) {
+    return node.accept(this);
+  }
+
+  visitProcedure(Procedure node) {
+    return node.isAbstract ? node : super.visitProcedure(node);
   }
 
   visitFunctionNode(FunctionNode node) {
@@ -812,7 +828,7 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     completerVariable = new VariableDeclaration(":completer",
         initializer: new StaticInvocation(helper.completerConstructor,
             new Arguments([], types: completerTypeArguments))
-          ..fileOffset = enclosingFunction.body.fileOffset,
+          ..fileOffset = enclosingFunction.body?.fileOffset ?? -1,
         isFinal: true,
         type: completerType);
     statements.add(completerVariable);
@@ -912,24 +928,23 @@ class HelperNodes {
       this.awaitHelper,
       this.coreTypes);
 
-  factory HelperNodes.fromProgram(Program program) {
-    var coreTypes = new CoreTypes(program);
+  factory HelperNodes.fromCoreTypes(CoreTypes coreTypes) {
     return new HelperNodes(
-        coreTypes.getLibrary('dart:async'),
-        coreTypes.getLibrary('dart:core'),
-        coreTypes.getClass('dart:core', 'Iterator'),
-        coreTypes.getClass('dart:async', 'Future'),
-        coreTypes.getClass('dart:async', 'FutureOr'),
-        coreTypes.getClass('dart:async', 'Completer'),
-        coreTypes.getTopLevelMember('dart:core', 'print'),
-        coreTypes.getMember('dart:async', 'Completer', 'sync'),
-        coreTypes.getMember('dart:core', '_SyncIterable', ''),
-        coreTypes.getMember('dart:async', '_StreamIterator', ''),
-        coreTypes.getMember('dart:async', 'Future', 'microtask'),
-        coreTypes.getMember('dart:async', '_AsyncStarStreamController', ''),
-        coreTypes.getTopLevelMember('dart:async', '_asyncThenWrapperHelper'),
-        coreTypes.getTopLevelMember('dart:async', '_asyncErrorWrapperHelper'),
-        coreTypes.getTopLevelMember('dart:async', '_awaitHelper'),
+        coreTypes.asyncLibrary,
+        coreTypes.coreLibrary,
+        coreTypes.iteratorClass,
+        coreTypes.futureClass,
+        coreTypes.futureOrClass,
+        coreTypes.completerClass,
+        coreTypes.printProcedure,
+        coreTypes.completerSyncConstructor,
+        coreTypes.syncIterableDefaultConstructor,
+        coreTypes.streamIteratorDefaultConstructor,
+        coreTypes.futureMicrotaskConstructor,
+        coreTypes.asyncStarStreamControllerDefaultConstructor,
+        coreTypes.asyncThenWrapperHelperProcedure,
+        coreTypes.asyncErrorWrapperHelperProcedure,
+        coreTypes.awaitHelperProcedure,
         coreTypes);
   }
 }

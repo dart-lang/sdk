@@ -6,8 +6,8 @@ part of dart.async;
 
 _invokeErrorHandler(
     Function errorHandler, Object error, StackTrace stackTrace) {
-  if (errorHandler is ZoneBinaryCallback) {
-    return errorHandler(error, stackTrace);
+  if (errorHandler is ZoneBinaryCallback<dynamic, Null, Null>) {
+    return (errorHandler as dynamic)(error, stackTrace);
   } else {
     ZoneUnaryCallback unaryErrorHandler = errorHandler;
     return unaryErrorHandler(error);
@@ -15,7 +15,7 @@ _invokeErrorHandler(
 }
 
 Function _registerErrorHandler<R>(Function errorHandler, Zone zone) {
-  if (errorHandler is ZoneBinaryCallback) {
+  if (errorHandler is ZoneBinaryCallback<dynamic, Null, Null>) {
     return zone.registerBinaryCallback<R, Object, StackTrace>(
         errorHandler as dynamic/*=ZoneBinaryCallback<R, Object, StackTrace>*/);
   } else {

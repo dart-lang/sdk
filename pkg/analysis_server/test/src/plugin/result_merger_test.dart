@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,29 +26,27 @@ class ResultMergerTest {
   ResultMerger merger = new ResultMerger();
 
   void test_mergeAnalysisErrorFixes() {
-    plugin.AnalysisError createError(int offset) {
-      plugin.AnalysisErrorSeverity severity =
-          plugin.AnalysisErrorSeverity.ERROR;
-      plugin.AnalysisErrorType type = plugin.AnalysisErrorType.HINT;
-      plugin.Location location =
-          new plugin.Location('test.dart', offset, 2, 3, 4);
-      return new plugin.AnalysisError(severity, type, location, '', '');
+    AnalysisError createError(int offset) {
+      AnalysisErrorSeverity severity = AnalysisErrorSeverity.ERROR;
+      AnalysisErrorType type = AnalysisErrorType.HINT;
+      Location location = new Location('test.dart', offset, 2, 3, 4);
+      return new AnalysisError(severity, type, location, '', '');
     }
 
-    plugin.AnalysisError error1 = createError(10);
-    plugin.AnalysisError error2 = createError(20);
-    plugin.AnalysisError error3 = createError(30);
-    plugin.AnalysisError error4 = createError(40);
+    AnalysisError error1 = createError(10);
+    AnalysisError error2 = createError(20);
+    AnalysisError error3 = createError(30);
+    AnalysisError error4 = createError(40);
     plugin.PrioritizedSourceChange change1 =
-        new plugin.PrioritizedSourceChange(1, new plugin.SourceChange('a'));
+        new plugin.PrioritizedSourceChange(1, new SourceChange('a'));
     plugin.PrioritizedSourceChange change2 =
-        new plugin.PrioritizedSourceChange(2, new plugin.SourceChange('b'));
+        new plugin.PrioritizedSourceChange(2, new SourceChange('b'));
     plugin.PrioritizedSourceChange change3 =
-        new plugin.PrioritizedSourceChange(3, new plugin.SourceChange('c'));
+        new plugin.PrioritizedSourceChange(3, new SourceChange('c'));
     plugin.PrioritizedSourceChange change4 =
-        new plugin.PrioritizedSourceChange(4, new plugin.SourceChange('d'));
+        new plugin.PrioritizedSourceChange(4, new SourceChange('d'));
     plugin.PrioritizedSourceChange change5 =
-        new plugin.PrioritizedSourceChange(5, new plugin.SourceChange('e'));
+        new plugin.PrioritizedSourceChange(5, new SourceChange('e'));
     plugin.AnalysisErrorFixes fix1 =
         new plugin.AnalysisErrorFixes(error1, fixes: [change1]);
     plugin.AnalysisErrorFixes fix2 =
@@ -347,13 +346,13 @@ class ResultMergerTest {
 
   void test_mergePrioritizedSourceChanges() {
     plugin.PrioritizedSourceChange kind1 =
-        new plugin.PrioritizedSourceChange(1, new plugin.SourceChange(''));
+        new plugin.PrioritizedSourceChange(1, new SourceChange(''));
     plugin.PrioritizedSourceChange kind2 =
-        new plugin.PrioritizedSourceChange(1, new plugin.SourceChange(''));
+        new plugin.PrioritizedSourceChange(1, new SourceChange(''));
     plugin.PrioritizedSourceChange kind3 =
-        new plugin.PrioritizedSourceChange(1, new plugin.SourceChange(''));
+        new plugin.PrioritizedSourceChange(1, new SourceChange(''));
     plugin.PrioritizedSourceChange kind4 =
-        new plugin.PrioritizedSourceChange(1, new plugin.SourceChange(''));
+        new plugin.PrioritizedSourceChange(1, new SourceChange(''));
 
     void runTest() {
       expect(

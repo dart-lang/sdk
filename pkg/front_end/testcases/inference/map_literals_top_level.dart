@@ -10,10 +10,10 @@ var /*@topType=Map<int, String>*/ x1 = /*@typeArgs=int, String*/ {
   2: 'y'
 };
 test1() {
-  x1[3] = 'z';
-  x1[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
-  x1[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0] = 'u';
-  x1[3] = /*error:INVALID_ASSIGNMENT*/ 42;
+  x1 /*@target=Map::[]=*/ [3] = 'z';
+  x1 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+  x1 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0] = 'u';
+  x1 /*@target=Map::[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
   Map<num, String> y = x1;
 }
 
@@ -23,11 +23,13 @@ var /*@topType=Map<num, Pattern>*/ x2 = /*@typeArgs=num, Pattern*/ {
   3.0: new RegExp('.')
 };
 test2() {
-  x2[3] = 'z';
-  x2[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
-  x2[4.0] = 'u';
-  x2[3] = /*error:INVALID_ASSIGNMENT*/ 42;
+  x2 /*@target=Map::[]=*/ [3] = 'z';
+  x2 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+  x2 /*@target=Map::[]=*/ [4.0] = 'u';
+  x2 /*@target=Map::[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
   Pattern p = null;
-  x2[2] = /*@promotedType=none*/ p;
+  x2 /*@target=Map::[]=*/ [2] = p;
   Map<int, String> y = /*info:ASSIGNMENT_CAST*/ x2;
 }
+
+main() {}

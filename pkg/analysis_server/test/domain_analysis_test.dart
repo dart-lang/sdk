@@ -14,6 +14,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
@@ -451,7 +452,7 @@ class AnalysisTestHelper {
         new MockPackageMapProvider(),
         null,
         serverPlugin,
-        new AnalysisServerOptions(),
+        new AnalysisServerOptions()..enableNewAnalysisDriver = true,
         new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
@@ -647,6 +648,9 @@ class AnalysisTestHelper {
 @reflectiveTest
 class SetSubscriptionsTest extends AbstractAnalysisTest {
   Map<String, List<HighlightRegion>> filesHighlights = {};
+
+  @override
+  bool get enableNewAnalysisDriver => false;
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_HIGHLIGHTS) {

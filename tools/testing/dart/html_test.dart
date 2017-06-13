@@ -27,9 +27,11 @@ HtmlTestInformation getInformation(String filename) {
         " Should end in _htmltest.html.");
     return null;
   }
-  String contents = new File(filename).readAsStringSync();
+
+  var contents = new File(filename).readAsStringSync();
   var match = htmlAnnotation.firstMatch(contents);
   if (match == null) return null;
+
   var annotation = JSON.decode(match[1]);
   if (annotation is! Map ||
       annotation['expectedMessages'] is! List ||
@@ -38,8 +40,11 @@ HtmlTestInformation getInformation(String filename) {
         " Should have {'scripts':[...], 'expectedMessages':[...]}");
     return null;
   }
-  return new HtmlTestInformation(new Path(filename),
-      annotation['expectedMessages'], annotation['scripts']);
+
+  return new HtmlTestInformation(
+      new Path(filename),
+      new List<String>.from(annotation['expectedMessages'] as List),
+      new List<String>.from(annotation['scripts'] as List));
 }
 
 String getContents(HtmlTestInformation info, bool compileToJS) {

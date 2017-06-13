@@ -8,26 +8,22 @@ import 'dart:async' show Future;
 
 import 'package:kernel/ast.dart' show Class;
 
-import 'dill_loader.dart' show DillLoader;
+import 'package:kernel/target/targets.dart' show Target;
 
-import '../errors.dart' show inputError, internalError;
-
-import '../target_implementation.dart' show TargetImplementation;
-
-import '../ticker.dart' show Ticker;
-
-import '../translate_uri.dart' show TranslateUri;
-
+import '../errors.dart' show internalError;
 import '../kernel/kernel_builder.dart' show ClassBuilder;
-
+import '../target_implementation.dart' show TargetImplementation;
+import '../ticker.dart' show Ticker;
+import '../translate_uri.dart' show TranslateUri;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
+import 'dill_loader.dart' show DillLoader;
 
 class DillTarget extends TargetImplementation {
   bool isLoaded = false;
   DillLoader loader;
 
-  DillTarget(Ticker ticker, TranslateUri uriTranslator)
-      : super(ticker, uriTranslator) {
+  DillTarget(Ticker ticker, TranslateUri uriTranslator, Target backendTarget)
+      : super(ticker, uriTranslator, backendTarget) {
     loader = new DillLoader(this);
   }
 
@@ -37,25 +33,24 @@ class DillTarget extends TargetImplementation {
   }
 
   void read(Uri uri) {
-    if (loader.input == null) {
-      loader.input = uri;
-    } else {
-      inputError(uri, -1, "Can only read one dill file.");
-    }
+    internalError("Unsupported operation.");
   }
 
-  Future<Null> writeProgram(Uri uri) {
+  @override
+  Future<Null> buildProgram() {
     return internalError("not implemented.");
   }
 
-  Future<Null> writeOutline(Uri uri) async {
-    if (loader.input == null) return null;
-    await loader.buildOutlines();
+  @override
+  Future<Null> buildOutlines() async {
+    if (loader.libraries.isNotEmpty) {
+      await loader.buildOutlines();
+    }
     isLoaded = true;
-    return null;
   }
 
-  DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri) {
+  DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, bool isPatch) {
+    assert(!isPatch);
     return new DillLibraryBuilder(uri, loader);
   }
 

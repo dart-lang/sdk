@@ -557,10 +557,10 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
 
   Iterator<E> get iterator => new _ListQueueIterator<E>(this);
 
-  void forEach(void action(E element)) {
+  void forEach(void f(E element)) {
     int modificationCount = _modificationCount;
     for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
-      action(_table[i]);
+      f(_table[i]);
       _checkModification(modificationCount);
     }
   }

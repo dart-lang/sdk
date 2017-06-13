@@ -22,44 +22,30 @@ bool DEBUG_MODE = false;
 /// Assert that [DEBUG_MODE] is `true` and provide [message] as part of the
 /// error message.
 assertDebugMode(String message) {
-  assert(invariant(NO_LOCATION_SPANNABLE, DEBUG_MODE,
-      message: 'Debug mode is not enabled: $message'));
+  assert(DEBUG_MODE,
+      failedAt(NO_LOCATION_SPANNABLE, 'Debug mode is not enabled: $message'));
 }
 
-/**
- * Throws a [SpannableAssertionFailure] if [condition] is
- * [:false:]. [condition] must be either a [:bool:] or a no-arg
- * function returning a [:bool:].
- *
- * Use this method to provide better information for assertion by calling
- * [invariant] as the argument to an [:assert:] statement:
- *
- *     assert(invariant(position, isValid));
- *
- * [spannable] must be non-null and will be used to provide positional
- * information in the generated error message.
- */
-bool invariant(Spannable spannable, var condition, {var message: null}) {
+/// Throws a [SpannableAssertionFailure].
+///
+/// Use this method to provide better information for assertion by calling
+/// [failedAt] as the second argument to an `assert` statement:
+///
+///     assert(condition, failedAt(position, message));
+///
+/// [spannable] must be non-null and will be used to provide positional
+/// information in the generated error message.
+bool failedAt(Spannable spannable, [var message]) {
   // TODO(johnniwinther): Use [spannable] and [message] to provide better
   // information on assertion errors.
   if (spannable == null) {
-    throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
-        "Spannable was null for invariant. Use CURRENT_ELEMENT_SPANNABLE.");
+    throw new SpannableAssertionFailure(
+        CURRENT_ELEMENT_SPANNABLE,
+        'Spannable was null for failedInvariant. '
+        'Use CURRENT_ELEMENT_SPANNABLE.');
   }
-  if (condition is Function) {
-    condition = condition();
-    if (condition is String) {
-      message = condition;
-      condition = false;
-    }
+  if (message is Function) {
+    message = message();
   }
-  if (!condition) {
-    if (message is Function) {
-      message = message();
-    }
-    throw new SpannableAssertionFailure(spannable, message);
-  }
-  return true;
+  throw new SpannableAssertionFailure(spannable, message);
 }
-
-typedef void InternalErrorFunction(Spannable location, String message);

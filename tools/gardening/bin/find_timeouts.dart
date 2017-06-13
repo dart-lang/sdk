@@ -11,13 +11,14 @@ import 'package:args/args.dart';
 import 'package:gardening/src/buildbot_data.dart';
 import 'package:gardening/src/buildbot_loading.dart';
 import 'package:gardening/src/buildbot_structures.dart';
+import 'package:gardening/src/client.dart';
 import 'package:gardening/src/logdog.dart' as logdog;
 import 'package:gardening/src/util.dart';
 
+// TODO(johnniwinther): Adjustments needed: this script may run with
+// no output for a long time. Hence not yet run by bot.dart.
 main(List<String> args) async {
   ArgParser argParser = createArgParser();
-  argParser.addFlag('logdog',
-      negatable: false, help: "Pull test results from logdog.");
   argParser.addOption('start',
       defaultsTo: '-2',
       help: "Start pulling from the specified <build-number>.\n"
@@ -25,6 +26,11 @@ main(List<String> args) async {
           "for instance -2 for the second-to-last build.'");
   ArgResults argResults = argParser.parse(args);
   processArgResults(argResults);
+
+  BuildbotClient client = argResults['logdog']
+      ? new LogdogBuildbotClient()
+      : new HttpBuildbotClient();
+
   List<String> arguments = argResults.rest;
   if (arguments.length > 1) {
     print('Usage: find_timeouts.dart [options] [<count>]');
@@ -37,24 +43,20 @@ main(List<String> args) async {
   if (arguments.length > 0) {
     buildNumberCount = int.parse(arguments[0]);
   }
-  int buildNumberOffset = int.parse(argResults['start']);
+  int buildNumberOffset;
+  if (argResults.wasParsed('start')) {
+    buildNumberOffset = int.parse(argResults['start']);
+  } else {
+    buildNumberOffset = client.mostRecentBuildNumber;
+  }
 
-  bool useLogDog = argResults['logdog'];
-
-  HttpClient client = new HttpClient();
   BuildGroup group =
       buildGroups.firstWhere((g) => g.groupName == 'dart2js-windows');
   Map<String, List<Timeout>> timeouts = <String, List<Timeout>>{};
   for (BuildSubgroup subgroup in group.subgroups) {
-    if (useLogDog) {
-      await readLogDogResults(subgroup, timeouts,
-          buildNumberOffset: buildNumberOffset,
-          buildNumberCount: buildNumberCount);
-    } else {
-      await readBuildBotResults(client, subgroup, timeouts,
-          buildNumberOffset: buildNumberOffset,
-          buildNumberCount: buildNumberCount);
-    }
+    await readBuildBotResults(client, subgroup, timeouts,
+        buildNumberOffset: buildNumberOffset,
+        buildNumberCount: buildNumberCount);
   }
 
   List<String> sorted = timeouts.keys.toList()
@@ -81,7 +83,8 @@ Future readLogDogResults(
   for (String shardName in subgroupPaths.keys) {
     String subgroupPath = subgroupPaths[shardName];
     List<int> buildNumbers = <int>[];
-    for (String line in logdog.ls(subgroupPath).split('\n')) {
+    String text = await logdog.ls(subgroupPath);
+    for (String line in text.split('\n')) {
       line = line.trim();
       if (line.isNotEmpty) {
         buildNumbers.add(int.parse(line));
@@ -112,13 +115,13 @@ Future readLogDogResults(
   }
 }
 
-Future readBuildBotResults(HttpClient client, BuildSubgroup subgroup,
+Future readBuildBotResults(BuildbotClient client, BuildSubgroup subgroup,
     Map<String, List<Timeout>> timeouts,
     {int buildNumberOffset, int buildNumberCount}) async {
   List<BuildUri> buildUris = subgroup.createUris(buildNumberOffset);
   for (BuildUri buildUri in buildUris) {
     for (int i = 0; i < buildNumberCount; i++) {
-      BuildResult result = await readBuildResult(client, buildUri);
+      BuildResult result = await client.readResult(buildUri);
       for (TestFailure timeout in result.timeouts) {
         timeouts
             .putIfAbsent(timeout.id.testName, () => <Timeout>[])

@@ -87,7 +87,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ add(R2, ZR, Operand(R4, LSL, 3));
   __ add(R2, FP, Operand(R2));  // Compute argv.
   // Set argv in NativeArguments.
-  __ AddImmediate(R2, R2, kParamEndSlotFromFp * kWordSize);
+  __ AddImmediate(R2, kParamEndSlotFromFp * kWordSize);
 
   ASSERT(retval_offset == 3 * kWordSize);
   __ AddImmediate(R3, R2, kWordSize);
@@ -417,7 +417,7 @@ static void PushArgumentsArray(Assembler* assembler) {
   // R2: smi-tagged argument count, may be zero (was preserved by the stub).
   __ Push(R0);  // Array is in R0 and on top of stack.
   __ add(R1, FP, Operand(R2, LSL, 2));
-  __ AddImmediate(R1, R1, kParamEndSlotFromFp * kWordSize);
+  __ AddImmediate(R1, kParamEndSlotFromFp * kWordSize);
   __ AddImmediate(R3, R0, Array::data_offset() - kHeapObjectTag);
   // R1: address of first argument on stack.
   // R3: address of first argument in array.
@@ -427,8 +427,8 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ b(&loop_exit, LE);
   __ Bind(&loop);
   __ ldr(R7, Address(R1));
-  __ AddImmediate(R1, R1, -kWordSize);
-  __ AddImmediate(R3, R3, kWordSize);
+  __ AddImmediate(R1, -kWordSize);
+  __ AddImmediate(R3, kWordSize);
   __ AddImmediateSetFlags(R2, R2, -Smi::RawValue(1));
   __ str(R7, Address(R3, -kWordSize));
   __ b(&loop, GE);
@@ -627,6 +627,13 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ Push(R6);  // Receiver.
   __ Push(R5);  // ICData/MegamorphicCache.
   __ Push(R4);  // Arguments descriptor.
+
+  // Adjust arguments count.
+  __ LoadFieldFromOffset(R3, R4, ArgumentsDescriptor::type_args_len_offset());
+  __ AddImmediate(TMP, R2, Smi::RawValue(1));  // Include the type arguments.
+  __ cmp(R3, Operand(0));
+  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP.
+
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
   const intptr_t kNumArgs = 4;
@@ -723,8 +730,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R2: array length as Smi.
   // R8: heap.
   __ LoadFromOffset(R0, R8, Heap::TopOffset(space));
-  intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ LoadImmediate(R3, fixed_size);
+  intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawArray) + kObjectAlignment - 1;
+  __ LoadImmediate(R3, fixed_size_plus_alignment_padding);
   __ add(R3, R3, Operand(R2, LSL, 2));  // R2 is Smi.
   ASSERT(kSmiTagShift == 1);
   __ andi(R3, R3, Immediate(~(kObjectAlignment - 1)));
@@ -797,7 +805,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ CompareRegisters(R1, R7);
   __ b(&done, CS);
   __ str(TMP, Address(R1));  // Store if unsigned lower.
-  __ AddImmediate(R1, R1, kWordSize);
+  __ AddImmediate(R1, kWordSize);
   __ b(&loop);  // Loop until R1 == R7.
   __ Bind(&done);
 
@@ -894,7 +902,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Compute address of 'arguments array' data area into R2.
   __ LoadFromOffset(R2, R2, VMHandles::kOffsetOfRawPtrInHandle);
-  __ AddImmediate(R2, R2, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R2, Array::data_offset() - kHeapObjectTag);
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -969,8 +977,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label slow_case;
     // First compute the rounded instance size.
     // R1: number of context variables.
-    intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
-    __ LoadImmediate(R2, fixed_size);
+    intptr_t fixed_size_plus_alignment_padding =
+        sizeof(RawContext) + kObjectAlignment - 1;
+    __ LoadImmediate(R2, fixed_size_plus_alignment_padding);
     __ add(R2, R2, Operand(R1, LSL, 3));
     ASSERT(kSmiTagShift == 1);
     __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));
@@ -1222,7 +1231,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ CompareRegisters(R4, R3);
       __ b(&done, CS);
       __ str(R0, Address(R4));
-      __ AddImmediate(R4, R4, kWordSize);
+      __ AddImmediate(R4, kWordSize);
       __ b(&init_loop);
       __ Bind(&done);
     }
@@ -1285,6 +1294,12 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ Push(R6);
   __ Push(R4);
 
+  // Adjust arguments count.
+  __ LoadFieldFromOffset(R3, R4, ArgumentsDescriptor::type_args_len_offset());
+  __ AddImmediate(TMP, R2, Smi::RawValue(1));  // Include the type arguments.
+  __ cmp(R3, Operand(0));
+  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP.
+
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
 
@@ -1331,7 +1346,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
     __ LoadFieldFromOffset(func_reg, ic_reg, ICData::owner_offset());
     __ LoadFieldFromOffset(R7, func_reg, Function::usage_counter_offset(),
                            kWord);
-    __ AddImmediate(R7, R7, 1);
+    __ AddImmediate(R7, 1);
     __ StoreFieldToOffset(R7, func_reg, Function::usage_counter_offset(),
                           kWord);
   }
@@ -1377,7 +1392,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   // R5: IC data object (preserved).
   __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset());
   // R6: ic_data_array with check entries: classes and target functions.
-  __ AddImmediate(R6, R6, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R6, Array::data_offset() - kHeapObjectTag);
 // R6: points directly to the first ic data array element.
 #if defined(DEBUG)
   // Check that first entry is for Smi/Smi.
@@ -1462,7 +1477,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // R5: IC data object (preserved).
   __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset());
   // R6: ic_data_array with check entries: classes and target functions.
-  __ AddImmediate(R6, R6, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R6, Array::data_offset() - kHeapObjectTag);
   // R6: points directly to the first ic data array element.
 
   // Get the receiver's class ID (first read number of arguments from
@@ -1503,7 +1518,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
     const intptr_t entry_size =
         ICData::TestEntryLengthFor(num_args) * kWordSize;
-    __ AddImmediate(R6, R6, entry_size);  // Next entry.
+    __ AddImmediate(R6, entry_size);  // Next entry.
 
     __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));  // Done?
     if (unroll == 0) {
@@ -1682,7 +1697,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // R5: IC data object (preserved).
   __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset());
   // R6: ic_data_array with entries: target functions and count.
-  __ AddImmediate(R6, R6, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R6, Array::data_offset() - kHeapObjectTag);
   // R6: points directly to the first ic data array element.
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
@@ -1826,7 +1841,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // R6: instance class id.
   // R4: instance type arguments (null if none), used only if n > 1.
   __ LoadFieldFromOffset(R3, R3, SubtypeTestCache::cache_offset());
-  __ AddImmediate(R3, R3, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R3, Array::data_offset() - kHeapObjectTag);
 
   Label loop, found, not_found, next_iteration;
   // R3: entry start.
@@ -1869,7 +1884,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     }
   }
   __ Bind(&next_iteration);
-  __ AddImmediate(R3, R3, kWordSize * SubtypeTestCache::kTestEntryLength);
+  __ AddImmediate(R3, kWordSize * SubtypeTestCache::kTestEntryLength);
   __ b(&loop);
   // Fall through to not found.
   __ Bind(&not_found);
@@ -1918,8 +1933,8 @@ void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
-  __ mov(R0, SP);
+void StubCode::GenerateGetCStackPointerStub(Assembler* assembler) {
+  __ mov(R0, CSP);
   __ ret();
 }
 
@@ -2184,7 +2199,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ b(&load_target, EQ);  // branch if miss.
 
   // Try next extry in the table.
-  __ AddImmediate(R3, R3, Smi::RawValue(1));
+  __ AddImmediate(R3, Smi::RawValue(1));
   __ b(&loop);
 
   // Load cid for the Smi case.
@@ -2204,7 +2219,7 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
   // R1: receiver cid as Smi
@@ -2217,7 +2232,7 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   __ b(&miss, EQ);
 
   const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
-  __ AddImmediate(R8, R8, entry_length);  // Next entry.
+  __ AddImmediate(R8, entry_length);  // Next entry.
   __ b(&loop);
 
   __ Bind(&found);
@@ -2239,7 +2254,7 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
   // R1: receiver cid as Smi
@@ -2252,7 +2267,7 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ b(&miss, EQ);
 
   const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
-  __ AddImmediate(R8, R8, entry_length);  // Next entry.
+  __ AddImmediate(R8, entry_length);  // Next entry.
   __ b(&loop);
 
   __ Bind(&found);
@@ -2302,9 +2317,9 @@ void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
   Label miss;
   __ LoadClassIdMayBeSmi(R1, R0);
   __ ldr(R2, FieldAddress(R5, SingleTargetCache::lower_limit_offset()),
-         kUnsignedWord);
+         kUnsignedHalfword);
   __ ldr(R3, FieldAddress(R5, SingleTargetCache::upper_limit_offset()),
-         kUnsignedWord);
+         kUnsignedHalfword);
 
   __ cmp(R1, Operand(R2));
   __ b(&miss, LT);

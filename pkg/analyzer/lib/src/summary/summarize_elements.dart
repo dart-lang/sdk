@@ -7,12 +7,12 @@ library serialization.elements;
 import 'dart:convert';
 
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
+import 'package:front_end/src/base/api_signature.dart';
 
 /**
  * Object that gathers information uses it to assemble a new

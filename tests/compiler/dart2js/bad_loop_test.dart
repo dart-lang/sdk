@@ -33,7 +33,7 @@ main() {
   }
 
   CompilerImpl compiler = new CompilerImpl(
-      new LegacyCompilerInput(provider.readUtf8BytesFromUri),
+      provider,
       new LegacyCompilerOutput(),
       new LegacyCompilerDiagnostics(diagnosticHandler),
       new CompilerOptions(libraryRoot: libraryRoot, packageRoot: packageRoot));

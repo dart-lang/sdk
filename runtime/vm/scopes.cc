@@ -284,8 +284,42 @@ static bool IsFilteredIdentifier(const String& str) {
 }
 
 
-RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
+RawLocalVarDescriptors* LocalScope::GetVarDescriptors(
+    const Function& func,
+    ZoneGrowableArray<intptr_t>* context_level_array) {
   GrowableArray<VarDesc> vars(8);
+
+  // Record deopt-id -> context-level mappings, using ranges of deopt-ids with
+  // the same context-level. [context_level_array] contains (deopt_id,
+  // context_level) tuples.
+  for (intptr_t start = 0; start < context_level_array->length();) {
+    intptr_t start_deopt_id = (*context_level_array)[start];
+    intptr_t start_context_level = (*context_level_array)[start + 1];
+    intptr_t end = start;
+    intptr_t end_deopt_id = start_deopt_id;
+    for (intptr_t peek = start + 2; peek < context_level_array->length();
+         peek += 2) {
+      intptr_t peek_deopt_id = (*context_level_array)[peek];
+      intptr_t peek_context_level = (*context_level_array)[peek + 1];
+      // The range encoding assumes the tuples have ascending deopt_ids.
+      ASSERT(peek_deopt_id > end_deopt_id);
+      if (peek_context_level != start_context_level) break;
+      end = peek;
+      end_deopt_id = peek_deopt_id;
+    }
+
+    VarDesc desc;
+    desc.name = &Symbols::Empty();  // No name.
+    desc.info.set_kind(RawLocalVarDescriptors::kContextLevel);
+    desc.info.scope_id = 0;
+    desc.info.begin_pos = TokenPosition(start_deopt_id);
+    desc.info.end_pos = TokenPosition(end_deopt_id);
+    desc.info.set_index(start_context_level);
+    vars.Add(desc);
+
+    start = end + 2;
+  }
+
   // First enter all variables from scopes of outer functions.
   const ContextScope& context_scope =
       ContextScope::Handle(func.context_scope());
@@ -333,16 +367,6 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
 void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
                                        int16_t* scope_id) {
   (*scope_id)++;
-  if (num_context_variables() > 0) {
-    VarDesc desc;
-    desc.name = &Symbols::Empty();  // No name.
-    desc.info.set_kind(RawLocalVarDescriptors::kContextLevel);
-    desc.info.scope_id = *scope_id;
-    desc.info.begin_pos = begin_token_pos();
-    desc.info.end_pos = end_token_pos();
-    desc.info.set_index(context_level());
-    vars->Add(desc);
-  }
   for (int i = 0; i < this->variables_.length(); i++) {
     LocalVariable* var = variables_[i];
     if ((var->owner() == this) && !var->is_invisible()) {

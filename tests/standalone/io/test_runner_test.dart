@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
-import "dart:isolate";
 import "dart:async";
+import "../../../tools/testing/dart/configuration.dart";
+import "../../../tools/testing/dart/expectation.dart";
+import "../../../tools/testing/dart/options.dart";
 import "../../../tools/testing/dart/test_runner.dart";
 import "../../../tools/testing/dart/test_suite.dart";
 import "../../../tools/testing/dart/test_progress.dart" as progress;
-import "../../../tools/testing/dart/status_file_parser.dart";
-import "../../../tools/testing/dart/test_options.dart";
+import "../../../tools/testing/dart/utils.dart";
 import "process_test_util.dart";
 
 final DEFAULT_TIMEOUT = 20;
@@ -66,20 +67,21 @@ class TestController {
 }
 
 class CustomTestSuite extends TestSuite {
-  CustomTestSuite(Map configuration) : super(configuration, "CustomTestSuite");
+  CustomTestSuite(Configuration configuration)
+      : super(configuration, "CustomTestSuite");
 
-  void forEachTest(TestCaseEvent onTest, Map testCache, [onDone]) {
+  Future forEachTest(TestCaseEvent onTest, Map testCache, [onDone]) async {
     void enqueueTestCase(testCase) {
       TestController.numTests++;
       onTest(testCase);
     }
 
-    var testCaseCrash = _makeCrashTestCase("crash", [Expectation.CRASH]);
-    var testCasePass = _makeNormalTestCase("pass", [Expectation.PASS]);
-    var testCaseFail = _makeNormalTestCase("fail", [Expectation.FAIL]);
-    var testCaseTimeout = _makeNormalTestCase("timeout", [Expectation.TIMEOUT]);
+    var testCaseCrash = _makeCrashTestCase("crash", [Expectation.crash]);
+    var testCasePass = _makeNormalTestCase("pass", [Expectation.pass]);
+    var testCaseFail = _makeNormalTestCase("fail", [Expectation.fail]);
+    var testCaseTimeout = _makeNormalTestCase("timeout", [Expectation.timeout]);
     var testCaseFailUnexpected =
-        _makeNormalTestCase("fail-unexpected", [Expectation.PASS]);
+        _makeNormalTestCase("fail-unexpected", [Expectation.pass]);
 
     enqueueTestCase(testCaseCrash);
     enqueueTestCase(testCasePass);
@@ -112,8 +114,7 @@ class CustomTestSuite extends TestSuite {
   }
 
   _makeTestCase(name, timeout, command, expectations) {
-    var configuration =
-        new TestOptionsParser().parse(['--timeout', '$timeout'])[0];
+    var configuration = new OptionsParser().parse(['--timeout', '$timeout'])[0];
     return new TestCase(name, [command], configuration,
         new Set<Expectation>.from(expectations));
   }
@@ -122,7 +123,7 @@ class CustomTestSuite extends TestSuite {
 void testProcessQueue() {
   var maxProcesses = 2;
   var maxBrowserProcesses = maxProcesses;
-  var config = new TestOptionsParser().parse(['--nobatch'])[0];
+  var config = new OptionsParser().parse(['--noBatch'])[0];
   new ProcessQueue(
       config,
       maxProcesses,

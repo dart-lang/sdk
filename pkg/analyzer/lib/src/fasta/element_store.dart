@@ -79,6 +79,8 @@ class ElementStoreImplementation implements ElementStore {
         do {
           if (builder is ClassBuilder) {
             elements[builder] = new KernelClassElement(builder);
+          } else if (builder is KernelFunctionTypeAliasBuilder) {
+            elements[builder] = new KernelFunctionTypeAliasElement(builder);
           } else if (builder is DillMemberBuilder) {
             Member member = builder.member;
             if (member is Field) {} else if (member is Procedure) {
@@ -286,6 +288,27 @@ class KernelClassElement extends MockClassElement {
 
   KernelClassElement(this.builder) {
     rawType = new KernelInterfaceType(this);
+  }
+}
+
+class KernelFunctionTypeAliasElement extends MockFunctionTypeAliasElement {
+  final KernelFunctionTypeAliasBuilder builder;
+
+  KernelFunctionTypeAliasElement(this.builder);
+
+  @override
+  analyzer.DartType get returnType {
+    return internalError("not supported.");
+  }
+
+  @override
+  analyzer.FunctionType get type {
+    return internalError("not supported.");
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters {
+    return internalError("not supported.");
   }
 }
 

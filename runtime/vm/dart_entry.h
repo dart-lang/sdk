@@ -24,7 +24,8 @@ class RawObject;
 class RawString;
 class String;
 
-// An arguments descriptor array consists of the total argument count; the
+// An arguments descriptor array consists of the type argument vector length (0
+// if none); total argument count (not counting type argument vector); the
 // positional argument count; a sequence of (name, position) pairs, sorted
 // by name, for each named optional argument; and a terminating null to
 // simplify iterating in generated code.
@@ -33,6 +34,7 @@ class ArgumentsDescriptor : public ValueObject {
   explicit ArgumentsDescriptor(const Array& array);
 
   // Accessors.
+  intptr_t TypeArgsLen() const;
   intptr_t Count() const;
   intptr_t PositionalCount() const;
   intptr_t NamedCount() const { return Count() - PositionalCount(); }
@@ -41,6 +43,7 @@ class ArgumentsDescriptor : public ValueObject {
   bool MatchesNameAt(intptr_t i, const String& other) const;
 
   // Generated code support.
+  static intptr_t type_args_len_offset();
   static intptr_t count_offset();
   static intptr_t positional_count_offset();
   static intptr_t first_named_entry_offset();
@@ -49,13 +52,19 @@ class ArgumentsDescriptor : public ValueObject {
   static intptr_t named_entry_size() { return kNamedEntrySize * kWordSize; }
 
   // Allocate and return an arguments descriptor.  The first
-  // (count - optional_arguments_names.Length()) arguments are
+  // (num_arguments - optional_arguments_names.Length()) arguments are
   // positional and the remaining ones are named optional arguments.
-  static RawArray* New(intptr_t count, const Array& optional_arguments_names);
+  // The presence of a type argument vector as first argument (not counted in
+  // num_arguments) is indicated by a non-zero type_args_len.
+  static RawArray* New(intptr_t type_args_len,
+                       intptr_t num_arguments,
+                       const Array& optional_arguments_names);
 
   // Allocate and return an arguments descriptor that has no optional
-  // arguments. All arguments are positional.
-  static RawArray* New(intptr_t count);
+  // arguments. All arguments are positional. The presence of a type argument
+  // vector as first argument (not counted in num_arguments) is indicated
+  // by a non-zero type_args_len.
+  static RawArray* New(intptr_t type_args_len, intptr_t num_arguments);
 
   // Initialize the preallocated fixed length arguments descriptors cache.
   static void InitOnce();
@@ -64,7 +73,9 @@ class ArgumentsDescriptor : public ValueObject {
 
  private:
   // Absolute indexes into the array.
+  // Keep these in sync with the constants in invocation_mirror_patch.dart.
   enum {
+    kTypeArgsLenIndex,
     kCountIndex,
     kPositionalCountIndex,
     kFirstNamedEntryIndex,
@@ -77,12 +88,13 @@ class ArgumentsDescriptor : public ValueObject {
     kNamedEntrySize,
   };
 
-  static intptr_t LengthFor(intptr_t count) {
+  static intptr_t LengthFor(intptr_t num_named_arguments) {
     // Add 1 for the terminating null.
-    return kFirstNamedEntryIndex + (kNamedEntrySize * count) + 1;
+    return kFirstNamedEntryIndex + (kNamedEntrySize * num_named_arguments) + 1;
   }
 
-  static RawArray* NewNonCached(intptr_t count, bool canonicalize = true);
+  static RawArray* NewNonCached(intptr_t num_arguments,
+                                bool canonicalize = true);
 
   // Used by Simulator to parse argument descriptors.
   static intptr_t name_index(intptr_t index) {
@@ -120,7 +132,8 @@ class DartEntry : public AllStatic {
   // Invokes the specified instance function or static function.
   // The first argument of an instance function is the receiver.
   // On success, returns a RawInstance.  On failure, a RawError.
-  // This is used when there are no named arguments in the call.
+  // This is used when there is no type argument vector and
+  // no named arguments in the call.
   static RawObject* InvokeFunction(const Function& function,
                                    const Array& arguments);
 
@@ -134,7 +147,8 @@ class DartEntry : public AllStatic {
 
   // Invokes the closure object given as the first argument.
   // On success, returns a RawInstance.  On failure, a RawError.
-  // This is used when there are no named arguments in the call.
+  // This is used when there is no type argument vector and
+  // no named arguments in the call.
   static RawObject* InvokeClosure(const Array& arguments);
 
   // Invokes the closure object given as the first argument.

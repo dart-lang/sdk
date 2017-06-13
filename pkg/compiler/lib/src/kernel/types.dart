@@ -5,7 +5,7 @@
 part of dart2js.kernel.element_map;
 
 /// Support for subtype checks of kernel based [DartType]s.
-class _KernelDartTypes implements DartTypes {
+class _KernelDartTypes extends DartTypes {
   final KernelToElementMapImpl elementMap;
   final SubtypeVisitor subtypeVisitor;
   final PotentialSubtypeVisitor potentialSubtypeVisitor;
@@ -31,13 +31,42 @@ class _KernelDartTypes implements DartTypes {
   }
 
   @override
+  InterfaceType getThisType(ClassEntity cls) {
+    return elementMap.getThisType(cls);
+  }
+
+  @override
   InterfaceType getSupertype(ClassEntity cls) {
     return elementMap._getSuperType(cls);
   }
 
   @override
+  Iterable<InterfaceType> getSupertypes(ClassEntity cls) {
+    return elementMap._getOrderedTypeSet(cls).supertypes;
+  }
+
+  @override
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
     return elementMap._asInstanceOf(type, cls);
+  }
+
+  @override
+  DartType substByContext(DartType base, InterfaceType context) {
+    return elementMap._substByContext(base, context);
+  }
+
+  @override
+  FunctionType getCallType(InterfaceType type) {
+    // TODO(johnniwinther): Compute the call type.
+    return null;
+  }
+
+  @override
+  void checkTypeVariableBounds(
+      InterfaceType type,
+      void checkTypeVariableBound(InterfaceType type, DartType typeArgument,
+          TypeVariableType typeVariable, DartType bound)) {
+    throw new UnimplementedError('_KernelDartTypes.checkTypeVariableBounds');
   }
 
   @override
@@ -53,7 +82,7 @@ class _KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
             objectType: elementMap.commonElements.objectType);
 
   InterfaceType getThisType(ClassEntity cls) {
-    return elementMap._getThisType(cls);
+    return elementMap.getThisType(cls);
   }
 
   InterfaceType substByContext(InterfaceType type, InterfaceType context) {

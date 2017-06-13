@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library source.caching_pub_package_map_provider;
-
 import 'dart:convert';
 import 'dart:core';
 import 'dart:io' as io;

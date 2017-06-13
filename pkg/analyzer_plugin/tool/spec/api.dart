@@ -358,6 +358,8 @@ class TypeDefinition extends ApiNode {
   final String name;
   final TypeDecl type;
 
+  bool isExternal = false;
+
   TypeDefinition(this.name, this.type, dom.Element html,
       {bool experimental, bool deprecated})
       : super(html, experimental, deprecated);
@@ -491,6 +493,8 @@ class TypeReference extends TypeDecl {
  */
 class Types extends ApiNode with IterableMixin<TypeDefinition> {
   final Map<String, TypeDefinition> types;
+
+  List<String> importUris = <String>[];
 
   Types(this.types, dom.Element html, {bool experimental})
       : super(html, experimental, false);

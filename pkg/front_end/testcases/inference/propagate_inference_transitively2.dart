@@ -23,8 +23,10 @@ class D {
 
 void main() {
   var /*@type=D*/ d1 = new D();
-  print(/*@promotedType=none*/ d1.c.b.a.x);
+  print(d1. /*@target=D::c*/ c. /*@target=C::b*/ b. /*@target=B::a*/ a
+      . /*@target=A::x*/ x);
 
   D d2 = new D();
-  print(/*@promotedType=none*/ d2.c.b.a.x);
+  print(d2. /*@target=D::c*/ c. /*@target=C::b*/ b. /*@target=B::a*/ a
+      . /*@target=A::x*/ x);
 }

@@ -1,0 +1,26 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Resource extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Folder extends self::Resource {
+  constructor •() → void
+    : super self::Resource::•()
+    ;
+}
+class Foo<T extends core::Object> extends core::Object {
+  constructor •(self::Foo::T t) → void
+    : super core::Object::•()
+    ;
+}
+static method getResource(core::String str) → self::Resource
+  return null;
+static method main() → dynamic {
+  core::Map<core::String, core::List<self::Folder>> map = <core::String, core::List<self::Folder>>{"pkgA": <self::Folder>[self::getResource("/pkgA/lib/")], "pkgB": <self::Folder>[self::getResource("/pkgB/lib/")]};
+  core::List<core::Map<core::String, self::Folder>> list = <core::Map<core::String, self::Folder>>[<core::String, self::Folder>{"pkgA": self::getResource("/pkgA/lib/")}, <core::String, self::Folder>{"pkgB": self::getResource("/pkgB/lib/")}];
+  self::Foo<core::List<self::Folder>> foo = new self::Foo::•<core::List<self::Folder>>(<self::Folder>[self::getResource("/pkgA/lib/")]);
+}

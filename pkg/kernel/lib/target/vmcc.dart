@@ -4,8 +4,8 @@
 library kernel.target.vmcc;
 
 import '../ast.dart' show Program;
+import '../core_types.dart' show CoreTypes;
 import '../transformations/closure_conversion.dart' as cc show transformProgram;
-
 import 'targets.dart' show TargetFlags;
 import 'vm.dart' as vm_target;
 
@@ -16,8 +16,9 @@ class VmClosureConvertedTarget extends vm_target.VmTarget {
   String get name => "vmcc";
 
   @override
-  void performGlobalTransformations(Program program) {
-    super.performGlobalTransformations(program);
-    cc.transformProgram(program);
+  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+      {void logger(String msg)}) {
+    super.performGlobalTransformations(coreTypes, program);
+    cc.transformProgram(coreTypes, program);
   }
 }

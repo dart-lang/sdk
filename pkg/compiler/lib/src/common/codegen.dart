@@ -4,23 +4,14 @@
 
 library dart2js.common.codegen;
 
-import '../common.dart';
-import '../elements/elements.dart'
-    show
-        AsyncMarker,
-        ClassElement,
-        LocalFunctionElement,
-        MemberElement,
-        ResolvedAst;
+import '../elements/elements.dart' show ClassElement, LocalFunctionElement;
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
-import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilderImpl, WorldImpactVisitor;
 import '../util/enumset.dart';
 import '../util/util.dart' show Pair, Setlet;
-import '../world.dart' show ClosedWorld;
 import 'work.dart' show WorkItem;
 
 class CodegenImpact extends WorldImpact {
@@ -118,12 +109,11 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 // TODO(johnniwinther): Split this class into interface and implementation.
 // TODO(johnniwinther): Move this implementation to the JS backend.
 class CodegenRegistry {
-  final MemberElement currentElement;
+  final MemberEntity currentElement;
   final _CodegenImpact worldImpact;
 
-  CodegenRegistry(MemberElement currentElement)
-      : this.currentElement = currentElement,
-        this.worldImpact = new _CodegenImpact();
+  CodegenRegistry(this.currentElement)
+      : this.worldImpact = new _CodegenImpact();
 
   bool get isForResolution => false;
 
@@ -181,32 +171,6 @@ class CodegenRegistry {
 }
 
 /// [WorkItem] used exclusively by the [CodegenEnqueuer].
-class CodegenWorkItem extends WorkItem {
-  CodegenRegistry registry;
-  final ResolvedAst resolvedAst;
-  final JavaScriptBackend _backend;
-  final ClosedWorld _closedWorld;
-
-  factory CodegenWorkItem(JavaScriptBackend backend, ClosedWorld closedWorld,
-      MemberElement element) {
-    // If this assertion fails, the resolution callbacks of the backend may be
-    // missing call of form registry.registerXXX. Alternatively, the code
-    // generation could spuriously be adding dependencies on things we know we
-    // don't need.
-    assert(invariant(element, element.hasResolvedAst,
-        message: "$element has no resolved ast."));
-    ResolvedAst resolvedAst = element.resolvedAst;
-    return new CodegenWorkItem.internal(resolvedAst, backend, closedWorld);
-  }
-
-  CodegenWorkItem.internal(this.resolvedAst, this._backend, this._closedWorld);
-
-  MemberElement get element => resolvedAst.element;
-
-  WorldImpact run() {
-    registry = new CodegenRegistry(element);
-    return _backend.codegen(this, _closedWorld);
-  }
-
-  String toString() => 'CodegenWorkItem(${resolvedAst.element})';
+abstract class CodegenWorkItem extends WorkItem {
+  CodegenRegistry get registry;
 }

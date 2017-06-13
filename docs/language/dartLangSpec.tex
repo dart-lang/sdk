@@ -614,14 +614,21 @@ Functions include  function declarations (\ref{functionDeclarations}), methods (
 \LMHash{}
 All functions have a signature and a body. The signature describes the formal parameters of the function, and possibly its name and return type.  A function body is either:
 \begin{itemize}
-\item A block statement  (\ref{blocks}) containing the statements  (\ref{statements}) executed by the function, optionally marked with one of the modifiers: \ASYNC, \ASYNC* or \SYNC*. In this case, if the last statement of a function is not a return statement (\ref{return}), the statement \code{\RETURN{};} is implicitly appended to the function body.
+\item A block statement (\ref{blocks}) containing the statements (\ref{statements}) executed by the function, optionally marked with one of the modifiers: \ASYNC, \ASYNC* or \SYNC*.
 
-\rationale{
-Because Dart is optionally typed, we cannot guarantee that a function that does not return a value will not be used in the context of an expression. Therefore, every function must return a value. A \RETURN{} without an expression returns \NULL{}. For generator functions, the situation is more subtle. See further discussion in section \ref{return}.
+\commentary{
+Because Dart is optionally typed, we cannot guarantee that a function that does not return a value will not be used in the context of an expression. Therefore, every function must return a value. A function body that ends without doing a throw or return will cause the function to return \NULL{}, as will a \RETURN{} without an expression. For generator functions, the situation is more subtle. See further discussion in section \ref{return}.
 }
 
 OR
-\item of the form   \code{=> $e$} which is equivalent to a body of the form \code{\{\RETURN{} $e$;\}} or the form \code{\ASYNC{} => $e$} which is equivalent to a body of the form \code{\ASYNC{} \{\RETURN{} $e$;\}}. \rationale{The other modifiers do not apply here, because they apply only to generators, discussed below, and generators do not allow the form \code{\RETURN{} $e$}; values are added to the generated stream or iterable using \YIELD{} instead.}
+\item of the form \code{=> $e$} or the form \code{\ASYNC{} => $e$}, which both return the value of the expression $e$ as if by a \code{return $e$}. \commentary{The other modifiers do not apply here, because they apply only to generators, discussed below, and generators do not allow to return a value, values are added to the generated stream or iterable using \YIELD{} instead.}
+Let $R$ be the static type of $e$
+and let $T$ be the actual return type (\ref{actualTypeOfADeclaration})
+of the function that has this body.
+It is a static warning if $T$ is not \VOID{} and either
+the function is synchronous and the static type of $R$ is not assignable to $T$,
+or the function is asynchronous and \code{Future<$flatten${$R$}>}
+is not assignable to $T$.
 
 \end{itemize}
 
@@ -910,6 +917,7 @@ metadata \ABSTRACT{}?  \CLASS{} mixinApplicationClass
 
 {\bf methodSignature:}constructorSignature initializers?;
       factoryConstructorSignature;
+% This doesn't work: `static @override foo() => 42`, but `functionSignature` starts with metadata. https://github.com/dart-lang/sdk/issues/29614
       \STATIC{}? functionSignature;
       \STATIC{}? getterSignature;
       \STATIC{}? setterSignature;
@@ -923,6 +931,7 @@ metadata \ABSTRACT{}?  \CLASS{} mixinApplicationClass
       ((\EXTERNAL{} \STATIC{}?))? getterSignature;
       ((\EXTERNAL{} \STATIC{}?))? setterSignature;
       \EXTERNAL{}? operatorSignature;
+% This doesn't work: `static @override foo() => 42`, but `functionSignature` starts with metadata. https://github.com/dart-lang/sdk/issues/29614
       ((\EXTERNAL{} \STATIC{}?))? functionSignature;
       \STATIC{} (\FINAL{} $|$ \CONST{}) type? staticFinalDeclarationList;
 %      \CONST{} type? staticFinalDeclarationList;
@@ -1411,7 +1420,14 @@ An initializer list begins with a colon, and consists of a comma-separated list 
 \end{grammar}
 
 \LMHash{}
-Let $k$ be a generative constructor.  Then $k$ may include at most one  superinitializer in its initializer list or a compile-time error occurs. If no superinitializer is provided, an implicit superinitializer of the form \SUPER{}() is added at the end of $k$'s initializer list, unless the enclosing class is class \code{Object}. It is a compile-time error if more than one initializer corresponding to a given instance variable appears in $k$'s initializer list. It is a compile-time error if $k$'s initializer list contains an initializer for a variable that is initialized by means of an initializing formal of $k$. % It is a compile-time error if  $k$'s initializer list contains an initializer for a final variable $f$ whose declaration includes an initialization expression.
+Let $k$ be a generative constructor.
+Then $k$ may include at most one superinitializer in its initializer list or a compile-time error occurs.
+If no superinitializer is provided, an implicit superinitializer of the form \SUPER{}() is added at the end of $k$'s initializer list,
+unless the enclosing class is class \code{Object}.
+It is a compile-time error if more than one initializer corresponding to a given instance variable appears in $k$'s initializer list.
+It is a compile-time error if $k$'s initializer list contains an initializer for a variable that is initialized by means of an initializing formal of $k$.
+It is a compile-time error if $k$'s initializer list contains an initializer for a final variable $f$ whose declaration includes an initialization expression.
+It is a compile-time error if $k$ includes an initializing formal for a final variable $f$ whose declaration includes an initialization expression.
 
 \LMHash{}
 Each final instance variable $f$ declared in the immediately enclosing class must have an initializer in $k$'s initializer list unless it has already been initialized by one of the following means:
@@ -1497,8 +1513,7 @@ proceeds as follows:
 
 \LMHash{}
 First, the expression $e$ is evaluated to an object $o$.
-%%STRONG_MODE: The runtime error in the next sentence will be compile-time.
-Then, the instance variable $v$ of $i$ is bound to $o$, unless $v$ is a final variable that has already been initialized, in which case a runtime error occurs.
+Then, the instance variable $v$ of $i$ is bound to $o$.
 In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interface of the class of $o$ is not a subtype of the actual type of the instance variable $v$.
 
 \LMHash{}
@@ -3706,6 +3721,10 @@ As discussed in section \ref{errorsAndWarnings}, the handling of a suspended iso
 
 \LMHash{}
 Function invocation occurs in the following cases: when a function expression  (\ref{functionExpressions}) is invoked (\ref{functionExpressionInvocation}), when a method (\ref{methodInvocation}), getter (\ref{topLevelGetterInvocation}, \ref{propertyExtraction}) or setter (\ref{assignment}) is invoked or when a constructor is invoked (either via instance creation (\ref{instanceCreation}), constructor redirection (\ref{redirectingConstructors}) or super initialization). The various kinds of function invocation differ as to how the function to be invoked, $f$,  is determined, as well as whether \THIS{} (\ref{this}) is bound. Once $f$ has been determined, the formal parameters of $f$ are bound to corresponding actual arguments. When the body of $f$ is executed it will be executed with the aforementioned bindings.
+
+\LMHash{}
+Executing a body of the form \code{=> $e$} is equivalent to executing a body of the form \code{\{ return $e$; \}}.
+Execution a body of the form \code{async => $e$} is equivalent to executing a body of the form \code{async \{ return $e$; \}}.
 
 \LMHash{}
 If $f$ is synchronous and is not a generator (\ref{functions}) then execution of the body of $f$ begins immediately.
@@ -6448,13 +6467,22 @@ Then the return statement returns the value $o$ (\ref{completion}).
 Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.
 
 \LMHash{}
-It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future<flatten(T)>} (\ref{functionExpressions}) may not be assigned to the declared return type of $f$.    Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$.
+It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future<$flatten$(T)>} (\ref{functionExpressions}) may not be assigned to the declared return type of $f$.    Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$.
 
 \LMHash{}
 Let $S$ be the runtime type of $o$. In checked mode:
 \begin{itemize}
-\item  If the body of $f$ is marked \ASYNC{} (\ref{functions}) it is a dynamic type error if $o$ is not \NULL{} (\ref{null}) and \code{Future<flatten(S)>} is not a subtype of the actual return type  (\ref{actualTypeOfADeclaration}) of $f$.
-\item Otherwise, it is a dynamic type error if $o$ is not \NULL{} and the runtime type of $o$ is not a subtype of the actual return type of $f$.
+\item  If the body of $f$ is marked \ASYNC{} (\ref{functions})
+it is a dynamic type error if $o$ is not \NULL{} (\ref{null}),
+the actual return type (\ref{actualTypeOfADeclaration}) of $f$ is not \VOID,
+and \code{Future<$flatten$(S)>} is not a subtype of the actual return type of $f$.
+% TODO(lrn): The "void foo() async { return e }" case is somewhat speculative.
+% When we disallow "return e" in a void function, we might also want to revisit
+% this rule. Currently it also covers the "void foo() async => e;" case, which
+% we might want to allow.
+\item Otherwise, it is a dynamic type error if $o$ is not \NULL{},
+the actual return type of $f$ is not \VOID{},
+and the runtime type of $o$ is not a subtype of the actual return type of $f$.
 \end{itemize}
 
 \LMHash{}
@@ -7159,35 +7187,46 @@ It's a compile-time error if the same library contains two part directives with 
 \LMLabel{scripts}
 
 \LMHash{}
-A {\em script} is a library whose exported namespace  (\ref{exports}) includes a top-level member named  \code{main}. It is a static warning if the static type of \code{main} is not assignable to a function type or is a function type with more than two required parameters.
+A {\em script} is a library whose exported namespace (\ref{exports}) includes
+a top-level function declaration named \code{main}
+that has either zero, one or two required arguments.
 
-A script $S$ may be executed as follows:
+A script $S$ is executed as follows:
 
 \LMHash{}
-First, $S$ is compiled as a library as specified above. Then, the top-level function \code{main} that is in the exported namespace of $S$ is invoked. If \code{main} has no positional parameters, it is invoked with no arguments. Otherwise if \code{main} has exactly one positional parameter, it is invoked with a single actual argument whose runtime type implements \code{List<String>}.  Otherwise \code{main} is invoked with the following two actual arguments:
+First, $S$ is compiled as a library as specified above.
+Then, the top-level function defined by \code{main}
+in the exported namespace of $S$ is invoked (\ref{functionInvocation})
+as follows:
+If \code{main} can be be called with with two positional arguments,
+it is invoked with the following two actual arguments:
 \begin{enumerate}
 \item An object whose runtime type implements \code{List<String>}.
-\item The initial message of the current isolate $i$ as determined by the invocation of \code{Isolate.spawnUri} that spawned $i$.
+\item An object specified when the current isolate $i$ was created,
+for example through the invocation of \code{Isolate.spawnUri} that spawned $i$,
+or \NULL{} if no such object was supplied.
 \end{enumerate}
+If \code{main} cannot be called with two positional arguments,
+but it can be called with one positional argument,
+it is invoked with an object whose runtime type implements \code{List<String>}
+as the only argument.
+If \code{main} cannot be called with one or two positional arguments,
+it is invoked with no arguments.
 
-\LMHash{}
-It is a run time error if $S$ does not declare or export either:
-\begin{itemize}
-\item  A top-level function named  \code{main}, or
-\item A top-level getter named  \code{main} that returns a function.
-\end{itemize}
-
-\commentary {
-Note that if \code{main} requires more than two arguments, a run time error will occur.
+\commentary{
+Note that if \code{main} requires more than two positional arguments,
+the library is not considered a script.
 }
 
-\rationale{
-The names of scripts are optional, in the interests of interactive, informal use. However, any script of long term value should be given a name as a matter of good practice.
-}
-
-\commentary {
+\commentary{
 A Dart program will typically be executed by executing a script.
 }
+
+\LMHash{}
+If a non-script library is provided where a script is expected,
+it precludes execution.
+As such, it should be reported as a compile-time error,
+even if that library compiles successfully as a non-script library.
 
 \subsection{URIs}
 \LMLabel{uris}

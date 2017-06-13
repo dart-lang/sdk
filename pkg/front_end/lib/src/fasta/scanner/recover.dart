@@ -20,7 +20,9 @@ import '../fasta_codes.dart'
         codeUnterminatedComment,
         codeUnterminatedString;
 
-import 'token.dart' show StringToken, SymbolToken, Token;
+import '../../scanner/token.dart' show Token;
+
+import 'token.dart' show StringToken;
 
 import 'error_token.dart' show NonAsciiIdentifierToken, ErrorToken;
 
@@ -131,8 +133,7 @@ Token defaultRecoveryStrategy(
   }
 
   recoverString() {
-    // TODO(ahe): Improve this.
-    return skipToEof(errorTail);
+    return errorTail.next;
   }
 
   recoverHexDigit() {
@@ -141,8 +142,7 @@ Token defaultRecoveryStrategy(
   }
 
   recoverStringInterpolation() {
-    // TODO(ahe): Improve this.
-    return skipToEof(errorTail);
+    return errorTail.next;
   }
 
   recoverComment() {
@@ -157,10 +157,9 @@ Token defaultRecoveryStrategy(
   }
 
   for (Token current = tokens; !current.isEof; current = current.next) {
-    if (current is ErrorToken) {
+    while (current is ErrorToken) {
       ErrorToken first = current;
       Token next = current;
-      bool treatAsWhitespace = false;
       do {
         current = next;
         if (errorTail == null) {
@@ -177,7 +176,7 @@ Token defaultRecoveryStrategy(
       if (code == codeEncoding ||
           code == codeNonAsciiWhitespace ||
           code == codeAsciiControlCharacter) {
-        treatAsWhitespace = true;
+        current = errorTail.next;
       } else if (code == codeNonAsciiIdentifier) {
         current = recoverIdentifier(first);
         assert(current.next != null);
@@ -200,9 +199,8 @@ Token defaultRecoveryStrategy(
         current = recoverUnmatched();
         assert(current.next != null);
       } else {
-        treatAsWhitespace = true;
+        current = errorTail.next;
       }
-      if (treatAsWhitespace) continue;
     }
     if (goodTail == null) {
       good = current;
@@ -214,7 +212,7 @@ Token defaultRecoveryStrategy(
     goodTail = current;
   }
 
-  error.previous = new SymbolToken.eof(-1)..next = error;
+  error.previous = new Token.eof(-1)..next = error;
   Token tail;
   if (good != null) {
     errorTail.next = good;
@@ -223,7 +221,7 @@ Token defaultRecoveryStrategy(
   } else {
     tail = errorTail;
   }
-  if (!tail.isEof) tail.next = new SymbolToken.eof(tail.end)..previous = tail;
+  if (!tail.isEof) tail.next = new Token.eof(tail.end)..previous = tail;
   return error;
 }
 

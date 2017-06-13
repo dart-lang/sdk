@@ -8,11 +8,12 @@ import 'dart:async' show Stream, Future;
 
 import 'dart:convert' show LineSplitter, UTF8;
 
-import 'dart:io' show File, Process;
+import 'dart:io'
+    show Directory, File, FileSystemEntity, Platform, Process, ProcessResult;
 
-import '../testing.dart' show startDart;
+import '../testing.dart' show dartArguments, startDart;
 
-import 'log.dart' show isVerbose;
+import 'log.dart' show isVerbose, splitLines;
 
 import 'suite.dart' show Suite;
 
@@ -23,7 +24,12 @@ class Analyze extends Suite {
 
   final List<RegExp> exclude;
 
-  Analyze(this.analysisOptions, this.uris, this.exclude)
+  final List<String> gitGrepPathspecs;
+
+  final List<String> gitGrepPatterns;
+
+  Analyze(this.analysisOptions, this.uris, this.exclude, this.gitGrepPathspecs,
+      this.gitGrepPatterns)
       : super("analyze", "analyze", null);
 
   Future<Null> run(Uri packages, List<Uri> extraUris) {
@@ -31,7 +37,8 @@ class Analyze extends Suite {
     if (extraUris != null) {
       allUris.addAll(extraUris);
     }
-    return analyzeUris(analysisOptions, packages, allUris, exclude);
+    return analyzeUris(analysisOptions, packages, allUris, exclude,
+        gitGrepPathspecs, gitGrepPatterns);
   }
 
   static Future<Analyze> fromJsonMap(
@@ -45,7 +52,16 @@ class Analyze extends Suite {
     List<RegExp> exclude =
         new List<RegExp>.from(json["exclude"].map((String p) => new RegExp(p)));
 
-    return new Analyze(optionsUri, uris, exclude);
+    Map gitGrep = json["git grep"];
+    List<String> gitGrepPathspecs;
+    List<String> gitGrepPatterns;
+    if (gitGrep != null) {
+      gitGrepPathspecs = gitGrep["pathspecs"] ?? const <String>["."];
+      gitGrepPatterns = gitGrep["patterns"];
+    }
+
+    return new Analyze(
+        optionsUri, uris, exclude, gitGrepPathspecs, gitGrepPatterns);
   }
 
   String toString() => "Analyze($uris, $exclude)";
@@ -126,57 +142,140 @@ Stream<AnalyzerDiagnostic> parseAnalyzerOutput(
   Stream<String> lines =
       stream.transform(UTF8.decoder).transform(new LineSplitter());
   await for (String line in lines) {
+    if (line.startsWith(">>> ")) continue;
     yield new AnalyzerDiagnostic.fromLine(line);
   }
 }
 
 /// Run dartanalyzer on all tests in [uris].
-Future<Null> analyzeUris(Uri analysisOptions, Uri packages, List<Uri> uris,
-    List<RegExp> exclude) async {
+Future<Null> analyzeUris(
+    Uri analysisOptions,
+    Uri packages,
+    List<Uri> uris,
+    List<RegExp> exclude,
+    List<String> gitGrepPathspecs,
+    List<String> gitGrepPatterns) async {
   if (uris.isEmpty) return;
+  String topLevel;
+  try {
+    topLevel = new Uri.directory(
+            await git("rev-parse", <String>["--show-toplevel"]).trimRight())
+        .toFilePath(windows: false);
+  } catch (e) {
+    topLevel = Uri.base.toFilePath(windows: false);
+  }
+
+  String toFilePath(Uri uri) {
+    String path = uri.toFilePath(windows: false);
+    return path.startsWith(topLevel) ? path.substring(topLevel.length) : path;
+  }
+
+  Set<String> filesToAnalyze = new Set<String>();
+
+  for (Uri uri in uris) {
+    if (await new Directory.fromUri(uri).exists()) {
+      await for (FileSystemEntity entity in new Directory.fromUri(uri)
+          .list(recursive: true, followLinks: false)) {
+        if (entity is File && entity.path.endsWith(".dart")) {
+          filesToAnalyze.add(toFilePath(entity.uri));
+        }
+      }
+    } else if (await new File.fromUri(uri).exists()) {
+      filesToAnalyze.add(toFilePath(uri));
+    } else {
+      throw "File not found: ${uri}";
+    }
+  }
+
+  if (gitGrepPatterns != null) {
+    List<String> arguments = <String>["-l"];
+    arguments.addAll(
+        gitGrepPatterns.expand((String pattern) => <String>["-e", pattern]));
+    arguments.add("--");
+    arguments.addAll(gitGrepPathspecs);
+    filesToAnalyze.addAll(splitLines(await git("grep", arguments))
+        .map((String line) => line.trimRight()));
+  }
+
   const String analyzerPath = "pkg/analyzer_cli/bin/analyzer.dart";
   Uri analyzer = Uri.base.resolve(analyzerPath);
   if (!await new File.fromUri(analyzer).exists()) {
-    throw "Couldn't find '$analyzerPath' in '${Uri.base.toFilePath()}'";
+    throw "Couldn't find '$analyzerPath' in '${toFilePath(Uri.base)}'";
   }
   List<String> arguments = <String>[
-    "--packages=${packages.toFilePath()}",
-    "--package-warnings",
+    "--packages=${toFilePath(packages)}",
     "--format=machine",
     "--dart-sdk=${Uri.base.resolve('sdk/').toFilePath()}",
   ];
   if (analysisOptions != null) {
-    arguments.add("--options=${analysisOptions.toFilePath()}");
+    arguments.add("--options=${toFilePath(analysisOptions)}");
   }
-  arguments.addAll(uris.map((Uri uri) => uri.toFilePath()));
+
+  filesToAnalyze = filesToAnalyze
+      .where((String path) => !exclude.any((RegExp r) => path.contains(r)))
+      .toSet();
+  arguments.addAll(filesToAnalyze);
   if (isVerbose) {
-    print("Running:\n  ${analyzer.toFilePath()} ${arguments.join(' ')}");
+    print("Running:\n  ${toFilePath(analyzer)} ${arguments.join(' ')}");
   } else {
     print("Running dartanalyzer.");
   }
   Stopwatch sw = new Stopwatch()..start();
-  Process process = await startDart(analyzer, arguments);
+  Process process = await startDart(
+      analyzer,
+      const <String>["--batch"],
+      dartArguments
+        ..remove("-c")
+        ..add("-DuseFastaScanner=true"));
+  process.stdin.writeln(arguments.join(" "));
   process.stdin.close();
-  Future stdoutFuture = parseAnalyzerOutput(process.stdout).toList();
-  Future stderrFuture = parseAnalyzerOutput(process.stderr).toList();
-  await process.exitCode;
-  List<AnalyzerDiagnostic> diagnostics = <AnalyzerDiagnostic>[];
-  diagnostics.addAll(await stdoutFuture);
-  diagnostics.addAll(await stderrFuture);
+
   bool hasOutput = false;
   Set<String> seen = new Set<String>();
-  for (AnalyzerDiagnostic diagnostic in diagnostics) {
-    String path = diagnostic.uri.path;
-    if (exclude.any((RegExp r) => path.contains(r))) continue;
-    String message = "$diagnostic";
-    if (seen.add(message)) {
-      hasOutput = true;
-      print(message);
+
+  processAnalyzerOutput(Stream<AnalyzerDiagnostic> diagnostics) async {
+    await for (AnalyzerDiagnostic diagnostic in diagnostics) {
+      if (diagnostic.uri != null) {
+        String path = toFilePath(diagnostic.uri);
+        if (diagnostic.code.startsWith("STRONG_MODE") &&
+            (path.startsWith("pkg/compiler/") ||
+                path.startsWith("tests/compiler/dart2js/"))) {
+          // Hack to work around dart2js not being strong-mode clean.
+          continue;
+        }
+        if (!filesToAnalyze.contains(path)) continue;
+      }
+      String message = "$diagnostic";
+      if (seen.add(message)) {
+        hasOutput = true;
+        print(message);
+      }
     }
   }
+
+  Future stderrFuture =
+      processAnalyzerOutput(parseAnalyzerOutput(process.stderr));
+  Future stdoutFuture =
+      processAnalyzerOutput(parseAnalyzerOutput(process.stdout));
+  await process.exitCode;
+  await stdoutFuture;
+  await stderrFuture;
+  sw.stop();
+  print("Running analyzer took: ${sw.elapsed}.");
   if (hasOutput) {
     throw "Non-empty output from analyzer.";
   }
-  sw.stop();
-  print("Running analyzer took: ${sw.elapsed}.");
+}
+
+Future<String> git(String command, Iterable<String> arguments,
+    {String workingDirectory}) async {
+  ProcessResult result = await Process.run(
+      Platform.isWindows ? "git.bat" : "git",
+      <String>[command]..addAll(arguments),
+      workingDirectory: workingDirectory);
+  if (result.exitCode != 0) {
+    throw "Non-zero exit code from git $command (${result.exitCode})\n"
+        "${result.stdout}\n${result.stderr}";
+  }
+  return result.stdout;
 }

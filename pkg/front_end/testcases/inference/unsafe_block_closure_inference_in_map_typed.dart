@@ -7,7 +7,7 @@ library test;
 
 typedef int F();
 main() {
-  var /*@type=Map<int, F() -> int>*/ v = <int, F>{
+  var /*@type=Map<int, () -> int>*/ v = <int, F>{
     1: /*@returnType=int*/ () {
       return 1;
     }

@@ -10,6 +10,7 @@ import 'dart:io';
 import 'dart:isolate' show RawReceivePort;
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:convert' show JSON;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -74,6 +75,7 @@ void usage(String mode) {
 }
 
 Future _main(List<String> argv) async {
+  if (argv.isEmpty) usage('[vm|dart2js]');
   var mode = argv.first;
   if (mode != 'vm' && mode != 'dart2js') usage('[vm|dart2js]');
   if (argv.length != 5) usage(mode);
@@ -92,23 +94,33 @@ Future _main(List<String> argv) async {
   var libContents = readInputFile(path.join(
       sdkLibIn, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'));
   if (forVm) libContents = _updateLibraryMetadata(sdkOut, libContents);
-  var sdkLibraries = _getSdkLibraries(libContents);
+  var sdkLibraries = _getSdkLibraries(libContents, forDart2js);
+
+  Map<String, String> locations = <String, String>{};
 
   // Enumerate core libraries and apply patches
   for (SdkLibrary library in sdkLibraries) {
     if (forDart2js && library.isVmLibrary) continue;
     if (forVm && library.isDart2JsLibrary) continue;
-    _applyPatch(library, sdkLibIn, patchIn, sdkOut);
+    _applyPatch(library, sdkLibIn, patchIn, sdkOut, locations);
   }
 
-  if (forVm) _copyExtraVmLibraries(sdkOut);
+  if (forVm) _copyExtraVmLibraries(sdkOut, locations);
 
   Uri platform = outDirUri.resolve('platform.dill.tmp');
+  Uri outline = outDirUri.resolve('outline.dill');
+  Uri librariesJson = outDirUri.resolve("lib/libraries.json");
   Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
+
+  await _writeSync(
+      librariesJson.toFilePath(), JSON.encode({"libraries": locations}));
+
   if (forVm) {
-    await fasta.compilePlatform(outDirUri, platform, packages: packages);
+    await fasta.compilePlatform(outDirUri, platform,
+        packages: packages, outlineOutput: outline);
   } else {
-    await dart2js.compilePlatform(outDirUri, platform, packages: packages);
+    await dart2js.compilePlatform(outDirUri, platform,
+        packages: packages, outlineOutput: outline);
   }
 
   Uri platformFinalLocation = outDirUri.resolve('platform.dill');
@@ -127,11 +139,11 @@ Future _main(List<String> argv) async {
   //    patched_dart2js_sdk to patched_sdk to ensure that file already exists.
   await fasta.writeDepsFile(Platform.script,
       Uri.base.resolveUri(new Uri.file("$outDir.d")), platformFinalLocation,
+      sdk: outDirUri,
       packages: packages,
       platform:
           forVm ? platform : outDirUri.resolve('../patched_sdk/platform.dill'),
-      extraDependencies: deps,
-      verbose: false);
+      extraDependencies: deps);
 
   await new File.fromUri(platform).rename(platformFinalLocation.toFilePath());
 }
@@ -179,7 +191,7 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
 
 /// Copy internal libraries that are developed under 'runtime/bin/' to the
 /// patched_sdk folder.
-_copyExtraVmLibraries(String sdkOut) {
+_copyExtraVmLibraries(String sdkOut, Map<String, String> locations) {
   var base = path.fromUri(Platform.script);
   var dartDir = path.dirname(path.dirname(path.absolute(base)));
 
@@ -193,6 +205,7 @@ _copyExtraVmLibraries(String sdkOut) {
     var builtinLibraryIn = path.join(dartDir, 'runtime', 'bin', dartFile);
     var builtinLibraryOut = path.join(sdkOut, vmLibrary, '${vmLibrary}.dart');
     _writeSync(builtinLibraryOut, readInputFile(builtinLibraryIn));
+    locations[vmLibrary] = path.join(vmLibrary, '${vmLibrary}.dart');
   }
 
   for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
@@ -200,15 +213,18 @@ _copyExtraVmLibraries(String sdkOut) {
     var libraryOut = path.join(sdkOut, 'vmservice_io', file);
     _writeSync(libraryOut, readInputFile(libraryIn));
   }
+  locations["vmservice_io"] = "vmservice_io/vmservice_io.dart";
 }
 
-_applyPatch(
-    SdkLibrary library, String sdkLibIn, String patchIn, String sdkOut) {
+_applyPatch(SdkLibrary library, String sdkLibIn, String patchIn, String sdkOut,
+    Map<String, String> locations) {
   var libraryOut = path.join(sdkLibIn, library.path);
   var libraryIn = libraryOut;
 
   var libraryFile = getInputFile(libraryIn, canBeMissing: true);
   if (libraryFile != null) {
+    locations[Uri.parse(library.shortName).path] =
+        path.relative(libraryOut, from: sdkLibIn);
     var outPaths = <String>[libraryOut];
     var libraryContents = libraryFile.readAsStringSync();
 
@@ -608,8 +624,8 @@ class _StringEdit implements Comparable<_StringEdit> {
   }
 }
 
-List<SdkLibrary> _getSdkLibraries(String contents) {
-  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(true);
+List<SdkLibrary> _getSdkLibraries(String contents, bool useDart2js) {
+  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(useDart2js);
   parseCompilationUnit(contents).accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
 }

@@ -10,6 +10,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
 import 'analysis_abstract.dart';
@@ -115,7 +116,6 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
 
   @override
   void setUp() {
-    enableNewAnalysisDriver = true;
     super.setUp();
     createProject();
     handler = new CompletionDomainHandler(server);

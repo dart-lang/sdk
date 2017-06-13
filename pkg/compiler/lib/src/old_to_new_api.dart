@@ -11,6 +11,7 @@ import 'dart:async' show EventSink, Future;
 
 import '../compiler.dart';
 import '../compiler_new.dart';
+import 'io/source_file.dart';
 import 'null_compiler_output.dart' show NullSink;
 
 /// Implementation of [CompilerInput] using a [CompilerInputProvider].
@@ -20,8 +21,27 @@ class LegacyCompilerInput implements CompilerInput {
   LegacyCompilerInput(this._inputProvider);
 
   @override
-  Future readFromUri(Uri uri) {
-    return _inputProvider(uri);
+  Future<Input> readFromUri(Uri uri, {InputKind inputKind: InputKind.utf8}) {
+    return _inputProvider(uri).then((/*String|List<int>*/ data) {
+      switch (inputKind) {
+        case InputKind.utf8:
+          SourceFile sourceFile;
+          if (data is List<int>) {
+            sourceFile = new Utf8BytesSourceFile(uri, data);
+          } else if (data is String) {
+            sourceFile = new StringSourceFile.fromUri(uri, data);
+          } else {
+            throw "Expected a 'String' or a 'List<int>' from the input "
+                "provider, but got: ${Error.safeToString(data)}.";
+          }
+          return sourceFile;
+        case InputKind.binary:
+          if (data is String) {
+            data = data.codeUnits;
+          }
+          return new Binary(uri, data);
+      }
+    });
   }
 }
 

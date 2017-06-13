@@ -125,31 +125,28 @@ class InstrumentationServiceTest {
   void test_logPluginNotification() {
     TestInstrumentationServer server = new TestInstrumentationServer();
     InstrumentationService service = new InstrumentationService(server);
-    Uri uri = new Uri.file('path');
     String notification = 'notification';
-    service.logPluginNotification(uri, notification);
+    service.logPluginNotification('path', notification);
     assertNormal(server, InstrumentationService.TAG_PLUGIN_NOTIFICATION,
-        'path:$notification');
+        '$notification:path::');
   }
 
   void test_logPluginRequest() {
     TestInstrumentationServer server = new TestInstrumentationServer();
     InstrumentationService service = new InstrumentationService(server);
-    Uri uri = new Uri.file('path');
     String request = 'request';
-    service.logPluginRequest(uri, request);
+    service.logPluginRequest('path', request);
     assertNormal(
-        server, InstrumentationService.TAG_PLUGIN_REQUEST, 'path:$request');
+        server, InstrumentationService.TAG_PLUGIN_REQUEST, '$request:path::');
   }
 
   void test_logPluginResponse() {
     TestInstrumentationServer server = new TestInstrumentationServer();
     InstrumentationService service = new InstrumentationService(server);
-    Uri uri = new Uri.file('path');
     String response = 'response';
-    service.logPluginResponse(uri, response);
+    service.logPluginResponse('path', response);
     assertNormal(
-        server, InstrumentationService.TAG_PLUGIN_RESPONSE, 'path:$response');
+        server, InstrumentationService.TAG_PLUGIN_RESPONSE, '$response:path::');
   }
 
   void test_logPluginTimeout() {

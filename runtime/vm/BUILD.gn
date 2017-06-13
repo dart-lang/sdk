@@ -9,7 +9,7 @@ import("gypi_contents.gni")
 import("../runtime_args.gni")
 
 config("libdart_vm_config") {
-  if (defined(is_fuchsia) && is_fuchsia) {
+  if (is_fuchsia) {
     libs = [ "magenta" ]
   } else if (is_win) {
     libs = [

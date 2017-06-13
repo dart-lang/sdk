@@ -1,0 +1,22 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test1() → dynamic {
+  dynamic x = <dynamic, dynamic>{1: "x", 2: "y"};
+  x.[]=(3, "z");
+  x.[]=("hi", "w");
+  x.[]=(4.0, "u");
+  x.[]=(3, 42);
+  core::Map<dynamic, dynamic> y = x;
+}
+static method test2() → dynamic {
+  dynamic x = <dynamic, dynamic>{1: "x", 2: "y", 3.0: throw new core::NoSuchMethodError::•(null, #RegExp, <dynamic>["."], <dynamic, dynamic>{}, null)};
+  x.[]=(3, "z");
+  x.[]=("hi", "w");
+  x.[]=(4.0, "u");
+  x.[]=(3, 42);
+  core::Pattern p = null;
+  x.[]=(2, p);
+  core::Map<dynamic, dynamic> y = x;
+}

@@ -1,0 +1,54 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Index extends core::Object {
+  constructor •() → void
+    ;
+}
+class A extends core::Object {
+  constructor •() → void
+    ;
+  operator +(self::F v) → self::C
+    ;
+  operator -(core::int i) → self::C
+    ;
+}
+class B extends self::A {
+  constructor •() → void
+    ;
+  operator +(self::E v) → self::D
+    ;
+  operator -(core::int i) → self::D
+    ;
+}
+class C extends self::B {
+  constructor •() → void
+    ;
+}
+class D extends self::C {
+  constructor •() → void
+    ;
+}
+class E extends self::D {
+  constructor •() → void
+    ;
+}
+class F extends self::E {
+  constructor •() → void
+    ;
+}
+class Test extends core::Object {
+  constructor •() → void
+    ;
+  operator [](self::Index i) → self::B
+    ;
+  operator []=(self::Index i, self::A v) → void
+    ;
+  method test() → void
+    ;
+}
+static method f<T extends core::Object>() → self::f::T
+  ;
+static method main() → dynamic
+  ;

@@ -30,6 +30,7 @@ import 'elements/modelx.dart'
         SyntheticImportElement;
 import 'enqueue.dart' show DeferredAction;
 import 'environment.dart';
+import 'io/source_file.dart' show Binary;
 import 'kernel/element_map_impl.dart' show KernelToElementMapImpl;
 import 'patch_parser.dart' show PatchParserTask;
 import 'resolved_uri_translator.dart';
@@ -835,16 +836,13 @@ class DillLibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   // away.
   Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
       {bool skipFileWithPartOfTag: false}) {
-    assert(resolvedUri.pathSegments.last.endsWith('.dill'));
+    assert(resolvedUri.pathSegments.last.endsWith('.dill'),
+        'Invalid uri: $resolvedUri');
     Uri readableUri = uriTranslator.translate(null, resolvedUri, null);
     return measure(() async {
-      Script script = await scriptLoader.readScript(readableUri, null);
+      Binary binary = await scriptLoader.readBinary(readableUri, null);
       ir.Program program = new ir.Program();
-      // Hack because the existing file has a terminating 0 and the
-      // BinaryBuilder doesn't expect that.
-      var bytes = new List<int>.from(script.file.slowUtf8ZeroTerminatedBytes());
-      bytes.removeLast();
-      new BinaryBuilder(bytes).readProgram(program);
+      new BinaryBuilder(binary.data).readProgram(program);
       return measure(() {
         return createLoadedLibraries(program);
       });
@@ -974,8 +972,8 @@ class ImportLink {
    */
   void importLibrary(
       DiagnosticReporter reporter, LibraryElementX importingLibrary) {
-    assert(invariant(importingLibrary, importedLibrary.exportsHandled,
-        message: 'Exports not handled on $importedLibrary'));
+    assert(importedLibrary.exportsHandled,
+        failedAt(importedLibrary, 'Exports not handled on $importedLibrary'));
     Import tag = import.node;
     CombinatorFilter combinatorFilter = new CombinatorFilter.fromTag(tag);
     if (tag != null && tag.prefix != null) {
@@ -1133,7 +1131,7 @@ class LibraryDependencyNode {
       LibraryElement exportedLibraryElement,
       ExportElementX export,
       CombinatorFilter filter) {
-    assert(invariant(library, exportedLibraryElement.exportsHandled));
+    assert(exportedLibraryElement.exportsHandled, failedAt(library));
     exportedLibraryElement.forEachExport((Element exportedElement) {
       if (!filter.exclude(exportedElement)) {
         Link<ExportElement> exports = pendingExportMap.putIfAbsent(
@@ -1186,8 +1184,11 @@ class LibraryDependencyNode {
 
     void createDuplicateExportMessage(
         Element duplicate, Link<ExportElement> duplicateExports) {
-      assert(invariant(library, !duplicateExports.isEmpty,
-          message: "No export for $duplicate from ${duplicate.library} "
+      assert(
+          !duplicateExports.isEmpty,
+          failedAt(
+              library,
+              "No export for $duplicate from ${duplicate.library} "
               "in $library."));
       reporter.withCurrentElement(library, () {
         for (ExportElement export in duplicateExports) {
@@ -1204,8 +1205,11 @@ class LibraryDependencyNode {
 
     void createDuplicateExportDeclMessage(
         Element duplicate, Link<ExportElement> duplicateExports) {
-      assert(invariant(library, !duplicateExports.isEmpty,
-          message: "No export for $duplicate from ${duplicate.library} "
+      assert(
+          !duplicateExports.isEmpty,
+          failedAt(
+              library,
+              "No export for $duplicate from ${duplicate.library} "
               "in $library."));
       infos.add(reporter.createMessage(
           duplicate,
@@ -1424,16 +1428,16 @@ class LibraryDependencyHandler implements LibraryLoader {
         return;
       }
       LibraryDependencyNode exportedNode = nodeMap[loadedLibrary];
-      assert(invariant(loadedLibrary, exportedNode != null,
-          message: "$loadedLibrary has not been registered"));
-      assert(invariant(library, exportingNode != null,
-          message: "$library has not been registered"));
+      assert(exportedNode != null,
+          failedAt(loadedLibrary, "$loadedLibrary has not been registered"));
+      assert(exportingNode != null,
+          failedAt(library, "$library has not been registered"));
       exportedNode.registerExportDependency(libraryDependency, exportingNode);
     } else if (libraryDependency == null || libraryDependency.isImport) {
       // [loadedLibrary] is imported by [library].
       LibraryDependencyNode importingNode = nodeMap[library];
-      assert(invariant(library, importingNode != null,
-          message: "$library has not been registered"));
+      assert(importingNode != null,
+          failedAt(library, "$library has not been registered"));
       importingNode.registerImportDependency(libraryDependency, loadedLibrary);
     }
   }
@@ -1656,6 +1660,10 @@ abstract class ScriptLoader {
   /// Load script from a readable [uri], report any errors using the location of
   /// the given [spannable].
   Future<Script> readScript(Uri uri, [Spannable spannable]);
+
+  /// Load a binary from a readable [uri], report any errors using the location
+  /// of the given [spannable].
+  Future<Binary> readBinary(Uri uri, [Spannable spannable]);
 }
 
 /// API used by the library loader to synchronously scan a library or

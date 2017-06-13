@@ -280,12 +280,20 @@ typedef simd128_value_t fpu_register_t;
 #error Automatic compiler detection failed.
 #endif
 
-// DART_UNUSED inidicates to the compiler that a variable/typedef is expected
+// DART_UNUSED indicates to the compiler that a variable or typedef is expected
 // to be unused and disables the related warning.
 #ifdef __GNUC__
 #define DART_UNUSED __attribute__((unused))
 #else
 #define DART_UNUSED
+#endif
+
+// DART_USED indicates to the compiler that a global variable or typedef is used
+// disables e.g. the gcc warning "unused-variable"
+#ifdef __GNUC__
+#define DART_USED __attribute__((used))
+#else
+#define DART_USED
 #endif
 
 // DART_NORETURN indicates to the compiler that a function does not return.
@@ -448,13 +456,7 @@ typedef intptr_t word;
 typedef uintptr_t uword;
 
 // Size of a class id.
-#if defined(ARCH_IS_32_BIT)
 typedef uint16_t classid_t;
-#elif defined(ARCH_IS_64_BIT)
-typedef uint32_t classid_t;
-#else
-#error Unexpected architecture word size
-#endif
 
 // Byte sizes.
 const int kWordSize = sizeof(word);

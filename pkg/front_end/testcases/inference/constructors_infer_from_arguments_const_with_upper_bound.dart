@@ -14,8 +14,8 @@ class D<T extends num> {
   const D();
 }
 
-void f() {
+void main() {
   const /*@type=C<int>*/ c = const /*@typeArgs=int*/ C(0);
-  C<int> c2 = /*@promotedType=none*/ c;
+  C<int> c2 = c;
   const D<int> d = const /*@typeArgs=int*/ D();
 }

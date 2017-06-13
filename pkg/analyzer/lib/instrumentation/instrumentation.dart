@@ -213,9 +213,16 @@ class InstrumentationService {
    */
   void logPluginError(
       PluginData plugin, String code, String message, String stackTrace) {
-    List<String> fields = <String>[TAG_PLUGIN_ERROR, code, message, stackTrace];
-    plugin.addToFields(fields);
-    _instrumentationServer.log(_join(fields));
+    if (_instrumentationServer != null) {
+      List<String> fields = <String>[
+        TAG_PLUGIN_ERROR,
+        code,
+        message,
+        stackTrace
+      ];
+      plugin.addToFields(fields);
+      _instrumentationServer.log(_join(fields));
+    }
   }
 
   /**
@@ -235,29 +242,32 @@ class InstrumentationService {
     }
   }
 
-  void logPluginNotification(Uri pluginUri, String notification) {
+  void logPluginNotification(String pluginId, String notification) {
     if (_instrumentationServer != null) {
       _instrumentationServer.log(
-          _join([TAG_PLUGIN_NOTIFICATION, _toString(pluginUri), notification]));
+          _join([TAG_PLUGIN_NOTIFICATION, notification, pluginId, '', '']));
     }
   }
 
-  void logPluginRequest(Uri pluginUri, String request) {
+  void logPluginRequest(String pluginId, String request) {
     if (_instrumentationServer != null) {
       _instrumentationServer
-          .log(_join([TAG_PLUGIN_REQUEST, _toString(pluginUri), request]));
+          .log(_join([TAG_PLUGIN_REQUEST, request, pluginId, '', '']));
     }
   }
 
-  void logPluginResponse(Uri pluginUri, String response) {
+  void logPluginResponse(String pluginId, String response) {
     if (_instrumentationServer != null) {
       _instrumentationServer
-          .log(_join([TAG_PLUGIN_RESPONSE, _toString(pluginUri), response]));
+          .log(_join([TAG_PLUGIN_RESPONSE, response, pluginId, '', '']));
     }
   }
 
   /**
    * Log that the given [plugin] took too long to execute the given [request].
+   * This doesn't necessarily imply that there is a problem with the plugin,
+   * only that this particular response was not included in the data returned
+   * to the client.
    */
   void logPluginTimeout(PluginData plugin, String request) {
     if (_instrumentationServer != null) {
@@ -476,9 +486,9 @@ class MulticastInstrumentationServer implements InstrumentationServer {
  */
 class PluginData {
   /**
-   * The path to the plugin.
+   * The id used to uniquely identify the plugin.
    */
-  final String path;
+  final String pluginId;
 
   /**
    * The name of the plugin.
@@ -493,19 +503,15 @@ class PluginData {
   /**
    * Initialize a newly created set of data about a plugin.
    */
-  PluginData(this.path, this.name, this.version);
+  PluginData(this.pluginId, this.name, this.version);
 
   /**
    * Add the information about the plugin to the list of [fields] to be sent to
    * the instrumentation server.
    */
   void addToFields(List<String> fields) {
-    fields.add(path);
-    if (name != null) {
-      fields.add(name);
-    }
-    if (version != null) {
-      fields.add(version);
-    }
+    fields.add(pluginId);
+    fields.add(name ?? '');
+    fields.add(version ?? '');
   }
 }

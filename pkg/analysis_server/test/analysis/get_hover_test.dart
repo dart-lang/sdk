@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.domain.analysis.hover;
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -280,6 +278,38 @@ main(A a) {
     expect(hover.isDeprecated, isFalse);
     // types
     expect(hover.staticType, '(int, String) → List<String>');
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
+  test_expression_method_invocation_genericMethod() async {
+    addTestFile('''
+library my.library;
+
+abstract class Stream<T> {
+  Stream<S> transform<S>(StreamTransformer<T, S> streamTransformer);
+}
+abstract class StreamTransformer<T, S> {}
+
+f(Stream<int> s) {
+  s.transform(null);
+}
+''');
+    HoverInformation hover = await prepareHover('nsform(n');
+    // range
+    expect(hover.offset, findOffset('transform(n'));
+    expect(hover.length, 'transform'.length);
+    // element
+    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.elementDescription,
+        'Stream.transform<S>(StreamTransformer<int, S> streamTransformer) → Stream<S>');
+    expect(hover.elementKind, 'method');
+    expect(hover.isDeprecated, isFalse);
+    // types
+    expect(hover.staticType,
+        '(StreamTransformer<int, dynamic>) → Stream<dynamic>');
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);

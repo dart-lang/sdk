@@ -44,6 +44,10 @@ const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
    static_cast<intptr_t>(!(sizeof(array) % sizeof(*(array)))))  // NOLINT
 
 
+#if defined(ARCH_IS_64_BIT)
+#define HASH_IN_OBJECT_HEADER 1
+#endif
+
 // The expression OFFSET_OF(type, field) computes the byte-offset of
 // the specified field relative to the containing type.
 //

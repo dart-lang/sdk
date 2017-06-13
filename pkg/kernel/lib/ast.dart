@@ -264,7 +264,8 @@ class Library extends NamedNode implements Comparable<Library> {
   bool isExternal;
 
   String name;
-  final List<DeferredImport> deferredImports;
+  final List<Expression> annotations;
+  final List<LibraryDependency> dependencies;
   final List<Typedef> typedefs;
   final List<Class> classes;
   final List<Procedure> procedures;
@@ -273,20 +274,22 @@ class Library extends NamedNode implements Comparable<Library> {
   Library(this.importUri,
       {this.name,
       this.isExternal: false,
-      List<DeferredImport> imports,
+      List<Expression> annotations,
+      List<LibraryDependency> dependencies,
       List<Typedef> typedefs,
       List<Class> classes,
       List<Procedure> procedures,
       List<Field> fields,
       this.fileUri,
       Reference reference})
-      : this.deferredImports = imports ?? <DeferredImport>[],
+      : this.annotations = annotations ?? <Expression>[],
+        this.dependencies = dependencies ?? <LibraryDependency>[],
         this.typedefs = typedefs ?? <Typedef>[],
         this.classes = classes ?? <Class>[],
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[],
         super(reference) {
-    setParents(this.deferredImports, this);
+    setParents(this.dependencies, this);
     setParents(this.typedefs, this);
     setParents(this.classes, this);
     setParents(this.procedures, this);
@@ -321,6 +324,11 @@ class Library extends NamedNode implements Comparable<Library> {
     typedefs.add(typedef_);
   }
 
+  void addAnnotation(Expression node) {
+    node.parent = this;
+    annotations.add(node);
+  }
+
   void computeCanonicalNames() {
     assert(canonicalName != null);
     for (var typedef_ in typedefs) {
@@ -338,10 +346,14 @@ class Library extends NamedNode implements Comparable<Library> {
     }
   }
 
+  void addDependency(LibraryDependency node) {
+    dependencies.add(node..parent = this);
+  }
+
   accept(TreeVisitor v) => v.visitLibrary(this);
 
   visitChildren(Visitor v) {
-    visitList(deferredImports, v);
+    visitList(dependencies, v);
     visitList(typedefs, v);
     visitList(classes, v);
     visitList(procedures, v);
@@ -349,7 +361,7 @@ class Library extends NamedNode implements Comparable<Library> {
   }
 
   transformChildren(Transformer v) {
-    transformList(deferredImports, v, this);
+    transformList(dependencies, v, this);
     transformList(typedefs, v, this);
     transformList(classes, v, this);
     transformList(procedures, v, this);
@@ -370,23 +382,104 @@ class Library extends NamedNode implements Comparable<Library> {
   }
 }
 
-/// An import of form: `import <url> deferred as <name>;`.
-class DeferredImport extends TreeNode {
+/// An import or export declaration in a library.
+///
+/// It can represent any of the following forms,
+///
+///     import <url>;
+///     import <url> as <name>;
+///     import <url> deferred as <name>;
+///     export <url>;
+///
+/// optionally with metadata and [Combinators].
+class LibraryDependency extends TreeNode {
+  int flags;
+
+  final List<Expression> annotations;
+
   Reference importedLibraryReference;
+
+  /// The name of the import prefix, if any, or `null` if this is not an import
+  /// with a prefix.
+  ///
+  /// Must be non-null for deferred imports, and must be null for exports.
   String name;
 
-  DeferredImport(Library importedLibrary, String name)
-      : this.byReference(importedLibrary.reference, name);
+  final List<Combinator> combinators;
 
-  DeferredImport.byReference(this.importedLibraryReference, this.name);
+  LibraryDependency(int flags, List<Expression> annotations,
+      Library importedLibrary, String name, List<Combinator> combinators)
+      : this.byReference(
+            flags, annotations, importedLibrary.reference, name, combinators);
+
+  LibraryDependency.deferredImport(Library importedLibrary, String name,
+      {List<Combinator> combinators, List<Expression> annotations})
+      : this.byReference(DeferredFlag, annotations ?? <Expression>[],
+            importedLibrary.reference, name, combinators ?? <Combinator>[]);
+
+  LibraryDependency.import(Library importedLibrary,
+      {String name, List<Combinator> combinators, List<Expression> annotations})
+      : this.byReference(0, annotations ?? <Expression>[],
+            importedLibrary.reference, name, combinators ?? <Combinator>[]);
+
+  LibraryDependency.export(Library importedLibrary,
+      {List<Combinator> combinators, List<Expression> annotations})
+      : this.byReference(ExportFlag, annotations ?? <Expression>[],
+            importedLibrary.reference, null, combinators ?? <Combinator>[]);
+
+  LibraryDependency.byReference(this.flags, this.annotations,
+      this.importedLibraryReference, this.name, this.combinators) {
+    setParents(annotations, this);
+    setParents(combinators, this);
+  }
 
   Library get enclosingLibrary => parent;
-  Library get importedLibrary => importedLibraryReference.asLibrary;
+  Library get targetLibrary => importedLibraryReference.asLibrary;
 
-  accept(TreeVisitor v) => v.visitDeferredImport(this);
+  static const int ExportFlag = 1 << 0;
+  static const int DeferredFlag = 1 << 1;
 
+  bool get isExport => flags & ExportFlag != 0;
+  bool get isImport => !isExport;
+  bool get isDeferred => flags & DeferredFlag != 0;
+
+  void addAnnotation(Expression annotation) {
+    annotations.add(annotation..parent = this);
+  }
+
+  accept(TreeVisitor v) => v.visitLibraryDependency(this);
+
+  visitChildren(Visitor v) {
+    visitList(annotations, v);
+    visitList(combinators, v);
+  }
+
+  transformChildren(Transformer v) {
+    transformList(annotations, v, this);
+    transformList(combinators, v, this);
+  }
+}
+
+/// A `show` or `hide` clause for an import or export.
+class Combinator extends TreeNode {
+  bool isShow;
+  final List<String> names;
+
+  LibraryDependency get dependency => parent;
+
+  Combinator(this.isShow, this.names);
+  Combinator.show(this.names) : isShow = true;
+  Combinator.hide(this.names) : isShow = false;
+
+  bool get isHide => !isShow;
+
+  @override
+  accept(TreeVisitor v) => v.visitCombinator(this);
+
+  @override
   visitChildren(Visitor v) {}
 
+  @override
   transformChildren(Transformer v) {}
 }
 
@@ -489,6 +582,9 @@ enum ClassLevel {
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
 class Class extends NamedNode {
+  /// Offset of the declaration, set and used when writing the binary.
+  int binaryOffset = -1;
+
   /// The degree to which the contents of the class have been loaded.
   ClassLevel level = ClassLevel.Body;
 
@@ -2039,7 +2135,7 @@ class MethodInvocation extends InvocationExpression {
   Reference interfaceTargetReference;
 
   MethodInvocation(Expression receiver, Name name, Arguments arguments,
-      [Procedure interfaceTarget])
+      [Member interfaceTarget])
       : this.byReference(
             receiver, name, arguments, getMemberReference(interfaceTarget));
 
@@ -2049,27 +2145,33 @@ class MethodInvocation extends InvocationExpression {
     arguments?.parent = this;
   }
 
-  Procedure get interfaceTarget => interfaceTargetReference?.asProcedure;
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
 
   void set interfaceTarget(Member target) {
     interfaceTargetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) {
+    var interfaceTarget = this.interfaceTarget;
     if (interfaceTarget != null) {
-      if (types.isOverloadedArithmeticOperator(interfaceTarget)) {
+      if (interfaceTarget is Procedure &&
+          types.isOverloadedArithmeticOperator(interfaceTarget)) {
         return types.getTypeOfOverloadedArithmetic(
             receiver.getStaticType(types),
             arguments.positional[0].getStaticType(types));
       }
       Class superclass = interfaceTarget.enclosingClass;
       var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-      var returnType = Substitution
+      var getterType = Substitution
           .fromInterfaceType(receiverType)
-          .substituteType(interfaceTarget.function.returnType);
-      return Substitution
-          .fromPairs(interfaceTarget.function.typeParameters, arguments.types)
-          .substituteType(returnType);
+          .substituteType(interfaceTarget.getterType);
+      if (getterType is FunctionType) {
+        return Substitution
+            .fromPairs(getterType.typeParameters, arguments.types)
+            .substituteType(getterType.returnType);
+      } else {
+        return const DynamicType();
+      }
     }
     if (name.name == 'call') {
       var receiverType = receiver.getStaticType(types);
@@ -2793,7 +2895,7 @@ class Let extends Expression {
 /// to mark the deferred import as 'loaded' and return a future.
 class LoadLibrary extends Expression {
   /// Reference to a deferred import in the enclosing library.
-  DeferredImport import;
+  LibraryDependency import;
 
   LoadLibrary(this.import);
 
@@ -2811,7 +2913,7 @@ class LoadLibrary extends Expression {
 /// Checks that the given deferred import has been marked as 'loaded'.
 class CheckLibraryIsLoaded extends Expression {
   /// Reference to a deferred import in the enclosing library.
-  DeferredImport import;
+  LibraryDependency import;
 
   CheckLibraryIsLoaded(this.import);
 
@@ -3586,6 +3688,9 @@ class VariableDeclaration extends Statement {
   int flags = 0;
   DartType type; // Not null, defaults to dynamic.
 
+  /// Offset of the declaration, set and used when writing the binary.
+  int binaryOffsetNoTag = -1;
+
   /// For locals, this is the initial value.
   /// For parameters, this is the default value.
   ///
@@ -3991,6 +4096,27 @@ class FunctionType extends DartType {
         namedParameters: namedParameters);
   }
 
+  /// Looks up the type of the named parameter with the given name.
+  ///
+  /// Returns `null` if there is no named parameter with the given name.
+  DartType getNamedParameter(String name) {
+    int lower = 0;
+    int upper = namedParameters.length - 1;
+    while (lower <= upper) {
+      int pivot = (lower + upper) ~/ 2;
+      var namedParameter = namedParameters[pivot];
+      int comparison = name.compareTo(namedParameter.name);
+      if (comparison == 0) {
+        return namedParameter.type;
+      } else if (comparison < 0) {
+        upper = pivot - 1;
+      } else {
+        lower = pivot + 1;
+      }
+    }
+    return null;
+  }
+
   int get hashCode => _hashCode ??= _computeHashCode();
 
   int _computeHashCode() {
@@ -4148,6 +4274,9 @@ class TypeParameter extends TreeNode {
   /// be set to the root class for type parameters without an explicit bound.
   DartType bound;
 
+  /// Offset of the declaration, set and used when writing the binary.
+  int binaryOffset = 0;
+
   TypeParameter([this.name, this.bound]);
 
   accept(TreeVisitor v) => v.visitTypeParameter(this);
@@ -4216,7 +4345,7 @@ class Supertype extends Node {
 
 /// A way to bundle up all the libraries in a program.
 class Program extends TreeNode {
-  final CanonicalName root = new CanonicalName.root();
+  final CanonicalName root;
 
   final List<Library> libraries;
 
@@ -4228,8 +4357,12 @@ class Program extends TreeNode {
   /// Reference to the main method in one of the libraries.
   Reference mainMethodName;
 
-  Program([List<Library> libraries, Map<String, Source> uriToSource])
-      : libraries = libraries ?? <Library>[],
+  Program(
+      {CanonicalName nameRoot,
+      List<Library> libraries,
+      Map<String, Source> uriToSource})
+      : root = nameRoot ?? new CanonicalName.root(),
+        libraries = libraries ?? <Library>[],
         uriToSource = uriToSource ?? <String, Source>{} {
     setParents(this.libraries, this);
   }

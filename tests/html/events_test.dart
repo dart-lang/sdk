@@ -15,7 +15,7 @@ main() {
   test('TimeStamp', () {
     Event event = new Event('test');
 
-    int timeStamp = event.timeStamp;
+    num timeStamp = event.timeStamp;
     expect(timeStamp, greaterThan(0));
   });
 

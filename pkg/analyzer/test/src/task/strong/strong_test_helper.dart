@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
@@ -43,7 +44,7 @@ SourceSpanWithContext _createSpanHelper(
   int lineEnd = endLoc.offset;
   int lineNum = lineInfo.getLocation(lineEnd).lineNumber;
   while (lineEnd < content.length &&
-      lineInfo.getLocation(++lineEnd).lineNumber == lineNum);
+      lineInfo.getLocation(++lineEnd).lineNumber == lineNum) {}
 
   if (end == null) {
     end = lineEnd;

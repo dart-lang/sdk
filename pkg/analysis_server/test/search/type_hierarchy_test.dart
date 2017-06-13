@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,7 +23,6 @@ main() {
 @reflectiveTest
 class GetTypeHierarchyTest extends AbstractAnalysisTest {
   static const String requestId = 'test-getTypeHierarchy';
-
   @override
   Index createIndex() {
     return createMemoryIndex();

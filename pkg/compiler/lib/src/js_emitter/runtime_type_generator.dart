@@ -12,9 +12,13 @@ import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionFunctionType, ResolutionInterfaceType;
 import '../elements/elements.dart'
     show ClassElement, Element, FunctionElement, MixinApplicationElement;
+import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/backend.dart'
+import '../js_backend/js_interop_analysis.dart';
+import '../js_backend/native_data.dart';
+import '../js_backend/namer.dart' show Namer;
+import '../js_backend/runtime_types.dart'
     show
         RuntimeTypesChecks,
         RuntimeTypesNeed,
@@ -23,9 +27,6 @@ import '../js_backend/backend.dart'
         Substitution,
         TypeCheck,
         TypeChecks;
-import '../js_backend/js_interop_analysis.dart';
-import '../js_backend/native_data.dart';
-import '../js_backend/namer.dart' show Namer;
 import '../util/util.dart' show Setlet;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
@@ -97,11 +98,14 @@ class RuntimeTypeGenerator {
   /// type (if class has one) in the metadata object and stores its index in
   /// the result. This is only possible for function types that do not contain
   /// type variables.
-  TypeTestProperties generateIsTests(ClassElement classElement,
+  TypeTestProperties generateIsTests(ClassEntity cls,
       {bool storeFunctionTypeInMetadata: true}) {
-    assert(invariant(classElement, classElement.isDeclaration));
-
     TypeTestProperties result = new TypeTestProperties();
+    if (cls is! ClassElement) return result;
+
+    // TODO(johnniwinther): Handle class entities.
+    ClassElement classElement = cls;
+    assert(classElement.isDeclaration, failedAt(classElement));
 
     /// Generates an is-test if the test is not inherited from a superclass
     /// This assumes that for every class an is-tests is generated
@@ -121,7 +125,7 @@ class RuntimeTypeGenerator {
       jsAst.Expression thisAccess = new jsAst.This();
       if (!method.isAbstract) {
         ClosureClassMap closureData =
-            _closureToClassMapper.getClosureToClassMapping(method.resolvedAst);
+            _closureToClassMapper.getClosureToClassMapping(method);
         if (closureData != null) {
           ClosureFieldElement thisLocal =
               closureData.freeVariableMap[closureData.thisLocal];
@@ -202,7 +206,7 @@ class RuntimeTypeGenerator {
       FunctionTypeSignatureEmitter generateFunctionTypeSignature,
       SubstitutionEmitter generateSubstitution,
       void emitTypeCheck(TypeCheck check)) {
-    Setlet<Element> generated = new Setlet<Element>();
+    Setlet<ClassElement> generated = new Setlet<ClassElement>();
 
     if (checkedClasses.contains(cls)) {
       generateIsTest(cls);
@@ -282,7 +286,7 @@ class RuntimeTypeGenerator {
       Element call = cls.lookupLocalMember(Identifiers.call);
       if (call == null) {
         // If [cls] is a closure, it has a synthetic call operator method.
-        call = cls.lookupBackendMember(Identifiers.call);
+        call = cls.lookupConstructorBody(Identifiers.call);
       }
       if (call != null && call.isFunction) {
         FunctionElement callFunction = call;

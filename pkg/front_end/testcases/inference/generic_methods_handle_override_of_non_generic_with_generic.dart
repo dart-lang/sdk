@@ -6,16 +6,17 @@
 library test;
 
 class C {
-  m(x) => /*@promotedType=none*/ x;
-  dynamic g(int x) => /*@promotedType=none*/ x;
+  m(x) => x;
+  dynamic g(int x) => x;
 }
 
 class D extends C {
-  /*error:INVALID_METHOD_OVERRIDE*/ T m<T>(T x) => /*@promotedType=none*/ x;
-  /*error:INVALID_METHOD_OVERRIDE*/ T g<T>(T x) => /*@promotedType=none*/ x;
+  /*error:INVALID_METHOD_OVERRIDE*/ T m<T>(T x) => x;
+  /*error:INVALID_METHOD_OVERRIDE*/ T g<T>(T x) => x;
 }
 
 main() {
-  int y = /*info:DYNAMIC_CAST*/ (/*info:UNNECESSARY_CAST*/ new D() as C).m(42);
-  print(/*@promotedType=none*/ y);
+  int y = /*info:DYNAMIC_CAST*/ (/*info:UNNECESSARY_CAST*/ new D() as C)
+      . /*@target=C::m*/ m(42);
+  print(y);
 }

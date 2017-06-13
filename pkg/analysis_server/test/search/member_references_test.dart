@@ -32,12 +32,6 @@ class MemberReferencesTest extends AbstractSearchDomainTest {
     return waitForSearchResults();
   }
 
-  @override
-  void setUp() {
-    enableNewAnalysisDriver = true;
-    super.setUp();
-  }
-
   test_fields_explicit() async {
     addTestFile('''
 class A {

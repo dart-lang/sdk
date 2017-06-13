@@ -10,22 +10,24 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
   /// and classes.
   static bool useInstantiationMap = false;
 
-  final JavaScriptBackend _backend;
   final Resolution _resolution;
 
   ElementResolutionWorldBuilder(
-      this._backend,
+      JavaScriptBackend backend,
       this._resolution,
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
+      BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
-            _backend.compiler.elementEnvironment,
+            backend.compiler.elementEnvironment,
             _resolution.commonElements,
+            backend.constantSystem,
             nativeBasicData,
             nativeDataBuilder,
             interceptorDataBuilder,
+            backendUsageBuilder,
             selectorConstraintsStrategy);
 
   bool isImplemented(ClassElement cls) {
@@ -106,8 +108,8 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     Element element = staticUse.element;
-    assert(invariant(element, element.isDeclaration,
-        message: "Element ${element} is not the declaration."));
+    assert(element.isDeclaration,
+        failedAt(element, "Element ${element} is not the declaration."));
     super.registerStaticUse(staticUse, memberUsed);
   }
 
@@ -132,7 +134,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
 
   void _processInstantiatedClassMember(
       ClassEntity cls, MemberElement member, MemberUsedCallback memberUsed) {
-    assert(invariant(member, member.isDeclaration));
+    assert(member.isDeclaration, failedAt(member));
     member.computeType(_resolution);
     super._processInstantiatedClassMember(cls, member, memberUsed);
   }
@@ -172,11 +174,12 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
     _closed = true;
     return _closedWorldCache = new ClosedWorldImpl(
         commonElements: _commonElements,
-        constantSystem: _backend.constantSystem,
+        constantSystem: _constantSystem,
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),
-        backendUsage: _backend.backendUsage,
+        backendUsage: _backendUsageBuilder.close(),
         resolutionWorldBuilder: this,
+        implementedClasses: _implementedClasses,
         functionSet: _allFunctions.close(),
         allTypedefs: _allTypedefs,
         mixinUses: _mixinUses,

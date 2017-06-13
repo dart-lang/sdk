@@ -10,19 +10,12 @@ import 'dart:async';
 main() async {
   var /*@type=Future<B>*/ b = new Future<B>.value(new B());
   var /*@type=Future<C>*/ c = new Future<C>.value(new C());
-  var /*@type=List<Future<A>>*/ lll = /*@typeArgs=Future<A>*/ [
-    /*@promotedType=none*/ b,
-    /*@promotedType=none*/ c
-  ];
-  var /*@type=List<A>*/ result =
-      await Future. /*@typeArgs=A*/ wait(/*@promotedType=none*/ lll);
-  var /*@type=List<A>*/ result2 =
-      await Future. /*@typeArgs=A*/ wait(/*@typeArgs=Future<A>*/ [
-    /*@promotedType=none*/ b,
-    /*@promotedType=none*/ c
-  ]);
-  List<A> list = /*@promotedType=none*/ result;
-  list = /*@promotedType=none*/ result2;
+  var /*@type=List<Future<A>>*/ lll = /*@typeArgs=Future<A>*/ [b, c];
+  var /*@type=List<A>*/ result = await Future. /*@typeArgs=A*/ wait(lll);
+  var /*@type=List<A>*/ result2 = await Future. /*@typeArgs=A*/ wait(
+      /*@typeArgs=Future<A>*/ [b, c]);
+  List<A> list = result;
+  list = result2;
 }
 
 class A {}

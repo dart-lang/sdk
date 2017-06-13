@@ -432,6 +432,18 @@ class Object {
     return *transition_sentinel_;
   }
 
+#if defined(HASH_IN_OBJECT_HEADER)
+  static uint32_t GetCachedHash(const RawObject* obj) {
+    uword tags = obj->ptr()->tags_;
+    return tags >> 32;
+  }
+
+  static void SetCachedHash(RawObject* obj, uintptr_t hash) {
+    ASSERT(hash >> 32 == 0);
+    obj->ptr()->tags_ |= hash << 32;
+  }
+#endif
+
   // Compiler's constant propagation constants.
   static const Instance& unknown_constant() {
     ASSERT(unknown_constant_ != NULL);
@@ -2647,14 +2659,16 @@ class Function : public Object {
 
   // Returns true if the argument counts are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
-  bool AreValidArgumentCounts(intptr_t num_arguments,
+  bool AreValidArgumentCounts(intptr_t num_type_arguments,
+                              intptr_t num_arguments,
                               intptr_t num_named_arguments,
                               String* error_message) const;
 
-  // Returns true if the total argument count and the names of optional
-  // arguments are valid for calling this function.
+  // Returns true if the type argument count, total argument count and the names
+  // of optional arguments are valid for calling this function.
   // Otherwise, it returns false and the reason (if error_message is not NULL).
-  bool AreValidArguments(intptr_t num_arguments,
+  bool AreValidArguments(intptr_t num_type_arguments,
+                         intptr_t num_arguments,
                          const Array& argument_names,
                          String* error_message) const;
   bool AreValidArguments(const ArgumentsDescriptor& args_desc,
@@ -3803,6 +3817,7 @@ class Library : public Object {
   RawObject* LookupImportedObject(const String& name) const;
   RawClass* LookupClass(const String& name) const;
   RawClass* LookupClassAllowPrivate(const String& name) const;
+  RawClass* SlowLookupClassAllowMultiPartPrivate(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
   RawField* LookupFieldAllowPrivate(const String& name) const;
   RawField* LookupLocalField(const String& name) const;
@@ -6752,8 +6767,11 @@ class String : public Instance {
   // All strings share the same maximum element count to keep things
   // simple.  We choose a value that will prevent integer overflow for
   // 2 byte strings, since it is the worst case.
-  static const intptr_t kSizeofRawString =
-      sizeof(RawInstance) + (2 * kWordSize);
+#if defined(HASH_IN_OBJECT_HEADER)
+  static const intptr_t kSizeofRawString = sizeof(RawInstance) + kWordSize;
+#else
+  static const intptr_t kSizeofRawString = sizeof(RawInstance) + 2 * kWordSize;
+#endif
   static const intptr_t kMaxElements = kSmiMax / kTwoByteChar;
 
   class CodePointIterator : public ValueObject {
@@ -6789,28 +6807,32 @@ class String : public Instance {
   static intptr_t length_offset() { return OFFSET_OF(RawString, length_); }
 
   intptr_t Hash() const {
-    intptr_t result = Smi::Value(raw_ptr()->hash_);
+    intptr_t result = GetCachedHash(raw());
     if (result != 0) {
       return result;
     }
     result = String::Hash(*this, 0, this->Length());
-    this->SetHash(result);
+    SetCachedHash(raw(), result);
     return result;
   }
 
   bool HasHash() const {
     ASSERT(Smi::New(0) == NULL);
-    return (raw_ptr()->hash_ != NULL);
+    return GetCachedHash(raw()) != 0;
   }
 
+#if defined(HASH_IN_OBJECT_HEADER)
+  static intptr_t hash_offset() { return kInt32Size; }  // Wrong for big-endian?
+#else
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
+#endif
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
   static intptr_t Hash(const char* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
   static intptr_t Hash(const int32_t* characters, intptr_t len);
   static intptr_t HashRawSymbol(const RawString* symbol) {
     ASSERT(symbol->IsCanonical());
-    intptr_t result = Smi::Value(symbol->ptr()->hash_);
+    intptr_t result = GetCachedHash(symbol);
     ASSERT(result != 0);
     return result;
   }
@@ -7029,6 +7051,16 @@ class String : public Instance {
                           intptr_t end,
                           double* result);
 
+#if !defined(HASH_IN_OBJECT_HEADER)
+  static uint32_t GetCachedHash(const RawString* obj) {
+    return Smi::Value(obj->ptr()->hash_);
+  }
+
+  static void SetCachedHash(RawString* obj, uintptr_t hash) {
+    obj->ptr()->hash_ = Smi::New(hash);
+  }
+#endif
+
  protected:
   // These two operate on an array of Latin-1 encoded characters.
   // They are protected to avoid mistaking Latin-1 for UTF-8, but used
@@ -7042,11 +7074,7 @@ class String : public Instance {
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
-  void SetHash(intptr_t value) const {
-    // This is only safe because we create a new Smi, which does not cause
-    // heap allocation.
-    StoreSmi(&raw_ptr()->hash_, Smi::New(value));
-  }
+  void SetHash(intptr_t value) const { SetCachedHash(raw(), value); }
 
   template <typename HandleType, typename ElementType, typename CallbackType>
   static void ReadFromImpl(SnapshotReader* reader,
@@ -7105,6 +7133,12 @@ class OneByteString : public AllStatic {
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(sizeof(RawOneByteString) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
+#if defined(HASH_IN_OBJECT_HEADER)
+    // We have to pad zero-length raw strings so that they can be externalized.
+    // If we don't pad, then the external string object does not fit in the
+    // memory allocated for the raw string.
+    if (len == 0) return InstanceSize(1);
+#endif
     return String::RoundedAllocationSize(sizeof(RawOneByteString) +
                                          (len * kBytesPerElement));
   }
@@ -7238,6 +7272,10 @@ class TwoByteString : public AllStatic {
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(sizeof(RawTwoByteString) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
+    // We have to pad zero-length raw strings so that they can be externalized.
+    // If we don't pad, then the external string object does not fit in the
+    // memory allocated for the raw string.
+    if (len == 0) return InstanceSize(1);
     return String::RoundedAllocationSize(sizeof(RawTwoByteString) +
                                          (len * kBytesPerElement));
   }
@@ -8931,7 +8969,7 @@ bool String::Equals(const String& str) const {
 
 
 intptr_t Library::UrlHash() const {
-  intptr_t result = Smi::Value(url()->ptr()->hash_);
+  intptr_t result = String::GetCachedHash(url());
   ASSERT(result != 0);
   return result;
 }

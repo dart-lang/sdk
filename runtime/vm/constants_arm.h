@@ -260,7 +260,7 @@ static inline SRegister OddSRegisterOf(DRegister d) {
 // Register aliases for floating point scratch registers.
 const QRegister QTMP = Q7;                     // Overlaps with DTMP, STMP.
 const DRegister DTMP = EvenDRegisterOf(QTMP);  // Overlaps with STMP.
-const SRegister STMP = EvenSRegisterOf(DTMP);
+const SRegister STMP DART_USED = EvenSRegisterOf(DTMP);
 
 // Architecture independent aliases.
 typedef QRegister FpuRegister;

@@ -132,8 +132,12 @@ class PluginWatcher implements DriverWatcher {
   String _getSdkPath(AnalysisDriver driver) {
     AbsolutePathContext context = resourceProvider.absolutePathContext;
     String sdkRoot = driver.sourceFactory.forUri('dart:core').fullName;
-    while (sdkRoot.isNotEmpty && context.basename(sdkRoot) != 'lib') {
-      sdkRoot = context.dirname(sdkRoot);
+    while (context.basename(sdkRoot) != 'lib') {
+      String parent = context.dirname(sdkRoot);
+      if (parent == sdkRoot) {
+        break;
+      }
+      sdkRoot = parent;
     }
     return sdkRoot;
   }

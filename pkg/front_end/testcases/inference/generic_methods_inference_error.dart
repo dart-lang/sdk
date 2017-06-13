@@ -5,10 +5,12 @@
 /*@testedFeatures=inference*/
 library test;
 
-main() {
+void f() {
   List<String> y;
-  Iterable<String> x = /*@promotedType=none*/ y. /*@typeArgs=String*/ map(
+  Iterable<String> x = y. /*@typeArgs=String*/ /*@target=Iterable::map*/ map(
       /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ /*@returnType=double*/ (String
               z) =>
           1.0);
 }
+
+main() {}

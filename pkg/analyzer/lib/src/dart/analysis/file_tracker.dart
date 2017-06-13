@@ -4,8 +4,8 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 
 /**
  * Callback used by [FileTracker] to report to its client that files have been

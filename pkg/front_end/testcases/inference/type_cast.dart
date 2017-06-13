@@ -16,5 +16,5 @@ var /*@topType=B<int>*/ b = (a as B<int>);
 
 main() {
   A<num> a = new B<int>();
-  var /*@type=B<int>*/ b = (/*@promotedType=none*/ a as B<int>);
+  var /*@type=B<int>*/ b = (a as B<int>);
 }

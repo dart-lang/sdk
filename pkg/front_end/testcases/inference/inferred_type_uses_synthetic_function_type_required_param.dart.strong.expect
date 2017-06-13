@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static field core::List<(core::int) → core::Object> v = <dynamic>[self::f, self::g];
+static field core::List<(core::int) → core::Object> v = <(core::int) → core::Object>[self::f, self::g];
 static method f(core::int x) → core::int
   return null;
 static method g(core::int x) → core::String

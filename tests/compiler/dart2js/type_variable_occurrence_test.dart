@@ -4,11 +4,13 @@
 
 library type_variable_occurrence_test;
 
-import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import 'type_test_helper.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/elements/elements.dart' show ClassElement;
 import 'package:compiler/src/elements/resolution_types.dart';
-import "package:compiler/src/elements/elements.dart" show Element, ClassElement;
+import 'package:compiler/src/elements/types.dart';
+import 'package:expect/expect.dart';
+
+import 'type_test_helper.dart';
 
 void main() {
   testTypeVariableOccurrence();
@@ -61,10 +63,10 @@ testTypeVariableOccurrence() {
               memberType.typeVariableOccurrence;
           if (expectResult) {
             Expect.isNotNull(typeVariable);
-            Expect.equals(A, Types.getClassContext(memberType));
+            Expect.equals(A, DartTypes.getClassContext(memberType));
           } else {
             Expect.isNull(typeVariable);
-            Expect.isNull(Types.getClassContext(memberType));
+            Expect.isNull(DartTypes.getClassContext(memberType));
           }
         }
 

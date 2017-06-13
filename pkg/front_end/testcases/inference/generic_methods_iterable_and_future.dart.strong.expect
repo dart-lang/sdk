@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method make(core::int x) → asy::Future<core::int>
+  return asy::Future::•<core::int>(() → core::int => x);
+static method main() → dynamic {
+  core::Iterable<asy::Future<core::int>> list = <core::int>[1, 2, 3].{core::Iterable::map}<asy::Future<core::int>>(self::make);
+  asy::Future<core::List<core::int>> results = asy::Future::wait<core::int>(list);
+  asy::Future<core::String> results2 = results.{asy::Future::then}<core::String>((core::List<core::int> list) → asy::FutureOr<core::String> => list.{core::Iterable::fold}<asy::FutureOr<core::String>>("", (asy::FutureOr<core::String> x, core::int y) → asy::FutureOr<core::String> => x.+(y.{core::int::toString}())));
+  asy::Future<core::String> results3 = results.{asy::Future::then}<core::String>((core::List<core::int> list) → asy::FutureOr<core::String> => list.{core::Iterable::fold}<asy::FutureOr<core::String>>("", (core::String x, core::int y) → core::String => x.{core::String::+}(y.{core::int::toString}())));
+  asy::Future<core::String> results4 = results.{asy::Future::then}<core::String>((core::List<core::int> list) → core::String => list.{core::Iterable::fold}<core::String>("", (core::String x, core::int y) → core::String => x.{core::String::+}(y.{core::int::toString}())));
+}

@@ -19,7 +19,7 @@ import 'package:analyzer/src/command_line/arguments.dart'
         bazelAnalysisOptionsPath,
         flutterAnalysisOptionsPath;
 import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriver, AnalysisDriverScheduler, PerformanceLog;
+    show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/bazel.dart';
@@ -32,6 +32,7 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:args/args.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
@@ -160,7 +161,8 @@ class ContextBuilder {
    */
   AnalysisDriver buildDriver(ContextRoot contextRoot) {
     String path = contextRoot.root;
-    AnalysisOptions options = getAnalysisOptions(path);
+    AnalysisOptions options =
+        getAnalysisOptions(path, contextRoot: contextRoot);
     //_processAnalysisOptions(context, optionMap);
     final sf = createSourceFactory(path, options);
     AnalysisDriver driver = new AnalysisDriver(
@@ -389,7 +391,7 @@ class ContextBuilder {
    * information about the analysis options selection process.
    */
   AnalysisOptions getAnalysisOptions(String path,
-      {void verbosePrint(String text)}) {
+      {void verbosePrint(String text), ContextRoot contextRoot}) {
     void verbose(String text) {
       if (verbosePrint != null) {
         verbosePrint(text);
@@ -410,6 +412,9 @@ class ContextBuilder {
     if (optionsFile != null) {
       try {
         optionMap = optionsProvider.getOptionsFromFile(optionsFile);
+        if (contextRoot != null) {
+          contextRoot.optionsFilePath = optionsFile.path;
+        }
         verbose('Loaded analysis options from ${optionsFile.path}');
       } catch (e) {
         // Ignore exceptions thrown while trying to load the options file.
@@ -430,6 +435,9 @@ class ContextBuilder {
         if (source != null && source.exists()) {
           try {
             optionMap = optionsProvider.getOptionsFromSource(source);
+            if (contextRoot != null) {
+              contextRoot.optionsFilePath = source.fullName;
+            }
             verbose('Loaded analysis options from ${source.fullName}');
           } catch (e) {
             // Ignore exceptions thrown while trying to load the options file.

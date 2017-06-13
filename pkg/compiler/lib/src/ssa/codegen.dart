@@ -11,14 +11,17 @@ import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart'
-    show AsyncMarker, JumpTarget, LabelDefinition, MethodElement, ResolvedAst;
+    show JumpTarget, LabelDefinition, MethodElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/interceptor_data.dart';
-import '../js_backend/js_backend.dart';
+import '../js_backend/backend.dart';
+import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
+import '../js_backend/namer.dart';
+import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../native/native.dart' as native;
 import '../options.dart';
@@ -43,8 +46,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   String get name => 'SSA code generator';
 
   js.Fun buildJavaScriptFunction(
-      ResolvedAst resolvedAst, List<js.Parameter> parameters, js.Block body) {
-    MethodElement element = resolvedAst.element;
+      FunctionEntity element, List<js.Parameter> parameters, js.Block body) {
     js.AsyncModifier asyncModifier = element.asyncMarker.isAsync
         ? (element.asyncMarker.isYielding
             ? const js.AsyncModifier.asyncStar()
@@ -55,8 +57,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
     return new js.Fun(parameters, body, asyncModifier: asyncModifier)
         .withSourceInformation(sourceInformationFactory
-            .createBuilderForContext(resolvedAst)
-            .buildDeclaration(resolvedAst));
+            .createBuilderForContext(element)
+            .buildDeclaration(element));
   }
 
   js.Expression generateCode(
@@ -73,8 +75,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return measure(() {
       backend.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationFactory
-          .createBuilderForContext(work.resolvedAst)
-          .buildDeclaration(work.resolvedAst);
+          .createBuilderForContext(work.element)
+          .buildDeclaration(work.element);
       SsaCodeGenerator codegen = new SsaCodeGenerator(
           backend.compiler.options,
           backend.emitter,
@@ -96,7 +98,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   js.Expression generateMethod(
       CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
     return measure(() {
-      MethodElement element = work.element;
+      FunctionEntity element = work.element;
       if (element.asyncMarker != AsyncMarker.SYNC) {
         work.registry.registerAsyncMarker(element.asyncMarker);
       }
@@ -115,7 +117,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       codegen.visitGraph(graph);
       backend.tracer.traceGraph("codegen", graph);
       return buildJavaScriptFunction(
-          work.resolvedAst, codegen.parameters, codegen.body);
+          work.element, codegen.parameters, codegen.body);
     });
   }
 }
@@ -1785,8 +1787,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else {
         // The element is mixed in so a non-null subtype mask is the most
         // precise we have.
-        assert(invariant(node, _closedWorld.isUsedAsMixin(enclosing),
-            message: "Element ${node.element} from $enclosing expected "
+        assert(
+            _closedWorld.isUsedAsMixin(enclosing),
+            failedAt(
+                node,
+                "Element ${node.element} from $enclosing expected "
                 "to be mixed in."));
         return _closedWorld.commonMasks.createNonNullSubtype(enclosing);
       }
@@ -1815,8 +1820,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // target but for some reason haven't inlined. We are _still_ accessing
       // the target dynamically but we don't need to enqueue more than target
       // for this to work.
-      assert(invariant(node, selector.applies(target),
-          message: '$selector does not apply to $target'));
+      assert(selector.applies(target),
+          failedAt(node, '$selector does not apply to $target'));
       _registry.registerStaticUse(
           new StaticUse.directInvoke(target, selector.callStructure));
     } else {

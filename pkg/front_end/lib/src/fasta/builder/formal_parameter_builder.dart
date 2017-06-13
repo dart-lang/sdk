@@ -43,4 +43,6 @@ abstract class FormalParameterBuilder<T extends TypeBuilder>
 
   @override
   String get fullNameForErrors => name;
+
+  FormalParameterBuilder forFormalParameterInitializerScope();
 }

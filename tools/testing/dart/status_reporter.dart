@@ -5,96 +5,85 @@
 import 'dart:io';
 import 'dart:convert';
 
-List<Map> LINUX_COMBINATIONS = [
-  {
-    'runtimes': ['none'],
-    'modes': ['release'],
-    'archs': ['x64'],
-    'compiler': 'dart2analyzer'
-  },
-  {
-    'runtimes': ['vm'],
-    'modes': ['debug', 'release'],
-    'archs': ['ia32', 'x64', 'simarm', 'simmips'],
-    'compiler': 'none'
-  },
-  {
-    'runtimes': ['d8', 'jsshell', 'chrome', 'ff'],
-    'modes': ['release'],
-    'archs': ['ia32'],
-    'compiler': 'dart2js'
-  },
-  {
-    'runtimes': ['dartium'],
-    'modes': ['release', 'debug'],
-    'archs': ['ia32'],
-    'compiler': 'none'
-  },
-  {
-    'runtimes': ['flutter_engine'],
-    'modes': ['debug', 'release'],
-    'archs': ['x64'],
-    'compiler': 'none'
-  },
-];
-
-List<Map> MACOS_COMBINATIONS = [
-  {
-    'runtimes': ['vm'],
-    'modes': ['debug', 'release'],
-    'archs': ['ia32', 'x64'],
-    'compiler': 'none'
-  },
-  {
-    'runtimes': ['safari', 'safarimobilesim'],
-    'modes': ['release'],
-    'archs': ['ia32'],
-    'compiler': 'dart2js'
-  },
-  {
-    'runtimes': ['dartium'],
-    'modes': ['release', 'debug'],
-    'archs': ['ia32'],
-    'compiler': 'none'
-  },
-];
-
-List<Map> WINDOWS_COMBINATIONS = [
-  {
-    'runtimes': ['vm'],
-    'modes': ['debug', 'release'],
-    'archs': ['ia32', 'x64'],
-    'compiler': 'none'
-  },
-  {
-    'runtimes': ['chrome', 'ff', 'ie11', 'ie10'],
-    'modes': ['release'],
-    'archs': ['ia32'],
-    'compiler': 'dart2js'
-  },
-  {
-    'runtimes': ['dartium'],
-    'modes': ['release', 'debug'],
-    'archs': ['ia32'],
-    'compiler': 'none'
-  },
-];
-
-Map<String, List<Map>> COMBINATIONS = {
-  'linux': LINUX_COMBINATIONS,
-  'windows': WINDOWS_COMBINATIONS,
-  'macos': MACOS_COMBINATIONS
+final _combinations = {
+  'linux': [
+    {
+      'runtimes': ['none'],
+      'modes': ['release'],
+      'archs': ['x64'],
+      'compiler': 'dart2analyzer'
+    },
+    {
+      'runtimes': ['vm'],
+      'modes': ['debug', 'release'],
+      'archs': ['ia32', 'x64', 'simarm', 'simmips'],
+      'compiler': 'none'
+    },
+    {
+      'runtimes': ['d8', 'jsshell', 'chrome', 'ff'],
+      'modes': ['release'],
+      'archs': ['ia32'],
+      'compiler': 'dart2js'
+    },
+    {
+      'runtimes': ['dartium'],
+      'modes': ['release', 'debug'],
+      'archs': ['ia32'],
+      'compiler': 'none'
+    },
+    {
+      'runtimes': ['flutter_engine'],
+      'modes': ['debug', 'release'],
+      'archs': ['x64'],
+      'compiler': 'none'
+    },
+  ],
+  'windows': [
+    {
+      'runtimes': ['vm'],
+      'modes': ['debug', 'release'],
+      'archs': ['ia32', 'x64'],
+      'compiler': 'none'
+    },
+    {
+      'runtimes': ['chrome', 'ff', 'ie11', 'ie10'],
+      'modes': ['release'],
+      'archs': ['ia32'],
+      'compiler': 'dart2js'
+    },
+    {
+      'runtimes': ['dartium'],
+      'modes': ['release', 'debug'],
+      'archs': ['ia32'],
+      'compiler': 'none'
+    },
+  ],
+  'macos': [
+    {
+      'runtimes': ['vm'],
+      'modes': ['debug', 'release'],
+      'archs': ['ia32', 'x64'],
+      'compiler': 'none'
+    },
+    {
+      'runtimes': ['safari', 'safarimobilesim'],
+      'modes': ['release'],
+      'archs': ['ia32'],
+      'compiler': 'dart2js'
+    },
+    {
+      'runtimes': ['dartium'],
+      'modes': ['release', 'debug'],
+      'archs': ['ia32'],
+      'compiler': 'none'
+    },
+  ]
 };
-
-List<Map> getCombinations() {
-  return COMBINATIONS[Platform.operatingSystem];
-}
 
 void ensureBuild(Iterable<String> modes, Iterable<String> archs) {
   print('Building many platforms. Please be patient.');
 
   var archString = '-a${archs.join(',')}';
-
   var modeString = '-m${modes.join(',')}';
 
   var args = [
@@ -102,7 +91,7 @@ void ensureBuild(Iterable<String> modes, Iterable<String> archs) {
     modeString,
     archString,
     'create_sdk',
-    // We build runtime to be able to list cc tests
+    // We build runtime to be able to list cc tests.
     'runtime'
   ];
 
@@ -119,7 +108,7 @@ void ensureBuild(Iterable<String> modes, Iterable<String> archs) {
 }
 
 void sanityCheck(String output) {
-  LineSplitter splitter = new LineSplitter();
+  var splitter = new LineSplitter();
   var lines = splitter.convert(output);
   // Looks like this:
   // Total: 15556 tests
@@ -139,7 +128,7 @@ void sanityCheck(String output) {
 }
 
 void main(List<String> args) {
-  var combinations = getCombinations();
+  var combinations = _combinations[Platform.operatingSystem];
 
   var arches = new Set<String>();
   var modes = new Set<String>();
@@ -148,9 +137,9 @@ void main(List<String> args) {
     arches = ['ia32'].toSet();
     modes = ['release'].toSet();
   } else {
-    for (var combo in combinations) {
-      arches.addAll(combo['archs']);
-      modes.addAll(combo['modes']);
+    for (var combination in combinations) {
+      arches.addAll(combination['archs'] as List<String>);
+      modes.addAll(combination['modes'] as List<String>);
     }
   }
 
@@ -169,7 +158,7 @@ void main(List<String> args) {
         }
 
         for (var runtime in combination['runtimes']) {
-          var compiler = combination['compiler'];
+          var compiler = combination['compiler'] as String;
 
           var args = [
             'tools/test.py',
@@ -190,10 +179,10 @@ void main(List<String> args) {
           // Find "JSON:"
           // Everything after will the JSON-formatted output
           // per --report-in-json flag above
-          var totalIndex = result.stdout.indexOf('JSON:');
-          var report = result.stdout.substring(totalIndex + 5);
+          var totalIndex = (result.stdout as String).indexOf('JSON:');
+          var report = (result.stdout as String).substring(totalIndex + 5);
 
-          var map = JSON.decode(report) as Map;
+          var map = JSON.decode(report) as Map<String, int>;
 
           if (keys == null) {
             keys = map.keys.toList();

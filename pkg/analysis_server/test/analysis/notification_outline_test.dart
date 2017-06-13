@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.analysis.notification.outline;
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,9 +25,11 @@ class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   String libraryName;
   Outline outline;
 
+  Completer _resultsAvailable = new Completer();
+
   Future prepareOutline() {
     addAnalysisSubscription(AnalysisService.OUTLINE, testFile);
-    return waitForTasksFinished();
+    return _resultsAvailable.future;
   }
 
   void processNotification(Notification notification) {
@@ -38,6 +39,7 @@ class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
         fileKind = params.kind;
         libraryName = params.libraryName;
         outline = params.outline;
+        _resultsAvailable.complete(null);
       }
     }
   }
@@ -320,7 +322,9 @@ library my.lib;
     expect(libraryName, 'my.lib');
   }
 
+  @failingTest
   test_libraryName_hasLibraryPartOfDirectives() async {
+    // This appears to have broken with the move to the new analysis driver.
     addTestFile('''
 part of lib.in.part.of;
 library my.lib;

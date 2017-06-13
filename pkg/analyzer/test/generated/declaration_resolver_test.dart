@@ -571,6 +571,15 @@ var v = <Function(int)>[];
     expect(initializer.typeArguments.arguments[0].type, isNotNull);
   }
 
+  test_genericFunction_invalid_missingParameterName() async {
+    String code = r'''
+typedef F = Function({int});
+''';
+    CompilationUnit unit = await resolveSource(code);
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
   test_invalid_functionDeclaration_getter_inFunction() async {
     String code = r'''
 var v = (() {

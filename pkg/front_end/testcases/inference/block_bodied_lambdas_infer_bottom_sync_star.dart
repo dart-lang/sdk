@@ -9,7 +9,7 @@ main() {
   var /*@type=() -> Iterable<Null>*/ f = /*@returnType=Iterable<Null>*/ () sync* {
     yield null;
   };
-  Iterable y = /*@promotedType=none*/ f();
-  Iterable<String> z = /*@promotedType=none*/ f();
-  String s = /*@promotedType=none*/ f().first;
+  Iterable y = f();
+  Iterable<String> z = f();
+  String s = f(). /*@target=Iterable::first*/ first;
 }

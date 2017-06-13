@@ -215,7 +215,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     _elementToInfo[element] = closureInfo;
 
     ClosureClassMap closureMap = compiler.closureToClassMapper
-        .getClosureToClassMapping(element.methodElement.resolvedAst);
+        .getClosureToClassMapping(element.methodElement);
     assert(closureMap != null && closureMap.closureClassElement == element);
 
     FunctionInfo functionInfo = this.process(closureMap.callElement);
@@ -415,7 +415,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   // inlined inside of it.
   final Map<Element, List<Element>> inlineMap = <Element, List<Element>>{};
 
-  final Map<Element, WorldImpact> impacts = <Element, WorldImpact>{};
+  final Map<MemberEntity, WorldImpact> impacts = <MemberEntity, WorldImpact>{};
 
   /// Register the size of the generated output.
   void reportSize(int programSize) {
@@ -432,7 +432,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     inlineMap[inlinedFrom].add(element);
   }
 
-  void registerImpact(Element element, WorldImpact impact) {
+  void registerImpact(MemberEntity element, WorldImpact impact) {
     if (compiler.options.dumpInfo) {
       impacts[element] = impact;
     }
@@ -607,7 +607,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         toJsonDuration:
             new Duration(milliseconds: stopwatch.elapsedMilliseconds),
         dumpInfoDuration: new Duration(milliseconds: this.timing),
-        noSuchMethodEnabled: compiler.backend.backendUsage.isNoSuchMethodUsed,
+        noSuchMethodEnabled: closedWorld.backendUsage.isNoSuchMethodUsed,
         minified: compiler.options.enableMinification);
 
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(

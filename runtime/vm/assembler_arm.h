@@ -728,7 +728,11 @@ class Assembler : public ValueObject {
   void BranchLinkOffset(Register base, int32_t offset);
 
   // Add signed immediate value to rd. May clobber IP.
-  void AddImmediate(Register rd, int32_t value, Condition cond = AL);
+  void AddImmediate(Register rd, int32_t value, Condition cond = AL) {
+    AddImmediate(rd, rd, value, cond);
+  }
+
+  // Add signed immediate value. May clobber IP.
   void AddImmediate(Register rd,
                     Register rn,
                     int32_t value,

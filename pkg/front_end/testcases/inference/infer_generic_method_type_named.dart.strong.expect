@@ -6,9 +6,9 @@ class C extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method m(core::int a, {core::String b = null, dynamic c = null}) → dynamic
+  method m<T extends core::Object>(core::int a, {core::String b = null, self::C::m::T c = null}) → self::C::m::T
     return null;
 }
 static method main() → dynamic {
-  core::double y = new self::C::•().m(1, b: "bbb", c: 2.0);
+  core::double y = new self::C::•().{self::C::m}<core::double>(1, b: "bbb", c: 2.0);
 }

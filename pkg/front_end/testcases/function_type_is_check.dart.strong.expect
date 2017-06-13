@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+static method test(dynamic f) → dynamic {
+  if(f is (core::Object, core::StackTrace) → void)
+    return 1;
+  if(f is (core::Object) → void)
+    return 10;
+  if(f is () → void)
+    return 100;
+}
+static method main() → dynamic {
+  exp::Expect::equals(111, self::test(() → dynamic => null).+(self::test((core::Object o) → dynamic => null)).+(self::test((core::Object o, core::StackTrace t) → dynamic => null)));
+}

@@ -167,7 +167,7 @@ class TouchHandler {
    */
   void enable([bool capture = false]) {
     Function onEnd = (e) {
-      _onEnd(e.timeStamp, e);
+      _onEnd(e.timeStamp.toInt(), e);
     };
     _addEventListeners(_element, (e) {
       _onStart(e);
@@ -272,6 +272,7 @@ class TouchHandler {
     int clientY = touch.client.y;
     int moveX = _lastTouchX - clientX;
     int moveY = _lastTouchY - clientY;
+    int timeStamp = e.timeStamp.toInt();
     _totalMoveX += moveX.abs();
     _totalMoveY += moveY.abs();
     _lastTouchX = clientX;
@@ -286,7 +287,7 @@ class TouchHandler {
       } else {
         _startTouchX = clientX;
         _startTouchY = clientY;
-        _startTime = e.timeStamp;
+        _startTime = timeStamp;
       }
     }
     if (_dragging) {
@@ -297,12 +298,12 @@ class TouchHandler {
           _removeTouchesInWrongDirection(_recentTouchesX, _lastMoveX, moveX);
       _recentTouchesY =
           _removeTouchesInWrongDirection(_recentTouchesY, _lastMoveY, moveY);
-      _recentTouchesX = _removeOldTouches(_recentTouchesX, e.timeStamp);
-      _recentTouchesY = _removeOldTouches(_recentTouchesY, e.timeStamp);
+      _recentTouchesX = _removeOldTouches(_recentTouchesX, timeStamp);
+      _recentTouchesY = _removeOldTouches(_recentTouchesY, timeStamp);
       _recentTouchesX.add(clientX);
-      _recentTouchesX.add(e.timeStamp);
+      _recentTouchesX.add(timeStamp);
       _recentTouchesY.add(clientY);
-      _recentTouchesY.add(e.timeStamp);
+      _recentTouchesY.add(timeStamp);
     }
     _lastMoveX = moveX;
     _lastMoveY = moveY;
@@ -322,14 +323,15 @@ class TouchHandler {
     final touch = e.touches[0];
     _startTouchX = _lastTouchX = touch.client.x;
     _startTouchY = _lastTouchY = touch.client.y;
-    _startTime = e.timeStamp;
+    int timeStamp = e.timeStamp.toInt();
+    _startTime = timeStamp;
     // TODO(jacobr): why don't we just clear the lists?
     _recentTouchesX = new List<int>();
     _recentTouchesY = new List<int>();
     _recentTouchesX.add(touch.client.x);
-    _recentTouchesX.add(e.timeStamp);
+    _recentTouchesX.add(timeStamp);
     _recentTouchesY.add(touch.client.y);
-    _recentTouchesY.add(e.timeStamp);
+    _recentTouchesY.add(timeStamp);
     _lastEvent = e;
     _beginTracking();
   }

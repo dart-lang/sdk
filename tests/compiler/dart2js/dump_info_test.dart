@@ -26,7 +26,7 @@ class c {
     print(p);
   }
   var k = (() => 10)();
-  final static p = 20;
+  static final p = 20;
 }
 
 void f() {

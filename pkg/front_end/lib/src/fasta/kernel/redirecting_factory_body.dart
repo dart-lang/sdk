@@ -6,38 +6,67 @@ library fasta.redirecting_factory_body;
 
 import 'package:kernel/ast.dart'
     show
+        Expression,
         ExpressionStatement,
+        FunctionNode,
         InvalidExpression,
         Let,
         Member,
         Procedure,
         StaticGet,
+        StringLiteral,
         VariableDeclaration;
 
+const String letName = "#redirecting_factory";
+
 class RedirectingFactoryBody extends ExpressionStatement {
-  RedirectingFactoryBody(Member target)
-      : super(new Let(new VariableDeclaration.forValue(new StaticGet(target)),
+  RedirectingFactoryBody.internal(Expression value)
+      : super(new Let(new VariableDeclaration(letName, initializer: value),
             new InvalidExpression()));
 
+  RedirectingFactoryBody(Member target) : this.internal(new StaticGet(target));
+
+  RedirectingFactoryBody.unresolved(String name)
+      : this.internal(new StringLiteral(name));
+
   Member get target {
-    Let let = expression;
-    StaticGet staticGet = let.variable.initializer;
-    return staticGet.target;
+    var value = getValue(expression);
+    return value is StaticGet ? value.target : null;
   }
-}
 
-bool isRedirectingFactory(Member member) {
-  return member is Procedure && member.function.body is RedirectingFactoryBody;
-}
+  String get unresolvedName {
+    var value = getValue(expression);
+    return value is StringLiteral ? value.value : null;
+  }
 
-Member getImmediateRedirectionTarget(Member member) {
-  if (isRedirectingFactory(member)) {
-    Procedure procedure = member;
-    RedirectingFactoryBody body = procedure.function.body;
-    return body.target;
-  } else {
+  bool get isUnresolved => unresolvedName != null;
+
+  static getValue(Expression expression) {
+    if (expression is Let) {
+      VariableDeclaration variable = expression.variable;
+      if (variable.name == letName) {
+        return variable.initializer;
+      }
+    }
     return null;
   }
+
+  static void restoreFromDill(Procedure factory) {
+    // This is a hack / work around for storing redirecting constructors in
+    // dill files. See `KernelClassBuilder.addRedirectingConstructor` in
+    // [kernel_class_builder.dart](kernel_class_builder.dart).
+    FunctionNode function = factory.function;
+    ExpressionStatement statement = function.body;
+    function.body =
+        new RedirectingFactoryBody.internal(getValue(statement.expression))
+          ..parent = function;
+  }
+}
+
+RedirectingFactoryBody getRedirectingFactoryBody(Member member) {
+  return member is Procedure && member.function.body is RedirectingFactoryBody
+      ? member.function.body
+      : null;
 }
 
 Member getRedirectionTarget(Procedure member) {
@@ -45,11 +74,15 @@ Member getRedirectionTarget(Procedure member) {
   // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
   // handle cycles.
   Member tortoise = member;
-  Member hare = getImmediateRedirectionTarget(member);
+  RedirectingFactoryBody tortoiseBody = getRedirectingFactoryBody(tortoise);
+  Member hare = tortoiseBody?.target;
+  RedirectingFactoryBody hareBody = getRedirectingFactoryBody(hare);
   while (tortoise != hare) {
-    if (!isRedirectingFactory(tortoise)) return tortoise;
-    tortoise = getImmediateRedirectionTarget(tortoise);
-    hare = getImmediateRedirectionTarget(getImmediateRedirectionTarget(hare));
+    if (tortoiseBody?.isUnresolved ?? true) return tortoise;
+    tortoise = tortoiseBody.target;
+    tortoiseBody = getRedirectingFactoryBody(tortoise);
+    hare = getRedirectingFactoryBody(hareBody?.target)?.target;
+    hareBody = getRedirectingFactoryBody(hare);
   }
   return null;
 }

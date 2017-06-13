@@ -298,7 +298,7 @@ _createSmall(count, definite, returnType, required) => JS(
  }
  let result = map.get($returnType);
  if (result !== void 0) return result;
- result = new $FunctionType($returnType, args, [], {});
+ result = new $FunctionType.new($returnType, args, [], {});
  map.set($returnType, result);
  return result;
 })()''');
@@ -308,7 +308,8 @@ class FunctionType extends AbstractFunctionType {
   List args;
   List optionals;
   final named;
-  dynamic metadata;
+  // TODO(vsm): This is just parameter metadata for now.
+  List metadata = [];
   String _stringValue;
 
   /**
@@ -356,13 +357,13 @@ class FunctionType extends AbstractFunctionType {
     return _memoizeArray(_fnTypeTypeMap, keys, create);
   }
 
-  List _process(List array, metadata) {
+  List _process(List array) {
     var result = [];
     for (var i = 0; JS('bool', '# < #.length', i, array); ++i) {
       var arg = JS('', '#[#]', array, i);
       if (JS('bool', '# instanceof Array', arg)) {
-        metadata.add(JS('', '#.slice(1)', arg));
-        result.add(JS('', '#[0]', arg));
+        JS('', '#.push(#.slice(1))', metadata, arg);
+        JS('', '#.push(#[0])', result, arg);
       } else {
         JS('', '#.push([])', metadata);
         JS('', '#.push(#)', result, arg);
@@ -372,10 +373,8 @@ class FunctionType extends AbstractFunctionType {
   }
 
   FunctionType(this.returnType, this.args, this.optionals, this.named) {
-    // TODO(vsm): This is just parameter metadata for now.
-    metadata = [];
-    this.args = _process(this.args, metadata);
-    this.optionals = _process(this.optionals, metadata);
+    this.args = _process(this.args);
+    this.optionals = _process(this.optionals);
     // TODO(vsm): Add named arguments.
   }
 
@@ -425,16 +424,18 @@ class FunctionType extends AbstractFunctionType {
 
 class Typedef extends AbstractFunctionType {
   dynamic _name;
-  dynamic _closure;
+  AbstractFunctionType Function() _closure;
   AbstractFunctionType _functionType;
 
   Typedef(this._name, this._closure) {}
 
-  toString() => JS('', '# + "(" + #.toString() + ")"', _name, functionType);
+  toString() =>
+      JS('String', '# + "(" + #.toString() + ")"', _name, functionType);
   get name => _name;
 
   AbstractFunctionType get functionType {
-    return _functionType ??= JS('', '#()', _closure);
+    var ft = _functionType;
+    return ft == null ? _functionType = _closure() : ft;
   }
 }
 
@@ -484,6 +485,19 @@ class GenericFunctionType extends AbstractFunctionType {
       _typeFormals = [new TypeVariable(str.substring(0, end).trim())];
     }
     return _typeFormals;
+  }
+
+  checkBounds(List typeArgs) {
+    var bounds = instantiateTypeBounds(typeArgs);
+    var typeFormals = this.typeFormals;
+    for (var i = 0; i < typeArgs.length; i++) {
+      var type = typeArgs[i];
+      var bound = bounds[i];
+      if (!JS('bool', '#', isSubtype(type, bound))) {
+        throwStrongModeError('type `$type` does not extend `$bound`'
+            ' of `${typeFormals[i]}`.');
+      }
+    }
   }
 
   instantiate(typeArgs) {
@@ -601,7 +615,8 @@ class GenericFunctionType extends AbstractFunctionType {
   }
 }
 
-typedef(name, closure) => new Typedef(name, closure);
+typedef(name, AbstractFunctionType Function() closure) =>
+    new Typedef(name, closure);
 
 /// Create a definite function type.
 ///
@@ -786,34 +801,28 @@ isFunctionSubtype(ft1, ft2, isCovariant) => JS(
   return true;
 })()''');
 
-/// TODO(leafp): This duplicates code in operations.dart.
-/// I haven't found a way to factor it out that makes the
-/// code generator happy though.
-_subtypeMemo(f) => JS(
-    '',
-    '''(() => {
-  let memo = new Map();
-  return (t1, t2) => {
-    let map = memo.get(t1);
-    let result;
-    if (map) {
-      result = map.get(t2);
-      if (result !== void 0) return result;
-    } else {
-      memo.set(t1, map = new Map());
-    }
-    result = $f(t1, t2);
-    map.set(t2, result);
-    return result;
-  };
-})()''');
-
 /// Returns true if [t1] <: [t2].
 /// Returns false if [t1] </: [t2] in both spec and strong mode
 /// Returns undefined if [t1] </: [t2] in strong mode, but spec
 ///  mode may differ
-final isSubtype = JS(
-    '', '$_subtypeMemo((t1, t2) => (t1 === t2) || $_isSubtype(t1, t2, true))');
+bool isSubtype(t1, t2) {
+  // TODO(leafp): This duplicates code in operations.dart.
+  // I haven't found a way to factor it out that makes the
+  // code generator happy though.
+  var map = JS('', '#.get(#)', _memo, t1);
+  bool result;
+  if (JS('bool', '# !== void 0', map)) {
+    result = JS('bool', '#.get(#)', map, t2);
+    if (JS('bool', '# !== void 0', result)) return result;
+  } else {
+    JS('', '#.set(#, # = new Map())', _memo, t1, map);
+  }
+  result = JS('', '# === # || #(#, #, true)', t1, t2, _isSubtype, t1, t2);
+  JS('', '#.set(#, #)', map, t2, result);
+  return result;
+}
+
+final _memo = JS('', 'new Map()');
 
 _isBottom(type) => JS('bool', '# == # || # == #', type, bottom, type, Null);
 
@@ -828,7 +837,7 @@ _isTop(type) {
 bool _isFutureOr(type) =>
     JS('bool', '# === #', getGenericClass(type), getGenericClass(FutureOr));
 
-_isSubtype(t1, t2, isCovariant) => JS(
+bool _isSubtype(t1, t2, isCovariant) => JS(
     '',
     '''(() => {
   if ($t1 === $t2) return true;

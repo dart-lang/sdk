@@ -24,7 +24,7 @@ import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:expect/expect.dart';
-import 'test_helper.dart';
+import '../equivalence/check_helpers.dart';
 
 const TEST_SOURCES = const <String, String>{
   'main.dart': '''
@@ -390,7 +390,6 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   @override
   void visitCompilationUnitElement(
       CompilationUnitElement element1, CompilationUnitElement element2) {
-    check(element1, element2, 'name', element1.name, element2.name);
     checkElementIdentities(
         element1, element2, 'library', element1.library, element2.library);
     check(element1, element2, 'script.resourceUri', element1.script.resourceUri,

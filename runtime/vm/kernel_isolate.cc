@@ -4,16 +4,17 @@
 
 #include "vm/kernel_isolate.h"
 
-#include "vm/compiler.h"
+#include "bin/dartutils.h"
 #include "include/dart_native_api.h"
+#include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
-#include "vm/native_entry.h"
 #include "vm/native_arguments.h"
+#include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
@@ -300,8 +301,11 @@ class KernelCompilationRequest : public ValueObject {
     delete monitor_;
   }
 
-  Dart_KernelCompilationResult SendAndWaitForResponse(Dart_Port kernel_port,
-                                                      const char* script_uri) {
+  Dart_KernelCompilationResult SendAndWaitForResponse(
+      Dart_Port kernel_port,
+      const char* script_uri,
+      int source_files_count,
+      Dart_SourceFile source_files[]) {
     // Build the [null, send_port, script_uri] message for the Kernel isolate:
     // null tag tells it that request came from this code, instead of Loader
     // so that it can given a more informative response.
@@ -317,16 +321,44 @@ class KernelCompilationRequest : public ValueObject {
     uri.type = Dart_CObject_kString;
     uri.value.as_string = const_cast<char*>(script_uri);
 
-    static const intptr_t kMessageLen = 3;
-    Dart_CObject* message_arr[kMessageLen] = {&tag, &send_port, &uri};
-
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
-    message.value.as_array.length = kMessageLen;
-    message.value.as_array.values = message_arr;
 
-    // Send the message.
-    Dart_PostCObject(kernel_port, &message);
+    if (source_files_count == 0) {
+      static const intptr_t message_len = 3;
+      Dart_CObject* message_arr[] = {&tag, &send_port, &uri};
+      message.value.as_array.values = message_arr;
+      message.value.as_array.length = message_len;
+      // Send the message.
+      Dart_PostCObject(kernel_port, &message);
+    } else {
+      Dart_CObject files;
+      files.type = Dart_CObject_kArray;
+      files.value.as_array.length = source_files_count * 2;
+      // typedef Dart_CObject* Dart_CObjectPtr;
+      Dart_CObject** fileNamePairs = new Dart_CObject*[source_files_count * 2];
+      for (int i = 0; i < source_files_count; i++) {
+        Dart_CObject* source_uri = new Dart_CObject();
+        source_uri->type = Dart_CObject_kString;
+        source_uri->value.as_string = const_cast<char*>(source_files[i].uri);
+        fileNamePairs[i * 2] = source_uri;
+
+        Dart_CObject* source_code = new Dart_CObject();
+        source_code->type = Dart_CObject_kTypedData;
+        source_code->value.as_typed_data.type = Dart_TypedData_kUint8;
+        source_code->value.as_typed_data.length =
+            strlen(source_files[i].source);
+        source_code->value.as_typed_data.values = reinterpret_cast<uint8_t*>(
+            const_cast<char*>(source_files[i].source));
+        fileNamePairs[(i * 2) + 1] = source_code;
+      }
+      files.value.as_array.values = fileNamePairs;
+      static const intptr_t message_len = 4;
+      Dart_CObject* message_arr[] = {&tag, &send_port, &uri, &files};
+      message.value.as_array.values = message_arr;
+      message.value.as_array.length = message_len;
+      Dart_PostCObject(kernel_port, &message);
+    }
 
     // Wait for reply to arrive.
     MonitorLocker ml(monitor_);
@@ -435,7 +467,9 @@ Monitor* KernelCompilationRequest::requests_monitor_ = new Monitor();
 KernelCompilationRequest* KernelCompilationRequest::requests_ = NULL;
 
 Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
-    const char* script_uri) {
+    const char* script_uri,
+    int source_file_count,
+    Dart_SourceFile source_files[]) {
   // This must be the main script to be loaded. Wait for Kernel isolate
   // to finish initialization.
   Dart_Port kernel_port = WaitForKernelPort();
@@ -447,7 +481,8 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
   }
 
   KernelCompilationRequest request;
-  return request.SendAndWaitForResponse(kernel_port, script_uri);
+  return request.SendAndWaitForResponse(kernel_port, script_uri,
+                                        source_file_count, source_files);
 }
 
 

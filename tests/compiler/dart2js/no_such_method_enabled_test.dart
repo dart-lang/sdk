@@ -8,6 +8,7 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/no_such_method_registry.dart';
+import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import 'kernel/compiler_helper.dart';
 import 'compiler_helper.dart';
@@ -259,6 +260,7 @@ main() {
       print('---- testing with kernel --------------------------------------');
       print(sources[index]);
       Compiler compiler = await results[index]();
+      compiler.resolutionWorldBuilder.closeWorld();
       // Complex returns are computed during inference.
       checkTest(compiler, TESTS[index], testComplexReturns: false);
     }
@@ -271,6 +273,8 @@ checkTest(Compiler compiler, NoSuchMethodTest test, {bool testComplexReturns}) {
   NoSuchMethodResolver resolver = registry.internalResolverForTesting;
   FunctionEntity ObjectNSM = elementEnvironment.lookupClassMember(
       compiler.commonElements.objectClass, 'noSuchMethod');
+  ClosedWorld closedWorld =
+      compiler.resolutionWorldBuilder.closedWorldForTesting;
 
   // Test [NoSuchMethodResolver] results for each method.
   for (NoSuchMethodInfo info in test.methods) {
@@ -345,6 +349,6 @@ checkTest(Compiler compiler, NoSuchMethodTest test, {bool testComplexReturns}) {
 
   Expect.equals(
       test.isNoSuchMethodUsed,
-      compiler.backend.backendUsage.isNoSuchMethodUsed,
+      closedWorld.backendUsage.isNoSuchMethodUsed,
       "Unexpected isNoSuchMethodUsed result.");
 }

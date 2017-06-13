@@ -7,8 +7,6 @@
  * full description of the API as a web page, and for generating doc comments
  * in generated code.
  */
-library to.html;
-
 import 'dart:convert';
 
 import 'package:analyzer/src/codegen/html.dart';
@@ -208,11 +206,11 @@ abstract class HtmlMixin {
 
   void p(void callback()) => element('p', {}, callback);
   void pre(void callback()) => element('pre', {}, callback);
+  void span(String cls, void callback()) =>
+      element('span', {'class': cls}, callback);
   void title(void callback()) => element('title', {}, callback);
   void tt(void callback()) => element('tt', {}, callback);
   void ul(void callback()) => element('ul', {}, callback);
-  void span(String cls, void callback()) =>
-      element('span', {'class': cls}, callback);
 }
 
 /**
@@ -279,6 +277,12 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     }
   }
 
+  void generateDomainsHeader() {
+    h1(() {
+      write('Domains');
+    });
+  }
+
   void generateIndex() {
     h3(() => write('Domains'));
     for (var domain in api.domains) {
@@ -309,6 +313,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   }
 
   void generateRefactoringsIndex(Iterable<Refactoring> refactorings) {
+    if (refactorings == null) {
+      return;
+    }
     h3(() {
       write("Refactorings");
       write(' (');
@@ -344,14 +351,10 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     });
   }
 
-  void generateDomainsHeader() {
-    h1(() {
-      write('Domains');
-    });
-  }
-
   void generateTableOfContents() {
     for (var domain in api.domains.where((domain) => !domain.experimental)) {
+      if (domain.experimental) continue;
+
       writeln();
 
       p(() {
@@ -362,6 +365,8 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
       ul(() {
         for (Request request in domain.requests) {
+          if (request.experimental) continue;
+
           li(() {
             link('request_${request.longMethod}', () {
               write(request.longMethod);
@@ -382,9 +387,11 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       link('types', () => write('\u2191'));
       write(')');
     });
+    List<String> sortedTypes = types.toList();
+    sortedTypes.sort();
     element('div', {'class': 'subindex'}, () {
       element('ul', {}, () {
-        for (var type in types) {
+        for (var type in sortedTypes) {
           element('li', {}, () => link('type_$type', () => write(type)));
         }
       });
@@ -478,7 +485,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             generateIndex();
             break;
           default:
-            if (!specialElements.contains(node.localName)) {
+            if (!ApiReader.specialElements.contains(node.localName)) {
               element(node.localName, node.attributes, () {
                 translateHtml(node, squashParagraphs: squashParagraphs);
               });
@@ -694,7 +701,10 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   void visitTypes(Types types) {
     translateHtml(types.html);
     dl(() {
-      super.visitTypes(types);
+      List<TypeDefinition> sortedTypes = types.toList();
+      sortedTypes.sort((TypeDefinition first, TypeDefinition second) =>
+          first.name.compareTo(second.name));
+      sortedTypes.forEach(visitTypeDefinition);
     });
   }
 }

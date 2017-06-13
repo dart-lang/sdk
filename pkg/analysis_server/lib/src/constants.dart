@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library server.constants;
-
 //
 // Server methods
 //
@@ -43,52 +41,66 @@ const String ANALYSIS_SET_PRIORITY_FILES = 'analysis.setPriorityFiles';
 const String ANALYSIS_SET_SUBSCRIPTIONS = 'analysis.setSubscriptions';
 const String ANALYSIS_UPDATE_CONTENT = 'analysis.updateContent';
 const String ANALYSIS_UPDATE_OPTIONS = 'analysis.updateOptions';
-const String ASSISTS = 'assists';
-const String CHANGE = 'change';
-const String CHILDREN = 'children';
-const String CLASS_ELEMENT = 'classElement';
+const String ANALYTICS_ENABLE = 'analytics.enable';
+const String ANALYTICS_IS_ENABLED = 'analytics.isEnabled';
+const String ANALYTICS_SEND_EVENT = 'analytics.sendEvent';
+const String ANALYTICS_SEND_TIMING = 'analytics.sendTiming';
 
 //
 // Code Completion methods
 //
-const String CLASS_NAME = 'className';
+const String ASSISTS = 'assists';
 
 //
 // Code Completion notifications
 //
-const String CODE = 'code';
+const String CHANGE = 'change';
 
 //
 // Search methods
 //
+const String CHILDREN = 'children';
+const String CLASS_ELEMENT = 'classElement';
+const String CLASS_NAME = 'className';
+const String CODE = 'code';
 const String COMPLETION = 'completion';
-const String COMPLETION_GET_SUGGESTIONS = 'completion.getSuggestions';
-const String COMPLETION_RESULTS = 'completion.results';
-const String CONTAINING_LIBRARY_NAME = 'containingLibraryName';
-const String CONTAINING_LIBRARY_PATH = 'containingLibraryPath';
 
 //
 // Search notifications
 //
-const String CONTENT = 'content';
+const String COMPLETION_GET_SUGGESTIONS = 'completion.getSuggestions';
 
 //
 // Edit methods
 //
+const String COMPLETION_RESULTS = 'completion.results';
+const String CONTAINING_LIBRARY_NAME = 'containingLibraryName';
+const String CONTAINING_LIBRARY_PATH = 'containingLibraryPath';
+const String CONTENT = 'content';
 const String CORRECTION = 'correction';
 const String DART_DOC = 'dartdoc';
 const String DEFAULT = 'default';
+const String DIAGNOSTIC_GET_DIAGNOSTICS = 'diagnostic.getDiagnostics';
+
+//
+// Diagnostic methods
+//
+const String DIAGNOSTIC_GET_SERVER_PORT = 'diagnostic.getServerPort';
 const String DISPLAY_NAME = 'displayName';
+
+//
+// Analytics methods
+//
 const String EDIT_FORMAT = 'edit.format';
 const String EDIT_GET_ASSISTS = 'edit.getAssists';
 const String EDIT_GET_AVAILABLE_REFACTORINGS = 'edit.getAvailableRefactorings';
-const String EDIT_GET_STATEMENT_COMPLETION = "edit.getStatementCompletion";
+const String EDIT_GET_FIXES = 'edit.getFixes';
 
 //
 // Execution methods
 //
-const String EDIT_GET_FIXES = 'edit.getFixes';
 const String EDIT_GET_REFACTORING = 'edit.getRefactoring';
+const String EDIT_GET_STATEMENT_COMPLETION = "edit.getStatementCompletion";
 const String EDIT_ORGANIZE_DIRECTIVES = 'edit.organizeDirectives';
 const String EDIT_SORT_MEMBERS = 'edit.sortMembers';
 
@@ -96,12 +108,6 @@ const String EDIT_SORT_MEMBERS = 'edit.sortMembers';
 // Execution notifications
 //
 const String EDITS = 'edits';
-
-//
-// Diagnostics methods
-//
-const String DIAGNOSTIC_GET_DIAGNOSTICS = 'diagnostic.getDiagnostics';
-const String DIAGNOSTIC_GET_SERVER_PORT = 'diagnostic.getServerPort';
 
 //
 // Analysis option names

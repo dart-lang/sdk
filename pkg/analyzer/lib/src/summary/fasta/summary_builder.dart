@@ -5,10 +5,16 @@
 /// Logic to build unlinked summaries.
 library summary.src.summary_builder;
 
-import 'package:front_end/src/fasta/parser/class_member_parser.dart';
-import 'package:front_end/src/fasta/parser/identifier_context.dart';
-import 'package:front_end/src/fasta/parser/parser.dart';
-import 'package:front_end/src/fasta/scanner.dart';
+import 'package:front_end/src/fasta/parser.dart'
+    show
+        ClassMemberParser,
+        FormalParameterType,
+        IdentifierContext,
+        MemberKind,
+        Parser;
+
+import 'package:front_end/src/fasta/scanner.dart' show Token, scan;
+
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 
 import 'expression_serializer.dart';
@@ -261,13 +267,14 @@ abstract class ExpressionListener extends StackListener {
     push(new ConstructorName(new TypeRef(type, typeArgs), ctorName?.name));
   }
 
-  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
-      Token nameToken, FormalParameterType kind) {
+  void endFormalParameter(Token thisKeyword, Token nameToken,
+      FormalParameterType kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     assert(ignore);
   }
 
-  void endFormalParameters(int c, begin, end) {
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
     assert(ignore);
   }
@@ -489,7 +496,7 @@ abstract class ExpressionListener extends StackListener {
     push(NullValue.Arguments);
   }
 
-  void handleNoFormalParameters(Token token) {
+  void handleNoFormalParameters(Token token, MemberKind kind) {
     debugEvent("NoFormalParameters");
     assert(ignore);
   }
@@ -792,7 +799,7 @@ class SummaryBuilder extends StackListener {
     }
   }
 
-  void beginFormalParameters(Token begin) {
+  void beginFormalParameters(Token token, MemberKind kind) {
     _nextParamKind = UnlinkedParamKind.required;
   }
 
@@ -991,8 +998,7 @@ class SummaryBuilder extends StackListener {
         name, new UnlinkedExecutableBuilder(bodyExpr: initializer)));
   }
 
-  void endFields(
-      int count, Token covariantKeyword, Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     var s = scope;
     if (s is ClassScope) {
@@ -1003,8 +1009,8 @@ class SummaryBuilder extends StackListener {
     }
   }
 
-  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
-      Token nameToken, FormalParameterType kind) {
+  void endFormalParameter(Token thisKeyword, Token nameToken,
+      FormalParameterType kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     // TODO(sigmund): clean up?
     var nameOrFormal = pop();
@@ -1024,7 +1030,8 @@ class SummaryBuilder extends StackListener {
     }
   }
 
-  void endFormalParameters(int count, Token beginToken, Token endToken) {
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
     List formals = popList(count);
     if (formals != null && formals.isNotEmpty) {
@@ -1065,7 +1072,7 @@ class SummaryBuilder extends StackListener {
   }
 
   void endFunctionTypedFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+      Token thisKeyword, FormalParameterType kind) {
     debugEvent("FunctionTypedFormalParameter");
     List<UnlinkedParamBuilder> formals = pop();
     if (formals != null) formals.forEach((p) => p.inheritsCovariantSlot = null);

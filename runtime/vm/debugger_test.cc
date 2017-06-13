@@ -71,6 +71,86 @@ TEST_CASE(Debugger_GetBreakpointsById) {
   EXPECT(debugger->GetBreakpointById(bp_id2) != NULL);
 }
 
+static int closure_hit_count = 0;
+int64_t closure_bp_id[4];
+static void PausedInClosuresHandler(Dart_IsolateId isolate_id,
+                                    intptr_t bp_id,
+                                    const Dart_CodeLocation& location) {
+  EXPECT(bp_id == closure_bp_id[closure_hit_count]);
+  closure_hit_count++;
+}
+
+TEST_CASE(Debugger_SetBreakpointInFunctionLiteralFieldInitializers) {
+  const char* kScriptChars =
+      "main() {\n"
+      "  var c = new MyClass();\n"
+      "  c.closure(1, 2);\n"
+      "  MyClass.staticClosure(7, 8);\n"
+      "  closure(3, 4);\n"
+      "  closureSingleLine(5, 6);\n"
+      "}\n"
+      "class MyClass {\n"
+      "  var closure = (int a, int b) {\n"
+      "    return a + b;\n"
+      "  };\n"
+      "  static var staticClosure = (int a, int b) {\n"
+      "    return a * b;\n"
+      "  };\n"
+      "}\n"
+      "var closure = (int a, int b) {\n"
+      "  return a + b;\n"
+      "};\n"
+      "var closureSingleLine = (int a, int b) => a * b;\n"
+      "int v = 10;\n";
+  SetFlagScope<bool> sfs(&FLAG_remove_script_timestamps_for_test, true);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  Isolate* isolate = Isolate::Current();
+  Debugger* debugger = isolate->debugger();
+
+  Dart_Handle url = NewString(TestCase::url());
+  Dart_Handle result = Dart_SetBreakpoint(url, 10);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &closure_bp_id[0]));
+
+  result = Dart_SetBreakpoint(url, 13);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &closure_bp_id[1]));
+
+  result = Dart_SetBreakpoint(url, 17);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &closure_bp_id[2]));
+
+  result = Dart_SetBreakpoint(url, 19);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &closure_bp_id[3]));
+
+  // Cannot set breakpoint at the start of the class definition.
+  // The implicit constructor token position matches that of the
+  // class definition's token position. So, we do not want to
+  // allow setting breakpoints in implicit consturctors.
+  result = Dart_SetBreakpoint(url, 8);
+  EXPECT_ERROR(result, "could not set breakpoint at line 8");
+
+  result = Dart_SetBreakpoint(url, 20);
+  EXPECT_ERROR(result, "could not set breakpoint at line 20");
+
+  EXPECT(debugger->GetBreakpointById(closure_bp_id[0]) != NULL);
+  EXPECT(debugger->GetBreakpointById(closure_bp_id[1]) != NULL);
+  EXPECT(debugger->GetBreakpointById(closure_bp_id[2]) != NULL);
+  EXPECT(debugger->GetBreakpointById(closure_bp_id[3]) != NULL);
+
+  Dart_SetPausedEventHandler(PausedInClosuresHandler);
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(closure_hit_count == 4);
+}
+
 TEST_CASE(Debugger_RemoveBreakpoint) {
   const char* kScriptChars =
       "main() {\n"
@@ -155,13 +235,13 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
         "[{\"type\":\"Breakpoint\",\"fixedId\":true,\"id\":\"breakpoints\\/"
         "2\",\"breakpointNumber\":2,\"resolved\":false,\"location\":{\"type\":"
         "\"UnresolvedSourceLocation\",\"script\":{\"type\":\"@Script\","
-        "\"fixedId\":true,\"id\":\"libraries\\/@15247669\\/scripts\\/"
+        "\"fixedId\":true,\"id\":\"libraries\\/%s\\/scripts\\/"
         "test-lib\\/"
         "0\",\"uri\":\"test-lib\",\"_kind\":\"script\"},\"line\":3}},{\"type\":"
         "\"Breakpoint\",\"fixedId\":true,\"id\":\"breakpoints\\/"
         "1\",\"breakpointNumber\":1,\"resolved\":false,\"location\":{\"type\":"
         "\"UnresolvedSourceLocation\",\"script\":{\"type\":\"@Script\","
-        "\"fixedId\":true,\"id\":\"libraries\\/@15247669\\/scripts\\/"
+        "\"fixedId\":true,\"id\":\"libraries\\/%s\\/scripts\\/"
         "test-lib\\/"
         "0\",\"uri\":\"test-lib\",\"_kind\":\"script\"},\"line\":2}},{\"type\":"
         "\"Breakpoint\",\"fixedId\":true,\"id\":\"breakpoints\\/"

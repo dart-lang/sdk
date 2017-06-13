@@ -11,6 +11,7 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/diagnostics/spannable.dart' show Spannable;
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, ClassEntity;
+import 'package:compiler/src/io/source_file.dart' show Binary;
 import 'package:compiler/src/library_loader.dart' show ScriptLoader;
 import 'package:compiler/src/script.dart' show Script;
 import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
@@ -38,6 +39,9 @@ class TestScriptLoader implements ScriptLoader {
 
   Future<Script> readScript(Uri uri, [Spannable spannable]) =>
       compiler.readScript(uri, spannable);
+
+  Future<Binary> readBinary(Uri uri, [Spannable spannable]) =>
+      compiler.readBinary(uri, spannable);
 }
 
 /// Test that the compiler can successfully read in .dill kernel files rather

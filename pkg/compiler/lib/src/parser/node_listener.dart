@@ -5,10 +5,10 @@
 library dart2js.parser.node_listener;
 
 import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType;
+    show FormalParameterType, MemberKind;
 import 'package:front_end/src/fasta/parser/identifier_context.dart'
     show IdentifierContext;
-import 'package:front_end/src/fasta/scanner.dart' show SymbolToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'package:front_end/src/scanner/token.dart' show TokenType;
 
 import '../common.dart';
@@ -16,6 +16,8 @@ import '../elements/elements.dart' show CompilationUnitElement;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'element_listener.dart' show ElementListener, ScannerOptions;
+
+import 'package:front_end/src/fasta/parser/parser.dart' as fasta show Assert;
 
 class NodeListener extends ElementListener {
   NodeListener(ScannerOptions scannerOptions, DiagnosticReporter reporter,
@@ -229,8 +231,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
-      Token nameToken, FormalParameterType kind) {
+  void endFormalParameter(Token thisKeyword, Token nameToken,
+      FormalParameterType kind, MemberKind memberKind) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -248,12 +250,13 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFormalParameters(int count, Token beginToken, Token endToken) {
+  void endFormalParameters(
+      int count, Token beginToken, Token endToken, MemberKind kind) {
     pushNode(makeNodeList(count, beginToken, endToken, ","));
   }
 
   @override
-  void handleNoFormalParameters(Token token) {
+  void handleNoFormalParameters(Token token, MemberKind kind) {
     pushNode(null);
   }
 
@@ -668,8 +671,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFields(
-      int count, Token covariantKeyword, Token beginToken, Token endToken) {
+  void endFields(int count, Token beginToken, Token endToken) {
     NodeList variables = makeNodeList(count, null, endToken, ",");
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
@@ -718,8 +720,7 @@ class NodeListener extends ElementListener {
     NodeList arguments =
         makeNodeList(1, openSquareBracket, closeSquareBracket, null);
     Node receiver = popNode();
-    Token token =
-        new SymbolToken(TokenType.INDEX, openSquareBracket.charOffset);
+    Token token = new Token(TokenType.INDEX, openSquareBracket.charOffset);
     Node selector = new Operator(token);
     pushNode(new Send(receiver, selector, arguments));
   }
@@ -768,7 +769,7 @@ class NodeListener extends ElementListener {
 
   @override
   void endFunctionTypedFormalParameter(
-      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
+      Token thisKeyword, FormalParameterType kind) {
     NodeList formals = popNode();
     NodeList typeVariables = popNode();
     Identifier name = popNode();
@@ -962,7 +963,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleAssertStatement(Token assertKeyword, Token leftParenthesis,
+  void endAssert(Token assertKeyword, fasta.Assert kind, Token leftParenthesis,
       Token commaToken, Token rightParenthesis, Token semicolonToken) {
     Node message;
     Node condition;

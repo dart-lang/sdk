@@ -8,14 +8,14 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:compiler/src/compiler.dart' show Compiler;
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart';
-import 'package:kernel/class_hierarchy.dart';
-import 'package:path/path.dart' as pathlib;
+import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
 
 import '../memory_compiler.dart';
@@ -30,16 +30,16 @@ const List<String> TESTS = const <String>[
   'bad_store',
   'call',
   'closure',
-  'covariant_generic',
+  // 'covariant_generic', Issue 29853: typedefs
   'escape',
   'fallthrough',
   'micro',
   'named_parameters',
   'null_aware',
-  'optional',
+  // 'optional', Issue 29853: abstract members
   'override',
   'prefer_baseclass',
-  'redirecting_factory',
+  // 'redirecting_factory', Issue 29853: redirecting factories
   'static_setter',
   'store_load',
   'stringliteral',
@@ -71,7 +71,10 @@ scheduleTest(String name, {bool selected}) async {
     JavaScriptBackend backend = compiler.backend;
     StringBuffer buffer = new StringBuffer();
     Program program = backend.kernelTask.buildProgram(library);
-    new MixinFullResolution().transform(program);
+    CoreTypes coreTypes = new CoreTypes(program);
+    ClassHierarchy hierarchy = new ClosedWorldClassHierarchy(program);
+    new MixinFullResolution(new NoneTarget(null), coreTypes, hierarchy)
+        .transform(program.libraries);
     new Printer(buffer).writeLibraryFile(program.mainMethod.enclosingLibrary);
     String actual = buffer.toString();
     String expected =

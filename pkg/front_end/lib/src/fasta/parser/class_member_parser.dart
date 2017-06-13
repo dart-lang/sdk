@@ -4,23 +4,35 @@
 
 library fasta.parser.class_member_parser;
 
-import '../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show Token;
+
+import '../fasta_codes.dart' show FastaMessage;
 
 import 'listener.dart' show Listener;
 
-import 'parser.dart' show Parser;
+import 'parser.dart' show Assert, Parser;
 
 /// Parser similar to [TopLevelParser] but also parses class members (excluding
 /// their bodies).
 class ClassMemberParser extends Parser {
   ClassMemberParser(Listener listener) : super(listener);
 
+  @override
   Token parseExpression(Token token) => skipExpression(token);
 
-  Token parseRecoverExpression(Token token) {
+  @override
+  Token parseAssert(Token token, Assert kind) {
+    if (kind == Assert.Statement) {
+      return super.parseAssert(token, kind);
+    } else {
+      return skipExpression(token);
+    }
+  }
+
+  Token parseRecoverExpression(Token token, FastaMessage message) {
     Token begin = token;
     token = skipExpression(token);
-    listener.handleRecoverExpression(begin);
+    listener.handleRecoverExpression(begin, message);
     return token;
   }
 

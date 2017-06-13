@@ -17,8 +17,7 @@ main() {
 /// Assert that fasta PrecedenceInfo implements analyzer TokenType.
 @reflectiveTest
 class PrecedenceInfoTest {
-  void assertInfo(check(String source, fasta.Token token),
-      {bool includeLazyAssignmentOperators: true}) {
+  void assertInfo(check(String source, Token token)) {
     void assertLexeme(String source) {
       if (source == null || source.isEmpty) return;
       var scanner = new StringScanner(source, includeComments: true);
@@ -36,10 +35,8 @@ class PrecedenceInfoTest {
     assertLexeme('#!/'); // SCRIPT_TAG
     assertLexeme('"foo"'); // STRING
     assertLexeme('bar'); // IDENTIFIER
-    if (includeLazyAssignmentOperators) {
-      assertLexeme('&&=');
-      assertLexeme('||=');
-    }
+    assertLexeme('&&=');
+    assertLexeme('||=');
   }
 
   void test_isOperator() {
@@ -90,7 +87,7 @@ class PrecedenceInfoTest {
       '~/=',
     ]);
 
-    assertInfo((String source, fasta.Token token) {
+    assertInfo((String source, Token token) {
       expect(token.isOperator, operatorLexemes.contains(source),
           reason: source);
       expect(token.type.isOperator, operatorLexemes.contains(source),
@@ -103,7 +100,7 @@ class PrecedenceInfoTest {
       '-',
       '+',
     ];
-    assertInfo((String source, fasta.Token token) {
+    assertInfo((String source, Token token) {
       expect(token.type.isAdditiveOperator, additiveLexemes.contains(source),
           reason: source);
     });
@@ -112,7 +109,9 @@ class PrecedenceInfoTest {
   void test_isAssignmentOperator() {
     const assignmentLexemes = const [
       '&=',
+      '&&=',
       '|=',
+      '||=',
       '^=',
       '=',
       '>>=',
@@ -125,7 +124,7 @@ class PrecedenceInfoTest {
       '*=',
       '~/=',
     ];
-    assertInfo((String source, fasta.Token token) {
+    assertInfo((String source, Token token) {
       expect(
           token.type.isAssignmentOperator, assignmentLexemes.contains(source),
           reason: source);
@@ -142,11 +141,11 @@ class PrecedenceInfoTest {
       '+',
       '*',
     ];
-    assertInfo((String source, fasta.Token token) {
+    assertInfo((String source, Token token) {
       expect(
           token.type.isAssociativeOperator, associativeLexemes.contains(source),
           reason: source);
-    }, includeLazyAssignmentOperators: false);
+    });
   }
 
   void test_isEqualityOperator() {
@@ -154,7 +153,7 @@ class PrecedenceInfoTest {
       '!=',
       '==',
     ];
-    assertInfo((String source, fasta.Token token) {
+    assertInfo((String source, Token token) {
       expect(token.type.isEqualityOperator, equalityLexemes.contains(source),
           reason: source);
     });
@@ -165,7 +164,7 @@ class PrecedenceInfoTest {
       '--',
       '++',
     ];
-    assertInfo((String source, fasta.Token token) {
+    assertInfo((String source, Token token) {
       expect(token.type.isIncrementOperator, incrementLexemes.contains(source),
           reason: source);
     });
@@ -178,7 +177,7 @@ class PrecedenceInfoTest {
       '*',
       '~/',
     ];
-    assertInfo((String source, fasta.Token token) {
+    assertInfo((String source, Token token) {
       expect(token.type.isMultiplicativeOperator,
           multiplicativeLexemes.contains(source),
           reason: source);
@@ -192,7 +191,7 @@ class PrecedenceInfoTest {
       '<',
       '<=',
     ];
-    assertInfo((String source, fasta.Token token) {
+    assertInfo((String source, Token token) {
       expect(
           token.type.isRelationalOperator, relationalLexemes.contains(source),
           reason: source);
@@ -204,7 +203,7 @@ class PrecedenceInfoTest {
       '>>',
       '<<',
     ];
-    assertInfo((String source, fasta.Token token) {
+    assertInfo((String source, Token token) {
       expect(token.type.isShiftOperator, shiftLexemes.contains(source),
           reason: source);
     });
@@ -219,7 +218,7 @@ class PrecedenceInfoTest {
       '++',
       '?.',
     ];
-    assertInfo((String source, fasta.Token token) {
+    assertInfo((String source, Token token) {
       expect(token.type.isUnaryPostfixOperator,
           unaryPostfixLexemes.contains(source),
           reason: source);
@@ -233,7 +232,7 @@ class PrecedenceInfoTest {
       '++',
       '~',
     ];
-    assertInfo((String source, fasta.Token token) {
+    assertInfo((String source, Token token) {
       expect(
           token.type.isUnaryPrefixOperator, unaryPrefixLexemes.contains(source),
           reason: source);
@@ -262,7 +261,7 @@ class PrecedenceInfoTest {
       '~',
       '~/',
     ];
-    assertInfo((String source, fasta.Token token) {
+    assertInfo((String source, Token token) {
       var userDefinable = userDefinableOperatorLexemes.contains(source);
       expect(token.type.isUserDefinableOperator, userDefinable, reason: source);
       expect(token.isUserDefinableOperator, userDefinable, reason: source);

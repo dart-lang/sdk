@@ -349,13 +349,23 @@ class PatchFinder extends GeneralizingAstVisitor {
 }
 
 String _qualifiedName(Declaration node) {
+  var result = "";
+
   var parent = node.parent;
-  var className = '';
   if (parent is ClassDeclaration) {
-    className = parent.name.name + '.';
+    result = "${parent.name.name}.";
   }
+
   var name = (node as dynamic).name;
-  return className + (name != null ? name.name : '');
+  if (name != null) result += name.name;
+
+  // Make sure setters and getters don't collide.
+  if ((node is FunctionDeclaration || node is MethodDeclaration) &&
+      (node as dynamic).isSetter) {
+    result += "=";
+  }
+
+  return result;
 }
 
 bool _isPatch(AnnotatedNode node) => node.metadata.any(_isPatchAnnotation);

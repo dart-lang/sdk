@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library http_server;
-
 import 'dart:async';
+import 'dart:convert' show HtmlEscape;
 import 'dart:io';
 
-import 'dart:convert' show HtmlEscape;
+import 'package:package_resolver/package_resolver.dart';
 
-import 'test_suite.dart'; // For TestUtils.
+import 'configuration.dart';
 import 'vendored_pkg/args/args.dart';
 import 'utils.dart';
-import 'package:package_resolver/package_resolver.dart';
 
 class DispatchingServer {
   HttpServer server;
@@ -62,7 +60,7 @@ class DispatchingServer {
 const PREFIX_BUILDDIR = 'root_build';
 const PREFIX_DARTDIR = 'root_dart';
 
-main(List<String> arguments) {
+void main(List<String> arguments) {
   // This script is in [dart]/tools/testing/dart.
   TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   /** Convenience method for local testing. */
@@ -88,15 +86,20 @@ main(List<String> arguments) {
       help: 'The runtime we are using (for csp flags).', defaultsTo: 'none');
 
   var args = parser.parse(arguments);
-  if (args['help']) {
+  if (args['help'] as bool) {
     print(parser.getUsage());
   } else {
-    var servers = new TestingServers(args['build-directory'], args['csp'],
-        args['runtime'], null, args['package-root'], args['packages']);
-    var port = int.parse(args['port']);
-    var crossOriginPort = int.parse(args['crossOriginPort']);
+    var servers = new TestingServers(
+        args['build-directory'] as String,
+        args['csp'] as bool,
+        Runtime.find(args['runtime'] as String),
+        null,
+        args['package-root'] as String,
+        args['packages'] as String);
+    var port = int.parse(args['port'] as String);
+    var crossOriginPort = int.parse(args['crossOriginPort'] as String);
     servers
-        .startServers(args['network'],
+        .startServers(args['network'] as String,
             port: port, crossOriginPort: crossOriginPort)
         .then((_) {
       DebugLogger.info('Server listening on port ${servers.port}');
@@ -121,18 +124,18 @@ class TestingServers {
     "IntentionallyMissingFile",
   ];
 
-  List _serverList = [];
-  Uri _buildDirectory = null;
-  Uri _dartDirectory = null;
+  final List<HttpServer> _serverList = [];
+  Uri _buildDirectory;
+  Uri _dartDirectory;
   Uri _packageRoot;
   Uri _packages;
   final bool useContentSecurityPolicy;
-  final String runtime;
+  final Runtime runtime;
   DispatchingServer _server;
   SyncPackageResolver _resolver;
 
   TestingServers(String buildDirectory, this.useContentSecurityPolicy,
-      [String this.runtime = 'none',
+      [this.runtime = Runtime.none,
       String dartDirectory,
       String packageRoot,
       String packages]) {
@@ -189,7 +192,7 @@ class TestingServers {
       '-c',
       crossOriginPort,
       '--build-directory=$buildDirectory',
-      '--runtime=$runtime'
+      '--runtime=${runtime.name}'
     ];
     if (useContentSecurityPolicy) {
       command.add('--csp');
@@ -212,12 +215,13 @@ class TestingServers {
     DebugLogger.error('HttpServer: an error occured', e);
   }
 
-  Future _startHttpServer(String host, {int port: 0, int allowedPort: -1}) {
+  Future<DispatchingServer> _startHttpServer(String host,
+      {int port: 0, int allowedPort: -1}) {
     return HttpServer.bind(host, port).then((HttpServer httpServer) {
       var server = new DispatchingServer(httpServer, _onError, _sendNotFound);
       server.addHandler('/echo', _handleEchoRequest);
       server.addHandler('/ws', _handleWebSocketRequest);
-      fileHandler(request) {
+      fileHandler(HttpRequest request) {
         _handleFileOrDirectoryRequest(request, allowedPort);
       }
 
@@ -229,7 +233,8 @@ class TestingServers {
     });
   }
 
-  _handleFileOrDirectoryRequest(HttpRequest request, int allowedPort) async {
+  Future _handleFileOrDirectoryRequest(
+      HttpRequest request, int allowedPort) async {
     // Enable browsers to cache file/directory responses.
     var response = request.response;
     response.headers
@@ -312,8 +317,8 @@ class TestingServers {
   }
 
   Future<List<_Entry>> _listDirectory(Directory directory) {
-    var completer = new Completer();
-    var entries = [];
+    var completer = new Completer<List<_Entry>>();
+    var entries = <_Entry>[];
 
     directory.list().listen((FileSystemEntity fse) {
       var segments = fse.uri.pathSegments;
@@ -367,7 +372,7 @@ class TestingServers {
       HttpRequest request, HttpResponse response, int allowedPort, File file) {
     if (allowedPort != -1) {
       var headerOrigin = request.headers.value('Origin');
-      var allowedOrigin;
+      String allowedOrigin;
       if (headerOrigin != null) {
         var origin = Uri.parse(headerOrigin);
         // Allow loading from http://*:$allowedPort in browsers.

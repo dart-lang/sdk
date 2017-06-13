@@ -623,6 +623,14 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ sw(T6, Address(SP, 2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
+
+  // Adjust arguments count.
+  __ lw(TMP, FieldAddress(S4, ArgumentsDescriptor::type_args_len_offset()));
+  Label args_count_ok;
+  __ BranchEqual(TMP, Immediate(0), &args_count_ok);
+  __ AddImmediate(A1, A1, Smi::RawValue(1));  // Include the type arguments.
+  __ Bind(&args_count_ok);
+
   // A1: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
   const intptr_t kNumArgs = 4;
@@ -711,8 +719,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   const intptr_t cid = kArrayCid;
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, T4, &slow_case));
 
-  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ LoadImmediate(T2, fixed_size);
+  const intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawArray) + kObjectAlignment - 1;
+  __ LoadImmediate(T2, fixed_size_plus_alignment_padding);
   __ sll(T3, T3, 1);  // T3 is  a Smi.
   __ addu(T2, T2, T3);
   ASSERT(kSmiTagShift == 1);
@@ -973,8 +982,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label slow_case;
     // First compute the rounded instance size.
     // T1: number of context variables.
-    intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
-    __ LoadImmediate(T2, fixed_size);
+    intptr_t fixed_size_plus_alignment_padding =
+        sizeof(RawContext) + kObjectAlignment - 1;
+    __ LoadImmediate(T2, fixed_size_plus_alignment_padding);
     __ sll(T0, T1, 2);
     __ addu(T2, T2, T0);
     ASSERT(kSmiTagShift == 1);
@@ -1307,6 +1317,13 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ sw(ZR, Address(SP, 2 * kWordSize));
   __ sw(T6, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
+
+  // Adjust arguments count.
+  __ lw(TMP, FieldAddress(S4, ArgumentsDescriptor::type_args_len_offset()));
+  Label args_count_ok;
+  __ BranchEqual(TMP, Immediate(0), &args_count_ok);
+  __ AddImmediate(A1, A1, Smi::RawValue(1));  // Include the type arguments.
+  __ Bind(&args_count_ok);
 
   // A1: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
@@ -1983,7 +2000,7 @@ void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
 
 // Return the current stack pointer address, used to stack alignment
 // checks.
-void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
+void StubCode::GenerateGetCStackPointerStub(Assembler* assembler) {
   __ Ret();
   __ delay_slot()->mov(V0, SP);
 }

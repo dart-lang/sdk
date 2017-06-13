@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 class C<T extends core::Object> extends core::Object {
   field self::C::T t;
-  constructor •(dynamic t) → void
+  constructor •(self::C::T t) → void
     : self::C::t = t, super core::Object::•()
     ;
   constructor named(core::List<self::C::T> t) → void
-    : this self::C::•(t.[](0))
+    : this self::C::•(t.{core::List::[]}(0))
     ;
 }
 static method main() → dynamic {

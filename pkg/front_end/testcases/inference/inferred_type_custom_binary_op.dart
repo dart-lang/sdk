@@ -10,7 +10,7 @@ class C {
 }
 
 C c = new C();
-var /*@topType=bool*/ x = c * c;
+var /*@topType=bool*/ x = c /*@target=C::**/ * c;
 
 main() {
   c;

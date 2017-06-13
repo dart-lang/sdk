@@ -10,7 +10,7 @@ class C {
 }
 
 C c = new C();
-var /*@topType=bool*/ x = -c;
+var /*@topType=bool*/ x = /*@target=C::unary-*/ -c;
 
 main() {
   c;

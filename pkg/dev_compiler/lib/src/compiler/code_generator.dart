@@ -690,7 +690,6 @@ class CodeGenerator extends Object
     var to = node.type.type;
 
     JS.Expression jsFrom = _visit(fromExpr);
-    if (_inWhitelistCode(node)) return jsFrom;
 
     // Skip the cast if it's not needed.
     if (rules.isSubtypeOf(from, to)) return jsFrom;
@@ -724,7 +723,8 @@ class CodeGenerator extends Object
     var type = node.type.type;
     var lhs = _visit(node.expression);
     var typeofName = _jsTypeofName(type);
-    if (typeofName != null) {
+    // Inline primitives other than int (which requires a Math.floor check).
+    if (typeofName != null && type != types.intType) {
       result = js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     } else {
       // Always go through a runtime helper, because implicit interfaces.
@@ -799,69 +799,49 @@ class CodeGenerator extends Object
 
   @override
   JS.Statement visitClassTypeAlias(ClassTypeAlias node) {
-    ClassElement element = node.element;
-    var supertype = element.supertype;
+    ClassElement classElem = node.element;
+    var supertype = classElem.supertype;
 
-    // Forward all generative constructors from the base class.
-    var methods = <JS.Method>[];
-    if (!supertype.isObject) {
-      for (var ctor in element.constructors) {
-        var parentCtor = supertype.lookUpConstructor(ctor.name, ctor.library);
-        // TODO(jmesserly): this avoids spread args for perf. Revisit.
-        var jsParams = <JS.Identifier>[];
-        for (var p in ctor.parameters) {
-          if (p.parameterKind != ParameterKind.NAMED) {
-            jsParams.add(new JS.Identifier(p.name));
-          } else {
-            jsParams.add(new JS.TemporaryId('namedArgs'));
-            break;
-          }
-        }
-        var fun = js.call('function(#) { super.#(#); }',
-            [jsParams, _constructorName(parentCtor), jsParams]) as JS.Fun;
-        methods.add(new JS.Method(_constructorName(ctor), fun));
-      }
-    }
-
-    var typeFormals = element.typeParameters;
+    var typeFormals = classElem.typeParameters;
     var isGeneric = typeFormals.isNotEmpty;
-    var className = isGeneric ? element.name : _emitTopLevelName(element);
-    JS.Statement declareInterfaces(JS.Statement decl) {
-      if (element.interfaces.isNotEmpty) {
-        var body = [decl]..add(js.statement('#[#.implements] = () => #;', [
-            className,
-            _runtimeModule,
-            new JS.ArrayInitializer(
-                new List<JS.Expression>.from(element.interfaces.map(_emitType)))
-          ]));
-        decl = _statement(body);
-      }
-      return decl;
-    }
 
-    if (supertype.isObject && element.mixins.length == 1) {
-      // Special case where supertype is Object, and we mixin a single class.
-      // The resulting 'class' is a mixable class in this case.
-      var classExpr = _emitClassHeritage(element);
-      if (isGeneric) {
-        var classStmt = js.statement('const # = #;', [className, classExpr]);
-        return _defineClassTypeArguments(
-            element, typeFormals, declareInterfaces(classStmt));
-      } else {
-        var classStmt = js.statement('# = #;', [className, classExpr]);
-        return declareInterfaces(classStmt);
-      }
-    }
+    // Special case where supertype is Object, and we mixin a single class.
+    // The resulting 'class' is a mixable class in this case.
+    bool isMixinAlias = supertype.isObject && classElem.mixins.length == 1;
 
-    var classExpr = _emitClassExpression(element, methods);
+    var classExpr = isMixinAlias
+        ? _emitClassHeritage(classElem)
+        : _emitClassExpression(classElem, []);
+    var className = isGeneric
+        ? new JS.Identifier(classElem.name)
+        : _emitTopLevelName(classElem);
+    var block = <JS.Statement>[];
+
     if (isGeneric) {
-      var classStmt = new JS.ClassDeclaration(classExpr);
-      return _defineClassTypeArguments(
-          element, typeFormals, declareInterfaces(classStmt));
+      if (isMixinAlias) {
+        block.add(js.statement('const # = #;', [className, classExpr]));
+      } else {
+        block.add(new JS.ClassDeclaration(classExpr));
+      }
     } else {
-      var classStmt = js.statement('# = #;', [className, classExpr]);
-      return declareInterfaces(classStmt);
+      block.add(js.statement('# = #;', [className, classExpr]));
     }
+
+    if (!isMixinAlias) _defineConstructors(classElem, className, [], block, []);
+
+    if (classElem.interfaces.isNotEmpty) {
+      block.add(js.statement('#[#.implements] = () => #;', [
+        className,
+        _runtimeModule,
+        new JS.ArrayInitializer(classElem.interfaces.map(_emitType).toList())
+      ]));
+    }
+
+    if (isGeneric) {
+      return _defineClassTypeArguments(
+          classElem, typeFormals, _statement(block));
+    }
+    return _statement(block);
   }
 
   JS.Statement _emitJsType(Element e) {
@@ -892,9 +872,6 @@ class CodeGenerator extends Object
     var staticFields = <FieldDeclaration>[];
     var methods = <MethodDeclaration>[];
 
-    // True if a "call" method or getter exists directly on this class.
-    // If so, we need to install a Function prototype.
-    bool isCallable = false;
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
         ctors.add(member);
@@ -903,33 +880,7 @@ class CodeGenerator extends Object
         (member.isStatic ? staticFields : fields).add(member);
       } else if (member is MethodDeclaration) {
         methods.add(member);
-        if (member.name.name == 'call' && !member.isSetter) {
-          //
-          // Make sure "call" has a statically known function type:
-          //
-          // - if it's a method, then it does because all methods do,
-          // - if it's a getter, check the return type.
-          //
-          // Other cases like a getter returning dynamic/Object/Function will be
-          // handled at runtime by the dynamic call mechanism. So we only
-          // concern ourselves with statically known function types.
-          //
-          // For the same reason, we can ignore "noSuchMethod".
-          // call-implemented-by-nSM will be dispatched by dcall at runtime.
-          //
-          isCallable = !member.isGetter || member.returnType is FunctionType;
-        }
       }
-    }
-
-    // True if a "call" method or getter exists directly or indirectly on this
-    // class.  If so, we need special constructor handling.
-    bool isCallableTransitive =
-        classElem.lookUpMethod('call', currentLibrary) != null;
-    if (!isCallableTransitive) {
-      var callGetter = classElem.lookUpGetter('call', currentLibrary);
-      isCallableTransitive =
-          callGetter != null && callGetter.returnType is FunctionType;
     }
 
     JS.Expression className;
@@ -945,8 +896,7 @@ class CodeGenerator extends Object
     _classProperties =
         new ClassPropertyModel.build(_extensionTypes, virtualFields, classElem);
 
-    var classExpr = _emitClassExpression(
-        classElem, _emitClassMethods(node, ctors, fields),
+    var classExpr = _emitClassExpression(classElem, _emitClassMethods(node),
         fields: allFields);
 
     var body = <JS.Statement>[];
@@ -954,7 +904,8 @@ class CodeGenerator extends Object
     _emitSuperHelperSymbols(_superHelperSymbols, body);
 
     // Emit the class, e.g. `core.Object = class Object { ... }`
-    _defineClass(classElem, className, classExpr, isCallable, body);
+    _defineClass(classElem, className, classExpr, body);
+    _defineConstructors(classElem, className, fields, body, ctors);
 
     // Emit things that come after the ES6 `class ... { ... }`.
     var jsPeerNames = _getJSPeerNames(classElem);
@@ -963,7 +914,6 @@ class CodeGenerator extends Object
 
     _emitClassTypeTests(classElem, className, body);
 
-    _defineNamedConstructors(ctors, body, className, isCallableTransitive);
     _emitVirtualFieldSymbols(classElem, body);
     _emitClassSignature(methods, allFields, classElem, ctors, className, body);
     _defineExtensionMembers(className, body);
@@ -985,35 +935,6 @@ class CodeGenerator extends Object
 
     _classProperties = savedClassProperties;
     return _statement(body);
-  }
-
-  /// Emits code to support a class with a "call" method and an unnamed
-  /// constructor.
-  ///
-  /// This ensures instances created by the unnamed constructor are functions.
-  /// Named constructors are handled elsewhere, see [_defineNamedConstructors].
-  JS.Expression _emitCallableClass(
-      JS.ClassExpression classExpr, ConstructorElement unnamedCtor) {
-    var ctor = new JS.NamedFunction(
-        classExpr.name, _emitCallableClassConstructor(unnamedCtor));
-
-    // Name the constructor function the same as the class.
-    return _callHelper('callableClass(#, #)', [ctor, classExpr]);
-  }
-
-  /// Emits a constructor that ensures instances of this class are callable as
-  /// functions in JavaScript.
-  JS.Fun _emitCallableClassConstructor(ConstructorElement ctor) {
-    return js.call(
-        r'''function (...args) {
-          function call(...args) {
-            return call.call.apply(call, args);
-          }
-          call.__proto__ = this.__proto__;
-          call.#.apply(call, args);
-          return call;
-        }''',
-        [_constructorName(ctor)]);
   }
 
   void _emitClassTypeTests(ClassElement classElem, JS.Expression className,
@@ -1229,21 +1150,11 @@ class CodeGenerator extends Object
   }
 
   void _defineClass(ClassElement classElem, JS.Expression className,
-      JS.ClassExpression classExpr, bool isCallable, List<JS.Statement> body) {
-    JS.Expression callableClass;
-    if (isCallable && classElem.unnamedConstructor != null) {
-      callableClass =
-          _emitCallableClass(classExpr, classElem.unnamedConstructor);
-    }
-
+      JS.ClassExpression classExpr, List<JS.Statement> body) {
     if (classElem.typeParameters.isNotEmpty) {
-      if (callableClass != null) {
-        body.add(js.statement('const # = #;', [classExpr.name, callableClass]));
-      } else {
-        body.add(new JS.ClassDeclaration(classExpr));
-      }
+      body.add(new JS.ClassDeclaration(classExpr));
     } else {
-      body.add(js.statement('# = #;', [className, callableClass ?? classExpr]));
+      body.add(js.statement('# = #;', [className, classExpr]));
     }
   }
 
@@ -1278,11 +1189,7 @@ class CodeGenerator extends Object
     // Generate a class per section 13 of the spec.
     // TODO(vsm): Generate any accompanying metadata
 
-    // Create constructor and initialize index
-    var constructor = new JS.Method(_propertyName('new'),
-        js.call('function(index) { this.index = index; }') as JS.Fun);
-    var fields = new List<FieldElement>.from(
-        element.fields.where((f) => f.type == type));
+    var fields = element.fields.where((f) => f.type == type).toList();
 
     // Create toString() method
     var nameProperties = new List<JS.Property>(fields.length);
@@ -1295,8 +1202,8 @@ class CodeGenerator extends Object
         js.call('function() { return #[this.index]; }', nameMap) as JS.Fun);
 
     // Create enum class
-    var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
-        _emitClassHeritage(element), [constructor, toStringF]);
+    var classExpr = new JS.ClassExpression(
+        new JS.Identifier(type.name), _emitClassHeritage(element), [toStringF]);
     var id = _emitTopLevelName(element);
 
     // Emit metadata for synthetic enum index member.
@@ -1311,6 +1218,9 @@ class CodeGenerator extends Object
 
     var result = [
       js.statement('# = #', [id, classExpr]),
+      js.statement(
+          '(#.new = function(x) { this.index = x; }).prototype = #.prototype;',
+          [id, id]),
       _callHelperStatement('setSignature(#, #);', [id, sig])
     ];
 
@@ -1451,48 +1361,32 @@ class CodeGenerator extends Object
     return jsMethods;
   }
 
-  List<JS.Method> _emitClassMethods(ClassDeclaration node,
-      List<ConstructorDeclaration> ctors, List<FieldDeclaration> fields) {
+  List<JS.Method> _emitClassMethods(ClassDeclaration node) {
     var element = resolutionMap.elementDeclaredByClassDeclaration(node);
     var type = element.type;
-    var isObject = type.isObject;
     var virtualFields = _classProperties.virtualFields;
 
-    // Iff no constructor is specified for a class C, it implicitly has a
-    // default constructor `C() : super() {}`, unless C is class Object.
     var jsMethods = <JS.Method>[];
-    if (isObject) {
-      // Implements Dart constructor behavior.
-      //
-      // Because of ES6 constructor restrictions (`this` is not available until
-      // `super` is called), we cannot emit an actual ES6 `constructor` on our
-      // classes and preserve the Dart initialization order.
-      //
-      // Instead we use the same trick as named constructors, and do them as
-      // instance methods that perform initialization.
-      //
-      // Therefore, dart:core Object gets the one real `constructor` and
-      // immediately bounces to the `new() { ... }` initializer, letting us
-      // bypass the ES6 restrictions.
-      //
-      // TODO(jmesserly): we'll need to rethink this.
-      // See https://github.com/dart-lang/sdk/issues/28322.
-      // This level of indirection will hurt performance.
+    bool hasJsPeer = findAnnotation(element, isJsPeerInterface) != null;
+    bool hasIterator = false;
+
+    if (type.isObject) {
+      // Dart does not use ES6 constructors.
+      // Add an error to catch any invalid usage.
       jsMethods.add(new JS.Method(
           _propertyName('constructor'),
-          js.call('function(...args) { return this.new.apply(this, args); }')
-              as JS.Fun));
-    } else if (ctors.isEmpty) {
-      jsMethods.add(_emitImplicitConstructor(node, fields, virtualFields));
+          js.call(
+              r'''function() {
+                  throw Error("use `new " + #.typeName(#.getReifiedType(this)) +
+                      ".new(...)` to create a Dart object");
+              }''',
+              [_runtimeModule, _runtimeModule])));
     }
-
-    bool hasJsPeer = findAnnotation(element, isJsPeerInterface) != null;
-
-    bool hasIterator = false;
     for (var m in node.members) {
       if (m is ConstructorDeclaration) {
-        jsMethods
-            .add(_emitConstructor(m, type, fields, virtualFields, isObject));
+        if (m.factoryKeyword != null && !_externalOrNative(m)) {
+          jsMethods.add(_emitFactoryConstructor(m));
+        }
       } else if (m is MethodDeclaration) {
         jsMethods.add(_emitMethodDeclaration(type, m));
 
@@ -1540,6 +1434,43 @@ class CodeGenerator extends Object
     return jsMethods.where((m) => m != null).toList(growable: false);
   }
 
+  /// Emits a Dart factory constructor to a JS static method.
+  JS.Method _emitFactoryConstructor(ConstructorDeclaration node) {
+    var element = node.element;
+    var returnType = emitTypeRef(element.returnType);
+    var name = _constructorName(element);
+    JS.Fun fun;
+
+    var redirect = node.redirectedConstructor;
+    if (redirect != null) {
+      // Wacky factory redirecting constructors: factory Foo.q(x, y) = Bar.baz;
+
+      var newKeyword = redirect.staticElement.isFactory ? '' : 'new';
+      // Pass along all arguments verbatim, and let the callee handle them.
+      // TODO(jmesserly): we'll need something different once we have
+      // rest/spread support, but this should work for now.
+      var params =
+          _emitFormalParameterList(node.parameters, destructure: false);
+
+      fun = new JS.Fun(
+          params,
+          js.statement(
+              '{ return $newKeyword #(#); }', [_visit(redirect), params]),
+          returnType: returnType);
+    } else {
+      // Normal factory constructor
+      var body = <JS.Statement>[];
+      var init = _emitArgumentInitializers(node, constructor: true);
+      if (init != null) body.add(init);
+      body.add(_visit(node.body));
+
+      var params = _emitFormalParameterList(node.parameters);
+      fun = new JS.Fun(params, new JS.Block(body), returnType: returnType);
+    }
+
+    return annotate(new JS.Method(name, fun, isStatic: true), node, element);
+  }
+
   /// Given a class C that implements method M from interface I, but does not
   /// declare M, this will generate an implementation that forwards to
   /// noSuchMethod.
@@ -1557,7 +1488,7 @@ class CodeGenerator extends Object
   ///
   ///     eatFood(...args) {
   ///       return core.bool.as(this.noSuchMethod(
-  ///           new dart.InvocationImpl('eatFood', args)));
+  ///           new dart.InvocationImpl.new('eatFood', args)));
   ///     }
   JS.Method _implementMockMember(ExecutableElement method, InterfaceType type) {
     var invocationProps = <JS.Property>[];
@@ -1592,7 +1523,8 @@ class CodeGenerator extends Object
       }
     }
 
-    var fnBody = js.call('this.noSuchMethod(new #.InvocationImpl(#, #, #))', [
+    var fnBody =
+        js.call('this.noSuchMethod(new #.InvocationImpl.new(#, #, #))', [
       _runtimeModule,
       _declareMemberName(method, useDisplayName: true),
       positionalArgs,
@@ -1603,15 +1535,16 @@ class CodeGenerator extends Object
       fnBody = js.call('#._check(#)', [_emitType(method.returnType), fnBody]);
     }
 
-    var fn = new JS.Fun(fnArgs, js.statement('{ return #; }', [fnBody]),
-        typeParams: _emitTypeFormals(method.type.typeFormals));
+    var fn = _makeGenericFunction(new JS.Fun(
+        fnArgs, js.statement('{ return #; }', [fnBody]),
+        typeParams: _emitTypeFormals(method.type.typeFormals)));
 
     // TODO(jmesserly): generic type arguments will get dropped.
     // We have a similar issue with `dgsend` helpers.
     return new JS.Method(
         _declareMemberName(method,
             useExtension: _extensionTypes.isNativeClass(type.element)),
-        _makeGenericFunction(fn),
+        fn,
         isGetter: method is PropertyAccessorElement && method.isGetter,
         isSetter: method is PropertyAccessorElement && method.isSetter,
         isStatic: false);
@@ -1781,21 +1714,73 @@ class CodeGenerator extends Object
     return null;
   }
 
-  void _defineNamedConstructors(List<ConstructorDeclaration> ctors,
-      List<JS.Statement> body, JS.Expression className, bool isCallable) {
-    var code = isCallable
-        ? 'defineNamedConstructorCallable(#, #, #);'
-        : 'defineNamedConstructor(#, #)';
+  /// Defines all constructors for this class as ES5 constructors.
+  void _defineConstructors(
+      ClassElement classElem,
+      JS.Expression className,
+      List<FieldDeclaration> fields,
+      List<JS.Statement> body,
+      List<ConstructorDeclaration> ctors) {
+    // See if we have a "call" with a statically known function type:
+    //
+    // - if it's a method, then it does because all methods do,
+    // - if it's a getter, check the return type.
+    //
+    // Other cases like a getter returning dynamic/Object/Function will be
+    // handled at runtime by the dynamic call mechanism. So we only
+    // concern ourselves with statically known function types.
+    //
+    // For the same reason, we can ignore "noSuchMethod".
+    // call-implemented-by-nSM will be dispatched by dcall at runtime.
+    bool isCallable = classElem.lookUpMethod('call', null) != null ||
+        classElem.lookUpGetter('call', null)?.returnType is FunctionType;
 
-    for (ConstructorDeclaration member in ctors) {
-      if (member.name != null && member.factoryKeyword == null) {
-        var args = [className, _constructorName(member.element)];
-        if (isCallable) {
-          args.add(_emitCallableClassConstructor(member.element));
-        }
-
-        body.add(_callHelperStatement(code, args));
+    void addConstructor(ConstructorElement element, JS.Expression jsCtor) {
+      var ctorName = _constructorName(element);
+      if (JS.invalidStaticFieldName(element.name)) {
+        jsCtor =
+            _callHelper('defineValue(#, #, #)', [className, ctorName, jsCtor]);
+      } else {
+        jsCtor = js.call('#.# = #', [className, ctorName, jsCtor]);
       }
+      body.add(js.statement('#.prototype = #.prototype;', [jsCtor, className]));
+    }
+
+    if (classElem.isMixinApplication) {
+      var supertype = classElem.supertype;
+      for (var ctor in classElem.constructors) {
+        List<JS.Identifier> jsParams = _emitParametersForElement(ctor);
+        var superCtor = supertype.lookUpConstructor(ctor.name, ctor.library);
+        var superCall =
+            _superConstructorCall(classElem, className, superCtor, jsParams);
+        addConstructor(
+            ctor,
+            _finishConstructorFunction(
+                jsParams,
+                new JS.Block(superCall != null ? [superCall] : []),
+                isCallable));
+      }
+      return;
+    }
+
+    // Iff no constructor is specified for a class C, it implicitly has a
+    // default constructor `C() : super() {}`, unless C is class Object.
+    if (ctors.isEmpty) {
+      var superCall = _superConstructorCall(classElem, className);
+      List<JS.Statement> body = [_initializeFields(fields)];
+      if (superCall != null) body.add(superCall);
+
+      addConstructor(classElem.unnamedConstructor,
+          _finishConstructorFunction([], new JS.Block(body), isCallable));
+      return;
+    }
+
+    for (var ctor in ctors) {
+      var element = ctor.element;
+      if (element.isFactory || _externalOrNative(ctor)) continue;
+
+      addConstructor(
+          element, _emitConstructor(ctor, fields, isCallable, className));
     }
   }
 
@@ -1974,9 +1959,8 @@ class CodeGenerator extends Object
     var tCtors = <JS.Property>[];
     if (options.emitMetadata) {
       for (ConstructorDeclaration node in ctors) {
-        var memberName = _constructorName(node.element);
-        var element =
-            resolutionMap.elementDeclaredByConstructorDeclaration(node);
+        var element = node.element;
+        var memberName = _constructorName(element);
         var type = _emitAnnotatedFunctionType(element.type, node.metadata,
             parameters: node.parameters.parameters,
             nameType: options.hoistSignatureTypes,
@@ -2051,92 +2035,41 @@ class CodeGenerator extends Object
     }
   }
 
-  /// Generates the implicit default constructor for class C of the form
-  /// `C() : super() {}`.
-  JS.Method _emitImplicitConstructor(
-      ClassDeclaration node,
-      List<FieldDeclaration> fields,
-      Map<FieldElement, JS.TemporaryId> virtualFields) {
-    // If we don't have a method body, skip this.
-    var superCall = _superConstructorCall(node.element);
-    if (fields.isEmpty && superCall == null) return null;
-
-    var initFields = _initializeFields(node, fields, virtualFields);
-    List<JS.Statement> body = [initFields];
-    if (superCall != null) {
-      body.add(superCall);
-    }
-    var name = _constructorName(resolutionMap
-        .elementDeclaredByClassDeclaration(node)
-        .unnamedConstructor);
-    return annotate(
-        new JS.Method(name, js.call('function() { #; }', [body]) as JS.Fun),
-        node,
-        node.element);
-  }
-
-  JS.Method _emitConstructor(
-      ConstructorDeclaration node,
-      InterfaceType type,
-      List<FieldDeclaration> fields,
-      Map<FieldElement, JS.TemporaryId> virtualFields,
-      bool isObject) {
-    if (_externalOrNative(node)) return null;
-
-    var name = _constructorName(node.element);
-    var returnType = emitTypeRef(resolutionMap
-        .elementDeclaredByConstructorDeclaration(node)
-        .enclosingElement
-        .type);
-
-    // Wacky factory redirecting constructors: factory Foo.q(x, y) = Bar.baz;
-    var redirect = node.redirectedConstructor;
-    if (redirect != null) {
-      var newKeyword =
-          resolutionMap.staticElementForConstructorReference(redirect).isFactory
-              ? ''
-              : 'new';
-      // Pass along all arguments verbatim, and let the callee handle them.
-      // TODO(jmesserly): we'll need something different once we have
-      // rest/spread support, but this should work for now.
-      var params =
-          _emitFormalParameterList(node.parameters, destructure: false);
-
-      var fun = new JS.Fun(
-          params,
-          js.statement(
-              '{ return $newKeyword #(#); }', [_visit(redirect), params]),
-          returnType: returnType);
-      return annotate(
-          new JS.Method(name, fun, isStatic: true), node, node.element);
-    }
-
+  JS.Expression _emitConstructor(ConstructorDeclaration node,
+      List<FieldDeclaration> fields, bool isCallable, JS.Expression className) {
     var params = _emitFormalParameterList(node.parameters);
 
-    // Factory constructors are essentially static methods.
-    if (node.factoryKeyword != null) {
-      var body = <JS.Statement>[];
-      var init = _emitArgumentInitializers(node, constructor: true);
-      if (init != null) body.add(init);
-      body.add(_visit(node.body));
-      var fun = new JS.Fun(params, new JS.Block(body), returnType: returnType);
-      return annotate(
-          new JS.Method(name, fun, isStatic: true), node, node.element);
-    }
-
-    // Code generation for Object's constructor.
     var savedFunction = _currentFunction;
     _currentFunction = node.body;
-    var body = _emitConstructorBody(node, fields, virtualFields);
+
+    var savedSuperAllowed = _superAllowed;
+    _superAllowed = false;
+    var body = _emitConstructorBody(node, fields, className);
+    _superAllowed = savedSuperAllowed;
     _currentFunction = savedFunction;
 
-    // We generate constructors as initializer methods in the class;
-    // this allows use of `super` for instance methods/properties.
-    // It also avoids V8 restrictions on `super` in default constructors.
-    return annotate(
-        new JS.Method(name, new JS.Fun(params, body, returnType: returnType)),
-        node,
-        node.element);
+    return _finishConstructorFunction(params, body, isCallable);
+  }
+
+  JS.Expression _finishConstructorFunction(
+      List<JS.Parameter> params, JS.Block body, isCallable) {
+    // We consider a class callable if it inherits from anything with a `call`
+    // method. As a result, we can know the callable JS function was created
+    // at the first constructor that was hit.
+    if (!isCallable) return new JS.Fun(params, body);
+    return js.call(
+        r'''function callableClass(#) {
+          if (typeof this !== "function") {
+            function self(...args) {
+              return self.call.apply(self, args);
+            }
+            self.__proto__ = this.__proto__;
+            callableClass.call(self, #);
+            return self;
+          }
+          #
+        }''',
+        [params, params, body]);
   }
 
   JS.Expression _constructorName(ConstructorElement ctor) {
@@ -2148,10 +2081,8 @@ class CodeGenerator extends Object
     return _emitMemberName(name, isStatic: true);
   }
 
-  JS.Block _emitConstructorBody(
-      ConstructorDeclaration node,
-      List<FieldDeclaration> fields,
-      Map<FieldElement, JS.TemporaryId> virtualFields) {
+  JS.Block _emitConstructorBody(ConstructorDeclaration node,
+      List<FieldDeclaration> fields, JS.Expression className) {
     var body = <JS.Statement>[];
     ClassDeclaration cls = node.parent;
 
@@ -2170,7 +2101,7 @@ class CodeGenerator extends Object
         orElse: () => null);
 
     if (redirectCall != null) {
-      body.add(_visit(redirectCall));
+      body.add(_emitRedirectingConstructor(redirectCall, className));
       return new JS.Block(body);
     }
 
@@ -2178,7 +2109,7 @@ class CodeGenerator extends Object
     // These are expanded into each non-redirecting constructor.
     // In the future we may want to create an initializer function if we have
     // multiple constructors, but it needs to be balanced against readability.
-    body.add(_initializeFields(cls, fields, virtualFields, node));
+    body.add(_initializeFields(fields, node));
 
     var superCall = node.initializers.firstWhere(
         (i) => i is SuperConstructorInvocation,
@@ -2187,57 +2118,47 @@ class CodeGenerator extends Object
     // If no superinitializer is provided, an implicit superinitializer of the
     // form `super()` is added at the end of the initializer list, unless the
     // enclosing class is class Object.
-    var jsSuper = _superConstructorCall(cls.element, superCall);
-    if (jsSuper != null) body.add(jsSuper);
+    var superCallArgs =
+        superCall != null ? _emitArgumentList(superCall.argumentList) : null;
+    var jsSuper = _superConstructorCall(
+        cls.element, className, superCall?.staticElement, superCallArgs);
+    if (jsSuper != null) body.add(annotate(jsSuper, superCall));
 
     body.add(_visit(node.body));
     return new JS.Block(body)..sourceInformation = node;
   }
 
-  @override
-  JS.Statement visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
-    var ctor = resolutionMap.staticElementForConstructorReference(node);
-    var cls = ctor.enclosingElement;
+  JS.Statement _emitRedirectingConstructor(
+      RedirectingConstructorInvocation node, JS.Expression className) {
+    var ctor = node.staticElement;
     // We can't dispatch to the constructor with `this.new` as that might hit a
     // derived class constructor with the same name.
-    return js.statement('#.prototype.#.call(this, #);', [
-      new JS.Identifier(cls.name),
+    return js.statement('#.#.call(this, #);', [
+      className,
       _constructorName(ctor),
       _emitArgumentList(node.argumentList)
     ]);
   }
 
-  JS.Statement _superConstructorCall(ClassElement element,
-      [SuperConstructorInvocation node]) {
-    if (element.supertype == null) {
+  JS.Statement _superConstructorCall(
+      ClassElement element, JS.Expression className,
+      [ConstructorElement superCtor, List<JS.Expression> args]) {
+    // Get the supertype's unnamed constructor.
+    superCtor ??= element.supertype?.element?.unnamedConstructor;
+    if (superCtor == null) {
       assert(element.type.isObject || options.unsafeForceCompile);
       return null;
     }
 
-    ConstructorElement superCtor;
-    if (node != null) {
-      superCtor = node.staticElement;
-    } else {
-      // Get the supertype's unnamed constructor.
-      superCtor = element.supertype.element.unnamedConstructor;
-    }
-
-    if (superCtor == null) {
-      // This will only happen if the code has errors:
-      // we're trying to generate an implicit constructor for a type where
-      // we don't have a default constructor in the supertype.
-      assert(options.unsafeForceCompile);
-      return null;
-    }
-
+    // We can skip the super call if it's empty. Typically this happens for
+    // things that extend Object.
     if (superCtor.name == '' && !_hasUnnamedSuperConstructor(element)) {
       return null;
     }
 
     var name = _constructorName(superCtor);
-    var args = node != null ? _emitArgumentList(node.argumentList) : [];
-    return annotate(js.statement('super.#(#);', [name, args]), node);
+    return js.statement(
+        '#.__proto__.#.call(this, #);', [className, name, args ?? []]);
   }
 
   bool _hasUnnamedSuperConstructor(ClassElement e) {
@@ -2263,10 +2184,7 @@ class CodeGenerator extends Object
   ///   2. field initializing parameters,
   ///   3. constructor field initializers,
   ///   4. initialize fields not covered in 1-3
-  JS.Statement _initializeFields(
-      ClassDeclaration cls,
-      List<FieldDeclaration> fieldDecls,
-      Map<FieldElement, JS.TemporaryId> virtualFields,
+  JS.Statement _initializeFields(List<FieldDeclaration> fieldDecls,
       [ConstructorDeclaration ctor]) {
     // Run field initializers if they can have side-effects.
     var fields = new Map<FieldElement, JS.Expression>();
@@ -2319,7 +2237,8 @@ class CodeGenerator extends Object
 
     var body = <JS.Statement>[];
     fields.forEach((FieldElement e, JS.Expression initialValue) {
-      JS.Expression access = virtualFields[e] ?? _declareMemberName(e.getter);
+      JS.Expression access =
+          _classProperties.virtualFields[e] ?? _declareMemberName(e.getter);
       body.add(js.statement('this.# = #;', [access, initialValue]));
     });
 
@@ -2378,8 +2297,7 @@ class CodeGenerator extends Object
           resolutionMap.elementDeclaredByFormalParameter(param).type;
       if (node is MethodDeclaration &&
           (resolutionMap.elementDeclaredByFormalParameter(param).isCovariant ||
-              _unsoundCovariant(paramType, true)) &&
-          !_inWhitelistCode(node)) {
+              _unsoundCovariant(paramType, true))) {
         var castType = _emitType(paramType,
             nameType: options.nameTypeTests || options.hoistTypeTests,
             hoistType: options.hoistTypeTests);
@@ -2444,16 +2362,6 @@ class CodeGenerator extends Object
       fn = _emitNativeFunctionBody(node);
     } else {
       fn = _emitFunctionBody(node.element, node.parameters, node.body);
-
-      if (node.operatorKeyword != null &&
-          node.name.name == '[]=' &&
-          fn.params.isNotEmpty) {
-        // []= methods need to return the value. We could also address this at
-        // call sites, but it's cleaner to instead transform the operator method.
-        fn = _alwaysReturnLastParameter(fn);
-      }
-
-      fn = _makeGenericFunction(fn);
     }
 
     return annotate(
@@ -2469,20 +2377,15 @@ class CodeGenerator extends Object
   ///
   /// This is useful for indexed set methods, which otherwise would not have
   /// the right return value in JS.
-  JS.Fun _alwaysReturnLastParameter(JS.Fun fn) {
-    var body = fn.body;
-    if (JS.Return.foundIn(fn)) {
+  JS.Node _alwaysReturnLastParameter(JS.Node body, JS.Parameter lastParam) {
+    if (JS.Return.foundIn(body)) {
       // If a return is inside body, transform `(params) { body }` to
       // `(params) { (() => { body })(); return value; }`.
       // TODO(jmesserly): we could instead generate the return differently,
       // and avoid the immediately invoked function.
-      body = new JS.Call(new JS.ArrowFun([], fn.body), []).toStatement();
+      body = new JS.Call(new JS.ArrowFun([], body), []).toStatement();
     }
-    // Rewrite the function to include the return.
-    return new JS.Fun(
-        fn.params, new JS.Block([body, new JS.Return(fn.params.last)]),
-        typeParams: fn.typeParams, returnType: fn.returnType)
-      ..sourceInformation = fn.sourceInformation;
+    return new JS.Block([body, new JS.Return(lastParam)]);
   }
 
   @override
@@ -2631,7 +2534,23 @@ class CodeGenerator extends Object
   }
 
   JS.ArrowFun _emitArrowFunction(FunctionExpression node) {
-    JS.Fun f = _emitFunctionBody(node.element, node.parameters, node.body);
+    JS.Fun fn = _emitFunctionBody(node.element, node.parameters, node.body);
+
+    return annotate(_toArrowFunction(fn), node);
+  }
+
+  JS.Fun _makeGenericFunction(JS.Fun fn) {
+    if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
+
+    return new JS.Fun(
+        fn.typeParams,
+        new JS.Block([
+          // Convert the function to an => function, to ensure `this` binding.
+          new JS.Return(_toArrowFunction(fn))
+        ]));
+  }
+
+  JS.ArrowFun _toArrowFunction(JS.Fun f) {
     JS.Node body = f.body;
 
     // Simplify `=> { return e; }` to `=> e`
@@ -2645,28 +2564,9 @@ class CodeGenerator extends Object
 
     // Convert `function(...) { ... }` to `(...) => ...`
     // This is for readability, but it also ensures correct `this` binding.
-    var fn = new JS.ArrowFun(f.params, body,
-        typeParams: f.typeParams, returnType: f.returnType);
-
-    return annotate(_makeGenericArrowFun(fn), node);
-  }
-
-  JS.ArrowFun _makeGenericArrowFun(JS.ArrowFun fn) {
-    if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
-    return new JS.ArrowFun(fn.typeParams, fn);
-  }
-
-  JS.Fun _makeGenericFunction(JS.Fun fn) {
-    if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
-
-    // TODO(jmesserly): we could make these default to `dynamic`.
-    return new JS.Fun(
-        fn.typeParams,
-        new JS.Block([
-          // Convert the function to an => function, to ensure `this` binding.
-          new JS.Return(new JS.ArrowFun(fn.params, fn.body,
-              typeParams: fn.typeParams, returnType: fn.returnType))
-        ]));
+    return new JS.ArrowFun(f.params, body,
+        typeParams: f.typeParams, returnType: f.returnType)
+      ..sourceInformation = f.sourceInformation;
   }
 
   /// Emits a non-arrow FunctionExpression node.
@@ -2677,8 +2577,8 @@ class CodeGenerator extends Object
   ///
   /// Contrast with [visitFunctionExpression].
   JS.Fun _emitFunction(FunctionExpression node) {
-    var fn = _emitFunctionBody(node.element, node.parameters, node.body);
-    return annotate(_makeGenericFunction(fn), node);
+    return annotate(
+        _emitFunctionBody(node.element, node.parameters, node.body), node);
   }
 
   JS.Fun _emitFunctionBody(ExecutableElement element,
@@ -2700,8 +2600,15 @@ class CodeGenerator extends Object
         code
       ]);
     }
-    return new JS.Fun(formals, code,
-        typeParams: typeFormals, returnType: returnType);
+
+    if (element.isOperator && element.name == '[]=' && formals.isNotEmpty) {
+      // []= methods need to return the value. We could also address this at
+      // call sites, but it's cleaner to instead transform the operator method.
+      code = _alwaysReturnLastParameter(code, formals.last);
+    }
+
+    return _makeGenericFunction(new JS.Fun(formals, code,
+        typeParams: typeFormals, returnType: returnType));
   }
 
   JS.Expression _emitGeneratorFunctionBody(ExecutableElement element,
@@ -2813,8 +2720,9 @@ class CodeGenerator extends Object
   JS.Expression _emitSimpleIdentifier(SimpleIdentifier node) {
     var accessor = resolutionMap.staticElementForIdentifier(node);
     if (accessor == null) {
-      return js.commentExpression(
-          'Unimplemented unknown name', new JS.Identifier(node.name));
+      return _callHelper(
+          'throw(Error("compile error: unresolved identifier: " + #))',
+          js.escapedString(node.name ?? '<null>'));
     }
 
     // Get the original declaring element. If we had a property accessor, this
@@ -3294,22 +3202,6 @@ class CodeGenerator extends Object
     }
 
     if (target != null && isDynamicInvoke(target)) {
-      if (_inWhitelistCode(lhs)) {
-        var vars = <JS.MetaLetVariable, JS.Expression>{};
-        var l = _visit(_bindValue(vars, 'l', target));
-        var name = _emitMemberName(id.name);
-        return new JS.MetaLet(vars, [
-          js.call('(#[(#[#._extensionType]) ? #[#] : #] = #)', [
-            l,
-            l,
-            _runtimeModule,
-            _extensionSymbolsModule,
-            name,
-            name,
-            _visit(rhs)
-          ])
-        ]);
-      }
       return _callHelper('#(#, #, #)', [
         _emitDynamicOperationName('dput'),
         _visit(target),
@@ -3617,23 +3509,6 @@ class CodeGenerator extends Object
 
     JS.Expression jsTarget = _emitTarget(target, element, isStatic);
     if (isDynamicInvoke(target) || isDynamicInvoke(node.methodName)) {
-      if (_inWhitelistCode(target)) {
-        var vars = <JS.MetaLetVariable, JS.Expression>{};
-        var l = _visit(_bindValue(vars, 'l', target));
-        jsTarget = new JS.MetaLet(vars, [
-          js.call('(#[(#[#._extensionType]) ? #[#] : #]).bind(#)', [
-            l,
-            l,
-            _runtimeModule,
-            _extensionSymbolsModule,
-            memberName,
-            memberName,
-            l
-          ])
-        ]);
-        if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
-        return new JS.Call(jsTarget, args);
-      }
       if (typeArgs != null) {
         return _callHelper('#(#, #, #, #)', [
           _emitDynamicOperationName('dgsend'),
@@ -3665,9 +3540,6 @@ class CodeGenerator extends Object
       return _callHelper(
           'dgcall(#, #, #)', [fn, new JS.ArrayInitializer(typeArgs), args]);
     } else {
-      if (_inWhitelistCode(node, isCall: true)) {
-        return new JS.Call(fn, args);
-      }
       return _callHelper('dcall(#, #)', [fn, args]);
     }
   }
@@ -3852,6 +3724,19 @@ class CodeGenerator extends Object
     assert(node.parent is ArgumentList);
     return new JS.Property(
         _propertyName(node.name.label.name), _visit(node.expression));
+  }
+
+  List<JS.Parameter> _emitParametersForElement(ExecutableElement member) {
+    var jsParams = <JS.Identifier>[];
+    for (var p in member.parameters) {
+      if (p.parameterKind != ParameterKind.NAMED) {
+        jsParams.add(new JS.Identifier(p.name));
+      } else {
+        jsParams.add(new JS.TemporaryId('namedArgs'));
+        break;
+      }
+    }
+    return jsParams;
   }
 
   List<JS.Parameter> _emitFormalParameterList(FormalParameterList node,
@@ -4112,15 +3997,9 @@ class CodeGenerator extends Object
 
   JS.Expression _emitConstructorName(
       ConstructorElement element, DartType type, SimpleIdentifier name) {
-    var classElem = element.enclosingElement;
-    var interop = _emitJSInterop(classElem);
-    if (interop != null) return interop;
-    var typeName = _emitConstructorAccess(type);
-    if (name != null || element.isFactory) {
-      var namedCtor = _constructorName(element);
-      return new JS.PropertyAccess(typeName, namedCtor);
-    }
-    return typeName;
+    return _emitJSInterop(type.element) ??
+        new JS.PropertyAccess(
+            _emitConstructorAccess(type), _constructorName(element));
   }
 
   @override
@@ -4139,14 +4018,13 @@ class CodeGenerator extends Object
       bool isFactory = false;
       bool isNative = false;
       if (element == null) {
-        // TODO(jmesserly): this only happens if we had a static error.
-        // Should we generate a throw instead?
-        ctor = _emitConstructorAccess(type,
-            nameType: options.hoistInstanceCreation,
-            hoistType: options.hoistInstanceCreation);
-        if (name != null) {
-          ctor = new JS.PropertyAccess(ctor, _propertyName(name.name));
-        }
+        ctor = _callHelper(
+            'throw(Error("compile error: unresolved constructor: " '
+            '+ # + "." + #))',
+            [
+              js.escapedString(type?.name ?? '<null>'),
+              js.escapedString(name?.name ?? '<unnamed>')
+            ]);
       } else {
         ctor = _emitConstructorName(element, type, name);
         isFactory = element.isFactory;
@@ -4868,7 +4746,7 @@ class CodeGenerator extends Object
         }
 
         var param = _createTemporary('_', nodeTarget.staticType,
-            nullable: false, dynamicInvoke: isDynamicInvoke(node));
+            nullable: false, dynamicInvoke: isDynamicInvoke(nodeTarget));
         var baseNode = _stripNullAwareOp(node, param);
         tail.add(
             new JS.ArrowFun(<JS.Parameter>[_visit(param)], _visit(baseNode)));
@@ -4972,14 +4850,6 @@ class CodeGenerator extends Object
     var name = _emitMemberName(memberName,
         type: getStaticType(target), isStatic: isStatic, element: member);
     if (isDynamicInvoke(target)) {
-      if (_inWhitelistCode(target)) {
-        var vars = <JS.MetaLetVariable, JS.Expression>{};
-        var l = _visit(_bindValue(vars, 'l', target));
-        return new JS.MetaLet(vars, [
-          js.call('(#[#._extensionType]) ? #[#[#]] : #.#',
-              [l, _runtimeModule, l, _extensionSymbolsModule, name, l, name])
-        ]);
-      }
       return _callHelper('#(#, #)',
           [_emitDynamicOperationName('dload'), _visit(target), name]);
     }
@@ -5036,22 +4906,6 @@ class CodeGenerator extends Object
     var type = getStaticType(target);
     var memberName = _emitMemberName(name, type: type);
     if (isDynamicInvoke(target)) {
-      if (_inWhitelistCode(target)) {
-        var vars = <JS.MetaLetVariable, JS.Expression>{};
-        var l = _visit(_bindValue(vars, 'l', target));
-        return new JS.MetaLet(vars, [
-          js.call('(#[(#[#._extensionType]) ? #[#] : #]).call(#, #)', [
-            l,
-            l,
-            _runtimeModule,
-            _extensionSymbolsModule,
-            memberName,
-            memberName,
-            l,
-            _visitList(args)
-          ])
-        ]);
-      }
       // dynamic dispatch
       var dynamicHelper = const {'[]': 'dindex', '[]=': 'dsetindex'}[name];
       if (dynamicHelper != null) {
@@ -5371,7 +5225,7 @@ class CodeGenerator extends Object
       var name = js.string(node.components.join('.'), "'");
       if (last.startsWith('_')) {
         var nativeSymbol = _emitPrivateNameSymbol(currentLibrary, last);
-        return js.call('new #(#, #)', [
+        return js.call('new #.new(#, #)', [
           _emitConstructorAccess(privateSymbolClass.type),
           name,
           nativeSymbol
@@ -5837,56 +5691,6 @@ class CodeGenerator extends Object
     return js.statement('#.$code', args);
   }
 
-  // TODO(kevmoo): https://github.com/dart-lang/sdk/issues/27255
-  // TODO(kevmoo): Remove once pkg/angular2 has moved to the new compiler
-  //               See https://github.com/dart-lang/angular2/issues/48
-  /// Temporary workaround *cough* total hack *cough*.
-  ///
-  /// Maps whitelisted files to a list of whitelisted methods
-  /// within the file.
-  ///
-  /// If the value is null, the entire file is whitelisted.
-  ///
-  static const Map<String, List<String>> _uncheckedWhitelist = const {
-    'dom_renderer.dart': const ['moveNodesAfterSibling'],
-    'template_ref.dart': const ['createEmbeddedView'],
-    'ng_class.dart': const ['_applyIterableChanges'],
-    'ng_for.dart': const ['_bulkRemove', '_bulkInsert'],
-    'view_container_ref.dart': const ['createEmbeddedView'],
-    'default_iterable_differ.dart': null,
-  };
-
-  static Set<String> _uncheckedWhitelistCalls = new Set()
-    ..add('ng_zone_impl.dart')
-    ..add('stack_zone_specification.dart')
-    ..add('view_manager.dart')
-    ..add('view.dart');
-
-  bool _inWhitelistCode(AstNode node, {isCall: false}) {
-    if (!options.useAngular2Whitelist) return false;
-    var path = currentElement.source.fullName;
-    var filename = path.split("/").last;
-    if (_uncheckedWhitelist.containsKey(filename)) {
-      var whitelisted = _uncheckedWhitelist[filename];
-      if (whitelisted == null) return true;
-      var enclosing = node;
-      while (enclosing != null &&
-          !(enclosing is ClassMember || enclosing is FunctionDeclaration)) {
-        enclosing = enclosing.parent;
-      }
-      String name = (enclosing as dynamic)?.element?.name;
-      if (name != null) {
-        return whitelisted.contains(name);
-      }
-    }
-
-    // Dynamic calls are less risky so there is no need to whitelist at the
-    // method level.
-    if (isCall && _uncheckedWhitelistCalls.contains(filename)) return true;
-
-    return path.endsWith(".template.dart");
-  }
-
   _unreachable(AstNode node) {
     throw new UnsupportedError(
         'tried to generate an unreachable node: `$node`');
@@ -5925,6 +5729,10 @@ class CodeGenerator extends Object
   /// Unusued, see [_emitFieldInitializers].
   @override
   visitConstructorFieldInitializer(node) => _unreachable(node);
+
+  /// Unusued, see [_emitRedirectingConstructor].
+  @override
+  visitRedirectingConstructorInvocation(node) => _unreachable(node);
 
   /// Unusued. Handled in [visitForEachStatement].
   @override
@@ -6033,8 +5841,7 @@ String jsLibraryName(String libraryRoot, LibraryElement library) {
     // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
     qualifiedPath = uri.pathSegments.skip(1).join(encodedSeparator);
   } else if (isWithin(libraryRoot, uri.toFilePath())) {
-    qualifiedPath = uri.path
-        .substring(libraryRoot.length)
+    qualifiedPath = relative(uri.toFilePath(), from: libraryRoot)
         .replaceAll(separator, encodedSeparator);
   } else {
     // We don't have a unique name.
@@ -6057,30 +5864,6 @@ String jsLibraryDebuggerName(String libraryRoot, LibraryElement library) {
   }
   // Relative path to the library.
   return relative(filePath, from: libraryRoot);
-}
-
-String jsDebuggingLibraryName(String libraryRoot, LibraryElement library) {
-  var uri = library.source.uri;
-  if (uri.scheme == 'dart') {
-    return uri.path;
-  }
-  // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
-  var separator = '__';
-  String qualifiedPath;
-  if (uri.scheme == 'package') {
-    // Strip the package name.
-    // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
-    // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
-    qualifiedPath = uri.pathSegments.skip(1).join(separator);
-  } else if (uri.toFilePath().startsWith(libraryRoot)) {
-    qualifiedPath =
-        uri.path.substring(libraryRoot.length).replaceAll('/', separator);
-  } else {
-    // We don't have a unique name.
-    throw 'Invalid library root. $libraryRoot does not contain ${uri
-        .toFilePath()}';
-  }
-  return pathToJSIdentifier(qualifiedPath);
 }
 
 /// Shorthand for identifier-like property names.

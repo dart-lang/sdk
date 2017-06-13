@@ -186,7 +186,11 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
   var module = compiler.compile(unit, compilerOpts);
   module.errors.forEach(printFn);
 
-  if (!module.isValid) throw new CompileErrorException();
+  if (!module.isValid) {
+    throw compilerOpts.unsafeForceCompile
+        ? new ForceCompileErrorException()
+        : new CompileErrorException();
+  }
 
   // Write JS file, as well as source map and summary (if requested).
   for (var i = 0; i < outPaths.length; i++) {
@@ -261,4 +265,10 @@ void _usageException(String message) {
 /// Thrown when the input source code has errors.
 class CompileErrorException implements Exception {
   toString() => '\nPlease fix all errors before compiling (warnings are okay).';
+}
+
+/// Thrown when force compilation failed (probably due to static errors).
+class ForceCompileErrorException extends CompileErrorException {
+  toString() =>
+      '\nForce-compilation not successful. Please check static errors.';
 }

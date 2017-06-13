@@ -179,7 +179,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     if (element.interfaces == null) {
       element.interfaces = resolveInterfaces(node.interfaces, node.superclass);
     } else {
-      assert(invariant(element, element.hasIncompleteHierarchy));
+      assert(element.hasIncompleteHierarchy, failedAt(element));
     }
     calculateAllSupertypes(element);
 
@@ -359,9 +359,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
     if (mixinApplication.supertype != null) {
       // [supertype] is not null if there was a cycle.
-      assert(invariant(node, reporter.hasReportedError));
+      assert(reporter.hasReportedError, failedAt(node));
       supertype = mixinApplication.supertype;
-      assert(invariant(node, supertype.isObject));
+      assert(supertype.isObject, failedAt(node));
     } else {
       mixinApplication.supertype = supertype;
     }
@@ -385,7 +385,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       mixinApplication.interfaces = interfaces;
     } else {
       assert(
-          invariant(mixinApplication, mixinApplication.hasIncompleteHierarchy));
+          mixinApplication.hasIncompleteHierarchy, failedAt(mixinApplication));
     }
 
     ClassElement superclass = supertype.element;

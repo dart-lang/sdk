@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.domain_diagnostic;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
@@ -125,4 +123,12 @@ class DiagnosticDomainHandler implements RequestHandler {
     }
     return null;
   }
+}
+
+class MemoryCpuSample {
+  final DateTime time;
+  final double cpuPercentage;
+  final int memoryKB;
+
+  MemoryCpuSample(this.time, this.cpuPercentage, this.memoryKB);
 }

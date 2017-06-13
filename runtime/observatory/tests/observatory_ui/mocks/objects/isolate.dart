@@ -10,6 +10,10 @@ class IsolateRefMock implements M.IsolateRef {
   final String name;
 
   const IsolateRefMock({this.id: 'i-id', this.number, this.name: 'i-name'});
+
+  Future collectAllGarbage() async {
+    throw "Unimplemented";
+  }
 }
 
 class IsolateMock implements M.Isolate {

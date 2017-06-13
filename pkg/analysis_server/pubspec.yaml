@@ -6,9 +6,10 @@ homepage: http://www.dartlang.org
 environment:
   sdk: '>=1.12.0 <2.0.0'
 dependencies:
-  analyzer: ^0.28.0
+  analyzer: ^0.30.0
   args: '>=0.13.0 <0.14.0'
-  dart_style: '>=0.2.0 <0.3.0'
+  dart_style: '^1.0.6'
+  intl: ^0.14.0
   isolate: '>=0.2.2 <2.0.0'
   linter: ^0.1.16
   logging: any

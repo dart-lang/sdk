@@ -16,12 +16,12 @@
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
-#include "vm/kernel_to_il.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/kernel_binary_flowgraph.h"
 #include "vm/longjump.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
@@ -239,8 +239,43 @@ kernel::ScopeBuildingResult* ParsedFunction::EnsureKernelScopes() {
     if (function().kernel_function() != NULL) {
       node = static_cast<kernel::TreeNode*>(function().kernel_function());
     }
-    kernel::ScopeBuilder builder(this, node);
-    kernel_scopes_ = builder.BuildScopes();
+
+    intptr_t kernel_offset = -1;
+    const uint8_t* kernel_data = NULL;
+    intptr_t kernel_data_size = 0;
+    if (node != NULL) {
+      kernel::TreeNode* library_node = node;
+      if (node != NULL) {
+        const Function* parent = &function();
+        while (true) {
+          library_node =
+              static_cast<kernel::TreeNode*>(parent->kernel_function());
+          while (library_node != NULL && !library_node->IsLibrary()) {
+            if (library_node->IsMember()) {
+              library_node = kernel::Member::Cast(library_node)->parent();
+            } else if (library_node->IsClass()) {
+              library_node = kernel::Class::Cast(library_node)->parent();
+              break;
+            } else {
+              library_node = NULL;
+              break;
+            }
+          }
+          if (library_node != NULL) break;
+          parent = &Function::Handle(parent->parent_function());
+        }
+      }
+      if (library_node != NULL && library_node->IsLibrary()) {
+        kernel::Library* library = kernel::Library::Cast(library_node);
+        kernel_offset = node->kernel_offset();
+        kernel_data = library->kernel_data();
+        kernel_data_size = library->kernel_data_size();
+      }
+    }
+
+    kernel::StreamingScopeBuilder builder2(this, kernel_offset, kernel_data,
+                                           kernel_data_size);
+    kernel_scopes_ = builder2.BuildScopes();
   }
   return kernel_scopes_;
 }
@@ -457,6 +492,7 @@ Parser::Parser(const Script& script,
                TokenPosition token_pos)
     : thread_(Thread::Current()),
       isolate_(thread()->isolate()),
+      allocation_space_(thread_->IsMutatorThread() ? Heap::kNew : Heap::kOld),
       script_(Script::Handle(zone(), script.raw())),
       tokens_iterator_(zone(),
                        TokenStream::Handle(zone(), script.tokens()),
@@ -489,6 +525,7 @@ Parser::Parser(const Script& script,
                TokenPosition token_pos)
     : thread_(Thread::Current()),
       isolate_(thread()->isolate()),
+      allocation_space_(thread_->IsMutatorThread() ? Heap::kNew : Heap::kOld),
       script_(Script::Handle(zone(), script.raw())),
       tokens_iterator_(zone(),
                        TokenStream::Handle(zone(), script.tokens()),
@@ -980,6 +1017,43 @@ void Parser::ParseClass(const Class& cls) {
   }
   const int64_t num_tokes_after = STAT_VALUE(thread, num_tokens_consumed);
   INC_STAT(thread, num_class_tokens, num_tokes_after - num_tokes_before);
+}
+
+
+bool Parser::FieldHasFunctionLiteralInitializer(const Field& field,
+                                                TokenPosition* start,
+                                                TokenPosition* end) {
+  if (!field.has_initializer()) {
+    return false;
+  }
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Class& cls = Class::Handle(zone, field.Owner());
+  const Script& script = Script::Handle(zone, cls.script());
+  const Library& lib = Library::Handle(zone, cls.library());
+  Parser parser(script, lib, field.token_pos());
+  return parser.GetFunctionLiteralInitializerRange(field, start, end);
+}
+
+bool Parser::GetFunctionLiteralInitializerRange(const Field& field,
+                                                TokenPosition* start,
+                                                TokenPosition* end) {
+  ASSERT(field.has_initializer());
+  // Since |field| has an initializer, skip until '='.
+  while (CurrentToken() != Token::kASSIGN) {
+    ConsumeToken();
+  }
+  // Skip past the '=' as well.
+  ConsumeToken();
+
+  *start = TokenPos();
+  if (IsFunctionLiteral()) {
+    SkipExpr();
+    *end = PrevTokenPos();
+    return true;
+  }
+
+  return false;
 }
 
 
@@ -1557,29 +1631,31 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
 
   OpenFunctionBlock(func);
 
+  const Function& parent = Function::Handle(func.parent_function());
+  intptr_t type_args_len = 0;  // Length of type args vector passed to parent.
+  LocalVariable* type_args_var = NULL;
   if (FLAG_reify_generic_functions) {
     // The parent function of an implicit closure is the original function, i.e.
     // non-closurized. It is not an enclosing function in the usual sense of a
     // parent function. Do not set parent_type_arguments() in parsed_function_.
-    ASSERT(func.IsGeneric() == func.HasGenericParent());
+    ASSERT(func.IsGeneric() == parent.IsGeneric());
 
     if (func.IsGeneric()) {
+      type_args_len = func.NumTypeParameters();
       // Insert function type arguments variable to scope.
-      LocalVariable* function_type_arguments = new (Z) LocalVariable(
+      type_args_var = new (Z) LocalVariable(
           TokenPosition::kNoSource, TokenPosition::kNoSource,
           Symbols::FunctionTypeArgumentsVar(), Object::dynamic_type());
-      current_block_->scope->AddVariable(function_type_arguments);
+      current_block_->scope->AddVariable(type_args_var);
       ASSERT(FunctionLevel() == 0);
-      parsed_function_->set_function_type_arguments(function_type_arguments);
+      parsed_function_->set_function_type_arguments(type_args_var);
     }
   }
 
-  // TODO(regis): Pass the function type arguments if func is generic.
   ParamList params;
   params.AddFinalParameter(token_pos, &Symbols::ClosureParameter(),
                            &Object::dynamic_type());
 
-  const Function& parent = Function::Handle(func.parent_function());
   if (parent.IsImplicitSetterFunction()) {
     const TokenPosition ident_pos = func.token_pos();
     ASSERT(IsIdentifier());
@@ -1605,7 +1681,8 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
   LocalScope* scope = current_block_->scope;
   AddFormalParamsToScope(&params, scope);
 
-  ArgumentListNode* func_args = new ArgumentListNode(token_pos);
+  ArgumentListNode* func_args =
+      new ArgumentListNode(token_pos, type_args_var, type_args_len);
   if (!func.is_static()) {
     func_args->Add(LoadReceiver(token_pos));
   }
@@ -1654,9 +1731,10 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
 
     ArgumentListNode* arguments = BuildNoSuchMethodArguments(
         token_pos, func_name, *func_args, NULL, false);
+    const intptr_t kTypeArgsLen = 0;
     const intptr_t kNumArguments = 2;  // Receiver, InvocationMirror.
-    ArgumentsDescriptor args_desc(
-        Array::Handle(Z, ArgumentsDescriptor::New(kNumArguments)));
+    ArgumentsDescriptor args_desc(Array::Handle(
+        Z, ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
     Function& no_such_method =
         Function::ZoneHandle(Z, Resolver::ResolveDynamicForReceiverClass(
                                     owner, Symbols::NoSuchMethod(), args_desc));
@@ -1797,9 +1875,10 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
   const String& func_name = String::ZoneHandle(Z, func.name());
   ArgumentListNode* arguments =
       BuildNoSuchMethodArguments(token_pos, func_name, *func_args, NULL, false);
+  const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArguments = 2;  // Receiver, InvocationMirror.
   ArgumentsDescriptor args_desc(
-      Array::Handle(Z, ArgumentsDescriptor::New(kNumArguments)));
+      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
   Function& no_such_method = Function::ZoneHandle(
       Z,
       Resolver::ResolveDynamicForReceiverClass(
@@ -1946,7 +2025,7 @@ void Parser::SkipToMatching() {
   if (!is_match) {
     const Error& error = Error::Handle(LanguageError::NewFormatted(
         Error::Handle(), script_, opening_pos, Report::AtLocation,
-        Report::kWarning, Heap::kNew, "unbalanced '%s' opens here",
+        Report::kWarning, allocation_space_, "unbalanced '%s' opens here",
         Token::Str(opening_token)));
     ReportErrors(error, script_, token_pos, "unbalanced '%s'",
                  Token::Str(token));
@@ -2378,7 +2457,8 @@ RawFunction* Parser::GetSuperFunction(TokenPosition token_pos,
   Function& super_func = Function::Handle(
       Z, Resolver::ResolveDynamicAnyArgs(Z, super_class, name));
   if (!super_func.IsNull() &&
-      !super_func.AreValidArguments(arguments->length(), arguments->names(),
+      !super_func.AreValidArguments(arguments->type_args_len(),
+                                    arguments->length(), arguments->names(),
                                     NULL)) {
     super_func = Function::null();
   } else if (super_func.IsNull() && resolve_getter) {
@@ -2416,12 +2496,19 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
   arguments->Add(new LiteralNode(args_pos, function_name));
   // The second argument is the arguments descriptor of the original function.
   const Array& args_descriptor = Array::ZoneHandle(
-      ArgumentsDescriptor::New(function_args.length(), function_args.names()));
+      ArgumentsDescriptor::New(function_args.type_args_len(),
+                               function_args.length(), function_args.names()));
   arguments->Add(new LiteralNode(args_pos, args_descriptor));
   // The third argument is an array containing the original function arguments,
-  // including the receiver.
+  // including the function type arguments and the receiver.
   ArrayNode* args_array =
       new ArrayNode(args_pos, Type::ZoneHandle(Type::ArrayType()));
+  // The type_args_var is only used in the generated body of an implicit closure
+  // where noSuchMethod should never be called.
+  ASSERT(function_args.type_args_var() == NULL);
+  if (!function_args.type_arguments().IsNull()) {
+    // TODO(regis): Pass the original type arguments to the invocation mirror.
+  }
   for (intptr_t i = 0; i < function_args.length(); i++) {
     AstNode* arg = function_args.NodeAt(i);
     if ((temp_for_last_arg != NULL) && (i == function_args.length() - 1)) {
@@ -2467,16 +2554,18 @@ ArgumentListNode* Parser::BuildNoSuchMethodArguments(
 }
 
 
-AstNode* Parser::ParseSuperCall(const String& function_name) {
+AstNode* Parser::ParseSuperCall(const String& function_name,
+                                const TypeArguments& func_type_args) {
   TRACE_PARSER("ParseSuperCall");
   ASSERT(CurrentToken() == Token::kLPAREN);
   const TokenPosition supercall_pos = TokenPos();
 
-  // 'this' parameter is the first argument to super call.
-  ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
+  // 'this' parameter is the first argument to super call (after the type args).
+  ArgumentListNode* arguments =
+      new ArgumentListNode(supercall_pos, func_type_args);
   AstNode* receiver = LoadReceiver(supercall_pos);
   arguments->Add(receiver);
-  ParseActualParameters(arguments, kAllowConst);
+  ParseActualParameters(arguments, Object::null_type_arguments(), kAllowConst);
 
   const bool kResolveGetter = true;
   bool is_no_such_method = false;
@@ -2490,7 +2579,8 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
     AstNode* closure = new StaticGetterNode(
         supercall_pos, LoadReceiver(supercall_pos), super_class, function_name);
     // 'this' is not passed as parameter to the closure.
-    ArgumentListNode* closure_arguments = new ArgumentListNode(supercall_pos);
+    ArgumentListNode* closure_arguments =
+        new ArgumentListNode(supercall_pos, func_type_args);
     for (int i = 1; i < arguments->length(); i++) {
       closure_arguments->Add(arguments->NodeAt(i));
     }
@@ -2705,7 +2795,8 @@ StaticCallNode* Parser::GenerateSuperConstructorCall(
   }
 
   String& error_message = String::Handle(Z);
-  if (!super_ctor.AreValidArguments(arguments->length(), arguments->names(),
+  if (!super_ctor.AreValidArguments(arguments->type_args_len(),
+                                    arguments->length(), arguments->names(),
                                     &error_message)) {
     ReportError(supercall_pos,
                 "invalid arguments passed to super constructor '%s()': %s",
@@ -2740,7 +2831,7 @@ StaticCallNode* Parser::ParseSuperInitializer(const Class& cls,
 
   // 'this' parameter must not be accessible to the other super call arguments.
   receiver->set_invisible(true);
-  ParseActualParameters(arguments, kAllowConst);
+  ParseActualParameters(arguments, Object::null_type_arguments(), kAllowConst);
   receiver->set_invisible(false);
 
   // Resolve the constructor.
@@ -2760,7 +2851,8 @@ StaticCallNode* Parser::ParseSuperInitializer(const Class& cls,
     ReportError(supercall_pos, "super constructor must be const");
   }
   String& error_message = String::Handle(Z);
-  if (!super_ctor.AreValidArguments(arguments->length(), arguments->names(),
+  if (!super_ctor.AreValidArguments(arguments->type_args_len(),
+                                    arguments->length(), arguments->names(),
                                     &error_message)) {
     ReportError(supercall_pos,
                 "invalid arguments passed to super class constructor '%s': %s",
@@ -3132,7 +3224,7 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   arguments->Add(implicit_argument);
 
   receiver->set_invisible(true);
-  ParseActualParameters(arguments, kAllowConst);
+  ParseActualParameters(arguments, Object::null_type_arguments(), kAllowConst);
   receiver->set_invisible(false);
   // Resolve the constructor.
   const Function& redirect_ctor =
@@ -3151,7 +3243,8 @@ void Parser::ParseConstructorRedirection(const Class& cls,
                 String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString());
   }
   String& error_message = String::Handle(Z);
-  if (!redirect_ctor.AreValidArguments(arguments->length(), arguments->names(),
+  if (!redirect_ctor.AreValidArguments(arguments->type_args_len(),
+                                       arguments->length(), arguments->names(),
                                        &error_message)) {
     ReportError(call_pos, "invalid arguments passed to constructor '%s': %s",
                 String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString(),
@@ -5472,7 +5565,7 @@ void Parser::SkipTypeArguments() {
   if (CurrentToken() == Token::kLT) {
     do {
       ConsumeToken();
-      SkipTypeOrFunctionType(false);
+      SkipTypeOrFunctionType(true);
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();
     if ((token == Token::kGT) || (token == Token::kSHR)) {
@@ -5480,6 +5573,15 @@ void Parser::SkipTypeArguments() {
     } else {
       ReportError("right angle bracket expected");
     }
+  }
+}
+
+
+void Parser::SkipTypeParameters() {
+  // Function already parsed, no need to check FLAG_generic_method_syntax.
+  if (IsTypeParameters()) {
+    const bool skipped = TryParseTypeParameters();
+    ASSERT(skipped);
   }
 }
 
@@ -5559,7 +5661,8 @@ void Parser::ParseTypeParameters(bool parameterizing_class) {
         // i.e. to the class or function currently being parsed.
         // Postpone resolution in order to avoid resolving the owner and its
         // type parameters, as they are not fully parsed yet.
-        type_parameter_bound = ParseType(ClassFinalizer::kDoNotResolve);
+        type_parameter_bound =
+            ParseTypeOrFunctionType(false, ClassFinalizer::kDoNotResolve);
         if (is_lower_bound) {
           // TODO(regis): Handle 'super' differently than 'extends' if lower
           // bounds make it in the final specification and if run time support
@@ -5617,7 +5720,7 @@ RawTypeArguments* Parser::ParseTypeArguments(
     AbstractType& type = AbstractType::Handle(Z);
     do {
       ConsumeToken();
-      type = ParseTypeOrFunctionType(false, finalization);
+      type = ParseTypeOrFunctionType(true, finalization);
       // Map a malformed type argument to dynamic.
       if (type.IsMalformed()) {
         type = Type::DynamicType();
@@ -5649,7 +5752,7 @@ void Parser::ParseInterfaceList(const Class& cls) {
   Array& cls_interfaces = Array::Handle(Z, cls.interfaces());
   for (intptr_t i = 0; i < cls_interfaces.Length(); i++) {
     interface ^= cls_interfaces.At(i);
-    all_interfaces.Add(interface);
+    all_interfaces.Add(interface, Heap::kOld);
   }
   // Now parse and add the new interfaces.
   do {
@@ -5661,7 +5764,7 @@ void Parser::ParseInterfaceList(const Class& cls) {
                   "type parameter '%s' may not be used in interface list",
                   String::Handle(Z, interface.UserVisibleName()).ToCString());
     }
-    all_interfaces.Add(interface);
+    all_interfaces.Add(interface, Heap::kOld);
   } while (CurrentToken() == Token::kCOMMA);
   cls_interfaces = Array::MakeArray(all_interfaces);
   cls.set_interfaces(cls_interfaces);
@@ -5687,7 +5790,7 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
                   "mixin type '%s' may not be a type parameter",
                   String::Handle(Z, mixin_type.UserVisibleName()).ToCString());
     }
-    mixin_types.Add(mixin_type);
+    mixin_types.Add(mixin_type, Heap::kOld);
   } while (CurrentToken() == Token::kCOMMA);
   return MixinAppType::New(super_type,
                            Array::Handle(Z, Array::MakeArray(mixin_types)));
@@ -6165,7 +6268,7 @@ void Parser::ParseIdentList(GrowableObjectArray* names) {
     ReportError("identifier expected");
   }
   while (IsIdentifier()) {
-    names->Add(*CurrentLiteral());
+    names->Add(*CurrentLiteral(), allocation_space_);
     ConsumeToken();  // Identifier.
     if (CurrentToken() != Token::kCOMMA) {
       return;
@@ -6192,13 +6295,13 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
       ConsumeToken();
       ExpectToken(Token::kLPAREN);
       // Parse dotted name.
-      const GrowableObjectArray& pieces =
-          GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-      pieces.Add(*ExpectIdentifier("identifier expected"));
+      const GrowableObjectArray& pieces = GrowableObjectArray::Handle(
+          Z, GrowableObjectArray::New(allocation_space_));
+      pieces.Add(*ExpectIdentifier("identifier expected"), allocation_space_);
       while (CurrentToken() == Token::kPERIOD) {
-        pieces.Add(Symbols::Dot());
+        pieces.Add(Symbols::Dot(), allocation_space_);
         ConsumeToken();
-        pieces.Add(*ExpectIdentifier("identifier expected"));
+        pieces.Add(*ExpectIdentifier("identifier expected"), allocation_space_);
       }
       AstNode* valueNode = NULL;
       if (CurrentToken() == Token::kEQ) {
@@ -6218,8 +6321,8 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
         continue;
       }
       // Check if this conditional line overrides the default import.
-      const String& key = String::Handle(
-          String::ConcatAll(Array::Handle(Array::MakeArray(pieces))));
+      const String& key = String::Handle(String::ConcatAll(
+          Array::Handle(Array::MakeArray(pieces)), allocation_space_));
       const String& value =
           (valueNode == NULL)
               ? Symbols::True()
@@ -6257,10 +6360,10 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
   Array& hide_names = Array::Handle(Z);
   if (is_deferred_import || IsSymbol(Symbols::Show()) ||
       IsSymbol(Symbols::Hide())) {
-    GrowableObjectArray& show_list =
-        GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-    GrowableObjectArray& hide_list =
-        GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+    GrowableObjectArray& show_list = GrowableObjectArray::Handle(
+        Z, GrowableObjectArray::New(allocation_space_));
+    GrowableObjectArray& hide_list = GrowableObjectArray::Handle(
+        Z, GrowableObjectArray::New(allocation_space_));
     // Libraries imported through deferred import automatically hide
     // the name 'loadLibrary'.
     if (is_deferred_import) {
@@ -6729,14 +6832,12 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode* body) {
     try_stack_->exit_finally();
   }
 
-  const GrowableObjectArray& handler_types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   // Catch block handles all exceptions.
-  handler_types.Add(Object::dynamic_type());
+  const Array& handler_types = Array::ZoneHandle(Z, Array::New(1, Heap::kOld));
+  handler_types.SetAt(0, Object::dynamic_type());
 
   CatchClauseNode* catch_clause = new (Z) CatchClauseNode(
-      TokenPosition::kNoSource, catch_handler_list,
-      Array::ZoneHandle(Z, Array::MakeArray(handler_types)), context_var,
+      TokenPosition::kNoSource, catch_handler_list, handler_types, context_var,
       exception_var, stack_trace_var, saved_exception_var,
       saved_stack_trace_var, AllocateTryIndex(), true);
 
@@ -6831,17 +6932,14 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block,
   current_block_->statements->Add(catch_block);
   SequenceNode* catch_handler_list = CloseBlock();
 
-  const GrowableObjectArray& handler_types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
-  handler_types.SetLength(0);
-  handler_types.Add(*exception_param.type);
+  const Array& handler_types = Array::ZoneHandle(Z, Array::New(1, Heap::kOld));
+  handler_types.SetAt(0, *exception_param.type);
 
   TryStack* try_statement = PopTry();
   const intptr_t try_index = try_statement->try_index();
 
   CatchClauseNode* catch_clause = new (Z) CatchClauseNode(
-      TokenPosition::kNoSource, catch_handler_list,
-      Array::ZoneHandle(Z, Array::MakeArray(handler_types)), context_var,
+      TokenPosition::kNoSource, catch_handler_list, handler_types, context_var,
       exception_var, stack_trace_var, saved_exception_var,
       saved_stack_trace_var, CatchClauseNode::kInvalidTryIndex, true);
   AstNode* try_catch_node = new (Z) TryCatchNode(
@@ -8178,7 +8276,6 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 
   ASSERT(innermost_function_.raw() == function.raw());
   innermost_function_ = function.parent_function();
-
   return is_literal ? closure : new (Z) StoreLocalNode(
                                     function_pos, function_variable, closure);
 }
@@ -9618,9 +9715,10 @@ AstNode* Parser::MakeStaticCall(const String& cls_name,
                                 ArgumentListNode* arguments) {
   const Class& cls = Class::Handle(Z, Library::LookupCoreClass(cls_name));
   ASSERT(!cls.IsNull());
+  const intptr_t kTypeArgsLen = 0;  // Not passing type args to generic func.
   const Function& func = Function::ZoneHandle(
-      Z, Resolver::ResolveStatic(cls, func_name, arguments->length(),
-                                 arguments->names()));
+      Z, Resolver::ResolveStatic(cls, func_name, kTypeArgsLen,
+                                 arguments->length(), arguments->names()));
   ASSERT(!func.IsNull());
   return new (Z) StaticCallNode(arguments->token_pos(), func, arguments);
 }
@@ -10020,7 +10118,7 @@ SequenceNode* Parser::ParseCatchClauses(
       // This catch clause will handle all exceptions. We can safely forget
       // all previous catch clause types.
       handler_types.SetLength(0);
-      handler_types.Add(*exception_param.type);
+      handler_types.Add(*exception_param.type, Heap::kOld);
     } else {
       // Has a type specification that is not malformed or malbounded.  Now
       // form an 'if type check' to guard the catch handler code.
@@ -10047,7 +10145,7 @@ SequenceNode* Parser::ParseCatchClauses(
       // will report the exception as uncaught when in fact it might be
       // caught and handled when we unwind the stack.
       if (!generic_catch_seen && exception_param.type->IsInstantiated()) {
-        handler_types.Add(*exception_param.type);
+        handler_types.Add(*exception_param.type, Heap::kOld);
       }
     }
 
@@ -11626,14 +11724,19 @@ AstNode* Parser::ParseUnaryExpr() {
 
 ArgumentListNode* Parser::ParseActualParameters(
     ArgumentListNode* implicit_arguments,
+    const TypeArguments& func_type_args,
     bool require_const) {
   TRACE_PARSER("ParseActualParameters");
   ASSERT(CurrentToken() == Token::kLPAREN);
   const bool saved_mode = SetAllowFunctionLiterals(true);
   ArgumentListNode* arguments;
   if (implicit_arguments == NULL) {
-    arguments = new (Z) ArgumentListNode(TokenPos());
+    // TODO(regis): When require_const is true, do we need to check that
+    // func_type_args are null or instantiated?
+    arguments = new (Z) ArgumentListNode(TokenPos(), func_type_args);
   } else {
+    // If implicit arguments are provided, they include type arguments (if any).
+    ASSERT(func_type_args.IsNull());
     arguments = implicit_arguments;
   }
   const GrowableObjectArray& names =
@@ -11684,15 +11787,17 @@ ArgumentListNode* Parser::ParseActualParameters(
 AstNode* Parser::ParseStaticCall(const Class& cls,
                                  const String& func_name,
                                  TokenPosition ident_pos,
+                                 const TypeArguments& func_type_args,
                                  const LibraryPrefix* prefix) {
   TRACE_PARSER("ParseStaticCall");
   const TokenPosition call_pos = TokenPos();
   ASSERT(CurrentToken() == Token::kLPAREN);
-  ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
+  ArgumentListNode* arguments =
+      ParseActualParameters(NULL, func_type_args, kAllowConst);
   const int num_arguments = arguments->length();
   const Function& func = Function::ZoneHandle(
-      Z, Resolver::ResolveStatic(cls, func_name, num_arguments,
-                                 arguments->names()));
+      Z, Resolver::ResolveStatic(cls, func_name, func_type_args.Length(),
+                                 num_arguments, arguments->names()));
   if (func.IsNull()) {
     // Check if there is a static field of the same name, it could be a closure
     // and so we try and invoke the closure.
@@ -11704,9 +11809,10 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
       const String& getter_name =
           String::ZoneHandle(Z, Field::LookupGetterSymbol(func_name));
       if (!getter_name.IsNull()) {
+        const int kTypeArgsLen = 0;   // no type arguments.
         const int kNumArguments = 0;  // no arguments.
-        func = Resolver::ResolveStatic(cls, getter_name, kNumArguments,
-                                       Object::empty_array());
+        func = Resolver::ResolveStatic(cls, getter_name, kTypeArgsLen,
+                                       kNumArguments, Object::empty_array());
         if (!func.IsNull()) {
           ASSERT(func.kind() != RawFunction::kImplicitStaticFinalGetter);
           closure = new (Z) StaticGetterNode(
@@ -11725,7 +11831,8 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
                                   NULL,  // No existing function.
                                   prefix);
   } else if (cls.IsTopLevel() && (cls.library() == Library::CoreLibrary()) &&
-             (func.name() == Symbols::Identical().raw())) {
+             (func.name() == Symbols::Identical().raw()) &&
+             func_type_args.IsNull()) {
     // This is the predefined toplevel function identical(a,b).
     // Create a comparison node instead of a static call to the function.
     ASSERT(num_arguments == 2);
@@ -11759,20 +11866,24 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
 AstNode* Parser::ParseInstanceCall(AstNode* receiver,
                                    const String& func_name,
                                    TokenPosition ident_pos,
+                                   const TypeArguments& func_type_args,
                                    bool is_conditional) {
   TRACE_PARSER("ParseInstanceCall");
   CheckToken(Token::kLPAREN);
-  ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
+  ArgumentListNode* arguments =
+      ParseActualParameters(NULL, func_type_args, kAllowConst);
   return new (Z) InstanceCallNode(ident_pos, receiver, func_name, arguments,
                                   is_conditional);
 }
 
 
-AstNode* Parser::ParseClosureCall(AstNode* closure) {
+AstNode* Parser::ParseClosureCall(AstNode* closure,
+                                  const TypeArguments& func_type_args) {
   TRACE_PARSER("ParseClosureCall");
   const TokenPosition call_pos = TokenPos();
   ASSERT(CurrentToken() == Token::kLPAREN);
-  ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
+  ArgumentListNode* arguments =
+      ParseActualParameters(NULL, func_type_args, kAllowConst);
   return BuildClosureCall(call_pos, closure, arguments);
 }
 
@@ -11972,29 +12083,31 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       if (IsArgumentPart()) {
         // Identifier followed by optional type arguments and opening paren:
         // method call.
+        TypeArguments& func_type_args = TypeArguments::ZoneHandle(Z);
         if (CurrentToken() == Token::kLT) {
           // Type arguments.
           if (!FLAG_generic_method_syntax) {
             ReportError("generic type arguments not supported.");
           }
-          // TODO(regis): Pass type arguments in generic call.
-          // For now, resolve type arguments and ignore.
-          ParseTypeArguments(ClassFinalizer::kCanonicalize);
+          func_type_args = ParseTypeArguments(ClassFinalizer::kCanonicalize);
+          if (!FLAG_reify_generic_functions) {
+            func_type_args = TypeArguments::null();
+          }
         }
         PrimaryNode* primary_node = left->AsPrimaryNode();
         if ((primary_node != NULL) && primary_node->primary().IsClass()) {
           // Static method call prefixed with class name.
           const Class& cls = Class::Cast(primary_node->primary());
-          selector =
-              ParseStaticCall(cls, *ident, ident_pos, primary_node->prefix());
+          selector = ParseStaticCall(cls, *ident, ident_pos, func_type_args,
+                                     primary_node->prefix());
         } else {
           if ((primary_node != NULL) && primary_node->is_deferred_reference()) {
             const Class& cls = Class::Handle(library_.toplevel_class());
-            selector =
-                ParseStaticCall(cls, *ident, ident_pos, primary_node->prefix());
+            selector = ParseStaticCall(cls, *ident, ident_pos, func_type_args,
+                                       primary_node->prefix());
           } else {
-            selector =
-                ParseInstanceCall(left, *ident, ident_pos, is_conditional);
+            selector = ParseInstanceCall(left, *ident, ident_pos,
+                                         func_type_args, is_conditional);
           }
         }
       } else {
@@ -12063,14 +12176,16 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       selector = new (Z)
           LoadIndexedNode(bracket_pos, array, index, Class::ZoneHandle(Z));
     } else if (IsArgumentPart()) {
+      TypeArguments& func_type_args = TypeArguments::ZoneHandle(Z);
       if (CurrentToken() == Token::kLT) {
         // Type arguments.
         if (!FLAG_generic_method_syntax) {
           ReportError("generic type arguments not supported.");
         }
-        // TODO(regis): Pass type arguments in generic call.
-        // For now, resolve type arguments and ignore.
-        ParseTypeArguments(ClassFinalizer::kCanonicalize);
+        func_type_args = ParseTypeArguments(ClassFinalizer::kCanonicalize);
+        if (!FLAG_reify_generic_functions) {
+          func_type_args = TypeArguments::null();
+        }
       }
       if (left->IsPrimaryNode()) {
         PrimaryNode* primary_node = left->AsPrimaryNode();
@@ -12081,7 +12196,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           if (func.is_static()) {
             // Parse static function call.
             Class& cls = Class::Handle(Z, func.Owner());
-            selector = ParseStaticCall(cls, func_name, primary_pos);
+            selector =
+                ParseStaticCall(cls, func_name, primary_pos, func_type_args);
           } else {
             // Dynamic function call on implicit "this" parameter.
             if (current_function().is_static()) {
@@ -12090,9 +12206,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                           "from static function",
                           func_name.ToCString());
             }
-            selector =
-                ParseInstanceCall(LoadReceiver(primary_pos), func_name,
-                                  primary_pos, false /* is_conditional */);
+            selector = ParseInstanceCall(LoadReceiver(primary_pos), func_name,
+                                         primary_pos, func_type_args,
+                                         false /* is_conditional */);
           }
         } else if (primary_node->primary().IsString()) {
           // Primary is an unresolved name.
@@ -12104,20 +12220,23 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           if (primary_node->is_deferred_reference()) {
             // The static call will be converted to throwing a NSM error.
             const Class& cls = Class::Handle(library_.toplevel_class());
-            selector =
-                ParseStaticCall(cls, name, primary_pos, primary_node->prefix());
+            selector = ParseStaticCall(cls, name, primary_pos, func_type_args,
+                                       primary_node->prefix());
           } else if (current_function().is_static()) {
             // The static call will be converted to throwing a NSM error.
-            selector = ParseStaticCall(current_class(), name, primary_pos);
+            selector = ParseStaticCall(current_class(), name, primary_pos,
+                                       func_type_args);
           } else {
             // Treat as call to unresolved (instance) method.
             selector =
                 ParseInstanceCall(LoadReceiver(primary_pos), name, primary_pos,
-                                  false /* is_conditional */);
+                                  func_type_args, false /* is_conditional */);
           }
         } else if (primary_node->primary().IsTypeParameter()) {
+          // TODO(regis): What about the parsed type arguments?
           selector = LoadTypeParameter(primary_node);
         } else if (primary_node->primary().IsClass()) {
+          // TODO(regis): What about the parsed type arguments?
           const Class& type_class = Class::Cast(primary_node->primary());
           AbstractType& type = Type::ZoneHandle(
               Z, Type::New(type_class, Object::null_type_arguments(),
@@ -12133,7 +12252,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       } else {
         // Left is not a primary node; this must be a closure call.
         AstNode* closure = left;
-        selector = ParseClosureCall(closure);
+        selector = ParseClosureCall(closure, func_type_args);
       }
     } else {
       // No (more) selectors to parse.
@@ -12597,7 +12716,7 @@ void Parser::InsertCachedConstantValue(const Script& script,
   ASSERT(!script.InVMHeap());
   if (script.compile_time_constants() == Array::null()) {
     const Array& array = Array::Handle(
-        HashTables::New<ConstantsMap>(kInitialConstMapSize, Heap::kNew));
+        HashTables::New<ConstantsMap>(kInitialConstMapSize, Heap::kOld));
     script.set_compile_time_constants(array);
   }
   ConstantsMap constants(script.compile_time_constants());
@@ -12683,10 +12802,11 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(
       NoReloadScope no_reload_scope(isolate(), thread());
       NoOOBMessageScope no_msg_scope(thread());
       field.SetStaticValue(Object::transition_sentinel());
-      const int kNumArguments = 0;  // no arguments.
+      const int kTypeArgsLen = 0;   // No type argument vector.
+      const int kNumArguments = 0;  // No arguments.
       const Function& func = Function::Handle(
-          Z, Resolver::ResolveStatic(field_owner, getter_name, kNumArguments,
-                                     Object::empty_array()));
+          Z, Resolver::ResolveStatic(field_owner, getter_name, kTypeArgsLen,
+                                     kNumArguments, Object::empty_array()));
       ASSERT(!func.IsNull());
       ASSERT(func.kind() == RawFunction::kImplicitStaticFinalGetter);
       Object& const_value = Object::Handle(Z);
@@ -12737,15 +12857,17 @@ RawObject* Parser::EvaluateConstConstructorCall(
     ArgumentListNode* arguments) {
   NoReloadScope no_reload_scope(isolate(), thread());
   NoOOBMessageScope no_msg_scope(thread());
+  // Factories and constructors are not generic functions.
+  const int kTypeArgsLen = 0;
   // Factories have one extra argument: the type arguments.
-  // Constructors have 1 extra arguments: receiver.
+  // Constructors have one extra arguments: receiver.
   const int kNumExtraArgs = 1;
   const int num_arguments = arguments->length() + kNumExtraArgs;
   const Array& arg_values =
-      Array::Handle(Z, Array::New(num_arguments, Heap::kOld));
+      Array::Handle(Z, Array::New(num_arguments, allocation_space_));
   Instance& instance = Instance::Handle(Z);
   if (!constructor.IsFactory()) {
-    instance = Instance::New(type_class, Heap::kOld);
+    instance = Instance::New(type_class, allocation_space_);
     if (!type_arguments.IsNull()) {
       if (!type_arguments.IsInstantiated()) {
         ReportError("type must be constant in const constructor");
@@ -12765,8 +12887,9 @@ RawObject* Parser::EvaluateConstConstructorCall(
     ASSERT(arg->IsLiteralNode());
     arg_values.SetAt((i + kNumExtraArgs), arg->AsLiteralNode()->literal());
   }
-  const Array& args_descriptor = Array::Handle(
-      Z, ArgumentsDescriptor::New(num_arguments, arguments->names()));
+  const Array& args_descriptor =
+      Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, num_arguments,
+                                                arguments->names()));
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(constructor, arg_values, args_descriptor));
   if (result.IsError()) {
@@ -13280,8 +13403,10 @@ RawAbstractType* Parser::ParseType(
       ConsumeToken();  // Period token.
       ASSERT(IsIdentifier());
       String& qualified_name = String::Handle(Z, type_name.raw());
-      qualified_name = String::Concat(qualified_name, Symbols::Dot());
-      qualified_name = String::Concat(qualified_name, *CurrentLiteral());
+      qualified_name =
+          String::Concat(qualified_name, Symbols::Dot(), allocation_space_);
+      qualified_name =
+          String::Concat(qualified_name, *CurrentLiteral(), allocation_space_);
       ConsumeToken();
       // The type is malformed. Skip over its type arguments.
       ParseTypeArguments(ClassFinalizer::kIgnore);
@@ -14070,7 +14195,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   if (!is_tearoff_expression) {
     CheckToken(Token::kLPAREN);
     call_pos = TokenPos();
-    arguments = ParseActualParameters(NULL, is_const);
+    arguments =
+        ParseActualParameters(NULL, TypeArguments::ZoneHandle(Z), is_const);
   } else {
     // Allocate dummy node with no arguments so we don't have to deal
     // with the NULL corner case below.
@@ -14249,9 +14375,10 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   }
 
   ASSERT(!is_tearoff_expression);
+  const int kTypeArgsLen = 0;
   String& error_message = String::Handle(Z);
-  if (!constructor.AreValidArguments(arguments_length, arguments->names(),
-                                     &error_message)) {
+  if (!constructor.AreValidArguments(kTypeArgsLen, arguments_length,
+                                     arguments->names(), &error_message)) {
     const String& external_constructor_name =
         (named_constructor ? constructor_name : type_class_name);
     if (is_const) {
@@ -14657,8 +14784,19 @@ AstNode* Parser::ParsePrimary() {
       ConsumeToken();
       const TokenPosition ident_pos = TokenPos();
       const String& ident = *ExpectIdentifier("identifier expected");
-      if (CurrentToken() == Token::kLPAREN) {
-        primary = ParseSuperCall(ident);
+      if (IsArgumentPart()) {
+        TypeArguments& func_type_args = TypeArguments::ZoneHandle(Z);
+        if (CurrentToken() == Token::kLT) {
+          // Type arguments.
+          if (!FLAG_generic_method_syntax) {
+            ReportError("generic type arguments not supported.");
+          }
+          func_type_args = ParseTypeArguments(ClassFinalizer::kCanonicalize);
+          if (!FLAG_reify_generic_functions) {
+            func_type_args = TypeArguments::null();
+          }
+        }
+        primary = ParseSuperCall(ident, func_type_args);
       } else {
         primary = ParseSuperFieldAccess(ident, ident_pos);
       }
@@ -14764,17 +14902,23 @@ void Parser::SkipFunctionLiteral() {
 // previously parsed the function.
 void Parser::SkipFunctionPreamble() {
   while (true) {
-    const Token::Kind token = CurrentToken();
     if (IsFunctionTypeSymbol()) {
       ConsumeToken();
-      SkipTypeArguments();
+      SkipTypeParameters();
       SkipToMatchingParenthesis();
       continue;
     }
+    const Token::Kind token = CurrentToken();
     if (token == Token::kLPAREN) {
       return;
     }
     if (token == Token::kGET) {
+      if (LookaheadToken(1) == Token::kLT) {
+        // Case: Generic Function/method named get.
+        ConsumeToken();  // Parse away 'get' (the function's name).
+        SkipTypeParameters();
+        continue;
+      }
       if (LookaheadToken(1) == Token::kLPAREN) {
         // Case: Function/method named get.
         ConsumeToken();  // Parse away 'get' (the function's name).
@@ -14785,7 +14929,7 @@ void Parser::SkipFunctionPreamble() {
       ConsumeToken();  // Parse away the getter name.
       return;
     }
-    ConsumeToken();
+    ConsumeToken();  // Can be static, factory, operator, void, ident, etc...
   }
 }
 
@@ -15200,6 +15344,14 @@ ArgumentListNode* Parser::BuildNoSuchMethodArguments(
   UNREACHABLE();
   return NULL;
 }
+
+bool Parser::FieldHasFunctionLiteralInitializer(const Field& field,
+                                                TokenPosition* start,
+                                                TokenPosition* end) {
+  UNREACHABLE();
+  return false;
+}
+
 
 }  // namespace dart
 

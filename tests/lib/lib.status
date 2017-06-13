@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $unchecked ]
+[ ! $checked ]
 mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
 
 [ $compiler == dart2js ]
@@ -115,7 +115,7 @@ mirrors/reflected_type_generics_test/04: Fail # Issues in reflecting bounded typ
 mirrors/reflected_type_generics_test/05: Fail # Issues in reflecting generic typedefs.
 mirrors/reflected_type_generics_test/06: Fail # Issues in reflecting bounded type variables.
 
-[ $compiler == none && $unchecked ]
+[ $compiler == none && ! $checked ]
 mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded type argument.
 
 [ $compiler == dart2js && $fast_startup ]
@@ -279,6 +279,8 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeo
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
+
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) && $compiler != dartk && $compiler != dartkp ]
 mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
@@ -359,6 +361,13 @@ async/timer_test: Fail, Pass # See Issue 10982
 [ $compiler == none && $runtime == drt && $checked ]
 async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24460
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
+# TODO(terry): Failing tests with Dartium 50 roll (NEED TO FIX All)
+# ---------------------------------------------
+mirrors/regress_16321_test/01: Timeout, Pass # Roll 50 crash works on full build
+# ---------------------------------------------
+# TODO(terry): End of Dartium 50 roll failures
+
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
 mirrors/null_test: Fail # Issue 16831
@@ -366,7 +375,7 @@ mirrors/null_test: Fail # Issue 16831
 [ $compiler == dart2js && $runtime == jsshell ]
 async/schedule_microtask_test: Fail  # Preamble file does not correctly implement scheduleImmediate.
 
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer ]
 mirrors/generic_f_bounded_mixin_application_test: StaticWarning # Test Issue
 
 mirrors/redirecting_factory_test/01: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>'
@@ -389,7 +398,7 @@ profiler/metrics_test: Fail # Issue 20309
 profiler/metrics_num_test: Fail # Issue 20309
 
 
-[ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
+[ $compiler == dart2analyzer && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
 
 [ $compiler == dart2analyzer && $builder_tag == strong ]
@@ -472,7 +481,6 @@ mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
 
 [ $compiler == dartk || $compiler == dartkp ]
-async/future_or_only_in_async_test/00: MissingRuntimeError
 async/future_or_strong_test: RuntimeError
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
@@ -499,21 +507,18 @@ mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
 mirrors/generic_interface_test/01: RuntimeError
 mirrors/generic_interface_test/none: RuntimeError
-mirrors/generic_local_function_test: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
+mirrors/generic_type_mirror_test: RuntimeError
 mirrors/generics_double_substitution_test/01: RuntimeError
 mirrors/generics_double_substitution_test/none: RuntimeError
 mirrors/generics_dynamic_test: RuntimeError
 mirrors/generics_substitution_test: RuntimeError
-mirrors/generic_type_mirror_test: RuntimeError
 mirrors/hierarchy_invariants_test: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
-mirrors/inherited_metadata_test: RuntimeError
 mirrors/inherit_field_test: RuntimeError
-mirrors/initializing_formals_test/03: RuntimeError
-mirrors/initializing_formals_test/none: RuntimeError
+mirrors/inherited_metadata_test: RuntimeError
 mirrors/instance_members_easier_test: RuntimeError
 mirrors/instance_members_test: RuntimeError
 mirrors/instance_members_with_override_test: RuntimeError
@@ -523,8 +528,6 @@ mirrors/invocation_fuzz_test/false: Crash
 mirrors/invocation_fuzz_test/none: Crash
 mirrors/invocation_fuzz_test/smi: RuntimeError
 mirrors/invocation_fuzz_test/string: Crash
-mirrors/invoke_call_through_getter_previously_accessed_test/named: RuntimeError
-mirrors/invoke_call_through_getter_previously_accessed_test/none: RuntimeError
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/invoke_test: RuntimeError
@@ -588,9 +591,8 @@ mirrors/metadata_test: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash
 mirrors/method_mirror_source_test: Crash
-mirrors/mirrors_nsm_mismatch_test: CompileTimeError
-mirrors/mirrors_nsm_test/dart2js: CompileTimeError
-mirrors/mirrors_nsm_test/none: CompileTimeError
+mirrors/mirrors_nsm_mismatch_test: RuntimeError
+mirrors/mirrors_nsm_test/dart2js: RuntimeError
 mirrors/mirrors_reader_test: Crash
 mirrors/mirrors_test: Crash
 mirrors/mirrors_used_inheritance_test: RuntimeError
@@ -601,7 +603,6 @@ mirrors/mixin_test: RuntimeError
 mirrors/new_instance_with_type_arguments_test: RuntimeError
 mirrors/other_declarations_location_test: RuntimeError
 mirrors/parameter_annotation_mirror_test: RuntimeError
-mirrors/parameter_is_const_test/01: MissingCompileTimeError
 mirrors/parameter_metadata_test: RuntimeError
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError
 mirrors/private_class_field_test: RuntimeError
@@ -614,6 +615,9 @@ mirrors/redirecting_factory_test/none: Crash
 mirrors/reflect_class_test/01: RuntimeError
 mirrors/reflect_class_test/02: RuntimeError
 mirrors/reflect_class_test/none: RuntimeError
+mirrors/reflect_model_test: RuntimeError
+mirrors/reflect_runtime_type_test: RuntimeError
+mirrors/reflect_uninstantiated_class_test: RuntimeError
 mirrors/reflected_type_classes_test/01: RuntimeError
 mirrors/reflected_type_function_type_test: RuntimeError
 mirrors/reflected_type_generics_test/01: RuntimeError
@@ -621,9 +625,6 @@ mirrors/reflected_type_generics_test/02: RuntimeError
 mirrors/reflected_type_test/01: RuntimeError
 mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
-mirrors/reflect_model_test: RuntimeError
-mirrors/reflect_runtime_type_test: RuntimeError
-mirrors/reflect_uninstantiated_class_test: RuntimeError
 mirrors/regress_19731_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
@@ -637,15 +638,15 @@ mirrors/symbol_validation_test/01: RuntimeError
 mirrors/symbol_validation_test/none: RuntimeError
 mirrors/synthetic_accessor_properties_test: RuntimeError
 mirrors/to_string_test: RuntimeError
+mirrors/type_variable_is_static_test: RuntimeError
+mirrors/type_variable_owner_test/01: RuntimeError
 mirrors/typedef_in_signature_test: RuntimeError
 mirrors/typedef_library_test: RuntimeError
 mirrors/typedef_metadata_test: RuntimeError
 mirrors/typedef_reflected_type_test/01: RuntimeError
 mirrors/typedef_reflected_type_test/none: RuntimeError
 mirrors/typedef_test: RuntimeError
-mirrors/type_variable_is_static_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
-mirrors/type_variable_owner_test/01: RuntimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
 mirrors/variable_is_const_test/none: RuntimeError
 

@@ -29,7 +29,9 @@ import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter;
 import '../../js_backend/interceptor_data.dart';
+import '../../world.dart';
 import '../constant_ordering.dart' show deepCompareConstants;
+import '../code_emitter_task.dart';
 import '../js_emitter.dart' show NativeEmitter;
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
@@ -39,6 +41,7 @@ class ModelEmitter {
   final Namer namer;
   ConstantEmitter constantEmitter;
   final NativeEmitter nativeEmitter;
+  final ClosedWorld _closedWorld;
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -50,16 +53,20 @@ class ModelEmitter {
 
   static const String typeNameProperty = r"builtin$cls";
 
-  ModelEmitter(Compiler compiler, Namer namer, this.nativeEmitter)
-      : this.compiler = compiler,
-        this.namer = namer {
+  ModelEmitter(this.compiler, this.namer, this.nativeEmitter, this._closedWorld,
+      CodeEmitterTask task) {
     this.constantEmitter = new ConstantEmitter(
-        compiler, namer, this.generateConstantReference, constantListGenerator);
+        compiler.options,
+        _closedWorld.commonElements,
+        compiler.backend.rtiNeed,
+        compiler.backend.rtiEncoder,
+        namer,
+        task,
+        this.generateConstantReference,
+        constantListGenerator);
   }
 
-  InterceptorData get _interceptorData =>
-      // TODO(johnniwinther): Pass [InterceptorData] directly?
-      nativeEmitter.interceptorData;
+  InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
   js.Expression constantListGenerator(js.Expression array) {
     // TODO(floitsch): remove hard-coded name.
@@ -110,8 +117,10 @@ class ModelEmitter {
   }
 
   js.Expression generateStaticClosureAccess(MethodElement element) {
-    return js.js('#.#()',
-        [namer.globalObjectFor(element), namer.staticClosureName(element)]);
+    return js.js('#.#()', [
+      namer.globalObjectForMember(element),
+      namer.staticClosureName(element)
+    ]);
   }
 
   js.Expression generateConstantReference(ConstantValue value) {
@@ -222,7 +231,7 @@ class ModelEmitter {
         'callName': js.string(namer.callNameField)
       }),
       'cyclicThrow': backend.emitter
-          .staticFunctionAccess(backend.commonElements.cyclicThrowHelper),
+          .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
       'outputContainsConstantList': program.outputContainsConstantList,
       'embeddedGlobals': emitEmbeddedGlobals(program),
       'readMetadataTypeFunction': readMetadataTypeFunction,
@@ -246,10 +255,11 @@ class ModelEmitter {
     Map<String, dynamic> nativeHoles = <String, dynamic>{};
 
     js.Statement nativeIsolateAffinityTagInitialization;
-    if (NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
+    if (NativeGenerator
+        .needsIsolateAffinityTagInitialization(_closedWorld.backendUsage)) {
       nativeIsolateAffinityTagInitialization =
           NativeGenerator.generateIsolateAffinityTagInitialization(
-              backend,
+              _closedWorld.backendUsage,
               generateEmbeddedGlobalAccess,
               // TODO(floitsch): internStringFunction.
               js.js("(function(x) { return x; })", []));

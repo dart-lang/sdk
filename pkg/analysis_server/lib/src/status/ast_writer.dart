@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.status.ast_writer;
-
 import 'dart:collection';
 
 import 'package:analysis_server/src/status/tree_writer.dart';
@@ -89,6 +87,8 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['propagated element'] = node.propagatedElement;
       properties['propagated invoke type'] = node.propagatedInvokeType;
       properties['propagated type'] = node.propagatedType;
+    } else if (node is GenericFunctionType) {
+      properties['type'] = node.type;
     } else if (node is ImportDirective) {
       properties['element'] = node.element;
       properties['selectedSource'] = node.selectedSource;

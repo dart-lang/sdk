@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.analysis_server.src.single_context_manager;
-
 import 'dart:core';
 
 import 'package:analysis_server/src/single_context_manager.dart';
@@ -15,6 +13,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/util/glob.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';

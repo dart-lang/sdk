@@ -6,12 +6,12 @@
 library test;
 
 class C {
-  List<T> f<T>(T g()) => <T>[/*@promotedType=none*/ g()];
+  List<T> f<T>(T g()) => <T>[g()];
 }
 
 main() {
   var /*@type=List<int>*/ v =
-      new C(). /*@typeArgs=int*/ f<int>(/*@returnType=int*/ () {
+      new C(). /*@target=C::f*/ f<int>(/*@returnType=int*/ () {
     return 1;
   });
 }

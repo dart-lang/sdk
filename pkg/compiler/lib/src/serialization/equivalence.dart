@@ -78,7 +78,7 @@ bool areMapsEquivalent(Map map1, Map map2,
   for (var key1 in map1.keys) {
     bool found = false;
     for (var key2 in map2.keys) {
-      if (keyEquivalence(key2, key2)) {
+      if (keyEquivalence(key1, key2)) {
         found = true;
         remaining.remove(key2);
         if (!valueEquivalence(map1[key1], map2[key2])) {
@@ -470,9 +470,7 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
   @override
   bool visitCompilationUnitElement(
       CompilationUnitElement element1, CompilationUnitElement element2) {
-    return strategy.test(
-            element1, element2, 'name', element1.name, element2.name) &&
-        strategy.test(element1, element2, 'script.resourceUri',
+    return strategy.test(element1, element2, 'script.resourceUri',
             element1.script.resourceUri, element2.script.resourceUri) &&
         visit(element1.library, element2.library);
   }
@@ -914,16 +912,15 @@ class ConstantValueEquivalence
   @override
   bool visitConstructed(
       ConstructedConstantValue value1, ConstructedConstantValue value2) {
-    ResolutionInterfaceType type1 = value1.type;
-    ResolutionInterfaceType type2 = value2.type;
-    return strategy.testTypes(value1, value2, 'type', type1, type2) &&
+    return strategy.testTypes(
+            value1, value2, 'type', value1.type, value2.type) &&
         strategy.testMaps(
             value1,
             value2,
             'fields',
             value1.fields,
             value2.fields,
-            areElementsEquivalent,
+            strategy.elementEquivalence,
             (a, b) => strategy.testConstantValues(
                 value1, value2, 'fields.values', a, b));
   }
@@ -931,25 +928,22 @@ class ConstantValueEquivalence
   @override
   bool visitFunction(
       FunctionConstantValue value1, FunctionConstantValue value2) {
-    MethodElement method1 = value1.element;
-    MethodElement method2 = value2.element;
-    return strategy.testElements(value1, value2, 'element', method1, method2);
+    return strategy.testElements(
+        value1, value2, 'element', value1.element, value2.element);
   }
 
   @override
   bool visitList(ListConstantValue value1, ListConstantValue value2) {
-    ResolutionInterfaceType type1 = value1.type;
-    ResolutionInterfaceType type2 = value2.type;
-    return strategy.testTypes(value1, value2, 'type', type1, type2) &&
+    return strategy.testTypes(
+            value1, value2, 'type', value1.type, value2.type) &&
         strategy.testConstantValueLists(
             value1, value2, 'entries', value1.entries, value2.entries);
   }
 
   @override
   bool visitMap(MapConstantValue value1, MapConstantValue value2) {
-    ResolutionInterfaceType type1 = value1.type;
-    ResolutionInterfaceType type2 = value2.type;
-    return strategy.testTypes(value1, value2, 'type', type1, type2) &&
+    return strategy.testTypes(
+            value1, value2, 'type', value1.type, value2.type) &&
         strategy.testConstantValueLists(
             value1, value2, 'keys', value1.keys, value2.keys) &&
         strategy.testConstantValueLists(
@@ -958,9 +952,7 @@ class ConstantValueEquivalence
 
   @override
   bool visitType(TypeConstantValue value1, TypeConstantValue value2) {
-    ResolutionInterfaceType type1 = value1.type;
-    ResolutionInterfaceType type2 = value2.type;
-    return strategy.testTypes(value1, value2, 'type', type1, type2);
+    return strategy.testTypes(value1, value2, 'type', value1.type, value2.type);
   }
 
   @override
@@ -1018,9 +1010,7 @@ class ConstantValueEquivalence
   @override
   bool visitInterceptor(
       InterceptorConstantValue value1, InterceptorConstantValue value2) {
-    ClassElement cls1 = value1.cls;
-    ClassElement cls2 = value2.cls;
-    return strategy.testElements(value1, value2, 'cls', cls1, cls2);
+    return strategy.testElements(value1, value2, 'cls', value1.cls, value2.cls);
   }
 }
 

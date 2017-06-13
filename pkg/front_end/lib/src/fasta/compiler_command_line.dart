@@ -10,13 +10,19 @@ import 'command_line.dart' show CommandLine, argumentError;
 
 import 'compiler_context.dart' show CompilerContext;
 
+import 'package:kernel/target/targets.dart'
+    show Target, getTarget, TargetFlags, targets;
+
 const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--compile-sdk": Uri,
   "--fatal": ",",
   "--output": Uri,
+  "-o": Uri,
   "--packages": Uri,
   "--platform": Uri,
-  "-o": Uri,
+  "--sdk": Uri,
+  "--target": String,
+  "-t": String,
 };
 
 class CompilerCommandLine extends CommandLine {
@@ -50,11 +56,29 @@ class CompilerCommandLine extends CommandLine {
     if (options.containsKey("-o") && options.containsKey("--output")) {
       return argumentError(usage, "Can't specify both '-o' and '--output'.");
     }
-    if (programName == "compile_platform" && arguments.length != 2) {
-      return argumentError(usage, "Expected two arguments.");
+    if (options.containsKey("-t") && options.containsKey("--target")) {
+      return argumentError(usage, "Can't specify both '-t' and '--target'.");
+    }
+    if (options.containsKey("--compile-sdk") &&
+        options.containsKey("--platform")) {
+      return argumentError(
+          usage, "Can't specify both '--compile-sdk' and '--platform'.");
+    }
+    if (programName == "compile_platform" && arguments.length != 3) {
+      return argumentError(usage, "Expected three arguments.");
     } else if (arguments.isEmpty) {
       return argumentError(usage, "No Dart file specified.");
     }
+
+    Target target =
+        getTarget(targetName, new TargetFlags(strongMode: strongMode));
+    if (target == null) {
+      return argumentError(
+          usage,
+          "Target '${targetName}' not recognized. "
+          "Valid targets are:\n  ${targets.keys.join("\n  ")}");
+    }
+    options["target"] = target;
   }
 
   Uri get output {
@@ -71,7 +95,7 @@ class CompilerCommandLine extends CommandLine {
 
   Uri get packages => options["--packages"] ?? Uri.base.resolve(".packages");
 
-  Uri get sdk => options["--compile-sdk"];
+  Uri get sdk => options["--sdk"] ?? options["--compile-sdk"];
 
   Set<String> get fatal {
     return new Set<String>.from(options["--fatal"] ?? <String>[]);
@@ -84,6 +108,12 @@ class CompilerCommandLine extends CommandLine {
   bool get nitsAreFatal => fatal.contains("nits");
 
   bool get strongMode => options.containsKey("--strong-mode");
+
+  String get targetName {
+    return options["-t"] ?? options["--target"] ?? "vm_fasta";
+  }
+
+  Target get target => options["target"];
 
   static dynamic withGlobalOptions(String programName, List<String> arguments,
       dynamic f(CompilerContext context)) {
@@ -121,7 +151,8 @@ String computeUsage(String programName, bool verbose) {
 
     case "compile_platform":
       summary = "Compiles Dart SDK platform to the Dill/Kernel IR format.";
-      basicUsage = "Usage: $programName [options] patched_sdk output\n";
+      basicUsage = "Usage: $programName [options] patched_sdk fullOutput "
+          "outlineOutput\n";
   }
   StringBuffer sb = new StringBuffer(basicUsage);
   if (summary != null) {
@@ -164,6 +195,9 @@ Supported options:
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
 
+  --target=none|vm|vmcc|vmreify|flutter
+    Specify the target configuration.
+
   --verify
     Check that the generated output is free of various problems. This is mostly
     useful for developers of this compiler or Kernel transformations.
@@ -176,6 +210,10 @@ Supported options:
 
   --compile-sdk=<patched_sdk>
     Compile the SDK from scratch instead of reading it from 'platform.dill'.
+
+  --sdk=<patched_sdk>
+    Location of the SDK sources for use when compiling additional platform
+    libraries.
 
   --fatal=errors
   --fatal=warnings

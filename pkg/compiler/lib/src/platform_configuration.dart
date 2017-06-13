@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 /// Tools for loading and parsing platform-configuration files.
-library plaform_configuration;
+library platform_configuration;
 
 import "dart:async";
 
@@ -133,12 +133,11 @@ final Set<String> allowedSections =
     new Set.from([librariesSection, dartSpecSection, featuresSection]);
 
 Future<Map<String, Uri>> load(Uri location, api.CompilerInput provider) {
-  return provider.readFromUri(location).then((contents) {
-    if (contents is String) {
-      contents = contents.codeUnits;
-    }
+  return provider
+      .readFromUri(location, inputKind: api.InputKind.binary)
+      .then((api.Input<List<int>> input) {
     return libraryMappings(
-        parseIni(contents,
+        parseIni(input.data,
             allowedSections: allowedSections, sourceUri: location),
         location);
   });

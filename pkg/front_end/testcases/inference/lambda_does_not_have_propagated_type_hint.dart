@@ -9,7 +9,7 @@ List<String> getListOfString() => const <String>[];
 
 void foo() {
   List myList = getListOfString();
-  /*@promotedType=none*/ myList. /*@typeArgs=int*/ map(
+  myList. /*@typeArgs=int*/ /*@target=Iterable::map*/ map(
       /*@returnType=int*/ (/*@type=dynamic*/ type) => 42);
 }
 
@@ -20,7 +20,6 @@ void bar() {
   } catch (_) {
     return;
   }
-  /*info:DYNAMIC_INVOKE*/ /*@promotedType=none*/ list.map(
-      /*@returnType=String*/ (/*@type=dynamic*/ value) =>
-          '${/*@promotedType=none*/value}');
+  /*info:DYNAMIC_INVOKE*/ list.map(
+      /*@returnType=String*/ (/*@type=dynamic*/ value) => '${value}');
 }

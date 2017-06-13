@@ -24,12 +24,13 @@ var /*@topType=List<dynamic>*/ c2 = /*@typeArgs=dynamic*/ const [];
 var /*@topType=Map<dynamic, dynamic>*/ d = <dynamic, dynamic>{
   'a': 'b'
 }; // map literals
-var /*@topType=A*/ e = new A()..x = 3; // cascades
-var /*@topType=int*/ f = 2 + 3; // binary expressions are OK if the left operand
+var /*@topType=A*/ e = new A().. /*@target=A::x*/ x = 3; // cascades
+var /*@topType=int*/ f =
+    2 /*@target=num::+*/ + 3; // binary expressions are OK if the left operand
 // is from a library in a different strongest
 // conected component.
-var /*@topType=int*/ g = -3;
-var /*@topType=B*/ h = new A() + 3;
+var /*@topType=int*/ g = /*@target=int::unary-*/ -3;
+var /*@topType=B*/ h = new A() /*@target=A::+*/ + 3;
 var /*@topType=dynamic*/ i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();
 var /*@topType=B*/ j = /*info:UNNECESSARY_CAST*/ null as B;
 

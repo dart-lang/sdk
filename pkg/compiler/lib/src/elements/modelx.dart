@@ -782,6 +782,10 @@ class CompilationUnitElementX extends ElementX
       String content = libraryReference.dartString.slowToString();
       Uri uri = this.script.readableUri.resolve(content);
       Uri expectedUri = library.canonicalUri;
+      // Also allow `string.dart` to refer to `dart:core` as `core.dart`.
+      if (library.isPlatformLibrary && !uri.isScheme("dart")) {
+        expectedUri = library.entryCompilationUnit.script.readableUri;
+      }
       if (uri != expectedUri) {
         // Consider finding a relative URI reference for the error message.
         reporter.reportWarningMessage(tag.name,
@@ -1144,9 +1148,9 @@ class LibraryElementX extends ElementX
    * Sets the export scope of this library. This method can only be called once.
    */
   void setExports(Iterable<Element> exportedElements) {
-    assert(invariant(this, !exportsHandled,
-        message: 'Exports already set to $slotForExports on $this'));
-    assert(invariant(this, exportedElements != null));
+    assert(!exportsHandled,
+        failedAt(this, 'Exports already set to $slotForExports on $this'));
+    assert(exportedElements != null, failedAt(this));
     var builder = new LinkBuilder<Element>();
     for (Element export in exportedElements) {
       builder.addLast(export);
@@ -1191,8 +1195,7 @@ class LibraryElementX extends ElementX
   }
 
   Element findExported(String elementName) {
-    assert(invariant(this, exportsHandled,
-        message: 'Exports not handled on $this'));
+    assert(exportsHandled, failedAt(this, 'Exports not handled on $this'));
     for (Link link = slotForExports; !link.isEmpty; link = link.tail) {
       Element element = link.head;
       if (element.name == elementName) return element;
@@ -1201,8 +1204,7 @@ class LibraryElementX extends ElementX
   }
 
   void forEachExport(f(Element element)) {
-    assert(invariant(this, exportsHandled,
-        message: 'Exports not handled on $this'));
+    assert(exportsHandled, failedAt(this, 'Exports not handled on $this'));
     slotForExports.forEach((Element e) => f(e));
   }
 
@@ -1322,8 +1324,8 @@ class TypedefElementX extends ElementX
   ResolutionDartType aliasCache;
 
   ResolutionDartType get alias {
-    assert(invariant(this, hasBeenCheckedForCycles,
-        message: "$this has not been checked for cycles."));
+    assert(hasBeenCheckedForCycles,
+        failedAt(this, "$this has not been checked for cycles."));
     return aliasCache;
   }
 
@@ -1338,8 +1340,8 @@ class TypedefElementX extends ElementX
   bool get hasNode => cachedNode != null;
 
   Typedef get node {
-    assert(invariant(this, cachedNode != null,
-        message: "Node has not been computed for $this."));
+    assert(cachedNode != null,
+        failedAt(this, "Node has not been computed for $this."));
     return cachedNode;
   }
 
@@ -1449,8 +1451,8 @@ abstract class ConstantVariableMixin implements VariableElement {
       ConstantVariableMixin originVariable = origin;
       return originVariable.constant;
     }
-    assert(invariant(this, !isConst || constantCache != null,
-        message: "Constant has not been computed for $this."));
+    assert(!isConst || constantCache != null,
+        failedAt(this, "Constant has not been computed for $this."));
     return constantCache;
   }
 
@@ -1474,9 +1476,11 @@ abstract class ConstantVariableMixin implements VariableElement {
       // computing the value we see that it isn't.
       // TODO(johnniwinther): Remove this exception when all constant
       // expressions are computed during resolution.
-      assert(invariant(
-          this, value == null || value.kind == ConstantExpressionKind.ERRONEOUS,
-          message: "Constant has already been computed for $this. "
+      assert(
+          value == null || value.kind == ConstantExpressionKind.ERRONEOUS,
+          failedAt(
+              this,
+              "Constant has already been computed for $this. "
               "Existing constant: "
               "${constantCache != null ? constantCache.toStructuredText() : ''}"
               ", New constant: "
@@ -1520,8 +1524,8 @@ abstract class VariableElementX extends ElementX
   bool get hasNode => definitionsCache != null;
 
   VariableDefinitions get node {
-    assert(invariant(this, definitionsCache != null,
-        message: "Node has not been computed for $this."));
+    assert(definitionsCache != null,
+        failedAt(this, "Node has not been computed for $this."));
     return definitionsCache;
   }
 
@@ -1530,14 +1534,14 @@ abstract class VariableElementX extends ElementX
   /// For instance in `var a, b = true`, the definitions nodes for fields 'a'
   /// and 'b' are the nodes for `a` and `b = true`, respectively.
   Expression get definition {
-    assert(invariant(this, definitionCache != null,
-        message: "Definition node has not been computed for $this."));
+    assert(definitionCache != null,
+        failedAt(this, "Definition node has not been computed for $this."));
     return definitionCache;
   }
 
   Expression get initializer {
-    assert(invariant(this, definitionsCache != null,
-        message: "Initializer has not been computed for $this."));
+    assert(definitionsCache != null,
+        failedAt(this, "Initializer has not been computed for $this."));
     return initializerCache;
   }
 
@@ -1550,8 +1554,10 @@ abstract class VariableElementX extends ElementX
   }
 
   void createDefinitions(VariableDefinitions definitions) {
-    assert(invariant(this, definitionsCache == null,
-        message: "VariableDefinitions has already been computed for $this."));
+    assert(
+        definitionsCache == null,
+        failedAt(
+            this, "VariableDefinitions has already been computed for $this."));
     for (Link<Node> link = definitions.definitions.nodes;
         !link.isEmpty;
         link = link.tail) {
@@ -1568,8 +1574,9 @@ abstract class VariableElementX extends ElementX
         definitionCache = initializedIdentifier;
       }
     }
-    invariant(definitions, definitionCache != null,
-        message: "Could not find '$name'.");
+    if (definitionCache == null) {
+      failedAt(definitionCache, "Could not find '$name'.");
+    }
     definitionsCache = definitions;
   }
 
@@ -1582,8 +1589,8 @@ abstract class VariableElementX extends ElementX
   }
 
   ResolutionDartType get type {
-    assert(invariant(this, variables.type != null,
-        message: "Type has not been computed for $this."));
+    assert(variables.type != null,
+        failedAt(this, "Type has not been computed for $this."));
     return variables.type;
   }
 
@@ -1771,26 +1778,28 @@ class FormalElementX extends ElementX
   Node parseNode(ParsingContext parsing) => definitions;
 
   ResolutionDartType computeType(Resolution resolution) {
-    assert(invariant(this, type != null,
-        message: "Parameter type has not been set for $this."));
+    assert(type != null,
+        failedAt(this, "Parameter type has not been set for $this."));
     return type;
   }
 
   ResolutionDartType get type {
-    assert(invariant(this, typeCache != null,
-        message: "Parameter type has not been set for $this."));
+    assert(typeCache != null,
+        failedAt(this, "Parameter type has not been set for $this."));
     return typeCache;
   }
 
   FunctionSignature get functionSignature {
-    assert(invariant(this, _functionSignatureCache != null,
-        message: "Parameter signature has not been computed for $this."));
+    assert(_functionSignatureCache != null,
+        failedAt(this, "Parameter signature has not been computed for $this."));
     return _functionSignatureCache;
   }
 
   void set functionSignature(FunctionSignature value) {
-    assert(invariant(this, _functionSignatureCache == null,
-        message: "Parameter signature has already been computed for $this."));
+    assert(
+        _functionSignatureCache == null,
+        failedAt(
+            this, "Parameter signature has already been computed for $this."));
     _functionSignatureCache = value;
     typeCache = _functionSignatureCache.type;
   }
@@ -2034,16 +2043,18 @@ abstract class BaseFunctionElementX extends ElementX
   }
 
   FunctionSignature get functionSignature {
-    assert(invariant(this, hasFunctionSignature,
-        message: "Function signature has not been computed for $this."));
+    assert(hasFunctionSignature,
+        failedAt(this, "Function signature has not been computed for $this."));
     return _functionSignatureCache;
   }
 
   void set functionSignature(FunctionSignature value) {
     // TODO(johnniwinther): Strengthen the invariant to `!hasFunctionSignature`
     // when checked mode checks are not enqueued eagerly.
-    assert(invariant(this, !hasFunctionSignature || type == value.type,
-        message: "Function signature has already been computed for $this."));
+    assert(
+        !hasFunctionSignature || type == value.type,
+        failedAt(
+            this, "Function signature has already been computed for $this."));
     _functionSignatureCache = value;
     typeCache = _functionSignatureCache.type;
   }
@@ -2059,14 +2070,14 @@ abstract class BaseFunctionElementX extends ElementX
   ResolutionFunctionType computeType(Resolution resolution) {
     if (typeCache != null) return typeCache;
     _computeSignature(resolution);
-    assert(invariant(this, typeCache != null,
-        message: "Type cache expected to be set on $this."));
+    assert(typeCache != null,
+        failedAt(this, "Type cache expected to be set on $this."));
     return typeCache;
   }
 
   ResolutionFunctionType get type {
-    assert(invariant(this, typeCache != null,
-        message: "Type has not been computed for $this."));
+    assert(typeCache != null,
+        failedAt(this, "Type has not been computed for $this."));
     return typeCache;
   }
 
@@ -2228,15 +2239,23 @@ abstract class ConstantConstructorMixin implements ConstructorElement {
       ConstantConstructorMixin originConstructor = origin;
       originConstructor.constantConstructor = value;
     } else {
-      assert(invariant(this, isConst,
-          message: "Constant constructor set on non-constant "
+      assert(
+          isConst,
+          failedAt(
+              this,
+              "Constant constructor set on non-constant "
               "constructor $this."));
-      assert(invariant(this, !isFromEnvironmentConstructor,
-          message: "Constant constructor set on fromEnvironment "
+      assert(
+          !isFromEnvironmentConstructor,
+          failedAt(
+              this,
+              "Constant constructor set on fromEnvironment "
               "constructor: $this."));
-      assert(invariant(
-          this, _constantConstructor == null || _constantConstructor == value,
-          message: "Constant constructor already computed for $this:"
+      assert(
+          _constantConstructor == null || _constantConstructor == value,
+          failedAt(
+              this,
+              "Constant constructor already computed for $this:"
               "Existing: $_constantConstructor, new: $value"));
       _constantConstructor = value;
     }
@@ -2291,9 +2310,10 @@ abstract class ConstructorElementX extends FunctionElementX
     if (isPatched) {
       patch.setImmediateRedirectionTarget(target, prefix);
     } else {
-      assert(invariant(this, _immediateRedirectionTarget == null,
-          message: "Immediate redirection target has already been "
-              "set on $this."));
+      assert(
+          _immediateRedirectionTarget == null,
+          failedAt(this,
+              "Immediate redirection target has already been set on $this."));
       _immediateRedirectionTarget = target;
       _redirectionDeferredPrefix = prefix;
     }
@@ -2318,15 +2338,23 @@ abstract class ConstructorElementX extends FunctionElementX
     if (isPatched) {
       patch.setEffectiveTarget(target, type, isMalformed: isMalformed);
     } else {
-      assert(invariant(this, target != null,
-          message: 'No effective target provided for $this.'));
-      assert(invariant(this, effectiveTargetInternal == null,
-          message: 'Effective target has already been computed for $this.'));
-      assert(invariant(this, !target.isMalformed || isMalformed,
-          message: 'Effective target is not marked as malformed for $this: '
+      assert(target != null,
+          failedAt(this, 'No effective target provided for $this.'));
+      assert(
+          effectiveTargetInternal == null,
+          failedAt(
+              this, 'Effective target has already been computed for $this.'));
+      assert(
+          !target.isMalformed || isMalformed,
+          failedAt(
+              this,
+              'Effective target is not marked as malformed for $this: '
               'target=$target, type=$type, isMalformed: $isMalformed'));
-      assert(invariant(this, isMalformed || type.isInterfaceType,
-          message: 'Effective target type is not an interface type for $this: '
+      assert(
+          isMalformed || type.isInterfaceType,
+          failedAt(
+              this,
+              'Effective target type is not an interface type for $this: '
               'target=$target, type=$type, isMalformed: $isMalformed'));
       effectiveTargetInternal = target;
       _effectiveTargetType = type;
@@ -2349,8 +2377,10 @@ abstract class ConstructorElementX extends FunctionElementX
     if (isPatched) {
       return patch.effectiveTargetType;
     }
-    assert(invariant(this, _effectiveTargetType != null,
-        message: 'Effective target type has not yet been computed for $this.'));
+    assert(
+        _effectiveTargetType != null,
+        failedAt(this,
+            'Effective target type has not yet been computed for $this.'));
     return _effectiveTargetType;
   }
 
@@ -2368,8 +2398,8 @@ abstract class ConstructorElementX extends FunctionElementX
       return patch.isEffectiveTargetMalformed;
     }
     if (!isRedirectingFactory) return false;
-    assert(invariant(this, _isEffectiveTargetMalformed != null,
-        message: 'Malformedness has not yet been computed for $this.'));
+    assert(_isEffectiveTargetMalformed != null,
+        failedAt(this, 'Malformedness has not yet been computed for $this.'));
     return _isEffectiveTargetMalformed == true;
   }
 
@@ -2453,20 +2483,17 @@ class ConstructorBodyElementX extends BaseFunctionElementX
     if (node.hasEmptyBody) return null;
     ClassElement classElement = constructor.enclosingClass;
     ConstructorBodyElement bodyElement;
-    classElement.forEachBackendMember((Element backendMember) {
-      if (backendMember.isGenerativeConstructorBody) {
-        ConstructorBodyElement body = backendMember;
-        if (body.constructor == constructor) {
-          // TODO(kasperl): Find a way of stopping the iteration
-          // through the backend members.
-          bodyElement = backendMember;
-        }
+    classElement.forEachConstructorBody((ConstructorBodyElement body) {
+      if (body.constructor == constructor) {
+        // TODO(kasperl): Find a way of stopping the iteration
+        // through the backend members.
+        bodyElement = body;
       }
     });
     if (bodyElement == null) {
       bodyElement =
           new ConstructorBodyElementX(constructorResolvedAst, constructor);
-      classElement.addBackendMember(bodyElement);
+      classElement.addConstructorBody(bodyElement);
 
       if (constructor.isPatch) {
         // Create origin body element for patched constructors.
@@ -2474,7 +2501,7 @@ class ConstructorBodyElementX extends BaseFunctionElementX
         ConstructorBodyElementX origin = new ConstructorBodyElementX(
             constructorResolvedAst, constructor.origin);
         origin.applyPatch(patch);
-        classElement.origin.addBackendMember(bodyElement.origin);
+        classElement.origin.addConstructorBody(bodyElement.origin);
       }
     }
     assert(bodyElement.isGenerativeConstructorBody);
@@ -2632,24 +2659,24 @@ abstract class TypeDeclarationElementX<T extends GenericType>
   T rawTypeCache;
 
   T get thisType {
-    assert(invariant(this, thisTypeCache != null,
-        message: 'This type has not been computed for $this'));
+    assert(thisTypeCache != null,
+        failedAt(this, 'This type has not been computed for $this'));
     return thisTypeCache;
   }
 
   T get rawType {
-    assert(invariant(this, rawTypeCache != null,
-        message: 'Raw type has not been computed for $this'));
+    assert(rawTypeCache != null,
+        failedAt(this, 'Raw type has not been computed for $this'));
     return rawTypeCache;
   }
 
   T createType(List<ResolutionDartType> typeArguments);
 
   void setThisAndRawTypes(List<ResolutionDartType> typeParameters) {
-    assert(invariant(this, thisTypeCache == null,
-        message: "This type has already been set on $this."));
-    assert(invariant(this, rawTypeCache == null,
-        message: "Raw type has already been set on $this."));
+    assert(thisTypeCache == null,
+        failedAt(this, "This type has already been set on $this."));
+    assert(rawTypeCache == null,
+        failedAt(this, "Raw type has already been set on $this."));
     thisTypeCache = createType(typeParameters);
     if (typeParameters.isEmpty) {
       rawTypeCache = thisTypeCache;
@@ -2756,8 +2783,8 @@ abstract class BaseClassElementX extends ElementX
   List<ResolutionDartType> computeTypeParameters(ParsingContext parsing);
 
   bool get isObject {
-    assert(invariant(this, isResolved,
-        message: "isObject has not been computed for $this."));
+    assert(isResolved,
+        failedAt(this, "isObject has not been computed for $this."));
     return supertype == null;
   }
 
@@ -2790,8 +2817,8 @@ abstract class BaseClassElementX extends ElementX
    * The returned element may not be resolved yet.
    */
   ClassElement get superclass {
-    assert(invariant(this, supertypeLoadState == STATE_DONE,
-        message: "Superclass has not been computed for $this."));
+    assert(supertypeLoadState == STATE_DONE,
+        failedAt(this, "Superclass has not been computed for $this."));
     return supertype == null ? null : supertype.element;
   }
 
@@ -2933,14 +2960,14 @@ class EnumClassElementX extends ClassElementX
       const <ResolutionDartType>[];
 
   List<FieldElement> get enumValues {
-    assert(invariant(this, _enumValues != null,
-        message: "enumValues has not been computed for $this."));
+    assert(_enumValues != null,
+        failedAt(this, "enumValues has not been computed for $this."));
     return _enumValues;
   }
 
   void set enumValues(List<FieldElement> values) {
-    assert(invariant(this, _enumValues == null,
-        message: "enumValues has already been computed for $this."));
+    assert(_enumValues == null,
+        failedAt(this, "enumValues has already been computed for $this."));
     _enumValues = values;
   }
 
@@ -3326,14 +3353,14 @@ class TypeVariableElementX extends ElementX
   ResolutionTypeVariableType computeType(Resolution resolution) => type;
 
   ResolutionTypeVariableType get type {
-    assert(invariant(this, typeCache != null,
-        message: "Type has not been set on $this."));
+    assert(
+        typeCache != null, failedAt(this, "Type has not been set on $this."));
     return typeCache;
   }
 
   ResolutionDartType get bound {
-    assert(invariant(this, boundCache != null,
-        message: "Bound has not been set on $this."));
+    assert(
+        boundCache != null, failedAt(this, "Bound has not been set on $this."));
     return boundCache;
   }
 
@@ -3452,14 +3479,10 @@ abstract class PatchMixin<E extends Element> implements Element {
 
   /// Applies a patch to this element. This method must be called at most once.
   void applyPatch(PatchMixin<E> patch) {
-    assert(invariant(this, this.patch == null,
-        message: "Element is patched twice."));
-    assert(invariant(this, this.origin == null,
-        message: "Origin element is a patch."));
-    assert(invariant(patch, patch.origin == null,
-        message: "Element is patched twice."));
-    assert(invariant(patch, patch.patch == null,
-        message: "Patch element is patched."));
+    assert(this.patch == null, failedAt(this, "Element is patched twice."));
+    assert(this.origin == null, failedAt(this, "Origin element is a patch."));
+    assert(patch.origin == null, failedAt(patch, "Element is patched twice."));
+    assert(patch.patch == null, failedAt(patch, "Patch element is patched."));
     this.patch = patch;
     patch.origin = this;
   }

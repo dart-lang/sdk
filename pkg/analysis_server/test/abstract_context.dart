@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library testing.abstract_context;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -19,6 +17,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 
 import 'mock_sdk.dart';
@@ -99,6 +98,9 @@ class Required {
   }
 
   Source addSource(String path, String content, [Uri uri]) {
+    if (path.startsWith('/')) {
+      path = provider.convertPath(path);
+    }
     File file = newFile(path, content);
     Source source = file.createSource(uri);
     if (enableNewAnalysisDriver) {
@@ -168,7 +170,7 @@ class Required {
           _fileContentOverlay,
           null,
           sourceFactory,
-          new AnalysisOptionsImpl());
+          new AnalysisOptionsImpl()..strongMode = true);
       scheduler.start();
     } else {
       _context = AnalysisEngine.instance.createAnalysisContext();

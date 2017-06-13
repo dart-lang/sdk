@@ -51,6 +51,13 @@ abstract class ServerCommunicationChannel {
   void close();
 
   /**
+   * Cause the plugin to terminate as soon as possible. This should only be used
+   * when the plugin has failed to terminate after sending it a 'plugin.shutdown'
+   * request.
+   */
+  void kill();
+
+  /**
    * Listen to the channel for responses and notifications. If a response is
    * received, invoke the [onResponse] function. If a notification is received,
    * invoke the [onNotification] function. If an error is encountered while

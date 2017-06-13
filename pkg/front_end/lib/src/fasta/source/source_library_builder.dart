@@ -4,9 +4,11 @@
 
 library fasta.source_library_builder;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show SymbolToken, Token;
+import 'package:front_end/src/scanner/token.dart' show Token;
 
-import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
+import 'package:kernel/ast.dart' show ProcedureKind;
+
+import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
 import '../combinator.dart' show Combinator;
 
@@ -28,6 +30,7 @@ import '../builder/builder.dart'
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
+        NamedTypeBuilder,
         PrefixBuilder,
         ProcedureBuilder,
         Scope,
@@ -85,6 +88,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool get isPart => partOfName != null || partOfUri != null;
 
+  bool get isPatch;
+
   List<T> get types => libraryDeclaration.types;
 
   T addNamedType(String name, List<T> arguments, int charOffset);
@@ -120,7 +125,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void addExport(List<MetadataBuilder> metadata, String uri,
       Unhandled conditionalUris, List<Combinator> combinators, int charOffset) {
-    loader.read(resolve(uri)).addExporter(this, combinators, charOffset);
+    loader
+        .read(resolve(uri), charOffset, accessor: this)
+        .addExporter(this, combinators, charOffset);
   }
 
   void addImport(
@@ -132,21 +139,30 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       bool deferred,
       int charOffset,
       int prefixCharOffset) {
-    imports.add(new Import(this, loader.read(resolve(uri)), deferred, prefix,
-        combinators, charOffset, prefixCharOffset));
+    imports.add(new Import(
+        this,
+        loader.read(resolve(uri), charOffset, accessor: this),
+        deferred,
+        prefix,
+        combinators,
+        charOffset,
+        prefixCharOffset));
   }
 
-  void addPart(List<MetadataBuilder> metadata, String path) {
+  void addPart(List<MetadataBuilder> metadata, String path, int charOffset) {
     Uri resolvedUri;
     Uri newFileUri;
     if (uri.scheme == "dart") {
-      resolvedUri = new Uri(scheme: "dart", path: "${uri.path}/$path");
+      resolvedUri = resolveRelativeUri(uri, Uri.parse(path));
       newFileUri = fileUri.resolve(path);
     } else {
       resolvedUri = uri.resolve(path);
-      newFileUri = fileUri.resolve(path);
+      if (uri.scheme != "package") {
+        newFileUri = fileUri.resolve(path);
+      }
     }
-    parts.add(loader.read(resolvedUri, newFileUri));
+    parts.add(loader.read(resolvedUri, charOffset,
+        fileUri: newFileUri, accessor: this));
   }
 
   void addPartOf(List<MetadataBuilder> metadata, String name, String uri) {
@@ -176,18 +192,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String name, int charOffset, Token initializer);
 
   void addFields(List<MetadataBuilder> metadata, int modifiers, T type,
-      List<Object> namesOffsetsAndInitializers) {
-    for (int i = 0; i < namesOffsetsAndInitializers.length; i += 4) {
-      String name = namesOffsetsAndInitializers[i];
-      int charOffset = namesOffsetsAndInitializers[i + 1];
-      Token initializer;
-      if (type == null) {
-        initializer = namesOffsetsAndInitializers[i + 2];
-        Token afterInitializer = namesOffsetsAndInitializers[i + 3];
-        // TODO(paulberry): figure out a way to do this without using
-        // Token.previous.
-        afterInitializer?.previous
-            ?.setNext(new SymbolToken.eof(afterInitializer.offset));
+      List<Object> fieldsInfo) {
+    for (int i = 0; i < fieldsInfo.length; i += 4) {
+      String name = fieldsInfo[i];
+      int charOffset = fieldsInfo[i + 1];
+      Token initializer = fieldsInfo[i + 2];
+      if (initializer != null) {
+        Token beforeLast = fieldsInfo[i + 3];
+        beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
       addField(metadata, modifiers, type, name, charOffset, initializer);
     }
@@ -200,7 +212,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
-      AsyncMarker asyncModifier,
       ProcedureKind kind,
       int charOffset,
       int charOpenParenOffset,
@@ -230,7 +241,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers,
       ConstructorReferenceBuilder name,
       List<FormalParameterBuilder> formals,
-      AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget,
       int charOffset,
       int charOpenParenOffset,
@@ -270,6 +280,22 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     builder.next = existing;
     if (builder is PrefixBuilder && existing is PrefixBuilder) {
       assert(existing.next == null);
+      Builder deferred;
+      Builder other;
+      if (builder.deferred) {
+        deferred = builder;
+        other = existing;
+      } else if (existing.deferred) {
+        deferred = existing;
+        other = builder;
+      }
+      if (deferred != null) {
+        addCompileTimeError(
+            deferred.charOffset,
+            "Can't use the name '$name' for a deferred library, "
+            "as the name is used elsewhere.");
+        addCompileTimeError(other.charOffset, "'$name' is used here.");
+      }
       return existing
         ..exports.merge(builder.exports,
             (String name, Builder existing, Builder member) {
@@ -436,25 +462,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
-  /// Returns true if the export scope was modified.
-  bool addToExportScope(String name, Builder member) {
-    if (name.startsWith("_")) return false;
-    if (member is PrefixBuilder) return false;
-    Map<String, Builder> map =
-        member.isSetter ? exports.setters : exports.local;
-    Builder existing = map[name];
-    if (existing == member) return false;
-    if (existing != null) {
-      Builder result =
-          buildAmbiguousBuilder(name, existing, member, -1, isExport: true);
-      map[name] = result;
-      return result != existing;
-    } else {
-      map[name] = member;
-    }
-    return true;
-  }
-
   int resolveTypes(_) {
     int typeCount = types.length;
     for (T t in types) {
@@ -546,6 +553,14 @@ class DeclarationBuilder<T extends TypeBuilder> {
         assert(procedure.typeVariables.isEmpty);
         procedure.typeVariables
             .addAll(library.copyTypeVariables(typeVariables));
+        DeclarationBuilder<T> savedDeclaration = library.currentDeclaration;
+        library.currentDeclaration = declaration;
+        for (TypeVariableBuilder tv in procedure.typeVariables) {
+          NamedTypeBuilder<T, dynamic> t = procedure.returnType;
+          t.arguments
+              .add(library.addNamedType(tv.name, null, procedure.charOffset));
+        }
+        library.currentDeclaration = savedDeclaration;
         declaration.resolveTypes(procedure.typeVariables, library);
       });
       Map<String, TypeVariableBuilder> map = <String, TypeVariableBuilder>{};

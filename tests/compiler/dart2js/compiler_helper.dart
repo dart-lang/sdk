@@ -13,6 +13,8 @@ import 'package:compiler/src/elements/elements.dart';
 export 'package:compiler/src/elements/elements.dart';
 
 import 'package:compiler/src/js_backend/js_backend.dart' as js;
+import 'package:compiler/src/js_backend/element_strategy.dart'
+    show ElementCodegenWorkItem;
 
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/codegen.dart';
@@ -83,7 +85,7 @@ Future<String> compile(String code,
     resolutionWork.run();
     ClosedWorld closedWorld = compiler.closeResolution().closedWorld;
     CodegenWorkItem work =
-        new CodegenWorkItem(compiler.backend, closedWorld, element);
+        new ElementCodegenWorkItem(compiler.backend, closedWorld, element);
     compiler.phase = Compiler.PHASE_COMPILING;
     work.run();
     js.JavaScriptBackend backend = compiler.backend;

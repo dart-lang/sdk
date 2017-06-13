@@ -26,6 +26,20 @@ abstract class InstrumentationValue {
   bool matches(String description) => description == toString();
 }
 
+/// Instance of [InstrumentationValue] describing a [Member].
+class InstrumentationValueForMember extends InstrumentationValue {
+  final Member member;
+
+  InstrumentationValueForMember(this.member);
+
+  @override
+  String toString() => member
+      .toString()
+      .replaceAll('dart.core::', '')
+      .replaceAll('dart.async::', '')
+      .replaceAll('test::', '');
+}
+
 /// Instance of [InstrumentationValue] describing a [DartType].
 class InstrumentationValueForType extends InstrumentationValue {
   final DartType type;

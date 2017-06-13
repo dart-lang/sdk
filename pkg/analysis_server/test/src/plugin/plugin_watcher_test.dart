@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -126,8 +127,8 @@ class TestDriver implements AnalysisDriver {
 
   Future<Null> computeResult(String uri) {
     FileState file = fsState.getFileForUri(Uri.parse(uri));
-    AnalysisResult result = new AnalysisResult(this, null, file.path, null,
-        true, null, null, null, null, null, null, null);
+    AnalysisResult result = new AnalysisResult(
+        this, null, file.path, null, true, null, null, null, null, null, null);
     _resultController.add(result);
     return new Future.delayed(new Duration(milliseconds: 1));
   }

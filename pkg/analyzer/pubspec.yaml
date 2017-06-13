@@ -1,5 +1,5 @@
 name: analyzer
-version: 0.30.0
+version: 0.30.0+2
 author: Dart Team <misc@dartlang.org>
 description: Static analyzer for Dart.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer
@@ -23,7 +23,7 @@ dependencies:
   source_span: ^1.2.0
   watcher: '>=0.9.6 <0.10.0'
   yaml: ^2.1.2
-  cli_util: ^0.0.1
+  cli_util: ^0.1.0
 dev_dependencies:
   test_reflective_loader: ^0.1.0
   typed_mock: '>=0.0.4 <1.0.0'

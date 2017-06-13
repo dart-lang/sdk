@@ -7,16 +7,16 @@ library test;
 
 T run<T>(T f()) {
   print("running");
-  var /*@type=T*/ t = /*@promotedType=none*/ f();
+  var /*@type=run::T*/ t = f();
   print("done running");
-  return /*@promotedType=none*/ t;
+  return t;
 }
 
 void printRunning() {
   print("running");
 }
 
-var /*@topType=dynamic*/ x = /*@typeArgs=dynamic*/ run<dynamic>(printRunning);
+var /*@topType=dynamic*/ x = run<dynamic>(printRunning);
 var /*@topType=dynamic*/ y = /*info:USE_OF_VOID_RESULT, error:TOP_LEVEL_TYPE_ARGUMENTS*/ /*@typeArgs=void*/ run(
     printRunning);
 
@@ -25,7 +25,7 @@ main() {
     print("running");
   }
 
-  var /*@type=dynamic*/ x = /*@typeArgs=dynamic*/ run<dynamic>(printRunning);
+  var /*@type=dynamic*/ x = run<dynamic>(printRunning);
   var /*@type=void*/ y = /*info:USE_OF_VOID_RESULT*/ /*@typeArgs=void*/ run(
       printRunning);
   x = 123;

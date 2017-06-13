@@ -154,16 +154,13 @@ enum SerializeState {
 class Snapshot {
  public:
   enum Kind {
-    kCore = 0,  // Full snapshot of core libraries. No root library, no code.
+    // N.B. The order of these values must be preserved to give proper error
+    // messages for old snapshots.
+    kFull = 0,  // Full snapshot of core libraries or an application.
     kScript,    // A partial snapshot of only the application script.
     kMessage,   // A partial snapshot used only for isolate messaging.
-    kAppJIT,    // Full snapshot of core libraries and application. Has some
-                // code, but may compile in the future because we haven't
-                // necessarily included code for every function or to
-                // (de)optimize.
-    kAppAOT,    // Full snapshot of core libraries and application. Has
-                // complete code for the application that never deopts. Will
-                // not compile in the future.
+    kFullJIT,   // Full + JIT code
+    kFullAOT,   // Full + AOT code
     kNone,      // dart_bootstrap/gen_snapshot
     kInvalid
   };
@@ -185,10 +182,10 @@ class Snapshot {
   }
 
   static bool IsFull(Kind kind) {
-    return (kind == kCore) || (kind == kAppJIT) || (kind == kAppAOT);
+    return (kind == kFull) || (kind == kFullJIT) || (kind == kFullAOT);
   }
   static bool IncludesCode(Kind kind) {
-    return (kind == kAppJIT) || (kind == kAppAOT);
+    return (kind == kFullJIT) || (kind == kFullAOT);
   }
 
   const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
@@ -448,6 +445,10 @@ class SnapshotReader : public BaseReader {
 
   // Process all the deferred canonicalization entries and patch all references.
   void ProcessDeferredCanonicalizations();
+
+  // Update subclasses array and is implemented bit for interfaces/superclass in
+  // the core snapshot.
+  void FixSubclassesAndImplementors();
 
   // Decode class id from the header field.
   intptr_t LookupInternalClass(intptr_t class_header);

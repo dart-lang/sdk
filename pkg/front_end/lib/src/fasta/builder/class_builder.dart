@@ -75,21 +75,25 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   int resolveConstructors(LibraryBuilder library) {
     if (constructorReferences == null) return 0;
     for (ConstructorReferenceBuilder ref in constructorReferences) {
-      ref.resolveIn(scope);
+      ref.resolveIn(scope, library);
     }
     return constructorReferences.length;
   }
 
   /// Used to lookup a static member of this class.
-  Builder findStaticBuilder(String name, int charOffset, Uri fileUri,
+  Builder findStaticBuilder(
+      String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
+    if (accessingLibrary != library && name.startsWith("_")) return null;
     Builder builder = isSetter
         ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
         : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
     return builder;
   }
 
-  Builder findConstructorOrFactory(String name, int charOffset, Uri uri) {
+  Builder findConstructorOrFactory(
+      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
+    if (accessingLibrary != library && name.startsWith("_")) return null;
     return constructors.lookup(name, charOffset, uri);
   }
 

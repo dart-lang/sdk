@@ -479,7 +479,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
       __ vstmd(DB_W, SP, D0, kNumberOfDRegisters);
     }
   } else {
-    __ AddImmediate(SP, SP, -kNumberOfFpuRegisters * kFpuRegisterSize);
+    __ AddImmediate(SP, -kNumberOfFpuRegisters * kFpuRegisterSize);
   }
 
   __ mov(R0, Operand(SP));  // Pass address of saved registers block.
@@ -606,6 +606,12 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ Push(R8);  // Receiver.
   __ Push(R9);  // ICData/MegamorphicCache.
   __ Push(R4);  // Arguments descriptor.
+
+  // Adjust arguments count.
+  __ ldr(R3, FieldAddress(R4, ArgumentsDescriptor::type_args_len_offset()));
+  __ cmp(R3, Operand(0));
+  __ AddImmediate(R2, R2, Smi::RawValue(1), NE);  // Include the type arguments.
+
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
   const intptr_t kNumArgs = 4;
@@ -688,9 +694,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   const intptr_t cid = kArrayCid;
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R4, &slow_case));
 
-  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ LoadImmediate(R9, fixed_size);
-  __ add(R9, R9, Operand(R3, LSL, 1));  // R3 is  a Smi.
+  const intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawArray) + kObjectAlignment - 1;
+  __ LoadImmediate(R9, fixed_size_plus_alignment_padding);
+  __ add(R9, R9, Operand(R3, LSL, 1));  // R3 is a Smi.
   ASSERT(kSmiTagShift == 1);
   __ bic(R9, R9, Operand(kObjectAlignment - 1));
 
@@ -845,7 +852,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Compute address of 'arguments array' data area into R2.
   __ ldr(R2, Address(R2, VMHandles::kOffsetOfRawPtrInHandle));
-  __ AddImmediate(R2, R2, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R2, Array::data_offset() - kHeapObjectTag);
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -909,8 +916,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label slow_case;
     // First compute the rounded instance size.
     // R1: number of context variables.
-    intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
-    __ LoadImmediate(R2, fixed_size);
+    intptr_t fixed_size_plus_alignment_padding =
+        sizeof(RawContext) + kObjectAlignment - 1;
+    __ LoadImmediate(R2, fixed_size_plus_alignment_padding);
     __ add(R2, R2, Operand(R1, LSL, 2));
     ASSERT(kSmiTagShift == 1);
     __ bic(R2, R2, Operand(kObjectAlignment - 1));
@@ -1251,6 +1259,11 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ LoadImmediate(IP, 0);
   __ PushList((1 << R4) | (1 << R8) | (1 << IP));
 
+  // Adjust arguments count.
+  __ ldr(R3, FieldAddress(R4, ArgumentsDescriptor::type_args_len_offset()));
+  __ cmp(R3, Operand(0));
+  __ AddImmediate(R2, R2, Smi::RawValue(1), NE);  // Include the type arguments.
+
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
 
@@ -1337,7 +1350,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   // R9: IC data object (preserved).
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
   // R8: ic_data_array with check entries: classes and target functions.
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
 // R8: points directly to the first ic data array element.
 #if defined(DEBUG)
   // Check that first entry is for Smi/Smi.
@@ -1636,7 +1649,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // R9: IC data object (preserved).
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
   // R8: ic_data_array with entries: target functions and count.
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: points directly to the first ic data array element.
   const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
@@ -1874,7 +1887,7 @@ void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
 
 
 // Return the current stack pointer address, used to do stack alignment checks.
-void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
+void StubCode::GenerateGetCStackPointerStub(Assembler* assembler) {
   __ mov(R0, Operand(SP));
   __ Ret();
 }
@@ -2155,7 +2168,7 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
   // R1: receiver cid as Smi
@@ -2190,7 +2203,7 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, Array::data_offset() - kHeapObjectTag);
   // R8: first IC entry
   __ LoadTaggedClassIdMayBeSmi(R1, R0);
   // R1: receiver cid as Smi

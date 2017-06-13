@@ -8,7 +8,7 @@ library test;
 class C<T> {
   T t;
   C(this.t);
-  C.named(List<T> t) : this(/*@promotedType=none*/ t[0]);
+  C.named(List<T> t) : this(t /*@target=List::[]*/ [0]);
 }
 
 main() {

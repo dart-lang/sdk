@@ -178,11 +178,20 @@ define(['dart_sdk'], function(dart_sdk) {
     class B extends A {}
     class C extends B {}
 
-    let AA$ = generic((T, U) => class AA extends core.Object {});
+    let AA$ = generic((T, U) => {
+      class AA extends core.Object {}
+      (AA.new = function() {}).prototype = AA.prototype;
+      return AA;
+    });
     let AA = AA$();
-    let BB$ = generic((T, U) => class BB extends AA$(U, T) {});
+    let BB$ = generic((T, U) => {
+      class BB extends AA$(U, T) {}
+      (BB.new = function() {}).prototype = BB.prototype;
+      return BB;
+    });
     let BB = BB$();
     class CC extends BB$(String, List) {}
+    (CC.new = function() {}).prototype = CC.prototype;
 
     let Func2 = typedef('Func2', () => fnTypeFuzzy(dynamic, [dynamic, dynamic]));
     let Foo = typedef('Foo', () => fnTypeFuzzy(B, [B, String]));
@@ -286,7 +295,7 @@ define(['dart_sdk'], function(dart_sdk) {
 
     test('dynamic', () => {
       expect(isGroundType(dynamic), true);
-      checkType(new Object(), dynamic);
+      checkType(new Object.new(), dynamic);
       checkType(null, dynamic);
 
       expect(cast(null, dynamic), null);
@@ -294,7 +303,7 @@ define(['dart_sdk'], function(dart_sdk) {
 
     test('Object', () => {
       expect(isGroundType(Object), true);
-      checkType(new Object(), dynamic);
+      checkType(new Object.new(), dynamic);
       checkType(null, Object);
 
       expect(cast(null, Object), null);
@@ -339,13 +348,12 @@ define(['dart_sdk'], function(dart_sdk) {
     });
 
     test('Map', () => {
-      let m1 = new (Map$(String, String))();
-      let m2 = new (Map$(Object, Object))();
-      let m3 = new Map();
-      let m4 = new (collection.HashMap$(dart.dynamic, dart.dynamic))();
-      let m5 = new collection.LinkedHashMap();
-      let m6 = new (Map$(String, dart.dynamic))();
-
+      let m1 = Map$(String, String).new();
+      let m2 = Map$(Object, Object).new();
+      let m3 = Map.new();
+      let m4 = collection.HashMap$(dart.dynamic, dart.dynamic).new();
+      let m5 = collection.LinkedHashMap.new();
+      let m6 = Map$(String, dart.dynamic).new();
 
       expect(isGroundType(Map), true);
       expect(isGroundType(getReifiedType(m1)), false);
@@ -405,10 +413,9 @@ define(['dart_sdk'], function(dart_sdk) {
 
     test('constructors', () => {
       class C extends core.Object {
-        new(x) {};
-        named(x, y) {};
       }
-      dart.defineNamedConstructor(C, 'named');
+      (C.new = function(x) {}).prototype = C.prototype;
+      (C.named = function(x, y) {}).prototype = C.prototype;
       dart.setSignature(C, {
         constructors: () => ({
           new: dart.fnType(C, [core.int]),
@@ -426,19 +433,19 @@ define(['dart_sdk'], function(dart_sdk) {
     });
 
     test('generic and inheritance', () => {
-      let aaraw = new AA();
+      let aaraw = new AA.new();
       let aarawtype = getReifiedType(aaraw);
-      let aadynamic = new (AA$(dynamic, dynamic))();
+      let aadynamic = new (AA$(dynamic, dynamic).new)();
       let aadynamictype = getReifiedType(aadynamic);
-      let aa = new (AA$(String, List))();
+      let aa = new (AA$(String, List).new)();
       let aatype = getReifiedType(aa);
-      let bb = new (BB$(String, List))();
+      let bb = new (BB$(String, List).new)();
       let bbtype = getReifiedType(bb);
-      let cc = new CC();
+      let cc = new CC.new();
       let cctype = getReifiedType(cc);
       // We don't allow constructing bad types.
       // This was AA<String> in Dart (wrong number of type args).
-      let aabad = new (AA$(dart.dynamic, dart.dynamic))();
+      let aabad = new (AA$(dart.dynamic, dart.dynamic).new)();
       let aabadtype = getReifiedType(aabad);
 
       expect(isGroundType(aatype), false);
@@ -477,7 +484,7 @@ define(['dart_sdk'], function(dart_sdk) {
 
     test('mixins', () => {
       let c = collection;
-      var s1 = new (c.SplayTreeSet$(String))();
+      var s1 = new (c.SplayTreeSet$(String).new)();
 
       checkType(s1, c.IterableMixin);
       checkType(s1, c.IterableMixin$(String));
@@ -600,15 +607,15 @@ define(['dart_sdk'], function(dart_sdk) {
 
     test('dsend', () => {
       class Tester extends core.Object {
-        new() {
-          this.f = dart.fn(x => x,
-                           dart.fnType(core.int, [core.int]));
-          this.me = this;
-        }
         m(x, y) {return x;}
         call(x) {return x;}
         static s(x, y) { return x;}
       }
+      (Tester.new = function() {
+        this.f = dart.fn(x => x,
+                          dart.fnType(core.int, [core.int]));
+        this.me = this;
+      }).prototype = Tester.prototype;
       dart.setSignature(Tester, {
         methods: () => ({
           m: dart.fnType(core.int, [core.int, core.int]),
@@ -619,7 +626,7 @@ define(['dart_sdk'], function(dart_sdk) {
         }),
         names: ['s']
       })
-      let o = new Tester();
+      let o = new Tester.new();
 
       // Method send
       assert.equal(dart.dsend(o, 'm', 3, 4), 3);
@@ -718,14 +725,14 @@ define(['dart_sdk'], function(dart_sdk) {
     test('Method tearoffs', () => {
       let c = collection;
       // Tear off of an inherited method
-      let map = new (Map$(core.int, core.String))();
+      let map = Map$(core.int, core.String).new();
       checkType(dart.bind(map, 'toString'),
                 dart.fnTypeFuzzy(String, []));
       checkType(dart.bind(map, 'toString'),
                 dart.fnTypeFuzzy(int, []), false, true);
 
       // Tear off of a method directly on the object
-      let smap = new (c.SplayTreeMap$(core.int, core.String))();
+      let smap = new (c.SplayTreeMap$(core.int, core.String).new)();
       checkType(dart.bind(smap, 'forEach'),
           dart.fnTypeFuzzy(dart.void,
                             [dart.fnTypeFuzzy(dart.void, [core.int, core.String])]));
@@ -735,7 +742,7 @@ define(['dart_sdk'], function(dart_sdk) {
                   [core.String, core.String])]), false, true);
 
       // Tear off of a mixed in method
-      let mapB = new (c.MapBase$(core.int, core.int))();
+      let mapB = new (c.MapBase$(core.int, core.int).new)();
       checkType(dart.bind(mapB, 'forEach'),
           dart.fnTypeFuzzy(dart.void, [
               dart.fnTypeFuzzy(dart.void, [core.int, core.int])]));
@@ -745,7 +752,7 @@ define(['dart_sdk'], function(dart_sdk) {
                 false, true);
 
       // Tear off of a method with a symbol name
-      let listB = new (c.ListBase$(core.int))();
+      let listB = new (c.ListBase$(core.int).new)();
       checkType(dart.bind(listB, dartx.add),
                 dart.fnTypeFuzzy(dart.void, [core.int]));
       checkType(dart.bind(listB, dartx.add),
@@ -795,22 +802,21 @@ define(['dart_sdk'], function(dart_sdk) {
         })
       });
 
-      class O extends dart.mixin(Base, M1, M2) {
-        new() {};
-      };
+      class O extends dart.mixin(Base, M1, M2) {}
+      (O.new = function() {}).prototype = O.prototype;
       dart.setSignature(O, {});
-      var obj = new O();
+      var obj = new O.new();
       var m = dart.bind(obj, 'm');
       checkType(m, dart.fnTypeFuzzy(core.Object, [core.int]));
       checkType(m, dart.fnTypeFuzzy(core.int, [core.int]), false, true);
 
       // Test inherited signatures
       class P extends O {
-        new() {};
         m(x) {return x;};
       };
+      (P.new = function() {}).prototype = P.prototype;
       dart.setSignature(P, {});
-      var obj = new P();
+      var obj = new P.new();
       var m = dart.bind(obj, 'm');
       checkType(m, dart.fnTypeFuzzy(core.Object, [core.int]));
       checkType(m, dart.fnTypeFuzzy(core.int, [core.int]), false, true);
@@ -822,7 +828,7 @@ define(['dart_sdk'], function(dart_sdk) {
       let nullString = dart.toString(null);
       assert.equal(nullString, 'null');
 
-      let map = new Map();
+      let map = Map.new();
       let mapHash = dart.hashCode(map);
       checkType(mapHash, core.int);
       assert.equal(mapHash, map.hashCode);
@@ -1143,7 +1149,11 @@ define(['dart_sdk'], function(dart_sdk) {
     });
 
     test('mixed types', () => {
-      let AA$ = dart.generic((T) => class AA extends core.Object {});
+      let AA$ = dart.generic((T) => {
+        class AA extends core.Object {}
+        (AA.new = function() {}).prototype = AA.prototype;
+        return AA;
+      });
 
       always(int, dyn);
       maybe(dyn, int);
@@ -1184,7 +1194,11 @@ define(['dart_sdk'], function(dart_sdk) {
 
     class A {}
 
-    let AA$ = generic((T, U) => class AA extends core.Object {});
+    let AA$ = generic((T, U) => {
+      class AA extends core.Object {}
+      (AA.new = function() {}).prototype = AA.prototype;
+      return AA;
+    });
     let AA = AA$();
 
     let Func2 = typedef('Func2', () => fnTypeFuzzy(dynamic, [dynamic, dynamic]));
@@ -1274,7 +1288,7 @@ define(['dart_sdk'], function(dart_sdk) {
     'use strict';
 
     test('fixed length list', () => {
-      let list = new core.List(10);
+      let list = core.List.new(10);
       list[0] = 42;
       assert.throws(() => list.add(42));
     });

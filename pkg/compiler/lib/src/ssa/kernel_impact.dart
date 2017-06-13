@@ -64,8 +64,7 @@ ir.Member getIrMember(Compiler compiler, ResolvedAst resolvedAst) {
 
 ResolutionImpact buildKernelImpact(
     ir.Member member, KernelToElementMap elementAdapter) {
-  KernelImpactBuilder builder =
-      new KernelImpactBuilder('${member.name}', elementAdapter);
+  KernelImpactBuilder builder = new KernelImpactBuilder(elementAdapter, member);
   if (member is ir.Procedure) {
     return builder.buildProcedure(member);
   } else if (member is ir.Constructor) {
@@ -79,9 +78,11 @@ ResolutionImpact buildKernelImpact(
 class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
   final KernelToElementMap elementAdapter;
+  final ir.Member currentMember;
 
-  KernelImpactBuilder(String name, this.elementAdapter)
-      : this.impactBuilder = new ResolutionWorldImpactBuilder(name);
+  KernelImpactBuilder(this.elementAdapter, this.currentMember)
+      : this.impactBuilder =
+            new ResolutionWorldImpactBuilder('${currentMember.name}');
 
   CommonElements get commonElements => elementAdapter.commonElements;
 
@@ -123,8 +124,9 @@ class KernelImpactBuilder extends ir.Visitor {
     }
     if (field.isInstanceMember &&
         elementAdapter.isNativeClass(field.enclosingClass)) {
-      impactBuilder.registerNativeData(
-          elementAdapter.getNativeBehaviorForFieldLoad(field));
+      // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+      impactBuilder.registerNativeData(elementAdapter
+          .getNativeBehaviorForFieldLoad(field, isJsInterop: false));
       impactBuilder.registerNativeData(
           elementAdapter.getNativeBehaviorForFieldStore(field));
     }
@@ -163,8 +165,9 @@ class KernelImpactBuilder extends ir.Visitor {
     handleAsyncMarker(procedure.function.asyncMarker);
     if (procedure.isExternal &&
         !elementAdapter.isForeignLibrary(procedure.enclosingLibrary)) {
-      impactBuilder.registerNativeData(
-          elementAdapter.getNativeBehaviorForMethod(procedure));
+      // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+      impactBuilder.registerNativeData(elementAdapter
+          .getNativeBehaviorForMethod(procedure, isJsInterop: false));
     }
     return impactBuilder;
   }
@@ -273,6 +276,14 @@ class KernelImpactBuilder extends ir.Visitor {
     if (commonElements.isSymbolConstructor(constructor)) {
       impactBuilder.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
     }
+
+    if (target.isExternal &&
+        constructor.isFromEnvironmentConstructor &&
+        !isConst) {
+      impactBuilder.registerFeature(Feature.THROW_UNSUPPORTED_ERROR);
+      return;
+    }
+
     InterfaceType type = elementAdapter.createInterfaceType(
         target.enclosingClass, node.arguments.types);
     CallStructure callStructure =
@@ -300,7 +311,12 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitSuperInitializer(ir.SuperInitializer node) {
-    ConstructorEntity target = elementAdapter.getConstructor(node.target);
+    // TODO(johnniwinther): Maybe rewrite `node.target` to point to a
+    // synthesized unnamed mixin constructor when needed. This would require us
+    // to consider impact building a required pre-step for inference and
+    // ssa-building.
+    ConstructorEntity target =
+        elementAdapter.getSuperConstructor(node.parent, node.target);
     _visitArguments(node.arguments);
     impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
         target, elementAdapter.getCallStructure(node.arguments)));
@@ -382,8 +398,9 @@ class KernelImpactBuilder extends ir.Visitor {
     impactBuilder.registerStaticUse(new StaticUse.staticSet(member));
   }
 
-  void handleSuperInvocation(ir.Node target, ir.Node arguments) {
-    FunctionEntity method = elementAdapter.getMethod(target);
+  void handleSuperInvocation(ir.Name name, ir.Node target, ir.Node arguments) {
+    FunctionEntity method = elementAdapter
+        .getSuperMember(currentMember, name, target, setter: false);
     _visitArguments(arguments);
     impactBuilder.registerStaticUse(new StaticUse.superInvoke(
         method, elementAdapter.getCallStructure(arguments)));
@@ -391,55 +408,55 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
-    handleSuperInvocation(node.target, node.arguments);
+    handleSuperInvocation(node.name, node.target, node.arguments);
   }
 
   @override
   void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
     // TODO(johnniwinther): Should we support this or always use the
     // [MixinFullResolution] transformer?
-    handleSuperInvocation(node.interfaceTarget, node.arguments);
+    handleSuperInvocation(node.name, node.interfaceTarget, node.arguments);
   }
 
-  void handleSuperGet(ir.Member target) {
-    if (target is ir.Procedure && target.kind == ir.ProcedureKind.Method) {
-      FunctionEntity method = elementAdapter.getMethod(target);
-      impactBuilder.registerStaticUse(new StaticUse.superTearOff(method));
+  void handleSuperGet(ir.Name name, ir.Member target) {
+    MemberEntity member = elementAdapter
+        .getSuperMember(currentMember, name, target, setter: false);
+    if (member.isFunction) {
+      impactBuilder.registerStaticUse(new StaticUse.superTearOff(member));
     } else {
-      MemberEntity member = elementAdapter.getMember(target);
       impactBuilder.registerStaticUse(new StaticUse.superGet(member));
     }
   }
 
   @override
   void visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    handleSuperGet(node.target);
+    handleSuperGet(null, node.target);
   }
 
   @override
   void visitSuperPropertyGet(ir.SuperPropertyGet node) {
-    handleSuperGet(node.interfaceTarget);
+    handleSuperGet(node.name, node.interfaceTarget);
   }
 
-  void handleSuperSet(ir.Node target, ir.Node value) {
+  void handleSuperSet(ir.Name name, ir.Node target, ir.Node value) {
     visitNode(value);
-    if (target is ir.Field) {
-      FieldEntity field = elementAdapter.getField(target);
-      impactBuilder.registerStaticUse(new StaticUse.superFieldSet(field));
+    MemberEntity member = elementAdapter
+        .getSuperMember(currentMember, name, target, setter: true);
+    if (member.isField) {
+      impactBuilder.registerStaticUse(new StaticUse.superFieldSet(member));
     } else {
-      FunctionEntity method = elementAdapter.getMethod(target);
-      impactBuilder.registerStaticUse(new StaticUse.superSetterSet(method));
+      impactBuilder.registerStaticUse(new StaticUse.superSetterSet(member));
     }
   }
 
   @override
   void visitDirectPropertySet(ir.DirectPropertySet node) {
-    handleSuperSet(node.target, node.value);
+    handleSuperSet(null, node.target, node.value);
   }
 
   @override
   void visitSuperPropertySet(ir.SuperPropertySet node) {
-    handleSuperSet(node.interfaceTarget, node.value);
+    handleSuperSet(node.name, node.interfaceTarget, node.value);
   }
 
   @override

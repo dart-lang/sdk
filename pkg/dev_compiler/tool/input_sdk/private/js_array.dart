@@ -558,15 +558,22 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   }
 
   E operator [](int index) {
-    if (index is! int) throw diagnoseIndexError(this, index);
-    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
+    // Suppress redundant null checks via JS.
+    if (index == null ||
+        JS('int', '#', index) >= JS('int', '#.length', this) ||
+        JS('int', '#', index) < 0) {
+      throw diagnoseIndexError(this, index);
+    }
     return JS('var', '#[#]', this, index);
   }
 
   void operator []=(int index, E value) {
     checkMutable('indexed set');
-    if (index is! int) throw diagnoseIndexError(this, index);
-    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
+    if (index == null ||
+        JS('int', '#', index) >= JS('int', '#.length', this) ||
+        JS('int', '#', index) < 0) {
+      throw diagnoseIndexError(this, index);
+    }
     JS('void', r'#[#] = #', this, index, value);
   }
 

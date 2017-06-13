@@ -7,21 +7,20 @@ library js_backend.backend.codegen_listener;
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
 import '../native/enqueue.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
-import 'backend.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'mirrors_analysis.dart';
+import 'runtime_types.dart';
 import 'type_variable_handler.dart';
 
 class CodegenEnqueuerListener extends EnqueuerListener {
@@ -54,12 +53,12 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._nativeEnqueuer);
 
   @override
-  WorldImpact registerClosurizedMember(MemberElement element) {
+  WorldImpact registerClosurizedMember(FunctionEntity element) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     impactBuilder
         .addImpact(_impacts.memberClosure.createImpact(_elementEnvironment));
-    if (element.type.containsTypeVariables &&
-        _rtiNeed.methodNeedsRti(element)) {
+    FunctionType type = _elementEnvironment.getFunctionType(element);
+    if (type.containsTypeVariables && _rtiNeed.methodNeedsRti(element)) {
       impactBuilder.addImpact(_registerComputeSignature());
     }
     return impactBuilder;
@@ -75,7 +74,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void registerInstantiatedType(ResolutionInterfaceType type,
+  void registerInstantiatedType(InterfaceType type,
       {bool isGlobal: false, bool nativeUsage: false}) {
     if (nativeUsage) {
       _nativeEnqueuer.onInstantiatedType(type);
@@ -85,7 +84,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   /// Called to enable support for isolates. Any backend specific [WorldImpact]
   /// of this is returned.
-  WorldImpact _enableIsolateSupport(MethodElement mainMethod) {
+  WorldImpact _enableIsolateSupport(FunctionEntity mainMethod) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     // TODO(floitsch): We should also ensure that the class IsolateMessage is
     // instantiated. Currently, just enabling isolate support works.
@@ -104,13 +103,14 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   }
 
   /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
-  WorldImpact _computeMainImpact(MethodElement mainMethod) {
+  WorldImpact _computeMainImpact(FunctionEntity mainMethod) {
     WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-    if (mainMethod.parameters.isNotEmpty) {
+    CallStructure callStructure = mainMethod.parameterStructure.callStructure;
+    if (callStructure.argumentCount > 0) {
       _impacts.mainWithArguments
           .registerImpact(mainImpact, _elementEnvironment);
       mainImpact.registerStaticUse(
-          new StaticUse.staticInvoke(mainMethod, CallStructure.TWO_ARGS));
+          new StaticUse.staticInvoke(mainMethod, callStructure));
       // If the main method takes arguments, this compilation could be the
       // target of Isolate.spawnUri. Strictly speaking, that can happen also if
       // main takes no arguments, but in this case the spawned isolate can't
@@ -180,7 +180,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   void _computeImpactForCompileTimeConstantInternal(
       ConstantValue constant, WorldImpactBuilder impactBuilder) {
-    ResolutionDartType type = constant.getType(_commonElements);
+    DartType type = constant.getType(_commonElements);
     _computeImpactForInstantiatedConstantType(type, impactBuilder);
 
     if (constant.isFunction) {
@@ -190,8 +190,9 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstantValue interceptor = constant;
-      ClassElement cls = interceptor.cls;
-      _computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder);
+      ClassEntity cls = interceptor.cls;
+      _computeImpactForInstantiatedConstantType(
+          _elementEnvironment.getThisType(cls), impactBuilder);
     } else if (constant.isType) {
       impactBuilder
           .registerTypeUse(new TypeUse.instantiation(_commonElements.typeType));
@@ -199,7 +200,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       // available to 'upgrade' the native object.
       TypeConstantValue type = constant;
       if (type.representedType.isInterfaceType) {
-        ResolutionInterfaceType representedType = type.representedType;
+        InterfaceType representedType = type.representedType;
         _customElementsAnalysis.registerTypeConstant(representedType.element);
         _lookupMapAnalysis.registerTypeConstant(representedType.element);
       }
@@ -208,8 +209,8 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   }
 
   void _computeImpactForInstantiatedConstantType(
-      ResolutionDartType type, WorldImpactBuilder impactBuilder) {
-    if (type is ResolutionInterfaceType) {
+      DartType type, WorldImpactBuilder impactBuilder) {
+    if (type is InterfaceType) {
       impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
       if (_rtiNeed.classNeedsRtiField(type.element)) {
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
@@ -237,16 +238,15 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  WorldImpact registerUsedElement(MemberElement member) {
+  WorldImpact registerUsedElement(MemberEntity member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     _customElementsAnalysis.registerStaticUse(member);
 
     if (member.isFunction && member.isInstanceMember) {
-      MethodElement method = member;
-      ClassElement cls = method.enclosingClass;
-      if (method.name == Identifiers.call &&
-          !cls.typeVariables.isEmpty &&
-          _rtiNeed.methodNeedsRti(method)) {
+      ClassEntity cls = member.enclosingClass;
+      if (member.name == Identifiers.call &&
+          _elementEnvironment.isGenericClass(cls) &&
+          _rtiNeed.methodNeedsRti(member)) {
         worldImpact.addImpact(_registerComputeSignature());
       }
     }
@@ -254,16 +254,16 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     return worldImpact;
   }
 
-  WorldImpact _processClass(ClassElement cls) {
+  WorldImpact _processClass(ClassEntity cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    if (!cls.typeVariables.isEmpty) {
+    if (_elementEnvironment.isGenericClass(cls)) {
       _typeVariableCodegenAnalysis.registerClassWithTypeVariables(cls);
     }
     if (cls == _commonElements.closureClass) {
       _impacts.closureClass.registerImpact(impactBuilder, _elementEnvironment);
     }
 
-    void registerInstantiation(ClassElement cls) {
+    void registerInstantiation(ClassEntity cls) {
       impactBuilder.registerTypeUse(
           new TypeUse.instantiation(_elementEnvironment.getRawType(cls)));
     }

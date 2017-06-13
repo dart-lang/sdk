@@ -1,0 +1,33 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Test1 extends core::Object {
+  field core::int prop;
+  constructor •() → void
+    ;
+  static method test(self::Test1 t) → void
+    ;
+}
+class Test2 extends core::Object {
+  field core::num prop;
+  constructor •() → void
+    ;
+  static method test(self::Test2 t) → void
+    ;
+}
+class Test3 extends core::Object {
+  field core::double prop;
+  constructor •() → void
+    ;
+  static method test3(self::Test3 t) → void
+    ;
+}
+static method getInt() → core::int
+  ;
+static method getNum() → core::num
+  ;
+static method getDouble() → core::double
+  ;
+static method main() → dynamic
+  ;

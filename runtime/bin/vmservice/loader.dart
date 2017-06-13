@@ -1035,12 +1035,13 @@ _processLoadRequest(request) {
         String packagesFile = request[5];
         String workingDirectory = request[6];
         String rootScript = request[7];
+        bool isReloading = request[8];
         if (loaderState == null) {
           loaderState = new IsolateLoaderState(isolateId);
           isolateEmbedderData[isolateId] = loaderState;
           loaderState.init(
               packageRoot, packagesFile, workingDirectory, rootScript);
-        } else {
+        } else if (isReloading) {
           loaderState.updatePackageMap(packagesFile);
         }
         loaderState.sp = sp;

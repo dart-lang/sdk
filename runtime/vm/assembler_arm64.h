@@ -1144,6 +1144,11 @@ class Assembler : public ValueObject {
     b(label, NE);
   }
 
+  void BranchIfSmi(Register reg, Label* label) {
+    tsti(reg, Immediate(kSmiTagMask));
+    b(label, EQ);
+  }
+
   void Branch(const StubEntry& stub_entry,
               Register pp,
               Patchability patchable = kNotPatchable);
@@ -1159,6 +1164,10 @@ class Assembler : public ValueObject {
   // that have the same equivalence marker.
   void BranchLinkWithEquivalence(const StubEntry& stub_entry,
                                  const Object& equivalence);
+
+  void AddImmediate(Register dest, int64_t imm) {
+    AddImmediate(dest, dest, imm);
+  }
 
   // Macros accepting a pp Register argument may attempt to load values from
   // the object pool when possible. Unless you are sure that the untagged object

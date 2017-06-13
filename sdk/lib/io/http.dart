@@ -224,7 +224,9 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * If an IP version 6 (IPv6) address is used, both IP version 6
    * (IPv6) and version 4 (IPv4) connections will be accepted. To
    * restrict this to version 6 (IPv6) only, use [v6Only] to set
-   * version 6 only.
+   * version 6 only. However, if the address is
+   * [InternetAddress.LOOPBACK_IP_V6], only IP version 6 (IPv6) connections
+   * will be accepted.
    *
    * If [port] has the value [:0:] an ephemeral port will be chosen by
    * the system. The actual port used can be retrieved using the
@@ -1367,7 +1369,7 @@ abstract class HttpClient {
    * The `Host` header for the request will be set to the value
    * [Uri.host]:[Uri.port] from [url]. This can be overridden through the
    * [HttpClientRequest] interface before the request is sent.  NOTE
-   * if [host] is an IP address this will still be set in the `Host`
+   * if [Uri.host] is an IP address this will still be set in the `Host`
    * header.
    *
    * For additional information on the sequence of events during an

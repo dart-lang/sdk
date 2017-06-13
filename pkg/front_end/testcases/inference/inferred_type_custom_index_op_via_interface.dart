@@ -13,7 +13,7 @@ abstract class C implements I {}
 
 f() {
   C c;
-  var /*@type=bool*/ x = /*@promotedType=none*/ c[0];
+  var /*@type=bool*/ x = c /*@target=I::[]*/ [0];
 }
 
 main() {}

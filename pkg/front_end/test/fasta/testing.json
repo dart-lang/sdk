@@ -51,7 +51,8 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/shaker/"
       ]
     },
 
@@ -67,7 +68,8 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/shaker/"
       ]
     },
 
@@ -83,7 +85,8 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/shaker/"
       ]
     },
 
@@ -99,7 +102,22 @@
       "exclude": [
         "/test/.*_test\\.dart$",
         "/test/.*_suite\\.dart$",
-        "/testcases/top_level_accessors_part\\.dart$"
+        "/testcases/top_level_accessors_part\\.dart$",
+        "/testcases/shaker/"
+      ]
+    },
+
+    {
+      "name": "shaker",
+      "kind": "Chain",
+      "source": "shaker_test.dart",
+      "path": "../../testcases/shaker/",
+      "status": "shaker.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+        "/shaker/lib/lib.dart"
       ]
     },
 
@@ -132,13 +150,43 @@
     },
 
     {
+      "note": "Tests dart2js fully, excluding browser-only tests.",
       "name": "dart2js",
       "kind": "test_dart",
       "arch": "x64",
       "mode": "release",
-      "common": "--dart2js-batch --time -pcolor --report --failure-summary -ax64 -mrelease",
+      "common": "--dart2js-batch --time -pcolor --report -ax64 -mrelease",
       "command-lines": [
         "--checked dart2js",
+        "-cdart2js -rd8 --exclude-suite=observatory_ui",
+        "-cdart2js -rd8 dart2js_extra dart2js_native"
+      ]
+    },
+
+    {
+      "note": "Minimal testing of Fasta.",
+      "name": "fasta_min",
+      "kind": "test_dart",
+      "arch": "x64",
+      "mode": "release",
+      "common": "--time -pcolor --report -ax64 -mrelease",
+      "command-lines": [
+        "-t240 pkg/(kernel|front_end|fasta) --checked",
+        "-t240 dart2js/analyze_test",
+        "-cdartk -rvm"
+      ]
+    },
+
+    {
+      "note": "Tests Fasta fully, including the above dart2js tests.",
+      "name": "fasta_max",
+      "kind": "test_dart",
+      "arch": "x64",
+      "mode": "release",
+      "common": "--dart2js-batch --time -pcolor --report -ax64 -mrelease",
+      "command-lines": [
+        "-t240 --checked pkg/(kernel|front_end|fasta) dart2js",
+        "-cdartk -rvm",
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
         "-cdart2js -rd8 dart2js_extra dart2js_native"
       ]
@@ -150,35 +198,43 @@
     "options": "../../analysis_options.yaml",
 
     "uris": [
-      "../../lib/src/fasta",
-      "../../lib/src/fasta/builder",
-      "../../lib/src/fasta/dill",
-      "../../lib/src/fasta/kernel",
-      "../../lib/src/fasta/parser",
-      "../../lib/src/fasta/scanner",
-      "../../lib/src/fasta/source",
-      "../../lib/src/fasta/testing",
-      "../../lib/src/fasta/util",
+      "../../lib",
       "../../tool",
-      "../../tool/_fasta",
-      "parser/parser_suite.dart",
-      "scanner/scanner_suite.dart",
-      "compile_test.dart",
-      "kompile_test.dart",
-      "outline_test.dart",
-      "sdk_test.dart",
-      "../../../analyzer/lib/src/fasta",
-      "../../../analyzer/lib/src/dart/analysis/file_state.dart",
-      "../../../analyzer/test/generated/parser_fasta_test.dart",
-      "../../../../utils/kernel-service/kernel-service.dart",
-      "../../../../tools/patch_sdk.dart"
+      "../../../kernel/lib"
     ],
 
+    "note": "Tests are included via git grep below.",
+
+    "git grep": {
+      "pathspecs": [ "*.dart" ],
+      "patterns": [
+        "package:front_end/",
+        "package:kernel/"
+      ]
+    },
+
     "exclude": [
-      "/third_party/pkg/",
-      "/third_party/pkg_tested/",
-      "/pkg/analyzer/(?!.*/(fasta/|kernel/|(file_state|parser_fasta_test)\\.dart$))",
-      "/pkg/js_ast/"
+      "^pkg/analysis_server/lib/src/analysis_server\\.dart",
+      "^pkg/compiler/lib/src/closure\\.dart",
+      "^pkg/compiler/lib/src/elements/elements\\.dart",
+      "^pkg/compiler/lib/src/elements/modelx\\.dart",
+      "^pkg/compiler/lib/src/inferrer/inferrer_engine\\.dart",
+      "^pkg/compiler/lib/src/js_backend/namer\\.dart",
+      "^pkg/compiler/lib/src/kernel/kernel_visitor\\.dart",
+      "^pkg/compiler/lib/src/resolution/members\\.dart",
+      "^pkg/compiler/lib/src/resolution/resolution\\.dart",
+      "^pkg/compiler/lib/src/resolution/resolution_strategy\\.dart",
+      "^pkg/compiler/lib/src/serialization/equivalence\\.dart",
+      "^pkg/compiler/lib/src/serialization/resolved_ast_serialization\\.dart",
+      "^pkg/compiler/lib/src/ssa/builder_kernel\\.dart",
+      "^tests/compiler/dart2js/inference/enumerator\\.dart",
+      "^tests/compiler/dart2js/inference/id_equivalence_test\\.dart",
+      "^tests/compiler/dart2js/kernel/class_hierarchy_test\\.dart",
+      "^tests/compiler/dart2js/kernel/impact_test\\.dart",
+      "^tests/compiler/dart2js/kernel/visitor_test\\.dart",
+      "^tests/compiler/dart2js/location_collector_test\\.dart",
+      "^tests/compiler/dart2js/source_map_validator_helper\\.dart",
+      "^tests/compiler/dart2js/sourcemaps/sourcemap_helper\\.dart"
     ]
   }
 }

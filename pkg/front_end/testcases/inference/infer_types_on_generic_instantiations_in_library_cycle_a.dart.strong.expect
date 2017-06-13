@@ -7,6 +7,6 @@ abstract class I<E extends core::Object> extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  abstract method m(dynamic a, dynamic f) → test::A<self::I::E>;
+  abstract method m(dynamic a, (dynamic, core::int) → core::String f) → test::A<self::I::E>;
 }
 static method main() → dynamic {}

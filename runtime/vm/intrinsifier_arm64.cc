@@ -196,8 +196,9 @@ static int GetScaleFactor(intptr_t size) {
   __ CompareImmediate(R2, max_len);                                            \
   __ b(&fall_through, GT);                                                     \
   __ LslImmediate(R2, R2, scale_shift);                                        \
-  const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
-  __ AddImmediate(R2, R2, fixed_size);                                         \
+  const intptr_t fixed_size_plus_alignment_padding =                           \
+      sizeof(Raw##type_name) + kObjectAlignment - 1;                           \
+  __ AddImmediate(R2, fixed_size_plus_alignment_padding);                      \
   __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));                         \
   Heap::Space space = Heap::kNew;                                              \
   __ ldr(R3, Address(THR, Thread::heap_offset()));                             \
@@ -219,7 +220,7 @@ static int GetScaleFactor(intptr_t size) {
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
   __ str(R1, Address(R3, Heap::TopOffset(space)));                             \
-  __ AddImmediate(R0, R0, kHeapObjectTag);                                     \
+  __ AddImmediate(R0, kHeapObjectTag);                                         \
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2, space));            \
   /* Initialize the tags. */                                                   \
   /* R0: new object start as a tagged pointer. */                              \
@@ -1822,8 +1823,8 @@ void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
 void Intrinsifier::String_getHashCode(Assembler* assembler) {
   Label fall_through;
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ ldr(R0, FieldAddress(R0, String::hash_offset()));
-  __ CompareRegisters(R0, ZR);
+  __ ldr(R0, FieldAddress(R0, String::hash_offset()), kUnsignedWord);
+  __ adds(R0, R0, Operand(R0));  // Smi tag the hash code, setting Z flag.
   __ b(&fall_through, EQ);
   __ ret();
   // Hash not yet computed.
@@ -1856,19 +1857,19 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
   __ b(return_false, GT);
 
   if (receiver_cid == kOneByteStringCid) {
-    __ AddImmediate(R0, R0, OneByteString::data_offset() - kHeapObjectTag);
+    __ AddImmediate(R0, OneByteString::data_offset() - kHeapObjectTag);
     __ add(R0, R0, Operand(R1));
   } else {
     ASSERT(receiver_cid == kTwoByteStringCid);
-    __ AddImmediate(R0, R0, TwoByteString::data_offset() - kHeapObjectTag);
+    __ AddImmediate(R0, TwoByteString::data_offset() - kHeapObjectTag);
     __ add(R0, R0, Operand(R1));
     __ add(R0, R0, Operand(R1));
   }
   if (other_cid == kOneByteStringCid) {
-    __ AddImmediate(R2, R2, OneByteString::data_offset() - kHeapObjectTag);
+    __ AddImmediate(R2, OneByteString::data_offset() - kHeapObjectTag);
   } else {
     ASSERT(other_cid == kTwoByteStringCid);
-    __ AddImmediate(R2, R2, TwoByteString::data_offset() - kHeapObjectTag);
+    __ AddImmediate(R2, TwoByteString::data_offset() - kHeapObjectTag);
   }
 
   // i = 0
@@ -1955,12 +1956,12 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ CompareClassId(R0, kOneByteStringCid);
   __ b(&try_two_byte_string, NE);
   __ SmiUntag(R1);
-  __ AddImmediate(R0, R0, OneByteString::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R0, OneByteString::data_offset() - kHeapObjectTag);
   __ ldr(R1, Address(R0, R1), kUnsignedByte);
   __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols);
   __ b(&fall_through, GE);
   __ ldr(R0, Address(THR, Thread::predefined_symbols_address_offset()));
-  __ AddImmediate(R0, R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
+  __ AddImmediate(R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(R0, Address(R0, R1, UXTX, Address::Scaled));
   __ ret();
 
@@ -1968,12 +1969,12 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ CompareClassId(R0, kTwoByteStringCid);
   __ b(&fall_through, NE);
   ASSERT(kSmiTagShift == 1);
-  __ AddImmediate(R0, R0, TwoByteString::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R0, TwoByteString::data_offset() - kHeapObjectTag);
   __ ldr(R1, Address(R0, R1), kUnsignedHalfword);
   __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols);
   __ b(&fall_through, GE);
   __ ldr(R0, Address(THR, Thread::predefined_symbols_address_offset()));
-  __ AddImmediate(R0, R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
+  __ AddImmediate(R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(R0, Address(R0, R1, UXTX, Address::Scaled));
   __ ret();
 
@@ -1995,8 +1996,8 @@ void Intrinsifier::StringBaseIsEmpty(Assembler* assembler) {
 void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   Label compute_hash;
   __ ldr(R1, Address(SP, 0 * kWordSize));  // OneByteString object.
-  __ ldr(R0, FieldAddress(R1, String::hash_offset()));
-  __ CompareRegisters(R0, ZR);
+  __ ldr(R0, FieldAddress(R1, String::hash_offset()), kUnsignedWord);
+  __ adds(R0, R0, Operand(R0));  // Smi tag the hash code, setting Z flag.
   __ b(&compute_hash, EQ);
   __ ret();  // Return if already computed.
 
@@ -2046,8 +2047,8 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   // return hash_ == 0 ? 1 : hash_;
   __ Bind(&done);
   __ csinc(R0, R0, ZR, NE);  // R0 <- (R0 != 0) ? R0 : (ZR + 1).
+  __ str(R0, FieldAddress(R1, String::hash_offset()), kUnsignedWord);
   __ SmiTag(R0);
-  __ str(R0, FieldAddress(R1, String::hash_offset()));
   __ ret();
 }
 
@@ -2064,9 +2065,16 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, R0, failure));
   __ mov(R6, length_reg);  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
-  __ SmiUntag(length_reg);
-  const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
-  __ AddImmediate(length_reg, length_reg, fixed_size);
+  __ adds(length_reg, ZR, Operand(length_reg, ASR, kSmiTagSize));  // Smi untag.
+  // If the length is 0 then we have to make the allocated size a bit bigger,
+  // otherwise the string takes up less space than an ExternalOneByteString,
+  // and cannot be externalized.  TODO(erikcorry): We should probably just
+  // return a static zero length string here instead.
+  // length <- (length != 0) ? length : (ZR + 1).
+  __ csinc(length_reg, length_reg, ZR, NE);
+  const intptr_t fixed_size_plus_alignment_padding =
+      sizeof(RawString) + kObjectAlignment - 1;
+  __ AddImmediate(length_reg, fixed_size_plus_alignment_padding);
   __ andi(length_reg, length_reg, Immediate(~(kObjectAlignment - 1)));
 
   const intptr_t cid = kOneByteStringCid;
@@ -2090,7 +2098,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
   __ str(R1, Address(R3, Heap::TopOffset(space)));
-  __ AddImmediate(R0, R0, kHeapObjectTag);
+  __ AddImmediate(R0, kHeapObjectTag);
   NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2, space));
 
   // Initialize the tags.
@@ -2106,6 +2114,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
     // Get the class index and insert it into the tags.
     // R2: size and bit tags.
+    // This also clears the hash, which is in the high word of the tags.
     __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));
     __ orr(R2, R2, Operand(TMP));
     __ str(R2, FieldAddress(R0, String::tags_offset()));  // Store tags.
@@ -2114,9 +2123,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // Set the length field using the saved length (R6).
   __ StoreIntoObjectNoBarrier(R0, FieldAddress(R0, String::length_offset()),
                               R6);
-  // Clear hash.
-  __ mov(TMP, ZR);
-  __ str(TMP, FieldAddress(R0, String::hash_offset()));
   __ b(ok);
 
   __ Bind(&fail);
@@ -2150,7 +2156,7 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   __ SmiUntag(R1);
   __ add(R3, R3, Operand(R1));
   // Calculate start address and untag (- 1).
-  __ AddImmediate(R3, R3, OneByteString::data_offset() - 1);
+  __ AddImmediate(R3, OneByteString::data_offset() - 1);
 
   // R3: Start address to copy from (untagged).
   // R1: Untagged start index.
@@ -2171,11 +2177,11 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   __ mov(R7, R0);
   __ Bind(&loop);
   __ ldr(R1, Address(R6), kUnsignedByte);
-  __ AddImmediate(R6, R6, 1);
+  __ AddImmediate(R6, 1);
   __ sub(R2, R2, Operand(1));
   __ cmp(R2, Operand(0));
   __ str(R1, FieldAddress(R7, OneByteString::data_offset()), kUnsignedByte);
-  __ AddImmediate(R7, R7, 1);
+  __ AddImmediate(R7, 1);
   __ b(&loop, GT);
 
   __ Bind(&done);
@@ -2238,23 +2244,23 @@ static void StringEquality(Assembler* assembler, intptr_t string_cid) {
   const intptr_t offset = (string_cid == kOneByteStringCid)
                               ? OneByteString::data_offset()
                               : TwoByteString::data_offset();
-  __ AddImmediate(R0, R0, offset - kHeapObjectTag);
-  __ AddImmediate(R1, R1, offset - kHeapObjectTag);
+  __ AddImmediate(R0, offset - kHeapObjectTag);
+  __ AddImmediate(R1, offset - kHeapObjectTag);
   __ SmiUntag(R2);
   __ Bind(&loop);
-  __ AddImmediate(R2, R2, -1);
+  __ AddImmediate(R2, -1);
   __ CompareRegisters(R2, ZR);
   __ b(&is_true, LT);
   if (string_cid == kOneByteStringCid) {
     __ ldr(R3, Address(R0), kUnsignedByte);
     __ ldr(R4, Address(R1), kUnsignedByte);
-    __ AddImmediate(R0, R0, 1);
-    __ AddImmediate(R1, R1, 1);
+    __ AddImmediate(R0, 1);
+    __ AddImmediate(R1, 1);
   } else if (string_cid == kTwoByteStringCid) {
     __ ldr(R3, Address(R0), kUnsignedHalfword);
     __ ldr(R4, Address(R1), kUnsignedHalfword);
-    __ AddImmediate(R0, R0, 2);
-    __ AddImmediate(R1, R1, 2);
+    __ AddImmediate(R0, 2);
+    __ AddImmediate(R1, 2);
   } else {
     UNIMPLEMENTED();
   }
@@ -2302,7 +2308,7 @@ void Intrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ ldr(R2, Address(SP, kRegExpParamOffset));
   __ ldr(R1, Address(SP, kStringParamOffset));
   __ LoadClassId(R1, R1);
-  __ AddImmediate(R1, R1, -kOneByteStringCid);
+  __ AddImmediate(R1, -kOneByteStringCid);
   __ add(R1, R2, Operand(R1, LSL, kWordSizeLog2));
   __ ldr(R0,
          FieldAddress(R1, RegExp::function_offset(kOneByteStringCid, sticky)));

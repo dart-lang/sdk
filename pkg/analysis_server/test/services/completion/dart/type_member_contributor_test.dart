@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -54,13 +54,6 @@ void f(Derived d) {
   @override
   DartCompletionContributor createContributor() {
     return new TypeMemberContributor();
-  }
-
-  fail_test_PrefixedIdentifier_trailingStmt_const_untyped() async {
-    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addTestSource('const g = "hello"; f() {g.^ int y = 0;}');
-    await computeSuggestions();
-    assertSuggestGetter('length', 'int');
   }
 
   test_ArgDefaults_method() async {
@@ -557,10 +550,10 @@ void main() {new A().f^}''');
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "/testAB.dart";
-        import "/testCD.dart" hide D;
-        import "/testEEF.dart" show EE;
-        import "/testG.dart" as g;
+        import "testAB.dart";
+        import "testCD.dart" hide D;
+        import "testEEF.dart" show EE;
+        import "testG.dart" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -657,10 +650,10 @@ void main() {new A().f^}''');
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "/testAB.dart";
-        import "/testCD.dart" hide D;
-        import "/testEEF.dart" show EE;
-        import "/testG.dart" as g;
+        import "testAB.dart";
+        import "testCD.dart" hide D;
+        import "testEEF.dart" show EE;
+        import "testG.dart" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -777,10 +770,10 @@ void main() {new A().f^}''');
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "/testAB.dart";
-        import "/testCD.dart" hide D;
-        import "/testEEF.dart" show EE;
-        import "/testG.dart" as g;
+        import "testAB.dart";
+        import "testCD.dart" hide D;
+        import "testEEF.dart" show EE;
+        import "testG.dart" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -883,10 +876,10 @@ void main() {new A().f^}''');
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "/testAB.dart";
-        import "/testCD.dart" hide D;
-        import "/testEEF.dart" show EE;
-        import "/testG.dart" as g;
+        import "testAB.dart";
+        import "testCD.dart" hide D;
+        import "testEEF.dart" show EE;
+        import "testG.dart" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -989,10 +982,10 @@ void main() {new A().f^}''');
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "/testAB.dart";
-        import "/testCD.dart" hide D;
-        import "/testEEF.dart" show EE;
-        import "/testG.dart" as g;
+        import "testAB.dart";
+        import "testCD.dart" hide D;
+        import "testEEF.dart" show EE;
+        import "testG.dart" as g;
         int T5;
         var _T6;
         Z D2() {int x;}
@@ -1057,7 +1050,7 @@ void main() {new A().f^}''');
         class I { int i1; i2() { } }
         class M { var m1; int m2() { } }''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         class A extends E implements I with M {a() {^}}''');
     await computeSuggestions();
 
@@ -1130,10 +1123,10 @@ void main() {new A().f^}''');
         int T3;
         var _T4;'''); // not imported
     addTestSource('''
-        import "/testAB.dart";
-        import "/testCD.dart" hide D;
-        import "/testEEF.dart" show EE;
-        import "/testG.dart" as g;
+        import "testAB.dart";
+        import "testCD.dart" hide D;
+        import "testEEF.dart" show EE;
+        import "testG.dart" as g;
         int T5;
         var _T6;
         String get T7 => 'hello';
@@ -1163,7 +1156,7 @@ void main() {new A().f^}''');
     addPackageSource('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
     addSource(
         '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
-    testFile = '/proj/completionTest.dart';
+    testFile = provider.convertPath('/proj/completionTest.dart');
     addTestSource('class C {foo(){F^}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
@@ -1181,7 +1174,7 @@ void main() {new A().f^}''');
         '''
         class B { }''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         class A {var b; X _c;}
         class X{}
         // looks like a cascade to the parser
@@ -1207,7 +1200,7 @@ void main() {new A().f^}''');
         '''
         class B { }''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         class A {var b; X _c;}
         class X{}
         // looks like a cascade to the parser
@@ -1233,7 +1226,7 @@ void main() {new A().f^}''');
         '''
         class B { }''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         class A {var b; X _c;}
         class X{}
         main() {A a; a..^z}''');
@@ -1257,7 +1250,7 @@ void main() {new A().f^}''');
         '''
         class B { }''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         class A {var b; X _c;}
         class X{}
         main() {A a; a..^ return}''');
@@ -1489,8 +1482,8 @@ void main() {new A().f^}''');
         class C { }
         class D { }''');
     addTestSource('''
-        import "/testAB.dart" hide ^;
-        import "/testCD.dart";
+        import "testAB.dart" hide ^;
+        import "testCD.dart";
         class X {}''');
     await computeSuggestions();
     assertNoSuggestions();
@@ -1520,8 +1513,8 @@ void main() {new A().f^}''');
         class C { }
         class D { }''');
     addTestSource('''
-        import "/testAB.dart" show ^;
-        import "/testCD.dart";
+        import "testAB.dart" show ^;
+        import "testCD.dart";
         class X {}''');
     await computeSuggestions();
     assertNoSuggestions();
@@ -1536,7 +1529,7 @@ void main() {new A().f^}''');
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -1557,7 +1550,7 @@ void main() {new A().f^}''');
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -1584,7 +1577,7 @@ void main() {new A().f^}''');
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -1605,7 +1598,7 @@ void main() {new A().f^}''');
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -1632,7 +1625,7 @@ void main() {new A().f^}''');
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -1655,7 +1648,7 @@ void main() {new A().f^}''');
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         var m;
         main() {new X.^}''');
     await computeSuggestions();
@@ -1681,7 +1674,7 @@ void main() {new A().f^}''');
         F1() { }
         class X {factory X.c(); factory X._d(); z() {}}''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         var m;
         main() {new X.^}''');
     await computeSuggestions();
@@ -1842,7 +1835,7 @@ void main() {new A().f^}''');
         class A {int x;}
         class _B { }''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         typedef int F2(int blat);
         class Clz = Object with Object;
         class C {foo(){^} void bar() {}}''');
@@ -1869,7 +1862,7 @@ void main() {new A().f^}''');
         B T1;
         class B{}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         class C {a() {C ^}}''');
     await computeSuggestions();
     assertNoSuggestions();
@@ -1880,7 +1873,7 @@ void main() {new A().f^}''');
     // FieldDeclaration
     addSource('/testA.dart', 'class A { }');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         class C {A ^}''');
     await computeSuggestions();
     assertNoSuggestions();
@@ -1891,7 +1884,7 @@ void main() {new A().f^}''');
     // FieldDeclaration
     addSource('/testA.dart', 'class A { }');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         class C {var ^}''');
     await computeSuggestions();
     assertNoSuggestions();
@@ -2049,7 +2042,7 @@ void main() {new A().f^}''');
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2080,7 +2073,7 @@ void main() {new A().f^}''');
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2111,7 +2104,7 @@ void main() {new A().f^}''');
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2281,7 +2274,7 @@ void f(C<int> c) {
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -2308,7 +2301,7 @@ void f(C<int> c) {
         F1() { }
         class A {int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         class B {int x;}
@@ -2329,7 +2322,7 @@ void f(C<int> c) {
         F1() { }
         class A {A(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         import "dart:async";
         int T2;
         F2() { }
@@ -2373,7 +2366,7 @@ void f(C<int> c) {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2404,7 +2397,7 @@ void f(C<int> c) {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2471,7 +2464,7 @@ void f(C<int> c) {
         foo() { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         class Y {Y.c(); Y._d(); z() {}}
         main() {var x; if (x is ^) { }}''');
     await computeSuggestions();
@@ -2547,7 +2540,7 @@ void f(C<int> c) {
         nowIsIt() { }
         class X {factory X.c(); factory X._d(); z() {}}''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         String newer() {}
         var m;
         main() {new^ X.c();}''');
@@ -2602,7 +2595,7 @@ void f(C<int> c) {
   test_libraryPrefix_with_exports() async {
     addSource('/libA.dart', 'library libA; class A { }');
     addSource('/libB.dart', 'library libB; export "/libA.dart"; class B { }');
-    addTestSource('import "/libB.dart" as foo; main() {foo.^} class C { }');
+    addTestSource('import "libB.dart" as foo; main() {foo.^} class C { }');
     await computeSuggestions();
     // Suggested by LibraryMemberContributor
     assertNotSuggested('B');
@@ -2667,7 +2660,7 @@ void f(C<int> c) {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2696,7 +2689,7 @@ void f(C<int> c) {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2718,7 +2711,7 @@ void f(C<int> c) {
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2851,7 +2844,7 @@ void main() {new C().^}''');
           static c3() {}
           static var c4;}''');
     addTestSource('''
-        import "/testC.dart";
+        import "testC.dart";
         class B extends C {
           b1() {}
           var b2;
@@ -2931,7 +2924,7 @@ void main() {new C().^}''');
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2961,7 +2954,7 @@ void main() {new C().^}''');
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -2991,7 +2984,7 @@ void main() {new C().^}''');
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -3021,7 +3014,7 @@ void main() {new C().^}''');
         typedef D1();
         class C1 {C1(this.x) { } int x;}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         int T2;
         F2() { }
         typedef D2();
@@ -3223,7 +3216,7 @@ void main() {C.^ print("something");}''');
         '/testA.dart',
         '''
         library libA;
-        import "/testB.dart";
+        import "testB.dart";
         part "$testFile";
         class A { }
         var m;''');
@@ -3262,7 +3255,7 @@ void main() {C.^ print("something");}''');
         class B { }''');
     addTestSource('''
         library libA;
-        import "/testB.dart";
+        import "testB.dart";
         part "/testA.dart";
         class A { A({String boo: 'hoo'}) { } }
         main() {new ^}
@@ -3300,7 +3293,7 @@ void main() {C.^ print("something");}''');
           m(X x) {} I _n(X x) {}}
         class X{}''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         class A extends B {
           static const String scA = 'foo';
           w() { }}
@@ -3345,7 +3338,7 @@ void main() {C.^ print("something");}''');
           m(X x) {} I _n(X x) {}}
         class X{}''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         main() {A a; a.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -3418,7 +3411,7 @@ void main() {C.^ print("something");}''');
         class X { }
         class Y { }''');
     addTestSource('''
-        import "/testB.dart" as b;
+        import "testB.dart" as b;
         var T2;
         class A { }
         main() {b.^}''');
@@ -3446,7 +3439,7 @@ void main() {C.^ print("something");}''');
         class X { }
         class Y { }''');
     addTestSource('''
-        import "/testB.dart" as b;
+        import "testB.dart" as b;
         var T2;
         class A { }
         foo(b.^ f) {}''');
@@ -3474,7 +3467,7 @@ void main() {C.^ print("something");}''');
         class X { }
         class Y { }''');
     addTestSource('''
-        import "/testB.dart" as b;
+        import "testB.dart" as b;
         var T2;
         class A { }
         foo(b.^) {}''');
@@ -3502,7 +3495,7 @@ void main() {C.^ print("something");}''');
         class X extends _W {}
         class M{}''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         foo(X x) {x.^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -3520,7 +3513,7 @@ void main() {C.^ print("something");}''');
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''
-        import "/testA.dart";
+        import "testA.dart";
         class X {foo(){A^.bar}}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
@@ -3556,6 +3549,14 @@ void main() {C.^ print("something");}''');
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('const String g = "hello"; f() {g.^ int y = 0;}');
     await computeSuggestions();
+    assertSuggestGetter('length', 'int');
+  }
+
+  test_PrefixedIdentifier_trailingStmt_const_untyped() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('const g = "hello"; f() {g.^ int y = 0;}');
+    await computeSuggestions();
+    assertSuggestMethod('toString', 'Object', 'String');
     assertSuggestGetter('length', 'int');
   }
 
@@ -4084,7 +4085,7 @@ class C1 extends C2 implements C3 {
         F1() => 0;
         typedef String T1(int blat);''');
     addTestSource('''
-        import "/testA.dart";'
+        import "testA.dart";'
         class C2 {int x;}
         F2() => 0;
         typedef int T2(int blat);
@@ -4111,7 +4112,7 @@ class C1 extends C2 implements C3 {
         F1() => 0;
         typedef String T1(int blat);''');
     addTestSource('''
-        import "/testA.dart";'
+        import "testA.dart";'
         class C2 {int x;}
         F2() => 0;
         typedef int T2(int blat);
@@ -4135,7 +4136,7 @@ class C1 extends C2 implements C3 {
         class _B { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         class Y {Y.c(); Y._d(); z() {}}
         main() {var ^}''');
     await computeSuggestions();
@@ -4162,7 +4163,7 @@ class C1 extends C2 implements C3 {
         class _B { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         class Y {Y.c(); Y._d(); z() {}}
         class C {bar(){var f; {var x;} var e = ^}}''');
     await computeSuggestions();
@@ -4189,7 +4190,7 @@ class C1 extends C2 implements C3 {
         class _B { }
         class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
-        import "/testB.dart";
+        import "testB.dart";
         foo2() { }
         void bar2() { }
         class Y {Y.c(); Y._d(); z() {}}

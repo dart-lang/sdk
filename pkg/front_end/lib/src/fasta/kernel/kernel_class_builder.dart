@@ -10,7 +10,6 @@ import 'package:kernel/ast.dart'
         Constructor,
         DartType,
         Expression,
-        ExpressionStatement,
         Field,
         FunctionNode,
         InterfaceType,
@@ -20,16 +19,12 @@ import 'package:kernel/ast.dart'
         Procedure,
         ProcedureKind,
         StaticGet,
-        StringLiteral,
         Supertype,
-        Throw,
         VariableDeclaration;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import '../errors.dart' show internalError;
-
-import '../messages.dart' show warning;
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
@@ -133,13 +128,17 @@ abstract class KernelClassBuilder
             } else if (targetBuilder is DillMemberBuilder) {
               builder.body = new RedirectingFactoryBody(targetBuilder.member);
             } else {
-              // TODO(ahe): Throw NSM error. This requires access to core
-              // types.
               String message = "Redirection constructor target not found: "
                   "${redirectionTarget.fullNameForErrors}";
-              warning(library.fileUri, -1, message);
-              builder.body = new ExpressionStatement(
-                  new Throw(new StringLiteral(message)));
+              if (builder.isConst) {
+                addCompileTimeError(builder.charOffset, message);
+              } else {
+                addWarning(builder.charOffset, message);
+              }
+              // CoreTypes aren't computed yet, and this is the outline
+              // phase. So we can't and shouldn't create a method body.
+              builder.body = new RedirectingFactoryBody.unresolved(
+                  redirectionTarget.fullNameForErrors);
             }
           }
         }
@@ -161,7 +160,7 @@ abstract class KernelClassBuilder
     // Where each c1 ... cn are an instance of [StaticGet] whose target is
     // [constructor.target].
     //
-    // TODO(ahe): Generate the correct factory body instead.
+    // TODO(ahe): Add a kernel node to represent redirecting factory bodies.
     DillMemberBuilder constructorsField =
         scope.local.putIfAbsent("_redirecting#", () {
       ListLiteral literal = new ListLiteral(<Expression>[]);

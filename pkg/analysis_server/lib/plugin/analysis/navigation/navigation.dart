@@ -24,8 +24,6 @@
  *       ...
  *     }
  */
-library analysis_server.plugin.analysis.navigation.navigation;
-
 import 'package:analysis_server/plugin/analysis/navigation/navigation_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:plugin/plugin.dart';

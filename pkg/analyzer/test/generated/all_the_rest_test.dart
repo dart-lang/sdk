@@ -25,7 +25,7 @@ import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart'; // ignore: deprecated_member_use
+import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -948,7 +948,8 @@ zap: baz
     int offset = src.indexOf('baz');
     int length = 'baz'.length;
 
-    SourceSpan span = new SourceFile(src).span(offset, offset + length);
+    SourceSpan span = new SourceSpanBase(
+        new SourceLocation(offset), new SourceLocation(offset + length), 'baz');
 
     reporter.reportErrorForSpan(
         AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,

@@ -31,7 +31,8 @@ runTests() async {
   await runTest('memory:main.dart', (compiler) {
     var main = compiler.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
-    compiler.deferredLoadTask.onResolutionComplete(main);
+    compiler.deferredLoadTask.onResolutionComplete(
+        main, compiler.resolutionWorldBuilder.closedWorldForTesting);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
     var lib1 = lookupLibrary(compiler, "memory:lib1.dart");
@@ -54,7 +55,8 @@ runTests() async {
   await runTest('memory:main3.dart', (compiler) {
     var main = compiler.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
-    compiler.deferredLoadTask.onResolutionComplete(main);
+    compiler.deferredLoadTask.onResolutionComplete(
+        main, compiler.resolutionWorldBuilder.closedWorldForTesting);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
     Expect.isFalse(compiler.backend.mirrorsData.hasInsufficientMirrorsUsed);
@@ -69,7 +71,8 @@ runTests() async {
   await runTest('memory:main4.dart', (compiler) {
     var main = compiler.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
-    compiler.deferredLoadTask.onResolutionComplete(main);
+    compiler.deferredLoadTask.onResolutionComplete(
+        main, compiler.resolutionWorldBuilder.closedWorldForTesting);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
     var mainLib = lookupLibrary(compiler, "memory:main4.dart");

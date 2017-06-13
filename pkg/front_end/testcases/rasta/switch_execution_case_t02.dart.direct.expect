@@ -16,13 +16,13 @@ static method test(dynamic value) → dynamic {
     case 2:
       {
         result = 2;
-        throw core::_fallThroughError();
+        throw new core::FallThroughError::•();
       }
     #L4:
     case 3:
       {
         result = 3;
-        throw core::_fallThroughError();
+        throw new core::FallThroughError::•();
       }
     #L5:
     default:
@@ -41,7 +41,7 @@ static method testEmptyCases(dynamic value) → dynamic {
     case 2:
       {
         result = 1;
-        throw core::_fallThroughError();
+        throw new core::FallThroughError::•();
       }
     #L8:
     case 3:

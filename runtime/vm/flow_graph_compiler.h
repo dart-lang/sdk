@@ -390,8 +390,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateStaticCall(intptr_t deopt_id,
                           TokenPosition token_pos,
                           const Function& function,
-                          intptr_t argument_count,
-                          const Array& argument_names,
+                          ArgumentsInfo args_info,
                           LocationSummary* locs,
                           const ICData& ic_data);
 
@@ -421,8 +420,7 @@ class FlowGraphCompiler : public ValueObject {
   void EmitPolymorphicInstanceCall(
       const CallTargets& targets,
       const InstanceCallInstr& original_instruction,
-      intptr_t argument_count,
-      const Array& argument_names,
+      ArgumentsInfo args_info,
       intptr_t deopt_id,
       TokenPosition token_pos,
       LocationSummary* locs,
@@ -447,8 +445,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitTestAndCall(const CallTargets& targets,
                        const String& function_name,
-                       intptr_t arg_count,
-                       const Array& arg_names,
+                       ArgumentsInfo args_info,
                        Label* failed,
                        Label* match_found,
                        intptr_t deopt_id,
@@ -460,11 +457,13 @@ class FlowGraphCompiler : public ValueObject {
   Condition EmitEqualityRegConstCompare(Register reg,
                                         const Object& obj,
                                         bool needs_number_check,
-                                        TokenPosition token_pos);
+                                        TokenPosition token_pos,
+                                        intptr_t deopt_id);
   Condition EmitEqualityRegRegCompare(Register left,
                                       Register right,
                                       bool needs_number_check,
-                                      TokenPosition token_pos);
+                                      TokenPosition token_pos,
+                                      intptr_t deopt_id);
 
   bool NeedsEdgeCounter(TargetEntryInstr* block);
 
@@ -573,11 +572,6 @@ class FlowGraphCompiler : public ValueObject {
 
   bool may_reoptimize() const { return may_reoptimize_; }
 
-  // Returns 'sorted' array in decreasing count order.
-  static void SortICDataByCount(const ICData& ic_data,
-                                GrowableArray<CidRangeTarget>* sorted,
-                                bool drop_smi);
-
   // Use in unoptimized compilation to preserve/reuse ICData.
   const ICData* GetOrAddInstanceCallICData(intptr_t deopt_id,
                                            const String& target_name,
@@ -674,7 +668,7 @@ class FlowGraphCompiler : public ValueObject {
 
   // Returns new class-id bias.
   int EmitTestAndCallCheckCid(Label* next_label,
-                              const CidRangeTarget& target,
+                              const CidRange& range,
                               int bias);
 
 // DBC handles type tests differently from all other architectures due

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis.server;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
@@ -12,9 +10,10 @@ import 'dart:math' show max;
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
-    hide AnalysisOptions, Element;
+    hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
@@ -24,7 +23,6 @@ import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
@@ -67,6 +65,8 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
+import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_byte_store.dart';
 import 'package:plugin/plugin.dart';
@@ -107,7 +107,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.18.0';
+  static final String VERSION = '1.18.1';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -115,11 +115,6 @@ class AnalysisServer {
    * to stdin. This should be removed once the underlying problem is fixed.
    */
   static int performOperationDelayFrequency = 25;
-
-  /**
-   * IDE options for this server instance.
-   */
-  IdeOptions ideOptions;
 
   /**
    * The options of this server instance.
@@ -253,6 +248,12 @@ class AnalysisServer {
   ServerPerformance performanceAfterStartup;
 
   /**
+   * A [RecentBuffer] of the most recent exceptions encountered by the analysis
+   * server.
+   */
+  final RecentBuffer<ServerException> exceptions = new RecentBuffer(10);
+
+  /**
    * The class into which performance information is currently being recorded.
    * During startup, this will be the same as [performanceDuringStartup]
    * and after startup is complete, this switches to [performanceAfterStartup].
@@ -347,10 +348,10 @@ class AnalysisServer {
    */
   ResolverProvider packageResolverProvider;
 
-  nd.PerformanceLog _analysisPerformanceLogger;
+  PerformanceLog _analysisPerformanceLogger;
+
   ByteStore byteStore;
   nd.AnalysisDriverScheduler analysisDriverScheduler;
-
   /**
    * This exists as a temporary stopgap for plugins, until the official plugin
    * API is complete.
@@ -420,8 +421,12 @@ class AnalysisServer {
             new NotificationManager(channel, resourceProvider) {
     _performance = performanceDuringStartup;
 
-    pluginManager = new PluginManager(resourceProvider, _getByteStorePath(),
-        notificationManager, instrumentationService);
+    pluginManager = new PluginManager(
+        resourceProvider,
+        _getByteStorePath(),
+        sdkManager.defaultSdkDirectory,
+        notificationManager,
+        instrumentationService);
     PluginWatcher pluginWatcher =
         new PluginWatcher(resourceProvider, pluginManager);
 
@@ -444,7 +449,7 @@ class AnalysisServer {
           sink = new io.File(path).openWrite(mode: io.FileMode.APPEND);
         }
       }
-      _analysisPerformanceLogger = new nd.PerformanceLog(sink);
+      _analysisPerformanceLogger = new PerformanceLog(sink);
     }
     byteStore = _createByteStore();
     analysisDriverScheduler = new nd.AnalysisDriverScheduler(
@@ -500,7 +505,6 @@ class AnalysisServer {
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
-    ideOptions = new IdeOptions.from(options);
   }
 
   /**
@@ -604,6 +608,15 @@ class AnalysisServer {
   }
 
   /**
+   * Return the total time the server's been alive.
+   */
+  Duration get uptime {
+    DateTime start = new DateTime.fromMillisecondsSinceEpoch(
+        performanceDuringStartup.startTime);
+    return new DateTime.now().difference(start);
+  }
+
+  /**
    * Adds the given [ServerOperation] to the queue, but does not schedule
    * operations execution.
    */
@@ -682,10 +695,14 @@ class AnalysisServer {
    * one exists, otherwise the first driver, otherwise `null`.
    */
   nd.AnalysisDriver getAnalysisDriver(String path) {
-    Iterable<nd.AnalysisDriver> drivers = driverMap.values;
+    List<nd.AnalysisDriver> drivers = driverMap.values.toList();
     if (drivers.isNotEmpty) {
+      // Sort the drivers so that more deeply nested contexts will be checked
+      // before enclosing contexts.
+      drivers.sort((first, second) =>
+          second.contextRoot.root.length - first.contextRoot.root.length);
       nd.AnalysisDriver driver = drivers.firstWhere(
-          (driver) => driver.addedFiles.contains(path),
+          (driver) => driver.contextRoot.containsFile(path),
           orElse: () => null);
       driver ??= drivers.firstWhere(
           (driver) => driver.knownFiles.contains(path),
@@ -1068,7 +1085,7 @@ class AnalysisServer {
    */
   void performOperation() {
     assert(performOperationPending);
-    PerformanceTag.UNKNOWN.makeCurrent();
+    PerformanceTag.unknown.makeCurrent();
     performOperationPending = false;
     if (!running) {
       // An error has occurred, or the connection to the client has been
@@ -1216,26 +1233,26 @@ class AnalysisServer {
   void sendServerErrorNotification(String message, exception, stackTrace,
       {bool fatal: false}) {
     StringBuffer buffer = new StringBuffer();
-    if (exception != null) {
-      buffer.write(exception);
-    } else {
-      buffer.write('null exception');
-    }
+    buffer.write(exception ?? 'null exception');
     if (stackTrace != null) {
       buffer.writeln();
       buffer.write(stackTrace);
     } else if (exception is! CaughtException) {
-      try {
-        throw 'ignored';
-      } catch (ignored, stackTrace) {
-        buffer.writeln();
-        buffer.write(stackTrace);
-      }
+      stackTrace = StackTrace.current;
+      buffer.writeln();
+      buffer.write(stackTrace);
     }
+
     // send the notification
     channel.sendNotification(
         new ServerErrorParams(fatal, message, buffer.toString())
             .toNotification());
+
+    // remember the last few exceptions
+    if (exception is CaughtException) {
+      stackTrace ??= exception.stackTrace;
+    }
+    exceptions.add(new ServerException(message, exception, stackTrace, fatal));
   }
 
   /**
@@ -1900,10 +1917,13 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
   bool enableNewAnalysisDriver = false;
-  bool noIndex = false;
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
+
+  String clientId;
+  String clientVersion;
+
   // IDE options
   bool enableVerboseFlutterCompletions = false;
 }
@@ -2188,7 +2208,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisServer.schedulePerformAnalysisOperation(context);
   }
 
-  List<server.HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
+  List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
     if (analysisServer.options.useAnalysisHighlight2) {
       return new DartUnitHighlightsComputer2(unit).compute();
     } else {
@@ -2268,6 +2288,21 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 }
 
 /**
+ * Used to record server exceptions.
+ */
+class ServerException {
+  final String message;
+  final dynamic exception;
+  final StackTrace stackTrace;
+  final bool fatal;
+
+  ServerException(this.message, this.exception, this.stackTrace, this.fatal);
+
+  @override
+  String toString() => message;
+}
+
+/**
  * A class used by [AnalysisServer] to record performance information
  * such as request latency.
  */
@@ -2320,6 +2355,11 @@ class ServerPerformance {
  */
 class ServerPerformanceStatistics {
   /**
+   * The [PerformanceTag] for `package:analysis_server`.
+   */
+  static PerformanceTag server = new PerformanceTag('server');
+
+  /**
    * The [PerformanceTag] for time spent in [ExecutionDomainHandler].
    */
   static PerformanceTag executionNotifications =
@@ -2346,22 +2386,22 @@ class ServerPerformanceStatistics {
    * The [PerformanceTag] for time spent in
    * PerformAnalysisOperation._sendNotices.
    */
-  static PerformanceTag notices = new PerformanceTag('notices');
+  static PerformanceTag notices = server.createChild('notices');
 
   /**
    * The [PerformanceTag] for time spent running pub.
    */
-  static PerformanceTag pub = new PerformanceTag('pub');
+  static PerformanceTag pub = server.createChild('pub');
 
   /**
    * The [PerformanceTag] for time spent in server communication channels.
    */
-  static PerformanceTag serverChannel = new PerformanceTag('serverChannel');
+  static PerformanceTag serverChannel = server.createChild('channel');
 
   /**
    * The [PerformanceTag] for time spent in server request handlers.
    */
-  static PerformanceTag serverRequests = new PerformanceTag('serverRequests');
+  static PerformanceTag serverRequests = server.createChild('requests');
 
   /**
    * The [PerformanceTag] for time spent in split store microtasks.

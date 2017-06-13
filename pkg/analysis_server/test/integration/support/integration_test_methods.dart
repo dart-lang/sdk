@@ -17,6 +17,7 @@ import 'package:test/test.dart';
 
 import 'integration_tests.dart';
 import 'protocol_matchers.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /**
  * Convenience methods for running integration tests
@@ -1733,6 +1734,111 @@ abstract class IntegrationTestMixin {
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new DiagnosticGetServerPortResult.fromJson(
         decoder, 'result', result);
+  }
+
+  /**
+   * Query whether analytics is enabled.
+   *
+   * This flag controls whether the analysis server sends any analytics data to
+   * the cloud. If disabled, the analysis server does not send any analytics
+   * data, and any data sent to it by clients (from sendEvent and sendTiming)
+   * will be ignored.
+   *
+   * The value of this flag can be changed by other tools outside of the
+   * analysis server's process. When you query the flag, you get the value of
+   * the flag at a given moment. Clients should not use the value returned to
+   * decide whether or not to send the sendEvent and sendTiming requests. Those
+   * requests should be used unconditionally and server will determine whether
+   * or not it is appropriate to forward the information to the cloud at the
+   * time each request is received.
+   *
+   * Returns
+   *
+   * enabled: bool
+   *
+   *   Whether sending analytics is enabled or not.
+   */
+  Future<AnalyticsIsEnabledResult> sendAnalyticsIsEnabled() async {
+    var result = await server.send("analytics.isEnabled", null);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new AnalyticsIsEnabledResult.fromJson(decoder, 'result', result);
+  }
+
+  /**
+   * Enable or disable the sending of analytics data. Note that there are other
+   * ways for users to change this setting, so clients cannot assume that they
+   * have complete control over this setting. In particular, there is no
+   * guarantee that the result returned by the isEnabled request will match the
+   * last value set via this request.
+   *
+   * Parameters
+   *
+   * value: bool
+   *
+   *   Enable or disable analytics.
+   */
+  Future sendAnalyticsEnable(bool value) async {
+    var params = new AnalyticsEnableParams(value).toJson();
+    var result = await server.send("analytics.enable", params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /**
+   * Send information about client events.
+   *
+   * Ask the analysis server to include the fact that an action was performed
+   * in the client as part of the analytics data being sent. The data will only
+   * be included if the sending of analytics data is enabled at the time the
+   * request is processed. The action that was performed is indicated by the
+   * value of the action field.
+   *
+   * The value of the action field should not include the identity of the
+   * client. The analytics data sent by server will include the client id
+   * passed in using the --client-id command-line argument. The request will be
+   * ignored if the client id was not provided when server was started.
+   *
+   * Parameters
+   *
+   * action: String
+   *
+   *   The value used to indicate which action was performed.
+   */
+  Future sendAnalyticsSendEvent(String action) async {
+    var params = new AnalyticsSendEventParams(action).toJson();
+    var result = await server.send("analytics.sendEvent", params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /**
+   * Send timing information for client events (e.g. code completions).
+   *
+   * Ask the analysis server to include the fact that a timed event occurred as
+   * part of the analytics data being sent. The data will only be included if
+   * the sending of analytics data is enabled at the time the request is
+   * processed.
+   *
+   * The value of the event field should not include the identity of the
+   * client. The analytics data sent by server will include the client id
+   * passed in using the --client-id command-line argument. The request will be
+   * ignored if the client id was not provided when server was started.
+   *
+   * Parameters
+   *
+   * event: String
+   *
+   *   The name of the event.
+   *
+   * millis: int
+   *
+   *   The duration of the event in milliseconds.
+   */
+  Future sendAnalyticsSendTiming(String event, int millis) async {
+    var params = new AnalyticsSendTimingParams(event, millis).toJson();
+    var result = await server.send("analytics.sendTiming", params);
+    outOfTestExpect(result, isNull);
+    return null;
   }
 
   /**

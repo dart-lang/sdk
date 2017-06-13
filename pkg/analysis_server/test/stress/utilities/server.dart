@@ -14,6 +14,7 @@ import 'dart:math' as math;
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as path;
 
 import 'logger.dart';
@@ -611,9 +612,6 @@ class Server {
    *
    * If [diagnosticPort] is not `null`, the server will serve status pages to
    * the specified port.
-   *
-   * If [enableNewAnalysisDriver] is `true`, the server will use the new
-   * analysis driver.
    *
    * If [profileServer] is `true`, the server will be started with "--observe"
    * and "--pause-isolates-on-exit", allowing the observatory to be used.

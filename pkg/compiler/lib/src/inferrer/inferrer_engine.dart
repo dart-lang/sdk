@@ -46,7 +46,7 @@ class InferrerEngine {
   final Map<Element, TypeInformation> defaultTypeOfParameter =
       new Map<Element, TypeInformation>();
   final WorkQueue workQueue = new WorkQueue();
-  final Element mainElement;
+  final FunctionEntity mainElement;
   final Set<Element> analyzedElements = new Set<Element>();
 
   /// The maximum number of times we allow a node in the graph to
@@ -397,7 +397,7 @@ class InferrerEngine {
           assert(info.calledElement.isGenerativeConstructor);
           ClassElement cls = info.calledElement.enclosingClass;
           FunctionElement callMethod = cls.lookupMember(Identifiers.call);
-          assert(invariant(cls, callMethod != null));
+          assert(callMethod != null, failedAt(cls));
           Iterable<FunctionElement> elements = [callMethod];
           trace(elements, new ClosureTracerVisitor(elements, info, this));
         } else {
@@ -526,12 +526,13 @@ class InferrerEngine {
                   types.allocatedTypes.add(type);
                 }
               } else {
-                assert(invariant(
-                    fieldElement,
+                assert(
                     fieldElement.isInstanceMember ||
                         constant.isImplicit ||
                         constant.isPotential,
-                    message: "Constant expression without value: "
+                    failedAt(
+                        fieldElement,
+                        "Constant expression without value: "
                         "${constant.toStructuredText()}."));
               }
             }
@@ -759,7 +760,7 @@ class InferrerEngine {
   /**
    * Returns the type of [element].
    */
-  TypeInformation typeOfElement(Element element) {
+  TypeInformation typeOfElement(Entity element) {
     if (element is FunctionElement) return types.functionType;
     return types.getInferredTypeOf(element);
   }
@@ -767,7 +768,7 @@ class InferrerEngine {
   /**
    * Returns the return type of [element].
    */
-  TypeInformation returnTypeOfElement(Element element) {
+  TypeInformation returnTypeOfElement(Entity element) {
     if (element is! FunctionElement) return types.dynamicType;
     return types.getInferredTypeOf(element);
   }
@@ -778,7 +779,7 @@ class InferrerEngine {
    * [nodeHolder] is the element holder of [node].
    */
   void recordTypeOfFinalField(
-      Spannable node, Element analyzed, Element element, TypeInformation type) {
+      Spannable node, Entity analyzed, Entity element, TypeInformation type) {
     types.getInferredTypeOf(element).addAssignment(type);
   }
 
@@ -787,14 +788,14 @@ class InferrerEngine {
    * [type].
    */
   void recordTypeOfNonFinalField(
-      Spannable node, Element element, TypeInformation type) {
+      Spannable node, Entity element, TypeInformation type) {
     types.getInferredTypeOf(element).addAssignment(type);
   }
 
   /**
    * Records that [element] is of type [type].
    */
-  void recordType(Element element, TypeInformation type) {
+  void recordType(Entity element, TypeInformation type) {
     types.getInferredTypeOf(element).addAssignment(type);
   }
 
@@ -985,14 +986,13 @@ class InferrerEngine {
       ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;
-      assert(invariant(
-          element,
+      assert(
           element.isField ||
               element.isFunction ||
               element.isConstructor ||
               element.isGetter ||
               element.isSetter,
-          message: 'Unexpected element kind: ${element.kind}'));
+          failedAt(element, 'Unexpected element kind: ${element.kind}'));
       if (element.isAbstract) return;
       // Put the other operators in buckets by length, later to be added in
       // length order.

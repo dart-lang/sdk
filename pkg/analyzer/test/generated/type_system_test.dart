@@ -864,11 +864,11 @@ class StrongGenericFunctionInferenceTest {
   InterfaceType get intType => typeProvider.intType;
   InterfaceType get iterableType => typeProvider.iterableType;
   InterfaceType get listType => typeProvider.listType;
+  DartType get nullType => typeProvider.nullType;
   InterfaceType get numType => typeProvider.numType;
   InterfaceType get objectType => typeProvider.objectType;
   InterfaceType get stringType => typeProvider.stringType;
   DartType get voidType => VoidTypeImpl.instance;
-  DartType get nullType => typeProvider.nullType;
 
   void setUp() {
     typeProvider = new TestTypeProvider();

@@ -320,7 +320,9 @@ class LocalScope : public ZoneAllocated {
 
   // Creates variable info for the scope and all its nested scopes.
   // Must be called after AllocateVariables() has been called.
-  RawLocalVarDescriptors* GetVarDescriptors(const Function& func);
+  RawLocalVarDescriptors* GetVarDescriptors(
+      const Function& func,
+      ZoneGrowableArray<intptr_t>* context_level_array);
 
   // Create a ContextScope object describing all captured variables referenced
   // from this scope and belonging to outer scopes.

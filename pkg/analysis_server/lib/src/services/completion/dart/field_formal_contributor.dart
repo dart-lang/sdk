@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.field_formal;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart'
@@ -64,7 +62,7 @@ class FieldFormalContributor extends DartCompletionContributor {
             if (fieldName != null && fieldName.length > 0) {
               if (!referencedFields.contains(fieldName)) {
                 CompletionSuggestion suggestion = createSuggestion(
-                    fieldId.bestElement, request.ideOptions,
+                    fieldId.bestElement,
                     relevance: DART_RELEVANCE_LOCAL_FIELD);
                 if (suggestion != null) {
                   suggestions.add(suggestion);

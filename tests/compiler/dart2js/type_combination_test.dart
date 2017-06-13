@@ -415,7 +415,6 @@ void testUnion(MockCompiler compiler) {
 }
 
 void testIntersection(MockCompiler compiler) {
-  JavaScriptBackend backend = compiler.backend;
   ClosedWorld closedWorld =
       compiler.resolutionWorldBuilder.closedWorldForTesting;
   RuleSet ruleSet =
@@ -563,12 +562,12 @@ void testIntersection(MockCompiler compiler) {
       jsIndexable,
       potentialArray,
       new TypeMask.nonNullSubtype(
-          backend.commonElements.jsArrayClass, closedWorld));
+          closedWorld.commonElements.jsArrayClass, closedWorld));
   rule(
       jsIndexable,
       potentialString,
       new TypeMask.nonNullSubtype(
-          backend.commonElements.jsStringClass, closedWorld));
+          closedWorld.commonElements.jsStringClass, closedWorld));
   rule(jsIndexable, jsBooleanOrNull, emptyType);
   rule(jsIndexable, jsNumberOrNull, emptyType);
   rule(jsIndexable, jsIntegerOrNull, emptyType);

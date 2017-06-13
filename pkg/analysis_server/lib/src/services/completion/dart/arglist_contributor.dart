@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.arglist;
-
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart'
@@ -187,17 +185,7 @@ class ArgListContributor extends DartCompletionContributor {
 
     // Determine if the target is in an argument list
     // for a method or a constructor or an annotation
-    // and resolve the identifier
     SimpleIdentifier targetId = _getTargetId(request.target.containingNode);
-    if (targetId == null) {
-      return EMPTY_LIST;
-    }
-
-    // Resolve the target expression to determine the arguments
-    await request.resolveContainingExpression(targetId);
-    // Gracefully degrade if the element could not be resolved
-    // e.g. target changed, completion aborted
-    targetId = _getTargetId(request.target.containingNode);
     if (targetId == null) {
       return EMPTY_LIST;
     }
@@ -233,17 +221,13 @@ class ArgListContributor extends DartCompletionContributor {
     for (ParameterElement parameter in parameters) {
       if (parameter.parameterKind == ParameterKind.NAMED) {
         _addNamedParameterSuggestion(
-            request, namedArgs, parameter, appendColon, appendComma);
+            namedArgs, parameter, appendColon, appendComma);
       }
     }
   }
 
-  void _addNamedParameterSuggestion(
-      DartCompletionRequest request,
-      List<String> namedArgs,
-      ParameterElement parameter,
-      bool appendColon,
-      bool appendComma) {
+  void _addNamedParameterSuggestion(List<String> namedArgs,
+      ParameterElement parameter, bool appendColon, bool appendComma) {
     String name = parameter.name;
     String type = parameter.type?.displayName;
     if (name != null && name.length > 0 && !namedArgs.contains(name)) {
@@ -270,9 +254,14 @@ class ArgListContributor extends DartCompletionContributor {
       if (appendComma) {
         completion += ',';
       }
+
+      final int relevance = parameter.isRequired
+          ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
+          : DART_RELEVANCE_NAMED_PARAMETER;
+
       CompletionSuggestion suggestion = new CompletionSuggestion(
           CompletionSuggestionKind.NAMED_ARGUMENT,
-          DART_RELEVANCE_NAMED_PARAMETER,
+          relevance,
           completion,
           selectionOffset,
           0,

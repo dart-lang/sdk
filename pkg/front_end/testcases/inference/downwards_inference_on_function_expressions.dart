@@ -32,7 +32,7 @@ void main() {
       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
     };
     Function2<int, String> l4 = /*@returnType=String*/ (/*@type=int*/ x) {
-      return /*error:RETURN_OF_INVALID_TYPE*/ /*@promotedType=none*/ x;
+      return /*error:RETURN_OF_INVALID_TYPE*/ x;
     };
   }
   {
@@ -54,19 +54,17 @@ void main() {
     };
   }
   {
-    Function2<int, int>
-        l0 = /*@returnType=int*/ (/*@type=int*/ x) => /*@promotedType=none*/ x;
-    Function2<int, int>
-        l1 = /*@returnType=int*/ (/*@type=int*/ x) => /*@promotedType=none*/ x +
-            1;
+    Function2<int, int> l0 = /*@returnType=int*/ (/*@type=int*/ x) => x;
+    Function2<int, int> l1 = /*@returnType=int*/ (/*@type=int*/ x) =>
+        x /*@target=num::+*/ + 1;
     Function2<int, String>
         l2 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ (/*@type=int*/ x) =>
-            /*@promotedType=none*/ x;
+            x;
     Function2<int, String>
-        l3 = /*@returnType=String*/ (/*@type=int*/ x) => /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/ /*@promotedType=none*/ x
+        l3 = /*@returnType=String*/ (/*@type=int*/ x) => /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/ x
             .substring(3);
     Function2<String, String>
-        l4 = /*@returnType=String*/ (/*@type=String*/ x) => /*@promotedType=none*/ x
-            .substring(3);
+        l4 = /*@returnType=String*/ (/*@type=String*/ x) =>
+            x. /*@target=String::substring*/ substring(3);
   }
 }

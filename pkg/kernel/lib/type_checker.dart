@@ -248,56 +248,64 @@ class TypeCheckingVisitor
         hierarchy.getClassAsInstanceOf(currentClass, member.enclosingClass));
   }
 
-  DartType handleCall(Arguments arguments, FunctionNode function,
+  DartType handleCall(Arguments arguments, DartType functionType,
       {Substitution receiver: Substitution.empty,
       List<TypeParameter> typeParameters}) {
-    typeParameters ??= function.typeParameters;
-    if (arguments.positional.length < function.requiredParameterCount) {
-      fail(arguments, 'Too few positional arguments');
-      return const BottomType();
-    }
-    if (arguments.positional.length > function.positionalParameters.length) {
-      fail(arguments, 'Too many positional arguments');
-      return const BottomType();
-    }
-    if (arguments.types.length != typeParameters.length) {
-      fail(arguments, 'Wrong number of type arguments');
-      return const BottomType();
-    }
-    var instantiation = Substitution.fromPairs(typeParameters, arguments.types);
-    var substitution = Substitution.combine(receiver, instantiation);
-    for (int i = 0; i < typeParameters.length; ++i) {
-      var argument = arguments.types[i];
-      var bound = substitution.substituteType(typeParameters[i].bound);
-      checkAssignable(arguments, argument, bound);
-    }
-    for (int i = 0; i < arguments.positional.length; ++i) {
-      var expectedType = substitution.substituteType(
-          function.positionalParameters[i].type,
-          contravariant: true);
-      arguments.positional[i] =
-          checkAndDowncastExpression(arguments.positional[i], expectedType);
-    }
-    for (int i = 0; i < arguments.named.length; ++i) {
-      var argument = arguments.named[i];
-      bool found = false;
-      for (int j = 0; j < function.namedParameters.length; ++j) {
-        if (argument.name == function.namedParameters[j].name) {
-          var expectedType = substitution.substituteType(
-              function.namedParameters[j].type,
-              contravariant: true);
-          argument.value =
-              checkAndDowncastExpression(argument.value, expectedType);
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        fail(argument.value, 'Unexpected named parameter: ${argument.name}');
+    if (functionType is FunctionType) {
+      typeParameters ??= functionType.typeParameters;
+      if (arguments.positional.length < functionType.requiredParameterCount) {
+        fail(arguments, 'Too few positional arguments');
         return const BottomType();
       }
+      if (arguments.positional.length >
+          functionType.positionalParameters.length) {
+        fail(arguments, 'Too many positional arguments');
+        return const BottomType();
+      }
+      if (arguments.types.length != typeParameters.length) {
+        fail(arguments, 'Wrong number of type arguments');
+        return const BottomType();
+      }
+      var instantiation =
+          Substitution.fromPairs(typeParameters, arguments.types);
+      var substitution = Substitution.combine(receiver, instantiation);
+      for (int i = 0; i < typeParameters.length; ++i) {
+        var argument = arguments.types[i];
+        var bound = substitution.substituteType(typeParameters[i].bound);
+        checkAssignable(arguments, argument, bound);
+      }
+      for (int i = 0; i < arguments.positional.length; ++i) {
+        var expectedType = substitution.substituteType(
+            functionType.positionalParameters[i],
+            contravariant: true);
+        arguments.positional[i] =
+            checkAndDowncastExpression(arguments.positional[i], expectedType);
+      }
+      for (int i = 0; i < arguments.named.length; ++i) {
+        var argument = arguments.named[i];
+        bool found = false;
+        for (int j = 0; j < functionType.namedParameters.length; ++j) {
+          if (argument.name == functionType.namedParameters[j].name) {
+            var expectedType = substitution.substituteType(
+                functionType.namedParameters[j].type,
+                contravariant: true);
+            argument.value =
+                checkAndDowncastExpression(argument.value, expectedType);
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          fail(argument.value, 'Unexpected named parameter: ${argument.name}');
+          return const BottomType();
+        }
+      }
+      return substitution.substituteType(functionType.returnType);
+    } else {
+      // Note: attempting to resolve .call() on [functionType] could lead to an
+      // infinite regress, so just assume `dynamic`.
+      return const DynamicType();
     }
-    return substitution.substituteType(function.returnType);
   }
 
   DartType _getInternalReturnType(FunctionNode function) {
@@ -379,14 +387,14 @@ class TypeCheckingVisitor
     Constructor target = node.target;
     Arguments arguments = node.arguments;
     Class class_ = target.enclosingClass;
-    handleCall(arguments, target.function,
+    handleCall(arguments, target.function.functionType,
         typeParameters: class_.typeParameters);
     return new InterfaceType(target.enclosingClass, arguments.types);
   }
 
   @override
   DartType visitDirectMethodInvocation(DirectMethodInvocation node) {
-    return handleCall(node.arguments, node.target.function,
+    return handleCall(node.arguments, node.target.getterType,
         receiver: getReceiverType(node, node.receiver, node.target));
   }
 
@@ -497,19 +505,13 @@ class TypeCheckingVisitor
     }
     for (int i = 0; i < arguments.named.length; ++i) {
       var argument = arguments.named[i];
-      bool found = false;
-      for (int j = 0; j < function.namedParameters.length; ++j) {
-        if (argument.name == function.namedParameters[j].name) {
-          var expectedType = instantiation.substituteType(
-              function.namedParameters[j].type,
-              contravariant: true);
-          argument.value =
-              checkAndDowncastExpression(argument.value, expectedType);
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
+      var parameterType = function.getNamedParameter(argument.name);
+      if (parameterType != null) {
+        var expectedType =
+            instantiation.substituteType(parameterType, contravariant: true);
+        argument.value =
+            checkAndDowncastExpression(argument.value, expectedType);
+      } else {
         fail(argument.value, 'Unexpected named parameter: ${argument.name}');
         return const BottomType();
       }
@@ -530,13 +532,14 @@ class TypeCheckingVisitor
         return handleFunctionCall(node, receiver, node.arguments);
       }
       return handleDynamicCall(receiver, node.arguments);
-    } else if (environment.isOverloadedArithmeticOperator(target)) {
+    } else if (target is Procedure &&
+        environment.isOverloadedArithmeticOperator(target)) {
       assert(node.arguments.positional.length == 1);
       var receiver = visitExpression(node.receiver);
       var argument = visitExpression(node.arguments.positional[0]);
       return environment.getTypeOfOverloadedArithmetic(receiver, argument);
     } else {
-      return handleCall(node.arguments, target.function,
+      return handleCall(node.arguments, target.getterType,
           receiver: getReceiverType(node, node.receiver, node.interfaceTarget));
     }
   }
@@ -591,7 +594,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitStaticInvocation(StaticInvocation node) {
-    return handleCall(node.arguments, node.target.function);
+    return handleCall(node.arguments, node.target.getterType);
   }
 
   @override
@@ -617,7 +620,7 @@ class TypeCheckingVisitor
     if (node.interfaceTarget == null) {
       return handleDynamicCall(environment.thisType, node.arguments);
     } else {
-      return handleCall(node.arguments, node.interfaceTarget.function,
+      return handleCall(node.arguments, node.interfaceTarget.getterType,
           receiver: getSuperReceiverType(node.interfaceTarget));
     }
   }
@@ -943,13 +946,13 @@ class TypeCheckingVisitor
 
   @override
   visitRedirectingInitializer(RedirectingInitializer node) {
-    handleCall(node.arguments, node.target.function,
+    handleCall(node.arguments, node.target.getterType,
         typeParameters: const <TypeParameter>[]);
   }
 
   @override
   visitSuperInitializer(SuperInitializer node) {
-    handleCall(node.arguments, node.target.function,
+    handleCall(node.arguments, node.target.getterType,
         typeParameters: const <TypeParameter>[],
         receiver: getSuperReceiverType(node.target));
   }

@@ -7,8 +7,8 @@ library test;
 
 main() {
   num n = null;
-  if (/*@promotedType=none*/ n is int) {
-    var /*@type=num*/ i = /*@promotedType=none*/ n;
+  if (n is int) {
+    var /*@type=num*/ i = n;
   }
   /*@returnType=Null*/ () {
     n = null;

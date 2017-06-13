@@ -472,7 +472,8 @@ Note that breakpoints are added and removed on a per-isolate basis.
 ```
 @Instance|@Error|Sentinel evaluate(string isolateId,
                                    string targetId,
-                                   string expression)
+                                   string expression
+                                   map<string,string> scope [optional])
 ```
 
 The _evaluate_ RPC is used to evaluate an expression in the context of
@@ -488,6 +489,12 @@ If _targetId_ refers to an object which has been collected by the VM's
 garbage collector, then the _Collected_ [Sentinel](#sentinel) is
 returned.
 
+If _scope_ is provided, it should be a map from identifiers to object ids.
+These bindings will be added to the scope in which the expression is evaluated,
+which is a child scope of the class or library for instance/class or library
+targets respectively. This means bindings provided in _scope_ may shadow
+instance members, class members and top-level members.
+
 If an error occurs while evaluating the expression, an [@Error](#error)
 reference will be returned.
 
@@ -499,13 +506,20 @@ reference will be returned.
 ```
 @Instance|@Error evaluateInFrame(string isolateId,
                                  int frameIndex,
-                                 string expression)
+                                 string expression,
+                                 map<string,string> scope [optional])
 ```
 
 The _evaluateInFrame_ RPC is used to evaluate an expression in the
 context of a particular stack frame. _frameIndex_ is the index of the
 desired [Frame](#frame), with an index of _0_ indicating the top (most
 recent) frame.
+
+If _scope_ is provided, it should be a map from identifiers to object ids.
+These bindings will be added to the scope in which the expression is evaluated,
+which is a child scope of the frame's current scope. This means bindings
+provided in _scope_ may shadow instance members, class members, top-level
+members, parameters and locals.
 
 If an error occurs while evaluating the expression, an [@Error](#error)
 reference will be returned.
@@ -2615,6 +2629,6 @@ version | comments
 3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
 3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
 3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
-3.6 (unreleased) | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable. Add 'PausePostRequest' event kind. Add 'Rewind' StepOption. Add error code 107 (isolate cannot resume). Add 'reloadSources' RPC and related error codes.
+3.6 (unreleased) | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable. Add 'PausePostRequest' event kind. Add 'Rewind' StepOption. Add error code 107 (isolate cannot resume). Add 'reloadSources' RPC and related error codes. Add optional parameter 'scope' to 'evaluate' and 'evaluateInFrame'.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

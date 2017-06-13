@@ -7,13 +7,15 @@ library test;
 
 import 'dart:async';
 
-main() {
+test() {
   Future<int> f;
-  Future<List<int>>
-      b = /*info:ASSIGNMENT_CAST should be pass*/ /*@promotedType=none*/ f
-          . /*@typeArgs=List<dynamic>*/ then(
-              /*@returnType=List<dynamic>*/ (/*@type=int*/ x) => /*@typeArgs=dynamic*/ [])
-          .whenComplete(/*@returnType=Null*/ () {});
-  b = /*@promotedType=none*/ f. /*@typeArgs=List<int>*/ then(
+  Future<List<int>> b = /*info:ASSIGNMENT_CAST should be pass*/ f
+      . /*@typeArgs=List<dynamic>*/ /*@target=Future::then*/ then(
+          /*@returnType=List<dynamic>*/ (/*@type=int*/ x) => /*@typeArgs=dynamic*/ [])
+      . /*@target=Future::whenComplete*/ whenComplete(
+          /*@returnType=Null*/ () {});
+  b = f. /*@typeArgs=List<int>*/ /*@target=Future::then*/ then(
       /*@returnType=List<int>*/ (/*@type=int*/ x) => /*@typeArgs=int*/ []);
 }
+
+main() {}

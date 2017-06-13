@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method main() → asy::Future<dynamic> async {
+  dynamic d;
+  core::List<core::int> l0 = await<core::int>[d];
+  core::List<core::int> l1 = await asy::Future::value<core::List<core::int>>(<core::int>[d]);
+}

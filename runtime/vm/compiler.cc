@@ -137,15 +137,16 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
   if (UseKernelFrontEndFor(parsed_function)) {
     kernel::TreeNode* node = static_cast<kernel::TreeNode*>(
         parsed_function->function().kernel_function());
-    kernel::FlowGraphBuilder builder(node, parsed_function, ic_data_array, NULL,
-                                     osr_id);
+    kernel::FlowGraphBuilder builder(node, parsed_function, ic_data_array,
+                                     /* not building var desc */ NULL,
+                                     /* not inlining */ NULL, osr_id);
     FlowGraph* graph = builder.BuildGraph();
     ASSERT(graph != NULL);
     return graph;
   }
   FlowGraphBuilder builder(*parsed_function, ic_data_array,
-                           NULL,  // NULL = not inlining.
-                           osr_id);
+                           /* not building var desc */ NULL,
+                           /* not inlining */ NULL, osr_id);
 
   return builder.BuildGraph();
 }
@@ -176,8 +177,8 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
 
   // Build the flow graph.
   FlowGraphBuilder builder(*parsed_function, ic_data_array,
-                           NULL,  // NULL = not inlining.
-                           osr_id);
+                           /* not building var desc */ NULL,
+                           /* not inlining */ NULL, osr_id);
 
   return new (zone)
       FlowGraph(*parsed_function, result.graph_entry, result.num_blocks);
@@ -474,7 +475,8 @@ RawError* Compiler::CompileClass(const Class& cls) {
         parse_class.reset_is_marked_for_parsing();
       }
     }
-    Error& error = Error::Handle(zone.GetZone());
+    Thread* thread = Thread::Current();
+    Error& error = Error::Handle(thread->zone());
     error = thread->sticky_error();
     thread->clear_sticky_error();
     return error.raw();
@@ -1586,22 +1588,42 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!function.IsIrregexpFunction());
   // In background compilation, parser can produce 'errors": bailouts
   // if state changed while compiling in background.
+  const intptr_t prev_deopt_id = Thread::Current()->deopt_id();
+  Thread::Current()->set_deopt_id(0);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    if (function.kernel_function() == NULL) {
+    ZoneGrowableArray<const ICData*>* ic_data_array =
+        new ZoneGrowableArray<const ICData*>();
+    ZoneGrowableArray<intptr_t>* context_level_array =
+        new ZoneGrowableArray<intptr_t>();
+
+    if (!UseKernelFrontEndFor(parsed_function)) {
       Parser::ParseFunction(parsed_function);
       parsed_function->AllocateVariables();
+      FlowGraphBuilder builder(
+          *parsed_function, *ic_data_array, context_level_array,
+          /* not inlining */ NULL, Compiler::kNoOSRDeoptId);
+      builder.BuildGraph();
     } else {
       parsed_function->EnsureKernelScopes();
+      kernel::TreeNode* node = static_cast<kernel::TreeNode*>(
+          parsed_function->function().kernel_function());
+      kernel::FlowGraphBuilder builder(
+          node, parsed_function, *ic_data_array, context_level_array,
+          /* not inlining */ NULL, Compiler::kNoOSRDeoptId);
+      builder.BuildGraph();
     }
+
     const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
-        parsed_function->node_sequence()->scope()->GetVarDescriptors(function));
+        parsed_function->node_sequence()->scope()->GetVarDescriptors(
+            function, context_level_array));
     ASSERT(!var_descs.IsNull());
     code.set_var_descriptors(var_descs);
   } else {
     // Only possible with background compilation.
     ASSERT(Compiler::IsBackgroundCompilation());
   }
+  Thread::Current()->set_deopt_id(prev_deopt_id);
 }
 
 

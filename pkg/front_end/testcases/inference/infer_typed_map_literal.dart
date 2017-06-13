@@ -12,3 +12,12 @@ var /*@topType=Map<List<int>, Map<String, double>>*/ c =
 var /*@topType=Map<int, dynamic>*/ d = <int, dynamic>{};
 var /*@topType=Map<dynamic, int>*/ e = <dynamic, int>{};
 var /*@topType=Map<dynamic, dynamic>*/ f = <dynamic, dynamic>{};
+
+main() {
+  a;
+  b;
+  c;
+  d;
+  e;
+  f;
+}

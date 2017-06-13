@@ -100,6 +100,8 @@ Future testReturn(MockCompiler compiler) {
     check(returnWithType("void", 1), MessageKind.RETURN_VALUE_IN_VOID),
     check(returnWithType("void", null)),
     check(returnWithType("String", ""), MessageKind.RETURN_NOTHING),
+    check(arrowReturnWithType("void", "4")),
+    check("void set foo(x) => 5;"),
     // check("String foo() {};"), // Should probably fail.
   ]);
 }
@@ -2563,8 +2565,8 @@ testAsyncReturn(MockCompiler compiler) {
     check("""
     Future<int> foo() async => new Future<Future<int>>.value();
     """),
-    check("void foo() async => 0;", MessageKind.RETURN_VALUE_IN_VOID),
-    check("void foo() async => new Future.value();",
+    check("void foo() async { return 0; }", MessageKind.RETURN_VALUE_IN_VOID),
+    check("void foo() async { return new Future.value(); }",
         MessageKind.RETURN_VALUE_IN_VOID),
     check("int foo() async => 0;", NOT_ASSIGNABLE),
     check("int foo() async => new Future<int>.value();", NOT_ASSIGNABLE),
@@ -2613,6 +2615,10 @@ class SubFunction implements Function {}''';
 
 String returnWithType(String type, expression) {
   return "$type foo() { return $expression; }";
+}
+
+String arrowReturnWithType(String type, expression) {
+  return "$type foo() => $expression;";
 }
 
 Node parseExpression(String text) =>

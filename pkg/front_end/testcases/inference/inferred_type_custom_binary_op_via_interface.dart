@@ -12,7 +12,7 @@ class I {
 abstract class C implements I {}
 
 C c;
-var /*@topType=bool*/ x = c * c;
+var /*@topType=bool*/ x = c /*@target=I::**/ * c;
 
 main() {
   c;

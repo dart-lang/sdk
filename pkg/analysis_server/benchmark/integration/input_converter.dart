@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library input.transformer;
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -11,6 +9,7 @@ import 'dart:io';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 

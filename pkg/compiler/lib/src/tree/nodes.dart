@@ -5,11 +5,11 @@
 import 'dart:collection' show IterableMixin;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' show FastaMessage;
-import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'package:front_end/src/fasta/scanner/token_constants.dart' as Tokens
     show PLUS_TOKEN;
 import 'package:front_end/src/fasta/scanner/characters.dart';
-import 'package:front_end/src/scanner/token.dart' show TokenType;
+import 'package:front_end/src/scanner/token.dart' show BeginToken, TokenType;
 
 import '../common.dart';
 import '../elements/elements.dart' show MetadataAnnotation;
@@ -1926,10 +1926,10 @@ class While extends Loop {
 
 class ParenthesizedExpression extends Expression {
   final Expression expression;
-  final BeginGroupToken beginToken;
+  final BeginToken beginToken;
 
   ParenthesizedExpression(
-      Expression this.expression, BeginGroupToken this.beginToken);
+      Expression this.expression, BeginToken this.beginToken);
 
   ParenthesizedExpression asParenthesizedExpression() => this;
 
@@ -1977,6 +1977,7 @@ class Modifiers extends Node {
   static const int FLAG_CONST = FLAG_VAR << 1;
   static const int FLAG_FACTORY = FLAG_CONST << 1;
   static const int FLAG_EXTERNAL = FLAG_FACTORY << 1;
+  static const int FLAG_COVARIANT = FLAG_EXTERNAL << 1;
 
   Modifiers(NodeList nodes) : this.withFlags(nodes, computeFlags(nodes.nodes));
 
@@ -2000,6 +2001,8 @@ class Modifiers extends Node {
         flags |= FLAG_FACTORY;
       else if (identical(value, 'external'))
         flags |= FLAG_EXTERNAL;
+      else if (identical(value, 'covariant'))
+        flags |= FLAG_COVARIANT;
       else
         throw 'internal error: ${nodes.head}';
     }
@@ -2036,6 +2039,7 @@ class Modifiers extends Node {
   bool get isConst => (flags & FLAG_CONST) != 0;
   bool get isFactory => (flags & FLAG_FACTORY) != 0;
   bool get isExternal => (flags & FLAG_EXTERNAL) != 0;
+  bool get isCovariant => (flags & FLAG_COVARIANT) != 0;
 
   Node getStatic() => findModifier('static');
 
@@ -2053,7 +2057,8 @@ class Modifiers extends Node {
         isVar: isVar,
         isConst: isConst,
         isFactory: isFactory,
-        isExternal: isExternal);
+        isExternal: isExternal,
+        isCovariant: isCovariant);
   }
 }
 
@@ -3256,8 +3261,8 @@ abstract class NullTreeElementMixin implements TreeElementMixin, Spannable {
   // You're not really supposed to access this field anyways.
   Object get _element => null;
   set _element(_) {
-    assert(invariant(this, false,
-        message: "Elements cannot be associated with ${runtimeType}."));
+    assert(false,
+        failedAt(this, "Elements cannot be associated with ${runtimeType}."));
   }
 }
 

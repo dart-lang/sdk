@@ -13,9 +13,11 @@ import '../elements/elements.dart'
     show ClassElement, FieldElement, MethodElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as js;
-import '../js_backend/js_backend.dart';
+import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart' show NativeData;
+import '../js_backend/runtime_types.dart';
 import '../native/native.dart' as native;
 import '../options.dart';
 import '../types/types.dart';
@@ -778,7 +780,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitIs(HIs node) {
-    ResolutionDartType type = node.typeExpression;
+    DartType type = node.typeExpression;
 
     if (!node.isRawCheck) {
       return node;
@@ -788,10 +790,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return node;
     }
 
-    if (type.isObject || type.treatAsDynamic) {
+    if (type == commonElements.objectType || type.treatAsDynamic) {
       return _graph.addConstantBool(true, _closedWorld);
     }
-    ResolutionInterfaceType interfaceType = type;
+    InterfaceType interfaceType = type;
     ClassEntity element = interfaceType.element;
     HInstruction expression = node.expression;
     if (expression.isInteger(_closedWorld)) {
@@ -2321,13 +2323,13 @@ class SsaTypeConversionInserter extends HBaseVisitor
   }
 
   void visitIs(HIs instruction) {
-    ResolutionDartType type = instruction.typeExpression;
+    DartType type = instruction.typeExpression;
     if (!instruction.isRawCheck) {
       return;
     } else if (type.isTypedef) {
       return;
     }
-    ResolutionInterfaceType interfaceType = type;
+    InterfaceType interfaceType = type;
     ClassEntity cls = interfaceType.element;
 
     List<HBasicBlock> trueTargets = <HBasicBlock>[];

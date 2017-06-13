@@ -33,8 +33,10 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
       false, owner_class, TokenPosition::kNoSource));
 
   const String& target_name = String::Handle(String::New("targetFunction"));
-  const Array& args_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(1, Object::null_array()));
+  const intptr_t kTypeArgsLen = 0;
+  const intptr_t kNumArgs = 1;
+  const Array& args_descriptor = Array::Handle(
+      ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
   const ICData& ic_data = ICData::ZoneHandle(
       ICData::New(function, target_name, args_descriptor, 15, 1, false));
 

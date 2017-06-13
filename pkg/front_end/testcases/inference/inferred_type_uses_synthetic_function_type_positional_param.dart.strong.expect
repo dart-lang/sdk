@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::List<([core::int]) → core::Object> v = <([core::int]) → core::Object>[self::f, self::g];
+static method f([core::int x = null]) → core::int
+  return null;
+static method g([core::int x = null]) → core::String
+  return null;
+static method main() → dynamic {
+  self::v;
+}

@@ -4,7 +4,7 @@
 
 library summary_report;
 
-import "status_file_parser.dart";
+import "expectation.dart";
 import "test_runner.dart";
 
 final summaryReport = new SummaryReport();
@@ -34,16 +34,15 @@ class SummaryReport {
     var expectations = testCase.expectedOutcomes;
 
     bool containsFail = expectations
-        .any((expectation) => expectation.canBeOutcomeOf(Expectation.FAIL));
-    bool containsPass = expectations.contains(Expectation.PASS);
+        .any((expectation) => expectation.canBeOutcomeOf(Expectation.fail));
+    bool containsPass = expectations.contains(Expectation.pass);
     bool containsSkip = expectations
-        .any((expectation) => expectation.canBeOutcomeOf(Expectation.SKIP));
-    bool containsSkipByDesign =
-        expectations.contains(Expectation.SKIP_BY_DESIGN);
-    bool containsCrash = expectations.contains(Expectation.CRASH);
-    bool containsOK = expectations.contains(Expectation.OK);
-    bool containsSlow = expectations.contains(Expectation.SLOW);
-    bool containsTimeout = expectations.contains(Expectation.TIMEOUT);
+        .any((expectation) => expectation.canBeOutcomeOf(Expectation.skip));
+    bool containsSkipByDesign = expectations.contains(Expectation.skipByDesign);
+    bool containsCrash = expectations.contains(Expectation.crash);
+    bool containsOK = expectations.contains(Expectation.ok);
+    bool containsSlow = expectations.contains(Expectation.slow);
+    bool containsTimeout = expectations.contains(Expectation.timeout);
 
     ++_total;
     if (containsSkip) {

@@ -450,8 +450,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Returned from a closure');
     }
     if (info.element.isField &&
-        !inferrer.compiler.backend
-            .canFieldBeUsedForGlobalOptimizations(info.element)) {
+        !inferrer.compiler.backend.canFieldBeUsedForGlobalOptimizations(
+            info.element, inferrer.closedWorld)) {
       bailout('Escape to code that has special backend treatment');
     }
     addNewEscapeInformation(info);
@@ -464,7 +464,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     }
     if (!inferrer.compiler.backend
         .canFunctionParametersBeUsedForGlobalOptimizations(
-            element.functionDeclaration)) {
+            element.functionDeclaration, inferrer.closedWorld)) {
       bailout('Escape to code that has special backend treatment');
     }
     if (isParameterOfListAddingMethod(element) ||

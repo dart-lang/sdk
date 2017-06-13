@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.analysis.notification.occurrences;
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,6 +23,8 @@ main() {
 class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   List<Occurrences> occurrencesList;
   Occurrences testOccurrences;
+
+  Completer _resultsAvailable = new Completer();
 
   /**
    * Asserts that there is an offset of [search] in [testOccurrences].
@@ -78,7 +79,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
 
   Future prepareOccurrences() {
     addAnalysisSubscription(AnalysisService.OCCURRENCES, testFile);
-    return waitForTasksFinished();
+    return _resultsAvailable.future;
   }
 
   void processNotification(Notification notification) {
@@ -86,6 +87,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
       var params = new AnalysisOccurrencesParams.fromNotification(notification);
       if (params.file == testFile) {
         occurrencesList = params.occurrences;
+        _resultsAvailable.complete(null);
       }
     }
   }
