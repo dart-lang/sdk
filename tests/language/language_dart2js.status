@@ -588,5 +588,5 @@ named_parameters_test/05: Crash # Issue 27394
 named_parameters_test/07: Crash # Issue 27394
 named_parameters_test/09: Crash # Issue 27394
 
-[ $compiler == dart2js && $csp ]
+[ $compiler == dart2js && $csp && !$fast_startup ]
 regress_18713_test: RuntimeError # Issue 29843
