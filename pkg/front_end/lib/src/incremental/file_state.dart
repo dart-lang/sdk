@@ -399,6 +399,10 @@ class FileSystemState {
 class LibraryCycle {
   final List<FileState> libraries = <FileState>[];
 
+  /// [LibraryCycle]s that contain libraries directly import or export
+  /// this [LibraryCycle].
+  final List<LibraryCycle> directUsers = <LibraryCycle>[];
+
   bool get _isForVm {
     return libraries.any((l) => l.uri.toString().endsWith('dart:_vmservice'));
   }
@@ -519,7 +523,7 @@ class _FileSystemViewEntry implements FileSystemEntity {
   @override
   Future<String> readAsString() async => _shouldNotBeQueried();
 
-  /// _FileSystemViewEntry is used by the incremental kernel generator to
+  /// [_FileSystemViewEntry] is used by the incremental kernel generator to
   /// provide Fasta with a consistent, race condition free view of the files
   /// constituting the project.  It should only need to be used for reading
   /// file contents.
@@ -549,6 +553,7 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   final nodesOfFiles = <FileState, _LibraryNode>{};
   final topologicallySortedCycles = <LibraryCycle>[];
+  final fileToCycleMap = <FileState, LibraryCycle>{};
 
   @override
   void evaluate(_LibraryNode v) {
@@ -558,9 +563,30 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   @override
   void evaluateScc(List<_LibraryNode> scc) {
     var cycle = new LibraryCycle();
+
+    // Build the set of cycles this cycle directly depends on.
+    var directDependencies = new Set<LibraryCycle>();
+    for (var node in scc) {
+      var file = node.file;
+      for (var importedLibrary in file.importedLibraries) {
+        var importedCycle = fileToCycleMap[importedLibrary];
+        if (importedCycle != null) directDependencies.add(importedCycle);
+      }
+      for (var exportedLibrary in file.exportedLibraries) {
+        var exportedCycle = fileToCycleMap[exportedLibrary];
+        if (exportedCycle != null) directDependencies.add(exportedCycle);
+      }
+    }
+
+    // Register this cycle as a direct user of the direct dependencies.
+    for (var directDependency in directDependencies) {
+      directDependency.directUsers.add(cycle);
+    }
+
     for (var node in scc) {
       node.isEvaluated = true;
       cycle.libraries.add(node.file);
+      fileToCycleMap[node.file] = cycle;
     }
     topologicallySortedCycles.add(cycle);
   }

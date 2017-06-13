@@ -436,12 +436,19 @@ import 'b.dart';
     FileState c = await fsState.getFile(cUri);
     FileState d = await fsState.getFile(dUri);
 
-    List<LibraryCycle> order = d.topologicalOrder;
-    expect(order, hasLength(4));
-    expect(order[0].libraries, contains(core));
-    expect(order[1].libraries, unorderedEquals([a]));
-    expect(order[2].libraries, unorderedEquals([b, c]));
-    expect(order[3].libraries, unorderedEquals([d]));
+    List<LibraryCycle> cycles = d.topologicalOrder;
+    expect(cycles, hasLength(4));
+
+    expect(cycles[0].libraries, contains(core));
+    expect(cycles[1].libraries, unorderedEquals([a]));
+    expect(cycles[2].libraries, unorderedEquals([b, c]));
+    expect(cycles[3].libraries, unorderedEquals([d]));
+
+    expect(cycles[0].directUsers,
+        unorderedEquals([cycles[1], cycles[2], cycles[3]]));
+    expect(cycles[1].directUsers, unorderedEquals([cycles[3]]));
+    expect(cycles[2].directUsers, unorderedEquals([cycles[3]]));
+    expect(cycles[3].directUsers, isEmpty);
   }
 
   test_topologicalOrder_cycleBeforeTarget_export() async {
