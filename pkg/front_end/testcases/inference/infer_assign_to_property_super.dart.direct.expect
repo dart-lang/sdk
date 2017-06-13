@@ -36,22 +36,22 @@ class Test extends self::Base {
     : super self::Base::•()
     ;
   method test() → void {
-    this.{=self::Base::member} = self::f();
-    this.{=self::Base::member}.==(null) ? this.{=self::Base::member} = self::f() : null;
-    this.{=self::Base::member} = this.{=self::Base::member}.+(self::f());
-    this.{=self::Base::member} = this.{=self::Base::member}.*(self::f());
-    this.{=self::Base::member} = this.{=self::Base::member}.&(self::f());
-    this.{=self::Base::member} = this.{=self::Base::member}.-(1);
-    this.{=self::Base::member} = this.{=self::Base::member}.-(1);
-    dynamic v1 = this.{=self::Base::member} = self::f();
-    dynamic v2 = let final dynamic #t1 = this.{=self::Base::member} in #t1.==(null) ? this.{=self::Base::member} = self::f() : #t1;
-    dynamic v3 = this.{=self::Base::member} = this.{=self::Base::member}.+(self::f());
-    dynamic v4 = this.{=self::Base::member} = this.{=self::Base::member}.*(self::f());
-    dynamic v5 = this.{=self::Base::member} = this.{=self::Base::member}.&(self::f());
-    dynamic v6 = this.{=self::Base::member} = this.{=self::Base::member}.-(1);
-    dynamic v7 = let final dynamic #t2 = this.{=self::Base::member} in let final dynamic #t3 = this.{=self::Base::member} = #t2.-(1) in #t2;
+    super.member = self::f<dynamic>();
+    super.member.==(null) ? super.member = self::f<dynamic>() : null;
+    super.member = super.member.+(self::f<dynamic>());
+    super.member = super.member.*(self::f<dynamic>());
+    super.member = super.member.&(self::f<dynamic>());
+    super.member = super.member.-(1);
+    super.member = super.member.-(1);
+    dynamic v1 = super.member = self::f<dynamic>();
+    dynamic v2 = let final dynamic #t1 = super.member in #t1.==(null) ? super.member = self::f<dynamic>() : #t1;
+    dynamic v3 = super.member = super.member.+(self::f<dynamic>());
+    dynamic v4 = super.member = super.member.*(self::f<dynamic>());
+    dynamic v5 = super.member = super.member.&(self::f<dynamic>());
+    dynamic v6 = super.member = super.member.-(1);
+    dynamic v7 = let final dynamic #t2 = super.member in let final dynamic #t3 = super.member = #t2.-(1) in #t2;
   }
 }
-static method f() → dynamic
+static method f<T extends core::Object>() → self::f::T
   return null;
 static method main() → dynamic {}

@@ -13,7 +13,7 @@ class B extends self::A {
     : super self::A::•()
     ;
   method m() → dynamic {
-    super.{self::A::field} = 42;
+    super.field = 42;
   }
 }
 static method main() → dynamic {

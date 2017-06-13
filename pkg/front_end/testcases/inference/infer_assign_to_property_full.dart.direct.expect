@@ -31,22 +31,22 @@ class Test extends core::Object {
     : super core::Object::•()
     ;
   static method test(self::Test t) → void {
-    t.member = self::f();
-    let final dynamic #t1 = t in #t1.member.==(null) ? #t1.member = self::f() : null;
-    let final dynamic #t2 = t in #t2.member = #t2.member.+(self::f());
-    let final dynamic #t3 = t in #t3.member = #t3.member.*(self::f());
-    let final dynamic #t4 = t in #t4.member = #t4.member.&(self::f());
+    t.member = self::f<dynamic>();
+    let final dynamic #t1 = t in #t1.member.==(null) ? #t1.member = self::f<dynamic>() : null;
+    let final dynamic #t2 = t in #t2.member = #t2.member.+(self::f<dynamic>());
+    let final dynamic #t3 = t in #t3.member = #t3.member.*(self::f<dynamic>());
+    let final dynamic #t4 = t in #t4.member = #t4.member.&(self::f<dynamic>());
     let final dynamic #t5 = t in #t5.member = #t5.member.-(1);
     let final dynamic #t6 = t in #t6.member = #t6.member.-(1);
-    dynamic v1 = t.member = self::f();
-    dynamic v2 = let final dynamic #t7 = t in let final dynamic #t8 = #t7.member in #t8.==(null) ? #t7.member = self::f() : #t8;
-    dynamic v3 = let final dynamic #t9 = t in #t9.member = #t9.member.+(self::f());
-    dynamic v4 = let final dynamic #t10 = t in #t10.member = #t10.member.*(self::f());
-    dynamic v5 = let final dynamic #t11 = t in #t11.member = #t11.member.&(self::f());
+    dynamic v1 = t.member = self::f<dynamic>();
+    dynamic v2 = let final dynamic #t7 = t in let final dynamic #t8 = #t7.member in #t8.==(null) ? #t7.member = self::f<dynamic>() : #t8;
+    dynamic v3 = let final dynamic #t9 = t in #t9.member = #t9.member.+(self::f<dynamic>());
+    dynamic v4 = let final dynamic #t10 = t in #t10.member = #t10.member.*(self::f<dynamic>());
+    dynamic v5 = let final dynamic #t11 = t in #t11.member = #t11.member.&(self::f<dynamic>());
     dynamic v6 = let final dynamic #t12 = t in #t12.member = #t12.member.-(1);
     dynamic v7 = let final dynamic #t13 = t in let final dynamic #t14 = #t13.member in let final dynamic #t15 = #t13.member = #t14.-(1) in #t14;
   }
 }
-static method f() → dynamic
+static method f<T extends core::Object>() → self::f::T
   return null;
 static method main() → dynamic {}
