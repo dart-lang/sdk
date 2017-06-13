@@ -7,7 +7,7 @@ abstract class C<T extends core::Object> extends core::Object {
   abstract get t() → self::C::T;
   abstract set t(self::C::T x) → void;
   static factory •<T extends core::Object>(self::C::•::T t) → self::C<self::C::•::T>
-    let final dynamic #t1 = self::CImpl::• in invalid-expression;
+    let dynamic #redirecting_factory = self::CImpl::• in invalid-expression;
 }
 class CImpl<T extends core::Object> extends core::Object implements self::C<self::CImpl::T> {
   field self::CImpl::T t;

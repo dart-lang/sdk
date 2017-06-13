@@ -64,7 +64,11 @@ import '../quote.dart'
 
 import '../modifier.dart' show Modifier, constMask, finalMask;
 
-import 'redirecting_factory_body.dart' show getRedirectionTarget;
+import 'redirecting_factory_body.dart'
+    show
+        RedirectingFactoryBody,
+        getRedirectingFactoryBody,
+        getRedirectionTarget;
 
 import 'kernel_builder.dart';
 
@@ -2175,6 +2179,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
                 nameToken.charOffset));
             return;
           }
+          RedirectingFactoryBody body = getRedirectingFactoryBody(target);
+          if (body != null) {
+            // If the redirection target is itself a redirecting factory, it
+            // means that it is unresolved. So we set target to null so we
+            // can generate a no-such-method error below.
+            assert(body.isUnresolved);
+            target = null;
+            errorName = body.unresolvedName;
+          }
         }
         if (target is Constructor ||
             (target is Procedure && target.kind == ProcedureKind.Factory)) {
@@ -2184,7 +2197,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               initialTarget: initialTarget));
           return;
         } else {
-          errorName = debugName(type.name, name);
+          errorName ??= debugName(type.name, name);
         }
       } else {
         errorName = debugName(getNodeName(type), name);

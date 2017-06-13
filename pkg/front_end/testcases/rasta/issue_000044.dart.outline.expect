@@ -9,7 +9,7 @@ class C extends core::Object {
   constructor missingFactoryKeyword() → void
     ;
   static factory good() → self::C
-    let final dynamic #t1 = self::C::constant in invalid-expression;
+    let dynamic #redirecting_factory = self::C::constant in invalid-expression;
   method notEvenAConstructor(dynamic a) → self::C
     ;
 }
