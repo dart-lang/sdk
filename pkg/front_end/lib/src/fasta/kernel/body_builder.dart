@@ -2153,6 +2153,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
       String errorName;
       if (type is ClassBuilder) {
+        if (type is EnumBuilder) {
+          push(buildCompileTimeError(
+              "An enum class can't be instantiated.", nameToken.charOffset));
+          return;
+        }
         Builder b =
             type.findConstructorOrFactory(name, token.charOffset, uri, library);
         Member target;

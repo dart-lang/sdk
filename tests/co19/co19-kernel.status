@@ -47,7 +47,6 @@ Language/Classes/declarations_t33: MissingCompileTimeError
 Language/Classes/definition_t23: CompileTimeError
 Language/Classes/same_name_member_and_class_t01: MissingCompileTimeError
 Language/Classes/same_name_member_and_class_t03: MissingCompileTimeError
-Language/Enums/restrictions_t08: MissingCompileTimeError
 Language/Expressions/Constants/bitwise_operators_t02: Crash
 Language/Expressions/Constants/bitwise_operators_t03: Crash
 Language/Expressions/Constants/bitwise_operators_t04: Crash
