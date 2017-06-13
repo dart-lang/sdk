@@ -280,15 +280,21 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     builder.next = existing;
     if (builder is PrefixBuilder && existing is PrefixBuilder) {
       assert(existing.next == null);
+      Builder deferred;
+      Builder other;
       if (builder.deferred) {
-        addCompileTimeError(builder.charOffset,
-            "Can't use the name '$name' for a deferred library, as the name is used elsewhere.");
-        addCompileTimeError(existing.charOffset, "'$name' is used here.");
+        deferred = builder;
+        other = existing;
+      } else if (existing.deferred) {
+        deferred = existing;
+        other = builder;
       }
-      if (existing.deferred) {
-        addCompileTimeError(existing.charOffset,
-            "Can't use the name '$name' for a deferred library, as the name is used elsewhere.");
-        addCompileTimeError(builder.charOffset, "'$name' is used here.");
+      if (deferred != null) {
+        addCompileTimeError(
+            deferred.charOffset,
+            "Can't use the name '$name' for a deferred library, "
+            "as the name is used elsewhere.");
+        addCompileTimeError(other.charOffset, "'$name' is used here.");
       }
       return existing
         ..exports.merge(builder.exports,

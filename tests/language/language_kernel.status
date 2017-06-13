@@ -197,6 +197,8 @@ const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 
 generic_function_typedef_test: RuntimeError # Fasta bug: resolution of type variables in typedef.
 
+constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
+
 # dartk: JIT & AOT failures (debug)
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 const_instance_field_test/01: Crash

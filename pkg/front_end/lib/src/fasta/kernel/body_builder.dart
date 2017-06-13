@@ -2047,18 +2047,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return new KernelConstructorInvocation(target, initialTarget, arguments,
           isConst: isConst)
         ..fileOffset = charOffset;
-    } else if (target is Procedure && target.kind == ProcedureKind.Factory) {
-      return new KernelFactoryConstructorInvocation(
-          target, initialTarget, arguments,
-          isConst: isConst)
-        ..fileOffset = charOffset;
     } else {
-      Procedure factory = target;
-      if (isConst && !factory.isConst) {
+      Procedure procedure = target;
+      if (isConst && !procedure.isConst) {
         return buildCompileTimeError("Not a const factory.", charOffset);
+      } else if (procedure.isFactory) {
+        return new KernelFactoryConstructorInvocation(
+            target, initialTarget, arguments,
+            isConst: isConst)
+          ..fileOffset = charOffset;
+      } else {
+        return new KernelStaticInvocation(target, arguments, isConst: isConst)
+          ..fileOffset = charOffset;
       }
-      return new KernelStaticInvocation(target, arguments, isConst: isConst)
-        ..fileOffset = charOffset;
     }
   }
 
