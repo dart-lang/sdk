@@ -9,8 +9,6 @@
 rasta/unsupported_platform_library: RuntimeError # OK, this must report an error at runtime.
 
 DeltaBlue: Fail # Missing types on constructor parameters.
-async_function: Fail # Async transformer should be optional.
-await: Fail
 call: Fail # Test can't run.
 cycles: Fail # Compile-time error handling destroys program.
 fallthrough: Fail # Missing FallThroughError.

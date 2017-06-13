@@ -25,22 +25,22 @@ class C extends self::B {
     : super self::B::•()
     ;
 }
-static method f() → dynamic
+static method f<T extends core::Object>() → self::f::T
   return null;
 static method test() → void {
   self::B local;
-  local = self::f();
-  local.==(null) ? local = self::f() : null;
-  local = local.+(self::f());
-  local = local.*(self::f());
-  local = local.&(self::f());
+  local = self::f<dynamic>();
+  local.==(null) ? local = self::f<dynamic>() : null;
+  local = local.+(self::f<dynamic>());
+  local = local.*(self::f<dynamic>());
+  local = local.&(self::f<dynamic>());
   local = local.-(1);
   local = local.-(1);
-  dynamic v1 = local = self::f();
-  dynamic v2 = let final dynamic #t1 = local in #t1.==(null) ? local = self::f() : #t1;
-  dynamic v3 = local = local.+(self::f());
-  dynamic v4 = local = local.*(self::f());
-  dynamic v5 = local = local.&(self::f());
+  dynamic v1 = local = self::f<dynamic>();
+  dynamic v2 = let final dynamic #t1 = local in #t1.==(null) ? local = self::f<dynamic>() : #t1;
+  dynamic v3 = local = local.+(self::f<dynamic>());
+  dynamic v4 = local = local.*(self::f<dynamic>());
+  dynamic v5 = local = local.&(self::f<dynamic>());
   dynamic v6 = local = local.-(1);
   dynamic v7 = let final dynamic #t2 = local in let final dynamic #t3 = local = #t2.-(1) in #t2;
 }

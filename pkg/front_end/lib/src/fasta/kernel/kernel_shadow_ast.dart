@@ -281,6 +281,11 @@ abstract class KernelComplexAssignment extends Expression
 
   KernelComplexAssignment(this.rhs);
 
+  void set parent(TreeNode node) {
+    super.parent = node;
+    desugared?.parent = node;
+  }
+
   @override
   accept(ExpressionVisitor v) => desugared.accept(v);
 

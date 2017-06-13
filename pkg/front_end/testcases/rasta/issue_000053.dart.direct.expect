@@ -9,7 +9,7 @@ class C extends core::Object {
   operator ==(dynamic other) → dynamic
     return throw "x";
   method test() → dynamic {
-    this.{=core::Object::==}(null);
+    super.==(null);
   }
 }
 static method main() → dynamic {
