@@ -325,8 +325,5 @@ type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/06: Fail
 type_variable_bounds4_test/01: RuntimeError
 
-[ $compiler == dartk || $compiler == dartkp ]
-metadata_test: CompileTimeError # Fixed in ahe's dev branch.
-
 [ ! $checked && ($compiler == dartk || $compiler == dartkp) ]
 const_conditional_test/08: MissingCompileTimeError # KernelVM bug: Constant evaluation.

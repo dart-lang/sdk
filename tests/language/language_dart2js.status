@@ -224,7 +224,6 @@ constructor_named_arguments_test/01: CompileTimeError # Issue 25225
 not_enough_positional_arguments_test/01: CompileTimeError # Issue 12838
 not_enough_positional_arguments_test/02: CompileTimeError # Issue 12838
 not_enough_positional_arguments_test/05: CompileTimeError # Issue 12838
-metadata_test: CompileTimeError # Issue 5841
 infinity_test: RuntimeError # Issue 4984
 mixin_mixin2_test: RuntimeError # Issue 13109.
 mixin_mixin3_test: RuntimeError # Issue 13109.
@@ -403,7 +402,6 @@ malformed_inheritance_test/10: Crash # Issue 27394
 malformed_test/none: Crash # Issue 27394
 many_generic_instanceof_test: RuntimeError # Issue 27394
 many_method_calls_test: Pass # Issue 27394
-metadata_test: Crash # Issue 27394
 mixin_black_listed_test/08: Crash # Issue 27394
 mixin_cyclic_test/01: Crash # Issue 27394
 mixin_extends_field_test: Crash # Issue 27394

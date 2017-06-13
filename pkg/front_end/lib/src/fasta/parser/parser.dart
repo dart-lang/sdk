@@ -2491,6 +2491,8 @@ class Parser {
       return parseExpressionStatementOrConstDeclaration(token);
     } else if (token.isIdentifier) {
       return parseExpressionStatementOrDeclaration(token);
+    } else if (identical(value, '@')) {
+      return parseVariablesDeclaration(token);
     } else {
       return parseExpressionStatement(token);
     }
