@@ -6,8 +6,6 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
-inference/infer_local_function_return_type: RuntimeError
-
 DeltaBlue: Fail
 accessors: Fail
 arithmetic: Fail
@@ -71,6 +69,7 @@ inference/infer_from_variables_in_cycle_libs_when_flag_is_on: Fail
 inference/infer_from_variables_in_cycle_libs_when_flag_is_on2: Fail
 inference/infer_from_variables_in_non_cycle_imports_with_flag: Fail
 inference/infer_from_variables_in_non_cycle_imports_with_flag2: Fail
+inference/infer_local_function_return_type: Fail
 inference/infer_statics_transitively: Fail
 inference/infer_statics_transitively3: Fail
 inference/infer_statics_transitively_a: Fail
