@@ -37,10 +37,8 @@ class KernelTask extends CompilerTask {
   ///
   /// May enqueue more elements to the resolution queue.
   ir.Program buildProgram(LibraryElement library) {
-    var main = library.findExported(Identifiers.main);
+    MethodElement main = library.findExported(Identifiers.main);
     if (main == null) {
-      // TODO(johnniwinther): Issue 29844.
-      // ignore: INVALID_ASSIGNMENT
       main = _compiler.frontendStrategy.commonElements.missingMain;
     }
     return new ir.Program(

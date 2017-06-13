@@ -229,12 +229,10 @@ class Collector {
     addClassesWithSuperclasses(instantiatedClasses);
 
     // 2. Add all classes used as mixins.
-    Set<ClassEntity> mixinClasses = new Set<ClassEntity>();
-    for (ClassEntity cls in neededClasses) {
-      _elementEnvironment.forEachMixin(cls, (ClassEntity mixinClass) {
-        mixinClasses.add(mixinClass);
-      });
-    }
+    Set<ClassEntity> mixinClasses = neededClasses
+        .where(_elementEnvironment.isMixinApplication)
+        .map(_elementEnvironment.getEffectiveMixinClass)
+        .toSet();
     neededClasses.addAll(mixinClasses);
 
     // 3. Find all classes needed for rti.

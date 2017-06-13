@@ -408,8 +408,23 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  bool isMixinApplication(ClassElement cls) {
+    return cls.isMixinApplication;
+  }
+
+  @override
   bool isUnnamedMixinApplication(ClassElement cls) {
     return cls.isUnnamedMixinApplication;
+  }
+
+  @override
+  ClassEntity getEffectiveMixinClass(ClassElement cls) {
+    if (!cls.isMixinApplication) return null;
+    do {
+      MixinApplicationElement mixinApplication = cls;
+      cls = mixinApplication.mixin;
+    } while (cls.isMixinApplication);
+    return cls;
   }
 
   @override

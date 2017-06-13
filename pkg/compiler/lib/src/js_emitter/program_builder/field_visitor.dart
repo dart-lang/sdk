@@ -86,8 +86,8 @@ class FieldVisitor {
     void visitField(FieldEntity field, {ClassEntity holder}) {
       assert(!(field is FieldElement && !field.isDeclaration), failedAt(field));
 
-      bool isMixinNativeField = isNativeClass &&
-          _elementEnvironment.isUnnamedMixinApplication(holder);
+      bool isMixinNativeField =
+          isNativeClass && _elementEnvironment.isMixinApplication(holder);
 
       // See if we can dynamically create getters and setters.
       // We can only generate getters and setters for [element] since
