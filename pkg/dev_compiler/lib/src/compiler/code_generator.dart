@@ -827,7 +827,9 @@ class CodeGenerator extends Object
       block.add(js.statement('# = #;', [className, classExpr]));
     }
 
-    if (!isMixinAlias) _defineConstructors(classElem, className, [], block, []);
+    if (!isMixinAlias) {
+      block.addAll(_defineConstructors(classElem, className, [], []));
+    }
 
     if (classElem.interfaces.isNotEmpty) {
       block.add(js.statement('#[#.implements] = () => #;', [
@@ -896,6 +898,7 @@ class CodeGenerator extends Object
     _classProperties =
         new ClassPropertyModel.build(_extensionTypes, virtualFields, classElem);
 
+    var jsCtors = _defineConstructors(classElem, className, fields, ctors);
     var classExpr = _emitClassExpression(classElem, _emitClassMethods(node),
         fields: allFields);
 
@@ -905,7 +908,7 @@ class CodeGenerator extends Object
 
     // Emit the class, e.g. `core.Object = class Object { ... }`
     _defineClass(classElem, className, classExpr, body);
-    _defineConstructors(classElem, className, fields, body, ctors);
+    body.addAll(jsCtors);
 
     // Emit things that come after the ES6 `class ... { ... }`.
     var jsPeerNames = _getJSPeerNames(classElem);
@@ -1715,11 +1718,10 @@ class CodeGenerator extends Object
   }
 
   /// Defines all constructors for this class as ES5 constructors.
-  void _defineConstructors(
+  List<JS.Statement> _defineConstructors(
       ClassElement classElem,
       JS.Expression className,
       List<FieldDeclaration> fields,
-      List<JS.Statement> body,
       List<ConstructorDeclaration> ctors) {
     // See if we have a "call" with a statically known function type:
     //
@@ -1735,6 +1737,7 @@ class CodeGenerator extends Object
     bool isCallable = classElem.lookUpMethod('call', null) != null ||
         classElem.lookUpGetter('call', null)?.returnType is FunctionType;
 
+    var body = <JS.Statement>[];
     void addConstructor(ConstructorElement element, JS.Expression jsCtor) {
       var ctorName = _constructorName(element);
       if (JS.invalidStaticFieldName(element.name)) {
@@ -1760,19 +1763,19 @@ class CodeGenerator extends Object
                 new JS.Block(superCall != null ? [superCall] : []),
                 isCallable));
       }
-      return;
+      return body;
     }
 
     // Iff no constructor is specified for a class C, it implicitly has a
     // default constructor `C() : super() {}`, unless C is class Object.
     if (ctors.isEmpty) {
       var superCall = _superConstructorCall(classElem, className);
-      List<JS.Statement> body = [_initializeFields(fields)];
-      if (superCall != null) body.add(superCall);
+      var ctorBody = <JS.Statement>[_initializeFields(fields)];
+      if (superCall != null) ctorBody.add(superCall);
 
       addConstructor(classElem.unnamedConstructor,
-          _finishConstructorFunction([], new JS.Block(body), isCallable));
-      return;
+          _finishConstructorFunction([], new JS.Block(ctorBody), isCallable));
+      return body;
     }
 
     bool foundConstructor = false;
@@ -1797,6 +1800,8 @@ class CodeGenerator extends Object
         className
       ]));
     }
+
+    return body;
   }
 
   /// Emits static fields for a class, and initialize them eagerly if possible,
