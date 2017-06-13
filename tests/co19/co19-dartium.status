@@ -6,6 +6,7 @@
 *: Skip # running co19 tests on content_shell would make our dartium cycle-times very long
 
 [ $compiler == none && $runtime == dartium ]
+Language/Classes/Constructors/Generative_Constructors/execution_t03: Fail, OK
 Language/Classes/Constructors/Generative_Constructors/final_variables_t01: Pass, Fail #: Please triage this failure.
 Language/Classes/declarations_t01: Skip # Times out. Please triage this failure.
 Language/Classes/declarations_t02: Skip # Times out. Please triage this failure.
@@ -66,6 +67,8 @@ Language/Expressions/Identifier_Reference/built_in_identifier_t67: Fail # Issue 
 Language/Expressions/Identifier_Reference/built_in_identifier_t68: Fail # Issue 25733
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: Fail # Issue 25732
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: Fail # Issue 25772
+Language/Expressions/Instance_Creation/New/execution_t04: Fail, OK
+Language/Expressions/Instance_Creation/New/execution_t06: Fail, OK
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: RuntimeError, OK  # Uses Isolate.spawn.
 Language/Libraries_and_Scripts/Exports/reexport_t01: fail # Dart issue 12916
 Language/Libraries_and_Scripts/Exports/reexport_t02: fail # Dart issue 12916
@@ -90,9 +93,9 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t08: Runtime
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
-Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: Pass, RuntimeError # Please triage this failure
-Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t02: Pass, RuntimeError # Please triage this failure
-Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: Pass, RuntimeError # Please triage this failure
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: RuntimeError # Please triage this failure
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t02: RuntimeError # Please triage this failure
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -113,7 +116,6 @@ LayoutTests/fast/canvas/canvas-large-dimensions_t01: RuntimeError # co19-roll r7
 LayoutTests/fast/canvas/canvas-large-fills_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/canvas-lose-restore-googol-size_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/canvas-lose-restore-max-int-size_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/canvas/draw-custom-focus-ring_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/drawImage-with-broken-image_t01: Timeout, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/getPutImageDataPairTest_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -321,7 +323,6 @@ LayoutTests/fast/css/media-query-recovery_t01: RuntimeError # co19-roll r761: Pl
 LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
 LayoutTests/fast/css/parsing-css-nonascii_t01: RuntimeError # See Issue https://github.com/dart-lang/co19/issues/95
-LayoutTests/fast/css/parsing-object-position_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-page-rule_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/parsing-selector-error-recovery_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/pseudo-any_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
@@ -445,7 +446,7 @@ LayoutTests/fast/dom/Range/bug-19527_t01: RuntimeError # Please triage this fail
 LayoutTests/fast/dom/Range/range-created-during-remove-children_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/Range/range-detached-exceptions_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/dom/set-innerHTML_t01: RuntimeError # co19-roll r738: Please triage this failure.
-LayoutTests/fast/dom/shadow/content-pseudo-element-css-text_t01: RuntimeError # Please triage this failure.
+LayoutTests/fast/dom/shadow/content-pseudo-element-css-text_t01: RuntimeError # See Issue
 LayoutTests/fast/dom/shadow/form-in-shadow_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/shadow/host-context-pseudo-class-css-text_t01: RuntimeError # See Issue https://github.com/dart-lang/co19/issues/100
 LayoutTests/fast/dom/shadow/host-pseudo-class-css-text_t01: RuntimeError # See Issue https://github.com/dart-lang/co19/issues/1
@@ -808,11 +809,9 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip # co19-roll r722: Ple
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19-roll r722: Please triage this failure.
 LibTest/core/int/operator_left_shift_A01_t02: Pass, Fail # Please triage this failure.
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Please triage this failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue 22200
-LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: RuntimeError # co19-roll r722: Please triage this failure.
@@ -1049,6 +1048,7 @@ WebPlatformTest/DOMEvents/approved/EventObject.multiple.dispatchEvent_t01: Runti
 WebPlatformTest/DOMEvents/approved/ProcessingInstruction.DOMCharacterDataModified_t01: Skip # Times out. co19-roll r738: Please triage this failure.
 WebPlatformTest/html-imports/link-import_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html-imports/link-import_t02: RuntimeError # co19-roll r761: Please triage this failure.
+WebPlatformTest/html-imports/link-import-null_t01: RuntimeError # co19 issue 11.
 WebPlatformTest/html-imports/loading-import_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -1058,14 +1058,20 @@ WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Ru
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: Skip # accesses window.document from a cross-frame window
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-case_t01: RuntimeError # co19 issue 11.
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-newelements_t01: RuntimeError # co19 issue 11.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-param_t01: RuntimeError # co19 issue 11.
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t05: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t07: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t02: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t03: RuntimeError # co19 issue 11.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t05: RuntimeError # co19 issue 11.
 WebPlatformTest/html/dom/elements/global-attributes/dataset-delete_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/dom/elements/global-attributes/dataset-get_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/dom/elements/global-attributes/dataset-set_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/disabled-elements/disabledElement_t01: RuntimeError # co19 issue 11.
 WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: RuntimeError # co19 issue 11.
 WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/embedded-content/media-elements/error-codes/error_t01: Skip # Times out and fails. # co19-roll r738: Please triage this failure.
