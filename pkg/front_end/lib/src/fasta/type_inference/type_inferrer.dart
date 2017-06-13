@@ -549,7 +549,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     // TODO(paulberry): if we are doing top level inference and type arguments
     // were omitted, report an error.
-    if (!isTopLevel) {
+    if (!isTopLevel || isOverloadedArithmeticOperator) {
       int i = 0;
       _forEachArgument(arguments, (name, expression) {
         DartType formalType = name != null

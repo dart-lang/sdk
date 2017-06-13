@@ -399,6 +399,19 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     return context == null;
   }
 
+  /// True if [member] is a binary operator that returns an `int` if both
+  /// operands are `int`, and otherwise returns `double`.
+  ///
+  /// This is a case of type-based overloading, which in Dart is only supported
+  /// by giving special treatment to certain arithmetic operators.
+  bool isOverloadedArithmeticOperator(Procedure member) {
+    // TODO(paulberry): this matches what is defined in the spec.  It would be
+    // nice if we could change kernel to match the spec and not have to
+    // override.
+    if (member.name.name == 'remainder') return false;
+    return super.isOverloadedArithmeticOperator(member);
+  }
+
   @override
   bool isTop(DartType t) {
     if (t is UnknownType) {

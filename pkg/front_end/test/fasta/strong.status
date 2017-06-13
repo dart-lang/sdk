@@ -61,8 +61,6 @@ inference/downwards_inference_on_function_of_t_using_the_t: Fail
 inference/future_then_explicit_future: Fail
 inference/generic_functions_return_typedef: Fail
 inference/generic_methods_infer_js_builtin: Fail
-inference/infer_binary_int_double: Fail
-inference/infer_binary_int_int: Fail
 inference/infer_consts_transitively_2: Fail
 inference/infer_consts_transitively_2_a: Fail
 inference/infer_correctly_on_multiple_variables_declared_together: Fail

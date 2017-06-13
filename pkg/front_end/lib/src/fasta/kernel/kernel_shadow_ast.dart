@@ -1273,6 +1273,12 @@ class KernelMethodInvocation extends MethodInvocation
     // The inference dependencies are the inference dependencies of the
     // receiver.
     collector.collectDependencies(receiver);
+    if (identical(name, '+') ||
+        identical(name, '-') ||
+        identical(name, '*') ||
+        identical(name, '%')) {
+      collector.collectDependencies(arguments.positional[0]);
+    }
   }
 
   @override
