@@ -177,7 +177,7 @@ regress_20394_test/01: MissingCompileTimeError # Fasta bug: Illegal access to pr
 
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
 
-malformed_test/none: Crash # Fasta bug: Leads to assertion error in Fasta.
+malformed_test/none: RuntimeError
 
 export_double_same_main_test: CompileTimeError # Fasta bug: Main is exported.
 export_main_test: CompileTimeError # Fasta bug: Main is exported.

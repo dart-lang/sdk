@@ -231,6 +231,9 @@ type Field extends Member {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic);
+  // Byte offset in the binary for the parent class,
+  // or 0 if parent is not a class
+  UInt parentPosition;
   Name name;
   // An absolute path URI to the .dart file from which the field was created.
   UriReference fileUri;
@@ -245,6 +248,7 @@ type Constructor extends Member {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
+  UInt parentPosition; // Byte offset in the binary for the parent class.
   Name name;
   List<Expression> annotations;
   FunctionNode function;
@@ -268,6 +272,9 @@ type Procedure extends Member {
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst);
+  // Byte offset in the binary for the parent class,
+  // or 0 if parent is not a class.
+  UInt parentPosition;
   Name name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
@@ -316,7 +323,7 @@ enum AsyncMarker {
 */
 
 type FunctionNode {
-  // Note: there is no tag on FunctionNode.
+  Byte tag = 3;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte asyncMarker; // Index into AsyncMarker above.
@@ -361,7 +368,8 @@ type InvalidExpression extends Expression {
 type VariableGet extends Expression {
   Byte tag = 20;
   FileOffset fileOffset;
-  UInt variableDeclarationPosition; // Byte offset in the binary for the variable declaration.
+  // Byte offset in the binary for the variable declaration (without tag).
+  UInt variableDeclarationPosition;
   VariableReference variable;
 }
 
@@ -369,13 +377,15 @@ type SpecializedVariableGet extends Expression {
   Byte tag = 128 + N; // Where 0 <= N < 8.
   // Equivalent to a VariableGet with index N.
   FileOffset fileOffset;
-  UInt variableDeclarationPosition; // Byte offset in the binary for the variable declaration.
+  // Byte offset in the binary for the variable declaration (without tag).
+  UInt variableDeclarationPosition;
 }
 
 type VariableSet extends Expression {
   Byte tag = 21;
   FileOffset fileOffset;
-  UInt variableDeclarationPosition; // Byte offset in the binary for the variable declaration.
+  // Byte offset in the binary for the variable declaration (without tag).
+  UInt variableDeclarationPosition;
   VariableReference variable;
   Expression value;
 }
@@ -383,7 +393,8 @@ type VariableSet extends Expression {
 type SpecializedVariableSet extends Expression {
   Byte tag = 136 + N; // Where 0 <= N < 8.
   FileOffset fileOffset;
-  UInt variableDeclarationPosition; // Byte offset in the binary for the variable declaration.
+  // Byte offset in the binary for the variable declaration (without tag).
+  UInt variableDeclarationPosition;
   Expression value;
   // Equivalent to VariableSet with index N.
 }
@@ -838,7 +849,8 @@ type ReturnStatement extends Statement {
 type TryCatch extends Statement {
   Byte tag = 75;
   Statement body;
-  Byte anyCatchNeedsStackTrace; // 1 if any catch needs a stacktrace (have a stacktrace variable).
+  // 1 if any catch needs a stacktrace (have a stacktrace variable).
+  Byte anyCatchNeedsStackTrace;
   List<Catch> catches;
 }
 
@@ -934,7 +946,8 @@ type FunctionType extends DartType {
   Byte tag = 94;
   List<TypeParameter> typeParameters;
   UInt requiredParameterCount;
-  UInt totalParameterCount; // positionalParameters.length + namedParameters.length
+  // positionalParameters.length + namedParameters.length
+  UInt totalParameterCount;
   List<DartType> positionalParameters;
   List<NamedDartType> namedParameters;
   DartType returnType;
@@ -976,7 +989,8 @@ type TypeParameterType extends DartType {
   UInt index;
 
   // Byte offset in the binary for the type declaration.
-  // Note: This can also be 0, which is a 'forward reference' and is not to be used.
+  // Note: This can also be 0,
+  // which is a 'forward reference' and is not to be used.
   UInt typeParameterPosition;
   Option<DartType> bound;
 }

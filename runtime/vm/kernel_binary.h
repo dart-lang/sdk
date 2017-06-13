@@ -27,6 +27,7 @@ enum Tag {
 
   kClass = 2,
 
+  kFunctionNode = 3,
   kField = 4,
   kConstructor = 5,
   kProcedure = 6,

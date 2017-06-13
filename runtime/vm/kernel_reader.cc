@@ -434,8 +434,6 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
   for (intptr_t i = 0; i < kernel_klass->constructors().length(); i++) {
     Constructor* kernel_constructor = kernel_klass->constructors()[i];
     ActiveMemberScope active_member_scope(&active_class_, kernel_constructor);
-    ActiveFunctionScope active_function_scope(&active_class_,
-                                              kernel_constructor->function());
 
     const dart::String& name =
         H.DartConstructorName(kernel_constructor->canonical_name());
@@ -489,8 +487,6 @@ void KernelReader::ReadProcedure(const dart::Library& library,
                                  Class* kernel_klass) {
   ActiveClassScope active_class_scope(&active_class_, kernel_klass, &owner);
   ActiveMemberScope active_member_scope(&active_class_, kernel_procedure);
-  ActiveFunctionScope active_function_scope(&active_class_,
-                                            kernel_procedure->function());
 
   const dart::String& name =
       H.DartProcedureName(kernel_procedure->canonical_name());

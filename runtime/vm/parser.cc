@@ -16,12 +16,12 @@
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
-#include "vm/kernel_to_il.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/kernel_binary_flowgraph.h"
 #include "vm/longjump.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
@@ -239,8 +239,43 @@ kernel::ScopeBuildingResult* ParsedFunction::EnsureKernelScopes() {
     if (function().kernel_function() != NULL) {
       node = static_cast<kernel::TreeNode*>(function().kernel_function());
     }
-    kernel::ScopeBuilder builder(this, node);
-    kernel_scopes_ = builder.BuildScopes();
+
+    intptr_t kernel_offset = -1;
+    const uint8_t* kernel_data = NULL;
+    intptr_t kernel_data_size = 0;
+    if (node != NULL) {
+      kernel::TreeNode* library_node = node;
+      if (node != NULL) {
+        const Function* parent = &function();
+        while (true) {
+          library_node =
+              static_cast<kernel::TreeNode*>(parent->kernel_function());
+          while (library_node != NULL && !library_node->IsLibrary()) {
+            if (library_node->IsMember()) {
+              library_node = kernel::Member::Cast(library_node)->parent();
+            } else if (library_node->IsClass()) {
+              library_node = kernel::Class::Cast(library_node)->parent();
+              break;
+            } else {
+              library_node = NULL;
+              break;
+            }
+          }
+          if (library_node != NULL) break;
+          parent = &Function::Handle(parent->parent_function());
+        }
+      }
+      if (library_node != NULL && library_node->IsLibrary()) {
+        kernel::Library* library = kernel::Library::Cast(library_node);
+        kernel_offset = node->kernel_offset();
+        kernel_data = library->kernel_data();
+        kernel_data_size = library->kernel_data_size();
+      }
+    }
+
+    kernel::StreamingScopeBuilder builder2(this, kernel_offset, kernel_data,
+                                           kernel_data_size);
+    kernel_scopes_ = builder2.BuildScopes();
   }
   return kernel_scopes_;
 }

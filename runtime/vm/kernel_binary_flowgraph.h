@@ -24,6 +24,9 @@ class StreamingDartTypeTranslator {
 
   // Can return a malformed type.
   AbstractType& BuildType();
+  // Is guaranteed to be not malformed.
+  AbstractType& BuildVariableType();
+
   // Will return `TypeArguments::null()` in case any of the arguments are
   // malformed.
   const TypeArguments& BuildTypeArguments(intptr_t length);
@@ -46,29 +49,32 @@ class StreamingDartTypeTranslator {
   class TypeParameterScope {
    public:
     TypeParameterScope(StreamingDartTypeTranslator* translator,
-                       intptr_t* parameters,
+                       intptr_t parameters_offset,
                        intptr_t parameters_count)
-        : parameters_(parameters),
+        : parameters_offset_(parameters_offset),
           parameters_count_(parameters_count),
           outer_(translator->type_parameter_scope_),
           translator_(translator) {
       translator_->type_parameter_scope_ = this;
     }
     ~TypeParameterScope() {
-      delete[] parameters_;
       translator_->type_parameter_scope_ = outer_;
     }
 
     TypeParameterScope* outer() const { return outer_; }
-    intptr_t* parameters() const { return parameters_; }
+    intptr_t parameters_offset() const { return parameters_offset_; }
     intptr_t parameters_count() const { return parameters_count_; }
 
    private:
-    intptr_t* parameters_;
+    intptr_t parameters_offset_;
     intptr_t parameters_count_;
     TypeParameterScope* outer_;
     StreamingDartTypeTranslator* translator_;
   };
+
+  intptr_t FindTypeParameterIndex(intptr_t parameters_offset,
+                                  intptr_t parameters_count,
+                                  intptr_t look_for);
 
   StreamingFlowGraphBuilder* builder_;
   TranslationHelper& translation_helper_;
@@ -77,6 +83,159 @@ class StreamingDartTypeTranslator {
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;
+
+  friend class StreamingScopeBuilder;
+};
+
+
+class StreamingScopeBuilder {
+ public:
+  StreamingScopeBuilder(ParsedFunction* parsed_function,
+                        intptr_t kernel_offset,
+                        const uint8_t* buffer,
+                        intptr_t buffer_length);
+
+  virtual ~StreamingScopeBuilder();
+
+  ScopeBuildingResult* BuildScopes();
+
+ private:
+  void VisitField();
+  void ReadFieldUntilAnnotation(TokenPosition* position,
+                                TokenPosition* end_position,
+                                word* flags,
+                                intptr_t* parent_offset);
+
+  /**
+   * Will read until the function node; as this is optional, will return the tag
+   * (i.e. either kSomething or kNothing).
+   */
+  Tag ReadProcedureUntilFunctionNode(word* kind, intptr_t* parent_offset);
+  void GetTypeParameterInfoForPossibleProcedure(
+      intptr_t outermost_kernel_offset,
+      bool* member_is_procedure,
+      bool* is_factory_procedure,
+      intptr_t* member_type_parameters,
+      intptr_t* member_type_parameters_offset_start);
+  void VisitProcedure();
+
+  /**
+   * Will return binary offset of parent class.
+   */
+  intptr_t ReadConstructorUntilFunctionNode();
+  void VisitConstructor();
+
+  void ReadClassUntilTypeParameters();
+  void ReadClassUntilFields();
+
+  void ReadFunctionNodeUntilTypeParameters(word* async_marker,
+                                           word* dart_async_marker);
+  void VisitFunctionNode();
+
+  void DiscoverEnclosingElements(Zone* zone,
+                                 const Function& function,
+                                 Function* outermost_function,
+                                 intptr_t* outermost_kernel_offset,
+                                 intptr_t* parent_class_offset);
+  intptr_t GetParentOffset(intptr_t offset);
+  void GetTypeParameterInfoForClass(intptr_t class_offset,
+                                    intptr_t* type_paremeter_counts,
+                                    intptr_t* type_paremeter_offset);
+  void VisitNode();
+  void VisitInitializer();
+  void VisitExpression();
+  void VisitStatement();
+  void VisitArguments();
+  void VisitVariableDeclaration();
+  void VisitDartType();
+  void VisitInterfaceType(bool simple);
+  void VisitFunctionType(bool simple);
+  void VisitTypeParameterType();
+  void HandleLocalFunction(intptr_t parent_kernel_offset);
+
+  void EnterScope(intptr_t kernel_offset);
+  void ExitScope(TokenPosition start_position, TokenPosition end_position);
+
+  /**
+   * This assumes that the reader is at a FunctionNode,
+   * about to read the positional parameters.
+   */
+  void AddPositionalAndNamedParameters(intptr_t pos = 0);
+  /**
+   * This assumes that the reader is at a FunctionNode,
+   * about to read a parameter (i.e. VariableDeclaration).
+   */
+  void AddVariableDeclarationParameter(intptr_t pos);
+
+  LocalVariable* MakeVariable(TokenPosition declaration_pos,
+                              TokenPosition token_pos,
+                              const dart::String& name,
+                              const AbstractType& type);
+
+  void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
+                            const char* prefix,
+                            intptr_t nesting_depth);
+
+  void AddTryVariables();
+  void AddCatchVariables();
+  void AddIteratorVariable();
+  void AddSwitchVariable();
+
+  StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset);
+
+  // Record an assignment or reference to a variable.  If the occurrence is
+  // in a nested function, ensure that the variable is handled properly as a
+  // captured variable.
+  void LookupVariable(intptr_t declaration_binary_offest);
+
+  const dart::String& GenerateName(const char* prefix, intptr_t suffix);
+
+  void HandleSpecialLoad(LocalVariable** variable, const dart::String& symbol);
+  void LookupCapturedVariableByName(LocalVariable** variable,
+                                    const dart::String& name);
+
+  struct DepthState {
+    explicit DepthState(intptr_t function)
+        : loop_(0),
+          function_(function),
+          try_(0),
+          catch_(0),
+          finally_(0),
+          for_in_(0) {}
+
+    intptr_t loop_;
+    intptr_t function_;
+    intptr_t try_;
+    intptr_t catch_;
+    intptr_t finally_;
+    intptr_t for_in_;
+  };
+
+  ScopeBuildingResult* result_;
+  ParsedFunction* parsed_function_;
+  intptr_t kernel_offset_;
+
+  ActiveClass active_class_;
+
+  TranslationHelper translation_helper_;
+  Zone* zone_;
+
+  FunctionNode::AsyncMarker current_function_async_marker_;
+  LocalScope* current_function_scope_;
+  LocalScope* scope_;
+  DepthState depth_;
+
+  intptr_t name_index_;
+
+  bool needs_expr_temp_;
+  TokenPosition first_body_token_position_;
+
+  StreamingFlowGraphBuilder* builder_;
+  StreamingDartTypeTranslator type_translator_;
+
+  word unused_word;
+  intptr_t unused_intptr;
+  TokenPosition unused_tokenposition;
 };
 
 
@@ -169,10 +328,23 @@ class StreamingFlowGraphBuilder {
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true) {}
 
+  ~StreamingFlowGraphBuilder() { delete reader_; }
+
   Fragment BuildExpressionAt(intptr_t kernel_offset);
   Fragment BuildStatementAt(intptr_t kernel_offset);
 
  private:
+  StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
+                            Zone* zone,
+                            const uint8_t* buffer,
+                            intptr_t buffer_length)
+      : flow_graph_builder_(NULL),
+        translation_helper_(*translation_helper),
+        zone_(zone),
+        reader_(new Reader(buffer, buffer_length)),
+        constant_evaluator_(this),
+        type_translator_(this, /* finalize= */ true) {}
+
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
 
@@ -196,8 +368,13 @@ class StreamingFlowGraphBuilder {
   void SkipOptionalDartType();
   void SkipInterfaceType(bool simple);
   void SkipFunctionType(bool simple);
+  void SkipListOfExpressions();
+  void SkipListOfDartTypes();
+  void SkipListOfVariableDeclarations();
+  void SkipTypeParametersList();
   void SkipExpression();
   void SkipStatement();
+  void SkipFunctionNode();
   void SkipName();
   void SkipArguments();
   void SkipVariableDeclaration();
@@ -387,7 +564,7 @@ class StreamingFlowGraphBuilder {
   Fragment BuildTryCatch();
   Fragment BuildTryFinally();
   Fragment BuildYieldStatement();
-  Fragment BuildVariableDeclaration(bool has_tag);
+  Fragment BuildVariableDeclaration();
 
   FlowGraphBuilder* flow_graph_builder_;
   TranslationHelper& translation_helper_;
@@ -398,8 +575,27 @@ class StreamingFlowGraphBuilder {
 
   friend class StreamingConstantEvaluator;
   friend class StreamingDartTypeTranslator;
+  friend class StreamingScopeBuilder;
 };
 
+// A helper class that saves the current reader position, goes to another reader
+// position, and upon destruction, resets to the original reader position.
+class AlternativeReadingScope {
+ public:
+  AlternativeReadingScope(Reader* reader, intptr_t new_position)
+      : reader_(reader), saved_offset_(reader_->offset()) {
+    reader_->set_offset(new_position);
+  }
+
+  explicit AlternativeReadingScope(Reader* reader)
+      : reader_(reader), saved_offset_(reader_->offset()) {}
+
+  ~AlternativeReadingScope() { reader_->set_offset(saved_offset_); }
+
+ private:
+  Reader* reader_;
+  intptr_t saved_offset_;
+};
 
 }  // namespace kernel
 }  // namespace dart

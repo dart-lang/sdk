@@ -196,10 +196,20 @@ typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
 class ActiveClass {
  public:
   ActiveClass()
-      : kernel_class(NULL), klass(NULL), member(NULL), kernel_function(NULL) {}
+      : kernel_class(NULL),
+        class_type_parameters(0),
+        class_type_parameters_offset_start(-1),
+        klass(NULL),
+        member(NULL),
+        member_is_procedure(false),
+        member_is_factory_procedure(false),
+        member_type_parameters(0),
+        member_type_parameters_offset_start(-1) {}
 
   // The current enclosing kernel class (if available, otherwise NULL).
   Class* kernel_class;
+  intptr_t class_type_parameters;
+  intptr_t class_type_parameters_offset_start;
 
   // The current enclosing class (or the library top-level class).  When this is
   // a library's top-level class, the kernel_class will be NULL.
@@ -208,14 +218,29 @@ class ActiveClass {
   // The enclosing member (e.g., Constructor, Procedure, or Field) if there
   // is one.
   Member* member;
-
-  // The current function.
-  FunctionNode* kernel_function;
+  bool member_is_procedure;
+  bool member_is_factory_procedure;
+  intptr_t member_type_parameters;
+  intptr_t member_type_parameters_offset_start;
 };
 
 
 class ActiveClassScope {
  public:
+  ActiveClassScope(ActiveClass* active_class,
+                   intptr_t class_type_parameters,
+                   intptr_t class_type_parameters_offset_start,
+                   const dart::Class* klass)
+      : active_class_(active_class), saved_(*active_class) {
+    active_class_->kernel_class = NULL;
+    active_class_->class_type_parameters = class_type_parameters;
+    active_class_->class_type_parameters_offset_start =
+        class_type_parameters_offset_start;
+    active_class_->klass = klass;
+    active_class_->member = NULL;
+  }
+
+
   ActiveClassScope(ActiveClass* active_class,
                    Class* kernel_class,
                    const dart::Class* klass)
@@ -223,7 +248,15 @@ class ActiveClassScope {
     active_class_->kernel_class = kernel_class;
     active_class_->klass = klass;
     active_class_->member = NULL;
-    active_class_->kernel_function = NULL;
+
+    if (kernel_class != NULL) {
+      List<TypeParameter>& type_parameters = kernel_class->type_parameters();
+      active_class_->class_type_parameters = type_parameters.length();
+      active_class_->class_type_parameters_offset_start =
+          active_class_->class_type_parameters > 0
+              ? type_parameters[0]->kernel_offset()
+              : -1;
+    }
   }
 
   ~ActiveClassScope() { *active_class_ = saved_; }
@@ -236,30 +269,51 @@ class ActiveClassScope {
 
 class ActiveMemberScope {
  public:
+  ActiveMemberScope(ActiveClass* active_class,
+                    bool member_is_procedure,
+                    bool member_is_factory_procedure,
+                    intptr_t member_type_parameters,
+                    intptr_t member_type_parameters_offset_start)
+      : active_class_(active_class), saved_(*active_class) {
+    // The class and kernel_class is inherited.
+    active_class_->member = NULL;
+    active_class_->member_is_procedure = member_is_procedure;
+    active_class_->member_is_factory_procedure = member_is_factory_procedure;
+    active_class_->member_type_parameters = member_type_parameters;
+    active_class_->member_type_parameters_offset_start =
+        member_type_parameters_offset_start;
+  }
+
   ActiveMemberScope(ActiveClass* active_class, Member* member)
       : active_class_(active_class), saved_(*active_class) {
     // The class and kernel_class is inherited.
     active_class_->member = member;
-    active_class_->kernel_function = NULL;
+
+    active_class_->member_is_procedure = false;
+    active_class_->member_is_factory_procedure = false;
+    active_class_->member_type_parameters = 0;
+    active_class_->member_type_parameters_offset_start = -1;
+
+    if (member == NULL || !member->IsProcedure()) {
+      return;
+    }
+
+    Procedure* procedure = Procedure::Cast(member);
+    active_class_->member_is_procedure = true;
+    active_class->member_is_factory_procedure =
+        procedure->kind() == Procedure::kFactory;
+    if (procedure->function() != NULL) {
+      TypeParameterList& type_parameters =
+          procedure->function()->type_parameters();
+      if (type_parameters.length() > 0) {
+        active_class_->member_type_parameters = type_parameters.length();
+        active_class_->member_type_parameters_offset_start =
+            type_parameters.first_offset;
+      }
+    }
   }
 
   ~ActiveMemberScope() { *active_class_ = saved_; }
-
- private:
-  ActiveClass* active_class_;
-  ActiveClass saved_;
-};
-
-
-class ActiveFunctionScope {
- public:
-  ActiveFunctionScope(ActiveClass* active_class, FunctionNode* kernel_function)
-      : active_class_(active_class), saved_(*active_class) {
-    // The class, kernel_class, and member are inherited.
-    active_class_->kernel_function = kernel_function;
-  }
-
-  ~ActiveFunctionScope() { *active_class_ = saved_; }
 
  private:
   ActiveClass* active_class_;
@@ -662,113 +716,6 @@ class ScopeBuildingResult : public ZoneAllocated {
   GrowableArray<LocalVariable*> iterator_variables;
 };
 
-
-class ScopeBuilder : public RecursiveVisitor {
- public:
-  ScopeBuilder(ParsedFunction* parsed_function, TreeNode* node);
-
-  virtual ~ScopeBuilder() {}
-
-  ScopeBuildingResult* BuildScopes();
-
-  virtual void VisitName(Name* node) { /* NOP */
-  }
-
-  virtual void VisitThisExpression(ThisExpression* node);
-  virtual void VisitTypeParameterType(TypeParameterType* node);
-  virtual void VisitVariableGet(VariableGet* node);
-  virtual void VisitVariableSet(VariableSet* node);
-  virtual void VisitConditionalExpression(ConditionalExpression* node);
-  virtual void VisitLogicalExpression(LogicalExpression* node);
-  virtual void VisitFunctionExpression(FunctionExpression* node);
-  virtual void VisitLet(Let* node);
-  virtual void VisitBlock(Block* node);
-  virtual void VisitVariableDeclaration(VariableDeclaration* node);
-  virtual void VisitFunctionDeclaration(FunctionDeclaration* node);
-  virtual void VisitWhileStatement(WhileStatement* node);
-  virtual void VisitDoStatement(DoStatement* node);
-  virtual void VisitForStatement(ForStatement* node);
-  virtual void VisitForInStatement(ForInStatement* node);
-  virtual void VisitSwitchStatement(SwitchStatement* node);
-  virtual void VisitReturnStatement(ReturnStatement* node);
-  virtual void VisitTryCatch(TryCatch* node);
-  virtual void VisitTryFinally(TryFinally* node);
-  virtual void VisitYieldStatement(YieldStatement* node);
-  virtual void VisitAssertStatement(AssertStatement* node);
-
-  virtual void VisitFunctionNode(FunctionNode* node);
-
-  virtual void VisitConstructor(Constructor* node);
-
- private:
-  void EnterScope(TreeNode* node, TokenPosition start_position);
-  void ExitScope(TokenPosition end_position);
-
-  const Type& TranslateVariableType(VariableDeclaration* variable);
-  LocalVariable* MakeVariable(TokenPosition declaration_pos,
-                              TokenPosition token_pos,
-                              const dart::String& name,
-                              const AbstractType& type);
-
-  void AddParameters(FunctionNode* function, intptr_t pos = 0);
-  void AddParameter(VariableDeclaration* declaration, intptr_t pos);
-  void AddVariable(VariableDeclaration* declaration);
-  void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
-                            const char* prefix,
-                            intptr_t nesting_depth);
-  void AddTryVariables();
-  void AddCatchVariables();
-  void AddIteratorVariable();
-  void AddSwitchVariable();
-
-  // Record an assignment or reference to a variable.  If the occurrence is
-  // in a nested function, ensure that the variable is handled properly as a
-  // captured variable.
-  void LookupVariable(VariableDeclaration* declaration);
-
-  const dart::String& GenerateName(const char* prefix, intptr_t suffix);
-
-  void HandleLocalFunction(TreeNode* parent, FunctionNode* function);
-  void HandleSpecialLoad(LocalVariable** variable, const dart::String& symbol);
-  void LookupCapturedVariableByName(LocalVariable** variable,
-                                    const dart::String& name);
-
-  struct DepthState {
-    explicit DepthState(intptr_t function)
-        : loop_(0),
-          function_(function),
-          try_(0),
-          catch_(0),
-          finally_(0),
-          for_in_(0) {}
-
-    intptr_t loop_;
-    intptr_t function_;
-    intptr_t try_;
-    intptr_t catch_;
-    intptr_t finally_;
-    intptr_t for_in_;
-  };
-
-  ScopeBuildingResult* result_;
-  ParsedFunction* parsed_function_;
-  TreeNode* node_;
-
-  ActiveClass active_class_;
-
-  TranslationHelper translation_helper_;
-  Zone* zone_;
-  DartTypeTranslator type_translator_;
-
-  FunctionNode* current_function_node_;
-  LocalScope* current_function_scope_;
-  LocalScope* scope_;
-  DepthState depth_;
-
-  intptr_t name_index_;
-
-  bool needs_expr_temp_;
-};
 
 struct YieldContinuation {
   Instruction* entry;

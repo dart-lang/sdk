@@ -347,6 +347,7 @@ class BinaryPrinter extends Visitor {
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }
+    node.binaryOffset = _sink.flushedLength + _sink.length;
     writeByte(Tag.Class);
     writeCanonicalNameReference(getCanonicalNameOfClass(node));
     writeOffset(node.fileOffset);
@@ -377,6 +378,9 @@ class BinaryPrinter extends Visitor {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
+    assert(node.parent is Class);
+    Class parent = node.parent;
+    writeUInt30(parent.binaryOffset);
     writeName(node.name ?? _emptyName);
     writeAnnotationList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
@@ -399,6 +403,12 @@ class BinaryPrinter extends Visitor {
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);
     writeByte(node.flags);
+    if (node.parent is Class) {
+      Class parent = node.parent;
+      writeUInt30(parent.binaryOffset);
+    } else {
+      writeUInt30(0); // 0 is a valid offset, but not for a class.
+    }
     writeName(node.name ?? '');
     writeUriReference(node.fileUri ?? '');
     writeAnnotationList(node.annotations);
@@ -416,6 +426,12 @@ class BinaryPrinter extends Visitor {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
+    if (node.parent is Class) {
+      Class parent = node.parent;
+      writeUInt30(parent.binaryOffset);
+    } else {
+      writeUInt30(0); // 0 is a valid offset, but not for a class.
+    }
     writeName(node.name);
     writeUriReference(node.fileUri ?? '');
     writeAnnotationList(node.annotations);
@@ -448,10 +464,11 @@ class BinaryPrinter extends Visitor {
 
   visitLocalInitializer(LocalInitializer node) {
     writeByte(Tag.LocalInitializer);
-    writeVariableDeclaration(node.variable, false);
+    writeVariableDeclaration(node.variable);
   }
 
   visitFunctionNode(FunctionNode node) {
+    writeByte(Tag.FunctionNode);
     assert(_variableIndexer != null);
     _variableIndexer.pushScope();
     var oldLabels = _labelIndexer;
@@ -488,11 +505,11 @@ class BinaryPrinter extends Visitor {
         node.promotedType == null) {
       writeByte(Tag.SpecializedVariableGet + index);
       writeOffset(node.fileOffset);
-      writeUInt30(node.variable.binaryOffset);
+      writeUInt30(node.variable.binaryOffsetNoTag);
     } else {
       writeByte(Tag.VariableGet);
       writeOffset(node.fileOffset);
-      writeUInt30(node.variable.binaryOffset);
+      writeUInt30(node.variable.binaryOffsetNoTag);
       writeUInt30(_variableIndexer[node.variable]);
       writeOptionalNode(node.promotedType);
     }
@@ -504,12 +521,12 @@ class BinaryPrinter extends Visitor {
     if (index & Tag.SpecializedPayloadMask == index) {
       writeByte(Tag.SpecializedVariableSet + index);
       writeOffset(node.fileOffset);
-      writeUInt30(node.variable.binaryOffset);
+      writeUInt30(node.variable.binaryOffsetNoTag);
       writeNode(node.value);
     } else {
       writeByte(Tag.VariableSet);
       writeOffset(node.fileOffset);
-      writeUInt30(node.variable.binaryOffset);
+      writeUInt30(node.variable.binaryOffsetNoTag);
       writeUInt30(_variableIndexer[node.variable]);
       writeNode(node.value);
     }
@@ -773,7 +790,7 @@ class BinaryPrinter extends Visitor {
 
   visitLet(Let node) {
     writeByte(Tag.Let);
-    writeVariableDeclaration(node.variable, false);
+    writeVariableDeclaration(node.variable);
     writeNode(node.body);
     --_variableIndexer.stackHeight;
   }
@@ -891,7 +908,7 @@ class BinaryPrinter extends Visitor {
     _variableIndexer.pushScope();
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeOffset(node.fileOffset);
-    writeVariableDeclaration(node.variable, false);
+    writeVariableDeclaration(node.variable);
     writeNode(node.iterable);
     writeNode(node.body);
     _variableIndexer.popScope();
@@ -972,13 +989,12 @@ class BinaryPrinter extends Visitor {
   }
 
   visitVariableDeclaration(VariableDeclaration node) {
-    writeVariableDeclaration(node, true);
+    writeByte(Tag.VariableDeclaration);
+    writeVariableDeclaration(node);
   }
 
-  void writeVariableDeclaration(VariableDeclaration node,
-      [bool hasTag = false]) {
-    node.binaryOffset = _sink.flushedLength + _sink.length;
-    if (hasTag) writeByte(Tag.VariableDeclaration);
+  void writeVariableDeclaration(VariableDeclaration node) {
+    node.binaryOffsetNoTag = _sink.flushedLength + _sink.length;
     writeOffset(node.fileOffset);
     writeOffset(node.fileEqualsOffset);
     writeByte(node.flags);
@@ -999,14 +1015,14 @@ class BinaryPrinter extends Visitor {
       writeByte(Tag.Nothing);
     } else {
       writeByte(Tag.Something);
-      writeVariableDeclaration(node, false);
+      writeVariableDeclaration(node);
     }
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
     writeByte(Tag.FunctionDeclaration);
     writeOffset(node.fileOffset);
-    writeVariableDeclaration(node.variable, false);
+    writeVariableDeclaration(node.variable);
     writeNode(node.function);
   }
 
