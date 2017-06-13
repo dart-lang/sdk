@@ -18,7 +18,7 @@ class C extends core::Object {
 class D extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::D::•];
   static factory •() → self::D
-    throw new core::NoSuchMethodError::_withType(null, #Missing, -1, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
+    let dynamic #redirecting_factory = "Missing" in invalid-expression;
 }
 static method main() → void
   ;

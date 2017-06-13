@@ -2,6 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
+typedef Foo = () → void;
 static method main() → dynamic {
   core::print(() → void);
   let final dynamic #t1 = null in invalid-expression;

@@ -13,6 +13,7 @@ static method main() → dynamic {
           break #L1;
           ;
         }
+        throw new core::FallThroughError::•();
       }
     #L3:
     case 2:
@@ -34,6 +35,7 @@ static method main() → dynamic {
         finally {
           break #L1;
         }
+        throw new core::FallThroughError::•();
       }
     #L5:
     case 4:
@@ -44,6 +46,7 @@ static method main() → dynamic {
         }
         finally {
         }
+        throw new core::FallThroughError::•();
       }
     #L6:
     case 5:

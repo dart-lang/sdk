@@ -23,11 +23,11 @@ class A<T extends core::Object> extends core::Object {
     : super core::Object::•()
     ;
   static factory a<T extends core::Object>() → self::A<self::A::a::T>
-    let final dynamic #t1 = self::B::a in invalid-expression;
+    let dynamic #redirecting_factory = self::B::a in invalid-expression;
   static factory b<T extends core::Object>() → self::A<self::A::b::T>
-    let final dynamic #t2 = self::B::a in invalid-expression;
+    let dynamic #redirecting_factory = self::B::a in invalid-expression;
   static factory c<T extends core::Object>() → self::A<self::A::c::T>
-    throw new core::NoSuchMethodError::_withType(null, #Missing, -1, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
+    let dynamic #redirecting_factory = "Missing" in invalid-expression;
 }
 class B<S extends core::Object> extends self::A<self::B::S> {
   static field dynamic _redirecting# = <dynamic>[self::B::a, self::B::b];
@@ -35,9 +35,9 @@ class B<S extends core::Object> extends self::A<self::B::S> {
     : super self::A::internal()
     ;
   static factory a<S extends core::Object>() → self::B<self::B::a::S>
-    let final dynamic #t3 = self::C::• in invalid-expression;
+    let dynamic #redirecting_factory = self::C::• in invalid-expression;
   static factory b<S extends core::Object>() → self::B<self::B::b::S>
-    let final dynamic #t4 = self::C::• in invalid-expression;
+    let dynamic #redirecting_factory = self::C::• in invalid-expression;
 }
 class C<U extends core::Object> extends self::B<self::C::U> {
   constructor •() → void
@@ -49,5 +49,5 @@ static method main() → dynamic {
   new self::C::•<self::C3>();
   new self::C::•<self::C3>();
   new self::C::•<self::C3>();
-  self::A::c<self::C3>();
+  throw new core::NoSuchMethodError::_withType(null, #Missing, 32, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
 }

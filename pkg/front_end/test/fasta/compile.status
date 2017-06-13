@@ -12,9 +12,7 @@ DeltaBlue: Fail # Missing types on constructor parameters.
 async_function: Fail # Async transformer should be optional.
 await: Fail
 call: Fail # Test can't run.
-covariant_generic: Fail # Missing types on constructor parameters.
 cycles: Fail # Compile-time error handling destroys program.
-external: Fail # External method marked abstract.
 fallthrough: Fail # Missing FallThroughError.
 function_type_recovery: Fail
 invocations: Fail
@@ -345,7 +343,6 @@ rasta/super_initializer: Fail
 rasta/super_mixin: Fail
 rasta/super_operator: Fail
 rasta/supports_reflection: VerificationError
-rasta/switch_fall_through: Fail
 rasta/try_label: Fail
 rasta/type_literals: Fail
 rasta/type_with_parse_error: Fail
