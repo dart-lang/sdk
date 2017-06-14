@@ -1530,7 +1530,6 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
 class KernelClosedWorld extends ClosedWorldBase {
   final KernelToElementMapImpl _elementMap;
-  final ElementEnvironment _elementEnvironment;
 
   KernelClosedWorld(this._elementMap,
       {ElementEnvironment elementEnvironment,
@@ -1547,8 +1546,8 @@ class KernelClosedWorld extends ClosedWorldBase {
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
-      : this._elementEnvironment = elementEnvironment,
-        super(
+      : super(
+            elementEnvironment: elementEnvironment,
             commonElements: commonElements,
             constantSystem: constantSystem,
             nativeData: nativeData,
@@ -1617,14 +1616,14 @@ class KernelClosedWorld extends ClosedWorldBase {
   @override
   bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
     while (cls != null) {
-      MemberEntity member = _elementEnvironment
+      MemberEntity member = elementEnvironment
           .lookupClassMember(cls, selector.name, setter: selector.isSetter);
       if (member != null &&
           (!selector.memberName.isPrivate ||
               member.library == selector.library)) {
         return member == element;
       }
-      cls = _elementEnvironment.getSuperClass(cls);
+      cls = elementEnvironment.getSuperClass(cls);
     }
     return false;
   }

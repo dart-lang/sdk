@@ -365,7 +365,8 @@ class MyCompiler extends CompilerImpl {
           resolveLibraryMetadata();
         }
         reporter.log('Resolving...');
-        processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries);
+        processQueue(frontendStrategy.elementEnvironment, resolutionEnqueuer,
+            mainFunction, libraryLoader.libraries);
         resolutionEnqueuer.logSummary(reporter.log);
 
         (reporter as CompilerDiagnosticReporter)

@@ -124,7 +124,7 @@ class Emitter extends js_emitter.EmitterBase {
   NativeEmitter get nativeEmitter => task.nativeEmitter;
   TypeTestRegistry get typeTestRegistry => task.typeTestRegistry;
   CommonElements get commonElements => _closedWorld.commonElements;
-  ElementEnvironment get _elementEnvironment => compiler.elementEnvironment;
+  ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();

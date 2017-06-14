@@ -141,7 +141,8 @@ class KernelAstAdapter extends KernelToElementMapMixin
   CommonElements get commonElements => _compiler.resolution.commonElements;
 
   @override
-  ElementEnvironment get elementEnvironment => _compiler.elementEnvironment;
+  ElementEnvironment get elementEnvironment =>
+      _compiler.resolution.elementEnvironment;
 
   MemberElement get currentMember => _resolvedAst.element;
 

@@ -75,7 +75,7 @@ class KernelBackendStrategy implements BackendStrategy {
       NativeBasicData nativeBasicData,
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new KernelCodegenWorldBuilder(_compiler.elementEnvironment,
+    return new KernelCodegenWorldBuilder(closedWorld.elementEnvironment,
         nativeBasicData, closedWorld, selectorConstraintsStrategy);
   }
 

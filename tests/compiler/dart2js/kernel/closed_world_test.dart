@@ -112,8 +112,8 @@ main(List<String> args) {
             const OpenWorldStrategy()),
         new KernelTestWorkItemBuilder(compiler),
         'enqueuer from kernel');
-    ClosedWorld closedWorld = computeClosedWorld(
-        compiler.reporter, enqueuer, compiler.elementEnvironment);
+    ClosedWorld closedWorld = computeClosedWorld(compiler.reporter, enqueuer,
+        compiler.frontendStrategy.elementEnvironment);
     BackendUsage backendUsage = backendUsageBuilder.close();
     checkResolutionEnqueuers(
         backendUsage, backendUsage, compiler.enqueuer.resolution, enqueuer,
@@ -138,7 +138,7 @@ List createResolutionEnqueuerListener(Compiler compiler) {
   InterceptorDataBuilder interceptorDataBuilder =
       new InterceptorDataBuilderImpl(
           backend.nativeBasicData,
-          compiler.elementEnvironment,
+          compiler.frontendStrategy.elementEnvironment,
           compiler.frontendStrategy.commonElements);
   ResolutionEnqueuerListener listener = new ResolutionEnqueuerListener(
       compiler.options,

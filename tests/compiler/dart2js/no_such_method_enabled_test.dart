@@ -268,11 +268,12 @@ main() {
 }
 
 checkTest(Compiler compiler, NoSuchMethodTest test, {bool testComplexReturns}) {
-  ElementEnvironment elementEnvironment = compiler.elementEnvironment;
+  ElementEnvironment elementEnvironment =
+      compiler.frontendStrategy.elementEnvironment;
   NoSuchMethodRegistry registry = compiler.backend.noSuchMethodRegistry;
   NoSuchMethodResolver resolver = registry.internalResolverForTesting;
   FunctionEntity ObjectNSM = elementEnvironment.lookupClassMember(
-      compiler.resolution.commonElements.objectClass, 'noSuchMethod');
+      compiler.frontendStrategy.commonElements.objectClass, 'noSuchMethod');
   ClosedWorld closedWorld =
       compiler.resolutionWorldBuilder.closedWorldForTesting;
 

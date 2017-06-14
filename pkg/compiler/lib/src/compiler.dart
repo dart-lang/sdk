@@ -88,7 +88,6 @@ abstract class Compiler {
   DartTypes types;
   FrontendStrategy frontendStrategy;
   BackendStrategy backendStrategy;
-  ElementEnvironment _elementEnvironment;
   CompilerDiagnosticReporter _reporter;
   CompilerResolution _resolution;
   ParsingContext _parsingContext;
@@ -120,7 +119,6 @@ abstract class Compiler {
   FunctionEntity mainFunction;
 
   DiagnosticReporter get reporter => _reporter;
-  ElementEnvironment get elementEnvironment => _elementEnvironment;
   Resolution get resolution => _resolution;
   ParsingContext get parsingContext => _parsingContext;
 
@@ -200,7 +198,6 @@ abstract class Compiler {
         ? new KernelBackendStrategy(this)
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
-    _elementEnvironment = frontendStrategy.elementEnvironment;
     types = new Types(_resolution);
 
     if (options.verbose) {
@@ -568,7 +565,8 @@ abstract class Compiler {
         }
         reporter.log('Resolving...');
 
-        processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries,
+        processQueue(frontendStrategy.elementEnvironment, resolutionEnqueuer,
+            mainFunction, libraryLoader.libraries,
             onProgress: showResolutionProgress);
         backend.onResolutionEnd();
         resolutionEnqueuer.logSummary(reporter.log);
@@ -621,7 +619,8 @@ abstract class Compiler {
             codegenEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         }
-        processQueue(codegenEnqueuer, mainFunction, libraryLoader.libraries,
+        processQueue(closedWorld.elementEnvironment, codegenEnqueuer,
+            mainFunction, libraryLoader.libraries,
             onProgress: showCodegenProgress);
         codegenEnqueuer.logSummary(reporter.log);
 
@@ -744,8 +743,8 @@ abstract class Compiler {
     });
   }
 
-  void processQueue(Enqueuer enqueuer, FunctionEntity mainMethod,
-      Iterable<LibraryEntity> libraries,
+  void processQueue(ElementEnvironment elementEnvironment, Enqueuer enqueuer,
+      FunctionEntity mainMethod, Iterable<LibraryEntity> libraries,
       {void onProgress(Enqueuer enqueuer)}) {
     selfTask.measureSubtask("Compiler.processQueue", () {
       enqueuer.open(impactStrategy, mainMethod, libraries);
@@ -1294,6 +1293,10 @@ class CompilerResolution implements Resolution {
 
   @override
   ParsingContext get parsingContext => _compiler.parsingContext;
+
+  @override
+  ElementEnvironment get elementEnvironment =>
+      _compiler.frontendStrategy.elementEnvironment;
 
   @override
   CommonElements get commonElements =>

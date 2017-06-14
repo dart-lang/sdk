@@ -67,7 +67,8 @@ main() {
     Expect.equals(0, diagnostics.errors.length);
     Expect.equals(0, diagnostics.warnings.length);
 
-    ElementEnvironment environment = compiler.elementEnvironment;
+    ElementEnvironment environment =
+        compiler.frontendStrategy.elementEnvironment;
     LibraryEntity library = environment.lookupLibrary(uri);
     Expect.isNotNull(library);
     ClassEntity clss = environment.lookupClass(library, 'ListLiteralTest');

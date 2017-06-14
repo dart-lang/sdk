@@ -46,7 +46,7 @@ checkCode(String annotatedCode, CheckMemberFunction checkMember,
   expectedMap.forEach((Id id, String expected) {
     reportHere(
         compiler.reporter,
-        computeSpannable(compiler.elementEnvironment, mainUri, id),
+        computeSpannable(compiler.resolution.elementEnvironment, mainUri, id),
         'expected:${expected},actual:null');
   });
   Expect.isTrue(expectedMap.isEmpty, "Ids not found: $expectedMap.");

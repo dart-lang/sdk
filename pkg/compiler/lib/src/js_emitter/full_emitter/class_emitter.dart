@@ -31,7 +31,7 @@ class ClassEmitter extends CodeEmitterHelper {
       closedWorld.commonElements, namer, codegenWorldBuilder, closedWorld,
       enableMinification: compiler.options.enableMinification);
 
-  ElementEnvironment get _elementEnvironment => compiler.elementEnvironment;
+  ElementEnvironment get _elementEnvironment => closedWorld.elementEnvironment;
 
   /**
    * Documentation wanted -- johnniwinther

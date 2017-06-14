@@ -15,7 +15,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
@@ -452,8 +452,10 @@ class JavaScriptBackend {
       bool useNewSourceInfo: false,
       bool useKernel: false})
       : _rti = new RuntimeTypesImpl(
-            compiler.elementEnvironment, compiler.frontendStrategy.dartTypes),
-        optimizerHints = new OptimizerHintsForTests(compiler.elementEnvironment,
+            compiler.frontendStrategy.elementEnvironment,
+            compiler.frontendStrategy.dartTypes),
+        optimizerHints = new OptimizerHintsForTests(
+            compiler.frontendStrategy.elementEnvironment,
             compiler.frontendStrategy.commonElements),
         this.sourceInformationStrategy =
             compiler.backendStrategy.sourceInformationStrategy,
@@ -471,12 +473,14 @@ class JavaScriptBackend {
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
 
     _typeVariableResolutionAnalysis = new TypeVariableResolutionAnalysis(
-        compiler.elementEnvironment, impacts, _backendUsageBuilder);
+        compiler.frontendStrategy.elementEnvironment,
+        impacts,
+        _backendUsageBuilder);
     jsInteropAnalysis = new JsInteropAnalysis(this);
     _mirrorsResolutionAnalysis =
         compiler.frontendStrategy.createMirrorsResolutionAnalysis(this);
-    lookupMapResolutionAnalysis =
-        new LookupMapResolutionAnalysis(reporter, compiler.elementEnvironment);
+    lookupMapResolutionAnalysis = new LookupMapResolutionAnalysis(
+        reporter, compiler.frontendStrategy.elementEnvironment);
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
@@ -732,7 +736,7 @@ class JavaScriptBackend {
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     for (MemberEntity entity
         in compiler.enqueuer.resolution.processedEntities) {
-      processAnnotations(
+      processAnnotations(closedWorld.elementEnvironment,
           closedWorld.commonElements, entity, closedWorldRefiner);
     }
     mirrorsDataBuilder.computeMembersNeededForReflection(
@@ -781,12 +785,13 @@ class JavaScriptBackend {
 
   ResolutionEnqueuer createResolutionEnqueuer(
       CompilerTask task, Compiler compiler) {
+    ElementEnvironment elementEnvironment =
+        compiler.frontendStrategy.elementEnvironment;
     CommonElements commonElements = compiler.frontendStrategy.commonElements;
-    _nativeBasicData =
-        nativeBasicDataBuilder.close(compiler.elementEnvironment);
+    _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
     _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
         compiler.options,
-        compiler.elementEnvironment,
+        elementEnvironment,
         commonElements,
         compiler.frontendStrategy.dartTypes,
         _backendUsageBuilder,
@@ -794,13 +799,13 @@ class JavaScriptBackend {
     _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
     _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
         constantSystem,
-        compiler.elementEnvironment,
+        elementEnvironment,
         commonElements,
         nativeBasicData,
         _backendUsageBuilder);
     impactTransformer = new JavaScriptImpactTransformer(
         compiler.options,
-        compiler.elementEnvironment,
+        elementEnvironment,
         commonElements,
         impacts,
         nativeBasicData,
@@ -811,7 +816,7 @@ class JavaScriptBackend {
         rtiNeedBuilder);
     InterceptorDataBuilder interceptorDataBuilder =
         new InterceptorDataBuilderImpl(
-            nativeBasicData, compiler.elementEnvironment, commonElements);
+            nativeBasicData, elementEnvironment, commonElements);
     return new ResolutionEnqueuer(
         task,
         compiler.options,
@@ -821,7 +826,7 @@ class JavaScriptBackend {
             : const TreeShakingEnqueuerStrategy(),
         new ResolutionEnqueuerListener(
             compiler.options,
-            compiler.elementEnvironment,
+            elementEnvironment,
             commonElements,
             impacts,
             nativeBasicData,
@@ -850,25 +855,23 @@ class JavaScriptBackend {
   /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(
       CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
+    ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
     _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
-        compiler.elementEnvironment, this, commonElements, mirrorsData);
+        closedWorld.elementEnvironment, this, commonElements, mirrorsData);
     _lookupMapAnalysis = new LookupMapAnalysis(
         reporter,
         constantSystem,
         constants,
-        compiler.elementEnvironment,
+        elementEnvironment,
         commonElements,
         lookupMapResolutionAnalysis);
     _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
-        constantSystem,
-        commonElements,
-        compiler.elementEnvironment,
-        nativeBasicData);
+        constantSystem, commonElements, elementEnvironment, nativeBasicData);
     _nativeCodegenEnqueuer = new native.NativeCodegenEnqueuer(
         compiler.options,
-        compiler.elementEnvironment,
+        elementEnvironment,
         commonElements,
         compiler.frontendStrategy.dartTypes,
         emitter,
@@ -882,7 +885,7 @@ class JavaScriptBackend {
             nativeBasicData, closedWorld, const TypeMaskStrategy()),
         compiler.backendStrategy.createCodegenWorkItemBuilder(closedWorld),
         new CodegenEnqueuerListener(
-            compiler.elementEnvironment,
+            elementEnvironment,
             commonElements,
             impacts,
             closedWorld.backendUsage,
@@ -1063,11 +1066,11 @@ class JavaScriptBackend {
     _namer = determineNamer(closedWorld, codegenWorldBuilder);
     tracer = new Tracer(closedWorld, namer, compiler);
     _rtiEncoder = _namer.rtiEncoder = new RuntimeTypesEncoderImpl(
-        namer, compiler.elementEnvironment, closedWorld.commonElements);
+        namer, closedWorld.elementEnvironment, closedWorld.commonElements);
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder);
     _codegenImpactTransformer = new CodegenImpactTransformer(
         compiler.options,
-        compiler.elementEnvironment,
+        closedWorld.elementEnvironment,
         closedWorld.commonElements,
         impacts,
         checkedModeHelpers,
@@ -1109,7 +1112,10 @@ class JavaScriptBackend {
   /// Process backend specific annotations.
   // TODO(johnniwinther): Merge this with [AnnotationProcessor] and use
   // [ElementEnvironment.getMemberMetadata] in [AnnotationProcessor].
-  void processAnnotations(CommonElements commonElements, MemberEntity element,
+  void processAnnotations(
+      ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
+      MemberEntity element,
       ClosedWorldRefiner closedWorldRefiner) {
     if (element is MemberElement && element.isMalformed) {
       // Elements that are marked as malformed during parsing or resolution
@@ -1135,7 +1141,7 @@ class JavaScriptBackend {
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;
     for (ConstantValue constantValue
-        in compiler.elementEnvironment.getMemberMetadata(method)) {
+        in elementEnvironment.getMemberMetadata(method)) {
       if (!constantValue.isConstructedObject) continue;
       ObjectConstantValue value = constantValue;
       ClassEntity cls = value.type.element;

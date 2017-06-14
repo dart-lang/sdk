@@ -124,7 +124,8 @@ Future<ResultKind> mainInternal(List<String> args,
       await analyzeOnly(entryPoint, memorySourceFiles, printSteps: true);
   Compiler compiler = compilers.a;
   compiler.resolutionWorldBuilder.closeWorld();
-  ElementEnvironment environment1 = compiler.elementEnvironment;
+  ElementEnvironment environment1 =
+      compiler.frontendStrategy.elementEnvironment;
 
   Compiler compiler2 = compilers.b;
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
@@ -134,7 +135,8 @@ Future<ResultKind> mainInternal(List<String> args,
   KernelEquivalence equivalence = new KernelEquivalence(elementMap);
   TestStrategy strategy = equivalence.defaultStrategy;
 
-  ElementEnvironment environment2 = compiler2.elementEnvironment;
+  ElementEnvironment environment2 =
+      compiler2.frontendStrategy.elementEnvironment;
   checkElementEnvironment(environment1, environment2, strategy);
 
   ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
