@@ -257,7 +257,6 @@ Typedef* Typedef::ReadFrom(Reader* reader) {
 Class* Class::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
 
-  kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   canonical_name_ = reader->ReadCanonicalNameReference();
   position_ = reader->ReadPosition(false);
   is_abstract_ = reader->ReadBool();
@@ -1844,7 +1843,6 @@ FunctionNode* FunctionNode::ReadFrom(Reader* reader) {
   function->dart_async_marker_ =
       static_cast<FunctionNode::AsyncMarker>(reader->ReadByte());
   function->type_parameters().ReadFrom(reader);
-  reader->ReadUInt();  // total parameter count.
   function->required_parameter_count_ = reader->ReadUInt();
   function->positional_parameters().ReadFromStatic<VariableDeclarationImpl>(
       reader);

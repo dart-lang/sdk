@@ -796,9 +796,12 @@ class CallSiteInliner : public ValueObject {
             new (Z) InlineExitCollector(caller_graph_, call);
         FlowGraph* callee_graph;
         if (UseKernelFrontEndFor(parsed_function)) {
+          kernel::TreeNode* node = static_cast<kernel::TreeNode*>(
+              parsed_function->function().kernel_function());
+
           kernel::FlowGraphBuilder builder(
-              parsed_function->function().kernel_offset(), parsed_function,
-              *ic_data_array, /* not building var desc */ NULL, exit_collector,
+              node, parsed_function, *ic_data_array,
+              /* not building var desc */ NULL, exit_collector,
               Compiler::kNoOSRDeoptId, caller_graph_->max_block_id() + 1);
           {
             CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);

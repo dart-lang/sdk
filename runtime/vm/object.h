@@ -2627,17 +2627,17 @@ class Function : public Object {
 #endif
   }
 
-  intptr_t kernel_offset() const {
+  void* kernel_function() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
+    return NULL;
 #else
-    return raw_ptr()->kernel_offset_;
+    return raw_ptr()->kernel_function_;
 #endif
   }
 
-  void set_kernel_offset(intptr_t kernel_offset) const {
+  void set_kernel_function(void* kernel_function) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    StoreNonPointer(&raw_ptr()->kernel_offset_, kernel_offset);
+    StoreNonPointer(&raw_ptr()->kernel_function_, kernel_function);
 #endif
   }
 
@@ -3181,17 +3181,17 @@ class Field : public Object {
     set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
 
-  intptr_t kernel_offset() const {
+  void* kernel_field() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return NULL;
 #else
-    return raw_ptr()->kernel_offset_;
+    return raw_ptr()->kernel_field_;
 #endif
   }
 
-  void set_kernel_offset(intptr_t kernel_offset) const {
+  void set_kernel_field(void* kernel_field) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    StoreNonPointer(&raw_ptr()->kernel_offset_, kernel_offset);
+    StoreNonPointer(&raw_ptr()->kernel_field_, kernel_field);
 #endif
   }
 
@@ -3605,12 +3605,6 @@ class Script : public Object {
   }
   void set_compile_time_constants(const Array& value) const;
 
-  const uint8_t* kernel_data() { return raw_ptr()->kernel_data_; }
-  void set_kernel_data(const uint8_t* kernel_data) const;
-
-  intptr_t kernel_data_size() { return raw_ptr()->kernel_data_size_; }
-  void set_kernel_data_size(const intptr_t kernel_data_size) const;
-
   RawTypedData* kernel_string_offsets() const {
     return raw_ptr()->kernel_string_offsets_;
   }
@@ -3849,13 +3843,13 @@ class Library : public Object {
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset = 0) const;
+                        kernel::TreeNode* kernel_node = NULL) const;
   void AddFieldMetadata(const Field& field,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset = 0) const;
+                        kernel::TreeNode* kernel_node = NULL) const;
   void AddFunctionMetadata(const Function& func,
                            TokenPosition token_pos,
-                           intptr_t kernel_offset = 0) const;
+                           kernel::TreeNode* kernel_node = NULL) const;
   void AddLibraryMetadata(const Object& tl_owner,
                           TokenPosition token_pos) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
@@ -4024,7 +4018,7 @@ class Library : public Object {
   void AddMetadata(const Object& owner,
                    const String& name,
                    TokenPosition token_pos,
-                   intptr_t kernel_offset = 0) const;
+                   kernel::TreeNode* kernel_node = NULL) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 

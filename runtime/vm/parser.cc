@@ -235,11 +235,47 @@ void ParsedFunction::Bailout(const char* origin, const char* reason) const {
 
 kernel::ScopeBuildingResult* ParsedFunction::EnsureKernelScopes() {
   if (kernel_scopes_ == NULL) {
-    intptr_t kernel_offset = function().kernel_offset();
-    Script& script = Script::Handle(Z, function().script());
-    kernel::StreamingScopeBuilder builder(
-        this, kernel_offset, script.kernel_data(), script.kernel_data_size());
-    kernel_scopes_ = builder.BuildScopes();
+    kernel::TreeNode* node = NULL;
+    if (function().kernel_function() != NULL) {
+      node = static_cast<kernel::TreeNode*>(function().kernel_function());
+    }
+
+    intptr_t kernel_offset = -1;
+    const uint8_t* kernel_data = NULL;
+    intptr_t kernel_data_size = 0;
+    if (node != NULL) {
+      kernel::TreeNode* library_node = node;
+      if (node != NULL) {
+        const Function* parent = &function();
+        while (true) {
+          library_node =
+              static_cast<kernel::TreeNode*>(parent->kernel_function());
+          while (library_node != NULL && !library_node->IsLibrary()) {
+            if (library_node->IsMember()) {
+              library_node = kernel::Member::Cast(library_node)->parent();
+            } else if (library_node->IsClass()) {
+              library_node = kernel::Class::Cast(library_node)->parent();
+              break;
+            } else {
+              library_node = NULL;
+              break;
+            }
+          }
+          if (library_node != NULL) break;
+          parent = &Function::Handle(parent->parent_function());
+        }
+      }
+      if (library_node != NULL && library_node->IsLibrary()) {
+        kernel::Library* library = kernel::Library::Cast(library_node);
+        kernel_offset = node->kernel_offset();
+        kernel_data = library->kernel_data();
+        kernel_data_size = library->kernel_data_size();
+      }
+    }
+
+    kernel::StreamingScopeBuilder builder2(this, kernel_offset, kernel_data,
+                                           kernel_data_size);
+    kernel_scopes_ = builder2.BuildScopes();
   }
   return kernel_scopes_;
 }
@@ -1628,7 +1664,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
     ASSERT(func.num_fixed_parameters() == 2);  // closure, value.
   } else if (!parent.IsGetterFunction() && !parent.IsImplicitGetterFunction()) {
     // NOTE: For the `kernel -> flowgraph` we don't use the parser.
-    if (parent.kernel_offset() <= 0) {
+    if (parent.kernel_function() == NULL) {
       SkipFunctionPreamble();
       const bool use_function_type_syntax = false;
       const bool allow_explicit_default_values = true;

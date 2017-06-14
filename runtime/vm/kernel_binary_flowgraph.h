@@ -24,8 +24,6 @@ class StreamingDartTypeTranslator {
 
   // Can return a malformed type.
   AbstractType& BuildType();
-  // Can return a malformed type.
-  AbstractType& BuildTypeWithoutFinalization();
   // Is guaranteed to be not malformed.
   AbstractType& BuildVariableType();
 
@@ -103,12 +101,46 @@ class StreamingScopeBuilder {
 
  private:
   void VisitField();
+  void ReadFieldUntilAnnotation(TokenPosition* position,
+                                TokenPosition* end_position,
+                                word* flags,
+                                intptr_t* parent_offset);
 
+  /**
+   * Will read until the function node; as this is optional, will return the tag
+   * (i.e. either kSomething or kNothing).
+   */
+  Tag ReadProcedureUntilFunctionNode(word* kind, intptr_t* parent_offset);
+  void GetTypeParameterInfoForPossibleProcedure(
+      intptr_t outermost_kernel_offset,
+      bool* member_is_procedure,
+      bool* is_factory_procedure,
+      intptr_t* member_type_parameters,
+      intptr_t* member_type_parameters_offset_start);
   void VisitProcedure();
 
+  /**
+   * Will return binary offset of parent class.
+   */
+  intptr_t ReadConstructorUntilFunctionNode();
   void VisitConstructor();
 
+  void ReadClassUntilTypeParameters();
+  void ReadClassUntilFields();
+
+  void ReadFunctionNodeUntilTypeParameters(word* async_marker,
+                                           word* dart_async_marker);
   void VisitFunctionNode();
+
+  void DiscoverEnclosingElements(Zone* zone,
+                                 const Function& function,
+                                 Function* outermost_function,
+                                 intptr_t* outermost_kernel_offset,
+                                 intptr_t* parent_class_offset);
+  intptr_t GetParentOffset(intptr_t offset);
+  void GetTypeParameterInfoForClass(intptr_t class_offset,
+                                    intptr_t* type_paremeter_counts,
+                                    intptr_t* type_paremeter_offset);
   void VisitNode();
   void VisitInitializer();
   void VisitExpression();
@@ -148,6 +180,8 @@ class StreamingScopeBuilder {
   void AddCatchVariables();
   void AddIteratorVariable();
   void AddSwitchVariable();
+
+  StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset);
 
   // Record an assignment or reference to a variable.  If the occurrence is
   // in a nested function, ensure that the variable is handled properly as a
@@ -202,29 +236,9 @@ class StreamingScopeBuilder {
   word unused_word;
   intptr_t unused_intptr;
   TokenPosition unused_tokenposition;
-  NameIndex unused_nameindex;
 };
 
 
-// There are several cases when we are compiling constant expressions:
-//
-//   * constant field initializers:
-//      const FieldName = <expr>;
-//
-//   * constant expressions:
-//      const [<expr>, ...]
-//      const {<expr> : <expr>, ...}
-//      const Constructor(<expr>, ...)
-//
-//   * constant default parameters:
-//      f(a, [b = <expr>])
-//      f(a, {b: <expr>})
-//
-//   * constant values to compare in a [SwitchCase]
-//      case <expr>:
-//
-// In all cases `<expr>` must be recursively evaluated and canonicalized at
-// compile-time.
 class StreamingConstantEvaluator {
  public:
   explicit StreamingConstantEvaluator(StreamingFlowGraphBuilder* builder);
@@ -314,6 +328,12 @@ class StreamingFlowGraphBuilder {
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true) {}
 
+  ~StreamingFlowGraphBuilder() { delete reader_; }
+
+  Fragment BuildExpressionAt(intptr_t kernel_offset);
+  Fragment BuildStatementAt(intptr_t kernel_offset);
+
+ private:
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
                             Zone* zone,
                             const uint8_t* buffer,
@@ -324,69 +344,6 @@ class StreamingFlowGraphBuilder {
         reader_(new Reader(buffer, buffer_length)),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true) {}
-
-  ~StreamingFlowGraphBuilder() { delete reader_; }
-
-  FlowGraph* BuildGraph(intptr_t kernel_offset);
-
-  Fragment BuildStatementAt(intptr_t kernel_offset);
-  RawObject* BuildParameterDescriptor(intptr_t kernel_offset);
-  RawObject* EvaluateMetadata(intptr_t kernel_offset);
-
- private:
-  void DiscoverEnclosingElements(Zone* zone,
-                                 const Function& function,
-                                 Function* outermost_function,
-                                 intptr_t* outermost_kernel_offset,
-                                 intptr_t* parent_class_offset);
-  intptr_t GetParentOffset(intptr_t offset);
-  void GetTypeParameterInfoForClass(intptr_t class_offset,
-                                    intptr_t* type_paremeter_counts,
-                                    intptr_t* type_paremeter_offset);
-  void ReadClassUntilFields();
-  void ReadClassUntilTypeParameters();
-  /**
-   * Will return binary offset of parent class.
-   */
-  intptr_t ReadConstructorUntilFunctionNode();
-  /**
-   * Will read until the function node; as this is optional, will return the tag
-   * (i.e. either kSomething or kNothing).
-   */
-  Tag ReadProcedureUntilFunctionNode(word* kind, intptr_t* parent_offset);
-
-  void ReadFieldUntilAnnotation(NameIndex* canonical_name,
-                                TokenPosition* position,
-                                TokenPosition* end_position,
-                                word* flags,
-                                intptr_t* parent_offset);
-  void GetTypeParameterInfoForPossibleProcedure(
-      intptr_t outermost_kernel_offset,
-      bool* member_is_procedure,
-      bool* is_factory_procedure,
-      intptr_t* member_type_parameters,
-      intptr_t* member_type_parameters_offset_start);
-  void ReadFunctionNodeUntilTypeParameters(TokenPosition* position,
-                                           TokenPosition* end_position,
-                                           word* async_marker,
-                                           word* dart_async_marker);
-  /**
-   * Will return kernel offset for parent class if reading a constructor.
-   * Will otherwise return -1.
-   */
-  intptr_t ReadUntilFunctionNode();
-  StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset);
-
-  FlowGraph* BuildGraphOfStaticFieldInitializer();
-  FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);
-  void SetupDefaultParameterValues();
-  Fragment BuildFieldInitializer(NameIndex canonical_name);
-  Fragment BuildInitializers(intptr_t constructor_class_parent_offset);
-  FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
-  FlowGraph* BuildGraphOfFunction(
-      bool is_in_builtin_library_toplevel,
-      intptr_t constructor_class_parent_offset = -1);
-  Fragment BuildGetMainClosure();
 
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
@@ -442,7 +399,6 @@ class StreamingFlowGraphBuilder {
   CatchBlock* catch_block();
   ActiveClass* active_class();
   ScopeBuildingResult* scopes();
-  void set_scopes(ScopeBuildingResult* scope);
   ParsedFunction* parsed_function();
   TryFinallyBlock* try_finally_block();
   SwitchBlock* switch_block();
@@ -581,7 +537,6 @@ class StreamingFlowGraphBuilder {
   Fragment BuildThrow(TokenPosition* position);
   Fragment BuildListLiteral(bool is_const, TokenPosition* position);
   Fragment BuildMapLiteral(bool is_const, TokenPosition* position);
-  Fragment BuildFunctionExpression();
   Fragment BuildLet(TokenPosition* position);
   Fragment BuildBigIntLiteral(TokenPosition* position);
   Fragment BuildStringLiteral(TokenPosition* position);
@@ -610,15 +565,6 @@ class StreamingFlowGraphBuilder {
   Fragment BuildTryFinally();
   Fragment BuildYieldStatement();
   Fragment BuildVariableDeclaration();
-  Fragment BuildFunctionDeclaration();
-  Fragment BuildFunctionNode(intptr_t parent_kernel_offset,
-                             TokenPosition parent_position,
-                             bool declaration,
-                             intptr_t variable_offeset);
-  void SetupFunctionParameters(const dart::Class& klass,
-                               const dart::Function& function,
-                               bool is_method,
-                               bool is_closure);
 
   FlowGraphBuilder* flow_graph_builder_;
   TranslationHelper& translation_helper_;
@@ -626,11 +572,6 @@ class StreamingFlowGraphBuilder {
   Reader* reader_;
   StreamingConstantEvaluator constant_evaluator_;
   StreamingDartTypeTranslator type_translator_;
-
-  word unused_word;
-  intptr_t unused_intptr;
-  TokenPosition unused_tokenposition;
-  NameIndex unused_nameindex;
 
   friend class StreamingConstantEvaluator;
   friend class StreamingDartTypeTranslator;

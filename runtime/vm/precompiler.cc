@@ -1221,7 +1221,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
 
   ParsedFunction* parsed_function;
   // Check if this field is coming from the Kernel binary.
-  if (field.kernel_offset() > 0) {
+  if (field.kernel_field() != NULL) {
     parsed_function = kernel::ParseStaticFieldInitializer(zone, field);
   } else {
     parsed_function = Parser::ParseStaticFieldInitializer(field);
