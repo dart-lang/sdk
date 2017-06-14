@@ -80,7 +80,7 @@ class ProgramBuilder {
   final CommonElements _commonElements;
   final DartTypes _types;
   final DeferredLoadTask _deferredLoadTask;
-  final ClosureTask _closureToClassMapper;
+  final ClosureTask _closureDataLookup;
   final CodegenWorldBuilder _worldBuilder;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final BackendUsage _backendUsage;
@@ -123,7 +123,7 @@ class ProgramBuilder {
       this._commonElements,
       this._types,
       this._deferredLoadTask,
-      this._closureToClassMapper,
+      this._closureDataLookup,
       this._worldBuilder,
       this._nativeCodegenEnqueuer,
       this._backendUsage,
@@ -692,7 +692,7 @@ class ProgramBuilder {
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
         _commonElements,
-        _closureToClassMapper,
+        _closureDataLookup,
         _task,
         _namer,
         _nativeData,

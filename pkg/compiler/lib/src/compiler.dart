@@ -144,7 +144,7 @@ abstract class Compiler {
   LibraryLoaderTask libraryLoader;
   SerializationTask serialization;
   ResolverTask resolver;
-  closureMapping.ClosureTask closureToClassMapper;
+  closureMapping.ClosureTask closureDataLookup;
   TypeCheckerTask checker;
   GlobalTypeInferenceTask globalInference;
   JavaScriptBackend backend;
@@ -226,7 +226,7 @@ abstract class Compiler {
           measurer),
       parser = new ParserTask(this),
       resolver = createResolverTask(),
-      closureToClassMapper = new closureMapping.ClosureTask(this),
+      closureDataLookup = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
       globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,

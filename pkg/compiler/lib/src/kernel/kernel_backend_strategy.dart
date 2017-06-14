@@ -152,7 +152,7 @@ class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
         _compiler.codegenWorldBuilder,
         work.registry,
         // TODO(johnniwinther): Support these:
-        const KernelClosureClassMaps(),
+        const KernelClosureDataLookup(),
         const SourceInformationBuilder(),
         null, // Function node used as capture scope id.
         targetIsConstructorBody: false);
@@ -280,7 +280,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   @override
   LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
-      ClosureClassMaps closureClassMaps, ir.TreeNode node) {
+      ClosureDataLookup closureLookup, ir.TreeNode node) {
     return const LoopClosureRepresentationInfo();
   }
 }
@@ -310,8 +310,8 @@ class KLocal implements Local {
 }
 
 /// TODO(johnniwinther,efortuna): Implement this.
-class KernelClosureClassMaps implements ClosureClassMaps<ir.Node> {
-  const KernelClosureClassMaps();
+class KernelClosureDataLookup implements ClosureDataLookup<ir.Node> {
+  const KernelClosureDataLookup();
 
   @override
   ClosureAnalysisInfo getClosureAnalysisInfo(ir.Node node) {

@@ -42,7 +42,7 @@ class ElementBackendStrategy implements BackendStrategy {
   Sorter get sorter => const ElementSorter();
 
   void convertClosures(ClosedWorldRefiner closedWorldRefiner) {
-    _compiler.closureToClassMapper.createClosureClasses(closedWorldRefiner);
+    _compiler.closureDataLookup.createClosureClasses(closedWorldRefiner);
   }
 
   @override

@@ -57,7 +57,7 @@ class TypeTestProperties {
 
 class RuntimeTypeGenerator {
   final CommonElements _commonElements;
-  final ClosureTask _closureToClassMapper;
+  final ClosureTask _closureDataLookup;
   final CodeEmitterTask emitterTask;
   final Namer _namer;
   final NativeData _nativeData;
@@ -69,7 +69,7 @@ class RuntimeTypeGenerator {
 
   RuntimeTypeGenerator(
       this._commonElements,
-      this._closureToClassMapper,
+      this._closureDataLookup,
       this.emitterTask,
       this._namer,
       this._nativeData,
@@ -126,7 +126,7 @@ class RuntimeTypeGenerator {
       jsAst.Expression thisAccess = new jsAst.This();
       if (!method.isAbstract) {
         ClosureRepresentationInfo closureData =
-            _closureToClassMapper.getClosureRepresentationInfo(method);
+            _closureDataLookup.getClosureRepresentationInfo(method);
         if (closureData != null) {
           ClosureFieldElement thisLocal = closureData.thisFieldEntity;
           if (thisLocal != null) {

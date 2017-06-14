@@ -58,7 +58,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   final ClosedWorld closedWorld;
   final CodegenWorldBuilder _worldBuilder;
   final CodegenRegistry registry;
-  final ClosureClassMaps closureToClassMapper;
+  final ClosureDataLookup closureDataLookup;
 
   /// Helper accessor for all kernel function-like targets (Procedure,
   /// FunctionExpression, FunctionDeclaration) of the inner FunctionNode itself.
@@ -109,7 +109,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       this.closedWorld,
       this._worldBuilder,
       this.registry,
-      this.closureToClassMapper,
+      this.closureDataLookup,
       // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
       this.sourceInformationBuilder,
       this.functionNode,
@@ -339,7 +339,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
       // If there are locals that escape (i.e. mutated in closures), we pass the
       // box to the constructor.
-      ClosureAnalysisInfo scopeData = closureToClassMapper
+      ClosureAnalysisInfo scopeData = closureDataLookup
           .getClosureAnalysisInfo(constructorElement.resolvedAst.node);
       if (scopeData.requiresContextBox()) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
@@ -597,14 +597,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     ConstructorEntity astElement = _elementMap.getConstructor(constructor);
     ClosureRepresentationInfo oldClosureData = localsHandler.closureData;
     ClosureRepresentationInfo newClosureData =
-        closureToClassMapper.getClosureRepresentationInfo(astElement);
+        closureDataLookup.getClosureRepresentationInfo(astElement);
     if (astElement is ConstructorElement) {
       // TODO(johnniwinther): Support constructor (body) entities.
       ResolvedAst resolvedAst = astElement.resolvedAst;
       localsHandler.closureData = newClosureData;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
         localsHandler.enterScope(
-            closureToClassMapper.getClosureAnalysisInfo(resolvedAst.node),
+            closureDataLookup.getClosureAnalysisInfo(resolvedAst.node),
             forGenerativeConstructorBody:
                 astElement.isGenerativeConstructorBody);
       }
@@ -695,8 +695,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     localsHandler.startFunction(
         targetElement,
-        closureToClassMapper.getClosureRepresentationInfo(targetElement),
-        closureToClassMapper.getClosureAnalysisInfo(functionNode),
+        closureDataLookup.getClosureRepresentationInfo(targetElement),
+        closureDataLookup.getClosureAnalysisInfo(functionNode),
         parameterMap,
         isGenerativeConstructorBody: _targetIsConstructorBody);
     close(new HGoto()).addSuccessor(block);
@@ -900,7 +900,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     loopHandler.handleLoop(
         forStatement,
         localsMap.getClosureRepresentationInfoForLoop(
-            closureToClassMapper, forStatement),
+            closureDataLookup, forStatement),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1029,7 +1029,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     loopHandler.handleLoop(
         forInStatement,
         localsMap.getClosureRepresentationInfoForLoop(
-            closureToClassMapper, forInStatement),
+            closureDataLookup, forInStatement),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1080,7 +1080,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     loopHandler.handleLoop(
         forInStatement,
         localsMap.getClosureRepresentationInfoForLoop(
-            closureToClassMapper, forInStatement),
+            closureDataLookup, forInStatement),
         buildInitializer,
         buildCondition,
         () {},
@@ -1127,7 +1127,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     loopHandler.handleLoop(
         forInStatement,
         localsMap.getClosureRepresentationInfoForLoop(
-            closureToClassMapper, forInStatement),
+            closureDataLookup, forInStatement),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1178,7 +1178,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     loopHandler.handleLoop(
         whileStatement,
         localsMap.getClosureRepresentationInfoForLoop(
-            closureToClassMapper, whileStatement),
+            closureDataLookup, whileStatement),
         () {},
         buildCondition,
         () {}, () {
@@ -1192,7 +1192,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // LoopHandler.handleLoop with some tricks about when the "update" happens.
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     LoopClosureRepresentationInfo loopClosureInfo = localsMap
-        .getClosureRepresentationInfoForLoop(closureToClassMapper, doStatement);
+        .getClosureRepresentationInfoForLoop(closureDataLookup, doStatement);
     localsHandler.startLoop(loopClosureInfo);
     JumpHandler jumpHandler = loopHandler.beginLoopHeader(doStatement);
     HLoopInformation loopInfo = current.loopInformation;
@@ -1713,7 +1713,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       loopHandler.handleLoop(
           switchStatement,
           localsMap.getClosureRepresentationInfoForLoop(
-              closureToClassMapper, switchStatement),
+              closureDataLookup, switchStatement),
           () {},
           buildCondition,
           () {},
@@ -2834,7 +2834,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   visitFunctionNode(ir.FunctionNode node) {
     Local methodElement = _elementMap.getLocalFunction(node);
     ClosureRepresentationInfo closureInfo =
-        closureToClassMapper.getClosureRepresentationInfo(methodElement);
+        closureDataLookup.getClosureRepresentationInfo(methodElement);
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];

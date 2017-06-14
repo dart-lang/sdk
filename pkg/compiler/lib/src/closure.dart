@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library closureToClassMapper;
-
 import 'common/names.dart' show Identifiers;
 import 'common/resolution.dart' show ParsingContext, Resolution;
 import 'common/tasks.dart' show CompilerTask;
@@ -25,9 +23,11 @@ import 'tree/tree.dart';
 import 'util/util.dart';
 import 'world.dart' show ClosedWorldRefiner;
 
-/// Where T is ir.Node or Node.
-// TODO(efortuna): Rename this class.
-abstract class ClosureClassMaps<T> {
+/// Class that provides information for how closures are rewritten/represented
+/// to preserve Dart semantics when compiled to JavaScript. Given a particular
+/// node to look up, it returns a information about the internal representation
+/// of how closure conversion is implemented. T is an ir.Node or Node.
+abstract class ClosureDataLookup<T> {
   /// Look up information about the variables that have been mutated and are
   /// used inside the scope of [node].
   // TODO(johnniwinther): Split this up into two functions, one for members and
@@ -194,7 +194,7 @@ class ClosureRepresentationInfo {
   bool get isClosure => false;
 }
 
-class ClosureTask extends CompilerTask implements ClosureClassMaps<Node> {
+class ClosureTask extends CompilerTask implements ClosureDataLookup<Node> {
   Map<Node, ClosureScope> _closureInfoMap = <Node, ClosureScope>{};
   Map<Element, ClosureClassMap> _closureMappingCache =
       <Element, ClosureClassMap>{};

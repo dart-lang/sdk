@@ -1042,5 +1042,5 @@ abstract class KernelToLocalsMap {
   /// Returns the [LoopClosureRepresentationInfo] for the loop [node] in
   /// [closureClassMaps].
   LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
-      ClosureClassMaps closureClassMaps, ir.TreeNode node);
+      ClosureDataLookup closureLookup, ir.TreeNode node);
 }

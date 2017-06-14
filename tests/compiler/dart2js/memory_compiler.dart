@@ -203,7 +203,7 @@ CompilerImpl compilerFor(
     cachedCompiler.patchParser = null;
     cachedCompiler.libraryLoader = null;
     cachedCompiler.resolver = null;
-    cachedCompiler.closureToClassMapper = null;
+    cachedCompiler.closureDataLookup = null;
     cachedCompiler.checker = null;
     cachedCompiler.globalInference = null;
     cachedCompiler.backend = null;

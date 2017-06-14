@@ -868,7 +868,7 @@ class SsaBuilder extends ast.Visitor
     localsHandler = new LocalsHandler(this, function, function.memberContext,
         function.contextClass, instanceType, nativeData, interceptorData);
     localsHandler.closureData =
-        closureToClassMapper.getClosureRepresentationInfo(function);
+        closureDataLookup.getClosureRepresentationInfo(function);
     returnLocal =
         new SyntheticLocal("result", function, function.memberContext);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(closedWorld));
@@ -1036,11 +1036,11 @@ class SsaBuilder extends ast.Visitor
       elementInferenceResults = globalInferenceResults.resultOfMember(callee);
       ClosureRepresentationInfo oldClosureData = localsHandler.closureData;
       ClosureRepresentationInfo newClosureData =
-          closureToClassMapper.getClosureRepresentationInfo(callee);
+          closureDataLookup.getClosureRepresentationInfo(callee);
       localsHandler.closureData = newClosureData;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
         localsHandler.enterScope(
-            closureToClassMapper.getClosureAnalysisInfo(resolvedAst.node),
+            closureDataLookup.getClosureAnalysisInfo(resolvedAst.node),
             forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
@@ -1395,7 +1395,7 @@ class SsaBuilder extends ast.Visitor
       // pass the box to the constructor.
       // The box must be passed before any type variable.
       ClosureAnalysisInfo scopeData =
-          closureToClassMapper.getClosureAnalysisInfo(node);
+          closureDataLookup.getClosureAnalysisInfo(node);
       if (scopeData.requiresContextBox()) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
@@ -1454,9 +1454,9 @@ class SsaBuilder extends ast.Visitor
     }
 
     ClosureRepresentationInfo closureData =
-        closureToClassMapper.getClosureRepresentationInfo(element);
+        closureDataLookup.getClosureRepresentationInfo(element);
     localsHandler.startFunction(element, closureData,
-        closureToClassMapper.getClosureAnalysisInfo(node), parameters,
+        closureDataLookup.getClosureAnalysisInfo(node), parameters,
         isGenerativeConstructorBody: element.isGenerativeConstructorBody);
     close(new HGoto()).addSuccessor(block);
 
@@ -1486,7 +1486,7 @@ class SsaBuilder extends ast.Visitor
       // check.
       signature.orderedForEachParameter((ParameterElement parameterElement) {
         if (element.isGenerativeConstructorBody) {
-          if (closureToClassMapper
+          if (closureDataLookup
               .getClosureAnalysisInfo(node)
               .isCaptured(parameterElement)) {
             // The parameter will be a field in the box passed as the
@@ -1731,7 +1731,7 @@ class SsaBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getClosureRepresentationInfoForLoop(node),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1747,7 +1747,7 @@ class SsaBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getClosureRepresentationInfoForLoop(node),
         () {},
         buildCondition,
         () {}, () {
@@ -1759,7 +1759,7 @@ class SsaBuilder extends ast.Visitor
     assert(isReachable);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     var loopClosureInfo =
-        closureToClassMapper.getClosureRepresentationInfoForLoop(node);
+        closureDataLookup.getClosureRepresentationInfoForLoop(node);
     localsHandler.startLoop(loopClosureInfo);
     loopDepth++;
     JumpHandler jumpHandler = loopHandler.beginLoopHeader(node);
@@ -1898,7 +1898,7 @@ class SsaBuilder extends ast.Visitor
   visitFunctionExpression(ast.FunctionExpression node) {
     LocalFunctionElement methodElement = elements[node];
     ClosureRepresentationInfo closureInfo =
-        closureToClassMapper.getClosureRepresentationInfo(methodElement);
+        closureDataLookup.getClosureRepresentationInfo(methodElement);
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];
@@ -5462,7 +5462,7 @@ class SsaBuilder extends ast.Visitor
     buildProtectedByFinally(() {
       loopHandler.handleLoop(
           node,
-          closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+          closureDataLookup.getClosureRepresentationInfoForLoop(node),
           buildInitializer,
           buildCondition,
           buildUpdate,
@@ -5534,7 +5534,7 @@ class SsaBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getClosureRepresentationInfoForLoop(node),
         buildInitializer,
         buildCondition,
         () {},
@@ -5658,7 +5658,7 @@ class SsaBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getClosureRepresentationInfoForLoop(node),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -6011,7 +6011,7 @@ class SsaBuilder extends ast.Visitor
     void buildLoop() {
       loopHandler.handleLoop(
           node,
-          closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+          closureDataLookup.getClosureRepresentationInfoForLoop(node),
           () {},
           buildCondition,
           () {},

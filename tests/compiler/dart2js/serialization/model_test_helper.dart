@@ -161,9 +161,9 @@ void checkElements(
       element1.isConstructor ||
       (element1.isField && element1.isInstanceMember)) {
     ClosureRepresentationInfo closureData1 =
-        compiler1.closureToClassMapper.getClosureRepresentationInfo(element1);
+        compiler1.closureDataLookup.getClosureRepresentationInfo(element1);
     ClosureRepresentationInfo closureData2 =
-        compiler2.closureToClassMapper.getClosureRepresentationInfo(element2);
+        compiler2.closureDataLookup.getClosureRepresentationInfo(element2);
 
     checkElementIdentities(
         closureData1,
