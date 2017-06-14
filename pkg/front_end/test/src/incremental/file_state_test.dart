@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,6 +21,7 @@ main() {
 
 @reflectiveTest
 class FileSystemStateTest {
+  final byteStore = new MemoryByteStore();
   final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
   final TranslateUri uriTranslator = new TranslateUri({}, {}, {});
   FileSystemState fsState;
@@ -32,7 +34,8 @@ class FileSystemStateTest {
     uriTranslator.dartLibraries.addAll(dartLibraries);
     _coreUri = Uri.parse('dart:core');
     expect(_coreUri, isNotNull);
-    fsState = new FileSystemState(fileSystem, uriTranslator, <int>[], (uri) {
+    fsState = new FileSystemState(byteStore, fileSystem, uriTranslator, <int>[],
+        (uri) {
       _newFileUris.add(uri);
       return new Future.value();
     });

@@ -95,8 +95,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       return new Future.value();
     }
 
-    _fsState = new FileSystemState(
-        _options.fileSystem, _uriTranslator, _salt, onFileAdded);
+    _fsState = new FileSystemState(_options.byteStore, _options.fileSystem,
+        _uriTranslator, _salt, onFileAdded);
   }
 
   /// Return the object that provides additional information for tests.
