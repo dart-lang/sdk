@@ -1103,7 +1103,13 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     if (_infraFailure) {
       return Expectation.ignore;
     }
-
+    // TODO(28955): See http://dartbug.com/28955
+    // The code for this in _failedBecauseOfFlakyInfrastructure doesn't
+    // seem to be working.
+    if (hasTimedOut && testCase.configuration.runtime == Runtime.ie11) {
+      DebugLogger.warning("Timeout of ie11 on test ${testCase.displayName}");
+      return Expectation.ignore;
+    }
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
