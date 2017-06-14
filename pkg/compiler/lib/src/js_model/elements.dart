@@ -44,7 +44,8 @@ class JsToFrontendMap {
 
 class JsClosedWorld extends ClosedWorldBase {
   JsClosedWorld(
-      {CommonElements commonElements,
+      {ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
       ConstantSystem constantSystem,
       NativeData nativeData,
       InterceptorData interceptorData,
@@ -58,6 +59,7 @@ class JsClosedWorld extends ClosedWorldBase {
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
       : super(
+            elementEnvironment: elementEnvironment,
             commonElements: commonElements,
             constantSystem: constantSystem,
             nativeData: nativeData,

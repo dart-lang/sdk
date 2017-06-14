@@ -88,9 +88,12 @@ void TypeParameterList::ReadFrom(Reader* reader) {
     reader->helper()->type_parameters().Push(parameter);
   }
 
-  // Read all [TypeParameter]s and their bounds.
-  for (intptr_t i = 0; i < length; i++) {
-    (*this)[i]->ReadFrom(reader);
+  if (length > 0) {
+    // Read all [TypeParameter]s and their bounds.
+    for (intptr_t i = 0; i < length; i++) {
+      (*this)[i]->ReadFrom(reader);
+    }
+    first_offset = (*this)[0]->kernel_offset_;
   }
 }
 
@@ -254,6 +257,7 @@ Typedef* Typedef::ReadFrom(Reader* reader) {
 Class* Class::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
 
+  kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   canonical_name_ = reader->ReadCanonicalNameReference();
   position_ = reader->ReadPosition(false);
   is_abstract_ = reader->ReadBool();
@@ -360,6 +364,7 @@ Field* Field::ReadFrom(Reader* reader) {
   position_ = reader->ReadPosition(false);
   end_position_ = reader->ReadPosition(false);
   flags_ = reader->ReadFlags();
+  reader->ReadUInt();  // parent class binary offset (or 0).
   name_ = Name::ReadFrom(reader);
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
@@ -378,6 +383,7 @@ Field* Field::ReadFrom(Reader* reader) {
 
 Constructor* Constructor::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
+  kernel_offset_ = reader->offset();  // Notice the ReadTag() below.
   Tag tag = reader->ReadTag();
   ASSERT(tag == kConstructor);
 
@@ -386,6 +392,7 @@ Constructor* Constructor::ReadFrom(Reader* reader) {
   position_ = reader->ReadPosition();
   end_position_ = reader->ReadPosition();
   flags_ = reader->ReadFlags();
+  reader->ReadUInt();  // parent class binary offset.
   name_ = Name::ReadFrom(reader);
   annotations_.ReadFromStatic<Expression>(reader);
   function_ = FunctionNode::ReadFrom(reader);
@@ -400,6 +407,7 @@ Constructor* Constructor::ReadFrom(Reader* reader) {
 
 Procedure* Procedure::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
+  kernel_offset_ = reader->offset();  // Notice the ReadTag() below.
   Tag tag = reader->ReadTag();
   ASSERT(tag == kProcedure);
 
@@ -409,6 +417,7 @@ Procedure* Procedure::ReadFrom(Reader* reader) {
   end_position_ = reader->ReadPosition(false);
   kind_ = static_cast<ProcedureKind>(reader->ReadByte());
   flags_ = reader->ReadFlags();
+  reader->ReadUInt();  // parent class binary offset (or 0).
   name_ = Name::ReadFrom(reader);
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
@@ -624,7 +633,8 @@ VariableGet* VariableGet::ReadFrom(Reader* reader) {
   get->position_ = reader->ReadPosition();
   get->variable_kernel_offset_ = reader->ReadUInt();
   get->variable_ = reader->helper()->variables().Lookup(reader->ReadUInt());
-  ASSERT(get->variable_->kernel_offset() == get->variable_kernel_offset_);
+  ASSERT(get->variable_->kernel_offset_no_tag() ==
+         get->variable_kernel_offset_);
   reader->ReadOptional<DartType>();  // Unused promoted type.
   return get;
 }
@@ -637,7 +647,8 @@ VariableGet* VariableGet::ReadFrom(Reader* reader, uint8_t payload) {
   get->position_ = reader->ReadPosition();
   get->variable_kernel_offset_ = reader->ReadUInt();
   get->variable_ = reader->helper()->variables().Lookup(payload);
-  ASSERT(get->variable_->kernel_offset() == get->variable_kernel_offset_);
+  ASSERT(get->variable_->kernel_offset_no_tag() ==
+         get->variable_kernel_offset_);
   return get;
 }
 
@@ -649,7 +660,8 @@ VariableSet* VariableSet::ReadFrom(Reader* reader) {
   set->position_ = reader->ReadPosition();
   set->variable_kernel_offset_ = reader->ReadUInt();
   set->variable_ = reader->helper()->variables().Lookup(reader->ReadUInt());
-  ASSERT(set->variable_->kernel_offset() == set->variable_kernel_offset_);
+  ASSERT(set->variable_->kernel_offset_no_tag() ==
+         set->variable_kernel_offset_);
   set->expression_ = Expression::ReadFrom(reader);
 
   set->can_stream_ = set->expression_->can_stream();
@@ -665,7 +677,8 @@ VariableSet* VariableSet::ReadFrom(Reader* reader, uint8_t payload) {
   set->variable_ = reader->helper()->variables().Lookup(payload);
   set->position_ = reader->ReadPosition();
   set->variable_kernel_offset_ = reader->ReadUInt();
-  ASSERT(set->variable_->kernel_offset() == set->variable_kernel_offset_);
+  ASSERT(set->variable_->kernel_offset_no_tag() ==
+         set->variable_kernel_offset_);
   set->expression_ = Expression::ReadFrom(reader);
 
   set->can_stream_ = set->expression_->can_stream();
@@ -1580,6 +1593,7 @@ VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader,
   VariableDeclaration* decl = new VariableDeclaration();
   // -1 or -0 depending on whether there's a tag or not.
   decl->kernel_offset_ = reader->offset() - (read_tag ? 1 : 0);
+  decl->kernel_offset_no_tag_ = reader->offset();
   decl->position_ = reader->ReadPosition();
   decl->equals_position_ = reader->ReadPosition();
   decl->flags_ = reader->ReadFlags();
@@ -1819,7 +1833,10 @@ FunctionNode* FunctionNode::ReadFrom(Reader* reader) {
   TypeParameterScope<ReaderHelper> scope(reader->helper());
 
   FunctionNode* function = new FunctionNode();
-  function->kernel_offset_ = reader->offset();  // FunctionNode has no tag.
+  // FunctionNode tag not read yet.
+  function->kernel_offset_ = reader->offset();
+  Tag tag = reader->ReadTag();
+  ASSERT(tag == kFunctionNode);
   function->position_ = reader->ReadPosition();
   function->end_position_ = reader->ReadPosition();
   function->async_marker_ =
@@ -1827,6 +1844,7 @@ FunctionNode* FunctionNode::ReadFrom(Reader* reader) {
   function->dart_async_marker_ =
       static_cast<FunctionNode::AsyncMarker>(reader->ReadByte());
   function->type_parameters().ReadFrom(reader);
+  reader->ReadUInt();  // total parameter count.
   function->required_parameter_count_ = reader->ReadUInt();
   function->positional_parameters().ReadFromStatic<VariableDeclarationImpl>(
       reader);

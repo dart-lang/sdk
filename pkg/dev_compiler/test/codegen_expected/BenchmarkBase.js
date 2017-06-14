@@ -23,6 +23,8 @@ define(['dart_sdk'], function(dart_sdk) {
       dart.throw(message);
     }
   };
+  (BenchmarkBase$.Expect.new = function() {
+  }).prototype = BenchmarkBase$.Expect.prototype;
   dart.setSignature(BenchmarkBase$.Expect, {
     methods: () => ({fail: dart.fnType(dart.dynamic, [dart.dynamic])}),
     statics: () => ({
@@ -38,9 +40,6 @@ define(['dart_sdk'], function(dart_sdk) {
     set name(value) {
       super.name = value;
     }
-    new(name) {
-      this[name$] = name;
-    }
     run() {}
     warmup() {
       this.run();
@@ -55,7 +54,7 @@ define(['dart_sdk'], function(dart_sdk) {
     static measureFor(f, timeMinimum) {
       let time = 0;
       let iter = 0;
-      let watch = new core.Stopwatch();
+      let watch = new core.Stopwatch.new();
       watch.start();
       let elapsed = 0;
       while (dart.notNull(elapsed) < dart.notNull(timeMinimum)) {
@@ -81,6 +80,9 @@ define(['dart_sdk'], function(dart_sdk) {
       core.print(dart.str`${this.name}(RunTime): ${score} us.`);
     }
   };
+  (BenchmarkBase$.BenchmarkBase.new = function(name) {
+    this[name$] = name;
+  }).prototype = BenchmarkBase$.BenchmarkBase.prototype;
   const name$ = Symbol("BenchmarkBase.name");
   dart.setSignature(BenchmarkBase$.BenchmarkBase, {
     fields: () => ({name: dart.finalFieldType(core.String)}),

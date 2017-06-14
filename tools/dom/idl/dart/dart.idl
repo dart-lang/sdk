@@ -1,13 +1,5 @@
 // This file introduces / supplements and forces Dart declarations.
 
-[DartSupplemental,
- Constructor]
-interface AudioContext {
-  // TODO(ager): Auto-generate this custom method when the info about retaining
-  // typed arrays is in the IDL.
-  [Custom] void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, AudioBufferCallback errorCallback);
-};
-
 [DartSupplemental]
 interface WaveShaperNode {
   // TODO(ager): Auto-generate this custom method when the info about retaining

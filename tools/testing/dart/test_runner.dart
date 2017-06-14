@@ -1043,7 +1043,7 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
   }
 }
 
-class BrowserCommandOutputImpl extends CommandOutputImpl {
+class ContentShellCommandOutputImpl extends CommandOutputImpl {
   // Although tests are reported as passing, content shell sometimes exits with
   // a nonzero exitcode which makes our dartium builders extremely falky.
   // See: http://dartbug.com/15139.
@@ -1074,19 +1074,12 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
           "zygote crash. Test ignored");
       return true;
     }
-    // TODO(28955): See http://dartbug.com/28955
-    if (timedOut &&
-        command is BrowserTestCommand &&
-        command.browser == Runtime.ie11) {
-      DebugLogger.warning("Timeout of ie11 on test page ${command.url}");
-      return true;
-    }
     return false;
   }
 
   bool _infraFailure;
 
-  BrowserCommandOutputImpl(
+  ContentShellCommandOutputImpl(
       Command command,
       int exitCode,
       bool timedOut,
@@ -1199,7 +1192,8 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
   }
 }
 
-class HTMLBrowserCommandOutputImpl extends BrowserCommandOutputImpl {
+// TODO(29869): Remove this class after verifying it isn't used.
+class HTMLBrowserCommandOutputImpl extends ContentShellCommandOutputImpl {
   HTMLBrowserCommandOutputImpl(
       Command command,
       int exitCode,
@@ -1419,7 +1413,15 @@ class BrowserControllerTestOutcome extends CommandOutputImpl
 
   Expectation result(TestCase testCase) {
     // Handle timeouts first
-    if (_result.didTimeout) return Expectation.timeout;
+    if (_result.didTimeout) {
+      if (testCase.configuration.runtime == Runtime.ie11) {
+        // TODO(28955): See http://dartbug.com/28955
+        DebugLogger.warning("Timeout of ie11 on test ${testCase.displayName}");
+        return Expectation.ignore;
+      }
+      return Expectation.timeout;
+    }
+
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     // Multitests are handled specially
@@ -1747,7 +1749,7 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
     List<int> stdout, List<int> stderr, Duration time, bool compilationSkipped,
     [int pid = 0]) {
   if (command is ContentShellCommand) {
-    return new BrowserCommandOutputImpl(
+    return new ContentShellCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is BrowserTestCommand) {
     return new HTMLBrowserCommandOutputImpl(

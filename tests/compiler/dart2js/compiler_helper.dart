@@ -78,7 +78,10 @@ Future<String> compile(String code,
     MethodElement element = mainApp.find(entry);
     if (element == null) return null;
     compiler.phase = Compiler.PHASE_RESOLVING;
-    compiler.processQueue(compiler.enqueuer.resolution, element,
+    compiler.processQueue(
+        compiler.frontendStrategy.elementEnvironment,
+        compiler.enqueuer.resolution,
+        element,
         compiler.libraryLoader.libraries);
     ResolutionWorkItem resolutionWork =
         new ResolutionWorkItem(compiler.resolution, element);

@@ -123,8 +123,8 @@ class Emitter extends js_emitter.EmitterBase {
   ConstantEmitter constantEmitter;
   NativeEmitter get nativeEmitter => task.nativeEmitter;
   TypeTestRegistry get typeTestRegistry => task.typeTestRegistry;
-  CommonElements get commonElements => compiler.commonElements;
-  ElementEnvironment get _elementEnvironment => compiler.elementEnvironment;
+  CommonElements get commonElements => _closedWorld.commonElements;
+  ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();
@@ -860,7 +860,7 @@ class Emitter extends js_emitter.EmitterBase {
     jsAst.Expression finishedClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
     jsAst.Expression cyclicThrow =
-        staticFunctionAccess(compiler.commonElements.cyclicThrowHelper);
+        staticFunctionAccess(commonElements.cyclicThrowHelper);
     jsAst.Expression laziesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 
@@ -1956,7 +1956,7 @@ class Emitter extends js_emitter.EmitterBase {
 
   jsAst.Comment buildGeneratedBy() {
     List<String> options = [];
-    if (compiler.commonElements.mirrorsLibrary != null &&
+    if (commonElements.mirrorsLibrary != null &&
         !compiler.options.loadFromDill) {
       // TODO(johnniwinther): Add `isMirrorsUsed` to [BackendData] instead
       // of checking `mirrorsLibrary`.

@@ -746,3 +746,9 @@ _unresolvedTopLevelMethodError(receiver, memberName, positionalArguments,
   return new NoSuchMethodError(
       receiver, memberName, positionalArguments, namedArguments);
 }
+
+@patch
+class _ConstantExpressionError {
+  @patch
+  _throw(error) => throw error;
+}

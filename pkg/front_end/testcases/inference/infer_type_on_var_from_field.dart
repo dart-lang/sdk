@@ -23,3 +23,5 @@ class A {
   int y; // field def after use
   final /*@topType=int*/ z = 42; // should infer `int`
 }
+
+main() {}

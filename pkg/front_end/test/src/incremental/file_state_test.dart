@@ -141,6 +141,54 @@ baz() => 44;
 ''');
   }
 
+  test_gc() async {
+    var a = writeFile('/a.dart', '');
+    var b = writeFile('/b.dart', '');
+    var c = writeFile('/c.dart', 'import "a.dart";');
+    var d = writeFile('/d.dart', 'import "b.dart";');
+    var e = writeFile(
+        '/e.dart',
+        r'''
+import "c.dart";
+import "d.dart";
+''');
+
+    var eFile = await fsState.getFile(e);
+
+    // The root and four files.
+    expect(fsState.fileUris, contains(e));
+    expect(fsState.fileUris, contains(a));
+    expect(fsState.fileUris, contains(b));
+    expect(fsState.fileUris, contains(c));
+    expect(fsState.fileUris, contains(d));
+
+    // No changes after GC.
+    expect(fsState.gc(e), isEmpty);
+    expect(fsState.fileUris, contains(e));
+    expect(fsState.fileUris, contains(a));
+    expect(fsState.fileUris, contains(b));
+    expect(fsState.fileUris, contains(c));
+    expect(fsState.fileUris, contains(d));
+
+    // Update e.dart so that it does not reference c.dart anymore.
+    // Then GC removes both c.dart and a.dart it references.
+    writeFile(
+        '/e.dart',
+        r'''
+import "d.dart";
+''');
+    await eFile.refresh();
+    {
+      var gcFiles = fsState.gc(e);
+      expect(gcFiles.map((file) => file.uri), unorderedEquals([a, c]));
+    }
+    expect(fsState.fileUris, contains(e));
+    expect(fsState.fileUris, isNot(contains(a)));
+    expect(fsState.fileUris, contains(b));
+    expect(fsState.fileUris, isNot(contains(c)));
+    expect(fsState.fileUris, contains(d));
+  }
+
   test_getFile() async {
     var a = writeFile('/a.dart', '');
     var b = writeFile('/b.dart', '');
@@ -236,6 +284,116 @@ export "c.dart" show A, B, C, D hide C show A, D;
     }
   }
 
+  test_hasMixinApplication_false() async {
+    writeFile(
+        '/a.dart',
+        r'''
+class A {}
+class B extends Object with A {}
+''');
+    var uri = writeFile(
+        '/test.dart',
+        r'''
+import 'a.dart';
+class T1 extends A {}
+class T2 extends B {}
+''');
+    FileState file = await fsState.getFile(uri);
+    expect(file.hasMixinApplication, isFalse);
+  }
+
+  test_hasMixinApplication_true_class() async {
+    var uri = writeFile(
+        '/test.dart',
+        r'''
+class A {}
+class B extends Object with A {}
+''');
+    FileState file = await fsState.getFile(uri);
+    expect(file.hasMixinApplication, isTrue);
+  }
+
+  test_hasMixinApplication_true_named() async {
+    var uri = writeFile(
+        '/test.dart',
+        r'''
+class A {}
+class B = Object with A;
+''');
+    FileState file = await fsState.getFile(uri);
+    expect(file.hasMixinApplication, isTrue);
+  }
+
+  test_hasMixinApplicationLibrary_false() async {
+    var partUri = writeFile(
+        '/part.dart',
+        r'''
+part of test;
+class A {}
+''');
+    var libUri = writeFile(
+        '/test.dart',
+        r'''
+library test;
+part 'part.dart';
+class B extends A {}
+''');
+
+    FileState part = await fsState.getFile(partUri);
+    FileState lib = await fsState.getFile(libUri);
+
+    expect(part.hasMixinApplication, isFalse);
+    expect(lib.hasMixinApplication, isFalse);
+    expect(lib.hasMixinApplicationLibrary, isFalse);
+  }
+
+  test_hasMixinApplicationLibrary_true_inDefiningUnit() async {
+    var partUri = writeFile(
+        '/part.dart',
+        r'''
+part of test;
+class A {}
+''');
+    var libUri = writeFile(
+        '/test.dart',
+        r'''
+library test;
+part 'part.dart';
+class B extends Object with A {}
+''');
+
+    FileState part = await fsState.getFile(partUri);
+    FileState lib = await fsState.getFile(libUri);
+
+    expect(part.hasMixinApplication, isFalse);
+    expect(lib.hasMixinApplication, isTrue);
+    expect(lib.hasMixinApplicationLibrary, isTrue);
+  }
+
+  test_hasMixinApplicationLibrary_true_inPart() async {
+    var partUri = writeFile(
+        '/part.dart',
+        r'''
+part of test;
+class A {}
+class B extends Object with A {}
+''');
+    var libUri = writeFile(
+        '/test.dart',
+        r'''
+library test;
+part 'part.dart';
+class C {}
+''');
+
+    FileState part = await fsState.getFile(partUri);
+    FileState lib = await fsState.getFile(libUri);
+
+    expect(part.hasMixinApplication, isTrue);
+    expect(lib.hasMixinApplication, isFalse);
+    expect(lib.hasMixinApplicationLibrary, isTrue);
+  }
+
   test_newFileListener() async {
     var a = writeFile('/a.dart', '');
     var b = writeFile('/b.dart', '');
@@ -278,12 +436,19 @@ import 'b.dart';
     FileState c = await fsState.getFile(cUri);
     FileState d = await fsState.getFile(dUri);
 
-    List<LibraryCycle> order = d.topologicalOrder;
-    expect(order, hasLength(4));
-    expect(order[0].libraries, contains(core));
-    expect(order[1].libraries, unorderedEquals([a]));
-    expect(order[2].libraries, unorderedEquals([b, c]));
-    expect(order[3].libraries, unorderedEquals([d]));
+    List<LibraryCycle> cycles = d.topologicalOrder;
+    expect(cycles, hasLength(4));
+
+    expect(cycles[0].libraries, contains(core));
+    expect(cycles[1].libraries, unorderedEquals([a]));
+    expect(cycles[2].libraries, unorderedEquals([b, c]));
+    expect(cycles[3].libraries, unorderedEquals([d]));
+
+    expect(cycles[0].directUsers,
+        unorderedEquals([cycles[1], cycles[2], cycles[3]]));
+    expect(cycles[1].directUsers, unorderedEquals([cycles[3]]));
+    expect(cycles[2].directUsers, unorderedEquals([cycles[3]]));
+    expect(cycles[3].directUsers, isEmpty);
   }
 
   test_topologicalOrder_cycleBeforeTarget_export() async {

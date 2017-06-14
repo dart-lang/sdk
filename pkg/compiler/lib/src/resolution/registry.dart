@@ -11,6 +11,7 @@ import '../constants/expressions.dart';
 import '../elements/resolution_types.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/elements.dart';
+import '../elements/jumps.dart';
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/feature.dart';

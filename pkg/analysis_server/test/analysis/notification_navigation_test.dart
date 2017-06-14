@@ -179,12 +179,11 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
 
 @reflectiveTest
 class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
-  @override
-  bool get enableNewAnalysisDriver => false;
+  Completer _resultsAvailable = new Completer();
 
   Future prepareNavigation() async {
     addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
-    await waitForTasksFinished();
+    await _resultsAvailable.future;
     assertRegionsSorted();
   }
 
@@ -195,6 +194,7 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
         regions = params.regions;
         targets = params.targets;
         targetFiles = params.files;
+        _resultsAvailable.complete(null);
       }
     }
   }

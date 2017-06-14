@@ -200,11 +200,23 @@ class TypeInferenceListener
           MethodInvocation expression, DartType inferredType) =>
       debugExpressionExit("methodInvocation", expression, inferredType);
 
+  bool notEnter(Not expression, DartType typeContext) =>
+      debugExpressionEnter("not", expression, typeContext);
+
+  void notExit(Not expression, DartType inferredType) =>
+      debugExpressionExit("not", expression, inferredType);
+
   bool nullLiteralEnter(NullLiteral expression, DartType typeContext) =>
       debugExpressionEnter("nullLiteral", expression, typeContext);
 
   void nullLiteralExit(NullLiteral expression, DartType inferredType) =>
       debugExpressionExit("nullLiteral", expression, inferredType);
+
+  bool propertyAssignEnter(Expression expression, DartType typeContext) =>
+      debugExpressionEnter("propertyAssign", expression, typeContext);
+
+  void propertyAssignExit(Expression expression, DartType inferredType) =>
+      debugExpressionExit("propertyAssign", expression, inferredType);
 
   bool propertyGetEnter(PropertyGet expression, DartType typeContext) =>
       debugExpressionEnter("propertyGet", expression, typeContext);

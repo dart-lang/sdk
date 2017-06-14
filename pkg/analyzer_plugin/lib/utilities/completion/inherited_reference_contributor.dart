@@ -17,6 +17,9 @@ import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
 
 /**
  * A contributor for calculating suggestions for inherited references.
+ *
+ * Plugin developers should extend this function and primarily
+ * overload `computeSuggestions` (if needed).
  */
 class InheritedReferenceContributor extends Object
     with ElementSuggestionBuilder
@@ -30,6 +33,12 @@ class InheritedReferenceContributor extends Object
   @override
   ResourceProvider resourceProvider;
 
+  /**
+   * Plugin contributors should primarily overload this function.
+   * Should more parameters be needed for autocompletion needs, the
+   * overloaded function should define those parameters and
+   * call on `computeSuggestionsForClass`.
+   */
   @override
   Future<Null> computeSuggestions(
       CompletionRequest request, CompletionCollector collector) async {
@@ -44,12 +53,39 @@ class InheritedReferenceContributor extends Object
       return;
     }
     containingLibrary = request.result.libraryElement;
-    _computeSuggestionsForClass2(
-        collector,
-        target,
-        resolutionMap.elementDeclaredByClassDeclaration(classDecl),
-        request,
-        optype);
+    _computeSuggestionsForClass2(collector, target,
+        resolutionMap.elementDeclaredByClassDeclaration(classDecl), optype);
+  }
+
+  /**
+   * Clients should not overload this function.
+   */
+  Future<Null> computeSuggestionsForClass(
+    CompletionRequest request,
+    CompletionCollector collector,
+    ClassElement classElement, {
+    AstNode entryPoint,
+    bool skipChildClass,
+    CompletionTarget target,
+    OpType optype,
+  }) async {
+    target ??= new CompletionTarget.forOffset(
+        request.result.unit, request.offset,
+        entryPoint: entryPoint);
+    optype ??= new OpType.forCompletion(target, request.offset);
+    if (!optype.includeIdentifiers) {
+      return;
+    }
+    if (classElement == null) {
+      ClassDeclaration classDecl = _enclosingClass(target);
+      if (classDecl == null || classDecl.element == null) {
+        return;
+      }
+      classElement = resolutionMap.elementDeclaredByClassDeclaration(classDecl);
+    }
+    containingLibrary = request.result.libraryElement;
+    _computeSuggestionsForClass2(collector, target, classElement, optype,
+        skipChildClass: skipChildClass);
   }
 
   _addSuggestionsForType(InterfaceType type, OpType optype,
@@ -82,12 +118,8 @@ class InheritedReferenceContributor extends Object
     }
   }
 
-  void _computeSuggestionsForClass2(
-      CompletionCollector collector,
-      CompletionTarget target,
-      ClassElement classElement,
-      CompletionRequest request,
-      OpType optype,
+  void _computeSuggestionsForClass2(CompletionCollector collector,
+      CompletionTarget target, ClassElement classElement, OpType optype,
       {bool skipChildClass: true}) {
     bool isFunctionalArgument = target.isFunctionalArgument();
     kind = isFunctionalArgument

@@ -485,6 +485,7 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
+    readUInt(); // parent class binary offset.
     var name = readName();
     var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
@@ -521,6 +522,7 @@ class BinaryBuilder {
     var fileOffset = readOffset();
     var fileEndOffset = readOffset();
     var flags = readByte();
+    readUInt(); // parent class binary offset.
     var name = readName();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'constructor');
@@ -558,6 +560,7 @@ class BinaryBuilder {
     int kindIndex = readByte();
     var kind = ProcedureKind.values[kindIndex];
     var flags = readByte();
+    readUInt(); // parent class binary offset.
     var name = readName();
     var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
@@ -606,12 +609,15 @@ class BinaryBuilder {
   }
 
   FunctionNode readFunctionNode() {
+    int tag = readByte();
+    assert(tag == Tag.FunctionNode);
     int offset = readOffset();
     int endOffset = readOffset();
     AsyncMarker asyncMarker = AsyncMarker.values[readByte()];
     AsyncMarker dartAsyncMarker = AsyncMarker.values[readByte()];
     int typeParameterStackHeight = typeParameterStack.length;
     var typeParameters = readAndPushTypeParameterList();
+    readUInt(); // total parameter count.
     var requiredParameterCount = readUInt();
     int variableStackHeight = variableStack.length;
     var positional = readAndPushVariableDeclarationList();

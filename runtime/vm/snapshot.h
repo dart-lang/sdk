@@ -446,6 +446,10 @@ class SnapshotReader : public BaseReader {
   // Process all the deferred canonicalization entries and patch all references.
   void ProcessDeferredCanonicalizations();
 
+  // Update subclasses array and is implemented bit for interfaces/superclass in
+  // the core snapshot.
+  void FixSubclassesAndImplementors();
+
   // Decode class id from the header field.
   intptr_t LookupInternalClass(intptr_t class_header);
 

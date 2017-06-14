@@ -64,7 +64,11 @@ import '../quote.dart'
 
 import '../modifier.dart' show Modifier, constMask, finalMask;
 
-import 'redirecting_factory_body.dart' show getRedirectionTarget;
+import 'redirecting_factory_body.dart'
+    show
+        RedirectingFactoryBody,
+        getRedirectingFactoryBody,
+        getRedirectionTarget;
 
 import 'kernel_builder.dart';
 
@@ -74,7 +78,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   final KernelLibraryBuilder library;
 
-  final MemberBuilder member;
+  final ModifierBuilder member;
 
   final KernelClassBuilder classBuilder;
 
@@ -335,49 +339,86 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void beginMetadata(Token token) {
+    debugEvent("beginMetadata");
+    super.push(constantExpressionRequired);
+    constantExpressionRequired = true;
+  }
+
+  @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata");
-    pop(); // Arguments.
-    popIfNotNull(periodBeforeName); // Postfix.
-    pop(); // Type arguments.
-    pop(); // Expression or type name (depends on arguments).
-    // TODO(ahe): Implement metadata on local declarations.
+    var arguments = pop();
+    pushQualifiedReference(beginToken.next, periodBeforeName);
+    if (arguments != null) {
+      push(arguments);
+      endNewExpression(beginToken);
+      push(popForValue());
+    } else {
+      String name = pop();
+      pop(); // Type arguments (ignored, already reported by parser).
+      var expression = pop();
+      if (expression is Identifier) {
+        Identifier identifier = expression;
+        expression = new UnresolvedAccessor(
+            this, new Name(identifier.name, library.library), identifier.token);
+      }
+      if (name?.isNotEmpty ?? false) {
+        Token period = periodBeforeName ?? beginToken.next;
+        FastaAccessor accessor = expression;
+        expression = accessor.buildPropertyAccess(
+            new IncompletePropertyAccessor(
+                this, period.next, new Name(name, library.library)),
+            period.next.offset,
+            false);
+      }
+
+      bool savedConstantExpressionRequired = pop();
+      if (expression is! StaticAccessor) {
+        push(wrapInCompileTimeError(
+            toValue(expression),
+            "This can't be used as metadata; metadata should be a reference to "
+            "a compile-time constant variable, or "
+            "a call to a constant constructor."));
+      } else {
+        push(toValue(expression));
+      }
+      constantExpressionRequired = savedConstantExpressionRequired;
+    }
   }
 
   @override
   void endMetadataStar(int count, bool forParameter) {
     debugEvent("MetadataStar");
-    push(NullValue.Metadata);
+    push(popList(count) ?? NullValue.Metadata);
   }
 
   @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
     doFields(count);
-    // There's no metadata here because of a slight asymmetry between
-    // [parseTopLevelMember] and [parseMember]. This asymmetry leads to
-    // DietListener discarding top-level member metadata.
   }
 
   @override
   void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     doFields(count);
-    pop(); // Metadata.
   }
 
   void doFields(int count) {
+    List<FieldBuilder> fields = <FieldBuilder>[];
     for (int i = 0; i < count; i++) {
       Expression initializer = pop();
       Identifier identifier = pop();
+      String name = identifier.name;
+      FieldBuilder field;
+      if (classBuilder != null) {
+        field = classBuilder[name];
+      } else {
+        field = library[name];
+      }
+      fields.add(field);
       if (initializer != null) {
-        String name = identifier.name;
-        FieldBuilder field;
-        if (classBuilder != null) {
-          field = classBuilder[name];
-        } else {
-          field = library[name];
-        }
         if (field.next != null) {
           // TODO(ahe): This can happen, for example, if a final field is
           // combined with a setter.
@@ -390,6 +431,20 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     pop(); // Type.
     pop(); // Modifiers.
+    List annotations = pop();
+    if (annotations != null) {
+      Field field = fields.first.target;
+      // The first (and often only field) will not get a clone.
+      annotations.forEach(field.addAnnotation);
+      for (int i = 1; i < fields.length; i++) {
+        // We have to clone the annotations on the remaining fields.
+        field = fields[i].target;
+        cloner ??= new CloneVisitor();
+        for (Expression annotation in annotations) {
+          field.addAnnotation(cloner.clone(annotation));
+        }
+      }
+    }
   }
 
   @override
@@ -512,14 +567,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void finishFunction(
-      FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
+  void finishFunction(List annotations, FormalParameters formals,
+      AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
     typePromoter.finished();
     _typeInferrer.inferFunctionBody(
         _computeReturnTypeContext(member), asyncModifier, body);
     KernelFunctionBuilder builder = member;
     builder.body = body;
+    Member target = builder.target;
+    for (Expression annotation in annotations ?? const []) {
+      target.addAnnotation(annotation);
+    }
     if (formals?.optional != null) {
       Iterator<FormalParameterBuilder> formalBuilders =
           builder.formals.skip(formals.required.length).iterator;
@@ -797,8 +856,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
     push(makeLet(
         variable,
-        new KernelConditionalExpression(buildIsNull(new VariableGet(variable)),
-            b, new VariableGet(variable))));
+        new KernelConditionalExpression(
+            buildIsNull(new VariableGet(variable), offsetForToken(token)),
+            b,
+            new VariableGet(variable))));
   }
 
   /// Handle `a?.b(...)`.
@@ -871,16 +932,21 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       message = "Method not found: '$errorName'.";
     }
     if (constantExpressionRequired) {
+      // TODO(ahe): Use error below instead of building a compile-time error,
+      // should be:
+      //    return library.loader.throwCompileConstantError(error, charOffset);
       return buildCompileTimeError(message, charOffset);
+    } else {
+      Expression error = library.loader.instantiateNoSuchMethodError(
+          receiver, name, arguments, charOffset,
+          isMethod: !isGetter && !isSetter,
+          isGetter: isGetter,
+          isSetter: isSetter,
+          isStatic: isStatic,
+          isTopLevel: !isStatic && !isSuper);
+      warning(message, charOffset);
+      return new Throw(error);
     }
-    warning(message, charOffset);
-    return new Throw(library.loader.instantiateNoSuchMethodError(
-        receiver, name, arguments, charOffset,
-        isMethod: !isGetter && !isSetter,
-        isGetter: isGetter,
-        isSetter: isSetter,
-        isStatic: isStatic,
-        isTopLevel: !isStatic && !isSuper));
   }
 
   @override
@@ -1000,8 +1066,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           prefix.deferred &&
           builder == null &&
           "loadLibrary" == name) {
-        return buildCompileTimeError(
-            "Deferred loading isn't implemented yet.", offsetForToken(token));
+        int offset = offsetForToken(token);
+        const String message = "Deferred loading isn't implemented yet.";
+        // We report the error twice, the first time silently and marking it as
+        // unhandled. This ensures that the compile-time error is reported
+        // eagerly by kernel-service, thus preventing any attempts from running
+        // a program that uses deferred loading. Obviously, this is a temporary
+        // solution until we can fully implement deferred loading.
+        addCompileTimeError(offset, message, wasHandled: false, silent: true);
+        return buildCompileTimeError(message, offset);
       } else if (!isQualified && isInstanceContext) {
         assert(builder == null);
         if (constantExpressionRequired || member.isField) {
@@ -1895,16 +1968,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void handleIndexedExpression(
-      Token openCurlyBracket, Token closeCurlyBracket) {
+      Token openSquareBracket, Token closeSquareBracket) {
     debugEvent("IndexedExpression");
     Expression index = popForValue();
     var receiver = pop();
     if (receiver is ThisAccessor && receiver.isSuper) {
-      push(new SuperIndexAccessor(this, receiver.token, index,
+      push(new SuperIndexAccessor(this, openSquareBracket, index,
           lookupSuperMember(indexGetName), lookupSuperMember(indexSetName)));
     } else {
       push(IndexAccessor.make(
-          this, openCurlyBracket, toValue(receiver), index, null, null));
+          this, openSquareBracket, toValue(receiver), index, null, null));
     }
   }
 
@@ -1971,25 +2044,43 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endConstructorReference(
       Token start, Token periodBeforeName, Token endToken) {
     debugEvent("ConstructorReference");
-    // A constructor reference can contain up to three identifiers:
-    //
-    //     a) type <type-arguments>?
-    //     b) type <type-arguments>? . name
-    //     c) prefix . type <type-arguments>?
-    //     d) prefix . type <type-arguments>? . name
-    //
-    // This isn't a legal constructor reference:
-    //
-    //     type . name <type-arguments>
-    //
-    // But the parser can't tell this from type c) above.
-    //
-    // This method pops 2 (or 3 if periodBeforeName != null) values from the
-    // stack and pushes 3 values: a type, a list of type arguments, and a name.
-    //
-    // If the constructor reference can be resolved, type is either a
-    // ClassBuilder, or a ThisPropertyAccessor. Otherwise, it's an error that
-    // should be handled later.
+    pushQualifiedReference(start, periodBeforeName);
+  }
+
+  /// A qualfied reference is something that matches one of:
+  ///
+  ///     identifier
+  ///     identifier typeArguments? '.' identifier
+  ///     identifier '.' identifier typeArguments? '.' identifier
+  ///
+  /// That is, one to three identifiers separated by periods and optionally one
+  /// list of type arguments.
+  ///
+  /// A qualified reference can be used to represent both a reference to
+  /// compile-time constant variable (metadata) or a constructor reference
+  /// (used by metadata, new/const expression, and redirecting factories).
+  ///
+  /// Note that the parser will report errors if metadata includes type
+  /// arguments, but will other preserve them for error recovery.
+  ///
+  /// A constructor reference can contain up to three identifiers:
+  ///
+  ///     a) type typeArguments?
+  ///     b) type typeArguments? '.' name
+  ///     c) prefix '.' type typeArguments?
+  ///     d) prefix '.' type typeArguments? '.' name
+  ///
+  /// This isn't a legal constructor reference:
+  ///
+  ///     type '.' name typeArguments?
+  ///
+  /// But the parser can't tell this from type c) above.
+  ///
+  /// This method pops 2 (or 3 if `periodBeforeName != null`) values from the
+  /// stack and pushes 3 values: an accessor (the type in a constructor
+  /// reference, or an expression in metadata), a list of type arguments, and a
+  /// name.
+  void pushQualifiedReference(Token start, Token periodBeforeName) {
     Identifier suffix = popIfNotNull(periodBeforeName);
     Identifier identifier;
     List<DartType> typeArguments = pop();
@@ -2025,6 +2116,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Expression buildStaticInvocation(Member target, Arguments arguments,
       {bool isConst: false, int charOffset: -1, Member initialTarget}) {
+    initialTarget ??= target;
     List<TypeParameter> typeParameters = target.function.typeParameters;
     if (target is Constructor) {
       assert(!target.enclosingClass.isAbstract);
@@ -2041,18 +2133,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return new KernelConstructorInvocation(target, initialTarget, arguments,
           isConst: isConst)
         ..fileOffset = charOffset;
-    } else if (target is Procedure && target.kind == ProcedureKind.Factory) {
-      return new KernelFactoryConstructorInvocation(
-          target, initialTarget, arguments,
-          isConst: isConst)
-        ..fileOffset = charOffset;
     } else {
-      Procedure factory = target;
-      if (isConst && !factory.isConst) {
+      Procedure procedure = target;
+      if (isConst && !procedure.isConst) {
         return buildCompileTimeError("Not a const factory.", charOffset);
+      } else if (procedure.isFactory) {
+        return new KernelFactoryConstructorInvocation(
+            target, initialTarget, arguments,
+            isConst: isConst)
+          ..fileOffset = charOffset;
+      } else {
+        return new KernelStaticInvocation(target, arguments, isConst: isConst)
+          ..fileOffset = charOffset;
       }
-      return new KernelStaticInvocation(target, arguments, isConst: isConst)
-        ..fileOffset = charOffset;
     }
   }
 
@@ -2147,6 +2240,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
       String errorName;
       if (type is ClassBuilder) {
+        if (type is EnumBuilder) {
+          push(buildCompileTimeError(
+              "An enum class can't be instantiated.", nameToken.charOffset));
+          return;
+        }
         Builder b =
             type.findConstructorOrFactory(name, token.charOffset, uri, library);
         Member target;
@@ -2173,16 +2271,25 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
                 nameToken.charOffset));
             return;
           }
+          RedirectingFactoryBody body = getRedirectingFactoryBody(target);
+          if (body != null) {
+            // If the redirection target is itself a redirecting factory, it
+            // means that it is unresolved. So we set target to null so we
+            // can generate a no-such-method error below.
+            assert(body.isUnresolved);
+            target = null;
+            errorName = body.unresolvedName;
+          }
         }
         if (target is Constructor ||
             (target is Procedure && target.kind == ProcedureKind.Factory)) {
           push(buildStaticInvocation(target, arguments,
-              isConst: optional("const", token),
+              isConst: optional("const", token) || optional("@", token),
               charOffset: nameToken.charOffset,
               initialTarget: initialTarget));
           return;
         } else {
-          errorName = debugName(type.name, name);
+          errorName ??= debugName(type.name, name);
         }
       } else {
         errorName = debugName(getNodeName(type), name);
@@ -2327,7 +2434,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
       // TODO(paulberry): ensure that when integrating with analyzer, type
       // inference is still performed for the dropped declaration.
-      assert(library.compileTimeErrors.isNotEmpty);
+      assert(library.hasCompileTimeErrors);
     }
     push(declaration);
   }
@@ -2861,12 +2968,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // it in a class (TBD) from which the erroneous expression can be easily
     // extracted. Similar for statements and initializers. See also [issue
     // 29717](https://github.com/dart-lang/sdk/issues/29717)
-    addCompileTimeError(charOffset, error);
-    String message = formatUnexpected(uri, charOffset, error);
-    Builder constructor = library.loader.getCompileTimeError();
-    return new Throw(buildStaticInvocation(constructor.target,
-        new KernelArguments(<Expression>[new StringLiteral(message)]),
-        charOffset: charOffset));
+    addCompileTimeError(charOffset, error, wasHandled: true);
+    return library.loader.throwCompileConstantError(library.loader
+        .buildCompileTimeError(
+            formatUnexpected(uri, charOffset, error), charOffset));
   }
 
   Expression wrapInCompileTimeError(Expression expression, String message) {
@@ -2997,11 +3102,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   dynamic addCompileTimeError(int charOffset, String message,
-      {bool silent: false}) {
+      {bool silent: false, bool wasHandled: false}) {
     // TODO(ahe): If constantExpressionRequired is set, set it to false to
     // avoid a long list of errors.
     return library.addCompileTimeError(charOffset, message,
-        fileUri: uri, silent: silent);
+        fileUri: uri, silent: silent, wasHandled: wasHandled);
   }
 
   @override
@@ -3081,7 +3186,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return makeLet(
           variable,
           new KernelConditionalExpression(
-              buildIsNull(new VariableGet(variable)),
+              buildIsNull(new VariableGet(variable), offset),
               new NullLiteral(),
               new MethodInvocation(new VariableGet(variable), name, arguments)
                 ..fileOffset = offset));
@@ -3169,7 +3274,8 @@ abstract class ContextAccessor extends FastaAccessor {
     return makeInvalidWrite(value);
   }
 
-  Expression buildNullAwareAssignment(Expression value, DartType type,
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return makeInvalidWrite(value);
   }
@@ -3254,7 +3360,8 @@ class DelayedAssignment extends ContextAccessor {
       return accessor.buildCompoundAssignment(rightShiftName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("??=", assignmentOperator)) {
-      return accessor.buildNullAwareAssignment(value, const DynamicType(),
+      return accessor.buildNullAwareAssignment(
+          value, const DynamicType(), offsetForToken(token),
           voidContext: voidContext);
     } else if (identical("^=", assignmentOperator)) {
       return accessor.buildCompoundAssignment(caretName, value,

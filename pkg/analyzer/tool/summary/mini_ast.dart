@@ -156,6 +156,11 @@ class MiniAstBuilder extends StackListener {
   Uri get uri => null;
 
   @override
+  void addCompileTimeErrorFromMessage(FastaMessage message) {
+    internalError(message.message);
+  }
+
+  @override
   void beginMetadata(Token token) {
     inMetadata = true;
   }
@@ -432,11 +437,6 @@ class MiniAstBuilder extends StackListener {
     List<TypeName> typeArguments = pop();
     String name = pop();
     push(new TypeName(name, typeArguments));
-  }
-
-  @override
-  void addCompileTimeErrorFromMessage(FastaMessage message) {
-    internalError(message.message);
   }
 }
 

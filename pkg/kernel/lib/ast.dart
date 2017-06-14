@@ -582,6 +582,9 @@ enum ClassLevel {
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
 class Class extends NamedNode {
+  /// Offset of the declaration, set and used when writing the binary.
+  int binaryOffset = -1;
+
   /// The degree to which the contents of the class have been loaded.
   ClassLevel level = ClassLevel.Body;
 
@@ -3686,7 +3689,7 @@ class VariableDeclaration extends Statement {
   DartType type; // Not null, defaults to dynamic.
 
   /// Offset of the declaration, set and used when writing the binary.
-  int binaryOffset = -1;
+  int binaryOffsetNoTag = -1;
 
   /// For locals, this is the initial value.
   /// For parameters, this is the default value.

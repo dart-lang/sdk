@@ -11,6 +11,7 @@ import '../deferred_load.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart' show Entity, Local, MemberEntity;
+import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';

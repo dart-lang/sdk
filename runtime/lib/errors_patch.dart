@@ -430,3 +430,9 @@ class _DuplicatedFieldInitializerError extends Error {
 
   toString() => "Error: field '$_name' is already initialized.";
 }
+
+@patch
+class _ConstantExpressionError {
+  @patch
+  _throw(error) => throw error;
+}

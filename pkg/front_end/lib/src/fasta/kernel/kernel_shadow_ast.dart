@@ -281,6 +281,11 @@ abstract class KernelComplexAssignment extends Expression
 
   KernelComplexAssignment(this.rhs);
 
+  void set parent(TreeNode node) {
+    super.parent = node;
+    desugared?.parent = node;
+  }
+
   @override
   accept(ExpressionVisitor v) => desugared.accept(v);
 
@@ -328,7 +333,8 @@ abstract class KernelComplexAssignment extends Expression
     if (nullAwareCombiner != null) {
       var rhsType = inferrer.inferExpression(rhs, writeContext, true);
       MethodInvocation equalsInvocation = nullAwareCombiner.condition;
-      inferrer.findMethodInvocationMember(writeContext, equalsInvocation);
+      inferrer.findMethodInvocationMember(writeContext, equalsInvocation,
+          silent: true);
       return inferrer.typeSchemaEnvironment
           .getLeastUpperBound(inferredType, rhsType);
     } else if (combiner != null) {
@@ -362,6 +368,40 @@ abstract class KernelComplexAssignment extends Expression
       }
     } else {
       return inferrer.inferExpression(rhs, writeContext, true);
+    }
+  }
+}
+
+/// Abstract shadow object representing a complex assignment involving a
+/// receiver.
+abstract class KernelComplexAssignmentWithReceiver
+    extends KernelComplexAssignment {
+  /// The receiver of the assignment target (e.g. `a` in `a[b] = c`).
+  final Expression receiver;
+
+  /// Indicates whether this assignment uses `super`.
+  final bool isSuper;
+
+  KernelComplexAssignmentWithReceiver(
+      this.receiver, Expression rhs, this.isSuper)
+      : super(rhs);
+
+  @override
+  List<String> _getToStringParts() {
+    var parts = super._getToStringParts();
+    if (receiver != null) parts.add('receiver=$receiver');
+    if (isSuper) parts.add('isSuper=true');
+    return parts;
+  }
+
+  DartType _inferReceiver(KernelTypeInferrer inferrer) {
+    if (receiver != null) {
+      return inferrer.inferExpression(receiver, null, true);
+    } else if (isSuper) {
+      return inferrer.classHierarchy.getTypeAsInstanceOf(
+          inferrer.thisType, inferrer.thisType.classNode.supertype.classNode);
+    } else {
+      return inferrer.thisType;
     }
   }
 }
@@ -911,21 +951,17 @@ class KernelIfStatement extends IfStatement implements KernelStatement {
 
 /// Concrete shadow object representing an assignment to a target of the form
 /// `a[b]`.
-class KernelIndexAssign extends KernelComplexAssignment {
-  /// The receiver of the assignment target (e.g. `a` in `a[b] = c`), or `null`
-  /// if there is no receiver.
-  Expression receiver;
-
-  /// In an assignment to an index expression, the index expression, or `null`
-  /// if this is not an assignment to an index expression.
+class KernelIndexAssign extends KernelComplexAssignmentWithReceiver {
+  /// In an assignment to an index expression, the index expression.
   Expression index;
 
-  KernelIndexAssign(this.receiver, this.index, Expression rhs) : super(rhs);
+  KernelIndexAssign(Expression receiver, this.index, Expression rhs,
+      {bool isSuper: false})
+      : super(receiver, rhs, isSuper);
 
   @override
   List<String> _getToStringParts() {
     var parts = super._getToStringParts();
-    if (receiver != null) parts.add('receiver=$receiver');
     if (index != null) parts.add('index=$index');
     return parts;
   }
@@ -937,7 +973,7 @@ class KernelIndexAssign extends KernelComplexAssignment {
         typeNeeded;
     // TODO(paulberry): record the appropriate types on let variables and
     // conditional expressions.
-    var receiverType = inferrer.inferExpression(receiver, null, true);
+    var receiverType = _inferReceiver(inferrer);
     if (read != null) {
       inferrer.findMethodInvocationMember(receiverType, read, silent: true);
     }
@@ -1237,6 +1273,12 @@ class KernelMethodInvocation extends MethodInvocation
     // The inference dependencies are the inference dependencies of the
     // receiver.
     collector.collectDependencies(receiver);
+    if (identical(name, '+') ||
+        identical(name, '-') ||
+        identical(name, '*') ||
+        identical(name, '%')) {
+      collector.collectDependencies(arguments.positional[0]);
+    }
   }
 
   @override
@@ -1270,14 +1312,19 @@ class KernelNot extends Not implements KernelExpression {
 
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
-    // No inference dependencies.
+    collector.collectDependencies(operand);
   }
 
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
+    typeNeeded = inferrer.listener.notEnter(this, typeContext) || typeNeeded;
+    // First infer the receiver so we can look up the method that was invoked.
+    var boolType = inferrer.coreTypes.boolClass.rawType;
+    inferrer.inferExpression(operand, boolType, false);
+    DartType inferredType = typeNeeded ? boolType : null;
+    inferrer.listener.notExit(this, inferredType);
+    return inferredType;
   }
 }
 
@@ -1295,6 +1342,49 @@ class KernelNullLiteral extends NullLiteral implements KernelExpression {
         inferrer.listener.nullLiteralEnter(this, typeContext) || typeNeeded;
     var inferredType = typeNeeded ? inferrer.coreTypes.nullClass.rawType : null;
     inferrer.listener.nullLiteralExit(this, inferredType);
+    return inferredType;
+  }
+}
+
+/// Concrete shadow object representing an assignment to a property.
+class KernelPropertyAssign extends KernelComplexAssignmentWithReceiver {
+  /// If this assignment uses null-aware access (`?.`), the conditional
+  /// expression that guards the access; otherwise `null`.
+  Expression nullAwareGuard;
+
+  KernelPropertyAssign(Expression receiver, Expression rhs,
+      {bool isSuper: false})
+      : super(receiver, rhs, isSuper);
+
+  @override
+  List<String> _getToStringParts() {
+    var parts = super._getToStringParts();
+    if (nullAwareGuard != null) parts.add('nullAwareGuard=$nullAwareGuard');
+    return parts;
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    typeNeeded =
+        inferrer.listener.propertyAssignEnter(desugared, typeContext) ||
+            typeNeeded;
+    // TODO(paulberry): record the appropriate types on let variables and
+    // conditional expressions.
+    var receiverType = _inferReceiver(inferrer);
+    if (read != null) {
+      inferrer.findPropertyGetMember(receiverType, read, silent: true);
+    }
+    Member writeMember;
+    if (write != null) {
+      writeMember = inferrer.findPropertySetMember(receiverType, write);
+    }
+    // To replicate analyzer behavior, we base type inference on the write
+    // member.  TODO(paulberry): would it be better to use the read member when
+    // doing compound assignment?
+    var writeContext = writeMember?.setterType;
+    var inferredType = _inferRhs(inferrer, writeContext);
+    inferrer.listener.propertyAssignExit(desugared, inferredType);
     return inferredType;
   }
 }

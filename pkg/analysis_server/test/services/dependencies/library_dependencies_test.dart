@@ -16,10 +16,9 @@ main() {
 
 @reflectiveTest
 class LibraryDependenciesTest extends AbstractContextTest {
-  @override
-  bool get enableNewAnalysisDriver => false;
-
+  @failingTest
   test_LibraryDependencies() {
+    // See https://github.com/dart-lang/sdk/issues/29310
     addSource('/lib1.dart', 'import "lib2.dart";');
     addSource('/lib2.dart', 'import "lib1.dart";');
     addSource('/lib3.dart', 'import "lib2.dart";');
@@ -27,10 +26,7 @@ class LibraryDependenciesTest extends AbstractContextTest {
     provider.newFile('/lib5.dart', 'import "lib6.dart";');
     provider.newFile('/lib6.dart', '');
 
-    _performAnalysis();
-
-    var libs =
-        new LibraryDependencyCollector([context]).collectLibraryDependencies();
+    var libs = new LibraryDependencyCollector([]).collectLibraryDependencies();
 
     // Cycles
     expect(libs, contains('/lib1.dart'));
@@ -46,9 +42,5 @@ class LibraryDependenciesTest extends AbstractContextTest {
 
   test_PackageMaps() {
     //TODO(pquitslund): add test
-  }
-
-  void _performAnalysis() {
-    while (context.performAnalysisTask().hasMoreWork) {}
   }
 }

@@ -11,9 +11,9 @@ import '../closure.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart';
 import '../compiler.dart';
-import '../elements/elements.dart' show JumpTarget;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
+import '../elements/jumps.dart';
 import '../enqueue.dart';
 import '../io/source_information.dart';
 import '../js/js_source_mapping.dart';
@@ -75,7 +75,7 @@ class KernelBackendStrategy implements BackendStrategy {
       NativeBasicData nativeBasicData,
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new KernelCodegenWorldBuilder(_compiler.elementEnvironment,
+    return new KernelCodegenWorldBuilder(closedWorld.elementEnvironment,
         nativeBasicData, closedWorld, selectorConstraintsStrategy);
   }
 
@@ -277,6 +277,12 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
       return new KLocal(node.name, currentMember);
     });
   }
+
+  @override
+  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+      ClosureClassMaps closureClassMaps, ir.TreeNode node) {
+    return const LoopClosureRepresentationInfo();
+  }
 }
 
 class KLocal implements Local {
@@ -324,6 +330,12 @@ class KernelClosureClassMaps implements ClosureClassMaps<ir.Node> {
   @override
   ClosureAnalysisInfo getClosureAnalysisInfo(ir.Node node) {
     return const ClosureAnalysisInfo();
+  }
+
+  @override
+  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+      ir.Node loopNode) {
+    return const LoopClosureRepresentationInfo();
   }
 }
 

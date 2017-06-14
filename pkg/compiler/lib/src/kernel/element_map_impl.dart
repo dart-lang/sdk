@@ -524,6 +524,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
 
       if (node.supertype == null) {
         env.orderedTypeSet = new OrderedTypeSet.singleton(env.thisType);
+        env.isMixinApplication = false;
       } else {
         InterfaceType processSupertype(ir.Supertype node) {
           InterfaceType type = _typeConverter.visitSupertype(node);
@@ -537,8 +538,11 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
         LinkBuilder<InterfaceType> linkBuilder =
             new LinkBuilder<InterfaceType>();
         if (node.mixedInType != null) {
+          env.isMixinApplication = true;
           linkBuilder
               .addLast(env.mixedInType = processSupertype(node.mixedInType));
+        } else {
+          env.isMixinApplication = false;
         }
         node.implementedTypes.forEach((ir.Supertype supertype) {
           linkBuilder.addLast(processSupertype(supertype));
@@ -579,6 +583,12 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
     return env.supertype;
+  }
+
+  bool _isMixinApplication(KClass cls) {
+    _KClassEnv env = _classEnvs[cls.classIndex];
+    _ensureSupertypes(cls, env);
+    return env.isMixinApplication;
   }
 
   bool _isUnnamedMixinApplication(KClass cls) {
@@ -871,6 +881,7 @@ class _KLibraryEnv {
 /// Environment for fast lookup of class members.
 class _KClassEnv {
   final ir.Class cls;
+  bool isMixinApplication;
   final bool isUnnamedMixinApplication;
 
   InterfaceType thisType;
@@ -1141,8 +1152,22 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  bool isMixinApplication(KClass cls) {
+    return elementMap._isMixinApplication(cls);
+  }
+
+  @override
   bool isUnnamedMixinApplication(KClass cls) {
     return elementMap._isUnnamedMixinApplication(cls);
+  }
+
+  @override
+  ClassEntity getEffectiveMixinClass(ClassEntity cls) {
+    if (!isMixinApplication(cls)) return null;
+    do {
+      cls = elementMap._getAppliedMixin(cls);
+    } while (isMixinApplication(cls));
+    return cls;
   }
 
   @override
@@ -1505,7 +1530,6 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
 class KernelClosedWorld extends ClosedWorldBase {
   final KernelToElementMapImpl _elementMap;
-  final ElementEnvironment _elementEnvironment;
 
   KernelClosedWorld(this._elementMap,
       {ElementEnvironment elementEnvironment,
@@ -1522,8 +1546,8 @@ class KernelClosedWorld extends ClosedWorldBase {
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
-      : this._elementEnvironment = elementEnvironment,
-        super(
+      : super(
+            elementEnvironment: elementEnvironment,
             commonElements: commonElements,
             constantSystem: constantSystem,
             nativeData: nativeData,
@@ -1592,14 +1616,14 @@ class KernelClosedWorld extends ClosedWorldBase {
   @override
   bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
     while (cls != null) {
-      MemberEntity member = _elementEnvironment
+      MemberEntity member = elementEnvironment
           .lookupClassMember(cls, selector.name, setter: selector.isSetter);
       if (member != null &&
           (!selector.memberName.isPrivate ||
               member.library == selector.library)) {
         return member == element;
       }
-      cls = _elementEnvironment.getSuperClass(cls);
+      cls = elementEnvironment.getSuperClass(cls);
     }
     return false;
   }

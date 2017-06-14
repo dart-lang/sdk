@@ -21,3 +21,4 @@ class A extends core::Object {
     c = 4;
   }
 }
+static method main() → dynamic {}

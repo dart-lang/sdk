@@ -89,6 +89,8 @@ class JsBackendStrategy implements BackendStrategy {
     }, ClassHierarchyNode.ALL);
 
     return new JsClosedWorld(
+        // TODO(johnniwinther): Create a JsElementEnvironment.
+        elementEnvironment: closedWorld.elementEnvironment,
         commonElements: commonElements,
         constantSystem: const JavaScriptConstantSystem(),
         backendUsage: backendUsage,
@@ -129,7 +131,7 @@ class JsBackendStrategy implements BackendStrategy {
       NativeBasicData nativeBasicData,
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new KernelCodegenWorldBuilder(_compiler.elementEnvironment,
+    return new KernelCodegenWorldBuilder(closedWorld.elementEnvironment,
         nativeBasicData, closedWorld, selectorConstraintsStrategy);
   }
 }

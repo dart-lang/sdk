@@ -21,6 +21,7 @@ import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'entities.dart';
 import 'entity_utils.dart' as utils;
+import 'jumps.dart';
 import 'names.dart';
 import 'resolution_types.dart';
 import 'types.dart';
@@ -1606,39 +1607,6 @@ abstract class EnumConstantElement extends FieldElement {
 
   /// The index of this constant within the values of the enum.
   int get index;
-}
-
-/// The label entity defined by a labeled statement.
-abstract class LabelDefinition extends Entity {
-  Label get label;
-  String get labelName;
-  JumpTarget get target;
-
-  bool get isTarget;
-  bool get isBreakTarget;
-  bool get isContinueTarget;
-
-  void setBreakTarget();
-  void setContinueTarget();
-}
-
-/// A jump target is the reference point of a statement or switch-case,
-/// either by label or as the default target of a break or continue.
-abstract class JumpTarget extends Local {
-  Node get statement;
-  int get nestingLevel;
-  List<LabelDefinition> get labels;
-
-  bool get isTarget;
-  bool get isBreakTarget;
-  bool get isContinueTarget;
-  bool get isSwitch;
-
-  // TODO(kasperl): Try to get rid of these.
-  void set isBreakTarget(bool value);
-  void set isContinueTarget(bool value);
-
-  LabelDefinition addLabel(Label label, String labelName);
 }
 
 /// The [Element] for a type variable declaration on a generic class or typedef.

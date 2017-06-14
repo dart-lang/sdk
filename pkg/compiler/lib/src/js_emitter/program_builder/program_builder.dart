@@ -58,7 +58,6 @@ import '../js_emitter.dart'
     show
         ClassStubGenerator,
         CodeEmitterTask,
-        computeMixinClass,
         Emitter,
         InterceptorStubGenerator,
         MainCallStubGenerator,
@@ -234,8 +233,15 @@ class ProgramBuilder {
                 "${superclass} of $c."));
       }
       if (c is MixinApplication) {
-        c.setMixinClass(_classes[computeMixinClass(cls)]);
-        assert(c.mixinClass != null);
+        ClassEntity effectiveMixinClass =
+            _elementEnvironment.getEffectiveMixinClass(cls);
+        c.setMixinClass(_classes[effectiveMixinClass]);
+        assert(
+            c.mixinClass != null,
+            failedAt(
+                cls,
+                "No class for effective mixin ${effectiveMixinClass} on "
+                "$cls."));
       }
     });
 
@@ -327,7 +333,7 @@ class ProgramBuilder {
       void collect(ClassElement element) {
         allocatedClasses.add(element);
         if (element.isMixinApplication) {
-          collect(computeMixinClass(element));
+          collect(_elementEnvironment.getEffectiveMixinClass(element));
         }
         if (element.superclass != null) {
           collect(element.superclass);
@@ -743,7 +749,7 @@ class ProgramBuilder {
 
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
-    if (!onlyForRti && !_elementEnvironment.isUnnamedMixinApplication(cls)) {
+    if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
       _elementEnvironment.forEachClassMember(cls, visitMember);
       if (cls is ClassElement) {
         // TODO(johnniwinther): Support constructor bodies for entities.
@@ -802,7 +808,7 @@ class ProgramBuilder {
         _worldBuilder.directlyInstantiatedClasses.contains(cls);
 
     Class result;
-    if (_elementEnvironment.isUnnamedMixinApplication(cls) && !onlyForRti) {
+    if (_elementEnvironment.isMixinApplication(cls) && !onlyForRti) {
       assert(!_nativeData.isNativeClass(cls));
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);

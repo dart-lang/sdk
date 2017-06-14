@@ -1588,17 +1588,17 @@ class _OverrideChecker {
 
   /// If node is a [ClassDeclaration] returns its members, otherwise if node is
   /// a [ClassTypeAlias] this returns an empty list.
-  WithClause _withClause(Declaration node) {
-    return node is ClassDeclaration
-        ? node.withClause
-        : (node as ClassTypeAlias).withClause;
-  }
-
-  /// If node is a [ClassDeclaration] returns its members, otherwise if node is
-  /// a [ClassTypeAlias] this returns an empty list.
   AstNode _extendsErrorLocation(Declaration node) {
     return node is ClassDeclaration
         ? node.extendsClause
         : (node as ClassTypeAlias).superclass;
+  }
+
+  /// If node is a [ClassDeclaration] returns its members, otherwise if node is
+  /// a [ClassTypeAlias] this returns an empty list.
+  WithClause _withClause(Declaration node) {
+    return node is ClassDeclaration
+        ? node.withClause
+        : (node as ClassTypeAlias).withClause;
   }
 }

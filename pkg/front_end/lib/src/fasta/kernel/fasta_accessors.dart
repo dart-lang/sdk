@@ -9,6 +9,7 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelArguments,
         KernelComplexAssignment,
         KernelIndexAssign,
+        KernelPropertyAssign,
         KernelStaticAssignment,
         KernelThisExpression,
         KernelVariableAssignment;
@@ -276,7 +277,8 @@ abstract class ErrorAccessor implements FastaAccessor {
   }
 
   @override
-  Expression buildNullAwareAssignment(Expression value, DartType type,
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return buildError(new KernelArguments(<Expression>[value]), isSetter: true);
   }
@@ -392,7 +394,8 @@ class ThisAccessor extends FastaAccessor {
     return buildAssignmentError();
   }
 
-  Expression buildNullAwareAssignment(Expression value, DartType type,
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return buildAssignmentError();
   }
@@ -503,7 +506,8 @@ class SendAccessor extends IncompleteSend {
         isNullAware: isNullAware);
   }
 
-  Expression buildNullAwareAssignment(Expression value, DartType type,
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return internalError("Unhandled");
   }
@@ -568,7 +572,8 @@ class IncompletePropertyAccessor extends IncompleteSend {
         helper, token, helper.toValue(receiver), name, null, null, isNullAware);
   }
 
-  Expression buildNullAwareAssignment(Expression value, DartType type,
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return internalError("Unhandled");
   }
@@ -675,6 +680,10 @@ class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
               helper, token, receiver, name, getter, setter);
     }
   }
+
+  @override
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelPropertyAssign(receiver, rhs);
 }
 
 class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
@@ -772,6 +781,10 @@ class SuperPropertyAccessor extends kernel.SuperPropertyAccessor
   }
 
   toString() => "SuperPropertyAccessor()";
+
+  @override
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelPropertyAssign(null, rhs, isSuper: true);
 }
 
 class ThisIndexAccessor extends kernel.ThisIndexAccessor with FastaAccessor {
@@ -790,6 +803,10 @@ class ThisIndexAccessor extends kernel.ThisIndexAccessor with FastaAccessor {
   }
 
   toString() => "ThisIndexAccessor()";
+
+  @override
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelIndexAssign(null, index, rhs);
 }
 
 class SuperIndexAccessor extends kernel.SuperIndexAccessor with FastaAccessor {
@@ -808,6 +825,10 @@ class SuperIndexAccessor extends kernel.SuperIndexAccessor with FastaAccessor {
   }
 
   toString() => "SuperIndexAccessor()";
+
+  @override
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelIndexAssign(null, index, rhs, isSuper: true);
 }
 
 class ThisPropertyAccessor extends kernel.ThisPropertyAccessor
@@ -834,6 +855,10 @@ class ThisPropertyAccessor extends kernel.ThisPropertyAccessor
   }
 
   toString() => "ThisPropertyAccessor()";
+
+  @override
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelPropertyAssign(null, rhs);
 }
 
 class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
@@ -851,6 +876,10 @@ class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
   }
 
   toString() => "NullAwarePropertyAccessor()";
+
+  @override
+  KernelComplexAssignment startComplexAssignment(Expression rhs) =>
+      new KernelPropertyAssign(receiverExpression, rhs);
 }
 
 int adjustForImplicitCall(String name, int offset) {

@@ -29,7 +29,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
       jsAst.Name key, Set<ClassEntity> classes) {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
         compiler.options,
-        compiler.commonElements,
+        closedWorld.commonElements,
         backend.emitter,
         backend.nativeCodegenEnqueuer,
         namer,

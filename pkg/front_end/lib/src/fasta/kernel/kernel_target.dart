@@ -9,6 +9,7 @@ import 'dart:async' show Future;
 import 'dart:io' show File;
 
 import 'package:front_end/file_system.dart';
+
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -26,6 +27,7 @@ import 'package:kernel/ast.dart'
         Initializer,
         InvalidInitializer,
         Library,
+        ListLiteral,
         Name,
         NamedExpression,
         NullLiteral,
@@ -107,10 +109,6 @@ class KernelTarget extends TargetImplementation {
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     resetCrashReporting();
     loader = createLoader();
-  }
-
-  bool get hasErrors {
-    return errors.isNotEmpty || loader.collectCompileTimeErrors().isNotEmpty;
   }
 
   void addError(file, int charOffset, String message) {
@@ -285,16 +283,14 @@ class KernelTarget extends TargetImplementation {
       loader.finishStaticInvocations();
       finishAllConstructors();
       loader.finishNativeMethods();
-      if (!hasErrors) {
-        runBuildTransformations();
-      }
+      runBuildTransformations();
 
       if (verify) this.verify();
-      errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
       if (errors.isNotEmpty) {
         handleInputError(null,
             isFullProgram: true, trimDependencies: trimDependencies);
       }
+      handleRecoverableErrors(loader.unhandledErrors);
     } on InputError catch (e) {
       handleInputError(e,
           isFullProgram: true, trimDependencies: trimDependencies);
@@ -347,6 +343,31 @@ class KernelTarget extends TargetImplementation {
     sb.writeln();
     await new File.fromUri(depsFile).writeAsString("$sb");
     ticker.logMs("Wrote deps file");
+  }
+
+  /// Adds a synthetic field named `#errors` to the main library that contains
+  /// [recoverableErrors] formatted.
+  ///
+  /// If [recoverableErrors] is empty, this method does nothing.
+  ///
+  /// If there's no main library, this method uses [erroneousProgram] to
+  /// replace [program].
+  void handleRecoverableErrors(List<InputError> recoverableErrors) {
+    if (recoverableErrors.isEmpty) return;
+    KernelLibraryBuilder mainLibrary = loader.first;
+    if (mainLibrary == null) {
+      program = erroneousProgram(true);
+      return;
+    }
+    List<Expression> expressions = <Expression>[];
+    for (InputError error in recoverableErrors) {
+      String message = error.format();
+      errors.add(message);
+      expressions.add(new StringLiteral(message));
+    }
+    mainLibrary.library.addMember(new Field(new Name("#errors"),
+        initializer: new ListLiteral(expressions, isConst: true),
+        isConst: true));
   }
 
   Program erroneousProgram(bool isFullProgram) {

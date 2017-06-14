@@ -93,7 +93,7 @@ class DeferredLoadTask extends CompilerTask {
 
   /// DeferredLibrary from dart:async
   ClassElement get deferredLibraryClass =>
-      compiler.commonElements.deferredLibraryClass;
+      compiler.resolution.commonElements.deferredLibraryClass;
 
   /// A synthetic import representing the loading of the main program.
   final _DeferredImport _fakeMainImport = const _DeferredImport();
@@ -505,7 +505,7 @@ class DeferredLoadTask extends CompilerTask {
     }
 
     traverseLibrary(root);
-    result.add(compiler.commonElements.coreLibrary);
+    result.add(compiler.resolution.commonElements.coreLibrary);
     return result;
   }
 
@@ -718,7 +718,7 @@ class DeferredLoadTask extends CompilerTask {
 
               // Now check to see if we have to add more elements due to
               // mirrors.
-              if (compiler.commonElements.mirrorsLibrary != null) {
+              if (compiler.resolution.commonElements.mirrorsLibrary != null) {
                 _addMirrorElements();
               }
 
@@ -831,7 +831,8 @@ class DeferredLoadTask extends CompilerTask {
               metadata.ensureResolved(compiler.resolution);
               ConstantValue value =
                   compiler.constants.getConstantValue(metadata.constant);
-              ResolutionDartType type = value.getType(compiler.commonElements);
+              ResolutionDartType type =
+                  value.getType(compiler.resolution.commonElements);
               Element element = type.element;
               if (element == deferredLibraryClass) {
                 reporter.reportErrorMessage(
@@ -1081,9 +1082,11 @@ class _DeclaredDeferredImport implements _DeferredImport {
         metadata.ensureResolved(compiler.resolution);
         ConstantValue value =
             compiler.constants.getConstantValue(metadata.constant);
-        ResolutionDartType type = value.getType(compiler.commonElements);
+        ResolutionDartType type =
+            value.getType(compiler.resolution.commonElements);
         Element element = type.element;
-        if (element == compiler.commonElements.deferredLibraryClass) {
+        if (element ==
+            compiler.resolution.commonElements.deferredLibraryClass) {
           ConstructedConstantValue constant = value;
           StringConstantValue s = constant.fields.values.single;
           result = s.primitiveValue;

@@ -1254,8 +1254,28 @@ abstract class ElementEnvironment {
   /// Returns `true` if [cls] is generic.
   bool isGenericClass(ClassEntity cls);
 
+  /// Returns `true` if [cls] is a mixin application (named or unnamed).
+  bool isMixinApplication(ClassEntity cls);
+
   /// Returns `true` if [cls] is an unnamed mixin application.
   bool isUnnamedMixinApplication(ClassEntity cls);
+
+  /// Returns the 'effective' mixin class if [cls] is a mixin application, and
+  /// `null` otherwise.
+  ///
+  /// The 'effective' mixin class is the class from which members are mixed in.
+  /// Normally this is the mixin class itself, but not if the mixin class itself
+  /// is a mixin application.
+  ///
+  /// Consider this hierarchy:
+  ///
+  ///     class A {}
+  ///     class B = Object with A {}
+  ///     class C = Object with B {}
+  ///
+  /// The mixin classes of `B` and `C` are `A` and `B`, respectively, but the
+  /// _effective_ mixin class of both is `A`.
+  ClassEntity getEffectiveMixinClass(ClassEntity cls);
 
   /// The upper bound on the [typeVariable]. If not explicitly declared, this is
   /// `Object`.

@@ -11,11 +11,25 @@ import 'package:analyzer_cli/src/ansi.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
 
+final Map<String, int> _severityCompare = {
+  'error': 5,
+  'warning': 4,
+  'info': 3,
+  'lint': 2,
+  'hint': 1,
+};
+
+String _pluralize(String word, int count) => count == 1 ? word : word + "s";
+
+/// Given an absolute path, return a relative path if the file is contained in
+/// the current directory; return the original path otherwise.
+String _relative(String file) {
+  return file.startsWith(path.current) ? path.relative(file) : file;
+}
+
 /// Returns the given error's severity.
 ErrorSeverity _severityIdentity(AnalysisError error) =>
     error.errorCode.errorSeverity;
-
-String _pluralize(String word, int count) => count == 1 ? word : word + "s";
 
 /// Returns desired severity for the given [error] (or `null` if it's to be
 /// suppressed).
@@ -88,6 +102,64 @@ class AnalysisStats {
   }
 }
 
+/// An [AnalysisError] with line and column information.
+class CLIError implements Comparable<CLIError> {
+  final String severity;
+  final String sourcePath;
+  final int offset;
+  final int line;
+  final int column;
+  final String message;
+  final String errorCode;
+  final String correction;
+
+  CLIError({
+    this.severity,
+    this.sourcePath,
+    this.offset,
+    this.line,
+    this.column,
+    this.message,
+    this.errorCode,
+    this.correction,
+  });
+
+  @override
+  int get hashCode =>
+      severity.hashCode ^ sourcePath.hashCode ^ errorCode.hashCode ^ offset;
+  bool get isError => severity == 'error';
+  bool get isHint => severity == 'hint';
+  bool get isLint => severity == 'lint';
+
+  bool get isWarning => severity == 'warning';
+
+  @override
+  bool operator ==(other) {
+    if (other is! CLIError) return false;
+
+    return severity == other.severity &&
+        sourcePath == other.sourcePath &&
+        errorCode == other.errorCode &&
+        offset == other.offset;
+  }
+
+  @override
+  int compareTo(CLIError other) {
+    // severity
+    int compare =
+        _severityCompare[other.severity] - _severityCompare[this.severity];
+    if (compare != 0) return compare;
+
+    // path
+    compare = Comparable.compare(
+        this.sourcePath.toLowerCase(), other.sourcePath.toLowerCase());
+    if (compare != 0) return compare;
+
+    // offset
+    return this.offset - other.offset;
+  }
+}
+
 /// Helper for formatting [AnalysisError]s.
 ///
 /// The two format options are a user consumable format and a machine consumable
@@ -104,10 +176,11 @@ abstract class ErrorFormatter {
         severityProcessor == null ? _severityIdentity : severityProcessor;
   }
 
-  /// Compute the severity for this [error] or `null` if this error should be
-  /// filtered.
-  ErrorSeverity _computeSeverity(AnalysisError error) =>
-      _severityProcessor(error);
+  /// Call to write any batched up errors from [formatErrors].
+  void flush();
+
+  void formatError(
+      Map<AnalysisError, LineInfo> errorToLine, AnalysisError error);
 
   void formatErrors(List<AnalysisErrorInfo> errorInfos) {
     stats.unfilteredCount += errorInfos.length;
@@ -129,11 +202,110 @@ abstract class ErrorFormatter {
     }
   }
 
-  void formatError(
-      Map<AnalysisError, LineInfo> errorToLine, AnalysisError error);
+  /// Compute the severity for this [error] or `null` if this error should be
+  /// filtered.
+  ErrorSeverity _computeSeverity(AnalysisError error) =>
+      _severityProcessor(error);
+}
 
-  /// Call to write any batched up errors from [formatErrors].
-  void flush();
+class HumanErrorFormatter extends ErrorFormatter {
+  AnsiLogger ansi;
+
+  // This is a Set in order to de-dup CLI errors.
+  Set<CLIError> batchedErrors = new Set();
+
+  HumanErrorFormatter(
+      StringSink out, CommandLineOptions options, AnalysisStats stats,
+      {SeverityProcessor severityProcessor})
+      : super(out, options, stats, severityProcessor: severityProcessor) {
+    ansi = new AnsiLogger(this.options.color);
+  }
+
+  void flush() {
+    // sort
+    List<CLIError> sortedErrors = batchedErrors.toList()..sort();
+
+    // print
+    for (CLIError error in sortedErrors) {
+      if (error.isError) {
+        stats.errorCount++;
+      } else if (error.isWarning) {
+        stats.warnCount++;
+      } else if (error.isLint) {
+        stats.lintCount++;
+      } else if (error.isHint) {
+        stats.hintCount++;
+      }
+
+      // warning • 'foo' is not a bar at lib/foo.dart:1:2 • foo_warning
+      String issueColor = (error.isError == ErrorSeverity.ERROR ||
+              error.isWarning == ErrorSeverity.WARNING)
+          ? ansi.red
+          : '';
+      out.write('  $issueColor${error.severity}${ansi.none} '
+          '${ansi.bullet} ${ansi.bold}${error.message}${ansi.none} ');
+      out.write('at ${error.sourcePath}');
+      out.write(':${error.line}:${error.column} ');
+      out.write('${ansi.bullet} ${error.errorCode}');
+      out.writeln();
+
+      // If verbose, also print any associated correction.
+      if (options.verbose && error.correction != null) {
+        out.writeln(
+            '${' '.padLeft(error.severity.length + 2)}${error.correction}');
+      }
+    }
+
+    // clear out batched errors
+    batchedErrors.clear();
+  }
+
+  void formatError(
+      Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
+    Source source = error.source;
+    LineInfo_Location location = errorToLine[error].getLocation(error.offset);
+
+    ErrorSeverity severity = _severityProcessor(error);
+
+    // Get display name; translate INFOs into LINTS and HINTS.
+    String errorType = severity.displayName;
+    if (severity == ErrorSeverity.INFO) {
+      if (error.errorCode.type == ErrorType.HINT ||
+          error.errorCode.type == ErrorType.LINT) {
+        errorType = error.errorCode.type.displayName;
+      }
+    }
+
+    // warning • 'foo' is not a bar at lib/foo.dart:1:2 • foo_warning
+    String message = error.message;
+    // Remove any terminating '.' from the end of the message.
+    if (message.endsWith('.')) {
+      message = message.substring(0, message.length - 1);
+    }
+    String sourcePath;
+    if (source.uriKind == UriKind.DART_URI) {
+      sourcePath = source.uri.toString();
+    } else if (source.uriKind == UriKind.PACKAGE_URI) {
+      sourcePath = _relative(source.fullName);
+      if (sourcePath == source.fullName) {
+        // If we weren't able to shorten the path name, use the package: version.
+        sourcePath = source.uri.toString();
+      }
+    } else {
+      sourcePath = _relative(source.fullName);
+    }
+
+    batchedErrors.add(new CLIError(
+      severity: errorType,
+      sourcePath: sourcePath,
+      offset: error.offset,
+      line: location.lineNumber,
+      column: location.columnNumber,
+      message: message,
+      errorCode: error.errorCode.name.toLowerCase(),
+      correction: error.correction,
+    ));
+  }
 }
 
 class MachineErrorFormatter extends ErrorFormatter {
@@ -146,6 +318,8 @@ class MachineErrorFormatter extends ErrorFormatter {
       StringSink out, CommandLineOptions options, AnalysisStats stats,
       {SeverityProcessor severityProcessor})
       : super(out, options, stats, severityProcessor: severityProcessor);
+
+  void flush() {}
 
   void formatError(
       Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
@@ -199,178 +373,4 @@ class MachineErrorFormatter extends ErrorFormatter {
     }
     return result.toString();
   }
-
-  void flush() {}
-}
-
-class HumanErrorFormatter extends ErrorFormatter {
-  AnsiLogger ansi;
-
-  // This is a Set in order to de-dup CLI errors.
-  Set<CLIError> batchedErrors = new Set();
-
-  HumanErrorFormatter(
-      StringSink out, CommandLineOptions options, AnalysisStats stats,
-      {SeverityProcessor severityProcessor})
-      : super(out, options, stats, severityProcessor: severityProcessor) {
-    ansi = new AnsiLogger(this.options.color);
-  }
-
-  void formatError(
-      Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
-    Source source = error.source;
-    LineInfo_Location location = errorToLine[error].getLocation(error.offset);
-
-    ErrorSeverity severity = _severityProcessor(error);
-
-    // Get display name; translate INFOs into LINTS and HINTS.
-    String errorType = severity.displayName;
-    if (severity == ErrorSeverity.INFO) {
-      if (error.errorCode.type == ErrorType.HINT ||
-          error.errorCode.type == ErrorType.LINT) {
-        errorType = error.errorCode.type.displayName;
-      }
-    }
-
-    // warning • 'foo' is not a bar at lib/foo.dart:1:2 • foo_warning
-    String message = error.message;
-    // Remove any terminating '.' from the end of the message.
-    if (message.endsWith('.')) {
-      message = message.substring(0, message.length - 1);
-    }
-    String sourcePath;
-    if (source.uriKind == UriKind.DART_URI) {
-      sourcePath = source.uri.toString();
-    } else if (source.uriKind == UriKind.PACKAGE_URI) {
-      sourcePath = _relative(source.fullName);
-      if (sourcePath == source.fullName) {
-        // If we weren't able to shorten the path name, use the package: version.
-        sourcePath = source.uri.toString();
-      }
-    } else {
-      sourcePath = _relative(source.fullName);
-    }
-
-    batchedErrors.add(new CLIError(
-      severity: errorType,
-      sourcePath: sourcePath,
-      offset: error.offset,
-      line: location.lineNumber,
-      column: location.columnNumber,
-      message: message,
-      errorCode: error.errorCode.name.toLowerCase(),
-      correction: error.correction,
-    ));
-  }
-
-  void flush() {
-    // sort
-    List<CLIError> sortedErrors = batchedErrors.toList()..sort();
-
-    // print
-    for (CLIError error in sortedErrors) {
-      if (error.isError) {
-        stats.errorCount++;
-      } else if (error.isWarning) {
-        stats.warnCount++;
-      } else if (error.isLint) {
-        stats.lintCount++;
-      } else if (error.isHint) {
-        stats.hintCount++;
-      }
-
-      // warning • 'foo' is not a bar at lib/foo.dart:1:2 • foo_warning
-      String issueColor = (error.isError == ErrorSeverity.ERROR ||
-              error.isWarning == ErrorSeverity.WARNING)
-          ? ansi.red
-          : '';
-      out.write('  $issueColor${error.severity}${ansi.none} '
-          '${ansi.bullet} ${ansi.bold}${error.message}${ansi.none} ');
-      out.write('at ${error.sourcePath}');
-      out.write(':${error.line}:${error.column} ');
-      out.write('${ansi.bullet} ${error.errorCode}');
-      out.writeln();
-
-      // If verbose, also print any associated correction.
-      if (options.verbose && error.correction != null) {
-        out.writeln(
-            '${' '.padLeft(error.severity.length + 2)}${error.correction}');
-      }
-    }
-
-    // clear out batched errors
-    batchedErrors.clear();
-  }
-}
-
-final Map<String, int> _severityCompare = {
-  'error': 5,
-  'warning': 4,
-  'info': 3,
-  'lint': 2,
-  'hint': 1,
-};
-
-/// An [AnalysisError] with line and column information.
-class CLIError implements Comparable<CLIError> {
-  final String severity;
-  final String sourcePath;
-  final int offset;
-  final int line;
-  final int column;
-  final String message;
-  final String errorCode;
-  final String correction;
-
-  CLIError({
-    this.severity,
-    this.sourcePath,
-    this.offset,
-    this.line,
-    this.column,
-    this.message,
-    this.errorCode,
-    this.correction,
-  });
-
-  bool get isError => severity == 'error';
-  bool get isWarning => severity == 'warning';
-  bool get isLint => severity == 'lint';
-  bool get isHint => severity == 'hint';
-
-  @override
-  int get hashCode =>
-      severity.hashCode ^ sourcePath.hashCode ^ errorCode.hashCode ^ offset;
-
-  @override
-  bool operator ==(other) {
-    if (other is! CLIError) return false;
-
-    return severity == other.severity &&
-        sourcePath == other.sourcePath &&
-        errorCode == other.errorCode &&
-        offset == other.offset;
-  }
-
-  @override
-  int compareTo(CLIError other) {
-    // severity
-    int compare =
-        _severityCompare[other.severity] - _severityCompare[this.severity];
-    if (compare != 0) return compare;
-
-    // path
-    compare = Comparable.compare(
-        this.sourcePath.toLowerCase(), other.sourcePath.toLowerCase());
-    if (compare != 0) return compare;
-
-    // offset
-    return this.offset - other.offset;
-  }
-}
-
-/// Given an absolute path, return a relative path if the file is contained in
-/// the current directory; return the original path otherwise.
-String _relative(String file) {
-  return file.startsWith(path.current) ? path.relative(file) : file;
 }

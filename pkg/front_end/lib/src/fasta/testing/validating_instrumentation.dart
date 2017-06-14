@@ -156,6 +156,9 @@ class ValidatingInstrumentation implements Instrumentation {
   void record(
       Uri uri, int offset, String property, InstrumentationValue value) {
     uri = Uri.base.resolveUri(uri);
+    if (offset == -1) {
+      throw _formatProblem(uri, 0, 'No offset for $property=$value', null);
+    }
     var expectationsForUri = _unsatisfiedExpectations[uri];
     if (expectationsForUri == null) return;
     var expectationsAtOffset = expectationsForUri[offset];

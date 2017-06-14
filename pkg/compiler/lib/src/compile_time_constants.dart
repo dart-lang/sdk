@@ -161,7 +161,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
-  CommonElements get commonElements => compiler.commonElements;
+  CommonElements get commonElements => compiler.resolution.commonElements;
 
   @override
   @deprecated
@@ -406,7 +406,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
   ConstantSystem get constantSystem => handler.constantSystem;
   Resolution get resolution => compiler.resolution;
-  CommonElements get commonElements => compiler.commonElements;
+  CommonElements get commonElements => resolution.commonElements;
   DiagnosticReporter get reporter => compiler.reporter;
 
   AstConstant evaluate(Node node) {
@@ -513,7 +513,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         node,
         new MapConstantExpression(type, keyExpressions, valueExpressions),
         constantSystem.createMap(
-            compiler.commonElements, type, keyValues, map.values.toList()));
+            resolution.commonElements, type, keyValues, map.values.toList()));
   }
 
   AstConstant visitLiteralNull(LiteralNull node) {
@@ -592,7 +592,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           constantSystem.createString(text))
     ];
     ConstructorElement constructor =
-        compiler.commonElements.symbolConstructorTarget;
+        resolution.commonElements.symbolConstructorTarget;
     AstConstant constant = createConstructorInvocation(
         node, type, constructor, CallStructure.ONE_ARG,
         normalizedArguments: arguments);
@@ -601,7 +601,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   }
 
   ConstantValue makeTypeConstant(ResolutionDartType elementType) {
-    return constantSystem.createType(compiler.commonElements, elementType);
+    return constantSystem.createType(resolution.commonElements, elementType);
   }
 
   /// Returns true if the prefix of the send resolves to a deferred import
@@ -707,7 +707,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       }
       return result;
     } else if (send.isCall) {
-      if (element == compiler.commonElements.identicalFunction &&
+      if (element == resolution.commonElements.identicalFunction &&
           send.argumentCount() == 2) {
         AstConstant left = evaluate(send.argumentsNode.nodes.head);
         AstConstant right = evaluate(send.argumentsNode.nodes.tail.head);
@@ -1450,7 +1450,7 @@ class _CompilerEnvironment implements EvaluationEnvironment {
   _CompilerEnvironment(this._compiler);
 
   @override
-  CommonElements get commonElements => _compiler.commonElements;
+  CommonElements get commonElements => _compiler.resolution.commonElements;
 
   @override
   String readFromEnvironment(String name) {

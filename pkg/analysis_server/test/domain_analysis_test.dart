@@ -649,13 +649,13 @@ class AnalysisTestHelper {
 class SetSubscriptionsTest extends AbstractAnalysisTest {
   Map<String, List<HighlightRegion>> filesHighlights = {};
 
-  @override
-  bool get enableNewAnalysisDriver => false;
+  Completer _resultsAvailable = new Completer();
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_HIGHLIGHTS) {
       var params = new AnalysisHighlightsParams.fromNotification(notification);
       filesHighlights[params.file] = params.regions;
+      _resultsAvailable.complete(null);
     }
   }
 
@@ -667,7 +667,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
     expect(filesHighlights[testFile], isNull);
     // subscribe
     addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
-    await server.onAnalysisComplete;
+    await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[testFile], isNotEmpty);
   }
@@ -709,7 +709,7 @@ main() {
     expect(filesHighlights[pkgFile], isNull);
     // subscribe
     addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
-    await server.onAnalysisComplete;
+    await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[pkgFile], isNotEmpty);
   }
@@ -750,7 +750,7 @@ main() {
     expect(filesHighlights[pkgFileA], isNull);
     // subscribe
     addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFileA);
-    await server.onAnalysisComplete;
+    await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[pkgFileA], isNotEmpty);
   }
@@ -774,7 +774,7 @@ class A {}
     server.setPriorityFiles('0', [pkgFile]);
     // subscribe
     addAnalysisSubscription(AnalysisService.HIGHLIGHTS, pkgFile);
-    await server.onAnalysisComplete;
+    await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[pkgFile], isNotEmpty);
   }
@@ -788,7 +788,7 @@ class A {}
     expect(filesHighlights[file], isNull);
     // subscribe
     addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
-    await server.onAnalysisComplete;
+    await _resultsAvailable.future;
     // there are results
     expect(filesHighlights[file], isNotEmpty);
   }

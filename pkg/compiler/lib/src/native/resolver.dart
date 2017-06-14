@@ -217,8 +217,9 @@ class NativeDataResolverImpl extends NativeMemberResolverBase
 
   JavaScriptBackend get _backend => _compiler.backend;
   DiagnosticReporter get _reporter => _compiler.reporter;
-  ElementEnvironment get elementEnvironment => _compiler.elementEnvironment;
-  CommonElements get commonElements => _compiler.commonElements;
+  ElementEnvironment get elementEnvironment =>
+      _compiler.resolution.elementEnvironment;
+  CommonElements get commonElements => _compiler.resolution.commonElements;
   NativeBasicData get nativeBasicData => _backend.nativeBasicData;
   NativeDataBuilder get nativeDataBuilder => _backend.nativeDataBuilder;
 
@@ -293,21 +294,21 @@ class NativeDataResolverImpl extends NativeMemberResolverBase
 
   @override
   NativeBehavior resolveJsCall(Send node, ForeignResolver resolver) {
-    return NativeBehavior.ofJsCallSend(node, _reporter,
-        _compiler.parsingContext, _compiler.commonElements, resolver);
+    return NativeBehavior.ofJsCallSend(
+        node, _reporter, _compiler.parsingContext, commonElements, resolver);
   }
 
   @override
   NativeBehavior resolveJsEmbeddedGlobalCall(
       Send node, ForeignResolver resolver) {
     return NativeBehavior.ofJsEmbeddedGlobalCallSend(
-        node, _reporter, _compiler.commonElements, resolver);
+        node, _reporter, commonElements, resolver);
   }
 
   @override
   NativeBehavior resolveJsBuiltinCall(Send node, ForeignResolver resolver) {
     return NativeBehavior.ofJsBuiltinCallSend(
-        node, _reporter, _compiler.commonElements, resolver);
+        node, _reporter, commonElements, resolver);
   }
 }
 
@@ -347,9 +348,9 @@ class NativeAnnotationHandler extends EagerAnnotationHandler<String> {
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
     ResolutionDartType annotationType =
-        constant.getType(compiler.commonElements);
+        constant.getType(compiler.resolution.commonElements);
     if (annotationType.element !=
-        compiler.commonElements.nativeAnnotationClass) {
+        compiler.resolution.commonElements.nativeAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
       reporter.internalError(annotation, 'Invalid @Native(...) annotation.');
     }
@@ -383,8 +384,9 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   @override
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
-    ResolutionDartType type = constant.getType(compiler.commonElements);
-    if (type.element != compiler.commonElements.jsAnnotationClass) {
+    ResolutionDartType type =
+        constant.getType(compiler.resolution.commonElements);
+    if (type.element != compiler.resolution.commonElements.jsAnnotationClass) {
       compiler.reporter
           .internalError(annotation, 'Invalid @JS(...) annotation.');
     }

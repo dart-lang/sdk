@@ -7,8 +7,10 @@
 import 'infer_statics_transitively.dart';
 import 'infer_statics_transitively_b.dart';
 
-final /*@topType=dynamic*/ a1 = m2;
+final /*@topType=int*/ a1 = m2;
 
 class A {
-  static final /*@topType=dynamic*/ a2 = b1;
+  static final /*@topType=int*/ a2 = b1;
 }
+
+main() {}

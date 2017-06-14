@@ -130,6 +130,34 @@ abstract class Target {
       bool isConstructor: false,
       bool isTopLevel: false});
 
+  /// Builds an expression that throws [error] as compile-time error. The
+  /// target must be able to handle this expression in a constant expression.
+  Expression throwCompileConstantError(CoreTypes coreTypes, Expression error) {
+    // This method returns `const _ConstantExpressionError()._throw(error)`.
+    int offset = error.fileOffset;
+    var receiver = new ConstructorInvocation(
+        coreTypes.constantExpressionErrorDefaultConstructor,
+        new Arguments.empty()..fileOffset = offset,
+        isConst: true)
+      ..fileOffset = offset;
+    return new MethodInvocation(
+        receiver,
+        new Name("_throw", coreTypes.coreLibrary),
+        new Arguments(<Expression>[error])..fileOffset = error.fileOffset)
+      ..fileOffset = offset;
+  }
+
+  /// Builds an expression that represents a compile-time error which is
+  /// suitable for being passed to [throwCompileConstantError].
+  Expression buildCompileTimeError(
+      CoreTypes coreTypes, String message, int offset) {
+    return new ConstructorInvocation(
+        coreTypes.compileTimeErrorDefaultConstructor,
+        new Arguments(<Expression>[new StringLiteral(message)])
+          ..fileOffset = offset)
+      ..fileOffset = offset;
+  }
+
   String toString() => 'Target($name)';
 }
 

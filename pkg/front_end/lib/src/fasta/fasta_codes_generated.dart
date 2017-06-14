@@ -979,6 +979,22 @@ FastaMessage _formatInvalidInlineFunctionType(Uri uri, int charOffset) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const FastaCode<_MetadataTypeArguments> codeMetadataTypeArguments =
+    const FastaCode<_MetadataTypeArguments>("MetadataTypeArguments",
+        template: r"An annotation (metadata) can't use type arguments.",
+        dart2jsCode: "FASTA_IGNORED",
+        format: _formatMetadataTypeArguments);
+
+typedef FastaMessage _MetadataTypeArguments(Uri uri, int charOffset);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+FastaMessage _formatMetadataTypeArguments(Uri uri, int charOffset) {
+  return new FastaMessage(uri, charOffset, codeMetadataTypeArguments,
+      message: "An annotation (metadata) can't use type arguments.",
+      arguments: {});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const FastaCode<_ExpectedBody> codeExpectedBody =
     const FastaCode<_ExpectedBody>("ExpectedBody",
         template: r"Expected a function body or '=>'.",

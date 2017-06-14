@@ -5120,7 +5120,7 @@ const int vBitShiftRight = 1 >> 2;
 const int vAdd = 1 + 2;
 const int vSubtract = 1 - 2;
 const int vMiltiply = 1 * 2;
-const num vDivide = 1 / 2;
+const double vDivide = 1 / 2;
 const int vFloorDivide = 1 ~/ 2;
 const int vModulo = 1 % 2;
 const bool vGreater = 1 > 2;
@@ -7865,7 +7865,7 @@ class C {
           r'''
 import 'a.dart';
 class C {
-  final num b =
+  final double b =
         a/*location: a.dart;a?*/ / 2;
 }
 ''');
@@ -7897,7 +7897,7 @@ class C {
 library lib;
 part 'a.dart';
 class C {
-  final num b =
+  final double b =
         a/*location: test.dart;a.dart;a?*/ / 2;
 }
 --------------------
@@ -15102,7 +15102,7 @@ const dynamic i = 0;
           library,
           r'''
 import 'a.dart';
-final num b;
+final double b;
 ''');
     } else {
       checkElementText(
@@ -15123,7 +15123,7 @@ final dynamic b;
           r'''
 library lib;
 part 'a.dart';
-final num b;
+final double b;
 --------------------
 unit: a.dart
 

@@ -88,8 +88,6 @@ abstract class Compiler {
   DartTypes types;
   FrontendStrategy frontendStrategy;
   BackendStrategy backendStrategy;
-  CommonElements _commonElements;
-  ElementEnvironment _elementEnvironment;
   CompilerDiagnosticReporter _reporter;
   CompilerResolution _resolution;
   ParsingContext _parsingContext;
@@ -121,8 +119,6 @@ abstract class Compiler {
   FunctionEntity mainFunction;
 
   DiagnosticReporter get reporter => _reporter;
-  ElementEnvironment get elementEnvironment => _elementEnvironment;
-  CommonElements get commonElements => _commonElements;
   Resolution get resolution => _resolution;
   ParsingContext get parsingContext => _parsingContext;
 
@@ -202,8 +198,6 @@ abstract class Compiler {
         ? new KernelBackendStrategy(this)
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
-    _elementEnvironment = frontendStrategy.elementEnvironment;
-    _commonElements = frontendStrategy.commonElements;
     types = new Types(_resolution);
 
     if (options.verbose) {
@@ -510,7 +504,7 @@ abstract class Compiler {
       resolutionEnqueuer = enqueuer.resolution;
     } else {
       resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
-      backend.onResolutionStart(resolutionEnqueuer);
+      backend.onResolutionStart();
     }
     resolutionEnqueuer.addDeferredActions(libraryLoader.pullDeferredActions());
     return resolutionEnqueuer;
@@ -564,13 +558,15 @@ abstract class Compiler {
             }
           }
         }
-        if (commonElements.mirrorsLibrary != null && !options.loadFromDill) {
+        if (frontendStrategy.commonElements.mirrorsLibrary != null &&
+            !options.loadFromDill) {
           // TODO(johnniwinther): Support mirrors from dill.
           resolveLibraryMetadata();
         }
         reporter.log('Resolving...');
 
-        processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries,
+        processQueue(frontendStrategy.elementEnvironment, resolutionEnqueuer,
+            mainFunction, libraryLoader.libraries,
             onProgress: showResolutionProgress);
         backend.onResolutionEnd();
         resolutionEnqueuer.logSummary(reporter.log);
@@ -623,7 +619,8 @@ abstract class Compiler {
             codegenEnqueuer.applyImpact(computeImpactForLibrary(library));
           });
         }
-        processQueue(codegenEnqueuer, mainFunction, libraryLoader.libraries,
+        processQueue(closedWorld.elementEnvironment, codegenEnqueuer,
+            mainFunction, libraryLoader.libraries,
             onProgress: showCodegenProgress);
         codegenEnqueuer.logSummary(reporter.log);
 
@@ -716,7 +713,7 @@ abstract class Compiler {
   // resolve metadata classes referenced only from metadata on library tags.
   // TODO(ahe): Figure out how to do this lazily.
   void resolveLibraryMetadata() {
-    assert(commonElements.mirrorsLibrary != null);
+    assert(frontendStrategy.commonElements.mirrorsLibrary != null);
     for (LibraryElement library in libraryLoader.libraries) {
       if (library.metadata != null) {
         for (MetadataAnnotation metadata in library.metadata) {
@@ -746,8 +743,8 @@ abstract class Compiler {
     });
   }
 
-  void processQueue(Enqueuer enqueuer, FunctionEntity mainMethod,
-      Iterable<LibraryEntity> libraries,
+  void processQueue(ElementEnvironment elementEnvironment, Enqueuer enqueuer,
+      FunctionEntity mainMethod, Iterable<LibraryEntity> libraries,
       {void onProgress(Enqueuer enqueuer)}) {
     selfTask.measureSubtask("Compiler.processQueue", () {
       enqueuer.open(impactStrategy, mainMethod, libraries);
@@ -1298,7 +1295,12 @@ class CompilerResolution implements Resolution {
   ParsingContext get parsingContext => _compiler.parsingContext;
 
   @override
-  CommonElements get commonElements => _compiler.commonElements;
+  ElementEnvironment get elementEnvironment =>
+      _compiler.frontendStrategy.elementEnvironment;
+
+  @override
+  CommonElements get commonElements =>
+      _compiler.frontendStrategy.commonElements;
 
   @override
   Types get types => _compiler.types;
@@ -1325,7 +1327,8 @@ class CompilerResolution implements Resolution {
   MirrorUsageAnalyzerTask get mirrorUsageAnalyzerTask =>
       _compiler.mirrorUsageAnalyzerTask;
 
-  LibraryElement get coreLibrary => _compiler._commonElements.coreLibrary;
+  LibraryElement get coreLibrary =>
+      _compiler.frontendStrategy.commonElements.coreLibrary;
 
   @override
   bool get wasProxyConstantComputedTestingOnly => _proxyConstant != null;

@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-rasta/class_hierarchy: Fail # Fixed in ahe's dev branch.
-
 inference/async_closure_return_type_flatten: Fail
 inference/async_closure_return_type_future: Fail
 inference/async_closure_return_type_future_or: Fail
@@ -273,10 +271,10 @@ inference/unsafe_block_closure_inference_method_call_implicit_type_param: Fail
 inference/unsafe_block_closure_inference_method_call_no_type_param: Fail
 inference/void_return_type_subtypes_dynamic: Fail
 
-rasta/generic_factory: Fail
 rasta/issue_000032: Fail
 rasta/issue_000045: Fail
 rasta/issue_000046: Fail
 rasta/issue_000047: Fail
+rasta/native_is_illegal: Pass # Issue 29763
 rasta/super_mixin: Fail
 rasta/type_with_parse_error: Fail

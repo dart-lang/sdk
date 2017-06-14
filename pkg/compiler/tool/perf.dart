@@ -361,11 +361,12 @@ class MyCompiler extends CompilerImpl {
           resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
         });
 
-        if (commonElements.mirrorsLibrary != null) {
+        if (frontendStrategy.commonElements.mirrorsLibrary != null) {
           resolveLibraryMetadata();
         }
         reporter.log('Resolving...');
-        processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries);
+        processQueue(frontendStrategy.elementEnvironment, resolutionEnqueuer,
+            mainFunction, libraryLoader.libraries);
         resolutionEnqueuer.logSummary(reporter.log);
 
         (reporter as CompilerDiagnosticReporter)

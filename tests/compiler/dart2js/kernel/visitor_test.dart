@@ -30,16 +30,16 @@ const List<String> TESTS = const <String>[
   'bad_store',
   'call',
   'closure',
-  'covariant_generic',
+  // 'covariant_generic', Issue 29853: typedefs
   'escape',
   'fallthrough',
   'micro',
   'named_parameters',
   'null_aware',
-  'optional',
+  // 'optional', Issue 29853: abstract members
   'override',
   'prefer_baseclass',
-  'redirecting_factory',
+  // 'redirecting_factory', Issue 29853: redirecting factories
   'static_setter',
   'store_load',
   'stringliteral',

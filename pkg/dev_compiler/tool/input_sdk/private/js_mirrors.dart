@@ -442,9 +442,8 @@ class JsClassMirror extends JsMirror implements ClassMirror {
     // TODO(vsm): Support factory constructors and named arguments.
     var name = getName(constructorName);
     assert(namedArgs == null || namedArgs.isEmpty);
-    var instance = (name == 'new' || name == '')
-        ? JS('', 'new #(...#)', _unwrap(_cls), args)
-        : JS('', 'new (#.#)(...#)', _unwrap(_cls), name, args);
+    if (name == '') name = 'new';
+    var instance = JS('', 'new (#.#)(...#)', _unwrap(_cls), name, args);
     return reflect(instance);
   }
 

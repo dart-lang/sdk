@@ -70,7 +70,7 @@ class MemoryEnvironment implements EvaluationEnvironment {
   }
 
   @override
-  CommonElements get commonElements => _compiler.commonElements;
+  CommonElements get commonElements => _compiler.resolution.commonElements;
 }
 
 const List<TestData> DATA = const [

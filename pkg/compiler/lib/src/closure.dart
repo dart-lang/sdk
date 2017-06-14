@@ -30,6 +30,10 @@ abstract class ClosureClassMaps<T> {
   ClosureClassMap getMemberMap(MemberEntity member);
   ClosureClassMap getLocalFunctionMap(Local localFunction);
 
+  /// Look up information about a loop, in case any variables it declares need
+  /// to be boxed/snapshotted.
+  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(T loopNode);
+
   /// Accessor to the information about closures that the SSA builder will use.
   ClosureAnalysisInfo getClosureAnalysisInfo(T node);
 }
@@ -50,12 +54,43 @@ class ClosureAnalysisInfo {
   /// Accessor to the local environment in which a particular closure node is
   /// executed. This will encapsulate the value of any variables that have been
   /// scoped into this context from outside. This is an accessor to the
-  /// contextBox that [requiresContextBox] is testing for.
+  /// contextBox that [requiresContextBox] is testing is required.
   Local get context => null;
 
   /// True if the specified variable has been mutated inside the scope of this
   /// closure.
   bool isCaptured(Local variable) => false;
+
+  /// Loop through every variable that has been captured in this closure. This
+  /// consists of all the free variables (variables captured *just* in this
+  /// closure) and all variables captured in nested scopes that we may be
+  /// capturing as well.
+  void forEachCapturedVariable(f(Local from, FieldEntity to)) {}
+}
+
+/// Class that describes the actual mechanics of how a loop is
+/// converted/rewritten without closures. Unlike JS, the value of a declared
+/// loop iteration variable in any closure is captured/snapshotted inside at
+/// each iteration point, as if we created a new local variable for that value
+/// inside the loop. For example, for the following loop:
+///
+///     var lst = [];
+///     for (int i = 0; i < 5; i++) lst.add(()=>i);
+///
+/// The result of `lst` will be [0, 1, 2, 3, 4], whereas were this JS code
+/// the result would be [5, 5, 5, 5, 5]. Because of this difference we need to
+/// create a closure for these sorts of loops to capture the variable's value at
+/// each iteration, by boxing the iteration variable[s].
+class LoopClosureRepresentationInfo extends ClosureAnalysisInfo {
+  const LoopClosureRepresentationInfo();
+
+  /// True if this loop declares any variables that need to be boxed.
+  bool get hasBoxedVariables => false;
+
+  /// The set of iteration variables (or variables declared in the for loop
+  /// expression (`for (...here...)`) that need to be boxed to snapshot their
+  /// value.
+  List<Local> get boxedVariables => const <Local>[];
 }
 
 class ClosureTask extends CompilerTask implements ClosureClassMaps<Node> {
@@ -74,6 +109,12 @@ class ClosureTask extends CompilerTask implements ClosureClassMaps<Node> {
   ClosureAnalysisInfo getClosureAnalysisInfo(Node node) {
     var value = _closureInfoMap[node];
     return value == null ? const ClosureAnalysisInfo() : value;
+  }
+
+  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+      Node loopNode) {
+    var value = _closureInfoMap[loopNode];
+    return value == null ? const LoopClosureRepresentationInfo() : value;
   }
 
   ClosureClassMap getMemberMap(MemberElement member) {
@@ -272,8 +313,8 @@ class ClosureClassElement extends ClassElementX {
             compiler.idGenerator.getNextFreeId(),
             STATE_DONE) {
     ClassElement superclass = methodElement.isInstanceMember
-        ? compiler.commonElements.boundClosureClass
-        : compiler.commonElements.closureClass;
+        ? compiler.resolution.commonElements.boundClosureClass
+        : compiler.resolution.commonElements.closureClass;
     superclass.ensureResolved(compiler.resolution);
     supertype = superclass.thisType;
     interfaces = const Link<ResolutionDartType>();
@@ -445,7 +486,8 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
 
 // The box-element for a scope, and the captured variables that need to be
 // stored in the box.
-class ClosureScope implements ClosureAnalysisInfo {
+class ClosureScope
+    implements ClosureAnalysisInfo, LoopClosureRepresentationInfo {
   final BoxLocal boxElement;
   final Map<Local, BoxFieldElement> capturedVariables;
 
@@ -462,7 +504,7 @@ class ClosureScope implements ClosureAnalysisInfo {
 
   List<Local> get boxedVariables => boxedLoopVariables;
 
-  bool hasBoxedLoopVariables() => !boxedLoopVariables.isEmpty;
+  bool get hasBoxedVariables => !boxedLoopVariables.isEmpty;
 
   bool isCaptured(Local variable) {
     return capturedVariables.containsKey(variable);
@@ -551,6 +593,9 @@ class ClosureClassMap {
   void forEachFreeVariable(f(Local variable, FieldEntity field)) {
     freeVariableMap.forEach(f);
   }
+
+  bool isVariableUsedInTryOrSync(Local variable) =>
+      variablesUsedInTryOrGenerator.contains(variable);
 
   Local getLocalVariableForClosureField(ClosureFieldElement field) {
     return field.local;

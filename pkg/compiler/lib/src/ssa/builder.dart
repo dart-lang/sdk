@@ -19,6 +19,7 @@ import '../diagnostics/messages.dart' show Message, MessageTemplate;
 import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/jumps.dart';
 import '../elements/modelx.dart' show ConstructorBodyElementX;
 import '../elements/names.dart';
 import '../elements/operators.dart';
@@ -1037,9 +1038,13 @@ class SsaBuilder extends ast.Visitor
           closureToClassMapper.getMemberMap(callee);
       localsHandler.closureData = newClosureData;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        localsHandler.enterScope(
-            newClosureData.capturingScopes[resolvedAst.node],
-            forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
+        // TODO(efortuna): Take out the test below for null once we are no
+        // longer dealing with the ClosureClassMap interface directly.
+        if (newClosureData.capturingScopes[resolvedAst.node] != null) {
+          localsHandler.enterScope(
+              newClosureData.capturingScopes[resolvedAst.node],
+              forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
+        }
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
       localsHandler.closureData = oldClosureData;
@@ -1727,7 +1732,12 @@ class SsaBuilder extends ast.Visitor
     }
 
     loopHandler.handleLoop(
-        node, buildInitializer, buildCondition, buildUpdate, buildBody);
+        node,
+        closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+        buildInitializer,
+        buildCondition,
+        buildUpdate,
+        buildBody);
   }
 
   visitWhile(ast.While node) {
@@ -1737,7 +1747,12 @@ class SsaBuilder extends ast.Visitor
       return popBoolified();
     }
 
-    loopHandler.handleLoop(node, () {}, buildCondition, () {}, () {
+    loopHandler.handleLoop(
+        node,
+        closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+        () {},
+        buildCondition,
+        () {}, () {
       visit(node.body);
     });
   }
@@ -1745,7 +1760,9 @@ class SsaBuilder extends ast.Visitor
   visitDoWhile(ast.DoWhile node) {
     assert(isReachable);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-    localsHandler.startLoop(node);
+    var loopClosureInfo =
+        closureToClassMapper.getClosureRepresentationInfoForLoop(node);
+    localsHandler.startLoop(loopClosureInfo);
     loopDepth++;
     JumpHandler jumpHandler = loopHandler.beginLoopHeader(node);
     HLoopInformation loopInfo = current.loopInformation;
@@ -1763,7 +1780,7 @@ class SsaBuilder extends ast.Visitor
       // Using a separate block is just a simple workaround.
       bodyEntryBlock = openNewBlock();
     }
-    localsHandler.enterLoopBody(node);
+    localsHandler.enterLoopBody(loopClosureInfo);
     visit(node.body);
 
     // If there are no continues we could avoid the creation of the condition
@@ -5452,7 +5469,12 @@ class SsaBuilder extends ast.Visitor
 
     buildProtectedByFinally(() {
       loopHandler.handleLoop(
-          node, buildInitializer, buildCondition, buildUpdate, buildBody);
+          node,
+          closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+          buildInitializer,
+          buildCondition,
+          buildUpdate,
+          buildBody);
     }, () {
       pushInvokeDynamic(node, Selectors.cancel, null, [streamIterator]);
       push(new HAwait(pop(),
@@ -5519,7 +5541,12 @@ class SsaBuilder extends ast.Visitor
     }
 
     loopHandler.handleLoop(
-        node, buildInitializer, buildCondition, () {}, buildBody);
+        node,
+        closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+        buildInitializer,
+        buildCondition,
+        () {},
+        buildBody);
   }
 
   buildAssignLoopVariable(ast.ForIn node, HInstruction value) {
@@ -5638,7 +5665,12 @@ class SsaBuilder extends ast.Visitor
     }
 
     loopHandler.handleLoop(
-        node, buildInitializer, buildCondition, buildUpdate, buildBody);
+        node,
+        closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+        buildInitializer,
+        buildCondition,
+        buildUpdate,
+        buildBody);
   }
 
   visitLabel(ast.Label node) {
@@ -5985,7 +6017,13 @@ class SsaBuilder extends ast.Visitor
     }
 
     void buildLoop() {
-      loopHandler.handleLoop(node, () {}, buildCondition, () {}, buildSwitch);
+      loopHandler.handleLoop(
+          node,
+          closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+          () {},
+          buildCondition,
+          () {},
+          buildSwitch);
     }
 
     if (hasDefault) {

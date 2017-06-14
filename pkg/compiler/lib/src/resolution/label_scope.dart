@@ -4,7 +4,7 @@
 
 library dart2js.resolution.label_scope;
 
-import '../elements/elements.dart' show JumpTarget, LabelDefinition;
+import '../elements/jumps.dart';
 import '../util/util.dart' show Link;
 
 abstract class LabelScope {

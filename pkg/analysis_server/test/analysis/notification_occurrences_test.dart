@@ -24,8 +24,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   List<Occurrences> occurrencesList;
   Occurrences testOccurrences;
 
-  @override
-  bool get enableNewAnalysisDriver => false;
+  Completer _resultsAvailable = new Completer();
 
   /**
    * Asserts that there is an offset of [search] in [testOccurrences].
@@ -80,7 +79,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
 
   Future prepareOccurrences() {
     addAnalysisSubscription(AnalysisService.OCCURRENCES, testFile);
-    return waitForTasksFinished();
+    return _resultsAvailable.future;
   }
 
   void processNotification(Notification notification) {
@@ -88,6 +87,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
       var params = new AnalysisOccurrencesParams.fromNotification(notification);
       if (params.file == testFile) {
         occurrencesList = params.occurrences;
+        _resultsAvailable.complete(null);
       }
     }
   }

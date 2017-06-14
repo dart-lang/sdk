@@ -153,11 +153,7 @@ bool test() {
   }
 
   Future<List<AnalysisError>> _computeErrors() async {
-    if (enableNewAnalysisDriver) {
-      return (await driver.getResult(testFile)).errors;
-    } else {
-      return context.computeErrors(testSource);
-    }
+    return (await driver.getResult(testFile)).errors;
   }
 
   /**
@@ -184,11 +180,7 @@ bool test() {
     });
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    if (enableNewAnalysisDriver) {
-      driver.configure(sourceFactory: sourceFactory);
-    } else {
-      context.sourceFactory = sourceFactory;
-    }
+    driver.configure(sourceFactory: sourceFactory);
     // force 'my_pkg' resolution
     addSource(
         '/tmp/other.dart',
@@ -2244,13 +2236,8 @@ part 'my_part.dart';
     });
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    if (enableNewAnalysisDriver) {
-      driver.configure(sourceFactory: sourceFactory);
-      testUnit = (await driver.getResult(testFile)).unit;
-    } else {
-      context.sourceFactory = sourceFactory;
-      testUnit = await resolveLibraryUnit(testSource);
-    }
+    driver.configure(sourceFactory: sourceFactory);
+    testUnit = (await driver.getResult(testFile)).unit;
     // prepare fix
     AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_FILE, error);
@@ -3497,7 +3484,6 @@ main() {
   Test test = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3526,7 +3512,6 @@ main() {
   Test test = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3555,7 +3540,6 @@ main() {
   Test test = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT2,
         '''
@@ -3586,7 +3570,6 @@ main() {
   Test t;
 }
 ''');
-    performAllAnalysisTasks();
     await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
   }
 
@@ -3600,7 +3583,6 @@ main() {
   Test t;
 }
 ''');
-    performAllAnalysisTasks();
     await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
   }
 
@@ -3618,7 +3600,6 @@ class Test {
 main() {
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3643,7 +3624,6 @@ main() {
   const Test();
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3677,7 +3657,6 @@ main () {
   new One();
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3703,7 +3682,6 @@ main() {
   Test t = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3728,7 +3706,6 @@ main() {
   Test t = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3753,7 +3730,6 @@ main() {
   Test t = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3777,7 +3753,6 @@ main() {
   myFunction();
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3803,7 +3778,6 @@ class A {
   }
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3830,7 +3804,6 @@ main() {
   MyFunction t = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3854,7 +3827,6 @@ main() {
   print(MY_VAR);
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3923,7 +3895,6 @@ main() {
   var a = [Future];
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_SDK,
         '''
@@ -4016,7 +3987,6 @@ main() {
   print(PI);
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_SDK,
         '''
@@ -4034,7 +4004,6 @@ main() {
 main() {
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_SDK,
         '''
@@ -4061,7 +4030,6 @@ main() {
   B b;
 }
 ''');
-    performAllAnalysisTasks();
     await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_SHOW,
@@ -5896,11 +5864,7 @@ class Required {
     });
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    if (enableNewAnalysisDriver) {
-      driver.configure(sourceFactory: sourceFactory);
-    } else {
-      context.sourceFactory = sourceFactory;
-    }
+    driver.configure(sourceFactory: sourceFactory);
     // force 'flutter' resolution
     addSource(
         '/tmp/other.dart',

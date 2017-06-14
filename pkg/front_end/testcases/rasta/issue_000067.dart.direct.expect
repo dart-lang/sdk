@@ -8,7 +8,7 @@ class A extends core::Object {
   constructor •() → void
     : super core::Object::•() {}
   static factory foo() → self::A
-    let final dynamic #t1 = self::C::bar in invalid-expression;
+    let dynamic #redirecting_factory = self::C::bar in invalid-expression;
   method m() → core::int {}
 }
 class C extends self::A {
@@ -16,7 +16,7 @@ class C extends self::A {
   constructor •() → void
     : super self::A::•() {}
   static factory bar() → self::C
-    let final dynamic #t2 = self::D::• in invalid-expression;
+    let dynamic #redirecting_factory = self::D::• in invalid-expression;
   method m() → core::int {
     return 1;
   }

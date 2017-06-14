@@ -104,8 +104,6 @@ const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map du
 map_literal3_test: RuntimeError # KernelVM bug: Constant map duplicated key.
 map_literal6_test: RuntimeError # KernelVM bug: Constant map duplicated key.
 
-const_evaluation_test/01: RuntimeError # KernelVM bug: Reflecting on metadata.
-
 cyclic_type_test/00: RuntimeError # KernelVM bug: Incorrect type argument.
 cyclic_type_test/01: RuntimeError # KernelVM bug: Incorrect type argument.
 cyclic_type_test/03: RuntimeError # KernelVM bug: Incorrect type argument.
@@ -177,7 +175,7 @@ regress_20394_test/01: MissingCompileTimeError # Fasta bug: Illegal access to pr
 
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
 
-malformed_test/none: Crash # Fasta bug: Leads to assertion error in Fasta.
+malformed_test/none: RuntimeError # Fasta bug: Leads to assertion error in Fasta.
 
 export_double_same_main_test: CompileTimeError # Fasta bug: Main is exported.
 export_main_test: CompileTimeError # Fasta bug: Main is exported.
@@ -186,9 +184,6 @@ const_constructor_nonconst_field_test/01: MissingCompileTimeError # Fasta bug: N
 
 method_name_test: CompileTimeError # Fasta bug: Parser bug.
 
-generic_metadata_test/02: MissingCompileTimeError # Fasta bug: Type arguments aren't allowed on metadata?!
-generic_metadata_test/03: MissingCompileTimeError # Fasta bug: Type arguments aren't allowed on metadata?!
-
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 
 regress_29349_test: CompileTimeError # Fasta bug: Parser bug.
@@ -196,6 +191,17 @@ regress_29349_test: CompileTimeError # Fasta bug: Parser bug.
 const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 
 generic_function_typedef_test: RuntimeError # Fasta bug: resolution of type variables in typedef.
+
+constants_test/05: Crash # Fasta bug: getter call in compile-time constant.
+
+assignable_expression_test/50: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+missing_const_constructor_test/02: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+missing_const_constructor_test/03: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+missing_const_constructor_test/05: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+missing_const_constructor_test/06: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+syntax_test/64: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+syntax_test/65: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
+try_catch_syntax_test/16: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
 
 # dartk: JIT & AOT failures (debug)
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
@@ -220,7 +226,6 @@ const_syntax_test/08: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
 disassemble_test: Pass, Crash  # Multitest via multiple VMOptions! Hits assert "kind() != RawScript::kKernelTag". Issue 28790
 hello_dart_test: Crash
-instance_creation_in_function_annotation_test: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError
@@ -325,33 +330,5 @@ type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/06: Fail
 type_variable_bounds4_test/01: RuntimeError
 
-[ $compiler == dartk || $compiler == dartkp ]
-const_types_test/23: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_types_test/24: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_types_test/25: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_types_test/26: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_types_test/27: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_types_test/28: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_types_test/29: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_types_test/30: MissingCompileTimeError # Fixed in ahe's dev branch.
-const_types_test/41: MissingCompileTimeError # Fixed in ahe's dev branch.
-cyclic_typedef_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-cyclic_typedef_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
-cyclic_typedef_test/03: MissingCompileTimeError # Fixed in ahe's dev branch.
-cyclic_typedef_test/04: MissingCompileTimeError # Fixed in ahe's dev branch.
-cyclic_typedef_test/05: MissingCompileTimeError # Fixed in ahe's dev branch.
-cyclic_typedef_test/06: MissingCompileTimeError # Fixed in ahe's dev branch.
-cyclic_typedef_test/07: MissingCompileTimeError # Fixed in ahe's dev branch.
-cyclic_typedef_test/08: MissingCompileTimeError # Fixed in ahe's dev branch.
-cyclic_typedef_test/09: MissingCompileTimeError # Fixed in ahe's dev branch.
-enum_syntax_test/30: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_type_alias5_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_type_alias5_test/01: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_type_alias5_test/02: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_type_alias6_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
-function_type_alias9_test/00: MissingCompileTimeError # Fixed in ahe's dev branch.
-metadata_test: CompileTimeError # Fixed in ahe's dev branch.
-regress_29349_test: CompileTimeError # Fixed in ahe's dev branch.
-
-[ $unchecked && ($compiler == dartk || $compiler == dartkp) ]
+[ ! $checked && ($compiler == dartk || $compiler == dartkp) ]
 const_conditional_test/08: MissingCompileTimeError # KernelVM bug: Constant evaluation.

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/errors.dart' show internalError;
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/names.dart' show callName;
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
@@ -24,12 +25,18 @@ import 'package:kernel/ast.dart'
         FunctionType,
         Initializer,
         InterfaceType,
+        InvocationExpression,
         Member,
         MethodInvocation,
         Name,
         Procedure,
         ProcedureKind,
+        PropertyGet,
+        PropertySet,
         Statement,
+        SuperMethodInvocation,
+        SuperPropertyGet,
+        SuperPropertySet,
         TypeParameterType,
         VoidType;
 import 'package:kernel/class_hierarchy.dart';
@@ -261,13 +268,72 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation and records it in [methodInvocation].
   Member findMethodInvocationMember(
-      DartType receiverType, MethodInvocation methodInvocation,
+      DartType receiverType, InvocationExpression methodInvocation,
       {bool silent: false}) {
-    var interfaceMember = findInterfaceMember(
-        receiverType, methodInvocation.name, methodInvocation.fileOffset,
-        silent: silent);
-    methodInvocation.interfaceTarget = interfaceMember;
-    return interfaceMember;
+    // TODO(paulberry): could we add getters to InvocationExpression to make
+    // these is-checks unnecessary?
+    if (methodInvocation is MethodInvocation) {
+      var interfaceMember = findInterfaceMember(
+          receiverType, methodInvocation.name, methodInvocation.fileOffset,
+          silent: silent);
+      methodInvocation.interfaceTarget = interfaceMember;
+      return interfaceMember;
+    } else if (methodInvocation is SuperMethodInvocation) {
+      var interfaceMember = findInterfaceMember(
+          receiverType, methodInvocation.name, methodInvocation.fileOffset,
+          silent: silent);
+      methodInvocation.interfaceTarget = interfaceMember;
+      return interfaceMember;
+    } else {
+      throw internalError(
+          'Unexpected invocation type: ${methodInvocation.runtimeType}');
+    }
+  }
+
+  /// Finds a member of [receiverType] called [name], and if it is found,
+  /// reports it through instrumentation and records it in [propertyGet].
+  Member findPropertyGetMember(DartType receiverType, Expression propertyGet,
+      {bool silent: false}) {
+    // TODO(paulberry): could we add a common base class to PropertyGet and
+    // SuperPropertyGet to make these is-checks unnecessary?
+    if (propertyGet is PropertyGet) {
+      var interfaceMember = findInterfaceMember(
+          receiverType, propertyGet.name, propertyGet.fileOffset,
+          silent: silent);
+      propertyGet.interfaceTarget = interfaceMember;
+      return interfaceMember;
+    } else if (propertyGet is SuperPropertyGet) {
+      var interfaceMember = findInterfaceMember(
+          receiverType, propertyGet.name, propertyGet.fileOffset,
+          silent: silent);
+      propertyGet.interfaceTarget = interfaceMember;
+      return interfaceMember;
+    } else {
+      throw internalError(
+          'Unexpected propertyGet type: ${propertyGet.runtimeType}');
+    }
+  }
+
+  /// Finds a member of [receiverType] called [name], and if it is found,
+  /// reports it through instrumentation and records it in [propertySet].
+  Member findPropertySetMember(DartType receiverType, Expression propertySet,
+      {bool silent: false}) {
+    if (propertySet is PropertySet) {
+      var interfaceMember = findInterfaceMember(
+          receiverType, propertySet.name, propertySet.fileOffset,
+          setter: true, silent: silent);
+      propertySet.interfaceTarget = interfaceMember;
+      return interfaceMember;
+    } else if (propertySet is SuperPropertySet) {
+      var interfaceMember = findInterfaceMember(
+          receiverType, propertySet.name, propertySet.fileOffset,
+          setter: true, silent: silent);
+      propertySet.interfaceTarget = interfaceMember;
+      return interfaceMember;
+    } else {
+      throw internalError(
+          'Unexpected propertySet type: ${propertySet.runtimeType}');
+    }
   }
 
   FunctionType getCalleeFunctionType(Member interfaceMember,
@@ -483,7 +549,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     // TODO(paulberry): if we are doing top level inference and type arguments
     // were omitted, report an error.
-    if (!isTopLevel) {
+    if (!isTopLevel || isOverloadedArithmeticOperator) {
       int i = 0;
       _forEachArgument(arguments, (name, expression) {
         DartType formalType = name != null

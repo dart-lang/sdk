@@ -16,12 +16,12 @@
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
-#include "vm/kernel_to_il.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/kernel_binary_flowgraph.h"
 #include "vm/longjump.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
@@ -235,11 +235,10 @@ void ParsedFunction::Bailout(const char* origin, const char* reason) const {
 
 kernel::ScopeBuildingResult* ParsedFunction::EnsureKernelScopes() {
   if (kernel_scopes_ == NULL) {
-    kernel::TreeNode* node = NULL;
-    if (function().kernel_function() != NULL) {
-      node = static_cast<kernel::TreeNode*>(function().kernel_function());
-    }
-    kernel::ScopeBuilder builder(this, node);
+    intptr_t kernel_offset = function().kernel_offset();
+    Script& script = Script::Handle(Z, function().script());
+    kernel::StreamingScopeBuilder builder(
+        this, kernel_offset, script.kernel_data(), script.kernel_data_size());
     kernel_scopes_ = builder.BuildScopes();
   }
   return kernel_scopes_;
@@ -1629,7 +1628,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
     ASSERT(func.num_fixed_parameters() == 2);  // closure, value.
   } else if (!parent.IsGetterFunction() && !parent.IsImplicitGetterFunction()) {
     // NOTE: For the `kernel -> flowgraph` we don't use the parser.
-    if (parent.kernel_function() == NULL) {
+    if (parent.kernel_offset() <= 0) {
       SkipFunctionPreamble();
       const bool use_function_type_syntax = false;
       const bool allow_explicit_default_values = true;

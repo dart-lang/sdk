@@ -386,8 +386,8 @@ class MirrorsHandler {
   Iterable<ClassEntity> get _classesRequiredForReflection {
     // TODO(herhut): Clean this up when classes needed for rti are tracked.
     return [
-      _backend.compiler.commonElements.closureClass,
-      _backend.compiler.commonElements.jsIndexableClass
+      _resolution.commonElements.closureClass,
+      _resolution.commonElements.jsIndexableClass
     ];
   }
 

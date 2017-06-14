@@ -66,7 +66,7 @@ define(['dart_sdk'], function(dart_sdk) {
       let r = dart.notNull(math.sqrt(i)) * sunflower.SCALE_FACTOR;
       let x = sunflower.centerX + r * dart.notNull(math.cos(theta));
       let y = sunflower.centerY - r * dart.notNull(math.sin(theta));
-      new sunflower.SunflowerSeed(x, y, sunflower.SEED_RADIUS).draw(sunflower.context);
+      new sunflower.SunflowerSeed.new(x, y, sunflower.SEED_RADIUS).draw(sunflower.context);
     }
     sunflower.notes[dartx.text] = dart.str`${sunflower.seeds} seeds`;
   };
@@ -90,12 +90,12 @@ define(['dart_sdk'], function(dart_sdk) {
     set radius(value) {
       super.radius = value;
     }
-    new(x, y, radius) {
-      this[x$] = x;
-      this[y$] = y;
-      this[radius$] = radius;
-    }
   };
+  (circle.Circle.new = function(x, y, radius) {
+    this[x$] = x;
+    this[y$] = y;
+    this[radius$] = radius;
+  }).prototype = circle.Circle.prototype;
   const x$ = Symbol("Circle.x");
   const y$ = Symbol("Circle.y");
   const radius$ = Symbol("Circle.radius");
@@ -107,9 +107,6 @@ define(['dart_sdk'], function(dart_sdk) {
     })
   });
   painter.CirclePainter = class CirclePainter extends core.Object {
-    new() {
-      this[color] = painter.ORANGE;
-    }
     get color() {
       return this[color];
     }
@@ -127,19 +124,21 @@ define(['dart_sdk'], function(dart_sdk) {
       context.stroke();
     }
   };
+  (painter.CirclePainter.new = function() {
+    this[color] = painter.ORANGE;
+  }).prototype = painter.CirclePainter.prototype;
   const color = Symbol("CirclePainter.color");
   painter.CirclePainter[dart.implements] = () => [circle.Circle];
   dart.setSignature(painter.CirclePainter, {
     fields: () => ({color: dart.fieldType(core.String)}),
     methods: () => ({draw: dart.fnType(dart.void, [html.CanvasRenderingContext2D])})
   });
-  sunflower.SunflowerSeed = class SunflowerSeed extends dart.mixin(circle.Circle, painter.CirclePainter) {
-    new(x, y, radius, color) {
-      if (color === void 0) color = null;
-      super.new(x, y, radius);
-      if (color != null) this.color = color;
-    }
-  };
+  sunflower.SunflowerSeed = class SunflowerSeed extends dart.mixin(circle.Circle, painter.CirclePainter) {};
+  (sunflower.SunflowerSeed.new = function(x, y, radius, color) {
+    if (color === void 0) color = null;
+    sunflower.SunflowerSeed.__proto__.new.call(this, x, y, radius);
+    if (color != null) this.color = color;
+  }).prototype = sunflower.SunflowerSeed.prototype;
   dart.defineLazy(painter, {
     get ORANGE() {
       return "orange";

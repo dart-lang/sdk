@@ -517,4 +517,13 @@ class SourceLoader<L> extends Loader<L> {
         isConstructor: isConstructor,
         isTopLevel: isTopLevel);
   }
+
+  Expression throwCompileConstantError(Expression error) {
+    return target.backendTarget.throwCompileConstantError(coreTypes, error);
+  }
+
+  Expression buildCompileTimeError(String message, int offset) {
+    return target.backendTarget
+        .buildCompileTimeError(coreTypes, message, offset);
+  }
 }

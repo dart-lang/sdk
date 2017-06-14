@@ -7,7 +7,7 @@ library dart2js.world;
 import 'closure.dart' show ClosureClassElement, SynthesizedCallMethodElementX;
 import 'common.dart';
 import 'constants/constant_system.dart';
-import 'common_elements.dart' show CommonElements;
+import 'common_elements.dart' show CommonElements, ElementEnvironment;
 import 'elements/entities.dart';
 import 'elements/elements.dart'
     show
@@ -47,6 +47,8 @@ abstract class ClosedWorld implements World {
   NativeData get nativeData;
 
   InterceptorData get interceptorData;
+
+  ElementEnvironment get elementEnvironment;
 
   CommonElements get commonElements;
 
@@ -429,6 +431,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   CommonMasks _commonMasks;
 
+  final ElementEnvironment elementEnvironment;
   final CommonElements commonElements;
 
   // TODO(johnniwinther): Avoid this.
@@ -438,7 +441,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final Set<ClassEntity> _implementedClasses;
 
   ClosedWorldBase(
-      {this.commonElements,
+      {this.elementEnvironment,
+      this.commonElements,
       this.constantSystem,
       this.nativeData,
       this.interceptorData,
@@ -1156,7 +1160,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
 class ClosedWorldImpl extends ClosedWorldBase {
   ClosedWorldImpl(
-      {CommonElements commonElements,
+      {ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
       ConstantSystem constantSystem,
       NativeData nativeData,
       InterceptorData interceptorData,
@@ -1170,6 +1175,7 @@ class ClosedWorldImpl extends ClosedWorldBase {
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
       : super(
+            elementEnvironment: elementEnvironment,
             commonElements: commonElements,
             constantSystem: constantSystem,
             nativeData: nativeData,

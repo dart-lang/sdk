@@ -610,12 +610,12 @@ Map<String, YamlNode> parseOptions(String src) =>
 ErrorProcessor processorFor(AnalysisError error) =>
     processors.firstWhere((p) => p.appliesTo(error));
 
+/// Normalize text with bullets.
+String _bulletToDash(item) => '$item'.replaceAll('•', '-');
+
 class TestSource implements Source {
   TestSource();
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
-/// Normalize text with bullets.
-String _bulletToDash(item) => '$item'.replaceAll('•', '-');

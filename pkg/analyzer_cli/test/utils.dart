@@ -40,6 +40,20 @@ String errorsForFile(String contents) {
   });
 }
 
+/// Recursively copy the specified [src] directory (or file)
+/// to the specified destination path.
+Future<Null> recursiveCopy(FileSystemEntity src, String dstPath) async {
+  if (src is Directory) {
+    await (new Directory(dstPath)).create(recursive: true);
+    for (FileSystemEntity entity in src.listSync()) {
+      await recursiveCopy(
+          entity, pathos.join(dstPath, pathos.basename(entity.path)));
+    }
+  } else if (src is File) {
+    await src.copy(dstPath);
+  }
+}
+
 /// Creates a temporary directory and passes its path to [fn]. Once [fn]
 /// completes, the temporary directory and all its contents will be deleted.
 ///
@@ -63,20 +77,6 @@ Future<dynamic> withTempDirAsync(Future<dynamic> fn(String path)) async {
     return await fn(tempDir);
   } finally {
     await new Directory(tempDir).delete(recursive: true);
-  }
-}
-
-/// Recursively copy the specified [src] directory (or file)
-/// to the specified destination path.
-Future<Null> recursiveCopy(FileSystemEntity src, String dstPath) async {
-  if (src is Directory) {
-    await (new Directory(dstPath)).create(recursive: true);
-    for (FileSystemEntity entity in src.listSync()) {
-      await recursiveCopy(
-          entity, pathos.join(dstPath, pathos.basename(entity.path)));
-    }
-  } else if (src is File) {
-    await src.copy(dstPath);
   }
 }
 

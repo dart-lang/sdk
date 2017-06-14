@@ -37,9 +37,9 @@ void main() {
               typesInferrer.getTypeOfElement(element).containsOnly(type));
         }
 
-        checkFieldTypeInClass(
-            'A', 'intField', compiler.commonElements.jsUInt31Class);
-        checkFieldTypeInClass(
-            'A', 'stringField', compiler.commonElements.jsStringClass);
+        checkFieldTypeInClass('A', 'intField',
+            typesInferrer.closedWorld.commonElements.jsUInt31Class);
+        checkFieldTypeInClass('A', 'stringField',
+            typesInferrer.closedWorld.commonElements.jsStringClass);
       }));
 }

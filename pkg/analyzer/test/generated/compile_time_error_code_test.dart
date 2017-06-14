@@ -2782,21 +2782,21 @@ class B extends A implements A {}''');
     verify([source]);
   }
 
-  test_implementsSuperClass_typeAlias() async {
-    Source source = addSource(r'''
-class A {}
-class M {}
-class B = A with M implements A;''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS]);
-    verify([source]);
-  }
-
   test_implementsSuperClass_Object_typeAlias() async {
     Source source = addSource(r'''
 class M {}
 class A = Object with M implements Object;
     ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS]);
+    verify([source]);
+  }
+
+  test_implementsSuperClass_typeAlias() async {
+    Source source = addSource(r'''
+class A {}
+class M {}
+class B = A with M implements A;''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS]);
     verify([source]);
@@ -5357,35 +5357,6 @@ f() {
     verify([source]);
   }
 
-  test_privateCollisionInMixinApplication_mixinAndMixin() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C extends Object with A, B {}
-''');
-  }
-
-  test_privateCollisionInMixinApplication_mixinAndMixin_indirect() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C extends Object with A {}
-class D extends C with B {}
-''');
-  }
-
-  test_privateCollisionInMixinApplication_superclassAndMixin() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C extends A with B {}
-''');
-  }
-
-  test_privateCollisionInMixinApplication_superclassAndMixin_same() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C extends A with A {}
-''');
-  }
-
   test_privateCollisionInClassTypeAlias_mixinAndMixin() {
     return _privateCollisionInMixinApplicationTest('''
 import 'lib1.dart';
@@ -5412,6 +5383,35 @@ class C = A with B;
     return _privateCollisionInMixinApplicationTest('''
 import 'lib1.dart';
 class C = A with A;
+''');
+  }
+
+  test_privateCollisionInMixinApplication_mixinAndMixin() {
+    return _privateCollisionInMixinApplicationTest('''
+import 'lib1.dart';
+class C extends Object with A, B {}
+''');
+  }
+
+  test_privateCollisionInMixinApplication_mixinAndMixin_indirect() {
+    return _privateCollisionInMixinApplicationTest('''
+import 'lib1.dart';
+class C extends Object with A {}
+class D extends C with B {}
+''');
+  }
+
+  test_privateCollisionInMixinApplication_superclassAndMixin() {
+    return _privateCollisionInMixinApplicationTest('''
+import 'lib1.dart';
+class C extends A with B {}
+''');
+  }
+
+  test_privateCollisionInMixinApplication_superclassAndMixin_same() {
+    return _privateCollisionInMixinApplicationTest('''
+import 'lib1.dart';
+class C extends A with A {}
 ''');
   }
 

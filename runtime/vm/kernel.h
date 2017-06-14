@@ -280,6 +280,8 @@ class RawList {
 class TypeParameterList : public List<TypeParameter> {
  public:
   void ReadFrom(Reader* reader);
+  TypeParameterList() : first_offset(-1) {}
+  intptr_t first_offset;
 };
 
 
@@ -427,7 +429,10 @@ class TreeNode : public Node {
 
   virtual void AcceptVisitor(Visitor* visitor);
   virtual void AcceptTreeVisitor(TreeVisitor* visitor) = 0;
-  intptr_t kernel_offset() const { return kernel_offset_; }
+  intptr_t kernel_offset() const {
+    ASSERT(kernel_offset_ > 0);
+    return kernel_offset_;
+  }
   bool can_stream() { return can_stream_; }
 
  protected:
@@ -2672,11 +2677,13 @@ class VariableDeclaration : public Statement {
   TokenPosition equals_position() { return equals_position_; }
   TokenPosition end_position() { return end_position_; }
   void set_end_position(TokenPosition position) { end_position_ = position; }
+  intptr_t kernel_offset_no_tag() const { return kernel_offset_no_tag_; }
 
  private:
   VariableDeclaration()
       : equals_position_(TokenPosition::kNoSourcePos),
-        end_position_(TokenPosition::kNoSource) {}
+        end_position_(TokenPosition::kNoSource),
+        kernel_offset_no_tag_(-1) {}
 
   template <typename T>
   friend class List;
@@ -2687,6 +2694,10 @@ class VariableDeclaration : public Statement {
   Child<Expression> initializer_;
   TokenPosition equals_position_;
   TokenPosition end_position_;
+
+  // Offset for this node in the kernel-binary. Always without the tag.
+  // Can be -1 to indicate "unknown" or invalid offset.
+  intptr_t kernel_offset_no_tag_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableDeclaration);
 };

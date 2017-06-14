@@ -21,7 +21,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
       BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
-            backend.compiler.elementEnvironment,
+            _resolution.elementEnvironment,
             _resolution.commonElements,
             backend.constantSystem,
             nativeBasicData,
@@ -173,6 +173,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
         populateHierarchyNodes();
     _closed = true;
     return _closedWorldCache = new ClosedWorldImpl(
+        elementEnvironment: _elementEnvironment,
         commonElements: _commonElements,
         constantSystem: _constantSystem,
         nativeData: _nativeDataBuilder.close(),

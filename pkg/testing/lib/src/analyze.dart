@@ -158,9 +158,9 @@ Future<Null> analyzeUris(
   if (uris.isEmpty) return;
   String topLevel;
   try {
-    topLevel = Uri
-        .directory(await git("rev-parse", <String>["--show-toplevel"]))
-        .toFilePath();
+    topLevel = new Uri.directory(
+            (await git("rev-parse", <String>["--show-toplevel"])).trimRight())
+        .toFilePath(windows: false);
   } catch (e) {
     topLevel = Uri.base.toFilePath(windows: false);
   }

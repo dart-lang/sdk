@@ -613,9 +613,6 @@ class Server {
    * If [diagnosticPort] is not `null`, the server will serve status pages to
    * the specified port.
    *
-   * If [enableNewAnalysisDriver] is `true`, the server will use the new
-   * analysis driver.
-   *
    * If [profileServer] is `true`, the server will be started with "--observe"
    * and "--pause-isolates-on-exit", allowing the observatory to be used.
    *

@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:front_end/src/fasta/fasta.dart' as fasta
-    show compilePlatform, writeDepsFile;
+    show compile, compilePlatform, writeDepsFile;
 
 import 'package:compiler/src/kernel/fasta_support.dart' as dart2js
     show compilePlatform;
@@ -109,6 +109,7 @@ Future _main(List<String> argv) async {
 
   Uri platform = outDirUri.resolve('platform.dill.tmp');
   Uri outline = outDirUri.resolve('outline.dill');
+  Uri vmserviceIo = outDirUri.resolve('vmservice_io.dill');
   Uri librariesJson = outDirUri.resolve("lib/libraries.json");
   Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
 
@@ -118,6 +119,14 @@ Future _main(List<String> argv) async {
   if (forVm) {
     await fasta.compilePlatform(outDirUri, platform,
         packages: packages, outlineOutput: outline);
+    await fasta.compile([
+      "--sdk=${outDirUri.toString()}",
+      "--platform=${outline.toString()}",
+      "--packages=${packages.toString()}",
+      "dart:vmservice_io",
+      "-o",
+      vmserviceIo.toString()
+    ]);
   } else {
     await dart2js.compilePlatform(outDirUri, platform,
         packages: packages, outlineOutput: outline);
@@ -168,19 +177,6 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
       "profiler/profiler.dart",
       maturity: Maturity.DEPRECATED,
       documented: false),
-
-  "_vmservice": const LibraryInfo(
-      "vmservice/vmservice.dart",
-      implementation: true,
-      documented: false,
-      platforms: VM_PLATFORM),
-
-  "vmservice_io": const LibraryInfo(
-      "vmservice_io/vmservice_io.dart",
-      implementation: true,
-      documented: false,
-      platforms: VM_PLATFORM),
-
 ''');
   _writeSync(
       path.join(
@@ -214,6 +210,7 @@ _copyExtraVmLibraries(String sdkOut, Map<String, String> locations) {
     _writeSync(libraryOut, readInputFile(libraryIn));
   }
   locations["vmservice_io"] = "vmservice_io/vmservice_io.dart";
+  locations["_vmservice"] = "vmservice/vmservice.dart";
 }
 
 _applyPatch(SdkLibrary library, String sdkLibIn, String patchIn, String sdkOut,

@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 import "dart:isolate" as iso;
 
-static field dynamic subscription = null;
+static field dynamic subscription;
 static method onData(dynamic x) → void {
   core::print(x);
   self::subscription.cancel();
 }
 static method main() → dynamic {
   dynamic string = core::String::fromCharCode(65);
-  dynamic port = iso::ReceivePort::•();
+  dynamic port = new iso::_ReceivePortImpl::•();
   self::subscription = port.listen(self::onData);
   port.sendPort.send(string);
 }

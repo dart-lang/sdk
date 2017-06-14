@@ -22,6 +22,15 @@
 
   * `pub get` and `pub upgrade` properly produce an error message and exit code
     when no network is present.
+  * Bug fixes for dartdevc support in `pub serve`.
+    * Fixed module config invalidation logic so modules are properly
+      recalculated when package layout changes.
+    * Fixed exception when handling require.js errors that aren't script load
+      errors.
+    * Fixed an issue where requesting the bootstrap.js file before the dart.js
+      file would result in a 404.
+    * Fixed a Safari issue during bootstrapping (note that Safari is still not
+      officially supported but does work for trivial examples).
 
 ## 1.24.0 - 12-06-2017
 
@@ -161,7 +170,7 @@
 * Pub
 
   * `pub build` and `pub serve`
-  
+
     * Added support for the Dart Development Compiler.
 
       Unlike dart2js, this new compiler is modular, which allows pub to do
@@ -207,7 +216,7 @@
       transformer.
 
   * `pub publish`
-  
+
     * Added support for the UNLICENSE file.
 
     * Packages that depend on the Flutter SDK may be published.

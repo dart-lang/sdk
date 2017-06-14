@@ -53,14 +53,8 @@ closure.Foo$ = dart.generic(T => {
     set v(value) {
       this[v$] = value;
     }
-    new(i: number, v: T) {
-      this[i$] = i;
-      this[v$] = v;
-      this[b] = null;
-      this[s] = null;
-    }
     static build() {
-      return new (FooOfT())(1, null);
+      return new (FooOfT()).new(1, null);
     }
     untyped_method(a, b) {}
     pass(t: T) {
@@ -86,6 +80,12 @@ closure.Foo$ = dart.generic(T => {
     }
     static set staticProp(value: string) {}
   }
+  (Foo.new = function(i: number, v: T) {
+    this[i$] = i;
+    this[v$] = v;
+    this[b] = null;
+    this[s] = null;
+  }).prototype = Foo.prototype;
   dart.addTypeTests(Foo);
   const i$ = Symbol("Foo.i");
   const b = Symbol("Foo.b");
@@ -128,11 +128,12 @@ dart.defineLazy(closure.Foo, {
   set some_static_var(_) {}
 });
 closure.Bar = class Bar extends core.Object {};
-closure.Baz = class Baz extends dart.mixin(closure.Foo$(core.int), closure.Bar) {
-  new(i: number) {
-    super.new(i, 123);
-  }
-};
+(closure.Bar.new = function() {
+}).prototype = closure.Bar.prototype;
+closure.Baz = class Baz extends dart.mixin(closure.Foo$(core.int), closure.Bar) {};
+(closure.Baz.new = function(i: number) {
+  closure.Baz.__proto__.new.call(this, i, 123);
+}).prototype = closure.Baz.prototype;
 dart.addSimpleTypeTests(closure.Baz);
 closure.main = function(args): void {
 };

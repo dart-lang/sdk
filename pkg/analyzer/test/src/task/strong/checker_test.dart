@@ -2205,18 +2205,6 @@ main() {
     await check(implicitCasts: false);
   }
 
-  test_implicitCasts_return() async {
-    addFile(r'''
-import 'dart:async';
-
-Future<List<String>> foo() async {
-  List<Object> x = <Object>["hello", "world"];
-  return /*info:DOWN_CAST_IMPLICIT*/x;
-}
-    ''');
-    await check();
-  }
-
   test_implicitCasts_genericMethods() async {
     addFile('''
 var x = <String>[].map<String>((x) => "");
@@ -2234,6 +2222,18 @@ void f() {
 }
     ''');
     await check(implicitCasts: false);
+  }
+
+  test_implicitCasts_return() async {
+    addFile(r'''
+import 'dart:async';
+
+Future<List<String>> foo() async {
+  List<Object> x = <Object>["hello", "world"];
+  return /*info:DOWN_CAST_IMPLICIT*/x;
+}
+    ''');
+    await check();
   }
 
   test_implicitDynamic_field() async {

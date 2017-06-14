@@ -165,7 +165,8 @@ class ListTracerVisitor extends TracerVisitor {
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
     Element called = info.calledElement;
-    if (compiler.backend.isForeign(compiler.commonElements, called) &&
+    if (compiler.backend
+            .isForeign(inferrer.closedWorld.commonElements, called) &&
         called.name == JavaScriptBackend.JS) {
       bailout('Used in JS ${info.call}');
     }

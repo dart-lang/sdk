@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-main() {
+test() {
   f0() => 42;
   f1() async => 42;
 
@@ -30,4 +30,17 @@ main() {
   f7() => f7();
   f8() => /*error:REFERENCED_BEFORE_DECLARATION*/ f9();
   f9() => f5();
+
+  var /*@type=() -> int*/ v0 = f0;
+  var /*@type=() -> Future<int>*/ v1 = f1;
+  var /*@type=() -> int*/ v2 = f2;
+  var /*@type=() -> Future<int>*/ v3 = f3;
+  var /*@type=() -> Iterable<int>*/ v4 = f4;
+  var /*@type=() -> Stream<int>*/ v5 = f5;
+  var /*@type=() -> num*/ v6 = f6;
+  var /*@type=() -> dynamic*/ v7 = f7;
+  var /*@type=() -> dynamic*/ v8 = f8;
+  var /*@type=() -> Stream<int>*/ v9 = f9;
 }
+
+main() {}

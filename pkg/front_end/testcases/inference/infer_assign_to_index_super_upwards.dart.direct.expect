@@ -1,0 +1,165 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class Base<T extends core::Object, U extends core::Object> extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract operator [](core::String s) → self::Base::T;
+  abstract operator []=(core::String s, self::Base::U v) → void;
+}
+abstract class Test1 extends self::Base<core::int, core::int> {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    dynamic v1 = let final dynamic #t1 = "x" in let final dynamic #t2 = self::getInt() in let final dynamic #t3 = super.[]=(#t1, #t2) in #t2;
+    dynamic v2 = let final dynamic #t4 = "x" in let final dynamic #t5 = self::getNum() in let final dynamic #t6 = super.[]=(#t4, #t5) in #t5;
+    dynamic v4 = let final dynamic #t7 = "x" in let final dynamic #t8 = super.[](#t7) in #t8.==(null) ? let final dynamic #t9 = self::getInt() in let final dynamic #t10 = super.[]=(#t7, #t9) in #t9 : #t8;
+    dynamic v5 = let final dynamic #t11 = "x" in let final dynamic #t12 = super.[](#t11) in #t12.==(null) ? let final dynamic #t13 = self::getNum() in let final dynamic #t14 = super.[]=(#t11, #t13) in #t13 : #t12;
+    dynamic v7 = let final dynamic #t15 = "x" in let final dynamic #t16 = super.[](#t15).+(self::getInt()) in let final dynamic #t17 = super.[]=(#t15, #t16) in #t16;
+    dynamic v8 = let final dynamic #t18 = "x" in let final dynamic #t19 = super.[](#t18).+(self::getNum()) in let final dynamic #t20 = super.[]=(#t18, #t19) in #t19;
+    dynamic v10 = let final dynamic #t21 = "x" in let final dynamic #t22 = super.[](#t21).+(1) in let final dynamic #t23 = super.[]=(#t21, #t22) in #t22;
+    dynamic v11 = let final dynamic #t24 = "x" in let final dynamic #t25 = super.[](#t24) in let final dynamic #t26 = super.[]=(#t24, #t25.+(1)) in #t25;
+  }
+}
+abstract class Test2 extends self::Base<core::int, core::num> {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    dynamic v1 = let final dynamic #t27 = "x" in let final dynamic #t28 = self::getInt() in let final dynamic #t29 = super.[]=(#t27, #t28) in #t28;
+    dynamic v2 = let final dynamic #t30 = "x" in let final dynamic #t31 = self::getNum() in let final dynamic #t32 = super.[]=(#t30, #t31) in #t31;
+    dynamic v3 = let final dynamic #t33 = "x" in let final dynamic #t34 = self::getDouble() in let final dynamic #t35 = super.[]=(#t33, #t34) in #t34;
+    dynamic v4 = let final dynamic #t36 = "x" in let final dynamic #t37 = super.[](#t36) in #t37.==(null) ? let final dynamic #t38 = self::getInt() in let final dynamic #t39 = super.[]=(#t36, #t38) in #t38 : #t37;
+    dynamic v5 = let final dynamic #t40 = "x" in let final dynamic #t41 = super.[](#t40) in #t41.==(null) ? let final dynamic #t42 = self::getNum() in let final dynamic #t43 = super.[]=(#t40, #t42) in #t42 : #t41;
+    dynamic v6 = let final dynamic #t44 = "x" in let final dynamic #t45 = super.[](#t44) in #t45.==(null) ? let final dynamic #t46 = self::getDouble() in let final dynamic #t47 = super.[]=(#t44, #t46) in #t46 : #t45;
+    dynamic v7 = let final dynamic #t48 = "x" in let final dynamic #t49 = super.[](#t48).+(self::getInt()) in let final dynamic #t50 = super.[]=(#t48, #t49) in #t49;
+    dynamic v8 = let final dynamic #t51 = "x" in let final dynamic #t52 = super.[](#t51).+(self::getNum()) in let final dynamic #t53 = super.[]=(#t51, #t52) in #t52;
+    dynamic v9 = let final dynamic #t54 = "x" in let final dynamic #t55 = super.[](#t54).+(self::getDouble()) in let final dynamic #t56 = super.[]=(#t54, #t55) in #t55;
+    dynamic v10 = let final dynamic #t57 = "x" in let final dynamic #t58 = super.[](#t57).+(1) in let final dynamic #t59 = super.[]=(#t57, #t58) in #t58;
+    dynamic v11 = let final dynamic #t60 = "x" in let final dynamic #t61 = super.[](#t60) in let final dynamic #t62 = super.[]=(#t60, #t61.+(1)) in #t61;
+  }
+}
+abstract class Test3 extends self::Base<core::int, core::double> {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    dynamic v2 = let final dynamic #t63 = "x" in let final dynamic #t64 = self::getNum() in let final dynamic #t65 = super.[]=(#t63, #t64) in #t64;
+    dynamic v3 = let final dynamic #t66 = "x" in let final dynamic #t67 = self::getDouble() in let final dynamic #t68 = super.[]=(#t66, #t67) in #t67;
+    dynamic v5 = let final dynamic #t69 = "x" in let final dynamic #t70 = super.[](#t69) in #t70.==(null) ? let final dynamic #t71 = self::getNum() in let final dynamic #t72 = super.[]=(#t69, #t71) in #t71 : #t70;
+    dynamic v6 = let final dynamic #t73 = "x" in let final dynamic #t74 = super.[](#t73) in #t74.==(null) ? let final dynamic #t75 = self::getDouble() in let final dynamic #t76 = super.[]=(#t73, #t75) in #t75 : #t74;
+    dynamic v7 = let final dynamic #t77 = "x" in let final dynamic #t78 = super.[](#t77).+(self::getInt()) in let final dynamic #t79 = super.[]=(#t77, #t78) in #t78;
+    dynamic v8 = let final dynamic #t80 = "x" in let final dynamic #t81 = super.[](#t80).+(self::getNum()) in let final dynamic #t82 = super.[]=(#t80, #t81) in #t81;
+    dynamic v9 = let final dynamic #t83 = "x" in let final dynamic #t84 = super.[](#t83).+(self::getDouble()) in let final dynamic #t85 = super.[]=(#t83, #t84) in #t84;
+    dynamic v10 = let final dynamic #t86 = "x" in let final dynamic #t87 = super.[](#t86).+(1) in let final dynamic #t88 = super.[]=(#t86, #t87) in #t87;
+    dynamic v11 = let final dynamic #t89 = "x" in let final dynamic #t90 = super.[](#t89) in let final dynamic #t91 = super.[]=(#t89, #t90.+(1)) in #t90;
+  }
+}
+abstract class Test4 extends self::Base<core::num, core::int> {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    dynamic v1 = let final dynamic #t92 = "x" in let final dynamic #t93 = self::getInt() in let final dynamic #t94 = super.[]=(#t92, #t93) in #t93;
+    dynamic v2 = let final dynamic #t95 = "x" in let final dynamic #t96 = self::getNum() in let final dynamic #t97 = super.[]=(#t95, #t96) in #t96;
+    dynamic v4 = let final dynamic #t98 = "x" in let final dynamic #t99 = super.[](#t98) in #t99.==(null) ? let final dynamic #t100 = self::getInt() in let final dynamic #t101 = super.[]=(#t98, #t100) in #t100 : #t99;
+    dynamic v5 = let final dynamic #t102 = "x" in let final dynamic #t103 = super.[](#t102) in #t103.==(null) ? let final dynamic #t104 = self::getNum() in let final dynamic #t105 = super.[]=(#t102, #t104) in #t104 : #t103;
+    dynamic v7 = let final dynamic #t106 = "x" in let final dynamic #t107 = super.[](#t106).+(self::getInt()) in let final dynamic #t108 = super.[]=(#t106, #t107) in #t107;
+    dynamic v8 = let final dynamic #t109 = "x" in let final dynamic #t110 = super.[](#t109).+(self::getNum()) in let final dynamic #t111 = super.[]=(#t109, #t110) in #t110;
+    dynamic v10 = let final dynamic #t112 = "x" in let final dynamic #t113 = super.[](#t112).+(1) in let final dynamic #t114 = super.[]=(#t112, #t113) in #t113;
+    dynamic v11 = let final dynamic #t115 = "x" in let final dynamic #t116 = super.[](#t115) in let final dynamic #t117 = super.[]=(#t115, #t116.+(1)) in #t116;
+  }
+}
+abstract class Test5 extends self::Base<core::num, core::num> {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    dynamic v1 = let final dynamic #t118 = "x" in let final dynamic #t119 = self::getInt() in let final dynamic #t120 = super.[]=(#t118, #t119) in #t119;
+    dynamic v2 = let final dynamic #t121 = "x" in let final dynamic #t122 = self::getNum() in let final dynamic #t123 = super.[]=(#t121, #t122) in #t122;
+    dynamic v3 = let final dynamic #t124 = "x" in let final dynamic #t125 = self::getDouble() in let final dynamic #t126 = super.[]=(#t124, #t125) in #t125;
+    dynamic v4 = let final dynamic #t127 = "x" in let final dynamic #t128 = super.[](#t127) in #t128.==(null) ? let final dynamic #t129 = self::getInt() in let final dynamic #t130 = super.[]=(#t127, #t129) in #t129 : #t128;
+    dynamic v5 = let final dynamic #t131 = "x" in let final dynamic #t132 = super.[](#t131) in #t132.==(null) ? let final dynamic #t133 = self::getNum() in let final dynamic #t134 = super.[]=(#t131, #t133) in #t133 : #t132;
+    dynamic v6 = let final dynamic #t135 = "x" in let final dynamic #t136 = super.[](#t135) in #t136.==(null) ? let final dynamic #t137 = self::getDouble() in let final dynamic #t138 = super.[]=(#t135, #t137) in #t137 : #t136;
+    dynamic v7 = let final dynamic #t139 = "x" in let final dynamic #t140 = super.[](#t139).+(self::getInt()) in let final dynamic #t141 = super.[]=(#t139, #t140) in #t140;
+    dynamic v8 = let final dynamic #t142 = "x" in let final dynamic #t143 = super.[](#t142).+(self::getNum()) in let final dynamic #t144 = super.[]=(#t142, #t143) in #t143;
+    dynamic v9 = let final dynamic #t145 = "x" in let final dynamic #t146 = super.[](#t145).+(self::getDouble()) in let final dynamic #t147 = super.[]=(#t145, #t146) in #t146;
+    dynamic v10 = let final dynamic #t148 = "x" in let final dynamic #t149 = super.[](#t148).+(1) in let final dynamic #t150 = super.[]=(#t148, #t149) in #t149;
+    dynamic v11 = let final dynamic #t151 = "x" in let final dynamic #t152 = super.[](#t151) in let final dynamic #t153 = super.[]=(#t151, #t152.+(1)) in #t152;
+  }
+}
+abstract class Test6 extends self::Base<core::num, core::double> {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    dynamic v2 = let final dynamic #t154 = "x" in let final dynamic #t155 = self::getNum() in let final dynamic #t156 = super.[]=(#t154, #t155) in #t155;
+    dynamic v3 = let final dynamic #t157 = "x" in let final dynamic #t158 = self::getDouble() in let final dynamic #t159 = super.[]=(#t157, #t158) in #t158;
+    dynamic v5 = let final dynamic #t160 = "x" in let final dynamic #t161 = super.[](#t160) in #t161.==(null) ? let final dynamic #t162 = self::getNum() in let final dynamic #t163 = super.[]=(#t160, #t162) in #t162 : #t161;
+    dynamic v6 = let final dynamic #t164 = "x" in let final dynamic #t165 = super.[](#t164) in #t165.==(null) ? let final dynamic #t166 = self::getDouble() in let final dynamic #t167 = super.[]=(#t164, #t166) in #t166 : #t165;
+    dynamic v7 = let final dynamic #t168 = "x" in let final dynamic #t169 = super.[](#t168).+(self::getInt()) in let final dynamic #t170 = super.[]=(#t168, #t169) in #t169;
+    dynamic v8 = let final dynamic #t171 = "x" in let final dynamic #t172 = super.[](#t171).+(self::getNum()) in let final dynamic #t173 = super.[]=(#t171, #t172) in #t172;
+    dynamic v9 = let final dynamic #t174 = "x" in let final dynamic #t175 = super.[](#t174).+(self::getDouble()) in let final dynamic #t176 = super.[]=(#t174, #t175) in #t175;
+    dynamic v10 = let final dynamic #t177 = "x" in let final dynamic #t178 = super.[](#t177).+(1) in let final dynamic #t179 = super.[]=(#t177, #t178) in #t178;
+    dynamic v11 = let final dynamic #t180 = "x" in let final dynamic #t181 = super.[](#t180) in let final dynamic #t182 = super.[]=(#t180, #t181.+(1)) in #t181;
+  }
+}
+abstract class Test7 extends self::Base<core::double, core::int> {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    dynamic v1 = let final dynamic #t183 = "x" in let final dynamic #t184 = self::getInt() in let final dynamic #t185 = super.[]=(#t183, #t184) in #t184;
+    dynamic v2 = let final dynamic #t186 = "x" in let final dynamic #t187 = self::getNum() in let final dynamic #t188 = super.[]=(#t186, #t187) in #t187;
+    dynamic v4 = let final dynamic #t189 = "x" in let final dynamic #t190 = super.[](#t189) in #t190.==(null) ? let final dynamic #t191 = self::getInt() in let final dynamic #t192 = super.[]=(#t189, #t191) in #t191 : #t190;
+    dynamic v5 = let final dynamic #t193 = "x" in let final dynamic #t194 = super.[](#t193) in #t194.==(null) ? let final dynamic #t195 = self::getNum() in let final dynamic #t196 = super.[]=(#t193, #t195) in #t195 : #t194;
+    dynamic v7 = let final dynamic #t197 = "x" in let final dynamic #t198 = super.[](#t197).+(self::getInt()) in let final dynamic #t199 = super.[]=(#t197, #t198) in #t198;
+    dynamic v8 = let final dynamic #t200 = "x" in let final dynamic #t201 = super.[](#t200).+(self::getNum()) in let final dynamic #t202 = super.[]=(#t200, #t201) in #t201;
+    dynamic v10 = let final dynamic #t203 = "x" in let final dynamic #t204 = super.[](#t203).+(1) in let final dynamic #t205 = super.[]=(#t203, #t204) in #t204;
+    dynamic v11 = let final dynamic #t206 = "x" in let final dynamic #t207 = super.[](#t206) in let final dynamic #t208 = super.[]=(#t206, #t207.+(1)) in #t207;
+  }
+}
+abstract class Test8 extends self::Base<core::double, core::num> {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    dynamic v1 = let final dynamic #t209 = "x" in let final dynamic #t210 = self::getInt() in let final dynamic #t211 = super.[]=(#t209, #t210) in #t210;
+    dynamic v2 = let final dynamic #t212 = "x" in let final dynamic #t213 = self::getNum() in let final dynamic #t214 = super.[]=(#t212, #t213) in #t213;
+    dynamic v3 = let final dynamic #t215 = "x" in let final dynamic #t216 = self::getDouble() in let final dynamic #t217 = super.[]=(#t215, #t216) in #t216;
+    dynamic v4 = let final dynamic #t218 = "x" in let final dynamic #t219 = super.[](#t218) in #t219.==(null) ? let final dynamic #t220 = self::getInt() in let final dynamic #t221 = super.[]=(#t218, #t220) in #t220 : #t219;
+    dynamic v5 = let final dynamic #t222 = "x" in let final dynamic #t223 = super.[](#t222) in #t223.==(null) ? let final dynamic #t224 = self::getNum() in let final dynamic #t225 = super.[]=(#t222, #t224) in #t224 : #t223;
+    dynamic v6 = let final dynamic #t226 = "x" in let final dynamic #t227 = super.[](#t226) in #t227.==(null) ? let final dynamic #t228 = self::getDouble() in let final dynamic #t229 = super.[]=(#t226, #t228) in #t228 : #t227;
+    dynamic v7 = let final dynamic #t230 = "x" in let final dynamic #t231 = super.[](#t230).+(self::getInt()) in let final dynamic #t232 = super.[]=(#t230, #t231) in #t231;
+    dynamic v8 = let final dynamic #t233 = "x" in let final dynamic #t234 = super.[](#t233).+(self::getNum()) in let final dynamic #t235 = super.[]=(#t233, #t234) in #t234;
+    dynamic v9 = let final dynamic #t236 = "x" in let final dynamic #t237 = super.[](#t236).+(self::getDouble()) in let final dynamic #t238 = super.[]=(#t236, #t237) in #t237;
+    dynamic v10 = let final dynamic #t239 = "x" in let final dynamic #t240 = super.[](#t239).+(1) in let final dynamic #t241 = super.[]=(#t239, #t240) in #t240;
+    dynamic v11 = let final dynamic #t242 = "x" in let final dynamic #t243 = super.[](#t242) in let final dynamic #t244 = super.[]=(#t242, #t243.+(1)) in #t243;
+  }
+}
+abstract class Test9 extends self::Base<core::double, core::double> {
+  constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    dynamic v2 = let final dynamic #t245 = "x" in let final dynamic #t246 = self::getNum() in let final dynamic #t247 = super.[]=(#t245, #t246) in #t246;
+    dynamic v3 = let final dynamic #t248 = "x" in let final dynamic #t249 = self::getDouble() in let final dynamic #t250 = super.[]=(#t248, #t249) in #t249;
+    dynamic v5 = let final dynamic #t251 = "x" in let final dynamic #t252 = super.[](#t251) in #t252.==(null) ? let final dynamic #t253 = self::getNum() in let final dynamic #t254 = super.[]=(#t251, #t253) in #t253 : #t252;
+    dynamic v6 = let final dynamic #t255 = "x" in let final dynamic #t256 = super.[](#t255) in #t256.==(null) ? let final dynamic #t257 = self::getDouble() in let final dynamic #t258 = super.[]=(#t255, #t257) in #t257 : #t256;
+    dynamic v7 = let final dynamic #t259 = "x" in let final dynamic #t260 = super.[](#t259).+(self::getInt()) in let final dynamic #t261 = super.[]=(#t259, #t260) in #t260;
+    dynamic v8 = let final dynamic #t262 = "x" in let final dynamic #t263 = super.[](#t262).+(self::getNum()) in let final dynamic #t264 = super.[]=(#t262, #t263) in #t263;
+    dynamic v9 = let final dynamic #t265 = "x" in let final dynamic #t266 = super.[](#t265).+(self::getDouble()) in let final dynamic #t267 = super.[]=(#t265, #t266) in #t266;
+    dynamic v10 = let final dynamic #t268 = "x" in let final dynamic #t269 = super.[](#t268).+(1) in let final dynamic #t270 = super.[]=(#t268, #t269) in #t269;
+    dynamic v11 = let final dynamic #t271 = "x" in let final dynamic #t272 = super.[](#t271) in let final dynamic #t273 = super.[]=(#t271, #t272.+(1)) in #t272;
+  }
+}
+static method getInt() → core::int
+  return 0;
+static method getNum() → core::num
+  return 0;
+static method getDouble() → core::double
+  return 0.0;
+static method main() → dynamic {}

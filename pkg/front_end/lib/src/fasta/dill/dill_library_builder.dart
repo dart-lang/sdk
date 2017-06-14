@@ -4,20 +4,8 @@
 
 library fasta.dill_library_builder;
 
-import 'package:front_end/src/fasta/dill/dill_typedef_builder.dart';
 import 'package:kernel/ast.dart'
-    show
-        Class,
-        ExpressionStatement,
-        Field,
-        FunctionNode,
-        Let,
-        Library,
-        ListLiteral,
-        Member,
-        Procedure,
-        StaticGet,
-        Typedef;
+    show Class, Field, Library, ListLiteral, Member, StaticGet, Typedef;
 
 import '../errors.dart' show internalError;
 
@@ -38,6 +26,8 @@ import 'dill_member_builder.dart' show DillMemberBuilder;
 
 import 'dill_loader.dart' show DillLoader;
 
+import 'dill_typedef_builder.dart' show DillFunctionTypeAliasBuilder;
+
 class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   final Uri uri;
 
@@ -57,19 +47,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     cls.constructors.forEach(classBulder.addMember);
     for (Field field in cls.fields) {
       if (field.name.name == "_redirecting#") {
-        // This is a hack / work around for storing redirecting constructors in
-        // dill files. See `buildFactoryConstructor` in
-        // [package:kernel/analyzer/ast_from_analyzer.dart]
-        // (../../../../kernel/lib/analyzer/ast_from_analyzer.dart).
         ListLiteral initializer = field.initializer;
         for (StaticGet get in initializer.expressions) {
-          Procedure factory = get.target;
-          FunctionNode function = factory.function;
-          ExpressionStatement statement = function.body;
-          Let let = statement.expression;
-          StaticGet getTarget = let.variable.initializer;
-          function.body = new RedirectingFactoryBody(getTarget.target)
-            ..parent = function;
+          RedirectingFactoryBody.restoreFromDill(get.target);
         }
         initializer.expressions.clear();
       } else {

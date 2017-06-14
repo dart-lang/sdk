@@ -15,10 +15,14 @@ import 'package:args/args.dart';
 import 'package:path/path.dart';
 
 const String analysisOptionsFileOption = 'options';
+const String bazelAnalysisOptionsPath =
+    'package:dart.analysis_options/default.yaml';
 const String defineVariableOption = 'D';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
 const String enableStrictCallChecksFlag = 'enable-strict-call-checks';
 const String enableSuperMixinFlag = 'supermixin';
+const String flutterAnalysisOptionsPath =
+    'package:flutter/analysis_options_user.yaml';
 const String ignoreUnrecognizedFlagsFlag = 'ignore-unrecognized-flags';
 const String lintsFlag = 'lints';
 const String noImplicitCastsFlag = 'no-implicit-casts';
@@ -27,13 +31,9 @@ const String packageDefaultAnalysisOptions = 'package-default-analysis-options';
 const String packageRootOption = 'package-root';
 const String packagesOption = 'packages';
 const String sdkPathOption = 'dart-sdk';
+
 const String sdkSummaryPathOption = 'dart-sdk-summary';
 const String strongModeFlag = 'strong';
-
-const String bazelAnalysisOptionsPath =
-    'package:dart.analysis_options/default.yaml';
-const String flutterAnalysisOptionsPath =
-    'package:flutter/analysis_options_user.yaml';
 
 /**
  * Update [options] with the value of each analysis option command line flag.

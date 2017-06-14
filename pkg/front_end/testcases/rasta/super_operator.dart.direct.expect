@@ -21,12 +21,12 @@ class B extends self::A {
   operator [](dynamic i) → dynamic
     return this.{=self::A::[]}(i);
   operator []=(dynamic i, dynamic val) → dynamic
-    return let final dynamic #t1 = let final dynamic #t2 = i in let final dynamic #t3 = i = #t2.+(1) in #t2 in let final dynamic #t4 = super.{self::A::[]}(#t1).+(val) in let final dynamic #t5 = super.{self::A::[]=}(#t1, #t4) in #t4;
+    return let final dynamic #t1 = let final dynamic #t2 = i in let final dynamic #t3 = i = #t2.+(1) in #t2 in let final dynamic #t4 = this.{=self::A::[]}(#t1).+(val) in let final dynamic #t5 = this.{=self::A::[]=}(#t1, #t4) in #t4;
 }
 class Autobianchi extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
   method g() → dynamic
-    return this.{=core::Object::noSuchMethod}(new core::_InvocationMirror::•("[]", core::List::from<dynamic>(<dynamic>[2, 2], growable: false), core::List::from<dynamic>(<dynamic>[this, 0], growable: false), true));
+    return this.{=core::Object::noSuchMethod}(new core::_InvocationMirror::•("[]", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, 0].toList(growable: false), true));
 }

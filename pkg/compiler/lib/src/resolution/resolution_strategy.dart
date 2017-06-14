@@ -96,7 +96,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
         _compiler.resolution,
         _compiler.reporter,
         elementEnvironment,
-        _compiler.commonElements,
+        commonElements,
         nativeBasicData);
   }
 
@@ -104,8 +104,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
       new ResolutionNoSuchMethodResolver();
 
   MirrorsDataBuilder createMirrorsDataBuilder() {
-    return new MirrorsDataImpl(
-        _compiler, _compiler.options, _compiler.commonElements);
+    return new MirrorsDataImpl(_compiler, _compiler.options, commonElements);
   }
 
   MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
@@ -408,8 +407,23 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  bool isMixinApplication(ClassElement cls) {
+    return cls.isMixinApplication;
+  }
+
+  @override
   bool isUnnamedMixinApplication(ClassElement cls) {
     return cls.isUnnamedMixinApplication;
+  }
+
+  @override
+  ClassEntity getEffectiveMixinClass(ClassElement cls) {
+    if (!cls.isMixinApplication) return null;
+    do {
+      MixinApplicationElement mixinApplication = cls;
+      cls = mixinApplication.mixin;
+    } while (cls.isMixinApplication);
+    return cls;
   }
 
   @override
@@ -651,7 +665,7 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
 
   _ElementAnnotationProcessor(this._compiler);
 
-  CommonElements get _commonElements => _compiler.commonElements;
+  CommonElements get _commonElements => _compiler.resolution.commonElements;
 
   /// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
   /// native name from the annotation.

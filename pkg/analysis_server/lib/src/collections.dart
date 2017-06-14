@@ -59,6 +59,8 @@ class RecentBuffer<T> {
 
   RecentBuffer(this.capacity);
 
+  Iterable<T> get items => _buffer.reversed;
+
   void add(T item) {
     _buffer.add(item);
 
@@ -66,6 +68,4 @@ class RecentBuffer<T> {
       _buffer.removeAt(0);
     }
   }
-
-  Iterable<T> get items => _buffer.reversed;
 }

@@ -1631,7 +1631,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                         /* is_native = */ false, cls, field.token_pos()));
           getter.set_result_type(type);
           getter.set_is_debuggable(false);
-          getter.set_kernel_function(field.kernel_field());
+          getter.set_kernel_offset(field.kernel_offset());
           cls.AddFunction(getter);
           field.SetStaticValue(Object::sentinel(), true);
         }
@@ -2389,7 +2389,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   } else {
     for (intptr_t i = 0; i < functions.Length(); i++) {
       func ^= functions.At(i);
-      ASSERT(func.kernel_function() != 0);
+      ASSERT(func.kernel_offset() > 0);
       cloned_funcs.Add(func);
     }
   }

@@ -95,7 +95,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.3.0",
   "protobuf_tag": "@0.5.4",
-  "pub_rev": "@a8781274e3a38c34a49d4c5bffb98557c6022a75",
+  "pub_rev": "@0713718a83054fcc1c0a4b163e036f7c39ea4790",
   "pub_semver_tag": "@1.3.2",
   "quiver_tag": "@0.22.0",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
@@ -123,8 +123,6 @@ vars = {
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "web_socket_channel_tag": "@1.0.4",
   "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
-  "when_tag": "@0.2.0+2",
-  "which_tag": "@0.1.3+1",
   "yaml_tag": "@2.1.12",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
 }
@@ -340,10 +338,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       (Var("github_mirror") % "web_socket_channel") +
       Var("web_socket_channel_tag"),
-  Var("dart_root") + "/third_party/pkg/when":
-      (Var("github_mirror") % "when") + Var("when_tag"),
-  Var("dart_root") + "/third_party/pkg/which":
-      (Var("github_mirror") % "which") + Var("which_tag"),
   Var("dart_root") + "/third_party/pkg/yaml":
       (Var("github_mirror") % "yaml") + Var("yaml_tag"),
 }

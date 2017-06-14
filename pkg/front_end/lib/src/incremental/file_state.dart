@@ -44,6 +44,7 @@ class FileState {
   bool _exists;
   List<int> _content;
   List<int> _contentHash;
+  bool _hasMixinApplication;
   List<int> _apiSignature;
 
   List<NamespaceExport> _exports;
@@ -53,6 +54,10 @@ class FileState {
 
   Set<FileState> _directReferencedFiles = new Set<FileState>();
   List<FileState> _directReferencedLibraries = <FileState>[];
+
+  /// This flag is set to `true` during the mark phase of garbage collection
+  /// and set back to `false` for survived instances.
+  bool _gcMarked = false;
 
   FileState._(this._fsState, this.uri, this.fileUri);
 
@@ -80,6 +85,15 @@ class FileState {
 
   @override
   int get hashCode => uri.hashCode;
+
+  /// Whether the file has a mixin application.
+  bool get hasMixinApplication => _hasMixinApplication;
+
+  /// Whether a unit of the library has a mixin application.
+  bool get hasMixinApplicationLibrary {
+    return _hasMixinApplication ||
+        _partFiles.any((part) => part._hasMixinApplication);
+  }
 
   /// The list of the libraries imported by this library.
   List<FileState> get importedLibraries => _importedLibraries;
@@ -134,8 +148,8 @@ class FileState {
     // Scan the content.
     ScannerResult scanResult = _scan();
 
-    // Compute the API signature.
-    _apiSignature = _computeApiSignature(scanResult.tokens);
+    // Compute syntactic properties.
+    _computeSyntacticProperties(scanResult.tokens);
 
     // Parse directives.
     var listener = new _DirectiveListenerWithNative();
@@ -206,13 +220,15 @@ class FileState {
     }
   }
 
-  /// Compute and return the API signature of the file.
+  /// Compute syntactic properties of the file: [_apiSignature] and [_hasMixinApplication].
   ///
   /// The signature is based on non-comment tokens of the file outside
   /// of function bodies.
-  List<int> _computeApiSignature(Token token) {
+  void _computeSyntacticProperties(Token token) {
     var parser = new _BodySkippingParser();
     parser.parseUnit(token);
+
+    _hasMixinApplication = parser.hasMixin;
 
     ApiSignature apiSignature = new ApiSignature();
     apiSignature.addBytes(_fsState._salt);
@@ -235,7 +251,8 @@ class FileState {
       apiSignature.addString(token.lexeme);
     }
 
-    return apiSignature.toByteList();
+    // Store the API signature.
+    _apiSignature = apiSignature.toByteList();
   }
 
   /// Exclude all `native 'xyz';` token sequences.
@@ -309,6 +326,39 @@ class FileSystemState {
   /// The `file:` URI of all files currently tracked by this instance.
   Iterable<Uri> get fileUris => _fileUriToFile.keys;
 
+  /// Perform mark and sweep garbage collection of [FileState]s.
+  /// Return [FileState]s that became garbage.
+  List<FileState> gc(Uri entryPoint) {
+    void mark(FileState file) {
+      if (!file._gcMarked) {
+        file._gcMarked = true;
+        file._directReferencedFiles.forEach(mark);
+      }
+    }
+
+    var file = _uriToFile[entryPoint];
+    if (file == null) return const [];
+
+    mark(file);
+
+    var filesToRemove = <FileState>[];
+    var urisToRemove = new Set<Uri>();
+    var fileUrisToRemove = new Set<Uri>();
+    for (var file in _uriToFile.values) {
+      if (file._gcMarked) {
+        file._gcMarked = false;
+      } else {
+        filesToRemove.add(file);
+        urisToRemove.add(file.uri);
+        fileUrisToRemove.add(file.fileUri);
+      }
+    }
+
+    urisToRemove.forEach(_uriToFile.remove);
+    fileUrisToRemove.forEach(_fileUriToFile.remove);
+    return filesToRemove;
+  }
+
   /// Return the [FileState] for the given [absoluteUri], or `null` if the
   /// [absoluteUri] cannot be resolved into a file URI.
   ///
@@ -348,6 +398,10 @@ class FileSystemState {
 /// List of libraries that reference each other, so form a cycle.
 class LibraryCycle {
   final List<FileState> libraries = <FileState>[];
+
+  /// [LibraryCycle]s that contain libraries directly import or export
+  /// this [LibraryCycle].
+  final List<LibraryCycle> directUsers = <LibraryCycle>[];
 
   bool get _isForVm {
     return libraries.any((l) => l.uri.toString().endsWith('dart:_vmservice'));
@@ -402,6 +456,7 @@ class _BodyRange {
 
 /// The [Parser] that skips function bodies and remembers their token ranges.
 class _BodySkippingParser extends Parser {
+  bool hasMixin = false;
   final List<_BodyRange> bodyRanges = [];
 
   _BodySkippingParser() : super(new Listener());
@@ -414,6 +469,11 @@ class _BodySkippingParser extends Parser {
       return close;
     }
     return super.parseFunctionBody(token, isExpression, allowAbstract);
+  }
+
+  Token parseMixinApplication(Token token) {
+    hasMixin = true;
+    return super.parseMixinApplication(token);
   }
 }
 
@@ -463,7 +523,7 @@ class _FileSystemViewEntry implements FileSystemEntity {
   @override
   Future<String> readAsString() async => _shouldNotBeQueried();
 
-  /// _FileSystemViewEntry is used by the incremental kernel generator to
+  /// [_FileSystemViewEntry] is used by the incremental kernel generator to
   /// provide Fasta with a consistent, race condition free view of the files
   /// constituting the project.  It should only need to be used for reading
   /// file contents.
@@ -493,6 +553,7 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   final nodesOfFiles = <FileState, _LibraryNode>{};
   final topologicallySortedCycles = <LibraryCycle>[];
+  final fileToCycleMap = <FileState, LibraryCycle>{};
 
   @override
   void evaluate(_LibraryNode v) {
@@ -502,9 +563,30 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   @override
   void evaluateScc(List<_LibraryNode> scc) {
     var cycle = new LibraryCycle();
+
+    // Build the set of cycles this cycle directly depends on.
+    var directDependencies = new Set<LibraryCycle>();
+    for (var node in scc) {
+      var file = node.file;
+      for (var importedLibrary in file.importedLibraries) {
+        var importedCycle = fileToCycleMap[importedLibrary];
+        if (importedCycle != null) directDependencies.add(importedCycle);
+      }
+      for (var exportedLibrary in file.exportedLibraries) {
+        var exportedCycle = fileToCycleMap[exportedLibrary];
+        if (exportedCycle != null) directDependencies.add(exportedCycle);
+      }
+    }
+
+    // Register this cycle as a direct user of the direct dependencies.
+    for (var directDependency in directDependencies) {
+      directDependency.directUsers.add(cycle);
+    }
+
     for (var node in scc) {
       node.isEvaluated = true;
       cycle.libraries.add(node.file);
+      fileToCycleMap[node.file] = cycle;
     }
     topologicallySortedCycles.add(cycle);
   }

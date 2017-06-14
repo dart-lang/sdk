@@ -171,8 +171,8 @@ Future testTypeVariables() {
       LibraryElement mainApp = compiler.mainApp;
       ClassElement foo = mainApp.find('Foo');
       matchResolvedTypes(visitor, 'Foo<int, String> x;', 'Foo', [
-        compiler.commonElements.intClass,
-        compiler.commonElements.stringClass
+        compiler.resolution.commonElements.intClass,
+        compiler.resolution.commonElements.stringClass
       ]);
       matchResolvedTypes(visitor, 'Foo<Foo, Foo> x;', 'Foo', [foo, foo]);
     }),
@@ -256,7 +256,7 @@ Future testSwitch() {
     MethodElement funElement = fooElement.lookupLocalMember("foo");
     compiler.enqueuer.resolution.applyImpact(new WorldImpactBuilderImpl()
       ..registerStaticUse(new StaticUse.implicitInvoke(funElement)));
-    compiler.processQueue(
+    compiler.processQueue(compiler.frontendStrategy.elementEnvironment,
         compiler.enqueuer.resolution, null, compiler.libraryLoader.libraries);
     DiagnosticCollector collector = compiler.diagnosticCollector;
     Expect.equals(0, collector.warnings.length);

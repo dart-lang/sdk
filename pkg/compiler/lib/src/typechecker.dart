@@ -110,7 +110,8 @@ abstract class ElementAccess {
         return false;
       }
     }
-    ResolutionInterfaceType functionType = compiler.commonElements.functionType;
+    ResolutionInterfaceType functionType =
+        compiler.resolution.commonElements.functionType;
     return compiler.types
         .isAssignable(computeType(compiler.resolution), functionType);
   }
@@ -299,7 +300,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
   /// The immediately enclosing field, method or constructor being analyzed.
   ExecutableElement executableContext;
 
-  CommonElements get commonElements => compiler.commonElements;
+  CommonElements get commonElements => resolution.commonElements;
 
   DiagnosticReporter get reporter => compiler.reporter;
 

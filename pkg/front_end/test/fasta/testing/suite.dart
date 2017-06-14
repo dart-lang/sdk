@@ -18,7 +18,7 @@ import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
 import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
     show computeDartVm, computePatchedSdk;
 
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Library, Program;
 
 import 'package:testing/testing.dart'
     show
@@ -53,6 +53,10 @@ import 'package:kernel/kernel.dart' show loadProgramFromBytes;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
 import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
@@ -90,6 +94,7 @@ class FastaContext extends ChainContext {
   final TranslateUri uriTranslator;
   final List<Step> steps;
   final Uri vm;
+  final Map<Program, KernelTarget> programToTarget = <Program, KernelTarget>{};
   Uri sdk;
   Uri platformUri;
   Uri outlineUri;
@@ -119,6 +124,7 @@ class FastaContext extends ChainContext {
               updateExpectations: updateExpectations)
         ] {
     if (fullCompile && !skipVm) {
+      steps.add(const Transform());
       steps.add(const WriteDill());
       steps.add(const Run());
     }
@@ -223,7 +229,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     Program platformOutline = await context.loadPlatformOutline();
     Ticker ticker = new Ticker();
     DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
-        new VmFastaTarget(new TargetFlags(strongMode: strongMode)));
+        new TestVmFastaTarget(new TargetFlags(strongMode: strongMode)));
     platformOutline.unbindCanonicalNames();
     dillTarget.loader.appendLibraries(platformOutline);
     // We create a new URI translator to avoid reading plaform libraries from
@@ -262,6 +268,54 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     } on InputError catch (e, s) {
       return fail(null, e.error, s);
     }
+    context.programToTarget.clear();
+    context.programToTarget[p] = sourceTarget;
     return pass(p);
+  }
+}
+
+class Transform extends Step<Program, Program, FastaContext> {
+  const Transform();
+
+  String get name => "transform program";
+
+  Future<Result<Program>> run(Program program, FastaContext context) async {
+    KernelTarget sourceTarget = context.programToTarget[program];
+    context.programToTarget.remove(program);
+    TestVmFastaTarget backendTarget = sourceTarget.backendTarget;
+    backendTarget.enabled = true;
+    try {
+      if (sourceTarget.loader.coreTypes != null) {
+        sourceTarget.runBuildTransformations();
+      }
+    } finally {
+      backendTarget.enabled = false;
+    }
+    return pass(program);
+  }
+}
+
+class TestVmFastaTarget extends VmFastaTarget {
+  bool enabled = false;
+
+  TestVmFastaTarget(TargetFlags flags) : super(flags);
+
+  String get name => "vm_fasta";
+
+  void performModularTransformationsOnLibraries(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
+      {void logger(String msg)}) {
+    if (enabled) {
+      super.performModularTransformationsOnLibraries(
+          coreTypes, hierarchy, libraries,
+          logger: logger);
+    }
+  }
+
+  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+      {void logger(String msg)}) {
+    if (enabled) {
+      super.performGlobalTransformations(coreTypes, program, logger: logger);
+    }
   }
 }

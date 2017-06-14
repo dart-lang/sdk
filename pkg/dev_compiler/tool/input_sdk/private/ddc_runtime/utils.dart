@@ -10,6 +10,12 @@ part of dart._runtime;
 defineProperty(obj, name, desc) =>
     JS('', 'Object.defineProperty(#, #, #)', obj, name, desc);
 
+defineValue(obj, name, value) {
+  defineProperty(obj, name,
+      JS('', '{ value: #, configurable: true, writable: true }', value));
+  return value;
+}
+
 getOwnPropertyDescriptor(obj, name) =>
     JS('', 'Object.getOwnPropertyDescriptor(#, #)', obj, name);
 
@@ -25,7 +31,7 @@ final hasOwnProperty = JS('', 'Object.prototype.hasOwnProperty');
 /// assertion failure (TypeError) or CastError.
 void throwStrongModeError(String message) {
   if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  JS('', 'throw new #(#);', StrongModeErrorImplementation, message);
+  throw new StrongModeErrorImplementation(message);
 }
 
 /// This error indicates a bug in the runtime or the compiler.

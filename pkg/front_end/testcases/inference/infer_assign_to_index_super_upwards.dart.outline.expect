@@ -1,0 +1,72 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class Base<T extends core::Object, U extends core::Object> extends core::Object {
+  constructor •() → void
+    ;
+  abstract operator [](core::String s) → self::Base::T;
+  abstract operator []=(core::String s, self::Base::U v) → void;
+}
+abstract class Test1 extends self::Base<core::int, core::int> {
+  constructor •() → void
+    ;
+  method test() → void
+    ;
+}
+abstract class Test2 extends self::Base<core::int, core::num> {
+  constructor •() → void
+    ;
+  method test() → void
+    ;
+}
+abstract class Test3 extends self::Base<core::int, core::double> {
+  constructor •() → void
+    ;
+  method test() → void
+    ;
+}
+abstract class Test4 extends self::Base<core::num, core::int> {
+  constructor •() → void
+    ;
+  method test() → void
+    ;
+}
+abstract class Test5 extends self::Base<core::num, core::num> {
+  constructor •() → void
+    ;
+  method test() → void
+    ;
+}
+abstract class Test6 extends self::Base<core::num, core::double> {
+  constructor •() → void
+    ;
+  method test() → void
+    ;
+}
+abstract class Test7 extends self::Base<core::double, core::int> {
+  constructor •() → void
+    ;
+  method test() → void
+    ;
+}
+abstract class Test8 extends self::Base<core::double, core::num> {
+  constructor •() → void
+    ;
+  method test() → void
+    ;
+}
+abstract class Test9 extends self::Base<core::double, core::double> {
+  constructor •() → void
+    ;
+  method test() → void
+    ;
+}
+static method getInt() → core::int
+  ;
+static method getNum() → core::num
+  ;
+static method getDouble() → core::double
+  ;
+static method main() → dynamic
+  ;

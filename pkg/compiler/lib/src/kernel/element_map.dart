@@ -4,14 +4,15 @@
 
 import 'package:kernel/ast.dart' as ir;
 
+import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart' show JumpTarget;
 import '../elements/entities.dart';
+import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/operators.dart';
 import '../elements/types.dart';
@@ -1037,4 +1038,9 @@ abstract class KernelToLocalsMap {
   /// Returns the [JumpTarget] for the branch in [node].
   // TODO(johnniwinther): Split this by kind of [node]?
   JumpTarget getJumpTarget(ir.TreeNode node, {bool isContinueTarget: false});
+
+  /// Returns the [LoopClosureRepresentationInfo] for the loop [node] in
+  /// [closureClassMaps].
+  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+      ClosureClassMaps closureClassMaps, ir.TreeNode node);
 }

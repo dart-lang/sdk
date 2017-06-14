@@ -13,6 +13,7 @@ import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/jumps.dart';
 import '../elements/modelx.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
@@ -138,10 +139,11 @@ class KernelAstAdapter extends KernelToElementMapMixin
   }
 
   @override
-  CommonElements get commonElements => _compiler.commonElements;
+  CommonElements get commonElements => _compiler.resolution.commonElements;
 
   @override
-  ElementEnvironment get elementEnvironment => _compiler.elementEnvironment;
+  ElementEnvironment get elementEnvironment =>
+      _compiler.resolution.elementEnvironment;
 
   MemberElement get currentMember => _resolvedAst.element;
 
@@ -241,7 +243,7 @@ class KernelAstAdapter extends KernelToElementMapMixin
 
   js.Name getNameForJsGetName(ir.Node argument, ConstantValue constant) {
     int index = _extractEnumIndexFromConstantValue(
-        constant, _compiler.commonElements.jsGetNameEnum);
+        constant, _compiler.resolution.commonElements.jsGetNameEnum);
     if (index == null) return null;
     return _backend.namer
         .getNameForJsGetName(getNode(argument), JsGetName.values[index]);
@@ -249,7 +251,7 @@ class KernelAstAdapter extends KernelToElementMapMixin
 
   js.Template getJsBuiltinTemplate(ConstantValue constant) {
     int index = _extractEnumIndexFromConstantValue(
-        constant, _compiler.commonElements.jsBuiltinEnum);
+        constant, _compiler.resolution.commonElements.jsBuiltinEnum);
     if (index == null) return null;
     return _backend.emitter.builtinTemplateFor(JsBuiltin.values[index]);
   }
@@ -321,6 +323,12 @@ class KernelAstAdapter extends KernelToElementMapMixin
   @override
   Spannable getSpannable(MemberEntity member, ir.Node node) {
     return getNode(node);
+  }
+
+  @override
+  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+      ClosureClassMaps closureClassMaps, ir.TreeNode node) {
+    return closureClassMaps.getClosureRepresentationInfoForLoop(getNode(node));
   }
 }
 
@@ -408,7 +416,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
   }
 }
 
-class KernelJumpTarget extends JumpTarget {
+class KernelJumpTarget extends JumpTarget<ast.Node> {
   static int index = 0;
 
   /// Pointer to the actual executable statements that a jump target refers to.

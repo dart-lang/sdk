@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method main(core::List<core::String> arguments) → dynamic {
-  final dynamic foo = MakeClosure<(dynamic) → dynamic>(self::closure#main#foo, null);
+  final (dynamic) → dynamic foo = MakeClosure<(dynamic) → dynamic>(self::closure#main#foo, null);
   foo.call(arguments.[](0)).call();
 }
 static method closure#main#foo#bar(Vector #contextParameter) → dynamic {
@@ -13,6 +13,6 @@ static method closure#main#foo(Vector #contextParameter, dynamic x) → dynamic 
   final Vector #context = MakeVector(2);
   #context[0] = #contextParameter;
   #context[1] = x;
-  final dynamic bar = MakeClosure<() → dynamic>(self::closure#main#foo#bar, #context);
+  final () → dynamic bar = MakeClosure<() → dynamic>(self::closure#main#foo#bar, #context);
   return bar;
 }

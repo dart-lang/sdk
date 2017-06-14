@@ -1040,7 +1040,7 @@ class ResolverBehaviorBuilder extends BehaviorBuilder {
   ResolverBehaviorBuilder(this.compiler, this.nativeBasicData);
 
   @override
-  CommonElements get commonElements => compiler.commonElements;
+  CommonElements get commonElements => resolution.commonElements;
 
   @override
   bool get trustJSInteropTypeAnnotations =>

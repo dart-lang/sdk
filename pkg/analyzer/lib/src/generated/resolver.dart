@@ -1027,24 +1027,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
-  void _checkRequiredParameter(FormalParameterList node) {
-    final requiredParameters =
-        node.parameters.where((p) => p.element?.isRequired == true);
-    final nonNamedParamsWithRequired =
-        requiredParameters.where((p) => p.kind != ParameterKind.NAMED);
-    final namedParamsWithRequiredAndDefault = requiredParameters
-        .where((p) => p.kind == ParameterKind.NAMED)
-        .where((p) => p.element.defaultValueCode != null);
-    final paramsToHint = [
-      nonNamedParamsWithRequired,
-      namedParamsWithRequiredAndDefault
-    ].expand((e) => e);
-    for (final param in paramsToHint) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_REQUIRED_PARAM, param, [param.identifier.name]);
-    }
-  }
-
   /**
    * Produce a hint if the given [condition] could have a value of `null`.
    */
@@ -1214,6 +1196,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(
             HintCode.USE_OF_VOID_RESULT, methodName, [methodName.name]);
       }
+    }
+  }
+
+  void _checkRequiredParameter(FormalParameterList node) {
+    final requiredParameters =
+        node.parameters.where((p) => p.element?.isRequired == true);
+    final nonNamedParamsWithRequired =
+        requiredParameters.where((p) => p.kind != ParameterKind.NAMED);
+    final namedParamsWithRequiredAndDefault = requiredParameters
+        .where((p) => p.kind == ParameterKind.NAMED)
+        .where((p) => p.element.defaultValueCode != null);
+    final paramsToHint = [
+      nonNamedParamsWithRequired,
+      namedParamsWithRequiredAndDefault
+    ].expand((e) => e);
+    for (final param in paramsToHint) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_REQUIRED_PARAM, param, [param.identifier.name]);
     }
   }
 
