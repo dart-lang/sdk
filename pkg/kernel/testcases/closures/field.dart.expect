@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 class C<T extends core::Object> extends core::Object {
-  field dynamic v = MakeClosure<(dynamic) → dynamic>(self::closure#C#v#function, null);
-  final field dynamic y = MakeClosure<() → dynamic>(self::closure#C#y#function, null);
-  static final field dynamic z = MakeClosure<() → dynamic>(self::closure#C#z#function, null);
+  field dynamic v = MakeClosure<(dynamic) → core::bool>(self::closure#C#v#function, null);
+  final field dynamic y = MakeClosure<() → core::String>(self::closure#C#y#function, null);
+  static final field dynamic z = MakeClosure<() → core::String>(self::closure#C#z#function, null);
   constructor •() → void
     : super core::Object::•()
     ;
 }
-static field dynamic x = MakeClosure<() → dynamic>(self::closure#x#function, null);
+static field dynamic x = MakeClosure<() → core::String>(self::closure#x#function, null);
 static method main() → dynamic {
   if(!new self::C::•<core::String>().v(""))
     throw "C<String>.v false on String";
@@ -31,15 +31,15 @@ static method main() → dynamic {
   if(!"z".==(self::C::z.call()))
     throw "z";
 }
-static method closure#C#v#function(Vector #contextParameter, dynamic x) → dynamic {
+static method closure#C#v#function(Vector #contextParameter, dynamic x) → core::bool {
   return x is dynamic;
 }
-static method closure#C#y#function(Vector #contextParameter) → dynamic {
+static method closure#C#y#function(Vector #contextParameter) → core::String {
   return "y";
 }
-static method closure#C#z#function(Vector #contextParameter) → dynamic {
+static method closure#C#z#function(Vector #contextParameter) → core::String {
   return "z";
 }
-static method closure#x#function(Vector #contextParameter) → dynamic {
+static method closure#x#function(Vector #contextParameter) → core::String {
   return "x";
 }

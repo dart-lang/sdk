@@ -14,7 +14,7 @@ class C2 extends core::Object {
     : super core::Object::•() {
     final Vector #context = MakeVector(2);
     #context[1] = y;
-    this.x = MakeClosure<() → dynamic>(self::closure#C2#function#function, #context);
+    this.x = MakeClosure<() → void>(self::closure#C2#function#function, #context);
   }
 }
 static method main() → dynamic {
@@ -24,6 +24,6 @@ static method main() → dynamic {
 static method closure#C1##function(Vector #contextParameter) → dynamic {
   return core::print("Hello ${#contextParameter[1]}");
 }
-static method closure#C2#function#function(Vector #contextParameter) → dynamic {
+static method closure#C2#function#function(Vector #contextParameter) → void {
   return core::print("Hello ${#contextParameter[1]}");
 }

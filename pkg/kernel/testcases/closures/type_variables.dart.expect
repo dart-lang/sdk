@@ -15,10 +15,10 @@ class C<T extends core::Object, S extends core::Object> extends core::Object {
     self::C<self::C::T, self::C::S> self = this;
   }
   method baz() → dynamic {
-    return MakeClosure<() → dynamic>(self::closure#C#baz#function, null);
+    return MakeClosure<() → () → self::C<dynamic, dynamic>>(self::closure#C#baz#function, null);
   }
-  static factory •<T extends core::Object, S extends core::Object>() → dynamic {
-    final dynamic local = MakeClosure<() → dynamic>(self::closure#C#function#local, null);
+  static factory •<T extends core::Object, S extends core::Object>() → self::C<self::C::•::T, self::C::•::S> {
+    final () → dynamic local = MakeClosure<() → dynamic>(self::closure#C#function#local, null);
     return local.call();
   }
 }
@@ -28,7 +28,7 @@ static method main(dynamic arguments) → dynamic {
   if(!(c is self::C<core::int, core::int>))
     throw "${c} fails type test 'is C<int, int>'";
   if(c is self::C<core::String, core::String>) {
-    throw "${c} passes type test 'is C<String, String>'";
+    throw "${c{self::C<core::String, core::String>}} passes type test 'is C<String, String>'";
   }
   core::print(c);
 }
@@ -38,11 +38,11 @@ static method closure#C#foo#function(Vector #contextParameter, dynamic x) → dy
   self::C<dynamic, dynamic> self = #contextParameter[1];
   return z as dynamic;
 }
-static method closure#C#baz#function#function(Vector #contextParameter) → dynamic {
+static method closure#C#baz#function#function(Vector #contextParameter) → self::C<dynamic, dynamic> {
   return self::C::•<dynamic, dynamic>();
 }
-static method closure#C#baz#function(Vector #contextParameter) → dynamic {
-  return MakeClosure<() → dynamic>(self::closure#C#baz#function#function, #contextParameter);
+static method closure#C#baz#function(Vector #contextParameter) → () → self::C<dynamic, dynamic> {
+  return MakeClosure<() → self::C<dynamic, dynamic>>(self::closure#C#baz#function#function, #contextParameter);
 }
 static method closure#C#function#local(Vector #contextParameter) → dynamic {
   self::C<dynamic, dynamic> self = new self::C::internal<dynamic, dynamic>();
