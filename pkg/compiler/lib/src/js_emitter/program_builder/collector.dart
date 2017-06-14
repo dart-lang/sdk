@@ -145,8 +145,8 @@ class Collector {
                   element.isConstructor ||
                   element.isSetter)) {
             MethodElement function = element;
-            function.functionSignature
-                .forEachParameter(_mirrorsData.retainMetadataOfParameter);
+            function.functionSignature.forEachParameter((parameter) =>
+                _mirrorsData.retainMetadataOfParameter(parameter));
           }
         }
       }
@@ -156,7 +156,7 @@ class Collector {
           _mirrorsData.retainMetadataOfClass(cls);
           new FieldVisitor(_options, _elementEnvironment, _worldBuilder,
                   _nativeData, _mirrorsData, _namer, _closedWorld)
-              .visitFields((FieldElement member,
+              .visitFields((FieldEntity member,
                   js.Name name,
                   js.Name accessorName,
                   bool needsGetter,
@@ -334,7 +334,7 @@ class Collector {
       }
     });
 
-    _sorter.sortMembers(fields).forEach(addToOutputUnit);
+    _sorter.sortMembers(fields).forEach((MemberEntity e) => addToOutputUnit(e));
   }
 
   void computeNeededLibraries() {

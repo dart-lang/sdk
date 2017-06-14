@@ -239,7 +239,8 @@ class ClosureTask extends CompilerTask implements ClosureClassMaps<Node> {
   /// Create [ClosureClassMap]s for all live members.
   void createClosureClasses(ClosedWorldRefiner closedWorldRefiner) {
     compiler.enqueuer.resolution.processedEntities
-        .forEach((MemberElement element) {
+        .forEach((MemberEntity _element) {
+      MemberElement element = _element;
       ResolvedAst resolvedAst = element.resolvedAst;
       if (element.isAbstract) return;
       if (element.isField &&

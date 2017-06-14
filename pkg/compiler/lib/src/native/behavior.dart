@@ -523,14 +523,14 @@ class NativeBehavior {
       return new NativeBehavior();
     }
 
-    var specArgument = argNodes.head;
+    dynamic specArgument = argNodes.head;
     if (specArgument is! StringNode || specArgument.isInterpolation) {
       reporter.reportErrorMessage(
           specArgument, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
       return new NativeBehavior();
     }
 
-    var codeArgument = argNodes.tail.head;
+    dynamic codeArgument = argNodes.tail.head;
     if (codeArgument is! StringNode || codeArgument.isInterpolation) {
       reporter.reportErrorMessage(
           codeArgument, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);

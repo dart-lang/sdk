@@ -1924,7 +1924,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
     // TODO(johnniwinther): This should be accessed from a codegen closed world.
     codegenWorldBuilder.forEachInstanceField(constant.type.element,
-        (_, FieldElement field) {
+        (_, FieldEntity field) {
       if (failed) return;
       _visit(constant.fields[field]);
     });
@@ -2051,7 +2051,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   int visitConstructed(ConstructedConstantValue constant, [_]) {
     int hash = _hashString(3, constant.type.element.name);
     codegenWorldBuilder.forEachInstanceField(constant.type.element,
-        (_, FieldElement field) {
+        (_, FieldEntity field) {
       hash = _combine(hash, _visit(constant.fields[field]));
     });
     return hash;

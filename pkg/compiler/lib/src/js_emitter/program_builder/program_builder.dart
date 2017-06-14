@@ -343,7 +343,7 @@ class ProgramBuilder {
       // For every known class, see if it was allocated in the profile. If yes,
       // collect its dependencies (supers and mixins) and mark them as
       // not-soft-deferrable.
-      collector.outputClassLists.forEach((_, List<ClassElement> elements) {
+      collector.outputClassLists.forEach((_, List<ClassEntity> elements) {
         for (ClassElement element in elements) {
           // TODO(29574): share the encoding of the element with the code
           // that emits the profile-run.
@@ -525,7 +525,8 @@ class ProgramBuilder {
         if (_nativeData.isJsInteropClass(cls)) {
           // TODO(johnniwinther): Handle class entities.
           ClassElement e = cls;
-          e.declaration.forEachMember((_, MemberElement member) {
+          e.declaration.forEachMember((_, _member) {
+            MemberElement member = _member;
             var jsName = _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
@@ -867,14 +868,16 @@ class ProgramBuilder {
     var /* Map | List */ optionalParameterDefaultValues;
     if (signature.optionalParametersAreNamed) {
       optionalParameterDefaultValues = new Map<String, ConstantValue>();
-      signature.forEachOptionalParameter((ParameterElement parameter) {
+      signature.forEachOptionalParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         ConstantValue def =
             _constantHandler.getConstantValue(parameter.constant);
         optionalParameterDefaultValues[parameter.name] = def;
       });
     } else {
       optionalParameterDefaultValues = <ConstantValue>[];
-      signature.forEachOptionalParameter((ParameterElement parameter) {
+      signature.forEachOptionalParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         ConstantValue def =
             _constantHandler.getConstantValue(parameter.constant);
         optionalParameterDefaultValues.add(def);

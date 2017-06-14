@@ -7,8 +7,8 @@ library dart2js.util.maplet;
 import 'dart:collection' show MapBase, IterableBase;
 
 class Maplet<K, V> extends MapBase<K, V> {
-  static const _MARKER = const _MapletMarker();
-  static const CAPACITY = 8;
+  static const _MapletMarker _MARKER = const _MapletMarker();
+  static const int CAPACITY = 8;
 
 // The maplet can be in one of four states:
   //
@@ -22,7 +22,7 @@ class Maplet<K, V> extends MapBase<K, V> {
   // the keys and they may contain markers for deleted elements. After
   // the keys there are [CAPACITY] entries for the values.
 
-  var _key = _MARKER;
+  dynamic _key = _MARKER;
   var _value;
   var _extra;
 
