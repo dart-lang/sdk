@@ -115,7 +115,7 @@ DECLARE_FLAG(bool, trace_irregexp);
 
 bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
   const Function& function = parsed_function->function();
-  return (function.kernel_function() != NULL) ||
+  return (function.kernel_offset() > 0) ||
          (function.kind() == RawFunction::kNoSuchMethodDispatcher) ||
          (function.kind() == RawFunction::kInvokeFieldDispatcher);
 }
@@ -135,11 +135,11 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     intptr_t osr_id) {
   if (UseKernelFrontEndFor(parsed_function)) {
-    kernel::TreeNode* node = static_cast<kernel::TreeNode*>(
-        parsed_function->function().kernel_function());
-    kernel::FlowGraphBuilder builder(node, parsed_function, ic_data_array,
-                                     /* not building var desc */ NULL,
-                                     /* not inlining */ NULL, osr_id);
+    kernel::FlowGraphBuilder builder(
+        parsed_function->function().kernel_offset(), parsed_function,
+        ic_data_array,
+        /* not building var desc */ NULL,
+        /* not inlining */ NULL, osr_id);
     FlowGraph* graph = builder.BuildGraph();
     ASSERT(graph != NULL);
     return graph;
@@ -1597,7 +1597,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
     ZoneGrowableArray<intptr_t>* context_level_array =
         new ZoneGrowableArray<intptr_t>();
 
-    if (!UseKernelFrontEndFor(parsed_function)) {
+    if (function.kernel_offset() <= 0) {
       Parser::ParseFunction(parsed_function);
       parsed_function->AllocateVariables();
       FlowGraphBuilder builder(
@@ -1606,10 +1606,9 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
       builder.BuildGraph();
     } else {
       parsed_function->EnsureKernelScopes();
-      kernel::TreeNode* node = static_cast<kernel::TreeNode*>(
-          parsed_function->function().kernel_function());
       kernel::FlowGraphBuilder builder(
-          node, parsed_function, *ic_data_array, context_level_array,
+          parsed_function->function().kernel_offset(), parsed_function,
+          *ic_data_array, context_level_array,
           /* not inlining */ NULL, Compiler::kNoOSRDeoptId);
       builder.BuildGraph();
     }
@@ -1732,7 +1731,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 
       // Create a one-time-use function to evaluate the initializer and invoke
       // it immediately.
-      if (field.kernel_field() != NULL) {
+      if (field.kernel_offset() > 0) {
         parsed_function = kernel::ParseStaticFieldInitializer(zone, field);
       } else {
         parsed_function = Parser::ParseStaticFieldInitializer(field);

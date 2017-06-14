@@ -429,7 +429,10 @@ class TreeNode : public Node {
 
   virtual void AcceptVisitor(Visitor* visitor);
   virtual void AcceptTreeVisitor(TreeVisitor* visitor) = 0;
-  intptr_t kernel_offset() const { return kernel_offset_; }
+  intptr_t kernel_offset() const {
+    ASSERT(kernel_offset_ > 0);
+    return kernel_offset_;
+  }
   bool can_stream() { return can_stream_; }
 
  protected:
