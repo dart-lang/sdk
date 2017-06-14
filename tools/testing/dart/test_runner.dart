@@ -761,6 +761,9 @@ class TestCase extends UniqueObject {
   TestCase(this.displayName, this.commands, this.configuration,
       this.expectedOutcomes,
       {bool isNegative: false, TestInformation info}) {
+    // A test case should do something.
+    assert(commands.isNotEmpty);
+
     if (isNegative || displayName.contains("negative_test")) {
       _expectations |= IS_NEGATIVE;
     }
