@@ -43,7 +43,6 @@ import '../elements/elements.dart'
         FunctionSignature,
         GetterElement,
         InitializingFormalElement,
-        JumpTarget,
         LibraryElement,
         LocalElement,
         LocalFunctionElement,
@@ -53,6 +52,7 @@ import '../elements/elements.dart'
         PrefixElement,
         TypeVariableElement;
 import '../elements/entities.dart' show AsyncMarker;
+import '../elements/jumps.dart';
 import '../elements/names.dart' show Name;
 import '../elements/operators.dart'
     show AssignmentOperator, BinaryOperator, IncDecOperator, UnaryOperator;

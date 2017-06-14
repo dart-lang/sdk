@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart' show LoopClosureRepresentationInfo;
-import '../elements/elements.dart' show JumpTarget, LabelDefinition;
+import '../elements/jumps.dart';
 import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
 

@@ -13,6 +13,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/operators.dart' as op;
 import '../elements/resolution_types.dart'

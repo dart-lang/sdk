@@ -27,6 +27,7 @@ import '../util/util.dart';
 import 'common.dart';
 import 'elements.dart';
 import 'entities.dart';
+import 'jumps.dart';
 import 'names.dart';
 import 'resolution_types.dart';
 import 'visitor.dart' show ElementVisitor;
@@ -3276,10 +3277,10 @@ class UnnamedMixinApplicationElementX extends MixinApplicationElementX {
   bool get isAbstract => true;
 }
 
-class LabelDefinitionX implements LabelDefinition {
+class LabelDefinitionX implements LabelDefinition<Node> {
   final Label label;
   final String labelName;
-  final JumpTarget target;
+  final JumpTarget<Node> target;
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
@@ -3306,11 +3307,11 @@ class LabelDefinitionX implements LabelDefinition {
   String toString() => 'Label:${name}';
 }
 
-class JumpTargetX implements JumpTarget {
+class JumpTargetX implements JumpTarget<Node> {
   final ExecutableElement executableContext;
   final Node statement;
   final int nestingLevel;
-  List<LabelDefinition> labels = <LabelDefinition>[];
+  List<LabelDefinition<Node>> labels = <LabelDefinition<Node>>[];
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
@@ -3325,8 +3326,8 @@ class JumpTargetX implements JumpTarget {
 
   bool get isTarget => isBreakTarget || isContinueTarget;
 
-  LabelDefinition addLabel(Label label, String labelName) {
-    LabelDefinition result = new LabelDefinitionX(label, labelName, this);
+  LabelDefinition<Node> addLabel(Label label, String labelName) {
+    LabelDefinition<Node> result = new LabelDefinitionX(label, labelName, this);
     labels.add(result);
     return result;
   }

@@ -18,6 +18,7 @@ import '../constants/values.dart'
         TypeConstantValue;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/jumps.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';

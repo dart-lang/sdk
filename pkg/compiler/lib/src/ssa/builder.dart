@@ -19,6 +19,7 @@ import '../diagnostics/messages.dart' show Message, MessageTemplate;
 import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/jumps.dart';
 import '../elements/modelx.dart' show ConstructorBodyElementX;
 import '../elements/names.dart';
 import '../elements/operators.dart';

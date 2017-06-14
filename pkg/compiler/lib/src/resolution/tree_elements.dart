@@ -9,6 +9,7 @@ import '../constants/expressions.dart';
 import '../elements/resolution_types.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/elements.dart';
+import '../elements/jumps.dart';
 import '../tree/tree.dart';
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart';
