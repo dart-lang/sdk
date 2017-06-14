@@ -3495,7 +3495,9 @@ Fragment StreamingFlowGraphBuilder::BuildGetMainClosure() {
           Function::Handle(Z, function.ImplicitClosureFunction());
       const Instance& closure =
           Instance::ZoneHandle(Z, closure_function.ImplicitStaticClosure());
-      return Constant(closure) + Return(TokenPosition::kNoSource);
+      Fragment instructions = Constant(closure);
+      instructions += Return(TokenPosition::kNoSource);
+      return instructions;
     } else {
       UNIMPLEMENTED();
     }
