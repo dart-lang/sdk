@@ -60,6 +60,10 @@ final String kCustomCss = '''
   float: left;
 }
 
+.masthead .mega-octicon {
+  font-size: 1.5rem;
+}
+
 .masthead-nav {
   float: right;
   margin-top: .5rem;
@@ -582,7 +586,7 @@ abstract class DiagnosticPage extends Page {
     <header class="masthead">
     <div class="container">
       <span class="masthead-logo">
-      <span class="mega-octicon octicon-database"></span>
+      <span class="mega-octicon octicon-dashboard"></span>
         ${site.title} Diagnostics
       </span>
 
