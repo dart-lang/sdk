@@ -290,7 +290,7 @@ class AstBuilder extends ScopeListener {
     push(ast.blockFunctionBody(asyncKeyword, star, block));
   }
 
-  void finishFunction(formals, asyncModifier, FunctionBody body) {
+  void finishFunction(annotations, formals, asyncModifier, FunctionBody body) {
     debugEvent("finishFunction");
     Statement bodyStatement;
     if (body is EmptyFunctionBody) {

@@ -186,9 +186,6 @@ const_constructor_nonconst_field_test/01: MissingCompileTimeError # Fasta bug: N
 
 method_name_test: CompileTimeError # Fasta bug: Parser bug.
 
-generic_metadata_test/02: MissingCompileTimeError # Fasta bug: Type arguments aren't allowed on metadata?!
-generic_metadata_test/03: MissingCompileTimeError # Fasta bug: Type arguments aren't allowed on metadata?!
-
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 
 regress_29349_test: CompileTimeError # Fasta bug: Parser bug.
@@ -231,7 +228,6 @@ const_syntax_test/08: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
 disassemble_test: Pass, Crash  # Multitest via multiple VMOptions! Hits assert "kind() != RawScript::kKernelTag". Issue 28790
 hello_dart_test: Crash
-instance_creation_in_function_annotation_test: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError

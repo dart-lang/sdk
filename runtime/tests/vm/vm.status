@@ -556,3 +556,4 @@ cc/Profiler_BinaryOperatorSourcePosition: Crash
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Crash
 cc/Profiler_SourcePosition: Crash
 cc/Profiler_SourcePositionOptimized: Crash
+cc/Debugger_Rewind_Optimized: Skip # Flaky and times out.

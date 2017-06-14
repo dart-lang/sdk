@@ -28,7 +28,7 @@ import '../util/link.dart' show Link;
 
 import '../errors.dart' show Crash, InputError, inputError, internalError;
 
-import 'stack_listener.dart' show StackListener;
+import 'stack_listener.dart' show NullValue, StackListener;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
@@ -72,19 +72,21 @@ class DietListener extends StackListener {
   @override
   void endMetadataStar(int count, bool forParameter) {
     debugEvent("MetadataStar");
+    push(popList(count)?.first ?? NullValue.Metadata);
   }
 
   @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata");
-    popIfNotNull(periodBeforeName);
-    discard(1);
+    discard(periodBeforeName == null ? 1 : 2);
+    push(beginToken);
   }
 
   @override
   void endPartOf(Token partKeyword, Token semicolon, bool hasName) {
     debugEvent("PartOf");
     if (hasName) discard(1);
+    discard(1); // Metadata.
   }
 
   @override
@@ -184,9 +186,9 @@ class DietListener extends StackListener {
     debugEvent("FunctionTypeAlias");
     if (equals != null) {
       // This is a `typedef NAME = TYPE`.
-      discard(1); // Name.
+      discard(2); // Name and metadata.
     } else {
-      discard(2); // Name + endToken.
+      discard(3); // Name, endToken, and metadata.
     }
     checkEmpty(typedefKeyword.charOffset);
   }
@@ -194,9 +196,7 @@ class DietListener extends StackListener {
   @override
   void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
-    List<String> names = popList(count);
-    Builder builder = lookupBuilder(beginToken, null, names.first);
-    buildFields(beginToken, false, builder);
+    buildFields(count, beginToken, false);
   }
 
   @override
@@ -209,9 +209,10 @@ class DietListener extends StackListener {
     debugEvent("TopLevelMethod");
     Token bodyToken = pop();
     String name = pop();
+    Token metadata = pop();
     checkEmpty(beginToken.charOffset);
     buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name),
-        MemberKind.TopLevelMethod);
+        MemberKind.TopLevelMethod, metadata);
   }
 
   @override
@@ -222,9 +223,7 @@ class DietListener extends StackListener {
   @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
-    List<String> names = popList(count);
-    Builder builder = lookupBuilder(beginToken, null, names.first);
-    buildFields(beginToken, true, builder);
+    buildFields(count, beginToken, true);
   }
 
   @override
@@ -254,7 +253,7 @@ class DietListener extends StackListener {
   @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
-    discard(1);
+    discard(2); // Name and metadata.
   }
 
   @override
@@ -326,22 +325,25 @@ class DietListener extends StackListener {
       Token semicolon) {
     debugEvent("Import");
     popIfNotNull(asKeyword);
+    discard(1); // Metadata.
   }
 
   @override
   void endExport(Token exportKeyword, Token semicolon) {
     debugEvent("Export");
+    discard(1); // Metadata.
   }
 
   @override
   void endPart(Token partKeyword, Token semicolon) {
     debugEvent("Part");
+    discard(1); // Metadata.
   }
 
   @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
     debugEvent("TypeVariable");
-    discard(1);
+    discard(2); // Name and metadata.
   }
 
   @override
@@ -367,12 +369,15 @@ class DietListener extends StackListener {
     debugEvent("FactoryMethod");
     BeginToken bodyToken = pop();
     String name = pop();
+    Token metadata = pop();
     checkEmpty(beginToken.charOffset);
     if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
+      // TODO(ahe): Don't skip this. We need to compile metadata and
+      // redirecting factory bodies.
       return;
     }
-    buildFunctionBody(
-        bodyToken, lookupBuilder(beginToken, null, name), MemberKind.Factory);
+    buildFunctionBody(bodyToken, lookupBuilder(beginToken, null, name),
+        MemberKind.Factory, metadata);
   }
 
   @override
@@ -386,17 +391,18 @@ class DietListener extends StackListener {
     debugEvent("Method");
     Token bodyToken = pop();
     String name = pop();
+    Token metadata = pop();
     checkEmpty(beginToken.charOffset);
     if (bodyToken == null) {
+      // TODO(ahe): Don't skip this. We need to compile metadata.
       return;
     }
     ProcedureBuilder builder = lookupBuilder(beginToken, getOrSet, name);
     buildFunctionBody(
         bodyToken,
         builder,
-        builder.isStatic
-            ? MemberKind.StaticMethod
-            : MemberKind.NonStaticMethod);
+        builder.isStatic ? MemberKind.StaticMethod : MemberKind.NonStaticMethod,
+        metadata);
   }
 
   StackListener createListener(
@@ -418,7 +424,7 @@ class DietListener extends StackListener {
   }
 
   void buildFunctionBody(
-      Token token, ProcedureBuilder builder, MemberKind kind) {
+      Token token, ProcedureBuilder builder, MemberKind kind, Token metadata) {
     Scope typeParameterScope = builder.computeTypeParameterScope(memberScope);
     Scope formalParameterScope =
         builder.computeFormalParameterScope(typeParameterScope);
@@ -428,14 +434,18 @@ class DietListener extends StackListener {
         createListener(builder, typeParameterScope, builder.isInstanceMember,
             formalParameterScope),
         token,
+        metadata,
         kind);
   }
 
-  void buildFields(Token token, bool isTopLevel, MemberBuilder builder) {
+  void buildFields(int count, Token token, bool isTopLevel) {
+    List<String> names = popList(count);
+    Builder builder = lookupBuilder(token, null, names.first);
+    Token metadata = pop();
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     parseFields(createListener(builder, memberScope, builder.isInstanceMember),
-        token, isTopLevel);
+        token, metadata, isTopLevel);
   }
 
   @override
@@ -448,6 +458,7 @@ class DietListener extends StackListener {
   void beginClassBody(Token token) {
     debugEvent("beginClassBody");
     String name = pop();
+    pop(); // Metadata.
     assert(currentClass == null);
     currentClass = lookupBuilder(token, null, name);
     assert(memberScope == library.scope);
@@ -458,7 +469,6 @@ class DietListener extends StackListener {
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassBody");
     currentClass = null;
-    checkEmpty(beginToken.charOffset);
     memberScope = library.scope;
   }
 
@@ -477,8 +487,7 @@ class DietListener extends StackListener {
   @override
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     debugEvent("Enum");
-    discard(count);
-    pop(); // Name.
+    discard(count + 2); // Name and metadata.
     checkEmpty(enumKeyword.charOffset);
   }
 
@@ -486,7 +495,7 @@ class DietListener extends StackListener {
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token implementsKeyword, Token endToken) {
     debugEvent("NamedMixinApplication");
-    pop(); // Name.
+    discard(2); // Name and metadata.
     checkEmpty(beginToken.charOffset);
   }
 
@@ -507,9 +516,15 @@ class DietListener extends StackListener {
 
   AsyncMarker getAsyncMarker(StackListener listener) => listener.pop();
 
-  void parseFunctionBody(StackListener listener, Token token, MemberKind kind) {
+  void parseFunctionBody(
+      StackListener listener, Token token, Token metadata, MemberKind kind) {
     try {
       Parser parser = new Parser(listener);
+      List metadataConstants;
+      if (metadata != null) {
+        parser.parseMetadataStar(metadata);
+        metadataConstants = listener.pop();
+      }
       token = parser.parseFormalParametersOpt(token, kind);
       var formals = listener.pop();
       listener.checkEmpty(token.charOffset);
@@ -521,7 +536,7 @@ class DietListener extends StackListener {
       parser.parseFunctionBody(token, isExpression, allowAbstract);
       var body = listener.pop();
       listener.checkEmpty(token.charOffset);
-      listener.finishFunction(formals, asyncModifier, body);
+      listener.finishFunction(metadataConstants, formals, asyncModifier, body);
     } on InputError {
       rethrow;
     } catch (e, s) {
@@ -529,12 +544,16 @@ class DietListener extends StackListener {
     }
   }
 
-  void parseFields(StackListener listener, Token token, bool isTopLevel) {
+  void parseFields(
+      StackListener listener, Token token, Token metadata, bool isTopLevel) {
     Parser parser = new Parser(listener);
     if (isTopLevel) {
+      // There's a slight asymmetry between [parseTopLevelMember] and
+      // [parseMember] because the former doesn't call `parseMetadataStar`.
+      token = parser.parseMetadataStar(metadata ?? token);
       token = parser.parseTopLevelMember(token);
     } else {
-      token = parser.parseMember(token);
+      token = parser.parseMember(metadata ?? token);
     }
     listener.checkEmpty(token.charOffset);
   }

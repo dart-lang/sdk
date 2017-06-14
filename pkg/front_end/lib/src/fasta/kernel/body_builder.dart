@@ -339,49 +339,65 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void beginMetadata(Token token) {
+    debugEvent("beginMetadata");
+    super.push(constantExpressionRequired);
+    constantExpressionRequired = true;
+  }
+
+  @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata");
-    pop(); // Arguments.
-    popIfNotNull(periodBeforeName); // Postfix.
-    pop(); // Type arguments.
-    pop(); // Expression or type name (depends on arguments).
-    // TODO(ahe): Implement metadata on local declarations.
+    var arguments = pop();
+    if (arguments != null) {
+      endConstructorReference(beginToken, periodBeforeName, endToken);
+      push(arguments);
+      endNewExpression(beginToken);
+      push(popForValue());
+    } else {
+      var postfix = popIfNotNull(periodBeforeName);
+      if (postfix != null) {
+        addCompileTimeError(offsetForToken(beginToken), "Not implemented.");
+      }
+      pop(); // Type arguments.
+      var e = popForValue(); // Expression.
+      constantExpressionRequired = pop();
+      push(e);
+    }
   }
 
   @override
   void endMetadataStar(int count, bool forParameter) {
     debugEvent("MetadataStar");
-    push(NullValue.Metadata);
+    push(popList(count) ?? NullValue.Metadata);
   }
 
   @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
     doFields(count);
-    // There's no metadata here because of a slight asymmetry between
-    // [parseTopLevelMember] and [parseMember]. This asymmetry leads to
-    // DietListener discarding top-level member metadata.
   }
 
   @override
   void endFields(int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     doFields(count);
-    pop(); // Metadata.
   }
 
   void doFields(int count) {
+    List<FieldBuilder> fields = <FieldBuilder>[];
     for (int i = 0; i < count; i++) {
       Expression initializer = pop();
       Identifier identifier = pop();
+      String name = identifier.name;
+      FieldBuilder field;
+      if (classBuilder != null) {
+        field = classBuilder[name];
+      } else {
+        field = library[name];
+      }
+      fields.add(field);
       if (initializer != null) {
-        String name = identifier.name;
-        FieldBuilder field;
-        if (classBuilder != null) {
-          field = classBuilder[name];
-        } else {
-          field = library[name];
-        }
         if (field.next != null) {
           // TODO(ahe): This can happen, for example, if a final field is
           // combined with a setter.
@@ -394,6 +410,20 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     pop(); // Type.
     pop(); // Modifiers.
+    List annotations = pop();
+    if (annotations != null) {
+      Field field = fields.first.target;
+      // The first (and often only field) will not get a clone.
+      annotations.forEach(field.addAnnotation);
+      for (int i = 1; i < fields.length; i++) {
+        // We have to clone the annotations on the remaining fields.
+        field = fields[i].target;
+        cloner ??= new CloneVisitor();
+        for (Expression annotation in annotations) {
+          field.addAnnotation(cloner.clone(annotation));
+        }
+      }
+    }
   }
 
   @override
@@ -516,14 +546,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void finishFunction(
-      FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
+  void finishFunction(List annotations, FormalParameters formals,
+      AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
     typePromoter.finished();
     _typeInferrer.inferFunctionBody(
         _computeReturnTypeContext(member), asyncModifier, body);
     KernelFunctionBuilder builder = member;
     builder.body = body;
+    Member target = builder.target;
+    for (Expression annotation in annotations ?? const []) {
+      target.addAnnotation(annotation);
+    }
     if (formals?.optional != null) {
       Iterator<FormalParameterBuilder> formalBuilders =
           builder.formals.skip(formals.required.length).iterator;
@@ -2211,7 +2245,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         if (target is Constructor ||
             (target is Procedure && target.kind == ProcedureKind.Factory)) {
           push(buildStaticInvocation(target, arguments,
-              isConst: optional("const", token),
+              isConst: optional("const", token) || optional("@", token),
               charOffset: nameToken.charOffset,
               initialTarget: initialTarget));
           return;

@@ -551,7 +551,6 @@ mirrors/metadata_allowed_values_test/01: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/03: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/04: MissingCompileTimeError
-mirrors/metadata_allowed_values_test/05: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/09: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/10: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/11: MissingCompileTimeError
@@ -565,7 +564,7 @@ mirrors/metadata_allowed_values_test/29: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/30: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/31: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/none: RuntimeError
-mirrors/metadata_constructed_constant_test: RuntimeError
+mirrors/metadata_constructed_constant_test: Crash
 mirrors/metadata_constructor_arguments_test/01: MissingCompileTimeError
 mirrors/metadata_constructor_arguments_test/02: MissingCompileTimeError
 mirrors/metadata_constructor_arguments_test/03: MissingCompileTimeError

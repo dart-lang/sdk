@@ -198,16 +198,6 @@ Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError
 Language/Expressions/Object_Identity/string_t01: RuntimeError
 Language/Expressions/Strings/adjacent_strings_t02: RuntimeError
 Language/Metadata/before_class_t01: RuntimeError
-Language/Metadata/before_ctor_t01: RuntimeError
-Language/Metadata/before_ctor_t02: RuntimeError
-Language/Metadata/before_factory_t01: RuntimeError
-Language/Metadata/before_function_t01: RuntimeError
-Language/Metadata/before_function_t02: RuntimeError
-Language/Metadata/before_function_t03: RuntimeError
-Language/Metadata/before_function_t04: RuntimeError
-Language/Metadata/before_function_t05: RuntimeError
-Language/Metadata/before_function_t06: RuntimeError
-Language/Metadata/before_function_t07: RuntimeError
 Language/Metadata/before_type_param_t01: RuntimeError
 Language/Metadata/compilation_t01: MissingCompileTimeError
 Language/Metadata/compilation_t02: MissingCompileTimeError
