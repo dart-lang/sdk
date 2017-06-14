@@ -832,6 +832,9 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment TranslateStatement(Statement* statement);
   Fragment TranslateCondition(Expression* expression, bool* negate);
   Fragment TranslateExpression(Expression* expression);
+  Fragment TranslateExpressionForValue(Expression* expression);
+  Fragment TranslateExpressionForEffect(Expression* expression);
+
 
   Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
                                       intptr_t target_context_depth);
@@ -1033,6 +1036,17 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   ScopeBuildingResult* scopes_;
 
+  struct YieldContinuation {
+    Instruction* entry;
+    intptr_t try_index;
+
+    YieldContinuation(Instruction* entry, intptr_t try_index)
+        : entry(entry), try_index(try_index) {}
+
+    YieldContinuation()
+        : entry(NULL), try_index(CatchClauseNode::kInvalidTryIndex) {}
+  };
+
   GrowableArray<YieldContinuation> yield_continuations_;
 
   LocalVariable* CurrentException() {
@@ -1063,6 +1077,9 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   TryCatchBlock* try_catch_block_;
   intptr_t next_used_try_index_;
 
+  // A flag that indicates if the result of current expression is used.
+  bool expr_result_needed_;
+
   // A chained list of catch blocks. Chaining and lookup is done by the
   // [CatchBlock] class.
   CatchBlock* catch_block_;
@@ -1082,6 +1099,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   friend class SwitchBlock;
   friend class TryCatchBlock;
   friend class TryFinallyBlock;
+  friend class ValueContext;
 };
 
 
