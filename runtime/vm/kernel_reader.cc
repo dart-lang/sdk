@@ -202,24 +202,6 @@ Object& KernelReader::ReadProgram() {
           Z, library.LookupObjectAllowPrivate(H.DartSymbol("main")));
       ASSERT(!main_obj.IsNull());
 
-      Function& to_patch = Function::Handle(
-          Z, builtin_library.LookupFunctionAllowPrivate(
-                 dart::String::Handle(dart::String::New("_getMainClosure"))));
-
-      Procedure* procedure =
-          reinterpret_cast<Procedure*>(to_patch.kernel_function());
-      // If dart:_builtin was not compiled from Kernel at all it does not need
-      // to be patched.
-      if (procedure != NULL) {
-        // We will handle the StaticGet specially and will not use the name.
-        // Note that we pass "true" in cannot_stream to avoid trying to stream
-        // a non-existing part of the binary.
-        //
-        // TODO(kmillikin): we are leaking the new function body.  Find a way to
-        // deallocate it.
-        procedure->function()->ReplaceBody(
-            new ReturnStatement(new StaticGet(NameIndex(), false), false));
-      }
       return library;
     }
   }
@@ -271,7 +253,7 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
         Z, dart::Field::NewTopLevel(name, kernel_field->IsFinal(),
                                     kernel_field->IsConst(), script_class,
                                     kernel_field->position()));
-    field.set_kernel_field(kernel_field);
+    field.set_kernel_offset(kernel_field->kernel_offset());
     const AbstractType& type = T.TranslateType(kernel_field->type());
     field.SetFieldType(type);
     field.set_has_initializer(kernel_field->initializer() != NULL);
@@ -423,7 +405,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
                            kernel_field->IsConst(),
                            false,  // is_reflectable
                            script_class, type, kernel_field->position()));
-      field.set_kernel_field(kernel_field);
+      field.set_kernel_offset(kernel_field->kernel_offset());
       field.set_has_initializer(kernel_field->initializer() != NULL);
       GenerateFieldAccessors(klass, field, kernel_field);
       fields_.Add(&field);
@@ -447,7 +429,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
                                klass, kernel_constructor->position()));
     function.set_end_token_pos(kernel_constructor->end_position());
     functions_.Add(&function);
-    function.set_kernel_function(kernel_constructor);
+    function.set_kernel_offset(kernel_constructor->kernel_offset());
     function.set_result_type(T.ReceiverType(klass));
     SetupFunctionParameters(H, T, klass, function,
                             kernel_constructor->function(),
@@ -456,7 +438,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
 
     if (FLAG_enable_mirrors) {
       library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                  kernel_constructor);
+                                  kernel_constructor->kernel_offset());
     }
   }
 
@@ -474,7 +456,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
 
   if (FLAG_enable_mirrors) {
     library.AddClassMetadata(klass, toplevel_class, TokenPosition::kNoSource,
-                             kernel_klass);
+                             kernel_klass->kernel_offset());
   }
 
   return klass;
@@ -533,7 +515,7 @@ void KernelReader::ReadProcedure(const dart::Library& library,
                        script_class, kernel_procedure->position()));
   function.set_end_token_pos(kernel_procedure->end_position());
   functions_.Add(&function);
-  function.set_kernel_function(kernel_procedure);
+  function.set_kernel_offset(kernel_procedure->kernel_offset());
 
   function.set_is_debuggable(
       kernel_procedure->function()->dart_async_marker() == FunctionNode::kSync);
@@ -572,7 +554,7 @@ void KernelReader::ReadProcedure(const dart::Library& library,
   }
   if (FLAG_enable_mirrors) {
     library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                kernel_procedure);
+                                kernel_procedure->kernel_offset());
   }
 }
 
@@ -642,6 +624,8 @@ Script& KernelReader::ScriptAt(intptr_t index, StringIndex import_uri) {
         H.DartString(source_buffer, source_size, Heap::kOld);
     script = Script::New(import_uri_string, uri_string, source_code,
                          RawScript::kKernelTag);
+    script.set_kernel_data(program_->libraries()[0]->kernel_data());
+    script.set_kernel_data_size(program_->libraries()[0]->kernel_data_size());
     script.set_kernel_string_offsets(H.string_offsets());
     script.set_kernel_string_data(H.string_data());
     script.set_kernel_canonical_names(H.canonical_names());
@@ -729,7 +713,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
           script_class, kernel_field->position()));
   functions_.Add(&getter);
   getter.set_end_token_pos(kernel_field->end_position());
-  getter.set_kernel_function(kernel_field);
+  getter.set_kernel_offset(kernel_field->kernel_offset());
   getter.set_result_type(AbstractType::Handle(Z, field.type()));
   getter.set_is_debuggable(false);
   SetupFieldAccessorFunction(klass, getter);
@@ -749,7 +733,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                          script_class, kernel_field->position()));
     functions_.Add(&setter);
     setter.set_end_token_pos(kernel_field->end_position());
-    setter.set_kernel_function(kernel_field);
+    setter.set_kernel_offset(kernel_field->kernel_offset());
     setter.set_result_type(Object::void_type());
     setter.set_is_debuggable(false);
     SetupFieldAccessorFunction(klass, setter);
@@ -916,8 +900,6 @@ RawFunction::Kind KernelReader::GetFunctionType(Procedure* kernel_procedure) {
 ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
                                             const dart::Field& field) {
   Thread* thread = Thread::Current();
-  kernel::Field* kernel_field = kernel::Field::Cast(
-      reinterpret_cast<kernel::Node*>(field.kernel_field()));
 
   dart::String& init_name = dart::String::Handle(zone, field.name());
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
@@ -933,7 +915,7 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
                           false,  // is_external
                           false,  // is_native
                           owner, TokenPosition::kNoSource));
-  initializer_fun.set_kernel_function(kernel_field);
+  initializer_fun.set_kernel_offset(field.kernel_offset());
   initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_debuggable(false);
   initializer_fun.set_is_reflectable(false);

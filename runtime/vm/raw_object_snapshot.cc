@@ -757,7 +757,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     func.set_deoptimization_counter(reader->Read<int8_t>());
     func.set_optimized_instruction_count(reader->Read<uint16_t>());
     func.set_optimized_call_site_count(reader->Read<uint16_t>());
-    func.set_kernel_function(NULL);
+    func.set_kernel_offset(0);
     func.set_was_compiled(false);
 
     // Set all the object fields.
@@ -863,7 +863,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   field.set_guarded_cid(reader->Read<int32_t>());
   field.set_is_nullable(reader->Read<int32_t>());
   field.set_kind_bits(reader->Read<uint8_t>());
-  field.set_kernel_field(NULL);
+  field.set_kernel_offset(0);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(field, field.raw()->from(), field.raw()->to_snapshot(kind),

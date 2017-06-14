@@ -617,6 +617,7 @@ class BinaryBuilder {
     AsyncMarker dartAsyncMarker = AsyncMarker.values[readByte()];
     int typeParameterStackHeight = typeParameterStack.length;
     var typeParameters = readAndPushTypeParameterList();
+    readUInt(); // total parameter count.
     var requiredParameterCount = readUInt();
     int variableStackHeight = variableStack.length;
     var positional = readAndPushVariableDeclarationList();
