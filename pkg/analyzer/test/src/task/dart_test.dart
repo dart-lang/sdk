@@ -27,6 +27,7 @@ import 'package:analyzer/src/task/strong/ast_properties.dart' as strong_ast;
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:front_end/src/scanner/scanner.dart' as fe;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -3261,7 +3262,12 @@ class A {''');
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
     expect(outputs[INCLUDED_PARTS], hasLength(1));
     expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(2));
-    expect(outputs[PARSE_ERRORS], hasLength(1));
+    if (fe.Scanner.useFasta) {
+      // Missing closing brace error is reported by the Fasta scanner.
+      expect(outputs[PARSE_ERRORS], hasLength(0));
+    } else {
+      expect(outputs[PARSE_ERRORS], hasLength(1));
+    }
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[REFERENCED_SOURCES], hasLength(5));
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
@@ -4387,6 +4393,23 @@ bar(); //ignore: error_code, error_code_2
     expect(ignoreInfo.hasIgnores, isFalse);
   }
 
+  test_perform_library() {
+    _performScanTask(r'''
+library lib;
+import 'lib2.dart';
+export 'lib3.dart';
+part 'part.dart';
+class A {''');
+    expect(outputs, hasLength(4));
+    expect(outputs[LINE_INFO], isNotNull);
+    // Missing closing brace error is reported by the Fasta scanner.
+    expect(outputs[SCAN_ERRORS], hasLength(fe.Scanner.useFasta ? 1 : 0));
+    expect(outputs[TOKEN_STREAM], isNotNull);
+    IgnoreInfo ignoreInfo = outputs[IGNORE_INFO];
+    expect(ignoreInfo, isNotNull);
+    expect(ignoreInfo.hasIgnores, isFalse);
+  }
+
   test_perform_noErrors() {
     _performScanTask('class A {}');
     expect(outputs, hasLength(4));
@@ -4418,7 +4441,12 @@ bar(); //ignore: error_code, error_code_2
 
     computeResult(script, TOKEN_STREAM, matcher: isScanDartTask);
     expect(outputs[LINE_INFO], isNotNull);
-    expect(outputs[SCAN_ERRORS], isEmpty);
+    if (fe.Scanner.useFasta) {
+      // Missing closing brace error is reported by Fasta scanner.
+      expect(outputs[SCAN_ERRORS], hasLength(1));
+    } else {
+      expect(outputs[SCAN_ERRORS], isEmpty);
+    }
     Token tokenStream = outputs[TOKEN_STREAM];
     expect(tokenStream, isNotNull);
     expect(tokenStream.lexeme, 'void');
