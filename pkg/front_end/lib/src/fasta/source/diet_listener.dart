@@ -406,7 +406,7 @@ class DietListener extends StackListener {
   }
 
   StackListener createListener(
-      MemberBuilder builder, Scope memberScope, bool isInstanceMember,
+      ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope]) {
     var listener = new TypeInferenceListener();
     InterfaceType thisType;
@@ -458,10 +458,19 @@ class DietListener extends StackListener {
   void beginClassBody(Token token) {
     debugEvent("beginClassBody");
     String name = pop();
-    pop(); // Metadata.
+    Token metadata = pop();
     assert(currentClass == null);
-    currentClass = lookupBuilder(token, null, name);
     assert(memberScope == library.scope);
+    Builder classBuilder = lookupBuilder(token, null, name);
+    if (metadata != null) {
+      StackListener listener = createListener(classBuilder, memberScope, false);
+      Parser parser = new Parser(listener);
+      parser.parseMetadataStar(metadata);
+      List metadataConstants = listener.pop();
+      Class cls = classBuilder.target;
+      metadataConstants.forEach(cls.addAnnotation);
+    }
+    currentClass = classBuilder;
     memberScope = currentClass.scope;
   }
 

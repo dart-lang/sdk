@@ -5,5 +5,4 @@
 # Status file for the shaker_test.dart test suite. This is only testing the
 # tree-shaking piece of the modular compilation in fasta.
 
-roots4: Fail # Annotations are not implemented
 include_field_type: Fail # Fasta does not create interfaceTarget on accessors.

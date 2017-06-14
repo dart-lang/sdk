@@ -78,7 +78,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   final KernelLibraryBuilder library;
 
-  final MemberBuilder member;
+  final ModifierBuilder member;
 
   final KernelClassBuilder classBuilder;
 
@@ -349,20 +349,41 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata");
     var arguments = pop();
+    pushQualifiedReference(beginToken.next, periodBeforeName);
     if (arguments != null) {
-      endConstructorReference(beginToken, periodBeforeName, endToken);
       push(arguments);
       endNewExpression(beginToken);
       push(popForValue());
     } else {
-      var postfix = popIfNotNull(periodBeforeName);
-      if (postfix != null) {
-        addCompileTimeError(offsetForToken(beginToken), "Not implemented.");
+      String name = pop();
+      pop(); // Type arguments (ignored, already reported by parser).
+      var expression = pop();
+      if (expression is Identifier) {
+        Identifier identifier = expression;
+        expression = new UnresolvedAccessor(
+            this, new Name(identifier.name, library.library), identifier.token);
       }
-      pop(); // Type arguments.
-      var e = popForValue(); // Expression.
-      constantExpressionRequired = pop();
-      push(e);
+      if (name?.isNotEmpty ?? false) {
+        Token period = periodBeforeName ?? beginToken.next;
+        FastaAccessor accessor = expression;
+        expression = accessor.buildPropertyAccess(
+            new IncompletePropertyAccessor(
+                this, period.next, new Name(name, library.library)),
+            period.next.offset,
+            false);
+      }
+
+      bool savedConstantExpressionRequired = pop();
+      if (expression is! StaticAccessor) {
+        push(wrapInCompileTimeError(
+            toValue(expression),
+            "This can't be used as metadata; metadata should be a reference to "
+            "a compile-time constant variable, or "
+            "a call to a constant constructor."));
+      } else {
+        push(toValue(expression));
+      }
+      constantExpressionRequired = savedConstantExpressionRequired;
     }
   }
 
@@ -2023,25 +2044,43 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endConstructorReference(
       Token start, Token periodBeforeName, Token endToken) {
     debugEvent("ConstructorReference");
-    // A constructor reference can contain up to three identifiers:
-    //
-    //     a) type <type-arguments>?
-    //     b) type <type-arguments>? . name
-    //     c) prefix . type <type-arguments>?
-    //     d) prefix . type <type-arguments>? . name
-    //
-    // This isn't a legal constructor reference:
-    //
-    //     type . name <type-arguments>
-    //
-    // But the parser can't tell this from type c) above.
-    //
-    // This method pops 2 (or 3 if periodBeforeName != null) values from the
-    // stack and pushes 3 values: a type, a list of type arguments, and a name.
-    //
-    // If the constructor reference can be resolved, type is either a
-    // ClassBuilder, or a ThisPropertyAccessor. Otherwise, it's an error that
-    // should be handled later.
+    pushQualifiedReference(start, periodBeforeName);
+  }
+
+  /// A qualfied reference is something that matches one of:
+  ///
+  ///     identifier
+  ///     identifier typeArguments? '.' identifier
+  ///     identifier '.' identifier typeArguments? '.' identifier
+  ///
+  /// That is, one to three identifiers separated by periods and optionally one
+  /// list of type arguments.
+  ///
+  /// A qualified reference can be used to represent both a reference to
+  /// compile-time constant variable (metadata) or a constructor reference
+  /// (used by metadata, new/const expression, and redirecting factories).
+  ///
+  /// Note that the parser will report errors if metadata includes type
+  /// arguments, but will other preserve them for error recovery.
+  ///
+  /// A constructor reference can contain up to three identifiers:
+  ///
+  ///     a) type typeArguments?
+  ///     b) type typeArguments? '.' name
+  ///     c) prefix '.' type typeArguments?
+  ///     d) prefix '.' type typeArguments? '.' name
+  ///
+  /// This isn't a legal constructor reference:
+  ///
+  ///     type '.' name typeArguments?
+  ///
+  /// But the parser can't tell this from type c) above.
+  ///
+  /// This method pops 2 (or 3 if `periodBeforeName != null`) values from the
+  /// stack and pushes 3 values: an accessor (the type in a constructor
+  /// reference, or an expression in metadata), a list of type arguments, and a
+  /// name.
+  void pushQualifiedReference(Token start, Token periodBeforeName) {
     Identifier suffix = popIfNotNull(periodBeforeName);
     Identifier identifier;
     List<DartType> typeArguments = pop();

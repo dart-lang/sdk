@@ -104,8 +104,6 @@ const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map du
 map_literal3_test: RuntimeError # KernelVM bug: Constant map duplicated key.
 map_literal6_test: RuntimeError # KernelVM bug: Constant map duplicated key.
 
-const_evaluation_test/01: RuntimeError # KernelVM bug: Reflecting on metadata.
-
 cyclic_type_test/00: RuntimeError # KernelVM bug: Incorrect type argument.
 cyclic_type_test/01: RuntimeError # KernelVM bug: Incorrect type argument.
 cyclic_type_test/03: RuntimeError # KernelVM bug: Incorrect type argument.
