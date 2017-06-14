@@ -139,7 +139,6 @@ final subpackageRules = {
   'lib/src/testing': new SubpackageRules(allowedDependencies: [
     'lib',
   ]),
-  'lib/src/vm': new SubpackageRules(allowedDependencies: []),
 };
 
 /// Rules for what a subpackage may depend directly on.

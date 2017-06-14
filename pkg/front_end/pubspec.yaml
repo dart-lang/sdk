@@ -14,3 +14,6 @@ dev_dependencies:
   package_config: '^1.0.0'
   test: ^0.12.0
   test_reflective_loader: ^0.1.0
+  json_rpc_2: ^2.0.4
+  stream_channel: ^1.6.1
+  web_socket_channel: ^1.0.4
