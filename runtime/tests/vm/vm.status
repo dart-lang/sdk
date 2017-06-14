@@ -3,17 +3,17 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Issue 28198
-cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail, Crash, Timeout
-cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail, Crash, Timeout
-cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash, Timeout
-cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash, Timeout
-cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail, Crash, Timeout
-cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash, Timeout
+cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: SkipSlow
+cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: SkipSlow
+cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: SkipSlow
+cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: SkipSlow
+cc/IsolateReload_PendingStaticCall_DefinedToNSM: SkipSlow
+cc/IsolateReload_PendingStaticCall_NSMToDefined: SkipSlow
 
 # These tests are expected to crash on all platforms.
-cc/ArrayNew_Overflow_Crash: Crash, Timeout
-cc/AllocGeneric_Overflow: Crash, Timeout
-cc/CodeImmutability: Crash
+cc/ArrayNew_Overflow_Crash: SkipSlow
+cc/AllocGeneric_Overflow: SkipSlow
+cc/CodeImmutability: SkipSlow
 cc/Fail0: Fail
 cc/Fail1: Fail
 cc/Fail2: Fail
@@ -26,7 +26,7 @@ cc/SNPrint_BadArgs: Skip
 cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
 
 # Flaky on buildbot. Issue 5133 and 10409.
-cc/Sleep: Pass, Fail
+cc/Sleep: Skip # Flaky
 
 dart/data_uri_import_test/none: SkipByDesign
 
@@ -154,7 +154,7 @@ dart/optimized_stacktrace_line_and_column_test: RuntimeError
 
 # Methods can be missing in dart2js stack traces due to inlining.  Also when
 # minifying they can be renamed, which is issue 7953.
-dart/inline_stack_frame_test: RuntimeError, Pass # Issue 7953
+dart/inline_stack_frame_test: Skip # Issue 7953
 
 [ $compiler == dart2js || $compiler == dart2analyzer ]
 # Data uri's not supported by dart2js or the analyzer.
@@ -242,7 +242,7 @@ cc/GuardFieldSimpleTest: Skip
 cc/RegenerateAllocStubs: Skip
 
 [ $arch == simdbc64 && $mode == release ]
-cc/UseDartApi: Pass,Crash # Issue 28499
+cc/UseDartApi: Skip # Issue 28499
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
@@ -267,7 +267,7 @@ dart/inline_stack_frame_test: RuntimeError
 dart/optimized_stacktrace_line_test: RuntimeError
 dart/redirection_type_shuffling_test/none: RuntimeError # Issue 29201
 dart/regress29620_test: RuntimeError
-dart/spawn_shutdown_test: Timeout
+dart/spawn_shutdown_test: SkipSlow
 
 [ ($compiler == dartk) && ($runtime == vm) ]
 cc/CanonicalizationInScriptSnapshots: Fail
@@ -288,13 +288,13 @@ cc/Dart_PropagateError: Fail
 cc/Debug_EvaluateExpr: Fail
 cc/Debug_EvaluateInActivationOfEvaluate: Fail
 cc/Debug_GetClosureInfo: Fail
-cc/Debug_InterruptIsolate: Timeout
+cc/Debug_InterruptIsolate: SkipSlow
 cc/Debug_IsolateID: Fail
 cc/Debug_ListSuperType: Fail
 cc/Debug_ScriptGetTokenInfo_Basic: Fail
 cc/Debug_ScriptGetTokenInfo_MultiLineInterpolation: Fail
 cc/Debugger_PrintBreakpointsToJSONArray: Fail
-cc/Debugger_Rewind_Optimized: Timeout
+cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInFunctionLiteralFieldInitializers: Crash
 cc/ErrorHandleBasics: Fail
 cc/EvalExpression: Crash
@@ -385,7 +385,7 @@ cc/IsolateReload_TypeIdentityGeneric: Fail
 cc/IsolateReload_TypeIdentityParameter: Fail
 cc/IsolateReload_TypedefAddParameter: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
-cc/IsolateShutdownRunDartCode: Pass, Fail # Flaky
+cc/IsolateShutdownRunDartCode: Skip # Flaky
 cc/IsolateSpawn: Crash
 cc/JSON_JSONStream_DartString: Crash
 cc/LazyLoadDeoptimizes: Crash
@@ -467,7 +467,7 @@ dart/data_uri_import_test/wrongmime: CompileTimeError
 dart/data_uri_spawn_test: RuntimeError
 dart/redirection_type_shuffling_test/00: Crash
 dart/redirection_type_shuffling_test/none: Crash
-dart/spawn_shutdown_test: Timeout
+dart/spawn_shutdown_test: SkipSlow
 
 [ ($compiler == dartk) && ($runtime == vm) && ($mode == release) ]
 cc/Debug_BreakpointStubPatching: Fail
@@ -556,4 +556,3 @@ cc/Profiler_BinaryOperatorSourcePosition: Crash
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Crash
 cc/Profiler_SourcePosition: Crash
 cc/Profiler_SourcePositionOptimized: Crash
-cc/Debugger_Rewind_Optimized: Skip # Flaky and times out.
