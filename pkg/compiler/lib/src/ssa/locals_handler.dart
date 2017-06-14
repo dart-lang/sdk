@@ -32,7 +32,7 @@ class LocalsHandler {
   Map<Local, HInstruction> directLocals = new Map<Local, HInstruction>();
   Map<Local, FieldEntity> redirectionMapping = new Map<Local, FieldEntity>();
   final GraphBuilder builder;
-  ClosureClassMap closureData;
+  ClosureRepresentationInfo closureData;
   Map<TypeVariableType, TypeVariableLocal> typeVariableLocals =
       new Map<TypeVariableType, TypeVariableLocal>();
   final Entity executableContext;
@@ -196,8 +196,11 @@ class LocalsHandler {
   /// Documentation wanted -- johnniwinther
   ///
   /// Invariant: [function] must be an implementation element.
-  void startFunction(MemberEntity element, ClosureClassMap closureData,
-      ClosureScope scopeData, Map<Local, TypeMask> parameters,
+  void startFunction(
+      MemberEntity element,
+      ClosureRepresentationInfo closureData,
+      ClosureAnalysisInfo scopeData,
+      Map<Local, TypeMask> parameters,
       {bool isGenerativeConstructorBody}) {
     assert(!(element is MemberElement && !element.isImplementation),
         failedAt(element));
@@ -205,7 +208,7 @@ class LocalsHandler {
 
     parameters.forEach((Local local, TypeMask typeMask) {
       if (isGenerativeConstructorBody) {
-        if (scopeData != null && scopeData.isCaptured(local)) {
+        if (scopeData.isCaptured(local)) {
           // The parameter will be a field in the box passed as the
           // last parameter. So no need to have it.
           return;
@@ -216,14 +219,8 @@ class LocalsHandler {
       directLocals[local] = parameter;
     });
 
-    if (scopeData != null) {
-      // TODO(efortuna): Remove the above if wrapper (always execute this step)
-      // when the switch away from ClosureClassMap is complete (prior behavior
-      // in enterScope it was acceptable to pass in a null scopeData, but no
-      // longer).
-      enterScope(scopeData,
-          forGenerativeConstructorBody: isGenerativeConstructorBody);
-    }
+    enterScope(scopeData,
+        forGenerativeConstructorBody: isGenerativeConstructorBody);
 
     // If the freeVariableMapping is not empty, then this function was a
     // nested closure that captures variables. Redirect the captured
@@ -237,7 +234,7 @@ class LocalsHandler {
           new HThis(closureData.thisLocal, commonMasks.nonNullType);
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
-      updateLocal(closureData.closureElement, thisInstruction);
+      updateLocal(closureData.closureEntity, thisInstruction);
     } else if (element.isInstanceMember) {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static
@@ -295,7 +292,7 @@ class LocalsHandler {
   bool isAccessedDirectly(Local local) {
     assert(local != null);
     return !redirectionMapping.containsKey(local) &&
-        !closureData.variablesUsedInTryOrGenerator.contains(local);
+        !closureData.variableIsUsedInTryOrSync(local);
   }
 
   bool isStoredInClosureField(Local local) {
@@ -313,7 +310,7 @@ class LocalsHandler {
   }
 
   bool isUsedInTryOrGenerator(Local local) {
-    return closureData.variablesUsedInTryOrGenerator.contains(local);
+    return closureData.variableIsUsedInTryOrSync(local);
   }
 
   /// Returns an [HInstruction] for the given element. If the element is
@@ -342,7 +339,7 @@ class LocalsHandler {
       return value;
     } else if (isStoredInClosureField(local)) {
       ClosureFieldElement redirect = redirectionMapping[local];
-      HInstruction receiver = readLocal(closureData.closureElement);
+      HInstruction receiver = readLocal(closureData.closureEntity);
       TypeMask type = local is BoxLocal
           ? commonMasks.nonNullType
           : getTypeOfCapturedVariable(redirect);

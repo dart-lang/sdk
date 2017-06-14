@@ -867,7 +867,8 @@ class SsaBuilder extends ast.Visitor
     assert(resolvedAst != null);
     localsHandler = new LocalsHandler(this, function, function.memberContext,
         function.contextClass, instanceType, nativeData, interceptorData);
-    localsHandler.closureData = closureToClassMapper.getMemberMap(function);
+    localsHandler.closureData =
+        closureToClassMapper.getClosureRepresentationInfo(function);
     returnLocal =
         new SyntheticLocal("result", function, function.memberContext);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(closedWorld));
@@ -1033,18 +1034,14 @@ class SsaBuilder extends ast.Visitor
       resolvedAst = callee.resolvedAst;
       final oldElementInferenceResults = elementInferenceResults;
       elementInferenceResults = globalInferenceResults.resultOfMember(callee);
-      ClosureClassMap oldClosureData = localsHandler.closureData;
-      ClosureClassMap newClosureData =
-          closureToClassMapper.getMemberMap(callee);
+      ClosureRepresentationInfo oldClosureData = localsHandler.closureData;
+      ClosureRepresentationInfo newClosureData =
+          closureToClassMapper.getClosureRepresentationInfo(callee);
       localsHandler.closureData = newClosureData;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        // TODO(efortuna): Take out the test below for null once we are no
-        // longer dealing with the ClosureClassMap interface directly.
-        if (newClosureData.capturingScopes[resolvedAst.node] != null) {
-          localsHandler.enterScope(
-              newClosureData.capturingScopes[resolvedAst.node],
-              forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
-        }
+        localsHandler.enterScope(
+            closureToClassMapper.getClosureAnalysisInfo(resolvedAst.node),
+            forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
       localsHandler.closureData = oldClosureData;
@@ -1456,9 +1453,10 @@ class SsaBuilder extends ast.Visitor
       });
     }
 
-    ClosureClassMap closureData = closureToClassMapper.getMemberMap(element);
-    localsHandler.startFunction(
-        element, closureData, closureData.capturingScopes[node], parameters,
+    ClosureRepresentationInfo closureData =
+        closureToClassMapper.getClosureRepresentationInfo(element);
+    localsHandler.startFunction(element, closureData,
+        closureToClassMapper.getClosureAnalysisInfo(node), parameters,
         isGenerativeConstructorBody: element.isGenerativeConstructorBody);
     close(new HGoto()).addSuccessor(block);
 
@@ -1899,25 +1897,19 @@ class SsaBuilder extends ast.Visitor
 
   visitFunctionExpression(ast.FunctionExpression node) {
     LocalFunctionElement methodElement = elements[node];
-    ClosureClassMap nestedClosureData =
-        closureToClassMapper.getLocalFunctionMap(methodElement);
-    assert(nestedClosureData != null);
-    assert(nestedClosureData.closureClassElement != null);
-    ClosureClassElement closureClassElement =
-        nestedClosureData.closureClassElement;
-    MethodElement callElement = nestedClosureData.callElement;
+    ClosureRepresentationInfo closureInfo =
+        closureToClassMapper.getClosureRepresentationInfo(methodElement);
+    ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    closureClassElement.closureFields.forEach((ClosureFieldElement field) {
-      Local capturedLocal =
-          nestedClosureData.getLocalVariableForClosureField(field);
-      assert(capturedLocal != null);
-      capturedVariables.add(localsHandler.readLocal(capturedLocal));
+    closureInfo.createdFieldEntities.forEach((Local field) {
+      assert(field != null);
+      capturedVariables.add(localsHandler.readLocal(field));
     });
 
-    TypeMask type = new TypeMask.nonNullExact(closureClassElement, closedWorld);
-    push(new HCreate(closureClassElement, capturedVariables, type,
-        callMethod: callElement, localFunction: methodElement)
+    TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
+    push(new HCreate(closureClassEntity, capturedVariables, type,
+        callMethod: closureInfo.callMethod, localFunction: methodElement)
       ..sourceInformation = sourceInformationBuilder.buildCreate(node));
   }
 

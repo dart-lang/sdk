@@ -4,7 +4,7 @@
 
 library simple_types_inferrer;
 
-import '../closure.dart' show ClosureClassMap;
+import '../closure.dart' show ClosureRepresentationInfo;
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../compiler.dart' show Compiler;
@@ -915,8 +915,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ClosureClassMap closureData =
-        compiler.closureToClassMapper.getClosureToClassMapping(analyzedElement);
+    ClosureRepresentationInfo closureData = compiler.closureToClassMapper
+        .getClosureRepresentationInfo(analyzedElement);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);
     });
@@ -1099,8 +1099,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
     // a previous closure.
-    ClosureClassMap nestedClosureData =
-        compiler.closureToClassMapper.getClosureToClassMapping(element);
+    ClosureRepresentationInfo nestedClosureData =
+        compiler.closureToClassMapper.getClosureRepresentationInfo(element);
     nestedClosureData.forEachCapturedVariable((variable, field) {
       if (!nestedClosureData.isVariableBoxed(variable)) {
         if (variable == nestedClosureData.thisLocal) {

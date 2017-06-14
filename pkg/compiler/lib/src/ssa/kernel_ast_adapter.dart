@@ -125,10 +125,10 @@ class KernelAstAdapter extends KernelToElementMapMixin
       // Closures require a lookup one level deeper in the closure class mapper.
       if (target == null) {
         MethodElement originTargetFunction = originTarget;
-        ClosureClassMap classMap = _compiler.closureToClassMapper
-            .getClosureToClassMapping(originTargetFunction);
-        if (classMap.closureElement != null) {
-          target = kernel.localFunctions[classMap.closureElement];
+        ClosureRepresentationInfo classMap = _compiler.closureToClassMapper
+            .getClosureRepresentationInfo(originTargetFunction);
+        if (classMap.closureEntity != null) {
+          target = kernel.localFunctions[classMap.closureEntity];
         }
       }
     } else if (originTarget is FieldElement) {

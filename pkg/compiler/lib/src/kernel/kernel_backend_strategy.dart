@@ -314,20 +314,6 @@ class KernelClosureClassMaps implements ClosureClassMaps<ir.Node> {
   const KernelClosureClassMaps();
 
   @override
-  ClosureClassMap getLocalFunctionMap(Local localFunction) {
-    return new ClosureClassMap(null, null, null, null);
-  }
-
-  @override
-  ClosureClassMap getMemberMap(MemberEntity member) {
-    ThisLocal thisLocal;
-    if (member.isInstanceMember) {
-      thisLocal = new ThisLocal(member);
-    }
-    return new ClosureClassMap(null, null, null, thisLocal);
-  }
-
-  @override
   ClosureAnalysisInfo getClosureAnalysisInfo(ir.Node node) {
     return const ClosureAnalysisInfo();
   }
@@ -336,6 +322,18 @@ class KernelClosureClassMaps implements ClosureClassMaps<ir.Node> {
   LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
       ir.Node loopNode) {
     return const LoopClosureRepresentationInfo();
+  }
+
+  @override
+  ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) {
+    if (entity is MemberEntity) {
+      ThisLocal thisLocal;
+      if (entity.isInstanceMember) {
+        thisLocal = new ThisLocal(entity);
+      }
+      return new ClosureClassMap(null, null, null, thisLocal);
+    }
+    return const ClosureRepresentationInfo();
   }
 }
 

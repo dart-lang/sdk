@@ -595,22 +595,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     // Set the locals handler state as if we were inlining the constructor.
     ConstructorEntity astElement = _elementMap.getConstructor(constructor);
-    ClosureClassMap oldClosureData = localsHandler.closureData;
-    ClosureClassMap newClosureData =
-        closureToClassMapper.getMemberMap(astElement);
+    ClosureRepresentationInfo oldClosureData = localsHandler.closureData;
+    ClosureRepresentationInfo newClosureData =
+        closureToClassMapper.getClosureRepresentationInfo(astElement);
     if (astElement is ConstructorElement) {
       // TODO(johnniwinther): Support constructor (body) entities.
       ResolvedAst resolvedAst = astElement.resolvedAst;
       localsHandler.closureData = newClosureData;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        // TODO(efortuna): Take out the test below for null once we are no
-        // longer dealing with the ClosureClassMap interface directly.
-        if (newClosureData.capturingScopes[resolvedAst.node] != null) {
-          localsHandler.enterScope(
-              newClosureData.capturingScopes[resolvedAst.node],
-              forGenerativeConstructorBody:
-                  astElement.isGenerativeConstructorBody);
-        }
+        localsHandler.enterScope(
+            closureToClassMapper.getClosureAnalysisInfo(resolvedAst.node),
+            forGenerativeConstructorBody:
+                astElement.isGenerativeConstructorBody);
       }
     }
     inlinedFrom(astElement, () {
@@ -697,10 +693,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
 
-    ClosureClassMap closureData =
-        closureToClassMapper.getMemberMap(targetElement);
-    localsHandler.startFunction(targetElement, closureData,
-        closureData.capturingScopes[functionNode], parameterMap,
+    localsHandler.startFunction(
+        targetElement,
+        closureToClassMapper.getClosureRepresentationInfo(targetElement),
+        closureToClassMapper.getClosureAnalysisInfo(functionNode),
+        parameterMap,
         isGenerativeConstructorBody: _targetIsConstructorBody);
     close(new HGoto()).addSuccessor(block);
 
@@ -2836,26 +2833,20 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   visitFunctionNode(ir.FunctionNode node) {
     Local methodElement = _elementMap.getLocalFunction(node);
-    ClosureClassMap nestedClosureData =
-        closureToClassMapper.getLocalFunctionMap(methodElement);
-    assert(nestedClosureData != null);
-    assert(nestedClosureData.closureClassElement != null);
-    ClosureClassElement closureClassElement =
-        nestedClosureData.closureClassElement;
-    MethodElement callElement = nestedClosureData.callElement;
+    ClosureRepresentationInfo closureInfo =
+        closureToClassMapper.getClosureRepresentationInfo(methodElement);
+    ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    closureClassElement.closureFields.forEach((ClosureFieldElement field) {
-      Local capturedLocal =
-          nestedClosureData.getLocalVariableForClosureField(field);
+    closureInfo.createdFieldEntities.forEach((Local capturedLocal) {
       assert(capturedLocal != null);
       capturedVariables.add(localsHandler.readLocal(capturedLocal));
     });
 
-    TypeMask type = new TypeMask.nonNullExact(closureClassElement, closedWorld);
+    TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
     // TODO(efortuna): Add source information here.
-    push(new HCreate(closureClassElement, capturedVariables, type,
-        callMethod: callElement, localFunction: methodElement));
+    push(new HCreate(closureClassEntity, capturedVariables, type,
+        callMethod: closureInfo.callMethod, localFunction: methodElement));
   }
 
   @override

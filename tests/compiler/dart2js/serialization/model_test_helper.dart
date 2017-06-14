@@ -160,48 +160,40 @@ void checkElements(
   if (element1.isFunction ||
       element1.isConstructor ||
       (element1.isField && element1.isInstanceMember)) {
-    ClosureClassMap closureData1 =
-        compiler1.closureToClassMapper.getClosureToClassMapping(element1);
-    ClosureClassMap closureData2 =
-        compiler2.closureToClassMapper.getClosureToClassMapping(element2);
+    ClosureRepresentationInfo closureData1 =
+        compiler1.closureToClassMapper.getClosureRepresentationInfo(element1);
+    ClosureRepresentationInfo closureData2 =
+        compiler2.closureToClassMapper.getClosureRepresentationInfo(element2);
 
     checkElementIdentities(
         closureData1,
         closureData2,
-        '$element1.closureElement',
-        closureData1.closureElement,
-        closureData2.closureElement);
+        '$element1.closureEntity',
+        closureData1.closureEntity,
+        closureData2.closureEntity);
     checkElementIdentities(
         closureData1,
         closureData2,
-        '$element1.closureClassElement',
-        closureData1.closureClassElement,
-        closureData2.closureClassElement);
-    checkElementIdentities(closureData1, closureData2, '$element1.callElement',
-        closureData1.callElement, closureData2.callElement);
+        '$element1.closureClassEntity',
+        closureData1.closureClassEntity,
+        closureData2.closureClassEntity);
+    checkElementIdentities(closureData1, closureData2, '$element1.callMethod',
+        closureData1.callMethod, closureData2.callMethod);
     check(closureData1, closureData2, '$element1.thisLocal',
         closureData1.thisLocal, closureData2.thisLocal, areLocalsEquivalent);
-    checkMaps(
-        closureData1.freeVariableMap,
-        closureData2.freeVariableMap,
-        "$element1.freeVariableMap",
-        areLocalsEquivalent,
-        areCapturedVariablesEquivalent,
-        verbose: verbose);
-    checkMaps(
-        closureData1.capturingScopes,
-        closureData2.capturingScopes,
-        "$element1.capturingScopes",
-        areNodesEquivalent,
-        areClosureScopesEquivalent,
-        verbose: verbose,
-        keyToString: nodeToString);
-    checkSets(
-        closureData1.variablesUsedInTryOrGenerator,
-        closureData2.variablesUsedInTryOrGenerator,
-        "$element1.variablesUsedInTryOrGenerator",
-        areLocalsEquivalent,
-        verbose: verbose);
+    checkElementListIdentities(
+        closureData1,
+        closureData2,
+        "$element1.createdFieldEntities",
+        closureData1.createdFieldEntities,
+        closureData2.createdFieldEntities);
+    check(
+        closureData1,
+        closureData2,
+        '$element1.thisFieldEntity',
+        closureData1.thisFieldEntity,
+        closureData2.thisFieldEntity,
+        areLocalsEquivalent);
     if (element1 is MemberElement && element2 is MemberElement) {
       MemberElement member1 = element1.implementation;
       MemberElement member2 = element2.implementation;

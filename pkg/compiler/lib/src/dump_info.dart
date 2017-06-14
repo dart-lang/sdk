@@ -32,7 +32,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   final ClosedWorld closedWorld;
 
   final AllInfo result = new AllInfo();
-  final Map<Element, Info> _elementToInfo = <Element, Info>{};
+  final Map<Entity, Info> _elementToInfo = <Entity, Info>{};
   final Map<ConstantValue, Info> _constantToInfo = <ConstantValue, Info>{};
   final Map<OutputUnit, OutputUnitInfo> _outputToInfo = {};
 
@@ -65,7 +65,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   }
 
   /// Visits [element] and produces it's corresponding info.
-  Info process(Element element) {
+  Info process(Entity element) {
     // TODO(sigmund): change the visit order to eliminate the need to check
     // whether or not an element has been processed.
     return _elementToInfo.putIfAbsent(element, () => visit(element));
@@ -214,11 +214,12 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
         size: compiler.dumpInfoTask.sizeOf(element));
     _elementToInfo[element] = closureInfo;
 
-    ClosureClassMap closureMap = compiler.closureToClassMapper
-        .getClosureToClassMapping(element.methodElement);
-    assert(closureMap != null && closureMap.closureClassElement == element);
+    ClosureRepresentationInfo closureRepresentation = compiler
+        .closureToClassMapper
+        .getClosureRepresentationInfo(element.methodElement);
+    assert(closureRepresentation.closureClassEntity == element);
 
-    FunctionInfo functionInfo = this.process(closureMap.callElement);
+    FunctionInfo functionInfo = this.process(closureRepresentation.callMethod);
     if (functionInfo == null) return null;
     closureInfo.function = functionInfo;
     functionInfo.parent = closureInfo;
