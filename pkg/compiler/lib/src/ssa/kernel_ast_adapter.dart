@@ -416,7 +416,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
   }
 }
 
-class KernelJumpTarget extends JumpTarget {
+class KernelJumpTarget extends JumpTarget<ast.Node> {
   static int index = 0;
 
   /// Pointer to the actual executable statements that a jump target refers to.
