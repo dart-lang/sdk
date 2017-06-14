@@ -34,6 +34,15 @@ $if DART2JS
     }
   }
 $endif
+
+$if DART2JS
+  @JSName('decodeAudioData')
+  @DomName('AudioContext.decodeAudioData')
+  @DocsEditable()
+  Future _decodeAudioData(ByteBuffer audioData,
+      [AudioBufferCallback successCallback,
+      AudioBufferCallback errorCallback]) native;
+
   @DomName('AudioContext.decodeAudioData')
   Future<AudioBuffer> decodeAudioData(ByteBuffer audioData) {
     var completer = new Completer<AudioBuffer>();
@@ -48,4 +57,21 @@ $endif
         });
     return completer.future;
   }
+$else
+  @DomName('AudioContext.decodeAudioData')
+  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
+      [AudioBufferCallback successCallback,
+      AudioBufferCallback errorCallback]) {
+    if (errorCallback != null) {
+      return convertNativePromiseToDartFuture(_blink.BlinkAudioContext.instance.decodeAudioData_Callback_3_(
+          this, audioData, successCallback, errorCallback));
+    }
+    if (successCallback != null) {
+      return convertNativePromiseToDartFuture(_blink.BlinkAudioContext.instance
+          .decodeAudioData_Callback_2_(this, audioData, successCallback));
+    }
+    return convertNativePromiseToDartFuture(_blink.BlinkAudioContext.instance
+        .decodeAudioData_Callback_1_(this, audioData));
+  }
+$endif
 }

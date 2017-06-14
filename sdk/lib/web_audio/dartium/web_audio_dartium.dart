@@ -546,21 +546,6 @@ class AudioContext extends EventTarget {
   WaveShaperNode createWaveShaper() =>
       _blink.BlinkAudioContext.instance.createWaveShaper_Callback_0_(this);
 
-  Future _decodeAudioData(ByteBuffer audioData,
-      [AudioBufferCallback successCallback,
-      AudioBufferCallback errorCallback]) {
-    if (errorCallback != null) {
-      return _blink.BlinkAudioContext.instance.decodeAudioData_Callback_3_(
-          this, audioData, successCallback, errorCallback);
-    }
-    if (successCallback != null) {
-      return _blink.BlinkAudioContext.instance
-          .decodeAudioData_Callback_2_(this, audioData, successCallback);
-    }
-    return _blink.BlinkAudioContext.instance
-        .decodeAudioData_Callback_1_(this, audioData);
-  }
-
   @DomName('AudioContext.resume')
   @DocsEditable()
   @Experimental() // untriaged
@@ -574,18 +559,20 @@ class AudioContext extends EventTarget {
       _blink.BlinkAudioContext.instance.suspend_Callback_0_(this));
 
   @DomName('AudioContext.decodeAudioData')
-  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData) {
-    var completer = new Completer<AudioBuffer>();
-    _decodeAudioData(audioData, (value) {
-      completer.complete(value);
-    }, (error) {
-      if (error == null) {
-        completer.completeError('');
-      } else {
-        completer.completeError(error);
-      }
-    });
-    return completer.future;
+  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
+      [AudioBufferCallback successCallback,
+      AudioBufferCallback errorCallback]) {
+    if (errorCallback != null) {
+      return convertNativePromiseToDartFuture(_blink.BlinkAudioContext.instance
+          .decodeAudioData_Callback_3_(
+              this, audioData, successCallback, errorCallback));
+    }
+    if (successCallback != null) {
+      return convertNativePromiseToDartFuture(_blink.BlinkAudioContext.instance
+          .decodeAudioData_Callback_2_(this, audioData, successCallback));
+    }
+    return convertNativePromiseToDartFuture(_blink.BlinkAudioContext.instance
+        .decodeAudioData_Callback_1_(this, audioData));
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
