@@ -4,10 +4,10 @@
 
 import 'package:kernel/ast.dart' as ir;
 
+import '../closure.dart' show LoopClosureRepresentationInfo;
 import '../elements/elements.dart' show JumpTarget, LabelDefinition;
 import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
-import '../closure.dart' show LoopClosureRepresentationInfo;
 
 import 'builder.dart';
 import 'builder_kernel.dart';
@@ -360,7 +360,7 @@ class KernelLoopHandler extends LoopHandler<ir.TreeNode> {
 
   @override
   JumpTarget getTargetDefinition(ir.TreeNode node) =>
-      astAdapter.getJumpTarget(node);
+      builder.localsMap.getJumpTarget(node);
 
   @override
   int loopKind(ir.TreeNode node) => node.accept(new _KernelLoopTypeVisitor());

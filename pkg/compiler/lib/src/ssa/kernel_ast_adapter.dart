@@ -323,6 +323,12 @@ class KernelAstAdapter extends KernelToElementMapMixin
   Spannable getSpannable(MemberEntity member, ir.Node node) {
     return getNode(node);
   }
+
+  @override
+  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+      ClosureClassMaps closureClassMaps, ir.TreeNode node) {
+    return closureClassMaps.getClosureRepresentationInfoForLoop(getNode(node));
+  }
 }
 
 /// Visitor that converts kernel dart types into [ResolutionDartType].

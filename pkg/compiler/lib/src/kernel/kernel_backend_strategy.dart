@@ -277,6 +277,12 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
       return new KLocal(node.name, currentMember);
     });
   }
+
+  @override
+  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+      ClosureClassMaps closureClassMaps, ir.TreeNode node) {
+    return const LoopClosureRepresentationInfo();
+  }
 }
 
 class KLocal implements Local {
