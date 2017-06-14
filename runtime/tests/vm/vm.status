@@ -13,7 +13,7 @@ cc/IsolateReload_PendingStaticCall_NSMToDefined: SkipSlow
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: SkipSlow
 cc/AllocGeneric_Overflow: SkipSlow
-cc/CodeImmutability: SkipSlow
+cc/CodeImmutability: Crash
 cc/Fail0: Fail
 cc/Fail1: Fail
 cc/Fail2: Fail
