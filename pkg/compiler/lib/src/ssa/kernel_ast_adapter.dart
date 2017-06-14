@@ -138,7 +138,7 @@ class KernelAstAdapter extends KernelToElementMapMixin
   }
 
   @override
-  CommonElements get commonElements => _compiler.commonElements;
+  CommonElements get commonElements => _compiler.resolution.commonElements;
 
   @override
   ElementEnvironment get elementEnvironment => _compiler.elementEnvironment;
@@ -241,7 +241,7 @@ class KernelAstAdapter extends KernelToElementMapMixin
 
   js.Name getNameForJsGetName(ir.Node argument, ConstantValue constant) {
     int index = _extractEnumIndexFromConstantValue(
-        constant, _compiler.commonElements.jsGetNameEnum);
+        constant, _compiler.resolution.commonElements.jsGetNameEnum);
     if (index == null) return null;
     return _backend.namer
         .getNameForJsGetName(getNode(argument), JsGetName.values[index]);
@@ -249,7 +249,7 @@ class KernelAstAdapter extends KernelToElementMapMixin
 
   js.Template getJsBuiltinTemplate(ConstantValue constant) {
     int index = _extractEnumIndexFromConstantValue(
-        constant, _compiler.commonElements.jsBuiltinEnum);
+        constant, _compiler.resolution.commonElements.jsBuiltinEnum);
     if (index == null) return null;
     return _backend.emitter.builtinTemplateFor(JsBuiltin.values[index]);
   }

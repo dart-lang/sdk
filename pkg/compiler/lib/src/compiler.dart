@@ -88,7 +88,6 @@ abstract class Compiler {
   DartTypes types;
   FrontendStrategy frontendStrategy;
   BackendStrategy backendStrategy;
-  CommonElements _commonElements;
   ElementEnvironment _elementEnvironment;
   CompilerDiagnosticReporter _reporter;
   CompilerResolution _resolution;
@@ -122,7 +121,6 @@ abstract class Compiler {
 
   DiagnosticReporter get reporter => _reporter;
   ElementEnvironment get elementEnvironment => _elementEnvironment;
-  CommonElements get commonElements => _commonElements;
   Resolution get resolution => _resolution;
   ParsingContext get parsingContext => _parsingContext;
 
@@ -203,7 +201,6 @@ abstract class Compiler {
         : new ElementBackendStrategy(this);
     _resolution = createResolution();
     _elementEnvironment = frontendStrategy.elementEnvironment;
-    _commonElements = frontendStrategy.commonElements;
     types = new Types(_resolution);
 
     if (options.verbose) {
@@ -510,7 +507,7 @@ abstract class Compiler {
       resolutionEnqueuer = enqueuer.resolution;
     } else {
       resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
-      backend.onResolutionStart(resolutionEnqueuer);
+      backend.onResolutionStart();
     }
     resolutionEnqueuer.addDeferredActions(libraryLoader.pullDeferredActions());
     return resolutionEnqueuer;
@@ -564,7 +561,8 @@ abstract class Compiler {
             }
           }
         }
-        if (commonElements.mirrorsLibrary != null && !options.loadFromDill) {
+        if (frontendStrategy.commonElements.mirrorsLibrary != null &&
+            !options.loadFromDill) {
           // TODO(johnniwinther): Support mirrors from dill.
           resolveLibraryMetadata();
         }
@@ -716,7 +714,7 @@ abstract class Compiler {
   // resolve metadata classes referenced only from metadata on library tags.
   // TODO(ahe): Figure out how to do this lazily.
   void resolveLibraryMetadata() {
-    assert(commonElements.mirrorsLibrary != null);
+    assert(frontendStrategy.commonElements.mirrorsLibrary != null);
     for (LibraryElement library in libraryLoader.libraries) {
       if (library.metadata != null) {
         for (MetadataAnnotation metadata in library.metadata) {
@@ -1298,7 +1296,8 @@ class CompilerResolution implements Resolution {
   ParsingContext get parsingContext => _compiler.parsingContext;
 
   @override
-  CommonElements get commonElements => _compiler.commonElements;
+  CommonElements get commonElements =>
+      _compiler.frontendStrategy.commonElements;
 
   @override
   Types get types => _compiler.types;
@@ -1325,7 +1324,8 @@ class CompilerResolution implements Resolution {
   MirrorUsageAnalyzerTask get mirrorUsageAnalyzerTask =>
       _compiler.mirrorUsageAnalyzerTask;
 
-  LibraryElement get coreLibrary => _compiler._commonElements.coreLibrary;
+  LibraryElement get coreLibrary =>
+      _compiler.frontendStrategy.commonElements.coreLibrary;
 
   @override
   bool get wasProxyConstantComputedTestingOnly => _proxyConstant != null;

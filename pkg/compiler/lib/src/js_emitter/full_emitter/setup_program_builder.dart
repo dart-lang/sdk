@@ -132,20 +132,20 @@ jsAst.Statement buildSetupProgram(
     'enabledJsInterop': backend.nativeBasicData.isJsInteropUsed,
     'jsInteropBoostrap': backend.jsInteropAnalysis.buildJsInteropBootstrap(),
     'isInterceptorClass':
-        namer.operatorIs(compiler.commonElements.jsInterceptorClass),
-    'isObject': namer.operatorIs(compiler.commonElements.objectClass),
+        namer.operatorIs(closedWorld.commonElements.jsInterceptorClass),
+    'isObject': namer.operatorIs(closedWorld.commonElements.objectClass),
     'specProperty': js.string(namer.nativeSpecProperty),
     'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
     'hasRetainedMetadata': backend.mirrorsData.hasRetainedMetadata,
     'types': typesAccess,
     'objectClassName': js.quoteName(namer.runtimeTypeName(
         // ignore: UNNECESSARY_CAST
-        compiler.commonElements.objectClass as Entity)),
+        closedWorld.commonElements.objectClass as Entity)),
     'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
-    'usesMangledNames': compiler.commonElements.mirrorsLibrary != null ||
+    'usesMangledNames': closedWorld.commonElements.mirrorsLibrary != null ||
         closedWorld.backendUsage.isFunctionApplyUsed,
     'tearOffCode': buildTearOffCode(
-        compiler.options, emitter, namer, compiler.commonElements),
+        compiler.options, emitter, namer, closedWorld.commonElements),
     'nativeInfoHandler': nativeInfoHandler,
     'operatorIsPrefix': js.string(namer.operatorIsPrefix),
     'deferredActionString': js.string(namer.deferredAction)

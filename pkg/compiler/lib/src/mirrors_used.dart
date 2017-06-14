@@ -93,7 +93,8 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
   /// Collect @MirrorsUsed annotations in all libraries.  Called by the
   /// compiler after all libraries are loaded, but before resolution.
   void analyzeUsage(LibraryEntity mainApp) {
-    if (mainApp == null || compiler.commonElements.mirrorsLibrary == null) {
+    if (mainApp == null ||
+        compiler.resolution.commonElements.mirrorsLibrary == null) {
       return;
     }
     measure(analyzer.run);
@@ -245,7 +246,7 @@ class MirrorUsageAnalyzer {
   List<MirrorUsage> mirrorsUsedOnLibraryTag(
       LibraryElement library, ImportElement import) {
     LibraryElement importedLibrary = import.importedLibrary;
-    if (importedLibrary != compiler.commonElements.mirrorsLibrary) {
+    if (importedLibrary != compiler.resolution.commonElements.mirrorsLibrary) {
       return null;
     }
     List<MirrorUsage> result = <MirrorUsage>[];
@@ -253,9 +254,10 @@ class MirrorUsageAnalyzer {
       metadata.ensureResolved(compiler.resolution);
       ConstantValue value =
           compiler.constants.getConstantValue(metadata.constant);
-      ResolutionDartType type = value.getType(compiler.commonElements);
+      ResolutionDartType type =
+          value.getType(compiler.resolution.commonElements);
       Element element = type.element;
-      if (element == compiler.commonElements.mirrorsUsedClass) {
+      if (element == compiler.resolution.commonElements.mirrorsUsedClass) {
         result.add(buildUsage(value));
       }
     }
@@ -318,7 +320,7 @@ class MirrorUsageAnalyzer {
   /// that was resolved during [MirrorUsageAnalyzerTask.validate].
   MirrorUsage buildUsage(ConstructedConstantValue constant) {
     Map<FieldElement, ConstantValue> fields = constant.fields;
-    ClassElement cls = compiler.commonElements.mirrorsUsedClass;
+    ClassElement cls = compiler.resolution.commonElements.mirrorsUsedClass;
     FieldElement symbolsField = cls.lookupLocalMember('symbols');
     FieldElement targetsField = cls.lookupLocalMember('targets');
     FieldElement metaTargetsField = cls.lookupLocalMember('metaTargets');
@@ -417,7 +419,8 @@ class MirrorUsageBuilder {
 
   /// Find the first non-implementation interface of constant.
   ResolutionDartType apiTypeOf(ConstantValue constant) {
-    ResolutionDartType type = constant.getType(compiler.commonElements);
+    ResolutionDartType type =
+        constant.getType(compiler.resolution.commonElements);
     LibraryElement library = type.element.library;
     if (type.isInterfaceType && library.isInternalLibrary) {
       ResolutionInterfaceType interface = type;

@@ -134,14 +134,16 @@ main(List<String> args) {
 List createResolutionEnqueuerListener(Compiler compiler) {
   JavaScriptBackend backend = compiler.backend;
   BackendUsageBuilder backendUsageBuilder =
-      new BackendUsageBuilderImpl(compiler.commonElements);
+      new BackendUsageBuilderImpl(compiler.frontendStrategy.commonElements);
   InterceptorDataBuilder interceptorDataBuilder =
-      new InterceptorDataBuilderImpl(backend.nativeBasicData,
-          compiler.elementEnvironment, compiler.commonElements);
+      new InterceptorDataBuilderImpl(
+          backend.nativeBasicData,
+          compiler.elementEnvironment,
+          compiler.frontendStrategy.commonElements);
   ResolutionEnqueuerListener listener = new ResolutionEnqueuerListener(
       compiler.options,
-      compiler.elementEnvironment,
-      compiler.commonElements,
+      compiler.frontendStrategy.elementEnvironment,
+      compiler.frontendStrategy.commonElements,
       backend.impacts,
       backend.nativeBasicData,
       interceptorDataBuilder,
@@ -153,7 +155,9 @@ List createResolutionEnqueuerListener(Compiler compiler) {
       backend.lookupMapResolutionAnalysis,
       backend.mirrorsResolutionAnalysis,
       new TypeVariableResolutionAnalysis(
-          compiler.elementEnvironment, backend.impacts, backendUsageBuilder),
+          compiler.frontendStrategy.elementEnvironment,
+          backend.impacts,
+          backendUsageBuilder),
       backend.nativeResolutionEnqueuerForTesting,
       compiler.deferredLoadTask,
       backend.kernelTask);

@@ -171,8 +171,8 @@ Future testTypeVariables() {
       LibraryElement mainApp = compiler.mainApp;
       ClassElement foo = mainApp.find('Foo');
       matchResolvedTypes(visitor, 'Foo<int, String> x;', 'Foo', [
-        compiler.commonElements.intClass,
-        compiler.commonElements.stringClass
+        compiler.resolution.commonElements.intClass,
+        compiler.resolution.commonElements.stringClass
       ]);
       matchResolvedTypes(visitor, 'Foo<Foo, Foo> x;', 'Foo', [foo, foo]);
     }),

@@ -314,6 +314,8 @@ class JavaScriptBackend {
 
   final Compiler compiler;
 
+  FrontendStrategy get frontendStrategy => compiler.frontendStrategy;
+
   /// Returns true if the backend supports reflection.
   bool get supportsReflection => emitter.supportsReflection;
 
@@ -451,8 +453,8 @@ class JavaScriptBackend {
       bool useKernel: false})
       : _rti = new RuntimeTypesImpl(
             compiler.elementEnvironment, compiler.frontendStrategy.dartTypes),
-        optimizerHints = new OptimizerHintsForTests(
-            compiler.elementEnvironment, compiler.commonElements),
+        optimizerHints = new OptimizerHintsForTests(compiler.elementEnvironment,
+            compiler.frontendStrategy.commonElements),
         this.sourceInformationStrategy =
             compiler.backendStrategy.sourceInformationStrategy,
         constantCompilerTask = new JavaScriptConstantTask(compiler),
@@ -684,11 +686,11 @@ class JavaScriptBackend {
   void validateInterceptorImplementsAllObjectMethods(
       ClassEntity interceptorClass) {
     if (interceptorClass == null) return;
-    ClassEntity objectClass = compiler.commonElements.objectClass;
-    compiler.elementEnvironment.forEachClassMember(objectClass,
+    ClassEntity objectClass = frontendStrategy.commonElements.objectClass;
+    frontendStrategy.elementEnvironment.forEachClassMember(objectClass,
         (_, MemberEntity member) {
       if (member.isConstructor) return;
-      MemberEntity interceptorMember = compiler.elementEnvironment
+      MemberEntity interceptorMember = frontendStrategy.elementEnvironment
           .lookupClassMember(interceptorClass, member.name);
       // Interceptors must override all Object methods due to calling convention
       // differences.
@@ -703,25 +705,25 @@ class JavaScriptBackend {
   }
 
   /// Called before processing of the resolution queue is started.
-  void onResolutionStart(ResolutionEnqueuer enqueuer) {
+  void onResolutionStart() {
     // TODO(johnniwinther): Avoid the compiler.elementEnvironment.getThisType
     // calls. Currently needed to ensure resolution of the classes for various
     // queries in native behavior computation, inference and codegen.
-    compiler.elementEnvironment
-        .getThisType(compiler.commonElements.jsArrayClass);
-    compiler.elementEnvironment
-        .getThisType(compiler.commonElements.jsExtendableArrayClass);
+    frontendStrategy.elementEnvironment
+        .getThisType(frontendStrategy.commonElements.jsArrayClass);
+    frontendStrategy.elementEnvironment
+        .getThisType(frontendStrategy.commonElements.jsExtendableArrayClass);
 
     validateInterceptorImplementsAllObjectMethods(
-        compiler.commonElements.jsInterceptorClass);
+        frontendStrategy.commonElements.jsInterceptorClass);
     // The null-interceptor must also implement *all* methods.
     validateInterceptorImplementsAllObjectMethods(
-        compiler.commonElements.jsNullClass);
+        frontendStrategy.commonElements.jsNullClass);
   }
 
   /// Called when the resolution queue has been closed.
   void onResolutionEnd() {
-    compiler.frontendStrategy.annotationProcesser
+    frontendStrategy.annotationProcesser
         .processJsInteropAnnotations(nativeBasicData, nativeDataBuilder);
   }
 
@@ -976,7 +978,7 @@ class JavaScriptBackend {
         if (library.isInternalLibrary) continue;
         for (ImportElement import in library.imports) {
           LibraryElement importedLibrary = import.importedLibrary;
-          if (importedLibrary != compiler.commonElements.mirrorsLibrary)
+          if (importedLibrary != closedWorld.commonElements.mirrorsLibrary)
             continue;
           MessageKind kind =
               compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(library)

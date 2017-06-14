@@ -45,7 +45,8 @@ analyze(String code,
       compiler.resolution.wasProxyConstantComputedTestingOnly,
       "Unexpected computation of proxy constant.");
 
-  LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
+  LibraryElement coreLibrary =
+      compiler.frontendStrategy.commonElements.coreLibrary;
   checkInstantiated(
       compiler, coreLibrary.find('_Proxy'), proxyConstantComputed);
   checkInstantiated(compiler, coreLibrary.find('Deprecated'), deprecatedClass);

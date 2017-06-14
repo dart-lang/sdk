@@ -89,13 +89,13 @@ void main() {
 
     // We always include the names of some native classes.
     List<ClassElement> nativeClasses = [
-      compiler.commonElements.intClass,
-      compiler.commonElements.doubleClass,
-      compiler.commonElements.numClass,
-      compiler.commonElements.stringClass,
-      compiler.commonElements.boolClass,
-      compiler.commonElements.nullClass,
-      compiler.commonElements.listClass
+      compiler.resolution.commonElements.intClass,
+      compiler.resolution.commonElements.doubleClass,
+      compiler.resolution.commonElements.numClass,
+      compiler.resolution.commonElements.stringClass,
+      compiler.resolution.commonElements.boolClass,
+      compiler.resolution.commonElements.nullClass,
+      compiler.resolution.commonElements.listClass
     ];
     Iterable<String> nativeNames = nativeClasses.map(backend.namer.className);
     expectedNames = expectedNames.map(backend.namer.asName).toList();

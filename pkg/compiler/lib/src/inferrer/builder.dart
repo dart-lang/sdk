@@ -2045,7 +2045,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ClassElement cls = outermostElement.enclosingClass;
     MethodElement element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
     if (!Selectors.noSuchMethod_.signatureApplies(element)) {
-      ClassElement objectClass = compiler.commonElements.objectClass;
+      ClassElement objectClass = closedWorld.commonElements.objectClass;
       element = objectClass.lookupMember(Identifiers.noSuchMethod_);
     }
     return handleStaticSend(node, selector, mask, element, arguments);
@@ -2930,7 +2930,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     Selector moveNextSelector = Selectors.moveNext;
     TypeMask moveNextMask = inTreeData.typeOfIteratorMoveNext(node);
 
-    ConstructorElement ctor = compiler.commonElements.streamIteratorConstructor;
+    ConstructorElement ctor =
+        closedWorld.commonElements.streamIteratorConstructor;
 
     /// Synthesize a call to the [StreamIterator] constructor.
     TypeInformation iteratorType = handleStaticSend(

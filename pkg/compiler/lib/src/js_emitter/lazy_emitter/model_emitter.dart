@@ -223,7 +223,7 @@ class ModelEmitter {
       'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
       'holders': emitHolders(program.holders),
       'tearOff': buildTearOffCode(compiler.options, backend.emitter.emitter,
-          backend.namer, compiler.commonElements),
+          backend.namer, _closedWorld.commonElements),
       'parseFunctionDescriptor':
           js.js.statement(parseFunctionDescriptorBoilerplate, {
         'argumentCount': js.string(namer.requiredParameterField),
@@ -365,7 +365,7 @@ class ModelEmitter {
   js.Property emitMangledGlobalNames() {
     List<js.Property> names = <js.Property>[];
 
-    CommonElements commonElements = compiler.commonElements;
+    CommonElements commonElements = _closedWorld.commonElements;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
     List<ClassElement> nativeClassesNeedingUnmangledName = [

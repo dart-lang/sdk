@@ -75,10 +75,10 @@ testSimpleTypes(MockCompiler compiler) {
     Expect.equals(type, analyzeType(compiler, code));
   }
 
-  checkType(compiler.commonElements.intType, "3");
-  checkType(compiler.commonElements.boolType, "false");
-  checkType(compiler.commonElements.boolType, "true");
-  checkType(compiler.commonElements.stringType, "'hestfisk'");
+  checkType(compiler.resolution.commonElements.intType, "3");
+  checkType(compiler.resolution.commonElements.boolType, "false");
+  checkType(compiler.resolution.commonElements.boolType, "true");
+  checkType(compiler.resolution.commonElements.stringType, "'hestfisk'");
 }
 
 Future testReturn(MockCompiler compiler) {

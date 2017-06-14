@@ -40,22 +40,16 @@ class EmitterFactory implements emitterTask.EmitterFactory {
 
 class Emitter extends emitterTask.EmitterBase {
   final Compiler _compiler;
+  final ClosedWorld _closedWorld;
   final Namer namer;
   final ModelEmitter _emitter;
 
   JavaScriptBackend get _backend => _compiler.backend;
 
-  Emitter(
-      Compiler compiler,
-      Namer namer,
-      NativeEmitter nativeEmitter,
-      ClosedWorld closedWorld,
-      CodeEmitterTask task,
-      bool shouldGenerateSourceMap)
-      : this._compiler = compiler,
-        this.namer = namer,
-        _emitter = new ModelEmitter(compiler, namer, nativeEmitter, closedWorld,
-            task, shouldGenerateSourceMap);
+  Emitter(this._compiler, this.namer, NativeEmitter nativeEmitter,
+      this._closedWorld, CodeEmitterTask task, bool shouldGenerateSourceMap)
+      : _emitter = new ModelEmitter(_compiler, namer, nativeEmitter,
+            _closedWorld, task, shouldGenerateSourceMap);
 
   DiagnosticReporter get reporter => _compiler.reporter;
 
@@ -118,7 +112,7 @@ class Emitter extends emitterTask.EmitterBase {
 
     switch (builtin) {
       case JsBuiltin.dartObjectConstructor:
-        ClassElement objectClass = _compiler.commonElements.objectClass;
+        ClassElement objectClass = _closedWorld.commonElements.objectClass;
         return js.js.expressionTemplateYielding(typeAccess(objectClass));
 
       case JsBuiltin.isCheckPropertyToJsConstructorName:

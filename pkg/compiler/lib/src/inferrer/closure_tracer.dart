@@ -77,7 +77,8 @@ class ClosureTracerVisitor extends TracerVisitor {
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
     Element called = info.calledElement;
-    if (compiler.backend.isForeign(compiler.commonElements, called)) {
+    if (compiler.backend
+        .isForeign(inferrer.closedWorld.commonElements, called)) {
       String name = called.name;
       if (name == JavaScriptBackend.JS || name == 'DART_CLOSURE_TO_JS') {
         bailout('Used in JS ${info.call}');
@@ -103,7 +104,7 @@ class ClosureTracerVisitor extends TracerVisitor {
       inferrer.types.getInferredTypeOf(element) == currentUser;
 
   bool _checkIfFunctionApply(MemberElement element) {
-    return compiler.commonElements.isFunctionApplyMethod(element);
+    return inferrer.closedWorld.commonElements.isFunctionApplyMethod(element);
   }
 
   @override

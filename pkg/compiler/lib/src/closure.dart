@@ -313,8 +313,8 @@ class ClosureClassElement extends ClassElementX {
             compiler.idGenerator.getNextFreeId(),
             STATE_DONE) {
     ClassElement superclass = methodElement.isInstanceMember
-        ? compiler.commonElements.boundClosureClass
-        : compiler.commonElements.closureClass;
+        ? compiler.resolution.commonElements.boundClosureClass
+        : compiler.resolution.commonElements.closureClass;
     superclass.ensureResolved(compiler.resolution);
     supertype = superclass.thisType;
     interfaces = const Link<ResolutionDartType>();

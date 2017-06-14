@@ -193,7 +193,7 @@ class CodeEmitterTask extends CompilerTask {
           compiler.options,
           compiler.reporter,
           compiler.elementEnvironment,
-          compiler.commonElements,
+          closedWorld.commonElements,
           compiler.types,
           compiler.deferredLoadTask,
           compiler.closureToClassMapper,

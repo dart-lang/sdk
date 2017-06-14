@@ -91,12 +91,11 @@ $mainSource
 
     ClosedWorld world = env.closedWorld;
     JavaScriptBackend backend = env.compiler.backend;
-    ClassElement Object_ =
-        registerClass(env.compiler.commonElements.objectClass);
+    ClassElement Object_ = registerClass(world.commonElements.objectClass);
     ClassElement Interceptor =
-        registerClass(env.compiler.commonElements.jsInterceptorClass);
+        registerClass(world.commonElements.jsInterceptorClass);
     ClassElement JavaScriptObject =
-        registerClass(env.compiler.commonElements.jsJavaScriptObjectClass);
+        registerClass(world.commonElements.jsJavaScriptObjectClass);
     ClassElement A = registerClass(env.getElement('A'));
     ClassElement B = registerClass(env.getElement('B'));
     ClassElement C = registerClass(env.getElement('C'));

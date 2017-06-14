@@ -82,7 +82,7 @@ class RelatedTypesChecker
   ClosedWorld get world =>
       compiler.resolutionWorldBuilder.closedWorldForTesting;
 
-  CommonElements get commonElements => compiler.commonElements;
+  CommonElements get commonElements => compiler.resolution.commonElements;
 
   DiagnosticReporter get reporter => compiler.reporter;
 
