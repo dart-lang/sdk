@@ -1968,16 +1968,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void handleIndexedExpression(
-      Token openCurlyBracket, Token closeCurlyBracket) {
+      Token openSquareBracket, Token closeSquareBracket) {
     debugEvent("IndexedExpression");
     Expression index = popForValue();
     var receiver = pop();
     if (receiver is ThisAccessor && receiver.isSuper) {
-      push(new SuperIndexAccessor(this, openCurlyBracket, index,
+      push(new SuperIndexAccessor(this, openSquareBracket, index,
           lookupSuperMember(indexGetName), lookupSuperMember(indexSetName)));
     } else {
       push(IndexAccessor.make(
-          this, openCurlyBracket, toValue(receiver), index, null, null));
+          this, openSquareBracket, toValue(receiver), index, null, null));
     }
   }
 
