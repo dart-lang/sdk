@@ -17,6 +17,7 @@ analyzer/tool/summary/check_test: Skip  # Issue 29133
 analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_driver_test: Slow, Pass
 analyzer/test/generated/static_warning_code_driver_test: Slow, Pass
+analyzer/test/generated/compile_time_error_code_test: Slow, Pass
 
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
