@@ -554,7 +554,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     AllInfo result = infoCollector.result;
 
     // Recursively build links to function uses
-    Iterable<Element> functionElements =
+    Iterable<Entity> functionElements =
         infoCollector._elementToInfo.keys.where((k) => k is FunctionElement);
     for (FunctionElement element in functionElements) {
       FunctionInfo info = infoCollector._elementToInfo[element];
@@ -569,7 +569,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
 
     // Recursively build links to field uses
-    Iterable<Element> fieldElements =
+    Iterable<Entity> fieldElements =
         infoCollector._elementToInfo.keys.where((k) => k is FieldElement);
     for (FieldElement element in fieldElements) {
       FieldInfo info = infoCollector._elementToInfo[element];
