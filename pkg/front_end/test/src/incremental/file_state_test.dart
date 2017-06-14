@@ -491,6 +491,38 @@ import 'b.dart';
     expect(order[2].libraries, unorderedEquals([b, c]));
   }
 
+  test_transitiveFiles() async {
+    var a = writeFile('/a.dart', "");
+    var b = writeFile('/b.dart', "");
+    var c = writeFile('/c.dart', "import 'b.dart';");
+
+    FileState aFile = await fsState.getFile(a);
+    FileState bFile = await fsState.getFile(b);
+    FileState cFile = await fsState.getFile(c);
+
+    // Only c.dart and b.dart are in the transitive closure.
+    expect(cFile.transitiveFiles, contains(cFile));
+    expect(cFile.transitiveFiles, contains(bFile));
+    expect(cFile.transitiveFiles, isNot(contains(aFile)));
+    expect(bFile.transitiveFiles, isNot(contains(aFile)));
+
+    // Import a.dart into b.dart, changes c.dart transitive closure.
+    writeFile('/b.dart', "import 'a.dart';");
+    await bFile.refresh();
+    expect(cFile.transitiveFiles, contains(cFile));
+    expect(cFile.transitiveFiles, contains(bFile));
+    expect(cFile.transitiveFiles, contains(aFile));
+    expect(bFile.transitiveFiles, contains(aFile));
+
+    // Stop importing a.dart into b.dart, changes c.dart transitive closure.
+    writeFile('/b.dart', "");
+    await bFile.refresh();
+    expect(cFile.transitiveFiles, contains(cFile));
+    expect(cFile.transitiveFiles, contains(bFile));
+    expect(cFile.transitiveFiles, isNot(contains(aFile)));
+    expect(bFile.transitiveFiles, isNot(contains(aFile)));
+  }
+
   /// Write the given [text] of the file with the given [path] into the
   /// virtual filesystem.  Return the URI of the file.
   Uri writeFile(String path, String text) {

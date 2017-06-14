@@ -49,6 +49,7 @@ class FileState {
 
   Set<FileState> _directReferencedFiles = new Set<FileState>();
   List<FileState> _directReferencedLibraries = <FileState>[];
+  Set<FileState> _transitiveFiles;
 
   /// This flag is set to `true` during the mark phase of garbage collection
   /// and set back to `false` for survived instances.
@@ -106,17 +107,18 @@ class FileState {
   /// Return the set of transitive files - the file itself and all of the
   /// directly or indirectly referenced files.
   Set<FileState> get transitiveFiles {
-    // TODO(scheglov) add caching.
-    var transitiveFiles = new Set<FileState>();
+    if (_transitiveFiles == null) {
+      _transitiveFiles = new Set<FileState>();
 
-    void appendReferenced(FileState file) {
-      if (transitiveFiles.add(file)) {
-        file._directReferencedFiles.forEach(appendReferenced);
+      void appendReferenced(FileState file) {
+        if (_transitiveFiles.add(file)) {
+          file._directReferencedFiles.forEach(appendReferenced);
+        }
       }
-    }
 
-    appendReferenced(this);
-    return transitiveFiles;
+      appendReferenced(this);
+    }
+    return _transitiveFiles;
   }
 
   @override
@@ -191,6 +193,7 @@ class FileState {
     }
 
     // Compute referenced files.
+    var oldDirectReferencedFiles = _directReferencedFiles;
     _directReferencedFiles = new Set<FileState>()
       ..addAll(_importedLibraries)
       ..addAll(_exportedLibraries)
@@ -199,6 +202,19 @@ class FileState {
           ..addAll(_importedLibraries)
           ..addAll(_exportedLibraries))
         .toList();
+
+    // If the set of directly referenced files of this file is changed,
+    // then the transitive sets of files that include this file are also
+    // changed. Reset these transitive sets.
+    if (_directReferencedFiles.length != oldDirectReferencedFiles.length ||
+        !_directReferencedFiles.containsAll(oldDirectReferencedFiles)) {
+      for (var file in _fsState._uriToFile.values) {
+        if (file._transitiveFiles != null &&
+            file._transitiveFiles.contains(this)) {
+          file._transitiveFiles = null;
+        }
+      }
+    }
   }
 
   @override
