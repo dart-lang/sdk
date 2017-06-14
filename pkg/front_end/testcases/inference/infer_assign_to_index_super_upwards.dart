@@ -10,8 +10,11 @@ num getNum() => 0;
 double getDouble() => 0.0;
 
 abstract class Base<T, U> {
-  T operator [](String s);
-  void operator []=(String s, U v);
+  T operator [](String s) => /*@target=Base::getValue*/ getValue(s);
+  void operator []=(String s, U v) => /*@target=Base::setValue*/ setValue(s, v);
+
+  T getValue(String s);
+  void setValue(String s, U v);
 }
 
 abstract class Test1 extends Base<int, int> {

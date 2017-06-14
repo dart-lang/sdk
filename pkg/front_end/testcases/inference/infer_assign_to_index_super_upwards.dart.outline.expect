@@ -5,8 +5,12 @@ import "dart:core" as core;
 abstract class Base<T extends core::Object, U extends core::Object> extends core::Object {
   constructor •() → void
     ;
-  abstract operator [](core::String s) → self::Base::T;
-  abstract operator []=(core::String s, self::Base::U v) → void;
+  operator [](core::String s) → self::Base::T
+    ;
+  operator []=(core::String s, self::Base::U v) → void
+    ;
+  abstract method getValue(core::String s) → self::Base::T;
+  abstract method setValue(core::String s, self::Base::U v) → void;
 }
 abstract class Test1 extends self::Base<core::int, core::int> {
   constructor •() → void
