@@ -8,7 +8,7 @@ main() {
   // This method is async, but keeps a port open to prevent the VM from exiting
   // prematurely.
   return testing.main(<String>[
-    "--config=pkg/compiler/testing_strong.json",
+    "--config=pkg/compiler/testing_dart.json",
     "--verbose",
     "analyze"
   ]);
