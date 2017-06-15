@@ -119,8 +119,12 @@ class LoopClosureRepresentationInfo extends ClosureAnalysisInfo {
 ///     var foo = new FooClosure(1);
 ///     foo.call(2);
 ///
-/// if y is modified elsewhere within its scope, accesses to y anywhere in the
+/// if `y` is modified elsewhere within its scope, accesses to y anywhere in the
 /// code will be controlled via a box object.
+///
+/// Because in these examples `y` was declared in some other, outer scope, but
+/// used in the inner scope of this closure, we say `y` is a "captured"
+/// variable.
 /// TODO(efortuna): Make interface simpler in subsequent refactorings.
 class ClosureRepresentationInfo {
   const ClosureRepresentationInfo();
@@ -130,11 +134,11 @@ class ClosureRepresentationInfo {
   /// Will be null for methods.
   Local get closureEntity => null;
 
+  /// The entity for the class used to represent the rewritten closure in the
+  /// emitted JavaScript.
+  ///
   /// Closures are rewritten in the form of classes that have fields to control
-  /// the redirection and editing of variables that are "captured" inside a
-  /// scope (declared in an outer scope but used in an inside scope). So this
-  /// returns the class entity that represents this particular rewritten
-  /// closure.
+  /// the redirection and editing of captured variables.
   ClassEntity get closureClassEntity => null;
 
   /// The function that implements the [local] function as a `call` method on
