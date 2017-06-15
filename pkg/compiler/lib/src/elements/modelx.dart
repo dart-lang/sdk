@@ -498,7 +498,7 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
         super(wrappedElement.name, ElementKind.WARN_ON_USE, enclosingElement);
 
   Element unwrap(DiagnosticReporter reporter, Spannable usageSpannable) {
-    var unwrapped = wrappedElement;
+    dynamic unwrapped = wrappedElement;
     if (warning != null) {
       Spannable spannable = warning.sourceSpan;
       if (spannable == null) spannable = usageSpannable;

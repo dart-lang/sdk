@@ -485,7 +485,8 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   void forEachClassMember(
       ClassElement cls, void f(ClassElement declarer, MemberElement member)) {
     cls.ensureResolved(_resolution);
-    cls.forEachMember((ClassElement declarer, MemberElement member) {
+    cls.forEachMember((ClassElement declarer, _member) {
+      MemberElement member = _member;
       if (member.isSynthesized) return;
       if (member.isMalformed) return;
       if (member.isConstructor) return;
@@ -801,8 +802,8 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
           });
         }
 
-        classElement
-            .forEachMember((ClassElement classElement, MemberElement member) {
+        classElement.forEachMember((ClassElement classElement, _member) {
+          MemberElement member = _member;
           String memberName = processJsInteropAnnotation(member);
           if (memberName != null) {
             nativeDataBuilder.setJsInteropMemberName(member, memberName);
@@ -823,8 +824,8 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
             }
 
             if (fn.isFactoryConstructor && isAnonymous) {
-              fn.functionSignature
-                  .orderedForEachParameter((ParameterElement parameter) {
+              fn.functionSignature.orderedForEachParameter((_parameter) {
+                ParameterElement parameter = _parameter;
                 if (!parameter.isNamed) {
                   _compiler.reporter.reportErrorMessage(
                       parameter,

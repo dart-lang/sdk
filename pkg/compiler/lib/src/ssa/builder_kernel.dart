@@ -753,7 +753,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
     HInstruction prefixConstant =
         graph.addConstantString(checkLoad.import.name, closedWorld);
-    var prefixElement = astAdapter.getElement(checkLoad.import);
+    PrefixElement prefixElement = astAdapter.getElement(checkLoad.import);
     HInstruction uriConstant = graph.addConstantString(
         prefixElement.deferredImport.uri.toString(), closedWorld);
     _pushStaticInvocation(

@@ -54,9 +54,9 @@ bool areListsEquivalent(List a, List b,
 bool areSetsEquivalent(Iterable set1, Iterable set2,
     [bool elementEquivalence(a, b) = equality]) {
   Set remaining = set2.toSet();
-  for (var element1 in set1) {
+  for (dynamic element1 in set1) {
     bool found = false;
-    for (var element2 in set2) {
+    for (dynamic element2 in set2) {
       if (elementEquivalence(element1, element2)) {
         found = true;
         remaining.remove(element2);
@@ -76,9 +76,9 @@ bool areMapsEquivalent(Map map1, Map map2,
     [bool keyEquivalence(a, b) = equality,
     bool valueEquivalence(a, b) = equality]) {
   Set remaining = map2.keys.toSet();
-  for (var key1 in map1.keys) {
+  for (dynamic key1 in map1.keys) {
     bool found = false;
-    for (var key2 in map2.keys) {
+    for (dynamic key2 in map2.keys) {
       if (keyEquivalence(key1, key2)) {
         found = true;
         remaining.remove(key2);
@@ -265,8 +265,8 @@ bool areSendStructuresEquivalent(SendStructure a, SendStructure b) {
   if (a == null || b == null) return false;
   if (a.kind != b.kind) return false;
 
-  var ad = a;
-  var bd = b;
+  dynamic ad = a;
+  dynamic bd = b;
   switch (a.kind) {
     case SendStructureKind.IF_NULL:
     case SendStructureKind.LOGICAL_AND:
@@ -322,8 +322,8 @@ bool areNewStructuresEquivalent(NewStructure a, NewStructure b) {
   if (a == null || b == null) return false;
   if (a.kind != b.kind) return false;
 
-  var ad = a;
-  var bd = b;
+  dynamic ad = a;
+  dynamic bd = b;
   switch (a.kind) {
     case NewStructureKind.NEW_INVOKE:
       return ad.semantics.kind == bd.semantics.kind &&
@@ -364,7 +364,8 @@ class TestStrategy {
   /// An equivalence [TestStrategy] that doesn't throw on inequivalence.
   TestStrategy get testOnly => this;
 
-  bool test(var object1, var object2, String property, var value1, var value2,
+  bool test(dynamic object1, dynamic object2, String property, dynamic value1,
+      dynamic value2,
       [bool equivalence(a, b) = equality]) {
     return equivalence(value1, value2);
   }
@@ -375,13 +376,14 @@ class TestStrategy {
     return areListsEquivalent(list1, list2, elementEquivalence);
   }
 
-  bool testSets(
-      var object1, var object2, String property, Iterable set1, Iterable set2,
+  bool testSets(dynamic object1, dynamic object2, String property,
+      Iterable set1, Iterable set2,
       [bool elementEquivalence(a, b) = equality]) {
     return areSetsEquivalent(set1, set2, elementEquivalence);
   }
 
-  bool testMaps(var object1, var object2, String property, Map map1, Map map2,
+  bool testMaps(
+      dynamic object1, dynamic object2, String property, Map map1, Map map2,
       [bool keyEquivalence(a, b) = equality,
       bool valueEquivalence(a, b) = equality]) {
     return areMapsEquivalent(map1, map2, keyEquivalence, valueEquivalence);
@@ -1103,8 +1105,8 @@ bool testResolvedAstEquivalence(
     FunctionElement element1 = resolvedAst1.element;
     FunctionElement element2 = resolvedAst2.element;
     for (int index = 0; index < element1.parameters.length; index++) {
-      var parameter1 = element1.parameters[index];
-      var parameter2 = element2.parameters[index];
+      dynamic parameter1 = element1.parameters[index];
+      dynamic parameter2 = element2.parameters[index];
       result = result &&
           strategy.testNodes(parameter1, parameter2, 'node',
               parameter1.implementation.node, parameter2.implementation.node) &&
@@ -1405,8 +1407,8 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
 
   const NodeEquivalenceVisitor([this.strategy = const TestStrategy()]);
 
-  bool testNodes(
-      var object1, var object2, String property, Node node1, Node node2) {
+  bool testNodes(dynamic object1, dynamic object2, String property, Node node1,
+      Node node2) {
     return strategy.test(object1, object2, property, node1, node2,
         (Node n1, Node n2) {
       if (n1 == n2) return true;
@@ -1415,7 +1417,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
     });
   }
 
-  bool testNodeLists(var object1, var object2, String property,
+  bool testNodeLists(dynamic object1, dynamic object2, String property,
       Link<Node> list1, Link<Node> list2) {
     return strategy.test(object1, object2, property, list1, list2,
         (Link<Node> l1, Link<Node> l2) {
@@ -1432,8 +1434,8 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
     });
   }
 
-  bool testTokens(
-      var object1, var object2, String property, Token token1, Token token2) {
+  bool testTokens(dynamic object1, dynamic object2, String property,
+      Token token1, Token token2) {
     return strategy.test(object1, object2, property, token1, token2,
         (Token t1, Token t2) {
       if (t1 == t2) return true;

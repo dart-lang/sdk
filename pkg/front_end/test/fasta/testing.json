@@ -215,18 +215,6 @@
 
     "exclude": [
       "^pkg/analysis_server/lib/src/analysis_server\\.dart",
-      "^pkg/compiler/lib/src/closure\\.dart",
-      "^pkg/compiler/lib/src/elements/elements\\.dart",
-      "^pkg/compiler/lib/src/elements/modelx\\.dart",
-      "^pkg/compiler/lib/src/inferrer/inferrer_engine\\.dart",
-      "^pkg/compiler/lib/src/js_backend/namer\\.dart",
-      "^pkg/compiler/lib/src/kernel/kernel_visitor\\.dart",
-      "^pkg/compiler/lib/src/resolution/members\\.dart",
-      "^pkg/compiler/lib/src/resolution/resolution\\.dart",
-      "^pkg/compiler/lib/src/resolution/resolution_strategy\\.dart",
-      "^pkg/compiler/lib/src/serialization/equivalence\\.dart",
-      "^pkg/compiler/lib/src/serialization/resolved_ast_serialization\\.dart",
-      "^pkg/compiler/lib/src/ssa/builder_kernel\\.dart",
       "^tests/compiler/dart2js/inference/enumerator\\.dart",
       "^tests/compiler/dart2js/inference/id_equivalence_test\\.dart",
       "^tests/compiler/dart2js/kernel/class_hierarchy_test\\.dart",
