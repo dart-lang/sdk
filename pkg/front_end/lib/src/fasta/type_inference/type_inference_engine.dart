@@ -35,6 +35,9 @@ class FieldNode extends dependencyWalker.Node<FieldNode> {
   List<FieldNode> computeDependencies() {
     return _typeInferenceEngine.computeFieldDependencies(this);
   }
+
+  @override
+  String toString() => _field.toString();
 }
 
 /// Keeps track of the global state for the type inference that occurs outside
@@ -82,6 +85,15 @@ abstract class TypeInferenceEngine {
 /// possible without knowing the identity of the type parameter.  It defers to
 /// abstract methods for everything else.
 abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
+  /// Enables "expanded top level inference", which allows top level inference
+  /// to support all expressions, not just those defined as "immediately
+  /// evident" by https://github.com/dart-lang/sdk/pull/28218.
+  ///
+  /// Note that setting this value to `true` does not yet allow top level
+  /// inference to depend on field and property accesses; that will require
+  /// further work.  TODO(paulberry): fix this.
+  static const bool expandedTopLevelInference = true;
+
   final Instrumentation instrumentation;
 
   final bool strongMode;
@@ -107,10 +119,28 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   List<FieldNode> computeFieldDependencies(FieldNode fieldNode) {
     // TODO(paulberry): add logic to infer field types by inheritance.
     if (fieldHasInitializer(fieldNode._field)) {
-      var collector = new KernelDependencyCollector();
-      collector.collectDependencies(fieldNode._field.initializer);
-      fieldNode.isImmediatelyEvident = collector.isImmediatelyEvident;
-      return collector.dependencies;
+      if (expandedTopLevelInference) {
+        // In expanded top level inference, we determine the dependencies by
+        // doing a "dry run" of top level inference and recording which static
+        // fields were accessed.
+        var typeInferrer = getFieldTypeInferrer(fieldNode._field);
+        typeInferrer.startDryRun();
+        typeInferrer.listener.dryRunEnter(fieldNode._field.initializer);
+        typeInferrer.inferFieldTopLevel(fieldNode._field, null, true);
+        typeInferrer.listener.dryRunExit(fieldNode._field.initializer);
+        fieldNode.isImmediatelyEvident = true;
+        return typeInferrer.finishDryRun();
+      } else {
+        // In non-expanded top level inference, we determine the dependencies by
+        // calling `collectDependencies`; as a side effect this flags any
+        // expressions that are not "immediately evident".
+        // TODO(paulberry): get rid of this mode once we are sure we no longer
+        // need it.
+        var collector = new KernelDependencyCollector();
+        collector.collectDependencies(fieldNode._field.initializer);
+        fieldNode.isImmediatelyEvident = collector.isImmediatelyEvident;
+        return collector.dependencies;
+      }
     } else {
       return const [];
     }

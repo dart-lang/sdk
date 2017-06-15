@@ -53,6 +53,34 @@ List<DartType> getExplicitTypeArguments(Arguments arguments) {
   }
 }
 
+bool _isOverloadableArithmeticOperator(String name) {
+  return identical(name, '+') ||
+      identical(name, '-') ||
+      identical(name, '*') ||
+      identical(name, '%');
+}
+
+bool _isUserDefinableOperator(String name) {
+  return identical(name, '<') ||
+      identical(name, '>') ||
+      identical(name, '<=') ||
+      identical(name, '>=') ||
+      identical(name, '==') ||
+      identical(name, '-') ||
+      identical(name, '+') ||
+      identical(name, '/') ||
+      identical(name, '~/') ||
+      identical(name, '*') ||
+      identical(name, '%') ||
+      identical(name, '|') ||
+      identical(name, '^') ||
+      identical(name, '&') ||
+      identical(name, '<<') ||
+      identical(name, '>>') ||
+      identical(name, '[]=') ||
+      identical(name, '~');
+}
+
 /// Concrete shadow object representing a set of invocation arguments.
 class KernelArguments extends Arguments {
   bool _hasExplicitTypeArguments;
@@ -756,11 +784,13 @@ class KernelFunctionDeclaration extends FunctionDeclaration
         inferrer.inferExpression(parameter.initializer, parameter.type, false);
       }
     }
-    var oldClosureContext = inferrer.closureContext;
-    inferrer.closureContext =
-        new ClosureContext(inferrer, function.asyncMarker, function.returnType);
-    inferrer.inferStatement(function.body);
-    inferrer.closureContext = oldClosureContext;
+    if (!inferrer.isTopLevel) {
+      var oldClosureContext = inferrer.closureContext;
+      inferrer.closureContext = new ClosureContext(
+          inferrer, function.asyncMarker, function.returnType);
+      inferrer.inferStatement(function.body);
+      inferrer.closureContext = oldClosureContext;
+    }
     inferrer.listener.functionDeclarationExit(this);
   }
 }
@@ -1273,10 +1303,7 @@ class KernelMethodInvocation extends MethodInvocation
     // The inference dependencies are the inference dependencies of the
     // receiver.
     collector.collectDependencies(receiver);
-    if (identical(name, '+') ||
-        identical(name, '-') ||
-        identical(name, '*') ||
-        identical(name, '%')) {
+    if (_isOverloadableArithmeticOperator(name.name)) {
       collector.collectDependencies(arguments.positional[0]);
     }
   }
@@ -1297,10 +1324,24 @@ class KernelMethodInvocation extends MethodInvocation
     }
     var calleeType = inferrer.getCalleeFunctionType(
         interfaceMember, receiverType, name, !_isImplicitCall);
+    bool forceArgumentInference = false;
+    if (inferrer.isDryRun) {
+      if (_isUserDefinableOperator(name.name)) {
+        // If this is an overloadable arithmetic operator, then type inference
+        // might depend on the RHS, so conservatively assume it does.
+        forceArgumentInference = _isOverloadableArithmeticOperator(name.name);
+      } else {
+        // If no type arguments were given, then type inference might depend on
+        // the arguments (because the called method might be generic), so
+        // conservatively assume it does.
+        forceArgumentInference = getExplicitTypeArguments(arguments) == null;
+      }
+    }
     var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
         fileOffset, calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
-        receiverType: receiverType);
+        receiverType: receiverType,
+        forceArgumentInference: forceArgumentInference);
     inferrer.listener.methodInvocationExit(this, inferredType);
     return inferredType;
   }
@@ -1378,6 +1419,14 @@ class KernelPropertyAssign extends KernelComplexAssignmentWithReceiver {
     Member writeMember;
     if (write != null) {
       writeMember = inferrer.findPropertySetMember(receiverType, write);
+      if (inferrer.isTopLevel &&
+          ((writeMember is Procedure &&
+                  writeMember.kind == ProcedureKind.Setter) ||
+              writeMember is Field)) {
+        // References to fields and setters can't be relied upon for top level
+        // inference.
+        inferrer.recordNotImmediatelyEvident(fileOffset);
+      }
     }
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member when
@@ -1554,6 +1603,12 @@ class KernelStaticAssignment extends KernelComplexAssignment {
     var write = this.write;
     if (write is StaticSet) {
       writeContext = write.target.setterType;
+      if (inferrer.isDryRun) {
+        var target = write.target;
+        if (target is KernelField && target._fieldNode != null) {
+          inferrer.recordDryRunDependency(target._fieldNode);
+        }
+      }
     }
     var inferredType = _inferRhs(inferrer, writeContext);
     inferrer.listener.staticAssignExit(desugared, inferredType);
@@ -1590,6 +1645,12 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.staticGetEnter(this, typeContext) || typeNeeded;
+    if (inferrer.isDryRun) {
+      var target = this.target;
+      if (target is KernelField && target._fieldNode != null) {
+        inferrer.recordDryRunDependency(target._fieldNode);
+      }
+    }
     var inferredType = typeNeeded ? target.getterType : null;
     inferrer.listener.staticGetExit(this, inferredType);
     return inferredType;
@@ -1901,6 +1962,11 @@ class KernelTypeInferrer extends TypeInferrerImpl {
   @override
   DartType inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded) {
+    // When doing top level inference, we skip subexpressions whose type isn't
+    // needed so that we don't induce bogus dependencies on fields mentioned in
+    // those subexpressions.
+    if (!typeNeeded && isTopLevel) return null;
+
     if (expression is KernelExpression) {
       // Use polymorphic dispatch on [KernelExpression] to perform whatever kind
       // of type inference is correct for this kind of statement.

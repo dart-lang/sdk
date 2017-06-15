@@ -362,6 +362,8 @@ inference/unsafe_block_closure_inference_method_call_explicit_type_param: Crash
 inference/unsafe_block_closure_inference_method_call_implicit_type_param: Crash
 inference/unsafe_block_closure_inference_method_call_no_type_param: Crash
 inference/void_return_type_subtypes_dynamic: Crash
+inference_new/infer_assign_to_index: Crash
+inference_new/infer_assign_to_ref: Crash
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Crash

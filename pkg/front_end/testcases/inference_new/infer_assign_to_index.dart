@@ -5,17 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-class A {
-  int f;
-}
+List<double> a = <double>[];
+var /*@topType=double*/ b = (a /*@target=List::[]=*/ [0] = 1.0);
 
-A a = new A();
-var /*@topType=dynamic*/ b =
-    (/*error:TOP_LEVEL_UNSUPPORTED*/ a. /*@target=A::f*/ f = 1);
-var /*@topType=int*/ c = 0;
-
-main() {
-  a;
-  b;
-  c;
-}
+main() {}
