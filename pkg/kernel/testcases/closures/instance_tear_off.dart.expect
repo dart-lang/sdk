@@ -22,26 +22,6 @@ class C extends core::Object {
   method d(dynamic x, {dynamic y = 2}) → dynamic {
     return x.+(y);
   }
-  method a#get() → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
-    return MakeClosure<() → dynamic>(self::closure#C#a, #context);
-  }
-  method b#get() → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
-    return MakeClosure<(dynamic) → dynamic>(self::closure#C#b, #context);
-  }
-  method c#get() → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
-    return MakeClosure<(dynamic, [dynamic]) → dynamic>(self::closure#C#c, #context);
-  }
-  method d#get() → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
-    return MakeClosure<(dynamic, {y: dynamic}) → dynamic>(self::closure#C#d, #context);
-  }
 }
 class D<T extends core::Object> extends core::Object {
   field dynamic f = MakeClosure<() → core::String>(self::closure#D#f#function, null);
@@ -62,26 +42,6 @@ class D<T extends core::Object> extends core::Object {
   }
   method d(dynamic x, {dynamic y = 2}) → dynamic {
     return x.+(y);
-  }
-  method a#get() → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
-    return MakeClosure<() → dynamic>(self::closure#D#a, #context);
-  }
-  method b#get() → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
-    return MakeClosure<(dynamic) → dynamic>(self::closure#D#b, #context);
-  }
-  method c#get() → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
-    return MakeClosure<(dynamic, [dynamic]) → dynamic>(self::closure#D#c, #context);
-  }
-  method d#get() → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
-    return MakeClosure<(dynamic, {y: dynamic}) → dynamic>(self::closure#D#d, #context);
   }
 }
 class E<T extends core::Object> extends core::Object {
@@ -104,26 +64,6 @@ class E<T extends core::Object> extends core::Object {
   method d(self::E::T x, {self::E::T y = 2}) → dynamic {
     return x.+(y);
   }
-  method a#get() → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
-    return MakeClosure<() → dynamic>(self::closure#E#a, #context);
-  }
-  method b#get() → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
-    return MakeClosure<(self::E::T) → dynamic>(self::closure#E#b, #context);
-  }
-  method c#get() → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
-    return MakeClosure<(self::E::T, [self::E::T]) → dynamic>(self::closure#E#c, #context);
-  }
-  method d#get() → dynamic {
-    final Vector #context = MakeVector(2);
-    #context[1] = this;
-    return MakeClosure<(self::E::T, {y: self::E::T}) → dynamic>(self::closure#E#d, #context);
-  }
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   core::print("Expecting '${expected}' and got '${actual}'");
@@ -138,17 +78,17 @@ static method test(dynamic o) → dynamic {
   self::expect("g(42)", o.g(42));
   self::expect("g(42)", o.g.call(42));
   self::expect("a", o.a());
-  self::expect("a", o.a#get().call());
+  self::expect("a", o.a.call());
   self::expect(42, o.b(42));
-  self::expect(42, o.b#get().call(42));
+  self::expect(42, o.b.call(42));
   self::expect(42, o.c(40));
-  self::expect(42, o.c#get().call(40));
+  self::expect(42, o.c.call(40));
   self::expect(87, o.c(80, 7));
-  self::expect(87, o.c#get().call(80, 7));
+  self::expect(87, o.c.call(80, 7));
   self::expect(42, o.d(40));
-  self::expect(42, o.d#get().call(40));
+  self::expect(42, o.d.call(40));
   self::expect(87, o.d(80, y: 7));
-  self::expect(87, o.d#get().call(80, y: 7));
+  self::expect(87, o.d.call(80, y: 7));
 }
 static method main(dynamic arguments) → dynamic {
   self::test(new self::C::•());
@@ -158,42 +98,18 @@ static method main(dynamic arguments) → dynamic {
 static method closure#C#g#function(Vector #contextParameter, dynamic x) → core::String {
   return "g(${x})";
 }
-static method closure#C#a(Vector #contextParameter) → dynamic
-  return (#contextParameter[1]).{self::C::a}();
-static method closure#C#b(Vector #contextParameter, dynamic x) → dynamic
-  return (#contextParameter[1]).{self::C::b}(x);
-static method closure#C#c(Vector #contextParameter, dynamic x, [dynamic y = 2]) → dynamic
-  return (#contextParameter[1]).{self::C::c}(x, y);
-static method closure#C#d(Vector #contextParameter, dynamic x, {dynamic y = 2}) → dynamic
-  return (#contextParameter[1]).{self::C::d}(x, y: y);
 static method closure#C#f#function(Vector #contextParameter) → core::String {
   return "f";
 }
 static method closure#D#g#function(Vector #contextParameter, dynamic x) → core::String {
   return "g(${x})";
 }
-static method closure#D#a(Vector #contextParameter) → dynamic
-  return (#contextParameter[1]).{self::D::a}();
-static method closure#D#b(Vector #contextParameter, dynamic x) → dynamic
-  return (#contextParameter[1]).{self::D::b}(x);
-static method closure#D#c(Vector #contextParameter, dynamic x, [dynamic y = 2]) → dynamic
-  return (#contextParameter[1]).{self::D::c}(x, y);
-static method closure#D#d(Vector #contextParameter, dynamic x, {dynamic y = 2}) → dynamic
-  return (#contextParameter[1]).{self::D::d}(x, y: y);
 static method closure#D#f#function(Vector #contextParameter) → core::String {
   return "f";
 }
 static method closure#E#g#function(Vector #contextParameter, dynamic x) → core::String {
   return "g(${x})";
 }
-static method closure#E#a(Vector #contextParameter) → dynamic
-  return (#contextParameter[1]).{self::E::a}();
-static method closure#E#b(Vector #contextParameter, dynamic x) → dynamic
-  return (#contextParameter[1]).{self::E::b}(x);
-static method closure#E#c(Vector #contextParameter, dynamic x, [dynamic y = 2]) → dynamic
-  return (#contextParameter[1]).{self::E::c}(x, y);
-static method closure#E#d(Vector #contextParameter, dynamic x, {dynamic y = 2}) → dynamic
-  return (#contextParameter[1]).{self::E::d}(x, y: y);
 static method closure#E#f#function(Vector #contextParameter) → core::String {
   return "f";
 }

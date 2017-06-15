@@ -68,7 +68,7 @@ import '../../frontend/accessors.dart'
 ///     }
 ///
 /// Returns the mock.
-Class mockUpContext(CoreTypes coreTypes, Program program) {
+Library mockUpContextLibrary(CoreTypes coreTypes) {
   String fileUri = "dart:mock";
 
   ///     final List list;
@@ -202,8 +202,23 @@ Class mockUpContext(CoreTypes coreTypes, Program program) {
   Library mock =
       new Library(Uri.parse(fileUri), name: "mock", classes: [contextClass])
         ..fileUri = fileUri;
+
+  return mock;
+}
+
+Class mockUpContextForLibraries(CoreTypes coreTypes, List<Library> libraries) {
+  Library mock = mockUpContextLibrary(coreTypes);
+  Program parent = libraries.length > 0 ? libraries[0]?.parent : null;
+  libraries.add(mock);
+  mock.parent = parent;
+  parent?.uriToSource[mock.fileUri] = new Source(<int>[0], const <int>[]);
+  return mock.classes[0];
+}
+
+Class mockUpContextForProgram(CoreTypes coreTypes, Program program) {
+  Library mock = mockUpContextLibrary(coreTypes);
   program.libraries.add(mock);
   mock.parent = program;
   program.uriToSource[mock.fileUri] = new Source(<int>[0], const <int>[]);
-  return contextClass;
+  return mock.classes[0];
 }

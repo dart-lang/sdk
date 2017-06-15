@@ -64,13 +64,19 @@ class ClosureInfo extends RecursiveVisitor {
   /// Maps the names of all instance methods that may be torn off (aka
   /// implicitly closurized) to `${name.name}#get`.
   Map<Name, Name> get tearOffGetterNames {
-    Map<Name, Name> result = <Name, Name>{};
-    for (Name name in declaredInstanceMethodNames) {
-      if (invokedGetters.contains(name)) {
-        result[name] = new Name("${name.name}#get", name.library);
-      }
-    }
-    return result;
+    // TODO(dmitryas): Add support for tear-offs. When added, uncomment this.
+    //
+    // Map<Name, Name> result = <Name, Name>{};
+    // for (Name name in declaredInstanceMethodNames) {
+    //   if (invokedGetters.contains(name)) {
+    //     result[name] = new Name("${name.name}#get", name.library);
+    //   }
+    // }
+    // return result;
+    //
+    // Currently an empty map is returned, so no tear-offs supporting functions
+    // and getters are generated, and no property-get targets are renamed.
+    return <Name, Name>{};
   }
 
   void beginMember(Member member, [FunctionNode function]) {
