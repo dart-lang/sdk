@@ -192,6 +192,11 @@ char** Platform::Environment(intptr_t* count) {
 }
 
 
+const char* Platform::GetExecutableName() {
+  return executable_name_;
+}
+
+
 const char* Platform::ResolveExecutablePath() {
   // Get the required length of the buffer.
   uint32_t path_size = 0;

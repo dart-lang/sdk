@@ -65,7 +65,7 @@ class Platform {
   static void SetExecutableName(const char* executable_name) {
     executable_name_ = executable_name;
   }
-  static const char* GetExecutableName() { return executable_name_; }
+  static const char* GetExecutableName();
   static const char* GetResolvedExecutableName() {
     if (resolved_executable_name_ == NULL) {
       // Try to resolve the executable path using platform specific APIs.

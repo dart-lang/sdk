@@ -507,22 +507,15 @@ bool File::IsAbsolutePath(const char* pathname) {
 
 
 const char* File::GetCanonicalPath(const char* pathname) {
-  // TODO(MG-425): realpath() is not implemented.
-#if 0
   char* abs_path = NULL;
   if (pathname != NULL) {
     char* resolved_path = DartUtils::ScopedCString(PATH_MAX + 1);
     ASSERT(resolved_path != NULL);
-    do {
-      abs_path = realpath(pathname, resolved_path);
-    } while ((abs_path == NULL) && (errno == EINTR));
+    abs_path = realpath(pathname, resolved_path);
     ASSERT((abs_path == NULL) || IsAbsolutePath(abs_path));
     ASSERT((abs_path == NULL) || (abs_path == resolved_path));
   }
   return abs_path;
-#else
-  return pathname;
-#endif
 }
 
 
