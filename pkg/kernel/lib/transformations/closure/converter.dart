@@ -416,6 +416,7 @@ class ClosureConverter extends Transformer {
           // We rename the getter to avoid an indirection in most cases.
           Name oldName = node.name;
           node.name = tearOffName;
+          node.reference.canonicalName.unbind();
           addGetterForwarder(oldName, node);
         } else if (node.kind == ProcedureKind.Method) {
           addTearOffMethod(tearOffName, node);
