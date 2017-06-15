@@ -120,25 +120,33 @@ Future _main(List<String> argv) async {
       librariesJson.toFilePath(), JSON.encode({"libraries": locations}));
 
   if (forVm || forFlutter) {
-    var vmserviceName = forVm ? 'vmservice_io' : 'vmservice_sky';
-    var targetName = forVm ? 'vm_fasta' : 'flutter_fasta';
-    Uri vmserviceUri = outDirUri.resolve('$vmserviceName.dill');
     await fasta.compilePlatform(outDirUri, platform,
         packages: packages,
         outlineOutput: outline,
         backendTarget: forVm ? 'vm_fasta' : 'flutter_fasta');
+  } else {
+    await dart2js.compilePlatform(outDirUri, platform,
+        packages: packages, outlineOutput: outline);
+  }
+
+  if (forVm) {
+    var base = path.fromUri(Platform.script);
+    Uri repositoryDir =
+        new Uri.directory(path.dirname(path.dirname(path.absolute(base))));
+    var vmserviceName = 'vmservice_io';
+    Uri vmserviceSdk = repositoryDir.resolve('runtime/bin/vmservice_sdk/');
+    Uri vmserviceUri = outDirUri.resolve('$vmserviceName.dill');
+    // TODO(sigmundch): Specify libraries.json directly instead of "--sdk"
+    // after #29882 is fixed.
     await fasta.compile([
-      "--sdk=$outDirUri",
+      "--sdk=$vmserviceSdk",
       "--platform=$outline",
-      "--target=$targetName",
+      "--target=vm_fasta",
       "--packages=$packages",
       "dart:$vmserviceName",
       "-o",
       "$vmserviceUri",
     ]);
-  } else {
-    await dart2js.compilePlatform(outDirUri, platform,
-        packages: packages, outlineOutput: outline);
   }
 
   Uri platformFinalLocation = outDirUri.resolve('platform.dill');
@@ -242,16 +250,6 @@ _copyExtraLibraries(String sdkOut, Map<String, String> locations) {
   var builtinLibraryOut = path.join(sdkOut, '_builtin', '_builtin.dart');
   _writeSync(builtinLibraryOut, readInputFile(builtinLibraryIn));
   locations['_builtin'] = path.join('_builtin', '_builtin.dart');
-
-  for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
-    var libraryIn = path.join(dartDir, 'runtime', 'bin', 'vmservice', file);
-    var libraryOut = path.join(sdkOut, 'vmservice_io', file);
-    _writeSync(libraryOut, readInputFile(libraryIn));
-  }
-
-  locations[forVm ? "vmservice_io" : "vmservice_sky"] =
-      path.join('vmservice_io', 'vmservice_io.dart');
-  locations["_vmservice"] = path.join('vmservice', 'vmservice.dart');
 
   if (forFlutter) {
     // Flutter repo has this layout:
