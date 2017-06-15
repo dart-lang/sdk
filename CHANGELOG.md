@@ -1,3 +1,7 @@
+## 0.5.5
+
+- Added `diff` tool.
+
 ## 0.5.4+2
 
 - Updated minimum SDK dependency to align with package dependencies.

@@ -46,7 +46,7 @@ abstract class Info {
   /// Info of the enclosing element.
   Info parent;
 
-  dynamic accept(InfoVisitor visitor);
+  T accept<T>(InfoVisitor<T> visitor);
 }
 
 /// Common information used for most kind of elements.
@@ -171,7 +171,7 @@ class AllInfo {
 
   AllInfo();
 
-  dynamic accept(InfoVisitor visitor) => visitor.visitAll(this);
+  T accept<T>(InfoVisitor<T> visitor) => visitor.visitAll(this);
 }
 
 class ProgramInfo {
@@ -196,7 +196,7 @@ class ProgramInfo {
       this.noSuchMethodEnabled,
       this.minified});
 
-  dynamic accept(InfoVisitor visitor) => visitor.visitProgram(this);
+  T accept<T>(InfoVisitor<T> visitor) => visitor.visitProgram(this);
 }
 
 /// Info associated with a library element.
@@ -229,7 +229,7 @@ class LibraryInfo extends BasicInfo {
 
   LibraryInfo._(String serializedId) : super._fromId(serializedId);
 
-  dynamic accept(InfoVisitor visitor) => visitor.visitLibrary(this);
+  T accept<T>(InfoVisitor<T> visitor) => visitor.visitLibrary(this);
 }
 
 /// Information about an output unit. Normally there is just one for the entire
@@ -244,7 +244,7 @@ class OutputUnitInfo extends BasicInfo {
 
   OutputUnitInfo._(String serializedId) : super._fromId(serializedId);
 
-  dynamic accept(InfoVisitor visitor) => visitor.visitOutput(this);
+  T accept<T>(InfoVisitor<T> visitor) => visitor.visitOutput(this);
 }
 
 /// Information about a class element.
@@ -267,7 +267,7 @@ class ClassInfo extends BasicInfo {
 
   ClassInfo._(String serializedId) : super._fromId(serializedId);
 
-  dynamic accept(InfoVisitor visitor) => visitor.visitClass(this);
+  T accept<T>(InfoVisitor<T> visitor) => visitor.visitClass(this);
 }
 
 /// Information about a constant value.
@@ -282,7 +282,7 @@ class ConstantInfo extends BasicInfo {
 
   ConstantInfo._(String serializedId) : super._fromId(serializedId);
 
-  dynamic accept(InfoVisitor visitor) => visitor.visitConstant(this);
+  T accept<T>(InfoVisitor<T> visitor) => visitor.visitConstant(this);
 }
 
 /// Information about a field element.
@@ -319,7 +319,7 @@ class FieldInfo extends BasicInfo with CodeInfo {
 
   FieldInfo._(String serializedId) : super._fromId(serializedId);
 
-  dynamic accept(InfoVisitor visitor) => visitor.visitField(this);
+  T accept<T>(InfoVisitor<T> visitor) => visitor.visitField(this);
 }
 
 /// Information about a typedef declaration.
@@ -332,7 +332,7 @@ class TypedefInfo extends BasicInfo {
 
   TypedefInfo._(String serializedId) : super._fromId(serializedId);
 
-  dynamic accept(InfoVisitor visitor) => visitor.visitTypedef(this);
+  T accept<T>(InfoVisitor<T> visitor) => visitor.visitTypedef(this);
 }
 
 /// Information about a function or method.
@@ -396,7 +396,7 @@ class FunctionInfo extends BasicInfo with CodeInfo {
 
   FunctionInfo._(String serializedId) : super._fromId(serializedId);
 
-  dynamic accept(InfoVisitor visitor) => visitor.visitFunction(this);
+  T accept<T>(InfoVisitor<T> visitor) => visitor.visitFunction(this);
 }
 
 /// Information about a closure, also known as a local function.
@@ -410,7 +410,7 @@ class ClosureInfo extends BasicInfo {
 
   ClosureInfo._(String serializedId) : super._fromId(serializedId);
 
-  dynamic accept(InfoVisitor visitor) => visitor.visitClosure(this);
+  T accept<T>(InfoVisitor<T> visitor) => visitor.visitClosure(this);
 }
 
 /// Information about how a dependency is used.

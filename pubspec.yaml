@@ -1,5 +1,5 @@
 name: dart2js_info
-version: 0.5.4+2
+version: 0.5.5
 description: >
   Libraries and tools to process data produced when running dart2js with
   --dump-info.
@@ -23,6 +23,7 @@ executables:
   dart2js_info_code_deps:               code_deps
   dart2js_info_coverage_log_server:     coverage_log_server
   dart2js_info_debug_info:              debug_info
+  dart2js_info_diff:                    diff
   dart2js_info_deferred_library_check:  deferred_library_check
   dart2js_info_deferred_library_size:   deferred_library_size
   dart2js_info_deferred_library_layout: deferred_library_layout

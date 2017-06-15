@@ -63,6 +63,10 @@ The following tools are a available today:
     dependency between functions and fields in your program. Currently it only
     supports the `some_path` query, which shows a dependency path from one
     function to another.
+    
+  * [`diff`][diff]: a tool that diffs two info files and reports which
+    program elements have been added, removed, or changed size. This also
+    tells which elements are no longer deferred or have become deferred.
 
   * [`library_size_split`][lib_split]: a tool that shows how much code was
     attributed to each library. This tool is configurable so it can group data
@@ -102,10 +106,10 @@ this tool only supports the `some_path` query, which gives you the shortest path
 for how one function depends on another.
 
 Run this tool as follows:
-```bash
+```console
 # activate is only needed once to install the dart2js_info* executables
-pub global activate dart2js_info
-dart2js_info_code_deps out.js.info.json some_path main foo
+$ pub global activate dart2js_info
+$ dart2js_info_code_deps out.js.info.json some_path main foo
 ```
 
 The arguments to the query are regular expressions that can be used to
@@ -120,22 +124,58 @@ a fully qualified element name, which includes the library and class name
 If the name of a function your are looking for is unique enough, it might be
 sufficient to just write that name as your regular expression.
 
+### Diff tool
+
+This command-line tool shows a diff between two info files. It can be run
+as follows:
+
+```console
+$ pub global activate dart2js_info # only needed once
+$ dart2js_info_diff old.js.info.json new.js.info.json
+```
+
+The tool gives a breakdown of the difference between the two info files.
+Here's an example output:
+
+```
+OVERALL SIZE DIFFERENCE
+========================================================================
+3 bytes
+
+ADDED
+========================================================================
+
+REMOVED
+========================================================================
+file:///home/het/Code/foo/foo.dart::A.y: 0 bytes
+
+CHANGED SIZE
+========================================================================
+
+BECAME DEFERRED
+========================================================================
+
+NO LONGER DEFERRED
+========================================================================
+
+```
+
 ### Library size split tool
 
 This command-line tool shows the size distribution of generated code among
 libraries. It can be run as follows:
 
-```bash
-pub global activate dart2js_info # only needed once
-dart2js_info_library_size_split out.js.info.json
+```console
+$ pub global activate dart2js_info # only needed once
+$ dart2js_info_library_size_split out.js.info.json
 ```
 
 
 Libraries can be grouped using regular expressions. You can
 specify what regular expressions to use by providing a `grouping.yaml` file:
 
-```bash
-dart2js_info_library_size_split out.js.info.json grouping.yaml
+```console
+$ dart2js_info_library_size_split out.js.info.json grouping.yaml
 ```
 
 The format of the `grouping.yaml` file is as follows:
@@ -205,9 +245,9 @@ bootstrapping code and lazy static initializers are missing.
 This tool checks that the output from dart2js meets a given specification,
 given in a YAML file. It can be run as follows:
 
-```bash
-pub global activate dart2js_info # only needed once
-dart2js_info_deferred_library_check out.js.info.json manifest.yaml
+```console
+$ pub global activate dart2js_info # only needed once
+$ dart2js_info_deferred_library_check out.js.info.json manifest.yaml
 ```
 
 The format of the YAML file is:
@@ -253,7 +293,7 @@ This tool gives a breakdown of all of the deferred code in the program by size.
 It can show how much of the total code size is deferred. It can be run as
 follows:
 
-```bash
+```console
 pub global activate dart2js_info # only needed once
 dart2js_info_deferred_library_size out.js.info.json
 ```
@@ -278,9 +318,9 @@ Percent of code deferred                  41.86%
 This tool reports which code is included in each output unit.  It can be run as
 follows:
 
-```bash
-pub global activate dart2js_info # only needed once
-dart2js_info_deferred_library_layout out.js.info.json
+```console
+$ pub global activate dart2js_info # only needed once
+$ dart2js_info_deferred_library_layout out.js.info.json
 ```
 
 The tool will output a table listing all of the deferred output units or chunks,
@@ -322,9 +362,9 @@ code of your application.  We use dependency information to compute dominance
 and reachability data as well.
 
 When you run:
-```bash
-pub global activate dart2js_info # only needed once
-dart2js_info_function_size_analysis out.js.info.json
+```console
+$ pub global activate dart2js_info # only needed once
+$ dart2js_info_function_size_analysis out.js.info.json
 ```
 
 the tool produces a table output with lots of entries. Here is an example entry
@@ -355,8 +395,8 @@ steps are as follows:
   * Compile an app with dart2js using `--dump-info` and defining the
     Dart environment `traceCalls=post`:
 
-```
-DART_VM_OPTIONS="-DtraceCalls=post" dart2js --dump-info main.dart
+```console
+$ DART_VM_OPTIONS="-DtraceCalls=post" dart2js --dump-info main.dart
 ```
 
   Because coverage/tracing data is currently experimental, the feature is
@@ -365,8 +405,8 @@ DART_VM_OPTIONS="-DtraceCalls=post" dart2js --dump-info main.dart
 
   * Launch the coverage server tool to serve up the JS code of your app:
 
-```bash
-dart2js_info_coverage_log_server main.dart.js
+```console
+$ dart2js_info_coverage_log_server main.dart.js
 ```
 
   * (optional) If you have a complex application setup, you may need to serve an
@@ -382,8 +422,8 @@ dart2js_info_coverage_log_server main.dart.js
   * Finally, run the live code analysis tool given it both the info and
     coverage json files:
 
-```bash
-dart2js_info_live_code_size_analysis main.dart.info.json main.dart.coverage.json
+```console
+$ dart2js_info_live_code_size_analysis main.dart.info.json main.dart.coverage.json
 ```
 
 ## Code location, features and bugs
@@ -394,6 +434,7 @@ bugs at the [issue tracker][tracker].
 [repo]: https://github.com/dart-lang/dart2js_info/
 [tracker]: https://github.com/dart-lang/dart2js_info/issues
 [code_deps]: https://github.com/dart-lang/dart2js_info/blob/master/bin/code_deps.dart
+[diff]: https://github.com/dart-lang/dart2js_info/blob/master/bin/diff.dart
 [lib_split]: https://github.com/dart-lang/dart2js_info/blob/master/bin/library_size_split.dart
 [deferred_lib]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_check.dart
 [deferred_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_size.dart
