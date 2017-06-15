@@ -13,6 +13,25 @@ main() async {
   exit(await new _SubpackageRelationshipsTest().run());
 }
 
+/// List of packages that front_end is allowed to directly depend on.
+///
+/// Note that this script only checks files in pkg/front_end/lib, so this list
+/// excludes dev dependencies.
+///
+/// TODO(paulberry): remove dependencies on analyzer.
+final allowedPackageDependencies = [
+  'analyzer',
+  'charcode',
+  'convert',
+  'crypto',
+  'kernel',
+  'meta',
+  'package_config',
+  'path',
+  'source_span',
+  'testing',
+];
+
 /// Map from subpackage name to the rules for what the subpackage is allowed to
 /// depend directly on.
 ///
@@ -178,6 +197,9 @@ class _SubpackageRelationshipsTest {
   /// Indicates whether any problems have been reported yet.
   bool problemsReported = false;
 
+  /// Package dependencies that were actually discovered
+  final actualPackageDependencies = <String>[];
+
   /// Check for problems resulting from URI [src] having a direct dependency on
   /// URI [dst].
   void checkDependency(Uri src, Uri dst) {
@@ -185,6 +207,17 @@ class _SubpackageRelationshipsTest {
     if (dst.scheme != 'package') {
       problem('$src depends on $dst, which is neither a package: or dart: URI');
       return;
+    }
+    if (src.scheme == 'package' &&
+        src.pathSegments[0] == 'front_end' &&
+        dst.scheme == 'package' &&
+        dst.pathSegments[0] != 'front_end') {
+      if (allowedPackageDependencies.contains(dst.pathSegments[0])) {
+        actualPackageDependencies.add(dst.pathSegments[0]);
+      } else {
+        problem('$src depends on package "${dst.pathSegments[0]}", which is '
+            'not found in allowedPackageDependencies');
+      }
     }
     var srcSubpackage = subpackageForUri(src);
     if (srcSubpackage == null) return;
@@ -251,6 +284,12 @@ class _SubpackageRelationshipsTest {
         for (var dependency in library.dependencies) {
           checkDependency(library.uri, dependency.uri);
         }
+      }
+    }
+    for (var package in allowedPackageDependencies) {
+      if (!actualPackageDependencies.contains(package)) {
+        problem('$package is listed in allowedPackageDependencies, '
+            'but is not used');
       }
     }
     subpackageRules.forEach((subpackage, rule) {
