@@ -116,7 +116,6 @@ Language/Libraries_and_Scripts/Scripts/syntax_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t08: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t10: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t14: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
 Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError

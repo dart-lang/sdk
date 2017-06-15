@@ -2343,6 +2343,21 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetClosure(Dart_Handle library,
+                                        Dart_Handle function_name) {
+  DARTSCOPE(Thread::Current());
+  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(Z, library, Library);
+  }
+  const String& name = Api::UnwrapStringHandle(Z, function_name);
+  if (name.IsNull()) {
+    RETURN_TYPE_ERROR(Z, function_name, String);
+  }
+  return Api::NewHandle(T, lib.GetFunctionClosure(name));
+}
+
+
 // --- Booleans ----
 
 DART_EXPORT Dart_Handle Dart_True() {
@@ -5422,6 +5437,9 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
   }
+  // TODO(kernel): Setting root library based on whether it has 'main' or not
+  // is not correct because main can be in the exported namespace of a library
+  // or it could be a getter.
   if (tmp.IsNull()) {
     return Api::NewError("%s: The binary program does not contain 'main'.",
                          CURRENT_FUNC);

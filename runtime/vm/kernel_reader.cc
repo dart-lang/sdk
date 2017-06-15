@@ -176,32 +176,18 @@ Object& KernelReader::ReadProgram() {
     }
 
     if (ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
-      // There is a function _getMainClosure in dart:_builtin that returns the
-      // main procedure.  Since the platform libraries are compiled before the
-      // program script, this function might need to be patched here.
-
-      // If there is no main method then we have compiled a partial Kernel file
-      // and do not need to patch here.
+      // If 'main' is not found return a null library, this is the case
+      // when bootstrapping is in progress.
       NameIndex main = program_->main_method();
       if (main == -1) {
-        return dart::Library::Handle(Z);
-      }
-
-      // If the builtin library is not set in the object store, then we are
-      // bootstrapping and do not need to patch here.
-      dart::Library& builtin_library =
-          dart::Library::Handle(Z, I->object_store()->builtin_library());
-      if (builtin_library.IsNull()) {
         return dart::Library::Handle(Z);
       }
 
       NameIndex main_library = H.EnclosingName(main);
       dart::Library& library = LookupLibrary(main_library);
       // Sanity check that we can find the main entrypoint.
-      Object& main_obj = Object::Handle(
-          Z, library.LookupObjectAllowPrivate(H.DartSymbol("main")));
-      ASSERT(!main_obj.IsNull());
-
+      ASSERT(library.LookupObjectAllowPrivate(H.DartSymbol("main")) !=
+             Object::null());
       return library;
     }
   }

@@ -19,11 +19,6 @@ bool _traceLoading = false;
 // dart:_builtin library.
 bool _setupCompleted = false;
 
-// The root library (aka the script) is imported into this library. The
-// standalone embedder uses this to lookup the main entrypoint in the
-// root library's namespace.
-Function _getMainClosure() => main;
-
 // 'print' implementation.
 // The standalone embedder registers the closurized _print function with the
 // dart:core library.

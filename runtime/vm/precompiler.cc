@@ -346,6 +346,7 @@ Precompiler::Precompiler(Thread* thread)
       isolate_(thread->isolate()),
       jit_feedback_(NULL),
       changed_(false),
+      retain_root_library_caches_(false),
       function_count_(0),
       class_count_(0),
       selector_count_(0),
@@ -689,6 +690,27 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
 
   AddEntryPoints(vm_entry_points);
   AddEntryPoints(embedder_entry_points);
+  const Library& lib = Library::Handle(I->object_store()->root_library());
+  const String& name = String::Handle(String::New("main"));
+  const Object& main_closure = Object::Handle(lib.GetFunctionClosure(name));
+  if (main_closure.IsClosure()) {
+    if (lib.LookupLocalFunction(name) == Function::null()) {
+      // Check whether the function is in exported namespace of library, in
+      // this case we have to retain the root library caches.
+      if (lib.LookupFunctionAllowPrivate(name) != Function::null() ||
+          lib.LookupReExport(name) != Object::null()) {
+        retain_root_library_caches_ = true;
+      }
+    }
+    AddConstObject(Closure::Cast(main_closure));
+  } else if (main_closure.IsError()) {
+    const Error& error = Error::Cast(main_closure);
+    String& msg =
+        String::Handle(Z, String::NewFormatted("Cannot find main closure %s\n",
+                                               error.ToErrorCString()));
+    Jump(Error::Handle(Z, ApiError::New(msg)));
+    UNREACHABLE();
+  }
 }
 
 
@@ -2028,7 +2050,10 @@ void Precompiler::DropLibraryEntries() {
       dict.SetAt(j, Object::null_object());
     }
     lib.RehashDictionary(dict, used * 4 / 3 + 1);
-    lib.DropDependenciesAndCaches();
+    if (!(retain_root_library_caches_ &&
+          (lib.raw() == I->object_store()->root_library()))) {
+      lib.DropDependenciesAndCaches();
+    }
   }
 }
 

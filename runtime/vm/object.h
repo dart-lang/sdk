@@ -3983,6 +3983,11 @@ class Library : public Object {
   void CheckReload(const Library& replacement,
                    IsolateReloadContext* context) const;
 
+  // Returns a closure of top level function 'name' in the exported namespace
+  // of this library. If a top level function 'name' does not exist we look
+  // for a top level getter 'name' that returns a closure.
+  RawObject* GetFunctionClosure(const String& name) const;
+
  private:
   static const int kInitialImportsCapacity = 4;
   static const int kImportsCapacityIncrement = 8;
