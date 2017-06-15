@@ -2740,6 +2740,7 @@ LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.veryLarge_t01: RuntimeError #
 LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.verySmall_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/DrawImageSinglePixelStretch_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/alpha_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-alphaImageData-behavior_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-arc-negative-radius_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-blend-solid_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-blending-text_t01: RuntimeError # Please triage this failure
@@ -2766,18 +2767,22 @@ LayoutTests/fast/canvas/canvas-lose-restore-googol-size_t01: RuntimeError # Plea
 LayoutTests/fast/canvas/canvas-lose-restore-max-int-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-putImageData_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-resize-after-paint_t01: Skip # Times out. Please triage this failure
+LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-scale-fillPath-shadow_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-scale-fillRect-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-scale-shadowBlur_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-scale-strokePath-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-set-properties-with-non-invertible-ctm_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-stroke-zeroSizeGradient_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-strokePath-alpha-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-strokePath-gradient-shadow_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-strokeRect-alpha-shadow_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-strokeRect-gradient-shadow_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-strokeRect-zeroSizeGradient_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-strokeText-zeroSizeGradient_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-toDataURL-crash_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/draw-custom-focus-ring_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/drawImage-with-bad-canvas_t01: RuntimeError # Issue 28983
 LayoutTests/fast/canvas/getPutImageDataPairTest_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/gradient-addColorStop-with-invalid-color_t01: RuntimeError # Issue 28983
 LayoutTests/fast/canvas/rgba-parsing_t01: RuntimeError # Please triage this failure
@@ -2888,7 +2893,6 @@ LayoutTests/fast/css/cursor-parsing_t01: RuntimeError # Please triage this failu
 LayoutTests/fast/css/deprecated-flexbox-auto-min-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/draggable-region-parser_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/dynamic-class-backdrop-pseudo_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/dynamic-class-pseudo-elements_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/focus-display-block-inline_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
@@ -2924,19 +2928,14 @@ LayoutTests/fast/css/inherited-properties-rare-text_t01: RuntimeError # Please t
 LayoutTests/fast/css/insertRule-font-face_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/insertRule-media_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-hex-color_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/invalid-import-rule-insertion_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-predefined-color_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalidation/clears-invalidation-whole-tree_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalidation/detach-reattach-shadow_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/invalidation/detach-reattach_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalidation/dynamic-selector-list-pseudo_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/invalidation/invalidation-set-with-adjacent-combinators_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalidation/shadow-host-toggle_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalidation/targeted-class-any-pseudo_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalidation/targeted-class-host-pseudo_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/invalidation/targeted-class-id_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalidation/targeted-class-shadow-combinator_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/invalidation/targeted-class-type-selectors_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalidation/toggle-style-inside-shadow-root_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/legacy-opacity-styles_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/link-alternate-stylesheet-1_t01: RuntimeError # Please triage this failure
@@ -2965,7 +2964,6 @@ LayoutTests/fast/css/pseudo-any_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/pseudo-invalid-001_t01: Pass, RuntimeError # Passes on ff 35. Please triage this failure
 LayoutTests/fast/css/pseudo-invalid-novalidate-001_t01: Pass, RuntimeError # Passes on ff 35. Please triage this failure
 LayoutTests/fast/css/pseudo-required-optional-004_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/pseudo-required-optional-006_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/pseudo-required-optional-unapplied_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/pseudo-target-indirect-sibling-001_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css/pseudo-target-indirect-sibling-002_t01: Skip # Times out. Please triage this failure
@@ -2978,8 +2976,6 @@ LayoutTests/fast/css/readonly-pseudoclass-opera-004_t01: RuntimeError # Please t
 LayoutTests/fast/css/readonly-pseudoclass-opera-005_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/readwrite-contenteditable-recalc_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/recalc-optgroup-inherit_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/remove-attribute-style_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/remove-class-name_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/selector-text-escape_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/shorthand-setProperty-important_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/sibling-selectors_t01: RuntimeError # Please triage this failure
@@ -3714,9 +3710,11 @@ LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError # Please triage this failu
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # Please triage this failure
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/Timer/Timer.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # co19 issue #90
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Issue 22200
+LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Fail # co19 issue #90
 LibTest/core/double/roundToDouble_A01_t01: Pass, RuntimeError # Passes on ff 35. Please triage this failure
 LibTest/core/double/round_A01_t01: Pass, RuntimeError # Passes on ff 35. Please triage this failure
 LibTest/core/int/compareTo_A01_t01: RuntimeError # Please triage this failure
@@ -3726,8 +3724,6 @@ LibTest/core/int/operator_truncating_division_A01_t02: RuntimeError # Please tri
 LibTest/core/int/remainder_A01_t01: RuntimeError # Please triage this failure
 LibTest/core/int/remainder_A01_t03: RuntimeError # Please triage this failure
 LibTest/core/int/toRadixString_A01_t01: RuntimeError # Please triage this failure
-LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Fail # co19 issue #90
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # co19 issue #90
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: RuntimeError # Please triage this failure
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: RuntimeError # Please triage this failure
 LibTest/html/Document/childNodes_A01_t01: RuntimeError # Please triage this failure
@@ -3940,9 +3936,6 @@ WebPlatformTest/html/semantics/selectors/pseudo-classes/dir_t01: RuntimeError # 
 WebPlatformTest/html/semantics/selectors/pseudo-classes/enabled_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/selectors/pseudo-classes/focus_t01: Pass, RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/selectors/pseudo-classes/indeterminate_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/tabular-data/the-caption-element/caption_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/tabular-data/the-table-element/caption-methods_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/tabular-data/the-table-element/table-insertRow_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/tabular-data/the-table-element/table-rows_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t02: RuntimeError # Please triage this failure
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t01: RuntimeError # Please triage this failure
