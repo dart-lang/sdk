@@ -147,7 +147,7 @@ class CommandCompletedHandler {
   }
 }
 
-runner.Command makeCompilationCommand(String testName, FileUtils fileUtils) {
+Command makeCompilationCommand(String testName, FileUtils fileUtils) {
   var config = new options.OptionsParser().parse(['--timeout', '2'])[0];
   var createFileScript = Platform.script
       .resolve('skipping_dart2js_compilations_helper.dart')
