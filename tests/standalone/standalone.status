@@ -476,6 +476,9 @@ package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 package/scenarios/invalid/same_package_twice_test: CompileTimeError
 package/scenarios/packages_dir_only/packages_dir_only_test: CompileTimeError
 
+[ $compiler == dartkp ]
+causal_async_stack_test: Fail
+
 [ $runtime == flutter ]
 io/raw_datagram_socket_test: Crash # Flutter Issue 9115
 verbose_gc_to_bmu_test: RuntimeError # Flutter Issue 9115
