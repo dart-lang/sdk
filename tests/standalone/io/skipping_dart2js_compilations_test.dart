@@ -20,6 +20,7 @@ import 'package:expect/expect.dart';
 import 'package:path/path.dart';
 import 'dart:async';
 import 'dart:io';
+import '../../../tools/testing/dart/command.dart';
 import '../../../tools/testing/dart/options.dart' as options;
 import '../../../tools/testing/dart/path.dart';
 import '../../../tools/testing/dart/test_runner.dart' as runner;
@@ -154,13 +155,8 @@ runner.Command makeCompilationCommand(String testName, FileUtils fileUtils) {
   var executable = Platform.executable;
   var arguments = [createFileScript, fileUtils.scriptOutputPath.toNativePath()];
   var bootstrapDeps = [Uri.parse("file://${fileUtils.testSnapshotFilePath}")];
-  return runner.CommandBuilder.instance.getCompilationCommand(
-      'dart2js',
-      fileUtils.testJsFilePath.toNativePath(),
-      false,
-      bootstrapDeps,
-      executable,
-      arguments, {});
+  return Command.compilation('dart2js', fileUtils.testJsFilePath.toNativePath(),
+      false, bootstrapDeps, executable, arguments, {});
 }
 
 void main() {

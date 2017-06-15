@@ -4,6 +4,7 @@
 
 import "dart:io";
 import "dart:async";
+import "../../../tools/testing/dart/command.dart";
 import "../../../tools/testing/dart/configuration.dart";
 import "../../../tools/testing/dart/expectation.dart";
 import "../../../tools/testing/dart/options.dart";
@@ -97,13 +98,12 @@ class CustomTestSuite extends TestSuite {
   TestCase _makeNormalTestCase(name, expectations) {
     var args = packageOptions();
     args.addAll([Platform.script.toFilePath(), name]);
-    var command = CommandBuilder.instance
-        .getProcessCommand('custom', Platform.executable, args, {});
+    var command = Command.process('custom', Platform.executable, args, {});
     return _makeTestCase(name, DEFAULT_TIMEOUT, command, expectations);
   }
 
   _makeCrashTestCase(name, expectations) {
-    var crashCommand = CommandBuilder.instance.getProcessCommand(
+    var crashCommand = Command.process(
         'custom_crash', getProcessTestFileName(), ["0", "0", "1", "1"], {});
     // The crash test sometimes times out. Run it with a large timeout
     // to help diagnose the delay.
