@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/generated/resolver.dart'; // ignore: implementation_imports
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Prefer const with constant constructors.';
@@ -73,34 +75,51 @@ class _Visitor extends SimpleAstVisitor {
     if (!node.isConst &&
         node.staticElement != null &&
         node.staticElement.isConst) {
-      TypeProvider typeProvider = node.staticElement.context.typeProvider;
+      final typeProvider = node.staticElement.context.typeProvider;
+      final declaredVariables = node.staticElement.context.declaredVariables;
 
       if (node.staticElement.enclosingElement.type == typeProvider.objectType) {
         // Skip lint for `new Object()`, because it can be used for Id creation.
         return;
       }
 
-      TypeSystem typeSystem = node.staticElement.context.typeSystem;
-      DeclaredVariables declaredVariables =
-          node.staticElement.context.declaredVariables;
+      final listener = new MyAnalysisErrorListener();
 
-      final ConstantVisitor constantVisitor = new ConstantVisitor(
-          new ConstantEvaluationEngine(typeProvider, declaredVariables,
-              typeSystem: typeSystem),
-          new ErrorReporter(
-              AnalysisErrorListener.NULL_LISTENER, rule.reporter.source));
+      // put a fake const keyword to use ConstantVerifier
+      final oldKeyword = node.keyword;
+      node.keyword = new KeywordToken(Keyword.CONST, node.offset);
+      try {
+        final errorReporter = new ErrorReporter(listener, rule.reporter.source);
+        node.accept(new ConstantVerifier(errorReporter,
+            node.staticElement.library, typeProvider, declaredVariables));
+      } finally {
+        // restore old keyword
+        node.keyword = oldKeyword;
+      }
 
-      bool allConst = node.argumentList.arguments.every((Expression argument) {
-        Expression realArgument =
-            argument is NamedExpression ? argument.expression : argument;
-        DartObjectImpl result = realArgument.accept(constantVisitor);
-
-        return result != null;
-      });
-
-      if (allConst) {
+      if (!listener.hasConstError) {
         rule.reportLint(node);
       }
+    }
+  }
+}
+
+class MyAnalysisErrorListener extends AnalysisErrorListener {
+  bool hasConstError = false;
+  @override
+  void onError(AnalysisError error) {
+    switch (error.errorCode) {
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+      case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
+      case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+      case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
+      case CompileTimeErrorCode
+          .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+      case CompileTimeErrorCode.INVALID_CONSTANT:
+        hasConstError = true;
     }
   }
 }

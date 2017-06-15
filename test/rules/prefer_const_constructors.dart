@@ -41,3 +41,11 @@ void objectId() {
 void accessD() {
   D b = new D();
 }
+
+class E {
+  final String s;
+
+  const E(this.s);
+
+  static E m(int i) => new E('$i');// OK
+}
