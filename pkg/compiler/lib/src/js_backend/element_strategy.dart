@@ -5,6 +5,7 @@
 library dart2js.js_backend.element_strategy;
 
 import '../backend_strategy.dart';
+import '../closure.dart' show ClosureConversionTask, ClosureTask;
 import '../common.dart';
 import '../common/codegen.dart';
 import '../common/work.dart';
@@ -41,9 +42,9 @@ class ElementBackendStrategy implements BackendStrategy {
 
   Sorter get sorter => const ElementSorter();
 
-  void convertClosures(ClosedWorldRefiner closedWorldRefiner) {
-    _compiler.closureDataLookup.createClosureClasses(closedWorldRefiner);
-  }
+  @override
+  ClosureConversionTask createClosureConversionTask(Compiler compiler) =>
+      new ClosureTask(compiler);
 
   @override
   CodegenWorldBuilder createCodegenWorldBuilder(

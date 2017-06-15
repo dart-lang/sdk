@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
-import 'closure.dart' as closureMapping show ClosureTask;
+import 'closure.dart' as closureMapping show ClosureConversionTask;
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Uris;
 import 'common/resolution.dart'
@@ -144,7 +144,7 @@ abstract class Compiler {
   LibraryLoaderTask libraryLoader;
   SerializationTask serialization;
   ResolverTask resolver;
-  closureMapping.ClosureTask closureDataLookup;
+  closureMapping.ClosureConversionTask closureDataLookup;
   TypeCheckerTask checker;
   GlobalTypeInferenceTask globalInference;
   JavaScriptBackend backend;
@@ -226,7 +226,7 @@ abstract class Compiler {
           measurer),
       parser = new ParserTask(this),
       resolver = createResolverTask(),
-      closureDataLookup = new closureMapping.ClosureTask(this),
+      closureDataLookup = backendStrategy.createClosureConversionTask(this),
       checker = new TypeCheckerTask(this),
       globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,
@@ -651,7 +651,8 @@ abstract class Compiler {
 
     // TODO(johnniwinther): Move this after rti computation but before
     // reflection members computation, and (re-)close the world afterwards.
-    backendStrategy.convertClosures(closedWorldRefiner);
+    closureDataLookup.convertClosures(
+        enqueuer.resolution.processedEntities, closedWorldRefiner);
     return closedWorldRefiner;
   }
 

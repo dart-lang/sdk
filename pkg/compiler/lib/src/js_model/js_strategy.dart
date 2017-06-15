@@ -5,6 +5,7 @@
 library dart2js.js_model.strategy;
 
 import '../backend_strategy.dart';
+import '../closure.dart' show ClosureConversionTask;
 import '../common_elements.dart';
 import '../compiler.dart';
 import '../elements/elements.dart' show TypedefElement;
@@ -109,7 +110,8 @@ class JsBackendStrategy implements BackendStrategy {
   }
 
   @override
-  void convertClosures(ClosedWorldRefiner closedWorldRefiner) {}
+  ClosureConversionTask createClosureConversionTask(Compiler compiler) =>
+      new KernelClosureConversionTask(compiler.measurer);
 
   @override
   SourceInformationStrategy get sourceInformationStrategy =>

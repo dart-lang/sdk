@@ -60,10 +60,8 @@ class KernelBackendStrategy implements BackendStrategy {
   }
 
   @override
-  void convertClosures(ClosedWorldRefiner closedWorldRefiner) {
-    // TODO(johnniwinther,efortuna): Compute closure classes for kernel based
-    // elements.
-  }
+  ClosureConversionTask createClosureConversionTask(Compiler compiler) =>
+      new KernelClosureConversionTask(compiler.measurer);
 
   @override
   WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
@@ -151,8 +149,8 @@ class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
         closedWorld,
         _compiler.codegenWorldBuilder,
         work.registry,
+        _compiler.closureDataLookup,
         // TODO(johnniwinther): Support these:
-        const KernelClosureDataLookup(),
         const SourceInformationBuilder(),
         null, // Function node used as capture scope id.
         targetIsConstructorBody: false);
@@ -309,9 +307,32 @@ class KLocal implements Local {
   }
 }
 
-/// TODO(johnniwinther,efortuna): Implement this.
-class KernelClosureDataLookup implements ClosureDataLookup<ir.Node> {
-  const KernelClosureDataLookup();
+/// Closure conversion code using our new Entity model. Closure conversion is
+/// necessary because the semantics of closures are slightly different in Dart
+/// than JavaScript. Closure conversion is separated out into two phases:
+/// generation of a new (temporary) representation to store where variables need
+/// to be hoisted/captured up at another level to re-write the closure, and then
+/// the code generation phase where we generate elements and/or instructions to
+/// represent this new code path.
+///
+/// For a general explanation of how closure conversion works at a high level,
+/// check out:
+/// http://siek.blogspot.com/2012/07/essence-of-closure-conversion.html or
+/// http://matt.might.net/articles/closure-conversion/.
+class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
+  KernelClosureConversionTask(Measurer measurer) : super(measurer);
+
+  /// The combined steps of generating our intermediate representation of
+  /// closures that need to be rewritten and generating the element model.
+  /// Ultimately these two steps will be split apart with the second step
+  /// happening later in compilation just before codegen. These steps are
+  /// combined here currently to provide a consistent interface to the rest of
+  /// the compiler until we are ready to separate these phases.
+  @override
+  void convertClosures(Iterable<MemberEntity> processedEntities,
+      ClosedWorldRefiner closedWorldRefiner) {
+    // TODO(efortuna): implement.
+  }
 
   @override
   ClosureAnalysisInfo getClosureAnalysisInfo(ir.Node node) {

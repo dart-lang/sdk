@@ -4,7 +4,7 @@
 
 import 'common/names.dart' show Identifiers;
 import 'common/resolution.dart' show ParsingContext, Resolution;
-import 'common/tasks.dart' show CompilerTask;
+import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
@@ -22,6 +22,15 @@ import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'tree/tree.dart';
 import 'util/util.dart';
 import 'world.dart' show ClosedWorldRefiner;
+
+abstract class ClosureConversionTask<T> extends CompilerTask
+    implements ClosureDataLookup<T> {
+  ClosureConversionTask(Measurer measurer) : super(measurer);
+
+  //void analyzeClosures();
+  void convertClosures(Iterable<MemberEntity> processedEntities,
+      ClosedWorldRefiner closedWorldRefiner);
+}
 
 /// Class that provides information for how closures are rewritten/represented
 /// to preserve Dart semantics when compiled to JavaScript. Given a particular
@@ -198,7 +207,7 @@ class ClosureRepresentationInfo {
   bool get isClosure => false;
 }
 
-class ClosureTask extends CompilerTask implements ClosureDataLookup<Node> {
+class ClosureTask extends ClosureConversionTask<Node> {
   Map<Node, ClosureScope> _closureInfoMap = <Node, ClosureScope>{};
   Map<Element, ClosureClassMap> _closureMappingCache =
       <Element, ClosureClassMap>{};
@@ -210,6 +219,11 @@ class ClosureTask extends CompilerTask implements ClosureDataLookup<Node> {
   String get name => "Closure Simplifier";
 
   DiagnosticReporter get reporter => compiler.reporter;
+
+  void convertClosures(Iterable<MemberEntity> processedEntities,
+      ClosedWorldRefiner closedWorldRefiner) {
+    createClosureClasses(closedWorldRefiner);
+  }
 
   ClosureAnalysisInfo getClosureAnalysisInfo(Node node) {
     var value = _closureInfoMap[node];
