@@ -8,6 +8,7 @@ import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../transformations/treeshaker.dart' show ProgramRoot;
 import 'flutter.dart' show FlutterTarget;
+import 'flutter_fasta.dart' show FlutterFastaTarget;
 import 'vm.dart' show VmTarget;
 import 'vm_fasta.dart' show VmFastaTarget;
 import 'vmcc.dart' show VmClosureConvertedTarget;
@@ -37,6 +38,7 @@ final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
   'vmcc': (TargetFlags flags) => new VmClosureConvertedTarget(flags),
   'vmreify': (TargetFlags flags) => new VmGenericTypesReifiedTarget(flags),
   'flutter': (TargetFlags flags) => new FlutterTarget(flags),
+  'flutter_fasta': (TargetFlags flags) => new FlutterFastaTarget(flags),
 };
 
 Target getTarget(String name, TargetFlags flags) {
