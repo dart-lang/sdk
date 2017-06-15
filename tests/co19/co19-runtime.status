@@ -25,6 +25,9 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
+# Skip until Issue 29895 is fixed.
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: skip
+
 Language/Libraries_and_Scripts/Exports/reexport_t02: fail # Dart issue 12916
 
 Language/Statements/Assert/execution_t02: skip # co19 issue 734

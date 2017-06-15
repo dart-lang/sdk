@@ -46,6 +46,10 @@ least_upper_bound_expansive_test/*: Fail, OK
 # Skipped temporarily until fixed
 vm/regress_29145_test: Skip # Issue 29145
 
+# Skipped temporaril until Issue 29895 is fixed.
+no_main_test/01: Skip
+main_not_a_function_test/01: Skip
+
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 multiline_strings_test: Fail # Issue 23020
