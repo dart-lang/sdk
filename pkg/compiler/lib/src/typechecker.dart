@@ -25,12 +25,12 @@ import 'elements/elements.dart'
         EnumConstantElement,
         ExecutableElement,
         FieldElement,
+        FormalElement,
         FunctionElement,
         GetterElement,
         InitializingFormalElement,
         LibraryElement,
         MemberSignature,
-        ParameterElement,
         ResolvedAst,
         SetterElement,
         TypeDeclarationElement,
@@ -654,7 +654,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
       type = const ResolutionDynamicType();
       returnType = const ResolutionVoidType();
 
-      element.functionSignature.forEachParameter((ParameterElement parameter) {
+      element.functionSignature.forEachParameter((FormalElement parameter) {
         if (parameter.isInitializingFormal) {
           InitializingFormalElement fieldParameter = parameter;
           checkAssignable(parameter, parameter.type,
@@ -1685,7 +1685,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
   /** Dart Programming Language Specification: 11.10 Return */
   visitReturn(Return node) {
     if (identical(node.beginToken.stringValue, 'native')) {
-      return;
+      return null;
     }
 
     final Node expression = node.expression;

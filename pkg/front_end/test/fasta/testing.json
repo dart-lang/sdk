@@ -214,15 +214,7 @@
     },
 
     "exclude": [
-      "^pkg/analysis_server/lib/src/analysis_server\\.dart",
-      "^tests/compiler/dart2js/inference/enumerator\\.dart",
-      "^tests/compiler/dart2js/inference/id_equivalence_test\\.dart",
-      "^tests/compiler/dart2js/kernel/class_hierarchy_test\\.dart",
-      "^tests/compiler/dart2js/kernel/impact_test\\.dart",
-      "^tests/compiler/dart2js/kernel/visitor_test\\.dart",
-      "^tests/compiler/dart2js/location_collector_test\\.dart",
-      "^tests/compiler/dart2js/source_map_validator_helper\\.dart",
-      "^tests/compiler/dart2js/sourcemaps/sourcemap_helper\\.dart"
+      "^pkg/analysis_server/lib/src/analysis_server\\.dart"
     ]
   }
 }

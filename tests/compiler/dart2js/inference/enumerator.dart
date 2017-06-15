@@ -90,7 +90,7 @@ abstract class AstEnumeratorMixin {
   }
 
   NodeId computeNodeId(ast.Send node) {
-    var sendStructure = elements.getSendStructure(node);
+    dynamic sendStructure = elements.getSendStructure(node);
     if (sendStructure == null) return null;
     switch (sendStructure.kind) {
       case SendStructureKind.GET:

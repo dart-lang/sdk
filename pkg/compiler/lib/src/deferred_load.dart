@@ -444,7 +444,8 @@ class DeferredLoadTask extends CompilerTask {
       // If we see a class, add everything its live instance members refer
       // to.  Static members are not relevant, unless we are processing
       // extra dependencies due to mirrors.
-      void addLiveInstanceMember(_, MemberElement element) {
+      void addLiveInstanceMember(_, _element) {
+        MemberElement element = _element;
         if (!compiler.resolutionWorldBuilder.isMemberUsed(element)) return;
         if (!isMirrorUsage && !element.isInstanceMember) return;
         elements.add(element);

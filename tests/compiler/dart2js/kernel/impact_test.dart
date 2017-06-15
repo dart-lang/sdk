@@ -750,7 +750,7 @@ main(List<String> args) {
 
     checkLibrary(compiler, kernelElementMap, compiler.mainApp,
         fullTest: fullTest);
-    compiler.libraryLoader.libraries.forEach((LibraryElement library) {
+    compiler.libraryLoader.libraries.forEach((library) {
       if (library == compiler.mainApp) return;
       checkLibrary(compiler, kernelElementMap, library, fullTest: fullTest);
     });
@@ -760,10 +760,12 @@ main(List<String> args) {
 void checkLibrary(Compiler compiler, KernelToElementMapMixin elementMap,
     LibraryElement library,
     {bool fullTest: false}) {
-  library.forEachLocalMember((AstElement element) {
+  library.forEachLocalMember((_element) {
+    AstElement element = _element;
     if (element.isClass) {
       ClassElement cls = element;
-      cls.forEachLocalMember((AstElement member) {
+      cls.forEachLocalMember((_member) {
+        AstElement member = _member;
         checkElement(compiler, elementMap, member, fullTest: fullTest);
       });
     } else if (element.isTypedef) {
@@ -863,7 +865,7 @@ ResolutionImpact laxImpact(
                 }
               }
               if (constructor.resolvedAst.kind == ResolvedAstKind.PARSED) {
-                var function = constructor.resolvedAst.node;
+                dynamic function = constructor.resolvedAst.node;
                 if (function.initializers != null) {
                   TreeElements elements = constructor.resolvedAst.elements;
                   for (var initializer in function.initializers) {

@@ -14,6 +14,7 @@ import 'output_collector.dart';
 test(List events, Map<int, List<int>> expectedPositions) {
   BufferedOutputSink sink = new BufferedOutputSink();
   LocationProvider locationProvider = new LocationCollector();
+  // ignore: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
   CodeOutput output = new StreamCodeOutput(sink, [locationProvider]);
   for (var event in events) {
     if (event is String) {
