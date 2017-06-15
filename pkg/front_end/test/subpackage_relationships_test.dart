@@ -17,10 +17,7 @@ main() async {
 ///
 /// Note that this script only checks files in pkg/front_end/lib, so this list
 /// excludes dev dependencies.
-///
-/// TODO(paulberry): remove dependencies on analyzer.
 final allowedPackageDependencies = [
-  'analyzer',
   'charcode',
   'convert',
   'crypto',
@@ -40,9 +37,8 @@ final allowedPackageDependencies = [
 ///
 /// TODO(paulberry): stuff in lib/src shouldn't depend on lib; lib should just
 /// re-export stuff in lib/src.
-/// TODO(paulberry): remove dependencies on analyzer.
 final subpackageRules = {
-  'lib': new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
+  'lib': new SubpackageRules(allowedDependencies: [
     'lib/src',
     'lib/src/base',
     'lib/src/fasta',
@@ -50,7 +46,7 @@ final subpackageRules = {
     'lib/src/fasta/kernel',
     'lib/src/incremental'
   ]),
-  'lib/src': new SubpackageRules(mayImportAnalyzer: true, allowedDependencies: [
+  'lib/src': new SubpackageRules(allowedDependencies: [
     'lib',
     'lib/src/base',
     'lib/src/fasta',
@@ -162,9 +158,6 @@ final subpackageRules = {
 
 /// Rules for what a subpackage may depend directly on.
 class SubpackageRules {
-  /// Indicates whether the subpackage may directly depend on analyzer.
-  final bool mayImportAnalyzer;
-
   /// Indicates whether dart files may exist in subdirectories of this
   /// subpackage.
   ///
@@ -178,16 +171,12 @@ class SubpackageRules {
 
   var actuallyContainsFiles = false;
 
-  var actuallyImportsAnalyzer = false;
-
   var actuallyHasSubdirs = false;
 
   var actualDependencies = new Set<String>();
 
   SubpackageRules(
-      {this.mayImportAnalyzer: false,
-      this.allowSubdirs: false,
-      this.allowedDependencies: const []});
+      {this.allowSubdirs: false, this.allowedDependencies: const []});
 }
 
 class _SubpackageRelationshipsTest {
@@ -228,14 +217,6 @@ class _SubpackageRelationshipsTest {
       return;
     }
     srcSubpackageRules.actuallyContainsFiles = true;
-    if (dst.pathSegments[0] == 'analyzer') {
-      if (srcSubpackageRules.mayImportAnalyzer) {
-        srcSubpackageRules.actuallyImportsAnalyzer = true;
-      } else {
-        problem('$src depends on $dst, but subpackage "$srcSubpackage" may not '
-            'import analyzer');
-      }
-    }
     var dstSubPackage = subpackageForUri(dst);
     if (dstSubPackage == null) return;
     if (dstSubPackage == srcSubpackage) return;
@@ -295,9 +276,6 @@ class _SubpackageRelationshipsTest {
     subpackageRules.forEach((subpackage, rule) {
       if (!rule.actuallyContainsFiles) {
         problem("$subpackage contains no files");
-      }
-      if (rule.mayImportAnalyzer && !rule.actuallyImportsAnalyzer) {
-        problem("$subpackage is allowed to import analyzer, but doesn't");
       }
       if (rule.allowSubdirs && !rule.actuallyHasSubdirs) {
         problem("$subpackage is allowed to have subdirectories, but doesn't");
