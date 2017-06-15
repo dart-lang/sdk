@@ -1396,7 +1396,7 @@ class SsaBuilder extends ast.Visitor
       // The box must be passed before any type variable.
       ClosureAnalysisInfo scopeData =
           closureDataLookup.getClosureAnalysisInfo(node);
-      if (scopeData.requiresContextBox()) {
+      if (scopeData.requiresContextBox) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
 

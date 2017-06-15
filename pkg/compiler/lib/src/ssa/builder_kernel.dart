@@ -341,7 +341,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // box to the constructor.
       ClosureAnalysisInfo scopeData = closureDataLookup
           .getClosureAnalysisInfo(constructorElement.resolvedAst.node);
-      if (scopeData.requiresContextBox()) {
+      if (scopeData.requiresContextBox) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
 

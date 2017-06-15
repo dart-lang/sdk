@@ -140,7 +140,7 @@ class LocalsHandler {
       {bool forGenerativeConstructorBody: false}) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
-    if (!closureInfo.requiresContextBox()) return;
+    if (!closureInfo.requiresContextBox) return;
     HInstruction box;
     // The scope has captured variables.
     if (forGenerativeConstructorBody) {

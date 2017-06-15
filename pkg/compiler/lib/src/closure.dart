@@ -53,7 +53,7 @@ class ClosureAnalysisInfo {
   /// variable has been "captured"). In this situation, access to this variable
   /// is controlled via a wrapper (box) so that updates to this variable
   /// are done in a way that is in line with Dart's closure rules.
-  bool requiresContextBox() => false;
+  bool get requiresContextBox => false;
 
   /// Accessor to the local environment in which a particular closure node is
   /// executed. This will encapsulate the value of any variables that have been
@@ -598,7 +598,7 @@ class ClosureScope
 
   Local get context => boxElement;
 
-  bool requiresContextBox() => capturedVariables.keys.isNotEmpty;
+  bool get requiresContextBox => capturedVariables.keys.isNotEmpty;
 
   List<Local> get boxedVariables => boxedLoopVariables;
 
