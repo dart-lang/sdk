@@ -57,14 +57,6 @@ def Main():
       output_file.write(".global _%s\n" % options.symbol_name)
       output_file.write(".balign 32\n")
       output_file.write("_%s:\n" % options.symbol_name)
-    elif options.target_os in ["linux", "android", "fuchsia"]:
-      if options.executable:
-        output_file.write(".text\n")
-      else:
-        output_file.write(".section .rodata\n")
-      output_file.write(".global %s\n" % options.symbol_name)
-      output_file.write(".balign 32\n")
-      output_file.write("%s:\n" % options.symbol_name)
     elif options.target_os in ["win"]:
       output_file.write("ifndef _ML64_X64\n")
       output_file.write(".model flat, C\n")
@@ -76,8 +68,15 @@ def Main():
       output_file.write("public %s\n" % options.symbol_name)
       output_file.write("%s label byte\n" % options.symbol_name)
     else:
-      sys.stderr.write("Unknown target_os: %s" % options.target_os)
-      return -1
+      if options.executable:
+        output_file.write(".text\n")
+        output_file.write(".type %s STT_FUNC\n" % options.symbol_name)
+      else:
+        output_file.write(".section .rodata\n")
+        output_file.write(".type %s STT_OBJECT\n" % options.symbol_name)
+      output_file.write(".global %s\n" % options.symbol_name)
+      output_file.write(".balign 32\n")
+      output_file.write("%s:\n" % options.symbol_name)
 
     with open(options.input, "rb") as input_file:
       if options.target_os in ["win"]:
@@ -87,6 +86,9 @@ def Main():
       else:
         for byte in input_file.read():
           output_file.write(".byte %d\n" % ord(byte))
+
+    if options.target_os not in ["mac", "ios", "win"]:
+      output_file.write(".size {0}, .-{0}\n".format(options.symbol_name))
 
   return 0
 
