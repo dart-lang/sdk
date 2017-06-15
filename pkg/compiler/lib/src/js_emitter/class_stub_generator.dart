@@ -44,9 +44,9 @@ class ClassStubGenerator {
     //            fields.map(
     //                (name) => js('this.# = #', [name, name]))]));
     var typeParameters = const <jsAst.Parameter>[];
-    var typeInits = const <jsAst.Expression>[];
+    dynamic typeInits = const <jsAst.Expression>[];
     if (hasRtiField) {
-      var rtiName = _namer.rtiFieldJsName;
+      dynamic rtiName = _namer.rtiFieldJsName;
       typeParameters = rtiName;
       typeInits = js('this.# = #', [rtiName, rtiName]);
     }

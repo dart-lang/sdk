@@ -147,7 +147,8 @@ class SsaAstBuilderTask extends SsaAstBuilderBase {
         if (!identical(element.kind, ElementKind.FIELD)) {
           MethodElement function = element;
           FunctionSignature signature = function.functionSignature;
-          signature.forEachOptionalParameter((ParameterElement parameter) {
+          signature.forEachOptionalParameter((_parameter) {
+            ParameterElement parameter = _parameter;
             // This ensures the default value will be computed.
             ConstantValue constant =
                 backend.constants.getConstantValue(parameter.constant);
@@ -882,7 +883,8 @@ class SsaBuilder extends ast.Visitor
     }
 
     FunctionSignature signature = function.functionSignature;
-    signature.orderedForEachParameter((ParameterElement parameter) {
+    signature.orderedForEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
       HInstruction argument = compiledArguments[argumentIndex++];
       localsHandler.updateLocal(parameter, argument);
     });
@@ -890,8 +892,8 @@ class SsaBuilder extends ast.Visitor
     ClassElement enclosing = function.enclosingClass;
     if ((function.isConstructor || function.isGenerativeConstructorBody) &&
         rtiNeed.classNeedsRti(enclosing)) {
-      enclosing.typeVariables
-          .forEach((ResolutionTypeVariableType typeVariable) {
+      enclosing.typeVariables.forEach((_typeVariable) {
+        ResolutionTypeVariableType typeVariable = _typeVariable;
         HInstruction argument = compiledArguments[argumentIndex++];
         localsHandler.updateLocal(
             localsHandler.getTypeVariableAsLocal(typeVariable), argument);
@@ -1014,7 +1016,8 @@ class SsaBuilder extends ast.Visitor
 
       int index = 0;
       FunctionSignature params = callee.functionSignature;
-      params.orderedForEachParameter((ParameterElement parameter) {
+      params.orderedForEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         HInstruction argument = compiledArguments[index++];
         // Because we are inlining the initializer, we must update
         // what was given as parameter. This will be used in case
@@ -1267,7 +1270,8 @@ class SsaBuilder extends ast.Visitor
 
     // Compile field-parameters such as [:this.x:].
     FunctionSignature params = functionElement.functionSignature;
-    params.orderedForEachParameter((ParameterElement parameter) {
+    params.orderedForEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
       if (parameter.isInitializingFormal) {
         // If the [element] is a field-parameter then
         // initialize the field element with its value.
@@ -1321,8 +1325,8 @@ class SsaBuilder extends ast.Visitor
         // HTypeInfoExpression to set on the newly create object.
         hasRtiInput = true;
         List<HInstruction> typeArguments = <HInstruction>[];
-        classElement.typeVariables
-            .forEach((ResolutionTypeVariableType typeVariable) {
+        classElement.typeVariables.forEach((_typeVariable) {
+          ResolutionTypeVariableType typeVariable = _typeVariable;
           HInstruction argument = localsHandler
               .readLocal(localsHandler.getTypeVariableAsLocal(typeVariable));
           typeArguments.add(argument);
@@ -1383,7 +1387,8 @@ class SsaBuilder extends ast.Visitor
 
       FunctionSignature functionSignature = body.functionSignature;
       // Provide the parameters to the generative constructor body.
-      functionSignature.orderedForEachParameter((ParameterElement parameter) {
+      functionSignature.orderedForEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         // If [parameter] is boxed, it will be a field in the box passed as the
         // last parameter. So no need to directly pass it.
         if (!localsHandler.isBoxed(parameter)) {
@@ -1405,8 +1410,8 @@ class SsaBuilder extends ast.Visitor
       if (rtiNeed.classNeedsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
         // parameters of the generative constructor body.
-        currentClass.typeVariables
-            .forEach((ResolutionTypeVariableType argument) {
+        currentClass.typeVariables.forEach((_argument) {
+          ResolutionTypeVariableType argument = _argument;
           // TODO(johnniwinther): Substitute [argument] with
           // `localsHandler.substInContext(argument)`.
           bodyCallInputs.add(localsHandler
@@ -1446,8 +1451,8 @@ class SsaBuilder extends ast.Visitor
 
     Map<Local, TypeMask> parameters = <Local, TypeMask>{};
     if (element is MethodElement) {
-      element.functionSignature
-          .orderedForEachParameter((ParameterElement parameter) {
+      element.functionSignature.orderedForEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         parameters[parameter] = TypeMaskFactory.inferredTypeForParameter(
             parameter, globalInferenceResults);
       });
@@ -1468,7 +1473,8 @@ class SsaBuilder extends ast.Visitor
     ClassElement cls = element.enclosingClass;
     if ((element.isConstructor || element.isGenerativeConstructorBody) &&
         rtiNeed.classNeedsRti(cls)) {
-      cls.typeVariables.forEach((ResolutionTypeVariableType typeVariable) {
+      cls.typeVariables.forEach((_typeVariable) {
+        ResolutionTypeVariableType typeVariable = _typeVariable;
         HParameterValue param =
             addParameter(typeVariable.element, commonMasks.nonNullType);
         localsHandler.directLocals[
@@ -1484,7 +1490,8 @@ class SsaBuilder extends ast.Visitor
       // because that is where the type guards will also be inserted.
       // This way we ensure that a type guard will dominate the type
       // check.
-      signature.orderedForEachParameter((ParameterElement parameterElement) {
+      signature.orderedForEachParameter((_parameterElement) {
+        ParameterElement parameterElement = _parameterElement;
         if (element.isGenerativeConstructorBody) {
           if (closureDataLookup
               .getClosureAnalysisInfo(node)
@@ -3510,7 +3517,7 @@ class SsaBuilder extends ast.Visitor
       // can depend on a length type discovered in optimization.
       bool canThrow = true;
       if (inputs[0].isInteger(closedWorld) && inputs[0] is HConstant) {
-        var constant = inputs[0];
+        dynamic constant = inputs[0];
         int value = constant.constant.primitiveValue;
         if (0 <= value && value < 0x100000000) canThrow = false;
       }
@@ -4105,7 +4112,8 @@ class SsaBuilder extends ast.Visitor
       int positions = 0;
       var filteredArguments = <HInstruction>[];
       var parameterNameMap = new Map<String, js.Expression>();
-      params.orderedForEachParameter((ParameterElement parameter) {
+      params.orderedForEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         // TODO(jacobr): consider throwing if parameter names do not match
         // names of properties in the class.
         assert(parameter.isNamed);
@@ -5929,7 +5937,7 @@ class SsaBuilder extends ast.Visitor
     localsHandler.updateLocal(switchTarget, initialValue);
 
     JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
-    var switchCases = node.cases;
+    dynamic switchCases = node.cases;
     if (!hasDefault) {
       // Use [:null:] as the marker for a synthetic default clause.
       // The synthetic default is added because otherwise, there would be no

@@ -929,7 +929,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
     FunctionElement function = analyzedElement;
     FunctionSignature signature = function.functionSignature;
-    signature.forEachOptionalParameter((ParameterElement element) {
+    signature.forEachOptionalParameter((FormalElement _element) {
+      ParameterElement element = _element;
       ast.Expression defaultValue = element.initializer;
       // TODO(25566): The default value of a parameter of a redirecting factory
       // constructor comes from the corresponding parameter of the target.
@@ -958,7 +959,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
     if (analyzedElement.isGenerativeConstructor) {
       isThisExposed = false;
-      signature.forEachParameter((ParameterElement element) {
+      signature.forEachParameter((FormalElement _element) {
+        ParameterElement element = _element;
         TypeInformation parameterType = inferrer.typeOfElement(element);
         if (element.isInitializingFormal) {
           InitializingFormalElement initializingFormal = element;
@@ -1034,7 +1036,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         returnType = types.nonNullExact(cls);
       }
     } else {
-      signature.forEachParameter((LocalParameterElement element) {
+      signature.forEachParameter((FormalElement _element) {
+        ParameterElement element = _element;
         locals.update(element, inferrer.typeOfElement(element), node);
       });
       visit(node.body);
@@ -1194,7 +1197,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   void checkIfExposesThis(Selector selector, TypeMask mask) {
     if (isThisExposed) return;
-    inferrer.forEachElementMatching(selector, mask, (element) {
+    inferrer.forEachElementMatching(selector, mask, (dynamic element) {
       if (element.isField) {
         ResolvedAst elementResolvedAst = element.resolvedAst;
         if (!selector.isSetter &&
@@ -2838,7 +2841,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
 
     List<TypeInformation> unnamed = <TypeInformation>[];
-    signature.forEachRequiredParameter((ParameterElement element) {
+    signature.forEachRequiredParameter((FormalElement _element) {
+      ParameterElement element = _element;
       assert(locals.use(element) != null);
       unnamed.add(locals.use(element));
     });
@@ -2846,11 +2850,13 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     Map<String, TypeInformation> named;
     if (signature.optionalParametersAreNamed) {
       named = new Map<String, TypeInformation>();
-      signature.forEachOptionalParameter((ParameterElement element) {
+      signature.forEachOptionalParameter((FormalElement _element) {
+        ParameterElement element = _element;
         named[element.name] = locals.use(element);
       });
     } else {
-      signature.forEachOptionalParameter((ParameterElement element) {
+      signature.forEachOptionalParameter((FormalElement _element) {
+        ParameterElement element = _element;
         unnamed.add(locals.use(element));
       });
     }

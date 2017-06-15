@@ -220,7 +220,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Stored in a list that bailed out');
     } else {
       list.flowsInto.forEach((flow) {
-        flow.users.forEach((user) {
+        flow.users.forEach((dynamic user) {
           if (user is! DynamicCallSiteTypeInformation) return;
           if (user.receiver != flow) return;
           if (inferrer.returnsListElementTypeSet.contains(user.selector)) {
@@ -239,7 +239,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Stored in a map that bailed out');
     } else {
       map.flowsInto.forEach((flow) {
-        flow.users.forEach((user) {
+        flow.users.forEach((dynamic user) {
           if (user is! DynamicCallSiteTypeInformation) return;
           if (user.receiver != flow) return;
           if (user.selector.isIndex) {
@@ -392,6 +392,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
     Iterable<Element> inferredTargetTypes =
         info.targets.map((MemberElement element) {
+      // Issue 29886.
+      // ignore: RETURN_OF_INVALID_TYPE
       return inferrer.types.getInferredTypeOf(element);
     });
     if (inferredTargetTypes.any((user) => user == currentUser)) {

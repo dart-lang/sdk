@@ -896,7 +896,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
         return [js.quoteName(method.name), new js.ArrayInitializer(data)];
       } else {
         // TODO(floitsch): not the most efficient way...
-        return ([method]..addAll(method.parameterStubs))
+        return (<dynamic>[method]..addAll(method.parameterStubs))
             .expand(makeNameCodePair);
       }
     } else {
@@ -931,7 +931,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
         /// field whether the method is intercepted.
         // [name, [function, callName, tearOffName, functionType,
         //     stub1_name, stub1_callName, stub1_code, ...]
-        var data = [unparse(compiler, method.code)];
+        var data = <js.Expression>[unparse(compiler, method.code)];
         data.add(js.quoteName(method.callName));
         data.add(js.quoteName(method.tearOffName));
         data.add(method.functionType);

@@ -63,8 +63,8 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
 
     _instantiationInfo.forEach((cls, info) {
       if (info.instantiationMap != null) {
-        info.instantiationMap
-            .forEach((ConstructorElement constructor, Set<Instance> set) {
+        info.instantiationMap.forEach((_constructor, Set<Instance> set) {
+          ConstructorElement constructor = _constructor;
           for (Instance instance in set) {
             if (instance.isRedirection) {
               continue;

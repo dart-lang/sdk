@@ -167,7 +167,8 @@ class TypeTestRegistry {
     // reflected on 'as functions'.
     liveMembers.where((MemberEntity element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);
-    }).forEach((MethodElement function) {
+    }).forEach((_function) {
+      MethodElement function = _function;
       FunctionType type = function.type;
       for (ClassEntity cls in _rtiChecks.getReferencedClasses(type)) {
         while (cls != null) {
@@ -187,7 +188,8 @@ class TypeTestRegistry {
 
     checkedClasses = new Set<ClassElement>();
     checkedFunctionTypes = new Set<ResolutionFunctionType>();
-    _codegenWorldBuilder.isChecks.forEach((ResolutionDartType t) {
+    _codegenWorldBuilder.isChecks.forEach((_t) {
+      ResolutionDartType t = _t;
       if (t is ResolutionInterfaceType) {
         checkedClasses.add(t.element);
       } else if (t is ResolutionFunctionType) {

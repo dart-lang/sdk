@@ -562,7 +562,8 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
   void forEachParameter(
       MethodElement function, void f(DartType type, String name)) {
     FunctionSignature parameters = function.functionSignature;
-    parameters.forEachParameter((ParameterElement parameter) {
+    parameters.forEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
       f(parameter.type, parameter.name);
     });
   }

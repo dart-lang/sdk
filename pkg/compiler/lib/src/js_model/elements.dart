@@ -270,7 +270,8 @@ class JsBackendUsage implements BackendUsage {
 
   @override
   Iterable<FunctionEntity> get globalFunctionDependencies {
-    return _backendUsage.globalFunctionDependencies.map(_map.toBackendMember);
+    return _backendUsage.globalFunctionDependencies
+        .map((FunctionEntity e) => _map.toBackendMember(e));
   }
 
   @override

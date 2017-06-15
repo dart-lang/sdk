@@ -67,7 +67,8 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
       receiver = '#.';
       inputs.add(builder.localsHandler.readThis());
     }
-    parameters.forEachParameter((ParameterElement parameter) {
+    parameters.forEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
       ResolutionDartType type = parameter.type.unaliased;
       HInstruction input = builder.localsHandler.readLocal(parameter);
       if (type is ResolutionFunctionType) {

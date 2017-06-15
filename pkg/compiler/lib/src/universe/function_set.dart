@@ -178,10 +178,10 @@ class FunctionSetNode {
         isList = false;
       }
       if (isList) {
-        List list = elements;
+        List<MemberEntity> list = elements;
         list.add(element);
       } else {
-        Set set = elements;
+        Set<MemberEntity> set = elements;
         set.add(element);
       }
       if (!cache.isEmpty) cache.clear();
@@ -191,7 +191,7 @@ class FunctionSetNode {
   void remove(MemberEntity element) {
     assert(element.name == name);
     if (isList) {
-      List list = elements;
+      List<MemberEntity> list = elements;
       int index = list.indexOf(element);
       if (index < 0) return;
       MemberEntity last = list.removeLast();
@@ -200,7 +200,7 @@ class FunctionSetNode {
       }
       if (!cache.isEmpty) cache.clear();
     } else {
-      Set set = elements;
+      Set<MemberEntity> set = elements;
       if (set.remove(element)) {
         // To avoid wobbling between the two representations, we do
         // not transition back to the list representation even if we

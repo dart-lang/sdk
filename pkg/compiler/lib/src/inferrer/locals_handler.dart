@@ -191,6 +191,8 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
       if (positional[i] != other.positional[i]) return false;
     }
     named.forEach((name, type) {
+      // Issue 29885.
+      // ignore: RETURN_OF_INVALID_TYPE
       if (other.named[name] != type) return false;
     });
     return true;

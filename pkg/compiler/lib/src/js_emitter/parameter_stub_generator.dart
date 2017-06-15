@@ -121,7 +121,8 @@ class ParameterStubGenerator {
     // Includes extra receiver argument when using interceptor convention
     int indexOfLastOptionalArgumentInParameters = optionalParameterStart - 1;
 
-    parameters.orderedForEachParameter((ParameterElement element) {
+    parameters.orderedForEachParameter((_element) {
+      ParameterElement element = _element;
       String jsName = _namer.safeVariableName(element.name);
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {

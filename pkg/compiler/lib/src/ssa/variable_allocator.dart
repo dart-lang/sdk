@@ -243,7 +243,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
   // When looking for the checkedInstructionOrNonGenerateAtUseSite of t3 we must
   // return t2.
   HInstruction checkedInstructionOrNonGenerateAtUseSite(HCheck check) {
-    var checked = check.checkedInput;
+    dynamic checked = check.checkedInput;
     while (checked is HCheck) {
       HInstruction next = checked.checkedInput;
       if (generateAtUseSite.contains(next)) break;

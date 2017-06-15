@@ -1065,7 +1065,7 @@ class Emitter extends js_emitter.EmitterBase {
 
   jsAst.Expression generateLibraryDescriptor(
       LibraryEntity library, Fragment fragment) {
-    var uri = "";
+    dynamic uri = "";
     if (!compiler.options.enableMinification ||
         backend.mirrorsData.mustPreserveUris) {
       uri = library.canonicalUri;
@@ -1628,7 +1628,7 @@ class Emitter extends js_emitter.EmitterBase {
     deferredParts.forEach(counter.countTokens);
     task.metadataCollector.finalizeTokens();
     if (backend.namer is jsAst.TokenFinalizer) {
-      var finalizer = backend.namer;
+      dynamic finalizer = backend.namer;
       finalizer.finalizeTokens();
     }
   }

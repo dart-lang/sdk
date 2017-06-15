@@ -154,8 +154,9 @@ class LocalsHandler {
     directLocals[closureInfo.context] = box;
     // Make sure that accesses to the boxed locals go into the box. We also
     // need to make sure that parameters are copied into the box if necessary.
-    closureInfo.forEachCapturedVariable(
-        (LocalVariableElement from, BoxFieldElement to) {
+    closureInfo.forEachCapturedVariable((_from, _to) {
+      LocalVariableElement from = _from;
+      BoxFieldElement to = _to;
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
       if (from.isRegularParameter && !forGenerativeConstructorBody) {

@@ -229,7 +229,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
           _processedEntities.add(work.element);
         }
       }
-      List recents = _recentClasses.toList(growable: false);
+      List<ClassEntity> recents = _recentClasses.toList(growable: false);
       _recentClasses.clear();
       _recentConstants = false;
       if (!_onQueueEmpty(recents)) _recentClasses.addAll(recents);
