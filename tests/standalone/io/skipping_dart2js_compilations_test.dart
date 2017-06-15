@@ -17,11 +17,10 @@
  */
 
 import 'package:expect/expect.dart';
-import 'package:path/path.dart';
 import 'dart:async';
 import 'dart:io';
 import '../../../tools/testing/dart/command.dart';
-import '../../../tools/testing/dart/options.dart' as options;
+import '../../../tools/testing/dart/command_output.dart';
 import '../../../tools/testing/dart/path.dart';
 import '../../../tools/testing/dart/test_runner.dart' as runner;
 import '../../../tools/testing/dart/utils.dart';
@@ -128,12 +127,11 @@ class FileUtils {
 
 class CommandCompletedHandler {
   FileUtils fileUtils;
-  DateTime _expectedTimestamp;
   bool _shouldHaveRun;
 
   CommandCompletedHandler(FileUtils this.fileUtils, bool this._shouldHaveRun);
 
-  void processCompletedTest(runner.CommandOutput output) {
+  void processCompletedTest(CommandOutput output) {
     Expect.isTrue(output.exitCode == 0);
     Expect.isTrue(output.stderr.length == 0);
     if (_shouldHaveRun) {
@@ -148,7 +146,6 @@ class CommandCompletedHandler {
 }
 
 Command makeCompilationCommand(String testName, FileUtils fileUtils) {
-  var config = new options.OptionsParser().parse(['--timeout', '2'])[0];
   var createFileScript = Platform.script
       .resolve('skipping_dart2js_compilations_helper.dart')
       .toFilePath();
@@ -217,7 +214,7 @@ void main() {
       var completedHandler = new CommandCompletedHandler(fileUtils, shouldRun);
       var command = makeCompilationCommand(name, fileUtils);
       var process = new runner.RunningProcess(command, 60);
-      return process.run().then((runner.CommandOutput output) {
+      return process.run().then((CommandOutput output) {
         completedHandler.processCompletedTest(output);
       });
     }
