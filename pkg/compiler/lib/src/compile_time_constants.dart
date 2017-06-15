@@ -999,7 +999,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       CallStructure callStructure,
       List<AstConstant> normalizedArguments,
       List<AstConstant> concreteArguments) {
-    var firstArgument = normalizedArguments[0].value;
+    dynamic firstArgument = normalizedArguments[0].value;
     ConstantValue defaultValue = normalizedArguments[1].value;
 
     if (firstArgument.isNull) {
@@ -1239,7 +1239,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     // Assign arguments to parameters.
     FunctionSignature signature = constructor.functionSignature;
     int index = 0;
-    signature.orderedForEachParameter((ParameterElement parameter) {
+    signature.orderedForEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
       AstConstant argument = arguments[index++];
       Node node = parameter.node;
       if (parameter.isInitializingFormal) {
@@ -1265,7 +1266,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
 
       Map<FieldEntity, ConstantExpression> fields =
           expression.computeInstanceFields(new _CompilerEnvironment(compiler));
-      fields.forEach((FieldElement field, ConstantExpression expression) {
+      fields.forEach((_field, ConstantExpression expression) {
+        FieldElement field = _field;
         ConstantValue value = expression.evaluate(
             new _CompilerEnvironment(compiler), constantSystem);
         fieldValues[field] = new AstConstant(context, null, expression, value);

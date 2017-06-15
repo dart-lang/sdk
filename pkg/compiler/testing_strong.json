@@ -14,8 +14,6 @@
     ],
 
     "exclude": [
-      "^pkg/compiler/lib/src/compile_time_constants\\.dart",
-      "^pkg/compiler/lib/src/dart2js_resolver\\.dart",
       "^pkg/compiler/lib/src/deferred_load\\.dart",
       "^pkg/compiler/lib/src/enqueue\\.dart",
       "^pkg/compiler/lib/src/js_backend/backend_serialization\\.dart",
