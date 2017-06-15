@@ -112,36 +112,7 @@ io/web_socket_protocol_processor_test: Pass, StaticWarning, CompileTimeError # I
 *: Skip # Issue 28649
 
 [ $compiler == dart2js ]
-regress_29350_test: MissingCompileTimeError
-number_identity_test: Skip # Bigints and int/double diff. not supported.
-typed_data_test: Skip # dart:typed_data support needed.
-bytedata_test: Skip # dart:typed_data support needed.
-typed_data_view_test: Skip # dart:typed_data support needed.
-typed_data_isolate_test: Skip # dart:typed_data support needed.
-typed_array_int64_uint64_test: Skip # dart:typed_data on dart2js does not support 64-bit ints.
-float_array_test: Skip # dart:typed_data support needed.
-int_array_test: Skip  # dart:typed_data support needed.
-io/web_socket_protocol_processor_test: Skip  # Importing code with external keyword
-int_array_load_elimination_test: Skip  # This is a VM test
-medium_integer_test: RuntimeError, OK # Test fails with JS number semantics: issue 1533.
-io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
-package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
-package/package_test: Fail, OK # dart2js does not support 'package:foo.dart' imports
-package/package1_test: Fail, OK # dart2js does not support 'package:foo.dart' imports
-package/scenarios/invalid/*: CompileTimeError  # Negative tests expecting CompileTimeErrors.
-left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
-pow_test: Skip # Precision > 53 bits.
-double_smi_comparison_test: Skip # Precision > 53 bits.
-http_launch_test: Skip
-oom_error_stacktrace_test: RuntimeError, OK # (OOM on JS may produce a stacktrace).
-vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
-issue14236_test: Skip # dart2js does not deal with Script snapshots.
-unboxed_int_converter_test: Skip
-pair_location_remapping_test: Skip
-regress_25335_test: Skip # Int64List not supported.
-deferred_transitive_import_error_test: Skip # Contains intentional errors.
-dart_developer_env_test: SkipByDesign # Unsupported by dart2js
-dart_developer_disabled_env_test: SkipByDesign # Unsupported by dart2js
+*: SkipByDesign
 
 [ $runtime == vm && ($arch == arm || $arch == arm64) ]
 io/file_stream_test: Skip # Issue 26109
@@ -150,28 +121,6 @@ io/file_input_stream_test: Skip # Issue 26109
 
 [ $runtime != vm || $arch == arm || $arch == arm64 || $arch == mips || ($system == windows && $mode == debug) ]
 fragmentation_test: Skip # VM test uses too much memory for small systems.
-
-[ $compiler == dart2js && $jscl ]
-assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
-deoptimization_test: RuntimeError, OK # Requires bigint.
-out_of_memory_test: RuntimeError, OK # d8 handles much larger arrays than Dart VM.
-io/arguments_test: CompileTimeError, OK # Cannot pass arguments to d8.
-
-[ $compiler == dart2js && $runtime == none ]
-io/arguments_test: Fail # DartOptions not supported by dart2js, and issue 14200.
-medium_integer_test: Pass # The test only fails at runtime, not at compilation.
-oom_error_stacktrace_test: Pass # The test only fails at runtime.
-
-[ $compiler == dart2js && $fast_startup ]
-io/dependency_graph_test: CompileTimeError # Imports dart:mirrors
-io/skipping_dart2js_compilations_test: CompileTimeError # Imports dart:mirrors
-io/status_file_parser_test: CompileTimeError # Imports dart:mirrors
-io/test_harness_analyzer_test: CompileTimeError # Imports dart:mirrors
-io/test_runner_test: CompileTimeError # Imports dart:mirrors
-status_expression_test: CompileTimeError # Imports dart:mirrors
-
-[ $compiler == dart2js && $browser ]
-*: Skip
 
 [ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
