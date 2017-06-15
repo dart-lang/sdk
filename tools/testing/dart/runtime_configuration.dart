@@ -4,12 +4,12 @@
 
 import 'dart:io';
 
+import 'command.dart';
 import 'compiler_configuration.dart';
 import 'configuration.dart';
 // TODO(ahe): Remove this import, we can precompute all the values required
 // from TestSuite once the refactoring is complete.
 import 'test_suite.dart';
-import 'test_runner.dart';
 import 'utils.dart';
 
 /// Describes the commands to run a given test case or its compiled output.
@@ -82,7 +82,6 @@ abstract class RuntimeConfiguration {
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -101,7 +100,6 @@ class NoneRuntimeConfiguration extends RuntimeConfiguration {
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -128,14 +126,13 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
     // TODO(ahe): Avoid duplication of this method between d8 and jsshell.
     checkArtifact(artifact);
-    return <Command>[
-      commandBuilder.getJSCommandlineCommand(
+    return [
+      Command.jsCommandLine(
           moniker, suite.d8FileName, arguments, environmentOverrides)
     ];
   }
@@ -151,13 +148,12 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
     checkArtifact(artifact);
-    return <Command>[
-      commandBuilder.getJSCommandlineCommand(
+    return [
+      Command.jsCommandLine(
           moniker, suite.jsShellFileName, arguments, environmentOverrides)
     ];
   }
@@ -226,7 +222,6 @@ class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
 class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -238,9 +233,7 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "Dart VM cannot run files of type '$type'.";
     }
     String executable = suite.dartVmBinaryFileName;
-    return <Command>[
-      commandBuilder.getVmCommand(executable, arguments, environmentOverrides)
-    ];
+    return [Command.vm(executable, arguments, environmentOverrides)];
   }
 }
 
@@ -248,7 +241,6 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
 class StandaloneFlutterEngineConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -261,9 +253,7 @@ class StandaloneFlutterEngineConfiguration extends DartVmRuntimeConfiguration {
     }
     String executable = suite.flutterEngineBinaryFileName;
     var args = <String>['--non-interactive']..addAll(arguments);
-    return <Command>[
-      commandBuilder.getVmCommand(executable, args, environmentOverrides)
-    ];
+    return [Command.vm(executable, args, environmentOverrides)];
   }
 }
 
@@ -273,7 +263,6 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -283,8 +272,8 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 
-    return <Command>[
-      commandBuilder.getVmCommand(
+    return [
+      Command.vm(
           suite.dartPrecompiledBinaryFileName, arguments, environmentOverrides)
     ];
   }
@@ -301,7 +290,6 @@ class DartPrecompiledAdbRuntimeConfiguration
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -313,8 +301,8 @@ class DartPrecompiledAdbRuntimeConfiguration
 
     String precompiledRunner = suite.dartPrecompiledBinaryFileName;
     String processTest = suite.processTestBinaryFileName;
-    return <Command>[
-      commandBuilder.getAdbPrecompiledCommand(
+    return [
+      Command.adbPrecompiled(
           precompiledRunner, processTest, script, arguments, useBlobs)
     ];
   }
@@ -338,13 +326,12 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
     String executable = suite.dartVmBinaryFileName;
     return selfCheckers
-        .map((String tester) => commandBuilder.getVmBatchCommand(
+        .map((String tester) => Command.vmBatch(
             executable, tester, arguments, environmentOverrides,
             checked: suite.configuration.isChecked))
         .toList();
@@ -360,7 +347,6 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
 class DummyRuntimeConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
