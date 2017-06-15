@@ -684,8 +684,6 @@ class KernelFactoryConstructorInvocation extends StaticInvocation
 
 /// Concrete shadow object representing a field in kernel form.
 class KernelField extends Field {
-  bool _implicitlyTyped = true;
-
   FieldNode _fieldNode;
 
   bool _isInferred = false;
@@ -693,12 +691,6 @@ class KernelField extends Field {
   KernelTypeInferrer _typeInferrer;
 
   KernelField(Name name, {String fileUri}) : super(name, fileUri: fileUri) {}
-
-  @override
-  void set type(DartType value) {
-    _implicitlyTyped = false;
-    super.type = value;
-  }
 
   void _setInferredType(DartType inferredType) {
     _isInferred = true;
@@ -1911,16 +1903,6 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
       InterfaceType thisType, KernelField field) {
     return field._typeInferrer =
         new KernelTypeInferrer._(this, field.fileUri, listener, true, thisType);
-  }
-
-  @override
-  bool fieldHasInitializer(KernelField field) {
-    return field.initializer != null;
-  }
-
-  @override
-  DartType getFieldDeclaredType(KernelField field) {
-    return field._implicitlyTyped ? null : field.type;
   }
 
   @override

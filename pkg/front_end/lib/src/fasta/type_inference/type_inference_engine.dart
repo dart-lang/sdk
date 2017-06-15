@@ -118,39 +118,37 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// Computes type inference dependencies for the given [field].
   List<FieldNode> computeFieldDependencies(FieldNode fieldNode) {
     // TODO(paulberry): add logic to infer field types by inheritance.
-    if (fieldHasInitializer(fieldNode._field)) {
-      if (expandedTopLevelInference) {
-        // In expanded top level inference, we determine the dependencies by
-        // doing a "dry run" of top level inference and recording which static
-        // fields were accessed.
-        var typeInferrer = getFieldTypeInferrer(fieldNode._field);
+    if (expandedTopLevelInference) {
+      // In expanded top level inference, we determine the dependencies by
+      // doing a "dry run" of top level inference and recording which static
+      // fields were accessed.
+      var typeInferrer = getFieldTypeInferrer(fieldNode._field);
+      if (typeInferrer == null) {
+        // This can happen when there are errors in the field declaration.
+        return const [];
+      } else {
         typeInferrer.startDryRun();
         typeInferrer.listener.dryRunEnter(fieldNode._field.initializer);
         typeInferrer.inferFieldTopLevel(fieldNode._field, null, true);
         typeInferrer.listener.dryRunExit(fieldNode._field.initializer);
         fieldNode.isImmediatelyEvident = true;
         return typeInferrer.finishDryRun();
-      } else {
-        // In non-expanded top level inference, we determine the dependencies by
-        // calling `collectDependencies`; as a side effect this flags any
-        // expressions that are not "immediately evident".
-        // TODO(paulberry): get rid of this mode once we are sure we no longer
-        // need it.
-        var collector = new KernelDependencyCollector();
-        collector.collectDependencies(fieldNode._field.initializer);
-        fieldNode.isImmediatelyEvident = collector.isImmediatelyEvident;
-        return collector.dependencies;
       }
     } else {
-      return const [];
+      // In non-expanded top level inference, we determine the dependencies by
+      // calling `collectDependencies`; as a side effect this flags any
+      // expressions that are not "immediately evident".
+      // TODO(paulberry): get rid of this mode once we are sure we no longer
+      // need it.
+      var collector = new KernelDependencyCollector();
+      collector.collectDependencies(fieldNode._field.initializer);
+      fieldNode.isImmediatelyEvident = collector.isImmediatelyEvident;
+      return collector.dependencies;
     }
   }
 
   /// Creates a [FieldNode] to track dependencies of the given [field].
   FieldNode createFieldNode(KernelField field);
-
-  /// Queries whether the given [field] has an initializer.
-  bool fieldHasInitializer(KernelField field);
 
   @override
   void finishTopLevel() {
@@ -163,10 +161,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
   }
 
-  /// Gets the declared type of the given [field], or `null` if the type is
-  /// implicit.
-  DartType getFieldDeclaredType(KernelField field);
-
   /// Gets the character offset of the declaration of [field] within its
   /// compilation unit.
   int getFieldOffset(KernelField field);
@@ -178,45 +172,40 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// Performs type inference on the given [field].
   void inferField(FieldNode fieldNode) {
     var field = fieldNode._field;
-    if (fieldHasInitializer(field)) {
-      var typeInferrer = getFieldTypeInferrer(field);
-      var type = getFieldDeclaredType(field);
-      if (type == null && strongMode) {
-        typeInferrer.isImmediatelyEvident = true;
-        var inferredType = fieldNode.isImmediatelyEvident
-            ? typeInferrer.inferDeclarationType(
-                typeInferrer.inferFieldTopLevel(field, type, true))
-            : const DynamicType();
-        if (!typeInferrer.isImmediatelyEvident) {
-          inferredType = const DynamicType();
-        }
-        instrumentation?.record(
-            Uri.parse(typeInferrer.uri),
-            getFieldOffset(field),
-            'topType',
-            new InstrumentationValueForType(inferredType));
-        setFieldInferredType(field, inferredType);
+    var typeInferrer = getFieldTypeInferrer(field);
+    if (strongMode) {
+      typeInferrer.isImmediatelyEvident = true;
+      var inferredType = fieldNode.isImmediatelyEvident
+          ? typeInferrer.inferDeclarationType(
+              typeInferrer.inferFieldTopLevel(field, null, true))
+          : const DynamicType();
+      if (!typeInferrer.isImmediatelyEvident) {
+        inferredType = const DynamicType();
       }
-      // TODO(paulberry): if type != null, then check that the type of the
-      // initializer is assignable to it.
-      // TODO(paulberry): the following is a hack so that outlines don't contain
-      // initializers.  But it means that we rebuild the initializers when doing
-      // a full compile.  There should be a better way.
-      clearFieldInitializer(field);
+      instrumentation?.record(
+          Uri.parse(typeInferrer.uri),
+          getFieldOffset(field),
+          'topType',
+          new InstrumentationValueForType(inferredType));
+      setFieldInferredType(field, inferredType);
     }
+    // TODO(paulberry): if type != null, then check that the type of the
+    // initializer is assignable to it.
+    // TODO(paulberry): the following is a hack so that outlines don't contain
+    // initializers.  But it means that we rebuild the initializers when doing
+    // a full compile.  There should be a better way.
+    clearFieldInitializer(field);
   }
 
   /// Makes a note that the given [field] is part of a circularity, so its type
   /// can't be inferred.
   void inferFieldCircular(KernelField field) {
     // TODO(paulberry): report the appropriate error.
-    if (getFieldDeclaredType(field) == null) {
-      var uri = getFieldTypeInferrer(field).uri;
-      var inferredType = const DynamicType();
-      instrumentation?.record(Uri.parse(uri), getFieldOffset(field), 'topType',
-          new InstrumentationValueForType(inferredType));
-      setFieldInferredType(field, inferredType);
-    }
+    var uri = getFieldTypeInferrer(field).uri;
+    var inferredType = const DynamicType();
+    instrumentation?.record(Uri.parse(uri), getFieldOffset(field), 'topType',
+        new InstrumentationValueForType(inferredType));
+    setFieldInferredType(field, inferredType);
   }
 
   /// Determines if top level type inference has been completed for [field].
