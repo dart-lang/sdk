@@ -190,12 +190,11 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
     for (int i = 0; i < positional.length; i++) {
       if (positional[i] != other.positional[i]) return false;
     }
+    var result = true;
     named.forEach((name, type) {
-      // Issue 29885.
-      // ignore: RETURN_OF_INVALID_TYPE
-      if (other.named[name] != type) return false;
+      if (other.named[name] != type) result = false;
     });
-    return true;
+    return result;
   }
 
   int get hashCode => throw new UnsupportedError('ArgumentsTypes.hashCode');
