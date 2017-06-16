@@ -141,6 +141,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
 
   @override
   ConstantValue getFieldConstantValue(ir.Field field) {
+    // TODO(johnniwinther): Cache the result in [_FieldData].
     return getConstantValue(field.initializer, requireConstant: field.isConst);
   }
 
@@ -673,11 +674,22 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   @override
   FieldEntity getField(ir.Field node) => _getField(node);
 
+  bool hasConstantFieldInitializer(KField field) {
+    _FieldData data = _memberList[field.memberIndex];
+    return getFieldConstantValue(data.node) != null;
+  }
+
   TypeVariableEntity getTypeVariable(ir.TypeParameter node) =>
       _getTypeVariable(node);
 
   @override
   FunctionEntity getMethod(ir.Procedure node) => _getMethod(node);
+
+  void forEachParameter(KFunction function,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    _FunctionData data = _memberList[function.memberIndex];
+    data.forEachParameter(this, f);
+  }
 
   @override
   MemberEntity getMember(ir.Member node) {
@@ -1065,6 +1077,29 @@ class _FunctionData extends _MemberData {
 
   FunctionType getFunctionType(KernelToElementMapImpl elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
+  }
+
+  void forEachParameter(KernelToElementMap elementMap,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
+      DartType type = elementMap.getDartType(node.type);
+      String name = node.name;
+      ConstantValue defaultValue;
+      if (isOptional) {
+        if (node.initializer != null) {
+          defaultValue = elementMap.getConstantValue(node.initializer);
+        } else {
+          defaultValue = new NullConstantValue();
+        }
+      }
+      f(type, name, defaultValue);
+    }
+
+    for (int i = 0; i < functionNode.positionalParameters.length; i++) {
+      handleParameter(functionNode.positionalParameters[i],
+          isOptional: i < functionNode.requiredParameterCount);
+    }
+    functionNode.namedParameters.forEach(handleParameter);
   }
 }
 

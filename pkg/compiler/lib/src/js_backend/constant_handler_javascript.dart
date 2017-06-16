@@ -8,6 +8,7 @@ import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../elements/visitor.dart' show BaseElementVisitor;
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart';
@@ -115,7 +116,7 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     implements BackendConstantEnvironment {
   // TODO(johnniwinther): Move this to the backend constant handler.
   /** Caches the statics where the initial value cannot be eagerly compiled. */
-  final Set<FieldElement> lazyStatics = new Set<FieldElement>();
+  final Set<FieldEntity> lazyStatics = new Set<FieldEntity>();
 
   // Constants computed for constant expressions.
   final Map<Node, ConstantExpression> nodeConstantMap =
@@ -140,18 +141,19 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
         element, definitions,
         isConst: isConst, checkType: checkType);
     if (!isConst && value == null) {
-      registerLazyStatic(element);
+      FieldElement field = element;
+      registerLazyStatic(field);
     }
     return value;
   }
 
   @override
-  void registerLazyStatic(FieldElement element) {
+  void registerLazyStatic(FieldEntity element) {
     lazyStatics.add(element);
   }
 
-  List<FieldElement> getLazilyInitializedFieldsForEmission() {
-    return new List<FieldElement>.from(lazyStatics);
+  List<FieldEntity> getLazilyInitializedFieldsForEmission() {
+    return new List<FieldEntity>.from(lazyStatics);
   }
 
   ConstantExpression compileNode(Node node, TreeElements elements,

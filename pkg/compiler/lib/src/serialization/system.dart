@@ -100,7 +100,7 @@ class ResolutionDeserializerSystem extends DeserializerSystem {
           // TODO(johnniwinther): Find a cleaner way to do this. Maybe
           // `Feature.LAZY_FIELD` of the resolution impact should be used
           // instead.
-          _compiler.backend.constants.registerLazyStatic(element);
+          _compiler.backend.constants.registerLazyStatic(field);
         }
       }
     }

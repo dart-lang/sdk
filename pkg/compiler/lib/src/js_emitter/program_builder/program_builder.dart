@@ -195,6 +195,8 @@ class ProgramBuilder {
   /// interceptors, ...).
   Set<ClassElement> _notSoftDeferred;
 
+  Sorter get _sorter => _task.sorter;
+
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
     collector.collect();
     _initializeSoftDeferredMap();
@@ -460,19 +462,19 @@ class ProgramBuilder {
 
   List<StaticField> _buildStaticLazilyInitializedFields(
       LibrariesMap librariesMap) {
-    Iterable<FieldElement> lazyFields = _constantHandler
+    Iterable<FieldEntity> lazyFields = _constantHandler
         .getLazilyInitializedFieldsForEmission()
-        .where((element) =>
-            _deferredLoadTask.outputUnitForElement(element) ==
+        .where((FieldEntity element) =>
+            _deferredLoadTask.outputUnitForMember(element) ==
             librariesMap.outputUnit);
-    return Elements
-        .sortedByPosition(lazyFields)
+    return _sorter
+        .sortMembers(lazyFields)
         .map(_buildLazyField)
         .where((field) => field != null) // Happens when the field was unused.
         .toList(growable: false);
   }
 
-  StaticField _buildLazyField(FieldElement element) {
+  StaticField _buildLazyField(FieldEntity element) {
     js.Expression code = _generatedCode[element];
     // The code is null if we ended up not needing the lazily
     // initialized field after all because of constant folding
@@ -480,7 +482,7 @@ class ProgramBuilder {
     if (code == null) return null;
 
     js.Name name = _namer.globalPropertyNameForMember(element);
-    bool isFinal = element.isFinal;
+    bool isFinal = !element.isAssignable;
     bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a static field. (Note that the static-state holder was
@@ -983,7 +985,6 @@ class ProgramBuilder {
     ParameterStubGenerator generator = new ParameterStubGenerator(
         _commonElements,
         _task,
-        _constantHandler,
         _namer,
         _nativeData,
         _interceptorData,
@@ -1008,7 +1009,7 @@ class ProgramBuilder {
     Iterable<js.Name> names =
         _oneShotInterceptorData.specializedGetInterceptorNames;
     for (js.Name name in names) {
-      for (ClassElement element
+      for (ClassEntity element
           in _oneShotInterceptorData.getSpecializedGetInterceptorsFor(name)) {
         Class cls = _classes[element];
         if (cls != null) cls.isEager = true;

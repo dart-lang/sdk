@@ -19,6 +19,7 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
+import '../kernel/kernel_strategy.dart';
 import '../kernel/kernel_backend_strategy.dart';
 import '../ssa/ssa.dart';
 import '../universe/class_set.dart';
@@ -133,7 +134,12 @@ class JsBackendStrategy implements BackendStrategy {
       NativeBasicData nativeBasicData,
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new KernelCodegenWorldBuilder(closedWorld.elementEnvironment,
-        nativeBasicData, closedWorld, selectorConstraintsStrategy);
+    KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
+    return new KernelCodegenWorldBuilder(
+        frontendStrategy.elementMap,
+        closedWorld.elementEnvironment,
+        nativeBasicData,
+        closedWorld,
+        selectorConstraintsStrategy);
   }
 }

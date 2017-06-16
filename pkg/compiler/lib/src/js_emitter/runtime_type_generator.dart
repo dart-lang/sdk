@@ -5,7 +5,7 @@
 library dart2js.js_emitter.runtime_type_generator;
 
 import '../closure.dart'
-    show ClosureRepresentationInfo, ClosureFieldElement, ClosureTask;
+    show ClosureRepresentationInfo, ClosureFieldElement, ClosureConversionTask;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements;
@@ -57,7 +57,7 @@ class TypeTestProperties {
 
 class RuntimeTypeGenerator {
   final CommonElements _commonElements;
-  final ClosureTask _closureDataLookup;
+  final ClosureConversionTask _closureDataLookup;
   final CodeEmitterTask emitterTask;
   final Namer _namer;
   final NativeData _nativeData;
