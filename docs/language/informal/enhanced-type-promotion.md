@@ -114,8 +114,8 @@ The language specifies type promotion out of four components:
     promotion.** The spec says that promotion only applies if the promoted type
     is a subtype of the declared type.
 
-This proposal keeps the same general pieces, but refines the first three of
-them. The forth is unchanged.
+This proposal keeps the same general pieces, but refines the first two of
+them. The third and forth are unchanged.
 
 ## Facts for False Expressions
 
@@ -259,22 +259,13 @@ some block:
 
     This is also allowed if the if statement has no else clause at all.
 
-## Promoting More Variables
+## Alternatives Considered
 
-The specification places several restrictions on the variables whose type can be promoted. The variable `v`:
+### Allowing assignment inside of the promoted scope
 
-*   Must be either a local variable or a parameter,
-
-*   cannot be potentially assigned to within the scope S that the promotion
-    would apply to,
-
-*   cannot be potentially assigned to within any closure, and
-
-*   if `v` is captured by a closure in the scope S then `v` cannot be
-    potentially mutated anywhere.
-
-The most common case where this eliminates useful promotion is the second rule.
-Consider:
+One frequent annoyance of the current type promotion rules is that assigning to
+the promoted variable anywhere inside the scope where the variable is promoted
+kills the promotion, even before the assignment. For example:
 
 ```dart
 Object trimIfString(Object o) {
@@ -283,13 +274,11 @@ Object trimIfString(Object o) {
 }
 ```
 
-In Dart today, the assignment to `o` prevents `o` from being promoted. That in
-turn means the call to `o.trim()` has a static error since Object has no
-`trim()` method.
+This code is dynamically correct and intuitively should work. But because `o`
+is assigned to inside the then body, no promotion occurs. Since Object doesn't
+define `trim()`, you get a static error.
 
-We accommodate these cases by simply removing the second restriction. We allow
-promotion to occur even if the variable is assigned within the promoted scope.
-This opens the door to code that is not safe:
+This restriction does help avoid some patently wrong code:
 
 ```dart
 test(Object o) {
@@ -300,50 +289,134 @@ test(Object o) {
 }
 ```
 
-Obviously, by the time we execute `o.length`, `o` will no longer be a String and
-the call will fail. We address this by promoting `o`'s static type not just for
-accesses of `o`, but for assignments to it as well.
+But it's too pessimistic since it also disallows valid code like the
+`trimIfString()` example. We considered two middle grounds. The first is to
+allow assignment as long as the type of the assigned value is a subtype of the
+promoted type. That means the first example would promote because the type of
+`o.trim()`, String, is a subtype of the promoted type, also String.
 
-In this example, if means the `o = 123` now generates a static error because an
-int cannot be assigned to a variable of (promoted) type String. There are still
-cases where the assignment is allowed but would lead to unsound code because of
-an implicit downcast:
+The problem is that when we are calculating promotion, we don't know the types
+of the right-hand sides. The two features can interact with type inference in
+complex ways. Consider:
 
 ```dart
-test(Object o) {
-  if (o is String) {
-    o = new Object(); // No longer a String.
-    print(o.length);  // Error!
+if (o is String) {
+  o = f(o);
+}
+```
+
+Is this promotion valid? It depends on the type of `f(o)`. If `f` is a generic
+function, we need to infer its type parameter, which requires knowing the type
+of `o`. But `o`'s type depends on whether or not it is promote, which is what
+we're trying to calculate. We're stuck in a loop.
+
+An even nastier example is:
+
+```dart
+T fn<T, T>(T t, T t) => t;
+
+class A           {  D v; }
+class B extends A { E2 v; }
+class C extends B {}
+
+class D            { A a; }
+class E1 extends D { C a; }
+class E2 extends D {}
+
+foo(A x) {
+  if (x is B) {
+    var y = x.v;
+    if (y is E1) {
+      x = fn(y.a, new B());
+    }
   }
 }
 ```
 
-Here, the assignment `o = new Object()` has no static error, but would lead to
-code that fails later since Object has no `length` getter. We address this like
-all downcasts are addressed in strong mode, by checking at runtime that the
-assignment succeeds. Now, though, the runtime check is against the *promoted*
-type. In the above example, at runtime, we check that `new Object()` can be
-assigned to String. That check fails at runtime, and we never reach the invalid
-call to `o.length`.
+(Determining whether `x` and/or `y` should promote is left as an exercise for
+the reader.)
 
-*Optional: The restriction on mutation within closures could be relaxed to only
-apply to closures defined before the boolean expression that allows for the
-promotion or within the scope that the promotion would apply to. A similar
-relaxation could be made for the locations of closures that capture the
-variable. This would require defining precisely what we mean by "before", which
-might be more work than it's worth.*
-
-*Optional: The restriction on mutation within the scope that the promotion would
-apply to could be relaxed by allowing the promotion to apply to everything up to
-the point of mutation. For example:*
+A simpler alternative approach suggested by Leaf is to simply *always* allow
+assignment inside the promoted scope and then type check it against the promoted
+type. If you assign a value whose type is not a subtype of the promoted type,
+you get a type error but it doesn't nullify the promotion:
 
 ```dart
-if (v is T) {
-  // v has type T here
-  v = someNonTValue;
-  // v has the non-promoted type here
+test(Object o) {
+  if (o is String) {
+    o = 123;  // Error: 123 is not a String.
+    o.trim(); // OK.
+  }
 }
 ```
+
+Unfortunately, there are times when you still want to assign using the original
+declared typed. Consider:
+
+```dart
+class Node {}
+class Tree extends Node {
+  final Node left, right;
+}
+
+Node leftmostLeaf(Node node) {
+  while (node is Tree) {
+    node = node.left;
+  }
+
+  return node;
+}
+```
+
+Promoting `node` to Tree inside the while body lets the `node.left` expression
+work, which is good. But it breaks the assignment. The assignment becomes an
+implicit downcast from Node (the type of `node.left`) to Tree (the promoted type
+of `node`). That downcast is checked at runtime in strong mode and may
+fail.
+
+But the whole point of this code is to allow assigning a non-Tree to `node`.
+That's how you exit the loop. This program would throw a cast exception from otherwise correct code.
+
+Worse, there's no easy workaround. You can't "unpromote" a variable or "upcast"
+an lvalue like:
+
+```dart
+Node leftmostLeaf(Node node) {
+  while (node is Tree) {
+    node as Node = node.left;
+  }
+
+  return node;
+}
+```
+
+The most promising approach is to *change* the type of the promoted variable at
+the assignment. So, in this case, `node` would have the promoted type when
+evaluating `node.left`. And then immediately after the assignment, its type
+switches to Node, the resulting type of the assignment.
+
+But this requires control flow analysis. Consider examples like:
+
+```dart
+test(Object o) {
+  if (o is String) {
+    o = "String";
+  } else {
+    o = 1; // Change type to int.
+    o = o + 1; // OK. int + int.
+    o = "Not String"; // Now change to String.
+    o = o.trim(); // OK. String.trim().
+  }
+
+  return o.toLowerCase(); // OK?
+}
+```
+
+Here, since both paths definitely assign a String to `o`, ideally it would allow
+the `toLowerCase()` call on the result. That requires doing a join on the two
+control paths. This kind of analysis isn't *bad*, but it would make this
+proposal much more complex. We may go there, but we want something simpler we
+can implement soon to remove the ad hoc type propagation code in analyzer.
 
 ## Example Specification Wording
 
