@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    ;
+  operator +(dynamic other) → core::int
+    ;
+  operator -(dynamic other) → core::double
+    ;
+}
+class B extends core::Object {
+  field self::A a;
+  constructor •() → void
+    ;
+}
+static field dynamic v_prefix_pp;
+static field dynamic v_prefix_mm;
+static field dynamic v_postfix_pp;
+static field dynamic v_postfix_mm;
+static method main() → dynamic
+  ;

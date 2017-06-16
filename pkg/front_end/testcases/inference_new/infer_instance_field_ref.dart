@@ -6,17 +6,19 @@
 library test;
 
 class A {
-  int f;
+  B b;
 }
 
-A a = new A();
-var /*@topType=int*/ b = (a. /*@target=A::f*/ f = 1);
-var /*@topType=int*/ c = 0;
-var /*@topType=int*/ d = (c = 1);
-
-main() {
-  a;
-  b;
-  c;
-  d;
+class B {
+  C c;
 }
+
+class C {}
+
+class D extends C {}
+
+var /*@topType=A*/ a = new A();
+var /*@topType=C*/ x = a. /*@target=A::b*/ b. /*@target=B::c*/ c;
+var /*@topType=C*/ y = a. /*@target=A::b*/ b. /*@target=B::c*/ c ??= new D();
+
+main() {}

@@ -112,10 +112,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// Enables "expanded top level inference", which allows top level inference
   /// to support all expressions, not just those defined as "immediately
   /// evident" by https://github.com/dart-lang/sdk/pull/28218.
-  ///
-  /// Note that setting this value to `true` does not yet allow top level
-  /// inference to depend on field and property accesses; that will require
-  /// further work.  TODO(paulberry): fix this.
   static const bool expandedTopLevelInference = true;
 
   /// Enables "fused top level inference", which fuses dependency collection and
@@ -127,11 +123,14 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// whether a dependency will be needed at the time we evaluate it.
   ///
   /// Requires [expandedTopLevelInference] to be `true`.
-  ///
-  /// Note that setting this value to `true` does not yet allow top level
-  /// inference to depend on field and property accesses; that will require
-  /// further work.  TODO(paulberry): fix this.
   static const bool fusedTopLevelInference = true;
+
+  /// Enables "full top level inference", which allows a top level or static
+  /// field's inferred type to depend on the type of an instance field (provided
+  /// there are no circular dependencies).
+  ///
+  /// Requires [fusedTopLevelInference] to be `true`.
+  static const bool fullTopLevelInference = true;
 
   final Instrumentation instrumentation;
 

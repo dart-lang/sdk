@@ -12,7 +12,11 @@ class C extends core::Object {
     ;
 }
 static field self::C c;
+static field dynamic field_ref;
+static field dynamic getter_ref;
 static field dynamic function_ref;
+static field dynamic field_ref_list;
+static field dynamic getter_ref_list;
 static field dynamic function_ref_list;
 static method main() → dynamic
   ;

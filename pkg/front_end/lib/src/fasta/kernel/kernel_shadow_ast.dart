@@ -1409,9 +1409,16 @@ class KernelPropertyAssign extends KernelComplexAssignmentWithReceiver {
           ((writeMember is Procedure &&
                   writeMember.kind == ProcedureKind.Setter) ||
               writeMember is Field)) {
-        // References to fields and setters can't be relied upon for top level
-        // inference.
-        inferrer.recordNotImmediatelyEvident(fileOffset);
+        if (TypeInferenceEngineImpl.fullTopLevelInference) {
+          if (writeMember is KernelField && writeMember._fieldNode != null) {
+            inferrer.engine
+                .inferFieldFused(writeMember._fieldNode, inferrer.fieldNode);
+          }
+        } else {
+          // References to fields and setters can't be relied upon for top level
+          // inference.
+          inferrer.recordNotImmediatelyEvident(fileOffset);
+        }
       }
     }
     // To replicate analyzer behavior, we base type inference on the write
@@ -1465,9 +1472,17 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
         ((interfaceMember is Procedure &&
                 interfaceMember.kind == ProcedureKind.Getter) ||
             interfaceMember is Field)) {
-      // References to fields and getters can't be relied upon for top level
-      // inference.
-      inferrer.recordNotImmediatelyEvident(fileOffset);
+      if (TypeInferenceEngineImpl.fullTopLevelInference) {
+        if (interfaceMember is KernelField &&
+            interfaceMember._fieldNode != null) {
+          inferrer.engine
+              .inferFieldFused(interfaceMember._fieldNode, inferrer.fieldNode);
+        }
+      } else {
+        // References to fields and getters can't be relied upon for top level
+        // inference.
+        inferrer.recordNotImmediatelyEvident(fileOffset);
+      }
     }
     interfaceTarget = interfaceMember;
     var inferredType =
