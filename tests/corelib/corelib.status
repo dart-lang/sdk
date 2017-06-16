@@ -173,8 +173,10 @@ stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 # The regexp tests are not verified to work on non d8/vm platforms yet.
 regexp/*: Skip
 
-[ $runtime == d8 ]
+[ $runtime == d8 && $compiler == dart2js ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+core_runtime_types_test: Pass, Fail # Issue 25795
+
 
 [ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter]
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
