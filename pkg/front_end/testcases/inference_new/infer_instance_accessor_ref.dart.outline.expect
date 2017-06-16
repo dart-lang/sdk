@@ -12,7 +12,7 @@ class B extends core::Object {
     ;
   get c() → self::C
     ;
-  method set(self::C value) → void
+  set c(self::C value) → void
     ;
 }
 class C extends core::Object {

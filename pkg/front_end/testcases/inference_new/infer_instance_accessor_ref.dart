@@ -11,7 +11,7 @@ class A {
 
 class B {
   C get c => null;
-  void set(C value) {}
+  void set c(C value) {}
 }
 
 class C {}
@@ -20,6 +20,6 @@ class D extends C {}
 
 var /*@topType=A*/ a = new A();
 var /*@topType=C*/ x = a. /*@target=A::b*/ b. /*@target=B::c*/ c;
-var /*@topType=dynamic*/ y = a. /*@target=A::b*/ b.c ??= new D();
+var /*@topType=C*/ y = a. /*@target=A::b*/ b. /*@target=B::c*/ c ??= new D();
 
 main() {}
