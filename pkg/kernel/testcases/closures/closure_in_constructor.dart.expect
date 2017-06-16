@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C1 extends core::Object {
   field dynamic x;
   constructor •(dynamic y) → void
-    : self::C1::x = let final Vector #context = MakeVector(2) in let dynamic #t1 = #context[1] = y in MakeClosure<() → dynamic>(self::closure#C1##function, #context), super core::Object::•()
+    : self::C1::x = let final Vector #context = MakeVector(2) in let dynamic #t1 = #context[1] = y in MakeClosure<() → dynamic>(self::closure#C1#function#function, #context), super core::Object::•()
     ;
 }
 class C2 extends core::Object {
@@ -21,7 +21,7 @@ static method main() → dynamic {
   new self::C1::•("hest").x();
   new self::C2::•("naebdyr").x();
 }
-static method closure#C1##function(Vector #contextParameter) → dynamic {
+static method closure#C1#function#function(Vector #contextParameter) → dynamic {
   return core::print("Hello ${#contextParameter[1]}");
 }
 static method closure#C2#function#function(Vector #contextParameter) → void {
