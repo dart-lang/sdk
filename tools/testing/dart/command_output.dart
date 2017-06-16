@@ -512,7 +512,6 @@ class BrowserCommandOutputImpl extends CommandOutputImpl
 
   Expectation result(TestCase testCase) {
     // Handle timeouts first
-    if (_result.didTimeout) return Expectation.timeout;
     if (_result.didTimeout) {
       if (testCase.configuration.runtime == Runtime.ie11) {
         // TODO(28955): See http://dartbug.com/28955
