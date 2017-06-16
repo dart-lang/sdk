@@ -7,7 +7,7 @@ library dart2js.js_emitter.program_builder;
 import 'dart:io';
 import 'dart:convert' show JSON;
 
-import '../../closure.dart' show ClosureTask, ClosureFieldElement;
+import '../../closure.dart' show ClosureConversionTask, ClosureFieldElement;
 import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
@@ -80,7 +80,7 @@ class ProgramBuilder {
   final CommonElements _commonElements;
   final DartTypes _types;
   final DeferredLoadTask _deferredLoadTask;
-  final ClosureTask _closureDataLookup;
+  final ClosureConversionTask _closureDataLookup;
   final CodegenWorldBuilder _worldBuilder;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final BackendUsage _backendUsage;
