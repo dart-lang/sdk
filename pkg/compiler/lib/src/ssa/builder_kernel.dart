@@ -41,13 +41,11 @@ import 'kernel_string_builder.dart';
 import 'locals_handler.dart';
 import 'loop_handler.dart';
 import 'nodes.dart';
-import 'ssa.dart';
 import 'ssa_branch_builder.dart';
 import 'switch_continue_analysis.dart';
 import 'type_builder.dart';
 
-class KernelSsaBuilder extends ir.Visitor
-    with GraphBuilder, SsaBuilderFieldMixin {
+class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   final ir.Node target;
   final bool _targetIsConstructorBody;
   final MemberEntity targetElement;
@@ -140,13 +138,6 @@ class KernelSsaBuilder extends ir.Visitor
         _targetFunction = (target as ir.Procedure).function;
         buildFunctionNode(_targetFunction);
       } else if (target is ir.Field) {
-        if (handleConstantField(targetElement, registry, closedWorld)) {
-          // No code is generated for `targetElement`: All references inline the
-          // constant value.
-          return null;
-        } else if (targetElement.isStatic || targetElement.isTopLevel) {
-          backend.constants.registerLazyStatic(targetElement);
-        }
         buildField(target);
       } else if (target is ir.Constructor) {
         if (_targetIsConstructorBody) {
@@ -167,12 +158,6 @@ class KernelSsaBuilder extends ir.Visitor
       assert(graph.isValid());
       return graph;
     });
-  }
-
-  @override
-  ConstantValue getFieldInitialConstantValue(FieldEntity field) {
-    assert(field == targetElement);
-    return _elementMap.getFieldConstantValue(target);
   }
 
   void buildField(ir.Field field) {
@@ -1309,9 +1294,7 @@ class KernelSsaBuilder extends ir.Visitor
           null,
           loopEntryBlock.loopInformation.target,
           loopEntryBlock.loopInformation.labels,
-          // TODO(johnniwinther): Provide source information like:
-          // sourceInformationBuilder.buildLoop(astAdapter.getNode(doStatement))
-          null);
+          sourceInformationBuilder.buildLoop(astAdapter.getNode(doStatement)));
       loopEntryBlock.setBlockFlow(loopBlockInfo, current);
       loopInfo.loopBlockInformation = loopBlockInfo;
     } else {
@@ -1453,6 +1436,7 @@ class KernelSsaBuilder extends ir.Visitor
   /// continue statements from simple switch statements.
   JumpHandler createJumpHandler(ir.TreeNode node, {bool isLoopJump: false}) {
     JumpTarget target = localsMap.getJumpTarget(node);
+    assert(target is KernelJumpTarget);
     if (target == null) {
       // No breaks or continues to this node.
       return new NullJumpHandler(reporter);
@@ -2614,7 +2598,7 @@ class KernelSsaBuilder extends ir.Visitor
 
     if (instruction is HConstant) {
       js.Name name =
-          _elementMap.getNameForJsGetName(instruction.constant, namer);
+          astAdapter.getNameForJsGetName(argument, instruction.constant);
       stack.add(graph.addConstantStringFromName(name, closedWorld));
       return;
     }
@@ -2666,8 +2650,7 @@ class KernelSsaBuilder extends ir.Visitor
 
     js.Template template;
     if (instruction is HConstant) {
-      template =
-          _elementMap.getJsBuiltinTemplate(instruction.constant, emitter);
+      template = astAdapter.getJsBuiltinTemplate(instruction.constant);
     }
     if (template == null) {
       reporter.reportErrorMessage(
@@ -2731,8 +2714,8 @@ class KernelSsaBuilder extends ir.Visitor
     if (argumentInstruction is HConstant) {
       ConstantValue argumentConstant = argumentInstruction.constant;
       if (argumentConstant is TypeConstantValue &&
-          argumentConstant.representedType is InterfaceType) {
-        InterfaceType type = argumentConstant.representedType;
+          argumentConstant.representedType is ResolutionInterfaceType) {
+        ResolutionInterfaceType type = argumentConstant.representedType;
         // TODO(sra): Check that type is a subclass of [Interceptor].
         ConstantValue constant = new InterceptorConstantValue(type.element);
         HInstruction instruction = graph.addConstant(constant, closedWorld);
@@ -3055,11 +3038,7 @@ class KernelSsaBuilder extends ir.Visitor
       _addTypeArguments(arguments, invocation.arguments);
     }
     TypeMask typeMask = new TypeMask.nonNullExact(cls, closedWorld);
-    InterfaceType type = _elementMap.createInterfaceType(
-        target.enclosingClass, invocation.arguments.types);
-    addImplicitInstantiation(type);
     _pushStaticInvocation(constructor, arguments, typeMask);
-    removeImplicitInstantiation(type);
   }
 
   @override

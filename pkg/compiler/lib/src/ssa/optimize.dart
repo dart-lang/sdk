@@ -482,7 +482,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // [:noSuchMethod:] we just ignore it.
         &&
         node.selector.applies(element)) {
-      FunctionEntity method = element;
+      MethodElement method = element;
 
       if (_nativeData.isNativeMember(method)) {
         HInstruction folded = tryInlineNativeMethod(node, method);
@@ -490,9 +490,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         // TODO(ngeoffray): If the method has optional parameters,
         // we should pass the default values.
-        ParameterStructure parameters = method.parameterStructure;
-        if (parameters.optionalParameters == 0 ||
-            parameters.requiredParameters + parameters.optionalParameters ==
+        ResolutionFunctionType type = method.type;
+        int optionalParameterCount =
+            type.optionalParameterTypes.length + type.namedParameters.length;
+        if (optionalParameterCount == 0 ||
+            type.parameterTypes.length + optionalParameterCount ==
                 node.selector.argumentCount) {
           node.element = method;
         }
@@ -1023,16 +1025,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction receiver = node.getDartReceiver(_closedWorld);
-    FieldEntity field =
+    FieldElement field =
         findConcreteFieldForDynamicAccess(receiver, node.selector);
     if (field == null || !field.isAssignable) return node;
     // Use `node.inputs.last` in case the call follows the interceptor calling
     // convention, but is not a call on an interceptor.
     HInstruction value = node.inputs.last;
     if (_options.enableTypeAssertions) {
-      // TODO(johnniwinther): Support field entities.
-      FieldElement element = field;
-      DartType type = element.type;
+      ResolutionDartType type = field.type;
       if (!type.treatAsRaw ||
           type.isTypeVariable ||
           type.unaliased.isFunctionType) {

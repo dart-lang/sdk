@@ -4,8 +4,7 @@
 
 library dart2js.common.codegen;
 
-import '../common_elements.dart';
-import '../elements/elements.dart' show LocalFunctionElement;
+import '../elements/elements.dart' show ClassElement, LocalFunctionElement;
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
@@ -110,11 +109,10 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 // TODO(johnniwinther): Split this class into interface and implementation.
 // TODO(johnniwinther): Move this implementation to the JS backend.
 class CodegenRegistry {
-  final ElementEnvironment _elementEnvironment;
   final MemberEntity currentElement;
   final _CodegenImpact worldImpact;
 
-  CodegenRegistry(this._elementEnvironment, this.currentElement)
+  CodegenRegistry(this.currentElement)
       : this.worldImpact = new _CodegenImpact();
 
   bool get isForResolution => false;
@@ -122,8 +120,8 @@ class CodegenRegistry {
   String toString() => 'CodegenRegistry for $currentElement';
 
   @deprecated
-  void registerInstantiatedClass(ClassEntity element) {
-    registerInstantiation(_elementEnvironment.getRawType(element));
+  void registerInstantiatedClass(ClassElement element) {
+    registerInstantiation(element.rawType);
   }
 
   void registerStaticUse(StaticUse staticUse) {

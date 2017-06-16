@@ -610,7 +610,10 @@ abstract class Compiler {
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
 
-        Enqueuer codegenEnqueuer = startCodegen(closedWorld);
+        Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(closedWorld);
+        _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
+        codegenEnqueuer.applyImpact(
+            backend.onCodegenStart(closedWorld, _codegenWorldBuilder));
         if (compileAll) {
           libraryLoader.libraries.forEach((LibraryEntity library) {
             codegenEnqueuer.applyImpact(computeImpactForLibrary(library));
@@ -632,14 +635,6 @@ abstract class Compiler {
 
         checkQueues(resolutionEnqueuer, codegenEnqueuer);
       });
-
-  Enqueuer startCodegen(ClosedWorld closedWorld) {
-    Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(closedWorld);
-    _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
-    codegenEnqueuer
-        .applyImpact(backend.onCodegenStart(closedWorld, _codegenWorldBuilder));
-    return codegenEnqueuer;
-  }
 
   /// Perform the steps needed to fully end the resolution phase.
   ClosedWorldRefiner closeResolution() {

@@ -139,8 +139,11 @@ class MemoryDillLibraryLoaderTask extends DillLibraryLoaderTask {
   }
 }
 
-Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
-    {bool printSteps: false}) async {
+Future<Compiler> compileWithDill(
+    Uri entryPoint, Map<String, String> memorySourceFiles, List<String> options,
+    {bool printSteps: false,
+    CompilerOutput compilerOutput,
+    void beforeRun(Compiler compiler)}) async {
   if (memorySourceFiles.isNotEmpty) {
     Directory dir = await Directory.systemTemp.createTemp('dart2js-with-dill');
     if (printSteps) {
@@ -163,16 +166,6 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
     '--platform=$buildDir/$configuration/patched_dart2js_sdk/platform.dill',
     '$entryPoint'
   ]);
-  return dillFile;
-}
-
-Future<Compiler> compileWithDill(
-    Uri entryPoint, Map<String, String> memorySourceFiles, List<String> options,
-    {bool printSteps: false,
-    CompilerOutput compilerOutput,
-    void beforeRun(Compiler compiler)}) async {
-  Uri dillFile =
-      await createTemp(entryPoint, memorySourceFiles, printSteps: printSteps);
 
   if (printSteps) {
     print('---- compile from dill $dillFile ---------------------------------');

@@ -4,7 +4,6 @@
 
 import '../common_elements.dart' show CommonElements;
 import '../elements/elements.dart';
-import '../elements/entities.dart';
 import '../native/native.dart' as native;
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
@@ -18,11 +17,7 @@ class TypeMaskFactory {
   }
 
   static TypeMask inferredTypeForMember(
-      MemberEntity element, GlobalTypeInferenceResults results) {
-    // TODO(johnniwinther): Support inferred types for member entities.
-    if (element is! MemberElement) {
-      return results.closedWorld.commonMasks.dynamicType;
-    }
+      MemberElement element, GlobalTypeInferenceResults results) {
     return results.resultOfMember(element).type ??
         results.closedWorld.commonMasks.dynamicType;
   }

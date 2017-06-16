@@ -89,8 +89,6 @@ class InterfaceType extends DartType {
 
   InterfaceType(this.element, this.typeArguments);
 
-  bool get isInterfaceType => true;
-
   bool get containsTypeVariables =>
       typeArguments.any((type) => type.containsTypeVariables);
 

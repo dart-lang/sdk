@@ -195,8 +195,6 @@ class ProgramBuilder {
   /// interceptors, ...).
   Set<ClassElement> _notSoftDeferred;
 
-  Sorter get _sorter => _task.sorter;
-
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
     collector.collect();
     _initializeSoftDeferredMap();
@@ -440,9 +438,9 @@ class ProgramBuilder {
     return staticNonFinalFields.map(_buildStaticField).toList(growable: false);
   }
 
-  StaticField _buildStaticField(FieldEntity element) {
+  StaticField _buildStaticField(FieldElement element) {
     ConstantValue initialValue =
-        _worldBuilder.getConstantFieldInitializer(element);
+        _constantHandler.getConstantValue(element.constant);
     // TODO(zarah): The holder should not be registered during building of
     // a static field.
     _registry.registerHolder(_namer.globalObjectForConstant(initialValue),
@@ -462,19 +460,19 @@ class ProgramBuilder {
 
   List<StaticField> _buildStaticLazilyInitializedFields(
       LibrariesMap librariesMap) {
-    Iterable<FieldEntity> lazyFields = _constantHandler
+    Iterable<FieldElement> lazyFields = _constantHandler
         .getLazilyInitializedFieldsForEmission()
-        .where((FieldEntity element) =>
-            _deferredLoadTask.outputUnitForMember(element) ==
+        .where((element) =>
+            _deferredLoadTask.outputUnitForElement(element) ==
             librariesMap.outputUnit);
-    return _sorter
-        .sortMembers(lazyFields)
+    return Elements
+        .sortedByPosition(lazyFields)
         .map(_buildLazyField)
         .where((field) => field != null) // Happens when the field was unused.
         .toList(growable: false);
   }
 
-  StaticField _buildLazyField(FieldEntity element) {
+  StaticField _buildLazyField(FieldElement element) {
     js.Expression code = _generatedCode[element];
     // The code is null if we ended up not needing the lazily
     // initialized field after all because of constant folding
@@ -482,7 +480,7 @@ class ProgramBuilder {
     if (code == null) return null;
 
     js.Name name = _namer.globalPropertyNameForMember(element);
-    bool isFinal = !element.isAssignable;
+    bool isFinal = element.isFinal;
     bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a static field. (Note that the static-state holder was
@@ -985,6 +983,7 @@ class ProgramBuilder {
     ParameterStubGenerator generator = new ParameterStubGenerator(
         _commonElements,
         _task,
+        _constantHandler,
         _namer,
         _nativeData,
         _interceptorData,
@@ -1009,7 +1008,7 @@ class ProgramBuilder {
     Iterable<js.Name> names =
         _oneShotInterceptorData.specializedGetInterceptorNames;
     for (js.Name name in names) {
-      for (ClassEntity element
+      for (ClassElement element
           in _oneShotInterceptorData.getSpecializedGetInterceptorsFor(name)) {
         Class cls = _classes[element];
         if (cls != null) cls.isEager = true;

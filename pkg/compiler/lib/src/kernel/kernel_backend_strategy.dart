@@ -73,13 +73,8 @@ class KernelBackendStrategy implements BackendStrategy {
       NativeBasicData nativeBasicData,
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
-    return new KernelCodegenWorldBuilder(
-        frontendStrategy.elementMap,
-        closedWorld.elementEnvironment,
-        nativeBasicData,
-        closedWorld,
-        selectorConstraintsStrategy);
+    return new KernelCodegenWorldBuilder(closedWorld.elementEnvironment,
+        nativeBasicData, closedWorld, selectorConstraintsStrategy);
   }
 
   @override
@@ -122,8 +117,7 @@ class KernelCodegenWorkItem extends CodegenWorkItem {
   final CodegenRegistry registry;
 
   KernelCodegenWorkItem(this._backend, this._closedWorld, this.element)
-      : registry =
-            new CodegenRegistry(_closedWorld.elementEnvironment, element);
+      : registry = new CodegenRegistry(element);
 
   @override
   WorldImpact run() {
@@ -272,8 +266,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   @override
   JumpTarget getJumpTarget(ir.TreeNode node, {bool isContinueTarget: false}) {
-    // TODO(johnniwinther): Support jump targets.
-    return null;
+    throw new UnimplementedError('KernelToLocalsMapImpl.getJumpTarget');
   }
 
   @override

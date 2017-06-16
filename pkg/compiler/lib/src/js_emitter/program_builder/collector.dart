@@ -70,8 +70,8 @@ class Collector {
       this._generatedCode,
       this._sorter);
 
-  Set<ClassEntity> computeInterceptorsReferencedFromConstants() {
-    Set<ClassEntity> classes = new Set<ClassEntity>();
+  Set<ClassElement> computeInterceptorsReferencedFromConstants() {
+    Set<ClassElement> classes = new Set<ClassElement>();
     List<ConstantValue> constants = _worldBuilder.getConstantsForEmission();
     for (ConstantValue constant in constants) {
       if (constant is InterceptorConstantValue) {
@@ -321,10 +321,12 @@ class Collector {
     Iterable<FieldEntity> fields =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
-        _worldBuilder.allReferencedStaticFields.where((FieldEntity field) {
+        _worldBuilder.allReferencedStaticFields.where((FieldElement field) {
       if (!field.isConst) {
-        return field.isAssignable &&
-            _worldBuilder.hasConstantFieldInitializer(field);
+        return field.isField &&
+            !field.isInstanceMember &&
+            !field.isFinal &&
+            field.constant != null;
       } else {
         // We also need to emit static const fields if they are available for
         // reflection.

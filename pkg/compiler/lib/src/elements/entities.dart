@@ -252,9 +252,6 @@ class ParameterStructure {
   int get optionalParameters =>
       positionalParameters - requiredParameters + namedParameters.length;
 
-  /// The total number of parameters (required or optional).
-  int get totalParameters => positionalParameters + namedParameters.length;
-
   /// Returns the [CallStructure] corresponding to a call site passing all
   /// parameters both required and optional.
   CallStructure get callStructure {
