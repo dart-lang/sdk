@@ -1293,6 +1293,7 @@ class AnalysisServer {
           .contains(GeneralAnalysisService.ANALYZED_FILES)) {
         sendAnalysisNotificationAnalyzedFiles(this);
       }
+      _scheduleAnalysisImplementedNotification();
     }
     // Only send status when subscribed.
     if (!serverServices.contains(ServerService.STATUS)) {
