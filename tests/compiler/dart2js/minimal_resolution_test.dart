@@ -9,7 +9,6 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/enqueue.dart';
-import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 

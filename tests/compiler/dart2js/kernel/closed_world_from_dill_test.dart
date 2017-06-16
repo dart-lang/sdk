@@ -143,10 +143,13 @@ Future<ResultKind> mainInternal(List<String> args,
       equivalence.defaultStrategy);
 
   checkResolutionEnqueuers(closedWorld1.backendUsage, closedWorld2.backendUsage,
-      enqueuer1, enqueuer2, elementEquivalence: equivalence.entityEquivalence,
+      enqueuer1, enqueuer2,
+      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
       typeEquivalence: (ResolutionDartType a, DartType b) {
-    return equivalence.typeEquivalence(unalias(a), b);
-  }, elementFilter: elementFilter, verbose: arguments.verbose);
+        return equivalence.typeEquivalence(unalias(a), b);
+      },
+      elementFilter: elementFilter,
+      verbose: arguments.verbose);
 
   checkClosedWorlds(closedWorld1, closedWorld2,
       strategy: equivalence.defaultStrategy, verbose: arguments.verbose);

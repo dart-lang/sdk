@@ -23,6 +23,8 @@ Future<CodeBuffer> compileAll(SourceFile sourceFile) {
     // TODO(floitsch): the outputBuffers are only accessible in the full
     // emitter.
     full.Emitter fullEmitter = backend.emitter.emitter;
+    // CodeOutput isn't assignable to CodeBuffer.
+    // ignore: RETURN_OF_INVALID_TYPE
     return fullEmitter.outputBuffers[compiler.deferredLoadTask.mainOutputUnit];
   });
 }

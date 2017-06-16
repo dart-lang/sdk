@@ -89,7 +89,6 @@ class CheckStrategy extends TestStrategy {
         throw "$o1.$p = '${v1}' <> "
             "$o2.$p = '${v2}'";
       }
-      return true;
     });
   }
 

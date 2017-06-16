@@ -61,7 +61,8 @@ main(List<String> arguments) {
           }
           library.forEachLocalMember((Element element) {
             if (element is ClassElement) {
-              element.forEachLocalMember((AstElement member) {
+              element.forEachLocalMember((_member) {
+                AstElement member = _member;
                 analyzer.analyze(member.resolvedAst);
               });
             } else if (element is MemberElement) {

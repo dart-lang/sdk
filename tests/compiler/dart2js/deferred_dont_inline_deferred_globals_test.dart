@@ -29,7 +29,7 @@ void main() {
 
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
-    var lib1 = lookupLibrary("memory:lib1.dart");
+    dynamic lib1 = lookupLibrary("memory:lib1.dart");
     var foo1 = lib1.find("finalVar");
     var ou_lib1 = outputUnitForElement(foo1);
 

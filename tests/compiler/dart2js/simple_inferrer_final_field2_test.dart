@@ -31,7 +31,7 @@ void main() {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
 
         checkFieldTypeInClass(String className, String fieldName, type) {
-          var cls = findElement(compiler, className);
+          dynamic cls = findElement(compiler, className);
           var element = cls.lookupLocalMember(fieldName);
           Expect.isTrue(
               typesInferrer.getTypeOfElement(element).containsOnly(type));

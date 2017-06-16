@@ -23,9 +23,8 @@ const HASHMAP_EMPTY_CONSTRUCTOR = r"LinkedHashMap_LinkedHashMap$_empty";
 main() {
   asyncTest(() async {
     var collector = new OutputCollector();
-    var result = await runCompiler(
+    await runCompiler(
         memorySourceFiles: TEST_SOURCE, outputProvider: collector);
-    var compiler = result.compiler;
     String generated = collector.getOutput('', OutputType.js);
     Expect.isFalse(generated.contains(HASHMAP_EMPTY_CONSTRUCTOR));
   });

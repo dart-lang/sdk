@@ -32,7 +32,7 @@ checkCode(String annotatedCode, CheckMemberFunction checkMember,
   Uri mainUri = Uri.parse('memory:main.dart');
   await compiler.run(mainUri);
   LibraryElement mainApp = compiler.mainApp;
-  mainApp.forEachLocalMember((member) {
+  mainApp.forEachLocalMember((dynamic member) {
     if (member.isClass) {
       member.forEachLocalMember((member) {
         checkMember(compiler, expectedMap, member);

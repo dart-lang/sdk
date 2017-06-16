@@ -38,7 +38,7 @@ const MEMORY_SOURCE_FILES = const {
 void main() {
   asyncTest(() async {
     OutputCollector collector = new OutputCollector();
-    CompilationResult result = await runCompiler(
+    await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     // Simply check that the constants of the small functions are still in the
     // output, and that we don't see the result of constant folding.

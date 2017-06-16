@@ -173,9 +173,9 @@ CompilerImpl compilerFor(
     Types types = cachedCompiler.types;
     compiler.types = types.copy(compiler.resolution);
     Map copiedLibraries = {};
-    cachedCompiler.libraryLoader.libraries.forEach((library) {
+    cachedCompiler.libraryLoader.libraries.forEach((dynamic library) {
       if (library.isPlatformLibrary) {
-        var libraryLoader = compiler.libraryLoader;
+        dynamic libraryLoader = compiler.libraryLoader;
         libraryLoader.mapLibrary(library);
         copiedLibraries[library.canonicalUri] = library;
       }

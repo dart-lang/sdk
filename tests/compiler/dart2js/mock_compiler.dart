@@ -18,7 +18,6 @@ import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
 import 'package:compiler/src/library_loader.dart' show LoadedLibraries;
-import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/js_backend/lookup_map_analysis.dart'
     show LookupMapResolutionAnalysis;
 import 'package:compiler/src/io/source_file.dart';

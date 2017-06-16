@@ -243,7 +243,7 @@ testProperties() async {
   ClosedWorld closedWorld = env.closedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
-    ClassEntity cls = env.getElement(name);
+    ClassElement cls = env.getElement(name);
     Expect.equals(hasStrictSubtype, closedWorld.hasAnyStrictSubtype(cls),
         "Unexpected hasAnyStrictSubtype property on $cls.");
     Expect.equals(hasOnlySubclasses, closedWorld.hasOnlySubclasses(cls),
@@ -541,7 +541,6 @@ testCommonSubclasses() async {
       useMockCompiler: false);
   ClosedWorld closedWorld = env.closedWorld;
 
-  ClassElement Object_ = env.getElement("Object");
   ClassElement A = env.getElement("A");
   ClassElement B = env.getElement("B");
   ClassElement C = env.getElement("C");

@@ -104,7 +104,7 @@ main() {
       if (lookupName == null) {
         lookupName = expectedName;
       }
-      var element = lookup(lookupName);
+      dynamic element = lookup(lookupName);
       check(element, expectedName);
       if (element.isConstructor) {
         var constructorBody =

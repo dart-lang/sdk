@@ -50,7 +50,6 @@ main(List<String> args) {
           resolutionInputs:
               serializedData.toUris(result.serializedData.toUris()));
     } else {
-      Uri entryPoint = Uri.parse('memory:main.dart');
       await arguments.forEachTest(serializedData, TESTS, checkModels);
     }
     printMeasurementResults();

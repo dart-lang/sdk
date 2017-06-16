@@ -427,8 +427,6 @@ $jsTrace
 /// Computes the HTML information for the [info].
 SourceMapHtmlInfo createHtmlInfo(
     SourceLocationCollection collection, SourceMapInfo info) {
-  js.Node node = info.node;
-  String code = info.code;
   String name = info.name;
   SourceLocationCollection subcollection =
       new SourceLocationCollection(collection);

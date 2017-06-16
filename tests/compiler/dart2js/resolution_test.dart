@@ -94,7 +94,7 @@ main() {
 
 void test(String code, void check(CompilerImpl compiler)) {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(code, uri);
+  dynamic compiler = compilerFor(code, uri);
   asyncTest(() => compiler.run(uri).then((_) {
         check(compiler);
       }));

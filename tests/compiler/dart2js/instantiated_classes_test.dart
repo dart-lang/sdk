@@ -89,7 +89,7 @@ Future test(String source, List<String> directlyInstantiatedClasses,
   mainSource.write('}');
   return TypeEnvironment
       .create(source, mainSource: mainSource.toString(), useMockCompiler: true)
-      .then((env) {
+      .then((dynamic env) {
     Iterable<ClassEntity> expectedClasses =
         directlyInstantiatedClasses.map(env.getElement);
     Iterable<ClassEntity> actualClasses = env

@@ -48,9 +48,9 @@ void main() {
         compiler.globalInference.runGlobalTypeInference(
             compiler.mainFunction, closedWorld, closedWorldRefiner);
         var mainElement = findElement(compiler, 'main');
-        var classA = findElement(compiler, 'A');
+        dynamic classA = findElement(compiler, 'A');
         var fieldA = classA.lookupLocalMember('field');
-        var classB = findElement(compiler, 'B');
+        dynamic classB = findElement(compiler, 'B');
         var fieldB = classB.lookupLocalMember('field');
 
         Expect.isTrue(inferrer.getCallersOf(fieldA).contains(mainElement));

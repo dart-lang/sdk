@@ -750,7 +750,7 @@ void main() {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     LibraryElement interceptorsLibrary =
         compiler.resolution.commonElements.interceptorsLibrary;
-    interceptorsLibrary.forEachLocalMember((element) {
+    interceptorsLibrary.forEachLocalMember((dynamic element) {
       if (element.isClass) {
         element.ensureResolved(compiler.resolution);
         impactBuilder

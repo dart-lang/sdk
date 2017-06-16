@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import "package:compiler/src/elements/elements.dart"
-    show Element, ClassElement, TypedefElement;
+    show ClassElement, TypedefElement;
 
 void main() {
   asyncTest(() => TypeEnvironment.create(r"""
@@ -20,7 +20,7 @@ void main() {
       class Y {}
       class Z {}
       """).then((env) {
-        List types = [];
+        var types = <ResolutionDartType>[];
         ResolutionDartType add(ResolutionDartType type) {
           types.add(type);
           return type;
@@ -59,7 +59,7 @@ void main() {
         ResolutionTypeVariableType CT = add(C_this.typeArguments[0]);
         ResolutionTypeVariableType CS = add(C_this.typeArguments[1]);
 
-        Expect.listEquals([
+        Expect.listEquals(<ResolutionDartType>[
           void_,
           dynamic_,
           A_raw,

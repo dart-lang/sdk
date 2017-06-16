@@ -47,7 +47,8 @@ void checkLibraryElement(Compiler compiler, LibraryElement library) {
   library.forEachLocalMember((Element element) {
     if (element.isClass) {
       ClassElement cls = element;
-      cls.forEachLocalMember((MemberElement member) {
+      cls.forEachLocalMember((_member) {
+        MemberElement member = _member;
         checkMemberElement(compiler, member);
       });
     } else if (!element.isTypedef) {
