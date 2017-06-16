@@ -106,6 +106,7 @@ analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 analyzer/test/generated/source_factory_test: RuntimeError # Issue 26828
 kernel/test/baseline_spec_mode_test: RuntimeError # Issue 28243
 kernel/test/baseline_strong_mode_test: RuntimeError # Issue 28243
+analyzer/tool/task_dependency_graph/check_test: Slow, Pass
 
 [ $compiler == dart2js ]
 analysis_server/test/integration: SkipByDesign # Analysis server integration tests don't make sense to run under dart2js, since the code under test always runs in the Dart vm as a subprocess.
