@@ -74,7 +74,6 @@ import 'rewriter.dart' show AstRewriter, BlockRewriter, InitializerRewriter;
 
 class ClosureConverter extends Transformer {
   final CoreTypes coreTypes;
-  final Class contextClass;
   final Set<VariableDeclaration> capturedVariables;
   final Map<FunctionNode, Set<TypeParameter>> capturedTypeVariables;
   final Map<FunctionNode, VariableDeclaration> thisAccess;
@@ -136,7 +135,7 @@ class ClosureConverter extends Transformer {
   Map<TypeParameter, DartType> typeSubstitution =
       const <TypeParameter, DartType>{};
 
-  ClosureConverter(this.coreTypes, ClosureInfo info, this.contextClass)
+  ClosureConverter(this.coreTypes, ClosureInfo info)
       : this.capturedVariables = info.variables,
         this.capturedTypeVariables = info.typeVariables,
         this.thisAccess = info.thisAccess,
@@ -167,7 +166,6 @@ class ClosureConverter extends Transformer {
 
   TreeNode visitLibrary(Library node) {
     assert(newLibraryMembers.isEmpty);
-    if (node == contextClass.enclosingLibrary) return node;
 
     currentLibrary = node;
     node = super.visitLibrary(node);

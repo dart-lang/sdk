@@ -13,15 +13,12 @@ import 'closure/converter.dart' show ClosureConverter;
 import 'closure/info.dart' show ClosureInfo;
 
 import 'closure/invalidate_closures.dart';
-import 'closure/mock.dart'
-    show mockUpContextForProgram, mockUpContextForLibraries;
 
 Program transformProgram(CoreTypes coreTypes, Program program) {
   var info = new ClosureInfo();
   info.visitProgram(program);
 
-  Class contextClass = mockUpContextForProgram(coreTypes, program);
-  var convert = new ClosureConverter(coreTypes, info, contextClass);
+  var convert = new ClosureConverter(coreTypes, info);
   program = convert.visitProgram(program);
   return new InvalidateClosures().visitProgram(program);
 }
@@ -32,8 +29,7 @@ void transformLibraries(CoreTypes coreTypes, List<Library> libraries) {
     info.visitLibrary(library);
   }
 
-  Class contextClass = mockUpContextForLibraries(coreTypes, libraries);
-  var convert = new ClosureConverter(coreTypes, info, contextClass);
+  var convert = new ClosureConverter(coreTypes, info);
   for (int i = 0; i < libraries.length; i++) {
     libraries[i] = convert.visitLibrary(libraries[i]);
   }
