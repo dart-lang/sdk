@@ -237,7 +237,7 @@ Future<Null> analyzeUris(
     await for (AnalyzerDiagnostic diagnostic in diagnostics) {
       if (diagnostic.uri != null) {
         String path = toFilePath(diagnostic.uri);
-        if (!(analysisOptions?.path.contains("/pkg/compiler/") ?? false) &&
+        if (!(analysisOptions?.path?.contains("/pkg/compiler/") ?? false) &&
             diagnostic.code.startsWith("STRONG_MODE") &&
             (path.startsWith("pkg/compiler/") ||
                 path.startsWith("tests/compiler/dart2js/"))) {
