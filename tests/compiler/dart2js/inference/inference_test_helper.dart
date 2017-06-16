@@ -24,7 +24,8 @@ typedef void CheckMemberFunction(
 /// annotation. Any [Id] left in the map will be reported as missing.
 checkCode(String annotatedCode, CheckMemberFunction checkMember,
     {List<String> options: const <String>[]}) async {
-  AnnotatedCode code = new AnnotatedCode.fromText(annotatedCode, '/*', '*/');
+  AnnotatedCode code =
+      new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd);
   Map<Id, String> expectedMap = computeExpectedMap(code);
   Compiler compiler = compilerFor(
       memorySourceFiles: {'main.dart': code.sourceCode}, options: options);
