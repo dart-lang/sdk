@@ -680,6 +680,14 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     return getFieldConstantValue(data.node) != null;
   }
 
+  ConstantValue getConstantFieldInitializer(KField field) {
+    _FieldData data = _memberList[field.memberIndex];
+    ConstantValue value = getFieldConstantValue(data.node);
+    assert(value != null,
+        failedAt(field, "Field $field doesn't have a constant initial value."));
+    return value;
+  }
+
   TypeVariableEntity getTypeVariable(ir.TypeParameter node) =>
       _getTypeVariable(node);
 

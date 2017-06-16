@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
@@ -16,7 +17,10 @@ import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/operators.dart';
 import '../elements/types.dart';
+import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
+import '../js_backend/namer.dart';
+import '../js_emitter/code_emitter_task.dart';
 import '../native/native.dart' as native;
 import '../types/types.dart';
 import '../universe/call_structure.dart';
@@ -145,6 +149,13 @@ abstract class KernelToElementMap {
 
   /// Compute the kind of foreign helper function called by [node], if any.
   ForeignKind getForeignKind(ir.StaticInvocation node);
+
+  /// Returns the [js.Name] for the `JsGetName` [constant] value.
+  js.Name getNameForJsGetName(ConstantValue constant, Namer namer);
+
+  /// Returns the [js.Template] for the `JsBuiltin` [constant] value.
+  js.Template getJsBuiltinTemplate(
+      ConstantValue constant, CodeEmitterTask emitter);
 
   /// Computes the [InterfaceType] referenced by a call to the
   /// [JS_INTERCEPTOR_CONSTANT] function, if any.
@@ -533,6 +544,36 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
     assert(function != null,
         failedAt(cls, "No super noSuchMethod found for class $cls."));
     return function;
+  }
+
+  js.Name getNameForJsGetName(ConstantValue constant, Namer namer) {
+    int index = _extractEnumIndexFromConstantValue(
+        constant, commonElements.jsGetNameEnum);
+    if (index == null) return null;
+    return namer.getNameForJsGetName(
+        CURRENT_ELEMENT_SPANNABLE, JsGetName.values[index]);
+  }
+
+  js.Template getJsBuiltinTemplate(
+      ConstantValue constant, CodeEmitterTask emitter) {
+    int index = _extractEnumIndexFromConstantValue(
+        constant, commonElements.jsBuiltinEnum);
+    if (index == null) return null;
+    return emitter.builtinTemplateFor(JsBuiltin.values[index]);
+  }
+
+  int _extractEnumIndexFromConstantValue(
+      ConstantValue constant, ClassEntity classElement) {
+    if (constant is ConstructedConstantValue) {
+      if (constant.type.element == classElement) {
+        assert(constant.fields.length == 1 || constant.fields.length == 2);
+        ConstantValue indexConstant = constant.fields.values.first;
+        if (indexConstant is IntConstantValue) {
+          return indexConstant.primitiveValue;
+        }
+      }
+    }
+    return null;
   }
 }
 

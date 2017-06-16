@@ -27,8 +27,11 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   void forEachInvokedSetter(
       f(String name, Map<Selector, SelectorConstraints> selectors));
 
-  /// Returns `true` if [field] constant or final with a constant initializer.
+  /// Returns `true` if [field] has a constant initializer.
   bool hasConstantFieldInitializer(FieldEntity field);
+
+  /// Returns the constant initializer for [field].
+  ConstantValue getConstantFieldInitializer(FieldEntity field);
 
   /// Returns `true` if [member] is invoked as a setter.
   bool hasInvokedSetter(MemberEntity member, ClosedWorld world);
@@ -561,6 +564,13 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
     return field.constant != null;
   }
 
+  @override
+  ConstantValue getConstantFieldInitializer(FieldElement field) {
+    assert(field.constant != null,
+        failedAt(field, "Field $field doesn't have a constant initial value."));
+    return _constants.getConstantValue(field.constant);
+  }
+
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls].
   void forEachInstanceField(
@@ -631,6 +641,11 @@ class KernelCodegenWorldBuilder extends CodegenWorldBuilderImpl {
   @override
   bool hasConstantFieldInitializer(FieldEntity field) {
     return _elementMap.hasConstantFieldInitializer(field);
+  }
+
+  @override
+  ConstantValue getConstantFieldInitializer(FieldEntity field) {
+    return _elementMap.getConstantFieldInitializer(field);
   }
 
   @override

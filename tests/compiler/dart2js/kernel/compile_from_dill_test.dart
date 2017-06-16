@@ -141,6 +141,7 @@ Future<ResultKind> mainInternal(List<String> args,
   checkBackendUsage(closedWorld1.backendUsage, closedWorld2.backendUsage,
       equivalence.defaultStrategy);
 
+  print('--- checking resolution enqueuers ----------------------------------');
   checkResolutionEnqueuers(closedWorld1.backendUsage, closedWorld2.backendUsage,
       compiler1.enqueuer.resolution, compiler2.enqueuer.resolution,
       elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
@@ -150,6 +151,7 @@ Future<ResultKind> mainInternal(List<String> args,
       elementFilter: elementFilter,
       verbose: arguments.verbose);
 
+  print('--- checking closed worlds -----------------------------------------');
   checkClosedWorlds(closedWorld1, closedWorld2,
       strategy: equivalence.defaultStrategy,
       verbose: arguments.verbose,
@@ -160,6 +162,7 @@ Future<ResultKind> mainInternal(List<String> args,
   // TODO(johnniwinther): Perform equivalence tests on the model: codegen world
   // impacts, program model, etc.
 
+  print('--- checking codegen enqueuers--------------------------------------');
   checkCodegenEnqueuers(compiler1.enqueuer.codegenEnqueuerForTesting,
       compiler2.enqueuer.codegenEnqueuerForTesting,
       elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
@@ -169,6 +172,7 @@ Future<ResultKind> mainInternal(List<String> args,
       elementFilter: elementFilter,
       verbose: arguments.verbose);
 
+  print('--- checking output------- -----------------------------------------');
   collector1.outputMap
       .forEach((OutputType outputType, Map<String, BufferedOutputSink> map1) {
     if (outputType == OutputType.sourceMap) {

@@ -440,9 +440,9 @@ class ProgramBuilder {
     return staticNonFinalFields.map(_buildStaticField).toList(growable: false);
   }
 
-  StaticField _buildStaticField(FieldElement element) {
+  StaticField _buildStaticField(FieldEntity element) {
     ConstantValue initialValue =
-        _constantHandler.getConstantValue(element.constant);
+        _worldBuilder.getConstantFieldInitializer(element);
     // TODO(zarah): The holder should not be registered during building of
     // a static field.
     _registry.registerHolder(_namer.globalObjectForConstant(initialValue),

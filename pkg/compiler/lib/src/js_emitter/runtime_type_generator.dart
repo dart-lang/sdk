@@ -14,6 +14,7 @@ import '../elements/resolution_types.dart'
 import '../elements/elements.dart'
     show ClassElement, Element, FunctionElement, MixinApplicationElement;
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/js_interop_analysis.dart';
@@ -81,12 +82,12 @@ class RuntimeTypeGenerator {
 
   TypeTestRegistry get _typeTestRegistry => emitterTask.typeTestRegistry;
 
-  Set<ClassElement> get checkedClasses => _typeTestRegistry.checkedClasses;
+  Set<ClassEntity> get checkedClasses => _typeTestRegistry.checkedClasses;
 
-  Iterable<ClassElement> get classesUsingTypeVariableTests =>
+  Iterable<ClassEntity> get classesUsingTypeVariableTests =>
       _typeTestRegistry.classesUsingTypeVariableTests;
 
-  Set<ResolutionFunctionType> get checkedFunctionTypes =>
+  Set<FunctionType> get checkedFunctionTypes =>
       _typeTestRegistry.checkedFunctionTypes;
 
   /// Generates all properties necessary for is-checks on the [classElement].
