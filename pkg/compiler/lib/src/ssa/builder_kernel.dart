@@ -221,11 +221,6 @@ class KernelSsaGraphBuilder extends ir.Visitor with GraphBuilder {
     });
   }
 
-  /// Comparator for the canonical order or named arguments.
-  int namedOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
-    return a.name.compareTo(b.name);
-  }
-
   /// Builds a generative constructor.
   ///
   /// Generative constructors are built in stages, in effect inlining the

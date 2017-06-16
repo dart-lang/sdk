@@ -8,18 +8,9 @@ import '../closure.dart' show ClosureClassElement;
 import '../common.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart'
-    show
-        ClassElement,
-        FunctionElement,
-        FunctionSignature,
-        MethodElement,
-        ParameterElement;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/constant_handler_javascript.dart'
-    show JavaScriptConstantCompiler;
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
@@ -38,7 +29,6 @@ class ParameterStubGenerator {
 
   final CommonElements _commonElements;
   final CodeEmitterTask _emitterTask;
-  final JavaScriptConstantCompiler _constants;
   final Namer _namer;
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
@@ -48,7 +38,6 @@ class ParameterStubGenerator {
   ParameterStubGenerator(
       this._commonElements,
       this._emitterTask,
-      this._constants,
       this._namer,
       this._nativeData,
       this._interceptorData,
@@ -57,7 +46,7 @@ class ParameterStubGenerator {
 
   Emitter get _emitter => _emitterTask.emitter;
 
-  bool needsSuperGetter(FunctionElement element) =>
+  bool needsSuperGetter(FunctionEntity element) =>
       _codegenWorldBuilder.methodsNeedingSuperGetter.contains(element);
 
   /**
@@ -77,21 +66,23 @@ class ParameterStubGenerator {
    * the input selector is non-null (and the member needs a stub).
    */
   ParameterStubMethod generateParameterStub(
-      MethodElement member, Selector selector, Selector callSelector) {
+      FunctionEntity member, Selector selector, Selector callSelector) {
     CallStructure callStructure = selector.callStructure;
-    FunctionSignature parameters = member.functionSignature;
+    ParameterStructure parameterStructure = member.parameterStructure;
     int positionalArgumentCount = callStructure.positionalArgumentCount;
-    if (positionalArgumentCount == parameters.parameterCount) {
+    if (positionalArgumentCount == parameterStructure.totalParameters) {
       assert(callStructure.isUnnamed);
       return null;
     }
-    if (parameters.optionalParametersAreNamed &&
-        callStructure.namedArgumentCount == parameters.optionalParameterCount) {
+    if (parameterStructure.namedParameters.isNotEmpty &&
+        callStructure.namedArgumentCount ==
+            parameterStructure.namedParameters.length) {
       // If the selector has the same number of named arguments as the element,
       // we don't need to add a stub. The call site will hit the method
       // directly.
       return null;
     }
+
     List<String> names = callStructure.getOrderedNamedArguments();
 
     bool isInterceptedMethod = _interceptorData.isInterceptedMethod(member);
@@ -108,7 +99,7 @@ class ParameterStubGenerator {
         new List<jsAst.Parameter>(selector.argumentCount + extraArgumentCount);
     // The arguments that will be passed to the real method.
     List<jsAst.Expression> argumentsBuffer = new List<jsAst.Expression>(
-        parameters.parameterCount + extraArgumentCount);
+        parameterStructure.totalParameters + extraArgumentCount);
 
     int count = 0;
     if (isInterceptedMethod) {
@@ -121,15 +112,15 @@ class ParameterStubGenerator {
     // Includes extra receiver argument when using interceptor convention
     int indexOfLastOptionalArgumentInParameters = optionalParameterStart - 1;
 
-    parameters.orderedForEachParameter((_element) {
-      ParameterElement element = _element;
-      String jsName = _namer.safeVariableName(element.name);
+    _codegenWorldBuilder.forEachParameter(member,
+        (_, String name, ConstantValue value) {
+      String jsName = _namer.safeVariableName(name);
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {
         parametersBuffer[count] = new jsAst.Parameter(jsName);
         argumentsBuffer[count] = js('#', jsName);
       } else {
-        int index = names.indexOf(element.name);
+        int index = names.indexOf(name);
         if (index != -1) {
           indexOfLastOptionalArgumentInParameters = count;
           // The order of the named arguments is not the same as the
@@ -138,7 +129,6 @@ class ParameterStubGenerator {
           parametersBuffer[optionalParameterStart + index] =
               new jsAst.Parameter(jsName);
         } else {
-          ConstantValue value = _constants.getConstantValue(element.constant);
           if (value == null) {
             argumentsBuffer[count] =
                 _emitter.constantReference(new NullConstantValue());
@@ -166,7 +156,7 @@ class ParameterStubGenerator {
           indexOfLastOptionalArgumentInParameters);
     } else if (member.isInstanceMember) {
       if (needsSuperGetter(member)) {
-        ClassElement superClass = member.enclosingClass;
+        ClassEntity superClass = member.enclosingClass;
         jsAst.Name methodName = _namer.instanceMethodName(member);
         // When redirecting, we must ensure that we don't end up in a subclass.
         // We thus can't just invoke `this.foo$1.call(filledInArguments)`.

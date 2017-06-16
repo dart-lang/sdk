@@ -73,8 +73,13 @@ class KernelBackendStrategy implements BackendStrategy {
       NativeBasicData nativeBasicData,
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new KernelCodegenWorldBuilder(closedWorld.elementEnvironment,
-        nativeBasicData, closedWorld, selectorConstraintsStrategy);
+    KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
+    return new KernelCodegenWorldBuilder(
+        frontendStrategy.elementMap,
+        closedWorld.elementEnvironment,
+        nativeBasicData,
+        closedWorld,
+        selectorConstraintsStrategy);
   }
 
   @override
@@ -119,7 +124,8 @@ class KernelCodegenWorkItem extends CodegenWorkItem {
   final CodegenRegistry registry;
 
   KernelCodegenWorkItem(this._backend, this._closedWorld, this.element)
-      : registry = new CodegenRegistry(element);
+      : registry =
+            new CodegenRegistry(_closedWorld.elementEnvironment, element);
 
   @override
   WorldImpact run() {

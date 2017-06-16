@@ -1043,3 +1043,9 @@ abstract class KernelToLocalsMap {
   LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
       ClosureDataLookup closureLookup, ir.TreeNode node);
 }
+
+/// Comparator for the canonical order or named arguments.
+// TODO(johnniwinther): Remove this when named parameters are sorted in dill.
+int namedOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
+  return a.name.compareTo(b.name);
+}

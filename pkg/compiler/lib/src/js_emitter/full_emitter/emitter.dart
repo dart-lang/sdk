@@ -24,7 +24,6 @@ import '../../elements/elements.dart'
         ConstructorBodyElement,
         FieldElement,
         LibraryElement,
-        MethodElement,
         TypedefElement;
 import '../../elements/entities.dart';
 import '../../elements/entity_utils.dart' as utils;
@@ -184,6 +183,7 @@ class Emitter extends js_emitter.EmitterBase {
     constantEmitter = new ConstantEmitter(
         compiler.options,
         _closedWorld.commonElements,
+        compiler.codegenWorldBuilder,
         compiler.backend.rtiNeed,
         compiler.backend.rtiEncoder,
         namer,
@@ -303,7 +303,7 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   @override
-  jsAst.Expression isolateLazyInitializerAccess(FieldElement element) {
+  jsAst.Expression isolateLazyInitializerAccess(FieldEntity element) {
     return jsAst.js('#.#', [
       namer.globalObjectForMember(element),
       namer.lazyInitializerName(element)
@@ -311,7 +311,7 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   @override
-  jsAst.Expression isolateStaticClosureAccess(MethodElement element) {
+  jsAst.Expression isolateStaticClosureAccess(FunctionEntity element) {
     return jsAst.js('#.#()', [
       namer.globalObjectForMember(element),
       namer.staticClosureName(element)

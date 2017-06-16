@@ -52,8 +52,12 @@ class ElementBackendStrategy implements BackendStrategy {
       NativeBasicData nativeBasicData,
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new ElementCodegenWorldBuilderImpl(closedWorld.elementEnvironment,
-        nativeBasicData, closedWorld, selectorConstraintsStrategy);
+    return new ElementCodegenWorldBuilderImpl(
+        _compiler.backend.constants,
+        closedWorld.elementEnvironment,
+        nativeBasicData,
+        closedWorld,
+        selectorConstraintsStrategy);
   }
 
   @override
@@ -156,7 +160,7 @@ class ElementCodegenWorkItem extends CodegenWorkItem {
   MemberElement get element => resolvedAst.element;
 
   WorldImpact run() {
-    registry = new CodegenRegistry(element);
+    registry = new CodegenRegistry(_closedWorld.elementEnvironment, element);
     return _backend.codegen(this, _closedWorld);
   }
 
