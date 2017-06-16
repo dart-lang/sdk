@@ -4,7 +4,7 @@
 
 library kernel.transformations.closure_conversion;
 
-import '../ast.dart' show Class, Program, Library;
+import '../ast.dart' show Program, Library;
 
 import '../core_types.dart' show CoreTypes;
 
