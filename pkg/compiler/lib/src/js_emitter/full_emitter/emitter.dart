@@ -19,12 +19,7 @@ import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
-    show
-        ClassElement,
-        ConstructorBodyElement,
-        FieldElement,
-        LibraryElement,
-        TypedefElement;
+    show ClassElement, ConstructorBodyElement, LibraryElement, TypedefElement;
 import '../../elements/entities.dart';
 import '../../elements/entity_utils.dart' as utils;
 import '../../elements/names.dart';
@@ -38,7 +33,6 @@ import '../../js_backend/js_backend.dart'
     show
         ConstantEmitter,
         JavaScriptBackend,
-        JavaScriptConstantCompiler,
         Namer,
         SetterName,
         TypeVariableCodegenAnalysis;
@@ -124,6 +118,7 @@ class Emitter extends js_emitter.EmitterBase {
   TypeTestRegistry get typeTestRegistry => task.typeTestRegistry;
   CommonElements get commonElements => _closedWorld.commonElements;
   ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
+  CodegenWorldBuilder get _worldBuilder => compiler.codegenWorldBuilder;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();
@@ -633,22 +628,22 @@ class Emitter extends js_emitter.EmitterBase {
   jsAst.Statement buildStaticNonFinalFieldInitializations(
       OutputUnit outputUnit) {
     jsAst.Statement buildInitialization(
-        FieldElement element, jsAst.Expression initialValue) {
+        FieldEntity element, jsAst.Expression initialValue) {
       return js.statement('${namer.staticStateHolder}.# = #',
           [namer.globalPropertyNameForMember(element), initialValue]);
     }
 
     bool inMainUnit = (outputUnit == compiler.deferredLoadTask.mainOutputUnit);
-    JavaScriptConstantCompiler handler = backend.constants;
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
     Iterable<FieldEntity> fields = outputStaticNonFinalFieldLists[outputUnit];
     // If the outputUnit does not contain any static non-final fields, then
     // [fields] is `null`.
     if (fields != null) {
-      for (FieldElement element in fields) {
+      for (FieldEntity element in fields) {
         reporter.withCurrentElement(element, () {
-          ConstantValue constant = handler.getConstantValue(element.constant);
+          ConstantValue constant =
+              _worldBuilder.getConstantFieldInitializer(element);
           parts.add(buildInitialization(element, constantReference(constant)));
         });
       }

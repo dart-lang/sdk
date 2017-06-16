@@ -23,7 +23,7 @@ class RastaSsaBuilderTask extends SsaAstBuilderBase {
 
   HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
     return measure(() {
-      if (handleConstantField(work, closedWorld)) {
+      if (handleConstantField(work.element, work.registry, closedWorld)) {
         // No code is generated for `work.element`.
         return null;
       }

@@ -272,7 +272,8 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   @override
   JumpTarget getJumpTarget(ir.TreeNode node, {bool isContinueTarget: false}) {
-    throw new UnimplementedError('KernelToLocalsMapImpl.getJumpTarget');
+    // TODO(johnniwinther): Support jump targets.
+    return null;
   }
 
   @override

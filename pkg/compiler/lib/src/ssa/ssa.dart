@@ -4,13 +4,16 @@
 
 library ssa;
 
-import '../common/codegen.dart' show CodegenWorkItem;
+import '../common/codegen.dart' show CodegenWorkItem, CodegenRegistry;
 import '../common/tasks.dart' show CompilerTask, Measurer;
+import '../constants/values.dart';
 import '../elements/elements.dart' show MethodElement;
-import '../elements/entities.dart' show MemberEntity;
+import '../elements/entities.dart' show FieldEntity, MemberEntity;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend, FunctionCompiler;
+import '../universe/call_structure.dart';
+import '../universe/use.dart';
 import '../world.dart' show ClosedWorld;
 
 import 'codegen.dart';
@@ -56,4 +59,45 @@ abstract class SsaBuilderTask implements CompilerTask {
   /// Creates the [HGraph] for [work] or returns `null` if no code is needed
   /// for [work].
   HGraph build(CodegenWorkItem work, ClosedWorld closedWorld);
+}
+
+abstract class SsaBuilderFieldMixin {
+  ConstantValue getFieldInitialConstantValue(FieldEntity field);
+
+  /// Handle field initializer of [element]. Returns `true` if no code
+  /// is needed for the field.
+  ///
+  /// If [element] is a field with a constant initializer, the value is
+  /// registered with the world impact. Otherwise the cyclic-throw helper is
+  /// registered for the lazy value computation.
+  ///
+  /// If the field is constant, no code is needed for the field and the method
+  /// returns `true`.
+  bool handleConstantField(
+      MemberEntity element, CodegenRegistry registry, ClosedWorld closedWorld) {
+    if (element.isField) {
+      ConstantValue initialValue = getFieldInitialConstantValue(element);
+      if (initialValue != null) {
+        registry.worldImpact
+            .registerConstantUse(new ConstantUse.init(initialValue));
+        // We don't need to generate code for static or top-level
+        // variables. For instance variables, we may need to generate
+        // the checked setter.
+        if (element.isStatic || element.isTopLevel) {
+          /// No code is created for this field: All references inline the
+          /// constant value.
+          return true;
+        }
+      } else {
+        // If the constant-handler was not able to produce a result we have to
+        // go through the builder (below) to generate the lazy initializer for
+        // the static variable.
+        // We also need to register the use of the cyclic-error helper.
+        registry.worldImpact.registerStaticUse(new StaticUse.staticInvoke(
+            closedWorld.commonElements.cyclicThrowHelper,
+            CallStructure.ONE_ARG));
+      }
+    }
+    return false;
+  }
 }

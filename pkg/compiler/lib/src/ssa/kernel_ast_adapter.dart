@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
@@ -17,7 +16,6 @@ import '../elements/jumps.dart';
 import '../elements/modelx.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
-import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../kernel/element_map.dart';
 import '../kernel/kernel.dart';
@@ -239,35 +237,6 @@ class KernelAstAdapter extends KernelToElementMapMixin
       return new KernelJumpTarget(node, this,
           makeContinueLabel: isContinueTarget);
     });
-  }
-
-  js.Name getNameForJsGetName(ir.Node argument, ConstantValue constant) {
-    int index = _extractEnumIndexFromConstantValue(
-        constant, _compiler.resolution.commonElements.jsGetNameEnum);
-    if (index == null) return null;
-    return _backend.namer
-        .getNameForJsGetName(getNode(argument), JsGetName.values[index]);
-  }
-
-  js.Template getJsBuiltinTemplate(ConstantValue constant) {
-    int index = _extractEnumIndexFromConstantValue(
-        constant, _compiler.resolution.commonElements.jsBuiltinEnum);
-    if (index == null) return null;
-    return _backend.emitter.builtinTemplateFor(JsBuiltin.values[index]);
-  }
-
-  int _extractEnumIndexFromConstantValue(
-      ConstantValue constant, ClassEntity classElement) {
-    if (constant is ConstructedConstantValue) {
-      if (constant.type.element == classElement) {
-        assert(constant.fields.length == 1 || constant.fields.length == 2);
-        ConstantValue indexConstant = constant.fields.values.first;
-        if (indexConstant is IntConstantValue) {
-          return indexConstant.primitiveValue;
-        }
-      }
-    }
-    return null;
   }
 
   DartType getDartType(ir.DartType type) {
