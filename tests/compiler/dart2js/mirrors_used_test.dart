@@ -116,7 +116,9 @@ void main() {
     for (dynamic library in compiler.libraryLoader.libraries) {
       library.forEachLocalMember((member) {
         if (member.isClass) {
-          if (library == compiler.mainApp && member.name == 'Foo') {
+          if (library ==
+                  compiler.frontendStrategy.elementEnvironment.mainLibrary &&
+              member.name == 'Foo') {
             Expect.isTrue(
                 compiler.backend.mirrorsData
                     .isClassAccessibleByReflection(member),

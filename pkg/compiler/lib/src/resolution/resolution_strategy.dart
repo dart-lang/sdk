@@ -47,7 +47,7 @@ import 'no_such_method_resolver.dart';
 /// model using the resolver.
 class ResolutionFrontEndStrategy implements FrontendStrategy {
   final Compiler _compiler;
-  final ElementEnvironment elementEnvironment;
+  final _CompilerElementEnvironment _elementEnvironment;
   final CommonElements commonElements;
 
   AnnotationProcessor _annotationProcessor;
@@ -61,7 +61,9 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
   }
 
   ResolutionFrontEndStrategy.internal(
-      this._compiler, this.elementEnvironment, this.commonElements);
+      this._compiler, this._elementEnvironment, this.commonElements);
+
+  ElementEnvironment get elementEnvironment => _elementEnvironment;
 
   DartTypes get dartTypes => _compiler.types;
 
@@ -141,6 +143,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
 
   FunctionEntity computeMain(
       LibraryElement mainApp, WorldImpactBuilder impactBuilder) {
+    _elementEnvironment._mainLibrary = mainApp;
     if (mainApp == null) return null;
     MethodElement mainFunction;
     Element main = mainApp.findExported(Identifiers.main);
@@ -211,6 +214,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
       mainFunction.computeType(_compiler.resolution);
       mainMethod = mainFunction;
     }
+    _elementEnvironment._mainFunction = mainMethod;
     return mainMethod;
   }
 
@@ -370,6 +374,9 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
 class _CompilerElementEnvironment implements ElementEnvironment {
   final Compiler _compiler;
 
+  LibraryEntity _mainLibrary;
+  FunctionEntity _mainFunction;
+
   _CompilerElementEnvironment(this._compiler);
 
   LibraryProvider get _libraryProvider => _compiler.libraryLoader;
@@ -378,10 +385,10 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   ResolutionDynamicType get dynamicType => const ResolutionDynamicType();
 
   @override
-  LibraryEntity get mainLibrary => _compiler.mainApp;
+  LibraryEntity get mainLibrary => _mainLibrary;
 
   @override
-  FunctionEntity get mainFunction => _compiler.mainFunction;
+  FunctionEntity get mainFunction => _mainFunction;
 
   @override
   Iterable<LibraryEntity> get libraries => _compiler.libraryLoader.libraries;

@@ -66,6 +66,7 @@ class MockCompiler extends Compiler {
   final ResolvedUriTranslator resolvedUriTranslator =
       new MockResolvedUriTranslator();
   final Measurer measurer = new Measurer();
+  LibraryElement mainApp;
 
   MockCompiler.internal(
       {Map<String, String> coreSource,

@@ -598,7 +598,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();
     stopwatch.stop();
     result.program = new ProgramInfo(
-        entrypoint: infoCollector._elementToInfo[compiler.mainFunction],
+        entrypoint: infoCollector
+            ._elementToInfo[closedWorld.elementEnvironment.mainFunction],
         size: _programSize,
         dart2jsVersion:
             compiler.options.hasBuildId ? compiler.options.buildId : null,

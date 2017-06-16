@@ -70,7 +70,8 @@ main() => new Foo();
 }
 
 defaultConstructorFor(String className) => (Compiler compiler) {
-      LibraryElement mainApp = compiler.mainApp;
+      LibraryElement mainApp =
+          compiler.frontendStrategy.elementEnvironment.mainLibrary;
       ClassElement clazz = mainApp.find(className);
       return clazz.lookupDefaultConstructor();
     };

@@ -12,6 +12,7 @@ import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/kernel/element_map.dart';
@@ -748,10 +749,11 @@ main(List<String> args) {
         new KernelToElementMapImpl(compiler.reporter, compiler.environment);
     kernelElementMap.addProgram(backend.kernelTask.program);
 
-    checkLibrary(compiler, kernelElementMap, compiler.mainApp,
-        fullTest: fullTest);
-    compiler.libraryLoader.libraries.forEach((library) {
-      if (library == compiler.mainApp) return;
+    LibraryElement mainApp =
+        compiler.frontendStrategy.elementEnvironment.mainLibrary;
+    checkLibrary(compiler, kernelElementMap, mainApp, fullTest: fullTest);
+    compiler.libraryLoader.libraries.forEach((LibraryEntity library) {
+      if (library == mainApp) return;
       checkLibrary(compiler, kernelElementMap, library, fullTest: fullTest);
     });
   });

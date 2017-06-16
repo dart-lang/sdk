@@ -29,7 +29,7 @@ void main() {
 
 runTests() async {
   await runTest('memory:main.dart', (compiler) {
-    var main = compiler.mainFunction;
+    var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(
         main, compiler.resolutionWorldBuilder.closedWorldForTesting);
@@ -53,7 +53,7 @@ runTests() async {
     Expect.isTrue(true);
   });
   await runTest('memory:main3.dart', (compiler) {
-    var main = compiler.mainFunction;
+    var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(
         main, compiler.resolutionWorldBuilder.closedWorldForTesting);
@@ -69,7 +69,7 @@ runTests() async {
     Expect.equals(outputUnitForElement(main), outputUnitForElement(C));
   });
   await runTest('memory:main4.dart', (compiler) {
-    var main = compiler.mainFunction;
+    var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(
         main, compiler.resolutionWorldBuilder.closedWorldForTesting);

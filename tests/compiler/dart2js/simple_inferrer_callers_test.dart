@@ -7,6 +7,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/inferrer/type_graph_inferrer.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld, ClosedWorldRefiner;
 
@@ -39,14 +40,19 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri, analyzeOnly: true);
   asyncTest(() => compiler.run(uri).then((_) {
-        ClosedWorldRefiner closedWorldRefiner = compiler.closeResolution();
+        ElementEnvironment elementEnvironment =
+            compiler.frontendStrategy.elementEnvironment;
+        ClosedWorldRefiner closedWorldRefiner =
+            compiler.closeResolution(elementEnvironment.mainFunction);
         ClosedWorld closedWorld =
             compiler.resolutionWorldBuilder.closedWorldForTesting;
         var inferrer =
             new MyInferrer(compiler, closedWorld, closedWorldRefiner);
         compiler.globalInference.typesInferrerInternal = inferrer;
         compiler.globalInference.runGlobalTypeInference(
-            compiler.mainFunction, closedWorld, closedWorldRefiner);
+            closedWorld.elementEnvironment.mainFunction,
+            closedWorld,
+            closedWorldRefiner);
         var mainElement = findElement(compiler, 'main');
         dynamic classA = findElement(compiler, 'A');
         var fieldA = classA.lookupLocalMember('field');

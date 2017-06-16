@@ -275,7 +275,7 @@ Future testData(TestData data) async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source}, options: ['--analyze-all']);
   Compiler compiler = result.compiler;
-  dynamic library = compiler.mainApp;
+  dynamic library = compiler.frontendStrategy.elementEnvironment.mainLibrary;
   constants.forEach((String name, ConstantData data) {
     FieldElement field = library.localLookup(name);
     ConstantExpression constant = field.constant;

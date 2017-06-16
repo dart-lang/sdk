@@ -82,7 +82,8 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: {'main.dart': SOURCE});
     Compiler compiler = result.compiler;
-    LibraryElement mainApp = compiler.mainApp;
+    LibraryElement mainApp =
+        compiler.frontendStrategy.elementEnvironment.mainLibrary;
 
     Element lookup(String name) {
       Element element;

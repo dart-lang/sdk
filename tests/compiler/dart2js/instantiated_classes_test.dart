@@ -7,7 +7,8 @@ library instantiated_classes_test;
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/elements/entities.dart' show ClassEntity;
+import 'package:compiler/src/elements/entities.dart'
+    show ClassEntity, LibraryEntity;
 import 'type_test_helper.dart';
 
 void main() {
@@ -90,11 +91,13 @@ Future test(String source, List<String> directlyInstantiatedClasses,
   return TypeEnvironment
       .create(source, mainSource: mainSource.toString(), useMockCompiler: true)
       .then((dynamic env) {
+    LibraryEntity mainLibrary =
+        env.compiler.frontendStrategy.elementEnvironment.mainLibrary;
     Iterable<ClassEntity> expectedClasses =
         directlyInstantiatedClasses.map(env.getElement);
     Iterable<ClassEntity> actualClasses = env
         .compiler.resolutionWorldBuilder.directlyInstantiatedClasses
-        .where((c) => c.library == env.compiler.mainApp);
+        .where((c) => c.library == mainLibrary);
     Expect.setEquals(expectedClasses, actualClasses);
   });
 }

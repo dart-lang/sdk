@@ -44,7 +44,10 @@ void testTypeRepresentations() {
       m9(int a, String b, {List<int> c, d}) {}
       m10(void f(int a, [b])) {}
       """).then((env) {
-        var closedWorldRefiner = env.compiler.closeResolution();
+        var elementEnvironment =
+            env.compiler.frontendStrategy.elementEnvironment;
+        var closedWorldRefiner =
+            env.compiler.closeResolution(elementEnvironment.mainFunction);
         var closedWorld = closedWorldRefiner.closedWorld;
         env.compiler.enqueuer.createCodegenEnqueuer(closedWorld);
         env.compiler.backend.onCodegenStart(

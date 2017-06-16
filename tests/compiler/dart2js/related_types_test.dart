@@ -7,6 +7,7 @@ library related_types.test;
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/elements.dart';
@@ -267,7 +268,9 @@ main(List<String> arguments) {
     Expect.isFalse(
         collector.hasRegularMessages, "Unexpected analysis messages.");
     Compiler compiler = result.compiler;
-    compiler.closeResolution();
+    ElementEnvironment elementEnvironment =
+        compiler.frontendStrategy.elementEnvironment;
+    compiler.closeResolution(elementEnvironment.mainFunction);
 
     void checkMember(MemberElement member) {
       if (!member.name.startsWith('test_')) return;
@@ -283,7 +286,7 @@ main(List<String> arguments) {
           "for $member.");
     }
 
-    LibraryElement mainApp = compiler.mainApp;
+    LibraryElement mainApp = elementEnvironment.mainLibrary;
     mainApp.forEachLocalMember((Element element) {
       if (element.isClass) {
         ClassElement cls = element;

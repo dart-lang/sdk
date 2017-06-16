@@ -31,7 +31,8 @@ checkCode(String annotatedCode, CheckMemberFunction checkMember,
   compiler.stopAfterTypeInference = true;
   Uri mainUri = Uri.parse('memory:main.dart');
   await compiler.run(mainUri);
-  LibraryElement mainApp = compiler.mainApp;
+  LibraryElement mainApp =
+      compiler.frontendStrategy.elementEnvironment.mainLibrary;
   mainApp.forEachLocalMember((dynamic member) {
     if (member.isClass) {
       member.forEachLocalMember((member) {

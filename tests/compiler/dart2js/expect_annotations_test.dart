@@ -83,7 +83,8 @@ main() {
         TypeMask expectedParameterType: null,
         TypeMask expectedReturnType: null,
         bool expectAssumeDynamic: false}) {
-      LibraryElement mainApp = compiler.mainApp;
+      LibraryElement mainApp =
+          compiler.frontendStrategy.elementEnvironment.mainLibrary;
       MethodElement method = mainApp.find(name);
       Expect.isNotNull(method);
       Expect.equals(expectNoInline, backend.optimizerHints.noInline(method),

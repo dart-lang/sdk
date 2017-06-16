@@ -969,8 +969,9 @@ class JavaScriptBackend {
       int mirrorCount =
           totalMethodCount - mirrorsCodegenAnalysis.preMirrorsMethodCount;
       double percentage = (mirrorCount / totalMethodCount) * 100;
-      DiagnosticMessage hint =
-          reporter.createMessage(compiler.mainApp, MessageKind.MIRROR_BLOAT, {
+      DiagnosticMessage hint = reporter.createMessage(
+          closedWorld.elementEnvironment.mainLibrary,
+          MessageKind.MIRROR_BLOAT, {
         'count': mirrorCount,
         'total': totalMethodCount,
         'percentage': percentage.round()

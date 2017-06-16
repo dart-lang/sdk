@@ -406,8 +406,8 @@ class KernelVisitor extends Object
 
   @override
   ir.AssertStatement visitAssert(Assert node) {
-    return new ir.AssertStatement(
-        visitForValue(node.condition), visitForValue(node.message));
+    return new ir.AssertStatement(visitForValue(node.condition),
+        message: visitForValue(node.message));
   }
 
   ir.LabeledStatement getBreakTarget(JumpTarget target) {

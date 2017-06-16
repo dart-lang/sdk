@@ -1106,7 +1106,7 @@ class Emitter extends js_emitter.EmitterBase {
       ..add(metadata == null ? new jsAst.ArrayHole() : metadata)
       ..add(js('#', namer.globalObjectForLibrary(library)))
       ..add(initializer);
-    if (library == compiler.mainApp) {
+    if (library == _closedWorld.elementEnvironment.mainLibrary) {
       parts.add(js.number(1));
     }
 

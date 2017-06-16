@@ -210,7 +210,7 @@ Future testData(TestData data) async {
       memorySourceFiles: {'main.dart': source}, options: ['--analyze-all']);
   Compiler compiler = result.compiler;
   MemoryEnvironment environment = new MemoryEnvironment(compiler);
-  var library = compiler.mainApp;
+  var library = compiler.frontendStrategy.elementEnvironment.mainLibrary;
   constants.forEach((String name, ConstantData data) {
     FieldElement field = library.localLookup(name);
     var constant = field.constant;

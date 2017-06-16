@@ -769,7 +769,7 @@ void main() {
         .registerTypeUse(new TypeUse.instantiation(patternImplClass.rawType));
     compiler.enqueuer.resolution.applyImpact(impactBuilder);
     backend.onResolutionEnd();
-    compiler.closeResolution();
+    compiler.closeResolution(null);
     ClosedWorld closedWorld =
         compiler.resolutionWorldBuilder.closedWorldForTesting;
 

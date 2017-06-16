@@ -915,7 +915,8 @@ Future testPatchAndSelector() async {
       """,
       runCompiler: true,
       analyzeOnly: true);
-  compiler.closeResolution();
+  compiler.closeResolution(
+      compiler.frontendStrategy.elementEnvironment.mainFunction);
   ClosedWorld world = compiler.resolutionWorldBuilder.closedWorldForTesting;
 
   ClassElement cls = ensure(

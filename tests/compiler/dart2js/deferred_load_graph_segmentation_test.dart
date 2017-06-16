@@ -22,7 +22,7 @@ void main() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var main = compiler.mainFunction;
+    var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
 
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;

@@ -33,16 +33,20 @@ main() {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;
 
-    var element = compiler.mainApp.find('a');
+    var element =
+        compiler.frontendStrategy.elementEnvironment.mainLibrary.find('a');
     var mask1 = typesInferrer.getReturnTypeOfElement(element);
 
-    element = compiler.mainApp.find('b');
+    element =
+        compiler.frontendStrategy.elementEnvironment.mainLibrary.find('b');
     var mask2 = typesInferrer.getReturnTypeOfElement(element);
 
-    element = compiler.mainApp.find('c');
+    element =
+        compiler.frontendStrategy.elementEnvironment.mainLibrary.find('c');
     var mask3 = typesInferrer.getReturnTypeOfElement(element);
 
-    element = compiler.mainApp.find('d');
+    element =
+        compiler.frontendStrategy.elementEnvironment.mainLibrary.find('d');
     var mask4 = typesInferrer.getReturnTypeOfElement(element);
 
     Expect.notEquals(
