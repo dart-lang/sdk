@@ -129,9 +129,7 @@ inference_super_set_call_test: RuntimeError # Issue 27394
 invalid_annotation2_test/01: Crash # Issue 27394
 invalid_annotation2_test/none: Crash # Issue 27394
 invalid_annotation_test/01: Crash # Issue 27394
-is_check_instanceof_test: RuntimeError # Issue 27394
 lookup_map/dead_entry_through_mirrors_test: Crash # Issue 27394
-lookup_map/generic_type_test: RuntimeError # Issue 27394
 lookup_map/live_entry_through_mirrors_test: Crash # Issue 27394
 lookup_map/live_entry_through_mirrors_used_test: Crash # Issue 27394
 many_fields_test: Crash # Issue 27394
@@ -154,7 +152,6 @@ mirrors_used_closure_test: Crash # Issue 27394
 mirrors_used_metatargets_test: Crash # Issue 27394
 mirrors_used_native_test: Crash # Issue 27394
 reflect_native_types_test: Crash # Issue 27394
-runtime_type_test: RuntimeError # Issue 27394
 type_argument_factory_nocrash_test: RuntimeError # Issue 27394
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
