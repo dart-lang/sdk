@@ -371,7 +371,8 @@ abstract class KernelComplexAssignment extends Expression
           .findMethodInvocationMember(writeContext, combiner, silent: true);
       if (combinerMember is Procedure) {
         isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
-            .isOverloadedArithmeticOperator(combinerMember);
+            .isOverloadedArithmeticOperatorAndType(
+                combinerMember, writeContext);
       }
       if (isPostIncDec) {
         return inferredType;
@@ -686,16 +687,9 @@ class KernelFactoryConstructorInvocation extends StaticInvocation
 class KernelField extends Field {
   FieldNode _fieldNode;
 
-  bool _isInferred = false;
-
   KernelTypeInferrer _typeInferrer;
 
   KernelField(Name name, {String fileUri}) : super(name, fileUri: fileUri) {}
-
-  void _setInferredType(DartType inferredType) {
-    _isInferred = true;
-    super.type = inferredType;
-  }
 }
 
 /// Concrete shadow object representing a for-in loop in kernel form.
@@ -1312,7 +1306,7 @@ class KernelMethodInvocation extends MethodInvocation
         inferrer.findMethodInvocationMember(receiverType, this);
     if (interfaceMember is Procedure) {
       isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
-          .isOverloadedArithmeticOperator(interfaceMember);
+          .isOverloadedArithmeticOperatorAndType(interfaceMember, receiverType);
     }
     var calleeType = inferrer.getCalleeFunctionType(
         interfaceMember, receiverType, name, !_isImplicitCall);
@@ -1595,10 +1589,15 @@ class KernelStaticAssignment extends KernelComplexAssignment {
     var write = this.write;
     if (write is StaticSet) {
       writeContext = write.target.setterType;
-      if (inferrer.isDryRun) {
-        var target = write.target;
-        if (target is KernelField && target._fieldNode != null) {
+      var target = write.target;
+      if (target is KernelField && target._fieldNode != null) {
+        if (inferrer.isDryRun) {
           inferrer.recordDryRunDependency(target._fieldNode);
+        }
+        if (TypeInferenceEngineImpl.fusedTopLevelInference &&
+            inferrer.isTopLevel) {
+          inferrer.engine
+              .inferFieldFused(target._fieldNode, inferrer.fieldNode);
         }
       }
     }
@@ -1637,10 +1636,14 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
         inferrer.listener.staticGetEnter(this, typeContext) || typeNeeded;
-    if (inferrer.isDryRun) {
-      var target = this.target;
-      if (target is KernelField && target._fieldNode != null) {
+    var target = this.target;
+    if (target is KernelField && target._fieldNode != null) {
+      if (inferrer.isDryRun) {
         inferrer.recordDryRunDependency(target._fieldNode);
+      }
+      if (TypeInferenceEngineImpl.fusedTopLevelInference &&
+          inferrer.isTopLevel) {
+        inferrer.engine.inferFieldFused(target._fieldNode, inferrer.fieldNode);
       }
     }
     var inferredType = typeNeeded ? target.getterType : null;
@@ -1895,14 +1898,14 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
   KernelTypeInferrer createLocalTypeInferrer(
       Uri uri, TypeInferenceListener listener, InterfaceType thisType) {
     return new KernelTypeInferrer._(
-        this, uri.toString(), listener, false, thisType);
+        this, uri.toString(), listener, false, thisType, null);
   }
 
   @override
   KernelTypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
       InterfaceType thisType, KernelField field) {
-    return field._typeInferrer =
-        new KernelTypeInferrer._(this, field.fileUri, listener, true, thisType);
+    return field._typeInferrer = new KernelTypeInferrer._(
+        this, field.fileUri, listener, true, thisType, field._fieldNode);
   }
 
   @override
@@ -1914,16 +1917,6 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
   KernelTypeInferrer getFieldTypeInferrer(KernelField field) {
     return field._typeInferrer;
   }
-
-  @override
-  bool isFieldInferred(KernelField field) {
-    return field._isInferred;
-  }
-
-  @override
-  void setFieldInferredType(KernelField field, DartType inferredType) {
-    field._setInferredType(inferredType);
-  }
 }
 
 /// Concrete implementation of [TypeInferrer] specialized to work with kernel
@@ -1932,9 +1925,14 @@ class KernelTypeInferrer extends TypeInferrerImpl {
   @override
   final typePromoter = new KernelTypePromoter();
 
-  KernelTypeInferrer._(KernelTypeInferenceEngine engine, String uri,
-      TypeInferenceListener listener, bool topLevel, InterfaceType thisType)
-      : super(engine, uri, listener, topLevel, thisType);
+  KernelTypeInferrer._(
+      KernelTypeInferenceEngine engine,
+      String uri,
+      TypeInferenceListener listener,
+      bool topLevel,
+      InterfaceType thisType,
+      FieldNode fieldNode)
+      : super(engine, uri, listener, topLevel, thisType, fieldNode);
 
   @override
   Expression getFieldInitializer(KernelField field) {

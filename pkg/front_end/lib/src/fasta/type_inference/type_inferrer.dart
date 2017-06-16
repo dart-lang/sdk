@@ -199,6 +199,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   static final FunctionType _functionReturningDynamic =
       new FunctionType(const [], const DynamicType());
 
+  final TypeInferenceEngineImpl engine;
+
   @override
   final String uri;
 
@@ -221,6 +223,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final InterfaceType thisType;
 
+  /// The [FieldNode] whose initializer will be type inferred using this
+  /// [TypeInferrerImpl], or `null` if this [TypeInferrerImpl] will be used to
+  /// infer types outside the scope of a field initializer.
+  final FieldNode fieldNode;
+
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
   ClosureContext closureContext;
@@ -233,8 +240,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   List<FieldNode> _dryRunDependencies;
 
-  TypeInferrerImpl(TypeInferenceEngineImpl engine, this.uri, this.listener,
-      bool topLevel, this.thisType)
+  TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
+      this.thisType, this.fieldNode)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
