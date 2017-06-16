@@ -381,13 +381,13 @@ static bool ProcessFrontendOption(const char* filename,
 }
 
 
-static bool ProcessPlatformOption(const char* filename,
-                                  CommandLineOptions* vm_options) {
-  ASSERT(filename != NULL);
-  if (filename[0] == '\0') {
+static bool ProcessKernelBinariesOption(const char* dirname,
+                                        CommandLineOptions* vm_options) {
+  ASSERT(dirname != NULL);
+  if (dirname[0] == '\0') {
     return false;
   }
-  dfe.set_platform_binary_filename(filename);
+  dfe.SetKernelBinaries(dirname);
   return true;
 }
 #endif
@@ -616,7 +616,7 @@ static struct {
     {"--parse_all", ProcessParseAllOption},
 #if !defined(DART_PRECOMPILED_RUNTIME)
     {"--dfe=", ProcessFrontendOption},
-    {"--platform=", ProcessPlatformOption},
+    {"--kernel-binaries=", ProcessKernelBinariesOption},
 #endif
     {"--enable-vm-service", ProcessEnableVmServiceOption},
     {"--disable-service-origin-check", ProcessDisableServiceOriginCheckOption},

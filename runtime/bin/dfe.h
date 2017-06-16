@@ -25,9 +25,9 @@ class DFE {
   const char* platform_binary_filename() const {
     return platform_binary_filename_;
   }
-  void set_platform_binary_filename(const char* name) {
-    platform_binary_filename_ = name;
-  }
+
+  void SetKernelBinaries(const char* name);
+
   bool UsePlatformBinary() const { return platform_binary_filename_ != NULL; }
 
   void* kernel_platform() const { return kernel_platform_; }
@@ -66,7 +66,7 @@ class DFE {
                          intptr_t* kernel_ir_size);
 
   const char* frontend_filename_;
-  const char* platform_binary_filename_;
+  char* platform_binary_filename_;
   void* kernel_platform_;
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
