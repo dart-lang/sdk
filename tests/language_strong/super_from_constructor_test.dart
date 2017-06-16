@@ -7,6 +7,7 @@ import "package:expect/expect.dart";
 final results = [];
 
 class Base {
+  var f;
   m(x) => results.add(x);
 }
 
@@ -15,10 +16,12 @@ class C extends Base {
 
   C(this._iter) {
     _iter.map((x) => super.m(x)).toList();
+    super.f = _iter;
   }
 }
 
 main() {
-  new C([1, 2, 3]);
+  var c = new C([1, 2, 3]);
   Expect.listEquals(results, [1, 2, 3]);
+  Expect.listEquals(c.f, [1, 2, 3]);
 }
