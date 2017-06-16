@@ -6,7 +6,6 @@ library kernel.transformations.closure.context;
 
 import '../../ast.dart'
     show
-        Class,
         Expression,
         NullLiteral,
         StringLiteral,
