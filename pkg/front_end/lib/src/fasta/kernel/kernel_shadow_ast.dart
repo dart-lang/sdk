@@ -578,30 +578,6 @@ class KernelDirectPropertyGet extends DirectPropertyGet
   }
 }
 
-/// Shadow object for [DirectPropertySet].
-class KernelDirectPropertySet extends DirectPropertySet
-    implements KernelExpression {
-  KernelDirectPropertySet(Expression receiver, Member target, Expression value)
-      : super(receiver, target, value);
-
-  KernelDirectPropertySet.byReference(
-      Expression receiver, Reference targetReference, Expression value)
-      : super.byReference(receiver, targetReference, value);
-
-  @override
-  void _collectDependencies(KernelDependencyCollector collector) {
-    // Assignment expressions are not immediately evident expressions.
-    collector.recordNotImmediatelyEvident(fileOffset);
-  }
-
-  @override
-  DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
-  }
-}
-
 /// Concrete shadow object representing a double literal in kernel form.
 class KernelDoubleLiteral extends DoubleLiteral implements KernelExpression {
   KernelDoubleLiteral(double value) : super(value);
@@ -1493,39 +1469,6 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
   }
 }
 
-/// Shadow object for [PropertyGet].
-class KernelPropertySet extends PropertySet implements KernelExpression {
-  KernelPropertySet(Expression receiver, Name name, Expression value,
-      [Member interfaceTarget])
-      : super(receiver, name, value, interfaceTarget);
-
-  KernelPropertySet.byReference(Expression receiver, Name name,
-      Expression value, Reference interfaceTargetReference)
-      : super.byReference(receiver, name, value, interfaceTargetReference);
-
-  @override
-  void _collectDependencies(KernelDependencyCollector collector) {
-    // Assignment expressions are not immediately evident expressions.
-    collector.recordNotImmediatelyEvident(fileOffset);
-  }
-
-  @override
-  DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded =
-        inferrer.listener.propertySetEnter(this, typeContext) || typeNeeded;
-    // First infer the receiver so we can look up the setter that was invoked.
-    var receiverType = inferrer.inferExpression(receiver, null, true);
-    Member interfaceMember = inferrer
-        .findInterfaceMember(receiverType, name, fileOffset, setter: true);
-    interfaceTarget = interfaceMember;
-    var setterType = inferrer.getSetterType(interfaceMember, receiverType);
-    var inferredType = inferrer.inferExpression(value, setterType, typeNeeded);
-    inferrer.listener.propertySetExit(this, inferredType);
-    return typeNeeded ? inferredType : null;
-  }
-}
-
 /// Concrete shadow object representing a redirecting initializer in kernel
 /// form.
 class KernelRedirectingInitializer extends RedirectingInitializer
@@ -1696,27 +1639,6 @@ class KernelStaticInvocation extends StaticInvocation
   }
 }
 
-/// Shadow object for [StaticSet].
-class KernelStaticSet extends StaticSet implements KernelExpression {
-  KernelStaticSet(Member target, Expression value) : super(target, value);
-
-  KernelStaticSet.byReference(Reference targetReference, Expression value)
-      : super.byReference(targetReference, value);
-
-  @override
-  void _collectDependencies(KernelDependencyCollector collector) {
-    // Assignment expressions are not immediately evident expressions.
-    collector.recordNotImmediatelyEvident(fileOffset);
-  }
-
-  @override
-  DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
-  }
-}
-
 /// Concrete shadow object representing a string concatenation in kernel form.
 class KernelStringConcatenation extends StringConcatenation
     implements KernelExpression {
@@ -1807,30 +1729,6 @@ class KernelSuperPropertyGet extends SuperPropertyGet
     // Super expressions should never occur in top level type inference.
     // TODO(paulberry): but could they occur due to invalid code?
     assert(false);
-  }
-
-  @override
-  DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    // TODO(scheglov): implement.
-    return typeNeeded ? const DynamicType() : null;
-  }
-}
-
-/// Shadow object for [SuperPropertySet].
-class KernelSuperPropertySet extends SuperPropertySet
-    implements KernelExpression {
-  KernelSuperPropertySet(Name name, Expression value, Member interfaceTarget)
-      : super(name, value, interfaceTarget);
-
-  KernelSuperPropertySet.byReference(
-      Name name, Expression value, Reference interfaceTargetReference)
-      : super.byReference(name, value, interfaceTargetReference);
-
-  @override
-  void _collectDependencies(KernelDependencyCollector collector) {
-    // Assignment expressions are not immediately evident expressions.
-    collector.recordNotImmediatelyEvident(fileOffset);
   }
 
   @override
@@ -2221,30 +2119,6 @@ class KernelVariableGet extends VariableGet implements KernelExpression {
     var inferredType =
         typeNeeded ? (promotedType ?? declaredOrInferredType) : null;
     inferrer.listener.variableGetExit(this, inferredType);
-    return inferredType;
-  }
-}
-
-/// Concrete shadow object representing a write to a variable in kernel form.
-class KernelVariableSet extends VariableSet implements KernelExpression {
-  KernelVariableSet(VariableDeclaration variable, Expression value)
-      : super(variable, value);
-
-  @override
-  void _collectDependencies(KernelDependencyCollector collector) {
-    // Assignment expressions are not immediately evident expressions.
-    collector.recordNotImmediatelyEvident(fileOffset);
-  }
-
-  @override
-  DartType _inferExpression(
-      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    var variable = this.variable as KernelVariableDeclaration;
-    typeNeeded =
-        inferrer.listener.variableSetEnter(this, typeContext) || typeNeeded;
-    var inferredType =
-        inferrer.inferExpression(value, variable.type, typeNeeded);
-    inferrer.listener.variableSetExit(this, inferredType);
     return inferredType;
   }
 }
