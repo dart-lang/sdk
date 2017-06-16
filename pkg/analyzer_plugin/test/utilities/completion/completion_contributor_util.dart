@@ -13,11 +13,11 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
+import 'package:analyzer_plugin/utilities/completion/replacement_range.dart';
 import 'package:test/test.dart';
 
 import '../../support/abstract_context.dart';
 import 'flutter_util.dart';
-import 'replacement_range.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
