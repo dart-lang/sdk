@@ -728,12 +728,16 @@ void StreamingScopeBuilder::VisitStatement() {
     case kAssertStatement: {
       if (I->asserts()) {
         VisitExpression();              // Read condition.
+        builder_->ReadPosition();       // read condition start offset.
+        builder_->ReadPosition();       // read condition end offset.
         Tag tag = builder_->ReadTag();  // read (first part of) message.
         if (tag == kSomething) {
           VisitExpression();  // read (rest of) message.
         }
       } else {
         builder_->SkipExpression();     // Read condition.
+        builder_->ReadPosition();       // read condition start offset.
+        builder_->ReadPosition();       // read condition end offset.
         Tag tag = builder_->ReadTag();  // read (first part of) message.
         if (tag == kSomething) {
           builder_->SkipExpression();  // read (rest of) message.
@@ -4146,6 +4150,8 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       return;
     case kAssertStatement: {
       SkipExpression();     // Read condition.
+      ReadPosition();       // read condition start offset.
+      ReadPosition();       // read condition end offset.
       Tag tag = ReadTag();  // read (first part of) message.
       if (tag == kSomething) {
         SkipExpression();  // read (rest of) message.
@@ -5904,53 +5910,33 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
   instructions += Constant(Bool::True());
   instructions += BranchIfEqual(&then, &otherwise, false);
 
+  TokenPosition condition_start_offset =
+      ReadPosition();  // read condition start offset.
+  TokenPosition condition_end_offset =
+      ReadPosition();  // read condition end offset.
+
   const dart::Class& klass = dart::Class::ZoneHandle(
       Z, dart::Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!klass.IsNull());
-  const dart::Function& constructor = dart::Function::ZoneHandle(
-      Z, klass.LookupConstructorAllowPrivate(
-             H.DartSymbol("_AssertionError._create")));
-  ASSERT(!constructor.IsNull());
+  const dart::Function& target = dart::Function::ZoneHandle(
+      Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNew()));
+  ASSERT(!target.IsNull());
 
-  const dart::String& url = H.DartString(
-      parsed_function()->function().ToLibNamePrefixedQualifiedCString(),
-      Heap::kOld);
-
-  // Create instance of _AssertionError
+  // Build call to _AsertionError._throwNew(start, end, message)
   Fragment otherwise_fragment(otherwise);
-  otherwise_fragment += AllocateObject(klass, 0);
-  LocalVariable* instance = MakeTemporary();
-
-  // Call _AssertionError._create constructor.
-  otherwise_fragment += LoadLocal(instance);
-  otherwise_fragment += PushArgument();  // this
-
-  otherwise_fragment += Constant(H.DartString("<no message>", Heap::kOld));
-  otherwise_fragment += PushArgument();  // failedAssertion
-
-  otherwise_fragment += Constant(url);
-  otherwise_fragment += PushArgument();  // url
-
-  otherwise_fragment += IntConstant(0);
-  otherwise_fragment += PushArgument();  // line
-
-  otherwise_fragment += IntConstant(0);
-  otherwise_fragment += PushArgument();  // column
-
+  otherwise_fragment += IntConstant(condition_start_offset.Pos());
+  otherwise_fragment += PushArgument();  // start
+  otherwise_fragment += IntConstant(condition_end_offset.Pos());
+  otherwise_fragment += PushArgument();  // end
   Tag tag = ReadTag();  // read (first part of) message.
   if (tag == kSomething) {
     otherwise_fragment += BuildExpression();  // read (rest of) message.
   } else {
-    otherwise_fragment += Constant(H.DartString("<no message>", Heap::kOld));
+    otherwise_fragment += Constant(Instance::ZoneHandle(Z));  // null.
   }
   otherwise_fragment += PushArgument();  // message
 
-  otherwise_fragment += StaticCall(TokenPosition::kNoSource, constructor, 6);
-  otherwise_fragment += Drop();
-
-  // Throw _AssertionError exception.
-  otherwise_fragment += PushArgument();
-  otherwise_fragment += ThrowException(TokenPosition::kNoSource);
+  otherwise_fragment += StaticCall(TokenPosition::kNoSource, target, 3);
   otherwise_fragment += Drop();
 
   return Fragment(instructions.entry, then);

@@ -935,7 +935,10 @@ class BinaryBuilder {
       case Tag.EmptyStatement:
         return new EmptyStatement();
       case Tag.AssertStatement:
-        return new AssertStatement(readExpression(), readExpressionOption());
+        return new AssertStatement(readExpression(),
+            conditionStartOffset: readOffset(),
+            conditionEndOffset: readOffset(),
+            message: readExpressionOption());
       case Tag.LabeledStatement:
         var label = new LabeledStatement(null);
         labelStack.add(label);

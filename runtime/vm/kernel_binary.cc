@@ -1320,6 +1320,8 @@ AssertStatement* AssertStatement::ReadFrom(Reader* reader) {
   AssertStatement* stmt = new AssertStatement();
   stmt->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   stmt->condition_ = Expression::ReadFrom(reader);
+  reader->ReadPosition();  // condition start offset.
+  reader->ReadPosition();  // condition end offset.
   stmt->message_ = reader->ReadOptional<Expression>();
 
   stmt->can_stream_ = stmt->condition_->can_stream() &&

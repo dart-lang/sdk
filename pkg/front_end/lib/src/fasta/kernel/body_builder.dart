@@ -2657,7 +2657,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("Assert");
     Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();
-    AssertStatement statement = new AssertStatement(condition, message);
+    AssertStatement statement = new AssertStatement(condition,
+        conditionStartOffset: leftParenthesis.offset + 1,
+        conditionEndOffset: rightParenthesis.offset,
+        message: message);
     switch (kind) {
       case Assert.Statement:
         push(statement);
