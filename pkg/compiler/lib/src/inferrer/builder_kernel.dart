@@ -68,7 +68,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       Compiler compiler, InferrerEngine inferrer,
       [LocalsHandler handler]) {
     var adapter = _createKernelAdapter(compiler, resolvedAst);
-    var node = adapter.getInitialKernelNode(element);
+    var node = adapter.getMemberNode(element);
     return new KernelTypeGraphBuilder.internal(
         element,
         resolvedAst,

@@ -111,7 +111,7 @@ class KernelAstAdapter extends KernelToElementMapMixin
 
   /// Called to find the corresponding Kernel element for a particular Element
   /// before traversing over it with a Kernel visitor.
-  ir.Node getInitialKernelNode(MemberElement originTarget) {
+  ir.Node getMemberNode(MemberElement originTarget) {
     ir.Node target;
     if (originTarget.isPatch) {
       originTarget = originTarget.origin;

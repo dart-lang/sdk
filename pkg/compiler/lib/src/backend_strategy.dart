@@ -5,6 +5,7 @@
 library dart2js.backend_strategy;
 
 import 'closure.dart' show ClosureConversionTask;
+import 'common/tasks.dart';
 import 'compiler.dart' show Compiler;
 import 'enqueue.dart';
 import 'io/source_information.dart';
@@ -37,8 +38,8 @@ abstract class BackendStrategy {
   /// Creates the [WorkItemBuilder] used by the codegen enqueuer.
   WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld);
 
-  /// Creates the [SsaBuilderTask] used for the element model.
-  SsaBuilderTask createSsaBuilderTask(JavaScriptBackend backend,
+  /// Creates the [SsaBuilder] used for the element model.
+  SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy);
 
   /// Returns the [SourceInformationStrategy] use for the element model.

@@ -8,14 +8,14 @@ import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
-import '../ssa/builder.dart' show SsaBuilder;
+import '../ssa/builder.dart' show SsaAstGraphBuilder;
 import '../ssa/nodes.dart' show HInstruction, HForeignCode, HReturn;
 import '../tree/tree.dart';
 import '../universe/side_effects.dart' show SideEffects;
 
 final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
 
-void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
+void handleSsaNative(SsaAstGraphBuilder builder, Expression nativeBody) {
   MethodElement element = builder.target;
   NativeEmitter nativeEmitter = builder.nativeEmitter;
 

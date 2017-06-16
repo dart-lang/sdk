@@ -44,10 +44,6 @@ abstract class KernelToElementMap {
   /// Returns the [InterfaceType] corresponding to [type].
   InterfaceType getInterfaceType(ir.InterfaceType type);
 
-  /// Returns the 'this type' of [cls]. That is, the instantiation of [cls]
-  /// where the type arguments are the type variables of [cls].
-  InterfaceType getThisType(ClassEntity cls);
-
   /// Return the [InterfaceType] corresponding to the [cls] with the given
   /// [typeArguments].
   InterfaceType createInterfaceType(
@@ -85,6 +81,9 @@ abstract class KernelToElementMap {
 
   /// Returns the [MemberEntity] corresponding to the member [node].
   MemberEntity getMember(ir.Member node);
+
+  /// Returns the kernel IR node that defines the [member].
+  ir.Member getMemberNode(MemberEntity member);
 
   /// Returns the [FunctionEntity] corresponding to the procedure [node].
   FunctionEntity getMethod(ir.Procedure node);

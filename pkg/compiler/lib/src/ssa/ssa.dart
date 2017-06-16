@@ -26,10 +26,13 @@ class SsaFunctionCompiler implements FunctionCompiler {
   SsaFunctionCompiler(JavaScriptBackend backend, Measurer measurer,
       SourceInformationStrategy sourceInformationFactory)
       : generator = new SsaCodeGeneratorTask(backend, sourceInformationFactory),
-        _builder = backend.compiler.backendStrategy
-            .createSsaBuilderTask(backend, sourceInformationFactory),
+        _builder = new SsaBuilderTask(backend, sourceInformationFactory),
         optimizer = new SsaOptimizerTask(backend),
         backend = backend;
+
+  void onCodegenStart() {
+    _builder.onCodegenStart();
+  }
 
   /// Generates JavaScript code for `work.element`.
   /// Using the ssa builder, optimizer and codegenerator.
@@ -52,8 +55,28 @@ class SsaFunctionCompiler implements FunctionCompiler {
   }
 }
 
-abstract class SsaBuilderTask implements CompilerTask {
+abstract class SsaBuilder {
   /// Creates the [HGraph] for [work] or returns `null` if no code is needed
   /// for [work].
   HGraph build(CodegenWorkItem work, ClosedWorld closedWorld);
+}
+
+class SsaBuilderTask extends CompilerTask {
+  final JavaScriptBackend _backend;
+  final SourceInformationStrategy _sourceInformationFactory;
+  SsaBuilder _builder;
+
+  SsaBuilderTask(this._backend, this._sourceInformationFactory)
+      : super(_backend.compiler.measurer);
+
+  void onCodegenStart() {
+    _builder = _backend.compiler.backendStrategy
+        .createSsaBuilder(this, _backend, _sourceInformationFactory);
+  }
+
+  /// Creates the [HGraph] for [work] or returns `null` if no code is needed
+  /// for [work].
+  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
+    return _builder.build(work, closedWorld);
+  }
 }

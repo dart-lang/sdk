@@ -45,7 +45,7 @@ import 'ssa_branch_builder.dart';
 import 'switch_continue_analysis.dart';
 import 'type_builder.dart';
 
-class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
+class KernelSsaGraphBuilder extends ir.Visitor with GraphBuilder {
   final ir.Node target;
   final bool _targetIsConstructorBody;
   final MemberEntity targetElement;
@@ -98,7 +98,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// this is a slow path.
   bool _inExpressionOfThrow = false;
 
-  KernelSsaBuilder(
+  KernelSsaGraphBuilder(
       this.targetElement,
       ClassEntity contextClass,
       this.target,
@@ -273,7 +273,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // Doing this instead of fieldValues.forEach because we haven't defined the
     // order of the arguments here. We can define that with JElements.
     ClassEntity cls = _elementMap.getClass(constructedClass);
-    InterfaceType thisType = _elementMap.getThisType(cls);
+    InterfaceType thisType = _elementMap.elementEnvironment.getThisType(cls);
     _worldBuilder.forEachInstanceField(cls,
         (ClassEntity enclosingClass, FieldEntity member) {
       var value = fieldValues[member];
@@ -3268,7 +3268,7 @@ class TryCatchFinallyBuilder {
   HBasicBlock exitBlock;
   HTry tryInstruction;
   HLocalValue exception;
-  KernelSsaBuilder kernelBuilder;
+  KernelSsaGraphBuilder kernelBuilder;
 
   /// True if the code surrounding this try statement was also part of a
   /// try/catch/finally statement.

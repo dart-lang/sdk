@@ -78,6 +78,8 @@ import 'type_variable_handler.dart';
 const VERBOSE_OPTIMIZER_HINTS = false;
 
 abstract class FunctionCompiler {
+  void onCodegenStart();
+
   /// Generates JavaScript code for `work.element`.
   jsAst.Fun compile(CodegenWorkItem work, ClosedWorld closedWorld);
 
@@ -1062,6 +1064,7 @@ class JavaScriptBackend {
   /// [WorldImpact] of enabled backend features is returned.
   WorldImpact onCodegenStart(
       ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
+    functionCompiler.onCodegenStart();
     _oneShotInterceptorData = new OneShotInterceptorData(
         closedWorld.interceptorData, closedWorld.commonElements);
     _namer = determineNamer(closedWorld, codegenWorldBuilder);

@@ -11,7 +11,7 @@ import 'nodes.dart';
 
 /// Visits and concatenates the expressions in a string concatenation.
 class KernelStringBuilder extends ir.Visitor {
-  final KernelSsaBuilder builder;
+  final KernelSsaGraphBuilder builder;
   KernelAstAdapter get astAdapter => builder.astAdapter;
 
   /// The string value generated so far.

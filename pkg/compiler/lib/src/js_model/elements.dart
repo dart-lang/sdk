@@ -6,8 +6,10 @@ library dart2js.js_model.elements;
 
 import '../common_elements.dart';
 import '../constants/constant_system.dart';
+import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
@@ -39,7 +41,424 @@ class JsToFrontendMap {
   MemberEntity toFrontendMember(MemberEntity member) => member;
 
   DartType toBackendType(DartType type) => type;
-  DartType fromFrontendType(DartType type) => type;
+  DartType toFrontendType(DartType type) => type;
+}
+
+class JsToFrontendMapImpl implements JsToFrontendMap {
+  final Map<LibraryEntity, LibraryEntity> _toBackendLibrary =
+      <LibraryEntity, LibraryEntity>{};
+  final List<LibraryEntity> _frontendLibraryList = <LibraryEntity>[];
+
+  LibraryEntity toBackendLibrary(LibraryEntity library) {
+    return _toBackendLibrary.putIfAbsent(library, () {
+      JLibrary newLibrary = new JLibrary(
+          _toBackendLibrary.length, library.name, library.canonicalUri);
+      _frontendLibraryList.add(library);
+      return newLibrary;
+    });
+  }
+
+  LibraryEntity toFrontendLibrary(JLibrary library) =>
+      _frontendLibraryList[library.libraryIndex];
+
+  final Map<ClassEntity, ClassEntity> _toBackendClass =
+      <ClassEntity, ClassEntity>{};
+  final List<ClassEntity> _frontendClassList = <ClassEntity>[];
+
+  ClassEntity toBackendClass(ClassEntity cls) {
+    return _toBackendClass.putIfAbsent(cls, () {
+      LibraryEntity library = toBackendLibrary(cls.library);
+      JClass newClass = new JClass(library, _toBackendClass.length, cls.name,
+          isAbstract: cls.isAbstract);
+      _frontendClassList.add(cls);
+      return newClass;
+    });
+  }
+
+  ClassEntity toFrontendClass(JClass cls) => _frontendClassList[cls.classIndex];
+
+  final Map<MemberEntity, MemberEntity> _toBackendMember =
+      <MemberEntity, MemberEntity>{};
+  final List<MemberEntity> _frontendMemberList = <MemberEntity>[];
+
+  MemberEntity toBackendMember(MemberEntity member) {
+    return _toBackendMember.putIfAbsent(member, () {
+      LibraryEntity library = toBackendLibrary(member.library);
+      ClassEntity cls;
+      if (member.enclosingClass != null) {
+        cls = toBackendClass(member.enclosingClass);
+      }
+
+      JMember newMember;
+      Name memberName = new Name(member.memberName.text, library,
+          isSetter: member.memberName.isSetter);
+      if (member.isField) {
+        FieldEntity field = member;
+        newMember = new JField(
+            _toBackendMember.length, library, cls, memberName,
+            isStatic: field.isStatic,
+            isAssignable: field.isAssignable,
+            isConst: field.isConst);
+      } else if (member.isConstructor) {
+        ConstructorEntity constructor = member;
+        if (constructor.isFactoryConstructor) {
+          // TODO(johnniwinther): This should be a JFunction.
+          newMember = new JFactoryConstructor(_toBackendMember.length, cls,
+              memberName, constructor.parameterStructure,
+              isExternal: constructor.isExternal,
+              isConst: constructor.isConst,
+              isFromEnvironmentConstructor:
+                  constructor.isFromEnvironmentConstructor);
+        } else {
+          newMember = new JGenerativeConstructor(_toBackendMember.length, cls,
+              memberName, constructor.parameterStructure,
+              isExternal: constructor.isExternal, isConst: constructor.isConst);
+        }
+      } else if (member.isGetter) {
+        FunctionEntity getter = member;
+        newMember = new JGetter(_toBackendMember.length, library, cls,
+            memberName, getter.asyncMarker,
+            isStatic: getter.isStatic,
+            isExternal: getter.isExternal,
+            isAbstract: getter.isAbstract);
+      } else if (member.isSetter) {
+        FunctionEntity setter = member;
+        newMember = new JSetter(
+            _toBackendMember.length, library, cls, memberName,
+            isStatic: setter.isStatic,
+            isExternal: setter.isExternal,
+            isAbstract: setter.isAbstract);
+      } else {
+        FunctionEntity function = member;
+        newMember = new JMethod(_toBackendMember.length, library, cls,
+            memberName, function.parameterStructure, function.asyncMarker,
+            isStatic: function.isStatic,
+            isExternal: function.isExternal,
+            isAbstract: function.isAbstract);
+      }
+      _frontendMemberList.add(member);
+      return newMember;
+    });
+  }
+
+  MemberEntity toFrontendMember(JMember member) =>
+      _frontendMemberList[member.memberIndex];
+
+  DartType toBackendType(DartType type) =>
+      const TypeConverter().visit(type, _toBackendEntity);
+  DartType toFrontendType(DartType type) =>
+      const TypeConverter().visit(type, _toFrontendEntity);
+
+  Entity _toBackendEntity(Entity entity) {
+    if (entity is ClassEntity) return toBackendClass(entity);
+    assert(entity is TypeVariableEntity);
+    return _toBackendTypeVariable(entity);
+  }
+
+  final Map<TypeVariableEntity, TypeVariableEntity> _toBackendTypeVariableMap =
+      <TypeVariableEntity, TypeVariableEntity>{};
+
+  final Map<TypeVariableEntity, TypeVariableEntity> _toFrontendTypeVariableMap =
+      <TypeVariableEntity, TypeVariableEntity>{};
+
+  TypeVariableEntity _toBackendTypeVariable(TypeVariableEntity typeVariable) {
+    return _toBackendTypeVariableMap.putIfAbsent(typeVariable, () {
+      Entity typeDeclaration;
+      if (typeVariable.typeDeclaration is ClassEntity) {
+        typeDeclaration = toBackendClass(typeVariable.typeDeclaration);
+      } else {
+        typeDeclaration = toBackendMember(typeVariable.typeDeclaration);
+      }
+      TypeVariableEntity newTypeVariable = new JTypeVariable(
+          typeDeclaration, typeVariable.name, typeVariable.index);
+      _toFrontendTypeVariableMap[newTypeVariable] = typeVariable;
+      return newTypeVariable;
+    });
+  }
+
+  Entity _toFrontendEntity(Entity entity) {
+    if (entity is ClassEntity) return toFrontendClass(entity);
+    assert(entity is TypeVariableEntity);
+    TypeVariableEntity typeVariable = _toFrontendTypeVariableMap[entity];
+    assert(typeVariable != null, "No front end type variable for $entity");
+    return typeVariable;
+  }
+}
+
+typedef Entity EntityConverter(Entity cls);
+
+class TypeConverter implements DartTypeVisitor<DartType, EntityConverter> {
+  const TypeConverter();
+
+  @override
+  DartType visit(DartType type, EntityConverter converter) {
+    return type.accept(this, converter);
+  }
+
+  List<DartType> visitList(List<DartType> types, EntityConverter converter) {
+    List<DartType> list = <DartType>[];
+    for (DartType type in types) {
+      list.add(visit(type, converter));
+    }
+    return list;
+  }
+
+  @override
+  DartType visitDynamicType(DynamicType type, EntityConverter converter) {
+    return const DynamicType();
+  }
+
+  @override
+  DartType visitInterfaceType(InterfaceType type, EntityConverter converter) {
+    return new InterfaceType(
+        converter(type.element), visitList(type.typeArguments, converter));
+  }
+
+  @override
+  DartType visitFunctionType(FunctionType type, EntityConverter converter) {
+    return new FunctionType(
+        visit(type.returnType, converter),
+        visitList(type.parameterTypes, converter),
+        visitList(type.optionalParameterTypes, converter),
+        type.namedParameters,
+        visitList(type.namedParameterTypes, converter));
+  }
+
+  @override
+  DartType visitTypeVariableType(
+      TypeVariableType type, EntityConverter converter) {
+    return new TypeVariableType(converter(type.element));
+  }
+
+  @override
+  DartType visitVoidType(VoidType type, EntityConverter converter) {
+    return const VoidType();
+  }
+}
+
+class JLibrary implements LibraryEntity {
+  /// Library index used for fast lookup in [JsToFrontendMapImpl].
+  final int libraryIndex;
+  final String name;
+  final Uri canonicalUri;
+
+  JLibrary(this.libraryIndex, this.name, this.canonicalUri);
+
+  String toString() => 'library($name)';
+}
+
+class JClass implements ClassEntity {
+  final JLibrary library;
+
+  /// Class index used for fast lookup in [JsToFrontendMapImpl].
+  final int classIndex;
+
+  final String name;
+  final bool isAbstract;
+
+  JClass(this.library, this.classIndex, this.name, {this.isAbstract});
+
+  @override
+  bool get isClosure => false;
+
+  String toString() => 'class($name)';
+}
+
+abstract class JMember implements MemberEntity {
+  /// Member index used for fast lookup in [JsToFrontendMapImpl].
+  final int memberIndex;
+  final JLibrary library;
+  final JClass enclosingClass;
+  final Name _name;
+  final bool _isStatic;
+
+  JMember(this.memberIndex, this.library, this.enclosingClass, this._name,
+      {bool isStatic: false})
+      : _isStatic = isStatic;
+
+  String get name => _name.text;
+
+  Name get memberName => _name;
+
+  @override
+  bool get isAssignable => false;
+
+  @override
+  bool get isConst => false;
+
+  @override
+  bool get isAbstract => false;
+
+  @override
+  bool get isSetter => false;
+
+  @override
+  bool get isGetter => false;
+
+  @override
+  bool get isFunction => false;
+
+  @override
+  bool get isField => false;
+
+  @override
+  bool get isConstructor => false;
+
+  @override
+  bool get isInstanceMember => enclosingClass != null && !_isStatic;
+
+  @override
+  bool get isStatic => enclosingClass != null && _isStatic;
+
+  @override
+  bool get isTopLevel => enclosingClass == null;
+
+  String get _kind;
+
+  String toString() =>
+      '$_kind(${enclosingClass != null ? '${enclosingClass.name}.' : ''}$name)';
+}
+
+abstract class JFunction extends JMember implements FunctionEntity {
+  final ParameterStructure parameterStructure;
+  final bool isExternal;
+  final AsyncMarker asyncMarker;
+
+  JFunction(int memberIndex, JLibrary library, JClass enclosingClass, Name name,
+      this.parameterStructure, this.asyncMarker,
+      {bool isStatic: false, this.isExternal: false})
+      : super(memberIndex, library, enclosingClass, name, isStatic: isStatic);
+}
+
+abstract class JConstructor extends JFunction implements ConstructorEntity {
+  final bool isConst;
+
+  JConstructor(int memberIndex, JClass enclosingClass, Name name,
+      ParameterStructure parameterStructure, {bool isExternal, this.isConst})
+      : super(memberIndex, enclosingClass.library, enclosingClass, name,
+            parameterStructure, AsyncMarker.SYNC,
+            isExternal: isExternal);
+
+  @override
+  bool get isConstructor => true;
+
+  @override
+  bool get isInstanceMember => false;
+
+  @override
+  bool get isStatic => false;
+
+  @override
+  bool get isTopLevel => false;
+
+  @override
+  bool get isFromEnvironmentConstructor => false;
+
+  String get _kind => 'constructor';
+}
+
+class JGenerativeConstructor extends JConstructor {
+  JGenerativeConstructor(int constructorIndex, JClass enclosingClass, Name name,
+      ParameterStructure parameterStructure, {bool isExternal, bool isConst})
+      : super(constructorIndex, enclosingClass, name, parameterStructure,
+            isExternal: isExternal, isConst: isConst);
+
+  @override
+  bool get isFactoryConstructor => false;
+
+  @override
+  bool get isGenerativeConstructor => true;
+}
+
+class JFactoryConstructor extends JConstructor {
+  @override
+  final bool isFromEnvironmentConstructor;
+
+  JFactoryConstructor(int memberIndex, JClass enclosingClass, Name name,
+      ParameterStructure parameterStructure,
+      {bool isExternal, bool isConst, this.isFromEnvironmentConstructor})
+      : super(memberIndex, enclosingClass, name, parameterStructure,
+            isExternal: isExternal, isConst: isConst);
+
+  @override
+  bool get isFactoryConstructor => true;
+
+  @override
+  bool get isGenerativeConstructor => false;
+}
+
+class JMethod extends JFunction {
+  final bool isAbstract;
+
+  JMethod(int memberIndex, JLibrary library, JClass enclosingClass, Name name,
+      ParameterStructure parameterStructure, AsyncMarker asyncMarker,
+      {bool isStatic, bool isExternal, this.isAbstract})
+      : super(memberIndex, library, enclosingClass, name, parameterStructure,
+            asyncMarker,
+            isStatic: isStatic, isExternal: isExternal);
+
+  @override
+  bool get isFunction => true;
+
+  String get _kind => 'method';
+}
+
+class JGetter extends JFunction {
+  final bool isAbstract;
+
+  JGetter(int memberIndex, JLibrary library, JClass enclosingClass, Name name,
+      AsyncMarker asyncMarker,
+      {bool isStatic, bool isExternal, this.isAbstract})
+      : super(memberIndex, library, enclosingClass, name,
+            const ParameterStructure.getter(), asyncMarker,
+            isStatic: isStatic, isExternal: isExternal);
+
+  @override
+  bool get isGetter => true;
+
+  String get _kind => 'getter';
+}
+
+class JSetter extends JFunction {
+  final bool isAbstract;
+
+  JSetter(int memberIndex, JLibrary library, JClass enclosingClass, Name name,
+      {bool isStatic, bool isExternal, this.isAbstract})
+      : super(memberIndex, library, enclosingClass, name,
+            const ParameterStructure.setter(), AsyncMarker.SYNC,
+            isStatic: isStatic, isExternal: isExternal);
+
+  @override
+  bool get isAssignable => true;
+
+  @override
+  bool get isSetter => true;
+
+  String get _kind => 'setter';
+}
+
+class JField extends JMember implements FieldEntity {
+  final bool isAssignable;
+  final bool isConst;
+
+  JField(int memberIndex, JLibrary library, JClass enclosingClass, Name name,
+      {bool isStatic, this.isAssignable, this.isConst})
+      : super(memberIndex, library, enclosingClass, name, isStatic: isStatic);
+
+  @override
+  bool get isField => true;
+
+  String get _kind => 'field';
+}
+
+class JTypeVariable implements TypeVariableEntity {
+  final Entity typeDeclaration;
+  final String name;
+  final int index;
+
+  JTypeVariable(this.typeDeclaration, this.name, this.index);
+
+  String toString() => 'type_variable(${typeDeclaration.name}.$name)';
 }
 
 class JsClosedWorld extends ClosedWorldBase {
@@ -296,6 +715,178 @@ class JsBackendUsage implements BackendUsage {
 
   @override
   bool get isNoSuchMethodUsed => _backendUsage.isNoSuchMethodUsed;
+}
+
+class JsElementEnvironment implements ElementEnvironment {
+  final JsToFrontendMap _map;
+  final ElementEnvironment _elementEnvironment;
+
+  JsElementEnvironment(this._map, this._elementEnvironment);
+
+  @override
+  Iterable<ConstantValue> getMemberMetadata(MemberEntity member) {
+    throw new UnimplementedError('JsElementEnvironment.getMemberMetadata');
+  }
+
+  @override
+  bool isDeferredLoadLibraryGetter(MemberEntity member) {
+    throw new UnimplementedError(
+        'JsElementEnvironment.isDeferredLoadLibraryGetter');
+  }
+
+  @override
+  DartType getUnaliasedType(DartType type) {
+    throw new UnimplementedError('JsElementEnvironment.getUnaliasedType');
+  }
+
+  @override
+  FunctionType getLocalFunctionType(Local local) {
+    throw new UnimplementedError('JsElementEnvironment.getLocalFunctionType');
+  }
+
+  @override
+  FunctionType getFunctionType(FunctionEntity function) {
+    return _map.toBackendType(
+        _elementEnvironment.getFunctionType(_map.toFrontendMember(function)));
+  }
+
+  @override
+  DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
+    throw new UnimplementedError('JsElementEnvironment.getTypeVariableBound');
+  }
+
+  @override
+  ClassEntity getEffectiveMixinClass(ClassEntity cls) {
+    throw new UnimplementedError('JsElementEnvironment.getEffectiveMixinClass');
+  }
+
+  @override
+  bool isUnnamedMixinApplication(ClassEntity cls) {
+    throw new UnimplementedError(
+        'JsElementEnvironment.isUnnamedMixinApplication');
+  }
+
+  @override
+  bool isMixinApplication(ClassEntity cls) {
+    throw new UnimplementedError('JsElementEnvironment.isMixinApplication');
+  }
+
+  @override
+  bool isGenericClass(ClassEntity cls) {
+    throw new UnimplementedError('JsElementEnvironment.isGenericClass');
+  }
+
+  @override
+  InterfaceType getThisType(ClassEntity cls) {
+    throw new UnimplementedError('JsElementEnvironment.getThisType');
+  }
+
+  @override
+  InterfaceType getRawType(ClassEntity cls) {
+    throw new UnimplementedError('JsElementEnvironment.getRawType');
+  }
+
+  @override
+  DartType get dynamicType {
+    throw new UnimplementedError('JsElementEnvironment.dynamicType');
+  }
+
+  @override
+  InterfaceType createInterfaceType(
+      ClassEntity cls, List<DartType> typeArguments) {
+    throw new UnimplementedError('JsElementEnvironment.createInterfaceType');
+  }
+
+  @override
+  void forEachMixin(ClassEntity cls, void f(ClassEntity mixin)) {
+    throw new UnimplementedError('JsElementEnvironment.forEachMixin');
+  }
+
+  @override
+  void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype)) {
+    throw new UnimplementedError('JsElementEnvironment.forEachSupertype');
+  }
+
+  @override
+  ClassEntity getSuperClass(ClassEntity cls,
+      {bool skipUnnamedMixinApplications: false}) {
+    throw new UnimplementedError('JsElementEnvironment.getSuperClass');
+  }
+
+  @override
+  void forEachConstructor(
+      ClassEntity cls, void f(ConstructorEntity constructor)) {
+    throw new UnimplementedError('JsElementEnvironment.forEachConstructor');
+  }
+
+  @override
+  void forEachClassMember(
+      ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
+    throw new UnimplementedError('JsElementEnvironment.forEachClassMember');
+  }
+
+  @override
+  ConstructorEntity lookupConstructor(ClassEntity cls, String name,
+      {bool required: false}) {
+    throw new UnimplementedError('JsElementEnvironment.lookupConstructor');
+  }
+
+  @override
+  MemberEntity lookupClassMember(ClassEntity cls, String name,
+      {bool setter: false, bool required: false}) {
+    throw new UnimplementedError('JsElementEnvironment.lookupClassMember');
+  }
+
+  @override
+  MemberEntity lookupLibraryMember(LibraryEntity library, String name,
+      {bool setter: false, bool required: false}) {
+    throw new UnimplementedError('JsElementEnvironment.lookupLibraryMember');
+  }
+
+  @override
+  void forEachLibraryMember(
+      LibraryEntity library, void f(MemberEntity member)) {
+    _elementEnvironment.forEachLibraryMember(_map.toFrontendLibrary(library),
+        (MemberEntity member) {
+      f(_map.toBackendMember(member));
+    });
+  }
+
+  @override
+  ClassEntity lookupClass(LibraryEntity library, String name,
+      {bool required: false}) {
+    throw new UnimplementedError('JsElementEnvironment.lookupClass');
+  }
+
+  @override
+  void forEachClass(LibraryEntity library, void f(ClassEntity cls)) {
+    throw new UnimplementedError('JsElementEnvironment.forEachClass');
+  }
+
+  @override
+  LibraryEntity lookupLibrary(Uri uri, {bool required: false}) {
+    throw new UnimplementedError('JsElementEnvironment.lookupLibrary');
+  }
+
+  @override
+  String getLibraryName(LibraryEntity library) {
+    return _elementEnvironment.getLibraryName(_map.toFrontendLibrary(library));
+  }
+
+  @override
+  Iterable<LibraryEntity> get libraries {
+    throw new UnimplementedError('JsElementEnvironment.libraries');
+  }
+
+  @override
+  FunctionEntity get mainFunction {
+    return _map.toBackendMember(_elementEnvironment.mainFunction);
+  }
+
+  @override
+  LibraryEntity get mainLibrary {
+    return _map.toBackendLibrary(_elementEnvironment.mainLibrary);
+  }
 }
 
 class JsCommonElements implements CommonElements {
@@ -998,7 +1589,7 @@ class JsCommonElements implements CommonElements {
 
   @override
   InterfaceType get symbolImplementationType {
-    return _map.fromFrontendType(_commonElements.symbolImplementationType);
+    return _map.toBackendType(_commonElements.symbolImplementationType);
   }
 
   @override
@@ -1008,8 +1599,8 @@ class JsCommonElements implements CommonElements {
   @override
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
       {bool hasProtoKey: false, bool onlyStringKeys: false}) {
-    return _map.fromFrontendType(_commonElements.getConstantMapTypeFor(
-        _map.toBackendType(sourceType),
+    return _map.toBackendType(_commonElements.getConstantMapTypeFor(
+        _map.toFrontendType(sourceType),
         hasProtoKey: hasProtoKey,
         onlyStringKeys: onlyStringKeys));
   }
@@ -1032,84 +1623,84 @@ class JsCommonElements implements CommonElements {
 
   @override
   InterfaceType streamType([DartType elementType]) {
-    return _map.fromFrontendType(
-        _commonElements.streamType(_map.toBackendType(elementType)));
+    return _map.toBackendType(
+        _commonElements.streamType(_map.toFrontendType(elementType)));
   }
 
   @override
   InterfaceType futureType([DartType elementType]) {
-    return _map.fromFrontendType(
-        _commonElements.futureType(_map.toBackendType(elementType)));
+    return _map.toBackendType(
+        _commonElements.futureType(_map.toFrontendType(elementType)));
   }
 
   @override
   InterfaceType iterableType([DartType elementType]) {
-    return _map.fromFrontendType(
-        _commonElements.iterableType(_map.toBackendType(elementType)));
+    return _map.toBackendType(
+        _commonElements.iterableType(_map.toFrontendType(elementType)));
   }
 
   @override
   InterfaceType mapType([DartType keyType, DartType valueType]) {
-    return _map.fromFrontendType(_commonElements.mapType(
-        _map.toBackendType(keyType), _map.toBackendType(valueType)));
+    return _map.toBackendType(_commonElements.mapType(
+        _map.toFrontendType(keyType), _map.toFrontendType(valueType)));
   }
 
   @override
   InterfaceType listType([DartType elementType]) {
-    return _map.fromFrontendType(
-        _commonElements.listType(_map.toBackendType(elementType)));
+    return _map.toBackendType(
+        _commonElements.listType(_map.toFrontendType(elementType)));
   }
 
   @override
   InterfaceType get stackTraceType =>
-      _map.fromFrontendType(_commonElements.stackTraceType);
+      _map.toBackendType(_commonElements.stackTraceType);
 
   @override
   InterfaceType get typeLiteralType =>
-      _map.fromFrontendType(_commonElements.typeLiteralType);
+      _map.toBackendType(_commonElements.typeLiteralType);
 
   @override
-  InterfaceType get typeType => _map.fromFrontendType(_commonElements.typeType);
+  InterfaceType get typeType => _map.toBackendType(_commonElements.typeType);
 
   @override
-  InterfaceType get nullType => _map.fromFrontendType(_commonElements.nullType);
+  InterfaceType get nullType => _map.toBackendType(_commonElements.nullType);
 
   @override
   InterfaceType get functionType =>
-      _map.fromFrontendType(_commonElements.functionType);
+      _map.toBackendType(_commonElements.functionType);
 
   @override
   InterfaceType get symbolType =>
-      _map.fromFrontendType(_commonElements.symbolType);
+      _map.toBackendType(_commonElements.symbolType);
 
   @override
   InterfaceType get stringType =>
-      _map.fromFrontendType(_commonElements.stringType);
+      _map.toBackendType(_commonElements.stringType);
 
   @override
   InterfaceType get resourceType =>
-      _map.fromFrontendType(_commonElements.resourceType);
+      _map.toBackendType(_commonElements.resourceType);
 
   @override
   InterfaceType get doubleType =>
-      _map.fromFrontendType(_commonElements.doubleType);
+      _map.toBackendType(_commonElements.doubleType);
 
   @override
-  InterfaceType get intType => _map.fromFrontendType(_commonElements.intType);
+  InterfaceType get intType => _map.toBackendType(_commonElements.intType);
 
   @override
-  InterfaceType get numType => _map.fromFrontendType(_commonElements.numType);
+  InterfaceType get numType => _map.toBackendType(_commonElements.numType);
 
   @override
-  InterfaceType get boolType => _map.fromFrontendType(_commonElements.boolType);
+  InterfaceType get boolType => _map.toBackendType(_commonElements.boolType);
 
   @override
   InterfaceType get objectType =>
-      _map.fromFrontendType(_commonElements.objectType);
+      _map.toBackendType(_commonElements.objectType);
 
   @override
   DynamicType get dynamicType =>
-      _map.fromFrontendType(_commonElements.dynamicType);
+      _map.toBackendType(_commonElements.dynamicType);
 
   @override
   bool isFilledListConstructor(ConstructorEntity element) {

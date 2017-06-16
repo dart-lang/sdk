@@ -1,6 +1,8 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+import '../common/tasks.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
@@ -13,16 +15,17 @@ import 'nodes.dart';
 import 'builder_kernel.dart';
 
 /// Task for building SSA kernel IR generated from rasta.
-class RastaSsaBuilderTask extends SsaAstBuilderBase {
+class RastaSsaBuilder extends SsaAstBuilderBase {
   final SourceInformationStrategy sourceInformationFactory;
 
   String get name => 'SSA kernel builder';
 
-  RastaSsaBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
-      : super(backend);
+  RastaSsaBuilder(CompilerTask task, JavaScriptBackend backend,
+      this.sourceInformationFactory)
+      : super(task, backend);
 
   HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
-    return measure(() {
+    return task.measure(() {
       if (handleConstantField(work, closedWorld)) {
         // No code is generated for `work.element`.
         return null;
@@ -34,10 +37,10 @@ class RastaSsaBuilderTask extends SsaAstBuilderBase {
           work.resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
       KernelAstTypeInferenceMap typeInferenceMap =
           new KernelAstTypeInferenceMap(astAdapter);
-      KernelSsaBuilder builder = new KernelSsaBuilder(
+      KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
           element,
           element.contextClass,
-          astAdapter.getInitialKernelNode(element),
+          astAdapter.getMemberNode(element),
           backend.compiler,
           astAdapter,
           typeInferenceMap,

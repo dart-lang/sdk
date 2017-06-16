@@ -308,9 +308,9 @@ abstract class LoopHandler<T> {
 
 /// A loop handler for the builder that just uses AST nodes directly.
 class SsaLoopHandler extends LoopHandler<ast.Node> {
-  final SsaBuilder builder;
+  final SsaAstGraphBuilder builder;
 
-  SsaLoopHandler(SsaBuilder builder)
+  SsaLoopHandler(SsaAstGraphBuilder builder)
       : this.builder = builder,
         super(builder);
 
@@ -346,11 +346,11 @@ class _SsaLoopTypeVisitor extends ast.Visitor {
 // TODO(het): Since kernel simplifies loop breaks and continues, we should
 // rewrite the loop handler from scratch to account for the simplified structure
 class KernelLoopHandler extends LoopHandler<ir.TreeNode> {
-  final KernelSsaBuilder builder;
+  final KernelSsaGraphBuilder builder;
 
   KernelAstAdapter get astAdapter => builder.astAdapter;
 
-  KernelLoopHandler(KernelSsaBuilder builder)
+  KernelLoopHandler(KernelSsaGraphBuilder builder)
       : this.builder = builder,
         super(builder);
 

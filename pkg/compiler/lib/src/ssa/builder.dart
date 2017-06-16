@@ -54,11 +54,11 @@ import 'ssa_branch_builder.dart';
 import 'type_builder.dart';
 import 'types.dart';
 
-abstract class SsaAstBuilderBase extends CompilerTask
-    implements SsaBuilderTask {
+abstract class SsaAstBuilderBase implements SsaBuilder {
+  final CompilerTask task;
   final JavaScriptBackend backend;
 
-  SsaAstBuilderBase(this.backend) : super(backend.compiler.measurer);
+  SsaAstBuilderBase(this.task, this.backend);
 
   /// Handle field initializer of `work.element`. Returns `true` if no code
   /// is needed for the field.
@@ -112,27 +112,26 @@ abstract class SsaAstBuilderBase extends CompilerTask
   }
 }
 
-class SsaAstBuilderTask extends SsaAstBuilderBase {
+class SsaAstBuilder extends SsaAstBuilderBase {
   final CodeEmitterTask emitter;
   final SourceInformationStrategy sourceInformationFactory;
 
-  String get name => 'SSA builder';
-
-  SsaAstBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
+  SsaAstBuilder(CompilerTask task, JavaScriptBackend backend,
+      this.sourceInformationFactory)
       : emitter = backend.emitter,
-        super(backend);
+        super(task, backend);
 
   DiagnosticReporter get reporter => backend.reporter;
 
   HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
-    return measure(() {
+    return task.measure(() {
       if (handleConstantField(work, closedWorld)) {
         // No code is generated for `work.element`.
         return null;
       }
       MemberElement element = work.element.implementation;
       return reporter.withCurrentElement(element, () {
-        SsaBuilder builder = new SsaBuilder(
+        SsaAstGraphBuilder builder = new SsaAstGraphBuilder(
             work.element.implementation,
             work.resolvedAst,
             work.registry,
@@ -179,7 +178,7 @@ class SsaAstBuilderTask extends SsaAstBuilderBase {
 /**
  * This class builds SSA nodes for functions represented in AST.
  */
-class SsaBuilder extends ast.Visitor
+class SsaAstGraphBuilder extends ast.Visitor
     with
         BaseImplementationOfCompoundsMixin,
         BaseImplementationOfSetIfNullsMixin,
@@ -258,7 +257,7 @@ class SsaBuilder extends ast.Visitor
   TypeBuilder typeBuilder;
 
   // TODO(sigmund): make most args optional
-  SsaBuilder(
+  SsaAstGraphBuilder(
       this.target,
       this.resolvedAst,
       this.registry,
@@ -6597,7 +6596,7 @@ class SsaBuilder extends ast.Visitor
  * non-literal subexpressions.
  */
 class StringBuilderVisitor extends ast.Visitor {
-  final SsaBuilder builder;
+  final SsaAstGraphBuilder builder;
   final ast.Node diagnosticNode;
 
   /**

@@ -78,9 +78,11 @@ class KernelBackendStrategy implements BackendStrategy {
   }
 
   @override
-  SsaBuilderTask createSsaBuilderTask(JavaScriptBackend backend,
+  SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
-    return new KernelSsaBuilderTask(backend.compiler);
+    KernelFrontEndStrategy strategy = backend.compiler.frontendStrategy;
+    KernelToElementMap elementMap = strategy.elementMap;
+    return new KernelSsaBuilder(task, backend.compiler, elementMap);
   }
 
   @override
@@ -126,19 +128,16 @@ class KernelCodegenWorkItem extends CodegenWorkItem {
 }
 
 /// Task for building SSA from kernel IR loaded from .dill.
-class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
+class KernelSsaBuilder implements SsaBuilder {
+  final CompilerTask task;
   final Compiler _compiler;
+  final KernelToElementMap _elementMap;
 
-  KernelSsaBuilderTask(this._compiler) : super(_compiler.measurer);
-
-  KernelToElementMapImpl get _elementMap {
-    KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
-    return frontendStrategy.elementMap;
-  }
+  KernelSsaBuilder(this.task, this._compiler, this._elementMap);
 
   @override
   HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
-    KernelSsaBuilder builder = new KernelSsaBuilder(
+    KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
         work.element,
         work.element.enclosingClass,
         _elementMap.getMemberNode(work.element),
