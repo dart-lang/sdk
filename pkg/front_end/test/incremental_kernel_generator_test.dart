@@ -368,15 +368,6 @@ class C {
     }
   }
 
-  void _assertCompiledUris(Iterable<Uri> expected) {
-    var compiledCycles = incrementalKernelGenerator.test.compiledCycles;
-    Set<Uri> compiledUris = compiledCycles
-        .map((cycle) => cycle.libraries.map((file) => file.uri))
-        .expand((uris) => uris)
-        .toSet();
-    expect(compiledUris, unorderedEquals(expected));
-  }
-
   test_compile_typedef() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
@@ -822,6 +813,26 @@ import 'a.dart';
     }
   }
 
+  test_watch_null() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    writeFile(aPath, "");
+    Uri bUri = writeFile(bPath, "");
+
+    // Set null, as if the watch function is not provided.
+    watchFn = null;
+
+    await getInitialState(bUri);
+
+    // Update b.dart to import a.dart file.
+    writeFile(bPath, "import 'a.dart';");
+    incrementalKernelGenerator.invalidate(bUri);
+    await incrementalKernelGenerator.computeDelta();
+
+    // No exception even though the watcher function is null.
+  }
+
   /// Write the given [text] of the file with the given [path] into the
   /// virtual filesystem.  Return the URI of the file.
   Uri writeFile(String path, String text) {
@@ -833,6 +844,15 @@ import 'a.dart';
   /// Write the given file contents to the virtual filesystem.
   void writeFiles(Map<String, String> contents) {
     contents.forEach(writeFile);
+  }
+
+  void _assertCompiledUris(Iterable<Uri> expected) {
+    var compiledCycles = incrementalKernelGenerator.test.compiledCycles;
+    Set<Uri> compiledUris = compiledCycles
+        .map((cycle) => cycle.libraries.map((file) => file.uri))
+        .expand((uris) => uris)
+        .toSet();
+    expect(compiledUris, unorderedEquals(expected));
   }
 
   void _assertLibraryUris(Program program,
