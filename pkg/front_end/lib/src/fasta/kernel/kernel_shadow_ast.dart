@@ -2252,8 +2252,7 @@ class KernelYieldStatement extends YieldStatement implements KernelStatement {
               ? inferrer.coreTypes.streamClass
               : inferrer.coreTypes.iterableClass);
     }
-    var inferredType = inferrer.inferExpression(
-        expression, typeContext, closureContext != null);
+    var inferredType = inferrer.inferExpression(expression, typeContext, true);
     closureContext.handleYield(inferrer, isYieldStar, inferredType);
     inferrer.listener.yieldStatementExit(this);
   }
