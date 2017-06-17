@@ -4,6 +4,9 @@
 
 library fasta.kernel_class_builder;
 
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
+    show KernelField;
+
 import 'package:kernel/ast.dart'
     show
         Class,
@@ -195,6 +198,13 @@ abstract class KernelClassBuilder
       }
     }
     // TODO(ahe): Handle other cases: accessors, operators, and fields.
+
+    // Also record any cases where a field overrides something in a superclass,
+    // since this information will be needed for type inference.
+    if (declaredMember is KernelField &&
+        identical(declaredMember.enclosingClass, cls)) {
+      KernelField.recordOverride(declaredMember, interfaceMember, isSetter);
+    }
   }
 
   void checkMethodOverride(

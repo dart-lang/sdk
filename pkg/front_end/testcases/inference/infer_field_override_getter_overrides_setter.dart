@@ -5,17 +5,18 @@
 /*@testedFeatures=inference*/
 library test;
 
-class A {
+abstract class A {
+  void set x(num value);
+}
+
+abstract class B extends A {
+  int get x;
+}
+
+// The getter in B doesn't screen the setter in A, so inference sees two
+// different types and gives an error.
+class C extends B {
   var /*@topType=dynamic*/ x;
-}
-
-class B implements A {
-  var /*@topType=dynamic*/ x = 2;
-}
-
-foo() {
-  String y = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
-  int z = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
 }
 
 main() {}

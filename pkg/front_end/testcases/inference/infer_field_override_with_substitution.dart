@@ -5,17 +5,16 @@
 /*@testedFeatures=inference*/
 library test;
 
-class A {
-  var /*@topType=dynamic*/ x;
+abstract class A<T> {
+  List<T> get x;
+  void set y(List<T> value);
+  List<T> z;
 }
 
-class B implements A {
-  var /*@topType=dynamic*/ x = 2;
-}
-
-foo() {
-  String y = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
-  int z = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
+class B extends A<int> {
+  var /*@topType=List<int>*/ x;
+  var /*@topType=List<int>*/ y;
+  var /*@topType=List<int>*/ z;
 }
 
 main() {}

@@ -209,6 +209,19 @@ inference/infer_consts_transitively_2_a: Crash
 inference/infer_consts_transitively_2_b: Crash
 inference/infer_consts_transitively_b: Crash
 inference/infer_correctly_on_multiple_variables_declared_together: Crash
+inference/infer_field_from_later_inferred_field: Crash
+inference/infer_field_getter_setter_mismatch: Crash
+inference/infer_field_override_getter_overrides_setter: Crash
+inference/infer_field_override_multiple: Crash
+inference/infer_field_override_of_override: Crash
+inference/infer_field_override_setter_overrides_getter: Crash
+inference/infer_field_override_with_substitution: Crash
+inference/infer_field_overrides_getter: Crash
+inference/infer_field_overrides_setter: Crash
+inference/infer_field_static: Crash
+inference/infer_final_field_getter_and_setter: Crash
+inference/infer_final_field_getter_only: Crash
+inference/infer_final_field_setter_only: Crash
 inference/infer_from_complex_expressions_if_outer_most_value_is_precise: Crash
 inference/infer_from_rhs_only_if_it_wont_conflict_with_overridden_fields2: Crash
 inference/infer_from_rhs_only_if_it_wont_conflict_with_overridden_fields: Crash
@@ -364,6 +377,7 @@ inference/unsafe_block_closure_inference_method_call_no_type_param: Crash
 inference/void_return_type_subtypes_dynamic: Crash
 inference_new/dependency_only_if_generic_method: Crash
 inference_new/dependency_only_if_overloaded: Crash
+inference_new/field_inference_circularity: Crash
 inference_new/infer_assign_to_index: Crash
 inference_new/infer_assign_to_property: Crash
 inference_new/infer_assign_to_property_custom: Crash

@@ -4,29 +4,16 @@
 
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/dependency_walker.dart' as dependencyWalker;
+import 'package:front_end/src/fasta/errors.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
-    show Class, DartType, DynamicType, InterfaceType;
+    show Class, DartType, DynamicType, Field, InterfaceType, Member, Procedure;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-
-/// Enum tracking the type inference state of a field.
-enum FieldState {
-  /// The field's type has not been inferred yet.
-  NotInferredYet,
-
-  /// Type inference is in progress for the field.
-  ///
-  /// This means that code is currently on the stack which is attempting to
-  /// determine the type of the field.
-  Inferring,
-
-  /// The field's type has been inferred.
-  Inferred
-}
+import 'package:kernel/type_algebra.dart';
 
 /// Data structure for tracking dependencies between fields that require type
 /// inference.
@@ -50,6 +37,8 @@ class FieldNode extends dependencyWalker.Node<FieldNode> {
   /// Otherwise `null`.
   FieldNode currentDependency;
 
+  final overrides = <Member>[];
+
   FieldNode(this._typeInferenceEngine, this.field);
 
   @override
@@ -62,6 +51,21 @@ class FieldNode extends dependencyWalker.Node<FieldNode> {
 
   @override
   String toString() => field.toString();
+}
+
+/// Enum tracking the type inference state of a field.
+enum FieldState {
+  /// The field's type has not been inferred yet.
+  NotInferredYet,
+
+  /// Type inference is in progress for the field.
+  ///
+  /// This means that code is currently on the stack which is attempting to
+  /// determine the type of the field.
+  Inferring,
+
+  /// The field's type has been inferred.
+  Inferred
 }
 
 /// Keeps track of the global state for the type inference that occurs outside
@@ -155,7 +159,21 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   /// Computes type inference dependencies for the given [field].
   List<FieldNode> computeFieldDependencies(FieldNode fieldNode) {
-    // TODO(paulberry): add logic to infer field types by inheritance.
+    // If the field's type is going to be determined by inheritance, then its
+    // dependencies are determined by inheritance too.
+    if (fieldNode.overrides.isNotEmpty) {
+      var dependencies = <FieldNode>[];
+      for (var override in fieldNode.overrides) {
+        // TODO(paulberry): support dependencies on getters/setters too.
+        if (override is Field) {
+          dependencies.add(KernelField.getFieldNode(override));
+        }
+      }
+      fieldNode.isImmediatelyEvident = true;
+      return dependencies;
+    }
+
+    // Otherwise its dependencies are based on the initializer expression.
     if (expandedTopLevelInference) {
       // In expanded top level inference, we determine the dependencies by
       // doing a "dry run" of top level inference and recording which static
@@ -212,55 +230,28 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   /// a previous call to [createTopLevelTypeInferrer].
   TypeInferrerImpl getFieldTypeInferrer(KernelField field);
 
-  /// Performs fused type inference on the given [field].
-  void inferFieldFused(FieldNode fieldNode, FieldNode dependant) {
-    switch (fieldNode.state) {
-      case FieldState.Inferred:
-        // Already inferred.  Nothing to do.
-        break;
-      case FieldState.Inferring:
-        // A field depends on itself (possibly by way of intermediate fields).
-        // Mark all fields involved as circular and infer a type of `dynamic`
-        // for them.
-        var node = fieldNode;
-        while (node != null) {
-          var nextNode = node.currentDependency;
-          inferFieldCircular(node);
-          node.currentDependency = null;
-          node = nextNode;
-        }
-        break;
-      case FieldState.NotInferredYet:
-        // Mark the "dependant" field (if any) as depending on this one, and
-        // invoke field inference for this node.
-        dependant?.currentDependency = fieldNode;
-        // All fields are "immediately evident" when doing fused inference.
-        fieldNode.isImmediatelyEvident = true;
-        inferField(fieldNode);
-        dependant?.currentDependency = null;
-        break;
-    }
-  }
-
   /// Performs type inference on the given [field].
   void inferField(FieldNode fieldNode) {
     assert(fieldNode.state == FieldState.NotInferredYet);
     fieldNode.state = FieldState.Inferring;
     var field = fieldNode.field;
-    var typeInferrer = getFieldTypeInferrer(field);
     if (strongMode) {
-      typeInferrer.isImmediatelyEvident = true;
-      var inferredType = fieldNode.isImmediatelyEvident
-          ? typeInferrer.inferDeclarationType(
-              typeInferrer.inferFieldTopLevel(field, null, true))
-          : const DynamicType();
+      var inferredType = tryInferFieldByInheritance(fieldNode);
+      var typeInferrer = getFieldTypeInferrer(field);
+      if (inferredType == null) {
+        typeInferrer.isImmediatelyEvident = true;
+        inferredType = fieldNode.isImmediatelyEvident
+            ? typeInferrer.inferDeclarationType(
+                typeInferrer.inferFieldTopLevel(field, null, true))
+            : const DynamicType();
+        if (!typeInferrer.isImmediatelyEvident) {
+          inferredType = const DynamicType();
+        }
+      }
       if (fieldNode.state == FieldState.Inferred) {
         // A circularity must have been detected; at the time it was detected,
         // inference for this node was completed.
         return;
-      }
-      if (!typeInferrer.isImmediatelyEvident) {
-        inferredType = const DynamicType();
       }
       instrumentation?.record(
           Uri.parse(typeInferrer.uri),
@@ -291,6 +282,36 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     field.type = inferredType;
   }
 
+  /// Performs fused type inference on the given [field].
+  void inferFieldFused(FieldNode fieldNode, FieldNode dependant) {
+    switch (fieldNode.state) {
+      case FieldState.Inferred:
+        // Already inferred.  Nothing to do.
+        break;
+      case FieldState.Inferring:
+        // A field depends on itself (possibly by way of intermediate fields).
+        // Mark all fields involved as circular and infer a type of `dynamic`
+        // for them.
+        var node = fieldNode;
+        while (node != null) {
+          var nextNode = node.currentDependency;
+          inferFieldCircular(node);
+          node.currentDependency = null;
+          node = nextNode;
+        }
+        break;
+      case FieldState.NotInferredYet:
+        // Mark the "dependant" field (if any) as depending on this one, and
+        // invoke field inference for this node.
+        dependant?.currentDependency = fieldNode;
+        // All fields are "immediately evident" when doing fused inference.
+        fieldNode.isImmediatelyEvident = true;
+        inferField(fieldNode);
+        dependant?.currentDependency = null;
+        break;
+    }
+  }
+
   @override
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     this.coreTypes = coreTypes;
@@ -307,6 +328,54 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   @override
   void recordInitializingFormal(KernelVariableDeclaration formal) {
     initializingFormals.add(formal);
+  }
+
+  DartType tryInferFieldByInheritance(FieldNode fieldNode) {
+    DartType inferredType;
+    for (var override in fieldNode.overrides) {
+      var nextInferredType = _computeOverriddenFieldType(override, fieldNode);
+      if (inferredType == null) {
+        inferredType = nextInferredType;
+      } else if (inferredType != nextInferredType) {
+        // Overrides don't have matching types.
+        // TODO(paulberry): report an error
+        return const DynamicType();
+      }
+    }
+    return inferredType;
+  }
+
+  DartType _computeOverriddenFieldType(Member override, FieldNode fieldNode) {
+    DartType overriddenType;
+    if (override is Field) {
+      if (fusedTopLevelInference) {
+        FieldNode dependency = KernelField.getFieldNode(override);
+        if (dependency != null) {
+          inferFieldFused(dependency, fieldNode);
+        }
+      }
+      overriddenType = override.type;
+    } else if (override is Procedure) {
+      // TODO(paulberry): handle the case where override needs its type
+      // inferred first.
+      if (override.isGetter) {
+        overriddenType = override.getterType;
+      } else {
+        overriddenType = override.setterType;
+      }
+    } else {
+      throw internalError(
+          'Unexpected overridden member type: ${override.runtimeType}');
+    }
+    var superclass = override.enclosingClass;
+    if (superclass.typeParameters.isEmpty) return overriddenType;
+    var thisClass = fieldNode.field.enclosingClass;
+    var superclassInstantiation = classHierarchy
+        .getClassAsInstanceOf(thisClass, superclass)
+        .asInterfaceType;
+    return Substitution
+        .fromInterfaceType(superclassInstantiation)
+        .substituteType(overriddenType);
   }
 
   DartType _inferInitializingFormalType(KernelVariableDeclaration formal) {

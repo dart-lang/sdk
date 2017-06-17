@@ -666,6 +666,23 @@ class KernelField extends Field {
   KernelTypeInferrer _typeInferrer;
 
   KernelField(Name name, {String fileUri}) : super(name, fileUri: fileUri) {}
+
+  static FieldNode getFieldNode(Field field) {
+    if (field is KernelField) return field._fieldNode;
+    return null;
+  }
+
+  static void recordOverride(
+      KernelField field, Member overriddenMember, bool isSetter) {
+    if (field._fieldNode != null) {
+      if (isSetter && overriddenMember is Field) {
+        // When overriding a field, we are called twice; once for the setter and
+        // once for the getter.  Ignore the setter.
+        return;
+      }
+      field._fieldNode.overrides.add(overriddenMember);
+    }
+  }
 }
 
 /// Concrete shadow object representing a for-in loop in kernel form.

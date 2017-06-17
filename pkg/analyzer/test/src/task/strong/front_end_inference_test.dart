@@ -507,7 +507,7 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
         VariableElement element = variable.element;
         if (element is LocalVariableElement) {
           _recordType(variable.name.offset, element.type);
-        } else {
+        } else if (!element.isStatic || element.initializer != null) {
           _recordTopType(variable.name.offset, element.type);
         }
       }

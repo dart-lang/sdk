@@ -5,17 +5,16 @@
 /*@testedFeatures=inference*/
 library test;
 
-class A {
-  var /*@topType=dynamic*/ x;
+abstract class A {
+  num get x;
 }
 
-class B implements A {
-  var /*@topType=dynamic*/ x = 2;
+abstract class B extends A {
+  int get x;
 }
 
-foo() {
-  String y = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
-  int z = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
+class C extends B {
+  var /*@topType=int*/ x;
 }
 
 main() {}

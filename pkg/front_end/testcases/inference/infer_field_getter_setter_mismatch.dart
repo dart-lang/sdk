@@ -5,17 +5,15 @@
 /*@testedFeatures=inference*/
 library test;
 
-class A {
+abstract class A {
+  int get x;
+  void set x(double value);
+}
+
+// Type inference should fail here since the getter and setter for x don't
+// match.
+class B extends A {
   var /*@topType=dynamic*/ x;
-}
-
-class B implements A {
-  var /*@topType=dynamic*/ x = 2;
-}
-
-foo() {
-  String y = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
-  int z = /*info:DYNAMIC_CAST*/ new B(). /*@target=B::x*/ x;
 }
 
 main() {}

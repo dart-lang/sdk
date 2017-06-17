@@ -57,6 +57,9 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     field.initializer = value..parent = field;
   }
 
+  bool get isEligibleForInference =>
+      type == null && (hasInitializer || isInstanceMember);
+
   Field build(SourceLibraryBuilder library) {
     field.name ??= new Name(name, library.target);
     if (type != null) {
@@ -69,9 +72,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitGetter = isInstanceMember
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
-    if (initializerTokenForInference != null &&
-        !initializerTokenForInference.isEof) {
-      assert(type == null);
+    if (isEligibleForInference) {
       library.loader.typeInferenceEngine.recordField(field);
     }
     return field;
@@ -82,8 +83,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   @override
   void prepareInitializerInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {
-    if (initializerTokenForInference != null &&
-        !initializerTokenForInference.isEof) {
+    if (isEligibleForInference) {
       var memberScope =
           currentClass == null ? library.scope : currentClass.scope;
       // TODO(paulberry): Is it correct to pass library.uri into BodyBuilder, or
@@ -92,22 +92,24 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       var listener = new TypeInferenceListener();
       var typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(
           listener, field.enclosingClass?.thisType, field);
-      var bodyBuilder = new BodyBuilder(
-          library,
-          this,
-          memberScope,
-          null,
-          typeInferenceEngine.classHierarchy,
-          typeInferenceEngine.coreTypes,
-          currentClass,
-          isInstanceMember,
-          library.uri,
-          typeInferrer);
-      Parser parser = new Parser(bodyBuilder);
-      Token token = parser.parseExpression(initializerTokenForInference);
-      Expression expression = bodyBuilder.popForValue();
-      bodyBuilder.checkEmpty(token.charOffset);
-      initializer = expression;
+      if (hasInitializer) {
+        var bodyBuilder = new BodyBuilder(
+            library,
+            this,
+            memberScope,
+            null,
+            typeInferenceEngine.classHierarchy,
+            typeInferenceEngine.coreTypes,
+            currentClass,
+            isInstanceMember,
+            library.uri,
+            typeInferrer);
+        Parser parser = new Parser(bodyBuilder);
+        Token token = parser.parseExpression(initializerTokenForInference);
+        Expression expression = bodyBuilder.popForValue();
+        bodyBuilder.checkEmpty(token.charOffset);
+        initializer = expression;
+      }
     }
   }
 
