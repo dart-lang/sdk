@@ -7,7 +7,7 @@ class C extends inf::B {
   constructor •() → void
     : super inf::B::•()
     ;
-  get x() → dynamic
+  get x() → core::int
     return null;
 }
 class A extends core::Object {

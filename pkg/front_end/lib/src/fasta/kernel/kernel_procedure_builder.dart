@@ -4,6 +4,15 @@
 
 library fasta.kernel_procedure_builder;
 
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
+    show KernelProcedure;
+
+import 'package:front_end/src/fasta/source/source_library_builder.dart'
+    show SourceLibraryBuilder;
+
+import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
+    show TypeInferenceListener;
+
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -165,7 +174,7 @@ abstract class KernelFunctionBuilder
     return function = result;
   }
 
-  Member build(LibraryBuilder library);
+  Member build(SourceLibraryBuilder library);
 
   void becomeNative(Loader loader) {
     target.isExternal = true;
@@ -185,7 +194,7 @@ abstract class KernelFunctionBuilder
 }
 
 class KernelProcedureBuilder extends KernelFunctionBuilder {
-  final Procedure procedure;
+  final KernelProcedure procedure;
   final int charOpenParenOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
@@ -206,7 +215,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       int charEndOffset,
       [String nativeMethodName,
       this.redirectionTarget])
-      : procedure = new Procedure(null, kind, null,
+      : procedure = new KernelProcedure(null, kind, null,
             fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
@@ -236,7 +245,18 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
     }
   }
 
-  Procedure build(LibraryBuilder library) {
+  bool get isEligibleForGetterSetterInference {
+    if (!isInstanceMember) return false;
+    if (isGetter) {
+      return returnType == null;
+    } else if (isSetter) {
+      return formals != null && formals.length > 0 && formals[0].type == null;
+    } else {
+      return false;
+    }
+  }
+
+  Procedure build(SourceLibraryBuilder library) {
     // TODO(ahe): I think we may call this twice on parts. Investigate.
     if (procedure.name == null) {
       procedure.function = buildFunction(library);
@@ -249,10 +269,24 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.isConst = isConst;
       procedure.name = new Name(name, library.target);
     }
+    if (isEligibleForGetterSetterInference) {
+      library.loader.typeInferenceEngine.recordMember(procedure);
+    }
     return procedure;
   }
 
   Procedure get target => procedure;
+
+  @override
+  void prepareInitializerInference(
+      SourceLibraryBuilder library, ClassBuilder currentClass) {
+    if (isEligibleForGetterSetterInference) {
+      var typeInferenceEngine = library.loader.typeInferenceEngine;
+      var listener = new TypeInferenceListener();
+      typeInferenceEngine.createTopLevelTypeInferrer(
+          listener, procedure.enclosingClass?.thisType, procedure);
+    }
+  }
 }
 
 // TODO(ahe): Move this to own file?
@@ -297,7 +331,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     return isRedirectingGenerativeConstructorImplementation(constructor);
   }
 
-  Constructor build(LibraryBuilder library) {
+  Constructor build(SourceLibraryBuilder library) {
     if (constructor.name == null) {
       constructor.function = buildFunction(library);
       constructor.function.parent = constructor;

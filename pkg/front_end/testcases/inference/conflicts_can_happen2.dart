@@ -31,7 +31,7 @@ class C1 implements A, B {
 }
 
 class C2 implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/ get a => null;
+  /*error:INVALID_METHOD_OVERRIDE*/ get /*@topType=dynamic*/ a => null;
 }
 
 main() {}

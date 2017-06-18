@@ -6,7 +6,7 @@ class C extends self::D {
   constructor •() → void
     : super self::D::•()
     ;
-  set foo(dynamic x) → dynamic {}
+  set foo(core::int x) → dynamic {}
 }
 class D extends core::Object {
   field core::int foo = null;

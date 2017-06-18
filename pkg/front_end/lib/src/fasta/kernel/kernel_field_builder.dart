@@ -31,7 +31,7 @@ import 'kernel_builder.dart'
     show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
 
 class KernelFieldBuilder extends FieldBuilder<Expression> {
-  final Field field;
+  final KernelField field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
   final Token initializerTokenForInference;
@@ -73,7 +73,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
     if (isEligibleForInference) {
-      library.loader.typeInferenceEngine.recordField(field);
+      library.loader.typeInferenceEngine.recordMember(field);
     }
     return field;
   }

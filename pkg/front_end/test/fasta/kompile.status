@@ -175,6 +175,7 @@ inference/generic_methods_inference_error: Crash
 inference/generic_methods_iterable_and_future: Crash
 inference/generic_methods_nested_generic_instantiation: Crash
 inference/generic_methods_uses_greatest_lower_bound: Crash
+inference/infer_accessor_from_later_inferred_field: Crash
 inference/infer_assign_to_implicit_this: Crash
 inference/infer_assign_to_implicit_this_upwards: Crash
 inference/infer_assign_to_index: Crash
@@ -210,6 +211,8 @@ inference/infer_consts_transitively_2_b: Crash
 inference/infer_consts_transitively_b: Crash
 inference/infer_correctly_on_multiple_variables_declared_together: Crash
 inference/infer_field_from_later_inferred_field: Crash
+inference/infer_field_from_later_inferred_getter: Crash
+inference/infer_field_from_later_inferred_setter: Crash
 inference/infer_field_getter_setter_mismatch: Crash
 inference/infer_field_override_getter_overrides_setter: Crash
 inference/infer_field_override_multiple: Crash
@@ -237,6 +240,7 @@ inference/infer_generic_method_type_named: Crash
 inference/infer_generic_method_type_positional2: Crash
 inference/infer_generic_method_type_positional: Crash
 inference/infer_generic_method_type_required: Crash
+inference/infer_getter_from_later_inferred_getter: Crash
 inference/infer_list_literal_nested_in_map_literal: Crash
 inference/infer_local_function_return_type: Crash
 inference/infer_parameter_type_setter_from_field: Crash
@@ -244,6 +248,7 @@ inference/infer_parameter_type_setter_from_setter: Crash
 inference/infer_prefix_expression: Crash
 inference/infer_prefix_expression_custom: Crash
 inference/infer_return_of_statement_lambda: Crash
+inference/infer_setter_from_later_inferred_setter: Crash
 inference/infer_statics_transitively2: Crash
 inference/infer_statics_transitively3: Crash
 inference/infer_statics_transitively3_a: Crash
@@ -324,6 +329,7 @@ inference/method_call_with_type_arguments_instance_method: Crash
 inference/method_call_with_type_arguments_instance_method_identifier_sequence: Crash
 inference/method_call_with_type_arguments_static_method: Crash
 inference/method_call_with_type_arguments_top_level_function: Crash
+inference/non_inferrable_getter_setter: Crash
 inference/null_literal_should_not_infer_as_bottom: Crash
 inference/parameter_defaults_downwards: Crash
 inference/parameter_defaults_upwards: Crash

@@ -15,8 +15,8 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 
-/// Data structure for tracking dependencies between fields that require type
-/// inference.
+/// Data structure for tracking dependencies among fields, getters, and setters
+/// that require type inference.
 ///
 /// TODO(paulberry): see if it's possible to make this class more lightweight
 /// by changing the API so that the walker is passed to computeDependencies().
@@ -24,7 +24,7 @@ import 'package:kernel/type_algebra.dart';
 class FieldNode extends dependencyWalker.Node<FieldNode> {
   final TypeInferenceEngineImpl _typeInferenceEngine;
 
-  final KernelField field;
+  final KernelMember member;
 
   bool isImmediatelyEvident = false;
 
@@ -39,7 +39,7 @@ class FieldNode extends dependencyWalker.Node<FieldNode> {
 
   final overrides = <Member>[];
 
-  FieldNode(this._typeInferenceEngine, this.field);
+  FieldNode(this._typeInferenceEngine, this.member);
 
   @override
   bool get isEvaluated => state == FieldState.Inferred;
@@ -50,7 +50,7 @@ class FieldNode extends dependencyWalker.Node<FieldNode> {
   }
 
   @override
-  String toString() => field.toString();
+  String toString() => member.toString();
 }
 
 /// Enum tracking the type inference state of a field.
@@ -87,7 +87,7 @@ abstract class TypeInferenceEngine {
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
-      InterfaceType thisType, KernelField field);
+      InterfaceType thisType, KernelMember member);
 
   /// Performs the second phase of top level initializer inference, which is to
   /// visit all fields and top level variables that were passed to [recordField]
@@ -98,12 +98,12 @@ abstract class TypeInferenceEngine {
   /// [hierarchy], using the given [coreTypes].
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy);
 
-  /// Records that the given [field] will need top level type inference.
-  void recordField(KernelField field);
-
   /// Records that the given initializing [formal] will need top level type
   /// inference.
   void recordInitializingFormal(KernelVariableDeclaration formal);
+
+  /// Records that the given [member] will need top level type inference.
+  void recordMember(KernelMember member);
 }
 
 /// Derived class containing generic implementations of
@@ -154,9 +154,6 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   TypeInferenceEngineImpl(this.instrumentation, this.strongMode);
 
-  /// Clears the initializer of [field].
-  void clearFieldInitializer(KernelField field);
-
   /// Computes type inference dependencies for the given [field].
   List<FieldNode> computeFieldDependencies(FieldNode fieldNode) {
     // If the field's type is going to be determined by inheritance, then its
@@ -165,41 +162,47 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
       var dependencies = <FieldNode>[];
       for (var override in fieldNode.overrides) {
         // TODO(paulberry): support dependencies on getters/setters too.
-        if (override is Field) {
-          dependencies.add(KernelField.getFieldNode(override));
-        }
+        var dep = KernelMember.getFieldNode(override);
+        if (dep != null) dependencies.add(dep);
       }
       fieldNode.isImmediatelyEvident = true;
       return dependencies;
     }
 
     // Otherwise its dependencies are based on the initializer expression.
-    if (expandedTopLevelInference) {
-      // In expanded top level inference, we determine the dependencies by
-      // doing a "dry run" of top level inference and recording which static
-      // fields were accessed.
-      var typeInferrer = getFieldTypeInferrer(fieldNode.field);
-      if (typeInferrer == null) {
-        // This can happen when there are errors in the field declaration.
-        return const [];
+    var member = fieldNode.member;
+    if (member is KernelField) {
+      if (expandedTopLevelInference) {
+        // In expanded top level inference, we determine the dependencies by
+        // doing a "dry run" of top level inference and recording which static
+        // fields were accessed.
+        var typeInferrer = getFieldTypeInferrer(member);
+        if (typeInferrer == null) {
+          // This can happen when there are errors in the field declaration.
+          return const [];
+        } else {
+          typeInferrer.startDryRun();
+          typeInferrer.listener.dryRunEnter(member.initializer);
+          typeInferrer.inferFieldTopLevel(member, null, true);
+          typeInferrer.listener.dryRunExit(member.initializer);
+          fieldNode.isImmediatelyEvident = true;
+          return typeInferrer.finishDryRun();
+        }
       } else {
-        typeInferrer.startDryRun();
-        typeInferrer.listener.dryRunEnter(fieldNode.field.initializer);
-        typeInferrer.inferFieldTopLevel(fieldNode.field, null, true);
-        typeInferrer.listener.dryRunExit(fieldNode.field.initializer);
-        fieldNode.isImmediatelyEvident = true;
-        return typeInferrer.finishDryRun();
+        // In non-expanded top level inference, we determine the dependencies by
+        // calling `collectDependencies`; as a side effect this flags any
+        // expressions that are not "immediately evident".
+        // TODO(paulberry): get rid of this mode once we are sure we no longer
+        // need it.
+        var collector = new KernelDependencyCollector();
+        collector.collectDependencies(member.initializer);
+        fieldNode.isImmediatelyEvident = collector.isImmediatelyEvident;
+        return collector.dependencies;
       }
     } else {
-      // In non-expanded top level inference, we determine the dependencies by
-      // calling `collectDependencies`; as a side effect this flags any
-      // expressions that are not "immediately evident".
-      // TODO(paulberry): get rid of this mode once we are sure we no longer
-      // need it.
-      var collector = new KernelDependencyCollector();
-      collector.collectDependencies(fieldNode.field.initializer);
-      fieldNode.isImmediatelyEvident = collector.isImmediatelyEvident;
-      return collector.dependencies;
+      // Member is a getter/setter that doesn't override anything, so we can't
+      // infer a type for it; therefore it has no dependencies.
+      return const [];
     }
   }
 
@@ -222,29 +225,29 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
   }
 
-  /// Gets the character offset of the declaration of [field] within its
-  /// compilation unit.
-  int getFieldOffset(KernelField field);
-
-  /// Retrieve the [TypeInferrer] for the given [field], which was created by
+  /// Retrieve the [TypeInferrer] for the given [member], which was created by
   /// a previous call to [createTopLevelTypeInferrer].
-  TypeInferrerImpl getFieldTypeInferrer(KernelField field);
+  TypeInferrerImpl getFieldTypeInferrer(KernelMember member);
 
   /// Performs type inference on the given [field].
   void inferField(FieldNode fieldNode) {
     assert(fieldNode.state == FieldState.NotInferredYet);
     fieldNode.state = FieldState.Inferring;
-    var field = fieldNode.field;
+    var member = fieldNode.member;
     if (strongMode) {
       var inferredType = tryInferFieldByInheritance(fieldNode);
-      var typeInferrer = getFieldTypeInferrer(field);
+      var typeInferrer = getFieldTypeInferrer(member);
       if (inferredType == null) {
-        typeInferrer.isImmediatelyEvident = true;
-        inferredType = fieldNode.isImmediatelyEvident
-            ? typeInferrer.inferDeclarationType(
-                typeInferrer.inferFieldTopLevel(field, null, true))
-            : const DynamicType();
-        if (!typeInferrer.isImmediatelyEvident) {
+        if (member is KernelField) {
+          typeInferrer.isImmediatelyEvident = true;
+          inferredType = fieldNode.isImmediatelyEvident
+              ? typeInferrer.inferDeclarationType(
+                  typeInferrer.inferFieldTopLevel(member, null, true))
+              : const DynamicType();
+          if (!typeInferrer.isImmediatelyEvident) {
+            inferredType = const DynamicType();
+          }
+        } else {
           inferredType = const DynamicType();
         }
       }
@@ -253,12 +256,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         // inference for this node was completed.
         return;
       }
-      instrumentation?.record(
-          Uri.parse(typeInferrer.uri),
-          getFieldOffset(field),
-          'topType',
-          new InstrumentationValueForType(inferredType));
-      field.type = inferredType;
+      member.setInferredType(this, typeInferrer.uri, inferredType);
     }
     fieldNode.state = FieldState.Inferred;
     // TODO(paulberry): if type != null, then check that the type of the
@@ -266,20 +264,25 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // TODO(paulberry): the following is a hack so that outlines don't contain
     // initializers.  But it means that we rebuild the initializers when doing
     // a full compile.  There should be a better way.
-    clearFieldInitializer(field);
+    if (member is KernelField) {
+      member.initializer = null;
+    }
   }
 
   /// Makes a note that the given [field] is part of a circularity, so its type
   /// can't be inferred.
   void inferFieldCircular(FieldNode fieldNode) {
-    var field = fieldNode.field;
+    var member = fieldNode.member;
     // TODO(paulberry): report the appropriate error.
-    var uri = getFieldTypeInferrer(field).uri;
-    var inferredType = const DynamicType();
-    instrumentation?.record(Uri.parse(uri), getFieldOffset(field), 'topType',
-        new InstrumentationValueForType(inferredType));
+    var uri = getFieldTypeInferrer(member).uri;
     fieldNode.state = FieldState.Inferred;
-    field.type = inferredType;
+    member.setInferredType(this, uri, const DynamicType());
+    // TODO(paulberry): the following is a hack so that outlines don't contain
+    // initializers.  But it means that we rebuild the initializers when doing
+    // a full compile.  There should be a better way.
+    if (member is KernelField) {
+      member.initializer = null;
+    }
   }
 
   /// Performs fused type inference on the given [field].
@@ -321,13 +324,13 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 
   @override
-  void recordField(KernelField field) {
-    fieldNodes.add(createFieldNode(field));
+  void recordInitializingFormal(KernelVariableDeclaration formal) {
+    initializingFormals.add(formal);
   }
 
   @override
-  void recordInitializingFormal(KernelVariableDeclaration formal) {
-    initializingFormals.add(formal);
+  void recordMember(KernelMember member) {
+    fieldNodes.add(createFieldNode(member));
   }
 
   DartType tryInferFieldByInheritance(FieldNode fieldNode) {
@@ -346,14 +349,14 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 
   DartType _computeOverriddenFieldType(Member override, FieldNode fieldNode) {
+    if (fusedTopLevelInference) {
+      FieldNode dependency = KernelMember.getFieldNode(override);
+      if (dependency != null) {
+        inferFieldFused(dependency, fieldNode);
+      }
+    }
     DartType overriddenType;
     if (override is Field) {
-      if (fusedTopLevelInference) {
-        FieldNode dependency = KernelField.getFieldNode(override);
-        if (dependency != null) {
-          inferFieldFused(dependency, fieldNode);
-        }
-      }
       overriddenType = override.type;
     } else if (override is Procedure) {
       // TODO(paulberry): handle the case where override needs its type
@@ -369,7 +372,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
     var superclass = override.enclosingClass;
     if (superclass.typeParameters.isEmpty) return overriddenType;
-    var thisClass = fieldNode.field.enclosingClass;
+    var thisClass = fieldNode.member.enclosingClass;
     var superclassInstantiation = classHierarchy
         .getClassAsInstanceOf(thisClass, superclass)
         .asInterfaceType;

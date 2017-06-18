@@ -5,19 +5,16 @@
 /*@testedFeatures=inference*/
 library test;
 
-class A {
-  final int x = 2;
+class A implements B {
+  void set x(/*@topType=int*/ value) {}
 }
 
-class B implements A {
-  get /*@topType=int*/ x => 3;
+abstract class B implements C {
+  void set x(/*@topType=int*/ value);
 }
 
-foo() {
-  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
-  int z = new B(). /*@target=B::x*/ x;
+abstract class C {
+  void set x(int value);
 }
 
-main() {
-  foo();
-}
+main() {}

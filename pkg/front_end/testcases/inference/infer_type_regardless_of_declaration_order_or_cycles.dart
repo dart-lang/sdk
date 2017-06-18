@@ -8,7 +8,7 @@ library test;
 import 'infer_type_regardless_of_declaration_order_or_cycles_b.dart';
 
 class C extends B {
-  get x => null;
+  get /*@topType=int*/ x => null;
 }
 
 class A {

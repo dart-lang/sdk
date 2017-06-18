@@ -13,7 +13,7 @@ class B<E extends core::Object> extends self::A<self::B::E> {
   constructor •() → void
     : super self::A::•()
     ;
-  get x() → dynamic
+  get x() → self::B::E
     return this.{self::B::y};
 }
 static method foo() → dynamic {

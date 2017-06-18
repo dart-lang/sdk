@@ -660,28 +660,21 @@ class KernelFactoryConstructorInvocation extends StaticInvocation
 }
 
 /// Concrete shadow object representing a field in kernel form.
-class KernelField extends Field {
+class KernelField extends Field implements KernelMember {
+  @override
   FieldNode _fieldNode;
 
+  @override
   KernelTypeInferrer _typeInferrer;
 
   KernelField(Name name, {String fileUri}) : super(name, fileUri: fileUri) {}
 
-  static FieldNode getFieldNode(Field field) {
-    if (field is KernelField) return field._fieldNode;
-    return null;
-  }
-
-  static void recordOverride(
-      KernelField field, Member overriddenMember, bool isSetter) {
-    if (field._fieldNode != null) {
-      if (isSetter && overriddenMember is Field) {
-        // When overriding a field, we are called twice; once for the setter and
-        // once for the getter.  Ignore the setter.
-        return;
-      }
-      field._fieldNode.overrides.add(overriddenMember);
-    }
+  @override
+  void setInferredType(
+      TypeInferenceEngineImpl engine, String uri, DartType inferredType) {
+    engine.instrumentation?.record(Uri.parse(uri), fileOffset, 'topType',
+        new InstrumentationValueForType(inferredType));
+    type = inferredType;
   }
 }
 
@@ -1265,6 +1258,33 @@ class KernelMapLiteral extends MapLiteral implements KernelExpression {
   }
 }
 
+/// Abstract shadow object representing a field or procedure in kernel form.
+abstract class KernelMember implements Member {
+  String get fileUri;
+
+  FieldNode get _fieldNode;
+
+  void set _fieldNode(FieldNode value);
+
+  KernelTypeInferrer get _typeInferrer;
+
+  void set _typeInferrer(KernelTypeInferrer value);
+
+  void setInferredType(
+      TypeInferenceEngineImpl engine, String uri, DartType inferredType);
+
+  static FieldNode getFieldNode(Member member) {
+    if (member is KernelMember) return member._fieldNode;
+    return null;
+  }
+
+  static void recordOverride(KernelMember member, Member overriddenMember) {
+    if (member._fieldNode != null) {
+      member._fieldNode.overrides.add(overriddenMember);
+    }
+  }
+}
+
 /// Shadow object for [MethodInvocation].
 class KernelMethodInvocation extends MethodInvocation
     implements KernelExpression {
@@ -1363,6 +1383,39 @@ class KernelNullLiteral extends NullLiteral implements KernelExpression {
     var inferredType = typeNeeded ? inferrer.coreTypes.nullClass.rawType : null;
     inferrer.listener.nullLiteralExit(this, inferredType);
     return inferredType;
+  }
+}
+
+/// Concrete shadow object representing a procedure in kernel form.
+class KernelProcedure extends Procedure implements KernelMember {
+  @override
+  FieldNode _fieldNode;
+
+  @override
+  KernelTypeInferrer _typeInferrer;
+
+  KernelProcedure(Name name, ProcedureKind kind, FunctionNode function,
+      {String fileUri})
+      : super(name, kind, function, fileUri: fileUri);
+
+  @override
+  void setInferredType(
+      TypeInferenceEngineImpl engine, String uri, DartType inferredType) {
+    if (isSetter) {
+      if (function.positionalParameters.length > 0) {
+        var parameter = function.positionalParameters[0];
+        engine.instrumentation?.record(Uri.parse(uri), parameter.fileOffset,
+            'topType', new InstrumentationValueForType(inferredType));
+        parameter.type = inferredType;
+      }
+    } else if (isGetter) {
+      engine.instrumentation?.record(Uri.parse(uri), fileOffset, 'topType',
+          new InstrumentationValueForType(inferredType));
+      function.returnType = inferredType;
+    } else {
+      internalError(
+          'setInferredType called on a procedure that is not an accessor');
+    }
   }
 }
 
@@ -1813,14 +1866,9 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
       : super(instrumentation, strongMode);
 
   @override
-  void clearFieldInitializer(KernelField field) {
-    field.initializer = null;
-  }
-
-  @override
-  FieldNode createFieldNode(KernelField field) {
-    FieldNode fieldNode = new FieldNode(this, field);
-    field._fieldNode = fieldNode;
+  FieldNode createFieldNode(KernelMember member) {
+    FieldNode fieldNode = new FieldNode(this, member);
+    member._fieldNode = fieldNode;
     return fieldNode;
   }
 
@@ -1833,19 +1881,14 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
 
   @override
   KernelTypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
-      InterfaceType thisType, KernelField field) {
-    return field._typeInferrer = new KernelTypeInferrer._(
-        this, field.fileUri, listener, true, thisType, field._fieldNode);
+      InterfaceType thisType, KernelMember member) {
+    return member._typeInferrer = new KernelTypeInferrer._(
+        this, member.fileUri, listener, true, thisType, member._fieldNode);
   }
 
   @override
-  int getFieldOffset(KernelField field) {
-    return field.fileOffset;
-  }
-
-  @override
-  KernelTypeInferrer getFieldTypeInferrer(KernelField field) {
-    return field._typeInferrer;
+  KernelTypeInferrer getFieldTypeInferrer(KernelMember member) {
+    return member._typeInferrer;
   }
 }
 

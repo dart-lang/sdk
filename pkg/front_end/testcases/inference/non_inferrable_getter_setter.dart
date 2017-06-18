@@ -5,19 +5,9 @@
 /*@testedFeatures=inference*/
 library test;
 
-class A {
-  final int x = 2;
+class C {
+  get /*@topType=dynamic*/ x => null;
+  void set x(/*@topType=dynamic*/ value) {}
 }
 
-class B implements A {
-  get /*@topType=int*/ x => 3;
-}
-
-foo() {
-  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
-  int z = new B(). /*@target=B::x*/ x;
-}
-
-main() {
-  foo();
-}
+main() {}
