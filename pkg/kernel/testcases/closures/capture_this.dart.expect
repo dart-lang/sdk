@@ -15,7 +15,7 @@ class C extends core::Object {
   method f() → dynamic {
     final Vector #context = MakeVector(2);
     #context[1] = this;
-    return MakeClosure<() → dynamic>(self::closure#C#f#function, #context);
+    return MakeClosure<() → () → dynamic>(self::closure#C#f#function, #context);
   }
 }
 static method main() → dynamic {
@@ -34,6 +34,6 @@ static method closure#C#m#function(Vector #contextParameter, dynamic v) → dyna
 static method closure#C#f#function#function(Vector #contextParameter) → dynamic {
   return (#contextParameter[1]).x;
 }
-static method closure#C#f#function(Vector #contextParameter) → dynamic {
+static method closure#C#f#function(Vector #contextParameter) → () → dynamic {
   return MakeClosure<() → dynamic>(self::closure#C#f#function#function, #contextParameter);
 }

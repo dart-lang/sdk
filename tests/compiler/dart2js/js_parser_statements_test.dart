@@ -28,7 +28,7 @@ Future testError(String statement, arguments, [String expect = ""]) {
     }
 
     void action() {
-      jsAst.Node node = js.statement(statement, arguments);
+      js.statement(statement, arguments);
     }
 
     Expect.throws(action, doCheck);

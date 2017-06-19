@@ -7,8 +7,9 @@ import 'dart:io';
 
 import 'compare_failures.dart' as compare_failures;
 import 'current_summary.dart' as current_summary;
-import 'status_summary.dart' as status_summary;
 import 'find_shard.dart' as find_shard;
+import 'status_summary.dart' as status_summary;
+import 'summary.dart' as summary;
 
 typedef Future MainFunction(List<String> args);
 
@@ -30,6 +31,7 @@ help(List<String> args) async {
 
 const Map<String, MainFunction> commands = const <String, MainFunction>{
   "help": help,
+  "summary": summary.main,
   "compare-failures": compare_failures.main,
   "current-summary": current_summary.main,
   "status-summary": status_summary.main,

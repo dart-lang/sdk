@@ -46,7 +46,8 @@ mixin(base, @rest mixins) => JS(
         // Run mixin initializers. They cannot have arguments.
         // Run them backwards so most-derived mixin is initialized first.
         for (let i = $mixins.length - 1; i >= 0; i--) {
-          $mixins[i].new.call(this);
+          let m = $mixins[i];
+          (m[$mixinNew] || m.new).call(this);
         }
         // Run base initializer.
         $base[memberName].apply(this, args);
@@ -108,6 +109,8 @@ getImplements(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
 final _typeArguments = JS('', 'Symbol("typeArguments")');
 
 final _originalDeclaration = JS('', 'Symbol("originalDeclaration")');
+
+final mixinNew = JS('', 'Symbol("dart.mixinNew")');
 
 /// Wrap a generic class builder function with future flattening.
 flattenFutures(builder) => JS(

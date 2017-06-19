@@ -47,7 +47,7 @@ import 'no_such_method_resolver.dart';
 /// model using the resolver.
 class ResolutionFrontEndStrategy implements FrontendStrategy {
   final Compiler _compiler;
-  final ElementEnvironment elementEnvironment;
+  final _CompilerElementEnvironment _elementEnvironment;
   final CommonElements commonElements;
 
   AnnotationProcessor _annotationProcessor;
@@ -61,7 +61,9 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
   }
 
   ResolutionFrontEndStrategy.internal(
-      this._compiler, this.elementEnvironment, this.commonElements);
+      this._compiler, this._elementEnvironment, this.commonElements);
+
+  ElementEnvironment get elementEnvironment => _elementEnvironment;
 
   DartTypes get dartTypes => _compiler.types;
 
@@ -96,7 +98,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
         _compiler.resolution,
         _compiler.reporter,
         elementEnvironment,
-        _compiler.commonElements,
+        commonElements,
         nativeBasicData);
   }
 
@@ -104,8 +106,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
       new ResolutionNoSuchMethodResolver();
 
   MirrorsDataBuilder createMirrorsDataBuilder() {
-    return new MirrorsDataImpl(
-        _compiler, _compiler.options, _compiler.commonElements);
+    return new MirrorsDataImpl(_compiler, _compiler.options, commonElements);
   }
 
   MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
@@ -142,6 +143,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
 
   FunctionEntity computeMain(
       LibraryElement mainApp, WorldImpactBuilder impactBuilder) {
+    _elementEnvironment._mainLibrary = mainApp;
     if (mainApp == null) return null;
     MethodElement mainFunction;
     Element main = mainApp.findExported(Identifiers.main);
@@ -212,6 +214,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
       mainFunction.computeType(_compiler.resolution);
       mainMethod = mainFunction;
     }
+    _elementEnvironment._mainFunction = mainMethod;
     return mainMethod;
   }
 
@@ -371,6 +374,9 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
 class _CompilerElementEnvironment implements ElementEnvironment {
   final Compiler _compiler;
 
+  LibraryEntity _mainLibrary;
+  FunctionEntity _mainFunction;
+
   _CompilerElementEnvironment(this._compiler);
 
   LibraryProvider get _libraryProvider => _compiler.libraryLoader;
@@ -379,10 +385,10 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   ResolutionDynamicType get dynamicType => const ResolutionDynamicType();
 
   @override
-  LibraryEntity get mainLibrary => _compiler.mainApp;
+  LibraryEntity get mainLibrary => _mainLibrary;
 
   @override
-  FunctionEntity get mainFunction => _compiler.mainFunction;
+  FunctionEntity get mainFunction => _mainFunction;
 
   @override
   Iterable<LibraryEntity> get libraries => _compiler.libraryLoader.libraries;
@@ -408,8 +414,23 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  bool isMixinApplication(ClassElement cls) {
+    return cls.isMixinApplication;
+  }
+
+  @override
   bool isUnnamedMixinApplication(ClassElement cls) {
     return cls.isUnnamedMixinApplication;
+  }
+
+  @override
+  ClassEntity getEffectiveMixinClass(ClassElement cls) {
+    if (!cls.isMixinApplication) return null;
+    do {
+      MixinApplicationElement mixinApplication = cls;
+      cls = mixinApplication.mixin;
+    } while (cls.isMixinApplication);
+    return cls;
   }
 
   @override
@@ -471,7 +492,8 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   void forEachClassMember(
       ClassElement cls, void f(ClassElement declarer, MemberElement member)) {
     cls.ensureResolved(_resolution);
-    cls.forEachMember((ClassElement declarer, MemberElement member) {
+    cls.forEachMember((ClassElement declarer, _member) {
+      MemberElement member = _member;
       if (member.isSynthesized) return;
       if (member.isMalformed) return;
       if (member.isConstructor) return;
@@ -651,7 +673,7 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
 
   _ElementAnnotationProcessor(this._compiler);
 
-  CommonElements get _commonElements => _compiler.commonElements;
+  CommonElements get _commonElements => _compiler.resolution.commonElements;
 
   /// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
   /// native name from the annotation.
@@ -787,8 +809,8 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
           });
         }
 
-        classElement
-            .forEachMember((ClassElement classElement, MemberElement member) {
+        classElement.forEachMember((ClassElement classElement, _member) {
+          MemberElement member = _member;
           String memberName = processJsInteropAnnotation(member);
           if (memberName != null) {
             nativeDataBuilder.setJsInteropMemberName(member, memberName);
@@ -809,8 +831,8 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
             }
 
             if (fn.isFactoryConstructor && isAnonymous) {
-              fn.functionSignature
-                  .orderedForEachParameter((ParameterElement parameter) {
+              fn.functionSignature.orderedForEachParameter((_parameter) {
+                ParameterElement parameter = _parameter;
                 if (!parameter.isNamed) {
                   _compiler.reporter.reportErrorMessage(
                       parameter,

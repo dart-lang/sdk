@@ -269,8 +269,10 @@ class CloneVisitor extends TreeVisitor {
   }
 
   visitAssertStatement(AssertStatement node) {
-    return new AssertStatement(
-        clone(node.condition), cloneOptional(node.message));
+    return new AssertStatement(clone(node.condition),
+        conditionStartOffset: node.conditionStartOffset,
+        conditionEndOffset: node.conditionEndOffset,
+        message: cloneOptional(node.message));
   }
 
   visitLabeledStatement(LabeledStatement node) {

@@ -91,7 +91,8 @@ class TypeEnvironment {
   TypeEnvironment._(Compiler this.compiler);
 
   Element getElement(String name) {
-    LibraryElement mainApp = compiler.mainApp;
+    LibraryElement mainApp =
+        compiler.frontendStrategy.elementEnvironment.mainLibrary;
     var element = mainApp.find(name);
     Expect.isNotNull(element);
     if (element.isClass) {

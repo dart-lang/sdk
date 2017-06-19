@@ -4,8 +4,6 @@
 
 library tests.dart2js.interop_anonymous_unreachable_test;
 
-import 'dart:async';
-
 import 'package:test/test.dart';
 import 'compiler_helper.dart';
 

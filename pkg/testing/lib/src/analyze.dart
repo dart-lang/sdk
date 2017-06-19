@@ -159,7 +159,7 @@ Future<Null> analyzeUris(
   String topLevel;
   try {
     topLevel = new Uri.directory(
-            await git("rev-parse", <String>["--show-toplevel"]).trimRight())
+            (await git("rev-parse", <String>["--show-toplevel"])).trimRight())
         .toFilePath(windows: false);
   } catch (e) {
     topLevel = Uri.base.toFilePath(windows: false);
@@ -237,10 +237,12 @@ Future<Null> analyzeUris(
     await for (AnalyzerDiagnostic diagnostic in diagnostics) {
       if (diagnostic.uri != null) {
         String path = toFilePath(diagnostic.uri);
-        if (diagnostic.code.startsWith("STRONG_MODE") &&
+        if (!(analysisOptions?.path?.contains("/pkg/compiler/") ?? false) &&
+            diagnostic.code.startsWith("STRONG_MODE") &&
             (path.startsWith("pkg/compiler/") ||
                 path.startsWith("tests/compiler/dart2js/"))) {
-          // Hack to work around dart2js not being strong-mode clean.
+          // TODO(ahe): Remove this hack to work around dart2js not being
+          // strong-mode clean.
           continue;
         }
         if (!filesToAnalyze.contains(path)) continue;

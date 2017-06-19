@@ -24,15 +24,17 @@ typedef void CheckMemberFunction(
 /// annotation. Any [Id] left in the map will be reported as missing.
 checkCode(String annotatedCode, CheckMemberFunction checkMember,
     {List<String> options: const <String>[]}) async {
-  AnnotatedCode code = new AnnotatedCode.fromText(annotatedCode, '/*', '*/');
+  AnnotatedCode code =
+      new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd);
   Map<Id, String> expectedMap = computeExpectedMap(code);
   Compiler compiler = compilerFor(
       memorySourceFiles: {'main.dart': code.sourceCode}, options: options);
   compiler.stopAfterTypeInference = true;
   Uri mainUri = Uri.parse('memory:main.dart');
   await compiler.run(mainUri);
-  LibraryElement mainApp = compiler.mainApp;
-  mainApp.forEachLocalMember((member) {
+  LibraryElement mainApp =
+      compiler.frontendStrategy.elementEnvironment.mainLibrary;
+  mainApp.forEachLocalMember((dynamic member) {
     if (member.isClass) {
       member.forEachLocalMember((member) {
         checkMember(compiler, expectedMap, member);
@@ -46,7 +48,7 @@ checkCode(String annotatedCode, CheckMemberFunction checkMember,
   expectedMap.forEach((Id id, String expected) {
     reportHere(
         compiler.reporter,
-        computeSpannable(compiler.elementEnvironment, mainUri, id),
+        computeSpannable(compiler.resolution.elementEnvironment, mainUri, id),
         'expected:${expected},actual:null');
   });
   Expect.isTrue(expectedMap.isEmpty, "Ids not found: $expectedMap.");

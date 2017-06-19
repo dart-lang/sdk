@@ -173,9 +173,9 @@ CompilerImpl compilerFor(
     Types types = cachedCompiler.types;
     compiler.types = types.copy(compiler.resolution);
     Map copiedLibraries = {};
-    cachedCompiler.libraryLoader.libraries.forEach((library) {
+    cachedCompiler.libraryLoader.libraries.forEach((dynamic library) {
       if (library.isPlatformLibrary) {
-        var libraryLoader = compiler.libraryLoader;
+        dynamic libraryLoader = compiler.libraryLoader;
         libraryLoader.mapLibrary(library);
         copiedLibraries[library.canonicalUri] = library;
       }
@@ -203,7 +203,7 @@ CompilerImpl compilerFor(
     cachedCompiler.patchParser = null;
     cachedCompiler.libraryLoader = null;
     cachedCompiler.resolver = null;
-    cachedCompiler.closureToClassMapper = null;
+    cachedCompiler.closureDataLookup = null;
     cachedCompiler.checker = null;
     cachedCompiler.globalInference = null;
     cachedCompiler.backend = null;

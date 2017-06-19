@@ -105,7 +105,7 @@ Future<Compiler> newCompiler() async {
   var loadedLibraries =
       await compiler.libraryLoader.loadLibrary(Uri.parse('dart:core'));
   compiler.processLoadedLibraries(loadedLibraries);
-  var core = loadedLibraries.rootLibrary;
+  dynamic core = loadedLibraries.rootLibrary;
   compiler.startResolution();
   var cls = core.implementation.localLookup('Iterator');
   cls.ensureResolved(compiler.resolution);

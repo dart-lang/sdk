@@ -56,7 +56,7 @@ class ContainerTypeMask extends ForwardingTypeMask {
     return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
-  TypeMask union(other, ClosedWorld closedWorld) {
+  TypeMask union(dynamic other, ClosedWorld closedWorld) {
     if (this == other) {
       return this;
     } else if (equalsDisregardNull(other)) {

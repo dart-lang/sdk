@@ -51,9 +51,11 @@ class ResolutionNoSuchMethodResolver implements NoSuchMethodResolver {
           arg is Send &&
           arg.argumentsNode == null &&
           arg.receiver == null &&
-          arg.selector is Identifier &&
-          arg.selector.source == param) {
-        return true;
+          arg.selector is Identifier) {
+        Identifier selector = arg.selector;
+        if (selector.source == param) {
+          return true;
+        }
       }
     }
     return false;

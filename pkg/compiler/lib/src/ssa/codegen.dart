@@ -10,9 +10,9 @@ import '../common/tasks.dart' show CompilerTask;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
-import '../elements/elements.dart'
-    show JumpTarget, LabelDefinition, MethodElement;
+import '../elements/elements.dart' show MethodElement;
 import '../elements/entities.dart';
+import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;

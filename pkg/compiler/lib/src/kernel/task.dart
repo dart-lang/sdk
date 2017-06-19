@@ -29,7 +29,8 @@ class KernelTask extends CompilerTask {
   ///
   /// May enqueue more elements to the resolution queue.
   void buildKernelIr() => measure(() {
-        program = buildProgram(_compiler.mainApp);
+        program = buildProgram(
+            _compiler.frontendStrategy.elementEnvironment.mainLibrary);
       });
 
   /// Builds the kernel IR program for the main function exported from
@@ -37,10 +38,8 @@ class KernelTask extends CompilerTask {
   ///
   /// May enqueue more elements to the resolution queue.
   ir.Program buildProgram(LibraryElement library) {
-    var main = library.findExported(Identifiers.main);
+    MethodElement main = library.findExported(Identifiers.main);
     if (main == null) {
-      // TODO(johnniwinther): Issue 29844.
-      // ignore: INVALID_ASSIGNMENT
       main = _compiler.frontendStrategy.commonElements.missingMain;
     }
     return new ir.Program(

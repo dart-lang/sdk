@@ -12,7 +12,7 @@ class B extends core::Object implements self::A {
   constructor •() → void
     : super core::Object::•()
     ;
-  get x() → dynamic
+  get x() → core::int
     return 3;
 }
 static method foo() → dynamic {

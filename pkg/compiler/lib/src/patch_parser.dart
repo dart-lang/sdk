@@ -389,9 +389,9 @@ class PatchAnnotationHandler extends EagerAnnotationHandler<bool> {
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
     ResolutionDartType annotationType =
-        constant.getType(compiler.commonElements);
+        constant.getType(compiler.resolution.commonElements);
     if (annotationType.element !=
-        compiler.commonElements.patchAnnotationClass) {
+        compiler.resolution.commonElements.patchAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
       reporter.internalError(annotation, 'Invalid patch annotation.');
     }

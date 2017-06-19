@@ -11,7 +11,7 @@ import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart'
-    show ClassElementX, CompilationUnitElementX, ElementX, FunctionElementX;
+    show ClassElementX, CompilationUnitElementX, ElementX;
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/resolution/tree_elements.dart'
     show TreeElements, TreeElementMapping;
@@ -22,7 +22,6 @@ import 'package:compiler/src/script.dart';
 import 'package:compiler/src/util/util.dart';
 
 import 'mock_compiler.dart';
-import 'options_helper.dart';
 import 'parser_helper.dart';
 
 final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE;
@@ -75,10 +74,10 @@ testSimpleTypes(MockCompiler compiler) {
     Expect.equals(type, analyzeType(compiler, code));
   }
 
-  checkType(compiler.commonElements.intType, "3");
-  checkType(compiler.commonElements.boolType, "false");
-  checkType(compiler.commonElements.boolType, "true");
-  checkType(compiler.commonElements.stringType, "'hestfisk'");
+  checkType(compiler.resolution.commonElements.intType, "3");
+  checkType(compiler.resolution.commonElements.boolType, "false");
+  checkType(compiler.resolution.commonElements.boolType, "true");
+  checkType(compiler.resolution.commonElements.stringType, "'hestfisk'");
 }
 
 Future testReturn(MockCompiler compiler) {

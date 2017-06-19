@@ -37,6 +37,8 @@ export 'package:compiler/src/parser/node_listener.dart';
 export 'package:compiler/src/parser/diet_parser_task.dart';
 export 'package:front_end/src/fasta/scanner/token_constants.dart';
 
+import 'mock_compiler.dart';
+
 class LoggerCanceler extends DiagnosticReporter {
   DiagnosticOptions get options => const MockDiagnosticOptions();
 
@@ -115,7 +117,7 @@ Node parseBodyCode(String text, Function parseMethod,
 Node parseStatement(String text) =>
     parseBodyCode(text, (parser, tokens) => parser.parseStatement(tokens));
 
-Node parseFunction(String text, Compiler compiler) {
+Node parseFunction(String text, MockCompiler compiler) {
   ElementX element = parseUnit(text, compiler, compiler.mainApp).head;
   Expect.isNotNull(element);
   Expect.equals(ElementKind.FUNCTION, element.kind);

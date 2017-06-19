@@ -2740,7 +2740,7 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.set_parameter_types(Object::extractor_parameter_types());
   extractor.set_parameter_names(Object::extractor_parameter_names());
   extractor.set_result_type(Object::dynamic_type());
-  extractor.set_kernel_function(kernel_function());
+  extractor.set_kernel_offset(kernel_offset());
 
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
@@ -3757,7 +3757,7 @@ RawType* Class::canonical_type() const {
 
 
 void Class::set_canonical_type(const Type& value) const {
-  ASSERT(!value.IsNull());
+  ASSERT(!value.IsNull() && value.IsCanonical() && value.IsOld());
   StorePointer(&raw_ptr()->canonical_type_, value.raw());
 }
 
@@ -6814,7 +6814,7 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_deoptimization_counter(0));
   NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
   NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
-  result.set_kernel_function(NULL);
+  result.set_kernel_offset(0);
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
@@ -6854,7 +6854,7 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_deoptimization_counter(0);
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
-  clone.set_kernel_function(kernel_function());
+  clone.set_kernel_offset(kernel_offset());
   if (new_owner.NumTypeParameters() > 0) {
     // Adjust uninstantiated types to refer to type parameters of the new owner.
     const TypeArguments& type_params =
@@ -7010,7 +7010,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
     param_name = ParameterNameAt(has_receiver - kClosure + i);
     closure_function.SetParameterNameAt(i, param_name);
   }
-  closure_function.set_kernel_function(kernel_function());
+  closure_function.set_kernel_offset(kernel_offset());
 
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
@@ -7480,7 +7480,7 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
 
 
 bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
-  if ((kernel_function() == NULL) && (SourceFingerprint() != fp)) {
+  if ((kernel_offset() <= 0) && (SourceFingerprint() != fp)) {
     const bool recalculatingFingerprints = false;
     if (recalculatingFingerprints) {
       // This output can be copied into a file, then used with sed
@@ -7864,7 +7864,7 @@ void Field::InitializeNew(const Field& result,
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(true);
-  result.set_kernel_field(NULL);
+  result.set_kernel_offset(0);
   Isolate* isolate = Isolate::Current();
 
   // Use field guards if they are enabled and the isolate has never reloaded.
@@ -7944,7 +7944,7 @@ RawField* Field::Clone(const Field& original) const {
   Field& clone = Field::Handle();
   clone ^= Object::Clone(*this, Heap::kOld);
   clone.SetOriginal(original);
-  clone.set_kernel_field(original.kernel_field());
+  clone.set_kernel_offset(original.kernel_offset());
   return clone.raw();
 }
 
@@ -9121,6 +9121,16 @@ void Script::set_compile_time_constants(const Array& value) const {
 }
 
 
+void Script::set_kernel_data(const uint8_t* kernel_data) const {
+  StoreNonPointer(&raw_ptr()->kernel_data_, kernel_data);
+}
+
+
+void Script::set_kernel_data_size(const intptr_t kernel_data_size) const {
+  StoreNonPointer(&raw_ptr()->kernel_data_size_, kernel_data_size);
+}
+
+
 void Script::set_kernel_string_offsets(const TypedData& offsets) const {
   StorePointer(&raw_ptr()->kernel_string_offsets_, offsets.raw());
 }
@@ -10085,7 +10095,7 @@ static RawString* MakeTypeParameterMetaName(Thread* thread,
 void Library::AddMetadata(const Object& owner,
                           const String& name,
                           TokenPosition token_pos,
-                          kernel::TreeNode* kernel_node) const {
+                          intptr_t kernel_offset) const {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
@@ -10098,7 +10108,7 @@ void Library::AddMetadata(const Object& owner,
   field.SetFieldType(Object::dynamic_type());
   field.set_is_reflectable(false);
   field.SetStaticValue(Array::empty_array(), true);
-  field.set_kernel_field(kernel_node);
+  field.set_kernel_offset(kernel_offset);
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(zone, this->metadata());
   metadata.Add(field, Heap::kOld);
@@ -10108,36 +10118,36 @@ void Library::AddMetadata(const Object& owner,
 void Library::AddClassMetadata(const Class& cls,
                                const Object& tl_owner,
                                TokenPosition token_pos,
-                               kernel::TreeNode* kernel_node) const {
+                               intptr_t kernel_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   // We use the toplevel class as the owner of a class's metadata field because
   // a class's metadata is in scope of the library, not the class.
   AddMetadata(tl_owner,
               String::Handle(zone, MakeClassMetaName(thread, zone, cls)),
-              token_pos, kernel_node);
+              token_pos, kernel_offset);
 }
 
 
 void Library::AddFieldMetadata(const Field& field,
                                TokenPosition token_pos,
-                               kernel::TreeNode* kernel_node) const {
+                               intptr_t kernel_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, field.RawOwner()),
               String::Handle(zone, MakeFieldMetaName(thread, zone, field)),
-              token_pos, kernel_node);
+              token_pos, kernel_offset);
 }
 
 
 void Library::AddFunctionMetadata(const Function& func,
                                   TokenPosition token_pos,
-                                  kernel::TreeNode* kernel_node) const {
+                                  intptr_t kernel_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, func.RawOwner()),
               String::Handle(zone, MakeFunctionMetaName(thread, zone, func)),
-              token_pos, kernel_node);
+              token_pos, kernel_offset);
 }
 
 
@@ -10213,7 +10223,7 @@ RawObject* Library::GetMetadata(const Object& obj) const {
   Object& metadata = Object::Handle();
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
-    if (field.kernel_field() != NULL) {
+    if (field.kernel_offset() > 0) {
       metadata = kernel::EvaluateMetadata(field);
     } else {
       metadata = Parser::ParseMetadata(field);
@@ -12050,6 +12060,32 @@ RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
     }
   }
   return Function::null();
+}
+
+
+RawObject* Library::GetFunctionClosure(const String& name) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& func = Function::Handle(zone, LookupFunctionAllowPrivate(name));
+  if (func.IsNull()) {
+    // Check whether the function is reexported into the library.
+    const Object& obj = Object::Handle(zone, LookupReExport(name));
+    if (obj.IsFunction()) {
+      func ^= obj.raw();
+    } else {
+      // Check if there is a getter of 'name', in which case invoke it
+      // and return the result.
+      const String& getter_name = String::Handle(zone, Field::GetterName(name));
+      func = LookupFunctionAllowPrivate(getter_name);
+      if (func.IsNull()) {
+        return Closure::null();
+      }
+      // Invoke the getter and return the result.
+      return DartEntry::InvokeFunction(func, Object::empty_array());
+    }
+  }
+  func = func.ImplicitClosureFunction();
+  return func.ImplicitStaticClosure();
 }
 
 
@@ -17522,13 +17558,12 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     return Object::dynamic_type().raw();
   }
 
-  AbstractType& type = Type::Handle(zone);
   const Class& cls = Class::Handle(zone, type_class());
 
   // Fast canonical lookup/registry for simple types.
   if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
     ASSERT(!IsFunctionType());
-    type = cls.CanonicalType();
+    Type& type = Type::Handle(zone, cls.CanonicalType());
     if (type.IsNull()) {
       ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
       // Canonicalize the type arguments of the supertype, if any.
@@ -17546,18 +17581,26 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
         // Recheck if type exists.
         type = cls.CanonicalType();
         if (type.IsNull()) {
-          ComputeHash();
-          SetCanonical();
-          cls.set_canonical_type(*this);
-          return this->raw();
+          if (this->IsNew()) {
+            type ^= Object::Clone(*this, Heap::kOld);
+          } else {
+            type ^= this->raw();
+          }
+          ASSERT(type.IsOld());
+          type.ComputeHash();
+          type.SetCanonical();
+          cls.set_canonical_type(type);
+          return type.raw();
         }
       }
     }
     ASSERT(this->Equals(type));
     ASSERT(type.IsCanonical());
+    ASSERT(type.IsOld());
     return type.raw();
   }
 
+  AbstractType& type = Type::Handle(zone);
   ObjectStore* object_store = isolate->object_store();
   {
     SafepointMutexLocker ml(isolate->type_canonicalization_mutex());

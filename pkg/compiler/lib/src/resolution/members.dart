@@ -28,6 +28,7 @@ import '../elements/modelx.dart'
         ParameterElementX,
         VariableElementX,
         VariableList;
+import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/operators.dart';
 import '../elements/resolution_types.dart';
@@ -425,7 +426,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     scope = new BlockScope(scope);
     Link<Node> parameterNodes =
         (node.parameters == null) ? const Link<Node>() : node.parameters.nodes;
-    functionSignature.forEachParameter((ParameterElementX element) {
+    functionSignature.forEachParameter((_element) {
+      ParameterElementX element = _element;
       // TODO(karlklose): should be a list of [FormalElement]s, but the actual
       // implementation uses [Element].
       List<Element> optionals = functionSignature.optionalParameters;
@@ -457,13 +459,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       parameterNodes = parameterNodes.tail;
     });
     addDeferredAction(enclosingElement, () {
-      functionSignature.forEachOptionalParameter((ParameterElementX parameter) {
+      functionSignature.forEachOptionalParameter((_parameter) {
+        ParameterElementX parameter = _parameter;
         parameter.constant =
             resolver.constantCompiler.compileConstant(parameter);
       });
     });
     registry.registerCheckedModeCheck(functionSignature.returnType);
-    functionSignature.forEachParameter((ParameterElement element) {
+    functionSignature.forEachParameter((_element) {
+      ParameterElement element = _element;
       registry.registerCheckedModeCheck(element.type);
     });
   }
@@ -3729,7 +3733,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       List<String> names = <String>[];
       List<ConstantExpression> arguments = <ConstantExpression>[];
       int index = 0;
-      constructorSignature.forEachParameter((ParameterElement parameter) {
+      constructorSignature.forEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         if (parameter.isNamed) {
           String name = parameter.name;
           names.add(name);

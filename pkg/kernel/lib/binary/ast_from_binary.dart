@@ -617,6 +617,7 @@ class BinaryBuilder {
     AsyncMarker dartAsyncMarker = AsyncMarker.values[readByte()];
     int typeParameterStackHeight = typeParameterStack.length;
     var typeParameters = readAndPushTypeParameterList();
+    readUInt(); // total parameter count.
     var requiredParameterCount = readUInt();
     int variableStackHeight = variableStack.length;
     var positional = readAndPushVariableDeclarationList();
@@ -934,7 +935,10 @@ class BinaryBuilder {
       case Tag.EmptyStatement:
         return new EmptyStatement();
       case Tag.AssertStatement:
-        return new AssertStatement(readExpression(), readExpressionOption());
+        return new AssertStatement(readExpression(),
+            conditionStartOffset: readOffset(),
+            conditionEndOffset: readOffset(),
+            message: readExpressionOption());
       case Tag.LabeledStatement:
         var label = new LabeledStatement(null);
         labelStack.add(label);

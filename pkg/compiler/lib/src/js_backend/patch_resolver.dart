@@ -51,7 +51,7 @@ class PatchResolverTask extends CompilerTask {
   void checkMatchingPatchParameters(FunctionElement origin,
       List<Element> originParameters, List<Element> patchParameters) {
     bool isUnnamedListConstructor = origin is ConstructorElement &&
-        compiler.commonElements.isUnnamedListConstructor(origin);
+        resolution.commonElements.isUnnamedListConstructor(origin);
 
     assert(originParameters.length == patchParameters.length);
     for (int index = 0; index < originParameters.length; index++) {

@@ -32,7 +32,7 @@ class _KernelDartTypes extends DartTypes {
 
   @override
   InterfaceType getThisType(ClassEntity cls) {
-    return elementMap.getThisType(cls);
+    return elementMap._getThisType(cls);
   }
 
   @override
@@ -82,7 +82,7 @@ class _KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
             objectType: elementMap.commonElements.objectType);
 
   InterfaceType getThisType(ClassEntity cls) {
-    return elementMap.getThisType(cls);
+    return elementMap._getThisType(cls);
   }
 
   InterfaceType substByContext(InterfaceType type, InterfaceType context) {

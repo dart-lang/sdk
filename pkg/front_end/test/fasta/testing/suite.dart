@@ -192,8 +192,12 @@ class Run extends Step<Uri, int, FastaContext> {
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      var platformDill = context.platformUri.toFilePath();
-      var args = ['--platform=$platformDill', generated.path, "Hello, World!"];
+      var sdkPath = context.sdk.toFilePath();
+      var args = [
+        '--kernel-binaries=$sdkPath',
+        generated.path,
+        "Hello, World!"
+      ];
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
     } finally {
@@ -268,6 +272,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     } on InputError catch (e, s) {
       return fail(null, e.error, s);
     }
+    context.programToTarget.clear();
     context.programToTarget[p] = sourceTarget;
     return pass(p);
   }
@@ -280,6 +285,7 @@ class Transform extends Step<Program, Program, FastaContext> {
 
   Future<Result<Program>> run(Program program, FastaContext context) async {
     KernelTarget sourceTarget = context.programToTarget[program];
+    context.programToTarget.remove(program);
     TestVmFastaTarget backendTarget = sourceTarget.backendTarget;
     backendTarget.enabled = true;
     try {

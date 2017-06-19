@@ -198,7 +198,6 @@ mirrors/globalized_closures2_test/00: RuntimeError
 mirrors/globalized_closures2_test/none: RuntimeError
 mirrors/globalized_closures_test/00: RuntimeError
 mirrors/globalized_closures_test/none: RuntimeError
-mirrors/hierarchy_invariants_test: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
 mirrors/inherited_metadata_test: RuntimeError

@@ -113,10 +113,15 @@ abstract class ClassHierarchy {
   ///
   /// It is possible for two methods to override one another in both directions.
   ///
-  /// Getters and setters are overridden separately.  The [isSetter] callback
-  /// parameter determines which type of access is being overridden.
+  /// By default getters and setters are overridden separately.  The [isSetter]
+  /// callback parameter determines which type of access is being overridden.
+  ///
+  /// However if [crossGettersSetters] is set to `true`, getters might be
+  /// reported as overriding setters, and vice versa - setter overriding
+  /// getters.  The callback should check the [Procedure.kind] property.
   void forEachOverridePair(Class class_,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter));
+      callback(Member declaredMember, Member interfaceMember, bool isSetter),
+      {bool crossGettersSetters: false});
 
   /// This method is invoked by the client after it changed the [classes], and
   /// some of the information that this hierarchy might have cached, is not
@@ -377,7 +382,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   void forEachOverridePair(Class class_,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter)) {
+      callback(Member declaredMember, Member interfaceMember, bool isSetter),
+      {bool crossGettersSetters: false}) {
     _ClassInfo info = _infoFor[class_];
     for (var supertype in class_.supers) {
       var superclass = supertype.classNode;
@@ -390,6 +396,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
           isSetter: true);
       _reportOverrides(info.declaredSetters, superSetters, callback,
           isSetter: true, onlyAbstract: true);
+      if (crossGettersSetters) {
+        _reportOverrides(info.declaredGettersAndCalls, superSetters, callback);
+        _reportOverrides(info.declaredSetters, superGetters, callback);
+      }
     }
     if (!class_.isAbstract) {
       // If a non-abstract class declares an abstract method M whose

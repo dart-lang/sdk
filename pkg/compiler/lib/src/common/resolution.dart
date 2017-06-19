@@ -8,7 +8,7 @@ import '../common.dart';
 import '../compile_time_constants.dart';
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/resolution_types.dart' show ResolutionDartType, Types;
 import '../elements/elements.dart'
     show
@@ -122,6 +122,7 @@ abstract class Target {
 abstract class Resolution {
   ParsingContext get parsingContext;
   DiagnosticReporter get reporter;
+  ElementEnvironment get elementEnvironment;
   CommonElements get commonElements;
   Types get types;
   Target get target;

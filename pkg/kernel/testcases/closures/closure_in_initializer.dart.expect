@@ -13,7 +13,7 @@ class C extends core::Object {
 }
 static method main() → dynamic {
   core::print(0);
-  dynamic c = new self::C::foo(MakeClosure<() → dynamic>(self::closure#main#function, null));
+  dynamic c = new self::C::foo(MakeClosure<() → void>(self::closure#main#function, null));
   core::print(2);
   c.t();
   core::print(3);
@@ -21,6 +21,6 @@ static method main() → dynamic {
 static method closure#C#foo#function(Vector #contextParameter) → dynamic {
   return (#contextParameter[1]).call();
 }
-static method closure#main#function(Vector #contextParameter) → dynamic {
+static method closure#main#function(Vector #contextParameter) → void {
   return core::print("hest");
 }

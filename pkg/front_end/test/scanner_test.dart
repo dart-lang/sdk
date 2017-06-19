@@ -1043,7 +1043,7 @@ abstract class ScannerTestBase {
   void test_string_multi_unterminated() {
     List<Token> expectedTokens = [];
     if (usingFasta) {
-      // fasta inserts synthetic closers
+      // Fasta inserts synthetic closers.
       expectedTokens.addAll([
         new SyntheticStringToken(TokenType.STRING, "'''string'''", 0, 9),
       ]);
@@ -1064,7 +1064,7 @@ abstract class ScannerTestBase {
       new TestError(8, ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null),
     ];
     if (usingFasta) {
-      // fasta inserts synthetic closers
+      // Fasta inserts synthetic closers.
       expectedTokens.addAll([
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 9),
         new SyntheticStringToken(TokenType.STRING, "'''", 9, 0),
@@ -1090,7 +1090,7 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.IDENTIFIER, "name", 4),
     ];
     if (usingFasta) {
-      // fasta inserts synthetic closers
+      // Fasta inserts synthetic closers.
       expectedTokens.addAll([
         new SyntheticStringToken(TokenType.STRING, "'''", 8, 0),
       ]);
@@ -1115,7 +1115,7 @@ abstract class ScannerTestBase {
     String source = "r'''string";
     List<Token> expectedTokens = [];
     if (usingFasta) {
-      // fasta inserts synthetic closers
+      // Fasta inserts synthetic closers.
       expectedTokens.addAll([
         new SyntheticStringToken(TokenType.STRING, "r'''string'''", 0, 10),
       ]);
@@ -1140,7 +1140,7 @@ abstract class ScannerTestBase {
     String source = "r'string";
     List<Token> expectedTokens = [];
     if (usingFasta) {
-      // fasta inserts synthetic closers
+      // Fasta inserts synthetic closers.
       expectedTokens.addAll([
         new SyntheticStringToken(TokenType.STRING, "r'string'", 0, 8),
       ]);
@@ -1157,7 +1157,7 @@ abstract class ScannerTestBase {
     String source = "r'string\n";
     List<Token> expectedTokens = [];
     if (usingFasta) {
-      // fasta inserts synthetic closers
+      // Fasta inserts synthetic closers.
       expectedTokens.addAll([
         new SyntheticStringToken(TokenType.STRING, "r'string'", 0, 8),
       ]);
@@ -1298,7 +1298,7 @@ abstract class ScannerTestBase {
     String source = "'string";
     List<Token> expectedTokens = [];
     if (usingFasta) {
-      // fasta inserts synthetic closers
+      // Fasta inserts synthetic closers.
       expectedTokens.addAll([
         new SyntheticStringToken(TokenType.STRING, "'string'", 0, 7),
       ]);
@@ -1315,7 +1315,7 @@ abstract class ScannerTestBase {
     String source = "'string\r";
     List<Token> expectedTokens = [];
     if (usingFasta) {
-      // fasta inserts synthetic closers
+      // Fasta inserts synthetic closers.
       expectedTokens.addAll([
         new SyntheticStringToken(TokenType.STRING, "'string'", 0, 7),
       ]);
@@ -1338,7 +1338,7 @@ abstract class ScannerTestBase {
       new TestError(6, ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null),
     ];
     if (usingFasta) {
-      // fasta inserts synthetic closers
+      // Fasta inserts synthetic closers.
       expectedTokens.addAll([
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 7),
         new SyntheticStringToken(TokenType.STRING, "'", 7, 0),
@@ -1364,7 +1364,7 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.IDENTIFIER, "name", 2),
     ];
     if (usingFasta) {
-      // fasta inserts synthetic closers
+      // Fasta inserts synthetic closers.
       expectedTokens.addAll([
         new SyntheticStringToken(TokenType.STRING, "'", 6, 0),
       ]);

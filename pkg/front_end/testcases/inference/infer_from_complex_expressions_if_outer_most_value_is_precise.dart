@@ -58,3 +58,5 @@ test1() {
   j = /*error:INVALID_ASSIGNMENT*/ false;
   j = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ [];
 }
+
+main() {}

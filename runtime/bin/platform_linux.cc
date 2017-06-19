@@ -114,6 +114,11 @@ char** Platform::Environment(intptr_t* count) {
 }
 
 
+const char* Platform::GetExecutableName() {
+  return executable_name_;
+}
+
+
 const char* Platform::ResolveExecutablePath() {
   return File::LinkTarget("/proc/self/exe");
 }

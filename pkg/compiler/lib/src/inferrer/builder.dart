@@ -4,7 +4,7 @@
 
 library simple_types_inferrer;
 
-import '../closure.dart' show ClosureClassMap;
+import '../closure.dart' show ClosureRepresentationInfo;
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../compiler.dart' show Compiler;
@@ -13,6 +13,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/operators.dart' as op;
 import '../elements/resolution_types.dart'
@@ -914,8 +915,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ClosureClassMap closureData =
-        compiler.closureToClassMapper.getClosureToClassMapping(analyzedElement);
+    ClosureRepresentationInfo closureData = compiler.closureDataLookup
+        .getClosureRepresentationInfo(analyzedElement);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);
     });
@@ -928,7 +929,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
     FunctionElement function = analyzedElement;
     FunctionSignature signature = function.functionSignature;
-    signature.forEachOptionalParameter((ParameterElement element) {
+    signature.forEachOptionalParameter((FormalElement _element) {
+      ParameterElement element = _element;
       ast.Expression defaultValue = element.initializer;
       // TODO(25566): The default value of a parameter of a redirecting factory
       // constructor comes from the corresponding parameter of the target.
@@ -957,7 +959,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
     if (analyzedElement.isGenerativeConstructor) {
       isThisExposed = false;
-      signature.forEachParameter((ParameterElement element) {
+      signature.forEachParameter((FormalElement _element) {
+        ParameterElement element = _element;
         TypeInformation parameterType = inferrer.typeOfElement(element);
         if (element.isInitializingFormal) {
           InitializingFormalElement initializingFormal = element;
@@ -1033,7 +1036,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         returnType = types.nonNullExact(cls);
       }
     } else {
-      signature.forEachParameter((LocalParameterElement element) {
+      signature.forEachParameter((FormalElement _element) {
+        ParameterElement element = _element;
         locals.update(element, inferrer.typeOfElement(element), node);
       });
       visit(node.body);
@@ -1098,8 +1102,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
     // a previous closure.
-    ClosureClassMap nestedClosureData =
-        compiler.closureToClassMapper.getClosureToClassMapping(element);
+    ClosureRepresentationInfo nestedClosureData =
+        compiler.closureDataLookup.getClosureRepresentationInfo(element);
     nestedClosureData.forEachCapturedVariable((variable, field) {
       if (!nestedClosureData.isVariableBoxed(variable)) {
         if (variable == nestedClosureData.thisLocal) {
@@ -1193,7 +1197,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   void checkIfExposesThis(Selector selector, TypeMask mask) {
     if (isThisExposed) return;
-    inferrer.forEachElementMatching(selector, mask, (element) {
+    inferrer.forEachElementMatching(selector, mask, (dynamic element) {
       if (element.isField) {
         ResolvedAst elementResolvedAst = element.resolvedAst;
         if (!selector.isSetter &&
@@ -2045,7 +2049,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ClassElement cls = outermostElement.enclosingClass;
     MethodElement element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
     if (!Selectors.noSuchMethod_.signatureApplies(element)) {
-      ClassElement objectClass = compiler.commonElements.objectClass;
+      ClassElement objectClass = closedWorld.commonElements.objectClass;
       element = objectClass.lookupMember(Identifiers.noSuchMethod_);
     }
     return handleStaticSend(node, selector, mask, element, arguments);
@@ -2837,7 +2841,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
 
     List<TypeInformation> unnamed = <TypeInformation>[];
-    signature.forEachRequiredParameter((ParameterElement element) {
+    signature.forEachRequiredParameter((FormalElement _element) {
+      ParameterElement element = _element;
       assert(locals.use(element) != null);
       unnamed.add(locals.use(element));
     });
@@ -2845,11 +2850,13 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     Map<String, TypeInformation> named;
     if (signature.optionalParametersAreNamed) {
       named = new Map<String, TypeInformation>();
-      signature.forEachOptionalParameter((ParameterElement element) {
+      signature.forEachOptionalParameter((FormalElement _element) {
+        ParameterElement element = _element;
         named[element.name] = locals.use(element);
       });
     } else {
-      signature.forEachOptionalParameter((ParameterElement element) {
+      signature.forEachOptionalParameter((FormalElement _element) {
+        ParameterElement element = _element;
         unnamed.add(locals.use(element));
       });
     }
@@ -2930,7 +2937,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     Selector moveNextSelector = Selectors.moveNext;
     TypeMask moveNextMask = inTreeData.typeOfIteratorMoveNext(node);
 
-    ConstructorElement ctor = compiler.commonElements.streamIteratorConstructor;
+    ConstructorElement ctor =
+        closedWorld.commonElements.streamIteratorConstructor;
 
     /// Synthesize a call to the [StreamIterator] constructor.
     TypeInformation iteratorType = handleStaticSend(

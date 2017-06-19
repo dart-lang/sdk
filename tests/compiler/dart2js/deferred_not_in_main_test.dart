@@ -25,7 +25,7 @@ void deferredTest1() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var main = compiler.mainFunction;
+    var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
@@ -48,7 +48,7 @@ void deferredTest2() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var main = compiler.mainFunction;
+    var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;

@@ -14,14 +14,27 @@ import '../common/names.dart' show Identifiers, Selectors;
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
-import '../elements/elements.dart';
+import '../elements/elements.dart'
+    show
+        ClassElement,
+        ConstructorBodyElement,
+        Element,
+        Elements,
+        FieldElement,
+        FormalElement,
+        FunctionElement,
+        FunctionSignature,
+        MemberElement,
+        TypeDeclarationElement,
+        MixinApplicationElement,
+        TypedefElement;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
+import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
-import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
@@ -541,8 +554,8 @@ class Namer {
 
   final Map<String, int> popularNameCounters = <String, int>{};
 
-  final Map<LibraryElement, String> libraryLongNames =
-      new HashMap<LibraryElement, String>();
+  final Map<LibraryEntity, String> libraryLongNames =
+      new HashMap<LibraryEntity, String>();
 
   final Map<ConstantValue, jsAst.Name> constantNames =
       new HashMap<ConstantValue, jsAst.Name>();
@@ -552,8 +565,8 @@ class Namer {
 
   /// Maps private names to a library that may use that name without prefixing
   /// itself. Used for building proposed names.
-  final Map<String, LibraryElement> shortPrivateNameOwners =
-      <String, LibraryElement>{};
+  final Map<String, LibraryEntity> shortPrivateNameOwners =
+      <String, LibraryEntity>{};
 
   final Map<String, String> suggestedGlobalNames = <String, String>{};
   final Map<String, String> suggestedInstanceNames = <String, String>{};
@@ -561,8 +574,8 @@ class Namer {
   /// Used to store unique keys for library names. Keys are not used as names,
   /// nor are they visible in the output. The only serve as an internal
   /// key into maps.
-  final Map<LibraryElement, String> _libraryKeys =
-      new HashMap<LibraryElement, String>();
+  final Map<LibraryEntity, String> _libraryKeys =
+      new HashMap<LibraryEntity, String>();
 
   Namer(this._closedWorld, this._codegenWorldBuilder) {
     _literalAsyncPrefix = new StringBackedName(asyncPrefix);
@@ -595,7 +608,7 @@ class Namer {
 
   /// Returns the string that is to be used as the result of a call to
   /// [JS_GET_NAME] at [node] with argument [name].
-  jsAst.Name getNameForJsGetName(Node node, JsGetName name) {
+  jsAst.Name getNameForJsGetName(Spannable spannable, JsGetName name) {
     switch (name) {
       case JsGetName.GETTER_PREFIX:
         return asName(getterPrefix);
@@ -652,17 +665,14 @@ class Namer {
       case JsGetName.IS_INDEXABLE_FIELD_NAME:
         return operatorIs(_commonElements.jsIndexingBehaviorInterface);
       case JsGetName.NULL_CLASS_TYPE_NAME:
-        ClassElement nullClass = _commonElements.nullClass;
-        return runtimeTypeName(nullClass);
+        return runtimeTypeName(_commonElements.nullClass);
       case JsGetName.OBJECT_CLASS_TYPE_NAME:
-        ClassElement objectClass = _commonElements.objectClass;
-        return runtimeTypeName(objectClass);
+        return runtimeTypeName(_commonElements.objectClass);
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
-        ClassElement functionClass = _commonElements.functionClass;
-        return runtimeTypeName(functionClass);
+        return runtimeTypeName(_commonElements.functionClass);
       default:
         throw new SpannableAssertionFailure(
-            node, 'Error: Namer has no name for "$name".');
+            spannable, 'Error: Namer has no name for "$name".');
     }
   }
 
@@ -740,10 +750,10 @@ class Namer {
     // Public names are easy.
     if (!originalName.isPrivate) return text;
 
-    LibraryElement library = originalName.library;
+    LibraryEntity library = originalName.library;
 
     // The first library asking for a short private name wins.
-    LibraryElement owner =
+    LibraryEntity owner =
         shortPrivateNameOwners.putIfAbsent(text, () => library);
 
     if (owner == library) {
@@ -1035,7 +1045,7 @@ class Namer {
   /// Generates a unique key for [library].
   ///
   /// Keys are meant to be used in maps and should not be visible in the output.
-  String _generateLibraryKey(LibraryElement library) {
+  String _generateLibraryKey(LibraryEntity library) {
     return _libraryKeys.putIfAbsent(library, () {
       String keyBase = library.name;
       int counter = 0;
@@ -1923,7 +1933,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
     // TODO(johnniwinther): This should be accessed from a codegen closed world.
     codegenWorldBuilder.forEachInstanceField(constant.type.element,
-        (_, FieldElement field) {
+        (_, FieldEntity field) {
       if (failed) return;
       _visit(constant.fields[field]);
     });
@@ -2050,7 +2060,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   int visitConstructed(ConstructedConstantValue constant, [_]) {
     int hash = _hashString(3, constant.type.element.name);
     codegenWorldBuilder.forEachInstanceField(constant.type.element,
-        (_, FieldElement field) {
+        (_, FieldEntity field) {
       hash = _combine(hash, _visit(constant.fields[field]));
     });
     return hash;

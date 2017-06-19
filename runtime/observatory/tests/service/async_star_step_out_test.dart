@@ -4,21 +4,18 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug --async_debugger
 
 import 'dart:developer';
-import 'package:observatory/models.dart' as M;
-import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 24;
-const LINE_B = 25;
-const LINE_C = 29;
-const LINE_D = 32;
-const LINE_E = 39;
-const LINE_F = 40;
-const LINE_G = 41;
-const LINE_H = 30;
-const LINE_I = 34;
+const LINE_A = 21;
+const LINE_B = 22;
+const LINE_C = 26;
+const LINE_D = 29;
+const LINE_E = 36;
+const LINE_F = 37;
+const LINE_G = 38;
+const LINE_H = 27;
+const LINE_I = 31;
 
 foobar() async* {
   yield 1; // LINE_A.
@@ -27,7 +24,7 @@ foobar() async* {
 
 helper() async {
   print('helper'); // LINE_C.
-  await for (var i in foobar()) { // LINE_H.
+  await for (var i in foobar()) /* LINE_H */ {
     debugger();
     print('loop'); // LINE_D.
   }

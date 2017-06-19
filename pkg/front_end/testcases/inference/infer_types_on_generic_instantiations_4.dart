@@ -11,7 +11,7 @@ class A<T> {
 
 class B<E> extends A<E> {
   E y;
-  get x => /*@target=B::y*/ y;
+  get /*@topType=B::E*/ x => /*@target=B::y*/ y;
 }
 
 foo() {

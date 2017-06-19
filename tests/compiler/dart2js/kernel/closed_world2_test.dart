@@ -124,7 +124,8 @@ Future<ResultKind> mainInternal(List<String> args,
       await analyzeOnly(entryPoint, memorySourceFiles, printSteps: true);
   Compiler compiler = compilers.a;
   compiler.resolutionWorldBuilder.closeWorld();
-  ElementEnvironment environment1 = compiler.elementEnvironment;
+  ElementEnvironment environment1 =
+      compiler.frontendStrategy.elementEnvironment;
 
   Compiler compiler2 = compilers.b;
   KernelFrontEndStrategy frontendStrategy = compiler2.frontendStrategy;
@@ -134,7 +135,8 @@ Future<ResultKind> mainInternal(List<String> args,
   KernelEquivalence equivalence = new KernelEquivalence(elementMap);
   TestStrategy strategy = equivalence.defaultStrategy;
 
-  ElementEnvironment environment2 = compiler2.elementEnvironment;
+  ElementEnvironment environment2 =
+      compiler2.frontendStrategy.elementEnvironment;
   checkElementEnvironment(environment1, environment2, strategy);
 
   ResolutionEnqueuer enqueuer2 = compiler2.enqueuer.resolution;
@@ -146,10 +148,12 @@ Future<ResultKind> mainInternal(List<String> args,
   checkBackendUsage(backendUsage1, backendUsage2, strategy);
 
   checkResolutionEnqueuers(backendUsage1, backendUsage2, enqueuer1, enqueuer2,
-      elementEquivalence: equivalence.entityEquivalence,
+      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
       typeEquivalence: (ResolutionDartType a, DartType b) {
-    return equivalence.typeEquivalence(unalias(a), b);
-  }, elementFilter: elementFilter, verbose: arguments.verbose);
+        return equivalence.typeEquivalence(unalias(a), b);
+      },
+      elementFilter: elementFilter,
+      verbose: arguments.verbose);
 
   checkClosedWorlds(closedWorld1, closedWorld2,
       strategy: equivalence.defaultStrategy, verbose: arguments.verbose);

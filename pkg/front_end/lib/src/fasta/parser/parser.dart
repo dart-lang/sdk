@@ -44,6 +44,7 @@ import '../fasta_codes.dart'
         codeInvalidInlineFunctionType,
         codeInvalidSyncModifier,
         codeInvalidVoid,
+        codeMetadataTypeArguments,
         codeNoFormals,
         codeNonAsciiIdentifier,
         codeNonAsciiWhitespace,
@@ -590,6 +591,9 @@ class Parser {
     token = parseIdentifier(token.next, IdentifierContext.metadataReference);
     token =
         parseQualifiedRestOpt(token, IdentifierContext.metadataContinuation);
+    if (optional("<", token)) {
+      reportRecoverableErrorCode(token, codeMetadataTypeArguments);
+    }
     token = parseTypeArgumentsOpt(token);
     Token period = null;
     if (optional('.', token)) {

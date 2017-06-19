@@ -14,7 +14,7 @@ String forwardN(TokenScope scope, int N) {
   return scope.getNextName();
 }
 
-int main() {
+void main() {
   // Test a normal scope.
   TokenScope scope = new TokenScope();
 

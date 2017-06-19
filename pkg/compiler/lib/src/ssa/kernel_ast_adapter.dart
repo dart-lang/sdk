@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
@@ -13,10 +12,10 @@ import '../constants/values.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/jumps.dart';
 import '../elements/modelx.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
-import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../kernel/element_map.dart';
 import '../kernel/kernel.dart';
@@ -110,7 +109,7 @@ class KernelAstAdapter extends KernelToElementMapMixin
 
   /// Called to find the corresponding Kernel element for a particular Element
   /// before traversing over it with a Kernel visitor.
-  ir.Node getInitialKernelNode(MemberElement originTarget) {
+  ir.Node getMemberNode(MemberElement originTarget) {
     ir.Node target;
     if (originTarget.isPatch) {
       originTarget = originTarget.origin;
@@ -124,10 +123,10 @@ class KernelAstAdapter extends KernelToElementMapMixin
       // Closures require a lookup one level deeper in the closure class mapper.
       if (target == null) {
         MethodElement originTargetFunction = originTarget;
-        ClosureClassMap classMap = _compiler.closureToClassMapper
-            .getClosureToClassMapping(originTargetFunction);
-        if (classMap.closureElement != null) {
-          target = kernel.localFunctions[classMap.closureElement];
+        ClosureRepresentationInfo classMap = _compiler.closureDataLookup
+            .getClosureRepresentationInfo(originTargetFunction);
+        if (classMap.closureEntity != null) {
+          target = kernel.localFunctions[classMap.closureEntity];
         }
       }
     } else if (originTarget is FieldElement) {
@@ -138,10 +137,11 @@ class KernelAstAdapter extends KernelToElementMapMixin
   }
 
   @override
-  CommonElements get commonElements => _compiler.commonElements;
+  CommonElements get commonElements => _compiler.resolution.commonElements;
 
   @override
-  ElementEnvironment get elementEnvironment => _compiler.elementEnvironment;
+  ElementEnvironment get elementEnvironment =>
+      _compiler.resolution.elementEnvironment;
 
   MemberElement get currentMember => _resolvedAst.element;
 
@@ -239,35 +239,6 @@ class KernelAstAdapter extends KernelToElementMapMixin
     });
   }
 
-  js.Name getNameForJsGetName(ir.Node argument, ConstantValue constant) {
-    int index = _extractEnumIndexFromConstantValue(
-        constant, _compiler.commonElements.jsGetNameEnum);
-    if (index == null) return null;
-    return _backend.namer
-        .getNameForJsGetName(getNode(argument), JsGetName.values[index]);
-  }
-
-  js.Template getJsBuiltinTemplate(ConstantValue constant) {
-    int index = _extractEnumIndexFromConstantValue(
-        constant, _compiler.commonElements.jsBuiltinEnum);
-    if (index == null) return null;
-    return _backend.emitter.builtinTemplateFor(JsBuiltin.values[index]);
-  }
-
-  int _extractEnumIndexFromConstantValue(
-      ConstantValue constant, ClassEntity classElement) {
-    if (constant is ConstructedConstantValue) {
-      if (constant.type.element == classElement) {
-        assert(constant.fields.length == 1 || constant.fields.length == 2);
-        ConstantValue indexConstant = constant.fields.values.first;
-        if (indexConstant is IntConstantValue) {
-          return indexConstant.primitiveValue;
-        }
-      }
-    }
-    return null;
-  }
-
   DartType getDartType(ir.DartType type) {
     return _typeConverter.convert(type);
   }
@@ -321,6 +292,12 @@ class KernelAstAdapter extends KernelToElementMapMixin
   @override
   Spannable getSpannable(MemberEntity member, ir.Node node) {
     return getNode(node);
+  }
+
+  @override
+  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+      ClosureDataLookup closureLookup, ir.TreeNode node) {
+    return closureLookup.getClosureRepresentationInfoForLoop(getNode(node));
   }
 }
 
@@ -408,7 +385,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
   }
 }
 
-class KernelJumpTarget extends JumpTarget {
+class KernelJumpTarget extends JumpTarget<ast.Node> {
   static int index = 0;
 
   /// Pointer to the actual executable statements that a jump target refers to.

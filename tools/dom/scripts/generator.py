@@ -1467,13 +1467,13 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'MediaKeySystemConfiguration': TypeData(clazz='Primitive', dart_type='Map'),
     'DOMTimeStamp': TypeData(clazz='Primitive', dart_type='int', native_type='unsigned long long'),
     'object': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
-    'ObjectArray': TypeData(clazz='Primitive', dart_type='List'),
     'PositionOptions': TypeData(clazz='Primitive', dart_type='Object'),
     # TODO(sra): Come up with some meaningful name so that where this appears in
     # the documentation, the user is made aware that only a limited subset of
     # serializable types are actually permitted.
     'SerializedScriptValue': TypeData(clazz='Primitive', dart_type='dynamic'),
     'sequence': TypeData(clazz='Primitive', dart_type='List'),
+    'sequence<any>': TypeData(clazz='Primitive', dart_type='List'),
     'void': TypeData(clazz='Primitive', dart_type='void'),
 
     'CSSRule': TypeData(clazz='Interface', conversion_includes=['CSSImportRule']),
@@ -1610,7 +1610,8 @@ class TypeRegistry(object):
 
   def _TypeInfo(self, type_name):
     match = re.match(r'(?:sequence<([\w ]+)>|(\w+)\[\])$', type_name)
-    if match:
+    # sequence<any> should not be List<Object>
+    if match and match.group(1) != 'any':
       type_data = TypeData('Sequence')
       if self.HasTypeDef(match.group(1) or match.group(2)):
         # It's a typedef (union)

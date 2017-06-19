@@ -336,20 +336,20 @@ class InferrerEngine {
     refine();
 
     // Try to infer element types of lists and compute their escape information.
-    types.allocatedLists.values.forEach((ListTypeInformation info) {
+    types.allocatedLists.values.forEach((TypeInformation info) {
       analyzeListAndEnqueue(info);
     });
 
     // Try to infer the key and value types for maps and compute the values'
     // escape information.
-    types.allocatedMaps.values.forEach((MapTypeInformation info) {
+    types.allocatedMaps.values.forEach((TypeInformation info) {
       analyzeMapAndEnqueue(info);
     });
 
     Set<FunctionElement> bailedOutOn = new Set<FunctionElement>();
 
     // Trace closures to potentially infer argument types.
-    types.allocatedClosures.forEach((info) {
+    types.allocatedClosures.forEach((dynamic info) {
       void trace(
           Iterable<FunctionElement> elements, ClosureTracerVisitor tracer) {
         tracer.run();
@@ -434,13 +434,15 @@ class InferrerEngine {
     refine();
 
     if (debug.PRINT_SUMMARY) {
-      types.allocatedLists.values.forEach((ListTypeInformation info) {
+      types.allocatedLists.values.forEach((_info) {
+        ListTypeInformation info = _info;
         print('${info.type} '
             'for ${info.originalType.allocationNode} '
             'at ${info.originalType.allocationElement} '
             'after ${info.refineCount}');
       });
-      types.allocatedMaps.values.forEach((MapTypeInformation info) {
+      types.allocatedMaps.values.forEach((_info) {
+        MapTypeInformation info = _info;
         print('${info.type} '
             'for ${info.originalType.allocationNode} '
             'at ${info.originalType.allocationElement} '
@@ -553,7 +555,7 @@ class InferrerEngine {
       if (Elements.isStaticOrTopLevelField(element) &&
           resolvedAst.body != null &&
           !element.isConst) {
-        var argument = resolvedAst.body;
+        dynamic argument = resolvedAst.body;
         // TODO(13429): We could do better here by using the
         // constant handler to figure out if it's a lazy field or not.
         if (argument.asSend() != null ||
@@ -567,7 +569,7 @@ class InferrerEngine {
   }
 
   void processLoopInformation() {
-    types.allocatedCalls.forEach((info) {
+    types.allocatedCalls.forEach((dynamic info) {
       if (!info.inLoop) return;
       if (info is StaticCallSiteTypeInformation) {
         closedWorldRefiner
@@ -899,7 +901,8 @@ class InferrerEngine {
           arguments, sideEffects, inLoop);
     }
 
-    closedWorld.locateMembers(selector, mask).forEach((MemberElement callee) {
+    closedWorld.locateMembers(selector, mask).forEach((_callee) {
+      MemberElement callee = _callee;
       updateSideEffects(sideEffects, selector, callee);
     });
 
@@ -981,8 +984,8 @@ class InferrerEngine {
   Iterable<ResolvedAst> sortResolvedAsts() {
     int max = 0;
     Map<int, Setlet<ResolvedAst>> methodSizes = <int, Setlet<ResolvedAst>>{};
-    compiler.enqueuer.resolution.processedEntities
-        .forEach((MemberElement element) {
+    compiler.enqueuer.resolution.processedEntities.forEach((_element) {
+      MemberElement element = _element;
       ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;

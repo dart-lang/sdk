@@ -76,6 +76,7 @@ protobuf:third_party/pkg/protobuf/lib
 pub:third_party/pkg/pub/lib
 pub_semver:third_party/pkg/pub_semver/lib
 quiver:third_party/pkg/quiver/lib
+quiver_hashcode:third_party/pkg/quiver_hashcode/lib
 resource:third_party/pkg/resource/lib
 scheduled_test:third_party/pkg/scheduled_test/lib
 sdk_library_metadata:sdk/lib/_internal/sdk_library_metadata/lib
@@ -94,6 +95,7 @@ test:third_party/pkg/test/lib
 test_dart:tools/testing/dart
 testing:pkg/testing/lib
 test_reflective_loader:third_party/pkg/test_reflective_loader/lib
+tuple:third_party/pkg/tuple/lib
 typed_data:third_party/pkg/typed_data/lib
 typed_mock:pkg/typed_mock/lib
 unittest:third_party/pkg/unittest/lib

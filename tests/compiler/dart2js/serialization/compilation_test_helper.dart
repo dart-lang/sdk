@@ -34,7 +34,6 @@ main(List<String> args) {
           resolutionInputs: result.serializedData.toUris(),
           sourceFiles: result.serializedData.toMemorySourceFiles());
     } else {
-      Uri entryPoint = Uri.parse('memory:main.dart');
       await arguments.forEachTest(serializedData, TESTS, compile);
     }
     printMeasurementResults();

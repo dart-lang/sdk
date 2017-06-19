@@ -12,6 +12,7 @@ import 'package:compiler/src/options.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:package_config/discovery.dart';
+import 'package:compiler/src/elements/elements.dart';
 
 Future<String> resolve(List<Uri> inputs,
     {List<String> deps: const <String>[],
@@ -52,7 +53,7 @@ Future<String> resolve(List<Uri> inputs,
   await compiler.setupSdk();
   await compiler.setupPackages(inputs.first);
 
-  var librariesToSerialize = [];
+  var librariesToSerialize = <LibraryElement>[];
   for (var uri in inputs) {
     var library = await compiler.analyzeUri(uri);
     if (library != null) {

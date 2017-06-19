@@ -188,20 +188,29 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<T> interfaces,
       int charOffset);
 
-  void addField(List<MetadataBuilder> metadata, int modifiers, T type,
-      String name, int charOffset, Token initializer);
+  void addField(
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      T type,
+      String name,
+      int charOffset,
+      Token initializerTokenForInference,
+      bool hasInitializer);
 
   void addFields(List<MetadataBuilder> metadata, int modifiers, T type,
       List<Object> fieldsInfo) {
     for (int i = 0; i < fieldsInfo.length; i += 4) {
       String name = fieldsInfo[i];
       int charOffset = fieldsInfo[i + 1];
-      Token initializer = fieldsInfo[i + 2];
-      if (initializer != null) {
+      bool hasInitializer = fieldsInfo[i + 2] != null;
+      Token initializerTokenForInference =
+          type == null ? fieldsInfo[i + 2] : null;
+      if (initializerTokenForInference != null) {
         Token beforeLast = fieldsInfo[i + 3];
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
-      addField(metadata, modifiers, type, name, charOffset, initializer);
+      addField(metadata, modifiers, type, name, charOffset,
+          initializerTokenForInference, hasInitializer);
     }
   }
 

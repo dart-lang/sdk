@@ -71,7 +71,7 @@ class MetricGraphElement extends HtmlElement implements Renderable {
 
     var message = 'current: $current';
     if (min != null) {
-      message = 'min: $min, ' + message;
+      message = 'min: $min, $message';
     }
     if (max != null) {
       message = message + ', max: $max';

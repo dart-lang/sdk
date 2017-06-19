@@ -24,11 +24,11 @@ void main() {
 
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
-    var lib1 = lookupLibrary("memory:lib1.dart");
+    dynamic lib1 = lookupLibrary("memory:lib1.dart");
     var inlineMeAway = lib1.find("inlineMeAway");
     var ou_lib1 = outputUnitForElement(inlineMeAway);
 
-    var lib3 = lookupLibrary("memory:lib3.dart");
+    dynamic lib3 = lookupLibrary("memory:lib3.dart");
     var sameContextInline = lib3.find("sameContextInline");
     var ou_lib3 = outputUnitForElement(sameContextInline);
 

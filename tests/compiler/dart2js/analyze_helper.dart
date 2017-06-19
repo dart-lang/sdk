@@ -39,18 +39,19 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   bool lastWasWhitelisted = false;
   bool showWhitelisted = true;
 
-  Map<String, Map<dynamic /*String|MessageKind*/, int>> whiteListMap =
-      new Map<String, Map<dynamic /*String|MessageKind*/, int>>();
+  Map<String, Map<dynamic /* String|MessageKind */, int>> whiteListMap =
+      new Map<String, Map<dynamic /* String|MessageKind */, int>>();
   List<MessageKind> skipList;
   List<CollectedMessage> collectedMessages = <CollectedMessage>[];
 
   CollectingDiagnosticHandler(
-      Map<String, List/*<String|MessageKind>*/ > whiteList,
+      Map<String, List /* <String|MessageKind> */ > whiteList,
       this.skipList,
       SourceFileProvider provider)
       : super(provider) {
-    whiteList.forEach((String file, List/*<String|MessageKind>*/ messageParts) {
-      var useMap = new Map<dynamic /*String|MessageKind*/, int>();
+    whiteList
+        .forEach((String file, List /* <String|MessageKind> */ messageParts) {
+      var useMap = new Map<dynamic /* String|MessageKind */, int>();
       for (var messagePart in messageParts) {
         useMap[messagePart] = 0;
       }
@@ -202,7 +203,7 @@ enum AnalysisMode {
 /// Messages can be generally allowed using [skipList] or on a per-file basis
 /// using [whiteList].
 Future analyze(
-    List<Uri> uriList, Map<String, List/*<String|MessageKind>*/ > whiteList,
+    List<Uri> uriList, Map<String, List /* <String|MessageKind> */ > whiteList,
     {AnalysisMode mode: AnalysisMode.ALL,
     CheckResults checkResults,
     List<String> options: const <String>[],

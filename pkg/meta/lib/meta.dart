@@ -18,6 +18,36 @@
 /// in the language tour.
 library meta;
 
+/// Used to annotate a function `f`. Indicates that `f` always throws an
+/// exception. Any functions that override `f`, in class inheritence, are also
+/// expected to conform to this contract.
+///
+/// Tools, such as the analyzer, can use this to understand whether a block of
+/// code "exits". For example:
+///
+/// ```dart
+/// @alwaysThrows toss() { throw 'Thrown'; }
+///
+/// int fn(bool b) {
+///   if (b) {
+///     return 0;
+///   } else {
+///     toss();
+///     print("Hello.");
+///   }
+/// }
+/// ```
+///
+/// Without the annotation on `toss`, it would look as though `fn` doesn't
+/// always return a value. The annotation shows that `fn` does always exit. In
+/// addition, the annotation reveals that any statements following a call to
+/// `toss` (like the `print` call) are dead code.
+///
+/// Tools, such as the analyzer, can also expect this contract to be enforced;
+/// that is, tools may emit warnings if a function with this annotation
+/// _doesn't_ always throw.
+const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
+
 /// Used to annotate a parameter of an instance method that overrides another
 /// method.
 ///
@@ -193,6 +223,10 @@ class Required {
 
   /// Initialize a newly created instance to have the given [reason].
   const Required([this.reason]);
+}
+
+class _AlwaysThrows {
+  const _AlwaysThrows();
 }
 
 class _Checked {

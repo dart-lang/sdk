@@ -6,7 +6,6 @@
 
 library output_collector;
 
-import 'dart:async';
 import 'package:compiler/compiler_new.dart';
 
 class BufferedOutputSink implements OutputSink {

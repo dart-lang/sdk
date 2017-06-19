@@ -86,7 +86,6 @@ Future runTests(Process process) {
 }
 
 void main() {
-  var tmpDir;
   asyncTest(() {
     return setup().then(launchDart2Js).then(runTests).whenComplete(cleanUp);
   });

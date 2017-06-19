@@ -9,10 +9,8 @@ import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/apiimpl.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/null_compiler_output.dart' show NullSink;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/helpers/helpers.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/code_output.dart';
 import 'package:compiler/src/io/source_file.dart';
@@ -23,7 +21,6 @@ import 'package:compiler/src/js/js_debug.dart';
 import 'package:compiler/src/js/js_source_mapping.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/source_file_provider.dart';
-import 'package:kernel/ast.dart' show Location;
 import '../memory_compiler.dart';
 import '../output_collector.dart';
 
@@ -325,7 +322,7 @@ class SourceMapProcessor {
           ..addAll(options));
 
     JavaScriptBackend backend = compiler.backend;
-    var handler = compiler.handler;
+    dynamic handler = compiler.handler;
     SourceFileProvider sourceFileProvider = handler.provider;
     sourceFileManager =
         new ProviderSourceFileManager(sourceFileProvider, outputProvider);
@@ -339,8 +336,8 @@ class SourceMapProcessor {
     Map<Element, SourceMapInfo> elementSourceMapInfos =
         <Element, SourceMapInfo>{};
     if (perElement) {
-      backend.generatedCode
-          .forEach((MemberElement element, js.Expression node) {
+      backend.generatedCode.forEach((_element, js.Expression node) {
+        MemberElement element = _element;
         RecordedSourceInformationProcess subProcess =
             strategy.subProcessForNode(node);
         if (subProcess == null) {

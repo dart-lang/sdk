@@ -344,10 +344,11 @@ class MyCompiler extends CompilerImpl {
       selfTask.measureSubtask('KernelCompiler.compileLoadedLibraries', () {
         ResolutionEnqueuer resolutionEnqueuer = startResolution();
         WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-        mainFunction = frontendStrategy.computeMain(rootLibrary, mainImpact);
-        mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
+        var mainFunction =
+            frontendStrategy.computeMain(rootLibrary, mainImpact);
+        mirrorUsageAnalyzerTask.analyzeUsage(rootLibrary);
 
-        deferredLoadTask.beforeResolution(this);
+        deferredLoadTask.beforeResolution(rootLibrary);
         impactStrategy = backend.createImpactStrategy(
             supportDeferredLoad: deferredLoadTask.isProgramSplit,
             supportDumpInfo: options.dumpInfo,
@@ -361,11 +362,12 @@ class MyCompiler extends CompilerImpl {
           resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
         });
 
-        if (commonElements.mirrorsLibrary != null) {
+        if (frontendStrategy.commonElements.mirrorsLibrary != null) {
           resolveLibraryMetadata();
         }
         reporter.log('Resolving...');
-        processQueue(resolutionEnqueuer, mainFunction, libraryLoader.libraries);
+        processQueue(frontendStrategy.elementEnvironment, resolutionEnqueuer,
+            mainFunction, libraryLoader.libraries);
         resolutionEnqueuer.logSummary(reporter.log);
 
         (reporter as CompilerDiagnosticReporter)
@@ -378,7 +380,7 @@ class MyCompiler extends CompilerImpl {
         }
 
         backend.onResolutionEnd();
-        closeResolution();
+        closeResolution(mainFunction);
         var program = (backend as dynamic).kernelTask.program;
         print('total libraries: ${program.libraries.length}');
       });

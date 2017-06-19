@@ -21,7 +21,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
       BackendUsageBuilder backendUsageBuilder,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(
-            backend.compiler.elementEnvironment,
+            _resolution.elementEnvironment,
             _resolution.commonElements,
             backend.constantSystem,
             nativeBasicData,
@@ -63,8 +63,8 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
 
     _instantiationInfo.forEach((cls, info) {
       if (info.instantiationMap != null) {
-        info.instantiationMap
-            .forEach((ConstructorElement constructor, Set<Instance> set) {
+        info.instantiationMap.forEach((_constructor, Set<Instance> set) {
+          ConstructorElement constructor = _constructor;
           for (Instance instance in set) {
             if (instance.isRedirection) {
               continue;
@@ -173,6 +173,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
         populateHierarchyNodes();
     _closed = true;
     return _closedWorldCache = new ClosedWorldImpl(
+        elementEnvironment: _elementEnvironment,
         commonElements: _commonElements,
         constantSystem: _constantSystem,
         nativeData: _nativeDataBuilder.close(),

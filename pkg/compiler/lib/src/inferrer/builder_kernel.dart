@@ -68,7 +68,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       Compiler compiler, InferrerEngine inferrer,
       [LocalsHandler handler]) {
     var adapter = _createKernelAdapter(compiler, resolvedAst);
-    var node = adapter.getInitialKernelNode(element);
+    var node = adapter.getMemberNode(element);
     return new KernelTypeGraphBuilder.internal(
         element,
         resolvedAst,
@@ -103,8 +103,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ClosureClassMap closureData = compiler.closureToClassMapper
-        .getClosureToClassMapping(resolvedAst.element);
+    ClosureRepresentationInfo closureData = compiler.closureDataLookup
+        .getClosureRepresentationInfo(resolvedAst.element);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);
     });

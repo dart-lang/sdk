@@ -34,6 +34,7 @@ testExamples(MessageKind kind) async {
         .isTrue(collector.errors.any((message) => message.messageKind == kind));
     Compiler compiler = result.compiler;
     JavaScriptBackend backend = compiler.backend;
-    Expect.isNotNull(backend.generatedCode[compiler.mainFunction]);
+    Expect.isNotNull(backend.generatedCode[
+        compiler.frontendStrategy.elementEnvironment.mainFunction]);
   }
 }

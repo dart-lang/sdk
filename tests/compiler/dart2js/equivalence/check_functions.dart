@@ -624,12 +624,14 @@ bool areAbstractUsagesEquivalent(AbstractUsage usage1, AbstractUsage usage2) {
   return usage1.hasSameUsage(usage2);
 }
 
+bool _areEntitiesEquivalent(a, b) => areElementsEquivalent(a, b);
+
 void checkResolutionEnqueuers(
     BackendUsage backendUsage1,
     BackendUsage backendUsage2,
     ResolutionEnqueuer enqueuer1,
     ResolutionEnqueuer enqueuer2,
-    {bool elementEquivalence(Entity a, Entity b): areElementsEquivalent,
+    {bool elementEquivalence(Entity a, Entity b): _areEntitiesEquivalent,
     bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
     bool elementFilter(Element element),
     bool verbose: false,
@@ -720,7 +722,7 @@ void checkResolutionEnqueuers(
 }
 
 void checkCodegenEnqueuers(CodegenEnqueuer enqueuer1, CodegenEnqueuer enqueuer2,
-    {bool elementEquivalence(Entity a, Entity b): areElementsEquivalent,
+    {bool elementEquivalence(Entity a, Entity b): _areEntitiesEquivalent,
     bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
     bool elementFilter(Element element),
     bool verbose: false}) {

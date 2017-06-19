@@ -36,4 +36,10 @@ abstract class ModifierBuilder extends Builder {
   bool get isNamedMixinApplication {
     return (modifiers & namedMixinApplicationMask) != 0;
   }
+
+  bool get isClassMember => false;
+
+  String get name;
+
+  bool get isNative => false;
 }

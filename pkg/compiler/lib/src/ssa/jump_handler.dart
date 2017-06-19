@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../elements/elements.dart';
+import '../elements/jumps.dart';
 import '../tree/tree.dart' as ast;
 
 import 'graph_builder.dart';

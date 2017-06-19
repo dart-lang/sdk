@@ -151,7 +151,7 @@ compileAndTest(source, checker, {createCode: false}) async {
   if (!createCode) {
     checker(commonMasks, getType, closedWorld);
   } else {
-    var element = compiler.mainFunction;
+    var element = compiler.frontendStrategy.elementEnvironment.mainFunction;
     var code = compiler.backend.getGeneratedCode(element);
     checker(code);
   }

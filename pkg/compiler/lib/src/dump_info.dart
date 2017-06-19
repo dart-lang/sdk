@@ -32,7 +32,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   final ClosedWorld closedWorld;
 
   final AllInfo result = new AllInfo();
-  final Map<Element, Info> _elementToInfo = <Element, Info>{};
+  final Map<Entity, Info> _elementToInfo = <Entity, Info>{};
   final Map<ConstantValue, Info> _constantToInfo = <ConstantValue, Info>{};
   final Map<OutputUnit, OutputUnitInfo> _outputToInfo = {};
 
@@ -65,7 +65,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   }
 
   /// Visits [element] and produces it's corresponding info.
-  Info process(Element element) {
+  Info process(Entity element) {
     // TODO(sigmund): change the visit order to eliminate the need to check
     // whether or not an element has been processed.
     return _elementToInfo.putIfAbsent(element, () => visit(element));
@@ -214,11 +214,11 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
         size: compiler.dumpInfoTask.sizeOf(element));
     _elementToInfo[element] = closureInfo;
 
-    ClosureClassMap closureMap = compiler.closureToClassMapper
-        .getClosureToClassMapping(element.methodElement);
-    assert(closureMap != null && closureMap.closureClassElement == element);
+    ClosureRepresentationInfo closureRepresentation = compiler.closureDataLookup
+        .getClosureRepresentationInfo(element.methodElement);
+    assert(closureRepresentation.closureClassEntity == element);
 
-    FunctionInfo functionInfo = this.process(closureMap.callElement);
+    FunctionInfo functionInfo = this.process(closureRepresentation.callMethod);
     if (functionInfo == null) return null;
     closureInfo.function = functionInfo;
     functionInfo.parent = closureInfo;
@@ -553,7 +553,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     AllInfo result = infoCollector.result;
 
     // Recursively build links to function uses
-    Iterable<Element> functionElements =
+    Iterable<Entity> functionElements =
         infoCollector._elementToInfo.keys.where((k) => k is FunctionElement);
     for (FunctionElement element in functionElements) {
       FunctionInfo info = infoCollector._elementToInfo[element];
@@ -568,7 +568,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
 
     // Recursively build links to field uses
-    Iterable<Element> fieldElements =
+    Iterable<Entity> fieldElements =
         infoCollector._elementToInfo.keys.where((k) => k is FieldElement);
     for (FieldElement element in fieldElements) {
       FieldInfo info = infoCollector._elementToInfo[element];
@@ -598,7 +598,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();
     stopwatch.stop();
     result.program = new ProgramInfo(
-        entrypoint: infoCollector._elementToInfo[compiler.mainFunction],
+        entrypoint: infoCollector
+            ._elementToInfo[closedWorld.elementEnvironment.mainFunction],
         size: _programSize,
         dart2jsVersion:
             compiler.options.hasBuildId ? compiler.options.buildId : null,

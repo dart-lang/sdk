@@ -1,0 +1,34 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic x = null;
+  field core::int y = 2;
+  field core::String z = "hi";
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object implements self::A {
+  field dynamic x = 2;
+  field core::int y = 3;
+  field core::String z = null;
+  field core::int w = 2;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method foo() → dynamic {
+  core::String s;
+  core::int i;
+  s = new self::B::•().{self::B::x};
+  s = new self::B::•().{self::B::y};
+  s = new self::B::•().{self::B::z};
+  s = new self::B::•().{self::B::w};
+  i = new self::B::•().{self::B::x};
+  i = new self::B::•().{self::B::y};
+  i = new self::B::•().{self::B::z};
+  i = new self::B::•().{self::B::w};
+}
+static method main() → dynamic {}

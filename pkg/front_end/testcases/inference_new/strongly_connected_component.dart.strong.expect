@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field dynamic x = () → dynamic => self::f() ? self::y : self::z;
+static field dynamic y = () → dynamic => self::x;
+static field () → dynamic z = () → dynamic => self::x;
+static method f() → core::bool
+  return null;
+static method main() → dynamic {}

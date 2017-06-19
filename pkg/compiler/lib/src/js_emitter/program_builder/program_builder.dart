@@ -7,7 +7,7 @@ library dart2js.js_emitter.program_builder;
 import 'dart:io';
 import 'dart:convert' show JSON;
 
-import '../../closure.dart' show ClosureTask, ClosureFieldElement;
+import '../../closure.dart' show ClosureConversionTask, ClosureFieldElement;
 import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
@@ -58,7 +58,6 @@ import '../js_emitter.dart'
     show
         ClassStubGenerator,
         CodeEmitterTask,
-        computeMixinClass,
         Emitter,
         InterceptorStubGenerator,
         MainCallStubGenerator,
@@ -81,7 +80,7 @@ class ProgramBuilder {
   final CommonElements _commonElements;
   final DartTypes _types;
   final DeferredLoadTask _deferredLoadTask;
-  final ClosureTask _closureToClassMapper;
+  final ClosureConversionTask _closureDataLookup;
   final CodegenWorldBuilder _worldBuilder;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final BackendUsage _backendUsage;
@@ -124,7 +123,7 @@ class ProgramBuilder {
       this._commonElements,
       this._types,
       this._deferredLoadTask,
-      this._closureToClassMapper,
+      this._closureDataLookup,
       this._worldBuilder,
       this._nativeCodegenEnqueuer,
       this._backendUsage,
@@ -196,6 +195,8 @@ class ProgramBuilder {
   /// interceptors, ...).
   Set<ClassElement> _notSoftDeferred;
 
+  Sorter get _sorter => _task.sorter;
+
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
     collector.collect();
     _initializeSoftDeferredMap();
@@ -234,8 +235,15 @@ class ProgramBuilder {
                 "${superclass} of $c."));
       }
       if (c is MixinApplication) {
-        c.setMixinClass(_classes[computeMixinClass(cls)]);
-        assert(c.mixinClass != null);
+        ClassEntity effectiveMixinClass =
+            _elementEnvironment.getEffectiveMixinClass(cls);
+        c.setMixinClass(_classes[effectiveMixinClass]);
+        assert(
+            c.mixinClass != null,
+            failedAt(
+                cls,
+                "No class for effective mixin ${effectiveMixinClass} on "
+                "$cls."));
       }
     });
 
@@ -327,7 +335,7 @@ class ProgramBuilder {
       void collect(ClassElement element) {
         allocatedClasses.add(element);
         if (element.isMixinApplication) {
-          collect(computeMixinClass(element));
+          collect(_elementEnvironment.getEffectiveMixinClass(element));
         }
         if (element.superclass != null) {
           collect(element.superclass);
@@ -337,7 +345,7 @@ class ProgramBuilder {
       // For every known class, see if it was allocated in the profile. If yes,
       // collect its dependencies (supers and mixins) and mark them as
       // not-soft-deferrable.
-      collector.outputClassLists.forEach((_, List<ClassElement> elements) {
+      collector.outputClassLists.forEach((_, List<ClassEntity> elements) {
         for (ClassElement element in elements) {
           // TODO(29574): share the encoding of the element with the code
           // that emits the profile-run.
@@ -432,9 +440,9 @@ class ProgramBuilder {
     return staticNonFinalFields.map(_buildStaticField).toList(growable: false);
   }
 
-  StaticField _buildStaticField(FieldElement element) {
+  StaticField _buildStaticField(FieldEntity element) {
     ConstantValue initialValue =
-        _constantHandler.getConstantValue(element.constant);
+        _worldBuilder.getConstantFieldInitializer(element);
     // TODO(zarah): The holder should not be registered during building of
     // a static field.
     _registry.registerHolder(_namer.globalObjectForConstant(initialValue),
@@ -454,19 +462,19 @@ class ProgramBuilder {
 
   List<StaticField> _buildStaticLazilyInitializedFields(
       LibrariesMap librariesMap) {
-    Iterable<FieldElement> lazyFields = _constantHandler
+    Iterable<FieldEntity> lazyFields = _constantHandler
         .getLazilyInitializedFieldsForEmission()
-        .where((element) =>
-            _deferredLoadTask.outputUnitForElement(element) ==
+        .where((FieldEntity element) =>
+            _deferredLoadTask.outputUnitForMember(element) ==
             librariesMap.outputUnit);
-    return Elements
-        .sortedByPosition(lazyFields)
+    return _sorter
+        .sortMembers(lazyFields)
         .map(_buildLazyField)
         .where((field) => field != null) // Happens when the field was unused.
         .toList(growable: false);
   }
 
-  StaticField _buildLazyField(FieldElement element) {
+  StaticField _buildLazyField(FieldEntity element) {
     js.Expression code = _generatedCode[element];
     // The code is null if we ended up not needing the lazily
     // initialized field after all because of constant folding
@@ -474,7 +482,7 @@ class ProgramBuilder {
     if (code == null) return null;
 
     js.Name name = _namer.globalPropertyNameForMember(element);
-    bool isFinal = element.isFinal;
+    bool isFinal = !element.isAssignable;
     bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a static field. (Note that the static-state holder was
@@ -519,7 +527,8 @@ class ProgramBuilder {
         if (_nativeData.isJsInteropClass(cls)) {
           // TODO(johnniwinther): Handle class entities.
           ClassElement e = cls;
-          e.declaration.forEachMember((_, MemberElement member) {
+          e.declaration.forEachMember((_, _member) {
+            MemberElement member = _member;
             var jsName = _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
@@ -685,7 +694,7 @@ class ProgramBuilder {
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
         _commonElements,
-        _closureToClassMapper,
+        _closureDataLookup,
         _task,
         _namer,
         _nativeData,
@@ -743,7 +752,7 @@ class ProgramBuilder {
 
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
-    if (!onlyForRti && !_elementEnvironment.isUnnamedMixinApplication(cls)) {
+    if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
       _elementEnvironment.forEachClassMember(cls, visitMember);
       if (cls is ClassElement) {
         // TODO(johnniwinther): Support constructor bodies for entities.
@@ -802,7 +811,7 @@ class ProgramBuilder {
         _worldBuilder.directlyInstantiatedClasses.contains(cls);
 
     Class result;
-    if (_elementEnvironment.isUnnamedMixinApplication(cls) && !onlyForRti) {
+    if (_elementEnvironment.isMixinApplication(cls) && !onlyForRti) {
       assert(!_nativeData.isNativeClass(cls));
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);
@@ -861,14 +870,16 @@ class ProgramBuilder {
     var /* Map | List */ optionalParameterDefaultValues;
     if (signature.optionalParametersAreNamed) {
       optionalParameterDefaultValues = new Map<String, ConstantValue>();
-      signature.forEachOptionalParameter((ParameterElement parameter) {
+      signature.forEachOptionalParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         ConstantValue def =
             _constantHandler.getConstantValue(parameter.constant);
         optionalParameterDefaultValues[parameter.name] = def;
       });
     } else {
       optionalParameterDefaultValues = <ConstantValue>[];
-      signature.forEachOptionalParameter((ParameterElement parameter) {
+      signature.forEachOptionalParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         ConstantValue def =
             _constantHandler.getConstantValue(parameter.constant);
         optionalParameterDefaultValues.add(def);
@@ -974,7 +985,6 @@ class ProgramBuilder {
     ParameterStubGenerator generator = new ParameterStubGenerator(
         _commonElements,
         _task,
-        _constantHandler,
         _namer,
         _nativeData,
         _interceptorData,
@@ -999,7 +1009,7 @@ class ProgramBuilder {
     Iterable<js.Name> names =
         _oneShotInterceptorData.specializedGetInterceptorNames;
     for (js.Name name in names) {
-      for (ClassElement element
+      for (ClassEntity element
           in _oneShotInterceptorData.getSpecializedGetInterceptorsFor(name)) {
         Class cls = _classes[element];
         if (cls != null) cls.isEager = true;

@@ -113,7 +113,7 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
           messageFound,
           '${template.kind}} does not match any in\n '
           '${messages.join('\n ')}');
-      var reporter = compiler.reporter;
+      dynamic reporter = compiler.reporter;
       Expect.isFalse(reporter.hasCrashed);
       if (!unexpectedMessages.isEmpty) {
         for (CollectedMessage message in unexpectedMessages) {

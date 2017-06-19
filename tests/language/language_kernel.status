@@ -104,8 +104,6 @@ const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map du
 map_literal3_test: RuntimeError # KernelVM bug: Constant map duplicated key.
 map_literal6_test: RuntimeError # KernelVM bug: Constant map duplicated key.
 
-const_evaluation_test/01: RuntimeError # KernelVM bug: Reflecting on metadata.
-
 cyclic_type_test/00: RuntimeError # KernelVM bug: Incorrect type argument.
 cyclic_type_test/01: RuntimeError # KernelVM bug: Incorrect type argument.
 cyclic_type_test/03: RuntimeError # KernelVM bug: Incorrect type argument.
@@ -118,8 +116,6 @@ for_variable_capture_test: RuntimeError # KernelVM bug: Closure conversion?
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
-
-large_class_declaration_test: SkipSlow  # KernelVM bug: KernelVM Issue 28312
 
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
@@ -134,8 +130,6 @@ mixin_type_parameters_super_test: RuntimeError # KernelVM bug: Issue 29537
 
 evaluation_redirecting_constructor_test: RuntimeError # KernelVM bug: Field initializers evaluated multiple times
 redirecting_constructor_initializer_test: RuntimeError # KernelVM bug: Field initializers evaluated multiple times
-
-vm/regress_27671_test: RuntimeError # KernelVM bug: Problem with checked mode or other VMOptions?
 
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
@@ -177,7 +171,7 @@ regress_20394_test/01: MissingCompileTimeError # Fasta bug: Illegal access to pr
 
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
 
-malformed_test/none: RuntimeError
+malformed_test/none: RuntimeError # Fasta bug: Leads to assertion error in Fasta.
 
 export_double_same_main_test: CompileTimeError # Fasta bug: Main is exported.
 export_main_test: CompileTimeError # Fasta bug: Main is exported.
@@ -185,9 +179,6 @@ export_main_test: CompileTimeError # Fasta bug: Main is exported.
 const_constructor_nonconst_field_test/01: MissingCompileTimeError # Fasta bug: Non-const expression in field initializer.
 
 method_name_test: CompileTimeError # Fasta bug: Parser bug.
-
-generic_metadata_test/02: MissingCompileTimeError # Fasta bug: Type arguments aren't allowed on metadata?!
-generic_metadata_test/03: MissingCompileTimeError # Fasta bug: Type arguments aren't allowed on metadata?!
 
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 
@@ -231,7 +222,6 @@ const_syntax_test/08: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
 disassemble_test: Pass, Crash  # Multitest via multiple VMOptions! Hits assert "kind() != RawScript::kKernelTag". Issue 28790
 hello_dart_test: Crash
-instance_creation_in_function_annotation_test: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
 redirecting_factory_reflection_test: Crash
 redirecting_factory_reflection_test: RuntimeError

@@ -4,8 +4,6 @@
 
 library dart2js.js_emitter;
 
-import '../elements/elements.dart' show ClassElement, MixinApplicationElement;
-
 export 'class_stub_generator.dart';
 export 'code_emitter_task.dart';
 export 'interceptor_stub_generator.dart';
@@ -16,5 +14,3 @@ export 'native_generator.dart';
 export 'parameter_stub_generator.dart';
 export 'runtime_type_generator.dart';
 export 'type_test_registry.dart';
-
-part 'helpers.dart';

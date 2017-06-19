@@ -19,6 +19,7 @@ import '../diagnostics/messages.dart' show Message, MessageTemplate;
 import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/jumps.dart';
 import '../elements/modelx.dart' show ConstructorBodyElementX;
 import '../elements/names.dart';
 import '../elements/operators.dart';
@@ -53,85 +54,53 @@ import 'ssa_branch_builder.dart';
 import 'type_builder.dart';
 import 'types.dart';
 
-abstract class SsaAstBuilderBase extends CompilerTask
-    implements SsaBuilderTask {
+abstract class SsaAstBuilderBase extends SsaBuilderFieldMixin
+    implements SsaBuilder {
+  final CompilerTask task;
   final JavaScriptBackend backend;
 
-  SsaAstBuilderBase(this.backend) : super(backend.compiler.measurer);
+  SsaAstBuilderBase(this.task, this.backend);
 
-  /// Handle field initializer of `work.element`. Returns `true` if no code
-  /// is needed for the field.
-  ///
-  /// If `work.element` is a field with a constant initializer, the value is
-  /// registered with the world impact. Otherwise the cyclic-throw helper is
-  /// registered for the lazy value computation.
-  ///
-  /// If the field is constant, no code is needed for the field and the method
-  /// return `true`.
-  bool handleConstantField(
-      ElementCodegenWorkItem work, ClosedWorld closedWorld) {
-    MemberElement element = work.element;
-    if (element.isField) {
-      FieldElement field = element;
-      ConstantExpression constant = field.constant;
-      if (constant != null) {
-        ConstantValue initialValue =
-            backend.constants.getConstantValue(constant);
-        if (initialValue != null) {
-          work.registry.worldImpact
-              .registerConstantUse(new ConstantUse.init(initialValue));
-          // We don't need to generate code for static or top-level
-          // variables. For instance variables, we may need to generate
-          // the checked setter.
-          if (field.isStatic || field.isTopLevel) {
-            /// No code is created for this field.
-            return true;
-          }
-        } else {
-          assert(
-              field.isInstanceMember ||
-                  constant.isImplicit ||
-                  constant.isPotential,
-              failedAt(
-                  field,
-                  "Constant expression without value: "
-                  "${constant.toStructuredText()}."));
-        }
-      } else {
-        // If the constant-handler was not able to produce a result we have to
-        // go through the builder (below) to generate the lazy initializer for
-        // the static variable.
-        // We also need to register the use of the cyclic-error helper.
-        work.registry.worldImpact.registerStaticUse(new StaticUse.staticInvoke(
-            closedWorld.commonElements.cyclicThrowHelper,
-            CallStructure.ONE_ARG));
+  ConstantValue getFieldInitialConstantValue(FieldElement field) {
+    ConstantExpression constant = field.constant;
+    if (constant != null) {
+      ConstantValue initialValue = backend.constants.getConstantValue(constant);
+      if (initialValue == null) {
+        assert(
+            field.isInstanceMember ||
+                constant.isImplicit ||
+                constant.isPotential,
+            failedAt(
+                field,
+                "Constant expression without value: "
+                "${constant.toStructuredText()}."));
       }
+      return initialValue;
     }
-    return false;
+    return null;
   }
 }
 
-class SsaAstBuilderTask extends SsaAstBuilderBase {
+class SsaAstBuilder extends SsaAstBuilderBase {
   final CodeEmitterTask emitter;
   final SourceInformationStrategy sourceInformationFactory;
 
-  String get name => 'SSA builder';
-
-  SsaAstBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
+  SsaAstBuilder(CompilerTask task, JavaScriptBackend backend,
+      this.sourceInformationFactory)
       : emitter = backend.emitter,
-        super(backend);
+        super(task, backend);
 
   DiagnosticReporter get reporter => backend.reporter;
 
   HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
-    return measure(() {
-      if (handleConstantField(work, closedWorld)) {
+    return task.measure(() {
+      if (handleConstantField(work.element, work.registry, closedWorld)) {
         // No code is generated for `work.element`.
         return null;
       }
       MemberElement element = work.element.implementation;
       return reporter.withCurrentElement(element, () {
-        SsaBuilder builder = new SsaBuilder(
+        SsaAstGraphBuilder builder = new SsaAstGraphBuilder(
             work.element.implementation,
             work.resolvedAst,
             work.registry,
@@ -146,7 +115,8 @@ class SsaAstBuilderTask extends SsaAstBuilderBase {
         if (!identical(element.kind, ElementKind.FIELD)) {
           MethodElement function = element;
           FunctionSignature signature = function.functionSignature;
-          signature.forEachOptionalParameter((ParameterElement parameter) {
+          signature.forEachOptionalParameter((_parameter) {
+            ParameterElement parameter = _parameter;
             // This ensures the default value will be computed.
             ConstantValue constant =
                 backend.constants.getConstantValue(parameter.constant);
@@ -177,7 +147,7 @@ class SsaAstBuilderTask extends SsaAstBuilderBase {
 /**
  * This class builds SSA nodes for functions represented in AST.
  */
-class SsaBuilder extends ast.Visitor
+class SsaAstGraphBuilder extends ast.Visitor
     with
         BaseImplementationOfCompoundsMixin,
         BaseImplementationOfSetIfNullsMixin,
@@ -256,7 +226,7 @@ class SsaBuilder extends ast.Visitor
   TypeBuilder typeBuilder;
 
   // TODO(sigmund): make most args optional
-  SsaBuilder(
+  SsaAstGraphBuilder(
       this.target,
       this.resolvedAst,
       this.registry,
@@ -866,7 +836,8 @@ class SsaBuilder extends ast.Visitor
     assert(resolvedAst != null);
     localsHandler = new LocalsHandler(this, function, function.memberContext,
         function.contextClass, instanceType, nativeData, interceptorData);
-    localsHandler.closureData = closureToClassMapper.getMemberMap(function);
+    localsHandler.closureData =
+        closureDataLookup.getClosureRepresentationInfo(function);
     returnLocal =
         new SyntheticLocal("result", function, function.memberContext);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(closedWorld));
@@ -880,7 +851,8 @@ class SsaBuilder extends ast.Visitor
     }
 
     FunctionSignature signature = function.functionSignature;
-    signature.orderedForEachParameter((ParameterElement parameter) {
+    signature.orderedForEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
       HInstruction argument = compiledArguments[argumentIndex++];
       localsHandler.updateLocal(parameter, argument);
     });
@@ -888,8 +860,8 @@ class SsaBuilder extends ast.Visitor
     ClassElement enclosing = function.enclosingClass;
     if ((function.isConstructor || function.isGenerativeConstructorBody) &&
         rtiNeed.classNeedsRti(enclosing)) {
-      enclosing.typeVariables
-          .forEach((ResolutionTypeVariableType typeVariable) {
+      enclosing.typeVariables.forEach((_typeVariable) {
+        ResolutionTypeVariableType typeVariable = _typeVariable;
         HInstruction argument = compiledArguments[argumentIndex++];
         localsHandler.updateLocal(
             localsHandler.getTypeVariableAsLocal(typeVariable), argument);
@@ -1012,7 +984,8 @@ class SsaBuilder extends ast.Visitor
 
       int index = 0;
       FunctionSignature params = callee.functionSignature;
-      params.orderedForEachParameter((ParameterElement parameter) {
+      params.orderedForEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         HInstruction argument = compiledArguments[index++];
         // Because we are inlining the initializer, we must update
         // what was given as parameter. This will be used in case
@@ -1032,18 +1005,14 @@ class SsaBuilder extends ast.Visitor
       resolvedAst = callee.resolvedAst;
       final oldElementInferenceResults = elementInferenceResults;
       elementInferenceResults = globalInferenceResults.resultOfMember(callee);
-      ClosureClassMap oldClosureData = localsHandler.closureData;
-      ClosureClassMap newClosureData =
-          closureToClassMapper.getMemberMap(callee);
+      ClosureRepresentationInfo oldClosureData = localsHandler.closureData;
+      ClosureRepresentationInfo newClosureData =
+          closureDataLookup.getClosureRepresentationInfo(callee);
       localsHandler.closureData = newClosureData;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        // TODO(efortuna): Take out the test below for null once we are no
-        // longer dealing with the ClosureClassMap interface directly.
-        if (newClosureData.capturingScopes[resolvedAst.node] != null) {
-          localsHandler.enterScope(
-              newClosureData.capturingScopes[resolvedAst.node],
-              forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
-        }
+        localsHandler.enterScope(
+            closureDataLookup.getClosureAnalysisInfo(resolvedAst.node),
+            forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
       localsHandler.closureData = oldClosureData;
@@ -1269,7 +1238,8 @@ class SsaBuilder extends ast.Visitor
 
     // Compile field-parameters such as [:this.x:].
     FunctionSignature params = functionElement.functionSignature;
-    params.orderedForEachParameter((ParameterElement parameter) {
+    params.orderedForEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
       if (parameter.isInitializingFormal) {
         // If the [element] is a field-parameter then
         // initialize the field element with its value.
@@ -1323,8 +1293,8 @@ class SsaBuilder extends ast.Visitor
         // HTypeInfoExpression to set on the newly create object.
         hasRtiInput = true;
         List<HInstruction> typeArguments = <HInstruction>[];
-        classElement.typeVariables
-            .forEach((ResolutionTypeVariableType typeVariable) {
+        classElement.typeVariables.forEach((_typeVariable) {
+          ResolutionTypeVariableType typeVariable = _typeVariable;
           HInstruction argument = localsHandler
               .readLocal(localsHandler.getTypeVariableAsLocal(typeVariable));
           typeArguments.add(argument);
@@ -1385,7 +1355,8 @@ class SsaBuilder extends ast.Visitor
 
       FunctionSignature functionSignature = body.functionSignature;
       // Provide the parameters to the generative constructor body.
-      functionSignature.orderedForEachParameter((ParameterElement parameter) {
+      functionSignature.orderedForEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         // If [parameter] is boxed, it will be a field in the box passed as the
         // last parameter. So no need to directly pass it.
         if (!localsHandler.isBoxed(parameter)) {
@@ -1397,8 +1368,8 @@ class SsaBuilder extends ast.Visitor
       // pass the box to the constructor.
       // The box must be passed before any type variable.
       ClosureAnalysisInfo scopeData =
-          closureToClassMapper.getClosureAnalysisInfo(node);
-      if (scopeData.requiresContextBox()) {
+          closureDataLookup.getClosureAnalysisInfo(node);
+      if (scopeData.requiresContextBox) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
 
@@ -1407,8 +1378,8 @@ class SsaBuilder extends ast.Visitor
       if (rtiNeed.classNeedsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
         // parameters of the generative constructor body.
-        currentClass.typeVariables
-            .forEach((ResolutionTypeVariableType argument) {
+        currentClass.typeVariables.forEach((_argument) {
+          ResolutionTypeVariableType argument = _argument;
           // TODO(johnniwinther): Substitute [argument] with
           // `localsHandler.substInContext(argument)`.
           bodyCallInputs.add(localsHandler
@@ -1448,16 +1419,17 @@ class SsaBuilder extends ast.Visitor
 
     Map<Local, TypeMask> parameters = <Local, TypeMask>{};
     if (element is MethodElement) {
-      element.functionSignature
-          .orderedForEachParameter((ParameterElement parameter) {
+      element.functionSignature.orderedForEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         parameters[parameter] = TypeMaskFactory.inferredTypeForParameter(
             parameter, globalInferenceResults);
       });
     }
 
-    ClosureClassMap closureData = closureToClassMapper.getMemberMap(element);
-    localsHandler.startFunction(
-        element, closureData, closureData.capturingScopes[node], parameters,
+    ClosureRepresentationInfo closureData =
+        closureDataLookup.getClosureRepresentationInfo(element);
+    localsHandler.startFunction(element, closureData,
+        closureDataLookup.getClosureAnalysisInfo(node), parameters,
         isGenerativeConstructorBody: element.isGenerativeConstructorBody);
     close(new HGoto()).addSuccessor(block);
 
@@ -1469,7 +1441,8 @@ class SsaBuilder extends ast.Visitor
     ClassElement cls = element.enclosingClass;
     if ((element.isConstructor || element.isGenerativeConstructorBody) &&
         rtiNeed.classNeedsRti(cls)) {
-      cls.typeVariables.forEach((ResolutionTypeVariableType typeVariable) {
+      cls.typeVariables.forEach((_typeVariable) {
+        ResolutionTypeVariableType typeVariable = _typeVariable;
         HParameterValue param =
             addParameter(typeVariable.element, commonMasks.nonNullType);
         localsHandler.directLocals[
@@ -1485,9 +1458,10 @@ class SsaBuilder extends ast.Visitor
       // because that is where the type guards will also be inserted.
       // This way we ensure that a type guard will dominate the type
       // check.
-      signature.orderedForEachParameter((ParameterElement parameterElement) {
+      signature.orderedForEachParameter((_parameterElement) {
+        ParameterElement parameterElement = _parameterElement;
         if (element.isGenerativeConstructorBody) {
-          if (closureToClassMapper
+          if (closureDataLookup
               .getClosureAnalysisInfo(node)
               .isCaptured(parameterElement)) {
             // The parameter will be a field in the box passed as the
@@ -1732,7 +1706,7 @@ class SsaBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getClosureRepresentationInfoForLoop(node),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1748,7 +1722,7 @@ class SsaBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getClosureRepresentationInfoForLoop(node),
         () {},
         buildCondition,
         () {}, () {
@@ -1760,7 +1734,7 @@ class SsaBuilder extends ast.Visitor
     assert(isReachable);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     var loopClosureInfo =
-        closureToClassMapper.getClosureRepresentationInfoForLoop(node);
+        closureDataLookup.getClosureRepresentationInfoForLoop(node);
     localsHandler.startLoop(loopClosureInfo);
     loopDepth++;
     JumpHandler jumpHandler = loopHandler.beginLoopHeader(node);
@@ -1898,25 +1872,19 @@ class SsaBuilder extends ast.Visitor
 
   visitFunctionExpression(ast.FunctionExpression node) {
     LocalFunctionElement methodElement = elements[node];
-    ClosureClassMap nestedClosureData =
-        closureToClassMapper.getLocalFunctionMap(methodElement);
-    assert(nestedClosureData != null);
-    assert(nestedClosureData.closureClassElement != null);
-    ClosureClassElement closureClassElement =
-        nestedClosureData.closureClassElement;
-    MethodElement callElement = nestedClosureData.callElement;
+    ClosureRepresentationInfo closureInfo =
+        closureDataLookup.getClosureRepresentationInfo(methodElement);
+    ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    closureClassElement.closureFields.forEach((ClosureFieldElement field) {
-      Local capturedLocal =
-          nestedClosureData.getLocalVariableForClosureField(field);
-      assert(capturedLocal != null);
-      capturedVariables.add(localsHandler.readLocal(capturedLocal));
+    closureInfo.createdFieldEntities.forEach((Local field) {
+      assert(field != null);
+      capturedVariables.add(localsHandler.readLocal(field));
     });
 
-    TypeMask type = new TypeMask.nonNullExact(closureClassElement, closedWorld);
-    push(new HCreate(closureClassElement, capturedVariables, type,
-        callMethod: callElement, localFunction: methodElement)
+    TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
+    push(new HCreate(closureClassEntity, capturedVariables, type,
+        callMethod: closureInfo.callMethod, localFunction: methodElement)
       ..sourceInformation = sourceInformationBuilder.buildCreate(node));
   }
 
@@ -3517,7 +3485,7 @@ class SsaBuilder extends ast.Visitor
       // can depend on a length type discovered in optimization.
       bool canThrow = true;
       if (inputs[0].isInteger(closedWorld) && inputs[0] is HConstant) {
-        var constant = inputs[0];
+        dynamic constant = inputs[0];
         int value = constant.constant.primitiveValue;
         if (0 <= value && value < 0x100000000) canThrow = false;
       }
@@ -4112,7 +4080,8 @@ class SsaBuilder extends ast.Visitor
       int positions = 0;
       var filteredArguments = <HInstruction>[];
       var parameterNameMap = new Map<String, js.Expression>();
-      params.orderedForEachParameter((ParameterElement parameter) {
+      params.orderedForEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         // TODO(jacobr): consider throwing if parameter names do not match
         // names of properties in the class.
         assert(parameter.isNamed);
@@ -5469,7 +5438,7 @@ class SsaBuilder extends ast.Visitor
     buildProtectedByFinally(() {
       loopHandler.handleLoop(
           node,
-          closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+          closureDataLookup.getClosureRepresentationInfoForLoop(node),
           buildInitializer,
           buildCondition,
           buildUpdate,
@@ -5541,7 +5510,7 @@ class SsaBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getClosureRepresentationInfoForLoop(node),
         buildInitializer,
         buildCondition,
         () {},
@@ -5665,7 +5634,7 @@ class SsaBuilder extends ast.Visitor
 
     loopHandler.handleLoop(
         node,
-        closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+        closureDataLookup.getClosureRepresentationInfoForLoop(node),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -5936,7 +5905,7 @@ class SsaBuilder extends ast.Visitor
     localsHandler.updateLocal(switchTarget, initialValue);
 
     JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
-    var switchCases = node.cases;
+    dynamic switchCases = node.cases;
     if (!hasDefault) {
       // Use [:null:] as the marker for a synthetic default clause.
       // The synthetic default is added because otherwise, there would be no
@@ -6018,7 +5987,7 @@ class SsaBuilder extends ast.Visitor
     void buildLoop() {
       loopHandler.handleLoop(
           node,
-          closureToClassMapper.getClosureRepresentationInfoForLoop(node),
+          closureDataLookup.getClosureRepresentationInfoForLoop(node),
           () {},
           buildCondition,
           () {},
@@ -6596,7 +6565,7 @@ class SsaBuilder extends ast.Visitor
  * non-literal subexpressions.
  */
 class StringBuilderVisitor extends ast.Visitor {
-  final SsaBuilder builder;
+  final SsaAstGraphBuilder builder;
   final ast.Node diagnosticNode;
 
   /**

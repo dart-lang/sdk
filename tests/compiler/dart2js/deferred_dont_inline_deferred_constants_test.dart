@@ -23,7 +23,7 @@ void main() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var main = compiler.mainFunction;
+    var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(
         main, compiler.resolutionWorldBuilder.closedWorldForTesting);
@@ -38,7 +38,7 @@ void main() {
     var foo2 = lib2.find("foo");
     var ou_lib2 = outputUnitForElement(foo2);
 
-    var mainApp = compiler.mainApp;
+    var mainApp = compiler.frontendStrategy.elementEnvironment.mainLibrary;
     var fooMain = mainApp.find("foo");
     var ou_lib1_lib2 = outputUnitForElement(fooMain);
 

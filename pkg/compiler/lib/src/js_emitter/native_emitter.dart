@@ -268,7 +268,7 @@ class NativeEmitter {
     FunctionEntity converter = _commonElements.closureConverter;
     jsAst.Expression closureConverter =
         _emitterTask.staticFunctionAccess(converter);
-    _worldBuilder.forEachParameter(member, (DartType type, String name) {
+    _worldBuilder.forEachParameter(member, (DartType type, String name, _) {
       // If [name] is not in [stubParameters], then the parameter is an optional
       // parameter that was not provided for this stub.
       for (jsAst.Parameter stubParameter in stubParameters) {

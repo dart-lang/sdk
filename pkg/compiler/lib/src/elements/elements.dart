@@ -21,6 +21,7 @@ import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'entities.dart';
 import 'entity_utils.dart' as utils;
+import 'jumps.dart';
 import 'names.dart';
 import 'resolution_types.dart';
 import 'types.dart';
@@ -745,13 +746,14 @@ class Elements {
     List<T> result = <T>[];
 
     FunctionSignature parameters = element.functionSignature;
-    parameters.forEachRequiredParameter((ParameterElement element) {
+    parameters.forEachRequiredParameter((_) {
       result.add(compileArgument(arguments.head));
       arguments = arguments.tail;
     });
 
     if (!parameters.optionalParametersAreNamed) {
-      parameters.forEachOptionalParameter((ParameterElement element) {
+      parameters.forEachOptionalParameter((_element) {
+        ParameterElement element = _element;
         if (!arguments.isEmpty) {
           result.add(compileArgument(arguments.head));
           arguments = arguments.tail;
@@ -769,7 +771,8 @@ class Elements {
       // Iterate over the optional parameters of the signature, and try to
       // find them in [compiledNamedArguments]. If found, we use the
       // value in the temporary list, otherwise the default value.
-      parameters.orderedOptionalParameters.forEach((ParameterElement element) {
+      parameters.orderedOptionalParameters.forEach((_element) {
+        ParameterElement element = _element;
         int foundIndex = callStructure.namedArguments.indexOf(element.name);
         if (foundIndex != -1) {
           result.add(compiledNamedArguments[foundIndex]);
@@ -814,18 +817,21 @@ class Elements {
     // that we can call [addArgumentsToList].
     Link<Node> computeCallNodesFromParameters() {
       LinkBuilder<Node> builder = new LinkBuilder<Node>();
-      signature.forEachRequiredParameter((ParameterElement element) {
+      signature.forEachRequiredParameter((_element) {
+        ParameterElement element = _element;
         Node node = element.node;
         mapping[node] = element;
         builder.addLast(node);
       });
       if (signature.optionalParametersAreNamed) {
-        signature.forEachOptionalParameter((ParameterElement element) {
+        signature.forEachOptionalParameter((_element) {
+          ParameterElement element = _element;
           mapping[element.initializer] = element;
           builder.addLast(new NamedArgument(null, null, element.initializer));
         });
       } else {
-        signature.forEachOptionalParameter((ParameterElement element) {
+        signature.forEachOptionalParameter((_element) {
+          ParameterElement element = _element;
           Node node = element.node;
           mapping[node] = element;
           builder.addLast(node);
@@ -1606,39 +1612,6 @@ abstract class EnumConstantElement extends FieldElement {
 
   /// The index of this constant within the values of the enum.
   int get index;
-}
-
-/// The label entity defined by a labeled statement.
-abstract class LabelDefinition extends Entity {
-  Label get label;
-  String get labelName;
-  JumpTarget get target;
-
-  bool get isTarget;
-  bool get isBreakTarget;
-  bool get isContinueTarget;
-
-  void setBreakTarget();
-  void setContinueTarget();
-}
-
-/// A jump target is the reference point of a statement or switch-case,
-/// either by label or as the default target of a break or continue.
-abstract class JumpTarget extends Local {
-  Node get statement;
-  int get nestingLevel;
-  List<LabelDefinition> get labels;
-
-  bool get isTarget;
-  bool get isBreakTarget;
-  bool get isContinueTarget;
-  bool get isSwitch;
-
-  // TODO(kasperl): Try to get rid of these.
-  void set isBreakTarget(bool value);
-  void set isContinueTarget(bool value);
-
-  LabelDefinition addLabel(Label label, String labelName);
 }
 
 /// The [Element] for a type variable declaration on a generic class or typedef.

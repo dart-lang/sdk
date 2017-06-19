@@ -9,12 +9,8 @@ class A extends core::Object {
     ;
 }
 static field self::A a = new self::A::•();
-static field dynamic b = self::a.{self::A::f} = 1;
 static field core::int c = 0;
-static field dynamic d = self::c = 1;
 static method main() → dynamic {
   self::a;
-  self::b;
   self::c;
-  self::d;
 }

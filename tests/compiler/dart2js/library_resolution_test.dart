@@ -6,8 +6,6 @@
 /// library. This only matters for dart:-libraries, so this test mocks up two
 /// dart:-libraries.
 
-import "dart:io";
-
 import "dart:async";
 
 import "memory_source_file_helper.dart";

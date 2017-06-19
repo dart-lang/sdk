@@ -4,7 +4,7 @@ import self as self;
 static method main(dynamic arguments) → dynamic {
   final Vector #context = MakeVector(2);
   #context[1] = MakeClosure<() → dynamic>(self::closure#main#f, #context);
-  final dynamic g = MakeClosure<() → dynamic>(self::closure#main#g, #context);
+  final () → dynamic g = MakeClosure<() → dynamic>(self::closure#main#g, #context);
   g.call();
 }
 static method closure#main#f(Vector #contextParameter) → dynamic {

@@ -6,7 +6,6 @@ library kernel.transformations.closure.context;
 
 import '../../ast.dart'
     show
-        Class,
         Expression,
         NullLiteral,
         StringLiteral,
@@ -116,8 +115,6 @@ class LocalContext extends Context {
       this.converter, this.parent, this.self, this.vectorCreation);
 
   factory LocalContext(ClosureConverter converter, Context parent) {
-    Class contextClass = converter.contextClass;
-    assert(contextClass.constructors.length == 1);
     converter.rewriter.insertContextDeclaration(parent.expression);
 
     return new LocalContext._internal(

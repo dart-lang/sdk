@@ -475,7 +475,7 @@ class ConstantEvaluationEngine {
         }
         String variableName =
             argumentCount < 1 ? null : argumentValues[0].toStringValue();
-        if (identical(definingClass, typeProvider.boolType)) {
+        if (definingClass == typeProvider.boolType) {
           DartObject valueFromEnvironment;
           valueFromEnvironment =
               _declaredVariables.getBool(typeProvider, variableName);
@@ -483,7 +483,7 @@ class ConstantEvaluationEngine {
               valueFromEnvironment,
               new DartObjectImpl(typeProvider.boolType, BoolState.FALSE_STATE),
               namedArgumentValues);
-        } else if (identical(definingClass, typeProvider.intType)) {
+        } else if (definingClass == typeProvider.intType) {
           DartObject valueFromEnvironment;
           valueFromEnvironment =
               _declaredVariables.getInt(typeProvider, variableName);
@@ -491,7 +491,7 @@ class ConstantEvaluationEngine {
               valueFromEnvironment,
               new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE),
               namedArgumentValues);
-        } else if (identical(definingClass, typeProvider.stringType)) {
+        } else if (definingClass == typeProvider.stringType) {
           DartObject valueFromEnvironment;
           valueFromEnvironment =
               _declaredVariables.getString(typeProvider, variableName);
@@ -501,7 +501,7 @@ class ConstantEvaluationEngine {
               namedArgumentValues);
         }
       } else if (constructor.name == "" &&
-          identical(definingClass, typeProvider.symbolType) &&
+          definingClass == typeProvider.symbolType &&
           argumentCount == 1) {
         if (!checkSymbolArguments(
             arguments, argumentValues, namedArgumentValues)) {

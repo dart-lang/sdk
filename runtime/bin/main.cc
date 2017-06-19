@@ -381,13 +381,13 @@ static bool ProcessFrontendOption(const char* filename,
 }
 
 
-static bool ProcessPlatformOption(const char* filename,
-                                  CommandLineOptions* vm_options) {
-  ASSERT(filename != NULL);
-  if (filename[0] == '\0') {
+static bool ProcessKernelBinariesOption(const char* dirname,
+                                        CommandLineOptions* vm_options) {
+  ASSERT(dirname != NULL);
+  if (dirname[0] == '\0') {
     return false;
   }
-  dfe.set_platform_binary_filename(filename);
+  dfe.SetKernelBinaries(dirname);
   return true;
 }
 #endif
@@ -616,7 +616,7 @@ static struct {
     {"--parse_all", ProcessParseAllOption},
 #if !defined(DART_PRECOMPILED_RUNTIME)
     {"--dfe=", ProcessFrontendOption},
-    {"--platform=", ProcessPlatformOption},
+    {"--kernel-binaries=", ProcessKernelBinariesOption},
 #endif
     {"--enable-vm-service", ProcessEnableVmServiceOption},
     {"--disable-service-origin-check", ProcessDisableServiceOriginCheckOption},
@@ -1487,7 +1487,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
 
     if (gen_snapshot_kind == kAppAOT) {
       Dart_QualifiedFunctionName standalone_entry_points[] = {
-          {"dart:_builtin", "::", "_getMainClosure"},
           {"dart:_builtin", "::", "_getPrintClosure"},
           {"dart:_builtin", "::", "_getUriBaseClosure"},
           {"dart:_builtin", "::", "_libraryFilePath"},
@@ -1571,13 +1570,16 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
         CHECK_RESULT(result);
       }
 
-      // The helper function _getMainClosure creates a closure for the main
-      // entry point which is either explicitly or implictly exported from the
-      // root library.
+      // Create a closure for the main entry point which is in the exported
+      // namespace of the root library or invoke a getter of the same name
+      // in the exported namespace and return the resulting closure.
       Dart_Handle main_closure =
-          Dart_Invoke(isolate_data->builtin_lib(),
-                      Dart_NewStringFromCString("_getMainClosure"), 0, NULL);
+          Dart_GetClosure(root_lib, Dart_NewStringFromCString("main"));
       CHECK_RESULT(main_closure);
+      if (!Dart_IsClosure(main_closure)) {
+        ErrorExit(kErrorExitCode,
+                  "Unable to find 'main' in root library '%s'\n", script_name);
+      }
 
       // Call _startIsolate in the isolate library to enable dispatching the
       // initial startup message.

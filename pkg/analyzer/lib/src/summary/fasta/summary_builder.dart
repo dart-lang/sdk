@@ -126,7 +126,8 @@ class ConstExpressionBuilder extends ExpressionListener {
     push(new Invalid(hint: "assign"));
   }
 
-  void handleIndexedExpression(Token openSquareBracket, Token token) {
+  void handleIndexedExpression(
+      Token openSquareBracket, Token closeSquareBracket) {
     debugEvent("Index");
     if (ignore) return;
     pop(); // receiver
@@ -651,7 +652,8 @@ class InitializerBuilder extends ExpressionListener {
     }
   }
 
-  void handleIndexedExpression(Token openSquareBracket, Token token) {
+  void handleIndexedExpression(
+      Token openSquareBracket, Token closeSquareBracket) {
     debugEvent("Index");
     if (ignore) return;
     pop();

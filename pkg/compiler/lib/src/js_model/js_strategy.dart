@@ -5,6 +5,8 @@
 library dart2js.js_model.strategy;
 
 import '../backend_strategy.dart';
+import '../closure.dart' show ClosureConversionTask;
+import '../common/tasks.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
 import '../elements/elements.dart' show TypedefElement;
@@ -18,7 +20,10 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
+import '../kernel/element_map.dart';
+import '../kernel/element_map_impl.dart';
 import '../kernel/kernel_backend_strategy.dart';
+import '../kernel/kernel_strategy.dart';
 import '../ssa/ssa.dart';
 import '../universe/class_set.dart';
 import '../universe/world_builder.dart';
@@ -28,20 +33,23 @@ import 'elements.dart';
 
 class JsBackendStrategy implements BackendStrategy {
   final Compiler _compiler;
-  final JsToFrontendMap _map = new JsToFrontendMap();
+  final JsToFrontendMap _map = new JsToFrontendMapImpl();
+  ElementEnvironment _elementEnvironment;
+  CommonElements _commonElements;
 
   JsBackendStrategy(this._compiler);
 
   @override
   ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld) {
-    CommonElements commonElements =
-        new JsCommonElements(_map, closedWorld.commonElements);
+    _elementEnvironment =
+        new JsElementEnvironment(_map, closedWorld.elementEnvironment);
+    _commonElements = new JsCommonElements(_map, closedWorld.commonElements);
     BackendUsage backendUsage =
         new JsBackendUsage(_map, closedWorld.backendUsage);
     NativeData nativeData = new JsNativeData(_map, closedWorld.nativeData);
     InterceptorData interceptorData = new InterceptorDataImpl(
         nativeData,
-        commonElements,
+        _commonElements,
         // TODO(johnniwinther): Convert these.
         const {},
         new Set(),
@@ -89,7 +97,8 @@ class JsBackendStrategy implements BackendStrategy {
     }, ClassHierarchyNode.ALL);
 
     return new JsClosedWorld(
-        commonElements: commonElements,
+        elementEnvironment: _elementEnvironment,
+        commonElements: _commonElements,
         constantSystem: const JavaScriptConstantSystem(),
         backendUsage: backendUsage,
         nativeData: nativeData,
@@ -107,16 +116,21 @@ class JsBackendStrategy implements BackendStrategy {
   }
 
   @override
-  void convertClosures(ClosedWorldRefiner closedWorldRefiner) {}
+  ClosureConversionTask createClosureConversionTask(Compiler compiler) =>
+      new KernelClosureConversionTask(compiler.measurer);
 
   @override
   SourceInformationStrategy get sourceInformationStrategy =>
       const JavaScriptSourceInformationStrategy();
 
   @override
-  SsaBuilderTask createSsaBuilderTask(JavaScriptBackend backend,
+  SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
-    return new KernelSsaBuilderTask(backend.compiler);
+    KernelFrontEndStrategy strategy = backend.compiler.frontendStrategy;
+    KernelToElementMap elementMap = strategy.elementMap;
+    JsKernelToElementMap jsElementMap = new JsKernelToElementMap(
+        _map, _elementEnvironment, _commonElements, elementMap);
+    return new KernelSsaBuilder(task, backend.compiler, jsElementMap);
   }
 
   @override
@@ -129,7 +143,12 @@ class JsBackendStrategy implements BackendStrategy {
       NativeBasicData nativeBasicData,
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new KernelCodegenWorldBuilder(_compiler.elementEnvironment,
-        nativeBasicData, closedWorld, selectorConstraintsStrategy);
+    KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
+    return new KernelCodegenWorldBuilder(
+        frontendStrategy.elementMap,
+        closedWorld.elementEnvironment,
+        nativeBasicData,
+        closedWorld,
+        selectorConstraintsStrategy);
   }
 }

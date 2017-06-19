@@ -3161,8 +3161,11 @@ class EmptyStatement extends Statement {
 class AssertStatement extends Statement {
   Expression condition;
   Expression message; // May be null.
+  int conditionStartOffset;
+  int conditionEndOffset;
 
-  AssertStatement(this.condition, [this.message]) {
+  AssertStatement(this.condition,
+      {this.message, this.conditionStartOffset, this.conditionEndOffset}) {
     condition?.parent = this;
     message?.parent = this;
   }

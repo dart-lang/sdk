@@ -36,7 +36,9 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
   SerializationResult result = await serialize(uri);
   Compiler compiler1 = result.compiler;
   SerializedData serializedData = result.serializedData;
-  ClosedWorld closedWorld1 = compiler1.closeResolution().closedWorld;
+  var elementEnvironment1 = compiler1.frontendStrategy.elementEnvironment;
+  ClosedWorld closedWorld1 =
+      compiler1.closeResolution(elementEnvironment1.mainFunction).closedWorld;
 
   print('------------------------------------------------------------------');
   print('analyze deserialized: $uri');
@@ -46,7 +48,9 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
       resolutionInputs: serializedData.toUris(),
       options: [Flags.analyzeAll]);
   await compiler2.run(uri);
-  ClosedWorld closedWorld2 = compiler2.closeResolution().closedWorld;
+  var elementEnvironment2 = compiler2.frontendStrategy.elementEnvironment;
+  ClosedWorld closedWorld2 =
+      compiler2.closeResolution(elementEnvironment2.mainFunction).closedWorld;
 
   JavaScriptBackend backend1 = compiler1.backend;
   JavaScriptBackend backend2 = compiler2.backend;

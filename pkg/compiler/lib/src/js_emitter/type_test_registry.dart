@@ -8,12 +8,7 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../elements/elements.dart' show ClassElement, MethodElement;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart'
-    show
-        ResolutionDartType,
-        ResolutionFunctionType,
-        ResolutionInterfaceType,
-        ResolutionTypeVariableType;
+import '../elements/resolution_types.dart' show ResolutionFunctionType;
 import '../elements/types.dart';
 import '../js_backend/runtime_types.dart'
     show
@@ -34,26 +29,28 @@ class TypeTestRegistry {
    * `x is Set<String>` then the ClassElement `Set` will occur once in
    * [checkedClasses].
    */
-  Set<ClassElement> checkedClasses;
+  Set<ClassEntity> checkedClasses;
 
   /**
    * The set of function types that checked, both explicity through tests of
    * typedefs and implicitly through type annotations in checked mode.
    */
-  Set<ResolutionFunctionType> checkedFunctionTypes;
+  Set<FunctionType> checkedFunctionTypes;
 
   /// After [computeNeededClasses] this set only contains classes that are only
   /// used for RTI.
   Set<ClassEntity> _rtiNeededClasses;
 
-  Iterable<ClassElement> cachedClassesUsingTypeVariableTests;
+  Iterable<ClassEntity> cachedClassesUsingTypeVariableTests;
 
-  Iterable<ClassElement> get classesUsingTypeVariableTests {
+  Iterable<ClassEntity> get classesUsingTypeVariableTests {
     if (cachedClassesUsingTypeVariableTests == null) {
-      cachedClassesUsingTypeVariableTests = _codegenWorldBuilder.isChecks
-          .where((ResolutionDartType t) => t is ResolutionTypeVariableType)
-          .map((ResolutionTypeVariableType v) => v.element.enclosingClass)
-          .toList();
+      cachedClassesUsingTypeVariableTests = new List<ClassEntity>.from(
+          _codegenWorldBuilder.isChecks
+              .where((DartType t) =>
+                  t is TypeVariableType &&
+                  t.element.typeDeclaration is ClassEntity)
+              .map((dynamic v) => v.element.typeDeclaration));
     }
     return cachedClassesUsingTypeVariableTests;
   }
@@ -167,7 +164,8 @@ class TypeTestRegistry {
     // reflected on 'as functions'.
     liveMembers.where((MemberEntity element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);
-    }).forEach((MethodElement function) {
+    }).forEach((_function) {
+      MethodElement function = _function;
       FunctionType type = function.type;
       for (ClassEntity cls in _rtiChecks.getReferencedClasses(type)) {
         while (cls != null) {
@@ -185,12 +183,12 @@ class TypeTestRegistry {
         _codegenWorldBuilder, classesUsingTypeVariableTests);
     _rtiChecks = rtiChecksBuilder.computeRequiredChecks(_codegenWorldBuilder);
 
-    checkedClasses = new Set<ClassElement>();
-    checkedFunctionTypes = new Set<ResolutionFunctionType>();
-    _codegenWorldBuilder.isChecks.forEach((ResolutionDartType t) {
-      if (t is ResolutionInterfaceType) {
+    checkedClasses = new Set<ClassEntity>();
+    checkedFunctionTypes = new Set<FunctionType>();
+    _codegenWorldBuilder.isChecks.forEach((DartType t) {
+      if (t is InterfaceType) {
         checkedClasses.add(t.element);
-      } else if (t is ResolutionFunctionType) {
+      } else if (t is FunctionType) {
         checkedFunctionTypes.add(t);
       }
     });

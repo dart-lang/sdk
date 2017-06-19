@@ -444,3 +444,7 @@ FinalFieldWithoutInitializer:
   template: "A 'final' field must be initialized."
   tip: "Try adding '= <initializer>'."
   dart2jsCode: FASTA_IGNORED
+
+MetadataTypeArguments:
+  template: "An annotation (metadata) can't use type arguments."
+  dart2jsCode: FASTA_IGNORED
