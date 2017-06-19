@@ -146,6 +146,7 @@ large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
+closure_cycles_test: Pass, Slow
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) && $mode == debug ]
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
