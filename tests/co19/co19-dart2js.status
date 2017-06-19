@@ -11,13 +11,10 @@ Language/Expressions/Function_Invocation/async_cleanup_t06: Skip # https://githu
 Language/Expressions/Function_Invocation/async_cleanup_t08: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Expressions/Instance_Creation/New/execution_t04: RuntimeError # https://github.com/dart-lang/sdk/issues/29596
 Language/Expressions/Instance_Creation/New/execution_t06: RuntimeError # https://github.com/dart-lang/sdk/issues/29596
-Language/Expressions/Strings/adjacent_strings_t01: RuntimeError # Please triage this failure
-Language/Expressions/Strings/escape_newline_t01: RuntimeError # Please triage this failure
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t03: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t05: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t06: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t08: Skip # https://github.com/dart-lang/sdk/issues/28873
-Language/Reference/Lexical_Rules/unicode_t10: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-cache-bug_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/mutation-event-remove-inserted-node_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -211,6 +208,8 @@ LibTest/core/int/operator_addition_A01_t01: RuntimeError, OK # co19 issue 200
 LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints.
 LibTest/core/int/operator_right_shift_A01_t01: RuntimeError, OK # Expects negative result from bit-operation.
 LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # co19 issue 200
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/html/IFrameElement/enteredView_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A01_t01: Fail # Dart issue 15974
@@ -378,6 +377,7 @@ LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Skip # Tim
 LibTest/core/Map/Map_class_A01_t04: Slow, Pass # Please triage this failure
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass # Please triage this failure
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
+WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t03: RuntimeError # Please triage this failure
 
 
 [ $compiler == dart2js && $checked && $runtime != d8]
@@ -787,16 +787,12 @@ LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass, RuntimeError
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor-vertical-lr_t01: Pass, RuntimeError
 LayoutTests/fast/parser/parse-wbr_t01: Pass, RuntimeError
-WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t01: RuntimeError
-WebPlatformTest/html/syntax/parsing/math-parse_t03: RuntimeError
-WebPlatformTest/html/syntax/parsing/math-parse_t01: RuntimeError
+WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t01: RuntimeError, Pass
 WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: RuntimeError
 WebPlatformTest/html/semantics/grouping-content/the-ol-element/ol.start-reflection_t02: Skip
 WebPlatformTest/html/semantics/scripting-1/the-script-element/async_t11: Skip
 WebPlatformTest/html/semantics/selectors/pseudo-classes/disabled_t01: Pass, RuntimeError # Spurious pass
 WebPlatformTest/html/semantics/selectors/pseudo-classes/link_t01: RuntimeError
-WebPlatformTest/html/semantics/selectors/pseudo-classes/valid-invalid_t01: RuntimeError
-WebPlatformTest/html/semantics/selectors/pseudo-classes/focus_t01: RuntimeError
 WebPlatformTest/html/semantics/forms/the-form-element/form-nameditem_t01: RuntimeError
 #
 # End of Issue 747
@@ -1572,7 +1568,6 @@ WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLEl
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/kind_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setSelectionRange_t01: Pass, RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/the-button-element/button-validation_t01: RuntimeError # Please triage this failure
@@ -1609,10 +1604,8 @@ WebPlatformTest/html/semantics/selectors/pseudo-classes/checked_t01: RuntimeErro
 WebPlatformTest/html/semantics/selectors/pseudo-classes/dir_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/selectors/pseudo-classes/disabled_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/selectors/pseudo-classes/enabled_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/selectors/pseudo-classes/focus_t01: Pass, RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/selectors/pseudo-classes/indeterminate_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/selectors/pseudo-classes/link_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/selectors/pseudo-classes/valid-invalid_t01: Pass, RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/tabular-data/the-table-element/table-rows_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t01: Pass, RuntimeError # Please triage this failure
 WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t02: RuntimeError # Please triage this failure
@@ -2371,7 +2364,6 @@ WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLEl
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: Skip # Times out.
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formAction_document_address_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setSelectionRange_t01: RuntimeError # Please triage this failure
@@ -6582,8 +6574,8 @@ Language/Expressions/Conditional/type_t04: Skip # Times out. Please triage this 
 Language/Expressions/Identifier_Reference/evaluation_function_t02: Skip # Times out. Please triage this failure
 Language/Functions/Formal_Parameters/scope_t01: Skip # Times out. Please triage this failure
 Language/Statements/Local_Variable_Declaration/syntax_t18: Skip # Times out. Please triage this failure
-Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: RuntimeError # Issue 26615
-Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: RuntimeError # Issue 26615
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: Pass, RuntimeError # Issue 26615
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t04: Pass, RuntimeError # Issue 26615
 Language/Types/Function_Types/subtype_no_args_t03: Skip # Times out. Please triage this failure
 Language/Types/Interface_Types/subtype_t37: Skip # Times out. Please triage this failure
 Language/Variables/implicit_setter_void_t07: Skip # Times out. Please triage this failure
