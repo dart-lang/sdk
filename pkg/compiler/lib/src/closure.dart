@@ -41,7 +41,8 @@ abstract class ClosureDataLookup<T> {
   /// used inside the scope of [node].
   // TODO(johnniwinther): Split this up into two functions, one for members and
   // one for local functions.
-  ClosureRepresentationInfo getClosureRepresentationInfo(Entity member);
+  ClosureRepresentationInfo getClosureRepresentationInfo(
+      covariant Entity member);
 
   /// Look up information about a loop, in case any variables it declares need
   /// to be boxed/snapshotted.
@@ -352,7 +353,7 @@ class ClosureFieldElement extends ElementX
 
   bool get hasNode => false;
 
-  Node get node {
+  VariableDefinitions get node {
     throw new SpannableAssertionFailure(
         local, 'Should not access node of ClosureFieldElement.');
   }
@@ -388,7 +389,8 @@ class ClosureFieldElement extends ElementX
     return visitor.visitClosureFieldElement(this, arg);
   }
 
-  Element get analyzableElement => closureClass.methodElement.analyzableElement;
+  AnalyzableElement get analyzableElement =>
+      closureClass.methodElement.analyzableElement;
 
   @override
   List<FunctionElement> get nestedClosures => const <FunctionElement>[];
@@ -527,7 +529,7 @@ class BoxFieldElement extends ElementX
   List<FunctionElement> get nestedClosures => const <FunctionElement>[];
 
   @override
-  Node get node {
+  VariableDefinitions get node {
     throw new UnsupportedError("BoxFieldElement.node");
   }
 
@@ -558,6 +560,7 @@ class ThisLocal extends Local {
 }
 
 /// Call method of a closure class.
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class SynthesizedCallMethodElementX extends BaseFunctionElementX
     implements MethodElement {
   final LocalFunctionElement expression;
@@ -586,7 +589,8 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
 
   FunctionExpression parseNode(ParsingContext parsing) => node;
 
-  Element get analyzableElement => closureClass.methodElement.analyzableElement;
+  AnalyzableElement get analyzableElement =>
+      closureClass.methodElement.analyzableElement;
 
   bool get hasResolvedAst => true;
 

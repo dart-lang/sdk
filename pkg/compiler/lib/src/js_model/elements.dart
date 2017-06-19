@@ -58,7 +58,7 @@ class JsToFrontendMapImpl implements JsToFrontendMap {
     });
   }
 
-  LibraryEntity toFrontendLibrary(JLibrary library) =>
+  LibraryEntity toFrontendLibrary(covariant JLibrary library) =>
       _frontendLibraryList[library.libraryIndex];
 
   final Map<ClassEntity, ClassEntity> _toBackendClass =
@@ -75,7 +75,8 @@ class JsToFrontendMapImpl implements JsToFrontendMap {
     });
   }
 
-  ClassEntity toFrontendClass(JClass cls) => _frontendClassList[cls.classIndex];
+  ClassEntity toFrontendClass(covariant JClass cls) =>
+      _frontendClassList[cls.classIndex];
 
   final Map<MemberEntity, MemberEntity> _toBackendMember =
       <MemberEntity, MemberEntity>{};
@@ -141,7 +142,7 @@ class JsToFrontendMapImpl implements JsToFrontendMap {
     });
   }
 
-  MemberEntity toFrontendMember(JMember member) =>
+  MemberEntity toFrontendMember(covariant JMember member) =>
       _frontendMemberList[member.memberIndex];
 
   DartType toBackendType(DartType type) =>
@@ -689,8 +690,8 @@ class JsBackendUsage implements BackendUsage {
 
   @override
   Iterable<FunctionEntity> get globalFunctionDependencies {
-    return _backendUsage.globalFunctionDependencies
-        .map((FunctionEntity e) => _map.toBackendMember(e));
+    FunctionEntity f(FunctionEntity e) => _map.toBackendMember(e);
+    return _backendUsage.globalFunctionDependencies.map(f);
   }
 
   @override

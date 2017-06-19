@@ -36,7 +36,7 @@ main() {
 
 Uri uri = new Uri(scheme: 'source');
 var compiler = compilerFor(CODE, uri);
-var world = compiler.resolutionWorldBuilder.closedWorldForTesting;
+dynamic world = compiler.resolutionWorldBuilder.closedWorldForTesting;
 
 main() {
   asyncTest(() => compiler.run(uri).then((_) {

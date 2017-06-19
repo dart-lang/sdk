@@ -343,7 +343,8 @@ class ClassHierarchyNode {
       {bool instantiatedOnly: false,
       bool sorted: true,
       ClassElement withRespectTo}) {
-    bool isRelatedTo(ClassElement subclass) {
+    bool isRelatedTo(ClassEntity _subclass) {
+      ClassElement subclass = _subclass;
       return subclass == withRespectTo ||
           subclass.implementsInterface(withRespectTo);
     }

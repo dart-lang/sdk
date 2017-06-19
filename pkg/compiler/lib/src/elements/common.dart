@@ -503,20 +503,20 @@ abstract class FunctionSignatureCommon implements FunctionSignature {
 
   ResolutionDartType get returnType => type.returnType;
 
-  void forEachRequiredParameter(void function(Element parameter)) {
+  void forEachRequiredParameter(void function(FormalElement parameter)) {
     requiredParameters.forEach(function);
   }
 
-  void forEachOptionalParameter(void function(Element parameter)) {
+  void forEachOptionalParameter(void function(FormalElement parameter)) {
     optionalParameters.forEach(function);
   }
 
-  void forEachParameter(void function(Element parameter)) {
+  void forEachParameter(void function(FormalElement parameter)) {
     forEachRequiredParameter(function);
     forEachOptionalParameter(function);
   }
 
-  void orderedForEachParameter(void function(Element parameter)) {
+  void orderedForEachParameter(void function(FormalElement parameter)) {
     forEachRequiredParameter(function);
     orderedOptionalParameters.forEach(function);
   }

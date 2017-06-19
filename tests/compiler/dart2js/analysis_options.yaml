@@ -4,9 +4,15 @@
 
 analyzer:
   strong-mode: true
+
   language:
     enableSuperMixins: false
+
   errors:
     todo: ignore
 
     deprecated_member_use: ignore
+
+  exclude:
+    - data/*
+    - sourcemaps/data/*

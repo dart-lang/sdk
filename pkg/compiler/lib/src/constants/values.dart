@@ -30,20 +30,22 @@ enum ConstantValueKind {
 abstract class ConstantValueVisitor<R, A> {
   const ConstantValueVisitor();
 
-  R visitFunction(FunctionConstantValue constant, A arg);
-  R visitNull(NullConstantValue constant, A arg);
-  R visitInt(IntConstantValue constant, A arg);
-  R visitDouble(DoubleConstantValue constant, A arg);
-  R visitBool(BoolConstantValue constant, A arg);
-  R visitString(StringConstantValue constant, A arg);
-  R visitList(ListConstantValue constant, A arg);
-  R visitMap(MapConstantValue constant, A arg);
-  R visitConstructed(ConstructedConstantValue constant, A arg);
-  R visitType(TypeConstantValue constant, A arg);
-  R visitInterceptor(InterceptorConstantValue constant, A arg);
-  R visitSynthetic(SyntheticConstantValue constant, A arg);
-  R visitDeferred(DeferredConstantValue constant, A arg);
-  R visitNonConstant(NonConstantValue constant, A arg);
+  R visitFunction(covariant FunctionConstantValue constant, covariant A arg);
+  R visitNull(covariant NullConstantValue constant, covariant A arg);
+  R visitInt(covariant IntConstantValue constant, covariant A arg);
+  R visitDouble(covariant DoubleConstantValue constant, covariant A arg);
+  R visitBool(covariant BoolConstantValue constant, covariant A arg);
+  R visitString(covariant StringConstantValue constant, covariant A arg);
+  R visitList(covariant ListConstantValue constant, covariant A arg);
+  R visitMap(covariant MapConstantValue constant, covariant A arg);
+  R visitConstructed(
+      covariant ConstructedConstantValue constant, covariant A arg);
+  R visitType(covariant TypeConstantValue constant, covariant A arg);
+  R visitInterceptor(
+      covariant InterceptorConstantValue constant, covariant A arg);
+  R visitSynthetic(covariant SyntheticConstantValue constant, covariant A arg);
+  R visitDeferred(covariant DeferredConstantValue constant, covariant A arg);
+  R visitNonConstant(covariant NonConstantValue constant, covariant A arg);
 }
 
 abstract class ConstantValue {

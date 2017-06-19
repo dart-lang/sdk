@@ -1893,7 +1893,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
-  void visitMap(JavaScriptMapConstant constant, [_]) {
+  void visitMap(covariant JavaScriptMapConstant constant, [_]) {
     // TODO(9476): Incorporate type parameters into name.
     addRoot('Map');
     if (constant.length == 0) {
@@ -2187,15 +2187,15 @@ class FunctionTypeNamer extends BaseResolutionDartTypeVisitor {
     return sb.toString();
   }
 
-  visit(ResolutionDartType type, [_]) {
+  visit(covariant ResolutionDartType type, [_]) {
     type.accept(this, null);
   }
 
-  visitType(ResolutionDartType type, _) {
+  visitType(covariant ResolutionDartType type, _) {
     sb.write(type.name);
   }
 
-  visitFunctionType(ResolutionFunctionType type, _) {
+  visitFunctionType(covariant ResolutionFunctionType type, _) {
     if (rtiEncoder.isSimpleFunctionType(type)) {
       sb.write('args${type.parameterTypes.length}');
       return;

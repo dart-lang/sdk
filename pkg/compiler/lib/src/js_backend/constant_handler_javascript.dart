@@ -99,7 +99,7 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   // TODO(johnniwinther): Remove this when values are computed from the
   // expressions.
   @override
-  void copyConstantValues(JavaScriptConstantTask task) {
+  void copyConstantValues(covariant JavaScriptConstantTask task) {
     jsConstantCompiler.constantValueMap
         .addAll(task.jsConstantCompiler.constantValueMap);
     dartConstantCompiler.constantValueMap

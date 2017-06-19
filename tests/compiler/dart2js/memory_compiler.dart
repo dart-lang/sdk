@@ -35,8 +35,8 @@ class MultiDiagnostics implements CompilerDiagnostics {
   const MultiDiagnostics([this.diagnosticsList = const []]);
 
   @override
-  void report(Message message, Uri uri, int begin, int end, String text,
-      Diagnostic kind) {
+  void report(covariant Message message, Uri uri, int begin, int end,
+      String text, Diagnostic kind) {
     for (CompilerDiagnostics diagnostics in diagnosticsList) {
       diagnostics.report(message, uri, begin, end, text, kind);
     }

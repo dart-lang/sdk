@@ -29,7 +29,7 @@ abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
   /// subtypes. The latter case only contains spurious information from
   /// instantiations through factory constructors and mixins.
   // TODO(johnniwinther): Improve semantic precision.
-  bool isImplemented(ClassEntity cls);
+  bool isImplemented(covariant ClassEntity cls);
 
   /// Set of all fields that are statically known to be written to.
   Iterable<FieldEntity> get fieldSetters;
@@ -431,7 +431,7 @@ abstract class ResolutionWorldBuilderBase
     return _implementedClasses.contains(cls);
   }
 
-  void registerClosurizedMember(FunctionEntity element) {
+  void registerClosurizedMember(MemberEntity element) {
     closurizedMembers.add(element);
     FunctionType type = _elementEnvironment.getFunctionType(element);
     if (type.containsTypeVariables) {
@@ -575,7 +575,7 @@ abstract class ResolutionWorldBuilderBase
     return constraints.addReceiverConstraint(mask);
   }
 
-  void registerIsCheck(DartType type) {
+  void registerIsCheck(covariant DartType type) {
     isChecks.add(type);
   }
 
@@ -654,7 +654,8 @@ abstract class ResolutionWorldBuilderBase
   /// Called to create a [_ClassUsage] for [cls].
   ///
   /// Subclasses override this to ensure needed invariants on [cls].
-  _ClassUsage _createClassUsage(ClassEntity cls) => new _ClassUsage(cls);
+  _ClassUsage _createClassUsage(covariant ClassEntity cls) =>
+      new _ClassUsage(cls);
 
   /// Return the canonical [_ClassUsage] for [cls].
   _ClassUsage _getClassUsage(ClassEntity cls) {
@@ -709,8 +710,8 @@ abstract class ResolutionWorldBuilderBase
     map[memberName].addAll(remaining);
   }
 
-  void _processInstantiatedClassMember(
-      ClassEntity cls, MemberEntity member, MemberUsedCallback memberUsed) {
+  void _processInstantiatedClassMember(ClassEntity cls,
+      covariant MemberEntity member, MemberUsedCallback memberUsed) {
     if (!member.isInstanceMember) return;
     String memberName = member.name;
     // The obvious thing to test here would be "member.isNative",
@@ -774,7 +775,8 @@ abstract class ResolutionWorldBuilderBase
     _allTypedefs.add(typdef);
   }
 
-  void registerMixinUse(ClassEntity mixinApplication, ClassEntity mixin) {
+  void registerMixinUse(
+      covariant ClassEntity mixinApplication, covariant ClassEntity mixin) {
     // TODO(johnniwinther): Add map restricted to live classes.
     // We don't support patch classes as mixin.
     Set<ClassEntity> users =
@@ -803,24 +805,24 @@ abstract class ResolutionWorldBuilderBase
     return usage != null && usage.hasUse;
   }
 
-  bool checkClass(ClassEntity cls);
-  bool validateClass(ClassEntity cls);
+  bool checkClass(covariant ClassEntity cls);
+  bool validateClass(covariant ClassEntity cls);
 
   /// Returns the class mixed into [cls] if any.
-  ClassEntity getAppliedMixin(ClassEntity cls);
+  ClassEntity getAppliedMixin(covariant ClassEntity cls);
 
   /// Returns the hierarchy depth of [cls].
-  int getHierarchyDepth(ClassEntity cls);
+  int getHierarchyDepth(covariant ClassEntity cls);
 
   /// Returns `true` if [cls] implements `Function` either explicitly or through
   /// a `call` method.
-  bool implementsFunction(ClassEntity cls);
+  bool implementsFunction(covariant ClassEntity cls);
 
   /// Returns the superclass of [cls] if any.
-  ClassEntity getSuperClass(ClassEntity cls);
+  ClassEntity getSuperClass(covariant ClassEntity cls);
 
   /// Returns all supertypes of [cls].
-  Iterable<InterfaceType> getSupertypes(ClassEntity cls);
+  Iterable<InterfaceType> getSupertypes(covariant ClassEntity cls);
 
   ClassHierarchyNode _ensureClassHierarchyNode(ClassEntity cls) {
     assert(checkClass(cls));

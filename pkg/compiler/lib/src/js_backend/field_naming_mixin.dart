@@ -97,7 +97,7 @@ class _FieldNamingRegistry {
 class _FieldNamingScope {
   final _FieldNamingScope superScope;
   final Entity container;
-  final Map<Element, jsAst.Name> names = new Maplet<Element, jsAst.Name>();
+  final Map<Entity, jsAst.Name> names = new Maplet<Entity, jsAst.Name>();
   final _FieldNamingRegistry registry;
 
   /// Naming counter used for fields of ordinary classes.

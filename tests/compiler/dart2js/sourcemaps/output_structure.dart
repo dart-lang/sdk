@@ -5,7 +5,7 @@
 library sourcemap.output_structure;
 
 import 'dart:math' as Math;
-import 'html_parts.dart' show Annotation, CodeLine, JsonStrategy;
+import 'html_parts.dart' show CodeLine, JsonStrategy;
 
 // Constants used to identify the subsection of the JavaScript output. These
 // are specifically for the unminified full_emitter output.
@@ -183,7 +183,6 @@ class OutputStructure extends OutputEntity {
 
     String readHeader(CodeLine line) {
       String code = line.code;
-      String ssaLineHeader;
       if (code.startsWith(HEAD)) {
         return code.substring(HEAD.length);
       } else if (code.startsWith(TAIL)) {
@@ -323,6 +322,7 @@ abstract class AbstractEntity extends OutputEntity {
           ..to = to
           ..codeSource = codeSource;
     }
+    throw "Unhandled: $kind";
   }
 }
 

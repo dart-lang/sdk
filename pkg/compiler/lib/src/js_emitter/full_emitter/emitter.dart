@@ -19,7 +19,7 @@ import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
-    show ClassElement, ConstructorBodyElement, LibraryElement, TypedefElement;
+    show ConstructorBodyElement, LibraryElement, TypedefElement;
 import '../../elements/entities.dart';
 import '../../elements/entity_utils.dart' as utils;
 import '../../elements/names.dart';
@@ -315,7 +315,7 @@ class Emitter extends js_emitter.EmitterBase {
 
   @override
   jsAst.PropertyAccess prototypeAccess(
-      ClassElement element, bool hasBeenInstantiated) {
+      ClassEntity element, bool hasBeenInstantiated) {
     return jsAst.js('#.prototype', constructorAccess(element));
   }
 

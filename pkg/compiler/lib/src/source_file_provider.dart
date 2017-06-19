@@ -130,10 +130,12 @@ List<int> readAll(String filename, {bool zeroTerminated: true}) {
 class CompilerSourceFileProvider extends SourceFileProvider {
   // TODO(johnniwinther): Remove this when no longer needed for the old compiler
   // API.
-  Future<List<int>> call(Uri resourceUri) => readFromUri(resourceUri);
+  Future<List<int>> call(Uri resourceUri) =>
+      readFromUri(resourceUri).then((input) => input.data);
 
   @override
-  Future readFromUri(Uri uri, {InputKind inputKind: InputKind.utf8}) =>
+  Future<api.Input<List<int>>> readFromUri(Uri uri,
+          {InputKind inputKind: InputKind.utf8}) =>
       readBytesFromUri(uri, inputKind);
 }
 

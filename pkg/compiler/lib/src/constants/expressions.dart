@@ -98,7 +98,7 @@ abstract class ConstantExpression {
 
   int get hashCode => _hashCode ??= _computeHashCode();
 
-  bool _equals(ConstantExpression other);
+  bool _equals(covariant ConstantExpression other);
 
   bool operator ==(other) {
     if (identical(this, other)) return true;

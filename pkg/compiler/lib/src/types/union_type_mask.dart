@@ -189,8 +189,10 @@ class UnionTypeMask implements TypeMask {
 
   TypeMask nonNullable() {
     if (!isNullable) return this;
-    Iterable<FlatTypeMask> newIterable =
-        disjointMasks.map((e) => e.nonNullable());
+    Iterable<FlatTypeMask> newIterable = disjointMasks.map((e) {
+      FlatTypeMask r = e.nonNullable();
+      return r;
+    });
     return new UnionTypeMask._internal(newIterable);
   }
 

@@ -38,7 +38,8 @@ class ElementBackendStrategy implements BackendStrategy {
 
   ElementBackendStrategy(this._compiler);
 
-  ClosedWorldRefiner createClosedWorldRefiner(ClosedWorldImpl closedWorld) =>
+  ClosedWorldRefiner createClosedWorldRefiner(
+          covariant ClosedWorldImpl closedWorld) =>
       closedWorld;
 
   Sorter get sorter => const ElementSorter();

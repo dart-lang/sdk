@@ -70,8 +70,9 @@ class OutputUnit {
 
   String toString() => "OutputUnit($name)";
 
-  bool operator ==(OutputUnit other) {
-    return imports.length == other.imports.length &&
+  bool operator ==(other) {
+    return other is OutputUnit &&
+        imports.length == other.imports.length &&
         imports.containsAll(other.imports);
   }
 

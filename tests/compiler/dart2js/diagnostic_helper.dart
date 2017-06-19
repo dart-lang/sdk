@@ -35,8 +35,8 @@ class DiagnosticCollector implements CompilerDiagnostics {
   List<CollectedMessage> messages = <CollectedMessage>[];
 
   @override
-  void report(Message message, Uri uri, int begin, int end, String text,
-      Diagnostic kind) {
+  void report(covariant Message message, Uri uri, int begin, int end,
+      String text, Diagnostic kind) {
     messages.add(new CollectedMessage(message, uri, begin, end, text, kind));
   }
 

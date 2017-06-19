@@ -257,7 +257,7 @@ class EnumCreator {
 
     EnumFormalElementX nameFormal;
 
-    List<Element> parameters = <Element>[indexFormal];
+    List<FormalElement> parameters = <FormalElement>[indexFormal];
     List<ResolutionDartType> parameterTypes = <ResolutionDartType>[intType];
     if (!matchKernelRepresentationForTesting) {
       nameFormal = new EnumFormalElementX(constructor, nameDefinition,

@@ -24,7 +24,7 @@ class RastaSsaBuilder extends SsaAstBuilderBase {
       this.sourceInformationFactory)
       : super(task, backend);
 
-  HGraph build(ElementCodegenWorkItem work, ClosedWorld closedWorld) {
+  HGraph build(covariant ElementCodegenWorkItem work, ClosedWorld closedWorld) {
     return task.measure(() {
       if (handleConstantField(work.element, work.registry, closedWorld)) {
         // No code is generated for `work.element`.

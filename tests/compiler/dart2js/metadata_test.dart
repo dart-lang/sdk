@@ -89,7 +89,7 @@ void checkAnnotation(String name, String declaration,
                    }
                    main() {}""";
 
-  analyzeAndCheck(source3, 'Foo', (compiler, element) {
+  analyzeAndCheck(source3, 'Foo', (compiler, dynamic element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(0, element.metadata.length);
     element.ensureResolved(compiler.resolution);
@@ -115,7 +115,7 @@ void checkAnnotation(String name, String declaration,
                    }
                    main() {}""";
 
-  analyzeAndCheck(source4, 'Foo', (compiler, element) {
+  analyzeAndCheck(source4, 'Foo', (compiler, dynamic element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(0, element.metadata.length);
     element.ensureResolved(compiler.resolution);
@@ -197,32 +197,32 @@ void testLibraryTags() {
               library foo;
               const native = 'xyz';
               main() {}""";
-  compileAndCheckLibrary(source, (e) => e.libraryTag.metadata);
+  compileAndCheckLibrary(source, (dynamic e) => e.libraryTag.metadata);
 
   source = """@native
               import 'lib.dart';
               const native = 'xyz';
               main() {}""";
-  compileAndCheckLibrary(source, (e) => e.tags.single.metadata);
+  compileAndCheckLibrary(source, (dynamic e) => e.tags.single.metadata);
 
   source = """@native
               export 'lib.dart';
               const native = 'xyz';
               main() {}""";
-  compileAndCheckLibrary(source, (e) => e.tags.single.metadata);
+  compileAndCheckLibrary(source, (dynamic e) => e.tags.single.metadata);
 
   source = """@native
               part 'part.dart';
               const native = 'xyz';
               main() {}""";
-  compileAndCheckLibrary(source, (e) => e.tags.single.metadata);
+  compileAndCheckLibrary(source, (dynamic e) => e.tags.single.metadata);
 
   source = """@native
               part 'part.dart';
               const native = 'xyz';
               main() {}""";
   compileAndCheckLibrary(
-      source, (e) => e.compilationUnits.first.partTag.metadata);
+      source, (dynamic e) => e.compilationUnits.first.partTag.metadata);
 }
 
 void main() {

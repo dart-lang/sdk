@@ -57,7 +57,7 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
     }
   }
 
-  bool contains(E element) {
+  bool contains(Object element) {
     if (_extra == null) {
       return _contents == element;
     } else if (_MARKER == _extra) {
@@ -232,7 +232,7 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
     }
   }
 
-  bool containsAll(Iterable<E> other) {
+  bool containsAll(Iterable<Object> other) {
     for (E e in other) {
       if (!this.contains(e)) return false;
     }
@@ -247,7 +247,7 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
 
   Set<E> union(Set<E> other) => new Set<E>.from(this)..addAll(other);
 
-  Setlet<E> intersection(Set<E> other) =>
+  Setlet<E> intersection(Set<Object> other) =>
       new Setlet<E>.from(this.where((e) => other.contains(e)));
 
   Setlet<E> difference(Set<Object> other) =>

@@ -110,8 +110,8 @@ abstract class MutableScope extends NestedScope {
   final Map<String, Element> elements;
 
   MutableScope(Scope parent)
-      : super(parent),
-        this.elements = new Map<String, Element>() {
+      : this.elements = new Map<String, Element>(),
+        super(parent) {
     assert(parent != null);
   }
 

@@ -20,18 +20,20 @@ abstract class EvaluationEnvironment {
   String readFromEnvironment(String name);
 
   /// Returns the [ConstantExpression] for the value of the constant [local].
-  ConstantExpression getLocalConstant(Local local);
+  ConstantExpression getLocalConstant(covariant Local local);
 
   /// Returns the [ConstantExpression] for the value of the constant [field].
-  ConstantExpression getFieldConstant(FieldEntity field);
+  ConstantExpression getFieldConstant(covariant FieldEntity field);
 
   /// Returns the [ConstantConstructor] corresponding to the constant
   /// [constructor].
-  ConstantConstructor getConstructorConstant(ConstructorEntity constructor);
+  ConstantConstructor getConstructorConstant(
+      covariant ConstructorEntity constructor);
 
   /// Performs the substitution of the type arguments of [target] for their
   /// corresponding type variables in [type].
-  InterfaceType substByContext(InterfaceType base, InterfaceType target);
+  InterfaceType substByContext(
+      covariant InterfaceType base, covariant InterfaceType target);
 }
 
 /// The normalized arguments passed to a const constructor computed from the

@@ -132,8 +132,8 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   }
 
   @override
-  void report(Message message, Uri uri, int begin, int end, String text,
-      api.Diagnostic kind) {
+  void report(covariant Message message, Uri uri, int begin, int end,
+      String text, api.Diagnostic kind) {
     if (kind == api.Diagnostic.WARNING) {
       if (checkWhiteList(uri, message, text)) {
         // Suppress whitelisted warnings.

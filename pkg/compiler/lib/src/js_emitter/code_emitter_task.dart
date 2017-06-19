@@ -243,10 +243,10 @@ abstract class Emitter {
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.
-  jsAst.Expression isolateLazyInitializerAccess(FieldEntity element);
+  jsAst.Expression isolateLazyInitializerAccess(covariant FieldEntity element);
 
   /// Returns the closure expression of a static function.
-  jsAst.Expression isolateStaticClosureAccess(FunctionEntity element);
+  jsAst.Expression isolateStaticClosureAccess(covariant FunctionEntity element);
 
   /// Returns the JS code for accessing the embedded [global].
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
@@ -264,7 +264,8 @@ abstract class Emitter {
   jsAst.Expression constructorAccess(ClassEntity e);
 
   /// Returns the JS prototype of the given class [e].
-  jsAst.Expression prototypeAccess(ClassEntity e, bool hasBeenInstantiated);
+  jsAst.Expression prototypeAccess(
+      covariant ClassEntity e, bool hasBeenInstantiated);
 
   /// Returns the JS constructor of the given interceptor class [e].
   jsAst.Expression interceptorClassAccess(ClassEntity e);
@@ -328,12 +329,12 @@ abstract class EmitterBase implements Emitter {
   }
 
   @override
-  jsAst.PropertyAccess interceptorClassAccess(ClassEntity element) {
+  jsAst.Expression interceptorClassAccess(ClassEntity element) {
     return globalPropertyAccessForClass(element);
   }
 
   @override
-  jsAst.PropertyAccess typeAccess(Entity element) {
+  jsAst.Expression typeAccess(Entity element) {
     return globalPropertyAccessForType(element);
   }
 }

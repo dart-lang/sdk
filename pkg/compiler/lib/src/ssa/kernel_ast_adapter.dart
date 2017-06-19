@@ -413,14 +413,14 @@ class KernelJumpTarget extends JumpTarget<ast.Node> {
   KernelJumpTarget(this.targetStatement, KernelAstAdapter adapter,
       {bool makeContinueLabel = false}) {
     originalStatement = targetStatement;
-    this.labels = <LabelDefinition>[];
+    this.labels = <LabelDefinition<ast.Node>>[];
     if (targetStatement is ir.WhileStatement ||
         targetStatement is ir.DoStatement ||
         targetStatement is ir.ForStatement ||
         targetStatement is ir.ForInStatement) {
       // Currently these labels are set at resolution on the element itself.
       // Once that gets updated, this logic can change downstream.
-      JumpTarget target = adapter.elements
+      JumpTarget<ast.Node> target = adapter.elements
           .getTargetDefinition(adapter.getNode(targetStatement));
       if (target != null) {
         labels.addAll(target.labels);
@@ -449,7 +449,7 @@ class KernelJumpTarget extends JumpTarget<ast.Node> {
   }
 
   @override
-  LabelDefinition addLabel(ast.Label label, String labelName) {
+  LabelDefinition<ast.Node> addLabel(ast.Label label, String labelName) {
     LabelDefinition result = new LabelDefinitionX(label, labelName, this);
     labels.add(result);
     return result;
@@ -468,13 +468,13 @@ class KernelJumpTarget extends JumpTarget<ast.Node> {
   bool get isTarget => isBreakTarget || isContinueTarget;
 
   @override
-  List<LabelDefinition> labels;
+  List<LabelDefinition<ast.Node>> labels;
 
   @override
   String get name => 'target';
 
   @override
-  ast.Node get statement => null;
+  ast.Label get statement => null;
 
   String toString() => 'Target:$targetStatement';
 }

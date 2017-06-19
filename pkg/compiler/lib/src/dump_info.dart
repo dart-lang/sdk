@@ -367,7 +367,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 }
 
 class Selection {
-  final Element selectedElement;
+  final Entity selectedElement;
   final ReceiverConstraint mask;
   Selection(this.selectedElement, this.mask);
 }
@@ -458,7 +458,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
           selections.addAll(closedWorld
               .locateMembers(dynamicUse.selector, dynamicUse.mask)
-              .map((MemberElement e) => new Selection(e, dynamicUse.mask)));
+              .map((MemberEntity e) => new Selection(e, dynamicUse.mask)));
         }, visitStaticUse: (staticUse) {
           selections.add(new Selection(staticUse.element, null));
         }),

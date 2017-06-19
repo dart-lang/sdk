@@ -91,7 +91,7 @@ testIterators() async {
   ClassHierarchyNodeIterator iterator;
 
   void checkState(ClassElement root,
-      {ClassElement currentNode, List<List<ClassElement>> stack}) {
+      {ClassElement currentNode, List<ClassElement> stack}) {
     ClassElement classOf(ClassHierarchyNode node) {
       return node != null ? node.cls : null;
     }
@@ -399,7 +399,7 @@ testForEach() async {
   void checkForEachSubclass(ClassElement cls, List<ClassElement> expected) {
     ClassSet classSet = world.getClassSet(cls);
     List<ClassElement> visited = <ClassElement>[];
-    classSet.forEachSubclass((ClassElement cls) {
+    classSet.forEachSubclass((cls) {
       visited.add(cls);
     }, ClassHierarchyNode.ALL);
 
@@ -410,7 +410,7 @@ testForEach() async {
         "Actual: $visited, expected: $expected\n$classSet");
 
     visited = <ClassElement>[];
-    classSet.forEachSubclass((ClassElement cls) {
+    classSet.forEachSubclass((cls) {
       visited.add(cls);
       return IterationStep.CONTINUE;
     }, ClassHierarchyNode.ALL);
@@ -436,7 +436,7 @@ testForEach() async {
   void checkForEachSubtype(ClassElement cls, List<ClassElement> expected) {
     ClassSet classSet = world.getClassSet(cls);
     List<ClassElement> visited = <ClassElement>[];
-    classSet.forEachSubtype((ClassElement cls) {
+    classSet.forEachSubtype((cls) {
       visited.add(cls);
     }, ClassHierarchyNode.ALL);
 
@@ -447,7 +447,7 @@ testForEach() async {
         "Actual: $visited, expected: $expected\n$classSet");
 
     visited = <ClassElement>[];
-    classSet.forEachSubtype((ClassElement cls) {
+    classSet.forEachSubtype((cls) {
       visited.add(cls);
       return IterationStep.CONTINUE;
     }, ClassHierarchyNode.ALL);
@@ -482,7 +482,8 @@ testForEach() async {
     ClassSet classSet = world.getClassSet(cls);
     List<ClassElement> visited = <ClassElement>[];
 
-    IterationStep visit(ClassElement cls) {
+    IterationStep visit(_cls) {
+      ClassElement cls = _cls;
       visited.add(cls);
       if (cls == stop) {
         return IterationStep.STOP;
@@ -538,7 +539,7 @@ testForEach() async {
     ClassSet classSet = world.getClassSet(cls);
     List<ClassElement> visited = <ClassElement>[];
 
-    bool visit(ClassElement cls) {
+    bool visit(cls) {
       visited.add(cls);
       return cls == find;
     }

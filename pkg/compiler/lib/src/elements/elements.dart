@@ -874,6 +874,7 @@ class Elements {
 /// Code that cannot not handle an [ErroneousElement] should use
 /// `Element.isUnresolved(element)` to check for unresolvable elements instead
 /// of `element == null`.
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 abstract class ErroneousElement extends Element implements ConstructorElement {
   MessageKind get messageKind;
   Map get messageArguments;
@@ -1339,7 +1340,8 @@ abstract class ConstructorElement extends MethodElement
 
   /// Compute the type of the effective target of this constructor for an
   /// instantiation site with type [:newType:].
-  ResolutionInterfaceType computeEffectiveTargetType(
+  /// May return a malformed type.
+  ResolutionDartType computeEffectiveTargetType(
       ResolutionInterfaceType newType);
 
   /// If this is a synthesized constructor [definingConstructor] points to

@@ -764,7 +764,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   }
 
   @override
-  ir.Member getMemberNode(KMember member) {
+  ir.Member getMemberNode(covariant KMember member) {
     return _memberList[member.memberIndex].node;
   }
 
@@ -1198,12 +1198,12 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  bool isMixinApplication(KClass cls) {
+  bool isMixinApplication(covariant KClass cls) {
     return elementMap._isMixinApplication(cls);
   }
 
   @override
-  bool isUnnamedMixinApplication(KClass cls) {
+  bool isUnnamedMixinApplication(covariant KClass cls) {
     return elementMap._isUnnamedMixinApplication(cls);
   }
 
@@ -1229,12 +1229,12 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  FunctionType getFunctionType(KFunction function) {
+  FunctionType getFunctionType(covariant KFunction function) {
     return elementMap._getFunctionType(function);
   }
 
   @override
-  FunctionType getLocalFunctionType(KLocalFunction function) {
+  FunctionType getLocalFunctionType(covariant KLocalFunction function) {
     return function.functionType;
   }
 
@@ -1331,7 +1331,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  void forEachClass(KLibrary library, void f(ClassEntity cls)) {
+  void forEachClass(covariant KLibrary library, void f(ClassEntity cls)) {
     elementMap._forEachClass(library, f);
   }
 
@@ -1346,13 +1346,13 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  bool isDeferredLoadLibraryGetter(KMember member) {
+  bool isDeferredLoadLibraryGetter(covariant KMember member) {
     // TODO(johnniwinther): Support these.
     return false;
   }
 
   @override
-  Iterable<ConstantValue> getMemberMetadata(KMember member) {
+  Iterable<ConstantValue> getMemberMetadata(covariant KMember member) {
     _MemberData memberData = elementMap._memberList[member.memberIndex];
     return memberData.getMetadata(elementMap);
   }
@@ -1716,13 +1716,14 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   CommonElements get commonElements => elementMap.commonElements;
 
   @override
-  native.NativeBehavior computeNativeFieldStoreBehavior(KField field) {
+  native.NativeBehavior computeNativeFieldStoreBehavior(
+      covariant KField field) {
     ir.Field node = elementMap._memberList[field.memberIndex].node;
     return elementMap.getNativeBehaviorForFieldStore(node);
   }
 
   @override
-  native.NativeBehavior computeNativeFieldLoadBehavior(KField field,
+  native.NativeBehavior computeNativeFieldLoadBehavior(covariant KField field,
       {bool isJsInterop}) {
     ir.Field node = elementMap._memberList[field.memberIndex].node;
     return elementMap.getNativeBehaviorForFieldLoad(node,
@@ -1730,7 +1731,8 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   }
 
   @override
-  native.NativeBehavior computeNativeMethodBehavior(KFunction function,
+  native.NativeBehavior computeNativeMethodBehavior(
+      covariant KFunction function,
       {bool isJsInterop}) {
     ir.Member node = elementMap._memberList[function.memberIndex].node;
     return elementMap.getNativeBehaviorForMethod(node,
@@ -1738,7 +1740,7 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   }
 
   @override
-  bool isNativeMethod(KFunction function) {
+  bool isNativeMethod(covariant KFunction function) {
     if (!native.maybeEnableNative(function.library.canonicalUri)) return false;
     ir.Member node = elementMap._memberList[function.memberIndex].node;
     return node.isExternal &&

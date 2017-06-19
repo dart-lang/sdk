@@ -142,7 +142,7 @@ class ResolutionFrontEndStrategy implements FrontendStrategy {
   }
 
   FunctionEntity computeMain(
-      LibraryElement mainApp, WorldImpactBuilder impactBuilder) {
+      covariant LibraryElement mainApp, WorldImpactBuilder impactBuilder) {
     _elementEnvironment._mainLibrary = mainApp;
     if (mainApp == null) return null;
     MethodElement mainFunction;
@@ -394,16 +394,17 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   Iterable<LibraryEntity> get libraries => _compiler.libraryLoader.libraries;
 
   @override
-  String getLibraryName(LibraryElement library) => library.libraryName;
+  String getLibraryName(covariant LibraryElement library) =>
+      library.libraryName;
 
   @override
-  ResolutionInterfaceType getThisType(ClassElement cls) {
+  ResolutionInterfaceType getThisType(covariant ClassElement cls) {
     cls.ensureResolved(_resolution);
     return cls.thisType;
   }
 
   @override
-  ResolutionInterfaceType getRawType(ClassElement cls) {
+  ResolutionInterfaceType getRawType(covariant ClassElement cls) {
     cls.ensureResolved(_resolution);
     return cls.rawType;
   }
@@ -414,17 +415,17 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  bool isMixinApplication(ClassElement cls) {
+  bool isMixinApplication(covariant ClassElement cls) {
     return cls.isMixinApplication;
   }
 
   @override
-  bool isUnnamedMixinApplication(ClassElement cls) {
+  bool isUnnamedMixinApplication(covariant ClassElement cls) {
     return cls.isUnnamedMixinApplication;
   }
 
   @override
-  ClassEntity getEffectiveMixinClass(ClassElement cls) {
+  ClassEntity getEffectiveMixinClass(covariant ClassElement cls) {
     if (!cls.isMixinApplication) return null;
     do {
       MixinApplicationElement mixinApplication = cls;
@@ -434,19 +435,20 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  ResolutionDartType getTypeVariableBound(TypeVariableElement typeVariable) {
+  ResolutionDartType getTypeVariableBound(
+      covariant TypeVariableElement typeVariable) {
     return typeVariable.bound;
   }
 
   @override
-  ResolutionInterfaceType createInterfaceType(
-      ClassElement cls, List<ResolutionDartType> typeArguments) {
+  ResolutionInterfaceType createInterfaceType(covariant ClassElement cls,
+      covariant List<ResolutionDartType> typeArguments) {
     cls.ensureResolved(_resolution);
     return cls.thisType.createInstantiation(typeArguments);
   }
 
   @override
-  MemberElement lookupClassMember(ClassElement cls, String name,
+  MemberElement lookupClassMember(covariant ClassElement cls, String name,
       {bool setter: false, bool required: false}) {
     cls.ensureResolved(_resolution);
     Element member = cls.implementation.lookupLocalMember(name);
@@ -474,7 +476,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  ConstructorElement lookupConstructor(ClassElement cls, String name,
+  ConstructorElement lookupConstructor(covariant ClassElement cls, String name,
       {bool required: false}) {
     cls.ensureResolved(_resolution);
     ConstructorElement constructor = cls.implementation.lookupConstructor(name);
@@ -489,8 +491,8 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  void forEachClassMember(
-      ClassElement cls, void f(ClassElement declarer, MemberElement member)) {
+  void forEachClassMember(covariant ClassElement cls,
+      void f(ClassElement declarer, MemberElement member)) {
     cls.ensureResolved(_resolution);
     cls.forEachMember((ClassElement declarer, _member) {
       MemberElement member = _member;
@@ -503,7 +505,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
 
   @override
   void forEachConstructor(
-      ClassElement cls, void f(ConstructorEntity constructor)) {
+      covariant ClassElement cls, void f(ConstructorEntity constructor)) {
     cls.ensureResolved(_resolution);
     for (ConstructorElement constructor in cls.implementation.constructors) {
       _resolution.ensureResolved(constructor.declaration);
@@ -513,7 +515,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  ClassEntity getSuperClass(ClassElement cls,
+  ClassEntity getSuperClass(covariant ClassElement cls,
       {bool skipUnnamedMixinApplications: false}) {
     cls.ensureResolved(_resolution);
     ClassElement superclass = cls.superclass;
@@ -527,13 +529,12 @@ class _CompilerElementEnvironment implements ElementEnvironment {
 
   @override
   void forEachSupertype(
-      ClassElement cls, void f(ResolutionInterfaceType supertype)) {
-    cls.allSupertypes
-        .forEach((ResolutionInterfaceType supertype) => f(supertype));
+      covariant ClassElement cls, void f(ResolutionInterfaceType supertype)) {
+    cls.allSupertypes.forEach((InterfaceType supertype) => f(supertype));
   }
 
   @override
-  void forEachMixin(ClassElement cls, void f(ClassElement mixin)) {
+  void forEachMixin(covariant ClassElement cls, void f(ClassElement mixin)) {
     for (; cls != null; cls = cls.superclass) {
       if (cls.isMixinApplication) {
         MixinApplicationElement mixinApplication = cls;
@@ -543,7 +544,8 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  MemberElement lookupLibraryMember(LibraryElement library, String name,
+  MemberElement lookupLibraryMember(
+      covariant LibraryElement library, String name,
       {bool setter: false, bool required: false}) {
     Element member = library.implementation.findLocal(name);
     if (member != null && member.isAbstractField) {
@@ -571,7 +573,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
 
   @override
   void forEachLibraryMember(
-      LibraryElement library, void f(MemberEntity member)) {
+      covariant LibraryElement library, void f(MemberEntity member)) {
     library.implementation.forEachLocalMember((Element element) {
       if (!element.isClass && !element.isTypedef) {
         MemberElement member = element;
@@ -581,7 +583,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  ClassElement lookupClass(LibraryElement library, String name,
+  ClassElement lookupClass(covariant LibraryElement library, String name,
       {bool required: false}) {
     ClassElement cls = library.implementation.findLocal(name);
     if (cls == null && required) {
@@ -594,10 +596,11 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  void forEachClass(LibraryElement library, void f(ClassElement cls)) {
-    library.implementation.forEachLocalMember((member) {
+  void forEachClass(covariant LibraryElement library, void f(ClassEntity cls)) {
+    library.implementation.forEachLocalMember((dynamic member) {
       if (member.isClass) {
-        f(member);
+        ClassElement cls = member;
+        f(cls);
       }
     });
   }
@@ -621,12 +624,12 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  bool isDeferredLoadLibraryGetter(MemberElement member) {
+  bool isDeferredLoadLibraryGetter(covariant MemberElement member) {
     return member.isDeferredLoaderGetter;
   }
 
   @override
-  ResolutionFunctionType getFunctionType(MethodElement method) {
+  ResolutionFunctionType getFunctionType(covariant MethodElement method) {
     if (method is ConstructorBodyElement) {
       return method.constructor.type;
     }
@@ -635,18 +638,19 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  ResolutionFunctionType getLocalFunctionType(LocalFunctionElement function) {
+  ResolutionFunctionType getLocalFunctionType(
+      covariant LocalFunctionElement function) {
     return function.type;
   }
 
   @override
-  ResolutionDartType getUnaliasedType(ResolutionDartType type) {
+  ResolutionDartType getUnaliasedType(covariant ResolutionDartType type) {
     type.computeUnaliased(_resolution);
     return type.unaliased;
   }
 
   @override
-  Iterable<ConstantValue> getMemberMetadata(MemberElement element) {
+  Iterable<ConstantValue> getMemberMetadata(covariant MemberElement element) {
     List<ConstantValue> values = <ConstantValue>[];
     _compiler.reporter.withCurrentElement(element, () {
       for (MetadataAnnotation metadata in element.implementation.metadata) {
@@ -677,8 +681,8 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
 
   /// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
   /// native name from the annotation.
-  void extractNativeAnnotations(
-      LibraryElement library, NativeBasicDataBuilder nativeBasicDataBuilder) {
+  void extractNativeAnnotations(covariant LibraryElement library,
+      NativeBasicDataBuilder nativeBasicDataBuilder) {
     library.forEachLocalMember((Element element) {
       if (element.isClass) {
         EagerAnnotationHandler.checkAnnotation(_compiler, element,
@@ -687,8 +691,8 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
     });
   }
 
-  void extractJsInteropAnnotations(
-      LibraryElement library, NativeBasicDataBuilder nativeBasicDataBuilder) {
+  void extractJsInteropAnnotations(covariant LibraryElement library,
+      NativeBasicDataBuilder nativeBasicDataBuilder) {
     bool checkJsInteropAnnotation(Element element) {
       return EagerAnnotationHandler.checkAnnotation(
           _compiler, element, const JsInteropAnnotationHandler());
@@ -850,7 +854,7 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
     }
 
     _compiler.libraryLoader.libraries
-        .forEach(processJsInteropAnnotationsInLibrary);
+        .forEach((LibraryEntity l) => processJsInteropAnnotationsInLibrary(l));
   }
 }
 

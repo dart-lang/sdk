@@ -6,6 +6,7 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart';
+import '../elements/types.dart' show TypeVariableType;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../io/code_output.dart';
@@ -344,7 +345,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   }
 
   jsAst.Expression _reifiedTypeArguments(ResolutionInterfaceType type) {
-    jsAst.Expression unexpected(ResolutionTypeVariableType variable) {
+    jsAst.Expression unexpected(TypeVariableType _variable) {
+      ResolutionTypeVariableType variable = _variable;
       throw new SpannableAssertionFailure(
           NO_LOCATION_SPANNABLE,
           "Unexpected type variable '${variable.getStringAsDeclared(null)}'"

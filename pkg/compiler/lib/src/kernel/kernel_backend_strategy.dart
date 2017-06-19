@@ -46,7 +46,8 @@ class KernelBackendStrategy implements BackendStrategy {
   KernelBackendStrategy(this._compiler);
 
   @override
-  ClosedWorldRefiner createClosedWorldRefiner(KernelClosedWorld closedWorld) {
+  ClosedWorldRefiner createClosedWorldRefiner(
+      covariant KernelClosedWorld closedWorld) {
     return closedWorld;
   }
 

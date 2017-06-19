@@ -272,7 +272,8 @@ main(List<String> arguments) {
         compiler.frontendStrategy.elementEnvironment;
     compiler.closeResolution(elementEnvironment.mainFunction);
 
-    void checkMember(MemberElement member) {
+    void checkMember(Element element) {
+      MemberElement member = element;
       if (!member.name.startsWith('test_')) return;
 
       collector.clear();
