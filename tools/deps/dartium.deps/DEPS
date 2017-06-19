@@ -67,7 +67,6 @@ vars = {
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
   "co19_rev": "@4af9ef149be554216c5bb16cbac8e50d4c28cdf1",
-})
 
   # End of Dartium vars
 
