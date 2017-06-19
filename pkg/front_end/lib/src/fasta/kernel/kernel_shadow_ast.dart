@@ -1418,6 +1418,36 @@ class KernelNot extends Not implements KernelExpression {
   }
 }
 
+/// Concrete shadow object representing a null-aware read from a property.
+///
+/// A null-aware property get of the form `a?.b` is represented as the kernel
+/// expression:
+///
+///     let v = a in v == null ? null : v.b
+class KernelNullAwarePropertyGet extends Let implements KernelExpression {
+  KernelNullAwarePropertyGet(
+      VariableDeclaration variable, ConditionalExpression body)
+      : super(variable, body);
+
+  @override
+  ConditionalExpression get body => super.body;
+
+  PropertyGet get _desugaredGet => body.otherwise;
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Null aware expressions are not immediately evident.
+    collector.recordNotImmediatelyEvident(fileOffset);
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    return inferrer.inferPropertyGet(this, variable.initializer, fileOffset,
+        _desugaredGet, typeContext, typeNeeded);
+  }
+}
+
 /// Concrete shadow object representing a null literal in kernel form.
 class KernelNullLiteral extends NullLiteral implements KernelExpression {
   @override
@@ -1558,34 +1588,8 @@ class KernelPropertyGet extends PropertyGet implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded =
-        inferrer.listener.propertyGetEnter(this, typeContext) || typeNeeded;
-    // First infer the receiver so we can look up the getter that was invoked.
-    var receiverType = inferrer.inferExpression(receiver, null, true);
-    Member interfaceMember =
-        inferrer.findInterfaceMember(receiverType, name, fileOffset);
-    if (inferrer.isTopLevel &&
-        ((interfaceMember is Procedure &&
-                interfaceMember.kind == ProcedureKind.Getter) ||
-            interfaceMember is Field)) {
-      if (TypeInferenceEngineImpl.fullTopLevelInference) {
-        if (interfaceMember is KernelField &&
-            interfaceMember._fieldNode != null) {
-          inferrer.engine
-              .inferFieldFused(interfaceMember._fieldNode, inferrer.fieldNode);
-        }
-      } else {
-        // References to fields and getters can't be relied upon for top level
-        // inference.
-        inferrer.recordNotImmediatelyEvident(fileOffset);
-      }
-    }
-    interfaceTarget = interfaceMember;
-    var inferredType =
-        inferrer.getCalleeType(interfaceMember, receiverType, name);
-    // TODO(paulberry): Infer tear-off type arguments if appropriate.
-    inferrer.listener.propertyGetExit(this, inferredType);
-    return typeNeeded ? inferredType : null;
+    return inferrer.inferPropertyGet(
+        this, receiver, fileOffset, this, typeContext, typeNeeded);
   }
 }
 

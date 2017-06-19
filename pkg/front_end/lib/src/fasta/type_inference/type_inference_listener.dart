@@ -237,10 +237,10 @@ class TypeInferenceListener
   void propertyAssignExit(Expression expression, DartType inferredType) =>
       debugExpressionExit("propertyAssign", expression, inferredType);
 
-  bool propertyGetEnter(PropertyGet expression, DartType typeContext) =>
+  bool propertyGetEnter(Expression expression, DartType typeContext) =>
       debugExpressionEnter("propertyGet", expression, typeContext);
 
-  void propertyGetExit(PropertyGet expression, DartType inferredType) =>
+  void propertyGetExit(Expression expression, DartType inferredType) =>
       debugExpressionExit("propertyGet", expression, inferredType);
 
   bool propertySetEnter(PropertySet expression, DartType typeContext) =>
