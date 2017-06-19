@@ -249,6 +249,7 @@ inference/infer_prefix_expression: Crash
 inference/infer_prefix_expression_custom: Crash
 inference/infer_return_of_statement_lambda: Crash
 inference/infer_setter_from_later_inferred_setter: Crash
+inference/infer_setter_function_typed: Crash
 inference/infer_statics_transitively2: Crash
 inference/infer_statics_transitively3: Crash
 inference/infer_statics_transitively3_a: Crash
