@@ -128,12 +128,11 @@ class RuntimeTypeGenerator {
       if (!method.isAbstract) {
         ClosureRepresentationInfo closureData =
             _closureDataLookup.getClosureRepresentationInfo(method);
-        if (closureData != null) {
+        if (closureData != null && closureData.isClosure) {
           ClosureFieldElement thisLocal = closureData.thisFieldEntity;
-          if (thisLocal != null) {
-            jsAst.Name thisName = _namer.instanceFieldPropertyName(thisLocal);
-            thisAccess = js('this.#', thisName);
-          }
+          assert(thisLocal != null);
+          jsAst.Name thisName = _namer.instanceFieldPropertyName(thisLocal);
+          thisAccess = js('this.#', thisName);
         }
       }
 
