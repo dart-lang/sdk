@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Foo {
-  Foo(this.x);
+  Foo(this.x); //# 01: compile-time error
   final int x = 42;
 }
 
 class CoffeeShop {
-  final String name = "Coffee Lab";
-  CoffeeShop.name(String name) : this.name = name;
+  final String shopName = "Coffee Lab";
+  CoffeeShop.name(String name) //# 02: compile-time error
+      : this.shopName = name; //# 02: compile-time error
 }
 
 void main() {
