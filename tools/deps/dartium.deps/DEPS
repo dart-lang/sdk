@@ -66,8 +66,7 @@ vars = {
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
-
-  "co19_rev": "@4af9ef149be554216c5bb16cbac8e50d4c28cdf1",
+  "co19_rev": "@dec2b67aaab3bb7339b9764049707e71e601da3d",
 
   # End of Dartium vars
 
