@@ -14,6 +14,8 @@
 analysis_server/tool/spec/check_all_test: Skip  # Issue 29133
 analyzer_plugin/tool/spec/check_all_test: Skip  # Issue 29133
 analyzer/tool/summary/check_test: Skip  # Issue 29133
+
+analysis_server/test/analysis_server_test: Slow, Pass
 analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_driver_test: Slow, Pass
 analyzer/test/generated/static_warning_code_driver_test: Slow, Pass
