@@ -935,6 +935,56 @@ class KernelFunctionExpression extends FunctionExpression
   }
 }
 
+/// Concrete shadow object representing an if-null expression.
+///
+/// An if-null expression of the form `a ?? b` is represented as the kernel
+/// expression:
+///
+///     let v = a in v == null ? b : v
+class KernelIfNullExpression extends Let implements KernelExpression {
+  KernelIfNullExpression(VariableDeclaration variable, Expression body)
+      : super(variable, body);
+
+  @override
+  ConditionalExpression get body => super.body;
+
+  /// Returns the expression to the left of `??`.
+  Expression get _lhs => variable.initializer;
+
+  /// Returns the expression to the right of `??`.
+  Expression get _rhs => body.then;
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // If-null expressions are not immediately evident expressions.
+    collector.recordNotImmediatelyEvident(fileOffset);
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    typeNeeded = inferrer.listener.ifNullEnter(this, typeContext) || typeNeeded;
+    // To infer `e0 ?? e1` in context K:
+    // - Infer e0 in context K to get T0
+    var lhsType = inferrer.inferExpression(_lhs, typeContext, true);
+    variable.type = lhsType;
+    // - Let J = T0 if K is `_` else K.
+    var rhsContext = typeContext ?? lhsType;
+    // - Infer e1 in context J to get T1
+    var rhsType =
+        inferrer.inferExpression(_rhs, rhsContext, typeContext == null);
+    // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
+    //   UP(t0, t1)
+    // - Then the inferred type is T.
+    var inferredType = typeContext == null
+        ? inferrer.typeSchemaEnvironment.getLeastUpperBound(lhsType, rhsType)
+        : greatestClosure(inferrer.coreTypes, typeContext);
+    body.staticType = inferredType;
+    inferrer.listener.ifNullExit(this, inferredType);
+    return inferredType;
+  }
+}
+
 /// Concrete shadow object representing an if statement in kernel form.
 class KernelIfStatement extends IfStatement implements KernelStatement {
   KernelIfStatement(Expression condition, Statement then, Statement otherwise)

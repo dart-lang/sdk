@@ -864,7 +864,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression b = popForValue();
     Expression a = popForValue();
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
-    push(makeLet(
+    push(new KernelIfNullExpression(
         variable,
         new KernelConditionalExpression(
             buildIsNull(new VariableGet(variable), offsetForToken(token)),

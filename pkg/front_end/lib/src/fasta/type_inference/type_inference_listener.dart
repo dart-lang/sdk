@@ -163,6 +163,12 @@ class TypeInferenceListener
           FunctionExpression expression, DartType inferredType) =>
       debugExpressionExit("functionExpression", expression, inferredType);
 
+  bool ifNullEnter(Expression expression, DartType typeContext) =>
+      debugExpressionEnter('ifNull', expression, typeContext);
+
+  void ifNullExit(Expression expression, DartType inferredType) =>
+      debugExpressionExit('ifNull', expression, inferredType);
+
   void ifStatementEnter(IfStatement statement) =>
       debugStatementEnter('ifStatement', statement);
 
