@@ -36,7 +36,6 @@ import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/parser.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -82,12 +81,8 @@ class EditDomainHandler extends AbstractRequestHandler {
     String unformattedSource;
     try {
       Source source = server.resourceProvider.getFile(file).createSource();
-      if (server.options.enableNewAnalysisDriver) {
-        unformattedSource = server.fileContentOverlay[file];
-      } else {
-        unformattedSource = server.overlayState.getContents(source);
-      }
-      unformattedSource ??= source.contents.data;
+      unformattedSource =
+          server.fileContentOverlay[file] ?? source.contents.data;
     } catch (e) {
       return new Response.formatInvalidFile(request);
     }
@@ -345,37 +340,15 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     // Prepare the file information.
-    int fileStamp;
-    String code;
-    CompilationUnit unit;
-    List<engine.AnalysisError> errors;
-    if (server.options.enableNewAnalysisDriver) {
-      AnalysisResult result = await server.getAnalysisResult(file);
-      if (result == null) {
-        server.sendResponse(new Response.fileNotAnalyzed(request, file));
-        return;
-      }
-      fileStamp = -1;
-      code = result.content;
-      unit = result.unit;
-      errors = result.errors;
-    } else {
-      // prepare resolved unit
-      unit = await server.getResolvedCompilationUnit(file);
-      if (unit == null) {
-        server.sendResponse(new Response.fileNotAnalyzed(request, file));
-        return;
-      }
-      // prepare context
-      CompilationUnitElement compilationUnitElement =
-          resolutionMap.elementDeclaredByCompilationUnit(unit);
-      engine.AnalysisContext context = compilationUnitElement.context;
-      Source source = compilationUnitElement.source;
-      errors = context.computeErrors(source);
-      // prepare code
-      fileStamp = context.getModificationStamp(source);
-      code = context.getContents(source).data;
+    AnalysisResult result = await server.getAnalysisResult(file);
+    if (result == null) {
+      server.sendResponse(new Response.fileNotAnalyzed(request, file));
+      return;
     }
+    int fileStamp = -1;
+    String code = result.content;
+    CompilationUnit unit = result.unit;
+    List<engine.AnalysisError> errors = result.errors;
     // check if there are scan/parse errors in the file
     int numScanParseErrors = _getNumberOfScanParseErrors(errors);
     if (numScanParseErrors != 0) {
@@ -400,43 +373,16 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     // Prepare the file information.
-    int fileStamp;
-    String code;
-    CompilationUnit unit;
-    List<engine.AnalysisError> errors;
-    if (server.options.enableNewAnalysisDriver) {
-      AnalysisDriver driver = server.getAnalysisDriver(file);
-      ParseResult result = await driver?.parseFile(file);
-      if (result == null) {
-        server.sendResponse(new Response.fileNotAnalyzed(request, file));
-        return;
-      }
-      fileStamp = -1;
-      code = result.content;
-      unit = result.unit;
-      errors = result.errors;
-    } else {
-      // prepare location
-      ContextSourcePair contextSource = server.getContextSourcePair(file);
-      engine.AnalysisContext context = contextSource.context;
-      Source source = contextSource.source;
-      if (context == null || source == null) {
-        server.sendResponse(new Response.sortMembersInvalidFile(request));
-        return;
-      }
-      // prepare code
-      fileStamp = context.getModificationStamp(source);
-      code = context.getContents(source).data;
-      // prepare parsed unit
-      try {
-        unit = context.parseCompilationUnit(source);
-      } catch (e) {
-        server.sendResponse(new Response.sortMembersInvalidFile(request));
-        return;
-      }
-      // Get the errors.
-      errors = context.getErrors(source).errors;
+    AnalysisDriver driver = server.getAnalysisDriver(file);
+    ParseResult result = await driver?.parseFile(file);
+    if (result == null) {
+      server.sendResponse(new Response.fileNotAnalyzed(request, file));
+      return;
     }
+    int fileStamp = -1;
+    String code = result.content;
+    CompilationUnit unit = result.unit;
+    List<engine.AnalysisError> errors = result.errors;
     // Check if there are scan/parse errors in the file.
     int numScanParseErrors = _getNumberOfScanParseErrors(errors);
     if (numScanParseErrors != 0) {
@@ -713,32 +659,6 @@ class _RefactoringManager {
     });
   }
 
-  /**
-   * Perform enough analysis to be able to perform refactoring of the given
-   * [kind] in the given [file].
-   */
-  Future<Null> _analyzeForRefactoring(String file, RefactoringKind kind) async {
-    if (server.options.enableNewAnalysisDriver) {
-      return;
-    }
-    // "Extract Local" and "Inline Local" refactorings need only local analysis.
-    if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE ||
-        kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-      ContextSourcePair pair = server.getContextSourcePair(file);
-      engine.AnalysisContext context = pair.context;
-      Source source = pair.source;
-      if (context != null && source != null) {
-        if (context.computeResult(source, SOURCE_KIND) == SourceKind.LIBRARY) {
-          await context.computeResolvedCompilationUnitAsync(source, source);
-          return;
-        }
-      }
-    }
-    // A refactoring for which we cannot optimize analysis.
-    // So, wait for full analysis.
-    await server.onAnalysisComplete;
-  }
-
   void _checkForReset_afterCreateChange() {
     if (test_simulateRefactoringReset_afterCreateChange) {
       _reset();
@@ -772,7 +692,6 @@ class _RefactoringManager {
    */
   Future _init(
       RefactoringKind kind, String file, int offset, int length) async {
-    await _analyzeForRefactoring(file, kind);
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
         this.file == file &&
@@ -848,12 +767,13 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
-      _resetOnAnalysisStarted();
-      ContextSourcePair contextSource = server.getContextSourcePair(file);
-      engine.AnalysisContext context = contextSource.context;
-      Source source = contextSource.source;
-      refactoring = new MoveFileRefactoring(
-          server.resourceProvider, searchEngine, context, source, file);
+      // TODO(brianwilkerson) Re-implement this refactoring under the new analysis driver
+//      _resetOnAnalysisStarted();
+//      ContextSourcePair contextSource = server.getContextSourcePair(file);
+//      engine.AnalysisContext context = contextSource.context;
+//      Source source = contextSource.source;
+//      refactoring = new MoveFileRefactoring(
+//          server.resourceProvider, searchEngine, context, source, file);
     }
     if (kind == RefactoringKind.RENAME) {
       AstNode node = await server.getNodeAtOffset(file, offset);
@@ -953,19 +873,9 @@ class _RefactoringManager {
    * But when any other file is changed or analyzed, we can continue.
    */
   void _resetOnFileResolutionChanged(String file) {
-    if (server.options.enableNewAnalysisDriver) {
-      return;
-    }
-    subscriptionToReset?.cancel();
-    subscriptionToReset = server
-        .getAnalysisContext(file)
-        ?.onResultChanged(RESOLVED_UNIT)
-        ?.listen((event) {
-      Source targetSource = event.target.source;
-      if (targetSource?.fullName == file) {
-        _reset();
-      }
-    });
+    // TODO(brianwilkerson) Decide whether we want to implement this
+    // functionality for the new analysis driver or whether we should remove
+    // this method.
   }
 
   void _sendResultResponse() {

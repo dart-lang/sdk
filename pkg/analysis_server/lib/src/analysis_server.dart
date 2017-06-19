@@ -35,13 +35,11 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analysis_server/src/single_context_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -50,7 +48,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
 import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
@@ -62,9 +59,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/incremental/byte_store.dart';
@@ -281,11 +276,6 @@ class AnalysisServer {
   StreamController<ChangeNotice> _onFileAnalyzedController;
 
   /**
-   * The controller used to notify others when priority sources change.
-   */
-  StreamController<PriorityChangeEvent> _onPriorityChangeController;
-
-  /**
    * True if any exceptions thrown by analysis should be propagated up the call
    * stack.
    */
@@ -469,8 +459,7 @@ class AnalysisServer {
           packageMapProvider,
           analyzedFilesGlobs,
           instrumentationService,
-          defaultContextOptions,
-          options.enableNewAnalysisDriver);
+          defaultContextOptions);
     }
     this.fileResolverProvider = fileResolverProvider;
     this.packageResolverProvider = packageResolverProvider;
@@ -484,8 +473,6 @@ class AnalysisServer {
     _onFileAddedController = new StreamController.broadcast();
     // temporary plugin support:
     _onFileChangedController = new StreamController.broadcast();
-    _onPriorityChangeController =
-        new StreamController<PriorityChangeEvent>.broadcast();
     running = true;
     onAnalysisStarted.first.then((_) {
       onAnalysisComplete.then((_) {
@@ -494,11 +481,7 @@ class AnalysisServer {
       });
     });
     _setupIndexInvalidation();
-    if (options.enableNewAnalysisDriver) {
-      searchEngine = new SearchEngineImpl2(driverMap.values);
-    } else if (index != null) {
-      searchEngine = new SearchEngineImpl(index, getAstProvider);
-    }
+    searchEngine = new SearchEngineImpl2(driverMap.values);
     Notification notification = new ServerConnectedParams(VERSION, io.pid,
             sessionId: instrumentationService.sessionId)
         .toNotification();
@@ -592,12 +575,6 @@ class AnalysisServer {
   Stream get onFileChanged => _onFileChangedController.stream;
 
   /**
-   * The stream that is notified when priority sources change.
-   */
-  Stream<PriorityChangeEvent> get onPriorityChange =>
-      _onPriorityChangeController.stream;
-
-  /**
    * The [Future] that completes when the next operation is performed.
    */
   Future get test_onOperationPerformed {
@@ -665,31 +642,6 @@ class AnalysisServer {
   }
 
   /**
-   * Return the preferred [AnalysisContext] for analyzing the given [path].
-   * This will be the context that explicitly contains the path, if any such
-   * context exists, otherwise it will be the first analysis context that
-   * implicitly analyzes it.  Return `null` if no context is analyzing the
-   * path.
-   */
-  AnalysisContext getAnalysisContext(String path) {
-    return getContextSourcePair(path).context;
-  }
-
-  /**
-   * Return any [AnalysisContext] that is analyzing the given [source], either
-   * explicitly or implicitly.  Return `null` if there is no such context.
-   */
-  AnalysisContext getAnalysisContextForSource(Source source) {
-    for (AnalysisContext context in analysisContexts) {
-      SourceKind kind = context.getKindOf(source);
-      if (kind != SourceKind.UNKNOWN) {
-        return context;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Return an analysis driver to which the file with the given [path] is
    * added if one exists, otherwise a driver in which the file was analyzed if
    * one exists, otherwise the first driver, otherwise `null`.
@@ -737,33 +689,8 @@ class AnalysisServer {
    * Return the [AstProvider] for the given [path].
    */
   AstProvider getAstProvider(String path) {
-    if (options.enableNewAnalysisDriver) {
-      var analysisDriver = getAnalysisDriver(path);
-      return new AstProviderForDriver(analysisDriver);
-    } else {
-      var analysisContext = getAnalysisContext(path);
-      return new AstProviderForContext(analysisContext);
-    }
-  }
-
-  CompilationUnitElement getCompilationUnitElement(String file) {
-    ContextSourcePair pair = getContextSourcePair(file);
-    if (pair == null) {
-      return null;
-    }
-    // prepare AnalysisContext and Source
-    AnalysisContext context = pair.context;
-    Source unitSource = pair.source;
-    if (context == null || unitSource == null) {
-      return null;
-    }
-    // get element in the first library
-    List<Source> librarySources = context.getLibrariesContaining(unitSource);
-    if (!librarySources.isNotEmpty) {
-      return null;
-    }
-    Source librarySource = librarySources.first;
-    return context.getCompilationUnitElement(unitSource, librarySource);
+    nd.AnalysisDriver analysisDriver = getAnalysisDriver(path);
+    return new AstProviderForDriver(analysisDriver);
   }
 
   /**
@@ -790,68 +717,6 @@ class AnalysisServer {
    */
   nd.AnalysisDriver getContainingDriver(String path) {
     return contextManager.getDriverFor(path);
-  }
-
-  /**
-   * Return the primary [ContextSourcePair] representing the given [path].
-   *
-   * The [AnalysisContext] of this pair will be the context that explicitly
-   * contains the path, if any such context exists, otherwise it will be the
-   * first context that implicitly analyzes it.
-   *
-   * If the [path] is not analyzed by any context, a [ContextSourcePair] with
-   * a `null` context and a `file` [Source] is returned.
-   *
-   * If the [path] doesn't represent a file, a [ContextSourcePair] with a `null`
-   * context and `null` [Source] is returned.
-   *
-   * Does not return `null`.
-   */
-  ContextSourcePair getContextSourcePair(String path) {
-    // try SDK
-    {
-      DartSdk sdk = findSdk();
-      if (sdk != null) {
-        Uri uri = resourceProvider.pathContext.toUri(path);
-        Source sdkSource = sdk.fromFileUri(uri);
-        if (sdkSource != null) {
-          return new ContextSourcePair(sdk.context, sdkSource);
-        }
-      }
-    }
-    // try to find the deep-most containing context
-    Resource resource = resourceProvider.getResource(path);
-    if (resource is! File) {
-      return new ContextSourcePair(null, null);
-    }
-    File file = resource;
-    {
-      AnalysisContext containingContext = getContainingContext(path);
-      if (containingContext != null) {
-        Source source =
-            ContextManagerImpl.createSourceInContext(containingContext, file);
-        return new ContextSourcePair(containingContext, source);
-      }
-    }
-    // try to find a context that analysed the file
-    for (AnalysisContext context in analysisContexts) {
-      Source source = ContextManagerImpl.createSourceInContext(context, file);
-      SourceKind kind = context.getKindOf(source);
-      if (kind != SourceKind.UNKNOWN) {
-        return new ContextSourcePair(context, source);
-      }
-    }
-    // try to find a context for which the file is a priority source
-    for (InternalAnalysisContext context in analysisContexts) {
-      List<Source> sources = context.getSourcesWithFullName(path);
-      if (sources.isNotEmpty) {
-        Source source = sources.first;
-        return new ContextSourcePair(context, source);
-      }
-    }
-    // file-based source
-    Source fileSource = file.createSource();
-    return new ContextSourcePair(null, fileSource);
   }
 
   /**
@@ -889,44 +754,13 @@ class AnalysisServer {
   }
 
   /**
-   * Return an analysis error info containing the array of all of the errors and
-   * the line info associated with [file].
-   *
-   * Returns `null` if [file] does not belong to any [AnalysisContext], or the
-   * file does not exist.
-   *
-   * The array of errors will be empty if there are no errors in [file]. The
-   * errors contained in the array can be incomplete.
-   *
-   * This method does not wait for all errors to be computed, and returns just
-   * the current state.
-   */
-  AnalysisErrorInfo getErrors(String file) {
-    ContextSourcePair contextSource = getContextSourcePair(file);
-    AnalysisContext context = contextSource.context;
-    Source source = contextSource.source;
-    if (context == null) {
-      return null;
-    }
-    if (!context.exists(source)) {
-      return null;
-    }
-    return context.getErrors(source);
-  }
-
-  /**
    * Return a [Future] that completes with the resolved [AstNode] at the
    * given [offset] of the given [file], or with `null` if there is no node as
    * the [offset].
    */
   Future<AstNode> getNodeAtOffset(String file, int offset) async {
-    CompilationUnit unit;
-    if (options.enableNewAnalysisDriver) {
-      nd.AnalysisResult result = await getAnalysisResult(file);
-      unit = result?.unit;
-    } else {
-      unit = await getResolvedCompilationUnit(file);
-    }
+    nd.AnalysisResult result = await getAnalysisResult(file);
+    CompilationUnit unit = result?.unit;
     if (unit != null) {
       return new NodeLocator(offset).searchWithin(unit);
     }
@@ -939,23 +773,8 @@ class AnalysisServer {
    * Dart file or cannot be resolved.
    */
   Future<CompilationUnit> getResolvedCompilationUnit(String path) async {
-    if (options.enableNewAnalysisDriver) {
-      nd.AnalysisResult result = await getAnalysisResult(path);
-      return result?.unit;
-    }
-    ContextSourcePair contextSource = getContextSourcePair(path);
-    AnalysisContext context = contextSource.context;
-    if (context == null) {
-      return null;
-    }
-    return runWithActiveContext(context, () {
-      Source unitSource = contextSource.source;
-      List<Source> librarySources = context.getLibrariesContaining(unitSource);
-      for (Source librarySource in librarySources) {
-        return context.resolveCompilationUnit2(unitSource, librarySource);
-      }
-      return null;
-    });
+    nd.AnalysisResult result = await getAnalysisResult(path);
+    return result?.unit;
   }
 
 // TODO(brianwilkerson) Add the following method after 'prioritySources' has
@@ -1041,43 +860,6 @@ class AnalysisServer {
    */
   bool isValidFilePath(String path) {
     return resourceProvider.absolutePathContext.isValid(path);
-  }
-
-  /**
-   * Returns a [Future] completing when [file] has been completely analyzed, in
-   * particular, all its errors have been computed.  The future is completed
-   * with an [AnalysisDoneReason] indicating what caused the file's analysis to
-   * be considered complete.
-   *
-   * If the given file doesn't belong to any context, null is returned.
-   *
-   * TODO(scheglov) this method should be improved.
-   *
-   * 1. The analysis context should be told to analyze this particular file ASAP.
-   *
-   * 2. We should complete the future as soon as the file is analyzed (not wait
-   *    until the context is completely finished)
-   */
-  Future<AnalysisDoneReason> onFileAnalysisComplete(String file) {
-    // prepare AnalysisContext
-    AnalysisContext context = getAnalysisContext(file);
-    if (context == null) {
-      return null;
-    }
-    // done if everything is already analyzed
-    if (isAnalysisComplete()) {
-      return new Future.value(AnalysisDoneReason.COMPLETE);
-    }
-    // schedule context analysis
-    schedulePerformAnalysisOperation(context);
-    // associate with the context completer
-    Completer<AnalysisDoneReason> completer =
-        contextAnalysisDoneCompleters[context];
-    if (completer == null) {
-      completer = new Completer<AnalysisDoneReason>();
-      contextAnalysisDoneCompleters[context] = completer;
-    }
-    return completer.future;
   }
 
   /**
@@ -1342,85 +1124,16 @@ class AnalysisServer {
     if (notificationManager != null) {
       notificationManager.setSubscriptions(subscriptions);
     }
-    if (options.enableNewAnalysisDriver) {
-      this.analysisServices = subscriptions;
-      Set<String> allNewFiles =
-          subscriptions.values.expand((files) => files).toSet();
-      for (String file in allNewFiles) {
-        // The result will be produced by the "results" stream with
-        // the fully resolved unit, and processed with sending analysis
-        // notifications as it happens after content changes.
-        if (AnalysisEngine.isDartFileName(file)) {
-          getAnalysisResult(file);
-        }
-      }
-      return;
-    }
-    // send notifications for already analyzed sources
-    subscriptions.forEach((service, Set<String> newFiles) {
-      Set<String> oldFiles = analysisServices[service];
-      Set<String> todoFiles =
-          oldFiles != null ? newFiles.difference(oldFiles) : newFiles;
-      for (String file in todoFiles) {
-        if (contextManager.isIgnored(file)) {
-          continue;
-        }
-        // prepare context
-        ContextSourcePair contextSource = getContextSourcePair(file);
-        AnalysisContext context = contextSource.context;
-        if (context == null) {
-          continue;
-        }
-        Source source = contextSource.source;
-        // Ensure that if the AST is flushed / not ready, it will be
-        // computed eventually.
-        if (AnalysisEngine.isDartFileName(file)) {
-          (context as InternalAnalysisContext).ensureResolvedDartUnits(source);
-        }
-        // Send notifications that don't directly take an AST.
-        switch (service) {
-          case AnalysisService.NAVIGATION:
-            sendAnalysisNotificationNavigation(this, context, source);
-            continue;
-          case AnalysisService.OCCURRENCES:
-            sendAnalysisNotificationOccurrences(this, context, source);
-            continue;
-        }
-        // Dart unit notifications.
-        if (AnalysisEngine.isDartFileName(file)) {
-          // TODO(scheglov) This way to get resolved information is very Dart
-          // specific. OTOH as it is planned now Angular results are not
-          // flushable.
-          CompilationUnit dartUnit =
-              _getResolvedCompilationUnitToResendNotification(context, source);
-          if (dartUnit != null) {
-            switch (service) {
-              case AnalysisService.HIGHLIGHTS:
-                sendAnalysisNotificationHighlights(this, file, dartUnit);
-                break;
-              case AnalysisService.OUTLINE:
-                AnalysisContext context = resolutionMap
-                    .elementDeclaredByCompilationUnit(dartUnit)
-                    .context;
-                LineInfo lineInfo = context.getLineInfo(source);
-                SourceKind kind = context.getKindOf(source);
-                sendAnalysisNotificationOutline(
-                    this, file, lineInfo, kind, dartUnit);
-                break;
-              case AnalysisService.OVERRIDES:
-                sendAnalysisNotificationOverrides(this, file, dartUnit);
-                break;
-            }
-          }
-        }
-      }
-    });
-    // remember new subscriptions
     this.analysisServices = subscriptions;
-    // special case for implemented elements
-    if (analysisServices.containsKey(AnalysisService.IMPLEMENTED) &&
-        isAnalysisComplete()) {
-      _scheduleAnalysisImplementedNotification();
+    Set<String> allNewFiles =
+        subscriptions.values.expand((files) => files).toSet();
+    for (String file in allNewFiles) {
+      // The result will be produced by the "results" stream with
+      // the fully resolved unit, and processed with sending analysis
+      // notifications as it happens after content changes.
+      if (AnalysisEngine.isDartFileName(file)) {
+        getAnalysisResult(file);
+      }
     }
   }
 
@@ -1447,83 +1160,12 @@ class AnalysisServer {
    * Set the priority files to the given [files].
    */
   void setPriorityFiles(String requestId, List<String> files) {
-    if (options.enableNewAnalysisDriver) {
-      priorityFiles.clear();
-      priorityFiles.addAll(files);
-      // Set priority files in drivers.
-      driverMap.values.forEach((driver) {
-        driver.priorityFiles = files;
-      });
-      return;
-    }
-    // Note: when a file is a priority file, that information needs to be
-    // propagated to all contexts that analyze the file, so that all contexts
-    // will be able to do incremental resolution of the file.  See
-    // dartbug.com/22209.
-    Map<AnalysisContext, List<Source>> sourceMap =
-        new HashMap<AnalysisContext, List<Source>>();
-    List<String> unanalyzed = new List<String>();
-    Source firstSource = null;
-    files.forEach((String file) {
-      if (contextManager.isIgnored(file)) {
-        unanalyzed.add(file);
-        return;
-      }
-      // Prepare the context/source pair.
-      ContextSourcePair contextSource = getContextSourcePair(file);
-      AnalysisContext preferredContext = contextSource.context;
-      Source source = contextSource.source;
-      // Try to make the file analyzable.
-      // If it is not in any context yet, add it to the first one which
-      // could use it, e.g. imports its package, even if not the library.
-      if (preferredContext == null) {
-        Resource resource = resourceProvider.getResource(file);
-        if (resource is File && resource.exists) {
-          for (AnalysisContext context in analysisContexts) {
-            Uri uri = context.sourceFactory.restoreUri(source);
-            if (uri.scheme != 'file') {
-              preferredContext = context;
-              source =
-                  ContextManagerImpl.createSourceInContext(context, resource);
-              break;
-            }
-          }
-        }
-      }
-      // Fill the source map.
-      bool contextFound = false;
-      if (preferredContext != null) {
-        sourceMap.putIfAbsent(preferredContext, () => <Source>[]).add(source);
-        contextFound = true;
-      }
-      for (AnalysisContext context in analysisContexts) {
-        if (context != preferredContext &&
-            context.getKindOf(source) != SourceKind.UNKNOWN) {
-          sourceMap.putIfAbsent(context, () => <Source>[]).add(source);
-          contextFound = true;
-        }
-      }
-      if (firstSource == null) {
-        firstSource = source;
-      }
-      if (!contextFound) {
-        unanalyzed.add(file);
-      }
+    priorityFiles.clear();
+    priorityFiles.addAll(files);
+    // Set priority files in drivers.
+    driverMap.values.forEach((driver) {
+      driver.priorityFiles = files;
     });
-    if (unanalyzed.isNotEmpty) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.writeAll(unanalyzed, ', ');
-      throw new RequestFailure(
-          new Response.unanalyzedPriorityFiles(requestId, buffer.toString()));
-    }
-    sourceMap.forEach((context, List<Source> sourceList) {
-      context.analysisPriorityOrder = sourceList;
-      // Schedule the context for analysis so that it has the opportunity to
-      // cache the AST's for the priority sources as soon as possible.
-      schedulePerformAnalysisOperation(context);
-    });
-    operationQueue.reschedule();
-    _onPriorityChangeController.add(new PriorityChangeEvent(firstSource));
   }
 
   /**
@@ -1547,15 +1189,6 @@ class AnalysisServer {
     });
   }
 
-  void test_flushAstStructures(String file) {
-    if (AnalysisEngine.isDartFileName(file)) {
-      ContextSourcePair contextSource = getContextSourcePair(file);
-      InternalAnalysisContext context = contextSource.context;
-      Source source = contextSource.source;
-      context.test_flushAstStructures(source);
-    }
-  }
-
   /**
    * Performs all scheduled analysis operations.
    */
@@ -1575,58 +1208,9 @@ class AnalysisServer {
    * Implementation for `analysis.updateContent`.
    */
   void updateContent(String id, Map<String, dynamic> changes) {
-    if (options.enableNewAnalysisDriver) {
-      changes.forEach((file, change) {
-        // Prepare the new contents.
-        String oldContents = fileContentOverlay[file];
-        String newContents;
-        if (change is AddContentOverlay) {
-          newContents = change.content;
-        } else if (change is ChangeContentOverlay) {
-          if (oldContents == null) {
-            // The client may only send a ChangeContentOverlay if there is
-            // already an existing overlay for the source.
-            throw new RequestFailure(new Response(id,
-                error: new RequestError(RequestErrorCode.INVALID_OVERLAY_CHANGE,
-                    'Invalid overlay change')));
-          }
-          try {
-            newContents = SourceEdit.applySequence(oldContents, change.edits);
-          } on RangeError {
-            throw new RequestFailure(new Response(id,
-                error: new RequestError(RequestErrorCode.INVALID_OVERLAY_CHANGE,
-                    'Invalid overlay change')));
-          }
-        } else if (change is RemoveContentOverlay) {
-          newContents = null;
-        } else {
-          // Protocol parsing should have ensured that we never get here.
-          throw new AnalysisException('Illegal change type');
-        }
-
-        fileContentOverlay[file] = newContents;
-
-        driverMap.values.forEach((driver) {
-          driver.changeFile(file);
-        });
-
-        // temporary plugin support:
-        _onFileChangedController.add(file);
-
-        // If the file did not exist, and is "overlay only", it still should be
-        // analyzed. Add it to driver to which it should have been added.
-        contextManager.getDriverFor(file)?.addFile(file);
-
-        // TODO(scheglov) implement other cases
-      });
-      return;
-    }
     changes.forEach((file, change) {
-      ContextSourcePair contextSource = getContextSourcePair(file);
-      Source source = contextSource.source;
-      operationQueue.sourceAboutToChange(source);
       // Prepare the new contents.
-      String oldContents = overlayState.getContents(source);
+      String oldContents = fileContentOverlay[file];
       String newContents;
       if (change is AddContentOverlay) {
         newContents = change.content;
@@ -1652,79 +1236,20 @@ class AnalysisServer {
         throw new AnalysisException('Illegal change type');
       }
 
-      AnalysisContext containingContext = getContainingContext(file);
+      fileContentOverlay[file] = newContents;
 
-      // Check for an implicitly added but missing source.
-      // (For example, the target of an import might not exist yet.)
-      // We need to do this before setContents, which changes the stamp.
-      bool wasMissing = containingContext?.getModificationStamp(source) == -1;
+      driverMap.values.forEach((driver) {
+        driver.changeFile(file);
+      });
 
-      overlayState.setContents(source, newContents);
-      // If the source does not exist, then it was an overlay-only one.
-      // Remove it from contexts.
-      if (newContents == null && !source.exists()) {
-        for (InternalAnalysisContext context in analysisContexts) {
-          List<Source> sources = context.getSourcesWithFullName(file);
-          ChangeSet changeSet = new ChangeSet();
-          sources.forEach(changeSet.removedSource);
-          context.applyChanges(changeSet);
-          schedulePerformAnalysisOperation(context);
-        }
-        return;
-      }
-      // Update all contexts.
-      bool anyContextUpdated = false;
-      for (InternalAnalysisContext context in analysisContexts) {
-        List<Source> sources = context.getSourcesWithFullName(file);
-        sources.forEach((Source source) {
-          anyContextUpdated = true;
-          if (context == containingContext && wasMissing) {
-            // Promote missing source to an explicitly added Source.
-            context.applyChanges(new ChangeSet()..addedSource(source));
-            schedulePerformAnalysisOperation(context);
-          }
-          if (context.handleContentsChanged(
-              source, oldContents, newContents, true)) {
-            schedulePerformAnalysisOperation(context);
-          } else {
-            // When the client sends any change for a source, we should resend
-            // subscribed notifications, even if there were no changes in the
-            // source contents.
-            // TODO(scheglov) consider checking if there are subscriptions.
-            if (AnalysisEngine.isDartFileName(file)) {
-              List<CompilationUnit> dartUnits =
-                  context.ensureResolvedDartUnits(source);
-              if (dartUnits != null) {
-                AnalysisErrorInfo errorInfo = context.getErrors(source);
-                for (var dartUnit in dartUnits) {
-                  scheduleNotificationOperations(
-                      this,
-                      source,
-                      file,
-                      errorInfo.lineInfo,
-                      context,
-                      null,
-                      dartUnit,
-                      errorInfo.errors);
-                  scheduleIndexOperation(this, file, dartUnit);
-                }
-              } else {
-                schedulePerformAnalysisOperation(context);
-              }
-            }
-          }
-        });
-      }
-      // The source is not analyzed by any context, add to the containing one.
-      if (!anyContextUpdated) {
-        AnalysisContext context = contextSource.context;
-        if (context != null && source != null) {
-          ChangeSet changeSet = new ChangeSet();
-          changeSet.addedSource(source);
-          context.applyChanges(changeSet);
-          schedulePerformAnalysisOperation(context);
-        }
-      }
+      // temporary plugin support:
+      _onFileChangedController.add(file);
+
+      // If the file did not exist, and is "overlay only", it still should be
+      // analyzed. Add it to driver to which it should have been added.
+      contextManager.getDriverFor(file)?.addFile(file);
+
+      // TODO(scheglov) implement other cases
     });
   }
 
@@ -1733,29 +1258,26 @@ class AnalysisServer {
    * existing analysis context.
    */
   void updateOptions(List<OptionUpdater> optionUpdaters) {
-    if (options.enableNewAnalysisDriver) {
-      // TODO(scheglov) implement for the new analysis driver
-      return;
-    }
-    //
-    // Update existing contexts.
-    //
-    for (AnalysisContext context in analysisContexts) {
-      AnalysisOptionsImpl options =
-          new AnalysisOptionsImpl.from(context.analysisOptions);
-      optionUpdaters.forEach((OptionUpdater optionUpdater) {
-        optionUpdater(options);
-      });
-      context.analysisOptions = options;
-      // TODO(brianwilkerson) As far as I can tell, this doesn't cause analysis
-      // to be scheduled for this context.
-    }
-    //
-    // Update the defaults used to create new contexts.
-    //
-    optionUpdaters.forEach((OptionUpdater optionUpdater) {
-      optionUpdater(defaultContextOptions);
-    });
+    // TODO(scheglov) implement for the new analysis driver
+//    //
+//    // Update existing contexts.
+//    //
+//    for (AnalysisContext context in analysisContexts) {
+//      AnalysisOptionsImpl options =
+//          new AnalysisOptionsImpl.from(context.analysisOptions);
+//      optionUpdaters.forEach((OptionUpdater optionUpdater) {
+//        optionUpdater(options);
+//      });
+//      context.analysisOptions = options;
+//      // TODO(brianwilkerson) As far as I can tell, this doesn't cause analysis
+//      // to be scheduled for this context.
+//    }
+//    //
+//    // Update the defaults used to create new contexts.
+//    //
+//    optionUpdaters.forEach((OptionUpdater optionUpdater) {
+//      optionUpdater(defaultContextOptions);
+//    });
   }
 
   void _computingPackageMap(bool computing) {
@@ -1813,29 +1335,6 @@ class AnalysisServer {
     return contexts;
   }
 
-  /**
-   * Returns the [CompilationUnit] of the Dart file with the given [source] that
-   * should be used to resend notifications for already resolved unit.
-   * Returns `null` if the file is not a part of any context, library has not
-   * been yet resolved, or any problem happened.
-   */
-  CompilationUnit _getResolvedCompilationUnitToResendNotification(
-      AnalysisContext context, Source source) {
-    List<Source> librarySources = context.getLibrariesContaining(source);
-    if (librarySources.isEmpty) {
-      return null;
-    }
-    // if library has not been resolved yet, the unit will be resolved later
-    Source librarySource = librarySources[0];
-    if (context.getResult(librarySource, LIBRARY_ELEMENT6) == null) {
-      return null;
-    }
-    // if library has been already resolved, resolve unit
-    return runWithActiveContext(context, () {
-      return context.resolveCompilationUnit2(source, librarySource);
-    });
-  }
-
   bool _hasAnalysisServiceSubscription(AnalysisService service, String file) {
     return analysisServices[service]?.contains(file) ?? false;
   }
@@ -1887,29 +1386,32 @@ class AnalysisServer {
       return;
     }
     onContextsChanged.listen((ContextsChangedEvent event) {
-      for (AnalysisContext context in event.added) {
-        context
-            .onResultChanged(RESOLVED_UNIT3)
-            .listen((ResultChangedEvent event) {
-          if (event.wasComputed) {
-            Object value = event.value;
-            if (value is CompilationUnit) {
-              index.indexDeclarations(value);
-            }
-          }
-        });
-        context
-            .onResultChanged(RESOLVED_UNIT)
-            .listen((ResultChangedEvent event) {
-          if (event.wasInvalidated) {
-            LibrarySpecificUnit target = event.target;
-            index.removeUnit(event.context, target.library, target.unit);
-          }
-        });
-      }
-      for (AnalysisContext context in event.removed) {
-        index.removeContext(context);
-      }
+      // TODO(brianwilkerson) `onContextsChanged` should never have anything
+      // written to it. Figure out whether we need something like this under the
+      // new analysis driver, and remove this method if not.
+//      for (AnalysisContext context in event.added) {
+//        context
+//            .onResultChanged(RESOLVED_UNIT3)
+//            .listen((ResultChangedEvent event) {
+//          if (event.wasComputed) {
+//            Object value = event.value;
+//            if (value is CompilationUnit) {
+//              index.indexDeclarations(value);
+//            }
+//          }
+//        });
+//        context
+//            .onResultChanged(RESOLVED_UNIT)
+//            .listen((ResultChangedEvent event) {
+//          if (event.wasInvalidated) {
+//            LibrarySpecificUnit target = event.target;
+//            index.removeUnit(event.context, target.library, target.unit);
+//          }
+//        });
+//      }
+//      for (AnalysisContext context in event.removed) {
+//        index.removeContext(context);
+//      }
     });
   }
 }
@@ -1917,7 +1419,6 @@ class AnalysisServer {
 class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
-  bool enableNewAnalysisDriver = false;
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
@@ -2096,35 +1597,21 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    if (analysisServer.options.enableNewAnalysisDriver) {
-      nd.AnalysisDriver analysisDriver =
-          analysisServer.driverMap[contextFolder];
-      if (analysisDriver != null) {
-        changeSet.addedSources.forEach((source) {
-          analysisDriver.addFile(source.fullName);
-          // temporary plugin support:
-          analysisServer._onFileAddedController.add(source.fullName);
-        });
-        changeSet.changedSources.forEach((source) {
-          analysisDriver.changeFile(source.fullName);
-          // temporary plugin support:
-          analysisServer._onFileChangedController.add(source.fullName);
-        });
-        changeSet.removedSources.forEach((source) {
-          analysisDriver.removeFile(source.fullName);
-        });
-      }
-    } else {
-      AnalysisContext context = analysisServer.folderMap[contextFolder];
-      if (context != null) {
-        context.applyChanges(changeSet);
-        analysisServer.schedulePerformAnalysisOperation(context);
-        List<String> flushedFiles = new List<String>();
-        for (Source source in changeSet.removedSources) {
-          flushedFiles.add(source.fullName);
-        }
-        sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
-      }
+    nd.AnalysisDriver analysisDriver = analysisServer.driverMap[contextFolder];
+    if (analysisDriver != null) {
+      changeSet.addedSources.forEach((source) {
+        analysisDriver.addFile(source.fullName);
+        // temporary plugin support:
+        analysisServer._onFileAddedController.add(source.fullName);
+      });
+      changeSet.changedSources.forEach((source) {
+        analysisDriver.changeFile(source.fullName);
+        // temporary plugin support:
+        analysisServer._onFileChangedController.add(source.fullName);
+      });
+      changeSet.removedSources.forEach((source) {
+        analysisDriver.removeFile(source.fullName);
+      });
     }
   }
 
@@ -2185,21 +1672,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void removeContext(Folder folder, List<String> flushedFiles) {
-    if (analysisServer.options.enableNewAnalysisDriver) {
-      sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
-      nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
-      driver.dispose();
-    } else {
-      AnalysisContext context = analysisServer.folderMap.remove(folder);
-      sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
-
-      analysisServer.operationQueue.contextRemoved(context);
-      analysisServer._onContextsChangedController
-          .add(new ContextsChangedEvent(removed: [context]));
-      analysisServer.sendContextAnalysisDoneNotifications(
-          context, AnalysisDoneReason.CONTEXT_REMOVED);
-      context.dispose();
-    }
+    sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
+    nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
+    driver.dispose();
   }
 
   @override
