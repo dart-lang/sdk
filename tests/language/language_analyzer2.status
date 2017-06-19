@@ -28,6 +28,8 @@ regress_23408_test: Skip # don't care about the static warning.
 regress_25246_test: Skip
 getter_setter_in_lib_test: Fail # Issue 23286
 
+final_attempt_reinitialization_test.dart: Skip # Issue 29657
+
 override_field_test/03: Fail # Issue 29703
 method_override7_test/03: Fail # Issue 11497
 

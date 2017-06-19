@@ -563,6 +563,8 @@ class Parser : public ValueObject {
   void CheckMemberNameConflict(ClassDesc* members, MemberDesc* member);
   void ParseClassMemberDefinition(ClassDesc* members,
                                   TokenPosition metadata_pos);
+  void CheckFinalInitializationConflicts(const ClassDesc* class_desc,
+                                         const MemberDesc* member);
   void ParseParameterType(ParamList* params);
   void ParseFormalParameter(bool allow_explicit_default_value,
                             bool evaluate_metadata,

@@ -24,6 +24,8 @@ mixin_supertype_subclass3_test: CompileTimeError # Issue 23773
 mixin_supertype_subclass4_test: CompileTimeError # Issue 23773
 mixin_of_mixin_test: CompileTimeError # Issue 23773
 
+final_attempt_reinitialization_test.dart: Skip # Issue 29659
+
 # The following tests are supposed to fail.
 # In testing-mode, dart2js supports all dart:X libraries (because it
 # uses '--categories=all').
