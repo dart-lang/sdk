@@ -53,7 +53,7 @@ vars = {
   "pub_semver_tag": "@1.2.0",
   "quiver_tag": "@0.21.4",
   "root_certificates_rev": "@aed07942ce98507d2be28cbd29e879525410c7fc",
-  "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa652https://github.com/85ef4",
+  "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
   "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
   "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
   "stack_trace_tag": "@1.2.1",
@@ -66,6 +66,7 @@ vars = {
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
+
   "co19_rev": "@4af9ef149be554216c5bb16cbac8e50d4c28cdf1",
 
   # End of Dartium vars
