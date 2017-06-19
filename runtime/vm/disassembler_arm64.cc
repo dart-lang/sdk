@@ -125,7 +125,7 @@ static const char* extend_names[kMaxExtend] = {
 
 // These condition names are defined in a way to match the native disassembler
 // formatting. See for example the command "objdump -d <binary file>".
-static const char* cond_names[kMaxCondition] = {
+static const char* cond_names[kNumberOfConditions] = {
     "eq", "ne", "cs", "cc", "mi", "pl", "vs", "vc",
     "hi", "ls", "ge", "lt", "gt", "le", "",   "invalid",
 };
