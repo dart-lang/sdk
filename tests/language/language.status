@@ -69,6 +69,9 @@ generic_local_functions_test: Pass # Issue 25869
 generic_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
+[ $runtime == vm ]
+const_error_multiply_initialized_test/02: MissingCompileTimeError
+
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
