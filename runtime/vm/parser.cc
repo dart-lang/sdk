@@ -7367,7 +7367,7 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
 
   if (FLAG_causal_async_stacks) {
     // Add to AST:
-    //   :async_stack_trace = _asyncStackTraceHelper(:async_op);
+    //   :async_stack_trace = _asyncStackTraceHelper();
     const Function& async_stack_trace_helper = Function::ZoneHandle(
         Z,
         async_lib.LookupFunctionAllowPrivate(Symbols::AsyncStackTraceHelper()));

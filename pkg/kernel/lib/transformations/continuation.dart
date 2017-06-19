@@ -215,8 +215,6 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
 abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   final VariableDeclaration nestedClosureVariable =
       new VariableDeclaration(":async_op");
-  final VariableDeclaration stackTraceVariable =
-      new VariableDeclaration(":async_stack_trace");
   final VariableDeclaration thenContinuationVariable =
       new VariableDeclaration(":async_op_then");
   final VariableDeclaration catchErrorContinuationVariable =
@@ -231,9 +229,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
   void setupAsyncContinuations(List<Statement> statements) {
     expressionRewriter = new ExpressionLifter(this);
-
-    // var :async_stack_trace;
-    statements.add(stackTraceVariable);
 
     // var :async_op_then;
     statements.add(thenContinuationVariable);
@@ -273,13 +268,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
         new FunctionDeclaration(nestedClosureVariable, function)
           ..fileOffset = enclosingFunction.parent.fileOffset;
     statements.add(closureFunction);
-
-    // :async_stack_trace = _asyncStackTraceHelper(asyncBody);
-    final stackTrace = new StaticInvocation(helper.asyncStackTraceHelper,
-        new Arguments(<Expression>[new VariableGet(nestedClosureVariable)]));
-    final stackTraceAssign = new ExpressionStatement(
-        new VariableSet(stackTraceVariable, stackTrace));
-    statements.add(stackTraceAssign);
 
     // :async_op_then = _asyncThenWrapperHelper(asyncBody);
     final boundThenClosure = new StaticInvocation(helper.asyncThenWrapper,
@@ -917,7 +905,6 @@ class HelperNodes {
   final Constructor streamControllerConstructor;
   final Constructor syncIterableConstructor;
   final Constructor streamIteratorConstructor;
-  final Procedure asyncStackTraceHelper;
   final Procedure asyncThenWrapper;
   final Procedure asyncErrorWrapper;
   final Procedure awaitHelper;
@@ -936,7 +923,6 @@ class HelperNodes {
       this.streamIteratorConstructor,
       this.futureMicrotaskConstructor,
       this.streamControllerConstructor,
-      this.asyncStackTraceHelper,
       this.asyncThenWrapper,
       this.asyncErrorWrapper,
       this.awaitHelper,
@@ -956,7 +942,6 @@ class HelperNodes {
         coreTypes.streamIteratorDefaultConstructor,
         coreTypes.futureMicrotaskConstructor,
         coreTypes.asyncStarStreamControllerDefaultConstructor,
-        coreTypes.asyncStackTraceHelperProcedure,
         coreTypes.asyncThenWrapperHelperProcedure,
         coreTypes.asyncErrorWrapperHelperProcedure,
         coreTypes.awaitHelperProcedure,
