@@ -70,8 +70,8 @@ class Collector {
       this._generatedCode,
       this._sorter);
 
-  Set<ClassElement> computeInterceptorsReferencedFromConstants() {
-    Set<ClassElement> classes = new Set<ClassElement>();
+  Set<ClassEntity> computeInterceptorsReferencedFromConstants() {
+    Set<ClassEntity> classes = new Set<ClassEntity>();
     List<ConstantValue> constants = _worldBuilder.getConstantsForEmission();
     for (ConstantValue constant in constants) {
       if (constant is InterceptorConstantValue) {
@@ -145,8 +145,8 @@ class Collector {
                   element.isConstructor ||
                   element.isSetter)) {
             MethodElement function = element;
-            function.functionSignature
-                .forEachParameter(_mirrorsData.retainMetadataOfParameter);
+            function.functionSignature.forEachParameter((parameter) =>
+                _mirrorsData.retainMetadataOfParameter(parameter));
           }
         }
       }
@@ -156,7 +156,7 @@ class Collector {
           _mirrorsData.retainMetadataOfClass(cls);
           new FieldVisitor(_options, _elementEnvironment, _worldBuilder,
                   _nativeData, _mirrorsData, _namer, _closedWorld)
-              .visitFields((FieldElement member,
+              .visitFields((FieldEntity member,
                   js.Name name,
                   js.Name accessorName,
                   bool needsGetter,
@@ -229,12 +229,10 @@ class Collector {
     addClassesWithSuperclasses(instantiatedClasses);
 
     // 2. Add all classes used as mixins.
-    Set<ClassEntity> mixinClasses = new Set<ClassEntity>();
-    for (ClassEntity cls in neededClasses) {
-      _elementEnvironment.forEachMixin(cls, (ClassEntity mixinClass) {
-        mixinClasses.add(mixinClass);
-      });
-    }
+    Set<ClassEntity> mixinClasses = neededClasses
+        .where(_elementEnvironment.isMixinApplication)
+        .map(_elementEnvironment.getEffectiveMixinClass)
+        .toSet();
     neededClasses.addAll(mixinClasses);
 
     // 3. Find all classes needed for rti.
@@ -323,12 +321,10 @@ class Collector {
     Iterable<FieldEntity> fields =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
-        _worldBuilder.allReferencedStaticFields.where((FieldElement field) {
+        _worldBuilder.allReferencedStaticFields.where((FieldEntity field) {
       if (!field.isConst) {
-        return field.isField &&
-            !field.isInstanceMember &&
-            !field.isFinal &&
-            field.constant != null;
+        return field.isAssignable &&
+            _worldBuilder.hasConstantFieldInitializer(field);
       } else {
         // We also need to emit static const fields if they are available for
         // reflection.
@@ -336,7 +332,7 @@ class Collector {
       }
     });
 
-    _sorter.sortMembers(fields).forEach(addToOutputUnit);
+    _sorter.sortMembers(fields).forEach((MemberEntity e) => addToOutputUnit(e));
   }
 
   void computeNeededLibraries() {

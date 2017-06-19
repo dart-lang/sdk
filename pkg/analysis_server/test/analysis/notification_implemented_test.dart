@@ -25,9 +25,6 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   List<ImplementedClass> implementedClasses;
   List<ImplementedMember> implementedMembers;
 
-  @override
-  bool get enableNewAnalysisDriver => false;
-
   /**
    * Validates that there is an [ImplementedClass] at the offset of [search].
    *

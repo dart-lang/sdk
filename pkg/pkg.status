@@ -17,6 +17,7 @@ analyzer/tool/summary/check_test: Skip  # Issue 29133
 analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_driver_test: Slow, Pass
 analyzer/test/generated/static_warning_code_driver_test: Slow, Pass
+analyzer/test/generated/compile_time_error_code_test: Slow, Pass
 
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
@@ -105,6 +106,7 @@ analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 analyzer/test/generated/source_factory_test: RuntimeError # Issue 26828
 kernel/test/baseline_spec_mode_test: RuntimeError # Issue 28243
 kernel/test/baseline_strong_mode_test: RuntimeError # Issue 28243
+analyzer/tool/task_dependency_graph/check_test: Slow, Pass
 
 [ $compiler == dart2js ]
 analysis_server/test/integration: SkipByDesign # Analysis server integration tests don't make sense to run under dart2js, since the code under test always runs in the Dart vm as a subprocess.
@@ -215,3 +217,6 @@ analyzer_cli/test/driver_test: Pass, Slow
 
 [ $runtime == vm && $system == windows ]
 analyzer/test/src/task/strong/checker_test: Pass, Slow
+
+[ $browser ]
+testing/test/analyze_test: SkipByDesign

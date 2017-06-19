@@ -254,6 +254,7 @@ class Unaliaser
 
   @override
   ResolutionDartType visit(ResolutionDartType type, [_]) =>
+      // ignore: ARGUMENT_TYPE_NOT_ASSIGNABLE
       type.accept(this, null);
 
   @override

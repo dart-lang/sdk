@@ -214,7 +214,8 @@ class TypeBuilder {
     if (!checkOrTrustTypes) return;
 
     FunctionSignature signature = function.functionSignature;
-    signature.orderedForEachParameter((ParameterElement parameter) {
+    signature.orderedForEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
       HInstruction argument = builder.localsHandler.readLocal(parameter);
       potentiallyCheckOrTrustType(argument, parameter.type);
     });

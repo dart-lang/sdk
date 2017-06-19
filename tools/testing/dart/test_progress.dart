@@ -5,6 +5,8 @@
 import 'dart:convert' show JSON;
 import 'dart:io';
 
+import 'command.dart';
+import 'command_output.dart';
 import 'configuration.dart';
 import 'expectation.dart';
 import 'path.dart';

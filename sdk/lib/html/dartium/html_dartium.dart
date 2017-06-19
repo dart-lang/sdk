@@ -11725,13 +11725,6 @@ class DomException extends DartHtmlDomObject {
   }
 
   @Deprecated("Internal Use Only")
-  static DomException internalCreateDomException() {
-    return new DomException._internalWrap();
-  }
-
-  external factory DomException._internalWrap();
-
-  @Deprecated("Internal Use Only")
   DomException.internal_() {}
 
   @Deprecated("Internal Use Only")
@@ -11748,15 +11741,18 @@ class DomException extends DartHtmlDomObject {
 
   @DomName('DOMException.message')
   @DocsEditable()
-  String get message => _message;
+  String get message =>
+      _message ??
+      (_message = _blink.BlinkDOMException.instance.message_Getter_(this));
 
   @DomName('DOMException.name')
   @DocsEditable()
-  String get name => _name;
+  String get name =>
+      _name ?? (_name = _blink.BlinkDOMException.instance.name_Getter_(this));
 
   @DomName('DOMException.toString')
   @DocsEditable()
-  String toString() => "${_name}: $_message";
+  String toString() => "$name: $message";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

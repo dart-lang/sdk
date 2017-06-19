@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
@@ -38,14 +40,15 @@ runWithActiveContext(AnalysisContext context, f()) {
   }
 }
 
-scheduleImplementedNotification(
+Future<Null> scheduleImplementedNotification(
     AnalysisServer server, Iterable<String> files) async {
   SearchEngine searchEngine = server.searchEngine;
   if (searchEngine == null) {
     return;
   }
   for (String file in files) {
-    CompilationUnitElement unitElement = server.getCompilationUnitElement(file);
+    CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+    CompilationUnitElement unitElement = unit?.element;
     if (unitElement != null) {
       try {
         ImplementedComputer computer =

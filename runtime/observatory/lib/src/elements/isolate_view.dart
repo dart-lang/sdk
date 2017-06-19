@@ -376,7 +376,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
             new DivElement()
               ..classes = ['indent']
               ..title = '${t.zoneHighWatermark}B'
-              ..text = 'zone capacity high watermark ' +
+              ..text = 'zone capacity high watermark '
                   '${Utils.formatSize(t.zoneHighWatermark)}',
             new DivElement()
               ..classes = ['indent']

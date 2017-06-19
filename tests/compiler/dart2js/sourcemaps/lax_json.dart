@@ -37,8 +37,6 @@ class _Decoder {
   static final List<int> FALSE = 'false'.codeUnits;
   static final int N = 'n'.codeUnits.single;
   static final List<int> NULL = 'null'.codeUnits;
-  static final int _0 = '0'.codeUnits.single;
-  static final int _9 = '9'.codeUnits.single;
   static final int B = 'b'.codeUnits.single;
   static final int R = 'r'.codeUnits.single;
   static final int U = 'u'.codeUnits.single;

@@ -58,6 +58,7 @@ class ModelEmitter {
     this.constantEmitter = new ConstantEmitter(
         compiler.options,
         _closedWorld.commonElements,
+        compiler.codegenWorldBuilder,
         compiler.backend.rtiNeed,
         compiler.backend.rtiEncoder,
         namer,
@@ -223,7 +224,7 @@ class ModelEmitter {
       'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
       'holders': emitHolders(program.holders),
       'tearOff': buildTearOffCode(compiler.options, backend.emitter.emitter,
-          backend.namer, compiler.commonElements),
+          backend.namer, _closedWorld.commonElements),
       'parseFunctionDescriptor':
           js.js.statement(parseFunctionDescriptorBoilerplate, {
         'argumentCount': js.string(namer.requiredParameterField),
@@ -365,7 +366,7 @@ class ModelEmitter {
   js.Property emitMangledGlobalNames() {
     List<js.Property> names = <js.Property>[];
 
-    CommonElements commonElements = compiler.commonElements;
+    CommonElements commonElements = _closedWorld.commonElements;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
     List<ClassElement> nativeClassesNeedingUnmangledName = [
@@ -896,7 +897,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
         return [js.quoteName(method.name), new js.ArrayInitializer(data)];
       } else {
         // TODO(floitsch): not the most efficient way...
-        return ([method]..addAll(method.parameterStubs))
+        return (<dynamic>[method]..addAll(method.parameterStubs))
             .expand(makeNameCodePair);
       }
     } else {
@@ -931,7 +932,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
         /// field whether the method is intercepted.
         // [name, [function, callName, tearOffName, functionType,
         //     stub1_name, stub1_callName, stub1_code, ...]
-        var data = [unparse(compiler, method.code)];
+        var data = <js.Expression>[unparse(compiler, method.code)];
         data.add(js.quoteName(method.callName));
         data.add(js.quoteName(method.tearOffName));
         data.add(method.functionType);

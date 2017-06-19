@@ -28,10 +28,10 @@ class ClassEmitter extends CodeEmitterHelper {
   ClassEmitter(this.closedWorld);
 
   ClassStubGenerator get _stubGenerator => new ClassStubGenerator(task.emitter,
-      compiler.commonElements, namer, codegenWorldBuilder, closedWorld,
+      closedWorld.commonElements, namer, codegenWorldBuilder, closedWorld,
       enableMinification: compiler.options.enableMinification);
 
-  ElementEnvironment get _elementEnvironment => compiler.elementEnvironment;
+  ElementEnvironment get _elementEnvironment => closedWorld.elementEnvironment;
 
   /**
    * Documentation wanted -- johnniwinther
@@ -125,7 +125,7 @@ class ClassEmitter extends CodeEmitterHelper {
       fields = container.staticFieldsForReflection;
     }
 
-    var fieldMetadata = [];
+    var fieldMetadata = <jsAst.Expression>[];
     bool hasMetadata = false;
     bool fieldsAdded = false;
 
@@ -144,7 +144,7 @@ class ClassEmitter extends CodeEmitterHelper {
       // accessors at runtime.
       bool needsFieldsForConstructor = !emitStatics && !classIsNative;
       if (needsFieldsForConstructor || needsAccessor) {
-        var metadata =
+        dynamic metadata =
             task.metadataCollector.buildFieldMetadataFunction(fieldElement);
         if (metadata != null) {
           hasMetadata = true;

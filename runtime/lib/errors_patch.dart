@@ -55,8 +55,8 @@ class _AssertionError extends Error implements AssertionError {
 
   String toString() {
     if (_url == null) {
-      if (message == null) return _failedAssertion;
-      return "'$_failedAssertion': $_messageString";
+      if (message == null) return _failedAssertion?.trim();
+      return "'${_failedAssertion?.trim()}': $_messageString";
     }
     var columnInfo = "";
     if (_column > 0) {

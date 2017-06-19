@@ -61,7 +61,7 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
   /// `mirrorsData.targetsUsed`. If the target is a library or class all nested
   /// static fields are included too.
   Iterable<Element> _findStaticFieldTargets() {
-    List staticFields = [];
+    List<Element> staticFields = <Element>[];
 
     void addFieldsInContainer(ScopeContainerElement container) {
       container.forEachLocalMember((Element member) {
@@ -371,7 +371,7 @@ class MirrorsHandler {
     // TODO(herhut): Add a warning if a mirrors annotation cannot hit.
     if (recents.contains(cls.declaration)) {
       _logEnqueueReflectiveAction(cls, "members");
-      cls.constructors.forEach((ConstructorElement element) {
+      cls.constructors.forEach((Element element) {
         _enqueueReflectiveConstructor(element.declaration,
             enclosingWasIncluded: includeClass);
       });
@@ -386,8 +386,8 @@ class MirrorsHandler {
   Iterable<ClassEntity> get _classesRequiredForReflection {
     // TODO(herhut): Clean this up when classes needed for rti are tracked.
     return [
-      _backend.compiler.commonElements.closureClass,
-      _backend.compiler.commonElements.jsIndexableClass
+      _resolution.commonElements.closureClass,
+      _resolution.commonElements.jsIndexableClass
     ];
   }
 
@@ -463,7 +463,8 @@ class MirrorsHandler {
     } else if (recents.isNotEmpty) {
       // Keep looking at new classes until fixpoint is reached.
       _logEnqueueReflectiveAction("!START enqueueRecents");
-      recents.forEach((ClassElement cls) {
+      recents.forEach((ClassEntity _cls) {
+        ClassElement cls = _cls;
         _enqueueReflectiveElementsInClass(cls, recents,
             enclosingWasIncluded: _shouldIncludeElementDueToMirrors(cls.library,
                 includedEnclosing: false));

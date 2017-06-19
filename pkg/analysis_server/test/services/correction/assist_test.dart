@@ -512,7 +512,7 @@ main() {
 }
 ''';
     // add sources
-    Source appSource = addSource('/app.dart', appCode);
+    addSource('/app.dart', appCode);
     testSource = addSource('/test.dart', testCode);
     // resolve
     await resolveTestUnit(testCode);

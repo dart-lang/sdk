@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
-import 'dart:developer';
+import 'package:observatory/cpu_profile.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:observatory/cpu_profile.dart';
 import 'package:unittest/unittest.dart';
-import 'service_test_common.dart';
 import 'test_helper.dart';
 
 void verifyHelper(var root, bool exclusive) {

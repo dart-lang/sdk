@@ -108,8 +108,8 @@ class FunctionKeyValueTrait {
   static inline intptr_t Hashcode(Key key) {
     // We are using pointer hash for objects originating from Kernel because
     // Fasta currently does not assign any position information to them.
-    if (key->kernel_function() != NULL) {
-      return SimplePointerHash(key->kernel_function());
+    if (key->kernel_offset() > 0) {
+      return key->kernel_offset();
     } else {
       return key->token_pos().value();
     }
@@ -137,8 +137,8 @@ class FieldKeyValueTrait {
   static inline intptr_t Hashcode(Key key) {
     // We are using pointer hash for objects originating from Kernel because
     // Fasta currently does not assign any position information to them.
-    if (key->kernel_field() != NULL) {
-      return SimplePointerHash(key->kernel_field());
+    if (key->kernel_offset() > 0) {
+      return key->kernel_offset();
     } else {
       return key->token_pos().value();
     }
@@ -431,6 +431,7 @@ class Precompiler : public ValueObject {
   ParsedJSONObject* jit_feedback_;
 
   bool changed_;
+  bool retain_root_library_caches_;
   intptr_t function_count_;
   intptr_t class_count_;
   intptr_t selector_count_;

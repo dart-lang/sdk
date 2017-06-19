@@ -839,7 +839,7 @@ class Listener {
   }
 
   void handleIndexedExpression(
-      Token openCurlyBracket, Token closeCurlyBracket) {
+      Token openSquareBracket, Token closeSquareBracket) {
     logEvent("IndexedExpression");
   }
 

@@ -16,7 +16,7 @@ import 'package:testing/testing.dart'
 import 'package:front_end/src/fasta/testing/patched_sdk_location.dart'
     show computePatchedSdk;
 
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Program, Library;
 
 import 'package:kernel/transformations/closure_conversion.dart'
     as closure_conversion;
@@ -133,7 +133,9 @@ class ClosureConversion
       Program program, ClosureConversionContext testContext) async {
     try {
       CoreTypes coreTypes = new CoreTypes(program);
-      program = closure_conversion.transformProgram(coreTypes, program);
+      Library library = program.libraries
+          .firstWhere((Library library) => library.importUri.scheme != "dart");
+      closure_conversion.transformLibraries(coreTypes, <Library>[library]);
       return pass(program);
     } catch (e, s) {
       return crash(e, s);

@@ -2290,8 +2290,13 @@ abstract class NewBulkMixin<R, A>
   }
 
   @override
-  R visitUnresolvedClassConstructorInvoke(NewExpression node, Element element,
-      ResolutionDartType type, NodeList arguments, Selector selector, A arg) {
+  R visitUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      ErroneousElement element,
+      ResolutionDartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
     return bulkHandleNew(node, arg);
   }
 
@@ -4446,7 +4451,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitUnresolvedClassConstructorInvoke(
       NewExpression node,
-      Element constructor,
+      ErroneousElement constructor,
       ResolutionDartType type,
       NodeList arguments,
       Selector selector,
@@ -8298,8 +8303,13 @@ abstract class BaseImplementationOfNewMixin<R, A>
   }
 
   @override
-  R visitUnresolvedClassConstructorInvoke(NewExpression node, Element element,
-      ResolutionDartType type, NodeList arguments, Selector selector, A arg) {
+  R visitUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      ErroneousElement element,
+      ResolutionDartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
     return handleConstructorInvoke(
         node, element, type, arguments, selector.callStructure, arg);
   }

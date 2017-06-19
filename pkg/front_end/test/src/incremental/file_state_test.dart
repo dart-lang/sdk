@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,6 +21,7 @@ main() {
 
 @reflectiveTest
 class FileSystemStateTest {
+  final byteStore = new MemoryByteStore();
   final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
   final TranslateUri uriTranslator = new TranslateUri({}, {}, {});
   FileSystemState fsState;
@@ -32,7 +34,8 @@ class FileSystemStateTest {
     uriTranslator.dartLibraries.addAll(dartLibraries);
     _coreUri = Uri.parse('dart:core');
     expect(_coreUri, isNotNull);
-    fsState = new FileSystemState(fileSystem, uriTranslator, <int>[], (uri) {
+    fsState = new FileSystemState(byteStore, fileSystem, uriTranslator, <int>[],
+        (uri) {
       _newFileUris.add(uri);
       return new Future.value();
     });
@@ -486,6 +489,38 @@ import 'b.dart';
     expect(order[0].libraries, contains(core));
     expect(order[1].libraries, unorderedEquals([a]));
     expect(order[2].libraries, unorderedEquals([b, c]));
+  }
+
+  test_transitiveFiles() async {
+    var a = writeFile('/a.dart', "");
+    var b = writeFile('/b.dart', "");
+    var c = writeFile('/c.dart', "import 'b.dart';");
+
+    FileState aFile = await fsState.getFile(a);
+    FileState bFile = await fsState.getFile(b);
+    FileState cFile = await fsState.getFile(c);
+
+    // Only c.dart and b.dart are in the transitive closure.
+    expect(cFile.transitiveFiles, contains(cFile));
+    expect(cFile.transitiveFiles, contains(bFile));
+    expect(cFile.transitiveFiles, isNot(contains(aFile)));
+    expect(bFile.transitiveFiles, isNot(contains(aFile)));
+
+    // Import a.dart into b.dart, changes c.dart transitive closure.
+    writeFile('/b.dart', "import 'a.dart';");
+    await bFile.refresh();
+    expect(cFile.transitiveFiles, contains(cFile));
+    expect(cFile.transitiveFiles, contains(bFile));
+    expect(cFile.transitiveFiles, contains(aFile));
+    expect(bFile.transitiveFiles, contains(aFile));
+
+    // Stop importing a.dart into b.dart, changes c.dart transitive closure.
+    writeFile('/b.dart', "");
+    await bFile.refresh();
+    expect(cFile.transitiveFiles, contains(cFile));
+    expect(cFile.transitiveFiles, contains(bFile));
+    expect(cFile.transitiveFiles, isNot(contains(aFile)));
+    expect(bFile.transitiveFiles, isNot(contains(aFile)));
   }
 
   /// Write the given [text] of the file with the given [path] into the

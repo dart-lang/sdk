@@ -19,6 +19,13 @@
 #define USING_MULTICORE false
 #endif
 
+// Don't use USING_PRODUCT outside of this file.
+#if defined(PRODUCT)
+#define USING_PRODUCT true
+#else
+#define USING_PRODUCT false
+#endif
+
 // List of all flags in the VM.
 // Flags can be one of three categories:
 // * P roduct flags: Can be set in any of the deployment modes, including in
@@ -134,7 +141,7 @@
   P(reify_generic_functions, bool, false,                                      \
     "Enable reification of generic functions (not yet supported).")            \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
-  C(causal_async_stacks, false, false, bool, true, "Improved async stacks")    \
+  P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
   C(async_debugger, false, false, bool, true,                                  \

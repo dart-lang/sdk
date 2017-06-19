@@ -4,7 +4,7 @@
 
 library kernel.transformations.closure_conversion;
 
-import '../ast.dart' show Class, Program;
+import '../ast.dart' show Program, Library;
 
 import '../core_types.dart' show CoreTypes;
 
@@ -13,14 +13,28 @@ import 'closure/converter.dart' show ClosureConverter;
 import 'closure/info.dart' show ClosureInfo;
 
 import 'closure/invalidate_closures.dart';
-import 'closure/mock.dart' show mockUpContext;
 
 Program transformProgram(CoreTypes coreTypes, Program program) {
   var info = new ClosureInfo();
   info.visitProgram(program);
 
-  Class contextClass = mockUpContext(coreTypes, program);
-  var convert = new ClosureConverter(coreTypes, info, contextClass);
+  var convert = new ClosureConverter(coreTypes, info);
   program = convert.visitProgram(program);
   return new InvalidateClosures().visitProgram(program);
+}
+
+void transformLibraries(CoreTypes coreTypes, List<Library> libraries) {
+  var info = new ClosureInfo();
+  for (var library in libraries) {
+    info.visitLibrary(library);
+  }
+
+  var convert = new ClosureConverter(coreTypes, info);
+  for (int i = 0; i < libraries.length; i++) {
+    libraries[i] = convert.visitLibrary(libraries[i]);
+  }
+  var invalidator = new InvalidateClosures();
+  for (int i = 0; i < libraries.length; i++) {
+    invalidator.visitLibrary(libraries[i]);
+  }
 }

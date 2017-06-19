@@ -119,7 +119,7 @@ class CompilerImpl extends Compiler {
     // setting up the current element of the compiler.
     return new Future.sync(
             () => callUserProvider(resourceUri, api.InputKind.utf8))
-        .then((SourceFile sourceFile) {
+        .then((api.Input sourceFile) {
       // We use [readableUri] as the URI for the script since need to preserve
       // the scheme in the script because [Script.uri] is used for resolving
       // relative URIs mentioned in the script. See the comment on
@@ -199,8 +199,9 @@ class CompilerImpl extends Compiler {
       // and we can't depend on 'dart:io' classes.
       packages = new NonFilePackagesDirectoryPackages(options.packageRoot);
     } else if (options.packageConfig != null) {
-      return callUserProvider(options.packageConfig, api.InputKind.binary)
-          .then((Binary binary) {
+      Future<Binary> future =
+          callUserProvider(options.packageConfig, api.InputKind.binary);
+      return future.then((Binary binary) {
         packages =
             new MapPackages(pkgs.parse(binary.data, options.packageConfig));
       }).catchError((error) {
@@ -227,8 +228,9 @@ class CompilerImpl extends Compiler {
     if (options.resolutionInputs != null) {
       future = Future.forEach(options.resolutionInputs, (Uri resolutionInput) {
         reporter.log('Reading serialized data from ${resolutionInput}');
-        return callUserProvider(resolutionInput, api.InputKind.utf8)
-            .then((SourceFile sourceFile) {
+        Future<SourceFile> future =
+            callUserProvider(resolutionInput, api.InputKind.utf8);
+        return future.then((SourceFile sourceFile) {
           serialization.deserializeFromText(
               resolutionInput, sourceFile.slowText());
         });

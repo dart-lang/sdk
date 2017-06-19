@@ -43,7 +43,6 @@ import '../elements/elements.dart'
         FunctionSignature,
         GetterElement,
         InitializingFormalElement,
-        JumpTarget,
         LibraryElement,
         LocalElement,
         LocalFunctionElement,
@@ -53,6 +52,7 @@ import '../elements/elements.dart'
         PrefixElement,
         TypeVariableElement;
 import '../elements/entities.dart' show AsyncMarker;
+import '../elements/jumps.dart';
 import '../elements/names.dart' show Name;
 import '../elements/operators.dart'
     show AssignmentOperator, BinaryOperator, IncDecOperator, UnaryOperator;
@@ -406,8 +406,8 @@ class KernelVisitor extends Object
 
   @override
   ir.AssertStatement visitAssert(Assert node) {
-    return new ir.AssertStatement(
-        visitForValue(node.condition), visitForValue(node.message));
+    return new ir.AssertStatement(visitForValue(node.condition),
+        message: visitForValue(node.message));
   }
 
   ir.LabeledStatement getBreakTarget(JumpTarget target) {
@@ -1493,7 +1493,8 @@ class KernelVisitor extends Object
         // Mixin application implicit super call.
         arguments = <ir.Expression>[];
         named = <ir.NamedExpression>[];
-        signature.orderedForEachParameter((ParameterElement parameter) {
+        signature.orderedForEachParameter((_parameter) {
+          ParameterElement parameter = _parameter;
           ir.VariableGet argument = buildLocalGet(parameter);
           if (parameter.isNamed) {
             named.add(new ir.NamedExpression(parameter.name, argument));
@@ -2112,7 +2113,8 @@ class KernelVisitor extends Object
     if (function.hasFunctionSignature) {
       FunctionSignature signature = function.functionSignature;
       requiredParameterCount = signature.requiredParameterCount;
-      signature.forEachParameter((ParameterElement parameter) {
+      signature.forEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         ir.VariableDeclaration variable = getLocal(parameter);
         if (parameter.isNamed) {
           namedParameters.add(variable);
@@ -2120,7 +2122,8 @@ class KernelVisitor extends Object
           positionalParameters.add(variable);
         }
       });
-      signature.forEachParameter((ParameterElement parameter) {
+      signature.forEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         if (!parameter.isOptional) return;
         ir.Expression initializer = visitForValue(parameter.initializer);
         ir.VariableDeclaration variable = getLocal(parameter);
@@ -2878,6 +2881,7 @@ class KernelVisitor extends Object
   }
 
   @override
+  // TODO(ahe): Remove this ignore when strong-mode only.
   // ignore: INVALID_METHOD_OVERRIDE_RETURN_TYPE
   ir.Node visitVariableDefinitions(VariableDefinitions definitions) {
     // TODO(ahe): This method is copied from [SemanticDeclarationResolvedMixin]
@@ -2886,12 +2890,11 @@ class KernelVisitor extends Object
     computeVariableStructures(definitions,
         (Node node, VariableStructure structure) {
       if (structure == null) {
-        return internalError(node, 'No structure for $node');
+        internalError(node, 'No structure for $node');
       } else {
         ir.VariableDeclaration variable =
             structure.dispatch(declVisitor, node, null);
         variables.add(variable);
-        return variable;
       }
     });
     if (variables.length == 1) return variables.single;

@@ -19,9 +19,6 @@ main() {
 
 @reflectiveTest
 class UtilTest extends AbstractSingleUnitTest {
-  @override
-  bool get enableNewAnalysisDriver => false;
-
   test_addLibraryImports_dart_hasImports_between() async {
     await resolveTestUnit('''
 import 'dart:async';
@@ -195,6 +192,7 @@ class A {}
   }
 
   test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
+    addPackageSource('aaa', 'aaa.dart', '');
     await resolveTestUnit('''
 import 'dart:async';
 
@@ -212,6 +210,7 @@ import 'package:bbb/bbb.dart';
   }
 
   test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
+    addPackageSource('bbb', 'bbb.dart', '');
     await resolveTestUnit('''
 import 'dart:async';
 
@@ -229,6 +228,8 @@ import 'package:bbb/bbb.dart';
   }
 
   test_addLibraryImports_package_hasImports_between() async {
+    addPackageSource('aaa', 'aaa.dart', '');
+    addPackageSource('ddd', 'ddd.dart', '');
     await resolveTestUnit('''
 import 'package:aaa/aaa.dart';
 import 'package:ddd/ddd.dart';

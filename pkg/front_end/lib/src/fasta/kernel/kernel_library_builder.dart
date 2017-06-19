@@ -464,12 +464,18 @@ class KernelLibraryBuilder
   }
 
   @override
-  void addField(List<MetadataBuilder> metadata, int modifiers,
-      KernelTypeBuilder type, String name, int charOffset, Token initializer) {
+  void addField(
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      KernelTypeBuilder type,
+      String name,
+      int charOffset,
+      Token initializerTokenForInference,
+      bool hasInitializer) {
     addBuilder(
         name,
-        new KernelFieldBuilder(
-            metadata, type, name, modifiers, this, charOffset, initializer),
+        new KernelFieldBuilder(metadata, type, name, modifiers, this,
+            charOffset, initializerTokenForInference, hasInitializer),
         charOffset);
   }
 

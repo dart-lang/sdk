@@ -8,10 +8,12 @@ library test;
 import 'infer_from_variables_in_non_cycle_imports_with_flag2_a.dart';
 
 class B {
-  static var /*@topType=dynamic*/ y = A.x;
+  static var /*@topType=int*/ y = A.x;
 }
 
 test1() {
   A.x = /*error:INVALID_ASSIGNMENT*/ "hi";
   B.y = /*error:INVALID_ASSIGNMENT*/ "hi";
 }
+
+main() {}

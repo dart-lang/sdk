@@ -65,6 +65,12 @@ class CompletionCollectorImpl implements CompletionCollector {
   void addSuggestion(CompletionSuggestion suggestion) {
     suggestions.add(suggestion);
   }
+
+  @override
+  bool get offsetIsSet => offset != null;
+
+  @override
+  int get suggestionsLength => suggestions.length;
 }
 
 /**

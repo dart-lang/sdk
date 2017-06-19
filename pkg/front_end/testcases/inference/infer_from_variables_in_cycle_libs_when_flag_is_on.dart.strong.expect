@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "./infer_from_variables_in_cycle_libs_when_flag_is_on_a.dart" as inf;
+
+static field core::int y = inf::x;
+static method test1() → dynamic {
+  core::int t = 3;
+  t = inf::x;
+  t = self::y;
+}
+static method main() → dynamic {}

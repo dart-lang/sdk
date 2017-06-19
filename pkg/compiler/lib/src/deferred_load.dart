@@ -93,7 +93,7 @@ class DeferredLoadTask extends CompilerTask {
 
   /// DeferredLibrary from dart:async
   ClassElement get deferredLibraryClass =>
-      compiler.commonElements.deferredLibraryClass;
+      compiler.resolution.commonElements.deferredLibraryClass;
 
   /// A synthetic import representing the loading of the main program.
   final _DeferredImport _fakeMainImport = const _DeferredImport();
@@ -444,7 +444,8 @@ class DeferredLoadTask extends CompilerTask {
       // If we see a class, add everything its live instance members refer
       // to.  Static members are not relevant, unless we are processing
       // extra dependencies due to mirrors.
-      void addLiveInstanceMember(_, MemberElement element) {
+      void addLiveInstanceMember(_, _element) {
+        MemberElement element = _element;
         if (!compiler.resolutionWorldBuilder.isMemberUsed(element)) return;
         if (!isMirrorUsage && !element.isInstanceMember) return;
         elements.add(element);
@@ -505,7 +506,7 @@ class DeferredLoadTask extends CompilerTask {
     }
 
     traverseLibrary(root);
-    result.add(compiler.commonElements.coreLibrary);
+    result.add(compiler.resolution.commonElements.coreLibrary);
     return result;
   }
 
@@ -718,7 +719,7 @@ class DeferredLoadTask extends CompilerTask {
 
               // Now check to see if we have to add more elements due to
               // mirrors.
-              if (compiler.commonElements.mirrorsLibrary != null) {
+              if (compiler.resolution.commonElements.mirrorsLibrary != null) {
                 _addMirrorElements();
               }
 
@@ -790,11 +791,11 @@ class DeferredLoadTask extends CompilerTask {
     compiler.impactStrategy.onImpactUsed(IMPACT_USE);
   }
 
-  void beforeResolution(Compiler compiler) {
-    if (compiler.mainApp == null) return;
+  void beforeResolution(LibraryEntity mainLibrary) {
+    if (mainLibrary == null) return;
     // TODO(johnniwinther): Support deferred load for kernel based elements.
     if (compiler.options.loadFromDill) return;
-    _allDeferredImports[_fakeMainImport] = compiler.mainApp;
+    _allDeferredImports[_fakeMainImport] = mainLibrary;
     var lastDeferred;
     // When detecting duplicate prefixes of deferred libraries there are 4
     // cases of duplicate prefixes:
@@ -831,7 +832,8 @@ class DeferredLoadTask extends CompilerTask {
               metadata.ensureResolved(compiler.resolution);
               ConstantValue value =
                   compiler.constants.getConstantValue(metadata.constant);
-              ResolutionDartType type = value.getType(compiler.commonElements);
+              ResolutionDartType type =
+                  value.getType(compiler.resolution.commonElements);
               Element element = type.element;
               if (element == deferredLibraryClass) {
                 reporter.reportErrorMessage(
@@ -853,8 +855,9 @@ class DeferredLoadTask extends CompilerTask {
                   import, MessageKind.DEFERRED_LIBRARY_WITHOUT_PREFIX);
             } else {
               prefixDeferredImport[prefix] = import;
+              Uri mainLibraryUri = compiler.mainLibraryUri;
               _deferredImportDescriptions[key] =
-                  new ImportDescription(import, library, compiler);
+                  new ImportDescription(import, library, mainLibraryUri);
             }
             isProgramSplit = true;
             lastDeferred = import;
@@ -1029,9 +1032,9 @@ class ImportDescription {
   final LibraryElement _importingLibrary;
 
   ImportDescription(
-      ImportElement import, LibraryElement importingLibrary, Compiler compiler)
-      : importingUri = uri_extras.relativize(compiler.mainApp.canonicalUri,
-            importingLibrary.canonicalUri, false),
+      ImportElement import, LibraryElement importingLibrary, Uri mainLibraryUri)
+      : importingUri = uri_extras.relativize(
+            mainLibraryUri, importingLibrary.canonicalUri, false),
         prefix = import.prefix.name,
         _importingLibrary = importingLibrary;
 
@@ -1081,9 +1084,11 @@ class _DeclaredDeferredImport implements _DeferredImport {
         metadata.ensureResolved(compiler.resolution);
         ConstantValue value =
             compiler.constants.getConstantValue(metadata.constant);
-        ResolutionDartType type = value.getType(compiler.commonElements);
+        ResolutionDartType type =
+            value.getType(compiler.resolution.commonElements);
         Element element = type.element;
-        if (element == compiler.commonElements.deferredLibraryClass) {
+        if (element ==
+            compiler.resolution.commonElements.deferredLibraryClass) {
           ConstructedConstantValue constant = value;
           StringConstantValue s = constant.fields.values.single;
           result = s.primitiveValue;

@@ -348,20 +348,16 @@ deferred_load_constants_test/none: RuntimeError # Issue 27394
 deferred_super_dependency_test/01: Crash # Issue 27394
 enum_mirror_test: Crash # Issue 27394
 export_ambiguous_main_negative_test: Crash # Issue 27394
-f_bounded_quantification5_test: RuntimeError # Issue 27394
 final_for_in_variable_test/01: MissingRuntimeError # Issue 27394
 final_param_test/01: MissingRuntimeError # Issue 27394
 final_variable_assignment_test/01: MissingRuntimeError # Issue 27394
 first_class_types_constants_test: RuntimeError # Issue 27394
 first_class_types_test: RuntimeError # Issue 27394
-function_subtype3_test: RuntimeError # Issue 27394
-function_subtype_typearg0_test: RuntimeError # Issue 27394
 generic2_test: RuntimeError # Issue 27394
 generic_field_mixin2_test: Crash # Issue 27394
 generic_field_mixin3_test: Crash # Issue 27394
 generic_field_mixin6_test/01: Crash # Issue 27394
 generic_field_mixin_test: Crash # Issue 27394
-generic_instanceof5_test: RuntimeError # Issue 27394
 generic_instanceof_test: RuntimeError # Issue 27394
 generic_local_functions_test: Crash # Issue 27394
 generic_metadata_test/02: Crash # Issue 27394
@@ -429,7 +425,6 @@ mixin_invalid_inheritance2_test/01: Crash # Issue 27394
 mixin_invalid_inheritance2_test/02: Crash # Issue 27394
 mixin_invalid_inheritance2_test/03: Crash # Issue 27394
 mixin_lib_extends_field_test: Crash # Issue 27394
-mixin_only_for_rti_test: RuntimeError # Issue 27394
 mixin_proto_test: Crash # Issue 27394
 mixin_regress_11398_test: Crash # Issue 27394
 mixin_super_constructor2_test: Crash # Issue 27394
@@ -498,7 +493,6 @@ this_conditional_operator_test/01: Crash # Issue 27394
 try_catch_syntax_test/13: Crash # Issue 27394
 try_catch_syntax_test/14: Crash # Issue 27394
 try_catch_syntax_test/15: Crash # Issue 27394
-type_argument_substitution_test: RuntimeError # Issue 27394
 type_parameter_test/01: RuntimeError # Issue 27394
 type_parameter_test/02: RuntimeError # Issue 27394
 type_parameter_test/03: RuntimeError # Issue 27394
@@ -587,6 +581,3 @@ named_parameters_test/03: Crash # Issue 27394
 named_parameters_test/05: Crash # Issue 27394
 named_parameters_test/07: Crash # Issue 27394
 named_parameters_test/09: Crash # Issue 27394
-
-[ $compiler == dart2js && $csp && !$fast_startup ]
-regress_18713_test: RuntimeError # Issue 29843

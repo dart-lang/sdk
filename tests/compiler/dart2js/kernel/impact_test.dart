@@ -12,6 +12,7 @@ import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/kernel/element_map.dart';
@@ -748,10 +749,11 @@ main(List<String> args) {
         new KernelToElementMapImpl(compiler.reporter, compiler.environment);
     kernelElementMap.addProgram(backend.kernelTask.program);
 
-    checkLibrary(compiler, kernelElementMap, compiler.mainApp,
-        fullTest: fullTest);
-    compiler.libraryLoader.libraries.forEach((LibraryElement library) {
-      if (library == compiler.mainApp) return;
+    LibraryElement mainApp =
+        compiler.frontendStrategy.elementEnvironment.mainLibrary;
+    checkLibrary(compiler, kernelElementMap, mainApp, fullTest: fullTest);
+    compiler.libraryLoader.libraries.forEach((LibraryEntity library) {
+      if (library == mainApp) return;
       checkLibrary(compiler, kernelElementMap, library, fullTest: fullTest);
     });
   });
@@ -760,10 +762,12 @@ main(List<String> args) {
 void checkLibrary(Compiler compiler, KernelToElementMapMixin elementMap,
     LibraryElement library,
     {bool fullTest: false}) {
-  library.forEachLocalMember((AstElement element) {
+  library.forEachLocalMember((_element) {
+    AstElement element = _element;
     if (element.isClass) {
       ClassElement cls = element;
-      cls.forEachLocalMember((AstElement member) {
+      cls.forEachLocalMember((_member) {
+        AstElement member = _member;
         checkElement(compiler, elementMap, member, fullTest: fullTest);
       });
     } else if (element.isTypedef) {
@@ -863,7 +867,7 @@ ResolutionImpact laxImpact(
                 }
               }
               if (constructor.resolvedAst.kind == ResolvedAstKind.PARSED) {
-                var function = constructor.resolvedAst.node;
+                dynamic function = constructor.resolvedAst.node;
                 if (function.initializers != null) {
                   TreeElements elements = constructor.resolvedAst.elements;
                   for (var initializer in function.initializers) {

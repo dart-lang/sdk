@@ -22,6 +22,32 @@ import 'package:analyzer_plugin/utilities/completion/suggestion_builder.dart';
  * invocations and accesses.
  */
 class TypeMemberContributor implements CompletionContributor {
+  /**
+   * Clients should not overload this function.
+   */
+  Future<Null> computeSuggestionsWithEntryPoint(CompletionRequest request,
+      CompletionCollector collector, AstNode entryPoint) async {
+    LibraryElement containingLibrary = request.result.libraryElement;
+    // Gracefully degrade if the library element is not resolved
+    // e.g. detached part file or source change
+    if (containingLibrary == null) {
+      return;
+    }
+
+    // Recompute the target since resolution may have changed it
+    Expression expression = _computeDotTarget(request, entryPoint);
+    if (expression == null || expression.isSynthetic) {
+      return;
+    }
+    _computeSuggestions(request, collector, containingLibrary, expression);
+  }
+
+  /**
+   * Plugin contributors should primarily overload this function.
+   * Should more parameters be needed for autocompletion needs, the
+   * overloaded function should define those parameters and
+   * call on `computeSuggestionsWithEntryPoint`.
+   */
   @override
   Future<Null> computeSuggestions(
       CompletionRequest request, CompletionCollector collector) async {
@@ -33,10 +59,18 @@ class TypeMemberContributor implements CompletionContributor {
     }
 
     // Recompute the target since resolution may have changed it
-    Expression expression = _computeDotTarget(request);
+    Expression expression = _computeDotTarget(request, null);
     if (expression == null || expression.isSynthetic) {
       return;
     }
+    _computeSuggestions(request, collector, containingLibrary, expression);
+  }
+
+  void _computeSuggestions(
+      CompletionRequest request,
+      CompletionCollector collector,
+      LibraryElement containingLibrary,
+      Expression expression) {
     if (expression is Identifier) {
       Element element = expression.bestElement;
       if (element is ClassElement) {
@@ -106,9 +140,10 @@ class TypeMemberContributor implements CompletionContributor {
   /**
    * Update the completion [target] and [dotTarget] based on the given [unit].
    */
-  Expression _computeDotTarget(CompletionRequest request) {
-    CompletionTarget target =
-        new CompletionTarget.forOffset(request.result.unit, request.offset);
+  Expression _computeDotTarget(CompletionRequest request, AstNode entryPoint) {
+    CompletionTarget target = new CompletionTarget.forOffset(
+        request.result.unit, request.offset,
+        entryPoint: entryPoint);
     AstNode node = target.containingNode;
     if (node is MethodInvocation) {
       if (identical(node.methodName, target.entity)) {

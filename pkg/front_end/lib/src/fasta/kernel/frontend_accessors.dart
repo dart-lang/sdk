@@ -13,11 +13,9 @@ import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
         KernelMethodInvocation,
         KernelPropertyAssign,
         KernelPropertyGet,
-        KernelPropertySet,
         KernelThisExpression,
         KernelVariableDeclaration,
-        KernelVariableGet,
-        KernelVariableSet;
+        KernelVariableGet;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show offsetForToken;
 
@@ -218,7 +216,7 @@ abstract class VariableAccessor extends Accessor {
     helper.typePromoter.mutateVariable(variable, helper.functionNestingLevel);
     var write = variable.isFinal || variable.isConst
         ? makeInvalidWrite(value)
-        : new KernelVariableSet(variable, value)
+        : new VariableSet(variable, value)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
     return write;
@@ -251,7 +249,7 @@ class PropertyAccessor extends Accessor {
 
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
-    var write = new KernelPropertySet(receiver, name, value, setter)
+    var write = new PropertySet(receiver, name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
     return write;
@@ -272,7 +270,7 @@ class PropertyAccessor extends Accessor {
 
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
-    var write = new KernelPropertySet(receiverAccess(), name, value, setter)
+    var write = new PropertySet(receiverAccess(), name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
     return write;
@@ -309,9 +307,8 @@ class ThisPropertyAccessor extends Accessor {
 
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
-    var write =
-        new KernelPropertySet(new KernelThisExpression(), name, value, setter)
-          ..fileOffset = offsetForToken(token);
+    var write = new PropertySet(new KernelThisExpression(), name, value, setter)
+      ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
     return write;
   }
@@ -340,7 +337,7 @@ class NullAwarePropertyAccessor extends Accessor {
 
   Expression _makeWrite(Expression value, bool voidContext,
       KernelComplexAssignment complexAssignment) {
-    var write = new KernelPropertySet(receiverAccess(), name, value, setter)
+    var write = new PropertySet(receiverAccess(), name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
     return write;

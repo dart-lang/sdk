@@ -11,7 +11,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler_new.dart' as api;
-import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compile_time_constants.dart';

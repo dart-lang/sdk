@@ -4,7 +4,6 @@
 
 library dart2js.dart2js_resolver.test;
 
-import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/dart2js_resolver.dart' as resolver;
 import 'analyze_test_test.dart';

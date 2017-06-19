@@ -33,7 +33,7 @@ void main() {
         var closedWorld = typesInferrer.closedWorld;
 
         checkArgument(String functionName, type) {
-          var functionElement = findElement(compiler, functionName);
+          dynamic functionElement = findElement(compiler, functionName);
           var signature = functionElement.functionSignature;
           var element = signature.requiredParameters.first;
           Expect.equals(

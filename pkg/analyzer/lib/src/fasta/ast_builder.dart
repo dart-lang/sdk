@@ -290,7 +290,7 @@ class AstBuilder extends ScopeListener {
     push(ast.blockFunctionBody(asyncKeyword, star, block));
   }
 
-  void finishFunction(formals, asyncModifier, FunctionBody body) {
+  void finishFunction(annotations, formals, asyncModifier, FunctionBody body) {
     debugEvent("finishFunction");
     Statement bodyStatement;
     if (body is EmptyFunctionBody) {
@@ -1067,7 +1067,7 @@ class AstBuilder extends ScopeListener {
   }
 
   void handleIndexedExpression(
-      Token openCurlyBracket, Token closeCurlyBracket) {
+      Token openSquareBracket, Token closeSquareBracket) {
     debugEvent("IndexedExpression");
     Expression index = pop();
     Expression target = pop();
@@ -1076,12 +1076,12 @@ class AstBuilder extends ScopeListener {
       Token token = peek();
       push(receiver);
       IndexExpression expression = ast.indexExpressionForCascade(
-          token, openCurlyBracket, index, closeCurlyBracket);
+          token, openSquareBracket, index, closeSquareBracket);
       assert(expression.isCascaded);
       push(expression);
     } else {
       push(ast.indexExpressionForTarget(
-          target, openCurlyBracket, index, closeCurlyBracket));
+          target, openSquareBracket, index, closeSquareBracket));
     }
   }
 

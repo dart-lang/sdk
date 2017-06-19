@@ -182,7 +182,7 @@ class CodeEmitterTask extends CompilerTask {
           backend.mirrorsData,
           backend.rtiEncoder);
       typeTestRegistry = new TypeTestRegistry(
-          codegenWorldBuilder, closedWorld, compiler.elementEnvironment);
+          codegenWorldBuilder, closedWorld, closedWorld.elementEnvironment);
     });
   }
 
@@ -192,11 +192,11 @@ class CodeEmitterTask extends CompilerTask {
       ProgramBuilder programBuilder = new ProgramBuilder(
           compiler.options,
           compiler.reporter,
-          compiler.elementEnvironment,
-          compiler.commonElements,
+          closedWorld.elementEnvironment,
+          closedWorld.commonElements,
           compiler.types,
           compiler.deferredLoadTask,
-          compiler.closureToClassMapper,
+          compiler.closureDataLookup,
           compiler.codegenWorldBuilder,
           backend.nativeCodegenEnqueuer,
           closedWorld.backendUsage,
@@ -217,7 +217,7 @@ class CodeEmitterTask extends CompilerTask {
           this,
           closedWorld,
           typeTestRegistry.rtiNeededClasses,
-          compiler.mainFunction,
+          closedWorld.elementEnvironment.mainFunction,
           isMockCompilation: compiler.isMockCompilation);
       int size = emitter.emitProgram(programBuilder);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.

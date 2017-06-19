@@ -482,6 +482,7 @@ class BinaryPrinter extends Visitor {
     writeByte(node.asyncMarker.index);
     writeByte(node.dartAsyncMarker.index);
     writeNodeList(node.typeParameters);
+    writeUInt30(node.positionalParameters.length + node.namedParameters.length);
     writeUInt30(node.requiredParameterCount);
     writeVariableDeclarationList(node.positionalParameters);
     writeVariableDeclarationList(node.namedParameters);
@@ -866,6 +867,8 @@ class BinaryPrinter extends Visitor {
   visitAssertStatement(AssertStatement node) {
     writeByte(Tag.AssertStatement);
     writeNode(node.condition);
+    writeOffset(node.conditionStartOffset);
+    writeOffset(node.conditionEndOffset);
     writeOptionalNode(node.message);
   }
 

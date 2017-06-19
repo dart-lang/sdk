@@ -89,15 +89,18 @@ void main() {
 
     // We always include the names of some native classes.
     List<ClassElement> nativeClasses = [
-      compiler.commonElements.intClass,
-      compiler.commonElements.doubleClass,
-      compiler.commonElements.numClass,
-      compiler.commonElements.stringClass,
-      compiler.commonElements.boolClass,
-      compiler.commonElements.nullClass,
-      compiler.commonElements.listClass
+      compiler.resolution.commonElements.intClass,
+      compiler.resolution.commonElements.doubleClass,
+      compiler.resolution.commonElements.numClass,
+      compiler.resolution.commonElements.stringClass,
+      compiler.resolution.commonElements.boolClass,
+      compiler.resolution.commonElements.nullClass,
+      compiler.resolution.commonElements.listClass
     ];
-    Iterable<String> nativeNames = nativeClasses.map(backend.namer.className);
+    Iterable<String> nativeNames =
+        // `backend.namer.className` returns a Name, but a String is required.
+        // ignore: ARGUMENT_TYPE_NOT_ASSIGNABLE
+        nativeClasses.map((c) => backend.namer.className(c));
     expectedNames = expectedNames.map(backend.namer.asName).toList();
     expectedNames.addAll(nativeNames);
 
@@ -110,10 +113,12 @@ void main() {
       ..addAll(fullEmitter.mangledGlobalFieldNames.keys);
     Expect.setEquals(new Set.from(expectedNames), recordedNames);
 
-    for (var library in compiler.libraryLoader.libraries) {
+    for (dynamic library in compiler.libraryLoader.libraries) {
       library.forEachLocalMember((member) {
         if (member.isClass) {
-          if (library == compiler.mainApp && member.name == 'Foo') {
+          if (library ==
+                  compiler.frontendStrategy.elementEnvironment.mainLibrary &&
+              member.name == 'Foo') {
             Expect.isTrue(
                 compiler.backend.mirrorsData
                     .isClassAccessibleByReflection(member),

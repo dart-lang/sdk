@@ -50,6 +50,12 @@ class OutlineBuilder extends UnhandledListener {
 
   final bool enableNative;
 
+  /// When true, recoverable parser errors are silently ignored. This is
+  /// because they will be reported by the BodyBuilder later. However, typedefs
+  /// are fully compiled by the outline builder, so parser errors are turned on
+  /// when parsing typedefs.
+  bool silenceParserErrors = true;
+
   String nativeMethodName;
 
   OutlineBuilder(SourceLibraryBuilder library)
@@ -597,6 +603,7 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void beginFunctionTypeAlias(Token token) {
     library.beginNestedDeclaration(null, hasMembers: false);
+    silenceParserErrors = false;
   }
 
   @override
@@ -649,6 +656,7 @@ class OutlineBuilder extends UnhandledListener {
     library.addFunctionTypeAlias(
         metadata, returnType, name, typeVariables, formals, charOffset);
     checkEmpty(typedefKeyword.charOffset);
+    silenceParserErrors = true;
   }
 
   @override
@@ -812,6 +820,15 @@ class OutlineBuilder extends UnhandledListener {
   void handleModifiers(int count) {
     debugEvent("Modifiers");
     push(popList(count) ?? NullValue.Modifiers);
+  }
+
+  @override
+  void handleRecoverableError(Token token, FastaMessage message) {
+    if (silenceParserErrors) {
+      debugEvent("RecoverableError");
+    } else {
+      super.handleRecoverableError(token, message);
+    }
   }
 
   @override

@@ -6,6 +6,8 @@ packages/*: Skip # Skip packages folder
 
 analyze_test: Slow, Pass
 
+analyze_dart_test: Slow, Pass
+
 compile_with_empty_libraries_test: Fail # Issue 24223
 
 kernel/*: Slow, Pass
@@ -68,6 +70,8 @@ sourcemaps/source_mapping_invokes_test: Pass, Slow
 check_elements_invariants_test: Slow, Pass, Timeout # Slow due to inlining in the CPS backend
 
 uri_retention_test: Fail # Issue 26504
+
+dill_loader_test: Fail # Issue 29856
 
 [ ! $checked ]
 exit_code_test: Skip # This tests requires checked mode.

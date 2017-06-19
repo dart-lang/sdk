@@ -203,7 +203,7 @@ class _PartialAstBuilder extends AstBuilder {
 
   // Note: this method converts the body to kernel, so we skip that here.
   @override
-  finishFunction(formals, asyncModifier, body) {}
+  finishFunction(annotations, formals, asyncModifier, body) {}
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]

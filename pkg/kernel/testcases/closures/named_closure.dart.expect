@@ -9,7 +9,7 @@ static method foo() → dynamic {
 static method main(dynamic arguments) → dynamic {
   final Vector #context = MakeVector(2);
   #context[1] = arguments;
-  final dynamic g = MakeClosure<(dynamic) → dynamic>(self::closure#main#g, #context);
+  final (dynamic) → dynamic g = MakeClosure<(dynamic) → dynamic>(self::closure#main#g, #context);
   self::f = g;
   self::foo();
 }

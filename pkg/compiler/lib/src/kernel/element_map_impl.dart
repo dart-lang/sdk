@@ -29,6 +29,7 @@ import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
+import '../js_model/elements.dart';
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
 import '../ordered_typeset.dart';
@@ -141,6 +142,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
 
   @override
   ConstantValue getFieldConstantValue(ir.Field field) {
+    // TODO(johnniwinther): Cache the result in [_FieldData].
     return getConstantValue(field.initializer, requireConstant: field.isConst);
   }
 
@@ -494,7 +496,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     }
   }
 
-  InterfaceType getThisType(KClass cls) {
+  InterfaceType _getThisType(KClass cls) {
     _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureThisAndRawType(cls, env);
     return env.thisType;
@@ -524,6 +526,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
 
       if (node.supertype == null) {
         env.orderedTypeSet = new OrderedTypeSet.singleton(env.thisType);
+        env.isMixinApplication = false;
       } else {
         InterfaceType processSupertype(ir.Supertype node) {
           InterfaceType type = _typeConverter.visitSupertype(node);
@@ -537,8 +540,11 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
         LinkBuilder<InterfaceType> linkBuilder =
             new LinkBuilder<InterfaceType>();
         if (node.mixedInType != null) {
+          env.isMixinApplication = true;
           linkBuilder
               .addLast(env.mixedInType = processSupertype(node.mixedInType));
+        } else {
+          env.isMixinApplication = false;
         }
         node.implementedTypes.forEach((ir.Supertype supertype) {
           linkBuilder.addLast(processSupertype(supertype));
@@ -572,13 +578,19 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
 
   DartType _substByContext(DartType type, InterfaceType context) {
     return type.subst(
-        context.typeArguments, getThisType(context.element).typeArguments);
+        context.typeArguments, _getThisType(context.element).typeArguments);
   }
 
   InterfaceType _getSuperType(KClass cls) {
     _KClassEnv env = _classEnvs[cls.classIndex];
     _ensureSupertypes(cls, env);
     return env.supertype;
+  }
+
+  bool _isMixinApplication(KClass cls) {
+    _KClassEnv env = _classEnvs[cls.classIndex];
+    _ensureSupertypes(cls, env);
+    return env.isMixinApplication;
   }
 
   bool _isUnnamedMixinApplication(KClass cls) {
@@ -663,11 +675,30 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   @override
   FieldEntity getField(ir.Field node) => _getField(node);
 
+  bool hasConstantFieldInitializer(KField field) {
+    _FieldData data = _memberList[field.memberIndex];
+    return getFieldConstantValue(data.node) != null;
+  }
+
+  ConstantValue getConstantFieldInitializer(KField field) {
+    _FieldData data = _memberList[field.memberIndex];
+    ConstantValue value = getFieldConstantValue(data.node);
+    assert(value != null,
+        failedAt(field, "Field $field doesn't have a constant initial value."));
+    return value;
+  }
+
   TypeVariableEntity getTypeVariable(ir.TypeParameter node) =>
       _getTypeVariable(node);
 
   @override
   FunctionEntity getMethod(ir.Procedure node) => _getMethod(node);
+
+  void forEachParameter(KFunction function,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    _FunctionData data = _memberList[function.memberIndex];
+    data.forEachParameter(this, f);
+  }
 
   @override
   MemberEntity getMember(ir.Member node) {
@@ -732,7 +763,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
     return member;
   }
 
-  /// Returns the kernel IR node that defines the [member].
+  @override
   ir.Member getMemberNode(KMember member) {
     return _memberList[member.memberIndex].node;
   }
@@ -871,6 +902,7 @@ class _KLibraryEnv {
 /// Environment for fast lookup of class members.
 class _KClassEnv {
   final ir.Class cls;
+  bool isMixinApplication;
   final bool isUnnamedMixinApplication;
 
   InterfaceType thisType;
@@ -1055,6 +1087,31 @@ class _FunctionData extends _MemberData {
   FunctionType getFunctionType(KernelToElementMapImpl elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
   }
+
+  void forEachParameter(KernelToElementMap elementMap,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
+      DartType type = elementMap.getDartType(node.type);
+      String name = node.name;
+      ConstantValue defaultValue;
+      if (isOptional) {
+        if (node.initializer != null) {
+          defaultValue = elementMap.getConstantValue(node.initializer);
+        } else {
+          defaultValue = new NullConstantValue();
+        }
+      }
+      f(type, name, defaultValue);
+    }
+
+    for (int i = 0; i < functionNode.positionalParameters.length; i++) {
+      handleParameter(functionNode.positionalParameters[i],
+          isOptional: i < functionNode.requiredParameterCount);
+    }
+    functionNode.namedParameters.toList()
+      ..sort(namedOrdering)
+      ..forEach(handleParameter);
+  }
 }
 
 class _ConstructorData extends _FunctionData {
@@ -1127,7 +1184,7 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   InterfaceType getThisType(ClassEntity cls) {
-    return elementMap.getThisType(cls);
+    return elementMap._getThisType(cls);
   }
 
   @override
@@ -1141,8 +1198,22 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  bool isMixinApplication(KClass cls) {
+    return elementMap._isMixinApplication(cls);
+  }
+
+  @override
   bool isUnnamedMixinApplication(KClass cls) {
     return elementMap._isUnnamedMixinApplication(cls);
+  }
+
+  @override
+  ClassEntity getEffectiveMixinClass(ClassEntity cls) {
+    if (!isMixinApplication(cls)) return null;
+    do {
+      cls = elementMap._getAppliedMixin(cls);
+    } while (isMixinApplication(cls));
+    return cls;
   }
 
   @override
@@ -1505,7 +1576,6 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
 
 class KernelClosedWorld extends ClosedWorldBase {
   final KernelToElementMapImpl _elementMap;
-  final ElementEnvironment _elementEnvironment;
 
   KernelClosedWorld(this._elementMap,
       {ElementEnvironment elementEnvironment,
@@ -1522,8 +1592,8 @@ class KernelClosedWorld extends ClosedWorldBase {
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
-      : this._elementEnvironment = elementEnvironment,
-        super(
+      : super(
+            elementEnvironment: elementEnvironment,
             commonElements: commonElements,
             constantSystem: constantSystem,
             nativeData: nativeData,
@@ -1592,14 +1662,14 @@ class KernelClosedWorld extends ClosedWorldBase {
   @override
   bool hasElementIn(ClassEntity cls, Selector selector, Entity element) {
     while (cls != null) {
-      MemberEntity member = _elementEnvironment
+      MemberEntity member = elementEnvironment
           .lookupClassMember(cls, selector.name, setter: selector.isSetter);
       if (member != null &&
           (!selector.memberName.isPrivate ||
               member.library == selector.library)) {
         return member == element;
       }
-      cls = _elementEnvironment.getSuperClass(cls);
+      cls = elementEnvironment.getSuperClass(cls);
     }
     return false;
   }
@@ -1679,5 +1749,132 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   bool isJsInteropMember(MemberEntity element) {
     // TODO(johnniwinther): Compute this.
     return false;
+  }
+}
+
+class JsKernelToElementMap extends KernelToElementMapMixin {
+  final JsToFrontendMap _map;
+  final ElementEnvironment _elementEnvironment;
+  final CommonElements _commonElements;
+  final KernelToElementMapImpl _elementMap;
+
+  JsKernelToElementMap(this._map, this._elementEnvironment,
+      this._commonElements, this._elementMap);
+
+  @override
+  Spannable getSpannable(MemberEntity member, ir.Node node) {
+    return _elementMap.getSpannable(_map.toFrontendMember(member), node);
+  }
+
+  @override
+  LibraryEntity getLibrary(ir.Library node) {
+    return _map.toBackendLibrary(_elementMap.getLibrary(node));
+  }
+
+  @override
+  Local getLocalFunction(ir.TreeNode node) {
+    throw new UnsupportedError("JsKernelToElementMap.getLocalFunction");
+  }
+
+  @override
+  ClassEntity getClass(ir.Class node) {
+    return _map.toBackendClass(_elementMap.getClass(node));
+  }
+
+  @override
+  FieldEntity getField(ir.Field node) {
+    return _map.toBackendMember(_elementMap.getField(node));
+  }
+
+  @override
+  MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
+      {bool setter: false}) {
+    return _map.toBackendMember(
+        _elementMap.getSuperMember(context, name, target, setter: setter));
+  }
+
+  @override
+  FunctionEntity getMethod(ir.Procedure node) {
+    return _map.toBackendMember(_elementMap.getMethod(node));
+  }
+
+  @override
+  ir.Member getMemberNode(MemberEntity member) {
+    return _elementMap.getMemberNode(_map.toFrontendMember(member));
+  }
+
+  @override
+  MemberEntity getMember(ir.Member node) {
+    return _map.toBackendMember(_elementMap.getMember(node));
+  }
+
+  @override
+  ConstructorEntity getSuperConstructor(
+      ir.Constructor constructor, ir.Member target) {
+    return _map
+        .toBackendMember(_elementMap.getSuperConstructor(constructor, target));
+  }
+
+  @override
+  ConstructorEntity getConstructor(ir.Member node) {
+    return _map.toBackendMember(_elementMap.getConstructor(node));
+  }
+
+  @override
+  InterfaceType createInterfaceType(
+      ir.Class cls, List<ir.DartType> typeArguments) {
+    return _map
+        .toBackendType(_elementMap.createInterfaceType(cls, typeArguments));
+  }
+
+  @override
+  InterfaceType getInterfaceType(ir.InterfaceType type) {
+    return _map.toBackendType(_elementMap.getInterfaceType(type));
+  }
+
+  @override
+  List<DartType> getDartTypes(List<ir.DartType> types) {
+    return _elementMap.getDartTypes(types).map(_map.toBackendType).toList();
+  }
+
+  @override
+  FunctionType getFunctionType(ir.FunctionNode node) {
+    return _map.toBackendType(_elementMap.getFunctionType(node));
+  }
+
+  @override
+  DartType getDartType(ir.DartType type) {
+    return _map.toBackendType(_elementMap.getDartType(type));
+  }
+
+  @override
+  ElementEnvironment get elementEnvironment {
+    return _elementEnvironment;
+  }
+
+  @override
+  CommonElements get commonElements {
+    return _commonElements;
+  }
+
+  @override
+  ConstantValue computeConstantValue(ConstantExpression constant,
+      {bool requireConstant: true}) {
+    throw new UnsupportedError("JsKernelToElementMap.computeConstantValue");
+  }
+
+  @override
+  native.BehaviorBuilder get nativeBehaviorBuilder {
+    throw new UnsupportedError("JsKernelToElementMap.nativeBehaviorBuilder");
+  }
+
+  @override
+  DiagnosticReporter get reporter {
+    return _elementMap.reporter;
+  }
+
+  @override
+  ConstantValue getFieldConstantValue(ir.Field field) {
+    throw new UnsupportedError("JsKernelToElementMap.getFieldConstantValue");
   }
 }

@@ -384,6 +384,16 @@ class IDLFile(IDLNode):
 
     # Report of union types mapped to any.
 
+    # Remember all the typedefs before we start walking the AST.  Some
+    # IDLs now have typedefs before interfaces.  So we need to remember
+    # to resolve the typedefs.
+    self.typeDefs = self._convert_all(ast, 'TypeDef', IDLTypeDef)
+    for typedefName in ast.typedefs:
+      typedef_type = ast.typedefs[typedefName]
+      # Ignore unions and dictionaries for now we just want normal typedefs to resolve our arguments/types.
+      if not(isinstance(typedef_type.idl_type, IdlUnionType)) and not(typedef_type.idl_type.base_type == 'Dictionary'):
+        _addTypedef(IDLTypeDef(typedef_type))
+
     self.interfaces = self._convert_all(ast, 'Interface', IDLInterface)
     self.dictionaries = self._convert_all(ast, 'Dictionary', IDLDictionary)
 
@@ -432,10 +442,7 @@ class IDLFile(IDLNode):
       self.implementsStatements = self._convert_all(ast, 'ImplStmt',
         IDLImplementsStatement)
 
-    # No reason to handle typedef they're already aliased in Blink's AST.
-    self.typeDefs = [] if is_blink else self._convert_all(ast, 'TypeDef', IDLTypeDef)
-
-    # Hack to record typedefs that are unions.
+    # Record typedefs that are unions.
     for typedefName in ast.typedefs:
       typedef_type = ast.typedefs[typedefName]
       if isinstance(typedef_type.idl_type, IdlUnionType):
@@ -443,9 +450,6 @@ class IDLFile(IDLNode):
       elif typedef_type.idl_type.base_type == 'Dictionary':
         dictionary = IDLDictionary(typedef_type, True)
         self.dictionaries.append(dictionary)
-      else:
-        # All other typedefs we record
-        _addTypedef(IDLTypeDef(typedef_type))
 
     self.enums = self._convert_all(ast, 'Enum', IDLEnum)
 

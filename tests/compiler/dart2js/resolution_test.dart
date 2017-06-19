@@ -94,7 +94,7 @@ main() {
 
 void test(String code, void check(CompilerImpl compiler)) {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(code, uri);
+  dynamic compiler = compilerFor(code, uri);
   asyncTest(() => compiler.run(uri).then((_) {
         check(compiler);
       }));
@@ -102,7 +102,7 @@ void test(String code, void check(CompilerImpl compiler)) {
 
 void testHasRuntimeType(String code) {
   test(code, (compiler) {
-    var element = compiler.commonElements.createRuntimeType;
+    var element = compiler.resolution.commonElements.createRuntimeType;
     Expect.isTrue(
         compiler.enqueuer.resolution.processedEntities.contains(element));
   });
@@ -110,7 +110,7 @@ void testHasRuntimeType(String code) {
 
 main() {
   test(NO_RUNTIME_TYPE, (compiler) {
-    var element = compiler.commonElements.createRuntimeType;
+    var element = compiler.resolution.commonElements.createRuntimeType;
     Expect.isFalse(
         compiler.enqueuer.resolution.processedEntities.contains(element));
   });

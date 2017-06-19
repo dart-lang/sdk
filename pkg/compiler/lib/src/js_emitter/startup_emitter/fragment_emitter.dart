@@ -507,10 +507,10 @@ class FragmentEmitter {
       'directAccessTestExpression': js.js(directAccessTestExpression),
       'typeNameProperty': js.string(ModelEmitter.typeNameProperty),
       'cyclicThrow': backend.emitter
-          .staticFunctionAccess(compiler.commonElements.cyclicThrowHelper),
+          .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
       'operatorIsPrefix': js.string(namer.operatorIsPrefix),
       'tearOffCode': new js.Block(buildTearOffCode(compiler.options,
-          backend.emitter.emitter, backend.namer, compiler.commonElements)),
+          backend.emitter.emitter, backend.namer, _closedWorld.commonElements)),
       'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),
       'embeddedInterceptorTags':
           generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG),
@@ -1168,7 +1168,7 @@ class FragmentEmitter {
       }
       for (Class cls in library.classes) {
         if (cls.isSoftDeferred != softDeferred) continue;
-        var methods = cls.methods.where((m) => m.needsTearOff).toList();
+        var methods = cls.methods.where((dynamic m) => m.needsTearOff).toList();
         js.Expression container = js.js("#.prototype", classReference(cls));
         js.Expression reference = container;
         if (methods.length > 1) {
@@ -1327,7 +1327,7 @@ class FragmentEmitter {
   js.Property emitMangledGlobalNames() {
     List<js.Property> names = <js.Property>[];
 
-    CommonElements commonElements = compiler.commonElements;
+    CommonElements commonElements = _closedWorld.commonElements;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
     List<ClassElement> nativeClassesNeedingUnmangledName = [

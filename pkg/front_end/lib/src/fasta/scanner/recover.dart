@@ -137,7 +137,7 @@ Token defaultRecoveryStrategy(
   }
 
   recoverHexDigit() {
-    return synthesizeToken(errorTail.charOffset, "-1", TokenType.INT)
+    return synthesizeToken(errorTail.charOffset, "0", TokenType.INT)
       ..next = errorTail.next;
   }
 

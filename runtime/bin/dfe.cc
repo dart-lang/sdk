@@ -5,11 +5,15 @@
 #include "bin/dfe.h"
 #include "bin/dartutils.h"
 #include "bin/error_exit.h"
+#include "bin/file.h"
 
 #include "vm/kernel.h"
 
 namespace dart {
 namespace bin {
+
+const char kPlatformBinaryName[] = "platform.dill";
+
 
 DFE::DFE()
     : frontend_filename_(NULL),
@@ -19,12 +23,28 @@ DFE::DFE()
 
 DFE::~DFE() {
   frontend_filename_ = NULL;
-  platform_binary_filename_ = NULL;
+
+  if (platform_binary_filename_ != NULL) {
+    delete platform_binary_filename_;
+    platform_binary_filename_ = NULL;
+  }
+
   if (kernel_platform_ != NULL) {
     delete reinterpret_cast<kernel::Program*>(kernel_platform_);
+    kernel_platform_ = NULL;
   }
-  kernel_platform_ = NULL;
 }
+
+
+void DFE::SetKernelBinaries(const char* name) {
+  intptr_t len = snprintf(NULL, 0, "%s%s%s", name, File::PathSeparator(),
+                          kPlatformBinaryName) +
+                 1;
+  platform_binary_filename_ = new char[len];
+  snprintf(platform_binary_filename_, len, "%s%s%s", name,
+           File::PathSeparator(), kPlatformBinaryName);
+}
+
 
 Dart_Handle DFE::ReloadScript(Dart_Isolate isolate, const char* url_string) {
   ASSERT(!Dart_IsServiceIsolate(isolate) && !Dart_IsKernelIsolate(isolate));
@@ -85,15 +105,7 @@ void* DFE::CompileAndReadScript(const char* script_uri,
 
 
 void* DFE::ReadPlatform() {
-  const uint8_t* buffer = NULL;
-  intptr_t buffer_length = -1;
-  bool result =
-      TryReadKernelFile(platform_binary_filename_, &buffer, &buffer_length);
-  if (result) {
-    kernel_platform_ = Dart_ReadKernelBinary(buffer, buffer_length);
-    return kernel_platform_;
-  }
-  return NULL;
+  return kernel_platform_ = ReadScript(platform_binary_filename_);
 }
 
 

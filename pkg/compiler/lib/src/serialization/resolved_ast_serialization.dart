@@ -4,19 +4,21 @@
 
 library dart2js.serialization.resolved_ast;
 
+import 'package:front_end/src/fasta/parser.dart' show Parser, ParserError;
+import 'package:front_end/src/fasta/scanner.dart';
+
 import '../common.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
-import '../elements/resolution_types.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
+import '../elements/jumps.dart';
 import '../elements/modelx.dart';
-import 'package:front_end/src/fasta/parser.dart' show Parser, ParserError;
+import '../elements/resolution_types.dart';
 import '../parser/node_listener.dart' show NodeListener;
 import '../resolution/enum_creator.dart';
 import '../resolution/send_structure.dart';
 import '../resolution/tree_elements.dart';
-import 'package:front_end/src/fasta/scanner.dart';
 import '../tree/tree.dart';
 import '../universe/selector.dart';
 import 'keys.dart';
@@ -176,7 +178,8 @@ class ResolvedAstSerializer extends Visitor {
   }
 
   void serializeParameterNodes(FunctionElement function) {
-    function.functionSignature.forEachParameter((ParameterElement parameter) {
+    function.functionSignature.forEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
       ParameterElement parameterImpl = parameter.implementation;
       // TODO(johnniwinther): Should we support element->node mapping as well?
       getNodeDataEncoder(parameterImpl.node)
@@ -603,13 +606,14 @@ class ResolvedAstDeserializer {
         labelDefinitions.add(labelDefinition);
       }
     }
-    jumpTargetLabels.forEach((JumpTargetX jumpTarget, List<int> labelIds) {
+    jumpTargetLabels.forEach((JumpTarget jumpTarget, List<int> labelIds) {
       if (labelIds.isEmpty) return;
       List<LabelDefinition> labels = <LabelDefinition>[];
       for (int labelId in labelIds) {
         labels.add(labelDefinitions[labelId]);
       }
-      jumpTarget.labels = labels;
+      JumpTargetX target = jumpTarget;
+      target.labels = labels;
     });
 
     ListDecoder dataDecoder = objectDecoder.getList(Key.DATA, isOptional: true);

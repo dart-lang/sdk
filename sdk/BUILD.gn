@@ -385,7 +385,7 @@ foreach(analyzer_source_dir, _analyzer_source_dirs) {
     visibility = [ ":copy_analyzer_sources" ]
     source = "../pkg/$analyzer_source_dir"
     dest = "$root_out_dir/dart-sdk/lib/$analyzer_source_dir"
-    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore,packages"
+    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore,packages,test,testcases"
   }
 }
 

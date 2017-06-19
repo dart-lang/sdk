@@ -3966,8 +3966,13 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   // TODO(johnniwinther): Change [type] to [MalformedType] when is it not
   // `dynamic`.
-  R visitUnresolvedClassConstructorInvoke(NewExpression node, Element element,
-      ResolutionDartType type, NodeList arguments, Selector selector, A arg);
+  R visitUnresolvedClassConstructorInvoke(
+      NewExpression node,
+      ErroneousElement element,
+      ResolutionDartType type,
+      NodeList arguments,
+      Selector selector,
+      A arg);
 
   /// Constant invocation of a non-constant constructor.
   ///

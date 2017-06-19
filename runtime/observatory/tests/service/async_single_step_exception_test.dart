@@ -3,21 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug --async_debugger
 
-import 'dart:async';
 import 'dart:developer';
-import 'package:observatory/models.dart' as M;
-import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 23;
-const LINE_B = 24;
-const LINE_C = 30;
-const LINE_D = 32;
-const LINE_E = 35;
-const LINE_F = 38;
-const LINE_G = 40;
+const LINE_A = 19;
+const LINE_B = 20;
+const LINE_C = 26;
+const LINE_D = 28;
+const LINE_E = 31;
+const LINE_F = 34;
+const LINE_G = 36;
 
 helper() async {
   print('helper'); // LINE_A.

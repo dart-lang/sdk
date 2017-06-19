@@ -7,8 +7,8 @@ library dart2js.util.setlet;
 import 'dart:collection' show IterableBase;
 
 class Setlet<E> extends IterableBase<E> implements Set<E> {
-  static const _MARKER = const _SetletMarker();
-  static const CAPACITY = 8;
+  static const _SetletMarker _MARKER = const _SetletMarker();
+  static const int CAPACITY = 8;
 
   // The setlet can be in one of four states:
   //
@@ -19,7 +19,7 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
   //
   // When the setlet is list-backed, the list in the contents field
   // may have empty slots filled with the marker value.
-  var _contents = _MARKER;
+  dynamic _contents = _MARKER;
   var _extra;
 
   Setlet();

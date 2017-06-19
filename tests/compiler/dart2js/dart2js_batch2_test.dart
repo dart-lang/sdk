@@ -67,14 +67,11 @@ Future runTests(Process process) {
   Future<String> errorOut = process.stderr.transform(UTF8.decoder).join();
   return Future.wait([output, errorOut]).then((result) {
     String stdoutOutput = result[0];
-    String stderrOutput = result[1];
-
     Expect.isFalse(stdoutOutput.contains("crashed"));
   });
 }
 
 void main() {
-  var tmpDir;
   asyncTest(() {
     return setup().then(launchDart2Js).then(runTests).whenComplete(cleanUp);
   });

@@ -6,6 +6,12 @@ const int _LF = 0x0A;
 const int _CR = 0x0D;
 const int _LBRACE = 0x7B;
 
+const Pattern atBraceStart = '@{';
+const Pattern braceEnd = '}';
+
+final Pattern commentStart = new RegExp(r' */\*');
+final Pattern commentEnd = new RegExp(r'\*/ *');
+
 class Annotation {
   /// 1-based line number of the annotation.
   final int lineNo;
@@ -55,7 +61,7 @@ class AnnotatedCode {
   /// delimited by [start] and [end] are converted into [Annotation]s and
   /// removed from the [annotatedCode] to produce the source code.
   factory AnnotatedCode.fromText(String annotatedCode,
-      [String start = '@{', String end = '}']) {
+      [Pattern start = atBraceStart, Pattern end = braceEnd]) {
     StringBuffer codeBuffer = new StringBuffer();
     List<Annotation> annotations = <Annotation>[];
     int index = 0;
@@ -65,39 +71,47 @@ class AnnotatedCode {
     List<int> lineStarts = <int>[];
     lineStarts.add(offset);
     while (index < annotatedCode.length) {
-      if (annotatedCode.startsWith(start, index)) {
-        int endIndex = annotatedCode.indexOf(end, index + start.length);
-        String text = annotatedCode.substring(index + start.length, endIndex);
-        annotations.add(new Annotation(lineNo, columnNo, offset, text));
-        index = endIndex + end.length;
-      } else {
-        int charCode = annotatedCode.codeUnitAt(index);
-        switch (charCode) {
-          case _LF:
-            codeBuffer.write('\n');
-            offset++;
-            lineStarts.add(offset);
-            lineNo++;
-            columnNo = 1;
-            break;
-          case _CR:
-            if (index + 1 < annotatedCode.length &&
-                annotatedCode.codeUnitAt(index + 1) == _LF) {
-              index++;
-            }
-            codeBuffer.write('\n');
-            offset++;
-            lineStarts.add(offset);
-            lineNo++;
-            columnNo = 1;
-            break;
-          default:
-            codeBuffer.writeCharCode(charCode);
-            offset++;
-            columnNo++;
+      Match startMatch = start.matchAsPrefix(annotatedCode, index);
+      if (startMatch != null) {
+        int startIndex = startMatch.end;
+        Iterable<Match> endMatches =
+            end.allMatches(annotatedCode, startMatch.end);
+        if (!endMatches.isEmpty) {
+          Match endMatch = endMatches.first;
+          annotatedCode.indexOf(end, startIndex);
+          String text = annotatedCode.substring(startMatch.end, endMatch.start);
+          annotations.add(new Annotation(lineNo, columnNo, offset, text));
+          index = endMatch.end;
+          continue;
         }
-        index++;
       }
+
+      int charCode = annotatedCode.codeUnitAt(index);
+      switch (charCode) {
+        case _LF:
+          codeBuffer.write('\n');
+          offset++;
+          lineStarts.add(offset);
+          lineNo++;
+          columnNo = 1;
+          break;
+        case _CR:
+          if (index + 1 < annotatedCode.length &&
+              annotatedCode.codeUnitAt(index + 1) == _LF) {
+            index++;
+          }
+          codeBuffer.write('\n');
+          offset++;
+          lineStarts.add(offset);
+          lineNo++;
+          columnNo = 1;
+          break;
+        default:
+          codeBuffer.writeCharCode(charCode);
+          offset++;
+          columnNo++;
+      }
+      index++;
     }
     lineStarts.add(offset);
     return new AnnotatedCode.internal(

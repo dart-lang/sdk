@@ -3,7 +3,10 @@ analyzer:
     dead_code: ignore
     unused_local_variable: ignore
   exclude:
+    - lib/src/models/objects/function.dart
     - tests/service/bad_reload/v2/main.dart
     - tests/service/complex_reload/v2/main.dart
     - tests/service/developer_extension_test.dart
+    - tests/service/evaluate_activation_in_method_class_test.dart
     - tests/service/get_isolate_after_language_error_test.dart
+    - tests/service/pause_on_unhandled_async_exceptions_test.dart

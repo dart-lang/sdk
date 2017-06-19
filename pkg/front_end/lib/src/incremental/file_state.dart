@@ -5,20 +5,15 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:front_end/file_system.dart';
-import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
-import 'package:front_end/src/fasta/parser/dart_vm_native.dart';
-import 'package:front_end/src/fasta/parser/listener.dart' show Listener;
-import 'package:front_end/src/fasta/parser/parser.dart' show Parser, optional;
-import 'package:front_end/src/fasta/parser/top_level_parser.dart';
-import 'package:front_end/src/fasta/scanner.dart';
-import 'package:front_end/src/fasta/scanner/token_constants.dart'
-    show STRING_TOKEN;
-import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/translate_uri.dart';
+import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/incremental/format.dart';
+import 'package:front_end/src/incremental/unlinked_unit.dart';
 import 'package:kernel/target/vm.dart';
 
 /// This function is called for each newly discovered file, and the returned
@@ -54,6 +49,7 @@ class FileState {
 
   Set<FileState> _directReferencedFiles = new Set<FileState>();
   List<FileState> _directReferencedLibraries = <FileState>[];
+  Set<FileState> _transitiveFiles;
 
   /// This flag is set to `true` during the mark phase of garbage collection
   /// and set back to `false` for survived instances.
@@ -111,17 +107,18 @@ class FileState {
   /// Return the set of transitive files - the file itself and all of the
   /// directly or indirectly referenced files.
   Set<FileState> get transitiveFiles {
-    // TODO(scheglov) add caching.
-    var transitiveFiles = new Set<FileState>();
+    if (_transitiveFiles == null) {
+      _transitiveFiles = new Set<FileState>();
 
-    void appendReferenced(FileState file) {
-      if (transitiveFiles.add(file)) {
-        file._directReferencedFiles.forEach(appendReferenced);
+      void appendReferenced(FileState file) {
+        if (_transitiveFiles.add(file)) {
+          file._directReferencedFiles.forEach(appendReferenced);
+        }
       }
-    }
 
-    appendReferenced(this);
-    return transitiveFiles;
+      appendReferenced(this);
+    }
+    return _transitiveFiles;
   }
 
   @override
@@ -145,15 +142,22 @@ class FileState {
     // Compute the content hash.
     _contentHash = md5.convert(_content).bytes;
 
-    // Scan the content.
-    ScannerResult scanResult = _scan();
+    // Prepare bytes of the unlinked unit - existing or new.
+    List<int> unlinkedBytes;
+    {
+      String unlinkedKey = hex.encode(_contentHash) + '.unlinked';
+      unlinkedBytes = _fsState._byteStore.get(unlinkedKey);
+      if (unlinkedBytes == null) {
+        var builder = computeUnlinkedUnit(_fsState._salt, _content);
+        unlinkedBytes = builder.toBytes();
+        _fsState._byteStore.put(unlinkedKey, unlinkedBytes);
+      }
+    }
 
-    // Compute syntactic properties.
-    _computeSyntacticProperties(scanResult.tokens);
-
-    // Parse directives.
-    var listener = new _DirectiveListenerWithNative();
-    new TopLevelParser(listener).parseUnit(scanResult.tokens);
+    // Read the unlinked unit.
+    UnlinkedUnit unlinkedUnit = new UnlinkedUnit(unlinkedBytes);
+    _apiSignature = unlinkedUnit.apiSignature;
+    _hasMixinApplication = unlinkedUnit.hasMixinApplication;
 
     // Build the graph.
     _importedLibraries = <FileState>[];
@@ -167,28 +171,29 @@ class FileState {
         _importedLibraries.add(coreFile);
       }
     }
-    for (NamespaceDirective import_ in listener.imports) {
+    for (var import_ in unlinkedUnit.imports) {
       FileState file = await _getFileForRelativeUri(import_.uri);
       if (file != null) {
         _importedLibraries.add(file);
       }
     }
     await _addVmTargetImportsForCore();
-    for (NamespaceDirective export_ in listener.exports) {
+    for (var export_ in unlinkedUnit.exports) {
       FileState file = await _getFileForRelativeUri(export_.uri);
       if (file != null) {
         _exportedLibraries.add(file);
         _exports.add(new NamespaceExport(file, export_.combinators));
       }
     }
-    for (String uri in listener.parts) {
-      FileState file = await _getFileForRelativeUri(uri);
+    for (var part_ in unlinkedUnit.parts) {
+      FileState file = await _getFileForRelativeUri(part_);
       if (file != null) {
         _partFiles.add(file);
       }
     }
 
     // Compute referenced files.
+    var oldDirectReferencedFiles = _directReferencedFiles;
     _directReferencedFiles = new Set<FileState>()
       ..addAll(_importedLibraries)
       ..addAll(_exportedLibraries)
@@ -197,6 +202,19 @@ class FileState {
           ..addAll(_importedLibraries)
           ..addAll(_exportedLibraries))
         .toList();
+
+    // If the set of directly referenced files of this file is changed,
+    // then the transitive sets of files that include this file are also
+    // changed. Reset these transitive sets.
+    if (_directReferencedFiles.length != oldDirectReferencedFiles.length ||
+        !_directReferencedFiles.containsAll(oldDirectReferencedFiles)) {
+      for (var file in _fsState._uriToFile.values) {
+        if (file._transitiveFiles != null &&
+            file._transitiveFiles.contains(this)) {
+          file._transitiveFiles = null;
+        }
+      }
+    }
   }
 
   @override
@@ -220,52 +238,6 @@ class FileState {
     }
   }
 
-  /// Compute syntactic properties of the file: [_apiSignature] and [_hasMixinApplication].
-  ///
-  /// The signature is based on non-comment tokens of the file outside
-  /// of function bodies.
-  void _computeSyntacticProperties(Token token) {
-    var parser = new _BodySkippingParser();
-    parser.parseUnit(token);
-
-    _hasMixinApplication = parser.hasMixin;
-
-    ApiSignature apiSignature = new ApiSignature();
-    apiSignature.addBytes(_fsState._salt);
-
-    // Iterate over tokens and skip bodies.
-    Iterator<_BodyRange> bodyIterator = parser.bodyRanges.iterator;
-    bodyIterator.moveNext();
-    for (; token.kind != EOF_TOKEN; token = token.next) {
-      // Move to the body range that ends after the token.
-      while (bodyIterator.current != null &&
-          bodyIterator.current.last < token.charOffset) {
-        bodyIterator.moveNext();
-      }
-      // If the current body range starts before or at the token, skip it.
-      if (bodyIterator.current != null &&
-          bodyIterator.current.first <= token.charOffset) {
-        continue;
-      }
-      // The token is outside of a function body, add it.
-      apiSignature.addString(token.lexeme);
-    }
-
-    // Store the API signature.
-    _apiSignature = apiSignature.toByteList();
-  }
-
-  /// Exclude all `native 'xyz';` token sequences.
-  void _excludeNativeClauses(Token token) {
-    for (; token.kind != EOF_TOKEN; token = token.next) {
-      if (optional('native', token) &&
-          token.next.kind == STRING_TOKEN &&
-          optional(';', token.next.next)) {
-        token.previous.next = token.next.next;
-      }
-    }
-  }
-
   /// Return the [FileState] for the given [relativeUri] or `null` if the URI
   /// cannot be parsed, cannot correspond any file, etc.
   Future<FileState> _getFileForRelativeUri(String relativeUri) async {
@@ -284,19 +256,11 @@ class FileState {
 
     return await _fsState.getFile(absoluteUri);
   }
-
-  /// Scan the content of the file.
-  ScannerResult _scan() {
-    var zeroTerminatedBytes = new Uint8List(_content.length + 1);
-    zeroTerminatedBytes.setRange(0, _content.length, _content);
-    ScannerResult result = scan(zeroTerminatedBytes);
-    _excludeNativeClauses(result.tokens);
-    return result;
-  }
 }
 
 /// Information about known file system state.
 class FileSystemState {
+  final ByteStore _byteStore;
   final FileSystem fileSystem;
   final TranslateUri uriTranslator;
   final List<int> _salt;
@@ -312,8 +276,8 @@ class FileSystemState {
   /// contain `file:*` URIs as keys.
   final Map<Uri, FileState> _fileUriToFile = {};
 
-  FileSystemState(
-      this.fileSystem, this.uriTranslator, this._salt, this._newFileFn);
+  FileSystemState(this._byteStore, this.fileSystem, this.uriTranslator,
+      this._salt, this._newFileFn);
 
   /// Return the [FileSystem] that is backed by this [FileSystemState].  The
   /// files in this [FileSystem] always have the same content as the
@@ -419,13 +383,13 @@ class LibraryCycle {
 /// Information about a single `export` directive.
 class NamespaceExport {
   final FileState library;
-  final List<NamespaceCombinator> combinators;
+  final List<UnlinkedCombinator> combinators;
 
   NamespaceExport(this.library, this.combinators);
 
   /// Return `true` if the [name] satisfies the sequence of the [combinators].
   bool isExposed(String name) {
-    for (NamespaceCombinator combinator in combinators) {
+    for (var combinator in combinators) {
       if (combinator.isShow) {
         if (!combinator.names.contains(name)) {
           return false;
@@ -438,49 +402,6 @@ class NamespaceExport {
     }
     return true;
   }
-}
-
-/// The char range of a function body.
-class _BodyRange {
-  /// The char offset of the first token in the range.
-  final int first;
-
-  /// The char offset of the last token in the range.
-  final int last;
-
-  _BodyRange(this.first, this.last);
-
-  @override
-  String toString() => '[$first, $last]';
-}
-
-/// The [Parser] that skips function bodies and remembers their token ranges.
-class _BodySkippingParser extends Parser {
-  bool hasMixin = false;
-  final List<_BodyRange> bodyRanges = [];
-
-  _BodySkippingParser() : super(new Listener());
-
-  @override
-  Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
-    if (identical('{', token.lexeme)) {
-      Token close = skipBlock(token);
-      bodyRanges.add(new _BodyRange(token.charOffset, close.charOffset));
-      return close;
-    }
-    return super.parseFunctionBody(token, isExpression, allowAbstract);
-  }
-
-  Token parseMixinApplication(Token token) {
-    hasMixin = true;
-    return super.parseMixinApplication(token);
-  }
-}
-
-/// [DirectiveListener] that skips native clauses.
-class _DirectiveListenerWithNative extends DirectiveListener {
-  @override
-  Token handleNativeClause(Token token) => skipNativeClause(token);
 }
 
 /// [FileSystemState] based implementation of [FileSystem].

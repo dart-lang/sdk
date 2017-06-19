@@ -57,7 +57,7 @@ main(List<String> args) async {
 }
 
 /// Creates a [BuildResult] for [buildUri] and, if it contains failures, the
-/// [BuildResult]s for the previous 5 builds.
+/// [BuildResult]s for the previous [runCount] builds.
 Future<List<BuildResult>> readBuildResults(
     BuildbotClient client, BuildUri buildUri, int runCount) async {
   List<BuildResult> summaries = <BuildResult>[];

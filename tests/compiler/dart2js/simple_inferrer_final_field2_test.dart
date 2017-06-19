@@ -31,15 +31,15 @@ void main() {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
 
         checkFieldTypeInClass(String className, String fieldName, type) {
-          var cls = findElement(compiler, className);
+          dynamic cls = findElement(compiler, className);
           var element = cls.lookupLocalMember(fieldName);
           Expect.isTrue(
               typesInferrer.getTypeOfElement(element).containsOnly(type));
         }
 
-        checkFieldTypeInClass(
-            'A', 'intField', compiler.commonElements.jsUInt31Class);
-        checkFieldTypeInClass(
-            'A', 'stringField', compiler.commonElements.jsStringClass);
+        checkFieldTypeInClass('A', 'intField',
+            typesInferrer.closedWorld.commonElements.jsUInt31Class);
+        checkFieldTypeInClass('A', 'stringField',
+            typesInferrer.closedWorld.commonElements.jsStringClass);
       }));
 }

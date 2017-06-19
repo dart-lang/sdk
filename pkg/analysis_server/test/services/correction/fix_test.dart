@@ -3484,7 +3484,6 @@ main() {
   Test test = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3513,7 +3512,6 @@ main() {
   Test test = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3542,7 +3540,6 @@ main() {
   Test test = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT2,
         '''
@@ -3573,7 +3570,6 @@ main() {
   Test t;
 }
 ''');
-    performAllAnalysisTasks();
     await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
   }
 
@@ -3587,7 +3583,6 @@ main() {
   Test t;
 }
 ''');
-    performAllAnalysisTasks();
     await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
   }
 
@@ -3605,7 +3600,6 @@ class Test {
 main() {
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3630,7 +3624,6 @@ main() {
   const Test();
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3664,7 +3657,6 @@ main () {
   new One();
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3690,7 +3682,6 @@ main() {
   Test t = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3715,7 +3706,6 @@ main() {
   Test t = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3740,7 +3730,6 @@ main() {
   Test t = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3764,7 +3753,6 @@ main() {
   myFunction();
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3790,7 +3778,6 @@ class A {
   }
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3817,7 +3804,6 @@ main() {
   MyFunction t = null;
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3841,7 +3827,6 @@ main() {
   print(MY_VAR);
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
@@ -3910,7 +3895,6 @@ main() {
   var a = [Future];
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_SDK,
         '''
@@ -4003,7 +3987,6 @@ main() {
   print(PI);
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_SDK,
         '''
@@ -4021,7 +4004,6 @@ main() {
 main() {
 }
 ''');
-    performAllAnalysisTasks();
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_SDK,
         '''
@@ -4048,7 +4030,6 @@ main() {
   B b;
 }
 ''');
-    performAllAnalysisTasks();
     await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_SHOW,

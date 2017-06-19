@@ -994,7 +994,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       // Add calls to new targets to the graph.
       targets
           .where((target) => !oldTargets.contains(target))
-          .forEach((MemberElement element) {
+          .forEach((MemberEntity _element) {
+        MemberElement element = _element;
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOf(element);
         callee.addCall(caller, call);
@@ -1007,7 +1008,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       // Walk over the old targets, and remove calls that cannot happen anymore.
       oldTargets
           .where((target) => !targets.contains(target))
-          .forEach((MemberElement element) {
+          .forEach((MemberEntity _element) {
+        MemberElement element = _element;
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOf(element);
         callee.removeCall(caller, call);
@@ -1368,7 +1370,7 @@ class ListTypeInformation extends TypeInformation with TracedTypeInformation {
   }
 
   TypeMask computeType(InferrerEngine inferrer) {
-    var mask = type;
+    dynamic mask = type;
     if (!mask.isContainer ||
         mask.elementType != elementType.type ||
         mask.length != inferredLength) {

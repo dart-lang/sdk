@@ -12,6 +12,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/instrumentation.dart' as fasta;
@@ -141,7 +143,7 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
     var validation = new fasta.ValidatingInstrumentation();
     await validation.loadExpectations(uri);
 
-    provider.newFile(path, code);
+    _addFileAndImports(path, code);
 
     AnalysisResult result = await driver.getResult(path);
     result.unit.accept(new _InstrumentationVisitor(validation, uri));
@@ -157,6 +159,37 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
       }
     } else {
       return null;
+    }
+  }
+
+  void _addFileAndImports(String path, String code) {
+    provider.newFile(path, code);
+    var source = null;
+    var analysisErrorListener = null;
+    var scanner = new Scanner(
+        source, new CharSequenceReader(code), analysisErrorListener);
+    var token = scanner.tokenize();
+    var compilationUnit =
+        new Parser(source, analysisErrorListener).parseDirectives(token);
+    for (var directive in compilationUnit.directives) {
+      if (directive is UriBasedDirective) {
+        Uri uri = Uri.parse(directive.uri.stringValue);
+        if (uri.scheme == 'dart') {
+          // Ignore these--they should be in the mock SDK.
+        } else if (uri.scheme == '') {
+          var pathSegments = uri.pathSegments;
+          // For these tests we don't support any directory traversal; we just
+          // assume the URI is the name of a file in the same directory as all
+          // the other tests.
+          if (pathSegments.length != 1) fail('URI too complex: $uri');
+          var referencedPath =
+              pathos.join(pathos.dirname(path), pathSegments[0]);
+          if (!provider.getFile(referencedPath).exists) {
+            var referencedCode = new File(referencedPath).readAsStringSync();
+            _addFileAndImports(referencedPath, referencedCode);
+          }
+        }
+      }
     }
   }
 }
@@ -419,6 +452,25 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
+  @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    super.visitMethodDeclaration(node);
+    if (node.element.enclosingElement is ClassElement) {
+      if (node.isGetter && node.returnType == null) {
+        _recordTopType(node.name.offset, node.element.returnType);
+      }
+      if (node.isSetter) {
+        for (var parameter in node.parameters.parameters) {
+          // Note: it's tempting to check `parameter.type == null`, but that
+          // doesn't work because of function-typed formal parameter syntax.
+          if (parameter.element.hasImplicitType) {
+            _recordTopType(parameter.identifier.offset, parameter.element.type);
+          }
+        }
+      }
+    }
+  }
+
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
     if (node.typeArguments == null) {
@@ -474,7 +526,7 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
         VariableElement element = variable.element;
         if (element is LocalVariableElement) {
           _recordType(variable.name.offset, element.type);
-        } else {
+        } else if (!element.isStatic || element.initializer != null) {
           _recordTopType(variable.name.offset, element.type);
         }
       }

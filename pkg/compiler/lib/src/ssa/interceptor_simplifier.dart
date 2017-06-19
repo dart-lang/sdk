@@ -71,7 +71,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
   bool visitInvoke(HInvoke invoke) {
     if (!invoke.isInterceptedCall) return false;
-    var interceptor = invoke.inputs[0];
+    dynamic interceptor = invoke.inputs[0];
     if (interceptor is! HInterceptor) return false;
 
     // TODO(sra): Move this per-call code to visitInterceptor.

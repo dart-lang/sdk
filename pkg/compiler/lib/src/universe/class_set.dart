@@ -366,7 +366,7 @@ class ClassHierarchyNode {
     if (_directSubclasses.isEmpty) {
       sb.write(']');
     } else {
-      var subclasses = _directSubclasses;
+      dynamic subclasses = _directSubclasses;
       if (sorted) {
         subclasses = _directSubclasses.toList()
           ..sort((a, b) {

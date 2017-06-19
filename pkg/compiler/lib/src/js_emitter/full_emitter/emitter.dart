@@ -19,13 +19,7 @@ import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../elements/resolution_types.dart' show ResolutionDartType;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
-    show
-        ClassElement,
-        ConstructorBodyElement,
-        FieldElement,
-        LibraryElement,
-        MethodElement,
-        TypedefElement;
+    show ClassElement, ConstructorBodyElement, LibraryElement, TypedefElement;
 import '../../elements/entities.dart';
 import '../../elements/entity_utils.dart' as utils;
 import '../../elements/names.dart';
@@ -39,7 +33,6 @@ import '../../js_backend/js_backend.dart'
     show
         ConstantEmitter,
         JavaScriptBackend,
-        JavaScriptConstantCompiler,
         Namer,
         SetterName,
         TypeVariableCodegenAnalysis;
@@ -123,8 +116,9 @@ class Emitter extends js_emitter.EmitterBase {
   ConstantEmitter constantEmitter;
   NativeEmitter get nativeEmitter => task.nativeEmitter;
   TypeTestRegistry get typeTestRegistry => task.typeTestRegistry;
-  CommonElements get commonElements => compiler.commonElements;
-  ElementEnvironment get _elementEnvironment => compiler.elementEnvironment;
+  CommonElements get commonElements => _closedWorld.commonElements;
+  ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
+  CodegenWorldBuilder get _worldBuilder => compiler.codegenWorldBuilder;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();
@@ -184,6 +178,7 @@ class Emitter extends js_emitter.EmitterBase {
     constantEmitter = new ConstantEmitter(
         compiler.options,
         _closedWorld.commonElements,
+        compiler.codegenWorldBuilder,
         compiler.backend.rtiNeed,
         compiler.backend.rtiEncoder,
         namer,
@@ -303,7 +298,7 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   @override
-  jsAst.Expression isolateLazyInitializerAccess(FieldElement element) {
+  jsAst.Expression isolateLazyInitializerAccess(FieldEntity element) {
     return jsAst.js('#.#', [
       namer.globalObjectForMember(element),
       namer.lazyInitializerName(element)
@@ -311,7 +306,7 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   @override
-  jsAst.Expression isolateStaticClosureAccess(MethodElement element) {
+  jsAst.Expression isolateStaticClosureAccess(FunctionEntity element) {
     return jsAst.js('#.#()', [
       namer.globalObjectForMember(element),
       namer.staticClosureName(element)
@@ -633,22 +628,22 @@ class Emitter extends js_emitter.EmitterBase {
   jsAst.Statement buildStaticNonFinalFieldInitializations(
       OutputUnit outputUnit) {
     jsAst.Statement buildInitialization(
-        FieldElement element, jsAst.Expression initialValue) {
+        FieldEntity element, jsAst.Expression initialValue) {
       return js.statement('${namer.staticStateHolder}.# = #',
           [namer.globalPropertyNameForMember(element), initialValue]);
     }
 
     bool inMainUnit = (outputUnit == compiler.deferredLoadTask.mainOutputUnit);
-    JavaScriptConstantCompiler handler = backend.constants;
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
     Iterable<FieldEntity> fields = outputStaticNonFinalFieldLists[outputUnit];
     // If the outputUnit does not contain any static non-final fields, then
     // [fields] is `null`.
     if (fields != null) {
-      for (FieldElement element in fields) {
+      for (FieldEntity element in fields) {
         reporter.withCurrentElement(element, () {
-          ConstantValue constant = handler.getConstantValue(element.constant);
+          ConstantValue constant =
+              _worldBuilder.getConstantFieldInitializer(element);
           parts.add(buildInitialization(element, constantReference(constant)));
         });
       }
@@ -860,7 +855,7 @@ class Emitter extends js_emitter.EmitterBase {
     jsAst.Expression finishedClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
     jsAst.Expression cyclicThrow =
-        staticFunctionAccess(compiler.commonElements.cyclicThrowHelper);
+        staticFunctionAccess(commonElements.cyclicThrowHelper);
     jsAst.Expression laziesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 
@@ -1065,7 +1060,7 @@ class Emitter extends js_emitter.EmitterBase {
 
   jsAst.Expression generateLibraryDescriptor(
       LibraryEntity library, Fragment fragment) {
-    var uri = "";
+    dynamic uri = "";
     if (!compiler.options.enableMinification ||
         backend.mirrorsData.mustPreserveUris) {
       uri = library.canonicalUri;
@@ -1106,7 +1101,7 @@ class Emitter extends js_emitter.EmitterBase {
       ..add(metadata == null ? new jsAst.ArrayHole() : metadata)
       ..add(js('#', namer.globalObjectForLibrary(library)))
       ..add(initializer);
-    if (library == compiler.mainApp) {
+    if (library == _closedWorld.elementEnvironment.mainLibrary) {
       parts.add(js.number(1));
     }
 
@@ -1628,7 +1623,7 @@ class Emitter extends js_emitter.EmitterBase {
     deferredParts.forEach(counter.countTokens);
     task.metadataCollector.finalizeTokens();
     if (backend.namer is jsAst.TokenFinalizer) {
-      var finalizer = backend.namer;
+      dynamic finalizer = backend.namer;
       finalizer.finalizeTokens();
     }
   }
@@ -1956,7 +1951,7 @@ class Emitter extends js_emitter.EmitterBase {
 
   jsAst.Comment buildGeneratedBy() {
     List<String> options = [];
-    if (compiler.commonElements.mirrorsLibrary != null &&
+    if (commonElements.mirrorsLibrary != null &&
         !compiler.options.loadFromDill) {
       // TODO(johnniwinther): Add `isMirrorsUsed` to [BackendData] instead
       // of checking `mirrorsLibrary`.

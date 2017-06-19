@@ -11,9 +11,9 @@ import '../closure.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart';
 import '../compiler.dart';
-import '../elements/elements.dart' show JumpTarget;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
+import '../elements/jumps.dart';
 import '../enqueue.dart';
 import '../io/source_information.dart';
 import '../js/js_source_mapping.dart';
@@ -60,10 +60,8 @@ class KernelBackendStrategy implements BackendStrategy {
   }
 
   @override
-  void convertClosures(ClosedWorldRefiner closedWorldRefiner) {
-    // TODO(johnniwinther,efortuna): Compute closure classes for kernel based
-    // elements.
-  }
+  ClosureConversionTask createClosureConversionTask(Compiler compiler) =>
+      new KernelClosureConversionTask(compiler.measurer);
 
   @override
   WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
@@ -75,14 +73,21 @@ class KernelBackendStrategy implements BackendStrategy {
       NativeBasicData nativeBasicData,
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new KernelCodegenWorldBuilder(_compiler.elementEnvironment,
-        nativeBasicData, closedWorld, selectorConstraintsStrategy);
+    KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
+    return new KernelCodegenWorldBuilder(
+        frontendStrategy.elementMap,
+        closedWorld.elementEnvironment,
+        nativeBasicData,
+        closedWorld,
+        selectorConstraintsStrategy);
   }
 
   @override
-  SsaBuilderTask createSsaBuilderTask(JavaScriptBackend backend,
+  SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
-    return new KernelSsaBuilderTask(backend.compiler);
+    KernelFrontEndStrategy strategy = backend.compiler.frontendStrategy;
+    KernelToElementMap elementMap = strategy.elementMap;
+    return new KernelSsaBuilder(task, backend.compiler, elementMap);
   }
 
   @override
@@ -119,7 +124,8 @@ class KernelCodegenWorkItem extends CodegenWorkItem {
   final CodegenRegistry registry;
 
   KernelCodegenWorkItem(this._backend, this._closedWorld, this.element)
-      : registry = new CodegenRegistry(element);
+      : registry =
+            new CodegenRegistry(_closedWorld.elementEnvironment, element);
 
   @override
   WorldImpact run() {
@@ -128,19 +134,16 @@ class KernelCodegenWorkItem extends CodegenWorkItem {
 }
 
 /// Task for building SSA from kernel IR loaded from .dill.
-class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
+class KernelSsaBuilder implements SsaBuilder {
+  final CompilerTask task;
   final Compiler _compiler;
+  final KernelToElementMap _elementMap;
 
-  KernelSsaBuilderTask(this._compiler) : super(_compiler.measurer);
-
-  KernelToElementMapImpl get _elementMap {
-    KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
-    return frontendStrategy.elementMap;
-  }
+  KernelSsaBuilder(this.task, this._compiler, this._elementMap);
 
   @override
   HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
-    KernelSsaBuilder builder = new KernelSsaBuilder(
+    KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
         work.element,
         work.element.enclosingClass,
         _elementMap.getMemberNode(work.element),
@@ -151,8 +154,8 @@ class KernelSsaBuilderTask extends CompilerTask implements SsaBuilderTask {
         closedWorld,
         _compiler.codegenWorldBuilder,
         work.registry,
+        _compiler.closureDataLookup,
         // TODO(johnniwinther): Support these:
-        const KernelClosureClassMaps(),
         const SourceInformationBuilder(),
         null, // Function node used as capture scope id.
         targetIsConstructorBody: false);
@@ -268,7 +271,8 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   @override
   JumpTarget getJumpTarget(ir.TreeNode node, {bool isContinueTarget: false}) {
-    throw new UnimplementedError('KernelToLocalsMapImpl.getJumpTarget');
+    // TODO(johnniwinther): Support jump targets.
+    return null;
   }
 
   @override
@@ -276,6 +280,12 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     return _map.putIfAbsent(node, () {
       return new KLocal(node.name, currentMember);
     });
+  }
+
+  @override
+  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+      ClosureDataLookup closureLookup, ir.TreeNode node) {
+    return const LoopClosureRepresentationInfo();
   }
 }
 
@@ -303,22 +313,31 @@ class KLocal implements Local {
   }
 }
 
-/// TODO(johnniwinther,efortuna): Implement this.
-class KernelClosureClassMaps implements ClosureClassMaps<ir.Node> {
-  const KernelClosureClassMaps();
+/// Closure conversion code using our new Entity model. Closure conversion is
+/// necessary because the semantics of closures are slightly different in Dart
+/// than JavaScript. Closure conversion is separated out into two phases:
+/// generation of a new (temporary) representation to store where variables need
+/// to be hoisted/captured up at another level to re-write the closure, and then
+/// the code generation phase where we generate elements and/or instructions to
+/// represent this new code path.
+///
+/// For a general explanation of how closure conversion works at a high level,
+/// check out:
+/// http://siek.blogspot.com/2012/07/essence-of-closure-conversion.html or
+/// http://matt.might.net/articles/closure-conversion/.
+class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
+  KernelClosureConversionTask(Measurer measurer) : super(measurer);
 
+  /// The combined steps of generating our intermediate representation of
+  /// closures that need to be rewritten and generating the element model.
+  /// Ultimately these two steps will be split apart with the second step
+  /// happening later in compilation just before codegen. These steps are
+  /// combined here currently to provide a consistent interface to the rest of
+  /// the compiler until we are ready to separate these phases.
   @override
-  ClosureClassMap getLocalFunctionMap(Local localFunction) {
-    return new ClosureClassMap(null, null, null, null);
-  }
-
-  @override
-  ClosureClassMap getMemberMap(MemberEntity member) {
-    ThisLocal thisLocal;
-    if (member.isInstanceMember) {
-      thisLocal = new ThisLocal(member);
-    }
-    return new ClosureClassMap(null, null, null, thisLocal);
+  void convertClosures(Iterable<MemberEntity> processedEntities,
+      ClosedWorldRefiner closedWorldRefiner) {
+    // TODO(efortuna): implement.
   }
 
   @override
@@ -330,6 +349,18 @@ class KernelClosureClassMaps implements ClosureClassMaps<ir.Node> {
   LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
       ir.Node loopNode) {
     return const LoopClosureRepresentationInfo();
+  }
+
+  @override
+  ClosureRepresentationInfo getClosureRepresentationInfo(Entity entity) {
+    if (entity is MemberEntity) {
+      ThisLocal thisLocal;
+      if (entity.isInstanceMember) {
+        thisLocal = new ThisLocal(entity);
+      }
+      return new ClosureClassMap(null, null, null, thisLocal);
+    }
+    return const ClosureRepresentationInfo();
   }
 }
 

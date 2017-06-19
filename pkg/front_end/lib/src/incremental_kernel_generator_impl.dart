@@ -22,6 +22,7 @@ import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart' hide Source;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+import 'package:meta/meta.dart';
 
 class ByteSink implements Sink<List<int>> {
   final BytesBuilder builder = new BytesBuilder();
@@ -76,6 +77,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// and not checked for actual changes yet.
   final Set<Uri> _invalidatedFiles = new Set<Uri>();
 
+  /// The object that provides additional information for tests.
+  final _TestView _testView = new _TestView();
+
   IncrementalKernelGeneratorImpl(
       this._options, this._uriTranslator, this._entryPoint,
       {WatchUsedFilesFn watch})
@@ -91,9 +95,13 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       return new Future.value();
     }
 
-    _fsState = new FileSystemState(
-        _options.fileSystem, _uriTranslator, _salt, onFileAdded);
+    _fsState = new FileSystemState(_options.byteStore, _options.fileSystem,
+        _uriTranslator, _salt, onFileAdded);
   }
+
+  /// Return the object that provides additional information for tests.
+  @visibleForTesting
+  _TestView get test => _testView;
 
   @override
   Future<DeltaProgram> computeDelta() async {
@@ -119,6 +127,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           new VmFastaTarget(new TargetFlags(strongMode: _options.strongMode)));
 
       List<_LibraryCycleResult> results = [];
+      _testView.compiledCycles.clear();
       await _logger.runAsync('Compute results for cycles', () async {
         for (LibraryCycle cycle in cycles) {
           _LibraryCycleResult result =
@@ -129,22 +138,40 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
       Program program = new Program(nameRoot: nameRoot);
 
-      // Add affected libraries (with different signatures).
+      // The set of affected library cycles (have different signatures).
+      final affectedLibraryCycles = new Set<LibraryCycle>();
       for (_LibraryCycleResult result in results) {
         for (Library library in result.kernelLibraries) {
           Uri uri = library.importUri;
           if (_latestSignature[uri] != result.signature) {
             _latestSignature[uri] = result.signature;
+            affectedLibraryCycles.add(result.cycle);
+          }
+        }
+      }
+
+      // The set of affected library cycles (have different signatures),
+      // or libraries that import or export affected libraries (so VM might
+      // have inlined some code from affected libraries into them).
+      final vmRequiredLibraryCycles = new Set<LibraryCycle>();
+
+      void gatherVmRequiredLibraryCycles(LibraryCycle cycle) {
+        if (vmRequiredLibraryCycles.add(cycle)) {
+          cycle.directUsers.forEach(gatherVmRequiredLibraryCycles);
+        }
+      }
+
+      affectedLibraryCycles.forEach(gatherVmRequiredLibraryCycles);
+
+      // Add required libraries.
+      for (_LibraryCycleResult result in results) {
+        if (vmRequiredLibraryCycles.contains(result.cycle)) {
+          for (Library library in result.kernelLibraries) {
             program.libraries.add(library);
             library.parent = program;
           }
         }
       }
-
-      // TODO(scheglov) Add libraries which import changed libraries.
-      // For now the corresponding test works because we use full library
-      // contents to compute signatures (not just API parts). So, every library
-      // that imports a changed one, is affected.
 
       // Set the main method.
       if (program.libraries.isNotEmpty) {
@@ -178,22 +205,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   Future<_LibraryCycleResult> _compileCycle(
       CanonicalName nameRoot, DillTarget dillTarget, LibraryCycle cycle) async {
     return _logger.runAsync('Compile cycle $cycle', () async {
-      String signature;
-      {
-        var signatureBuilder = new ApiSignature();
-        signatureBuilder.addBytes(_salt);
-        Set<FileState> transitiveFiles = cycle.libraries
-            .map((library) => library.transitiveFiles)
-            .expand((files) => files)
-            .toSet();
-        signatureBuilder.addInt(transitiveFiles.length);
-        for (var file in transitiveFiles) {
-          signatureBuilder.addString(file.uri.toString());
-          // TODO(scheglov) use API signature
-          signatureBuilder.addBytes(file.contentHash);
-        }
-        signature = signatureBuilder.toHex();
-      }
+      String signature = _getCycleSignature(cycle);
 
       _logger.writeln('Signature: $signature.');
       var kernelKey = '$signature.kernel';
@@ -245,6 +257,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         await kernelTarget.buildOutlines(nameRoot: nameRoot);
         return await kernelTarget.buildProgram();
       });
+      _testView.compiledCycles.add(cycle);
 
       // Add newly compiled libraries into DILL.
       await appendNewDillLibraries(program);
@@ -301,6 +314,41 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     _salt = saltBuilder.toByteList();
   }
 
+  String _getCycleSignature(LibraryCycle cycle) {
+    bool hasMixinApplication =
+        cycle.libraries.any((library) => library.hasMixinApplicationLibrary);
+    var signatureBuilder = new ApiSignature();
+    signatureBuilder.addBytes(_salt);
+    Set<FileState> transitiveFiles = cycle.libraries
+        .map((library) => library.transitiveFiles)
+        .expand((files) => files)
+        .toSet();
+    signatureBuilder.addInt(transitiveFiles.length);
+
+    // Append API signatures of transitive files.
+    for (var file in transitiveFiles) {
+      signatureBuilder.addString(file.uri.toString());
+      // TODO(scheglov): Stop using content hashes here, when Kernel stops
+      // copying methods of mixed-in classes.
+      // https://github.com/dart-lang/sdk/issues/29881
+      if (hasMixinApplication) {
+        signatureBuilder.addBytes(file.contentHash);
+      } else {
+        signatureBuilder.addBytes(file.apiSignature);
+      }
+    }
+
+    // Append content hashes of the cycle files.
+    for (var library in cycle.libraries) {
+      signatureBuilder.addBytes(library.contentHash);
+      for (var part in library.partFiles) {
+        signatureBuilder.addBytes(part.contentHash);
+      }
+    }
+
+    return signatureBuilder.toHex();
+  }
+
   /// Refresh all the invalidated files and update dependencies.
   Future<Null> _refreshInvalidatedFiles() async {
     await _logger.runAsync('Refresh invalidated files', () async {
@@ -340,11 +388,10 @@ class _LibraryCycleResult {
 
   /// The signature of the result.
   ///
-  /// Currently it is based on the full content of the transitive closure of
-  /// the [cycle] files and all its dependencies.
-  /// TODO(scheglov) Not used yet.
-  /// TODO(scheglov) Use API signatures.
-  /// TODO(scheglov) Or use tree shaking and compute signatures of outlines.
+  /// It is based on the full content of the libraries in the [cycle], and
+  /// either API signatures of the transitive dependencies (usually), or
+  /// the full content of them (in the [cycle] has a library with a mixin
+  /// application).
   final String signature;
 
   /// Kernel libraries for libraries in the [cycle].  Bodies of dependencies
@@ -352,4 +399,11 @@ class _LibraryCycleResult {
   final List<Library> kernelLibraries;
 
   _LibraryCycleResult(this.cycle, this.signature, this.kernelLibraries);
+}
+
+@visibleForTesting
+class _TestView {
+  /// The list of [LibraryCycle]s compiled for the last delta.
+  /// It does not include libraries which were read from the cache.
+  final List<LibraryCycle> compiledCycles = [];
 }

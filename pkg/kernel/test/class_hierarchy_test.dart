@@ -129,6 +129,13 @@ abstract class _ClassHierarchyTest {
 
   ClassHierarchy createClassHierarchy(Program program);
 
+  Procedure newEmptyGetter(String name,
+      {DartType returnType: const DynamicType()}) {
+    var body = new Block([new ReturnStatement(new NullLiteral())]);
+    return new Procedure(new Name(name), ProcedureKind.Getter,
+        new FunctionNode(body, returnType: returnType));
+  }
+
   Procedure newEmptyMethod(String name, {bool isAbstract: false}) {
     var body = isAbstract ? null : new Block([]);
     return new Procedure(new Name(name), ProcedureKind.Method,
@@ -136,14 +143,15 @@ abstract class _ClassHierarchyTest {
         isAbstract: isAbstract);
   }
 
-  Procedure newEmptySetter(String name, {bool abstract: false}) {
+  Procedure newEmptySetter(String name,
+      {bool abstract: false, DartType type: const DynamicType()}) {
     var body = abstract ? null : new Block([]);
     return new Procedure(
         new Name(name),
         ProcedureKind.Setter,
         new FunctionNode(body,
             returnType: const VoidType(),
-            positionalParameters: [new VariableDeclaration('_')]));
+            positionalParameters: [new VariableDeclaration('_', type: type)]));
   }
 
   void setUp() {
@@ -155,6 +163,88 @@ abstract class _ClassHierarchyTest {
     library = new Library(Uri.parse('org-dartlang:///test.dart'), name: 'test');
     library.parent = program;
     program.libraries.add(library);
+  }
+
+  void test_forEachOverridePair_crossGetterSetter_extends() {
+    var int = coreTypes.intClass.rawType;
+    var a = addClass(new Class(name: 'A', supertype: objectSuper, procedures: [
+      newEmptySetter('foo', type: int),
+      newEmptyGetter('bar', returnType: int)
+    ]));
+    var b = addClass(new Class(
+        name: 'B',
+        supertype: a.asThisSupertype,
+        procedures: [newEmptyGetter('foo'), newEmptySetter('bar')]));
+
+    _assertTestLibraryText('''
+class A {
+  set foo(core::int _) → void {}
+  get bar() → core::int {
+    return null;
+  }
+}
+class B extends self::A {
+  get foo() → dynamic {
+    return null;
+  }
+  set bar(dynamic _) → void {}
+}
+''');
+
+    // No overrides of getters with getters, or setters with setters.
+    _assertOverridePairs(b, []);
+
+    // Has cross-overrides between getters and setters.
+    _assertOverridePairs(
+        b,
+        [
+          'test::B::foo overrides test::A::foo=',
+          'test::B::bar= overrides test::A::bar'
+        ],
+        crossGettersSetters: true);
+  }
+
+  void test_forEachOverridePair_crossGetterSetter_implements() {
+    var int = coreTypes.intClass.rawType;
+    var double = coreTypes.doubleClass.rawType;
+    var a = addClass(new Class(name: 'A', supertype: objectSuper, procedures: [
+      newEmptySetter('foo', type: int),
+    ]));
+    var b = addClass(new Class(name: 'B', supertype: objectSuper, procedures: [
+      newEmptySetter('foo', type: double),
+    ]));
+    var c = addClass(new Class(
+        name: 'C',
+        supertype: objectSuper,
+        implementedTypes: [a.asThisSupertype, b.asThisSupertype],
+        procedures: [newEmptyGetter('foo')]));
+
+    _assertTestLibraryText('''
+class A {
+  set foo(core::int _) → void {}
+}
+class B {
+  set foo(core::double _) → void {}
+}
+class C implements self::A, self::B {
+  get foo() → dynamic {
+    return null;
+  }
+}
+''');
+
+    // No overrides of getters with getters, or setters with setters.
+    _assertOverridePairs(c, []);
+
+    // Has cross-overrides between getters and setters.
+    // Even if these overrides are incompatible with each other.
+    _assertOverridePairs(
+        c,
+        [
+          'test::C::foo overrides test::A::foo=',
+          'test::C::foo overrides test::B::foo=',
+        ],
+        crossGettersSetters: true);
   }
 
   /// 2. A non-abstract member is inherited from a superclass, and in the
@@ -902,15 +992,25 @@ class B<T> extends self::A<self::B::T, core::bool> {}
         new InterfaceType(objectClass));
   }
 
-  void _assertOverridePairs(Class class_, List<String> expected) {
+  void _assertOverridePairs(Class class_, List<String> expected,
+      {bool crossGettersSetters: false}) {
     List<String> overrideDescriptions = [];
     hierarchy.forEachOverridePair(class_,
         (Member declaredMember, Member interfaceMember, bool isSetter) {
-      String declaredName = '$declaredMember${isSetter ? '=': ''}';
-      String interfaceName = '$interfaceMember${isSetter ? '=': ''}';
+      String declaredSuffix;
+      String interfaceSuffix;
+      if (crossGettersSetters) {
+        declaredSuffix = _isSetter(declaredMember) ? '=' : '';
+        interfaceSuffix = _isSetter(interfaceMember) ? '=' : '';
+      } else {
+        declaredSuffix = isSetter ? '=' : '';
+        interfaceSuffix = isSetter ? '=' : '';
+      }
+      String declaredName = '$declaredMember$declaredSuffix';
+      String interfaceName = '$interfaceMember$interfaceSuffix';
       var desc = '$declaredName overrides $interfaceName';
       overrideDescriptions.add(desc);
-    });
+    }, crossGettersSetters: crossGettersSetters);
     expect(overrideDescriptions, unorderedEquals(expected));
   }
 
@@ -936,11 +1036,15 @@ import "dart:core" as core;
     actualText = actualText.replaceAll('{\n}', '{}');
     actualText = actualText.replaceAll(' extends core::Object', '');
 
-//    if (actualText != expectedText) {
-//      print('-------- Actual --------');
-//      print(actualText + '------------------------');
-//    }
+    if (actualText != expectedText) {
+      print('-------- Actual --------');
+      print(actualText + '------------------------');
+    }
 
     expect(actualText, expectedText);
+  }
+
+  static bool _isSetter(Member member) {
+    return member is Procedure && member.kind == ProcedureKind.Setter;
   }
 }

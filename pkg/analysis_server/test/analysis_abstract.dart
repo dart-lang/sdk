@@ -75,13 +75,7 @@ class AbstractAnalysisTest {
   AnalysisDomainHandler get analysisHandler => server.handlers
       .singleWhere((handler) => handler is AnalysisDomainHandler);
 
-  AnalysisOptions get analysisOptions => enableNewAnalysisDriver
-      ? testDiver.analysisOptions
-      : testContext.analysisOptions;
-
-  bool get enableNewAnalysisDriver => true;
-
-  AnalysisContext get testContext => server.getAnalysisContext(testFile);
+  AnalysisOptions get analysisOptions => testDiver.analysisOptions;
 
   AnalysisDriver get testDiver => server.getAnalysisDriver(testFile);
 
@@ -145,7 +139,7 @@ class AbstractAnalysisTest {
     // Create server
     //
     AnalysisServerOptions options = new AnalysisServerOptions();
-    options.enableNewAnalysisDriver = enableNewAnalysisDriver;
+    options.enableNewAnalysisDriver = true;
     return new AnalysisServer(
         serverChannel,
         resourceProvider,

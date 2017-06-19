@@ -34,7 +34,7 @@ main() {
   asyncTest(() async {
     var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     var compiler = result.compiler;
-    var element = compiler.mainFunction;
+    var element = compiler.frontendStrategy.elementEnvironment.mainFunction;
     var code = compiler.backend.getGeneratedCode(element);
     Expect.isTrue(code.contains('return 2'), "Unexpected code:\n$code");
   });

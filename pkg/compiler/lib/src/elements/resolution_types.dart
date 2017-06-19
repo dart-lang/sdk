@@ -367,7 +367,8 @@ class MalformedType extends ResolutionDartType {
   }
 }
 
-abstract class GenericType<T extends GenericType> extends ResolutionDartType {
+abstract class GenericType<T extends GenericType<T>>
+    extends ResolutionDartType {
   final TypeDeclarationElement element;
   final List<ResolutionDartType> typeArguments;
 
@@ -488,6 +489,7 @@ abstract class GenericType<T extends GenericType> extends ResolutionDartType {
   }
 }
 
+// ignore: INCONSISTENT_METHOD_INHERITANCE
 class ResolutionInterfaceType extends GenericType<ResolutionInterfaceType>
     implements InterfaceType {
   int _hashCode;
@@ -1374,7 +1376,8 @@ class Types extends DartTypes {
         ResolutionInterfaceType type, int depth) {
       OrderedTypeSet types = type.element.allSupertypesAndSelf;
       Set<ResolutionDartType> set = new Set<ResolutionDartType>();
-      types.forEach(depth, (ResolutionInterfaceType supertype) {
+      types.forEach(depth, (_supertype) {
+        ResolutionInterfaceType supertype = _supertype;
         set.add(supertype.substByContext(type));
       });
       return set;
@@ -1637,7 +1640,7 @@ class MoreSpecificSubtypeVisitor
     if (supertypeInstance == null) return null;
 
     constraintMap = new Map<ResolutionTypeVariableType, ResolutionDartType>();
-    element.typeVariables.forEach((ResolutionTypeVariableType typeVariable) {
+    element.typeVariables.forEach((ResolutionDartType typeVariable) {
       constraintMap[typeVariable] = const ResolutionDynamicType();
     });
     if (supertypeInstance.accept(this, supertype)) {

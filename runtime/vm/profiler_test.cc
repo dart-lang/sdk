@@ -2809,6 +2809,112 @@ TEST_CASE(Profiler_GetSourceReport) {
   EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
 }
 
+
+TEST_CASE(Profiler_ProfileCodeTableTest) {
+  Zone* Z = Thread::Current()->zone();
+
+  ProfileCodeTable* table = new (Z) ProfileCodeTable();
+  EXPECT_EQ(table->length(), 0);
+  EXPECT_EQ(table->FindCodeForPC(42), static_cast<ProfileCode*>(NULL));
+
+  int64_t timestamp = 0;
+  Code& null_code = Code::Handle(Z);
+
+  ProfileCode* code1 = new (Z)
+      ProfileCode(ProfileCode::kNativeCode, 50, 60, timestamp, null_code);
+  EXPECT_EQ(table->InsertCode(code1), 0);
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(50), code1);
+  EXPECT_EQ(table->FindCodeForPC(55), code1);
+  EXPECT_EQ(table->FindCodeForPC(59), code1);
+  EXPECT_EQ(table->FindCodeForPC(60), static_cast<ProfileCode*>(NULL));
+
+  // Insert below all.
+  ProfileCode* code2 = new (Z)
+      ProfileCode(ProfileCode::kNativeCode, 10, 20, timestamp, null_code);
+  EXPECT_EQ(table->InsertCode(code2), 0);
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(50), code1);
+  EXPECT_EQ(table->FindCodeForPC(10), code2);
+  EXPECT_EQ(table->FindCodeForPC(19), code2);
+  EXPECT_EQ(table->FindCodeForPC(20), static_cast<ProfileCode*>(NULL));
+
+  // Insert above all.
+  ProfileCode* code3 = new (Z)
+      ProfileCode(ProfileCode::kNativeCode, 80, 90, timestamp, null_code);
+  EXPECT_EQ(table->InsertCode(code3), 2);
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(50), code1);
+  EXPECT_EQ(table->FindCodeForPC(10), code2);
+  EXPECT_EQ(table->FindCodeForPC(80), code3);
+  EXPECT_EQ(table->FindCodeForPC(89), code3);
+  EXPECT_EQ(table->FindCodeForPC(90), static_cast<ProfileCode*>(NULL));
+
+  // Insert between.
+  ProfileCode* code4 = new (Z)
+      ProfileCode(ProfileCode::kNativeCode, 65, 75, timestamp, null_code);
+  EXPECT_EQ(table->InsertCode(code4), 2);
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(50), code1);
+  EXPECT_EQ(table->FindCodeForPC(10), code2);
+  EXPECT_EQ(table->FindCodeForPC(80), code3);
+  EXPECT_EQ(table->FindCodeForPC(65), code4);
+  EXPECT_EQ(table->FindCodeForPC(74), code4);
+  EXPECT_EQ(table->FindCodeForPC(75), static_cast<ProfileCode*>(NULL));
+
+  // Insert overlapping left.
+  ProfileCode* code5 = new (Z)
+      ProfileCode(ProfileCode::kNativeCode, 15, 25, timestamp, null_code);
+  EXPECT_EQ(table->InsertCode(code5), 0);
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(50), code1);
+  EXPECT_EQ(table->FindCodeForPC(10), code2);
+  EXPECT_EQ(table->FindCodeForPC(80), code3);
+  EXPECT_EQ(table->FindCodeForPC(65), code4);
+  EXPECT_EQ(table->FindCodeForPC(15), code2);  // Merged left.
+  EXPECT_EQ(table->FindCodeForPC(24), code2);  // Merged left.
+  EXPECT_EQ(table->FindCodeForPC(25), static_cast<ProfileCode*>(NULL));
+
+  // Insert overlapping right.
+  ProfileCode* code6 = new (Z)
+      ProfileCode(ProfileCode::kNativeCode, 45, 55, timestamp, null_code);
+  EXPECT_EQ(table->InsertCode(code6), 1);
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(50), code1);
+  EXPECT_EQ(table->FindCodeForPC(10), code2);
+  EXPECT_EQ(table->FindCodeForPC(80), code3);
+  EXPECT_EQ(table->FindCodeForPC(65), code4);
+  EXPECT_EQ(table->FindCodeForPC(15), code2);  // Merged left.
+  EXPECT_EQ(table->FindCodeForPC(24), code2);  // Merged left.
+  EXPECT_EQ(table->FindCodeForPC(45), code1);  // Merged right.
+  EXPECT_EQ(table->FindCodeForPC(54), code1);  // Merged right.
+  EXPECT_EQ(table->FindCodeForPC(55), code1);
+
+  // Insert overlapping both.
+  ProfileCode* code7 = new (Z)
+      ProfileCode(ProfileCode::kNativeCode, 20, 50, timestamp, null_code);
+  EXPECT_EQ(table->InsertCode(code7), 0);
+  EXPECT_EQ(table->FindCodeForPC(0), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(100), static_cast<ProfileCode*>(NULL));
+  EXPECT_EQ(table->FindCodeForPC(50), code1);
+  EXPECT_EQ(table->FindCodeForPC(10), code2);
+  EXPECT_EQ(table->FindCodeForPC(80), code3);
+  EXPECT_EQ(table->FindCodeForPC(65), code4);
+  EXPECT_EQ(table->FindCodeForPC(15), code2);  // Merged left.
+  EXPECT_EQ(table->FindCodeForPC(24), code2);  // Merged left.
+  EXPECT_EQ(table->FindCodeForPC(45), code1);  // Merged right.
+  EXPECT_EQ(table->FindCodeForPC(54), code1);  // Merged right.
+  EXPECT_EQ(table->FindCodeForPC(20), code2);  // Merged left.
+  EXPECT_EQ(table->FindCodeForPC(49), code1);  // Truncated.
+  EXPECT_EQ(table->FindCodeForPC(50), code1);
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart

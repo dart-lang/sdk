@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
@@ -16,7 +15,6 @@ import 'package:compiler/src/io/position_information.dart';
 import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/js/js.dart' as js;
-import 'package:compiler/src/js/js_debug.dart';
 
 import 'diff.dart';
 import 'html_parts.dart';

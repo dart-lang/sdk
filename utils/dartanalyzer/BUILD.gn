@@ -14,7 +14,10 @@ group("dartanalyzer") {
 }
 
 analyzer_files = exec_script("../../tools/list_dart_files.py",
-                             [ "absolute", rebase_path("../../pkg/analyzer") ],
+                             [
+                               "absolute",
+                               rebase_path("../../pkg/analyzer"),
+                             ],
                              "list lines")
 
 application_snapshot("generate_dartanalyzer_snapshot") {
@@ -25,13 +28,19 @@ application_snapshot("generate_dartanalyzer_snapshot") {
   ]
   name = "dartanalyzer"
   cli_files = exec_script("../../tools/list_dart_files.py",
-                          [ "absolute", rebase_path("../../pkg/analyzer_cli") ],
+                          [
+                            "absolute",
+                            rebase_path("../../pkg/analyzer_cli"),
+                          ],
                           "list lines")
   inputs = cli_files + analyzer_files
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
-                            [ "absolute", rebase_path("../../sdk/lib") ],
+                            [
+                              "absolute",
+                              rebase_path("../../sdk/lib"),
+                            ],
                             "list lines")
 
 template("generate_summary") {
@@ -39,7 +48,9 @@ template("generate_summary") {
   type = invoker.type
   assert(type == "spec" || type == "strong")
   compiled_action(target_name) {
-    tool = "../../runtime/bin:dart"
+    # TODO(rmacnak): If Fuchsia adds a checked-in SDK, revert this to use
+    # the 'dart' binary.
+    tool = "../../runtime/bin:dart_bootstrap_host_arch"
     inputs = sdk_lib_files + analyzer_files
 
     output = "$root_gen_dir/$type.sum"

@@ -329,6 +329,7 @@ type FunctionNode {
   Byte asyncMarker; // Index into AsyncMarker above.
   Byte dartAsyncMarker; // Index into AsyncMarker above.
   List<TypeParameter> typeParameters;
+  UInt parameterCount; // positionalParameters.length + namedParameters.length.
   UInt requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
   List<VariableDeclaration> namedParameters;
@@ -750,6 +751,8 @@ type EmptyStatement extends Statement {
 type AssertStatement extends Statement {
   Byte tag = 64;
   Expression condition;
+  FileOffset conditionStartOffset;
+  FileOffset conditionEndOffset;
   Option<Expression> message;
 }
 

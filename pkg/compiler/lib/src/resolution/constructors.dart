@@ -313,7 +313,8 @@ class InitializerResolver {
     Link<Node> parameterNodes = (functionNode.parameters == null)
         ? const Link<Node>()
         : functionNode.parameters.nodes;
-    functionParameters.forEachParameter((ParameterElementX element) {
+    functionParameters.forEachParameter((FormalElement _element) {
+      ParameterElementX element = _element;
       List<Element> optionals = functionParameters.optionalParameters;
       if (!optionals.isEmpty && element == optionals.first) {
         NodeList nodes = parameterNodes.head;
@@ -414,7 +415,7 @@ class InitializerResolver {
           }
           // Check that there are no field initializing parameters.
           FunctionSignature signature = constructor.functionSignature;
-          signature.forEachParameter((ParameterElement parameter) {
+          signature.forEachParameter((FormalElement parameter) {
             if (parameter.isInitializingFormal) {
               Node node = parameter.node;
               reporter.reportErrorMessage(

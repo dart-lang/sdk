@@ -2,20 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 
+import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart' show JumpTarget;
 import '../elements/entities.dart';
+import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/operators.dart';
 import '../elements/types.dart';
+import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
+import '../js_backend/namer.dart';
+import '../js_emitter/code_emitter_task.dart';
 import '../native/native.dart' as native;
 import '../types/types.dart';
 import '../universe/call_structure.dart';
@@ -42,10 +47,6 @@ abstract class KernelToElementMap {
 
   /// Returns the [InterfaceType] corresponding to [type].
   InterfaceType getInterfaceType(ir.InterfaceType type);
-
-  /// Returns the 'this type' of [cls]. That is, the instantiation of [cls]
-  /// where the type arguments are the type variables of [cls].
-  InterfaceType getThisType(ClassEntity cls);
 
   /// Return the [InterfaceType] corresponding to the [cls] with the given
   /// [typeArguments].
@@ -84,6 +85,9 @@ abstract class KernelToElementMap {
 
   /// Returns the [MemberEntity] corresponding to the member [node].
   MemberEntity getMember(ir.Member node);
+
+  /// Returns the kernel IR node that defines the [member].
+  ir.Member getMemberNode(MemberEntity member);
 
   /// Returns the [FunctionEntity] corresponding to the procedure [node].
   FunctionEntity getMethod(ir.Procedure node);
@@ -145,6 +149,13 @@ abstract class KernelToElementMap {
 
   /// Compute the kind of foreign helper function called by [node], if any.
   ForeignKind getForeignKind(ir.StaticInvocation node);
+
+  /// Returns the [js.Name] for the `JsGetName` [constant] value.
+  js.Name getNameForJsGetName(ConstantValue constant, Namer namer);
+
+  /// Returns the [js.Template] for the `JsBuiltin` [constant] value.
+  js.Template getJsBuiltinTemplate(
+      ConstantValue constant, CodeEmitterTask emitter);
 
   /// Computes the [InterfaceType] referenced by a call to the
   /// [JS_INTERCEPTOR_CONSTANT] function, if any.
@@ -533,6 +544,36 @@ abstract class KernelToElementMapMixin implements KernelToElementMap {
     assert(function != null,
         failedAt(cls, "No super noSuchMethod found for class $cls."));
     return function;
+  }
+
+  js.Name getNameForJsGetName(ConstantValue constant, Namer namer) {
+    int index = _extractEnumIndexFromConstantValue(
+        constant, commonElements.jsGetNameEnum);
+    if (index == null) return null;
+    return namer.getNameForJsGetName(
+        CURRENT_ELEMENT_SPANNABLE, JsGetName.values[index]);
+  }
+
+  js.Template getJsBuiltinTemplate(
+      ConstantValue constant, CodeEmitterTask emitter) {
+    int index = _extractEnumIndexFromConstantValue(
+        constant, commonElements.jsBuiltinEnum);
+    if (index == null) return null;
+    return emitter.builtinTemplateFor(JsBuiltin.values[index]);
+  }
+
+  int _extractEnumIndexFromConstantValue(
+      ConstantValue constant, ClassEntity classElement) {
+    if (constant is ConstructedConstantValue) {
+      if (constant.type.element == classElement) {
+        assert(constant.fields.length == 1 || constant.fields.length == 2);
+        ConstantValue indexConstant = constant.fields.values.first;
+        if (indexConstant is IntConstantValue) {
+          return indexConstant.primitiveValue;
+        }
+      }
+    }
+    return null;
   }
 }
 
@@ -1037,4 +1078,15 @@ abstract class KernelToLocalsMap {
   /// Returns the [JumpTarget] for the branch in [node].
   // TODO(johnniwinther): Split this by kind of [node]?
   JumpTarget getJumpTarget(ir.TreeNode node, {bool isContinueTarget: false});
+
+  /// Returns the [LoopClosureRepresentationInfo] for the loop [node] in
+  /// [closureClassMaps].
+  LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
+      ClosureDataLookup closureLookup, ir.TreeNode node);
+}
+
+/// Comparator for the canonical order or named arguments.
+// TODO(johnniwinther): Remove this when named parameters are sorted in dill.
+int namedOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
+  return a.name.compareTo(b.name);
 }

@@ -13,7 +13,6 @@
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/intermediate_language.h"
-#include "vm/kernel.h"
 
 namespace dart {
 namespace kernel {
@@ -551,115 +550,6 @@ class DartTypeTranslator : public DartTypeVisitor {
 };
 
 
-// There are several cases when we are compiling constant expressions:
-//
-//   * constant field initializers:
-//      const FieldName = <expr>;
-//
-//   * constant expressions:
-//      const [<expr>, ...]
-//      const {<expr> : <expr>, ...}
-//      const Constructor(<expr>, ...)
-//
-//   * constant default parameters:
-//      f(a, [b = <expr>])
-//      f(a, {b: <expr>})
-//
-//   * constant values to compare in a [SwitchCase]
-//      case <expr>:
-//
-// In all cases `<expr>` must be recursively evaluated and canonicalized at
-// compile-time.
-class ConstantEvaluator : public ExpressionVisitor {
- public:
-  ConstantEvaluator(FlowGraphBuilder* builder,
-                    Zone* zone,
-                    TranslationHelper* h,
-                    DartTypeTranslator* type_translator);
-  virtual ~ConstantEvaluator() {}
-
-  Instance& EvaluateExpression(Expression* node);
-  Object& EvaluateExpressionSafe(Expression* node);
-  Instance& EvaluateConstructorInvocation(ConstructorInvocation* node);
-  Instance& EvaluateListLiteral(ListLiteral* node);
-  Instance& EvaluateMapLiteral(MapLiteral* node);
-
-  virtual void VisitDefaultExpression(Expression* node) { UNREACHABLE(); }
-
-  virtual void VisitBigintLiteral(BigintLiteral* node);
-  virtual void VisitBoolLiteral(BoolLiteral* node);
-  virtual void VisitDoubleLiteral(DoubleLiteral* node);
-  virtual void VisitIntLiteral(IntLiteral* node);
-  virtual void VisitNullLiteral(NullLiteral* node);
-  virtual void VisitStringLiteral(StringLiteral* node);
-  virtual void VisitSymbolLiteral(SymbolLiteral* node);
-  virtual void VisitTypeLiteral(TypeLiteral* node);
-
-  virtual void VisitListLiteral(ListLiteral* node);
-  virtual void VisitMapLiteral(MapLiteral* node);
-
-  virtual void VisitConstructorInvocation(ConstructorInvocation* node);
-  virtual void VisitMethodInvocation(MethodInvocation* node);
-  virtual void VisitStaticGet(StaticGet* node);
-  virtual void VisitVariableGet(VariableGet* node);
-  virtual void VisitLet(Let* node);
-  virtual void VisitStaticInvocation(StaticInvocation* node);
-  virtual void VisitStringConcatenation(StringConcatenation* node);
-  virtual void VisitConditionalExpression(ConditionalExpression* node);
-  virtual void VisitLogicalExpression(LogicalExpression* node);
-  virtual void VisitNot(Not* node);
-  virtual void VisitPropertyGet(PropertyGet* node);
-
- private:
-  // This will translate type arguments form [kernel_arguments].  If no type
-  // arguments are passed and the [target] is a factory then the null type
-  // argument array will be returned.
-  //
-  // If none of these cases apply, NULL will be returned.
-  const TypeArguments* TranslateTypeArguments(const Function& target,
-                                              dart::Class* target_klass,
-                                              Arguments* kernel_arguments);
-
-  const Object& RunFunction(const Function& function,
-                            Arguments* arguments,
-                            const Instance* receiver = NULL,
-                            const TypeArguments* type_args = NULL);
-
-  const Object& RunFunction(const Function& function,
-                            const Array& arguments,
-                            const Array& names);
-
-  RawObject* EvaluateConstConstructorCall(const dart::Class& type_class,
-                                          const TypeArguments& type_arguments,
-                                          const Function& constructor,
-                                          const Object& argument);
-
-  void AssertBoolInCheckedMode() {
-    if (isolate_->type_checks() && !result_.IsBool()) {
-      translation_helper_.ReportError("Expected boolean expression.");
-    }
-  }
-
-  bool EvaluateBooleanExpression(Expression* expression) {
-    EvaluateExpression(expression);
-    AssertBoolInCheckedMode();
-    return result_.raw() == Bool::True().raw();
-  }
-
-  bool GetCachedConstant(TreeNode* node, Instance* value);
-  void CacheConstantValue(TreeNode* node, const Instance& value);
-
-  FlowGraphBuilder* builder_;
-  Isolate* isolate_;
-  Zone* zone_;
-  TranslationHelper& translation_helper_;
-  DartTypeTranslator& type_translator_;
-
-  Script& script_;
-  Instance& result_;
-};
-
-
 struct FunctionScope {
   intptr_t kernel_offset;
   LocalScope* scope;
@@ -728,9 +618,9 @@ struct YieldContinuation {
       : entry(NULL), try_index(CatchClauseNode::kInvalidTryIndex) {}
 };
 
-class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
+class FlowGraphBuilder {
  public:
-  FlowGraphBuilder(TreeNode* node,
+  FlowGraphBuilder(intptr_t kernel_offset,
                    ParsedFunction* parsed_function,
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
                    ZoneGrowableArray<intptr_t>* context_level_array,
@@ -741,106 +631,24 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   FlowGraph* BuildGraph();
 
-  virtual void VisitDefaultExpression(Expression* node) { UNREACHABLE(); }
-  virtual void VisitDefaultStatement(Statement* node) { UNREACHABLE(); }
-
-  virtual void VisitInvalidExpression(InvalidExpression* node);
-  virtual void VisitNullLiteral(NullLiteral* node);
-  virtual void VisitBoolLiteral(BoolLiteral* node);
-  virtual void VisitIntLiteral(IntLiteral* node);
-  virtual void VisitBigintLiteral(BigintLiteral* node);
-  virtual void VisitDoubleLiteral(DoubleLiteral* node);
-  virtual void VisitStringLiteral(StringLiteral* node);
-  virtual void VisitSymbolLiteral(SymbolLiteral* node);
-  virtual void VisitTypeLiteral(TypeLiteral* node);
-  virtual void VisitVariableGet(VariableGet* node);
-  virtual void VisitVariableSet(VariableSet* node);
-  virtual void VisitStaticGet(StaticGet* node);
-  virtual void VisitStaticSet(StaticSet* node);
-  virtual void VisitPropertyGet(PropertyGet* node);
-  virtual void VisitPropertySet(PropertySet* node);
-  virtual void VisitDirectPropertyGet(DirectPropertyGet* node);
-  virtual void VisitDirectPropertySet(DirectPropertySet* node);
-  virtual void VisitStaticInvocation(StaticInvocation* node);
-  virtual void VisitMethodInvocation(MethodInvocation* node);
-  virtual void VisitDirectMethodInvocation(DirectMethodInvocation* node);
-  virtual void VisitConstructorInvocation(ConstructorInvocation* node);
-  virtual void VisitIsExpression(IsExpression* node);
-  virtual void VisitAsExpression(AsExpression* node);
-  virtual void VisitConditionalExpression(ConditionalExpression* node);
-  virtual void VisitLogicalExpression(LogicalExpression* node);
-  virtual void VisitNot(Not* node);
-  virtual void VisitThisExpression(ThisExpression* node);
-  virtual void VisitStringConcatenation(StringConcatenation* node);
-  virtual void VisitListLiteral(ListLiteral* node);
-  virtual void VisitMapLiteral(MapLiteral* node);
-  virtual void VisitFunctionExpression(FunctionExpression* node);
-  virtual void VisitLet(Let* node);
-  virtual void VisitThrow(Throw* node);
-  virtual void VisitRethrow(Rethrow* node);
-
-  virtual void VisitInvalidStatement(InvalidStatement* node);
-  virtual void VisitEmptyStatement(EmptyStatement* node);
-  virtual void VisitBlock(Block* node);
-  virtual void VisitReturnStatement(ReturnStatement* node);
-  virtual void VisitExpressionStatement(ExpressionStatement* node);
-  virtual void VisitVariableDeclaration(VariableDeclaration* node);
-  virtual void VisitFunctionDeclaration(FunctionDeclaration* node);
-  virtual void VisitIfStatement(IfStatement* node);
-  virtual void VisitWhileStatement(WhileStatement* node);
-  virtual void VisitDoStatement(DoStatement* node);
-  virtual void VisitForStatement(ForStatement* node);
-  virtual void VisitForInStatement(ForInStatement* node);
-  virtual void VisitLabeledStatement(LabeledStatement* node);
-  virtual void VisitBreakStatement(BreakStatement* node);
-  virtual void VisitSwitchStatement(SwitchStatement* node);
-  virtual void VisitContinueSwitchStatement(ContinueSwitchStatement* node);
-  virtual void VisitAssertStatement(AssertStatement* node);
-  virtual void VisitTryFinally(TryFinally* node);
-  virtual void VisitTryCatch(TryCatch* node);
-  virtual void VisitYieldStatement(YieldStatement* node);
-
  private:
-  FlowGraph* BuildGraphOfFunction(FunctionNode* node,
-                                  Constructor* constructor = NULL);
-  FlowGraph* BuildGraphOfFieldAccessor(Field* node,
-                                       LocalVariable* setter_value);
-  FlowGraph* BuildGraphOfStaticFieldInitializer(Field* node);
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
-  FlowGraph* BuildGraphOfImplicitClosureFunction(FunctionNode* kernel_function,
-                                                 const Function& function);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);
   FlowGraph* BuildGraphOfInvokeFieldDispatcher(const Function& function);
 
-  Fragment NativeFunctionBody(FunctionNode* kernel_function,
+  Fragment NativeFunctionBody(intptr_t first_positional_offset,
                               const Function& function);
-
-  void SetupDefaultParameterValues(FunctionNode* function);
 
   TargetEntryInstr* BuildTargetEntry();
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
 
-  Fragment TranslateArguments(Arguments* node, Array* argument_names);
   ArgumentArray GetArguments(int count);
-
-  Fragment TranslateInitializers(Class* kernel_class,
-                                 List<Initializer>* initialiers);
-  Fragment TranslateFieldInitializer(NameIndex canonical_name,
-                                     Expression* init);
-
-  Fragment TranslateStatement(Statement* statement);
-  Fragment TranslateCondition(Expression* expression, bool* negate);
-  Fragment TranslateExpression(Expression* expression);
 
   Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
                                       intptr_t target_context_depth);
 
-  Fragment TranslateFunctionNode(FunctionNode* node, TreeNode* parent);
-
-  Fragment EnterScope(TreeNode* node, bool* new_context = NULL);
   Fragment EnterScope(intptr_t kernel_offset, bool* new_context = NULL);
-  Fragment ExitScope(TreeNode* node);
   Fragment ExitScope(intptr_t kernel_offset);
 
   Fragment LoadContextAt(int depth);
@@ -943,7 +751,6 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   Fragment EvaluateAssertion();
   Fragment CheckReturnTypeInCheckedMode();
-  Fragment CheckVariableTypeInCheckedMode(VariableDeclaration* variable);
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const dart::String& name_symbol);
   Fragment CheckBooleanInCheckedMode();
@@ -953,9 +760,6 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment AssertBool();
   Fragment AssertAssignable(const dart::AbstractType& dst_type,
                             const dart::String& dst_name);
-
-  template <class Invocation>
-  bool RecognizeComparisonWithNull(Token::Kind token_kind, Invocation* node);
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
@@ -970,10 +774,6 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   intptr_t CurrentTryIndex();
   intptr_t AllocateTryIndex() { return next_used_try_index_++; }
 
-  void AddVariable(VariableDeclaration* declaration, LocalVariable* variable);
-  void AddParameter(VariableDeclaration* declaration,
-                    LocalVariable* variable,
-                    intptr_t pos);
   dart::LocalVariable* LookupVariable(VariableDeclaration* var);
   dart::LocalVariable* LookupVariable(intptr_t kernel_offset);
 
@@ -993,9 +793,7 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Thread* thread_;
   Zone* zone_;
 
-  // The node we are currently compiling (e.g. FunctionNode, Constructor,
-  // Field)
-  TreeNode* node_;
+  intptr_t kernel_offset_;
 
   ParsedFunction* parsed_function_;
   intptr_t osr_id_;
@@ -1025,7 +823,6 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   intptr_t try_depth_;
   intptr_t catch_depth_;
   intptr_t for_in_depth_;
-  Fragment fragment_;
   Value* stack_;
   intptr_t pending_argument_count_;
 
@@ -1069,7 +866,6 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
 
   ActiveClass active_class_;
   DartTypeTranslator type_translator_;
-  ConstantEvaluator constant_evaluator_;
 
   StreamingFlowGraphBuilder* streaming_flow_graph_builder_;
 
