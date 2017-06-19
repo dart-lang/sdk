@@ -193,8 +193,7 @@ enum Condition {
   LE = 13,  // signed less than or equal
   AL = 14,  // always (unconditional)
   NV = 15,  // special condition (refer to section C1.2.3)
-  kNumberOfConditions = 16,
-  kInvalidCondition = 16
+  kMaxCondition = 16,
 };
 
 static inline Condition InvertCondition(Condition c) {

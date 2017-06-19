@@ -354,8 +354,7 @@ enum Condition {
   LE = 13,                 // signed less than or equal
   AL = 14,                 // always (unconditional)
   kSpecialCondition = 15,  // special condition (refer to section A3.2.1)
-  kNumberOfConditions = 16,
-  kInvalidCondition = 16
+  kMaxCondition = 16,
 };
 
 

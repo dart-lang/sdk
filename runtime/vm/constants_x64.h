@@ -147,9 +147,7 @@ enum Condition {
   NEGATIVE = SIGN,
   POSITIVE = NOT_SIGN,
   CARRY = BELOW,
-  NOT_CARRY = ABOVE_EQUAL,
-
-  INVALID_CONDITION = 16
+  NOT_CARRY = ABOVE_EQUAL
 };
 
 #define R(reg) (1 << (reg))
