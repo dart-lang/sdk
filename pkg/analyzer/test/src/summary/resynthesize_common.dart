@@ -8417,6 +8417,14 @@ void f<T, U>((U) → T x) {}
     }
   }
 
+  test_function_typed_parameter_implicit() {
+    var library = checkLibrary('f(g()) => null;');
+    expect(
+        library
+            .definingCompilationUnit.functions[0].parameters[0].hasImplicitType,
+        isFalse);
+  }
+
   test_functions() {
     var library = checkLibrary('f() {} g() {}');
     if (isStrongMode) {
