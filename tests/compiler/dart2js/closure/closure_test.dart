@@ -28,7 +28,7 @@ void checkClosureData(
     Compiler compiler, Map<Id, String> expectedMap, MemberEntity _member) {
   MemberElement member = _member;
   new ClosureChecker(compiler.reporter, expectedMap, member.resolvedAst,
-          compiler.closureDataLookup as ClosureDataLookup<Node>)
+          compiler.backendStrategy.closureDataLookup as ClosureDataLookup<Node>)
       .check();
 }
 

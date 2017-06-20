@@ -627,7 +627,7 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
 }
 
 class KernelCodegenWorldBuilder extends CodegenWorldBuilderImpl {
-  KernelToElementMapImpl _elementMap;
+  KernelToWorldBuilder _elementMap;
 
   KernelCodegenWorldBuilder(
       this._elementMap,
