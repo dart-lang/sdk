@@ -5,7 +5,6 @@
 library linter.src.rules.prefer_const_constructors_in_immutables;
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/dart/ast/ast.dart' show AstVisitor;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -145,9 +144,11 @@ class MyAnalysisErrorListener extends AnalysisErrorListener {
       case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
       case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
       case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
+      case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
       case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
       case CompileTimeErrorCode
           .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+      case CompileTimeErrorCode.INVALID_CONSTANT:
         hasConstError = true;
     }
   }

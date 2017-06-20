@@ -20,8 +20,8 @@ class A {
   A.c1(); // LINT
   const A.c2(); // OK
   // no lint for constructor with body
-  A.c3() { // OK
-  }
+  A.c3() // OK
+  {}
 }
 
 class B extends A {
@@ -45,10 +45,10 @@ class D {
   D.c1(a) : _a = a.toString(); // OK
   D.c2(a) : _a = a; // LINT
   D.c3(bool a) : _a = a && a; // LINT
+  D.c4(a) : _a = '${a ? a : ''}'; // OK
 }
 
-class Mixin1 {
-}
+class Mixin1 {}
 
 class E extends A with Mixin1 {
   // no lint because const leads to error : Const constructor can't be declared for a class with a mixin.
@@ -68,7 +68,7 @@ class F {
 class G {
   G.a(); // LINT
   G.b() : this.a(); // OK
-  const G.c();  // OK
+  const G.c(); // OK
   G.d() : this.c(); // LINT
   const G.e() : this.c(); // OK
 }
