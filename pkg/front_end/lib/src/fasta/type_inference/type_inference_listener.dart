@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart';
 /// By default no debug info is printed.  To enable debug printing, mix in
 /// [TypeInferenceDebugging].
 class TypeInferenceBase {
-  void debugDependency(FieldNode fieldNode) {}
+  void debugDependency(AccessorNode accessorNode) {}
 
   bool debugExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
@@ -32,8 +32,8 @@ class TypeInferenceBase {
 /// Mixin which can be applied to [TypeInferenceListener] to cause debug info to
 /// be printed.
 class TypeInferenceDebugging implements TypeInferenceBase {
-  void debugDependency(FieldNode fieldNode) {
-    print('Dependency $fieldNode');
+  void debugDependency(AccessorNode accessorNode) {
+    print('Dependency $accessorNode');
   }
 
   bool debugExpressionEnter(
@@ -249,7 +249,8 @@ class TypeInferenceListener
   void propertySetExit(PropertySet expression, DartType inferredType) =>
       debugExpressionExit("propertySet", expression, inferredType);
 
-  void recordDependency(FieldNode fieldNode) => debugDependency(fieldNode);
+  void recordDependency(AccessorNode accessorNode) =>
+      debugDependency(accessorNode);
 
   void redirectingInitializerEnter(RedirectingInitializer initializer) =>
       debugInitializerEnter("redirectingInitializer", initializer);

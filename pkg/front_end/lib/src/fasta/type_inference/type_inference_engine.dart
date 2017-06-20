@@ -21,54 +21,54 @@ import 'package:kernel/type_algebra.dart';
 /// TODO(paulberry): see if it's possible to make this class more lightweight
 /// by changing the API so that the walker is passed to computeDependencies().
 /// (This should allow us to drop the _typeInferenceEngine field).
-class FieldNode extends dependencyWalker.Node<FieldNode> {
+class AccessorNode extends dependencyWalker.Node<AccessorNode> {
   final TypeInferenceEngineImpl _typeInferenceEngine;
 
   final KernelMember member;
 
   bool isImmediatelyEvident = false;
 
-  FieldState state = FieldState.NotInferredYet;
+  AccessorState state = AccessorState.NotInferredYet;
 
-  /// If [state] is [FieldState.Inferring], and type inference for this field
-  /// is waiting on type inference of some other field, the field that is being
-  /// waited on.
+  /// If [state] is [AccessorState.Inferring], and type inference for this
+  /// accessor is waiting on type inference of some other accessor, the accessor
+  /// that is being waited on.
   ///
   /// Otherwise `null`.
-  FieldNode currentDependency;
+  AccessorNode currentDependency;
 
   final overrides = <Member>[];
 
   final crossOverrides = <Member>[];
 
-  FieldNode(this._typeInferenceEngine, this.member);
+  AccessorNode(this._typeInferenceEngine, this.member);
 
   get candidateOverrides => overrides.isNotEmpty ? overrides : crossOverrides;
 
   @override
-  bool get isEvaluated => state == FieldState.Inferred;
+  bool get isEvaluated => state == AccessorState.Inferred;
 
   @override
-  List<FieldNode> computeDependencies() {
-    return _typeInferenceEngine.computeFieldDependencies(this);
+  List<AccessorNode> computeDependencies() {
+    return _typeInferenceEngine.computeAccessorDependencies(this);
   }
 
   @override
   String toString() => member.toString();
 }
 
-/// Enum tracking the type inference state of a field.
-enum FieldState {
-  /// The field's type has not been inferred yet.
+/// Enum tracking the type inference state of an accessor.
+enum AccessorState {
+  /// The accessor's type has not been inferred yet.
   NotInferredYet,
 
-  /// Type inference is in progress for the field.
+  /// Type inference is in progress for the accessor.
   ///
   /// This means that code is currently on the stack which is attempting to
-  /// determine the type of the field.
+  /// determine the type of the accessor.
   Inferring,
 
-  /// The field's type has been inferred.
+  /// The accessor's type has been inferred.
   Inferred
 }
 
@@ -94,8 +94,8 @@ abstract class TypeInferenceEngine {
       InterfaceType thisType, KernelMember member);
 
   /// Performs the second phase of top level initializer inference, which is to
-  /// visit all fields and top level variables that were passed to [recordField]
-  /// in topologically-sorted order and assign their types.
+  /// visit all accessors and top level variables that were passed to
+  /// [recordAccessor] in topologically-sorted order and assign their types.
   void finishTopLevel();
 
   /// Gets ready to do top level type inference for the program having the given
@@ -144,7 +144,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   final bool strongMode;
 
-  final fieldNodes = <FieldNode>[];
+  final accessorNodes = <AccessorNode>[];
 
   final initializingFormals = <KernelVariableDeclaration>[];
 
@@ -158,29 +158,29 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   TypeInferenceEngineImpl(this.instrumentation, this.strongMode);
 
-  /// Computes type inference dependencies for the given [field].
-  List<FieldNode> computeFieldDependencies(FieldNode fieldNode) {
-    // If the field's type is going to be determined by inheritance, then its
+  /// Computes type inference dependencies for the given [accessorNode].
+  List<AccessorNode> computeAccessorDependencies(AccessorNode accessorNode) {
+    // If the accessor's type is going to be determined by inheritance, then its
     // dependencies are determined by inheritance too.
-    var candidateOverrides = fieldNode.candidateOverrides;
+    var candidateOverrides = accessorNode.candidateOverrides;
     if (candidateOverrides.isNotEmpty) {
-      var dependencies = <FieldNode>[];
+      var dependencies = <AccessorNode>[];
       for (var override in candidateOverrides) {
-        var dep = KernelMember.getFieldNode(override);
+        var dep = KernelMember.getAccessorNode(override);
         if (dep != null) dependencies.add(dep);
       }
-      fieldNode.isImmediatelyEvident = true;
+      accessorNode.isImmediatelyEvident = true;
       return dependencies;
     }
 
     // Otherwise its dependencies are based on the initializer expression.
-    var member = fieldNode.member;
+    var member = accessorNode.member;
     if (member is KernelField) {
       if (expandedTopLevelInference) {
         // In expanded top level inference, we determine the dependencies by
         // doing a "dry run" of top level inference and recording which static
         // fields were accessed.
-        var typeInferrer = getFieldTypeInferrer(member);
+        var typeInferrer = getMemberTypeInferrer(member);
         if (typeInferrer == null) {
           // This can happen when there are errors in the field declaration.
           return const [];
@@ -189,7 +189,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
           typeInferrer.listener.dryRunEnter(member.initializer);
           typeInferrer.inferFieldTopLevel(member, null, true);
           typeInferrer.listener.dryRunExit(member.initializer);
-          fieldNode.isImmediatelyEvident = true;
+          accessorNode.isImmediatelyEvident = true;
           return typeInferrer.finishDryRun();
         }
       } else {
@@ -200,7 +200,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         // need it.
         var collector = new KernelDependencyCollector();
         collector.collectDependencies(member.initializer);
-        fieldNode.isImmediatelyEvident = collector.isImmediatelyEvident;
+        accessorNode.isImmediatelyEvident = collector.isImmediatelyEvident;
         return collector.dependencies;
       }
     } else {
@@ -210,18 +210,18 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
   }
 
-  /// Creates a [FieldNode] to track dependencies of the given [field].
-  FieldNode createFieldNode(KernelField field);
+  /// Creates an [AccessorNode] to track dependencies of the given [member].
+  AccessorNode createAccessorNode(KernelMember member);
 
   @override
   void finishTopLevel() {
-    for (var fieldNode in fieldNodes) {
+    for (var accessorNode in accessorNodes) {
       if (fusedTopLevelInference) {
         assert(expandedTopLevelInference);
-        inferFieldFused(fieldNode, null);
+        inferAccessorFused(accessorNode, null);
       } else {
-        if (fieldNode.isEvaluated) continue;
-        new _FieldWalker().walk(fieldNode);
+        if (accessorNode.isEvaluated) continue;
+        new _AccessorWalker().walk(accessorNode);
       }
     }
     for (var formal in initializingFormals) {
@@ -231,20 +231,20 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   /// Retrieve the [TypeInferrer] for the given [member], which was created by
   /// a previous call to [createTopLevelTypeInferrer].
-  TypeInferrerImpl getFieldTypeInferrer(KernelMember member);
+  TypeInferrerImpl getMemberTypeInferrer(KernelMember member);
 
-  /// Performs type inference on the given [field].
-  void inferField(FieldNode fieldNode) {
-    assert(fieldNode.state == FieldState.NotInferredYet);
-    fieldNode.state = FieldState.Inferring;
-    var member = fieldNode.member;
+  /// Performs type inference on the given [accessorNode].
+  void inferAccessor(AccessorNode accessorNode) {
+    assert(accessorNode.state == AccessorState.NotInferredYet);
+    accessorNode.state = AccessorState.Inferring;
+    var member = accessorNode.member;
     if (strongMode) {
-      var inferredType = tryInferFieldByInheritance(fieldNode);
-      var typeInferrer = getFieldTypeInferrer(member);
+      var inferredType = tryInferAccessorByInheritance(accessorNode);
+      var typeInferrer = getMemberTypeInferrer(member);
       if (inferredType == null) {
         if (member is KernelField) {
           typeInferrer.isImmediatelyEvident = true;
-          inferredType = fieldNode.isImmediatelyEvident
+          inferredType = accessorNode.isImmediatelyEvident
               ? typeInferrer.inferDeclarationType(
                   typeInferrer.inferFieldTopLevel(member, null, true))
               : const DynamicType();
@@ -255,14 +255,14 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
           inferredType = const DynamicType();
         }
       }
-      if (fieldNode.state == FieldState.Inferred) {
+      if (accessorNode.state == AccessorState.Inferred) {
         // A circularity must have been detected; at the time it was detected,
         // inference for this node was completed.
         return;
       }
       member.setInferredType(this, typeInferrer.uri, inferredType);
     }
-    fieldNode.state = FieldState.Inferred;
+    accessorNode.state = AccessorState.Inferred;
     // TODO(paulberry): if type != null, then check that the type of the
     // initializer is assignable to it.
     // TODO(paulberry): the following is a hack so that outlines don't contain
@@ -273,13 +273,13 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
   }
 
-  /// Makes a note that the given [field] is part of a circularity, so its type
-  /// can't be inferred.
-  void inferFieldCircular(FieldNode fieldNode) {
-    var member = fieldNode.member;
+  /// Makes a note that the given [accessorNode] is part of a circularity, so
+  /// its type can't be inferred.
+  void inferAccessorCircular(AccessorNode accessorNode) {
+    var member = accessorNode.member;
     // TODO(paulberry): report the appropriate error.
-    var uri = getFieldTypeInferrer(member).uri;
-    fieldNode.state = FieldState.Inferred;
+    var uri = getMemberTypeInferrer(member).uri;
+    accessorNode.state = AccessorState.Inferred;
     member.setInferredType(this, uri, const DynamicType());
     // TODO(paulberry): the following is a hack so that outlines don't contain
     // initializers.  But it means that we rebuild the initializers when doing
@@ -289,31 +289,31 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
   }
 
-  /// Performs fused type inference on the given [field].
-  void inferFieldFused(FieldNode fieldNode, FieldNode dependant) {
-    switch (fieldNode.state) {
-      case FieldState.Inferred:
+  /// Performs fused type inference on the given [accessorNode].
+  void inferAccessorFused(AccessorNode accessorNode, AccessorNode dependant) {
+    switch (accessorNode.state) {
+      case AccessorState.Inferred:
         // Already inferred.  Nothing to do.
         break;
-      case FieldState.Inferring:
-        // A field depends on itself (possibly by way of intermediate fields).
-        // Mark all fields involved as circular and infer a type of `dynamic`
-        // for them.
-        var node = fieldNode;
+      case AccessorState.Inferring:
+        // An accessor depends on itself (possibly by way of intermediate
+        // accessors).  Mark all accessors involved as circular and infer a type
+        // of `dynamic` for them.
+        var node = accessorNode;
         while (node != null) {
           var nextNode = node.currentDependency;
-          inferFieldCircular(node);
+          inferAccessorCircular(node);
           node.currentDependency = null;
           node = nextNode;
         }
         break;
-      case FieldState.NotInferredYet:
-        // Mark the "dependant" field (if any) as depending on this one, and
-        // invoke field inference for this node.
-        dependant?.currentDependency = fieldNode;
-        // All fields are "immediately evident" when doing fused inference.
-        fieldNode.isImmediatelyEvident = true;
-        inferField(fieldNode);
+      case AccessorState.NotInferredYet:
+        // Mark the "dependant" accessor (if any) as depending on this one, and
+        // invoke accessor inference for this node.
+        dependant?.currentDependency = accessorNode;
+        // All accessors are "immediately evident" when doing fused inference.
+        accessorNode.isImmediatelyEvident = true;
+        inferAccessor(accessorNode);
         dependant?.currentDependency = null;
         break;
     }
@@ -334,13 +334,14 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   @override
   void recordMember(KernelMember member) {
-    fieldNodes.add(createFieldNode(member));
+    accessorNodes.add(createAccessorNode(member));
   }
 
-  DartType tryInferFieldByInheritance(FieldNode fieldNode) {
+  DartType tryInferAccessorByInheritance(AccessorNode accessorNode) {
     DartType inferredType;
-    for (var override in fieldNode.candidateOverrides) {
-      var nextInferredType = _computeOverriddenFieldType(override, fieldNode);
+    for (var override in accessorNode.candidateOverrides) {
+      var nextInferredType =
+          _computeOverriddenAccessorType(override, accessorNode);
       if (inferredType == null) {
         inferredType = nextInferredType;
       } else if (inferredType != nextInferredType) {
@@ -352,11 +353,12 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     return inferredType;
   }
 
-  DartType _computeOverriddenFieldType(Member override, FieldNode fieldNode) {
+  DartType _computeOverriddenAccessorType(
+      Member override, AccessorNode accessorNode) {
     if (fusedTopLevelInference) {
-      FieldNode dependency = KernelMember.getFieldNode(override);
+      AccessorNode dependency = KernelMember.getAccessorNode(override);
       if (dependency != null) {
-        inferFieldFused(dependency, fieldNode);
+        inferAccessorFused(dependency, accessorNode);
       }
     }
     DartType overriddenType;
@@ -376,7 +378,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
     var superclass = override.enclosingClass;
     if (superclass.typeParameters.isEmpty) return overriddenType;
-    var thisClass = fieldNode.member.enclosingClass;
+    var thisClass = accessorNode.member.enclosingClass;
     var superclassInstantiation = classHierarchy
         .getClassAsInstanceOf(thisClass, superclass)
         .asInterfaceType;
@@ -400,19 +402,19 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
 /// Subtype of [dependencyWalker.DependencyWalker] which is specialized to
 /// perform top level type inference.
-class _FieldWalker extends dependencyWalker.DependencyWalker<FieldNode> {
-  _FieldWalker();
+class _AccessorWalker extends dependencyWalker.DependencyWalker<AccessorNode> {
+  _AccessorWalker();
 
   @override
-  void evaluate(FieldNode f) {
-    f._typeInferenceEngine.inferField(f);
+  void evaluate(AccessorNode f) {
+    f._typeInferenceEngine.inferAccessor(f);
   }
 
   @override
-  void evaluateScc(List<FieldNode> scc) {
-    // Mark every field as part of a circularity.
+  void evaluateScc(List<AccessorNode> scc) {
+    // Mark every accessor as part of a circularity.
     for (var f in scc) {
-      f._typeInferenceEngine.inferFieldCircular(f);
+      f._typeInferenceEngine.inferAccessorCircular(f);
     }
   }
 }

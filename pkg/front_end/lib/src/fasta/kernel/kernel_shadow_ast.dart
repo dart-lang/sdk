@@ -662,7 +662,7 @@ class KernelFactoryConstructorInvocation extends StaticInvocation
 /// Concrete shadow object representing a field in kernel form.
 class KernelField extends Field implements KernelMember {
   @override
-  FieldNode _fieldNode;
+  AccessorNode _accessorNode;
 
   @override
   KernelTypeInferrer _typeInferrer;
@@ -1312,9 +1312,9 @@ class KernelMapLiteral extends MapLiteral implements KernelExpression {
 abstract class KernelMember implements Member {
   String get fileUri;
 
-  FieldNode get _fieldNode;
+  AccessorNode get _accessorNode;
 
-  void set _fieldNode(FieldNode value);
+  void set _accessorNode(AccessorNode value);
 
   KernelTypeInferrer get _typeInferrer;
 
@@ -1323,21 +1323,21 @@ abstract class KernelMember implements Member {
   void setInferredType(
       TypeInferenceEngineImpl engine, String uri, DartType inferredType);
 
-  static FieldNode getFieldNode(Member member) {
-    if (member is KernelMember) return member._fieldNode;
+  static AccessorNode getAccessorNode(Member member) {
+    if (member is KernelMember) return member._accessorNode;
     return null;
   }
 
   static void recordCrossOverride(
       KernelMember member, Member overriddenMember) {
-    if (member._fieldNode != null) {
-      member._fieldNode.crossOverrides.add(overriddenMember);
+    if (member._accessorNode != null) {
+      member._accessorNode.crossOverrides.add(overriddenMember);
     }
   }
 
   static void recordOverride(KernelMember member, Member overriddenMember) {
-    if (member._fieldNode != null) {
-      member._fieldNode.overrides.add(overriddenMember);
+    if (member._accessorNode != null) {
+      member._accessorNode.overrides.add(overriddenMember);
     }
   }
 }
@@ -1476,7 +1476,7 @@ class KernelNullLiteral extends NullLiteral implements KernelExpression {
 /// Concrete shadow object representing a procedure in kernel form.
 class KernelProcedure extends Procedure implements KernelMember {
   @override
-  FieldNode _fieldNode;
+  AccessorNode _accessorNode;
 
   @override
   KernelTypeInferrer _typeInferrer;
@@ -1543,9 +1543,9 @@ class KernelPropertyAssign extends KernelComplexAssignmentWithReceiver {
                   writeMember.kind == ProcedureKind.Setter) ||
               writeMember is Field)) {
         if (TypeInferenceEngineImpl.fullTopLevelInference) {
-          if (writeMember is KernelField && writeMember._fieldNode != null) {
-            inferrer.engine
-                .inferFieldFused(writeMember._fieldNode, inferrer.fieldNode);
+          if (writeMember is KernelField && writeMember._accessorNode != null) {
+            inferrer.engine.inferAccessorFused(
+                writeMember._accessorNode, inferrer.accessorNode);
           }
         } else {
           // References to fields and setters can't be relied upon for top level
@@ -1679,14 +1679,14 @@ class KernelStaticAssignment extends KernelComplexAssignment {
     if (write is StaticSet) {
       writeContext = write.target.setterType;
       var target = write.target;
-      if (target is KernelField && target._fieldNode != null) {
+      if (target is KernelField && target._accessorNode != null) {
         if (inferrer.isDryRun) {
-          inferrer.recordDryRunDependency(target._fieldNode);
+          inferrer.recordDryRunDependency(target._accessorNode);
         }
         if (TypeInferenceEngineImpl.fusedTopLevelInference &&
             inferrer.isTopLevel) {
           inferrer.engine
-              .inferFieldFused(target._fieldNode, inferrer.fieldNode);
+              .inferAccessorFused(target._accessorNode, inferrer.accessorNode);
         }
       }
     }
@@ -1715,8 +1715,8 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
     //   inference dependencies.
     // TODO(paulberry): implement the proper error checking logic.
     var target = this.target;
-    if (target is KernelField && target._fieldNode != null) {
-      collector.recordDependency(target._fieldNode);
+    if (target is KernelField && target._accessorNode != null) {
+      collector.recordDependency(target._accessorNode);
     }
   }
 
@@ -1726,13 +1726,14 @@ class KernelStaticGet extends StaticGet implements KernelExpression {
     typeNeeded =
         inferrer.listener.staticGetEnter(this, typeContext) || typeNeeded;
     var target = this.target;
-    if (target is KernelField && target._fieldNode != null) {
+    if (target is KernelField && target._accessorNode != null) {
       if (inferrer.isDryRun) {
-        inferrer.recordDryRunDependency(target._fieldNode);
+        inferrer.recordDryRunDependency(target._accessorNode);
       }
       if (TypeInferenceEngineImpl.fusedTopLevelInference &&
           inferrer.isTopLevel) {
-        inferrer.engine.inferFieldFused(target._fieldNode, inferrer.fieldNode);
+        inferrer.engine
+            .inferAccessorFused(target._accessorNode, inferrer.accessorNode);
       }
     }
     var inferredType = typeNeeded ? target.getterType : null;
@@ -1927,10 +1928,10 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
       : super(instrumentation, strongMode);
 
   @override
-  FieldNode createFieldNode(KernelMember member) {
-    FieldNode fieldNode = new FieldNode(this, member);
-    member._fieldNode = fieldNode;
-    return fieldNode;
+  AccessorNode createAccessorNode(KernelMember member) {
+    AccessorNode accessorNode = new AccessorNode(this, member);
+    member._accessorNode = accessorNode;
+    return accessorNode;
   }
 
   @override
@@ -1944,11 +1945,11 @@ class KernelTypeInferenceEngine extends TypeInferenceEngineImpl {
   KernelTypeInferrer createTopLevelTypeInferrer(TypeInferenceListener listener,
       InterfaceType thisType, KernelMember member) {
     return member._typeInferrer = new KernelTypeInferrer._(
-        this, member.fileUri, listener, true, thisType, member._fieldNode);
+        this, member.fileUri, listener, true, thisType, member._accessorNode);
   }
 
   @override
-  KernelTypeInferrer getFieldTypeInferrer(KernelMember member) {
+  KernelTypeInferrer getMemberTypeInferrer(KernelMember member) {
     return member._typeInferrer;
   }
 }
@@ -1965,8 +1966,8 @@ class KernelTypeInferrer extends TypeInferrerImpl {
       TypeInferenceListener listener,
       bool topLevel,
       InterfaceType thisType,
-      FieldNode fieldNode)
-      : super(engine, uri, listener, topLevel, thisType, fieldNode);
+      AccessorNode accessorNode)
+      : super(engine, uri, listener, topLevel, thisType, accessorNode);
 
   @override
   Expression getFieldInitializer(KernelField field) {

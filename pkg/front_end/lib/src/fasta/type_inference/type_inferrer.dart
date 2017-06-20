@@ -223,10 +223,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final InterfaceType thisType;
 
-  /// The [FieldNode] whose initializer will be type inferred using this
+  /// The [AccessorNode] whose type will be type inferred using this
   /// [TypeInferrerImpl], or `null` if this [TypeInferrerImpl] will be used to
-  /// infer types outside the scope of a field initializer.
-  final FieldNode fieldNode;
+  /// infer types outside the scope of top level type inference.
+  final AccessorNode accessorNode;
 
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
@@ -238,10 +238,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Not used when performing local inference.
   bool isImmediatelyEvident = true;
 
-  List<FieldNode> _dryRunDependencies;
+  List<AccessorNode> _dryRunDependencies;
 
   TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
-      this.thisType, this.fieldNode)
+      this.thisType, this.accessorNode)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
@@ -351,7 +351,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Ends a dry run started by [startDryRun] and returns the collected
   /// dependencies.
-  List<FieldNode> finishDryRun() {
+  List<AccessorNode> finishDryRun() {
     var dryRunDependencies = _dryRunDependencies;
     _dryRunDependencies = null;
     return dryRunDependencies;
@@ -648,9 +648,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             interfaceMember is Field)) {
       if (TypeInferenceEngineImpl.fullTopLevelInference) {
         if (interfaceMember is KernelField) {
-          var fieldNode = KernelMember.getFieldNode(interfaceMember);
-          if (fieldNode != null) {
-            engine.inferFieldFused(fieldNode, this.fieldNode);
+          var accessorNode = KernelMember.getAccessorNode(interfaceMember);
+          if (accessorNode != null) {
+            engine.inferAccessorFused(accessorNode, this.accessorNode);
           }
         }
       } else {
@@ -690,13 +690,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// the statement type and calls the appropriate specialized "infer" method.
   void inferStatement(Statement statement);
 
-  /// Records that the field represented by [fieldNode] is a dependency of the
-  /// static field for which we are currently doing a dry run of type inference.
+  /// Records that the accessor represented by [accessorNode] is a dependency of
+  /// the accessor for which we are currently doing a dry run of type inference.
   ///
   /// May only be called if a dry run is in progress.
-  void recordDryRunDependency(FieldNode fieldNode) {
-    listener.recordDependency(fieldNode);
-    _dryRunDependencies.add(fieldNode);
+  void recordDryRunDependency(AccessorNode accessorNode) {
+    listener.recordDependency(accessorNode);
+    _dryRunDependencies.add(accessorNode);
   }
 
   void recordNotImmediatelyEvident(int fileOffset) {
@@ -706,10 +706,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   /// Begins a dry run of type inference, in which the goal is to collect the
-  /// dependencies of a given field.
+  /// dependencies of a given accessor.
   void startDryRun() {
     assert(_dryRunDependencies == null);
-    _dryRunDependencies = <FieldNode>[];
+    _dryRunDependencies = <AccessorNode>[];
   }
 
   DartType wrapFutureOrType(DartType type) {
