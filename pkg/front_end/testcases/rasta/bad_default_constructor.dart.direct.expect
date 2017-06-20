@@ -1,17 +1,5 @@
 library;
 import self as self;
-import "dart:core" as core;
 
-class A extends core::Object {
-  constructor •(dynamic x) → dynamic
-    : super core::Object::•()
-    ;
-}
-class B extends self::A {
-  constructor •() → self::B
-    : invalid-initializer;
-}
-static method main() → dynamic {
-  new self::B::•();
-  invalid-expression;
-}
+static method main() → dynamic
+  throw "pkg/front_end/testcases/rasta/bad_default_constructor.dart: Error: A has no constructor that takes no arguments.";

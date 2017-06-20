@@ -1,5 +1,5 @@
 library;
 import self as self;
 
-static method main() → invalid-type
-  return null;
+static method main() → dynamic
+  throw "pkg/front_end/testcases/rasta/issue_000047.dart:5:20: Error: Expected '(' before this.\ntypedef void T(C<C>);\n                   ^";

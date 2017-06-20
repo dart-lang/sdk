@@ -53,8 +53,8 @@ class DynamicReceiver2 extends core::Object {
 static method staticMethod() → dynamic {
   return "sdfg";
 }
-external static method externalStatic() → core::bool;
-external static method createBar() → self::Bar;
+external static abstract method externalStatic() → core::bool;
+external static abstract method createBar() → self::Bar;
 static method stringArgument(dynamic x) → dynamic {}
 static method intArgument(dynamic x) → dynamic {}
 static method makeDynamicCall(dynamic receiver) → void {

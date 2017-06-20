@@ -4,108 +4,37 @@ import "dart:core" as core;
 import "./mixin_library.dart" as mix;
 
 class Super<S extends core::Object> extends core::Object {
-  constructor •() → self::Super<self::Super::S>
-    : super core::Object::•();
+  constructor •() → void
+    : super core::Object::•()
+    ;
   method foo() → dynamic
     return 40;
   method f() → dynamic
     return 3;
 }
-class C<V extends core::Object> extends self::Super+Mixin#3<self::C::V, self::C::V> {
-  constructor •() → self::C<self::C::V>
-    : super self::Super+Mixin#3::•();
+abstract class Super&Mixin^#T0^#T0<#T0 extends core::Object> = self::Super<self::Super&Mixin^#T0^#T0::#T0> with mix::Mixin<self::Super&Mixin^#T0^#T0::#T0> {
 }
-class D extends self::Super+Mixin#2<dynamic> {
-  constructor •() → self::D
-    : super self::Super+Mixin#2::•();
+class C<V extends core::Object> extends self::Super&Mixin^#T0^#T0<self::C::V> {
+  constructor •() → void
+    : super self::Super::•()
+    ;
 }
-class C2<V extends core::Object> extends self::Super+Mixin#1<self::C2::V, self::C2::V> {
-  constructor •() → self::Super<self::C2::V>
-    : super self::Super+Mixin#1::•();
+abstract class Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> {
 }
-class D2 extends self::Super+Mixin#0<dynamic> {
-  constructor •() → self::Super<dynamic>
-    : super self::Super+Mixin#0::•();
+class D extends self::Super&Mixin {
+  constructor •() → void
+    : super self::Super::•()
+    ;
 }
-abstract class Super+Mixin#0<T extends core::Object> extends self::Super<dynamic> implements mix::Mixin<dynamic> {
-  field self::Super+Mixin#0::T t;
-  field dynamic z;
-  field dynamic y;
-  field dynamic x;
-  constructor •() → self::Super<dynamic>
-    : self::Super+Mixin#0::x = mix::f(), super self::Super::•();
-  method publicMethod() → dynamic
-    return this._privateMethod();
-  method _privateMethod() → dynamic
-    return 49;
-  method l() → dynamic
-    return mix::_private();
-  method h() → dynamic
-    return mix::V();
-  method g(self::Super+Mixin#0::T a) → self::Super+Mixin#0::T
-    return null;
-  method foo() → dynamic
-    return super.{self::Super::foo}().+(mix::f());
+class C2<V extends core::Object> = self::Super<self::C2::V> with mix::Mixin<self::C2::V> {
+  constructor •() → void
+    : super self::Super::•()
+    ;
 }
-abstract class Super+Mixin#1<T extends core::Object, V extends core::Object> extends self::Super<self::Super+Mixin#1::V> implements mix::Mixin<self::Super+Mixin#1::V> {
-  field self::Super+Mixin#1::T t;
-  field dynamic z;
-  field dynamic y;
-  field dynamic x;
-  constructor •() → self::Super<self::Super+Mixin#1::V>
-    : self::Super+Mixin#1::x = mix::f(), super self::Super::•();
-  method publicMethod() → dynamic
-    return this._privateMethod();
-  method _privateMethod() → dynamic
-    return 49;
-  method l() → dynamic
-    return mix::_private();
-  method h() → dynamic
-    return mix::V();
-  method g(self::Super+Mixin#1::T a) → self::Super+Mixin#1::T
-    return null;
-  method foo() → dynamic
-    return super.{self::Super::foo}().+(mix::f());
-}
-abstract class Super+Mixin#2<T extends core::Object> extends self::Super<dynamic> implements mix::Mixin<dynamic> {
-  field self::Super+Mixin#2::T t;
-  field dynamic z;
-  field dynamic y;
-  field dynamic x;
-  constructor •() → self::Super<dynamic>
-    : self::Super+Mixin#2::x = mix::f(), super self::Super::•();
-  method publicMethod() → dynamic
-    return this._privateMethod();
-  method _privateMethod() → dynamic
-    return 49;
-  method l() → dynamic
-    return mix::_private();
-  method h() → dynamic
-    return mix::V();
-  method g(self::Super+Mixin#2::T a) → self::Super+Mixin#2::T
-    return null;
-  method foo() → dynamic
-    return super.{self::Super::foo}().+(mix::f());
-}
-abstract class Super+Mixin#3<T extends core::Object, V extends core::Object> extends self::Super<self::Super+Mixin#3::V> implements mix::Mixin<self::Super+Mixin#3::V> {
-  field self::Super+Mixin#3::T t;
-  field dynamic z;
-  field dynamic y;
-  field dynamic x;
-  constructor •() → self::Super<self::Super+Mixin#3::V>
-    : self::Super+Mixin#3::x = mix::f(), super self::Super::•();
-  method publicMethod() → dynamic
-    return this._privateMethod();
-  method _privateMethod() → dynamic
-    return 49;
-  method l() → dynamic
-    return mix::_private();
-  method h() → dynamic
-    return mix::V();
-  method g(self::Super+Mixin#3::T a) → self::Super+Mixin#3::T
-    return null;
-  method foo() → dynamic
-    return super.{self::Super::foo}().+(mix::f());
+class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
+  constructor •() → void
+    : super self::Super::•()
+    ;
 }
 static method main() → dynamic {
   core::print(new self::C::•<dynamic>().foo());

@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •(dynamic x) → dynamic
-    : invalid-initializer, super core::Object::•()
+  constructor •(dynamic x) → void
+    : final dynamic #t1 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:6:10: Error: 'x' isn't an instance field of this class.\n  A(this.x);\n         ^"))
     ;
 }
 class B extends self::A {
-  const constructor •() → dynamic
-    : invalid-initializer
+  const constructor •() → void
+    : final dynamic #t2 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The unnamed constructor in 'A' requires arguments.\n  const B();\n        ^"))
     ;
 }
 static method main() → dynamic {

@@ -40,14 +40,14 @@ class Test extends core::Object {
   method test() → void {
     self::Test t = self::f<self::Test>();
     t.{self::Test::[]=}(self::f<dynamic>(), self::f<self::B>());
-    let final dynamic #t1 = t in let final dynamic #t2 = self::f<dynamic>() in #t1.{self::Test::[]}(#t2).{core::Object::==}(null) ? let final dynamic #t3 = self::f<self::B>() in let final dynamic #t4 = #t1.{self::Test::[]=}(#t2, #t3) in #t3 : null;
+    let final dynamic #t1 = t in let final dynamic #t2 = self::f<dynamic>() in #t1.{self::Test::[]}(#t2).{core::Object::==}(null) ?{dynamic} let final dynamic #t3 = self::f<self::B>() in let final dynamic #t4 = #t1.{self::Test::[]=}(#t2, #t3) in #t3 : null;
     let final dynamic #t5 = t in let final dynamic #t6 = self::f<dynamic>() in #t5.{self::Test::[]=}(#t6, #t5.{self::Test::[]}(#t6).{self::B::+}(self::f<dynamic>()));
     let final dynamic #t7 = t in let final dynamic #t8 = self::f<dynamic>() in #t7.{self::Test::[]=}(#t8, #t7.{self::Test::[]}(#t8).{self::B::*}(self::f<dynamic>()));
     let final dynamic #t9 = t in let final dynamic #t10 = self::f<dynamic>() in #t9.{self::Test::[]=}(#t10, #t9.{self::Test::[]}(#t10).{self::B::&}(self::f<dynamic>()));
     let final dynamic #t11 = t in let final dynamic #t12 = self::f<dynamic>() in let final dynamic #t13 = #t11.{self::Test::[]}(#t12).{self::B::-}(1) in let final dynamic #t14 = #t11.{self::Test::[]=}(#t12, #t13) in #t13;
     let final dynamic #t15 = t in let final dynamic #t16 = self::f<dynamic>() in #t15.{self::Test::[]=}(#t16, #t15.{self::Test::[]}(#t16).{self::B::-}(1));
     self::B v1 = let final dynamic #t17 = t in let final dynamic #t18 = self::f<dynamic>() in let final dynamic #t19 = self::f<self::B>() in let final dynamic #t20 = #t17.{self::Test::[]=}(#t18, #t19) in #t19;
-    self::B v2 = let final dynamic #t21 = t in let final dynamic #t22 = self::f<dynamic>() in let final dynamic #t23 = #t21.{self::Test::[]}(#t22) in #t23.{core::Object::==}(null) ? let final dynamic #t24 = self::f<self::B>() in let final dynamic #t25 = #t21.{self::Test::[]=}(#t22, #t24) in #t24 : #t23;
+    self::B v2 = let final dynamic #t21 = t in let final dynamic #t22 = self::f<dynamic>() in let final dynamic #t23 = #t21.{self::Test::[]}(#t22) in #t23.{core::Object::==}(null) ?{dynamic} let final dynamic #t24 = self::f<self::B>() in let final dynamic #t25 = #t21.{self::Test::[]=}(#t22, #t24) in #t24 : #t23;
     self::A v3 = let final dynamic #t26 = t in let final dynamic #t27 = self::f<dynamic>() in let final dynamic #t28 = #t26.{self::Test::[]}(#t27).{self::B::+}(self::f<dynamic>()) in let final dynamic #t29 = #t26.{self::Test::[]=}(#t27, #t28) in #t28;
     self::B v4 = let final dynamic #t30 = t in let final dynamic #t31 = self::f<dynamic>() in let final dynamic #t32 = #t30.{self::Test::[]}(#t31).{self::B::*}(self::f<dynamic>()) in let final dynamic #t33 = #t30.{self::Test::[]=}(#t31, #t32) in #t32;
     self::C v5 = let final dynamic #t34 = t in let final dynamic #t35 = self::f<dynamic>() in let final dynamic #t36 = #t34.{self::Test::[]}(#t35).{self::B::&}(self::f<dynamic>()) in let final dynamic #t37 = #t34.{self::Test::[]=}(#t35, #t36) in #t36;

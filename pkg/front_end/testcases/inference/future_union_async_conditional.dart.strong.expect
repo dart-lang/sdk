@@ -13,12 +13,12 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
     return null;
 }
 static method g1(core::bool x) → asy::Future<core::int> async {
-  return x ? 42 : asy::Future::value<core::int>(42);
+  return x ?{core::Object} 42 : asy::Future::value<core::int>(42);
 }
 static method g2(core::bool x) → asy::Future<core::int> async 
-  return x ? 42 : asy::Future::value<core::int>(42);
+  return x ?{core::Object} 42 : asy::Future::value<core::int>(42);
 static method g3(core::bool x) → asy::Future<core::int> async {
-  core::Object y = x ? 42 : asy::Future::value<core::int>(42);
+  core::Object y = x ?{core::Object} 42 : asy::Future::value<core::int>(42);
   return y;
 }
 static method main() → dynamic {}

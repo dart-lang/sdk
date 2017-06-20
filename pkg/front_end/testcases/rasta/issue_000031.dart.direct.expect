@@ -3,5 +3,5 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  let final dynamic #t1 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/issue_000031.dart: \u0027[31mError: A library can't be used as an expression.\u0027[0m") in let final dynamic #t2 = #t1.toString() in #t1;
+  let final dynamic #t1 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/issue_000031.dart: Error: A library can't be used as an expression.")) in let final dynamic #t2 = #t1.toString() in #t1;
 }

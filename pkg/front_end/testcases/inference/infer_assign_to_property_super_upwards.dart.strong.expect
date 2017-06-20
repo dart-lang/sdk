@@ -17,8 +17,8 @@ class Test1 extends self::Base {
   method test() → void {
     core::int v1 = super.{self::Base::intProp} = self::getInt();
     core::num v2 = super.{self::Base::intProp} = self::getNum();
-    core::int v4 = let final dynamic #t1 = super.{self::Base::intProp} in #t1.{core::num::==}(null) ? super.{self::Base::intProp} = self::getInt() : #t1;
-    core::num v5 = let final dynamic #t2 = super.{self::Base::intProp} in #t2.{core::num::==}(null) ? super.{self::Base::intProp} = self::getNum() : #t2;
+    core::int v4 = let final dynamic #t1 = super.{self::Base::intProp} in #t1.{core::num::==}(null) ?{dynamic} super.{self::Base::intProp} = self::getInt() : #t1;
+    core::num v5 = let final dynamic #t2 = super.{self::Base::intProp} in #t2.{core::num::==}(null) ?{dynamic} super.{self::Base::intProp} = self::getNum() : #t2;
     core::int v7 = super.{self::Base::intProp} = super.{self::Base::intProp}.{core::num::+}(self::getInt());
     core::num v8 = super.{self::Base::intProp} = super.{self::Base::intProp}.{core::num::+}(self::getNum());
     core::int v10 = super.{self::Base::intProp} = super.{self::Base::intProp}.{core::num::+}(1);
@@ -33,9 +33,9 @@ class Test2 extends self::Base {
     core::int v1 = super.{self::Base::numProp} = self::getInt();
     core::num v2 = super.{self::Base::numProp} = self::getNum();
     core::double v3 = super.{self::Base::numProp} = self::getDouble();
-    core::num v4 = let final dynamic #t5 = super.{self::Base::numProp} in #t5.{core::num::==}(null) ? super.{self::Base::numProp} = self::getInt() : #t5;
-    core::num v5 = let final dynamic #t6 = super.{self::Base::numProp} in #t6.{core::num::==}(null) ? super.{self::Base::numProp} = self::getNum() : #t6;
-    core::num v6 = let final dynamic #t7 = super.{self::Base::numProp} in #t7.{core::num::==}(null) ? super.{self::Base::numProp} = self::getDouble() : #t7;
+    core::num v4 = let final dynamic #t5 = super.{self::Base::numProp} in #t5.{core::num::==}(null) ?{dynamic} super.{self::Base::numProp} = self::getInt() : #t5;
+    core::num v5 = let final dynamic #t6 = super.{self::Base::numProp} in #t6.{core::num::==}(null) ?{dynamic} super.{self::Base::numProp} = self::getNum() : #t6;
+    core::num v6 = let final dynamic #t7 = super.{self::Base::numProp} in #t7.{core::num::==}(null) ?{dynamic} super.{self::Base::numProp} = self::getDouble() : #t7;
     core::num v7 = super.{self::Base::numProp} = super.{self::Base::numProp}.{core::num::+}(self::getInt());
     core::num v8 = super.{self::Base::numProp} = super.{self::Base::numProp}.{core::num::+}(self::getNum());
     core::num v9 = super.{self::Base::numProp} = super.{self::Base::numProp}.{core::num::+}(self::getDouble());
@@ -50,8 +50,8 @@ class Test3 extends self::Base {
   method test3() → void {
     core::num v2 = super.{self::Base::doubleProp} = self::getNum();
     core::double v3 = super.{self::Base::doubleProp} = self::getDouble();
-    core::num v5 = let final dynamic #t10 = super.{self::Base::doubleProp} in #t10.{core::num::==}(null) ? super.{self::Base::doubleProp} = self::getNum() : #t10;
-    core::double v6 = let final dynamic #t11 = super.{self::Base::doubleProp} in #t11.{core::num::==}(null) ? super.{self::Base::doubleProp} = self::getDouble() : #t11;
+    core::num v5 = let final dynamic #t10 = super.{self::Base::doubleProp} in #t10.{core::num::==}(null) ?{dynamic} super.{self::Base::doubleProp} = self::getNum() : #t10;
+    core::double v6 = let final dynamic #t11 = super.{self::Base::doubleProp} in #t11.{core::num::==}(null) ?{dynamic} super.{self::Base::doubleProp} = self::getDouble() : #t11;
     core::double v7 = super.{self::Base::doubleProp} = super.{self::Base::doubleProp}.{core::double::+}(self::getInt());
     core::double v8 = super.{self::Base::doubleProp} = super.{self::Base::doubleProp}.{core::double::+}(self::getNum());
     core::double v9 = super.{self::Base::doubleProp} = super.{self::Base::doubleProp}.{core::double::+}(self::getDouble());

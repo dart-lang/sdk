@@ -13,5 +13,5 @@ static method main() → dynamic {
   core::List<core::int> l2 = <dynamic>[2];
   dynamic x = new self::C::•<dynamic>(l1);
   dynamic y = new self::C::•<dynamic>(l2);
-  dynamic z = new self::C::•<dynamic>(b ? l1 : l2);
+  dynamic z = new self::C::•<dynamic>(b ?{core::List<core::int>} l1 : l2);
 }

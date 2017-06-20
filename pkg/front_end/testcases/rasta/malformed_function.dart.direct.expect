@@ -3,5 +3,5 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/malformed_function.dart:7:10: \u0027[31mError: Can't assign to this.\u0027[0m");
+  const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/malformed_function.dart:7:8: Error: Can't assign to a parenthesized expression.\n  (null) = null;\n       ^"));
 }

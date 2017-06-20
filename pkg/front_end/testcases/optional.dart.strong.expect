@@ -1,7 +1,3 @@
-// Too few positional arguments (optional.dart:45:22)
-// Too many positional arguments (optional.dart:46:22)
-// Too few positional arguments (optional.dart:47:25)
-// Too many positional arguments (optional.dart:48:25)
 library;
 import self as self;
 import "dart:core" as core;
@@ -10,38 +6,42 @@ class Foo extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method method(dynamic x, [dynamic y, dynamic z]) → dynamic {
+  method method(dynamic x, [dynamic y = null, dynamic z = null]) → dynamic {
     return "string";
   }
 }
 abstract class External extends core::Object {
-  abstract method externalMethod(core::int x, [core::int y, core::int z]) → core::String;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method externalMethod(core::int x, [core::int y = null, core::int z = null]) → core::String;
   abstract method listen(self::Listener listener) → void;
 }
 abstract class Listener extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  abstract method event(core::String input, [core::int x, core::int y]) → void;
+  abstract method event(core::String input, [core::int x = null, core::int y = null]) → void;
 }
 class TestListener extends self::Listener {
   constructor •() → void
     : super self::Listener::•()
     ;
-  method event(core::String input, [core::int x, core::int y]) → void {}
+  method event(dynamic input, [dynamic x = null, dynamic y = null]) → void {}
 }
 class ExtendedListener extends self::Listener {
   constructor •() → void
     : super self::Listener::•()
     ;
-  method event(core::String input, [core::int x, core::int y, dynamic z]) → void {}
+  method event(dynamic input, [dynamic x = null, dynamic y = null, dynamic z = null]) → void {}
 }
 class InvalidListener extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
+  method event(dynamic input, [dynamic x = null]) → void {}
 }
-external static method createExternal() → self::External;
+external static abstract method createExternal() → self::External;
 static method main() → dynamic {
   self::Foo foo = new self::Foo::•();
   dynamic string1 = foo.{self::Foo::method}(1);
@@ -53,7 +53,7 @@ static method main() → dynamic {
   core::String string6 = extern.{self::External::externalMethod}(1, 2, 3);
   extern.{self::External::listen}(new self::TestListener::•());
   extern.{self::External::listen}(new self::ExtendedListener::•());
-  extern.{self::External::listen}(new self::InvalidListener::•() as self::Listener);
+  extern.{self::External::listen}(new self::InvalidListener::•());
   dynamic nothing1 = foo.{self::Foo::method}();
   dynamic nothing2 = foo.{self::Foo::method}(1, 2, 3, 4);
   core::String nothing3 = extern.{self::External::externalMethod}();

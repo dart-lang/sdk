@@ -8,3 +8,4 @@ class C extends core::Object {
     ;
   abstract method æøC() → dynamic;
 }
+const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/issue_000035.dart:5:10: Error: The non-ASCII character '\u0230' (U+00e6) can't be used in identifiers, only in strings and comments.\nTry using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).\nclass C {\u0230\u0248C();}\n         ^", "pkg/front_end/testcases/rasta/issue_000035.dart:5:11: Error: The non-ASCII character '\u0248' (U+00f8) can't be used in identifiers, only in strings and comments.\nTry using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).\nclass C {\u0230\u0248C();}\n          ^"]/* from null */;

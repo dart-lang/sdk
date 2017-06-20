@@ -26,5 +26,5 @@ class D extends self::C {
 }
 static field dynamic a = new self::A::•();
 static field dynamic x = self::a.b.c;
-static field dynamic y = let final dynamic #t1 = self::a.b in let final dynamic #t2 = #t1.c in #t2.==(null) ? #t1.c = new self::D::•() : #t2;
+static field dynamic y = let final dynamic #t1 = self::a.b in let final dynamic #t2 = #t1.c in #t2.==(null) ?{dynamic} #t1.c = new self::D::•() : #t2;
 static method main() → dynamic {}
