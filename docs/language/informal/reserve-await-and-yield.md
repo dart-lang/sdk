@@ -140,9 +140,28 @@ We could consider reserving some of the other contextual keywords, but so far we
 have had any user or tool author requests to do so, so they don't seem to be
 problematic.
 
+## Suggested Spec Changes
+
+### 20.1.1 Reserved Words
+
+Add `await` and `yield` to the list of reserved words.
+
+### 16.33 Identifier Reference
+
+Remove this paragraph:
+
+> It is a compile-time error if any of the identifiers `async`, `await` or
+> `yield` is used as an identifier in a function body marked with either
+> `async`, `async*` or `sync*`.
+
+It's redundant for `await` and `yield` since they can't be used as identifiers
+*anywhere*. For `async`, there's no real need to disallow it inside a function
+body since it's unambiguous, even inside an asynchronous function.
+
 ## Appendix: Corpus scraper
 
-Here's the little script I used to count the uses of the keywords and identifiers:
+Here's the little script I used to count the uses of the keywords and
+identifiers:
 
 ```dart
 import 'dart:io';
