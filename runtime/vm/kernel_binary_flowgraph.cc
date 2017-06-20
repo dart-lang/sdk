@@ -5511,15 +5511,26 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(bool is_const,
     instructions += Constant(Object::empty_array());
   } else {
     // The type arguments for CreateArray.
-    instructions += Constant(TypeArguments::ZoneHandle(Z));
+    instructions += Constant(type_arguments);
     instructions += IntConstant(length);
     instructions += CreateArray();
+    AbstractType& list_type = AbstractType::ZoneHandle(Z);
+    if (I->type_checks()) {
+      if (type_arguments.IsNull()) {
+        // It was dynamic.
+        list_type = Object::dynamic_type().raw();
+      } else {
+        list_type = type_arguments.TypeAt(0);
+      }
+    }
 
     LocalVariable* array = MakeTemporary();
     for (intptr_t i = 0; i < length; ++i) {
       instructions += LoadLocal(array);
       instructions += IntConstant(i);
       instructions += BuildExpression();  // read ith expression.
+      instructions += CheckAssignableInCheckedMode(
+          list_type, Symbols::ListLiteralElement());
       instructions += StoreIndexed(kArrayCid);
       instructions += Drop();
     }
