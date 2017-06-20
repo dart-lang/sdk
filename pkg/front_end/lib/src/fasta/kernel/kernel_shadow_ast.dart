@@ -53,34 +53,6 @@ List<DartType> getExplicitTypeArguments(Arguments arguments) {
   }
 }
 
-bool _isOverloadableArithmeticOperator(String name) {
-  return identical(name, '+') ||
-      identical(name, '-') ||
-      identical(name, '*') ||
-      identical(name, '%');
-}
-
-bool _isUserDefinableOperator(String name) {
-  return identical(name, '<') ||
-      identical(name, '>') ||
-      identical(name, '<=') ||
-      identical(name, '>=') ||
-      identical(name, '==') ||
-      identical(name, '-') ||
-      identical(name, '+') ||
-      identical(name, '/') ||
-      identical(name, '~/') ||
-      identical(name, '*') ||
-      identical(name, '%') ||
-      identical(name, '|') ||
-      identical(name, '^') ||
-      identical(name, '&') ||
-      identical(name, '<<') ||
-      identical(name, '>>') ||
-      identical(name, '[]=') ||
-      identical(name, '~');
-}
-
 /// Concrete shadow object representing a set of invocation arguments.
 class KernelArguments extends Arguments {
   bool _hasExplicitTypeArguments;
@@ -1359,7 +1331,7 @@ class KernelMethodInvocation extends MethodInvocation
     // The inference dependencies are the inference dependencies of the
     // receiver.
     collector.collectDependencies(receiver);
-    if (_isOverloadableArithmeticOperator(name.name)) {
+    if (isOverloadableArithmeticOperator(name.name)) {
       collector.collectDependencies(arguments.positional[0]);
     }
   }
@@ -1367,39 +1339,8 @@ class KernelMethodInvocation extends MethodInvocation
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded = inferrer.listener.methodInvocationEnter(this, typeContext) ||
-        typeNeeded;
-    // First infer the receiver so we can look up the method that was invoked.
-    var receiverType = inferrer.inferExpression(receiver, null, true);
-    bool isOverloadedArithmeticOperator = false;
-    Member interfaceMember =
-        inferrer.findMethodInvocationMember(receiverType, this);
-    if (interfaceMember is Procedure) {
-      isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
-          .isOverloadedArithmeticOperatorAndType(interfaceMember, receiverType);
-    }
-    var calleeType = inferrer.getCalleeFunctionType(
-        interfaceMember, receiverType, name, !_isImplicitCall);
-    bool forceArgumentInference = false;
-    if (inferrer.isDryRun) {
-      if (_isUserDefinableOperator(name.name)) {
-        // If this is an overloadable arithmetic operator, then type inference
-        // might depend on the RHS, so conservatively assume it does.
-        forceArgumentInference = _isOverloadableArithmeticOperator(name.name);
-      } else {
-        // If no type arguments were given, then type inference might depend on
-        // the arguments (because the called method might be generic), so
-        // conservatively assume it does.
-        forceArgumentInference = getExplicitTypeArguments(arguments) == null;
-      }
-    }
-    var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
-        fileOffset, calleeType, calleeType.returnType, arguments,
-        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
-        receiverType: receiverType,
-        forceArgumentInference: forceArgumentInference);
-    inferrer.listener.methodInvocationExit(this, inferredType);
-    return inferredType;
+    return inferrer.inferMethodInvocation(this, receiver, fileOffset, this,
+        _isImplicitCall, typeContext, typeNeeded);
   }
 }
 
@@ -1421,6 +1362,44 @@ class KernelNot extends Not implements KernelExpression {
     inferrer.inferExpression(operand, boolType, false);
     DartType inferredType = typeNeeded ? boolType : null;
     inferrer.listener.notExit(this, inferredType);
+    return inferredType;
+  }
+}
+
+/// Concrete shadow object representing a null-aware method invocation.
+///
+/// A null-aware method invocation of the form `a?.b(...)` is represented as the
+/// expression:
+///
+///     let v = a in v == null ? null : v.b(...)
+class KernelNullAwareMethodInvocation extends Let implements KernelExpression {
+  KernelNullAwareMethodInvocation(VariableDeclaration variable, Expression body)
+      : super(variable, body);
+
+  @override
+  ConditionalExpression get body => super.body;
+
+  MethodInvocation get _desugaredInvocation => body.otherwise;
+
+  @override
+  void _collectDependencies(KernelDependencyCollector collector) {
+    // Null aware expressions are not immediately evident.
+    collector.recordNotImmediatelyEvident(fileOffset);
+  }
+
+  @override
+  DartType _inferExpression(
+      KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    var inferredType = inferrer.inferMethodInvocation(
+        this,
+        variable.initializer,
+        fileOffset,
+        _desugaredInvocation,
+        false,
+        typeContext,
+        true,
+        receiverVariable: variable);
+    body.staticType = inferredType;
     return inferredType;
   }
 }

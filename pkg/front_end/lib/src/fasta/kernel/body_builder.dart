@@ -38,7 +38,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'frontend_accessors.dart' show buildIsNull, makeBinary, makeLet;
+import 'frontend_accessors.dart' show buildIsNull, makeBinary;
 
 import '../../scanner/token.dart' show BeginToken, Token;
 
@@ -3195,13 +3195,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     if (isNullAware) {
       VariableDeclaration variable = new VariableDeclaration.forValue(receiver);
-      return makeLet(
+      return new KernelNullAwareMethodInvocation(
           variable,
-          new KernelConditionalExpression(
+          new ConditionalExpression(
               buildIsNull(new VariableGet(variable), offset),
               new NullLiteral(),
               new MethodInvocation(new VariableGet(variable), name, arguments)
-                ..fileOffset = offset));
+                ..fileOffset = offset,
+              const DynamicType())
+            ..fileOffset = offset)
+        ..fileOffset = offset;
     } else {
       return new KernelMethodInvocation(receiver, name, arguments,
           isImplicitCall: isImplicitCall)

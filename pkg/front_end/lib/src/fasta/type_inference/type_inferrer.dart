@@ -44,6 +44,34 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 
+bool isOverloadableArithmeticOperator(String name) {
+  return identical(name, '+') ||
+      identical(name, '-') ||
+      identical(name, '*') ||
+      identical(name, '%');
+}
+
+bool _isUserDefinableOperator(String name) {
+  return identical(name, '<') ||
+      identical(name, '>') ||
+      identical(name, '<=') ||
+      identical(name, '>=') ||
+      identical(name, '==') ||
+      identical(name, '-') ||
+      identical(name, '+') ||
+      identical(name, '/') ||
+      identical(name, '~/') ||
+      identical(name, '*') ||
+      identical(name, '%') ||
+      identical(name, '|') ||
+      identical(name, '^') ||
+      identical(name, '&') ||
+      identical(name, '<<') ||
+      identical(name, '>>') ||
+      identical(name, '[]=') ||
+      identical(name, '~');
+}
+
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
 class ClosureContext {
@@ -618,6 +646,55 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           ? returnType
           : substitution.substituteType(returnType);
     }
+    return inferredType;
+  }
+
+  /// Performs the core type inference algorithm for method invocations (this
+  /// handles both null-aware and non-null-aware method invocations).
+  DartType inferMethodInvocation(
+      Expression expression,
+      Expression receiver,
+      int fileOffset,
+      MethodInvocation desugaredInvocation,
+      bool isImplicitCall,
+      DartType typeContext,
+      bool typeNeeded,
+      {VariableDeclaration receiverVariable}) {
+    typeNeeded =
+        listener.methodInvocationEnter(expression, typeContext) || typeNeeded;
+    // First infer the receiver so we can look up the method that was invoked.
+    var receiverType = inferExpression(receiver, null, true);
+    receiverVariable?.type = receiverType;
+    bool isOverloadedArithmeticOperator = false;
+    Member interfaceMember =
+        findMethodInvocationMember(receiverType, desugaredInvocation);
+    if (interfaceMember is Procedure) {
+      isOverloadedArithmeticOperator = typeSchemaEnvironment
+          .isOverloadedArithmeticOperatorAndType(interfaceMember, receiverType);
+    }
+    var calleeType = getCalleeFunctionType(interfaceMember, receiverType,
+        desugaredInvocation.name, !isImplicitCall);
+    bool forceArgumentInference = false;
+    if (isDryRun) {
+      if (_isUserDefinableOperator(desugaredInvocation.name.name)) {
+        // If this is an overloadable arithmetic operator, then type inference
+        // might depend on the RHS, so conservatively assume it does.
+        forceArgumentInference =
+            isOverloadableArithmeticOperator(desugaredInvocation.name.name);
+      } else {
+        // If no type arguments were given, then type inference might depend on
+        // the arguments (because the called method might be generic), so
+        // conservatively assume it does.
+        forceArgumentInference =
+            getExplicitTypeArguments(desugaredInvocation.arguments) == null;
+      }
+    }
+    var inferredType = inferInvocation(typeContext, typeNeeded, fileOffset,
+        calleeType, calleeType.returnType, desugaredInvocation.arguments,
+        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+        receiverType: receiverType,
+        forceArgumentInference: forceArgumentInference);
+    listener.methodInvocationExit(expression, inferredType);
     return inferredType;
   }
 
