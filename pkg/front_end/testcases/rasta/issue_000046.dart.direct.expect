@@ -1,5 +1,9 @@
 library;
 import self as self;
+import "dart:core" as core;
 
-static method main() → dynamic
-  throw "pkg/front_end/testcases/rasta/issue_000046.dart:6:19: Error: Expected ';' before this.\n  C c = new Object)();\n                  ^";
+class C extends core::Object {
+  field invalid-type c;
+  constructor •() → self::C
+    : self::C::c = invalid-expression, super core::Object::•();
+}

@@ -3,29 +3,24 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •() → void
-    : super core::Object::•()
-    ;
+  constructor •() → self::A
+    : invalid-initializer;
 }
 class B extends core::Object {
-  constructor •() → void
-    : super core::Object::•()
-    ;
+  constructor •() → self::B
+    : invalid-initializer;
 }
 class C extends core::Object {
-  constructor •() → void
-    : super core::Object::•()
-    ;
+  constructor •() → dynamic
+    : invalid-initializer;
 }
 class D extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::D::•];
   static factory •() → self::D
-    let dynamic #redirecting_factory = "Missing" in invalid-expression;
+    invalid-statement;
 }
-const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/class_hierarchy.dart:9:7: Error: The type 'Missing' can't be mixed in.\nclass C = Object with Missing;\n      ^", "pkg/front_end/testcases/rasta/class_hierarchy.dart: Error: The type 'Missing' can't be used as supertype.", "pkg/front_end/testcases/rasta/class_hierarchy.dart: Error: The type 'Missing' can't be used as supertype.", "pkg/front_end/testcases/rasta/class_hierarchy.dart: Error: The type 'Missing' can't be used as supertype.", "pkg/front_end/testcases/rasta/class_hierarchy.dart: Error: The type 'Missing' can't be used as supertype."]/* from null */;
 static method main() → void {
   new self::A::•();
   new self::B::•();
   new self::C::•();
-  throw new core::NoSuchMethodError::_withType(null, #Missing, 32, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
+  invalid-expression.call();
 }

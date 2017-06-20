@@ -3,15 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  constructor •() → void
+  constructor •() → dynamic
     : super core::Object::•()
-    const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/bad_redirection.dart:6:11: Error: Can't return from a constructor.\n  Foo() = Bar;\n          ^"));
+    invalid-statement;
 }
 class Bar extends self::Foo {
   static factory •() → self::Bar
     return null;
 }
-const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/bad_redirection.dart:6:9: Error: Expected a function body or '=>'.\n  Foo() = Bar;\n        ^"]/* from null */;
 static method main() → dynamic {
   new self::Foo::•();
 }

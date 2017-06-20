@@ -664,7 +664,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         listener.methodInvocationEnter(expression, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType = inferExpression(receiver, null, true);
-    receiverVariable?.type = receiverType;
+    if (strongMode) {
+      receiverVariable?.type = receiverType;
+    }
     bool isOverloadedArithmeticOperator = false;
     Member interfaceMember =
         findMethodInvocationMember(receiverType, desugaredInvocation);
@@ -719,7 +721,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         listener.propertyGetEnter(expression, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the getter that was invoked.
     var receiverType = inferExpression(receiver, null, true);
-    receiverVariable?.type = receiverType;
+    if (strongMode) {
+      receiverVariable?.type = receiverType;
+    }
     Member interfaceMember =
         findInterfaceMember(receiverType, desugaredGet.name, fileOffset);
     if (isTopLevel &&

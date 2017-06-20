@@ -5,7 +5,7 @@ import "dart:core" as core;
 static field core::bool b = true;
 static field core::int x = 0;
 static field core::double y = 0.0;
-static field dynamic z = self::b ?{core::num} self::x : self::y;
+static field dynamic z = self::b ? self::x : self::y;
 static method main() → dynamic {
-  dynamic z = self::b ?{core::num} self::x : self::y;
+  dynamic z = self::b ? self::x : self::y;
 }

@@ -7,4 +7,3 @@ class C extends core::Object {
     : super core::Object::•()
     ;
 }
-const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/issue_000035a.dart:5:9: Error: The non-ASCII space character U+2028 can only be used in strings and comments.\nclass C{\u8232\u8232C();}\n        ^", "pkg/front_end/testcases/rasta/issue_000035a.dart:5:10: Error: The non-ASCII space character U+2028 can only be used in strings and comments.\nclass C{\u8232\u8232C();}\n         ^"]/* from null */;

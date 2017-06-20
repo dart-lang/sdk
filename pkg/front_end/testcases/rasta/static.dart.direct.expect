@@ -69,16 +69,16 @@ static method main() → dynamic {
     self::use(throw new core::NoSuchMethodError::_withType(null, #staticGetter, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null));
     self::Foo::staticSetter = 87;
     self::use(self::Foo::staticSetter = 87);
-    self::Foo::staticConstant.==(null) ?{dynamic} throw new core::NoSuchMethodError::_withType(null, #staticConstant, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null) : null;
-    self::use(let final dynamic #t11 = self::Foo::staticConstant in #t11.==(null) ?{dynamic} throw new core::NoSuchMethodError::_withType(null, #staticConstant, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null) : #t11);
-    self::Foo::staticField.==(null) ?{dynamic} self::Foo::staticField = 87 : null;
-    self::use(let final dynamic #t12 = self::Foo::staticField in #t12.==(null) ?{dynamic} self::Foo::staticField = 87 : #t12);
-    self::Foo::staticFunction.==(null) ?{dynamic} throw new core::NoSuchMethodError::_withType(null, #staticFunction, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null) : null;
-    self::use(let final dynamic #t13 = self::Foo::staticFunction in #t13.==(null) ?{dynamic} throw new core::NoSuchMethodError::_withType(null, #staticFunction, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null) : #t13);
-    self::Foo::staticGetter.==(null) ?{dynamic} throw new core::NoSuchMethodError::_withType(null, #staticGetter, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null) : null;
-    self::use(let final dynamic #t14 = self::Foo::staticGetter in #t14.==(null) ?{dynamic} throw new core::NoSuchMethodError::_withType(null, #staticGetter, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null) : #t14);
-    (throw new core::NoSuchMethodError::_withType(null, #staticSetter, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null)).==(null) ?{dynamic} self::Foo::staticSetter = 87 : null;
-    self::use(let final dynamic #t15 = throw new core::NoSuchMethodError::_withType(null, #staticSetter, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null) in #t15.==(null) ?{dynamic} self::Foo::staticSetter = 87 : #t15);
+    self::Foo::staticConstant.==(null) ? throw new core::NoSuchMethodError::_withType(null, #staticConstant, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null) : null;
+    self::use(let final dynamic #t11 = self::Foo::staticConstant in #t11.==(null) ? throw new core::NoSuchMethodError::_withType(null, #staticConstant, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null) : #t11);
+    self::Foo::staticField.==(null) ? self::Foo::staticField = 87 : null;
+    self::use(let final dynamic #t12 = self::Foo::staticField in #t12.==(null) ? self::Foo::staticField = 87 : #t12);
+    self::Foo::staticFunction.==(null) ? throw new core::NoSuchMethodError::_withType(null, #staticFunction, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null) : null;
+    self::use(let final dynamic #t13 = self::Foo::staticFunction in #t13.==(null) ? throw new core::NoSuchMethodError::_withType(null, #staticFunction, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null) : #t13);
+    self::Foo::staticGetter.==(null) ? throw new core::NoSuchMethodError::_withType(null, #staticGetter, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null) : null;
+    self::use(let final dynamic #t14 = self::Foo::staticGetter in #t14.==(null) ? throw new core::NoSuchMethodError::_withType(null, #staticGetter, 34, <dynamic>[87].toList(growable: false), <dynamic, dynamic>{}, null) : #t14);
+    (throw new core::NoSuchMethodError::_withType(null, #staticSetter, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null)).==(null) ? self::Foo::staticSetter = 87 : null;
+    self::use(let final dynamic #t15 = throw new core::NoSuchMethodError::_withType(null, #staticSetter, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null) in #t15.==(null) ? self::Foo::staticSetter = 87 : #t15);
   }
   on core::NoSuchMethodError catch(no-exception-var) {
   }

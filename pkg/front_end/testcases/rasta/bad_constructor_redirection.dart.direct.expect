@@ -4,8 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   const constructor •() → void
-    : final dynamic #t1 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/bad_constructor_redirection.dart:6:20: Error: Method not found: 'x'.\n  const C() : this.x(1);\n                   ^"))
-    ;
+    : invalid-initializer;
   const constructor x() → void
     : super core::Object::•()
     ;

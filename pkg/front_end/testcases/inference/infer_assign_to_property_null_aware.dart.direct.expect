@@ -31,20 +31,20 @@ class Test extends core::Object {
     : super core::Object::•()
     ;
   static method test(self::Test t) → void {
-    let final dynamic #t1 = t in #t1.==(null) ?{dynamic} null : #t1.member = self::f<dynamic>();
-    let final dynamic #t2 = t in #t2.==(null) ?{dynamic} null : #t2.member.==(null) ?{dynamic} #t2.member = self::f<dynamic>() : null;
-    let final dynamic #t3 = t in #t3.==(null) ?{dynamic} null : #t3.member = #t3.member.+(self::f<dynamic>());
-    let final dynamic #t4 = t in #t4.==(null) ?{dynamic} null : #t4.member = #t4.member.*(self::f<dynamic>());
-    let final dynamic #t5 = t in #t5.==(null) ?{dynamic} null : #t5.member = #t5.member.&(self::f<dynamic>());
-    let final dynamic #t6 = t in #t6.==(null) ?{dynamic} null : #t6.member = #t6.member.-(1);
-    let final dynamic #t7 = t in #t7.==(null) ?{dynamic} null : #t7.member = #t7.member.-(1);
-    dynamic v1 = let final dynamic #t8 = t in #t8.==(null) ?{dynamic} null : #t8.member = self::f<dynamic>();
-    dynamic v2 = let final dynamic #t9 = t in #t9.==(null) ?{dynamic} null : let final dynamic #t10 = #t9.member in #t10.==(null) ?{dynamic} #t9.member = self::f<dynamic>() : #t10;
-    dynamic v3 = let final dynamic #t11 = t in #t11.==(null) ?{dynamic} null : #t11.member = #t11.member.+(self::f<dynamic>());
-    dynamic v4 = let final dynamic #t12 = t in #t12.==(null) ?{dynamic} null : #t12.member = #t12.member.*(self::f<dynamic>());
-    dynamic v5 = let final dynamic #t13 = t in #t13.==(null) ?{dynamic} null : #t13.member = #t13.member.&(self::f<dynamic>());
-    dynamic v6 = let final dynamic #t14 = t in #t14.==(null) ?{dynamic} null : #t14.member = #t14.member.-(1);
-    dynamic v7 = let final dynamic #t15 = t in #t15.==(null) ?{dynamic} null : let final dynamic #t16 = #t15.member in let final dynamic #t17 = #t15.member = #t16.-(1) in #t16;
+    let final dynamic #t1 = t in #t1.==(null) ? null : #t1.member = self::f<dynamic>();
+    let final dynamic #t2 = t in #t2.==(null) ? null : #t2.member.==(null) ? #t2.member = self::f<dynamic>() : null;
+    let final dynamic #t3 = t in #t3.==(null) ? null : #t3.member = #t3.member.+(self::f<dynamic>());
+    let final dynamic #t4 = t in #t4.==(null) ? null : #t4.member = #t4.member.*(self::f<dynamic>());
+    let final dynamic #t5 = t in #t5.==(null) ? null : #t5.member = #t5.member.&(self::f<dynamic>());
+    let final dynamic #t6 = t in #t6.==(null) ? null : #t6.member = #t6.member.-(1);
+    let final dynamic #t7 = t in #t7.==(null) ? null : #t7.member = #t7.member.-(1);
+    dynamic v1 = let final dynamic #t8 = t in #t8.==(null) ? null : #t8.member = self::f<dynamic>();
+    dynamic v2 = let final dynamic #t9 = t in #t9.==(null) ? null : let final dynamic #t10 = #t9.member in #t10.==(null) ? #t9.member = self::f<dynamic>() : #t10;
+    dynamic v3 = let final dynamic #t11 = t in #t11.==(null) ? null : #t11.member = #t11.member.+(self::f<dynamic>());
+    dynamic v4 = let final dynamic #t12 = t in #t12.==(null) ? null : #t12.member = #t12.member.*(self::f<dynamic>());
+    dynamic v5 = let final dynamic #t13 = t in #t13.==(null) ? null : #t13.member = #t13.member.&(self::f<dynamic>());
+    dynamic v6 = let final dynamic #t14 = t in #t14.==(null) ? null : #t14.member = #t14.member.-(1);
+    dynamic v7 = let final dynamic #t15 = t in #t15.==(null) ? null : let final dynamic #t16 = #t15.member in let final dynamic #t17 = #t15.member = #t16.-(1) in #t16;
   }
 }
 static method f<T extends core::Object>() → self::f::T

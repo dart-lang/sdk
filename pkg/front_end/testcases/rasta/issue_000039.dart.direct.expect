@@ -1,5 +1,13 @@
 library;
 import self as self;
+import "dart:core" as core;
 
-static method main() → dynamic
-  throw "pkg/front_end/testcases/rasta/issue_000039.dart:10:3: Error: Expected an expression, but got '}'.\n  }\n  ^";
+class A extends core::Object {
+  field dynamic a;
+  constructor •() → dynamic
+    : invalid-initializer;
+}
+class B extends self::A {
+  constructor •() → self::B
+    : super self::A::•();
+}

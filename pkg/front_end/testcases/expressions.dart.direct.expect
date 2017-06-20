@@ -10,7 +10,7 @@ static method caller(dynamic f) → dynamic {
 }
 static method main() → dynamic {
   core::int i = 0;
-  core::print(i.==(1) ?{core::String} "bad" : "good");
+  core::print(i.==(1) ? "bad" : "good");
   core::print("${i}");
   core::print("'${i}'");
   core::print(" '${i}' ");

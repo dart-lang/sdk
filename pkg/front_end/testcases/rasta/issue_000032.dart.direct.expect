@@ -1,5 +1,10 @@
 library;
 import self as self;
+import "dart:core" as core;
 
+class C extends core::Object {
+  constructor •() → self::C
+    : super core::Object::•();
+}
 static method main() → dynamic
-  throw "pkg/front_end/testcases/rasta/issue_000032.dart:6:4: Error: Can't find '>' to match '<'.\n  C<\n   ^";
+  invalid-statement;

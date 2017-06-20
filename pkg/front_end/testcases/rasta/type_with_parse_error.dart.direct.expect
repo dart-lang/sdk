@@ -1,5 +1,18 @@
 library;
 import self as self;
+import "dart:core" as core;
 
-static method main() → dynamic
-  throw "pkg/front_end/testcases/rasta/type_with_parse_error.dart:21:3: Error: Expected a declaration, but got 'int'.\n  int i\n  ^";
+class A extends core::Object {
+  constructor •() → self::A
+    : super core::Object::•();
+  method foo() → dynamic {
+    throw core::_malformedTypeError("'B' is not a type.");
+  }
+}
+class B extends core::Object {
+  constructor •() → self::B
+    : super core::Object::•();
+}
+static method main() → dynamic {
+  throw core::_malformedTypeError("'B' is not a type.");
+}

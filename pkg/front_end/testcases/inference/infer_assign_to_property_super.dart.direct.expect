@@ -37,14 +37,14 @@ class Test extends self::Base {
     ;
   method test() → void {
     super.member = self::f<dynamic>();
-    super.member.==(null) ?{dynamic} super.member = self::f<dynamic>() : null;
+    super.member.==(null) ? super.member = self::f<dynamic>() : null;
     super.member = super.member.+(self::f<dynamic>());
     super.member = super.member.*(self::f<dynamic>());
     super.member = super.member.&(self::f<dynamic>());
     super.member = super.member.-(1);
     super.member = super.member.-(1);
     dynamic v1 = super.member = self::f<dynamic>();
-    dynamic v2 = let final dynamic #t1 = super.member in #t1.==(null) ?{dynamic} super.member = self::f<dynamic>() : #t1;
+    dynamic v2 = let final dynamic #t1 = super.member in #t1.==(null) ? super.member = self::f<dynamic>() : #t1;
     dynamic v3 = super.member = super.member.+(self::f<dynamic>());
     dynamic v4 = super.member = super.member.*(self::f<dynamic>());
     dynamic v5 = super.member = super.member.&(self::f<dynamic>());

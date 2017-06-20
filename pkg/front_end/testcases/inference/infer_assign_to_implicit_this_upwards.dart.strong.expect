@@ -10,8 +10,8 @@ class Test1 extends core::Object {
   method test() → void {
     core::int v1 = this.{self::Test1::t} = self::getInt();
     core::num v2 = this.{self::Test1::t} = self::getNum();
-    core::int v4 = let final dynamic #t1 = this.{self::Test1::t} in #t1.{core::num::==}(null) ?{dynamic} this.{self::Test1::t} = self::getInt() : #t1;
-    core::num v5 = let final dynamic #t2 = this.{self::Test1::t} in #t2.{core::num::==}(null) ?{dynamic} this.{self::Test1::t} = self::getNum() : #t2;
+    core::int v4 = let final dynamic #t1 = this.{self::Test1::t} in #t1.{core::num::==}(null) ? this.{self::Test1::t} = self::getInt() : #t1;
+    core::num v5 = let final dynamic #t2 = this.{self::Test1::t} in #t2.{core::num::==}(null) ? this.{self::Test1::t} = self::getNum() : #t2;
     core::int v7 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(self::getInt());
     core::num v8 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(self::getNum());
     core::int v10 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(1);
@@ -27,9 +27,9 @@ class Test2 extends core::Object {
     core::int v1 = this.{self::Test2::t} = self::getInt();
     core::num v2 = this.{self::Test2::t} = self::getNum();
     core::double v3 = this.{self::Test2::t} = self::getDouble();
-    core::num v4 = let final dynamic #t5 = this.{self::Test2::t} in #t5.{core::num::==}(null) ?{dynamic} this.{self::Test2::t} = self::getInt() : #t5;
-    core::num v5 = let final dynamic #t6 = this.{self::Test2::t} in #t6.{core::num::==}(null) ?{dynamic} this.{self::Test2::t} = self::getNum() : #t6;
-    core::num v6 = let final dynamic #t7 = this.{self::Test2::t} in #t7.{core::num::==}(null) ?{dynamic} this.{self::Test2::t} = self::getDouble() : #t7;
+    core::num v4 = let final dynamic #t5 = this.{self::Test2::t} in #t5.{core::num::==}(null) ? this.{self::Test2::t} = self::getInt() : #t5;
+    core::num v5 = let final dynamic #t6 = this.{self::Test2::t} in #t6.{core::num::==}(null) ? this.{self::Test2::t} = self::getNum() : #t6;
+    core::num v6 = let final dynamic #t7 = this.{self::Test2::t} in #t7.{core::num::==}(null) ? this.{self::Test2::t} = self::getDouble() : #t7;
     core::num v7 = this.{self::Test2::t} = this.{self::Test2::t}.{core::num::+}(self::getInt());
     core::num v8 = this.{self::Test2::t} = this.{self::Test2::t}.{core::num::+}(self::getNum());
     core::num v9 = this.{self::Test2::t} = this.{self::Test2::t}.{core::num::+}(self::getDouble());
@@ -45,8 +45,8 @@ class Test3 extends core::Object {
   method test3() → void {
     core::num v2 = this.{self::Test3::t} = self::getNum();
     core::double v3 = this.{self::Test3::t} = self::getDouble();
-    core::num v5 = let final dynamic #t10 = this.{self::Test3::t} in #t10.{core::num::==}(null) ?{dynamic} this.{self::Test3::t} = self::getNum() : #t10;
-    core::double v6 = let final dynamic #t11 = this.{self::Test3::t} in #t11.{core::num::==}(null) ?{dynamic} this.{self::Test3::t} = self::getDouble() : #t11;
+    core::num v5 = let final dynamic #t10 = this.{self::Test3::t} in #t10.{core::num::==}(null) ? this.{self::Test3::t} = self::getNum() : #t10;
+    core::double v6 = let final dynamic #t11 = this.{self::Test3::t} in #t11.{core::num::==}(null) ? this.{self::Test3::t} = self::getDouble() : #t11;
     core::double v7 = this.{self::Test3::t} = this.{self::Test3::t}.{core::double::+}(self::getInt());
     core::double v8 = this.{self::Test3::t} = this.{self::Test3::t}.{core::double::+}(self::getNum());
     core::double v9 = this.{self::Test3::t} = this.{self::Test3::t}.{core::double::+}(self::getDouble());

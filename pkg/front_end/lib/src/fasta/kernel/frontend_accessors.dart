@@ -348,10 +348,7 @@ class NullAwarePropertyAccessor extends Accessor {
       Expression body, KernelComplexAssignment complexAssignment) {
     var offset = offsetForToken(token);
     var nullAwareGuard = new ConditionalExpression(
-        buildIsNull(receiverAccess(), offset),
-        new NullLiteral(),
-        body,
-        const DynamicType())
+        buildIsNull(receiverAccess(), offset), new NullLiteral(), body, null)
       ..fileOffset = offset;
     if (complexAssignment != null) {
       body = makeLet(receiver, nullAwareGuard);

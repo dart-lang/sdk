@@ -1,5 +1,12 @@
 library;
 import self as self;
+import "dart:core" as core;
 
-static method main() → dynamic
-  throw "pkg/front_end/testcases/rasta/malformed_const_constructor.dart:8:5: Error: Expected a function body, but got ':'.\n    : x = 'foo'\n    ^";
+class A extends core::Object {
+  const constructor •() → dynamic
+    : invalid-initializer;
+}
+static method main() → dynamic {
+  const self::A::•();
+  new self::A::•();
+}

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   constructor •() → void
-    : final dynamic #t1 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/bad_setter_initializer.dart:6:15: Error: 'field' isn't an instance field of this class.\n  C() : field = null;\n              ^"))
+    : final dynamic #t1 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/bad_setter_initializer.dart:6:9: \u0027[31mError: Can't use field here.\u0027[0m"), super core::Object::•()
     ;
   set field(dynamic value) → dynamic {}
 }

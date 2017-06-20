@@ -5,7 +5,7 @@ import "dart:core" as core;
 typedef Foo = () → void;
 static method main() → dynamic {
   core::print(() → void);
-  throw new core::NoSuchMethodError::_withType(null, #Foo, 34, <dynamic>[null].toList(growable: false), <dynamic, dynamic>{}, null);
-  let final dynamic #t1 = () → void in #t1.==(null) ?{dynamic} throw new core::NoSuchMethodError::_withType(null, #Foo, 34, <dynamic>[null].toList(growable: false), <dynamic, dynamic>{}, null) : null;
+  let final dynamic #t1 = null in invalid-expression;
+  () → void;
   () → void.call();
 }

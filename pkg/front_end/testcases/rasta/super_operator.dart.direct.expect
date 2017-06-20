@@ -17,16 +17,16 @@ class B extends self::A {
     : super self::A::•()
     ;
   operator +(core::String s) → dynamic
-    return super.+("${s}${s}");
+    return this.{=self::A::+}("${s}${s}");
   operator [](dynamic i) → dynamic
-    return super.{self::A::[]}(i);
+    return this.{=self::A::[]}(i);
   operator []=(dynamic i, dynamic val) → dynamic
-    return let final dynamic #t1 = let final dynamic #t2 = i in let final dynamic #t3 = i = #t2.+(1) in #t2 in let final dynamic #t4 = super.[](#t1).+(val) in let final dynamic #t5 = super.[]=(#t1, #t4) in #t4;
+    return let final dynamic #t1 = let final dynamic #t2 = i in let final dynamic #t3 = i = #t2.+(1) in #t2 in let final dynamic #t4 = this.{=self::A::[]}(#t1).+(val) in let final dynamic #t5 = this.{=self::A::[]=}(#t1, #t4) in #t4;
 }
 class Autobianchi extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
   method g() → dynamic
-    return super.[](0);
+    return this.{=core::Object::noSuchMethod}(new core::_InvocationMirror::•("[]", <dynamic>[0, 2, 2].toList(growable: false), <dynamic>[this, 0].toList(growable: false), true));
 }

@@ -6,7 +6,7 @@ class Foo extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method method(dynamic x, [dynamic y = null, dynamic z = null]) → dynamic {
+  method method(dynamic x, [dynamic y, dynamic z]) → dynamic {
     return "string";
   }
 }
@@ -14,34 +14,34 @@ abstract class External extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  abstract method externalMethod(core::int x, [core::int y = null, core::int z = null]) → core::String;
+  abstract method externalMethod(core::int x, [core::int y, core::int z]) → core::String;
   abstract method listen(self::Listener listener) → void;
 }
 abstract class Listener extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  abstract method event(core::String input, [core::int x = null, core::int y = null]) → void;
+  abstract method event(core::String input, [core::int x, core::int y]) → void;
 }
 class TestListener extends self::Listener {
   constructor •() → void
     : super self::Listener::•()
     ;
-  method event(dynamic input, [dynamic x = null, dynamic y = null]) → void {}
+  method event(dynamic input, [dynamic x, dynamic y]) → void {}
 }
 class ExtendedListener extends self::Listener {
   constructor •() → void
     : super self::Listener::•()
     ;
-  method event(dynamic input, [dynamic x = null, dynamic y = null, dynamic z = null]) → void {}
+  method event(dynamic input, [dynamic x, dynamic y, dynamic z]) → void {}
 }
 class InvalidListener extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method event(dynamic input, [dynamic x = null]) → void {}
+  method event(dynamic input, [dynamic x]) → void {}
 }
-external static abstract method createExternal() → self::External;
+external static method createExternal() → self::External;
 static method main() → dynamic {
   dynamic foo = new self::Foo::•();
   dynamic string1 = foo.method(1);

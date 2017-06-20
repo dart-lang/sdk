@@ -2,4 +2,4 @@ library;
 import self as self;
 
 static method main() → dynamic
-  throw "pkg/front_end/testcases/rasta/issue_000045.dart:6:1: Error: Expected ';' before this.\n\n^";
+  invalid-statement;

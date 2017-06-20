@@ -10,8 +10,8 @@ class Test1 extends core::Object {
   method test() → void {
     dynamic v1 = this.t = self::getInt();
     dynamic v2 = this.t = self::getNum();
-    dynamic v4 = let final dynamic #t1 = this.t in #t1.==(null) ?{dynamic} this.t = self::getInt() : #t1;
-    dynamic v5 = let final dynamic #t2 = this.t in #t2.==(null) ?{dynamic} this.t = self::getNum() : #t2;
+    dynamic v4 = let final dynamic #t1 = this.t in #t1.==(null) ? this.t = self::getInt() : #t1;
+    dynamic v5 = let final dynamic #t2 = this.t in #t2.==(null) ? this.t = self::getNum() : #t2;
     dynamic v7 = this.t = this.t.+(self::getInt());
     dynamic v8 = this.t = this.t.+(self::getNum());
     dynamic v10 = this.t = this.t.+(1);
@@ -27,9 +27,9 @@ class Test2 extends core::Object {
     dynamic v1 = this.t = self::getInt();
     dynamic v2 = this.t = self::getNum();
     dynamic v3 = this.t = self::getDouble();
-    dynamic v4 = let final dynamic #t5 = this.t in #t5.==(null) ?{dynamic} this.t = self::getInt() : #t5;
-    dynamic v5 = let final dynamic #t6 = this.t in #t6.==(null) ?{dynamic} this.t = self::getNum() : #t6;
-    dynamic v6 = let final dynamic #t7 = this.t in #t7.==(null) ?{dynamic} this.t = self::getDouble() : #t7;
+    dynamic v4 = let final dynamic #t5 = this.t in #t5.==(null) ? this.t = self::getInt() : #t5;
+    dynamic v5 = let final dynamic #t6 = this.t in #t6.==(null) ? this.t = self::getNum() : #t6;
+    dynamic v6 = let final dynamic #t7 = this.t in #t7.==(null) ? this.t = self::getDouble() : #t7;
     dynamic v7 = this.t = this.t.+(self::getInt());
     dynamic v8 = this.t = this.t.+(self::getNum());
     dynamic v9 = this.t = this.t.+(self::getDouble());
@@ -45,8 +45,8 @@ class Test3 extends core::Object {
   method test3() → void {
     dynamic v2 = this.t = self::getNum();
     dynamic v3 = this.t = self::getDouble();
-    dynamic v5 = let final dynamic #t10 = this.t in #t10.==(null) ?{dynamic} this.t = self::getNum() : #t10;
-    dynamic v6 = let final dynamic #t11 = this.t in #t11.==(null) ?{dynamic} this.t = self::getDouble() : #t11;
+    dynamic v5 = let final dynamic #t10 = this.t in #t10.==(null) ? this.t = self::getNum() : #t10;
+    dynamic v6 = let final dynamic #t11 = this.t in #t11.==(null) ? this.t = self::getDouble() : #t11;
     dynamic v7 = this.t = this.t.+(self::getInt());
     dynamic v8 = this.t = this.t.+(self::getNum());
     dynamic v9 = this.t = this.t.+(self::getDouble());

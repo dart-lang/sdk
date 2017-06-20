@@ -413,7 +413,7 @@ class KernelConditionalExpression extends ConditionalExpression
     implements KernelExpression {
   KernelConditionalExpression(
       Expression condition, Expression then, Expression otherwise)
-      : super(condition, then, otherwise, const DynamicType());
+      : super(condition, then, otherwise, null);
 
   @override
   void _collectDependencies(KernelDependencyCollector collector) {
@@ -438,7 +438,9 @@ class KernelConditionalExpression extends ConditionalExpression
         inferrer.inferExpression(otherwise, typeContext, true);
     DartType type = inferrer.typeSchemaEnvironment
         .getLeastUpperBound(thenType, otherwiseType);
-    staticType = type;
+    if (inferrer.strongMode) {
+      staticType = type;
+    }
     var inferredType = typeNeeded ? type : null;
     inferrer.listener.conditionalExpressionExit(this, inferredType);
     return inferredType;
@@ -939,7 +941,9 @@ class KernelIfNullExpression extends Let implements KernelExpression {
     // To infer `e0 ?? e1` in context K:
     // - Infer e0 in context K to get T0
     var lhsType = inferrer.inferExpression(_lhs, typeContext, true);
-    variable.type = lhsType;
+    if (inferrer.strongMode) {
+      variable.type = lhsType;
+    }
     // - Let J = T0 if K is `_` else K.
     var rhsContext = typeContext ?? lhsType;
     // - Infer e1 in context J to get T1
@@ -951,7 +955,9 @@ class KernelIfNullExpression extends Let implements KernelExpression {
     var inferredType = typeContext == null
         ? inferrer.typeSchemaEnvironment.getLeastUpperBound(lhsType, rhsType)
         : greatestClosure(inferrer.coreTypes, typeContext);
-    body.staticType = inferredType;
+    if (inferrer.strongMode) {
+      body.staticType = inferredType;
+    }
     inferrer.listener.ifNullExit(this, inferredType);
     return inferredType;
   }
@@ -1397,9 +1403,11 @@ class KernelNullAwareMethodInvocation extends Let implements KernelExpression {
         _desugaredInvocation,
         false,
         typeContext,
-        true,
+        typeNeeded || inferrer.strongMode,
         receiverVariable: variable);
-    body.staticType = inferredType;
+    if (inferrer.strongMode) {
+      body.staticType = inferredType;
+    }
     return inferredType;
   }
 }
@@ -1429,10 +1437,17 @@ class KernelNullAwarePropertyGet extends Let implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    var inferredType = inferrer.inferPropertyGet(this, variable.initializer,
-        fileOffset, _desugaredGet, typeContext, true,
+    var inferredType = inferrer.inferPropertyGet(
+        this,
+        variable.initializer,
+        fileOffset,
+        _desugaredGet,
+        typeContext,
+        typeNeeded || inferrer.strongMode,
         receiverVariable: variable);
-    body.staticType = inferredType;
+    if (inferrer.strongMode) {
+      body.staticType = inferredType;
+    }
     return inferredType;
   }
 }

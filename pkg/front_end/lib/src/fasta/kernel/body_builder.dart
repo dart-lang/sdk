@@ -866,10 +866,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
     push(new KernelIfNullExpression(
         variable,
-        new KernelConditionalExpression(
+        new ConditionalExpression(
             buildIsNull(new VariableGet(variable), offsetForToken(token)),
             b,
-            new VariableGet(variable))));
+            new VariableGet(variable),
+            null)));
   }
 
   /// Handle `a?.b(...)`.
@@ -3202,7 +3203,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               new NullLiteral(),
               new MethodInvocation(new VariableGet(variable), name, arguments)
                 ..fileOffset = offset,
-              const DynamicType())
+              null)
             ..fileOffset = offset)
         ..fileOffset = offset;
     } else {

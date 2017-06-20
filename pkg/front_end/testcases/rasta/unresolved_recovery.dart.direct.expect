@@ -1,5 +1,19 @@
 library;
 import self as self;
+import "dart:core" as core;
 
-static method main() → dynamic
-  throw "pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:6: Error: Expected ';' before this.\n  on Exception catch (e) { }\n     ^";
+class E extends core::Object {
+  constructor •() → self::E
+    : super core::Object::•();
+  method foo() → dynamic {
+    super.[]=(4, 42);
+    let final dynamic #t1 = 4 in super.[]=(#t1, super.[](#t1).+(5));
+    return super.[](2);
+  }
+}
+static method beforeTestMissingTry() → dynamic {
+  throw core::_genericNoSuchMethod(null, #testMissingTry, <dynamic>[], <dynamic, dynamic>{}, null);
+}
+static method testMissingTry() → dynamic
+  invalid-statement;
+static method main() → dynamic {}

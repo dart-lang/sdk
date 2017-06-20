@@ -3,25 +3,23 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::C::good];
-  const constructor constant() → void
+  const constructor constant() → dynamic
     : super core::Object::•()
     ;
-  constructor missingFactoryKeyword() → void
+  constructor missingFactoryKeyword() → dynamic
     : super core::Object::•()
-    const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/issue_000044.dart:14:31: Error: Can't return from a constructor.\n  C.missingFactoryKeyword() = C.constant;\n                              ^"));
+    invalid-statement;
   static factory good() → self::C
-    let dynamic #redirecting_factory = self::C::constant in invalid-expression;
+    invalid-statement;
   method notEvenAConstructor(dynamic a) → self::C
-    return this.h;
+    invalid-statement;
 }
-const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/issue_000044.dart:7:8: Error: Expected a function body or '=>'.\na b(c) = d;\n       ^", "pkg/front_end/testcases/rasta/issue_000044.dart:7:8: Error: Expected a function body or '=>'.\na b(c) = d;\n       ^", "pkg/front_end/testcases/rasta/issue_000044.dart:14:29: Error: Expected a function body or '=>'.\n  C.missingFactoryKeyword() = C.constant;\n                            ^", "pkg/front_end/testcases/rasta/issue_000044.dart:21:28: Error: Expected a function body or '=>'.\n  C notEvenAConstructor(a) = h;\n                           ^"]/* from null */;
-static method b(dynamic c) → invalid-type
-  return throw new core::NoSuchMethodError::_withType(null, #d, 33, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
+static method b() → dynamic
+  invalid-statement;
 static method main() → dynamic {
   self::C c = null;
   core::print(const self::C::constant());
-  core::print(const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/issue_000044.dart:27:15: Error: Not a const constructor.\n  print(const C.missingFactoryKeyword());\n              ^")));
+  core::print(invalid-expression);
   core::print(const self::C::constant());
   core::print(new self::C::constant().notEvenAConstructor(null));
 }

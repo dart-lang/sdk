@@ -9,6 +9,6 @@ class C extends core::Object {
     ;
 }
 static method f(self::C c) → void {
-  dynamic x = let final self::C #t1 = c in #t1.==(null) ?{dynamic} null : #t1.x;
+  dynamic x = let final dynamic #t1 = c in #t1.==(null) ? null : #t1.x;
 }
 static method main() → dynamic {}

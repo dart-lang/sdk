@@ -1,5 +1,7 @@
 library;
 import self as self;
+import "dart:core" as core;
 
-static method main() → dynamic
-  throw "Error: Incomplete escape sequence.";
+static method main() → dynamic {
+  core::print(invalid-expression);
+}

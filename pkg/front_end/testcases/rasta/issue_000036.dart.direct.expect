@@ -2,4 +2,4 @@ library;
 import self as self;
 
 static method main() → dynamic
-  throw "pkg/front_end/testcases/rasta/issue_000036.dart:5:14: Error: Expected an expression, but got '-'.\nmain() => a. - 5;\n             ^";
+  invalid-statement;

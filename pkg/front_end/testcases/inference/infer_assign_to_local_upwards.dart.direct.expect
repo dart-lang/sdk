@@ -11,8 +11,8 @@ static method getDouble() → core::double
 static method test1(core::int t) → void {
   dynamic v1 = t = self::getInt();
   dynamic v2 = t = self::getNum();
-  dynamic v4 = let final dynamic #t1 = t in #t1.==(null) ?{dynamic} t = self::getInt() : #t1;
-  dynamic v5 = let final dynamic #t2 = t in #t2.==(null) ?{dynamic} t = self::getNum() : #t2;
+  dynamic v4 = let final dynamic #t1 = t in #t1.==(null) ? t = self::getInt() : #t1;
+  dynamic v5 = let final dynamic #t2 = t in #t2.==(null) ? t = self::getNum() : #t2;
   dynamic v7 = t = t.+(self::getInt());
   dynamic v8 = t = t.+(self::getNum());
   dynamic v10 = t = t.+(1);
@@ -22,9 +22,9 @@ static method test2(core::num t) → void {
   dynamic v1 = t = self::getInt();
   dynamic v2 = t = self::getNum();
   dynamic v3 = t = self::getDouble();
-  dynamic v4 = let final dynamic #t5 = t in #t5.==(null) ?{dynamic} t = self::getInt() : #t5;
-  dynamic v5 = let final dynamic #t6 = t in #t6.==(null) ?{dynamic} t = self::getNum() : #t6;
-  dynamic v6 = let final dynamic #t7 = t in #t7.==(null) ?{dynamic} t = self::getDouble() : #t7;
+  dynamic v4 = let final dynamic #t5 = t in #t5.==(null) ? t = self::getInt() : #t5;
+  dynamic v5 = let final dynamic #t6 = t in #t6.==(null) ? t = self::getNum() : #t6;
+  dynamic v6 = let final dynamic #t7 = t in #t7.==(null) ? t = self::getDouble() : #t7;
   dynamic v7 = t = t.+(self::getInt());
   dynamic v8 = t = t.+(self::getNum());
   dynamic v9 = t = t.+(self::getDouble());
@@ -34,8 +34,8 @@ static method test2(core::num t) → void {
 static method test3(core::double t) → void {
   dynamic v2 = t = self::getNum();
   dynamic v3 = t = self::getDouble();
-  dynamic v5 = let final dynamic #t10 = t in #t10.==(null) ?{dynamic} t = self::getNum() : #t10;
-  dynamic v6 = let final dynamic #t11 = t in #t11.==(null) ?{dynamic} t = self::getDouble() : #t11;
+  dynamic v5 = let final dynamic #t10 = t in #t10.==(null) ? t = self::getNum() : #t10;
+  dynamic v6 = let final dynamic #t11 = t in #t11.==(null) ? t = self::getDouble() : #t11;
   dynamic v7 = t = t.+(self::getInt());
   dynamic v8 = t = t.+(self::getNum());
   dynamic v9 = t = t.+(self::getDouble());

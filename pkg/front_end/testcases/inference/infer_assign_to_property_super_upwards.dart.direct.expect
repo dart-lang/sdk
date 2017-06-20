@@ -17,8 +17,8 @@ class Test1 extends self::Base {
   method test() → void {
     dynamic v1 = super.intProp = self::getInt();
     dynamic v2 = super.intProp = self::getNum();
-    dynamic v4 = let final dynamic #t1 = super.intProp in #t1.==(null) ?{dynamic} super.intProp = self::getInt() : #t1;
-    dynamic v5 = let final dynamic #t2 = super.intProp in #t2.==(null) ?{dynamic} super.intProp = self::getNum() : #t2;
+    dynamic v4 = let final dynamic #t1 = super.intProp in #t1.==(null) ? super.intProp = self::getInt() : #t1;
+    dynamic v5 = let final dynamic #t2 = super.intProp in #t2.==(null) ? super.intProp = self::getNum() : #t2;
     dynamic v7 = super.intProp = super.intProp.+(self::getInt());
     dynamic v8 = super.intProp = super.intProp.+(self::getNum());
     dynamic v10 = super.intProp = super.intProp.+(1);
@@ -33,9 +33,9 @@ class Test2 extends self::Base {
     dynamic v1 = super.numProp = self::getInt();
     dynamic v2 = super.numProp = self::getNum();
     dynamic v3 = super.numProp = self::getDouble();
-    dynamic v4 = let final dynamic #t5 = super.numProp in #t5.==(null) ?{dynamic} super.numProp = self::getInt() : #t5;
-    dynamic v5 = let final dynamic #t6 = super.numProp in #t6.==(null) ?{dynamic} super.numProp = self::getNum() : #t6;
-    dynamic v6 = let final dynamic #t7 = super.numProp in #t7.==(null) ?{dynamic} super.numProp = self::getDouble() : #t7;
+    dynamic v4 = let final dynamic #t5 = super.numProp in #t5.==(null) ? super.numProp = self::getInt() : #t5;
+    dynamic v5 = let final dynamic #t6 = super.numProp in #t6.==(null) ? super.numProp = self::getNum() : #t6;
+    dynamic v6 = let final dynamic #t7 = super.numProp in #t7.==(null) ? super.numProp = self::getDouble() : #t7;
     dynamic v7 = super.numProp = super.numProp.+(self::getInt());
     dynamic v8 = super.numProp = super.numProp.+(self::getNum());
     dynamic v9 = super.numProp = super.numProp.+(self::getDouble());
@@ -50,8 +50,8 @@ class Test3 extends self::Base {
   method test3() → void {
     dynamic v2 = super.doubleProp = self::getNum();
     dynamic v3 = super.doubleProp = self::getDouble();
-    dynamic v5 = let final dynamic #t10 = super.doubleProp in #t10.==(null) ?{dynamic} super.doubleProp = self::getNum() : #t10;
-    dynamic v6 = let final dynamic #t11 = super.doubleProp in #t11.==(null) ?{dynamic} super.doubleProp = self::getDouble() : #t11;
+    dynamic v5 = let final dynamic #t10 = super.doubleProp in #t10.==(null) ? super.doubleProp = self::getNum() : #t10;
+    dynamic v6 = let final dynamic #t11 = super.doubleProp in #t11.==(null) ? super.doubleProp = self::getDouble() : #t11;
     dynamic v7 = super.doubleProp = super.doubleProp.+(self::getInt());
     dynamic v8 = super.doubleProp = super.doubleProp.+(self::getNum());
     dynamic v9 = super.doubleProp = super.doubleProp.+(self::getDouble());
