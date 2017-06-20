@@ -205,6 +205,9 @@ template("libdart_library") {
                  ":dart_config",
                  ":dart_maybe_product_config",
                ] + extra_configs
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     deps = [
              "vm:libdart_platform",
              "third_party/double-conversion/src:libdouble_conversion",
@@ -312,6 +315,9 @@ executable("libdart_dependency_helper") {
     ":dart_config",
     ":dart_maybe_product_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   deps = [
     "third_party/double-conversion/src:libdouble_conversion",
     "vm:libdart_lib_jit",

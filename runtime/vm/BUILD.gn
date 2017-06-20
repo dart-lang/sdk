@@ -33,6 +33,9 @@ static_library("libdart_platform") {
     "..:dart_config",
     "..:dart_maybe_product_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   public_configs = [ ":libdart_vm_config" ]
 
   sources = rebase_path(processed_gypis.platform_sources, ".", "../platform")
@@ -48,6 +51,9 @@ static_library("libdart_vm_jit") {
     "..:dart_maybe_product_config",
     "..:dart_use_target_arch_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
                                   "*_test.cc",
@@ -64,6 +70,9 @@ static_library("libdart_vm_precompiled_runtime") {
     "..:dart_precompiled_runtime_config",
     "..:dart_use_target_arch_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
                                   "*_test.cc",
@@ -80,6 +89,9 @@ static_library("libdart_vm_nosnapshot") {
     "..:dart_no_snapshot_config",
     "..:dart_use_target_arch_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
                                   "*_test.cc",
@@ -97,6 +109,9 @@ static_library("libdart_vm_nosnapshot_with_precompiler") {
     "..:dart_no_snapshot_config",
     "..:dart_use_target_arch_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
                                   "*_test.cc",
@@ -113,6 +128,9 @@ static_library("libdart_vm_nosnapshot_with_precompiler_host_arch") {
     "..:dart_precompiler_config",
     "..:dart_no_snapshot_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
                                   "*_test.cc",
@@ -129,6 +147,9 @@ static_library("libdart_vm_with_precompiler") {
     "..:dart_precompiler_config",
     "..:dart_use_target_arch_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
                                   "*_test.cc",
@@ -240,6 +261,9 @@ template("generate_core_libraries") {
       "..:dart_precompiler_config",
       "..:dart_use_target_arch_config",
     ]
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     deps = libdeps
     sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
     include_dirs = [ ".." ]
@@ -251,6 +275,9 @@ template("generate_core_libraries") {
       "..:dart_maybe_product_config",
       "..:dart_precompiler_config",
     ]
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     deps = libdeps
     sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
     include_dirs = [ ".." ]
@@ -263,6 +290,9 @@ template("generate_core_libraries") {
       "..:dart_precompiler_config",
       "..:dart_use_target_arch_config",
     ]
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     deps = libdeps
     sources = all_libsources + [ "bootstrap_nocore.cc" ]
     include_dirs = [ ".." ]
@@ -274,6 +304,9 @@ template("generate_core_libraries") {
       "..:dart_maybe_product_config",
       "..:dart_use_target_arch_config",
     ]
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     sources = all_libsources + [ "bootstrap_nocore.cc" ]
     include_dirs = [ ".." ]
   }
@@ -285,6 +318,9 @@ template("generate_core_libraries") {
       "..:dart_precompiled_runtime_config",
       "..:dart_use_target_arch_config",
     ]
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     sources = all_libsources + [ "bootstrap_nocore.cc" ]
     include_dirs = [ ".." ]
   }

@@ -237,6 +237,9 @@ static_library("libdart_builtin") {
     "..:dart_config",
     "..:dart_maybe_product_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   public_configs = [ ":libdart_builtin_config" ]
   deps = [
     ":generate_blink_cc_file",
@@ -276,6 +279,9 @@ executable("gen_snapshot") {
     "..:dart_precompiler_config",
     "..:dart_use_target_arch_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   deps = [
     ":gen_resources_cc",
     ":gen_snapshot_dart_io",
@@ -344,6 +350,9 @@ source_set("gen_snapshot_dart_io") {
     "..:dart_maybe_product_config",
     "..:dart_precompiler_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
 
   deps = [
     "$dart_zlib_path",
@@ -390,6 +399,9 @@ template("dart_io") {
       "..:dart_config",
       "..:dart_maybe_product_config",
     ]
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     custom_sources_filter = [
       "*_test.cc",
       "*_test.h",
@@ -605,7 +617,9 @@ template("dart_executable") {
                  "..:dart_config",
                  "..:dart_maybe_product_config",
                ] + extra_configs
-
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     if (defined(is_fuchsia_host) && is_fuchsia_host) {
       # We already have these in the standalone build, but Fuchsia doesn't
       # have them. They are needed for running Fuchsia binaries built for the
@@ -854,6 +868,9 @@ executable("run_vm_tests") {
     "..:dart_maybe_product_config",
     "..:dart_use_target_arch_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
 
   deps = [
     ":dart_snapshot_cc",
