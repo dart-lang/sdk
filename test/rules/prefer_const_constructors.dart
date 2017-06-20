@@ -47,5 +47,7 @@ class E {
 
   const E(this.s);
 
-  static E m(int i) => new E('$i');// OK
+  static E m1(int i) => new E('$i'); // OK
+  static E m2() => new E('adjacent' 'string'); // LINT
+  static E m3(int i) => new E('adjacent' '$i'); // OK
 }
