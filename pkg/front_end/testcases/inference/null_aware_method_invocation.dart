@@ -11,6 +11,7 @@ class C {
 
 g(C c) {
   var /*@type=int*/ x = c?. /*@target=C::f*/ f();
+  c?. /*@target=C::f*/ f();
 }
 
 main() {}
