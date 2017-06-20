@@ -13,7 +13,7 @@ class C {
 
   const C(
       this. //# 01: compile-time error
-      this. //# 02: compile-time error
+      this. //# 02: static type warning
       x
     )
     : x = 2 //# 03: compile-time error

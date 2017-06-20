@@ -16,8 +16,6 @@ LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail  # Issue 28269
 [ $runtime == vm || $runtime == flutter || $runtime == dart_precompiled ]
 # Failures ok in tests below. VM moves super initializer to end of list.
 Language/Classes/Constructors/Generative_Constructors/execution_t03: Fail, OK
-Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: Pass, CompileTimeError
-Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: Pass, CompileTimeError
 Language/Expressions/Instance_Creation/New/execution_t04: Fail, OK
 Language/Expressions/Instance_Creation/New/execution_t06: Fail, OK
 

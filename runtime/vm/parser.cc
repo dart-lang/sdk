@@ -3006,8 +3006,6 @@ AstNode* Parser::CheckDuplicateFieldInit(
     AstNode* init_value) {
   ASSERT(!field->is_static());
   AstNode* result = NULL;
-  const String& field_name = String::Handle(field->name());
-  String& initialized_name = String::Handle(Z);
 
   // The initializer_list is divided into two sections. The sections
   // are separated by a NULL entry: [f0, ... fn, NULL, fn+1, ...]
@@ -3022,13 +3020,6 @@ AstNode* Parser::CheckDuplicateFieldInit(
     if (initialized_field == NULL) {
       break;
     }
-
-    initialized_name ^= initialized_field->name();
-    if (initialized_name.Equals(field_name) && field->has_initializer()) {
-      ReportError(init_pos, "final field '%s' is already initialized.",
-                  field_name.ToCString());
-    }
-
     if (initialized_field->raw() == field->raw()) {
       // This final field has been initialized by an inlined
       // initializer expression. This is a runtime error.
@@ -5249,52 +5240,12 @@ void Parser::AddImplicitConstructor(const Class& cls) {
 }
 
 
-void Parser::CheckFinalInitializationConflicts(const ClassDesc* class_desc,
-                                               const MemberDesc* member) {
-  const ParamList* params = &member->params;
-  if (!params->has_field_initializer) {
-    return;
-  }
-
-  const ZoneGrowableArray<ParamDesc>& parameters = *params->parameters;
-  const GrowableArray<const Field*>& fields = class_desc->fields();
-  String& field_name = String::Handle(Z);
-
-  for (intptr_t p = 0; p < parameters.length(); p++) {
-    const ParamDesc& current_param = parameters[p];
-    if (!current_param.is_field_initializer) {
-      continue;
-    }
-
-    const String& param_name = *current_param.name;
-    for (intptr_t i = 0; i < fields.length(); i++) {
-      const Field* current_field = fields.At(i);
-      if (!current_field->is_final() || !current_field->has_initializer()) {
-        continue;
-      }
-
-      field_name ^= current_field->name();
-      if (param_name.Equals(field_name)) {
-        ReportError(current_param.name_pos,
-                    "final field '%s' is already initialized.",
-                    param_name.ToCString());
-      }
-    }
-  }
-}
-
-
 // Check for cycles in constructor redirection.
 void Parser::CheckConstructors(ClassDesc* class_desc) {
   // Check for cycles in constructor redirection.
   const GrowableArray<MemberDesc>& members = class_desc->members();
   for (int i = 0; i < members.length(); i++) {
     MemberDesc* member = &members[i];
-    if (member->IsConstructor()) {
-      // Check that our constructors don't try and reinitialize an initialized
-      // final variable.
-      CheckFinalInitializationConflicts(class_desc, member);
-    }
     if (member->redirect_name == NULL) {
       continue;
     }
