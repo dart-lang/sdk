@@ -204,9 +204,6 @@ Library* Library::ReadFrom(Reader* reader) {
   fields().ReadFrom<Field>(reader, this);
   procedures().ReadFrom<Procedure>(reader, this);
 
-  can_stream_ =
-      classes().CanStream() && fields().CanStream() && procedures().CanStream();
-
   return this;
 }
 
@@ -267,8 +264,6 @@ Class* Class::ReadFrom(Reader* reader) {
   reader->record_token_position(position_);
   annotations_.ReadFromStatic<Expression>(reader);
 
-  can_stream_ = annotations_.CanStream();
-
   return this;
 }
 
@@ -288,27 +283,6 @@ NormalClass* NormalClass::ReadFrom(Reader* reader) {
   fields_.ReadFrom<Field>(reader, this);
   constructors_.ReadFrom<Constructor>(reader, this);
   procedures_.ReadFrom<Procedure>(reader, this);
-
-  can_stream_ = can_stream_ && fields_.CanStream() &&
-                constructors_.CanStream() && procedures_.CanStream();
-
-  return this;
-}
-
-
-MixinClass* MixinClass::ReadFrom(Reader* reader) {
-  TRACE_READ_OFFSET();
-  TypeParameterScope<ReaderHelper> scope(reader->helper());
-
-  Class::ReadFrom(reader);
-  type_parameters_.ReadFrom(reader);
-  first_ = InterfaceType::Cast(DartType::ReadFrom(reader));
-  second_ = InterfaceType::Cast(DartType::ReadFrom(reader));
-  implemented_classes_.ReadFromStatic<DowncastReader<DartType, InterfaceType> >(
-      reader);
-  constructors_.ReadFrom<Constructor>(reader, this);
-
-  can_stream_ = constructors_.CanStream();
 
   return this;
 }
@@ -374,9 +348,6 @@ Field* Field::ReadFrom(Reader* reader) {
   type_ = DartType::ReadFrom(reader);
   initializer_ = reader->ReadOptional<Expression>();
 
-  can_stream_ = (initializer_ == NULL || initializer_->can_stream()) &&
-                annotations_.CanStream();
-
   return this;
 }
 
@@ -397,9 +368,6 @@ Constructor* Constructor::ReadFrom(Reader* reader) {
   annotations_.ReadFromStatic<Expression>(reader);
   function_ = FunctionNode::ReadFrom(reader);
   initializers_.ReadFromStatic<Initializer>(reader);
-
-  can_stream_ = annotations_.CanStream() && function_->can_stream() &&
-                initializers_.CanStream();
 
   return this;
 }
@@ -425,9 +393,6 @@ Procedure* Procedure::ReadFrom(Reader* reader) {
   reader->record_token_position(end_position_);
   annotations_.ReadFromStatic<Expression>(reader);
   function_ = reader->ReadOptional<FunctionNode>();
-
-  can_stream_ = annotations_.CanStream() &&
-                (function_ == NULL || function_->can_stream());
 
   return this;
 }
@@ -466,8 +431,6 @@ FieldInitializer* FieldInitializer::ReadFromImpl(Reader* reader) {
   initializer->field_reference_ = Reference::ReadMemberFrom(reader);
   initializer->value_ = Expression::ReadFrom(reader);
 
-  initializer->can_stream_ = initializer->value_->can_stream();
-
   return initializer;
 }
 
@@ -477,8 +440,6 @@ SuperInitializer* SuperInitializer::ReadFromImpl(Reader* reader) {
   SuperInitializer* init = new SuperInitializer();
   init->target_reference_ = Reference::ReadMemberFrom(reader);
   init->arguments_ = Arguments::ReadFrom(reader);
-
-  init->can_stream_ = init->arguments_->can_stream();
 
   return init;
 }
@@ -490,8 +451,6 @@ RedirectingInitializer* RedirectingInitializer::ReadFromImpl(Reader* reader) {
   init->target_reference_ = Reference::ReadMemberFrom(reader);
   init->arguments_ = Arguments::ReadFrom(reader);
 
-  init->can_stream_ = init->arguments_->can_stream();
-
   return init;
 }
 
@@ -500,8 +459,6 @@ LocalInitializer* LocalInitializer::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   LocalInitializer* init = new LocalInitializer();
   init->variable_ = VariableDeclaration::ReadFromImpl(reader, false);
-
-  init->can_stream_ = init->variable_->can_stream();
 
   return init;
 }
@@ -664,8 +621,6 @@ VariableSet* VariableSet::ReadFrom(Reader* reader) {
          set->variable_kernel_offset_);
   set->expression_ = Expression::ReadFrom(reader);
 
-  set->can_stream_ = set->expression_->can_stream();
-
   return set;
 }
 
@@ -681,8 +636,6 @@ VariableSet* VariableSet::ReadFrom(Reader* reader, uint8_t payload) {
          set->variable_kernel_offset_);
   set->expression_ = Expression::ReadFrom(reader);
 
-  set->can_stream_ = set->expression_->can_stream();
-
   return set;
 }
 
@@ -695,8 +648,6 @@ PropertyGet* PropertyGet::ReadFrom(Reader* reader) {
   get->receiver_ = Expression::ReadFrom(reader);
   get->name_ = Name::ReadFrom(reader);
   get->interface_target_reference_ = Reference::ReadMemberFrom(reader, true);
-
-  get->can_stream_ = get->receiver_->can_stream();
 
   return get;
 }
@@ -712,8 +663,6 @@ PropertySet* PropertySet::ReadFrom(Reader* reader) {
   set->value_ = Expression::ReadFrom(reader);
   set->interface_target_reference_ = Reference::ReadMemberFrom(reader, true);
 
-  set->can_stream_ = set->receiver_->can_stream() && set->value_->can_stream();
-
   return set;
 }
 
@@ -725,8 +674,6 @@ DirectPropertyGet* DirectPropertyGet::ReadFrom(Reader* reader) {
   get->position_ = reader->ReadPosition();
   get->receiver_ = Expression::ReadFrom(reader);
   get->target_reference_ = Reference::ReadMemberFrom(reader);
-
-  get->can_stream_ = get->receiver_->can_stream();
 
   return get;
 }
@@ -740,8 +687,6 @@ DirectPropertySet* DirectPropertySet::ReadFrom(Reader* reader) {
   set->receiver_ = Expression::ReadFrom(reader);
   set->target_reference_ = Reference::ReadMemberFrom(reader);
   set->value_ = Expression::ReadFrom(reader);
-
-  set->can_stream_ = set->receiver_->can_stream() && set->value_->can_stream();
 
   return set;
 }
@@ -765,8 +710,6 @@ StaticSet* StaticSet::ReadFrom(Reader* reader) {
   set->target_reference_ = Reference::ReadMemberFrom(reader);
   set->expression_ = Expression::ReadFrom(reader);
 
-  set->can_stream_ = set->expression_->can_stream();
-
   return set;
 }
 
@@ -780,9 +723,6 @@ Arguments* Arguments::ReadFrom(Reader* reader) {
   arguments->named().ReadFromStatic<NamedExpression>(reader);
   ASSERT(arguments->count() == num_arguments);
 
-  arguments->can_stream_ =
-      arguments->positional().CanStream() && arguments->named().CanStream();
-
   return arguments;
 }
 
@@ -792,8 +732,6 @@ NamedExpression* NamedExpression::ReadFrom(Reader* reader) {
   StringIndex name_index(reader->ReadUInt());
   Expression* expression = Expression::ReadFrom(reader);
   NamedExpression* named = new NamedExpression(name_index, expression);
-
-  named->can_stream_ = expression->can_stream();
 
   return named;
 }
@@ -810,9 +748,6 @@ MethodInvocation* MethodInvocation::ReadFrom(Reader* reader) {
   invocation->interface_target_reference_ =
       Reference::ReadMemberFrom(reader, true);
 
-  invocation->can_stream_ = invocation->receiver_->can_stream() &&
-                            invocation->arguments_->can_stream();
-
   return invocation;
 }
 
@@ -824,9 +759,6 @@ DirectMethodInvocation* DirectMethodInvocation::ReadFrom(Reader* reader) {
   invocation->receiver_ = Expression::ReadFrom(reader);
   invocation->target_reference_ = Reference::ReadMemberFrom(reader);
   invocation->arguments_ = Arguments::ReadFrom(reader);
-
-  invocation->can_stream_ = invocation->receiver_->can_stream() &&
-                            invocation->arguments_->can_stream();
 
   return invocation;
 }
@@ -840,8 +772,6 @@ StaticInvocation* StaticInvocation::ReadFrom(Reader* reader, bool is_const) {
   invocation->position_ = reader->ReadPosition();
   invocation->procedure_reference_ = Reference::ReadMemberFrom(reader);
   invocation->arguments_ = Arguments::ReadFrom(reader);
-
-  invocation->can_stream_ = invocation->arguments_->can_stream();
 
   return invocation;
 }
@@ -857,8 +787,6 @@ ConstructorInvocation* ConstructorInvocation::ReadFrom(Reader* reader,
   invocation->target_reference_ = Reference::ReadMemberFrom(reader);
   invocation->arguments_ = Arguments::ReadFrom(reader);
 
-  invocation->can_stream_ = invocation->arguments_->can_stream();
-
   return invocation;
 }
 
@@ -868,8 +796,6 @@ Not* Not::ReadFrom(Reader* reader) {
   Not* n = new Not();
   n->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   n->expression_ = Expression::ReadFrom(reader);
-
-  n->can_stream_ = n->expression_->can_stream();
 
   return n;
 }
@@ -882,8 +808,6 @@ LogicalExpression* LogicalExpression::ReadFrom(Reader* reader) {
   expr->left_ = Expression::ReadFrom(reader);
   expr->operator_ = static_cast<Operator>(reader->ReadByte());
   expr->right_ = Expression::ReadFrom(reader);
-
-  expr->can_stream_ = expr->left_->can_stream() && expr->right_->can_stream();
 
   return expr;
 }
@@ -898,10 +822,6 @@ ConditionalExpression* ConditionalExpression::ReadFrom(Reader* reader) {
   expr->otherwise_ = Expression::ReadFrom(reader);
   reader->ReadOptional<DartType>();  // Unused static type.
 
-  expr->can_stream_ = expr->condition_->can_stream() &&
-                      expr->then_->can_stream() &&
-                      expr->otherwise_->can_stream();
-
   return expr;
 }
 
@@ -912,8 +832,6 @@ StringConcatenation* StringConcatenation::ReadFrom(Reader* reader) {
   concat->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   concat->position_ = reader->ReadPosition();
   concat->expressions_.ReadFromStatic<Expression>(reader);
-
-  concat->can_stream_ = concat->expressions_.CanStream();
 
   return concat;
 }
@@ -927,8 +845,6 @@ IsExpression* IsExpression::ReadFrom(Reader* reader) {
   expr->operand_ = Expression::ReadFrom(reader);
   expr->type_ = DartType::ReadFrom(reader);
 
-  expr->can_stream_ = expr->operand_->can_stream();
-
   return expr;
 }
 
@@ -940,8 +856,6 @@ AsExpression* AsExpression::ReadFrom(Reader* reader) {
   expr->position_ = reader->ReadPosition();
   expr->operand_ = Expression::ReadFrom(reader);
   expr->type_ = DartType::ReadFrom(reader);
-
-  expr->can_stream_ = expr->operand_->can_stream();
 
   return expr;
 }
@@ -1052,8 +966,6 @@ Throw* Throw::ReadFrom(Reader* reader) {
   t->position_ = reader->ReadPosition();
   t->expression_ = Expression::ReadFrom(reader);
 
-  t->can_stream_ = t->expression_->can_stream();
-
   return t;
 }
 
@@ -1066,8 +978,6 @@ ListLiteral* ListLiteral::ReadFrom(Reader* reader, bool is_const) {
   literal->position_ = reader->ReadPosition();
   literal->type_ = DartType::ReadFrom(reader);
   literal->expressions_.ReadFromStatic<Expression>(reader);
-
-  literal->can_stream_ = literal->expressions_.CanStream();
 
   return literal;
 }
@@ -1083,8 +993,6 @@ MapLiteral* MapLiteral::ReadFrom(Reader* reader, bool is_const) {
   literal->value_type_ = DartType::ReadFrom(reader);
   literal->entries_.ReadFromStatic<MapEntry>(reader);
 
-  literal->can_stream_ = literal->entries_.CanStream();
-
   return literal;
 }
 
@@ -1093,8 +1001,6 @@ MapEntry* MapEntry::ReadFrom(Reader* reader) {
   MapEntry* entry = new MapEntry();
   entry->key_ = Expression::ReadFrom(reader);
   entry->value_ = Expression::ReadFrom(reader);
-
-  entry->can_stream_ = entry->key_->can_stream() && entry->value_->can_stream();
 
   return entry;
 }
@@ -1106,8 +1012,6 @@ AwaitExpression* AwaitExpression::ReadFrom(Reader* reader) {
   await->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   await->operand_ = Expression::ReadFrom(reader);
 
-  await->can_stream_ = await->operand_->can_stream();
-
   return await;
 }
 
@@ -1118,8 +1022,6 @@ FunctionExpression* FunctionExpression::ReadFrom(Reader* reader) {
   FunctionExpression* expr = new FunctionExpression();
   expr->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   expr->function_ = FunctionNode::ReadFrom(reader);
-
-  expr->can_stream_ = false;
 
   return expr;
 }
@@ -1136,8 +1038,6 @@ Let* Let::ReadFrom(Reader* reader) {
   let->body_ = Expression::ReadFrom(reader);
   let->position_ = reader->min_position();
   let->end_position_ = reader->max_position();
-
-  let->can_stream_ = let->variable_->can_stream() && let->body_->can_stream();
 
   return let;
 }
@@ -1163,8 +1063,6 @@ VectorGet* VectorGet::ReadFrom(Reader* reader) {
   vector_get->vector_expression_ = Expression::ReadFrom(reader);
   vector_get->index_ = reader->ReadUInt();
 
-  vector_get->can_stream_ = false;
-
   return vector_get;
 }
 
@@ -1178,8 +1076,6 @@ VectorSet* VectorSet::ReadFrom(Reader* reader) {
   vector_set->index_ = reader->ReadUInt();
   vector_set->value_ = Expression::ReadFrom(reader);
 
-  vector_set->can_stream_ = false;
-
   return vector_set;
 }
 
@@ -1191,8 +1087,6 @@ VectorCopy* VectorCopy::ReadFrom(Reader* reader) {
   vector_copy->kernel_offset_ =
       reader->offset() - 1;  // -1 to include tag byte.
   vector_copy->vector_expression_ = Expression::ReadFrom(reader);
-
-  vector_copy->can_stream_ = false;
 
   return vector_copy;
 }
@@ -1209,8 +1103,6 @@ ClosureCreation* ClosureCreation::ReadFrom(Reader* reader) {
   closure_creation->context_vector_ = Expression::ReadFrom(reader);
   closure_creation->function_type_ =
       FunctionType::Cast(DartType::ReadFrom(reader));
-
-  closure_creation->can_stream_ = false;
 
   return closure_creation;
 }
@@ -1284,8 +1176,6 @@ ExpressionStatement* ExpressionStatement::ReadFrom(Reader* reader) {
       new ExpressionStatement(Expression::ReadFrom(reader));
   stmt->kernel_offset_ = offset;
 
-  stmt->can_stream_ = stmt->expression_->can_stream();
-
   return stmt;
 }
 
@@ -1300,8 +1190,6 @@ Block* Block::ReadFromImpl(Reader* reader) {
   block->statements().ReadFromStatic<Statement>(reader);
   block->position_ = reader->min_position();
   block->end_position_ = reader->max_position();
-
-  block->can_stream_ = block->statements().CanStream();
 
   return block;
 }
@@ -1324,9 +1212,6 @@ AssertStatement* AssertStatement::ReadFrom(Reader* reader) {
   reader->ReadPosition();  // condition end offset.
   stmt->message_ = reader->ReadOptional<Expression>();
 
-  stmt->can_stream_ = stmt->condition_->can_stream() &&
-                      (stmt->message_ == NULL || stmt->message_->can_stream());
-
   return stmt;
 }
 
@@ -1339,8 +1224,6 @@ LabeledStatement* LabeledStatement::ReadFrom(Reader* reader) {
   reader->helper()->labels()->Push(stmt);
   stmt->body_ = Statement::ReadFrom(reader);
   reader->helper()->labels()->Pop(stmt);
-
-  stmt->can_stream_ = stmt->body_->can_stream();
 
   return stmt;
 }
@@ -1363,9 +1246,6 @@ WhileStatement* WhileStatement::ReadFrom(Reader* reader) {
   stmt->condition_ = Expression::ReadFrom(reader);
   stmt->body_ = Statement::ReadFrom(reader);
 
-  stmt->can_stream_ =
-      stmt->condition_->can_stream() && stmt->body_->can_stream();
-
   return stmt;
 }
 
@@ -1376,9 +1256,6 @@ DoStatement* DoStatement::ReadFrom(Reader* reader) {
   dostmt->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   dostmt->body_ = Statement::ReadFrom(reader);
   dostmt->condition_ = Expression::ReadFrom(reader);
-
-  dostmt->can_stream_ =
-      dostmt->body_->can_stream() && dostmt->condition_->can_stream();
 
   return dostmt;
 }
@@ -1397,11 +1274,6 @@ ForStatement* ForStatement::ReadFrom(Reader* reader) {
   forstmt->body_ = Statement::ReadFrom(reader);
   forstmt->end_position_ = reader->max_position();
   forstmt->position_ = reader->min_position();
-
-  forstmt->can_stream_ =
-      forstmt->body_->can_stream() &&
-      (forstmt->condition_ == NULL || forstmt->condition_->can_stream()) &&
-      forstmt->variables_.CanStream() && forstmt->updates_.CanStream();
 
   return forstmt;
 }
@@ -1425,10 +1297,6 @@ ForInStatement* ForInStatement::ReadFrom(Reader* reader, bool is_async) {
   }
   forinstmt->variable_->set_end_position(forinstmt->position_);
 
-  forinstmt->can_stream_ = forinstmt->variable_->can_stream() &&
-                           forinstmt->iterable_->can_stream() &&
-                           forinstmt->body_->can_stream();
-
   return forinstmt;
 }
 
@@ -1444,9 +1312,6 @@ SwitchStatement* SwitchStatement::ReadFrom(Reader* reader) {
     SwitchCase* sc = stmt->cases_.GetOrCreate<SwitchCase>(i);
     sc->ReadFrom(reader);
   }
-
-  stmt->can_stream_ =
-      stmt->condition_->can_stream() && stmt->cases_.CanStream();
 
   return stmt;
 }
@@ -1465,8 +1330,6 @@ SwitchCase* SwitchCase::ReadFrom(Reader* reader) {
   }
   is_default_ = reader->ReadBool();
   body_ = Statement::ReadFrom(reader);
-
-  can_stream_ = expressions_.CanStream() && body_->can_stream();
 
   return this;
 }
@@ -1490,10 +1353,6 @@ IfStatement* IfStatement::ReadFrom(Reader* reader) {
   ifstmt->then_ = Statement::ReadFrom(reader);
   ifstmt->otherwise_ = Statement::ReadFrom(reader);
 
-  ifstmt->can_stream_ = ifstmt->condition_->can_stream() &&
-                        ifstmt->then_->can_stream() &&
-                        ifstmt->otherwise_->can_stream();
-
   return ifstmt;
 }
 
@@ -1504,9 +1363,6 @@ ReturnStatement* ReturnStatement::ReadFrom(Reader* reader) {
   ret->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   ret->position_ = reader->ReadPosition();
   ret->expression_ = reader->ReadOptional<Expression>();
-
-  ret->can_stream_ =
-      (ret->expression_ == NULL || ret->expression_->can_stream());
 
   return ret;
 }
@@ -1522,8 +1378,6 @@ TryCatch* TryCatch::ReadFrom(Reader* reader) {
   reader->ReadBool();  // whether any catch needs a stacktrace.
   tc->catches_.ReadFromStatic<Catch>(reader);
   tc->position_ = reader->min_position();
-
-  tc->can_stream_ = tc->body_->can_stream() && tc->catches_.CanStream();
 
   return tc;
 }
@@ -1545,8 +1399,6 @@ Catch* Catch::ReadFrom(Reader* reader) {
   c->end_position_ = reader->max_position();
   c->position_ = reader->min_position();
 
-  c->can_stream_ = c->body_->can_stream();
-
   return c;
 }
 
@@ -1557,8 +1409,6 @@ TryFinally* TryFinally::ReadFrom(Reader* reader) {
   tf->kernel_offset_ = reader->offset() - 1;  // -1 to include tag byte.
   tf->body_ = Statement::ReadFrom(reader);
   tf->finalizer_ = Statement::ReadFrom(reader);
-
-  tf->can_stream_ = tf->body_->can_stream() && tf->finalizer_->can_stream();
 
   return tf;
 }
@@ -1572,8 +1422,6 @@ YieldStatement* YieldStatement::ReadFrom(Reader* reader) {
   reader->record_yield_token_position(stmt->position_);
   stmt->flags_ = reader->ReadByte();
   stmt->expression_ = Expression::ReadFrom(reader);
-
-  stmt->can_stream_ = stmt->expression_->can_stream();
 
   return stmt;
 }
@@ -1610,9 +1458,6 @@ VariableDeclaration* VariableDeclaration::ReadFromImpl(Reader* reader,
   decl->end_position_ = position;
   reader->helper()->variables().Push(decl);
 
-  decl->can_stream_ =
-      (decl->initializer_ == NULL || decl->initializer_->can_stream());
-
   return decl;
 }
 
@@ -1625,8 +1470,6 @@ FunctionDeclaration* FunctionDeclaration::ReadFrom(Reader* reader) {
   decl->variable_ = VariableDeclaration::ReadFromImpl(reader, false);
   VariableScope<ReaderHelper> parameters(reader->helper());
   decl->function_ = FunctionNode::ReadFrom(reader);
-
-  decl->can_stream_ = false;
 
   return decl;
 }
@@ -1824,8 +1667,6 @@ Program* Program::ReadFrom(Reader* reader) {
   program->main_method_reference_ =
       Reference::ReadMemberFrom(reader, /*allow_null=*/true);
 
-  program->can_stream_ = false;
-
   return program;
 }
 
@@ -1857,11 +1698,6 @@ FunctionNode* FunctionNode::ReadFrom(Reader* reader) {
       reader->helper());
   VariableScope<ReaderHelper> vars(reader->helper());
   function->body_ = reader->ReadOptional<Statement>();
-
-  function->can_stream_ =
-      function->positional_parameters_.CanStream() &&
-      function->named_parameters_.CanStream() &&
-      (function->body_ == NULL || function->body_->can_stream());
 
   return function;
 }
