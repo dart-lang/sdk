@@ -126,7 +126,7 @@ class KeywordState {
  */
 abstract class Scanner {
   /**
-   * A flag indicating whether the [Scanner] factory method
+   * A flag indicating whether the analyzer [Scanner] factory method
    * will return a fasta based scanner or an analyzer based scanner.
    */
   static bool useFasta = const bool.fromEnvironment("useFastaScanner");
