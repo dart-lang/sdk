@@ -536,6 +536,26 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
   DECLARE_INSTRUCTION_BACKEND()
 
+#if defined(TARGET_ARCH_DBC)
+#define DECLARE_COMPARISON_METHODS                                             \
+  virtual LocationSummary* MakeLocationSummary(Zone* zone, bool optimizing)    \
+      const;                                                                   \
+  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,            \
+                                       BranchLabels labels);                   \
+  virtual Condition GetNextInstructionCondition(FlowGraphCompiler* compiler,   \
+                                                BranchLabels labels);
+#else
+#define DECLARE_COMPARISON_METHODS                                             \
+  virtual LocationSummary* MakeLocationSummary(Zone* zone, bool optimizing)    \
+      const;                                                                   \
+  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,            \
+                                       BranchLabels labels);
+#endif
+
+#define DECLARE_COMPARISON_INSTRUCTION(type)                                   \
+  DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
+  DECLARE_COMPARISON_METHODS
+
 #ifndef PRODUCT
 #define PRINT_TO_SUPPORT virtual void PrintTo(BufferFormatter* f) const;
 #else
@@ -963,6 +983,13 @@ class Instruction : public ZoneAllocated {
   intptr_t inlining_id_;
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);
+};
+
+
+struct BranchLabels {
+  Label* true_label;
+  Label* false_label;
+  Label* fall_through;
 };
 
 
@@ -1920,13 +1947,6 @@ class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
 };
 
 
-struct BranchLabels {
-  Label* true_label;
-  Label* false_label;
-  Label* fall_through;
-};
-
-
 class InductionVariableInfo;
 
 
@@ -2345,11 +2365,33 @@ class ComparisonInstr : public Definition {
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right) = 0;
 
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
-                              BranchInstr* branch) = 0;
+  // Emits instructions to do the comparison and branch to the true or false
+  // label depending on the result.  This implementation will call
+  // EmitComparisonCode and then generate the branch instructions afterwards.
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
 
+  // Used by EmitBranchCode and EmitNativeCode depending on whether the boolean
+  // is to be turned into branches or instantiated.  May return a valid
+  // condition in which case the caller is expected to emit a branch to the
+  // true label based on that condition (or a branch to the false label on the
+  // opposite condition).  May also branch directly to the labels.
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels) = 0;
+
+#if defined(TARGET_ARCH_DBC)
+  // On the DBC platform EmitNativeCode needs to know ahead of time what
+  // 'Condition' will be returned by EmitComparisonCode. This call must return
+  // the same result as EmitComparisonCode, but should not emit any
+  // instructions.
+  virtual Condition GetNextInstructionCondition(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) = 0;
+#endif
+
+  // Emits code that generates 'true' or 'false', depending on the comparison.
+  // This implementation will call EmitComparisonCode.  If EmitComparisonCode
+  // does not use the labels (merely returning a condition) then EmitNativeCode
+  // may be able to use the condition to avoid a branch.
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
   void SetDeoptId(const Instruction& instr) { CopyDeoptIdFrom(instr); }
 
@@ -3038,7 +3080,7 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
                      bool needs_number_check,
                      intptr_t deopt_id);
 
-  DECLARE_INSTRUCTION(StrictCompare)
+  DECLARE_COMPARISON_INSTRUCTION(StrictCompare)
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
@@ -3047,11 +3089,6 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
 
   bool needs_number_check() const { return needs_number_check_; }
   void set_needs_number_check(bool value) { needs_number_check_ = value; }
@@ -3083,7 +3120,7 @@ class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
     SetInputAt(1, right);
   }
 
-  DECLARE_INSTRUCTION(TestSmi);
+  DECLARE_COMPARISON_INSTRUCTION(TestSmi);
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
@@ -3094,11 +3131,6 @@ class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     return kTagged;
   }
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TestSmiInstr);
@@ -3124,7 +3156,7 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
     return cid_results_;
   }
 
-  DECLARE_INSTRUCTION(TestCids);
+  DECLARE_COMPARISON_INSTRUCTION(TestCids);
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
@@ -3141,11 +3173,6 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
   }
 
   virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
@@ -3173,18 +3200,13 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
     set_operation_cid(cid);
   }
 
-  DECLARE_INSTRUCTION(EqualityCompare)
+  DECLARE_COMPARISON_INSTRUCTION(EqualityCompare)
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
   virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
@@ -3215,18 +3237,13 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
     set_operation_cid(cid);
   }
 
-  DECLARE_INSTRUCTION(RelationalOp)
+  DECLARE_COMPARISON_INSTRUCTION(RelationalOp)
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
   virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
@@ -5348,7 +5365,8 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-  DECLARE_INSTRUCTION(DoubleTestOp)
+  DECLARE_COMPARISON_INSTRUCTION(DoubleTestOp)
+
   virtual CompileType ComputeType() const;
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
@@ -5359,11 +5377,6 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
   }
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -6933,6 +6946,14 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
 
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels);
+
+#if defined(TARGET_ARCH_DBC)
+  virtual Condition GetNextInstructionCondition(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) {
+    UNREACHABLE();
+    return INVALID_CONDITION;
+  }
+#endif
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 

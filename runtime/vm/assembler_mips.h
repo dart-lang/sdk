@@ -162,10 +162,20 @@ class Condition : public ValueObject {
       : public BitField<uword, RelationOperator, kRelOpPos, kRelOpSize> {};
   class ImmBits : public BitField<uword, uint16_t, kImmPos, kImmSize> {};
 
-  Register left() const { return LeftBits::decode(bits_); }
-  Register right() const { return RightBits::decode(bits_); }
+  Register left() const {
+    ASSERT(IsValid());
+    return LeftBits::decode(bits_);
+  }
+
+  Register right() const {
+    ASSERT(IsValid());
+    return RightBits::decode(bits_);
+  }
   RelationOperator rel_op() const { return RelOpBits::decode(bits_); }
-  int16_t imm() const { return static_cast<int16_t>(ImmBits::decode(bits_)); }
+  int16_t imm() const {
+    ASSERT(IsValid());
+    return static_cast<int16_t>(ImmBits::decode(bits_));
+  }
 
   static bool IsValidImm(int32_t value) {
     // We want both value and value + 1 to fit in an int16_t.
@@ -177,8 +187,10 @@ class Condition : public ValueObject {
     bits_ = RelOpBits::update(value, bits_);
   }
 
+  bool IsValid() const { return rel_op() != INVALID_RELATION; }
+
   // Uninitialized condition.
-  Condition() : ValueObject(), bits_(0) {}
+  Condition() : ValueObject(), bits_(RelOpBits::update(INVALID_RELATION, 0)) {}
 
   // Copy constructor.
   Condition(const Condition& other) : ValueObject(), bits_(other.bits_) {}
@@ -200,11 +212,19 @@ class Condition : public ValueObject {
     ASSERT((imm != 0) == ((left == IMM) || (right == IMM)));
     set_left(left);
     set_right(right);
-    set_rel_op(rel_op);
+    if (rel_op == INVALID_RELATION) {
+      SetToInvalidState();
+    } else {
+      set_rel_op(rel_op);
+    }
     set_imm(imm);
   }
 
  private:
+  void SetToInvalidState() {
+    bits_ = RelOpBits::update(INVALID_RELATION, bits_);
+  }
+
   static bool IsValidRelOp(RelationOperator value) {
     return (AL <= value) && (value <= ULE);
   }
