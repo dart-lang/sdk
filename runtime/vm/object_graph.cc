@@ -550,7 +550,8 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
     REUSABLE_OBJECT_HANDLESCOPE(thread);
     Object& obj = thread->ObjectHandle();
     obj = raw_obj;
-    if ((roots_ == ObjectGraph::kVM) || obj.IsField() || obj.IsInstance()) {
+    if ((roots_ == ObjectGraph::kVM) || obj.IsField() || obj.IsInstance() ||
+        obj.IsContext()) {
       // Each object is a header + a zero-terminated list of its neighbors.
       WriteHeader(raw_obj, raw_obj->Size(), obj.GetClassId(), stream_);
       raw_obj->VisitPointers(&ptr_writer_);
