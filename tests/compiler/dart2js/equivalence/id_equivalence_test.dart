@@ -7,21 +7,29 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/kernel.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
-import 'inference_test_helper.dart';
-import 'enumerator.dart';
+import '../equivalence/id_equivalence.dart';
+import '../equivalence/id_equivalence_helper.dart';
+
+const List<String> dataDirectories = const <String>[
+  '../inference/data',
+];
 
 main() {
   asyncTest(() async {
-    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await for (FileSystemEntity entity in dataDir.list()) {
-      print('Checking ${entity.uri}');
-      String annotatedCode = await new File.fromUri(entity.uri).readAsString();
-      await checkCode(annotatedCode, checkMemberEquivalence,
-          options: [Flags.useKernel]);
+    for (String path in dataDirectories) {
+      Directory dataDir = new Directory.fromUri(Platform.script.resolve(path));
+      await for (FileSystemEntity entity in dataDir.list()) {
+        print('Checking ${entity.uri}');
+        String annotatedCode =
+            await new File.fromUri(entity.uri).readAsString();
+        await checkCode(annotatedCode, checkMemberEquivalence,
+            options: [Flags.useKernel]);
+      }
     }
   });
 }
@@ -29,7 +37,8 @@ main() {
 /// Check that the ids in [expectedMap] map to equivalent nodes/elements in
 /// the AST and kernel IR.
 void checkMemberEquivalence(
-    Compiler compiler, Map<Id, String> expectedMap, MemberElement member) {
+    Compiler compiler, Map<Id, String> expectedMap, MemberEntity _member) {
+  MemberElement member = _member;
   ResolvedAst resolvedAst = member.resolvedAst;
   if (resolvedAst.kind != ResolvedAstKind.PARSED) return;
   Map<Id, ast.Node> astMap = <Id, ast.Node>{};

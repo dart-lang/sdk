@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
+import '../equivalence/id_equivalence_helper.dart';
 import 'inference_test_helper.dart';
 
 main() {

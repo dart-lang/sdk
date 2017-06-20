@@ -117,6 +117,8 @@ abstract class Compiler {
 
   Uri mainLibraryUri;
 
+  ClosedWorld backendClosedWorldForTesting;
+
   DiagnosticReporter get reporter => _reporter;
   Resolution get resolution => _resolution;
   ParsingContext get parsingContext => _parsingContext;
@@ -600,6 +602,7 @@ abstract class Compiler {
 
         ClosedWorldRefiner closedWorldRefiner = closeResolution(mainFunction);
         ClosedWorld closedWorld = closedWorldRefiner.closedWorld;
+        backendClosedWorldForTesting = closedWorld;
         mainFunction = closedWorld.elementEnvironment.mainFunction;
 
         reporter.log('Inferring types...');

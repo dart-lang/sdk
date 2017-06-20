@@ -9,7 +9,7 @@ import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:kernel/ast.dart' as ir;
 
-enum IdKind { element, node }
+enum IdKind { element, node, local_variable, local_function }
 
 /// Id for a code point or element with type inference information.
 abstract class Id {
@@ -65,7 +65,7 @@ class NodeId implements Id {
 
   IdKind get kind => IdKind.node;
 
-  String toString() => value.toString();
+  String toString() => '$kind:$value';
 }
 
 abstract class AstEnumeratorMixin {
@@ -89,17 +89,22 @@ abstract class AstEnumeratorMixin {
     }
   }
 
-  NodeId computeNodeId(ast.Send node) {
-    dynamic sendStructure = elements.getSendStructure(node);
-    if (sendStructure == null) return null;
-    switch (sendStructure.kind) {
-      case SendStructureKind.GET:
-      case SendStructureKind.INVOKE:
-      case SendStructureKind.INCOMPATIBLE_INVOKE:
-        return computeAccessId(node, sendStructure.semantics);
-      default:
-        return new NodeId(node.getBeginToken().charOffset);
+  NodeId computeNodeId(ast.Node node, AstElement element) {
+    if (element != null && element.isLocal) {
+      return new NodeId(node.getBeginToken().charOffset);
+    } else if (node is ast.Send) {
+      dynamic sendStructure = elements.getSendStructure(node);
+      if (sendStructure == null) return null;
+      switch (sendStructure.kind) {
+        case SendStructureKind.GET:
+        case SendStructureKind.INVOKE:
+        case SendStructureKind.INCOMPATIBLE_INVOKE:
+          return computeAccessId(node, sendStructure.semantics);
+        default:
+          return new NodeId(node.getBeginToken().charOffset);
+      }
     }
+    return new NodeId(node.getBeginToken().charOffset);
   }
 }
 
@@ -136,7 +141,7 @@ class AstIdFinder extends ast.Visitor with AstEnumeratorMixin {
   visitSend(ast.Send node) {
     if (found == null) {
       visitNode(node);
-      Id id = computeNodeId(node);
+      Id id = computeNodeId(node, null);
       if (id == soughtId) {
         found = node;
       }
@@ -148,7 +153,12 @@ class AstIdFinder extends ast.Visitor with AstEnumeratorMixin {
       for (ast.Node child in node.definitions) {
         AstElement element = elements[child];
         if (element != null) {
-          Id id = computeElementId(element);
+          Id id;
+          if (element is FieldElement) {
+            id = computeElementId(element);
+          } else {
+            id = computeNodeId(child, element);
+          }
           if (id == soughtId) {
             found = element;
             return;
@@ -163,7 +173,12 @@ class AstIdFinder extends ast.Visitor with AstEnumeratorMixin {
     if (found == null) {
       AstElement element = elements.getFunctionDefinition(node);
       if (element != null) {
-        Id id = computeElementId(element);
+        Id id;
+        if (element is LocalFunctionElement) {
+          id = computeNodeId(node, element);
+        } else {
+          id = computeElementId(element);
+        }
         if (id == soughtId) {
           found = element;
           return;
