@@ -2,6 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# IMPORTANT:
+# Before adding or updating dependencies, please review the documentation here:
+# https://github.com/dart-lang/sdk/wiki/Adding-and-Updating-Dependencies
+
 vars = {
   # The dart_root is the root of our sdk checkout. This is normally
   # simply sdk, but if using special gclient specs it can be different.
@@ -15,9 +19,6 @@ vars = {
   #   https://chromium.googlesource.com/
   # named like:
   #   external/github.com/dart-lang/NAME
-  # It is ok to add a dependency directly on dart-lang (dart-lang only)
-  # github repo until the mirror has been created, but please do file a bug
-  # against infra to make that happen.
   "github_mirror":
       "https://chromium.googlesource.com/external/github.com/dart-lang/%s.git",
 
@@ -25,8 +26,11 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  # Only use this temporarily while waiting for a mirror for a new package.
-  "github_dartlang": "https://github.com/dart-lang/%s.git",
+  # IMPORTANT:
+  # This should only be used for local testing. Before adding a new package,
+  # request a mirror of the package you need. To request a mirror, file an issue
+  # on github and add the label 'area-infrastructure'.
+  # "github_dartlang": "https://github.com/dart-lang/%s.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
   "co19_rev": "@4af9ef149be554216c5bb16cbac8e50d4c28cdf1",
@@ -274,10 +278,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/pool":
       (Var("github_mirror") % "pool") + Var("pool_tag"),
   Var("dart_root") + "/third_party/pkg/protobuf":
-      # Restore the github mirror once it's corrected to point to protobuf
-      # instead of dart-protobuf
-      # (Var("github_mirror") % "dart-protobuf") + Var("protobuf_tag"),
-      (Var("github_dartlang") % "protobuf") + Var("protobuf_tag"),
+      (Var("github_mirror") % "protobuf") + Var("protobuf_tag"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":
@@ -326,7 +327,7 @@ deps = {
       (Var("github_mirror") % "test_reflective_loader") +
       Var("test_reflective_loader_tag"),
   Var("dart_root") + "/third_party/pkg/tuple":
-      (Var("github_dartlang") % "tuple") + Var("tuple_tag"),
+      (Var("github_mirror") % "tuple") + Var("tuple_tag"),
   Var("dart_root") + "/third_party/pkg/typed_data":
       (Var("github_mirror") % "typed_data") + Var("typed_data_tag"),
   Var("dart_root") + "/third_party/pkg/usage":
