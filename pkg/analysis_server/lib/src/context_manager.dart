@@ -750,30 +750,6 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  /**
-   * Return the options from the analysis options file in the given [folder]
-   * if exists, or in one of the parent folders, or `null` if no analysis
-   * options file is found or if the contents of the file are not valid YAML.
-   */
-  Map<String, Object> readOptions(Folder folder, Packages packages) {
-    try {
-      Map<String, List<Folder>> packageMap =
-          new ContextBuilder(resourceProvider, null, null)
-              .convertPackagesToMap(packages);
-      List<UriResolver> resolvers = <UriResolver>[
-        new ResourceUriResolver(resourceProvider),
-        new PackageMapUriResolver(resourceProvider, packageMap),
-      ];
-      SourceFactory sourceFactory =
-          new SourceFactory(resolvers, packages, resourceProvider);
-      return new AnalysisOptionsProvider(sourceFactory)
-          .getOptions(folder, crawlUp: true);
-    } catch (_) {
-      // Parse errors are reported by GenerateOptionsErrorsTask.
-    }
-    return null;
-  }
-
   @override
   void refresh(List<Resource> roots) {
     // Destroy old contexts
@@ -1119,6 +1095,23 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
+   * Create an object that can be used to find and read the analysis options
+   * file for code being analyzed using the given [packages].
+   */
+  AnalysisOptionsProvider _createAnalysisOptionsProvider(Packages packages) {
+    Map<String, List<Folder>> packageMap =
+        new ContextBuilder(resourceProvider, null, null)
+            .convertPackagesToMap(packages);
+    List<UriResolver> resolvers = <UriResolver>[
+      new ResourceUriResolver(resourceProvider),
+      new PackageMapUriResolver(resourceProvider, packageMap),
+    ];
+    SourceFactory sourceFactory =
+        new SourceFactory(resolvers, packages, resourceProvider);
+    return new AnalysisOptionsProvider(sourceFactory);
+  }
+
+  /**
    * Create a new empty context associated with [folder], having parent
    * [parent] and using [packagesFile] to resolve package URI's.
    */
@@ -1130,8 +1123,18 @@ class ContextManagerImpl implements ContextManager {
     ContextInfo info = new ContextInfo(this, parent, folder, packagesFile,
         normalizedPackageRoots[folder.path], disposition);
 
-    Map<String, Object> optionMap =
-        readOptions(info.folder, disposition.packages);
+    File optionsFile = null;
+    Map<String, Object> optionMap = null;
+    try {
+      AnalysisOptionsProvider provider =
+          _createAnalysisOptionsProvider(disposition.packages);
+      optionsFile = provider.getOptionsFile(info.folder, crawlUp: true);
+      if (optionsFile != null) {
+        optionMap = provider.getOptionsFromFile(optionsFile);
+      }
+    } catch (_) {
+      // Parse errors are reported elsewhere.
+    }
     AnalysisOptions options =
         new AnalysisOptionsImpl.from(defaultContextOptions);
     applyToAnalysisOptions(options, optionMap);
@@ -1143,8 +1146,13 @@ class ContextManagerImpl implements ContextManager {
             pathContext.isWithin(includedPath, excludedPath))
         .toList();
     processOptionsForDriver(info, options, optionMap);
-    info.analysisDriver = callbacks.addAnalysisDriver(
-        folder, new ContextRoot(folder.path, containedExcludedPaths), options);
+    ContextRoot contextRoot =
+        new ContextRoot(folder.path, containedExcludedPaths);
+    if (optionsFile != null) {
+      contextRoot.optionsFilePath = optionsFile.path;
+    }
+    info.analysisDriver =
+        callbacks.addAnalysisDriver(folder, contextRoot, options);
     return info;
   }
 

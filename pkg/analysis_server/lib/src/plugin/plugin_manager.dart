@@ -222,8 +222,9 @@ abstract class PluginInfo {
     if (currentSession != null) {
       AnalysisSetContextRootsParams params = new AnalysisSetContextRootsParams(
           contextRoots
-              .map((analyzer.ContextRoot contextRoot) =>
-                  new ContextRoot(contextRoot.root, contextRoot.exclude))
+              .map((analyzer.ContextRoot contextRoot) => new ContextRoot(
+                  contextRoot.root, contextRoot.exclude,
+                  optionsFile: contextRoot.optionsFilePath))
               .toList());
       currentSession.sendRequest(params);
     }

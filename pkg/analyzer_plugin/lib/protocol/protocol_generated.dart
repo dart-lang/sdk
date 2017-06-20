@@ -2354,11 +2354,11 @@ class CompletionGetSuggestionsResult implements ResponseResult {
  * ContextBuilderOptions
  *
  * {
- *   "dartSdkSummaryPath": optional String
- *   "defaultAnalysisOptionsFilePath": optional List<String>
+ *   "dartSdkSummaryPath": optional FilePath
+ *   "defaultAnalysisOptionsFilePath": optional List<FilePath>
  *   "declaredVariables": optional Map<String, String>
- *   "defaultPackageFilePath": optional List<String>
- *   "defaultPackagesDirectoryPath": optional List<String>
+ *   "defaultPackageFilePath": optional List<FilePath>
+ *   "defaultPackagesDirectoryPath": optional List<FilePath>
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -2579,8 +2579,9 @@ class ContextBuilderOptions implements HasToJson {
  * ContextRoot
  *
  * {
- *   "root": String
- *   "exclude": List<String>
+ *   "root": FilePath
+ *   "exclude": List<FilePath>
+ *   "optionsFile": optional FilePath
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -2589,6 +2590,8 @@ class ContextRoot implements HasToJson {
   String _root;
 
   List<String> _exclude;
+
+  String _optionsFile;
 
   /**
    * The absolute path of the root directory containing the files to be
@@ -2620,9 +2623,24 @@ class ContextRoot implements HasToJson {
     this._exclude = value;
   }
 
-  ContextRoot(String root, List<String> exclude) {
+  /**
+   * The absolute path of the analysis options file that should be used to
+   * control the analysis of the files in the context.
+   */
+  String get optionsFile => _optionsFile;
+
+  /**
+   * The absolute path of the analysis options file that should be used to
+   * control the analysis of the files in the context.
+   */
+  void set optionsFile(String value) {
+    this._optionsFile = value;
+  }
+
+  ContextRoot(String root, List<String> exclude, {String optionsFile}) {
     this.root = root;
     this.exclude = exclude;
+    this.optionsFile = optionsFile;
   }
 
   factory ContextRoot.fromJson(
@@ -2644,7 +2662,12 @@ class ContextRoot implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "exclude");
       }
-      return new ContextRoot(root, exclude);
+      String optionsFile;
+      if (json.containsKey("optionsFile")) {
+        optionsFile = jsonDecoder.decodeString(
+            jsonPath + ".optionsFile", json["optionsFile"]);
+      }
+      return new ContextRoot(root, exclude, optionsFile: optionsFile);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ContextRoot", json);
     }
@@ -2655,6 +2678,9 @@ class ContextRoot implements HasToJson {
     Map<String, dynamic> result = {};
     result["root"] = root;
     result["exclude"] = exclude;
+    if (optionsFile != null) {
+      result["optionsFile"] = optionsFile;
+    }
     return result;
   }
 
@@ -2665,7 +2691,8 @@ class ContextRoot implements HasToJson {
   bool operator ==(other) {
     if (other is ContextRoot) {
       return root == other.root &&
-          listEqual(exclude, other.exclude, (String a, String b) => a == b);
+          listEqual(exclude, other.exclude, (String a, String b) => a == b) &&
+          optionsFile == other.optionsFile;
     }
     return false;
   }
@@ -2675,6 +2702,7 @@ class ContextRoot implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, root.hashCode);
     hash = JenkinsSmiHash.combine(hash, exclude.hashCode);
+    hash = JenkinsSmiHash.combine(hash, optionsFile.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -5439,8 +5467,8 @@ class PluginShutdownResult implements ResponseResult {
  * plugin.versionCheck params
  *
  * {
- *   "byteStorePath": String
- *   "sdkPath": String
+ *   "byteStorePath": FilePath
+ *   "sdkPath": FilePath
  *   "version": String
  * }
  *
@@ -6441,7 +6469,7 @@ class RequestErrorCode implements Enum {
  *
  * {
  *   "type": WatchEventType
- *   "path": String
+ *   "path": FilePath
  * }
  *
  * Clients may not extend, implement or mix-in this class.
