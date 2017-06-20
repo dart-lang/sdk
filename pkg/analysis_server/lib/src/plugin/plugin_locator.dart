@@ -13,13 +13,13 @@ class PluginLocator {
    * The key used in the `pubspec.yaml` file to specify the location of the
    * analysis plugin.
    */
-  static const String analysisPluginKey = 'analysis_plugin';
+  static const String analyzerPluginKey = 'analyzer_plugin';
 
   /**
    * The name of the default plugin directory, located within the `tools`
    * directory.
    */
-  static const String defaultPluginFolderName = 'analysis_plugin';
+  static const String defaultPluginFolderName = 'analyzer_plugin';
 
   /**
    * The name of the `pubspec.yaml` file.
@@ -79,7 +79,7 @@ class PluginLocator {
             sourceUrl: pubspecFile.toUri());
         YamlNode contents = document.contents;
         if (contents is YamlMap) {
-          String pluginPath = contents[analysisPluginKey];
+          String pluginPath = contents[analyzerPluginKey];
           if (pluginPath != null) {
             Folder pluginFolder =
                 packageFolder.getChildAssumingFolder(pluginPath);

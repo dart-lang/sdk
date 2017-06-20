@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analyzer/context/context_root.dart';
@@ -63,8 +64,8 @@ class PluginWatcherTest {
     resourceProvider.newFile(
         resourceProvider.convertPath('/pkg2/pubspec.yaml'), 'name: pkg2');
     resourceProvider.newFile(
-        resourceProvider
-            .convertPath('/pkg2/tools/analysis_plugin/bin/plugin.dart'),
+        resourceProvider.convertPath(
+            '/pkg2/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}/bin/plugin.dart'),
         '');
     await driver.computeResult('package:pkg2/pk2.dart');
     //

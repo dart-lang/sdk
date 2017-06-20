@@ -76,7 +76,7 @@ class PluginLocatorTest {
         resourceProvider.pathContext.join(packageRoot, 'pluginDir');
     _createPubspec('''
 name: test_project
-${PluginLocator.analysisPluginKey}: $nonDefaultPath
+${PluginLocator.analyzerPluginKey}: $nonDefaultPath
 ''');
     resourceProvider.newFolder(nonDefaultPath);
     return nonDefaultPath;
