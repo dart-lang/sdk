@@ -750,23 +750,6 @@ stackPrint(exception) {
 // Forward to dart:_js_helper to create a _StackTrace object.
 stackTrace(exception) => getTraceFromException(exception);
 
-///
-/// Implements a sequence of .? operations.
-///
-/// Will call each successive callback, unless one returns null, which stops
-/// the sequence.
-///
-nullSafe(obj, @rest callbacks) => JS(
-    '',
-    '''(() => {
-  if ($obj == null) return $obj;
-  for (let callback of $callbacks) {
-    $obj = callback($obj);
-    if ($obj == null) break;
-  }
-  return $obj;
-})()''');
-
 final _value = JS('', 'Symbol("_value")');
 
 ///

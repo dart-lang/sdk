@@ -4695,41 +4695,14 @@ class CodeGenerator extends Object
   }
 
   JS.Expression _emitNullSafe(Expression node) {
-    // Desugar ?. sequence by passing a sequence of callbacks that applies
-    // each operation in sequence:
-    //
-    //     obj?.foo()?.bar
-    // -->
-    //     nullSafe(obj, _ => _.foo(), _ => _.bar);
-    //
-    // This pattern has the benefit of preserving order, as well as minimizing
-    // code expansion: each `?.` becomes `, _ => _`, plus one helper call.
-    //
-    // TODO(jmesserly): we could desugar with MetaLet instead, which may
-    // lead to higher performing code, but at the cost of readability.
-    var tail = <JS.Expression>[];
-    for (;;) {
-      var op = _getOperator(node);
-      if (op != null && op.lexeme == '?.') {
-        var nodeTarget = _getTarget(node);
-        if (!isNullable(nodeTarget)) {
-          node = _stripNullAwareOp(node, nodeTarget);
-          break;
-        }
-
-        var param = _createTemporary('_', nodeTarget.staticType,
-            nullable: false, dynamicInvoke: isDynamicInvoke(nodeTarget));
-        var baseNode = _stripNullAwareOp(node, param);
-        tail.add(
-            new JS.ArrowFun(<JS.Parameter>[_visit(param)], _visit(baseNode)));
-        node = nodeTarget;
-      } else {
-        break;
-      }
-    }
-    if (tail.isEmpty) return _visit(node);
-    return _callHelper(
-        'nullSafe(#, #)', [_visit(node) as JS.Expression, tail.reversed]);
+    // Desugar `obj?.name` as ((x) => x == null ? null : x.name)(obj)
+    var target = _getTarget(node);
+    var vars = <JS.MetaLetVariable, JS.Expression>{};
+    var t = _bindValue(vars, 't', target, context: target);
+    return new JS.MetaLet(vars, [
+      js.call('# == null ? null : #',
+          [_visit(t), _visit(_stripNullAwareOp(node, t))])
+    ]);
   }
 
   static Token _getOperator(Expression node) {
