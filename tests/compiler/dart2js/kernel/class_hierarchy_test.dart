@@ -7,7 +7,6 @@
 
 import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:compiler/src/compiler.dart' show Compiler;
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/library_loader.dart' show LoadedLibraries;
 import 'package:kernel/ast.dart' as ir;
@@ -60,6 +59,7 @@ main(List<String> arguments) {
         }
       }
       fail('Class $name not found.');
+      throw "Not reachable.";
     }
 
     ir.Class classS = getClass('S');

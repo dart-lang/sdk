@@ -431,6 +431,7 @@ class Precompiler : public ValueObject {
   ParsedJSONObject* jit_feedback_;
 
   bool changed_;
+  bool retain_root_library_caches_;
   intptr_t function_count_;
   intptr_t class_count_;
   intptr_t selector_count_;

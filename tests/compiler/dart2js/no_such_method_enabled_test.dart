@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
@@ -279,8 +278,8 @@ checkTest(Compiler compiler, NoSuchMethodTest test, {bool testComplexReturns}) {
 
   // Test [NoSuchMethodResolver] results for each method.
   for (NoSuchMethodInfo info in test.methods) {
-    ClassEntity cls =
-        elementEnvironment.lookupClass(compiler.mainApp, info.className);
+    ClassEntity cls = elementEnvironment.lookupClass(
+        elementEnvironment.mainLibrary, info.className);
     Expect.isNotNull(cls, "Class ${info.className} not found.");
     FunctionEntity noSuchMethod =
         elementEnvironment.lookupClassMember(cls, 'noSuchMethod');
@@ -289,8 +288,8 @@ checkTest(Compiler compiler, NoSuchMethodTest test, {bool testComplexReturns}) {
     if (info.superClassName == null) {
       Expect.equals(ObjectNSM, resolver.getSuperNoSuchMethod(noSuchMethod));
     } else {
-      ClassEntity superclass =
-          elementEnvironment.lookupClass(compiler.mainApp, info.superClassName);
+      ClassEntity superclass = elementEnvironment.lookupClass(
+          elementEnvironment.mainLibrary, info.superClassName);
       Expect.isNotNull(
           superclass, "Superclass ${info.superClassName} not found.");
       FunctionEntity superNoSuchMethod =
@@ -317,8 +316,8 @@ checkTest(Compiler compiler, NoSuchMethodTest test, {bool testComplexReturns}) {
   // the [NoSuchMethodResolver] results which are therefore tested for all
   // methods first.
   for (NoSuchMethodInfo info in test.methods) {
-    ClassEntity cls =
-        elementEnvironment.lookupClass(compiler.mainApp, info.className);
+    ClassEntity cls = elementEnvironment.lookupClass(
+        elementEnvironment.mainLibrary, info.className);
     Expect.isNotNull(cls, "Class ${info.className} not found.");
     FunctionEntity noSuchMethod =
         elementEnvironment.lookupClassMember(cls, 'noSuchMethod');

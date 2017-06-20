@@ -10,12 +10,13 @@ class Super {
 class Sub extends Super {
   /*Sub.method:[subclass=Closure]*/
   method() {
+    // ignore: INVALID_ASSIGNMENT
     var a = super.field = new Sub();
-    return a./*[exact=Sub]*/method;
+    return a. /*[exact=Sub]*/ method;
   }
 }
 
 /*main:[null]*/
 main() {
-  new Sub()./*[exact=Sub]*/method();
+  new Sub(). /*[exact=Sub]*/ method();
 }

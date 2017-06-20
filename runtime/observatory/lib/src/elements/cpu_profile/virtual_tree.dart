@@ -205,11 +205,11 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       HtmlElement element, M.FunctionCallTreeNode item, int depth) {
     element.children[0].text =
         Utils.formatSize(item.inclusiveNativeAllocations);
-    element.children[0].title = 'memory allocated from resulting calls: ' +
+    element.children[0].title = 'memory allocated from resulting calls: '
         '${item.inclusiveNativeAllocations}B';
     element.children[1].text =
         Utils.formatSize(item.exclusiveNativeAllocations);
-    element.children[1].title = 'memory allocated during execution: ' +
+    element.children[1].title = 'memory allocated during execution: '
         '${item.exclusiveNativeAllocations}B';
     _updateLines(element.children[2].children, depth);
     if (item.children.isNotEmpty) {
@@ -248,11 +248,11 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       HtmlElement element, M.CodeCallTreeNode item, int depth) {
     element.children[0].text =
         Utils.formatSize(item.inclusiveNativeAllocations);
-    element.children[0].title = 'memory allocated from resulting calls: ' +
+    element.children[0].title = 'memory allocated from resulting calls: '
         '${item.inclusiveNativeAllocations}B';
     element.children[1].text =
         Utils.formatSize(item.exclusiveNativeAllocations);
-    element.children[1].title = 'memory allocated during execution: ' +
+    element.children[1].title = 'memory allocated during execution: '
         '${item.exclusiveNativeAllocations}B';
     _updateLines(element.children[2].children, depth);
     if (item.children.isNotEmpty) {

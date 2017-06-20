@@ -62,7 +62,7 @@ vars = {
   "dart2js_info_tag" : "@0.5.4+2",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@1.0.6",
-  "dartdoc_tag" : "@v0.9.14-dev",
+  "dartdoc_tag" : "@v0.12.0",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@1.0.0",
   "glob_tag": "@1.1.3",
@@ -83,7 +83,7 @@ vars = {
   "matcher_tag": "@0.12.0+2",
   "metatest_tag": "@0.2.2+3",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
-  "mustache4dart_tag" : "@v1.0.10",
+  "mustache4dart_tag" : "@v1.1.0",
   "oauth2_tag": "@1.0.2",
   "observable_tag": "@0.17.0",
   "observatory_pub_packages_rev": "@26aad88f1c1915d39bbcbff3cad589e2402fdcf1",
@@ -116,6 +116,7 @@ vars = {
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
   "test_reflective_loader_tag": "@0.1.0",
   "test_tag": "@0.12.18+1",
+  "tuple_tag": "@v1.0.1",
   "typed_data_tag": "@1.1.3",
   "usage_tag": "@v3.0.0+1",
   "utf_tag": "@0.9.0+3",
@@ -324,6 +325,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       (Var("github_mirror") % "test_reflective_loader") +
       Var("test_reflective_loader_tag"),
+  Var("dart_root") + "/third_party/pkg/tuple":
+      (Var("github_dartlang") % "tuple") + Var("tuple_tag"),
   Var("dart_root") + "/third_party/pkg/typed_data":
       (Var("github_mirror") % "typed_data") + Var("typed_data_tag"),
   Var("dart_root") + "/third_party/pkg/usage":

@@ -199,6 +199,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   static final FunctionType _functionReturningDynamic =
       new FunctionType(const [], const DynamicType());
 
+  final TypeInferenceEngineImpl engine;
+
   @override
   final String uri;
 
@@ -221,6 +223,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final InterfaceType thisType;
 
+  /// The [FieldNode] whose initializer will be type inferred using this
+  /// [TypeInferrerImpl], or `null` if this [TypeInferrerImpl] will be used to
+  /// infer types outside the scope of a field initializer.
+  final FieldNode fieldNode;
+
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
   ClosureContext closureContext;
@@ -231,14 +238,20 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Not used when performing local inference.
   bool isImmediatelyEvident = true;
 
-  TypeInferrerImpl(TypeInferenceEngineImpl engine, this.uri, this.listener,
-      bool topLevel, this.thisType)
+  List<FieldNode> _dryRunDependencies;
+
+  TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
+      this.thisType, this.fieldNode)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel;
+
+  /// Indicates whether we are currently doing a "dry run" in order to collect
+  /// type inference dependencies.
+  bool get isDryRun => _dryRunDependencies != null;
 
   /// Gets the type promoter that should be used to promote types during
   /// inference.
@@ -334,6 +347,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       throw internalError(
           'Unexpected propertySet type: ${propertySet.runtimeType}');
     }
+  }
+
+  /// Ends a dry run started by [startDryRun] and returns the collected
+  /// dependencies.
+  List<FieldNode> finishDryRun() {
+    var dryRunDependencies = _dryRunDependencies;
+    _dryRunDependencies = null;
+    return dryRunDependencies;
   }
 
   FunctionType getCalleeFunctionType(Member interfaceMember,
@@ -517,7 +538,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       FunctionType calleeType, DartType returnType, Arguments arguments,
       {bool isOverloadedArithmeticOperator: false,
       DartType receiverType,
-      bool skipTypeArgumentInference: false}) {
+      bool skipTypeArgumentInference: false,
+      bool forceArgumentInference: false}) {
     var calleeTypeParameters = calleeType.typeParameters;
     List<DartType> explicitTypeArguments = getExplicitTypeArguments(arguments);
     bool inferenceNeeded = !skipTypeArgumentInference &&
@@ -558,8 +580,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         DartType inferredFormalType = substitution != null
             ? substitution.substituteType(formalType)
             : formalType;
-        var expressionType = inferExpression(expression, inferredFormalType,
-            inferenceNeeded || isOverloadedArithmeticOperator);
+        var expressionType = inferExpression(
+            expression,
+            inferredFormalType,
+            inferenceNeeded ||
+                isOverloadedArithmeticOperator ||
+                forceArgumentInference);
         if (inferenceNeeded) {
           formalTypes.add(formalType);
           actualTypes.add(expressionType);
@@ -601,6 +627,46 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     inferExpression(initializer, declaredType, false);
   }
 
+  /// Performs the core type inference algorithm for property gets (this handles
+  /// both null-aware and non-null-aware property gets).
+  DartType inferPropertyGet(
+      Expression expression,
+      Expression receiver,
+      int fileOffset,
+      PropertyGet desugaredGet,
+      DartType typeContext,
+      bool typeNeeded) {
+    typeNeeded =
+        listener.propertyGetEnter(expression, typeContext) || typeNeeded;
+    // First infer the receiver so we can look up the getter that was invoked.
+    var receiverType = inferExpression(receiver, null, true);
+    Member interfaceMember =
+        findInterfaceMember(receiverType, desugaredGet.name, fileOffset);
+    if (isTopLevel &&
+        ((interfaceMember is Procedure &&
+                interfaceMember.kind == ProcedureKind.Getter) ||
+            interfaceMember is Field)) {
+      if (TypeInferenceEngineImpl.fullTopLevelInference) {
+        if (interfaceMember is KernelField) {
+          var fieldNode = KernelMember.getFieldNode(interfaceMember);
+          if (fieldNode != null) {
+            engine.inferFieldFused(fieldNode, this.fieldNode);
+          }
+        }
+      } else {
+        // References to fields and getters can't be relied upon for top level
+        // inference.
+        recordNotImmediatelyEvident(fileOffset);
+      }
+    }
+    desugaredGet.interfaceTarget = interfaceMember;
+    var inferredType =
+        getCalleeType(interfaceMember, receiverType, desugaredGet.name);
+    // TODO(paulberry): Infer tear-off type arguments if appropriate.
+    listener.propertyGetExit(expression, inferredType);
+    return typeNeeded ? inferredType : null;
+  }
+
   /// Modifies a type as appropriate when inferring a closure return type.
   DartType inferReturnType(DartType returnType, bool isExpressionFunction) {
     if (returnType == null) {
@@ -624,10 +690,26 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// the statement type and calls the appropriate specialized "infer" method.
   void inferStatement(Statement statement);
 
+  /// Records that the field represented by [fieldNode] is a dependency of the
+  /// static field for which we are currently doing a dry run of type inference.
+  ///
+  /// May only be called if a dry run is in progress.
+  void recordDryRunDependency(FieldNode fieldNode) {
+    listener.recordDependency(fieldNode);
+    _dryRunDependencies.add(fieldNode);
+  }
+
   void recordNotImmediatelyEvident(int fileOffset) {
     assert(isTopLevel);
     isImmediatelyEvident = false;
     // TODO(paulberry): report an error.
+  }
+
+  /// Begins a dry run of type inference, in which the goal is to collect the
+  /// dependencies of a given field.
+  void startDryRun() {
+    assert(_dryRunDependencies == null);
+    _dryRunDependencies = <FieldNode>[];
   }
 
   DartType wrapFutureOrType(DartType type) {

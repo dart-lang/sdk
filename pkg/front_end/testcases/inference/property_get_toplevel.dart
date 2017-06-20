@@ -12,15 +12,7 @@ class C {
 }
 
 C c = new C();
-var /*@topType=dynamic*/ field_ref = c. /*@target=C::field*/ field;
-var /*@topType=dynamic*/ getter_ref = c. /*@target=C::getter*/ getter;
 var /*@topType=() -> int*/ function_ref = c. /*@target=C::function*/ function;
-var /*@topType=dynamic*/ field_ref_list = /*@typeArgs=int*/ [
-  c. /*@target=C::field*/ field
-];
-var /*@topType=dynamic*/ getter_ref_list = /*@typeArgs=int*/ [
-  c. /*@target=C::getter*/ getter
-];
 var /*@topType=List<() -> int>*/ function_ref_list = /*@typeArgs=() -> int*/ [
   c. /*@target=C::function*/ function
 ];

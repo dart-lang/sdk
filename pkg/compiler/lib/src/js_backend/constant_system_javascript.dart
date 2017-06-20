@@ -359,7 +359,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
     bool onlyStringKeys = true;
     ConstantValue protoValue = null;
     for (int i = 0; i < keys.length; i++) {
-      var key = keys[i];
+      dynamic key = keys[i];
       if (key.isString) {
         if (key.primitiveValue == JavaScriptMapConstant.PROTO_PROPERTY) {
           protoValue = values[i];
@@ -393,7 +393,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
     ConstantValue argument = createString(text);
     // TODO(johnniwinther): Use type arguments when all uses no longer expect
     // a [FieldElement].
-    Map<FieldEntity, ConstantValue> fields = /*<FieldElement, ConstantValue>*/ {
+    Map<dynamic, ConstantValue> fields = <dynamic, ConstantValue>{
       field: argument
     };
     return new ConstructedConstantValue(type, fields);

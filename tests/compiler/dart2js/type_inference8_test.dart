@@ -7,7 +7,6 @@ import "package:compiler/src/constants/values.dart";
 import "package:compiler/src/types/types.dart";
 import "package:expect/expect.dart";
 import 'compiler_helper.dart';
-import 'type_mask_test_helper.dart';
 
 import 'dart:async';
 
@@ -43,7 +42,7 @@ Future runTest1() {
     // 'foo' should always return false
     Expect.equals(falseType, mask);
     // the argument to 'bar' is always false
-    var bar = findElement(compiler, "bar");
+    dynamic bar = findElement(compiler, "bar");
     var barArg = bar.parameters.first;
     var barArgMask = typesInferrer.getTypeOfElement(barArg);
     Expect.equals(falseType, barArgMask);
@@ -83,7 +82,7 @@ Future runTest2() {
     var mask = typesInferrer.getReturnTypeOfElement(element);
     // Can't infer value for foo's return type, it could be either true or false
     Expect.identical(commonMasks.boolType, mask);
-    var bar = findElement(compiler, "bar");
+    dynamic bar = findElement(compiler, "bar");
     var barArg = bar.parameters.first;
     var barArgMask = typesInferrer.getTypeOfElement(barArg);
     // The argument to bar should have the same type as the return type of foo

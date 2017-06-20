@@ -1,6 +1,13 @@
 ## 1.25.0
 
 ### Language
+* A string in a `part of` declaration may now be used to refer to the library
+  this file is part of.
+  A library part can now declare its library either as:
+  `part of name.of.library;` or as `part of "uriReferenceOfLibrary.dart";`.
+  This allows libraries with no library declarations (and therefore no name)
+  to have parts, and it allows tools to easily find the library of a part
+  file.
 
 #### Strong Mode
 

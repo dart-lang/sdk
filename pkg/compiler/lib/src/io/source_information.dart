@@ -47,7 +47,8 @@ class SourceInformationStrategy {
   const SourceInformationStrategy();
 
   /// Create a [SourceInformationBuilder] for [member].
-  SourceInformationBuilder createBuilderForContext(MemberEntity member) {
+  SourceInformationBuilder createBuilderForContext(
+      covariant MemberEntity member) {
     return const SourceInformationBuilder();
   }
 
@@ -63,10 +64,10 @@ class SourceInformationBuilder {
   const SourceInformationBuilder();
 
   /// Create a [SourceInformationBuilder] for [member].
-  SourceInformationBuilder forContext(MemberEntity member) => this;
+  SourceInformationBuilder forContext(covariant MemberEntity member) => this;
 
   /// Generate [SourceInformation] the declaration of the [member].
-  SourceInformation buildDeclaration(MemberEntity member) => null;
+  SourceInformation buildDeclaration(covariant MemberEntity member) => null;
 
   /// Generate [SourceInformation] for the generic [node].
   @deprecated

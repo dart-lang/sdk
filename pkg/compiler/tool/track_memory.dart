@@ -151,8 +151,8 @@ _showProgress(newUsed, newCapacity, oldUsed, oldCapacity) {
       color: true);
 
   sb.write(' | ');
-  var maxUsed = max(lastMaxUsed, newUsed + oldUsed);
-  var maxCapacity = max(lastMaxCapacity, newCapacity + oldCapacity);
+  int maxUsed = max(lastMaxUsed, newUsed + oldUsed);
+  int maxCapacity = max(lastMaxCapacity, newCapacity + oldCapacity);
   _writeNumber(sb, lastMaxUsed, maxUsed);
   _writeNumber(sb, lastMaxCapacity, maxCapacity, color: true);
   stdout.write('$sb');

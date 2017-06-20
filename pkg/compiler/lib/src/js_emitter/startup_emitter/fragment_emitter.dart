@@ -1168,7 +1168,7 @@ class FragmentEmitter {
       }
       for (Class cls in library.classes) {
         if (cls.isSoftDeferred != softDeferred) continue;
-        var methods = cls.methods.where((m) => m.needsTearOff).toList();
+        var methods = cls.methods.where((dynamic m) => m.needsTearOff).toList();
         js.Expression container = js.js("#.prototype", classReference(cls));
         js.Expression reference = container;
         if (methods.length > 1) {
@@ -1260,7 +1260,7 @@ class FragmentEmitter {
     List<js.Property> globals = <js.Property>[];
 
     js.ArrayInitializer fragmentUris(List<Fragment> fragments) {
-      return js.stringArray(fragments.map((DeferredFragment fragment) =>
+      return js.stringArray(fragments.map((Fragment fragment) =>
           "${fragment.outputFileName}.${ModelEmitter.deferredExtension}"));
     }
 

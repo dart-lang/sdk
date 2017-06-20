@@ -107,7 +107,7 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
   }
 
   @override
-  void onData(NativeBehavior behavior, ObjectEncoder encoder) {
+  void onData(covariant NativeBehavior behavior, ObjectEncoder encoder) {
     NativeBehaviorSerialization.serializeNativeBehavior(behavior, encoder);
   }
 }
@@ -266,7 +266,7 @@ class NativeBehaviorSerialization {
         .addAll(decoder.getTypes(DART_TYPES_RETURNED, isOptional: true));
     behavior.typesReturned.addAll(decoder
         .getElements(THIS_TYPES_RETURNED, isOptional: true)
-        .map((element) => element.thisType)
+        .map((dynamic element) => element.thisType)
         .toList());
     behavior.typesReturned.addAll(decoder
         .getStrings(SPECIAL_TYPES_RETURNED, isOptional: true)
@@ -276,7 +276,7 @@ class NativeBehaviorSerialization {
         .addAll(decoder.getTypes(DART_TYPES_INSTANTIATED, isOptional: true));
     behavior.typesInstantiated.addAll(decoder
         .getElements(THIS_TYPES_INSTANTIATED, isOptional: true)
-        .map((element) => element.thisType)
+        .map((dynamic element) => element.thisType)
         .toList());
     behavior.typesInstantiated.addAll(decoder
         .getStrings(SPECIAL_TYPES_INSTANTIATED, isOptional: true)

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'options_helper.dart';
 import 'parser_helper.dart';
 
 void main() {

@@ -70,8 +70,9 @@ class OutputUnit {
 
   String toString() => "OutputUnit($name)";
 
-  bool operator ==(OutputUnit other) {
-    return imports.length == other.imports.length &&
+  bool operator ==(other) {
+    return other is OutputUnit &&
+        imports.length == other.imports.length &&
         imports.containsAll(other.imports);
   }
 
@@ -444,7 +445,8 @@ class DeferredLoadTask extends CompilerTask {
       // If we see a class, add everything its live instance members refer
       // to.  Static members are not relevant, unless we are processing
       // extra dependencies due to mirrors.
-      void addLiveInstanceMember(_, MemberElement element) {
+      void addLiveInstanceMember(_, _element) {
+        MemberElement element = _element;
         if (!compiler.resolutionWorldBuilder.isMemberUsed(element)) return;
         if (!isMirrorUsage && !element.isInstanceMember) return;
         elements.add(element);
@@ -790,11 +792,11 @@ class DeferredLoadTask extends CompilerTask {
     compiler.impactStrategy.onImpactUsed(IMPACT_USE);
   }
 
-  void beforeResolution(Compiler compiler) {
-    if (compiler.mainApp == null) return;
+  void beforeResolution(LibraryEntity mainLibrary) {
+    if (mainLibrary == null) return;
     // TODO(johnniwinther): Support deferred load for kernel based elements.
     if (compiler.options.loadFromDill) return;
-    _allDeferredImports[_fakeMainImport] = compiler.mainApp;
+    _allDeferredImports[_fakeMainImport] = mainLibrary;
     var lastDeferred;
     // When detecting duplicate prefixes of deferred libraries there are 4
     // cases of duplicate prefixes:
@@ -854,8 +856,9 @@ class DeferredLoadTask extends CompilerTask {
                   import, MessageKind.DEFERRED_LIBRARY_WITHOUT_PREFIX);
             } else {
               prefixDeferredImport[prefix] = import;
+              Uri mainLibraryUri = compiler.mainLibraryUri;
               _deferredImportDescriptions[key] =
-                  new ImportDescription(import, library, compiler);
+                  new ImportDescription(import, library, mainLibraryUri);
             }
             isProgramSplit = true;
             lastDeferred = import;
@@ -1030,9 +1033,9 @@ class ImportDescription {
   final LibraryElement _importingLibrary;
 
   ImportDescription(
-      ImportElement import, LibraryElement importingLibrary, Compiler compiler)
-      : importingUri = uri_extras.relativize(compiler.mainApp.canonicalUri,
-            importingLibrary.canonicalUri, false),
+      ImportElement import, LibraryElement importingLibrary, Uri mainLibraryUri)
+      : importingUri = uri_extras.relativize(
+            mainLibraryUri, importingLibrary.canonicalUri, false),
         prefix = import.prefix.name,
         _importingLibrary = importingLibrary;
 

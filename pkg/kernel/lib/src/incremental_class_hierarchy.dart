@@ -86,22 +86,29 @@ class IncrementalClassHierarchy implements ClassHierarchy {
 
   @override
   void forEachOverridePair(Class node,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter)) {
+      callback(Member declaredMember, Member interfaceMember, bool isSetter),
+      {bool crossGettersSetters: false}) {
     _ClassInfo info = _getInfo(node);
     for (var supertype in node.supers) {
       var superNode = supertype.classNode;
       var superInfo = _getInfo(superNode);
 
       var superGetters = superInfo.interfaceGettersAndCalls;
+      var superSetters = superInfo.interfaceSetters;
+
       _reportOverrides(info.implementedGettersAndCalls, superGetters, callback);
       _reportOverrides(info.declaredGettersAndCalls, superGetters, callback,
           onlyAbstract: true);
 
-      var superSetters = superInfo.interfaceSetters;
       _reportOverrides(info.implementedSetters, superSetters, callback,
           isSetter: true);
       _reportOverrides(info.declaredSetters, superSetters, callback,
           isSetter: true, onlyAbstract: true);
+
+      if (crossGettersSetters) {
+        _reportOverrides(info.declaredGettersAndCalls, superSetters, callback);
+        _reportOverrides(info.declaredSetters, superGetters, callback);
+      }
     }
     if (!node.isAbstract) {
       // If a non-abstract class declares an abstract method M whose

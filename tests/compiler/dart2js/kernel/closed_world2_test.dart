@@ -13,7 +13,6 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend_usage.dart';
@@ -148,10 +147,12 @@ Future<ResultKind> mainInternal(List<String> args,
   checkBackendUsage(backendUsage1, backendUsage2, strategy);
 
   checkResolutionEnqueuers(backendUsage1, backendUsage2, enqueuer1, enqueuer2,
-      elementEquivalence: equivalence.entityEquivalence,
-      typeEquivalence: (ResolutionDartType a, DartType b) {
-    return equivalence.typeEquivalence(unalias(a), b);
-  }, elementFilter: elementFilter, verbose: arguments.verbose);
+      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
+      typeEquivalence: (DartType a, DartType b) {
+        return equivalence.typeEquivalence(unalias(a), b);
+      },
+      elementFilter: elementFilter,
+      verbose: arguments.verbose);
 
   checkClosedWorlds(closedWorld1, closedWorld2,
       strategy: equivalence.defaultStrategy, verbose: arguments.verbose);

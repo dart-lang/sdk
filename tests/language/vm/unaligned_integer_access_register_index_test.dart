@@ -9,48 +9,48 @@ import 'package:expect/expect.dart';
 unalignedUint16() {
   var bytes = new ByteData(64);
   for (var i = 0; i < 2; i++) {
-    bytes.setUint16(i, 0xABCD);
-    Expect.equals(0xABCD, bytes.getUint16(i));
+    bytes.setUint16(i, 0xABCD, Endianness.HOST_ENDIAN);
+    Expect.equals(0xABCD, bytes.getUint16(i, Endianness.HOST_ENDIAN));
   }
 }
 
 unalignedInt16() {
   var bytes = new ByteData(64);
   for (var i = 0; i < 2; i++) {
-    bytes.setInt16(i, -0x1234);
-    Expect.equals(-0x1234, bytes.getInt16(i));
+    bytes.setInt16(i, -0x1234, Endianness.HOST_ENDIAN);
+    Expect.equals(-0x1234, bytes.getInt16(i, Endianness.HOST_ENDIAN));
   }
 }
 
 unalignedUint32() {
   var bytes = new ByteData(64);
   for (var i = 0; i < 4; i++) {
-    bytes.setUint32(i, 0xABCDABCD);
-    Expect.equals(0xABCDABCD, bytes.getUint32(i));
+    bytes.setUint32(i, 0xABCDABCD, Endianness.HOST_ENDIAN);
+    Expect.equals(0xABCDABCD, bytes.getUint32(i, Endianness.HOST_ENDIAN));
   }
 }
 
 unalignedInt32() {
   var bytes = new ByteData(64);
   for (var i = 0; i < 4; i++) {
-    bytes.setInt32(i, -0x12341234);
-    Expect.equals(-0x12341234, bytes.getInt32(i));
+    bytes.setInt32(i, -0x12341234, Endianness.HOST_ENDIAN);
+    Expect.equals(-0x12341234, bytes.getInt32(i, Endianness.HOST_ENDIAN));
   }
 }
 
 unalignedUint64() {
   var bytes = new ByteData(64);
   for (var i = 0; i < 8; i++) {
-    bytes.setUint64(i, 0xABCDABCD);
-    Expect.equals(0xABCDABCD, bytes.getUint64(i));
+    bytes.setUint64(i, 0xABCDABCD12345678, Endianness.HOST_ENDIAN);
+    Expect.equals(0xABCDABCD12345678, bytes.getUint64(i, Endianness.HOST_ENDIAN));
   }
 }
 
 unalignedInt64() {
   var bytes = new ByteData(64);
   for (var i = 0; i < 8; i++) {
-    bytes.setInt64(i, -0x12341234);
-    Expect.equals(-0x12341234, bytes.getInt64(i));
+    bytes.setInt64(i, -0x12341234ABCDABCD, Endianness.HOST_ENDIAN);
+    Expect.equals(-0x12341234ABCDABCD, bytes.getInt64(i, Endianness.HOST_ENDIAN));
   }
 }
 

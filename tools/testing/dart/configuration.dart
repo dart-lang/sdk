@@ -526,7 +526,7 @@ class Compiler {
         return const [Runtime.none];
       case Compiler.appJit:
       case Compiler.dartk:
-        return const [Runtime.vm, Runtime.selfCheck, Runtime.none];
+        return const [Runtime.vm, Runtime.selfCheck];
       case Compiler.precompiler:
       case Compiler.dartkp:
         return const [Runtime.dartPrecompiled];

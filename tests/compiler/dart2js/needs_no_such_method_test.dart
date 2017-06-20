@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/common.dart';
 import 'package:compiler/src/elements/elements.dart' show ClassElement;
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/call_structure.dart';

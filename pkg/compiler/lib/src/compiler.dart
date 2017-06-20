@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
-import 'closure.dart' as closureMapping show ClosureTask;
+import 'closure.dart' as closureMapping show ClosureConversionTask;
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Uris;
 import 'common/resolution.dart'
@@ -115,8 +115,7 @@ abstract class Compiler {
 
   ResolvedUriTranslator get resolvedUriTranslator;
 
-  LibraryEntity mainApp;
-  FunctionEntity mainFunction;
+  Uri mainLibraryUri;
 
   DiagnosticReporter get reporter => _reporter;
   Resolution get resolution => _resolution;
@@ -144,7 +143,7 @@ abstract class Compiler {
   LibraryLoaderTask libraryLoader;
   SerializationTask serialization;
   ResolverTask resolver;
-  closureMapping.ClosureTask closureToClassMapper;
+  closureMapping.ClosureConversionTask closureDataLookup;
   TypeCheckerTask checker;
   GlobalTypeInferenceTask globalInference;
   JavaScriptBackend backend;
@@ -226,7 +225,7 @@ abstract class Compiler {
           measurer),
       parser = new ParserTask(this),
       resolver = createResolverTask(),
-      closureToClassMapper = new closureMapping.ClosureTask(this),
+      closureDataLookup = backendStrategy.createClosureConversionTask(this),
       checker = new TypeCheckerTask(this),
       globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,
@@ -433,6 +432,7 @@ abstract class Compiler {
   Uri resolvePatchUri(String dartLibraryPath);
 
   Future runInternal(Uri uri) async {
+    mainLibraryUri = uri;
     // TODO(ahe): This prevents memory leaks when invoking the compiler
     // multiple times. Implement a better mechanism where we can store
     // such caches in the compiler and get access to them through a
@@ -457,6 +457,7 @@ abstract class Compiler {
         processLoadedLibraries(loadedLibraries);
       });
     }
+    LibraryEntity mainApp;
     if (uri != null) {
       if (options.analyzeOnly) {
         reporter.log('Analyzing $uri (${options.buildId})');
@@ -515,7 +516,8 @@ abstract class Compiler {
       selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
         ResolutionEnqueuer resolutionEnqueuer = startResolution();
         WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-        mainFunction = frontendStrategy.computeMain(rootLibrary, mainImpact);
+        FunctionEntity mainFunction =
+            frontendStrategy.computeMain(rootLibrary, mainImpact);
 
         if (!options.loadFromDill) {
           // TODO(johnniwinther): Support mirrors usages analysis from dill.
@@ -526,7 +528,7 @@ abstract class Compiler {
         // compile-time constants that are metadata.  This means adding
         // something to the resolution queue.  So we cannot wait with
         // this until after the resolution queue is processed.
-        deferredLoadTask.beforeResolution(this);
+        deferredLoadTask.beforeResolution(rootLibrary);
         impactStrategy = backend.createImpactStrategy(
             supportDeferredLoad: deferredLoadTask.isProgramSplit,
             supportDumpInfo: options.dumpInfo,
@@ -596,8 +598,9 @@ abstract class Compiler {
         if (options.analyzeOnly) return;
         assert(mainFunction != null);
 
-        ClosedWorldRefiner closedWorldRefiner = closeResolution();
+        ClosedWorldRefiner closedWorldRefiner = closeResolution(mainFunction);
         ClosedWorld closedWorld = closedWorldRefiner.closedWorld;
+        mainFunction = closedWorld.elementEnvironment.mainFunction;
 
         reporter.log('Inferring types...');
         globalInference.runGlobalTypeInference(
@@ -610,10 +613,7 @@ abstract class Compiler {
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
 
-        Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(closedWorld);
-        _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
-        codegenEnqueuer.applyImpact(
-            backend.onCodegenStart(closedWorld, _codegenWorldBuilder));
+        Enqueuer codegenEnqueuer = startCodegen(closedWorld);
         if (compileAll) {
           libraryLoader.libraries.forEach((LibraryEntity library) {
             codegenEnqueuer.applyImpact(computeImpactForLibrary(library));
@@ -636,8 +636,16 @@ abstract class Compiler {
         checkQueues(resolutionEnqueuer, codegenEnqueuer);
       });
 
+  Enqueuer startCodegen(ClosedWorld closedWorld) {
+    Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(closedWorld);
+    _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
+    codegenEnqueuer
+        .applyImpact(backend.onCodegenStart(closedWorld, _codegenWorldBuilder));
+    return codegenEnqueuer;
+  }
+
   /// Perform the steps needed to fully end the resolution phase.
-  ClosedWorldRefiner closeResolution() {
+  ClosedWorldRefiner closeResolution(FunctionEntity mainFunction) {
     phase = PHASE_DONE_RESOLVING;
 
     ClosedWorld closedWorld = resolutionWorldBuilder.closeWorld();
@@ -651,7 +659,8 @@ abstract class Compiler {
 
     // TODO(johnniwinther): Move this after rti computation but before
     // reflection members computation, and (re-)close the world afterwards.
-    backendStrategy.convertClosures(closedWorldRefiner);
+    closureDataLookup.convertClosures(
+        enqueuer.resolution.processedEntities, closedWorldRefiner);
     return closedWorldRefiner;
   }
 
@@ -910,8 +919,8 @@ abstract class Compiler {
   Iterable<CodeLocation> computeUserCodeLocations(
       {bool assumeInUserCode: false}) {
     List<CodeLocation> userCodeLocations = <CodeLocation>[];
-    if (mainApp != null) {
-      userCodeLocations.add(new CodeLocation(mainApp.canonicalUri));
+    if (mainLibraryUri != null) {
+      userCodeLocations.add(new CodeLocation(mainLibraryUri));
     }
     if (librariesToAnalyzeWhenRun != null) {
       userCodeLocations.addAll(
@@ -955,7 +964,7 @@ abstract class Compiler {
         // Record as global error.
         // TODO(zarah): Extend element model to represent compile-time
         // errors instead of using a map.
-        element = mainFunction;
+        element = frontendStrategy.elementEnvironment.mainFunction;
       }
       elementsWithCompileTimeErrors
           .putIfAbsent(element, () => <DiagnosticMessage>[])

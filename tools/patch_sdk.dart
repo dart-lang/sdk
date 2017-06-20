@@ -74,14 +74,18 @@ void usage(String mode) {
   exit(1);
 }
 
+const validModes = const ['vm', 'dart2js', 'flutter'];
+String mode;
+bool get forVm => mode == 'vm';
+bool get forFlutter => mode == 'flutter';
+bool get forDart2js => mode == 'dart2js';
+
 Future _main(List<String> argv) async {
-  if (argv.isEmpty) usage('[vm|dart2js]');
-  var mode = argv.first;
-  if (mode != 'vm' && mode != 'dart2js') usage('[vm|dart2js]');
+  if (argv.isEmpty) usage('[${validModes.join('|')}]');
+  mode = argv.first;
+  if (!validModes.contains(mode)) usage('[${validModes.join('|')}]');
   if (argv.length != 5) usage(mode);
 
-  bool forVm = mode == 'vm';
-  bool forDart2js = mode == 'dart2js';
   var input = argv[1];
   var sdkLibIn = path.join(input, 'lib');
   var patchIn = argv[2];
@@ -93,65 +97,102 @@ Future _main(List<String> argv) async {
   // Parse libraries.dart
   var libContents = readInputFile(path.join(
       sdkLibIn, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'));
-  if (forVm) libContents = _updateLibraryMetadata(sdkOut, libContents);
-  var sdkLibraries = _getSdkLibraries(libContents, forDart2js);
+  libContents = _updateLibraryMetadata(sdkOut, libContents);
+  var sdkLibraries = _getSdkLibraries(libContents);
 
   Map<String, String> locations = <String, String>{};
 
   // Enumerate core libraries and apply patches
   for (SdkLibrary library in sdkLibraries) {
     if (forDart2js && library.isVmLibrary) continue;
-    if (forVm && library.isDart2JsLibrary) continue;
+    if (!forDart2js && library.isDart2JsLibrary) continue;
     _applyPatch(library, sdkLibIn, patchIn, sdkOut, locations);
   }
 
-  if (forVm) _copyExtraVmLibraries(sdkOut, locations);
+  _copyExtraLibraries(sdkOut, locations);
 
   Uri platform = outDirUri.resolve('platform.dill.tmp');
   Uri outline = outDirUri.resolve('outline.dill');
-  Uri vmserviceIo = outDirUri.resolve('vmservice_io.dill');
   Uri librariesJson = outDirUri.resolve("lib/libraries.json");
   Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
 
   await _writeSync(
       librariesJson.toFilePath(), JSON.encode({"libraries": locations}));
 
-  if (forVm) {
+  if (forVm || forFlutter) {
     await fasta.compilePlatform(outDirUri, platform,
-        packages: packages, outlineOutput: outline);
-    await fasta.compile([
-      "--sdk=${outDirUri.toString()}",
-      "--platform=${outline.toString()}",
-      "--packages=${packages.toString()}",
-      "dart:vmservice_io",
-      "-o",
-      vmserviceIo.toString()
-    ]);
+        packages: packages,
+        outlineOutput: outline,
+        backendTarget: forVm ? 'vm_fasta' : 'flutter_fasta');
   } else {
     await dart2js.compilePlatform(outDirUri, platform,
         packages: packages, outlineOutput: outline);
   }
 
+  if (forVm) {
+    var base = path.fromUri(Platform.script);
+    Uri repositoryDir =
+        new Uri.directory(path.dirname(path.dirname(path.absolute(base))));
+    var vmserviceName = 'vmservice_io';
+    Uri vmserviceSdk = repositoryDir.resolve('runtime/bin/vmservice_sdk/');
+    Uri vmserviceUri = outDirUri.resolve('$vmserviceName.dill');
+    // TODO(sigmundch): Specify libraries.json directly instead of "--sdk"
+    // after #29882 is fixed.
+    await fasta.compile([
+      "--sdk=$vmserviceSdk",
+      "--platform=$outline",
+      "--target=vm_fasta",
+      "--packages=$packages",
+      "dart:$vmserviceName",
+      "-o",
+      "$vmserviceUri",
+    ]);
+  }
+
   Uri platformFinalLocation = outDirUri.resolve('platform.dill');
 
-  // To properly regenerate the patched_sdk, patched_dart2js_sdk, and
-  // platform.dill only when necessary, we track dependencies as follows:
-  //  - inputs like the sdk libraries and patch files are covered by the
-  //    extraDependencies argument.
-  //  - this script and its script dependencies are handled by writeDepsFile
-  //    here.
-  //  - the internal platform libraries that may affect how this script
-  //    runs in the VM are discovered by providing the `platform` argument
-  //    below. Regardless of patched_sdk or patched_dart2js_sdk we provide below
-  //    the .dill file of patched_sdk (since the script runs in the VM and not
-  //    in dart2js). At the BUILD.gn level we have a dependency from
-  //    patched_dart2js_sdk to patched_sdk to ensure that file already exists.
+  // We generate a dependency file for GN to properly regenerate the patched sdk
+  // folder, outline.dill and platform.dill files when necessary: either when
+  // the sdk sources change or when this script is updated. In particular:
+  //
+  //  - sdk changes: we track the actual sources we are compiling. If we are
+  //    building the dart2js sdk, this includes the dart2js-specific patch
+  //    files.
+  //
+  //    These files are tracked by [deps] and passed below to [writeDepsFile] in
+  //    the extraDependencies argument.
+  //
+  //  - script updates: we track this script file and any code it imports (even
+  //    sdk libraries). Note that this script runs on the standalone VM, so any
+  //    sdk library used by this script indirectly depends on a VM-specific
+  //    patch file.
+  //
+  //    These set of files is discovered by `writeDepsFile` below, and the
+  //    [platformForDeps] is always the VM-specific `platform.dill` file.
+  //
+  //    TODO(sigmund): we should change this:
+  //      - we should rewrite writeDepsFile: fasta could provide an API to crawl
+  //        the dependencies, but anything that is GN specific, should be on
+  //        this file instead.
+  //
+  //      - We don't need to include sdk dependencies of the script because
+  //        those are already included indirectly (either in [deps] when
+  //        building the sdk for the VM, or via the .GN dependencies in the
+  //        build files for dart2js and flutter).
+  var platformForDeps = platform;
+  var sdkDir = outDirUri;
+  if (forDart2js || forFlutter) {
+    // Note: this would fail if `../patched_sdk/platform.dill` doesn't exist. We
+    // added an explicit dependency in the .GN rules so patched_dart2js_sdk (and
+    // patched_flutter_sdk) depend on patched_sdk to ensure that it exists.
+    platformForDeps = outDirUri.resolve('../patched_sdk/platform.dill');
+    sdkDir = outDirUri.resolve('../patched_sdk/');
+  }
   await fasta.writeDepsFile(Platform.script,
       Uri.base.resolveUri(new Uri.file("$outDir.d")), platformFinalLocation,
-      sdk: outDirUri,
+      sdk: sdkDir,
       packages: packages,
-      platform:
-          forVm ? platform : outDirUri.resolve('../patched_sdk/platform.dill'),
+      platform: platformForDeps,
       extraDependencies: deps);
 
   await new File.fromUri(platform).rename(platformFinalLocation.toFilePath());
@@ -161,11 +202,9 @@ Future _main(List<String> argv) async {
 /// sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart to include
 /// declarations for vm internal libraries.
 String _updateLibraryMetadata(String sdkOut, String libContents) {
-  // Copy and patch libraries.dart and version
-  libContents = libContents.replaceAll(
-      ' libraries = const {',
-      ''' libraries = const {
-
+  if (!forVm && !forFlutter) return libContents;
+  var extraLibraries = new StringBuffer();
+  extraLibraries.write('''
   "_builtin": const LibraryInfo(
       "_builtin/_builtin.dart",
       categories: "Client,Server",
@@ -177,7 +216,21 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
       "profiler/profiler.dart",
       maturity: Maturity.DEPRECATED,
       documented: false),
-''');
+  ''');
+
+  if (forFlutter) {
+    extraLibraries.write('''
+      "ui": const LibraryInfo(
+          "ui/ui.dart",
+          categories: "Client,Server",
+          implementation: true,
+          documented: false,
+          platforms: VM_PLATFORM),
+    ''');
+  }
+
+  libContents = libContents.replaceAll(
+      ' libraries = const {', ' libraries = const { $extraLibraries');
   _writeSync(
       path.join(
           sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),
@@ -185,32 +238,34 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
   return libContents;
 }
 
-/// Copy internal libraries that are developed under 'runtime/bin/' to the
-/// patched_sdk folder.
-_copyExtraVmLibraries(String sdkOut, Map<String, String> locations) {
+/// Copy internal libraries that are developed outside the sdk folder into the
+/// patched_sdk folder. For the VM< this includes files under 'runtime/bin/',
+/// for flutter, this is includes also the ui library.
+_copyExtraLibraries(String sdkOut, Map<String, String> locations) {
+  if (forDart2js) return;
   var base = path.fromUri(Platform.script);
   var dartDir = path.dirname(path.dirname(path.absolute(base)));
 
-  for (var tuple in [
-    ['_builtin', 'builtin.dart']
-  ]) {
-    var vmLibrary = tuple[0];
-    var dartFile = tuple[1];
+  var builtinLibraryIn = path.join(dartDir, 'runtime', 'bin', 'builtin.dart');
+  var builtinLibraryOut = path.join(sdkOut, '_builtin', '_builtin.dart');
+  _writeSync(builtinLibraryOut, readInputFile(builtinLibraryIn));
+  locations['_builtin'] = path.join('_builtin', '_builtin.dart');
 
-    // The "dart:_builtin" library is only available for the DartVM.
-    var builtinLibraryIn = path.join(dartDir, 'runtime', 'bin', dartFile);
-    var builtinLibraryOut = path.join(sdkOut, vmLibrary, '${vmLibrary}.dart');
-    _writeSync(builtinLibraryOut, readInputFile(builtinLibraryIn));
-    locations[vmLibrary] = path.join(vmLibrary, '${vmLibrary}.dart');
+  if (forFlutter) {
+    // Flutter repo has this layout:
+    //  engine/src/
+    //       dart/
+    //       flutter/
+    var srcDir = path.dirname(path.dirname(path.dirname(path.absolute(base))));
+    var uiLibraryInDir = path.join(srcDir, 'flutter', 'lib', 'ui');
+    for (var file in new Directory(uiLibraryInDir).listSync()) {
+      if (!file.path.endsWith('.dart')) continue;
+      var name = path.basename(file.path);
+      var uiLibraryOut = path.join(sdkOut, 'ui', name);
+      _writeSync(uiLibraryOut, readInputFile(file.path));
+    }
+    locations['ui'] = 'ui/ui.dart';
   }
-
-  for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
-    var libraryIn = path.join(dartDir, 'runtime', 'bin', 'vmservice', file);
-    var libraryOut = path.join(sdkOut, 'vmservice_io', file);
-    _writeSync(libraryOut, readInputFile(libraryIn));
-  }
-  locations["vmservice_io"] = "vmservice_io/vmservice_io.dart";
-  locations["_vmservice"] = "vmservice/vmservice.dart";
 }
 
 _applyPatch(SdkLibrary library, String sdkLibIn, String patchIn, String sdkOut,
@@ -621,8 +676,8 @@ class _StringEdit implements Comparable<_StringEdit> {
   }
 }
 
-List<SdkLibrary> _getSdkLibraries(String contents, bool useDart2js) {
-  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(useDart2js);
+List<SdkLibrary> _getSdkLibraries(String contents) {
+  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(forDart2js);
   parseCompilationUnit(contents).accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
 }

@@ -7,7 +7,6 @@ library dart2js.constants.expressions.evaluate_test;
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/constants/evaluation.dart';
 import 'package:compiler/src/constants/expressions.dart';
@@ -276,7 +275,7 @@ Future testData(TestData data) async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source}, options: ['--analyze-all']);
   Compiler compiler = result.compiler;
-  var library = compiler.mainApp;
+  dynamic library = compiler.frontendStrategy.elementEnvironment.mainLibrary;
   constants.forEach((String name, ConstantData data) {
     FieldElement field = library.localLookup(name);
     ConstantExpression constant = field.constant;

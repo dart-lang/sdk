@@ -10,7 +10,7 @@ class A {
 }
 
 class B implements A {
-  get x => 3;
+  get /*@topType=int*/ x => 3;
 }
 
 foo() {

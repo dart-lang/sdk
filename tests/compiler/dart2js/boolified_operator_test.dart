@@ -51,8 +51,6 @@ foo(param0, param1) {
 """;
 
 main() {
-  RegExp regexp = new RegExp('=== true');
-
   asyncTest(() => Future.wait([
         compile(TEST_EQUAL, entry: 'foo', check: (String generated) {
           Expect.isFalse(generated.contains('=== true'));

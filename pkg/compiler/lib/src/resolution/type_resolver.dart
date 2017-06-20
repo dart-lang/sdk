@@ -18,6 +18,7 @@ import '../elements/elements.dart'
         TypedefElement,
         TypeVariableElement;
 import '../elements/modelx.dart' show ErroneousElementX;
+import '../elements/types.dart' show DartType, TypeVariableType;
 import '../resolution/resolution.dart';
 import '../tree/tree.dart';
 import '../universe/feature.dart' show Feature;
@@ -191,7 +192,8 @@ class TypeResolver {
     assert(visibleTypeParameterNames != null);
 
     if (node.typeParameters != null) {
-      List<String> newTypeNames = node.typeParameters.map((TypeVariable node) {
+      List<String> newTypeNames = node.typeParameters.map((_node) {
+        TypeVariable node = _node;
         return node.name.asIdentifier().source;
       }).toList();
       visibleTypeParameterNames = visibleTypeParameterNames.toList()
@@ -409,8 +411,11 @@ class TypeResolver {
 
   /// Checks the type arguments of [type] against the type variable bounds.
   void checkTypeVariableBounds(NominalTypeAnnotation node, GenericType type) {
-    void checkTypeVariableBound(_, ResolutionDartType typeArgument,
-        ResolutionTypeVariableType typeVariable, ResolutionDartType bound) {
+    void checkTypeVariableBound(_, DartType _typeArgument,
+        TypeVariableType _typeVariable, DartType _bound) {
+      ResolutionDartType typeArgument = _typeArgument;
+      ResolutionTypeVariableType typeVariable = _typeVariable;
+      ResolutionDartType bound = _bound;
       if (!types.isSubtype(typeArgument, bound)) {
         reporter.reportWarningMessage(
             node, MessageKind.INVALID_TYPE_VARIABLE_BOUND, {

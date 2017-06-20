@@ -409,10 +409,10 @@ cc/Parser_AllocateVariables_Issue7681: Fail
 cc/Parser_AllocateVariables_MiddleChain: Fail
 cc/Parser_AllocateVariables_NestedCapturedVar: Fail
 cc/Parser_AllocateVariables_TwoChains: Fail
-cc/Profiler_BasicSourcePositionOptimized: Fail
-cc/Profiler_BinaryOperatorSourcePositionOptimized: Fail
+cc/Profiler_BasicSourcePositionOptimized: Fail, Crash
+cc/Profiler_BinaryOperatorSourcePositionOptimized: Fail, Crash
 cc/Profiler_GetSourceReport: Fail
-cc/Profiler_SourcePositionOptimized: Fail
+cc/Profiler_SourcePositionOptimized: Fail, Crash
 cc/ScriptSnapshot1: Fail
 cc/ScriptSnapshot2: Crash
 cc/ScriptSnapshot: Crash

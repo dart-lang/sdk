@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
@@ -17,7 +16,6 @@ import '../elements/jumps.dart';
 import '../elements/modelx.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
-import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../kernel/element_map.dart';
 import '../kernel/kernel.dart';
@@ -111,7 +109,7 @@ class KernelAstAdapter extends KernelToElementMapMixin
 
   /// Called to find the corresponding Kernel element for a particular Element
   /// before traversing over it with a Kernel visitor.
-  ir.Node getInitialKernelNode(MemberElement originTarget) {
+  ir.Node getMemberNode(MemberElement originTarget) {
     ir.Node target;
     if (originTarget.isPatch) {
       originTarget = originTarget.origin;
@@ -125,10 +123,10 @@ class KernelAstAdapter extends KernelToElementMapMixin
       // Closures require a lookup one level deeper in the closure class mapper.
       if (target == null) {
         MethodElement originTargetFunction = originTarget;
-        ClosureClassMap classMap = _compiler.closureToClassMapper
-            .getClosureToClassMapping(originTargetFunction);
-        if (classMap.closureElement != null) {
-          target = kernel.localFunctions[classMap.closureElement];
+        ClosureRepresentationInfo classMap = _compiler.closureDataLookup
+            .getClosureRepresentationInfo(originTargetFunction);
+        if (classMap.closureEntity != null) {
+          target = kernel.localFunctions[classMap.closureEntity];
         }
       }
     } else if (originTarget is FieldElement) {
@@ -241,35 +239,6 @@ class KernelAstAdapter extends KernelToElementMapMixin
     });
   }
 
-  js.Name getNameForJsGetName(ir.Node argument, ConstantValue constant) {
-    int index = _extractEnumIndexFromConstantValue(
-        constant, _compiler.resolution.commonElements.jsGetNameEnum);
-    if (index == null) return null;
-    return _backend.namer
-        .getNameForJsGetName(getNode(argument), JsGetName.values[index]);
-  }
-
-  js.Template getJsBuiltinTemplate(ConstantValue constant) {
-    int index = _extractEnumIndexFromConstantValue(
-        constant, _compiler.resolution.commonElements.jsBuiltinEnum);
-    if (index == null) return null;
-    return _backend.emitter.builtinTemplateFor(JsBuiltin.values[index]);
-  }
-
-  int _extractEnumIndexFromConstantValue(
-      ConstantValue constant, ClassEntity classElement) {
-    if (constant is ConstructedConstantValue) {
-      if (constant.type.element == classElement) {
-        assert(constant.fields.length == 1 || constant.fields.length == 2);
-        ConstantValue indexConstant = constant.fields.values.first;
-        if (indexConstant is IntConstantValue) {
-          return indexConstant.primitiveValue;
-        }
-      }
-    }
-    return null;
-  }
-
   DartType getDartType(ir.DartType type) {
     return _typeConverter.convert(type);
   }
@@ -327,8 +296,8 @@ class KernelAstAdapter extends KernelToElementMapMixin
 
   @override
   LoopClosureRepresentationInfo getClosureRepresentationInfoForLoop(
-      ClosureClassMaps closureClassMaps, ir.TreeNode node) {
-    return closureClassMaps.getClosureRepresentationInfoForLoop(getNode(node));
+      ClosureDataLookup closureLookup, ir.TreeNode node) {
+    return closureLookup.getClosureRepresentationInfoForLoop(getNode(node));
   }
 }
 
@@ -444,14 +413,14 @@ class KernelJumpTarget extends JumpTarget<ast.Node> {
   KernelJumpTarget(this.targetStatement, KernelAstAdapter adapter,
       {bool makeContinueLabel = false}) {
     originalStatement = targetStatement;
-    this.labels = <LabelDefinition>[];
+    this.labels = <LabelDefinition<ast.Node>>[];
     if (targetStatement is ir.WhileStatement ||
         targetStatement is ir.DoStatement ||
         targetStatement is ir.ForStatement ||
         targetStatement is ir.ForInStatement) {
       // Currently these labels are set at resolution on the element itself.
       // Once that gets updated, this logic can change downstream.
-      JumpTarget target = adapter.elements
+      JumpTarget<ast.Node> target = adapter.elements
           .getTargetDefinition(adapter.getNode(targetStatement));
       if (target != null) {
         labels.addAll(target.labels);
@@ -480,7 +449,7 @@ class KernelJumpTarget extends JumpTarget<ast.Node> {
   }
 
   @override
-  LabelDefinition addLabel(ast.Label label, String labelName) {
+  LabelDefinition<ast.Node> addLabel(ast.Label label, String labelName) {
     LabelDefinition result = new LabelDefinitionX(label, labelName, this);
     labels.add(result);
     return result;
@@ -499,13 +468,13 @@ class KernelJumpTarget extends JumpTarget<ast.Node> {
   bool get isTarget => isBreakTarget || isContinueTarget;
 
   @override
-  List<LabelDefinition> labels;
+  List<LabelDefinition<ast.Node>> labels;
 
   @override
   String get name => 'target';
 
   @override
-  ast.Node get statement => null;
+  ast.Label get statement => null;
 
   String toString() => 'Target:$targetStatement';
 }

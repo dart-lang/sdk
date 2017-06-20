@@ -83,6 +83,7 @@ class ModelEmitter {
     this.constantEmitter = new ConstantEmitter(
         compiler.options,
         _closedWorld.commonElements,
+        compiler.codegenWorldBuilder,
         compiler.backend.rtiNeed,
         compiler.backend.rtiEncoder,
         namer,

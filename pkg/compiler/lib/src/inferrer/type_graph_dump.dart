@@ -296,7 +296,7 @@ class _GraphGenerator extends TypeInformationVisitor {
       append('$id [shape=record,label="$label",$style]');
       // Add assignment edges. Color the edges based on whether they were
       // added, removed, temporary, or unchanged.
-      var originalSet = global.assignmentsBeforeAnalysis[node] ?? const [];
+      dynamic originalSet = global.assignmentsBeforeAnalysis[node] ?? const [];
       var tracerSet = global.assignmentsBeforeTracing[node] ?? const [];
       var currentSet = node.assignments.toSet();
       for (TypeInformation assignment in currentSet) {

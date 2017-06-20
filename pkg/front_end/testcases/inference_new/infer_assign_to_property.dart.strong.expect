@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int f = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static field core::int v_assign = new self::A::•().{self::A::f} = 1;
+static field core::int v_plus = let final dynamic #t1 = new self::A::•() in #t1.{self::A::f} = #t1.{self::A::f}.{core::num::+}(1);
+static field core::int v_minus = let final dynamic #t2 = new self::A::•() in #t2.{self::A::f} = #t2.{self::A::f}.{core::num::-}(1);
+static field core::int v_multiply = let final dynamic #t3 = new self::A::•() in #t3.{self::A::f} = #t3.{self::A::f}.{core::num::*}(1);
+static field core::int v_prefix_pp = let final dynamic #t4 = new self::A::•() in #t4.{self::A::f} = #t4.{self::A::f}.{core::num::+}(1);
+static field core::int v_prefix_mm = let final dynamic #t5 = new self::A::•() in #t5.{self::A::f} = #t5.{self::A::f}.{core::num::-}(1);
+static field core::int v_postfix_pp = let final dynamic #t6 = new self::A::•() in let final dynamic #t7 = #t6.{self::A::f} in let final dynamic #t8 = #t6.{self::A::f} = #t7.{core::num::+}(1) in #t7;
+static field core::int v_postfix_mm = let final dynamic #t9 = new self::A::•() in let final dynamic #t10 = #t9.{self::A::f} in let final dynamic #t11 = #t9.{self::A::f} = #t10.{core::num::-}(1) in #t10;
+static method main() → dynamic {}

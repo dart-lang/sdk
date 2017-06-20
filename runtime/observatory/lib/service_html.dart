@@ -40,7 +40,7 @@ class _HtmlWebSocket implements CommonWebSocket {
     FileReader fileReader = new FileReader();
     fileReader.readAsArrayBuffer(data);
     return fileReader.onLoadEnd.first.then((e) {
-      var result = fileReader.result;
+      Uint8List result = fileReader.result as Uint8List;
       return new ByteData.view(
           result.buffer, result.offsetInBytes, result.length);
     });

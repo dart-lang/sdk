@@ -999,7 +999,7 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
 
   ast.Statement visitAssertStatement(AssertStatement node) {
     return new ast.AssertStatement(scope.buildExpression(node.condition),
-        scope.buildOptionalExpression(node.message));
+        message: scope.buildOptionalExpression(node.message));
   }
 
   ast.Statement visitBlock(Block node) {

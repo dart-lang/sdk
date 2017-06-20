@@ -91,8 +91,9 @@ class TypeEnvironment {
   TypeEnvironment._(Compiler this.compiler);
 
   Element getElement(String name) {
-    LibraryElement mainApp = compiler.mainApp;
-    var element = mainApp.find(name);
+    LibraryElement mainApp =
+        compiler.frontendStrategy.elementEnvironment.mainLibrary;
+    dynamic element = mainApp.find(name);
     Expect.isNotNull(element);
     if (element.isClass) {
       element.ensureResolved(compiler.resolution);
@@ -105,7 +106,7 @@ class TypeEnvironment {
   ClassElement getClass(String name) => getElement(name);
 
   ResolutionDartType getElementType(String name) {
-    var element = getElement(name);
+    dynamic element = getElement(name);
     return element.computeType(compiler.resolution);
   }
 

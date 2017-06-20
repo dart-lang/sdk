@@ -16,6 +16,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'browser_test.dart';
+import 'command.dart';
 import 'compiler_configuration.dart';
 import 'configuration.dart';
 import 'drt_updater.dart';
@@ -475,7 +476,7 @@ class CCTestSuite extends TestSuite {
 
     args.add(testName);
 
-    var command = CommandBuilder.instance.getProcessCommand(
+    var command = Command.process(
         'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
     enqueueNewTestCase(
         new TestCase(constructedName, [command], configuration, expectations));
@@ -894,11 +895,7 @@ class StandardTestSuite extends TestSuite {
 
     CommandArtifact compilationArtifact =
         compilerConfiguration.computeCompilationArtifact(
-            buildDir,
-            tempDir,
-            CommandBuilder.instance,
-            compileTimeArguments,
-            environmentOverrides);
+            buildDir, tempDir, compileTimeArguments, environmentOverrides);
     if (!configuration.skipCompilation) {
       commands.addAll(compilationArtifact.commands);
     }
@@ -921,11 +918,7 @@ class StandardTestSuite extends TestSuite {
 
     return commands
       ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(
-          this,
-          CommandBuilder.instance,
-          compilationArtifact,
-          runtimeArguments,
-          environmentOverrides));
+          this, compilationArtifact, runtimeArguments, environmentOverrides));
   }
 
   CreateTest makeTestCaseCreator(Map<String, dynamic> optionsFromFile) {
@@ -1208,15 +1201,11 @@ class StandardTestSuite extends TestSuite {
           dartFlags.addAll(vmOptions);
         }
 
-        commandSet.add(CommandBuilder.instance.getContentShellCommand(
-            contentShellFilename,
-            fullHtmlPath,
-            contentShellOptions,
-            dartFlags,
-            environmentOverrides));
+        commandSet.add(Command.contentShell(contentShellFilename, fullHtmlPath,
+            contentShellOptions, dartFlags, environmentOverrides));
       } else {
-        commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
-            fullHtmlPath, configuration, !isNegative(info)));
+        commandSet.add(Command.browserTest(fullHtmlPath, configuration,
+            retry: !isNegative(info)));
       }
 
       // Create BrowserTestCase and queue it.
@@ -1295,8 +1284,9 @@ class StandardTestSuite extends TestSuite {
 
     var htmlPath = _createUrlPathFromFile(new Path(htmlFile.toFilePath()));
     var fullHtmlPath = _getUriForBrowserTest(htmlPath, null).toString();
-    commands.add(CommandBuilder.instance.getBrowserHtmlTestCommand(
-        fullHtmlPath, configuration, info.expectedMessages, !isNegative(info)));
+    commands.add(Command.browserHtmlTest(
+        fullHtmlPath, configuration, info.expectedMessages,
+        retry: !isNegative(info)));
     var testDisplayName = '$suiteName/$testName';
     var testCase = new BrowserTestCase(testDisplayName, commands, configuration,
         expectations, info, isNegative(info), fullHtmlPath);
@@ -1325,14 +1315,8 @@ class StandardTestSuite extends TestSuite {
     var options = optionsFromFile['sharedOptions'] as List<String>;
     if (options != null) args.addAll(options);
 
-    return CommandBuilder.instance.getCompilationCommand(
-        Compiler.dart2js.name,
-        outputFile,
-        !useSdk,
-        dart2JsBootstrapDependencies,
-        compilerPath,
-        args,
-        environmentOverrides);
+    return Command.compilation(Compiler.dart2js.name, outputFile, !useSdk,
+        dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides);
   }
 
   /** Helper to create a Polymer deploy command for a single HTML file. */
@@ -1352,7 +1336,7 @@ class StandardTestSuite extends TestSuite {
       ..add('.svn');
     if (configuration.isCsp) args.add('--csp');
 
-    return CommandBuilder.instance.getProcessCommand(
+    return Command.process(
         'polymer_deploy', dartVmBinaryFileName, args, environmentOverrides);
   }
 
@@ -1736,8 +1720,7 @@ class PKGTestSuite extends StandardTestSuite {
       var fullPath = _createUrlPathFromFile(customHtmlPath);
 
       var commands = [
-        CommandBuilder.instance
-            .getBrowserTestCommand(fullPath, configuration, !isNegative(info))
+        Command.browserTest(fullPath, configuration, retry: !isNegative(info))
       ];
       var testDisplayName = '$suiteName/$testName';
       enqueueNewTestCase(new BrowserTestCase(

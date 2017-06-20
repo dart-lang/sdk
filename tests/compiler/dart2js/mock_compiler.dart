@@ -18,7 +18,6 @@ import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
 import 'package:compiler/src/library_loader.dart' show LoadedLibraries;
-import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/js_backend/lookup_map_analysis.dart'
     show LookupMapResolutionAnalysis;
 import 'package:compiler/src/io/source_file.dart';
@@ -67,6 +66,7 @@ class MockCompiler extends Compiler {
   final ResolvedUriTranslator resolvedUriTranslator =
       new MockResolvedUriTranslator();
   final Measurer measurer = new Measurer();
+  LibraryElement mainApp;
 
   MockCompiler.internal(
       {Map<String, String> coreSource,
@@ -153,7 +153,7 @@ class MockCompiler extends Compiler {
     }).then((_) => uri);
   }
 
-  Future run(Uri uri, [String mainSource = ""]) {
+  Future<bool> run(Uri uri, [String mainSource = ""]) {
     return init(mainSource).then((Uri mainUri) {
       return super.run(uri == null ? mainUri : uri);
     }).then((result) {
@@ -290,7 +290,7 @@ class MockCompiler extends Compiler {
 }
 
 class MockResolvedUriTranslator implements ResolvedUriTranslator {
-  static final _emptySet = new Set();
+  static final dynamic _emptySet = new Set();
 
   Uri translate(LibraryElement importingLibrary, Uri resolvedUri,
           Spannable spannable) =>

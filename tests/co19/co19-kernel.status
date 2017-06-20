@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dartk && $mode == debug ]
+Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
+
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Classes/Constructors/Generative_Constructors/initializers_t12: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
 Language/Classes/Constructors/Generative_Constructors/redirection_t09: MissingCompileTimeError # Test bug: Test doesn't execute erroneous code.
@@ -116,7 +119,6 @@ Language/Libraries_and_Scripts/Scripts/syntax_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t08: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t10: MissingCompileTimeError
 Language/Libraries_and_Scripts/Scripts/syntax_t14: MissingCompileTimeError
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
 Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError

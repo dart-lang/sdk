@@ -162,6 +162,7 @@ abstract class HtmlPart {
         case HtmlPartKind.LINE_NUMBER:
           return LineNumber.fromJson(json, strategy);
       }
+      return null;
     }
   }
 }
@@ -317,12 +318,6 @@ class CodePart {
       if (subsequentCode.length > 1) {
         head = subsequentCode.substring(0, 1);
         tail = subsequentCode.substring(1);
-      }
-
-      void addForSpan(AnnotationData data) {
-        htmlParts.add(new TagPart(data.tag,
-            properties: data.properties,
-            content: [new HtmlText(subsequentCode)]));
       }
 
       if (annotationData != null && annotationDataForSpan != null) {

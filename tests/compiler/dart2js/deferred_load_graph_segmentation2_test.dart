@@ -18,7 +18,7 @@ void main() {
     Compiler compiler = result.compiler;
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
-    var lib =
+    dynamic lib =
         compiler.libraryLoader.lookupLibrary(Uri.parse("memory:lib.dart"));
     var f1 = lib.find("f1");
     var f2 = lib.find("f2");

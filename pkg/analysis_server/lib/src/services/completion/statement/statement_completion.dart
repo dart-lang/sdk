@@ -328,7 +328,8 @@ class StatementCompletionProcessor {
       _removeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
       _addInsertEdit(loc, delimiter);
     }
-    expr = errorMatching(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
+    expr = errorMatching(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'") ??
+        errorMatching(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
     if (expr != null) {
       expr = expr.getAncestor((n) => n is ListLiteral);
       if (expr != null) {
@@ -343,6 +344,7 @@ class StatementCompletionProcessor {
             _addInsertEdit(loc, ']');
           }
           _removeError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
+          _removeError(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
           var ms =
               _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
           if (ms != null) {
@@ -425,7 +427,10 @@ class StatementCompletionProcessor {
           _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
       if (error != null) {
         int insertOffset;
-        if (expr == null || expr.isSynthetic) {
+        // Fasta scanner reports unterminated string literal errors
+        // and generates a synthetic string token with non-zero length.
+        // Because of this, check for length == 0 rather than isSynthetic.
+        if (expr == null || expr.length == 0) {
           if (node is ReturnStatement) {
             insertOffset = (node as ReturnStatement).returnKeyword.end;
           } else if (node is ExpressionStatement) {
@@ -828,7 +833,8 @@ class StatementCompletionProcessor {
 
   bool _complete_methodCall() {
     var parenError =
-        _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "')'");
+        _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "')'") ??
+            _findError(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "')'");
     if (parenError == null) {
       return false;
     }

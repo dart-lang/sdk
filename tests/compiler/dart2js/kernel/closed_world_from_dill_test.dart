@@ -13,7 +13,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/kernel/element_map.dart';
@@ -143,10 +142,13 @@ Future<ResultKind> mainInternal(List<String> args,
       equivalence.defaultStrategy);
 
   checkResolutionEnqueuers(closedWorld1.backendUsage, closedWorld2.backendUsage,
-      enqueuer1, enqueuer2, elementEquivalence: equivalence.entityEquivalence,
-      typeEquivalence: (ResolutionDartType a, DartType b) {
-    return equivalence.typeEquivalence(unalias(a), b);
-  }, elementFilter: elementFilter, verbose: arguments.verbose);
+      enqueuer1, enqueuer2,
+      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
+      typeEquivalence: (DartType a, DartType b) {
+        return equivalence.typeEquivalence(unalias(a), b);
+      },
+      elementFilter: elementFilter,
+      verbose: arguments.verbose);
 
   checkClosedWorlds(closedWorld1, closedWorld2,
       strategy: equivalence.defaultStrategy, verbose: arguments.verbose);

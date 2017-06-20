@@ -33,7 +33,8 @@ Future<String> compile(String code,
       memorySourceFiles: {'main.dart': code}, options: options);
   expect(result.isSuccess, isTrue);
   Compiler compiler = result.compiler;
-  LibraryElement mainApp = compiler.mainApp;
+  LibraryElement mainApp =
+      compiler.frontendStrategy.elementEnvironment.mainLibrary;
   Element element;
   if (lookup is String) {
     element = mainApp.find(lookup);

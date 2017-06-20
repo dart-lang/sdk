@@ -94,7 +94,7 @@ _reportHere(DiagnosticReporter reporter, Spannable node, String debugMessage) {
 }
 
 /// Set of tracked objects used by [track] and [ifTracked].
-var _trackedObjects = new Set();
+var _trackedObjects = new Set<Object>();
 
 /// Global default value for the `printTrace` option of [track] and [ifTracked].
 bool trackWithTrace = false;

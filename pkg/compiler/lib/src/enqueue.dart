@@ -396,7 +396,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
           _processedEntities.add(work.element);
         }
       }
-      List recents = _recentClasses.toList(growable: false);
+      List<ClassEntity> recents = _recentClasses.toList(growable: false);
       _recentClasses.clear();
       _recentConstants = false;
       if (!_onQueueEmpty(recents)) {
@@ -602,5 +602,5 @@ class DeferredAction {
 
 /// Interface for creating work items for enqueued member entities.
 abstract class WorkItemBuilder {
-  WorkItem createWorkItem(MemberEntity entity);
+  WorkItem createWorkItem(covariant MemberEntity entity);
 }

@@ -92,7 +92,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   final bool enableNative;
 
-  final bool isBuiltinLibrary;
+  /// Whether to ignore an unresolved reference to `main` within the body of
+  /// `_getMainClosure` when compiling the current library.
+  ///
+  /// This as a temporary workaround. The standalone VM and flutter have
+  /// special logic to resolve `main` in `_getMainClosure`, this flag is used to
+  /// ignore that reference to `main`, but only on libraries where we expect to
+  /// see it (today that is dart:_builtin and dart:ui).
+  ///
+  // TODO(ahe,sigmund): remove when the VM gets rid of the special rule, see
+  // https://github.com/dart-lang/sdk/issues/28989.
+  final bool ignoreMainInGetMainClosure;
 
   @override
   final Uri uri;
@@ -169,8 +179,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       : enclosingScope = scope,
         library = library,
         enableNative = library.loader.target.enableNative(library),
-        isBuiltinLibrary =
-            library.uri.scheme == 'dart' && library.uri.path == "_builtin",
+        ignoreMainInGetMainClosure = library.uri.scheme == 'dart' &&
+            (library.uri.path == "_builtin" || library.uri.path == "ui"),
         needsImplicitSuperInitializer =
             coreTypes.objectClass != classBuilder?.cls,
         typePromoter = _typeInferrer.typePromoter,
@@ -854,7 +864,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression b = popForValue();
     Expression a = popForValue();
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
-    push(makeLet(
+    push(new KernelIfNullExpression(
         variable,
         new KernelConditionalExpression(
             buildIsNull(new VariableGet(variable), offsetForToken(token)),
@@ -1081,10 +1091,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           return new UnresolvedAccessor(this, n, token);
         }
         return new ThisPropertyAccessor(this, token, n, null, null);
-      } else if (isBuiltinLibrary &&
+      } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
           member?.name == "_getMainClosure") {
-        // TODO(ahe): https://github.com/dart-lang/sdk/issues/28989
         return new KernelNullLiteral()..fileOffset = offsetForToken(token);
       } else {
         return new UnresolvedAccessor(this, n, token);
@@ -2648,7 +2657,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("Assert");
     Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();
-    AssertStatement statement = new AssertStatement(condition, message);
+    AssertStatement statement = new AssertStatement(condition,
+        conditionStartOffset: leftParenthesis.offset + 1,
+        conditionEndOffset: rightParenthesis.offset,
+        message: message);
     switch (kind) {
       case Assert.Statement:
         push(statement);

@@ -1,0 +1,15 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::int intValue;
+static field core::num numValue;
+static field core::double doubleValue;
+static field dynamic a;
+static field dynamic b;
+static field dynamic c;
+static field dynamic d;
+static field dynamic e;
+static field dynamic f;
+static method main() → dynamic
+  ;

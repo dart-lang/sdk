@@ -452,6 +452,25 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
     }
   }
 
+  @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    super.visitMethodDeclaration(node);
+    if (node.element.enclosingElement is ClassElement) {
+      if (node.isGetter && node.returnType == null) {
+        _recordTopType(node.name.offset, node.element.returnType);
+      }
+      if (node.isSetter) {
+        for (var parameter in node.parameters.parameters) {
+          // Note: it's tempting to check `parameter.type == null`, but that
+          // doesn't work because of function-typed formal parameter syntax.
+          if (parameter.element.hasImplicitType) {
+            _recordTopType(parameter.identifier.offset, parameter.element.type);
+          }
+        }
+      }
+    }
+  }
+
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
     if (node.typeArguments == null) {
@@ -507,7 +526,7 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
         VariableElement element = variable.element;
         if (element is LocalVariableElement) {
           _recordType(variable.name.offset, element.type);
-        } else {
+        } else if (!element.isStatic || element.initializer != null) {
           _recordTopType(variable.name.offset, element.type);
         }
       }

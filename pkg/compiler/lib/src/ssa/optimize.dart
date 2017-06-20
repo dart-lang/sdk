@@ -482,7 +482,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // [:noSuchMethod:] we just ignore it.
         &&
         node.selector.applies(element)) {
-      MethodElement method = element;
+      FunctionEntity method = element;
 
       if (_nativeData.isNativeMember(method)) {
         HInstruction folded = tryInlineNativeMethod(node, method);
@@ -490,11 +490,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         // TODO(ngeoffray): If the method has optional parameters,
         // we should pass the default values.
-        ResolutionFunctionType type = method.type;
-        int optionalParameterCount =
-            type.optionalParameterTypes.length + type.namedParameters.length;
-        if (optionalParameterCount == 0 ||
-            type.parameterTypes.length + optionalParameterCount ==
+        ParameterStructure parameters = method.parameterStructure;
+        if (parameters.optionalParameters == 0 ||
+            parameters.requiredParameters + parameters.optionalParameters ==
                 node.selector.argumentCount) {
           node.element = method;
         }
@@ -923,7 +921,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitGetLength(HGetLength node) {
-    var receiver = node.receiver;
+    dynamic receiver = node.receiver;
     if (_graph.allocatedFixedLists.contains(receiver)) {
       // TODO(ngeoffray): checking if the second input is an integer
       // should not be necessary but it currently makes it easier for
@@ -935,7 +933,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     } else if (receiver.isConstantList() || receiver.isConstantString()) {
       return _graph.addConstantInt(receiver.constant.length, _closedWorld);
     } else {
-      var type = receiver.instructionType;
+      dynamic type = receiver.instructionType;
       if (type.isContainer && type.length != null) {
         HInstruction constant =
             _graph.addConstantInt(type.length, _closedWorld);
@@ -963,7 +961,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitIndex(HIndex node) {
     if (node.receiver.isConstantList() && node.index.isConstantInteger()) {
-      var instruction = node.receiver;
+      dynamic instruction = node.receiver;
       List<ConstantValue> entries = instruction.constant.entries;
       instruction = node.index;
       int index = instruction.constant.primitiveValue;
@@ -1025,14 +1023,16 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction receiver = node.getDartReceiver(_closedWorld);
-    FieldElement field =
+    FieldEntity field =
         findConcreteFieldForDynamicAccess(receiver, node.selector);
     if (field == null || !field.isAssignable) return node;
     // Use `node.inputs.last` in case the call follows the interceptor calling
     // convention, but is not a call on an interceptor.
     HInstruction value = node.inputs.last;
     if (_options.enableTypeAssertions) {
-      ResolutionDartType type = field.type;
+      // TODO(johnniwinther): Support field entities.
+      FieldElement element = field;
+      DartType type = element.type;
       if (!type.treatAsRaw ||
           type.isTypeVariable ||
           type.unaliased.isFunctionType) {

@@ -46,7 +46,7 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert' show ASCII;
 
-import 'package:front_end/src/vm/reload.dart';
+import '../../tool/vm/reload.dart';
 
 import 'compiler_with_invalidation.dart';
 

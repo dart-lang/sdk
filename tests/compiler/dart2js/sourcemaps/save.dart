@@ -44,7 +44,6 @@ Usage: save <dir-containing 'out.js.map2'>
 
 SingleMapping convertFromHumanReadableSourceMap(String json) {
   Map inputMap = lazon.decode(json);
-  String file = inputMap['file'];
   Map urls = inputMap['sources'];
   List<String> sources = new List<String>.filled(urls.length, null);
   urls.forEach((String index, String url) {

@@ -93,7 +93,8 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.intersection(other, closedWorld);
   }
 
-  bool needsNoSuchMethodHandling(Selector selector, ClosedWorld closedWorld) {
+  bool needsNoSuchMethodHandling(
+      Selector selector, covariant ClosedWorld closedWorld) {
     return forwardTo.needsNoSuchMethodHandling(selector, closedWorld);
   }
 

@@ -6,7 +6,7 @@
 library test;
 
 class C extends D {
-  set foo(x) {}
+  set foo(/*@topType=int*/ x) {}
 }
 
 class D {

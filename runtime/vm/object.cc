@@ -3757,7 +3757,7 @@ RawType* Class::canonical_type() const {
 
 
 void Class::set_canonical_type(const Type& value) const {
-  ASSERT(!value.IsNull());
+  ASSERT(!value.IsNull() && value.IsCanonical() && value.IsOld());
   StorePointer(&raw_ptr()->canonical_type_, value.raw());
 }
 
@@ -12063,6 +12063,32 @@ RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
 }
 
 
+RawObject* Library::GetFunctionClosure(const String& name) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& func = Function::Handle(zone, LookupFunctionAllowPrivate(name));
+  if (func.IsNull()) {
+    // Check whether the function is reexported into the library.
+    const Object& obj = Object::Handle(zone, LookupReExport(name));
+    if (obj.IsFunction()) {
+      func ^= obj.raw();
+    } else {
+      // Check if there is a getter of 'name', in which case invoke it
+      // and return the result.
+      const String& getter_name = String::Handle(zone, Field::GetterName(name));
+      func = LookupFunctionAllowPrivate(getter_name);
+      if (func.IsNull()) {
+        return Closure::null();
+      }
+      // Invoke the getter and return the result.
+      return DartEntry::InvokeFunction(func, Object::empty_array());
+    }
+  }
+  func = func.ImplicitClosureFunction();
+  return func.ImplicitStaticClosure();
+}
+
+
 #if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
 void Library::CheckFunctionFingerprints() {
   GrowableArray<Library*> all_libs;
@@ -17532,13 +17558,12 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     return Object::dynamic_type().raw();
   }
 
-  AbstractType& type = Type::Handle(zone);
   const Class& cls = Class::Handle(zone, type_class());
 
   // Fast canonical lookup/registry for simple types.
   if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
     ASSERT(!IsFunctionType());
-    type = cls.CanonicalType();
+    Type& type = Type::Handle(zone, cls.CanonicalType());
     if (type.IsNull()) {
       ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
       // Canonicalize the type arguments of the supertype, if any.
@@ -17556,18 +17581,26 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
         // Recheck if type exists.
         type = cls.CanonicalType();
         if (type.IsNull()) {
-          ComputeHash();
-          SetCanonical();
-          cls.set_canonical_type(*this);
-          return this->raw();
+          if (this->IsNew()) {
+            type ^= Object::Clone(*this, Heap::kOld);
+          } else {
+            type ^= this->raw();
+          }
+          ASSERT(type.IsOld());
+          type.ComputeHash();
+          type.SetCanonical();
+          cls.set_canonical_type(type);
+          return type.raw();
         }
       }
     }
     ASSERT(this->Equals(type));
     ASSERT(type.IsCanonical());
+    ASSERT(type.IsOld());
     return type.raw();
   }
 
+  AbstractType& type = Type::Handle(zone);
   ObjectStore* object_store = isolate->object_store();
   {
     SafepointMutexLocker ml(isolate->type_canonicalization_mutex());

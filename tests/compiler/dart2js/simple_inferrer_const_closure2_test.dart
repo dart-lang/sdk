@@ -33,10 +33,8 @@ void main() {
 
         checkReturn(String name, type) {
           var element = findElement(compiler, name);
-          Expect.equals(
-              type,
-              typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
-              name);
+          dynamic returnType = typesInferrer.getReturnTypeOfElement(element);
+          Expect.equals(type, returnType.simplify(compiler), name);
         }
 
         checkReturn('method', closedWorld.commonMasks.numType);

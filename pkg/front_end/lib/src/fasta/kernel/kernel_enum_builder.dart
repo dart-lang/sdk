@@ -28,8 +28,6 @@ import 'package:kernel/ast.dart'
         ThisExpression,
         VariableGet;
 
-import 'package:front_end/src/scanner/token.dart' show Token;
-
 import '../modifier.dart' show constMask, finalMask, staticMask;
 
 import '../names.dart' show indexGetName;
@@ -120,14 +118,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     ///       String toString() => { 0: ‘E.id0’, . . ., n-1: ‘E.idn-1’}[index]
     ///     }
     members["index"] = new KernelFieldBuilder(
-        null,
-        intType,
-        "index",
-        finalMask,
-        parent,
-        charOffset,
-        // Synthetic token to signal this field is initialized.
-        new Token.eof(charOffset));
+        null, intType, "index", finalMask, parent, charOffset, null, true);
     KernelConstructorBuilder constructorBuilder = new KernelConstructorBuilder(
         null,
         constMask,
@@ -145,15 +136,8 @@ class KernelEnumBuilder extends SourceClassBuilder
     constructors[""] = constructorBuilder;
     int index = 0;
     List<MapEntry> toStringEntries = <MapEntry>[];
-    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(
-        null,
-        listType,
-        "values",
-        constMask | staticMask,
-        parent,
-        charOffset,
-        // Synthetic token to signal this field is initialized.
-        new Token.eof(charOffset));
+    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(null, listType,
+        "values", constMask | staticMask, parent, charOffset, null, true);
     members["values"] = valuesBuilder;
     KernelProcedureBuilder toStringBuilder = new KernelProcedureBuilder(
         null,
@@ -185,15 +169,8 @@ class KernelEnumBuilder extends SourceClassBuilder
         constantNamesAndOffsets[i] = null;
         continue;
       }
-      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
-          null,
-          selfType,
-          name,
-          constMask | staticMask,
-          parent,
-          charOffset,
-          // Synthetic token to signal this field is initialized.
-          new Token.eof(charOffset));
+      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(null, selfType,
+          name, constMask | staticMask, parent, charOffset, null, true);
       members[name] = fieldBuilder;
       toStringEntries.add(new MapEntry(
           new IntLiteral(index), new StringLiteral("$className.$name")));

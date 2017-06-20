@@ -132,21 +132,21 @@ class IntValue extends Value {
 
   const IntValue(this.value, info) : super(info);
 
-  Value operator +(other) {
+  Value operator +(dynamic other) {
     if (other.isZero) return this;
     if (other is! IntValue) return other + this;
     ConstantSystem constantSystem = info.constantSystem;
-    var constant = constantSystem.add.fold(
+    dynamic constant = constantSystem.add.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
     if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.primitiveValue);
   }
 
-  Value operator -(other) {
+  Value operator -(dynamic other) {
     if (other.isZero) return this;
     if (other is! IntValue) return -other + this;
     ConstantSystem constantSystem = info.constantSystem;
-    var constant = constantSystem.subtract.fold(
+    dynamic constant = constantSystem.subtract.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
     if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.primitiveValue);
@@ -155,25 +155,26 @@ class IntValue extends Value {
   Value operator -() {
     if (isZero) return this;
     ConstantSystem constantSystem = info.constantSystem;
-    var constant = constantSystem.negate.fold(constantSystem.createInt(value));
+    dynamic constant =
+        constantSystem.negate.fold(constantSystem.createInt(value));
     if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.primitiveValue);
   }
 
-  Value operator &(other) {
+  Value operator &(dynamic other) {
     if (other is! IntValue) return const UnknownValue();
     ConstantSystem constantSystem = info.constantSystem;
-    var constant = constantSystem.bitAnd.fold(
+    dynamic constant = constantSystem.bitAnd.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
     return info.newIntValue(constant.primitiveValue);
   }
 
-  Value min(other) {
+  Value min(dynamic other) {
     if (other is! IntValue) return other.min(this);
     return this.value < other.value ? this : other;
   }
 
-  Value max(other) {
+  Value max(dynamic other) {
     if (other is! IntValue) return other.max(this);
     return this.value < other.value ? other : this;
   }
@@ -969,7 +970,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitConditionalBranch(HConditionalBranch branch) {
-    var condition = branch.condition;
+    dynamic condition = branch.condition;
     // TODO(ngeoffray): Handle complex conditions.
     if (condition is! HRelational) return info.newUnboundRange();
     if (condition is HIdentity) return info.newUnboundRange();

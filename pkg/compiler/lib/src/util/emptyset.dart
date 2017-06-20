@@ -31,7 +31,7 @@ class ImmutableEmptySet<E> extends IterableBase<E> implements Set<E> {
   bool containsAll(Iterable<Object> other) => other.isEmpty;
 
   Set<E> union(Set<E> other) => new Set.from(other);
-  Set<E> intersection(Set<E> other) => this;
+  Set<E> intersection(Set<Object> other) => this;
   Set<E> difference(Set<Object> other) => this;
   Set<E> toSet() => new Set();
 }

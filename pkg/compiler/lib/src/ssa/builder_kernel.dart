@@ -41,11 +41,13 @@ import 'kernel_string_builder.dart';
 import 'locals_handler.dart';
 import 'loop_handler.dart';
 import 'nodes.dart';
+import 'ssa.dart';
 import 'ssa_branch_builder.dart';
 import 'switch_continue_analysis.dart';
 import 'type_builder.dart';
 
-class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
+class KernelSsaGraphBuilder extends ir.Visitor
+    with GraphBuilder, SsaBuilderFieldMixin {
   final ir.Node target;
   final bool _targetIsConstructorBody;
   final MemberEntity targetElement;
@@ -58,7 +60,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   final ClosedWorld closedWorld;
   final CodegenWorldBuilder _worldBuilder;
   final CodegenRegistry registry;
-  final ClosureClassMaps closureToClassMapper;
+  final ClosureDataLookup closureDataLookup;
 
   /// Helper accessor for all kernel function-like targets (Procedure,
   /// FunctionExpression, FunctionDeclaration) of the inner FunctionNode itself.
@@ -98,7 +100,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// this is a slow path.
   bool _inExpressionOfThrow = false;
 
-  KernelSsaBuilder(
+  KernelSsaGraphBuilder(
       this.targetElement,
       ClassEntity contextClass,
       this.target,
@@ -109,7 +111,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       this.closedWorld,
       this._worldBuilder,
       this.registry,
-      this.closureToClassMapper,
+      this.closureDataLookup,
       // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
       this.sourceInformationBuilder,
       this.functionNode,
@@ -138,6 +140,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         _targetFunction = (target as ir.Procedure).function;
         buildFunctionNode(_targetFunction);
       } else if (target is ir.Field) {
+        if (handleConstantField(targetElement, registry, closedWorld)) {
+          // No code is generated for `targetElement`: All references inline the
+          // constant value.
+          return null;
+        } else if (targetElement.isStatic || targetElement.isTopLevel) {
+          backend.constants.registerLazyStatic(targetElement);
+        }
         buildField(target);
       } else if (target is ir.Constructor) {
         if (_targetIsConstructorBody) {
@@ -158,6 +167,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       assert(graph.isValid());
       return graph;
     });
+  }
+
+  @override
+  ConstantValue getFieldInitialConstantValue(FieldEntity field) {
+    assert(field == targetElement);
+    return _elementMap.getFieldConstantValue(target);
   }
 
   void buildField(ir.Field field) {
@@ -221,11 +236,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     });
   }
 
-  /// Comparator for the canonical order or named arguments.
-  int namedOrdering(ir.VariableDeclaration a, ir.VariableDeclaration b) {
-    return a.name.compareTo(b.name);
-  }
-
   /// Builds a generative constructor.
   ///
   /// Generative constructors are built in stages, in effect inlining the
@@ -273,7 +283,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // Doing this instead of fieldValues.forEach because we haven't defined the
     // order of the arguments here. We can define that with JElements.
     ClassEntity cls = _elementMap.getClass(constructedClass);
-    InterfaceType thisType = _elementMap.getThisType(cls);
+    InterfaceType thisType = _elementMap.elementEnvironment.getThisType(cls);
     _worldBuilder.forEachInstanceField(cls,
         (ClassEntity enclosingClass, FieldEntity member) {
       var value = fieldValues[member];
@@ -339,9 +349,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
       // If there are locals that escape (i.e. mutated in closures), we pass the
       // box to the constructor.
-      ClosureAnalysisInfo scopeData = closureToClassMapper
+      ClosureAnalysisInfo scopeData = closureDataLookup
           .getClosureAnalysisInfo(constructorElement.resolvedAst.node);
-      if (scopeData.requiresContextBox()) {
+      if (scopeData.requiresContextBox) {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
       }
 
@@ -595,22 +605,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     // Set the locals handler state as if we were inlining the constructor.
     ConstructorEntity astElement = _elementMap.getConstructor(constructor);
-    ClosureClassMap oldClosureData = localsHandler.closureData;
-    ClosureClassMap newClosureData =
-        closureToClassMapper.getMemberMap(astElement);
+    ClosureRepresentationInfo oldClosureData = localsHandler.closureData;
+    ClosureRepresentationInfo newClosureData =
+        closureDataLookup.getClosureRepresentationInfo(astElement);
     if (astElement is ConstructorElement) {
       // TODO(johnniwinther): Support constructor (body) entities.
       ResolvedAst resolvedAst = astElement.resolvedAst;
       localsHandler.closureData = newClosureData;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-        // TODO(efortuna): Take out the test below for null once we are no
-        // longer dealing with the ClosureClassMap interface directly.
-        if (newClosureData.capturingScopes[resolvedAst.node] != null) {
-          localsHandler.enterScope(
-              newClosureData.capturingScopes[resolvedAst.node],
-              forGenerativeConstructorBody:
-                  astElement.isGenerativeConstructorBody);
-        }
+        localsHandler.enterScope(
+            closureDataLookup.getClosureAnalysisInfo(resolvedAst.node),
+            forGenerativeConstructorBody:
+                astElement.isGenerativeConstructorBody);
       }
     }
     inlinedFrom(astElement, () {
@@ -697,10 +703,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
 
-    ClosureClassMap closureData =
-        closureToClassMapper.getMemberMap(targetElement);
-    localsHandler.startFunction(targetElement, closureData,
-        closureData.capturingScopes[functionNode], parameterMap,
+    localsHandler.startFunction(
+        targetElement,
+        closureDataLookup.getClosureRepresentationInfo(targetElement),
+        closureDataLookup.getClosureAnalysisInfo(functionNode),
+        parameterMap,
         isGenerativeConstructorBody: _targetIsConstructorBody);
     close(new HGoto()).addSuccessor(block);
 
@@ -756,7 +763,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
     HInstruction prefixConstant =
         graph.addConstantString(checkLoad.import.name, closedWorld);
-    var prefixElement = astAdapter.getElement(checkLoad.import);
+    PrefixElement prefixElement = astAdapter.getElement(checkLoad.import);
     HInstruction uriConstant = graph.addConstantString(
         prefixElement.deferredImport.uri.toString(), closedWorld);
     _pushStaticInvocation(
@@ -903,7 +910,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     loopHandler.handleLoop(
         forStatement,
         localsMap.getClosureRepresentationInfoForLoop(
-            closureToClassMapper, forStatement),
+            closureDataLookup, forStatement),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1032,7 +1039,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     loopHandler.handleLoop(
         forInStatement,
         localsMap.getClosureRepresentationInfoForLoop(
-            closureToClassMapper, forInStatement),
+            closureDataLookup, forInStatement),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1083,7 +1090,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     loopHandler.handleLoop(
         forInStatement,
         localsMap.getClosureRepresentationInfoForLoop(
-            closureToClassMapper, forInStatement),
+            closureDataLookup, forInStatement),
         buildInitializer,
         buildCondition,
         () {},
@@ -1130,7 +1137,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     loopHandler.handleLoop(
         forInStatement,
         localsMap.getClosureRepresentationInfoForLoop(
-            closureToClassMapper, forInStatement),
+            closureDataLookup, forInStatement),
         buildInitializer,
         buildCondition,
         buildUpdate,
@@ -1181,7 +1188,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     loopHandler.handleLoop(
         whileStatement,
         localsMap.getClosureRepresentationInfoForLoop(
-            closureToClassMapper, whileStatement),
+            closureDataLookup, whileStatement),
         () {},
         buildCondition,
         () {}, () {
@@ -1195,7 +1202,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // LoopHandler.handleLoop with some tricks about when the "update" happens.
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     LoopClosureRepresentationInfo loopClosureInfo = localsMap
-        .getClosureRepresentationInfoForLoop(closureToClassMapper, doStatement);
+        .getClosureRepresentationInfoForLoop(closureDataLookup, doStatement);
     localsHandler.startLoop(loopClosureInfo);
     JumpHandler jumpHandler = loopHandler.beginLoopHeader(doStatement);
     HLoopInformation loopInfo = current.loopInformation;
@@ -1297,7 +1304,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           null,
           loopEntryBlock.loopInformation.target,
           loopEntryBlock.loopInformation.labels,
-          sourceInformationBuilder.buildLoop(astAdapter.getNode(doStatement)));
+          // TODO(johnniwinther): Provide source information like:
+          // sourceInformationBuilder.buildLoop(astAdapter.getNode(doStatement))
+          null);
       loopEntryBlock.setBlockFlow(loopBlockInfo, current);
       loopInfo.loopBlockInformation = loopBlockInfo;
     } else {
@@ -1439,7 +1448,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// continue statements from simple switch statements.
   JumpHandler createJumpHandler(ir.TreeNode node, {bool isLoopJump: false}) {
     JumpTarget target = localsMap.getJumpTarget(node);
-    assert(target is KernelJumpTarget);
     if (target == null) {
       // No breaks or continues to this node.
       return new NullJumpHandler(reporter);
@@ -1716,7 +1724,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       loopHandler.handleLoop(
           switchStatement,
           localsMap.getClosureRepresentationInfoForLoop(
-              closureToClassMapper, switchStatement),
+              closureDataLookup, switchStatement),
           () {},
           buildCondition,
           () {},
@@ -2601,7 +2609,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     if (instruction is HConstant) {
       js.Name name =
-          astAdapter.getNameForJsGetName(argument, instruction.constant);
+          _elementMap.getNameForJsGetName(instruction.constant, namer);
       stack.add(graph.addConstantStringFromName(name, closedWorld));
       return;
     }
@@ -2653,7 +2661,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     js.Template template;
     if (instruction is HConstant) {
-      template = astAdapter.getJsBuiltinTemplate(instruction.constant);
+      template =
+          _elementMap.getJsBuiltinTemplate(instruction.constant, emitter);
     }
     if (template == null) {
       reporter.reportErrorMessage(
@@ -2717,8 +2726,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (argumentInstruction is HConstant) {
       ConstantValue argumentConstant = argumentInstruction.constant;
       if (argumentConstant is TypeConstantValue &&
-          argumentConstant.representedType is ResolutionInterfaceType) {
-        ResolutionInterfaceType type = argumentConstant.representedType;
+          argumentConstant.representedType is InterfaceType) {
+        InterfaceType type = argumentConstant.representedType;
         // TODO(sra): Check that type is a subclass of [Interceptor].
         ConstantValue constant = new InterceptorConstantValue(type.element);
         HInstruction instruction = graph.addConstant(constant, closedWorld);
@@ -2836,26 +2845,20 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   @override
   visitFunctionNode(ir.FunctionNode node) {
     Local methodElement = _elementMap.getLocalFunction(node);
-    ClosureClassMap nestedClosureData =
-        closureToClassMapper.getLocalFunctionMap(methodElement);
-    assert(nestedClosureData != null);
-    assert(nestedClosureData.closureClassElement != null);
-    ClosureClassElement closureClassElement =
-        nestedClosureData.closureClassElement;
-    MethodElement callElement = nestedClosureData.callElement;
+    ClosureRepresentationInfo closureInfo =
+        closureDataLookup.getClosureRepresentationInfo(methodElement);
+    ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    closureClassElement.closureFields.forEach((ClosureFieldElement field) {
-      Local capturedLocal =
-          nestedClosureData.getLocalVariableForClosureField(field);
+    closureInfo.createdFieldEntities.forEach((Local capturedLocal) {
       assert(capturedLocal != null);
       capturedVariables.add(localsHandler.readLocal(capturedLocal));
     });
 
-    TypeMask type = new TypeMask.nonNullExact(closureClassElement, closedWorld);
+    TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
     // TODO(efortuna): Add source information here.
-    push(new HCreate(closureClassElement, capturedVariables, type,
-        callMethod: callElement, localFunction: methodElement));
+    push(new HCreate(closureClassEntity, capturedVariables, type,
+        callMethod: closureInfo.callMethod, localFunction: methodElement));
   }
 
   @override
@@ -3047,7 +3050,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       _addTypeArguments(arguments, invocation.arguments);
     }
     TypeMask typeMask = new TypeMask.nonNullExact(cls, closedWorld);
+    InterfaceType type = _elementMap.createInterfaceType(
+        target.enclosingClass, invocation.arguments.types);
+    addImplicitInstantiation(type);
     _pushStaticInvocation(constructor, arguments, typeMask);
+    removeImplicitInstantiation(type);
   }
 
   @override
@@ -3277,7 +3284,7 @@ class TryCatchFinallyBuilder {
   HBasicBlock exitBlock;
   HTry tryInstruction;
   HLocalValue exception;
-  KernelSsaBuilder kernelBuilder;
+  KernelSsaGraphBuilder kernelBuilder;
 
   /// True if the code surrounding this try statement was also part of a
   /// try/catch/finally statement.

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
@@ -12,7 +14,6 @@ import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -38,14 +39,15 @@ runWithActiveContext(AnalysisContext context, f()) {
   }
 }
 
-scheduleImplementedNotification(
+Future<Null> scheduleImplementedNotification(
     AnalysisServer server, Iterable<String> files) async {
   SearchEngine searchEngine = server.searchEngine;
   if (searchEngine == null) {
     return;
   }
   for (String file in files) {
-    CompilationUnitElement unitElement = server.getCompilationUnitElement(file);
+    CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+    CompilationUnitElement unitElement = unit?.element;
     if (unitElement != null) {
       try {
         ImplementedComputer computer =
@@ -133,17 +135,10 @@ void scheduleNotificationOperations(
 
 void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
   _sendNotification(server, () {
-    Set<String> analyzedFiles;
-    if (server.options.enableNewAnalysisDriver) {
-      analyzedFiles = server.driverMap.values
-          .map((driver) => driver.knownFiles)
-          .expand((files) => files)
-          .toSet();
-    } else {
-      LibraryDependencyCollector collector =
-          new LibraryDependencyCollector(server.analysisContexts.toList());
-      analyzedFiles = collector.collectLibraryDependencies();
-    }
+    Set<String> analyzedFiles = server.driverMap.values
+        .map((driver) => driver.knownFiles)
+        .expand((files) => files)
+        .toSet();
     Set<String> prevAnalyzedFiles = server.prevAnalyzedFiles;
     if (prevAnalyzedFiles != null &&
         prevAnalyzedFiles.length == analyzedFiles.length &&

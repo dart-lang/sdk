@@ -26,14 +26,14 @@ Future runTest() async {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;
     var commonMasks = closedWorld.commonMasks;
-    var foo = findElement(compiler, "foo");
+    dynamic foo = findElement(compiler, "foo");
     // Return type is null|bool.
     var mask = typesInferrer.getReturnTypeOfElement(foo);
     Expect.isTrue(mask.isNullable);
     Expect.equals(
         commonMasks.boolType, simplify(mask.nonNullable(), closedWorld));
     // First parameter is uint31|String|bool.
-    var mask1 = typesInferrer.getTypeOfElement(foo.parameters[0]);
+    dynamic mask1 = typesInferrer.getTypeOfElement(foo.parameters[0]);
     Expect.isTrue(mask1.isUnion);
     var expectedTypes = new Set.from(
         [commonMasks.uint31Type, commonMasks.stringType, commonMasks.boolType]);
@@ -57,7 +57,7 @@ Future runTest() async {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;
     var commonMasks = closedWorld.commonMasks;
-    var foo = findElement(compiler, "foo");
+    dynamic foo = findElement(compiler, "foo");
     // Return type is null.
     var mask = typesInferrer.getReturnTypeOfElement(foo);
     Expect.isTrue(mask.isNullable);

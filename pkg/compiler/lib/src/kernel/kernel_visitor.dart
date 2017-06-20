@@ -217,7 +217,7 @@ class KernelVisitor extends Object
     return node;
   }
 
-  ir.Node associateNode(ir.Node node, Node ast) {
+  N associateNode<N extends ir.Node>(N node, Node ast) {
     kernel.nodeToAst[node] = ast;
     return node;
   }
@@ -406,8 +406,8 @@ class KernelVisitor extends Object
 
   @override
   ir.AssertStatement visitAssert(Assert node) {
-    return new ir.AssertStatement(
-        visitForValue(node.condition), visitForValue(node.message));
+    return new ir.AssertStatement(visitForValue(node.condition),
+        message: visitForValue(node.message));
   }
 
   ir.LabeledStatement getBreakTarget(JumpTarget target) {
@@ -1275,7 +1275,7 @@ class KernelVisitor extends Object
 
   @override
   ir.Expression visitClassTypeLiteralSet(
-      SendSet node, ConstantExpression constant, Node rhs, _) {
+      SendSet node, TypeConstantExpression constant, Node rhs, _) {
     return buildTypeLiteralSet(constant, rhs);
   }
 
@@ -1412,7 +1412,7 @@ class KernelVisitor extends Object
 
   @override
   ir.Expression visitDynamicTypeLiteralSet(
-      SendSet node, ConstantExpression constant, Node rhs, _) {
+      SendSet node, TypeConstantExpression constant, Node rhs, _) {
     return buildTypeLiteralSet(constant, rhs);
   }
 
@@ -1493,7 +1493,8 @@ class KernelVisitor extends Object
         // Mixin application implicit super call.
         arguments = <ir.Expression>[];
         named = <ir.NamedExpression>[];
-        signature.orderedForEachParameter((ParameterElement parameter) {
+        signature.orderedForEachParameter((_parameter) {
+          ParameterElement parameter = _parameter;
           ir.VariableGet argument = buildLocalGet(parameter);
           if (parameter.isNamed) {
             named.add(new ir.NamedExpression(parameter.name, argument));
@@ -2112,7 +2113,8 @@ class KernelVisitor extends Object
     if (function.hasFunctionSignature) {
       FunctionSignature signature = function.functionSignature;
       requiredParameterCount = signature.requiredParameterCount;
-      signature.forEachParameter((ParameterElement parameter) {
+      signature.forEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         ir.VariableDeclaration variable = getLocal(parameter);
         if (parameter.isNamed) {
           namedParameters.add(variable);
@@ -2120,7 +2122,8 @@ class KernelVisitor extends Object
           positionalParameters.add(variable);
         }
       });
-      signature.forEachParameter((ParameterElement parameter) {
+      signature.forEachParameter((_parameter) {
+        ParameterElement parameter = _parameter;
         if (!parameter.isOptional) return;
         ir.Expression initializer = visitForValue(parameter.initializer);
         ir.VariableDeclaration variable = getLocal(parameter);
@@ -2320,7 +2323,7 @@ class KernelVisitor extends Object
 
   @override
   ir.Expression handleStaticGetterSet(
-      SendSet node, FunctionElement getter, Node rhs, _) {
+      SendSet node, GetterElement getter, Node rhs, _) {
     return buildStaticAccessor(getter)
         .buildAssignment(visitForValue(rhs), voidContext: isVoidContext);
   }
@@ -2356,7 +2359,7 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.SuperMethodInvocation visitSuperBinary(Send node, FunctionElement function,
+  ir.SuperMethodInvocation visitSuperBinary(Send node, MethodElement function,
       BinaryOperator operator, Node argument, _) {
     transformerFlags |= TransformerFlag.superCalls;
     return new ir.SuperMethodInvocation(
@@ -2409,7 +2412,7 @@ class KernelVisitor extends Object
 
   @override
   ir.SuperMethodInvocation visitSuperEquals(
-      Send node, FunctionElement function, Node argument, _) {
+      Send node, MethodElement function, Node argument, _) {
     return buildSuperEquals(function, argument);
   }
 
@@ -2516,8 +2519,7 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.SuperPropertyGet visitSuperGetterGet(
-      Send node, FunctionElement getter, _) {
+  ir.SuperPropertyGet visitSuperGetterGet(Send node, MethodElement getter, _) {
     return buildSuperPropertyAccessor(getter).buildSimpleRead();
   }
 
@@ -2553,7 +2555,7 @@ class KernelVisitor extends Object
 
   @override
   ir.SuperMethodInvocation visitSuperIndex(
-      Send node, FunctionElement function, Node index, _) {
+      Send node, MethodElement function, Node index, _) {
     return buildSuperIndexAccessor(index, function).buildSimpleRead();
   }
 
@@ -2614,14 +2616,14 @@ class KernelVisitor extends Object
 
   @override
   ir.Expression visitSuperMethodSet(
-      Send node, MethodElement method, Node rhs, _) {
+      SendSet node, MethodElement method, Node rhs, _) {
     return buildSuperPropertyAccessor(method)
         .buildAssignment(visitForValue(rhs), voidContext: isVoidContext);
   }
 
   @override
   ir.Not visitSuperNotEquals(
-      Send node, FunctionElement function, Node argument, _) {
+      Send node, MethodElement function, Node argument, _) {
     return new ir.Not(buildSuperEquals(function, argument));
   }
 
@@ -2646,7 +2648,7 @@ class KernelVisitor extends Object
 
   @override
   ir.SuperMethodInvocation visitSuperUnary(
-      Send node, UnaryOperator operator, FunctionElement function, _) {
+      Send node, UnaryOperator operator, MethodElement function, _) {
     transformerFlags |= TransformerFlag.superCalls;
     return new ir.SuperMethodInvocation(kernel.irName(function.name, function),
         new ir.Arguments.empty(), kernel.functionToIr(function));
@@ -2824,7 +2826,7 @@ class KernelVisitor extends Object
 
   @override
   ir.Expression visitTypedefTypeLiteralSet(
-      SendSet node, ConstantExpression constant, Node rhs, _) {
+      SendSet node, TypeConstantExpression constant, Node rhs, _) {
     return buildTypeLiteralSet(constant, rhs);
   }
 
@@ -2878,6 +2880,7 @@ class KernelVisitor extends Object
   }
 
   @override
+  // TODO(ahe): Remove this ignore when strong-mode only.
   // ignore: INVALID_METHOD_OVERRIDE_RETURN_TYPE
   ir.Node visitVariableDefinitions(VariableDefinitions definitions) {
     // TODO(ahe): This method is copied from [SemanticDeclarationResolvedMixin]
@@ -2886,12 +2889,11 @@ class KernelVisitor extends Object
     computeVariableStructures(definitions,
         (Node node, VariableStructure structure) {
       if (structure == null) {
-        return internalError(node, 'No structure for $node');
+        internalError(node, 'No structure for $node');
       } else {
         ir.VariableDeclaration variable =
             structure.dispatch(declVisitor, node, null);
         variables.add(variable);
-        return variable;
       }
     });
     if (variables.length == 1) return variables.single;

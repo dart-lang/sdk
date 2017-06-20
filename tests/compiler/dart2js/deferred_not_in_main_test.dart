@@ -25,14 +25,12 @@ void deferredTest1() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var main = compiler.mainFunction;
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
-    var backend = compiler.backend;
-    var lib1 = lookupLibrary("memory:lib1.dart");
-    var lib2 = lookupLibrary("memory:lib2.dart");
-    var foo1 = lib1.find("foo1");
+    dynamic lib1 = lookupLibrary("memory:lib1.dart");
+    dynamic lib2 = lookupLibrary("memory:lib2.dart");
+    lib1.find("foo1");
     var foo2 = lib2.find("foo2");
 
     Expect.notEquals(mainOutputUnit, outputUnitForElement(foo2));
@@ -48,11 +46,10 @@ void deferredTest2() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var main = compiler.mainFunction;
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
-    var shared = lookupLibrary("memory:shared.dart");
+    dynamic shared = lookupLibrary("memory:shared.dart");
     var a = shared.find("A");
 
     Expect.equals(mainOutputUnit, outputUnitForElement(a));

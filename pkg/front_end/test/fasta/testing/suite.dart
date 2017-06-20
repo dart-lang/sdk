@@ -192,8 +192,12 @@ class Run extends Step<Uri, int, FastaContext> {
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      var platformDill = context.platformUri.toFilePath();
-      var args = ['--platform=$platformDill', generated.path, "Hello, World!"];
+      var sdkPath = context.sdk.toFilePath();
+      var args = [
+        '--kernel-binaries=$sdkPath',
+        generated.path,
+        "Hello, World!"
+      ];
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
     } finally {

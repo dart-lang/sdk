@@ -44,6 +44,6 @@ Future mainInternal(List<String> args,
     Flags.disableTypeInference
   ], beforeRun: (Compiler compiler) {
     compiler.backendStrategy = new JsBackendStrategy(compiler);
-  });
+  }, printSteps: true);
   Expect.isFalse(compiler1.compilationFailed);
 }

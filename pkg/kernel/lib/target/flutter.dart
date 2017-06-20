@@ -10,7 +10,6 @@ import '../transformations/continuation.dart' as cont;
 import '../transformations/erasure.dart';
 import '../transformations/mixin_full_resolution.dart' as mix;
 import '../transformations/sanitize_for_vm.dart';
-import '../transformations/setup_builtin_library.dart' as setup_builtin_library;
 import 'targets.dart';
 
 class FlutterTarget extends Target {
@@ -41,14 +40,11 @@ class FlutterTarget extends Target {
 
         'dart:profiler',
         'dart:typed_data',
-        'dart:_vmservice',
-        'dart:_builtin',
         'dart:nativewrappers',
         'dart:io',
 
         // Required for flutter.
         'dart:ui',
-        'dart:vmservice_sky',
       ];
 
   void performModularTransformationsOnLibraries(
@@ -60,10 +56,6 @@ class FlutterTarget extends Target {
   void performGlobalTransformations(CoreTypes coreTypes, Program program,
       {void logger(String msg)}) {
     cont.transformProgram(coreTypes, program);
-
-    // Repair `_getMainClosure()` function in dart:{_builtin,ui} libraries.
-    setup_builtin_library.transformProgram(program);
-    setup_builtin_library.transformProgram(program, libraryUri: 'dart:ui');
 
     if (strongMode) {
       new Erasure().transform(program);

@@ -63,8 +63,8 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
 
     _instantiationInfo.forEach((cls, info) {
       if (info.instantiationMap != null) {
-        info.instantiationMap
-            .forEach((ConstructorElement constructor, Set<Instance> set) {
+        info.instantiationMap.forEach((_constructor, Set<Instance> set) {
+          ConstructorElement constructor = _constructor;
           for (Instance instance in set) {
             if (instance.isRedirection) {
               continue;
@@ -74,7 +74,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
                   .addInstantiation(constructor, instance.type, instance.kind);
             } else {
               ConstructorElement target = constructor.effectiveTarget;
-              ResolutionInterfaceType targetType =
+              ResolutionDartType targetType =
                   constructor.computeEffectiveTargetType(instance.type);
               ClassElement cls = target.enclosingClass;
               bool isNative = _nativeBasicData.isNativeClass(cls);
@@ -86,8 +86,10 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
               } else {
                 kind = Instantiation.DIRECTLY_INSTANTIATED;
               }
-              infoFor(targetType.element)
-                  .addInstantiation(target, targetType, kind);
+              if (targetType is ResolutionInterfaceType) {
+                infoFor(targetType.element)
+                    .addInstantiation(target, targetType, kind);
+              }
             }
           }
         });

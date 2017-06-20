@@ -40,9 +40,9 @@ void main() {
     var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     var compiler = result.compiler;
 
-    var superclass =
+    dynamic superclass =
         findElement(compiler, 'Super', Uri.parse('memory:lib.dart'));
-    var subclass = findElement(compiler, 'Subclass');
+    dynamic subclass = findElement(compiler, 'Subclass');
     var oracle = compiler.backend.mirrorsData.isMemberAccessibleByReflection;
     print(superclass.lookupMember('_private'));
     Expect.isTrue(oracle(superclass.lookupMember('_private')));

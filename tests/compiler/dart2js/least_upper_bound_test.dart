@@ -7,7 +7,7 @@ library least_upper_bound_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
-import 'package:compiler/src/elements/elements.dart' show Element, ClassElement;
+import 'package:compiler/src/elements/elements.dart' show ClassElement;
 
 import 'type_test_helper.dart';
 

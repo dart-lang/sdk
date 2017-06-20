@@ -1690,8 +1690,7 @@ class ObservatoryDebugger extends Debugger {
     switch (event.kind) {
       case S.ServiceEvent.kVMUpdate:
         var vm = event.owner;
-        console.print(
-            "VM ${(vm as CommonWebSocketVM).target.networkAddress} renamed to '${vm.name}'");
+        console.print("VM ${vm.displayName} renamed to '${vm.name}'");
         break;
 
       case S.ServiceEvent.kIsolateStart:

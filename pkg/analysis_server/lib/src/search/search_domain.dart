@@ -51,9 +51,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
         new protocol.SearchFindElementReferencesParams.fromRequest(request);
     String file = params.file;
     // prepare element
-    if (!server.options.enableNewAnalysisDriver) {
-      await server.onAnalysisComplete;
-    }
     Element element = await server.getElementAtOffset(file, params.offset);
     if (element is ImportElement) {
       element = (element as ImportElement).prefix;
@@ -141,14 +138,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
   Future getTypeHierarchy(protocol.Request request) async {
     var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
     String file = params.file;
-    // wait for analysis
-    if (!server.options.enableNewAnalysisDriver) {
-      if (params.superOnly == true) {
-        await server.onFileAnalysisComplete(file);
-      } else {
-        await server.onAnalysisComplete;
-      }
-    }
     // prepare element
     Element element = await server.getElementAtOffset(file, params.offset);
     if (element == null) {

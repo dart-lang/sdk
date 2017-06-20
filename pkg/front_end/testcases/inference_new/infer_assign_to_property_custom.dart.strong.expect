@@ -1,0 +1,24 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → core::int
+    return 1;
+  operator -(dynamic other) → core::double
+    return 2.0;
+}
+class B extends core::Object {
+  field self::A a = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static field core::int v_prefix_pp = let final dynamic #t1 = new self::B::•() in #t1.{self::B::a} = #t1.{self::B::a}.{self::A::+}(1);
+static field core::double v_prefix_mm = let final dynamic #t2 = new self::B::•() in #t2.{self::B::a} = #t2.{self::B::a}.{self::A::-}(1);
+static field self::A v_postfix_pp = let final dynamic #t3 = new self::B::•() in let final dynamic #t4 = #t3.{self::B::a} in let final dynamic #t5 = #t3.{self::B::a} = #t4.{self::A::+}(1) in #t4;
+static field self::A v_postfix_mm = let final dynamic #t6 = new self::B::•() in let final dynamic #t7 = #t6.{self::B::a} in let final dynamic #t8 = #t6.{self::B::a} = #t7.{self::A::-}(1) in #t7;
+static method main() → dynamic {}

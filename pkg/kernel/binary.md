@@ -751,6 +751,8 @@ type EmptyStatement extends Statement {
 type AssertStatement extends Statement {
   Byte tag = 64;
   Expression condition;
+  FileOffset conditionStartOffset;
+  FileOffset conditionEndOffset;
   Option<Expression> message;
 }
 

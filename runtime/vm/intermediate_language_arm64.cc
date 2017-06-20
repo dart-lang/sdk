@@ -1127,15 +1127,26 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(aligned());
       case kTypedDataFloat32ArrayCid:
         // Load single precision float.
-        __ fldrs(result, element_address);
+        if (aligned()) {
+          __ fldrs(result, element_address);
+        } else {
+          __ LoadUnaligned(TMP, address, TMP2, kUnsignedWord);
+          __ fmovsr(result, TMP);
+        }
         break;
       case kTypedDataFloat64ArrayCid:
         // Load double precision float.
-        __ fldrd(result, element_address);
+        if (aligned()) {
+          __ fldrd(result, element_address);
+        } else {
+          __ LoadUnaligned(TMP, address, TMP2, kDoubleWord);
+          __ fmovdr(result, TMP);
+        }
         break;
       case kTypedDataFloat64x2ArrayCid:
       case kTypedDataInt32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
+        ASSERT(aligned());
         __ fldrq(result, element_address);
         break;
       default:
@@ -1472,15 +1483,23 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case kTypedDataFloat32ArrayCid: {
-      ASSERT(aligned());
       const VRegister value_reg = locs()->in(2).fpu_reg();
-      __ fstrs(value_reg, element_address);
+      if (aligned()) {
+        __ fstrs(value_reg, element_address);
+      } else {
+        __ fmovrs(TMP, value_reg);
+        __ StoreUnaligned(TMP, address, scratch, kWord);
+      }
       break;
     }
     case kTypedDataFloat64ArrayCid: {
-      ASSERT(aligned());
       const VRegister value_reg = locs()->in(2).fpu_reg();
-      __ fstrd(value_reg, element_address);
+      if (aligned()) {
+        __ fstrd(value_reg, element_address);
+      } else {
+        __ fmovrd(TMP, value_reg);
+        __ StoreUnaligned(TMP, address, scratch, kDoubleWord);
+      }
       break;
     }
     case kTypedDataFloat64x2ArrayCid:

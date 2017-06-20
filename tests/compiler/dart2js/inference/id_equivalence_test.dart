@@ -55,7 +55,8 @@ void checkMemberEquivalence(
     }
   }
 
-  elementMap.forEach((Id id, AstElement element) {
+  elementMap.forEach((Id id, _element) {
+    AstElement element = _element;
     ir.Node irNode = irMap[id];
     Expect.equals(kernel.elementToIr(element), irNode,
         "Element mismatch on $id = $element");

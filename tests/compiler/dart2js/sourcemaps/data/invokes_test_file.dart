@@ -45,7 +45,7 @@ toplevelFunction() {
   counter++;
 }
 
-var toplevelField = () {
+dynamic toplevelField = () {
   counter++;
 };
 
@@ -66,7 +66,7 @@ class B {
     counter++;
   }
 
-  var superField = () {
+  dynamic superField = () {
     counter++;
   };
 
@@ -82,7 +82,7 @@ class C<T> extends B {
     counter++;
   }
 
-  static var staticField = () {
+  static dynamic staticField = () {
     counter++;
   };
 
@@ -98,7 +98,7 @@ class C<T> extends B {
     counter++;
   }
 
-  var instanceField = () {
+  dynamic instanceField = () {
     counter++;
   };
 

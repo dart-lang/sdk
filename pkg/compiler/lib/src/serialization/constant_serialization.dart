@@ -8,6 +8,7 @@ import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../elements/elements.dart'
     show ConstructorElement, FieldElement, LocalVariableElement, MethodElement;
+import '../elements/entities.dart' show FieldEntity;
 import '../elements/operators.dart';
 import '../elements/resolution_types.dart';
 import '../universe/call_structure.dart' show CallStructure;
@@ -325,7 +326,8 @@ class ConstantConstructorSerializer
       defaults.setConstant('$key', e);
     });
     ListEncoder fields = encoder.createList(Key.FIELDS);
-    constructor.fieldMap.forEach((FieldElement f, ConstantExpression e) {
+    constructor.fieldMap.forEach((FieldEntity _f, ConstantExpression e) {
+      FieldElement f = _f;
       ObjectEncoder fieldSerializer = fields.createObject();
       fieldSerializer.setElement(Key.FIELD, f);
       fieldSerializer.setConstant(Key.CONSTANT, e);

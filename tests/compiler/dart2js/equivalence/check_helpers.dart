@@ -8,7 +8,6 @@ library dart2js.equivalence.helpers;
 
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -56,7 +55,7 @@ class Check {
 /// inequivalence.
 class CheckStrategy extends TestStrategy {
   const CheckStrategy(
-      {Equivalence<Entity> elementEquivalence: areElementsEquivalent,
+      {Equivalence<Entity> elementEquivalence: areEntitiesEquivalent,
       Equivalence<DartType> typeEquivalence: areTypesEquivalent,
       Equivalence<ConstantExpression> constantEquivalence:
           areConstantsEquivalent,
@@ -90,7 +89,6 @@ class CheckStrategy extends TestStrategy {
         throw "$o1.$p = '${v1}' <> "
             "$o2.$p = '${v2}'";
       }
-      return true;
     });
   }
 
@@ -249,7 +247,7 @@ bool checkMapEquivalence(var object1, var object2, String property, Map map1,
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
 bool checkElementIdentities(Object object1, Object object2, String property,
-    Element element1, Element element2) {
+    Entity element1, Entity element2) {
   if (identical(element1, element2)) return true;
   return check(
       object1, object2, property, element1, element2, areElementsEquivalent);
@@ -260,7 +258,7 @@ bool checkElementIdentities(Object object1, Object object2, String property,
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
 bool checkElementListIdentities(Object object1, Object object2, String property,
-    Iterable<Element> list1, Iterable<Element> list2) {
+    Iterable<Entity> list1, Iterable<Entity> list2) {
   return checkListEquivalence(
       object1, object2, property, list1, list2, checkElementIdentities);
 }

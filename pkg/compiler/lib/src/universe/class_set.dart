@@ -343,7 +343,8 @@ class ClassHierarchyNode {
       {bool instantiatedOnly: false,
       bool sorted: true,
       ClassElement withRespectTo}) {
-    bool isRelatedTo(ClassElement subclass) {
+    bool isRelatedTo(ClassEntity _subclass) {
+      ClassElement subclass = _subclass;
       return subclass == withRespectTo ||
           subclass.implementsInterface(withRespectTo);
     }
@@ -366,7 +367,7 @@ class ClassHierarchyNode {
     if (_directSubclasses.isEmpty) {
       sb.write(']');
     } else {
-      var subclasses = _directSubclasses;
+      dynamic subclasses = _directSubclasses;
       if (sorted) {
         subclasses = _directSubclasses.toList()
           ..sort((a, b) {

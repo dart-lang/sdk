@@ -119,7 +119,6 @@ subclassing_super_field_2_test: RuntimeError # Issue 27394
 subclassing_type_test: RuntimeError # Issue 27394
 super_call_test: RuntimeError # Issue 27394
 super_property_test: RuntimeError # Issue 27394
-uninstantiated_type_parameter_test: RuntimeError # Issue 27394
 
 [ $compiler == dart2js && $runtime == d8 && $dart2js_with_kernel ]
 static_methods_test: Crash # Issue 27394

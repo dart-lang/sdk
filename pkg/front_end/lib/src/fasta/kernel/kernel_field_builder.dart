@@ -31,18 +31,24 @@ import 'kernel_builder.dart'
     show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
 
 class KernelFieldBuilder extends FieldBuilder<Expression> {
-  final Field field;
+  final KernelField field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
-  final Token initializerToken;
+  final Token initializerTokenForInference;
+  final bool hasInitializer;
 
-  KernelFieldBuilder(this.metadata, this.type, String name, int modifiers,
-      Builder compilationUnit, int charOffset, this.initializerToken)
+  KernelFieldBuilder(
+      this.metadata,
+      this.type,
+      String name,
+      int modifiers,
+      Builder compilationUnit,
+      int charOffset,
+      this.initializerTokenForInference,
+      this.hasInitializer)
       : field = new KernelField(null, fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset,
         super(name, modifiers, compilationUnit, charOffset);
-
-  bool get hasInitializer => initializerToken != null;
 
   void set initializer(Expression value) {
     if (!hasInitializer && value is! NullLiteral && !isConst && !isFinal) {
@@ -50,6 +56,9 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     }
     field.initializer = value..parent = field;
   }
+
+  bool get isEligibleForInference =>
+      type == null && (hasInitializer || isInstanceMember);
 
   Field build(SourceLibraryBuilder library) {
     field.name ??= new Name(name, library.target);
@@ -63,8 +72,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitGetter = isInstanceMember
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
-    if (initializerToken != null && !initializerToken.isEof) {
-      library.loader.typeInferenceEngine.recordField(field);
+    if (isEligibleForInference) {
+      library.loader.typeInferenceEngine.recordMember(field);
     }
     return field;
   }
@@ -74,7 +83,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   @override
   void prepareInitializerInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {
-    if (initializerToken != null && !initializerToken.isEof) {
+    if (isEligibleForInference) {
       var memberScope =
           currentClass == null ? library.scope : currentClass.scope;
       // TODO(paulberry): Is it correct to pass library.uri into BodyBuilder, or
@@ -83,22 +92,24 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       var listener = new TypeInferenceListener();
       var typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(
           listener, field.enclosingClass?.thisType, field);
-      var bodyBuilder = new BodyBuilder(
-          library,
-          this,
-          memberScope,
-          null,
-          typeInferenceEngine.classHierarchy,
-          typeInferenceEngine.coreTypes,
-          currentClass,
-          isInstanceMember,
-          library.uri,
-          typeInferrer);
-      Parser parser = new Parser(bodyBuilder);
-      Token token = parser.parseExpression(initializerToken);
-      Expression expression = bodyBuilder.popForValue();
-      bodyBuilder.checkEmpty(token.charOffset);
-      initializer = expression;
+      if (hasInitializer) {
+        var bodyBuilder = new BodyBuilder(
+            library,
+            this,
+            memberScope,
+            null,
+            typeInferenceEngine.classHierarchy,
+            typeInferenceEngine.coreTypes,
+            currentClass,
+            isInstanceMember,
+            library.uri,
+            typeInferrer);
+        Parser parser = new Parser(bodyBuilder);
+        Token token = parser.parseExpression(initializerTokenForInference);
+        Expression expression = bodyBuilder.popForValue();
+        bodyBuilder.checkEmpty(token.charOffset);
+        initializer = expression;
+      }
     }
   }
 

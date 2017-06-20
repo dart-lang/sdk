@@ -774,7 +774,8 @@ class ResolverTask extends CompilerTask {
 
     // Check that the mixed in class doesn't have any constructors and
     // make sure we aren't mixing in methods that use 'super'.
-    mixin.forEachLocalMember((AstElement member) {
+    mixin.forEachLocalMember((_member) {
+      AstElement member = _member;
       if (member.isGenerativeConstructor && !member.isSynthesized) {
         reporter.reportErrorMessage(
             member, MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR);

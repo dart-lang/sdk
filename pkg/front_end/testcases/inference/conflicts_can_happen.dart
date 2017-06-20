@@ -22,12 +22,12 @@ class B {
 }
 
 class C1 implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/ get a => null;
+  /*error:INVALID_METHOD_OVERRIDE*/ get /*@topType=dynamic*/ a => null;
 }
 
 // Still ambiguous
 class C2 implements B, A {
-  /*error:INVALID_METHOD_OVERRIDE*/ get a => null;
+  /*error:INVALID_METHOD_OVERRIDE*/ get /*@topType=dynamic*/ a => null;
 }
 
 main() {}

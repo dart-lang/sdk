@@ -4,16 +4,15 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug --async_debugger
 
 import 'dart:developer';
-
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 19;
-const LINE_B = 20;
-const LINE_C = 24;
-const LINE_D = 27;
-const LINE_E = 33;
-const LINE_F = 34;
+const LINE_A = 18;
+const LINE_B = 19;
+const LINE_C = 23;
+const LINE_D = 26;
+const LINE_E = 32;
+const LINE_F = 33;
 
 foobar() async* {
   yield 1; // LINE_A.

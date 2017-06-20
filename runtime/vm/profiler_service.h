@@ -171,7 +171,10 @@ class ProfileCode : public ZoneAllocated {
   uword end() const { return end_; }
   void set_end(uword end) { end_ = end; }
 
-  void AdjustExtent(uword start, uword end);
+  void ExpandLower(uword start);
+  void ExpandUpper(uword end);
+  void TruncateLower(uword start);
+  void TruncateUpper(uword end);
 
   bool Contains(uword pc) const { return (pc >= start_) && (pc < end_); }
 
@@ -236,6 +239,48 @@ class ProfileCode : public ZoneAllocated {
   ZoneGrowableArray<ProfileCodeAddress> address_ticks_;
 
   friend class ProfileBuilder;
+};
+
+
+class ProfileCodeTable : public ZoneAllocated {
+ public:
+  ProfileCodeTable() : table_(8) {}
+
+  intptr_t length() const { return table_.length(); }
+
+  ProfileCode* At(intptr_t index) const {
+    ASSERT(index >= 0);
+    ASSERT(index < length());
+    return table_[index];
+  }
+
+  // Find the table index to the ProfileCode containing pc.
+  // Returns < 0 if not found.
+  intptr_t FindCodeIndexForPC(uword pc) const;
+
+  ProfileCode* FindCodeForPC(uword pc) const {
+    intptr_t index = FindCodeIndexForPC(pc);
+    if (index < 0) {
+      return NULL;
+    }
+    return At(index);
+  }
+
+  // Insert |new_code| into the table. Returns the table index where |new_code|
+  // was inserted. Will merge with an overlapping ProfileCode if one is present.
+  intptr_t InsertCode(ProfileCode* new_code);
+
+ private:
+  void FindNeighbors(uword pc,
+                     intptr_t* lo,
+                     intptr_t* hi,
+                     ProfileCode** lo_code,
+                     ProfileCode** hi_code) const;
+
+  void VerifyOrder();
+  void VerifyOverlap();
+
+  ZoneGrowableArray<ProfileCode*> table_;
 };
 
 

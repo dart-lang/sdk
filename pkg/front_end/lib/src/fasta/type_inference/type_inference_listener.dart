@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:kernel/ast.dart';
 
 /// Base class for [TypeInferenceListener] that defines the API for debugging.
@@ -9,6 +10,8 @@ import 'package:kernel/ast.dart';
 /// By default no debug info is printed.  To enable debug printing, mix in
 /// [TypeInferenceDebugging].
 class TypeInferenceBase {
+  void debugDependency(FieldNode fieldNode) {}
+
   bool debugExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
     return false;
@@ -29,6 +32,10 @@ class TypeInferenceBase {
 /// Mixin which can be applied to [TypeInferenceListener] to cause debug info to
 /// be printed.
 class TypeInferenceDebugging implements TypeInferenceBase {
+  void debugDependency(FieldNode fieldNode) {
+    print('Dependency $fieldNode');
+  }
+
   bool debugExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
     print('Enter $expressionType($expression) (context=$typeContext)');
@@ -124,6 +131,12 @@ class TypeInferenceListener
   void doubleLiteralExit(DoubleLiteral expression, DartType inferredType) =>
       debugExpressionExit("doubleLiteral", expression, inferredType);
 
+  void dryRunEnter(Expression expression) =>
+      debugExpressionEnter("dryRun", expression, null);
+
+  void dryRunExit(Expression expression) =>
+      debugExpressionExit("dryRun", expression, null);
+
   void expressionStatementEnter(ExpressionStatement statement) =>
       debugStatementEnter('expressionStatement', statement);
 
@@ -149,6 +162,12 @@ class TypeInferenceListener
   void functionExpressionExit(
           FunctionExpression expression, DartType inferredType) =>
       debugExpressionExit("functionExpression", expression, inferredType);
+
+  bool ifNullEnter(Expression expression, DartType typeContext) =>
+      debugExpressionEnter('ifNull', expression, typeContext);
+
+  void ifNullExit(Expression expression, DartType inferredType) =>
+      debugExpressionExit('ifNull', expression, inferredType);
 
   void ifStatementEnter(IfStatement statement) =>
       debugStatementEnter('ifStatement', statement);
@@ -218,10 +237,10 @@ class TypeInferenceListener
   void propertyAssignExit(Expression expression, DartType inferredType) =>
       debugExpressionExit("propertyAssign", expression, inferredType);
 
-  bool propertyGetEnter(PropertyGet expression, DartType typeContext) =>
+  bool propertyGetEnter(Expression expression, DartType typeContext) =>
       debugExpressionEnter("propertyGet", expression, typeContext);
 
-  void propertyGetExit(PropertyGet expression, DartType inferredType) =>
+  void propertyGetExit(Expression expression, DartType inferredType) =>
       debugExpressionExit("propertyGet", expression, inferredType);
 
   bool propertySetEnter(PropertySet expression, DartType typeContext) =>
@@ -229,6 +248,8 @@ class TypeInferenceListener
 
   void propertySetExit(PropertySet expression, DartType inferredType) =>
       debugExpressionExit("propertySet", expression, inferredType);
+
+  void recordDependency(FieldNode fieldNode) => debugDependency(fieldNode);
 
   void redirectingInitializerEnter(RedirectingInitializer initializer) =>
       debugInitializerEnter("redirectingInitializer", initializer);

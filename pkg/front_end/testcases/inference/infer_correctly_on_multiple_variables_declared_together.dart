@@ -32,3 +32,5 @@ foo() {
   i = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::z*/ z;
   i = new B(). /*@target=B::w*/ w;
 }
+
+main() {}

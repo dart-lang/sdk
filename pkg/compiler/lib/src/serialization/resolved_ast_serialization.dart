@@ -178,7 +178,8 @@ class ResolvedAstSerializer extends Visitor {
   }
 
   void serializeParameterNodes(FunctionElement function) {
-    function.functionSignature.forEachParameter((ParameterElement parameter) {
+    function.functionSignature.forEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
       ParameterElement parameterImpl = parameter.implementation;
       // TODO(johnniwinther): Should we support element->node mapping as well?
       getNodeDataEncoder(parameterImpl.node)
@@ -605,13 +606,14 @@ class ResolvedAstDeserializer {
         labelDefinitions.add(labelDefinition);
       }
     }
-    jumpTargetLabels.forEach((JumpTargetX jumpTarget, List<int> labelIds) {
+    jumpTargetLabels.forEach((JumpTarget jumpTarget, List<int> labelIds) {
       if (labelIds.isEmpty) return;
       List<LabelDefinition> labels = <LabelDefinition>[];
       for (int labelId in labelIds) {
         labels.add(labelDefinitions[labelId]);
       }
-      jumpTarget.labels = labels;
+      JumpTargetX target = jumpTarget;
+      target.labels = labels;
     });
 
     ListDecoder dataDecoder = objectDecoder.getList(Key.DATA, isOptional: true);

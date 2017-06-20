@@ -117,8 +117,6 @@ external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
 
-large_class_declaration_test: SkipSlow  # KernelVM bug: KernelVM Issue 28312
-
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: Issue 15101
@@ -132,8 +130,6 @@ mixin_type_parameters_super_test: RuntimeError # KernelVM bug: Issue 29537
 
 evaluation_redirecting_constructor_test: RuntimeError # KernelVM bug: Field initializers evaluated multiple times
 redirecting_constructor_initializer_test: RuntimeError # KernelVM bug: Field initializers evaluated multiple times
-
-vm/regress_27671_test: RuntimeError # KernelVM bug: Problem with checked mode or other VMOptions?
 
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.

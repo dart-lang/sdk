@@ -7,7 +7,6 @@
 /// processed.
 library embedded_category_boundary_test;
 
-import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
@@ -37,8 +36,8 @@ Set<String> whiteList = new Set.from([
 ]);
 
 bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
-  return compiler.enqueuer.resolution.processedEntities
-      .every((MemberElement element) {
+  return compiler.enqueuer.resolution.processedEntities.every((_element) {
+    MemberElement element = _element;
     if (whiteList.contains("$element")) return true;
     LibraryInfo info = libraries[element.library.canonicalUri.path];
     bool isAllowedInEmbedded =

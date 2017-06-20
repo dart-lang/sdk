@@ -6,8 +6,12 @@ abstract class Base<T extends core::Object, U extends core::Object> extends core
   constructor •() → void
     : super core::Object::•()
     ;
-  abstract operator [](core::String s) → self::Base::T;
-  abstract operator []=(core::String s, self::Base::U v) → void;
+  operator [](core::String s) → self::Base::T
+    return this.getValue(s);
+  operator []=(core::String s, self::Base::U v) → void
+    return this.setValue(s, v);
+  abstract method getValue(core::String s) → self::Base::T;
+  abstract method setValue(core::String s, self::Base::U v) → void;
 }
 abstract class Test1 extends self::Base<core::int, core::int> {
   constructor •() → void

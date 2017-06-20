@@ -96,7 +96,7 @@ class UnionTypeMask implements TypeMask {
     bool useSubclass = masks.every((e) => !e.isSubtype);
     bool isNullable = masks.any((e) => e.isNullable);
 
-    List masksBases = masks.map((mask) => mask.base).toList();
+    List<ClassEntity> masksBases = masks.map((mask) => mask.base).toList();
     Iterable<ClassEntity> candidates =
         closedWorld.commonSupertypesOf(masksBases);
 
@@ -137,7 +137,7 @@ class UnionTypeMask implements TypeMask {
     return new TypeMask(bestElement, bestKind, isNullable, closedWorld);
   }
 
-  TypeMask union(var other, ClosedWorld closedWorld) {
+  TypeMask union(dynamic other, ClosedWorld closedWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return this;
 
@@ -151,7 +151,7 @@ class UnionTypeMask implements TypeMask {
     return new TypeMask.unionOf(newList, closedWorld);
   }
 
-  TypeMask intersection(var other, ClosedWorld closedWorld) {
+  TypeMask intersection(dynamic other, ClosedWorld closedWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return other;
     if (other.isUnion && this == other) return this;
@@ -189,8 +189,10 @@ class UnionTypeMask implements TypeMask {
 
   TypeMask nonNullable() {
     if (!isNullable) return this;
-    Iterable<FlatTypeMask> newIterable =
-        disjointMasks.map((e) => e.nonNullable());
+    Iterable<FlatTypeMask> newIterable = disjointMasks.map((e) {
+      FlatTypeMask r = e.nonNullable();
+      return r;
+    });
     return new UnionTypeMask._internal(newIterable);
   }
 

@@ -46,6 +46,10 @@ least_upper_bound_expansive_test/*: Fail, OK
 # Skipped temporarily until fixed
 vm/regress_29145_test: Skip # Issue 29145
 
+# Skipped temporaril until Issue 29895 is fixed.
+no_main_test/01: Skip
+main_not_a_function_test/01: Skip
+
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 multiline_strings_test: Fail # Issue 23020
@@ -142,11 +146,12 @@ large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
+closure_cycles_test: Pass, Slow
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) && $mode == debug ]
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
-[ ($runtime == vm || $runtime == dart_precompiled) && ( $arch == simarm || $arch == arm || $arch == simarmv6 || $arch == armv6 || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
+[ ($runtime == vm || $runtime == dart_precompiled) && ($arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
 vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
@@ -160,6 +165,8 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 vm/regress_27671_test: Skip # Unsupported
+export_double_same_main_test: Skip # Issue 29895
+export_ambiguous_main_negative_test: Skip # Issue 29895
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $mode == debug ]
 regress_29025_test: Crash  # Issue dartbug.com/29331

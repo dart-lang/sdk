@@ -119,7 +119,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     int optionalParameterCount = parameters.optionalParameters << 1;
     if (parameters.namedParameters.isNotEmpty) optionalParameterCount++;
 
-    List tearOffInfo = [callSelectorString];
+    var tearOffInfo = <jsAst.Expression>[callSelectorString];
 
     for (ParameterStubMethod stub in method.parameterStubs) {
       jsAst.Name invocationName = stub.name;

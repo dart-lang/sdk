@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:expect/expect.dart';

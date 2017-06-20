@@ -36,7 +36,8 @@ main(List<String> arguments) async {
 
 /// Check all loaded libraries in [compiler] for unrelated types.
 void checkRelatedTypes(Compiler compiler) {
-  compiler.closeResolution();
+  compiler.closeResolution(
+      compiler.frontendStrategy.elementEnvironment.mainFunction);
   for (LibraryElement library in compiler.libraryLoader.libraries) {
     checkLibraryElement(compiler, library);
   }
@@ -47,7 +48,8 @@ void checkLibraryElement(Compiler compiler, LibraryElement library) {
   library.forEachLocalMember((Element element) {
     if (element.isClass) {
       ClassElement cls = element;
-      cls.forEachLocalMember((MemberElement member) {
+      cls.forEachLocalMember((_member) {
+        MemberElement member = _member;
         checkMemberElement(compiler, member);
       });
     } else if (!element.isTypedef) {

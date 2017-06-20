@@ -11,196 +11,231 @@ import 'elements.dart';
 abstract class ElementVisitor<R, A> {
   const ElementVisitor();
 
-  R visit(Element e, A arg) => e.accept(this, arg);
+  R visit(covariant Element e, covariant A arg) => e.accept(this, arg);
 
-  R visitErroneousElement(ErroneousElement e, A arg) => null;
-  R visitWarnOnUseElement(WarnOnUseElement e, A arg) => null;
-  R visitAmbiguousElement(AmbiguousElement e, A arg) => null;
-  R visitCompilationUnitElement(CompilationUnitElement e, A arg) => null;
-  R visitLibraryElement(LibraryElement e, A arg) => null;
-  R visitImportElement(ImportElement e, A arg) => null;
-  R visitExportElement(ExportElement e, A arg) => null;
-  R visitPrefixElement(PrefixElement e, A arg) => null;
-  R visitTypedefElement(TypedefElement e, A arg) => null;
-  R visitLocalVariableElement(LocalVariableElement e, A arg) => null;
-  R visitParameterElement(ParameterElement e, A arg) => null;
-  R visitFormalElement(FormalElement e, A arg) => null;
-  R visitFieldElement(FieldElement e, A arg) => null;
-  R visitFieldParameterElement(InitializingFormalElement e, A arg) => null;
-  R visitAbstractFieldElement(AbstractFieldElement e, A arg) => null;
-  R visitMethodElement(FunctionElement e, A arg) => null;
-  R visitGetterElement(GetterElement e, A arg) => null;
-  R visitSetterElement(SetterElement e, A arg) => null;
-  R visitLocalFunctionElement(LocalFunctionElement e, A arg) => null;
-  R visitConstructorElement(ConstructorElement e, A arg) => null;
-  R visitConstructorBodyElement(ConstructorBodyElement e, A arg) => null;
-  R visitClassElement(ClassElement e, A arg) => null;
-  R visitMixinApplicationElement(MixinApplicationElement e, A arg) => null;
-  R visitEnumClassElement(EnumClassElement e, A arg) => null;
-  R visitTypeVariableElement(TypeVariableElement e, A arg) => null;
-  R visitBoxFieldElement(BoxFieldElement e, A arg) => null;
-  R visitClosureClassElement(ClosureClassElement e, A arg) => null;
-  R visitClosureFieldElement(ClosureFieldElement e, A arg) => null;
+  R visitErroneousElement(covariant ErroneousElement e, covariant A arg) =>
+      null;
+  R visitWarnOnUseElement(covariant WarnOnUseElement e, covariant A arg) =>
+      null;
+  R visitAmbiguousElement(covariant AmbiguousElement e, covariant A arg) =>
+      null;
+  R visitCompilationUnitElement(
+          covariant CompilationUnitElement e, covariant A arg) =>
+      null;
+  R visitLibraryElement(covariant LibraryElement e, covariant A arg) => null;
+  R visitImportElement(covariant ImportElement e, covariant A arg) => null;
+  R visitExportElement(covariant ExportElement e, covariant A arg) => null;
+  R visitPrefixElement(covariant PrefixElement e, covariant A arg) => null;
+  R visitTypedefElement(covariant TypedefElement e, covariant A arg) => null;
+  R visitLocalVariableElement(
+          covariant LocalVariableElement e, covariant A arg) =>
+      null;
+  R visitParameterElement(covariant ParameterElement e, covariant A arg) =>
+      null;
+  R visitFormalElement(covariant FormalElement e, covariant A arg) => null;
+  R visitFieldElement(covariant FieldElement e, covariant A arg) => null;
+  R visitFieldParameterElement(
+          covariant InitializingFormalElement e, covariant A arg) =>
+      null;
+  R visitAbstractFieldElement(
+          covariant AbstractFieldElement e, covariant A arg) =>
+      null;
+  R visitMethodElement(covariant MethodElement e, covariant A arg) => null;
+  R visitGetterElement(covariant GetterElement e, covariant A arg) => null;
+  R visitSetterElement(covariant SetterElement e, covariant A arg) => null;
+  R visitLocalFunctionElement(
+          covariant LocalFunctionElement e, covariant A arg) =>
+      null;
+  R visitConstructorElement(covariant ConstructorElement e, covariant A arg) =>
+      null;
+  R visitConstructorBodyElement(
+          covariant ConstructorBodyElement e, covariant A arg) =>
+      null;
+  R visitClassElement(covariant ClassElement e, covariant A arg) => null;
+  R visitMixinApplicationElement(
+          covariant MixinApplicationElement e, covariant A arg) =>
+      null;
+  R visitEnumClassElement(covariant EnumClassElement e, covariant A arg) =>
+      null;
+  R visitTypeVariableElement(
+          covariant TypeVariableElement e, covariant A arg) =>
+      null;
+  R visitBoxFieldElement(covariant BoxFieldElement e, covariant A arg) => null;
+  R visitClosureClassElement(
+          covariant ClosureClassElement e, covariant A arg) =>
+      null;
+  R visitClosureFieldElement(
+          covariant ClosureFieldElement e, covariant A arg) =>
+      null;
 }
 
 abstract class BaseElementVisitor<R, A> extends ElementVisitor<R, A> {
   const BaseElementVisitor();
 
-  R visitElement(Element e, A arg);
+  R visitElement(covariant Element e, covariant A arg);
 
   @override
-  R visitErroneousElement(ErroneousElement e, A arg) {
+  R visitErroneousElement(covariant ErroneousElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
   @override
-  R visitWarnOnUseElement(WarnOnUseElement e, A arg) {
+  R visitWarnOnUseElement(covariant WarnOnUseElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
   @override
-  R visitAmbiguousElement(AmbiguousElement e, A arg) {
+  R visitAmbiguousElement(covariant AmbiguousElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
-  R visitScopeContainerElement(ScopeContainerElement e, A arg) {
-    return visitElement(e, arg);
-  }
-
-  @override
-  R visitCompilationUnitElement(CompilationUnitElement e, A arg) {
+  R visitScopeContainerElement(
+      covariant ScopeContainerElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
   @override
-  R visitLibraryElement(LibraryElement e, A arg) {
+  R visitCompilationUnitElement(
+      covariant CompilationUnitElement e, covariant A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitLibraryElement(covariant LibraryElement e, covariant A arg) {
     return visitScopeContainerElement(e, arg);
   }
 
   @override
-  R visitImportElement(ImportElement e, A arg) {
+  R visitImportElement(covariant ImportElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
   @override
-  R visitExportElement(ExportElement e, A arg) {
+  R visitExportElement(covariant ExportElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
   @override
-  R visitPrefixElement(PrefixElement e, A arg) {
+  R visitPrefixElement(covariant PrefixElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
   @override
-  R visitTypedefElement(TypedefElement e, A arg) {
+  R visitTypedefElement(covariant TypedefElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
-  R visitVariableElement(VariableElement e, A arg) {
+  R visitVariableElement(covariant VariableElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
   @override
-  R visitLocalVariableElement(LocalVariableElement e, A arg) {
+  R visitLocalVariableElement(
+      covariant LocalVariableElement e, covariant A arg) {
     return visitVariableElement(e, arg);
   }
 
   @override
-  R visitParameterElement(ParameterElement e, A arg) {
+  R visitParameterElement(covariant ParameterElement e, covariant A arg) {
     return visitVariableElement(e, arg);
   }
 
   @override
-  R visitFormalElement(FormalElement e, A arg) {
+  R visitFormalElement(covariant FormalElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
   @override
-  R visitFieldElement(FieldElement e, A arg) {
+  R visitFieldElement(covariant FieldElement e, covariant A arg) {
     return visitVariableElement(e, arg);
   }
 
   @override
-  R visitFieldParameterElement(InitializingFormalElement e, A arg) {
+  R visitFieldParameterElement(
+      covariant InitializingFormalElement e, covariant A arg) {
     return visitParameterElement(e, arg);
   }
 
   @override
-  R visitAbstractFieldElement(AbstractFieldElement e, A arg) {
+  R visitAbstractFieldElement(
+      covariant AbstractFieldElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
-  R visitFunctionElement(FunctionElement e, A arg) {
-    return visitElement(e, arg);
-  }
-
-  @override
-  R visitMethodElement(MethodElement e, A arg) {
-    return visitFunctionElement(e, arg);
-  }
-
-  @override
-  R visitGetterElement(GetterElement e, A arg) {
-    return visitFunctionElement(e, arg);
-  }
-
-  @override
-  R visitSetterElement(SetterElement e, A arg) {
-    return visitFunctionElement(e, arg);
-  }
-
-  @override
-  R visitLocalFunctionElement(LocalFunctionElement e, A arg) {
-    return visitFunctionElement(e, arg);
-  }
-
-  @override
-  R visitConstructorElement(ConstructorElement e, A arg) {
-    return visitFunctionElement(e, arg);
-  }
-
-  @override
-  R visitConstructorBodyElement(ConstructorBodyElement e, A arg) {
+  R visitFunctionElement(covariant FunctionElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
   @override
-  R visitClassElement(ClassElement e, A arg) {
+  R visitMethodElement(covariant MethodElement e, covariant A arg) {
+    return visitFunctionElement(e, arg);
+  }
+
+  @override
+  R visitGetterElement(covariant GetterElement e, covariant A arg) {
+    return visitFunctionElement(e, arg);
+  }
+
+  @override
+  R visitSetterElement(covariant SetterElement e, covariant A arg) {
+    return visitFunctionElement(e, arg);
+  }
+
+  @override
+  R visitLocalFunctionElement(
+      covariant LocalFunctionElement e, covariant A arg) {
+    return visitFunctionElement(e, arg);
+  }
+
+  @override
+  R visitConstructorElement(covariant ConstructorElement e, covariant A arg) {
+    return visitFunctionElement(e, arg);
+  }
+
+  @override
+  R visitConstructorBodyElement(
+      covariant ConstructorBodyElement e, covariant A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitClassElement(covariant ClassElement e, covariant A arg) {
     return visitScopeContainerElement(e, arg);
   }
 
-  R visitTypeDeclarationElement(TypeDeclarationElement e, A arg) {
+  R visitTypeDeclarationElement(
+      covariant TypeDeclarationElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
   @override
-  R visitMixinApplicationElement(MixinApplicationElement e, A arg) {
+  R visitMixinApplicationElement(
+      covariant MixinApplicationElement e, covariant A arg) {
     return visitClassElement(e, arg);
   }
 
   @override
-  R visitEnumClassElement(EnumClassElement e, A arg) {
+  R visitEnumClassElement(covariant EnumClassElement e, covariant A arg) {
     return visitClassElement(e, arg);
   }
 
   @override
-  R visitTypeVariableElement(TypeVariableElement e, A arg) {
+  R visitTypeVariableElement(covariant TypeVariableElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
   @override
-  R visitBoxFieldElement(BoxFieldElement e, A arg) {
+  R visitBoxFieldElement(covariant BoxFieldElement e, covariant A arg) {
     return visitElement(e, arg);
   }
 
   @override
-  R visitClosureClassElement(ClosureClassElement e, A arg) {
+  R visitClosureClassElement(covariant ClosureClassElement e, covariant A arg) {
     return visitClassElement(e, arg);
   }
 
   @override
-  R visitClosureFieldElement(ClosureFieldElement e, A arg) {
+  R visitClosureFieldElement(covariant ClosureFieldElement e, covariant A arg) {
     return visitVariableElement(e, arg);
   }
 }

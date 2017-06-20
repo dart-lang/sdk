@@ -210,10 +210,10 @@ Future testData(TestData data) async {
       memorySourceFiles: {'main.dart': source}, options: ['--analyze-all']);
   Compiler compiler = result.compiler;
   MemoryEnvironment environment = new MemoryEnvironment(compiler);
-  var library = compiler.mainApp;
+  dynamic library = compiler.frontendStrategy.elementEnvironment.mainLibrary;
   constants.forEach((String name, ConstantData data) {
     FieldElement field = library.localLookup(name);
-    var constant = field.constant;
+    dynamic constant = field.constant;
     Expect.equals(
         data.kind,
         constant.kind,

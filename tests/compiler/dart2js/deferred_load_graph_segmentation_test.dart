@@ -22,7 +22,7 @@ void main() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var main = compiler.mainFunction;
+    var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
 
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
@@ -31,13 +31,13 @@ void main() {
     var backend = compiler.backend;
     var classes = backend.emitter.neededClasses;
     var inputElement = classes.where((e) => e.name == 'InputElement').single;
-    var lib1 = lookupLibrary("memory:lib1.dart");
+    dynamic lib1 = lookupLibrary("memory:lib1.dart");
     var foo1 = lib1.find("foo1");
-    var lib2 = lookupLibrary("memory:lib2.dart");
+    dynamic lib2 = lookupLibrary("memory:lib2.dart");
     var foo2 = lib2.find("foo2");
-    var lib3 = lookupLibrary("memory:lib3.dart");
+    dynamic lib3 = lookupLibrary("memory:lib3.dart");
     var foo3 = lib3.find("foo3");
-    var lib4 = lookupLibrary("memory:lib4.dart");
+    dynamic lib4 = lookupLibrary("memory:lib4.dart");
     var bar1 = lib4.find("bar1");
     var bar2 = lib4.find("bar2");
 

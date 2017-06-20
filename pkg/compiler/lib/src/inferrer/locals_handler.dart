@@ -190,10 +190,11 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
     for (int i = 0; i < positional.length; i++) {
       if (positional[i] != other.positional[i]) return false;
     }
+    var result = true;
     named.forEach((name, type) {
-      if (other.named[name] != type) return false;
+      if (other.named[name] != type) result = false;
     });
-    return true;
+    return result;
   }
 
   int get hashCode => throw new UnsupportedError('ArgumentsTypes.hashCode');
@@ -209,7 +210,7 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
     return positional.every(f) && named.values.every(f);
   }
 
-  bool contains(TypeInformation type) {
+  bool contains(Object type) {
     return positional.contains(type) || named.containsValue(type);
   }
 }

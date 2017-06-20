@@ -108,7 +108,7 @@ class JsonValueEncoder implements ValueVisitor {
 }
 
 /// [ValueVisitor] that generates a verbose JSON-like output.
-class PrettyPrintEncoder implements ValueVisitor {
+class PrettyPrintEncoder implements ValueVisitor<dynamic, String> {
   StringBuffer buffer;
 
   String toText(Value value) {

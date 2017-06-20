@@ -867,6 +867,8 @@ class BinaryPrinter extends Visitor {
   visitAssertStatement(AssertStatement node) {
     writeByte(Tag.AssertStatement);
     writeNode(node.condition);
+    writeOffset(node.conditionStartOffset);
+    writeOffset(node.conditionEndOffset);
     writeOptionalNode(node.message);
   }
 

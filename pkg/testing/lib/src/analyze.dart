@@ -237,12 +237,6 @@ Future<Null> analyzeUris(
     await for (AnalyzerDiagnostic diagnostic in diagnostics) {
       if (diagnostic.uri != null) {
         String path = toFilePath(diagnostic.uri);
-        if (diagnostic.code.startsWith("STRONG_MODE") &&
-            (path.startsWith("pkg/compiler/") ||
-                path.startsWith("tests/compiler/dart2js/"))) {
-          // Hack to work around dart2js not being strong-mode clean.
-          continue;
-        }
         if (!filesToAnalyze.contains(path)) continue;
       }
       String message = "$diagnostic";

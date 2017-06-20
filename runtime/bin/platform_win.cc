@@ -259,6 +259,11 @@ char** Platform::Environment(intptr_t* count) {
 }
 
 
+const char* Platform::GetExecutableName() {
+  return executable_name_;
+}
+
+
 const char* Platform::ResolveExecutablePath() {
   // GetModuleFileNameW cannot directly provide information on the
   // required buffer size, so start out with a buffer large enough to

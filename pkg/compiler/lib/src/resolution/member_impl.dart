@@ -6,7 +6,7 @@ part of dart2js.resolution.compute_members;
 
 class DeclaredMember implements Member {
   final Name name;
-  final Element element;
+  final MemberElement element;
   final ResolutionInterfaceType declarer;
   final ResolutionDartType type;
   final ResolutionFunctionType functionType;
@@ -116,7 +116,7 @@ class InheritedMember implements DeclaredMember {
     assert(!declaration.isStatic);
   }
 
-  Element get element => declaration.element;
+  MemberElement get element => declaration.element;
 
   Name get name => declaration.name;
 

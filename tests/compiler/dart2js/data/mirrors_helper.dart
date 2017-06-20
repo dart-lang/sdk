@@ -56,10 +56,14 @@ class Boz extends Foo {
   }
 }
 
+// ignore: UNUSED_ELEMENT
 class _PrivateClass {
   var _privateField;
+  // ignore: UNUSED_ELEMENT
   get _privateGetter => _privateField;
+  // ignore: UNUSED_ELEMENT
   void set _privateSetter(value) => _privateField = value;
+  // ignore: UNUSED_ELEMENT
   void _privateMethod() {}
   _PrivateClass._privateConstructor();
   factory _PrivateClass._privateFactoryConstructor() => null;

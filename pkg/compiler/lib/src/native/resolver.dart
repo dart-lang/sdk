@@ -80,14 +80,14 @@ abstract class NativeMemberResolverBase implements NativeMemberResolver {
   NativeBasicData get nativeBasicData;
   NativeDataBuilder get nativeDataBuilder;
 
-  bool isJsInteropMember(MemberEntity element);
-  bool isNativeMethod(FunctionEntity element);
+  bool isJsInteropMember(covariant MemberEntity element);
+  bool isNativeMethod(covariant FunctionEntity element);
 
-  NativeBehavior computeNativeMethodBehavior(FunctionEntity function,
+  NativeBehavior computeNativeMethodBehavior(covariant FunctionEntity function,
       {bool isJsInterop});
-  NativeBehavior computeNativeFieldLoadBehavior(FieldEntity field,
+  NativeBehavior computeNativeFieldLoadBehavior(covariant FieldEntity field,
       {bool isJsInterop});
-  NativeBehavior computeNativeFieldStoreBehavior(FieldEntity field);
+  NativeBehavior computeNativeFieldStoreBehavior(covariant FieldEntity field);
 
   @override
   void resolveNativeMember(MemberEntity element, [NativeRegistry registry]) {
@@ -128,7 +128,7 @@ abstract class NativeMemberResolverBase implements NativeMemberResolver {
 
   /// Process the potentially native [field]. Adds information from metadata
   /// attributes. Returns `true` of [method] is native.
-  bool _processFieldAnnotations(FieldEntity element) {
+  bool _processFieldAnnotations(covariant FieldEntity element) {
     if (element.isInstanceMember &&
         nativeBasicData.isNativeClass(element.enclosingClass)) {
       // Exclude non-instance (static) fields - they are not really native and
@@ -143,7 +143,7 @@ abstract class NativeMemberResolverBase implements NativeMemberResolver {
 
   /// Process the potentially native [method]. Adds information from metadata
   /// attributes. Returns `true` of [method] is native.
-  bool _processMethodAnnotations(FunctionEntity method) {
+  bool _processMethodAnnotations(covariant FunctionEntity method) {
     if (isNativeMethod(method)) {
       if (method.isStatic) {
         _setNativeNameForStaticMethod(method);
@@ -435,7 +435,8 @@ class BaseNativeClassFinder implements NativeClassFinder {
 
   /// Adds [cls] to [nativeClasses] and performs further processing of [cls],
   /// if necessary.
-  void _processNativeClass(ClassEntity cls, Set<ClassEntity> nativeClasses) {
+  void _processNativeClass(
+      covariant ClassEntity cls, Set<ClassEntity> nativeClasses) {
     nativeClasses.add(cls);
     // Js Interop interfaces do not have tags.
     if (_nativeBasicData.isJsInteropClass(cls)) return;
@@ -456,7 +457,7 @@ class BaseNativeClassFinder implements NativeClassFinder {
 
   /// Returns the name of the super class of [cls] or `null` of [cls] has
   /// no explicit superclass.
-  String _findExtendsNameOfClass(ClassEntity cls) {
+  String _findExtendsNameOfClass(covariant ClassEntity cls) {
     return _elementEnvironment
         .getSuperClass(cls, skipUnnamedMixinApplications: true)
         ?.name;

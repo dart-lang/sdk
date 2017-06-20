@@ -35,8 +35,8 @@ class MultiDiagnostics implements CompilerDiagnostics {
   const MultiDiagnostics([this.diagnosticsList = const []]);
 
   @override
-  void report(Message message, Uri uri, int begin, int end, String text,
-      Diagnostic kind) {
+  void report(covariant Message message, Uri uri, int begin, int end,
+      String text, Diagnostic kind) {
     for (CompilerDiagnostics diagnostics in diagnosticsList) {
       diagnostics.report(message, uri, begin, end, text, kind);
     }
@@ -173,9 +173,9 @@ CompilerImpl compilerFor(
     Types types = cachedCompiler.types;
     compiler.types = types.copy(compiler.resolution);
     Map copiedLibraries = {};
-    cachedCompiler.libraryLoader.libraries.forEach((library) {
+    cachedCompiler.libraryLoader.libraries.forEach((dynamic library) {
       if (library.isPlatformLibrary) {
-        var libraryLoader = compiler.libraryLoader;
+        dynamic libraryLoader = compiler.libraryLoader;
         libraryLoader.mapLibrary(library);
         copiedLibraries[library.canonicalUri] = library;
       }
@@ -203,7 +203,7 @@ CompilerImpl compilerFor(
     cachedCompiler.patchParser = null;
     cachedCompiler.libraryLoader = null;
     cachedCompiler.resolver = null;
-    cachedCompiler.closureToClassMapper = null;
+    cachedCompiler.closureDataLookup = null;
     cachedCompiler.checker = null;
     cachedCompiler.globalInference = null;
     cachedCompiler.backend = null;

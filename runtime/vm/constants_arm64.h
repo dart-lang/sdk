@@ -620,8 +620,10 @@ enum FPImmOp {
 
 // C3.6.30
 enum FPIntCvtOp {
-  FPIntCvtMask = 0x5f20fc00,
+  FPIntCvtMask = 0x5f00fc00,
   FPIntCvtFixed = FPFixed | B21,
+  FMOVRS = FPIntCvtFixed | B18 | B17,
+  FMOVSR = FPIntCvtFixed | B18 | B17 | B16,
   FMOVRD = FPIntCvtFixed | B22 | B18 | B17,
   FMOVDR = FPIntCvtFixed | B22 | B18 | B17 | B16,
   FCVTZDS = FPIntCvtFixed | B22 | B20 | B19,

@@ -39,7 +39,7 @@ Future<Compiler> applyPatch(String script, String patch,
 }
 
 void expectHasBody(compiler, ElementX element) {
-  var node = element.parseNode(compiler.parsingContext);
+  dynamic node = element.parseNode(compiler.parsingContext);
   Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
   Expect.isNotNull(node.body);
   // If the element has a body it is either a Block or a Return statement,
@@ -49,7 +49,7 @@ void expectHasBody(compiler, ElementX element) {
 }
 
 void expectHasNoBody(compiler, ElementX element) {
-  var node = element.parseNode(compiler.parsingContext);
+  dynamic node = element.parseNode(compiler.parsingContext);
   Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
   Expect.isFalse(node.hasBody);
 }
@@ -61,7 +61,7 @@ Element ensure(compiler, String name, Element lookup(name),
     bool expectIsGetter: false,
     bool expectIsFound: true,
     bool expectIsRegular: false}) {
-  var element = lookup(name);
+  dynamic element = lookup(name);
   if (!expectIsFound) {
     Expect.isNull(element);
     return element;
@@ -119,7 +119,7 @@ Element ensure(compiler, String name, Element lookup(name),
 }
 
 Future testPatchFunction() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       "external test();", "@patch test() { return 'string'; } ");
   ensure(compiler, "test", compiler.resolution.commonElements.coreLibrary.find,
       expectIsPatched: true, checkHasBody: true);
@@ -135,7 +135,7 @@ Future testPatchFunction() async {
 }
 
 Future testPatchFunctionMetadata() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       const a = 0;
       @a external test();
@@ -164,7 +164,7 @@ Future testPatchFunctionMetadata() async {
 }
 
 Future testPatchFunctionGeneric() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       "external T test<T>();", "@patch T test<T>() { return null; } ");
   Element origin = ensure(
       compiler, "test", compiler.resolution.commonElements.coreLibrary.find,
@@ -182,7 +182,7 @@ Future testPatchFunctionGeneric() async {
 }
 
 Future testPatchFunctionGenericExtraTypeVariable() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       "external T test<T>();", "@patch T test<T, S>() { return null; } ");
   Element origin = ensure(
       compiler, "test", compiler.resolution.commonElements.coreLibrary.find,
@@ -201,7 +201,7 @@ Future testPatchFunctionGenericExtraTypeVariable() async {
 }
 
 Future testPatchFunctionGenericDifferentNames() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       "external T test<T, S>();", "@patch T test<S, T>() { return null; } ");
   Element origin = ensure(
       compiler, "test", compiler.resolution.commonElements.coreLibrary.find,
@@ -220,7 +220,7 @@ Future testPatchFunctionGenericDifferentNames() async {
 }
 
 Future testPatchConstructor() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class Class {
         external Class();
@@ -231,21 +231,21 @@ Future testPatchConstructor() async {
         @patch Class();
       }
       """);
-  var classOrigin = ensure(
+  dynamic classOrigin = ensure(
       compiler, "Class", compiler.resolution.commonElements.coreLibrary.find,
       expectIsPatched: true);
   classOrigin.ensureResolved(compiler.resolution);
-  var classPatch = ensure(compiler, "Class",
+  dynamic classPatch = ensure(compiler, "Class",
       compiler.resolution.commonElements.coreLibrary.patch.find,
       expectIsPatch: true);
 
   Expect.equals(classPatch, classOrigin.patch);
   Expect.equals(classOrigin, classPatch.origin);
 
-  var constructorOrigin = ensure(
+  dynamic constructorOrigin = ensure(
       compiler, "", (name) => classOrigin.localLookup(name),
       expectIsPatched: true);
-  var constructorPatch = ensure(
+  dynamic constructorPatch = ensure(
       compiler, "", (name) => classPatch.localLookup(name),
       expectIsPatch: true);
 
@@ -260,7 +260,7 @@ Future testPatchConstructor() async {
 }
 
 Future testPatchRedirectingConstructor() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class Class {
         Class(x) : this._(x, false);
@@ -273,24 +273,24 @@ Future testPatchRedirectingConstructor() async {
         @patch Class._(x, y) { print('$x,$y'); }
       }
       """);
-  var classOrigin = ensure(
+  dynamic classOrigin = ensure(
       compiler, "Class", compiler.resolution.commonElements.coreLibrary.find,
       expectIsPatched: true);
   classOrigin.ensureResolved(compiler.resolution);
 
-  var classPatch = ensure(compiler, "Class",
+  dynamic classPatch = ensure(compiler, "Class",
       compiler.resolution.commonElements.coreLibrary.patch.find,
       expectIsPatch: true);
 
   Expect.equals(classOrigin, classPatch.origin);
   Expect.equals(classPatch, classOrigin.patch);
 
-  var constructorRedirecting =
+  dynamic constructorRedirecting =
       ensure(compiler, "", (name) => classOrigin.localLookup(name));
-  var constructorOrigin = ensure(
+  dynamic constructorOrigin = ensure(
       compiler, "_", (name) => classOrigin.localLookup(name),
       expectIsPatched: true);
-  var constructorPatch = ensure(
+  dynamic constructorPatch = ensure(
       compiler, "_", (name) => classPatch.localLookup(name),
       expectIsPatch: true);
   Expect.equals(constructorOrigin, constructorPatch.origin);
@@ -306,7 +306,7 @@ Future testPatchRedirectingConstructor() async {
 }
 
 Future testPatchMember() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class Class {
         external String toString();
@@ -317,7 +317,7 @@ Future testPatchMember() async {
         @patch String toString() => 'string';
       }
       """);
-  var container = ensure(
+  dynamic container = ensure(
       compiler, "Class", compiler.resolution.commonElements.coreLibrary.find,
       expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
@@ -338,7 +338,7 @@ Future testPatchMember() async {
 }
 
 Future testPatchGetter() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class Class {
         external int get field;
@@ -349,7 +349,7 @@ Future testPatchGetter() async {
         @patch int get field => 5;
       }
       """);
-  var container = ensure(
+  dynamic container = ensure(
       compiler, "Class", compiler.resolution.commonElements.coreLibrary.find,
       expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
@@ -366,7 +366,7 @@ Future testPatchGetter() async {
 }
 
 Future testRegularMember() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class Class {
         void regular() {}
@@ -376,7 +376,7 @@ Future testRegularMember() async {
       @patch class Class {
       }
       """);
-  var container = ensure(
+  dynamic container = ensure(
       compiler, "Class", compiler.resolution.commonElements.coreLibrary.find,
       expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
@@ -397,7 +397,7 @@ Future testRegularMember() async {
 }
 
 Future testInjectedMember() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class Class {
       }
@@ -407,7 +407,7 @@ Future testInjectedMember() async {
         void _injected() {}
       }
       """);
-  var container = ensure(
+  dynamic container = ensure(
       compiler, "Class", compiler.resolution.commonElements.coreLibrary.find,
       expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
@@ -428,7 +428,7 @@ Future testInjectedMember() async {
 }
 
 Future testInjectedPublicMember() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class Class {
       }
@@ -438,7 +438,7 @@ Future testInjectedPublicMember() async {
         void injected() {}
       }
       """);
-  var container = ensure(
+  dynamic container = ensure(
       compiler, "Class", compiler.resolution.commonElements.coreLibrary.find,
       expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
@@ -461,7 +461,7 @@ Future testInjectedPublicMember() async {
 }
 
 Future testInjectedFunction() async {
-  var compiler = await applyPatch("", "int _function() => 5;");
+  dynamic compiler = await applyPatch("", "int _function() => 5;");
   ensure(compiler, "_function",
       compiler.resolution.commonElements.coreLibrary.find,
       expectIsFound: false);
@@ -477,7 +477,7 @@ Future testInjectedFunction() async {
 }
 
 Future testInjectedPublicFunction() async {
-  var compiler = await applyPatch("", "int function() => 5;");
+  dynamic compiler = await applyPatch("", "int function() => 5;");
   ensure(
       compiler, "function", compiler.resolution.commonElements.coreLibrary.find,
       expectIsFound: false);
@@ -495,7 +495,7 @@ Future testInjectedPublicFunction() async {
 }
 
 Future testPatchSignatureCheck() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class Class {
         external String method1();
@@ -526,7 +526,7 @@ Future testPatchSignatureCheck() async {
         @patch void method11({int str}) {}
       }
       """);
-  var container = ensure(
+  dynamic container = ensure(
       compiler, "Class", compiler.resolution.commonElements.coreLibrary.find,
       expectIsPatched: true);
   container.ensureResolved(compiler.resolution);
@@ -571,14 +571,14 @@ Future testPatchSignatureCheck() async {
 }
 
 Future testExternalWithoutImplementationTopLevel() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       external void foo();
       """,
       """
       // @patch void foo() {}
       """);
-  var function = ensure(
+  dynamic function = ensure(
       compiler, "foo", compiler.resolution.commonElements.coreLibrary.find);
   compiler.resolver.resolve(function);
   DiagnosticCollector collector = compiler.diagnosticCollector;
@@ -593,7 +593,7 @@ Future testExternalWithoutImplementationTopLevel() async {
 }
 
 Future testExternalWithoutImplementationMember() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class Class {
         external void foo();
@@ -604,7 +604,7 @@ Future testExternalWithoutImplementationMember() async {
         // @patch void foo() {}
       }
       """);
-  var container = ensure(
+  dynamic container = ensure(
       compiler, "Class", compiler.resolution.commonElements.coreLibrary.find,
       expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
@@ -623,7 +623,7 @@ Future testExternalWithoutImplementationMember() async {
 }
 
 Future testIsSubclass() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class A {}
       """,
@@ -640,7 +640,7 @@ Future testIsSubclass() async {
 }
 
 Future testPatchNonExistingTopLevel() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       // class Class {}
       """,
@@ -657,7 +657,7 @@ Future testPatchNonExistingTopLevel() async {
 }
 
 Future testPatchNonExistingMember() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class Class {}
       """,
@@ -666,7 +666,7 @@ Future testPatchNonExistingMember() async {
         @patch void foo() {}
       }
       """);
-  var container = ensure(
+  dynamic container = ensure(
       compiler, "Class", compiler.resolution.commonElements.coreLibrary.find,
       expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
@@ -681,7 +681,7 @@ Future testPatchNonExistingMember() async {
 }
 
 Future testPatchNonPatchablePatch() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       external get foo;
       """,
@@ -700,7 +700,7 @@ Future testPatchNonPatchablePatch() async {
 }
 
 Future testPatchNonPatchableOrigin() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       external var foo;
       """,
@@ -724,7 +724,7 @@ Future testPatchNonPatchableOrigin() async {
 }
 
 Future testPatchNonExternalTopLevel() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       void foo() {}
       """,
@@ -744,7 +744,7 @@ Future testPatchNonExternalTopLevel() async {
 }
 
 Future testPatchNonExternalMember() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class Class {
         void foo() {}
@@ -755,7 +755,7 @@ Future testPatchNonExternalMember() async {
         @patch void foo() {}
       }
       """);
-  var container = ensure(
+  dynamic container = ensure(
       compiler, "Class", compiler.resolution.commonElements.coreLibrary.find,
       expectIsPatched: true);
   container.parseNode(compiler.parsingContext);
@@ -773,7 +773,7 @@ Future testPatchNonExternalMember() async {
 }
 
 Future testPatchNonClass() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       external void Class() {}
       """,
@@ -793,7 +793,7 @@ Future testPatchNonClass() async {
 }
 
 Future testPatchNonGetter() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       external void foo() {}
       """,
@@ -813,7 +813,7 @@ Future testPatchNonGetter() async {
 }
 
 Future testPatchNoGetter() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       external set foo(var value) {}
       """,
@@ -833,7 +833,7 @@ Future testPatchNoGetter() async {
 }
 
 Future testPatchNonSetter() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       external void foo() {}
       """,
@@ -853,7 +853,7 @@ Future testPatchNonSetter() async {
 }
 
 Future testPatchNoSetter() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       external get foo;
       """,
@@ -873,7 +873,7 @@ Future testPatchNoSetter() async {
 }
 
 Future testPatchNonFunction() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       external get foo;
       """,
@@ -893,7 +893,7 @@ Future testPatchNonFunction() async {
 }
 
 Future testPatchAndSelector() async {
-  var compiler = await applyPatch(
+  dynamic compiler = await applyPatch(
       """
       class A {
         external void clear();
@@ -915,7 +915,8 @@ Future testPatchAndSelector() async {
       """,
       runCompiler: true,
       analyzeOnly: true);
-  compiler.closeResolution();
+  compiler.closeResolution(
+      compiler.frontendStrategy.elementEnvironment.mainFunction);
   ClosedWorld world = compiler.resolutionWorldBuilder.closedWorldForTesting;
 
   ClassElement cls = ensure(
@@ -968,7 +969,7 @@ Future testAnalyzeAllInjectedMembers() async {
       expectedWarnings = <MessageKind>[expectedWarnings];
     }
 
-    var compiler =
+    dynamic compiler =
         await applyPatch('', patchText, analyzeAll: true, analyzeOnly: true);
     compiler.librariesToAnalyzeWhenRun = [Uri.parse('dart:core')];
     await compiler.run(null);
@@ -1030,10 +1031,11 @@ Future testEffectiveTarget() async {
     }
     """;
 
-  var compiler = await applyPatch(origin, patch,
+  dynamic compiler = await applyPatch(origin, patch,
       analyzeAll: true, analyzeOnly: true, runCompiler: true);
   ClassElement clsA = compiler.resolution.commonElements.coreLibrary.find("A");
   ClassElement clsB = compiler.resolution.commonElements.coreLibrary.find("B");
+  Expect.isNotNull(clsB);
 
   ConstructorElement forward = clsA.lookupConstructor("forward");
   ConstructorElement target = forward.effectiveTarget;
@@ -1068,7 +1070,7 @@ Future testTypecheckPatchedMembers() async {
                        String s = 0;
                      }
                      """;
-  var compiler = await applyPatch(originText, patchText,
+  dynamic compiler = await applyPatch(originText, patchText,
       analyzeAll: true, analyzeOnly: true);
   compiler.librariesToAnalyzeWhenRun = [Uri.parse('dart:core')];
   await compiler.run(null);

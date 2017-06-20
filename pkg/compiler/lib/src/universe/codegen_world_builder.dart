@@ -10,13 +10,13 @@ part of world_builder;
 abstract class CodegenWorldBuilder implements WorldBuilder {
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls].
-  void forEachInstanceField(
-      ClassEntity cls, void f(ClassEntity declarer, FieldEntity field));
+  void forEachInstanceField(covariant ClassEntity cls,
+      void f(ClassEntity declarer, FieldEntity field));
 
   /// Calls [f] for each parameter of [function] providing the type and name of
-  /// the parameter.
-  void forEachParameter(
-      FunctionEntity function, void f(DartType type, String name));
+  /// the parameter and the [defaultValue] if the parameter is optional.
+  void forEachParameter(covariant FunctionEntity function,
+      void f(DartType type, String name, ConstantValue defaultValue));
 
   void forEachInvokedName(
       f(String name, Map<Selector, SelectorConstraints> selectors));
@@ -26,6 +26,12 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 
   void forEachInvokedSetter(
       f(String name, Map<Selector, SelectorConstraints> selectors));
+
+  /// Returns `true` if [field] has a constant initializer.
+  bool hasConstantFieldInitializer(covariant FieldEntity field);
+
+  /// Returns the constant initializer for [field].
+  ConstantValue getConstantFieldInitializer(covariant FieldEntity field);
 
   /// Returns `true` if [member] is invoked as a setter.
   bool hasInvokedSetter(MemberEntity member, ClosedWorld world);
@@ -320,7 +326,7 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     _invokedSetters.forEach(f);
   }
 
-  void registerIsCheck(DartType type) {
+  void registerIsCheck(covariant DartType type) {
     isChecks.add(type.unaliased);
   }
 
@@ -417,14 +423,14 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     });
   }
 
-  void _processInstantiatedClassMember(
-      ClassEntity cls, MemberEntity member, MemberUsedCallback memberUsed) {
+  void _processInstantiatedClassMember(ClassEntity cls,
+      covariant MemberEntity member, MemberUsedCallback memberUsed) {
     if (!member.isInstanceMember) return;
     _getMemberUsage(member, memberUsed);
   }
 
   _MemberUsage _getMemberUsage(
-      MemberEntity member, MemberUsedCallback memberUsed) {
+      covariant MemberEntity member, MemberUsedCallback memberUsed) {
     return _instanceMemberUsage.putIfAbsent(member, () {
       String memberName = member.name;
       ClassEntity cls = member.enclosingClass;
@@ -542,13 +548,28 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
 }
 
 class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
+  final JavaScriptConstantCompiler _constants;
+
   ElementCodegenWorldBuilderImpl(
+      this._constants,
       ElementEnvironment elementEnvironment,
       NativeBasicData nativeBasicData,
       ClosedWorld world,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(elementEnvironment, nativeBasicData, world,
             selectorConstraintsStrategy);
+
+  @override
+  bool hasConstantFieldInitializer(FieldElement field) {
+    return field.constant != null;
+  }
+
+  @override
+  ConstantValue getConstantFieldInitializer(FieldElement field) {
+    assert(field.constant != null,
+        failedAt(field, "Field $field doesn't have a constant initial value."));
+    return _constants.getConstantValue(field.constant);
+  }
 
   /// Calls [f] with every instance field, together with its declarer, in an
   /// instance of [cls].
@@ -559,11 +580,18 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
   }
 
   @override
-  void forEachParameter(
-      MethodElement function, void f(DartType type, String name)) {
+  void forEachParameter(MethodElement function,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
     FunctionSignature parameters = function.functionSignature;
-    parameters.forEachParameter((ParameterElement parameter) {
-      f(parameter.type, parameter.name);
+    parameters.orderedForEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
+      ConstantValue value;
+      if (parameter.constant != null) {
+        value = _constants.getConstantValue(parameter.constant);
+      } else {
+        value = new NullConstantValue();
+      }
+      f(parameter.type, parameter.name, value);
     });
   }
 
@@ -599,7 +627,10 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
 }
 
 class KernelCodegenWorldBuilder extends CodegenWorldBuilderImpl {
+  KernelToElementMapImpl _elementMap;
+
   KernelCodegenWorldBuilder(
+      this._elementMap,
       ElementEnvironment elementEnvironment,
       NativeBasicData nativeBasicData,
       ClosedWorld world,
@@ -608,9 +639,19 @@ class KernelCodegenWorldBuilder extends CodegenWorldBuilderImpl {
             selectorConstraintsStrategy);
 
   @override
-  void forEachParameter(
-      FunctionEntity function, void f(DartType type, String name)) {
-    throw new UnimplementedError('KernelCodegenWorldBuilder.forEachParameter');
+  bool hasConstantFieldInitializer(FieldEntity field) {
+    return _elementMap.hasConstantFieldInitializer(field);
+  }
+
+  @override
+  ConstantValue getConstantFieldInitializer(FieldEntity field) {
+    return _elementMap.getConstantFieldInitializer(field);
+  }
+
+  @override
+  void forEachParameter(FunctionEntity function,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    _elementMap.forEachParameter(function, f);
   }
 
   @override

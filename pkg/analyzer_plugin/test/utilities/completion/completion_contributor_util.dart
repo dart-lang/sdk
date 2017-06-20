@@ -17,7 +17,6 @@ import 'package:test/test.dart';
 
 import '../../support/abstract_context.dart';
 import 'flutter_util.dart';
-import 'replacement_range.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
@@ -463,7 +462,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
     CompletionTarget target =
         new CompletionTarget.forOffset(request.result.unit, request.offset);
-    var range = new ReplacementRange.compute(request.offset, target);
+    var range = target.computeReplacementRange(request.offset);
     replacementOffset = range.offset;
     replacementLength = range.length;
 

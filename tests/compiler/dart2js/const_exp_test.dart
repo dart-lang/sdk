@@ -32,7 +32,7 @@ test(String constantInitializer, [String expectedOutput]) {
 """,
               expectNoWarningsOrErrors: true)
           .then((env) {
-        var element = env.getElement('constant');
+        dynamic element = env.getElement('constant');
         Expect.isNotNull(element, "Element 'constant' not found.");
         var constant = element.constant;
         var value = env.compiler.constants.getConstantValue(constant);

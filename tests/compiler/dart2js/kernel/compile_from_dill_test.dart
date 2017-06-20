@@ -14,7 +14,6 @@ import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
@@ -141,13 +140,17 @@ Future<ResultKind> mainInternal(List<String> args,
   checkBackendUsage(closedWorld1.backendUsage, closedWorld2.backendUsage,
       equivalence.defaultStrategy);
 
+  print('--- checking resolution enqueuers ----------------------------------');
   checkResolutionEnqueuers(closedWorld1.backendUsage, closedWorld2.backendUsage,
       compiler1.enqueuer.resolution, compiler2.enqueuer.resolution,
-      elementEquivalence: equivalence.entityEquivalence,
-      typeEquivalence: (ResolutionDartType a, DartType b) {
-    return equivalence.typeEquivalence(unalias(a), b);
-  }, elementFilter: elementFilter, verbose: arguments.verbose);
+      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
+      typeEquivalence: (DartType a, DartType b) {
+        return equivalence.typeEquivalence(unalias(a), b);
+      },
+      elementFilter: elementFilter,
+      verbose: arguments.verbose);
 
+  print('--- checking closed worlds -----------------------------------------');
   checkClosedWorlds(closedWorld1, closedWorld2,
       strategy: equivalence.defaultStrategy,
       verbose: arguments.verbose,
@@ -158,13 +161,17 @@ Future<ResultKind> mainInternal(List<String> args,
   // TODO(johnniwinther): Perform equivalence tests on the model: codegen world
   // impacts, program model, etc.
 
+  print('--- checking codegen enqueuers--------------------------------------');
   checkCodegenEnqueuers(compiler1.enqueuer.codegenEnqueuerForTesting,
       compiler2.enqueuer.codegenEnqueuerForTesting,
-      elementEquivalence: equivalence.entityEquivalence,
-      typeEquivalence: (ResolutionDartType a, DartType b) {
-    return equivalence.typeEquivalence(unalias(a), b);
-  }, elementFilter: elementFilter, verbose: arguments.verbose);
+      elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
+      typeEquivalence: (DartType a, DartType b) {
+        return equivalence.typeEquivalence(unalias(a), b);
+      },
+      elementFilter: elementFilter,
+      verbose: arguments.verbose);
 
+  print('--- checking output------- -----------------------------------------');
   collector1.outputMap
       .forEach((OutputType outputType, Map<String, BufferedOutputSink> map1) {
     if (outputType == OutputType.sourceMap) {

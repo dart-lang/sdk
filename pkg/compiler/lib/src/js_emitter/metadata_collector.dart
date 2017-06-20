@@ -78,7 +78,7 @@ class _BoundMetadataEntry extends _MetadataEntry {
     if (_rc == 1) entry.accept(visitor);
   }
 
-  int compareTo(_MetadataEntry other) => other._rc - this._rc;
+  int compareTo(covariant _MetadataEntry other) => other._rc - this._rc;
 }
 
 abstract class Placeholder implements jsAst.DeferredNumber {

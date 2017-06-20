@@ -4,15 +4,14 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug --async_debugger
 
 import 'dart:developer';
-
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 18;
-const LINE_B = 19;
-const LINE_C = 24;
-const LINE_D = 25;
-const LINE_E = 26;
+const LINE_A = 17;
+const LINE_B = 18;
+const LINE_C = 23;
+const LINE_D = 24;
+const LINE_E = 25;
 
 helper() async {
   print('helper'); // LINE_A.

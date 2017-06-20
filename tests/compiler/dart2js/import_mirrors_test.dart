@@ -316,7 +316,7 @@ Future test(Map sourceFiles,
   if (enableExperimentalMirrors) {
     options.add('--enable-experimental-mirrors');
   }
-  CompilationResult result = await runCompiler(
+  await runCompiler(
       entryPoint: Uri.parse('memory:/main.dart'),
       memorySourceFiles: sourceFiles,
       diagnosticHandler: collector,

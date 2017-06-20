@@ -7,6 +7,7 @@ library parser_helper;
 import 'package:expect/expect.dart';
 
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/id_generator.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/parser/element_listener.dart';
@@ -37,6 +38,8 @@ export 'package:compiler/src/parser/node_listener.dart';
 export 'package:compiler/src/parser/diet_parser_task.dart';
 export 'package:front_end/src/fasta/scanner/token_constants.dart';
 
+import 'mock_compiler.dart';
+
 class LoggerCanceler extends DiagnosticReporter {
   DiagnosticOptions get options => const MockDiagnosticOptions();
 
@@ -44,7 +47,7 @@ class LoggerCanceler extends DiagnosticReporter {
     print(message);
   }
 
-  void internalError(node, String message) {
+  void internalError(Spannable node, message) {
     log(message);
   }
 
@@ -77,7 +80,7 @@ class LoggerCanceler extends DiagnosticReporter {
     infos.forEach(log);
   }
 
-  withCurrentElement(Element element, f()) => f();
+  withCurrentElement(Entity element, f()) => f();
 
   @override
   DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
@@ -115,7 +118,7 @@ Node parseBodyCode(String text, Function parseMethod,
 Node parseStatement(String text) =>
     parseBodyCode(text, (parser, tokens) => parser.parseStatement(tokens));
 
-Node parseFunction(String text, Compiler compiler) {
+Node parseFunction(String text, MockCompiler compiler) {
   ElementX element = parseUnit(text, compiler, compiler.mainApp).head;
   Expect.isNotNull(element);
   Expect.equals(ElementKind.FUNCTION, element.kind);

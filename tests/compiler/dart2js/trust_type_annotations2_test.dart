@@ -29,7 +29,7 @@ main() {
         memorySourceFiles: MEMORY_SOURCE_FILES,
         options: ['--trust-type-annotations']);
     var compiler = result.compiler;
-    var element = compiler.mainFunction;
+    var element = compiler.frontendStrategy.elementEnvironment.mainFunction;
     var code = compiler.backend.getGeneratedCode(element);
     Expect.isTrue(code.contains('+'), code);
   });
