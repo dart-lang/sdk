@@ -38,6 +38,7 @@ import 'package:kernel/ast.dart'
         SuperPropertyGet,
         SuperPropertySet,
         TypeParameterType,
+        VariableDeclaration,
         VoidType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -635,11 +636,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       int fileOffset,
       PropertyGet desugaredGet,
       DartType typeContext,
-      bool typeNeeded) {
+      bool typeNeeded,
+      {VariableDeclaration receiverVariable}) {
     typeNeeded =
         listener.propertyGetEnter(expression, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the getter that was invoked.
     var receiverType = inferExpression(receiver, null, true);
+    receiverVariable?.type = receiverType;
     Member interfaceMember =
         findInterfaceMember(receiverType, desugaredGet.name, fileOffset);
     if (isTopLevel &&

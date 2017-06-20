@@ -1450,8 +1450,11 @@ class KernelNullAwarePropertyGet extends Let implements KernelExpression {
   @override
   DartType _inferExpression(
       KernelTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferPropertyGet(this, variable.initializer, fileOffset,
-        _desugaredGet, typeContext, typeNeeded);
+    var inferredType = inferrer.inferPropertyGet(this, variable.initializer,
+        fileOffset, _desugaredGet, typeContext, true,
+        receiverVariable: variable);
+    body.staticType = inferredType;
+    return inferredType;
   }
 }
 
