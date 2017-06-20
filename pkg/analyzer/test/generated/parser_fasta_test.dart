@@ -283,6 +283,9 @@ class FastaParserTestCase extends Object
   bool enableGenericMethodComments = false;
 
   @override
+  bool get usingFasta => true;
+
+  @override
   set enableAssertInitializer(bool value) {
     if (value == true) {
       // TODO(paulberry,ahe): it looks like asserts in initializer lists are not
@@ -406,6 +409,7 @@ class FastaParserTestCase extends Object
 
     // Assert and return result
     listener.assertErrorsWithCodes(expectedErrorCodes);
+    expect(unit, isNotNull);
     return unit;
   }
 
@@ -958,12 +962,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
-    super.test_parseCompilationUnit_abstractAsPrefix_parameterized();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnit_builtIn_asFunctionName() {
     // TODO(paulberry,ahe): Fasta's parser is confused when one of the built-in
     // identifiers `export`, `import`, `library`, `part`, or `typedef` appears
@@ -983,12 +981,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseCompilationUnit_exportAsPrefix_parameterized() {
     // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_exportAsPrefix_parameterized();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
-    super.test_parseCompilationUnit_operatorAsPrefix_parameterized();
   }
 
   @override

@@ -38,12 +38,6 @@ class _Parser2 implements Parser {
   final AstBuilder _astBuilder;
 
   /**
-   * The error listener that will be informed of any errors that are found
-   * during the parse.
-   */
-  final AnalysisErrorListener _errorListener;
-
-  /**
    * The fasta parser being wrapped.
    */
   final fasta.Parser _fastaParser;
@@ -64,11 +58,10 @@ class _Parser2 implements Parser {
         errorReporter, library, member, elementStore, scope, true);
     fasta.Parser fastaParser = new fasta.Parser(astBuilder);
     astBuilder.parser = fastaParser;
-    return new _Parser2._(source, errorListener, fastaParser, astBuilder);
+    return new _Parser2._(source, fastaParser, astBuilder);
   }
 
-  _Parser2._(
-      this._source, this._errorListener, this._fastaParser, this._astBuilder);
+  _Parser2._(this._source, this._fastaParser, this._astBuilder);
 
   @override
   bool get parseGenericMethodComments => _astBuilder.parseGenericMethodComments;

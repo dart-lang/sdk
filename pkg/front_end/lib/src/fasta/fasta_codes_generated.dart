@@ -1053,6 +1053,7 @@ FastaMessage _formatInvalidVoid(Uri uri, int charOffset) {
 const FastaCode<_BuiltInIdentifierAsType> codeBuiltInIdentifierAsType =
     const FastaCode<_BuiltInIdentifierAsType>("BuiltInIdentifierAsType",
         template: r"Can't use '#lexeme' as a type.",
+        analyzerCode: "EXPECTED_TYPE_NAME",
         dart2jsCode: "EXTRANEOUS_MODIFIER",
         format: _formatBuiltInIdentifierAsType);
 

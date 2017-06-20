@@ -63,6 +63,11 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Parser get parser;
 
   /**
+   * Flag indicating whether the fasta parser is being used.
+   */
+  bool get usingFasta;
+
+  /**
    * Assert that the number and codes of errors occurred during parsing is the
    * same as the [expectedErrorCodes].
    */
@@ -8133,6 +8138,9 @@ class ParserTestCase extends EngineTestCase
   Parser parser;
 
   @override
+  bool get usingFasta => Parser.useFasta;
+
+  @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }
@@ -13651,10 +13659,13 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
-    createParser('abstract<dynamic> _abstract = new abstract.A();');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expect(unit, isNotNull);
-    assertNoErrors();
+    var errorCodes = <ErrorCode>[];
+    if (usingFasta) {
+      // built-in "abstract" cannot be used as a type
+      errorCodes.add(ParserErrorCode.EXPECTED_TYPE_NAME);
+    }
+    CompilationUnit unit = parseCompilationUnit(
+        'abstract<dynamic> _abstract = new abstract.A();', errorCodes);
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
