@@ -188,6 +188,10 @@ class Message {
   }
 }
 
-external bool sendIsolateServiceMessage(SendPort sp, List m);
-external void sendRootServiceMessage(List m);
-external void sendObjectRootServiceMessage(List m);
+bool sendIsolateServiceMessage(SendPort sp, List m)
+    native "VMService_SendIsolateServiceMessage";
+
+void sendRootServiceMessage(List m) native "VMService_SendRootServiceMessage";
+
+void sendObjectRootServiceMessage(List m)
+    native "VMService_SendObjectRootServiceMessage";
