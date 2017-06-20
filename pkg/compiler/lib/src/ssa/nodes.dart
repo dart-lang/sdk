@@ -1211,8 +1211,8 @@ abstract class HInstruction implements Spannable {
   // These methods should be overwritten by instructions that
   // participate in global value numbering.
   int typeCode() => HInstruction.UNDEFINED_TYPECODE;
-  bool typeEquals(HInstruction other) => false;
-  bool dataEquals(HInstruction other) => false;
+  bool typeEquals(covariant HInstruction other) => false;
+  bool dataEquals(covariant HInstruction other) => false;
 
   accept(HVisitor visitor);
 
@@ -1695,11 +1695,11 @@ abstract class HInvokeDynamic extends HInvoke {
   HInvokeDynamic(Selector selector, this.mask, this.element,
       List<HInstruction> inputs, TypeMask type,
       [bool isIntercepted = false])
-      : super(inputs, type),
-        this.selector = selector,
+      : this.selector = selector,
         specializer = isIntercepted
             ? InvokeDynamicSpecializer.lookupSpecializer(selector)
-            : const InvokeDynamicSpecializer();
+            : const InvokeDynamicSpecializer(),
+        super(inputs, type);
   toString() => 'invoke dynamic: selector=$selector, mask=$mask';
   HInstruction get receiver => inputs[0];
   HInstruction getDartReceiver(ClosedWorld closedWorld) {
@@ -2512,7 +2512,7 @@ class HThis extends HParameterValue {
   HThis(ThisLocal element, TypeMask type) : super(element, type);
 
   ThisLocal get sourceElement => super.sourceElement;
-  void set sourceElement(ThisLocal local) {
+  void set sourceElement(covariant ThisLocal local) {
     super.sourceElement = local;
   }
 
@@ -3001,8 +3001,8 @@ class HTypeConversion extends HCheck {
   HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
       TypeMask type, HInstruction input, HInstruction typeRepresentation)
       : checkedType = type,
-        super(<HInstruction>[input, typeRepresentation], type),
-        receiverTypeCheckSelector = null {
+        receiverTypeCheckSelector = null,
+        super(<HInstruction>[input, typeRepresentation], type) {
     assert(!typeExpression.isTypedef);
     sourceElement = input.sourceElement;
   }
@@ -3010,8 +3010,8 @@ class HTypeConversion extends HCheck {
   HTypeConversion.viaMethodOnType(this.typeExpression, this.kind, TypeMask type,
       HInstruction reifiedType, HInstruction input)
       : checkedType = type,
-        super(<HInstruction>[reifiedType, input], type),
-        receiverTypeCheckSelector = null {
+        receiverTypeCheckSelector = null,
+        super(<HInstruction>[reifiedType, input], type) {
     // This form is currently used only for function types.
     assert(typeExpression.isFunctionType);
     assert(kind == CHECKED_MODE_CHECK || kind == CAST_TYPE_CHECK);

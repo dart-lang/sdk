@@ -174,7 +174,8 @@ checkNames(
           return element;
         }
 
-        void match(AstElement element) {
+        void match(Element _element) {
+          AstElement element = _element;
           Interval interval = intervalFromElement(element);
           if (interval != null && interval.contains(sourcePosition)) {
             AstElement innerElement = findInnermost(element);

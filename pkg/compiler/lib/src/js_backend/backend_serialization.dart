@@ -107,7 +107,7 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
   }
 
   @override
-  void onData(NativeBehavior behavior, ObjectEncoder encoder) {
+  void onData(covariant NativeBehavior behavior, ObjectEncoder encoder) {
     NativeBehaviorSerialization.serializeNativeBehavior(behavior, encoder);
   }
 }

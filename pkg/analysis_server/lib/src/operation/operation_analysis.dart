@@ -14,7 +14,6 @@ import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -136,17 +135,10 @@ void scheduleNotificationOperations(
 
 void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
   _sendNotification(server, () {
-    Set<String> analyzedFiles;
-    if (server.options.enableNewAnalysisDriver) {
-      analyzedFiles = server.driverMap.values
-          .map((driver) => driver.knownFiles)
-          .expand((files) => files)
-          .toSet();
-    } else {
-      LibraryDependencyCollector collector =
-          new LibraryDependencyCollector(server.analysisContexts.toList());
-      analyzedFiles = collector.collectLibraryDependencies();
-    }
+    Set<String> analyzedFiles = server.driverMap.values
+        .map((driver) => driver.knownFiles)
+        .expand((files) => files)
+        .toSet();
     Set<String> prevAnalyzedFiles = server.prevAnalyzedFiles;
     if (prevAnalyzedFiles != null &&
         prevAnalyzedFiles.length == analyzedFiles.length &&

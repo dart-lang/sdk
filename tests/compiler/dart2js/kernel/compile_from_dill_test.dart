@@ -14,7 +14,6 @@ import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
@@ -145,7 +144,7 @@ Future<ResultKind> mainInternal(List<String> args,
   checkResolutionEnqueuers(closedWorld1.backendUsage, closedWorld2.backendUsage,
       compiler1.enqueuer.resolution, compiler2.enqueuer.resolution,
       elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
-      typeEquivalence: (ResolutionDartType a, DartType b) {
+      typeEquivalence: (DartType a, DartType b) {
         return equivalence.typeEquivalence(unalias(a), b);
       },
       elementFilter: elementFilter,
@@ -166,7 +165,7 @@ Future<ResultKind> mainInternal(List<String> args,
   checkCodegenEnqueuers(compiler1.enqueuer.codegenEnqueuerForTesting,
       compiler2.enqueuer.codegenEnqueuerForTesting,
       elementEquivalence: (a, b) => equivalence.entityEquivalence(a, b),
-      typeEquivalence: (ResolutionDartType a, DartType b) {
+      typeEquivalence: (DartType a, DartType b) {
         return equivalence.typeEquivalence(unalias(a), b);
       },
       elementFilter: elementFilter,

@@ -47,9 +47,24 @@ part 'native_basic_data.dart';
 part 'no_such_method_resolver.dart';
 part 'types.dart';
 
+/// Interface for kernel queries needed to implement the [CodegenWorldBuilder].
+abstract class KernelToWorldBuilder implements KernelToElementMap {
+  /// Returns `true` if [field] has a constant initializer.
+  bool hasConstantFieldInitializer(FieldEntity field);
+
+  /// Returns the constant initializer for [field].
+  ConstantValue getConstantFieldInitializer(FieldEntity field);
+
+  /// Calls [f] for each parameter of [function] providing the type and name of
+  /// the parameter and the [defaultValue] if the parameter is optional.
+  void forEachParameter(FunctionEntity function,
+      void f(DartType type, String name, ConstantValue defaultValue));
+}
+
 /// Element builder used for creating elements and types corresponding to Kernel
 /// IR nodes.
-class KernelToElementMapImpl extends KernelToElementMapMixin {
+class KernelToElementMapImpl extends KernelToElementMapMixin
+    implements KernelToWorldBuilder {
   final Environment _environment;
   CommonElements _commonElements;
   native.BehaviorBuilder _nativeBehaviorBuilder;
@@ -675,12 +690,12 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   @override
   FieldEntity getField(ir.Field node) => _getField(node);
 
-  bool hasConstantFieldInitializer(KField field) {
+  bool hasConstantFieldInitializer(covariant KField field) {
     _FieldData data = _memberList[field.memberIndex];
     return getFieldConstantValue(data.node) != null;
   }
 
-  ConstantValue getConstantFieldInitializer(KField field) {
+  ConstantValue getConstantFieldInitializer(covariant KField field) {
     _FieldData data = _memberList[field.memberIndex];
     ConstantValue value = getFieldConstantValue(data.node);
     assert(value != null,
@@ -694,7 +709,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   @override
   FunctionEntity getMethod(ir.Procedure node) => _getMethod(node);
 
-  void forEachParameter(KFunction function,
+  void forEachParameter(covariant KFunction function,
       void f(DartType type, String name, ConstantValue defaultValue)) {
     _FunctionData data = _memberList[function.memberIndex];
     data.forEachParameter(this, f);
@@ -764,7 +779,7 @@ class KernelToElementMapImpl extends KernelToElementMapMixin {
   }
 
   @override
-  ir.Member getMemberNode(KMember member) {
+  ir.Member getMemberNode(covariant KMember member) {
     return _memberList[member.memberIndex].node;
   }
 
@@ -1198,12 +1213,12 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  bool isMixinApplication(KClass cls) {
+  bool isMixinApplication(covariant KClass cls) {
     return elementMap._isMixinApplication(cls);
   }
 
   @override
-  bool isUnnamedMixinApplication(KClass cls) {
+  bool isUnnamedMixinApplication(covariant KClass cls) {
     return elementMap._isUnnamedMixinApplication(cls);
   }
 
@@ -1229,12 +1244,12 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  FunctionType getFunctionType(KFunction function) {
+  FunctionType getFunctionType(covariant KFunction function) {
     return elementMap._getFunctionType(function);
   }
 
   @override
-  FunctionType getLocalFunctionType(KLocalFunction function) {
+  FunctionType getLocalFunctionType(covariant KLocalFunction function) {
     return function.functionType;
   }
 
@@ -1331,7 +1346,7 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  void forEachClass(KLibrary library, void f(ClassEntity cls)) {
+  void forEachClass(covariant KLibrary library, void f(ClassEntity cls)) {
     elementMap._forEachClass(library, f);
   }
 
@@ -1346,13 +1361,13 @@ class KernelElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  bool isDeferredLoadLibraryGetter(KMember member) {
+  bool isDeferredLoadLibraryGetter(covariant KMember member) {
     // TODO(johnniwinther): Support these.
     return false;
   }
 
   @override
-  Iterable<ConstantValue> getMemberMetadata(KMember member) {
+  Iterable<ConstantValue> getMemberMetadata(covariant KMember member) {
     _MemberData memberData = elementMap._memberList[member.memberIndex];
     return memberData.getMetadata(elementMap);
   }
@@ -1716,13 +1731,14 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   CommonElements get commonElements => elementMap.commonElements;
 
   @override
-  native.NativeBehavior computeNativeFieldStoreBehavior(KField field) {
+  native.NativeBehavior computeNativeFieldStoreBehavior(
+      covariant KField field) {
     ir.Field node = elementMap._memberList[field.memberIndex].node;
     return elementMap.getNativeBehaviorForFieldStore(node);
   }
 
   @override
-  native.NativeBehavior computeNativeFieldLoadBehavior(KField field,
+  native.NativeBehavior computeNativeFieldLoadBehavior(covariant KField field,
       {bool isJsInterop}) {
     ir.Field node = elementMap._memberList[field.memberIndex].node;
     return elementMap.getNativeBehaviorForFieldLoad(node,
@@ -1730,7 +1746,8 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   }
 
   @override
-  native.NativeBehavior computeNativeMethodBehavior(KFunction function,
+  native.NativeBehavior computeNativeMethodBehavior(
+      covariant KFunction function,
       {bool isJsInterop}) {
     ir.Member node = elementMap._memberList[function.memberIndex].node;
     return elementMap.getNativeBehaviorForMethod(node,
@@ -1738,7 +1755,7 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   }
 
   @override
-  bool isNativeMethod(KFunction function) {
+  bool isNativeMethod(covariant KFunction function) {
     if (!native.maybeEnableNative(function.library.canonicalUri)) return false;
     ir.Member node = elementMap._memberList[function.memberIndex].node;
     return node.isExternal &&
@@ -1752,7 +1769,8 @@ class KernelNativeMemberResolver extends NativeMemberResolverBase {
   }
 }
 
-class JsKernelToElementMap extends KernelToElementMapMixin {
+class JsKernelToElementMap extends KernelToElementMapMixin
+    implements KernelToWorldBuilder {
   final JsToFrontendMap _map;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
@@ -1876,5 +1894,23 @@ class JsKernelToElementMap extends KernelToElementMapMixin {
   @override
   ConstantValue getFieldConstantValue(ir.Field field) {
     throw new UnsupportedError("JsKernelToElementMap.getFieldConstantValue");
+  }
+
+  @override
+  void forEachParameter(FunctionEntity function,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    throw new UnsupportedError("JsKernelToElementMap.forEachParameter");
+  }
+
+  @override
+  ConstantValue getConstantFieldInitializer(FieldEntity field) {
+    throw new UnsupportedError(
+        "JsKernelToElementMap.getConstantFieldInitializer");
+  }
+
+  @override
+  bool hasConstantFieldInitializer(FieldEntity field) {
+    throw new UnsupportedError(
+        "JsKernelToElementMap.hasConstantFieldInitializer");
   }
 }

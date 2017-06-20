@@ -20,7 +20,7 @@ import 'semantic_visitor.dart';
 /// node.
 abstract class SemanticSendStructure<R, A> {
   /// Calls the matching visit method on [visitor] with [node] and [arg].
-  R dispatch(SemanticSendVisitor<R, A> visitor, Node node, A arg);
+  R dispatch(SemanticSendVisitor<R, A> visitor, covariant Node node, A arg);
 }
 
 enum SendStructureKind {

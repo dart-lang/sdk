@@ -10,7 +10,6 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'memory_compiler.dart';
-import 'package:compiler/src/compiler.dart' as dart2js;
 
 Future runTest(String mainScript, test) async {
   CompilationResult result = await runCompiler(
@@ -75,8 +74,8 @@ runTests() async {
         main, compiler.resolutionWorldBuilder.closedWorldForTesting);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
-    var mainLib = lookupLibrary(compiler, "memory:main4.dart");
-    var lib4 = lookupLibrary(compiler, "memory:lib4.dart");
+    lookupLibrary(compiler, "memory:main4.dart");
+    lookupLibrary(compiler, "memory:lib4.dart");
     var lib5 = lookupLibrary(compiler, "memory:lib5.dart");
     var lib6 = lookupLibrary(compiler, "memory:lib6.dart");
     var foo5 = lib5.find("foo");

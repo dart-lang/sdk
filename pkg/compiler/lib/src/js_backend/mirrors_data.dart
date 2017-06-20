@@ -78,7 +78,7 @@ abstract class MirrorsData {
   /// reflection is used in the program (and thus [isTreeShakingDisabled] is
   /// still false). Therefore _do not_ use this predicate to decide inclusion
   /// in the tree, use [requiredByMirrorSystem] instead.
-  bool isClassReferencedFromMirrorSystem(ClassEntity element);
+  bool isClassReferencedFromMirrorSystem(covariant ClassEntity element);
 
   /// Returns `true` if the member [element] is covered by a `MirrorsUsed`
   /// annotation.
@@ -87,11 +87,11 @@ abstract class MirrorsData {
   /// reflection is used in the program (and thus [isTreeShakingDisabled] is
   /// still false). Therefore _do not_ use this predicate to decide inclusion
   /// in the tree, use [requiredByMirrorSystem] instead.
-  bool isMemberReferencedFromMirrorSystem(MemberEntity element);
+  bool isMemberReferencedFromMirrorSystem(covariant MemberEntity element);
 
   /// Returns `true` if the library [element] is covered by a `MirrorsUsed`
   /// annotation.
-  bool isLibraryReferencedFromMirrorSystem(LibraryEntity element);
+  bool isLibraryReferencedFromMirrorSystem(covariant LibraryEntity element);
 
   /// Returns `true` if the typedef [element] needs reflection information at
   /// runtime.
@@ -124,11 +124,11 @@ abstract class MirrorsData {
   @deprecated
   bool isAccessibleByReflection(Element element);
 
-  bool retainMetadataOfLibrary(LibraryEntity element,
+  bool retainMetadataOfLibrary(covariant LibraryEntity element,
       {bool addForEmission: true});
   bool retainMetadataOfTypedef(TypedefElement element);
-  bool retainMetadataOfClass(ClassEntity element);
-  bool retainMetadataOfMember(MemberEntity element);
+  bool retainMetadataOfClass(covariant ClassEntity element);
+  bool retainMetadataOfMember(covariant MemberEntity element);
   bool retainMetadataOfParameter(ParameterElement element);
 
   bool invokedReflectively(Element element);
@@ -153,8 +153,8 @@ abstract class MirrorsDataBuilder {
 
   void maybeMarkClosureAsNeededForReflection(
       ClosureClassElement globalizedElement,
-      FunctionElement callFunction,
-      FunctionElement function);
+      MethodElement callFunction,
+      LocalFunctionElement function);
 
   void computeMembersNeededForReflection(
       ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld);

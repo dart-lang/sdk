@@ -143,7 +143,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   ClosedWorld get closedWorld => inferrer.closedWorld;
 
   @override
-  SemanticSendVisitor get sendVisitor => this;
+  SemanticSendVisitor<TypeInformation, dynamic> get sendVisitor => this;
 
   @override
   TypeInformation apply(ast.Node node, _) => visit(node);
@@ -915,7 +915,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ClosureRepresentationInfo closureData = compiler.closureDataLookup
+    ClosureRepresentationInfo closureData = compiler
+        .backendStrategy.closureDataLookup
         .getClosureRepresentationInfo(analyzedElement);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);
@@ -1102,8 +1103,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
     // a previous closure.
-    ClosureRepresentationInfo nestedClosureData =
-        compiler.closureDataLookup.getClosureRepresentationInfo(element);
+    ClosureRepresentationInfo nestedClosureData = compiler
+        .backendStrategy.closureDataLookup
+        .getClosureRepresentationInfo(element);
     nestedClosureData.forEachCapturedVariable((variable, field) {
       if (!nestedClosureData.isVariableBoxed(variable)) {
         if (variable == nestedClosureData.thisLocal) {
@@ -1515,7 +1517,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   @override
   TypeInformation visitUnresolvedSuperCompoundIndexSet(
-      ast.Send node,
+      ast.SendSet node,
       Element element,
       ast.Node index,
       op.AssignmentOperator operator,
@@ -1638,7 +1640,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   TypeInformation visitSuperFieldSetterCompound(
       ast.Send node,
       FieldElement field,
-      FunctionElement setter,
+      SetterElement setter,
       op.AssignmentOperator operator,
       ast.Node rhs,
       _) {
@@ -1648,7 +1650,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   @override
   TypeInformation visitSuperGetterFieldCompound(
       ast.Send node,
-      FunctionElement getter,
+      GetterElement getter,
       FieldElement field,
       op.AssignmentOperator operator,
       ast.Node rhs,
@@ -1659,8 +1661,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   @override
   TypeInformation visitSuperGetterSetterCompound(
       ast.Send node,
-      FunctionElement getter,
-      FunctionElement setter,
+      GetterElement getter,
+      SetterElement setter,
       op.AssignmentOperator operator,
       ast.Node rhs,
       _) {
@@ -1671,7 +1673,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   TypeInformation visitSuperMethodSetterCompound(
       ast.Send node,
       FunctionElement method,
-      FunctionElement setter,
+      SetterElement setter,
       op.AssignmentOperator operator,
       ast.Node rhs,
       _) {
@@ -1686,7 +1688,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   @override
   TypeInformation visitUnresolvedSuperGetterCompound(
-      ast.Send node,
+      ast.SendSet node,
       Element getter,
       SetterElement setter,
       op.AssignmentOperator operator,
@@ -1720,19 +1722,19 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   @override
   TypeInformation visitSuperFieldSetterSetIfNull(ast.Send node,
-      FieldElement field, FunctionElement setter, ast.Node rhs, _) {
+      FieldElement field, SetterElement setter, ast.Node rhs, _) {
     return handleSuperCompound(node, field, setter, rhs);
   }
 
   @override
   TypeInformation visitSuperGetterFieldSetIfNull(ast.Send node,
-      FunctionElement getter, FieldElement field, ast.Node rhs, _) {
+      GetterElement getter, FieldElement field, ast.Node rhs, _) {
     return handleSuperCompound(node, getter, field, rhs);
   }
 
   @override
   TypeInformation visitSuperGetterSetterSetIfNull(ast.Send node,
-      FunctionElement getter, FunctionElement setter, ast.Node rhs, _) {
+      GetterElement getter, SetterElement setter, ast.Node rhs, _) {
     return handleSuperCompound(node, getter, setter, rhs);
   }
 
@@ -1744,7 +1746,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   @override
   TypeInformation visitSuperMethodSetterSetIfNull(ast.Send node,
-      FunctionElement method, FunctionElement setter, ast.Node rhs, _) {
+      FunctionElement method, SetterElement setter, ast.Node rhs, _) {
     return handleSuperCompound(node, method, setter, rhs);
   }
 
@@ -1787,50 +1789,34 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   @override
-  TypeInformation visitSuperFieldSetterPostfix(
-      ast.SendSet node,
-      FieldElement field,
-      FunctionElement setter,
-      op.IncDecOperator operator,
-      _) {
+  TypeInformation visitSuperFieldSetterPostfix(ast.SendSet node,
+      FieldElement field, SetterElement setter, op.IncDecOperator operator, _) {
     return handleSuperPrefixPostfix(node, field, setter);
   }
 
   @override
-  TypeInformation visitSuperFieldSetterPrefix(
-      ast.SendSet node,
-      FieldElement field,
-      FunctionElement setter,
-      op.IncDecOperator operator,
-      _) {
+  TypeInformation visitSuperFieldSetterPrefix(ast.SendSet node,
+      FieldElement field, SetterElement setter, op.IncDecOperator operator, _) {
     return handleSuperPrefixPostfix(node, field, setter);
   }
 
   @override
-  TypeInformation visitSuperGetterFieldPostfix(
-      ast.SendSet node,
-      FunctionElement getter,
-      FieldElement field,
-      op.IncDecOperator operator,
-      _) {
+  TypeInformation visitSuperGetterFieldPostfix(ast.SendSet node,
+      GetterElement getter, FieldElement field, op.IncDecOperator operator, _) {
     return handleSuperPrefixPostfix(node, getter, field);
   }
 
   @override
-  TypeInformation visitSuperGetterFieldPrefix(
-      ast.SendSet node,
-      FunctionElement getter,
-      FieldElement field,
-      op.IncDecOperator operator,
-      _) {
+  TypeInformation visitSuperGetterFieldPrefix(ast.SendSet node,
+      GetterElement getter, FieldElement field, op.IncDecOperator operator, _) {
     return handleSuperPrefixPostfix(node, getter, field);
   }
 
   @override
   TypeInformation visitSuperGetterSetterPostfix(
       ast.SendSet node,
-      FunctionElement getter,
-      FunctionElement setter,
+      GetterElement getter,
+      SetterElement setter,
       op.IncDecOperator operator,
       _) {
     return handleSuperPrefixPostfix(node, getter, setter);
@@ -1839,8 +1825,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   @override
   TypeInformation visitSuperGetterSetterPrefix(
       ast.SendSet node,
-      FunctionElement getter,
-      FunctionElement setter,
+      GetterElement getter,
+      SetterElement setter,
       op.IncDecOperator operator,
       _) {
     return handleSuperPrefixPostfix(node, getter, setter);
@@ -1850,7 +1836,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   TypeInformation visitSuperMethodSetterPostfix(
       ast.SendSet node,
       FunctionElement method,
-      FunctionElement setter,
+      SetterElement setter,
       op.IncDecOperator operator,
       _) {
     return handleSuperPrefixPostfix(node, method, setter);
@@ -1860,7 +1846,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   TypeInformation visitSuperMethodSetterPrefix(
       ast.SendSet node,
       FunctionElement method,
-      FunctionElement setter,
+      SetterElement setter,
       op.IncDecOperator operator,
       _) {
     return handleSuperPrefixPostfix(node, method, setter);
@@ -1971,8 +1957,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   @override
-  TypeInformation visitUnresolvedSuperIndexSet(
-      ast.SendSet node, Element element, ast.Node index, ast.Node rhs, _) {
+  TypeInformation visitUnresolvedSuperIndexSet(ast.SendSet node,
+      ErroneousElement element, ast.Node index, ast.Node rhs, _) {
     return handleSuperIndexSet(node, element, index, rhs);
   }
 
@@ -2118,7 +2104,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   @override
   TypeInformation visitSuperSetterSet(
-      ast.Send node, SetterElement field, ast.Node rhs, _) {
+      ast.SendSet node, SetterElement field, ast.Node rhs, _) {
     return handleSuperSet(node, field, rhs);
   }
 
@@ -2152,13 +2138,13 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   @override
   TypeInformation visitSuperGetterSet(
-      ast.Send node, MethodElement getter, ast.Node rhs, _) {
+      ast.Send node, GetterElement getter, ast.Node rhs, _) {
     return handleErroneousSuperSend(node);
   }
 
   @override
   TypeInformation visitSuperMethodSet(
-      ast.Send node, MethodElement method, ast.Node rhs, _) {
+      ast.SendSet node, MethodElement method, ast.Node rhs, _) {
     return handleErroneousSuperSend(node);
   }
 
@@ -2202,7 +2188,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   @override
-  TypeInformation visitSuperGetterInvoke(ast.Send node, MethodElement getter,
+  TypeInformation visitSuperGetterInvoke(ast.Send node, GetterElement getter,
       ast.NodeList arguments, CallStructure callStructure, _) {
     return handleSuperClosureCall(node, getter, arguments);
   }
@@ -2215,7 +2201,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   @override
-  TypeInformation visitSuperSetterInvoke(ast.Send node, FunctionElement setter,
+  TypeInformation visitSuperSetterInvoke(ast.Send node, SetterElement setter,
       ast.NodeList arguments, CallStructure callStructure, _) {
     return handleErroneousSuperSend(node);
   }
@@ -2460,7 +2446,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   @override
-  TypeInformation visitStaticGetterInvoke(ast.Send node, FunctionElement getter,
+  TypeInformation visitStaticGetterInvoke(ast.Send node, GetterElement getter,
       ast.NodeList arguments, CallStructure callStructure, _) {
     return handleStaticFieldOrGetterInvoke(node, getter);
   }
@@ -2492,12 +2478,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   @override
-  TypeInformation visitTopLevelGetterInvoke(
-      ast.Send node,
-      FunctionElement getter,
-      ast.NodeList arguments,
-      CallStructure callStructure,
-      _) {
+  TypeInformation visitTopLevelGetterInvoke(ast.Send node, GetterElement getter,
+      ast.NodeList arguments, CallStructure callStructure, _) {
     return handleStaticFieldOrGetterInvoke(node, getter);
   }
 
@@ -2572,7 +2554,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   /// Invoke a static or top level getter.
-  TypeInformation handleStaticGetterGet(ast.Send node, MethodElement getter) {
+  TypeInformation handleStaticGetterGet(ast.Send node, GetterElement getter) {
     Selector selector = elements.getSelector(node);
     TypeMask mask = inTreeData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, getter, null);
@@ -2628,8 +2610,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   @override
-  TypeInformation visitStaticGetterGet(
-      ast.Send node, FunctionElement getter, _) {
+  TypeInformation visitStaticGetterGet(ast.Send node, GetterElement getter, _) {
     return handleStaticGetterGet(node, getter);
   }
 
@@ -2651,7 +2632,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   @override
   TypeInformation visitTopLevelGetterGet(
-      ast.Send node, FunctionElement getter, _) {
+      ast.Send node, GetterElement getter, _) {
     return handleStaticGetterGet(node, getter);
   }
 

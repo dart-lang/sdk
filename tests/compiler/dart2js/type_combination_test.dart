@@ -54,8 +54,10 @@ class Pair {
   final second;
   Pair(this.first, this.second);
   int get hashCode => first.hashCode * 47 + second.hashCode;
-  bool operator ==(Pair other) =>
-      identical(first, other.first) && identical(second, other.second);
+  bool operator ==(other) =>
+      other is Pair &&
+      identical(first, other.first) &&
+      identical(second, other.second);
 }
 
 class RuleSet {

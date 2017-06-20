@@ -171,10 +171,11 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
   OrderedTypeSetBuilderBase(this.cls, {this.reporter, InterfaceType objectType})
       : this._objectType = objectType;
 
-  InterfaceType getThisType(ClassEntity cls);
-  InterfaceType substByContext(InterfaceType type, InterfaceType context);
-  int getHierarchyDepth(ClassEntity cls);
-  OrderedTypeSet getOrderedTypeSet(ClassEntity cls);
+  InterfaceType getThisType(covariant ClassEntity cls);
+  InterfaceType substByContext(
+      covariant InterfaceType type, covariant InterfaceType context);
+  int getHierarchyDepth(covariant ClassEntity cls);
+  OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
 
   OrderedTypeSet createOrderedTypeSet(
       InterfaceType supertype, Link<DartType> interfaces) {

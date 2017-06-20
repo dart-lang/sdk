@@ -249,6 +249,7 @@ inference/infer_prefix_expression: Crash
 inference/infer_prefix_expression_custom: Crash
 inference/infer_return_of_statement_lambda: Crash
 inference/infer_setter_from_later_inferred_setter: Crash
+inference/infer_setter_function_typed: Crash
 inference/infer_statics_transitively2: Crash
 inference/infer_statics_transitively3: Crash
 inference/infer_statics_transitively3_a: Crash
@@ -330,6 +331,7 @@ inference/method_call_with_type_arguments_instance_method_identifier_sequence: C
 inference/method_call_with_type_arguments_static_method: Crash
 inference/method_call_with_type_arguments_top_level_function: Crash
 inference/non_inferrable_getter_setter: Crash
+inference/null_aware_property_get: Crash
 inference/null_literal_should_not_infer_as_bottom: Crash
 inference/parameter_defaults_downwards: Crash
 inference/parameter_defaults_upwards: Crash

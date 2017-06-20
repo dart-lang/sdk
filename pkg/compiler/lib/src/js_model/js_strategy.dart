@@ -20,6 +20,7 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
+import '../kernel/closure.dart';
 import '../kernel/element_map.dart';
 import '../kernel/element_map_impl.dart';
 import '../kernel/kernel_backend_strategy.dart';
@@ -36,8 +37,21 @@ class JsBackendStrategy implements BackendStrategy {
   final JsToFrontendMap _map = new JsToFrontendMapImpl();
   ElementEnvironment _elementEnvironment;
   CommonElements _commonElements;
+  KernelToElementMap __elementMap;
+  ClosureConversionTask _closureDataLookup;
+  GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
 
   JsBackendStrategy(this._compiler);
+
+  KernelToElementMap get _elementMap {
+    if (__elementMap == null) {
+      KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
+      KernelToElementMap elementMap = strategy.elementMap;
+      __elementMap = new JsKernelToElementMap(
+          _map, _elementEnvironment, _commonElements, elementMap);
+    }
+    return __elementMap;
+  }
 
   @override
   ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld) {
@@ -116,8 +130,9 @@ class JsBackendStrategy implements BackendStrategy {
   }
 
   @override
-  ClosureConversionTask createClosureConversionTask(Compiler compiler) =>
-      new KernelClosureConversionTask(compiler.measurer);
+  ClosureConversionTask get closureDataLookup =>
+      _closureDataLookup ??= new KernelClosureConversionTask(
+          _compiler.measurer, _elementMap, _globalLocalsMap);
 
   @override
   SourceInformationStrategy get sourceInformationStrategy =>
@@ -126,11 +141,8 @@ class JsBackendStrategy implements BackendStrategy {
   @override
   SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
-    KernelFrontEndStrategy strategy = backend.compiler.frontendStrategy;
-    KernelToElementMap elementMap = strategy.elementMap;
-    JsKernelToElementMap jsElementMap = new JsKernelToElementMap(
-        _map, _elementEnvironment, _commonElements, elementMap);
-    return new KernelSsaBuilder(task, backend.compiler, jsElementMap);
+    return new KernelSsaBuilder(
+        task, backend.compiler, _elementMap, _globalLocalsMap);
   }
 
   @override
@@ -143,9 +155,8 @@ class JsBackendStrategy implements BackendStrategy {
       NativeBasicData nativeBasicData,
       ClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    KernelFrontEndStrategy frontendStrategy = _compiler.frontendStrategy;
     return new KernelCodegenWorldBuilder(
-        frontendStrategy.elementMap,
+        _elementMap,
         closedWorld.elementEnvironment,
         nativeBasicData,
         closedWorld,

@@ -1,4 +1,3 @@
-
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1239,7 +1238,13 @@ static bool CanBeImmediateIndex(Value* value,
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = aligned() ? 0 : 1;
+  intptr_t kNumTemps = 0;
+  if (!aligned()) {
+    kNumTemps += 1;
+    if (representation() == kUnboxedDouble) {
+      kNumTemps += 1;
+    }
+  }
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
@@ -1276,6 +1281,9 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   }
   if (!aligned()) {
     locs->set_temp(0, Location::RequiresRegister());
+    if (representation() == kUnboxedDouble) {
+      locs->set_temp(1, Location::RequiresRegister());
+    }
   }
   return locs;
 }
@@ -1325,16 +1333,32 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case kTypedDataFloat32ArrayCid:
         // Load single precision float.
         // vldrs does not support indexed addressing.
-        __ vldrs(EvenSRegisterOf(dresult0), element_address);
+        if (aligned()) {
+          __ vldrs(EvenSRegisterOf(dresult0), element_address);
+        } else {
+          const Register value = locs()->temp(1).reg();
+          __ LoadWordUnaligned(value, address, TMP);
+          __ vmovsr(EvenSRegisterOf(dresult0), value);
+        }
         break;
       case kTypedDataFloat64ArrayCid:
         // vldrd does not support indexed addressing.
-        __ vldrd(dresult0, element_address);
+        if (aligned()) {
+          __ vldrd(dresult0, element_address);
+        } else {
+          const Register value = locs()->temp(1).reg();
+          __ LoadWordUnaligned(value, address, TMP);
+          __ vmovsr(EvenSRegisterOf(dresult0), value);
+          __ AddImmediate(address, address, 4);
+          __ LoadWordUnaligned(value, address, TMP);
+          __ vmovsr(OddSRegisterOf(dresult0), value);
+        }
         break;
       case kTypedDataFloat64x2ArrayCid:
       case kTypedDataInt32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
         ASSERT(element_address.Equals(Address(IP)));
+        ASSERT(aligned());
         __ vldmd(IA, IP, dresult0, 2);
         break;
       default:
@@ -1459,34 +1483,35 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs;
 
   bool needs_base = false;
+  intptr_t kNumTemps = 0;
   if (CanBeImmediateIndex(index(), class_id(), IsExternal(),
                           false,  // Store.
                           &needs_base)) {
-    const intptr_t kNumTemps = aligned() ? (needs_base ? 1 : 0) : 2;
+    if (!aligned()) {
+      kNumTemps += 2;
+    } else if (needs_base) {
+      kNumTemps += 1;
+    }
+
     locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
     // CanBeImmediateIndex must return false for unsafe smis.
     locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
-    if (needs_base) {
-      locs->set_temp(0, Location::RequiresRegister());
-    }
-    if (!aligned()) {
-      locs->set_temp(0, Location::RequiresRegister());
-      locs->set_temp(1, Location::RequiresRegister());
-    }
   } else {
-    const intptr_t kNumTemps = aligned() ? 0 : 2;
+    if (!aligned()) {
+      kNumTemps += 2;
+    }
+
     locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
     locs->set_in(1, Location::WritableRegister());
-    if (!aligned()) {
-      locs->set_temp(0, Location::RequiresRegister());
-      locs->set_temp(1, Location::RequiresRegister());
-    }
   }
   locs->set_in(0, Location::RequiresRegister());
+  for (intptr_t i = 0; i < kNumTemps; i++) {
+    locs->set_temp(i, Location::RequiresRegister());
+  }
 
   switch (class_id()) {
     case kArrayCid:
@@ -1636,18 +1661,36 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataFloat32ArrayCid: {
       const SRegister value_reg =
           EvenSRegisterOf(EvenDRegisterOf(locs()->in(2).fpu_reg()));
-      __ vstrs(value_reg, element_address);
+      if (aligned()) {
+        __ vstrs(value_reg, element_address);
+      } else {
+        const Register address = temp;
+        const Register value = temp2;
+        __ vmovrs(value, value_reg);
+        __ StoreWordUnaligned(value, address, TMP);
+      }
       break;
     }
     case kTypedDataFloat64ArrayCid: {
       const DRegister value_reg = EvenDRegisterOf(locs()->in(2).fpu_reg());
-      __ vstrd(value_reg, element_address);
+      if (aligned()) {
+        __ vstrd(value_reg, element_address);
+      } else {
+        const Register address = temp;
+        const Register value = temp2;
+        __ vmovrs(value, EvenSRegisterOf(value_reg));
+        __ StoreWordUnaligned(value, address, TMP);
+        __ AddImmediate(address, address, 4);
+        __ vmovrs(value, OddSRegisterOf(value_reg));
+        __ StoreWordUnaligned(value, address, TMP);
+      }
       break;
     }
     case kTypedDataFloat64x2ArrayCid:
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid: {
       ASSERT(element_address.Equals(Address(index.reg())));
+      ASSERT(aligned());
       const DRegister value_reg = EvenDRegisterOf(locs()->in(2).fpu_reg());
       __ vstmd(IA, index.reg(), value_reg, 2);
       break;

@@ -103,6 +103,10 @@ bool areElementsEquivalent(Element a, Element b, {TestStrategy strategy}) {
       .visit(a, b);
 }
 
+bool areEntitiesEquivalent(Entity a, Entity b, {TestStrategy strategy}) {
+  return areElementsEquivalent(a, b, strategy: strategy);
+}
+
 /// Returns `true` if types [a] and [b] are equivalent.
 bool areTypesEquivalent(DartType a, DartType b, {TestStrategy strategy}) {
   if (identical(a, b)) return true;
@@ -356,7 +360,7 @@ class TestStrategy {
   final Equivalence<ConstantValue> constantValueEquivalence;
 
   const TestStrategy(
-      {this.elementEquivalence: areElementsEquivalent,
+      {this.elementEquivalence: areEntitiesEquivalent,
       this.typeEquivalence: areTypesEquivalent,
       this.constantEquivalence: areConstantsEquivalent,
       this.constantValueEquivalence: areConstantValuesEquivalent});
@@ -465,21 +469,23 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
   }
 
   @override
-  bool visitLibraryElement(LibraryElement element1, LibraryElement element2) {
+  bool visitLibraryElement(
+      LibraryElement element1, covariant LibraryElement element2) {
     return strategy.test(element1, element2, 'canonicalUri',
         element1.canonicalUri, element2.canonicalUri);
   }
 
   @override
-  bool visitCompilationUnitElement(
-      CompilationUnitElement element1, CompilationUnitElement element2) {
+  bool visitCompilationUnitElement(CompilationUnitElement element1,
+      covariant CompilationUnitElement element2) {
     return strategy.test(element1, element2, 'script.resourceUri',
             element1.script.resourceUri, element2.script.resourceUri) &&
         visit(element1.library, element2.library);
   }
 
   @override
-  bool visitClassElement(ClassElement element1, ClassElement element2) {
+  bool visitClassElement(
+      ClassElement element1, covariant ClassElement element2) {
     if (!strategy.test(
         element1,
         element2,
@@ -507,7 +513,7 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
     }
   }
 
-  bool checkMembers(Element element1, Element element2) {
+  bool checkMembers(Element element1, covariant Element element2) {
     if (!strategy.test(
         element1, element2, 'name', element1.name, element2.name)) {
       return false;
@@ -520,13 +526,14 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
   }
 
   @override
-  bool visitFieldElement(FieldElement element1, FieldElement element2) {
+  bool visitFieldElement(
+      FieldElement element1, covariant FieldElement element2) {
     return checkMembers(element1, element2);
   }
 
   @override
   bool visitBoxFieldElement(
-      BoxFieldElement element1, BoxFieldElement element2) {
+      BoxFieldElement element1, covariant BoxFieldElement element2) {
     return element1.box.name == element2.box.name &&
         visit(element1.box.executableContext, element2.box.executableContext) &&
         visit(element1.variableElement, element2.variableElement);
@@ -534,28 +541,31 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
 
   @override
   bool visitConstructorElement(
-      ConstructorElement element1, ConstructorElement element2) {
+      ConstructorElement element1, covariant ConstructorElement element2) {
     return checkMembers(element1, element2);
   }
 
   @override
-  bool visitMethodElement(MethodElement element1, MethodElement element2) {
+  bool visitMethodElement(
+      covariant MethodElement element1, covariant MethodElement element2) {
     return checkMembers(element1, element2);
   }
 
   @override
-  bool visitGetterElement(GetterElement element1, GetterElement element2) {
+  bool visitGetterElement(
+      GetterElement element1, covariant GetterElement element2) {
     return checkMembers(element1, element2);
   }
 
   @override
-  bool visitSetterElement(SetterElement element1, SetterElement element2) {
+  bool visitSetterElement(
+      SetterElement element1, covariant SetterElement element2) {
     return checkMembers(element1, element2);
   }
 
   @override
   bool visitLocalFunctionElement(
-      LocalFunctionElement element1, LocalFunctionElement element2) {
+      LocalFunctionElement element1, covariant LocalFunctionElement element2) {
     // TODO(johnniwinther): Define an equivalence on locals.
     MemberElement member1 = element1.memberContext;
     MemberElement member2 = element2.memberContext;
@@ -566,7 +576,7 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
 
   @override
   bool visitLocalVariableElement(
-      LocalVariableElement element1, LocalVariableElement element2) {
+      LocalVariableElement element1, covariant LocalVariableElement element2) {
     // TODO(johnniwinther): Define an equivalence on locals.
     return strategy.test(
             element1, element2, 'name', element1.name, element2.name) &&
@@ -574,20 +584,21 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
   }
 
   bool visitAbstractFieldElement(
-      AbstractFieldElement element1, AbstractFieldElement element2) {
+      AbstractFieldElement element1, covariant AbstractFieldElement element2) {
     return checkMembers(element1, element2);
   }
 
   @override
   bool visitTypeVariableElement(
-      TypeVariableElement element1, TypeVariableElement element2) {
+      TypeVariableElement element1, covariant TypeVariableElement element2) {
     return strategy.test(
             element1, element2, 'name', element1.name, element2.name) &&
         visit(element1.typeDeclaration, element2.typeDeclaration);
   }
 
   @override
-  bool visitTypedefElement(TypedefElement element1, TypedefElement element2) {
+  bool visitTypedefElement(
+      TypedefElement element1, covariant TypedefElement element2) {
     return strategy.test(
             element1, element2, 'name', element1.name, element2.name) &&
         visit(element1.library, element2.library);
@@ -595,26 +606,29 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
 
   @override
   bool visitParameterElement(
-      ParameterElement element1, ParameterElement element2) {
+      ParameterElement element1, covariant ParameterElement element2) {
     return strategy.test(
             element1, element2, 'name', element1.name, element2.name) &&
         visit(element1.functionDeclaration, element2.functionDeclaration);
   }
 
   @override
-  bool visitImportElement(ImportElement element1, ImportElement element2) {
+  bool visitImportElement(
+      ImportElement element1, covariant ImportElement element2) {
     return visit(element1.importedLibrary, element2.importedLibrary) &&
         visit(element1.library, element2.library);
   }
 
   @override
-  bool visitExportElement(ExportElement element1, ExportElement element2) {
+  bool visitExportElement(
+      ExportElement element1, covariant ExportElement element2) {
     return visit(element1.exportedLibrary, element2.exportedLibrary) &&
         visit(element1.library, element2.library);
   }
 
   @override
-  bool visitPrefixElement(PrefixElement element1, PrefixElement element2) {
+  bool visitPrefixElement(
+      PrefixElement element1, covariant PrefixElement element2) {
     return strategy.test(
             element1, element2, 'name', element1.name, element2.name) &&
         visit(element1.library, element2.library);
@@ -622,14 +636,14 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
 
   @override
   bool visitErroneousElement(
-      ErroneousElement element1, ErroneousElement element2) {
+      ErroneousElement element1, covariant ErroneousElement element2) {
     return strategy.test(element1, element2, 'messageKind',
         element1.messageKind, element2.messageKind);
   }
 
   @override
   bool visitWarnOnUseElement(
-      WarnOnUseElement element1, WarnOnUseElement element2) {
+      WarnOnUseElement element1, covariant WarnOnUseElement element2) {
     return strategy.testElements(element1, element2, 'wrappedElement',
         element1.wrappedElement, element2.wrappedElement);
   }
@@ -642,19 +656,20 @@ class TypeEquivalence
 
   const TypeEquivalence([this.strategy = const TestStrategy()]);
 
-  bool visit(ResolutionDartType type1, ResolutionDartType type2) {
+  bool visit(
+      covariant ResolutionDartType type1, covariant ResolutionDartType type2) {
     return strategy.test(type1, type2, 'kind', type1.kind, type2.kind) &&
         type1.accept(this, type2);
   }
 
   @override
-  bool visitDynamicType(
-          ResolutionDynamicType type, ResolutionDynamicType other) =>
+  bool visitDynamicType(covariant ResolutionDynamicType type,
+          covariant ResolutionDynamicType other) =>
       true;
 
   @override
-  bool visitFunctionType(
-      ResolutionFunctionType type, ResolutionFunctionType other) {
+  bool visitFunctionType(covariant ResolutionFunctionType type,
+      covariant ResolutionFunctionType other) {
     return strategy.testTypeLists(type, other, 'parameterTypes',
             type.parameterTypes, other.parameterTypes) &&
         strategy.testTypeLists(type, other, 'optionalParameterTypes',
@@ -673,11 +688,12 @@ class TypeEquivalence
   }
 
   @override
-  bool visitMalformedType(MalformedType type, MalformedType other) => true;
+  bool visitMalformedType(MalformedType type, covariant MalformedType other) =>
+      true;
 
   @override
-  bool visitTypeVariableType(
-      ResolutionTypeVariableType type, ResolutionTypeVariableType other) {
+  bool visitTypeVariableType(covariant ResolutionTypeVariableType type,
+      covariant ResolutionTypeVariableType other) {
     return strategy.testElements(
             type, other, 'element', type.element, other.element) &&
         strategy.test(type, other, 'is MethodTypeVariableType',
@@ -685,18 +701,19 @@ class TypeEquivalence
   }
 
   @override
-  bool visitVoidType(ResolutionVoidType type, ResolutionVoidType argument) =>
+  bool visitVoidType(covariant ResolutionVoidType type,
+          covariant ResolutionVoidType argument) =>
       true;
 
   @override
-  bool visitInterfaceType(
-      ResolutionInterfaceType type, ResolutionInterfaceType other) {
+  bool visitInterfaceType(covariant ResolutionInterfaceType type,
+      covariant ResolutionInterfaceType other) {
     return visitGenericType(type, other);
   }
 
   @override
   bool visitTypedefType(
-      ResolutionTypedefType type, ResolutionTypedefType other) {
+      ResolutionTypedefType type, covariant ResolutionTypedefType other) {
     return visitGenericType(type, other);
   }
 }
@@ -709,7 +726,7 @@ class ConstantEquivalence
   const ConstantEquivalence([this.strategy = const TestStrategy()]);
 
   @override
-  bool visit(ConstantExpression exp1, ConstantExpression exp2) {
+  bool visit(ConstantExpression exp1, covariant ConstantExpression exp2) {
     if (identical(exp1, exp2)) return true;
     return strategy.test(exp1, exp2, 'kind', exp1.kind, exp2.kind) &&
         exp1.accept(this, exp2);
@@ -717,7 +734,7 @@ class ConstantEquivalence
 
   @override
   bool visitBinary(
-      BinaryConstantExpression exp1, BinaryConstantExpression exp2) {
+      BinaryConstantExpression exp1, covariant BinaryConstantExpression exp2) {
     return strategy.test(
             exp1, exp2, 'operator', exp1.operator, exp2.operator) &&
         strategy.testConstants(exp1, exp2, 'left', exp1.left, exp2.left) &&
@@ -725,15 +742,15 @@ class ConstantEquivalence
   }
 
   @override
-  bool visitConcatenate(
-      ConcatenateConstantExpression exp1, ConcatenateConstantExpression exp2) {
+  bool visitConcatenate(ConcatenateConstantExpression exp1,
+      covariant ConcatenateConstantExpression exp2) {
     return strategy.testConstantLists(
         exp1, exp2, 'expressions', exp1.expressions, exp2.expressions);
   }
 
   @override
-  bool visitConditional(
-      ConditionalConstantExpression exp1, ConditionalConstantExpression exp2) {
+  bool visitConditional(ConditionalConstantExpression exp1,
+      covariant ConditionalConstantExpression exp2) {
     return strategy.testConstants(
             exp1, exp2, 'condition', exp1.condition, exp2.condition) &&
         strategy.testConstants(
@@ -743,8 +760,8 @@ class ConstantEquivalence
   }
 
   @override
-  bool visitConstructed(
-      ConstructedConstantExpression exp1, ConstructedConstantExpression exp2) {
+  bool visitConstructed(ConstructedConstantExpression exp1,
+      covariant ConstructedConstantExpression exp2) {
     return strategy.testTypes(exp1, exp2, 'type', exp1.type, exp2.type) &&
         strategy.testElements(exp1, exp2, 'target', exp1.target, exp2.target) &&
         strategy.testConstantLists(
@@ -754,28 +771,30 @@ class ConstantEquivalence
   }
 
   @override
-  bool visitFunction(
-      FunctionConstantExpression exp1, FunctionConstantExpression exp2) {
+  bool visitFunction(FunctionConstantExpression exp1,
+      covariant FunctionConstantExpression exp2) {
     return strategy.testElements(
         exp1, exp2, 'element', exp1.element, exp2.element);
   }
 
   @override
-  bool visitIdentical(
-      IdenticalConstantExpression exp1, IdenticalConstantExpression exp2) {
+  bool visitIdentical(IdenticalConstantExpression exp1,
+      covariant IdenticalConstantExpression exp2) {
     return strategy.testConstants(exp1, exp2, 'left', exp1.left, exp2.left) &&
         strategy.testConstants(exp1, exp2, 'right', exp1.right, exp2.right);
   }
 
   @override
-  bool visitList(ListConstantExpression exp1, ListConstantExpression exp2) {
+  bool visitList(
+      ListConstantExpression exp1, covariant ListConstantExpression exp2) {
     return strategy.testTypes(exp1, exp2, 'type', exp1.type, exp2.type) &&
         strategy.testConstantLists(
             exp1, exp2, 'values', exp1.values, exp2.values);
   }
 
   @override
-  bool visitMap(MapConstantExpression exp1, MapConstantExpression exp2) {
+  bool visitMap(
+      MapConstantExpression exp1, covariant MapConstantExpression exp2) {
     return strategy.testTypes(exp1, exp2, 'type', exp1.type, exp2.type) &&
         strategy.testConstantLists(exp1, exp2, 'keys', exp1.keys, exp2.keys) &&
         strategy.testConstantLists(
@@ -783,31 +802,34 @@ class ConstantEquivalence
   }
 
   @override
-  bool visitNamed(NamedArgumentReference exp1, NamedArgumentReference exp2) {
+  bool visitNamed(
+      NamedArgumentReference exp1, covariant NamedArgumentReference exp2) {
     return strategy.test(exp1, exp2, 'name', exp1.name, exp2.name);
   }
 
   @override
-  bool visitPositional(
-      PositionalArgumentReference exp1, PositionalArgumentReference exp2) {
+  bool visitPositional(PositionalArgumentReference exp1,
+      covariant PositionalArgumentReference exp2) {
     return strategy.test(exp1, exp2, 'index', exp1.index, exp2.index);
   }
 
   @override
   bool visitSymbol(
-      SymbolConstantExpression exp1, SymbolConstantExpression exp2) {
+      SymbolConstantExpression exp1, covariant SymbolConstantExpression exp2) {
     // TODO(johnniwinther): Handle private names. Currently not even supported
     // in resolution.
     return strategy.test(exp1, exp2, 'name', exp1.name, exp2.name);
   }
 
   @override
-  bool visitType(TypeConstantExpression exp1, TypeConstantExpression exp2) {
+  bool visitType(
+      TypeConstantExpression exp1, covariant TypeConstantExpression exp2) {
     return strategy.testTypes(exp1, exp2, 'type', exp1.type, exp2.type);
   }
 
   @override
-  bool visitUnary(UnaryConstantExpression exp1, UnaryConstantExpression exp2) {
+  bool visitUnary(
+      UnaryConstantExpression exp1, covariant UnaryConstantExpression exp2) {
     return strategy.test(
             exp1, exp2, 'operator', exp1.operator, exp2.operator) &&
         strategy.testConstants(
@@ -815,52 +837,56 @@ class ConstantEquivalence
   }
 
   @override
-  bool visitField(FieldConstantExpression exp1, FieldConstantExpression exp2) {
+  bool visitField(
+      FieldConstantExpression exp1, covariant FieldConstantExpression exp2) {
     return strategy.testElements(
         exp1, exp2, 'element', exp1.element, exp2.element);
   }
 
   @override
   bool visitLocalVariable(LocalVariableConstantExpression exp1,
-      LocalVariableConstantExpression exp2) {
+      covariant LocalVariableConstantExpression exp2) {
     return strategy.testElements(
         exp1, exp2, 'element', exp1.element, exp2.element);
   }
 
   @override
-  bool visitBool(BoolConstantExpression exp1, BoolConstantExpression exp2) {
+  bool visitBool(
+      BoolConstantExpression exp1, covariant BoolConstantExpression exp2) {
     return strategy.test(
         exp1, exp2, 'primitiveValue', exp1.primitiveValue, exp2.primitiveValue);
   }
 
   @override
   bool visitDouble(
-      DoubleConstantExpression exp1, DoubleConstantExpression exp2) {
+      DoubleConstantExpression exp1, covariant DoubleConstantExpression exp2) {
     return strategy.test(
         exp1, exp2, 'primitiveValue', exp1.primitiveValue, exp2.primitiveValue);
   }
 
   @override
-  bool visitInt(IntConstantExpression exp1, IntConstantExpression exp2) {
+  bool visitInt(
+      IntConstantExpression exp1, covariant IntConstantExpression exp2) {
     return strategy.test(
         exp1, exp2, 'primitiveValue', exp1.primitiveValue, exp2.primitiveValue);
   }
 
   @override
-  bool visitNull(NullConstantExpression exp1, NullConstantExpression exp2) {
+  bool visitNull(
+      NullConstantExpression exp1, covariant NullConstantExpression exp2) {
     return true;
   }
 
   @override
   bool visitString(
-      StringConstantExpression exp1, StringConstantExpression exp2) {
+      StringConstantExpression exp1, covariant StringConstantExpression exp2) {
     return strategy.test(
         exp1, exp2, 'primitiveValue', exp1.primitiveValue, exp2.primitiveValue);
   }
 
   @override
   bool visitBoolFromEnvironment(BoolFromEnvironmentConstantExpression exp1,
-      BoolFromEnvironmentConstantExpression exp2) {
+      covariant BoolFromEnvironmentConstantExpression exp2) {
     return strategy.testConstants(exp1, exp2, 'name', exp1.name, exp2.name) &&
         strategy.testConstants(
             exp1, exp2, 'defaultValue', exp1.defaultValue, exp2.defaultValue);
@@ -868,7 +894,7 @@ class ConstantEquivalence
 
   @override
   bool visitIntFromEnvironment(IntFromEnvironmentConstantExpression exp1,
-      IntFromEnvironmentConstantExpression exp2) {
+      covariant IntFromEnvironmentConstantExpression exp2) {
     return strategy.testConstants(exp1, exp2, 'name', exp1.name, exp2.name) &&
         strategy.testConstants(
             exp1, exp2, 'defaultValue', exp1.defaultValue, exp2.defaultValue);
@@ -876,7 +902,7 @@ class ConstantEquivalence
 
   @override
   bool visitStringFromEnvironment(StringFromEnvironmentConstantExpression exp1,
-      StringFromEnvironmentConstantExpression exp2) {
+      covariant StringFromEnvironmentConstantExpression exp2) {
     return strategy.testConstants(exp1, exp2, 'name', exp1.name, exp2.name) &&
         strategy.testConstants(
             exp1, exp2, 'defaultValue', exp1.defaultValue, exp2.defaultValue);
@@ -884,14 +910,14 @@ class ConstantEquivalence
 
   @override
   bool visitStringLength(StringLengthConstantExpression exp1,
-      StringLengthConstantExpression exp2) {
+      covariant StringLengthConstantExpression exp2) {
     return strategy.testConstants(
         exp1, exp2, 'expression', exp1.expression, exp2.expression);
   }
 
   @override
-  bool visitDeferred(
-      DeferredConstantExpression exp1, DeferredConstantExpression exp2) {
+  bool visitDeferred(DeferredConstantExpression exp1,
+      covariant DeferredConstantExpression exp2) {
     return strategy.testElements(
             exp1, exp2, 'prefix', exp1.prefix, exp2.prefix) &&
         strategy.testConstants(
@@ -906,15 +932,15 @@ class ConstantValueEquivalence
 
   const ConstantValueEquivalence([this.strategy = const TestStrategy()]);
 
-  bool visit(ConstantValue value1, ConstantValue value2) {
+  bool visit(ConstantValue value1, covariant ConstantValue value2) {
     if (identical(value1, value2)) return true;
     return strategy.test(value1, value2, 'kind', value1.kind, value2.kind) &&
         value1.accept(this, value2);
   }
 
   @override
-  bool visitConstructed(
-      ConstructedConstantValue value1, ConstructedConstantValue value2) {
+  bool visitConstructed(ConstructedConstantValue value1,
+      covariant ConstructedConstantValue value2) {
     return strategy.testTypes(
             value1, value2, 'type', value1.type, value2.type) &&
         strategy.testMaps(
@@ -930,13 +956,13 @@ class ConstantValueEquivalence
 
   @override
   bool visitFunction(
-      FunctionConstantValue value1, FunctionConstantValue value2) {
+      FunctionConstantValue value1, covariant FunctionConstantValue value2) {
     return strategy.testElements(
         value1, value2, 'element', value1.element, value2.element);
   }
 
   @override
-  bool visitList(ListConstantValue value1, ListConstantValue value2) {
+  bool visitList(ListConstantValue value1, covariant ListConstantValue value2) {
     return strategy.testTypes(
             value1, value2, 'type', value1.type, value2.type) &&
         strategy.testConstantValueLists(
@@ -944,7 +970,7 @@ class ConstantValueEquivalence
   }
 
   @override
-  bool visitMap(MapConstantValue value1, MapConstantValue value2) {
+  bool visitMap(MapConstantValue value1, covariant MapConstantValue value2) {
     return strategy.testTypes(
             value1, value2, 'type', value1.type, value2.type) &&
         strategy.testConstantValueLists(
@@ -954,42 +980,44 @@ class ConstantValueEquivalence
   }
 
   @override
-  bool visitType(TypeConstantValue value1, TypeConstantValue value2) {
+  bool visitType(TypeConstantValue value1, covariant TypeConstantValue value2) {
     return strategy.testTypes(value1, value2, 'type', value1.type, value2.type);
   }
 
   @override
-  bool visitBool(BoolConstantValue value1, BoolConstantValue value2) {
+  bool visitBool(BoolConstantValue value1, covariant BoolConstantValue value2) {
     return strategy.test(value1, value2, 'primitiveValue',
         value1.primitiveValue, value2.primitiveValue);
   }
 
   @override
-  bool visitDouble(DoubleConstantValue value1, DoubleConstantValue value2) {
+  bool visitDouble(
+      DoubleConstantValue value1, covariant DoubleConstantValue value2) {
     return strategy.test(value1, value2, 'primitiveValue',
         value1.primitiveValue, value2.primitiveValue);
   }
 
   @override
-  bool visitInt(IntConstantValue value1, IntConstantValue value2) {
+  bool visitInt(IntConstantValue value1, covariant IntConstantValue value2) {
     return strategy.test(value1, value2, 'primitiveValue',
         value1.primitiveValue, value2.primitiveValue);
   }
 
   @override
-  bool visitNull(NullConstantValue value1, NullConstantValue value2) {
+  bool visitNull(NullConstantValue value1, covariant NullConstantValue value2) {
     return true;
   }
 
   @override
-  bool visitString(StringConstantValue value1, StringConstantValue value2) {
+  bool visitString(
+      StringConstantValue value1, covariant StringConstantValue value2) {
     return strategy.test(value1, value2, 'primitiveValue',
         value1.primitiveValue, value2.primitiveValue);
   }
 
   @override
   bool visitDeferred(
-      DeferredConstantValue value1, DeferredConstantValue value2) {
+      DeferredConstantValue value1, covariant DeferredConstantValue value2) {
     return strategy.testElements(
             value1, value2, 'prefix', value1.prefix, value2.prefix) &&
         strategy.testConstantValues(
@@ -997,13 +1025,14 @@ class ConstantValueEquivalence
   }
 
   @override
-  bool visitNonConstant(NonConstantValue value1, NonConstantValue value2) {
+  bool visitNonConstant(
+      NonConstantValue value1, covariant NonConstantValue value2) {
     return true;
   }
 
   @override
   bool visitSynthetic(
-      SyntheticConstantValue value1, SyntheticConstantValue value2) {
+      SyntheticConstantValue value1, covariant SyntheticConstantValue value2) {
     return strategy.test(
             value1, value2, 'payload', value1.payload, value2.payload) &&
         strategy.test(
@@ -1011,8 +1040,8 @@ class ConstantValueEquivalence
   }
 
   @override
-  bool visitInterceptor(
-      InterceptorConstantValue value1, InterceptorConstantValue value2) {
+  bool visitInterceptor(InterceptorConstantValue value1,
+      covariant InterceptorConstantValue value2) {
     return strategy.testElements(value1, value2, 'cls', value1.cls, value2.cls);
   }
 }
@@ -1448,7 +1477,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitAssert(Assert node1, Assert node2) {
+  bool visitAssert(Assert node1, covariant Assert node2) {
     return testTokens(node1, node2, 'assertToken', node1.assertToken,
             node2.assertToken) &&
         testNodes(
@@ -1457,21 +1486,21 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitAsyncForIn(AsyncForIn node1, AsyncForIn node2) {
+  bool visitAsyncForIn(AsyncForIn node1, covariant AsyncForIn node2) {
     return visitForIn(node1, node2) &&
         testTokens(
             node1, node2, 'awaitToken', node1.awaitToken, node2.awaitToken);
   }
 
   @override
-  bool visitAsyncModifier(AsyncModifier node1, AsyncModifier node2) {
+  bool visitAsyncModifier(AsyncModifier node1, covariant AsyncModifier node2) {
     return testTokens(
             node1, node2, 'asyncToken', node1.asyncToken, node2.asyncToken) &&
         testTokens(node1, node2, 'starToken', node1.starToken, node2.starToken);
   }
 
   @override
-  bool visitAwait(Await node1, Await node2) {
+  bool visitAwait(Await node1, covariant Await node2) {
     return testTokens(
             node1, node2, 'awaitToken', node1.awaitToken, node2.awaitToken) &&
         testNodes(
@@ -1479,26 +1508,28 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitBlock(Block node1, Block node2) {
+  bool visitBlock(Block node1, covariant Block node2) {
     return testNodes(
         node1, node2, 'statements', node1.statements, node2.statements);
   }
 
   @override
-  bool visitBreakStatement(BreakStatement node1, BreakStatement node2) {
+  bool visitBreakStatement(
+      BreakStatement node1, covariant BreakStatement node2) {
     return testTokens(node1, node2, 'keywordToken', node1.keywordToken,
             node2.keywordToken) &&
         testNodes(node1, node2, 'target', node1.target, node2.target);
   }
 
   @override
-  bool visitCascade(Cascade node1, Cascade node2) {
+  bool visitCascade(Cascade node1, covariant Cascade node2) {
     return testNodes(
         node1, node2, 'expression', node1.expression, node2.expression);
   }
 
   @override
-  bool visitCascadeReceiver(CascadeReceiver node1, CascadeReceiver node2) {
+  bool visitCascadeReceiver(
+      CascadeReceiver node1, covariant CascadeReceiver node2) {
     return testTokens(node1, node2, 'cascadeOperator', node1.cascadeOperator,
             node2.cascadeOperator) &&
         testNodes(
@@ -1506,7 +1537,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitCaseMatch(CaseMatch node1, CaseMatch node2) {
+  bool visitCaseMatch(CaseMatch node1, covariant CaseMatch node2) {
     return testTokens(node1, node2, 'caseKeyword', node1.caseKeyword,
             node2.caseKeyword) &&
         testNodes(
@@ -1514,7 +1545,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitCatchBlock(CatchBlock node1, CatchBlock node2) {
+  bool visitCatchBlock(CatchBlock node1, covariant CatchBlock node2) {
     return testTokens(node1, node2, 'catchKeyword', node1.catchKeyword,
             node2.catchKeyword) &&
         testTokens(
@@ -1525,7 +1556,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitClassNode(ClassNode node1, ClassNode node2) {
+  bool visitClassNode(ClassNode node1, covariant ClassNode node2) {
     return testTokens(
             node1, node2, 'beginToken', node1.beginToken, node2.beginToken) &&
         testTokens(node1, node2, 'extendsKeyword', node1.extendsKeyword,
@@ -1544,7 +1575,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitCombinator(Combinator node1, Combinator node2) {
+  bool visitCombinator(Combinator node1, covariant Combinator node2) {
     return testTokens(node1, node2, 'keywordToken', node1.keywordToken,
             node2.keywordToken) &&
         testNodes(
@@ -1552,7 +1583,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitConditional(Conditional node1, Conditional node2) {
+  bool visitConditional(Conditional node1, covariant Conditional node2) {
     return testTokens(node1, node2, 'questionToken', node1.questionToken,
             node2.questionToken) &&
         testTokens(
@@ -1566,7 +1597,8 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitConditionalUri(ConditionalUri node1, ConditionalUri node2) {
+  bool visitConditionalUri(
+      ConditionalUri node1, covariant ConditionalUri node2) {
     return testTokens(node1, node2, 'ifToken', node1.ifToken, node2.ifToken) &&
         testNodes(node1, node2, 'key', node1.key, node2.key) &&
         testNodes(node1, node2, 'value', node1.value, node2.value) &&
@@ -1575,14 +1607,14 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitContinueStatement(
-      ContinueStatement node1, ContinueStatement node2) {
+      ContinueStatement node1, covariant ContinueStatement node2) {
     return testTokens(node1, node2, 'keywordToken', node1.keywordToken,
             node2.keywordToken) &&
         testNodes(node1, node2, 'target', node1.target, node2.target);
   }
 
   @override
-  bool visitDoWhile(DoWhile node1, DoWhile node2) {
+  bool visitDoWhile(DoWhile node1, covariant DoWhile node2) {
     return testTokens(
             node1, node2, 'doKeyword', node1.doKeyword, node2.doKeyword) &&
         testTokens(node1, node2, 'whileKeyword', node1.whileKeyword,
@@ -1594,20 +1626,21 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitDottedName(DottedName node1, DottedName node2) {
+  bool visitDottedName(DottedName node1, covariant DottedName node2) {
     return testTokens(node1, node2, 'token', node1.token, node2.token) &&
         testNodes(
             node1, node2, 'identifiers', node1.identifiers, node2.identifiers);
   }
 
   @override
-  bool visitEmptyStatement(EmptyStatement node1, EmptyStatement node2) {
+  bool visitEmptyStatement(
+      EmptyStatement node1, covariant EmptyStatement node2) {
     return testTokens(node1, node2, 'semicolonToken', node1.semicolonToken,
         node2.semicolonToken);
   }
 
   @override
-  bool visitEnum(Enum node1, Enum node2) {
+  bool visitEnum(Enum node1, covariant Enum node2) {
     return testTokens(
             node1, node2, 'enumToken', node1.enumToken, node2.enumToken) &&
         testNodes(node1, node2, 'name', node1.name, node2.name) &&
@@ -1615,7 +1648,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitExport(Export node1, Export node2) {
+  bool visitExport(Export node1, covariant Export node2) {
     return visitLibraryDependency(node1, node2) &&
         testTokens(node1, node2, 'exportKeyword', node1.exportKeyword,
             node2.exportKeyword);
@@ -1623,7 +1656,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitExpressionStatement(
-      ExpressionStatement node1, ExpressionStatement node2) {
+      ExpressionStatement node1, covariant ExpressionStatement node2) {
     return testTokens(
             node1, node2, 'endToken', node1.endToken, node2.endToken) &&
         testNodes(
@@ -1631,7 +1664,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitFor(For node1, For node2) {
+  bool visitFor(For node1, covariant For node2) {
     return testTokens(
             node1, node2, 'forToken', node1.forToken, node2.forToken) &&
         testNodes(node1, node2, 'initializer', node1.initializer,
@@ -1643,7 +1676,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitForIn(ForIn node1, ForIn node2) {
+  bool visitForIn(ForIn node1, covariant ForIn node2) {
     return testNodes(
             node1, node2, 'condition', node1.condition, node2.condition) &&
         testNodes(
@@ -1655,13 +1688,13 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitFunctionDeclaration(
-      FunctionDeclaration node1, FunctionDeclaration node2) {
+      FunctionDeclaration node1, covariant FunctionDeclaration node2) {
     return testNodes(node1, node2, 'function', node1.function, node2.function);
   }
 
   @override
   bool visitFunctionExpression(
-      FunctionExpression node1, FunctionExpression node2) {
+      FunctionExpression node1, covariant FunctionExpression node2) {
     return testTokens(
             node1, node2, 'getOrSet', node1.getOrSet, node2.getOrSet) &&
         testNodes(node1, node2, 'name', node1.name, node2.name) &&
@@ -1679,7 +1712,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitGotoStatement(GotoStatement node1, GotoStatement node2) {
+  bool visitGotoStatement(GotoStatement node1, covariant GotoStatement node2) {
     return testTokens(node1, node2, 'keywordToken', node1.keywordToken,
             node2.keywordToken) &&
         testTokens(node1, node2, 'semicolonToken', node1.semicolonToken,
@@ -1688,12 +1721,12 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitIdentifier(Identifier node1, Identifier node2) {
+  bool visitIdentifier(Identifier node1, covariant Identifier node2) {
     return testTokens(node1, node2, 'token', node1.token, node2.token);
   }
 
   @override
-  bool visitIf(If node1, If node2) {
+  bool visitIf(If node1, covariant If node2) {
     return testTokens(node1, node2, 'ifToken', node1.ifToken, node2.ifToken) &&
         testTokens(
             node1, node2, 'elseToken', node1.elseToken, node2.elseToken) &&
@@ -1704,7 +1737,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitImport(Import node1, Import node2) {
+  bool visitImport(Import node1, covariant Import node2) {
     return visitLibraryDependency(node1, node2) &&
         testTokens(node1, node2, 'importKeyword', node1.importKeyword,
             node2.importKeyword) &&
@@ -1714,7 +1747,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitLabel(Label node1, Label node2) {
+  bool visitLabel(Label node1, covariant Label node2) {
     return testTokens(
             node1, node2, 'colonToken', node1.colonToken, node2.colonToken) &&
         testNodes(
@@ -1722,14 +1755,15 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitLabeledStatement(LabeledStatement node1, LabeledStatement node2) {
+  bool visitLabeledStatement(
+      LabeledStatement node1, covariant LabeledStatement node2) {
     return testNodes(node1, node2, 'labels', node1.labels, node2.labels) &&
         testNodes(node1, node2, 'statement', node1.statement, node2.statement);
   }
 
   @override
   bool visitLibraryDependency(
-      LibraryDependency node1, LibraryDependency node2) {
+      LibraryDependency node1, covariant LibraryDependency node2) {
     return visitLibraryTag(node1, node2) &&
         testNodes(node1, node2, 'uri', node1.uri, node2.uri) &&
         testNodes(node1, node2, 'conditionalUris', node1.conditionalUris,
@@ -1739,7 +1773,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitLibraryName(LibraryName node1, LibraryName node2) {
+  bool visitLibraryName(LibraryName node1, covariant LibraryName node2) {
     return visitLibraryTag(node1, node2) &&
         testTokens(node1, node2, 'libraryKeyword', node1.libraryKeyword,
             node2.libraryKeyword) &&
@@ -1747,33 +1781,33 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitLibraryTag(LibraryTag node1, LibraryTag node2) {
+  bool visitLibraryTag(LibraryTag node1, covariant LibraryTag node2) {
     // TODO(johnniwinther): Check metadata?
     return true;
   }
 
   @override
-  bool visitLiteral(Literal node1, Literal node2) {
+  bool visitLiteral(Literal node1, covariant Literal node2) {
     return testTokens(node1, node2, 'token', node1.token, node2.token);
   }
 
   @override
-  bool visitLiteralBool(LiteralBool node1, LiteralBool node2) {
+  bool visitLiteralBool(LiteralBool node1, covariant LiteralBool node2) {
     return visitLiteral(node1, node2);
   }
 
   @override
-  bool visitLiteralDouble(LiteralDouble node1, LiteralDouble node2) {
+  bool visitLiteralDouble(LiteralDouble node1, covariant LiteralDouble node2) {
     return visitLiteral(node1, node2);
   }
 
   @override
-  bool visitLiteralInt(LiteralInt node1, LiteralInt node2) {
+  bool visitLiteralInt(LiteralInt node1, covariant LiteralInt node2) {
     return visitLiteral(node1, node2);
   }
 
   @override
-  bool visitLiteralList(LiteralList node1, LiteralList node2) {
+  bool visitLiteralList(LiteralList node1, covariant LiteralList node2) {
     return testTokens(node1, node2, 'constKeyword', node1.constKeyword,
             node2.constKeyword) &&
         testNodes(node1, node2, 'typeArguments', node1.typeArguments,
@@ -1782,7 +1816,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitLiteralMap(LiteralMap node1, LiteralMap node2) {
+  bool visitLiteralMap(LiteralMap node1, covariant LiteralMap node2) {
     return testTokens(node1, node2, 'constKeyword', node1.constKeyword,
             node2.constKeyword) &&
         testNodes(node1, node2, 'typeArguments', node1.typeArguments,
@@ -1791,7 +1825,8 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitLiteralMapEntry(LiteralMapEntry node1, LiteralMapEntry node2) {
+  bool visitLiteralMapEntry(
+      LiteralMapEntry node1, covariant LiteralMapEntry node2) {
     return testTokens(
             node1, node2, 'colonToken', node1.colonToken, node2.colonToken) &&
         testNodes(node1, node2, 'key', node1.key, node2.key) &&
@@ -1799,19 +1834,19 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitLiteralNull(LiteralNull node1, LiteralNull node2) {
+  bool visitLiteralNull(LiteralNull node1, covariant LiteralNull node2) {
     return visitLiteral(node1, node2);
   }
 
   @override
-  bool visitLiteralString(LiteralString node1, LiteralString node2) {
+  bool visitLiteralString(LiteralString node1, covariant LiteralString node2) {
     return testTokens(node1, node2, 'token', node1.token, node2.token) &&
         strategy.test(
             node1, node2, 'dartString', node1.dartString, node2.dartString);
   }
 
   @override
-  bool visitLiteralSymbol(LiteralSymbol node1, LiteralSymbol node2) {
+  bool visitLiteralSymbol(LiteralSymbol node1, covariant LiteralSymbol node2) {
     return testTokens(
             node1, node2, 'hashToken', node1.hashToken, node2.hashToken) &&
         testNodes(
@@ -1819,34 +1854,35 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitLoop(Loop node1, Loop node2) {
+  bool visitLoop(Loop node1, covariant Loop node2) {
     return testNodes(
             node1, node2, 'condition', node1.condition, node2.condition) &&
         testNodes(node1, node2, 'body', node1.body, node2.body);
   }
 
   @override
-  bool visitMetadata(Metadata node1, Metadata node2) {
+  bool visitMetadata(Metadata node1, covariant Metadata node2) {
     return testTokens(node1, node2, 'token', node1.token, node2.token) &&
         testNodes(
             node1, node2, 'expression', node1.expression, node2.expression);
   }
 
   @override
-  bool visitMixinApplication(MixinApplication node1, MixinApplication node2) {
+  bool visitMixinApplication(
+      MixinApplication node1, covariant MixinApplication node2) {
     return testNodes(
             node1, node2, 'superclass', node1.superclass, node2.superclass) &&
         testNodes(node1, node2, 'mixins', node1.mixins, node2.mixins);
   }
 
   @override
-  bool visitModifiers(Modifiers node1, Modifiers node2) {
+  bool visitModifiers(Modifiers node1, covariant Modifiers node2) {
     return strategy.test(node1, node2, 'flags', node1.flags, node2.flags) &&
         testNodes(node1, node2, 'nodes', node1.nodes, node2.nodes);
   }
 
   @override
-  bool visitNamedArgument(NamedArgument node1, NamedArgument node2) {
+  bool visitNamedArgument(NamedArgument node1, covariant NamedArgument node2) {
     return testTokens(
             node1, node2, 'colonToken', node1.colonToken, node2.colonToken) &&
         testNodes(node1, node2, 'name', node1.name, node2.name) &&
@@ -1856,7 +1892,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitNamedMixinApplication(
-      NamedMixinApplication node1, NamedMixinApplication node2) {
+      NamedMixinApplication node1, covariant NamedMixinApplication node2) {
     return testTokens(node1, node2, 'classKeyword', node1.classKeyword,
             node2.classKeyword) &&
         testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
@@ -1872,14 +1908,14 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitNewExpression(NewExpression node1, NewExpression node2) {
+  bool visitNewExpression(NewExpression node1, covariant NewExpression node2) {
     return testTokens(
             node1, node2, 'newToken', node1.newToken, node2.newToken) &&
         testNodes(node1, node2, 'send', node1.send, node2.send);
   }
 
   @override
-  bool visitNodeList(NodeList node1, NodeList node2) {
+  bool visitNodeList(NodeList node1, covariant NodeList node2) {
     return testTokens(
             node1, node2, 'beginToken', node1.beginToken, node2.beginToken) &&
         testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
@@ -1889,13 +1925,13 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitOperator(Operator node1, Operator node2) {
+  bool visitOperator(Operator node1, covariant Operator node2) {
     return visitIdentifier(node1, node2);
   }
 
   @override
   bool visitParenthesizedExpression(
-      ParenthesizedExpression node1, ParenthesizedExpression node2) {
+      ParenthesizedExpression node1, covariant ParenthesizedExpression node2) {
     return testTokens(
             node1, node2, 'beginToken', node1.beginToken, node2.beginToken) &&
         testNodes(
@@ -1903,7 +1939,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitPart(Part node1, Part node2) {
+  bool visitPart(Part node1, covariant Part node2) {
     return visitLibraryTag(node1, node2) &&
         testTokens(node1, node2, 'partKeyword', node1.partKeyword,
             node2.partKeyword) &&
@@ -1911,7 +1947,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitPartOf(PartOf node1, PartOf node2) {
+  bool visitPartOf(PartOf node1, covariant PartOf node2) {
     // TODO(johnniwinther): Check metadata?
     return testTokens(node1, node2, 'partKeyword', node1.partKeyword,
             node2.partKeyword) &&
@@ -1919,18 +1955,18 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitPostfix(Postfix node1, Postfix node2) {
+  bool visitPostfix(Postfix node1, covariant Postfix node2) {
     return visitNodeList(node1, node2);
   }
 
   @override
-  bool visitPrefix(Prefix node1, Prefix node2) {
+  bool visitPrefix(Prefix node1, covariant Prefix node2) {
     return visitNodeList(node1, node2);
   }
 
   @override
   bool visitRedirectingFactoryBody(
-      RedirectingFactoryBody node1, RedirectingFactoryBody node2) {
+      RedirectingFactoryBody node1, covariant RedirectingFactoryBody node2) {
     return testTokens(
             node1, node2, 'beginToken', node1.beginToken, node2.beginToken) &&
         testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
@@ -1939,14 +1975,14 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitRethrow(Rethrow node1, Rethrow node2) {
+  bool visitRethrow(Rethrow node1, covariant Rethrow node2) {
     return testTokens(
             node1, node2, 'throwToken', node1.throwToken, node2.throwToken) &&
         testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken);
   }
 
   @override
-  bool visitReturn(Return node1, Return node2) {
+  bool visitReturn(Return node1, covariant Return node2) {
     return testTokens(
             node1, node2, 'beginToken', node1.beginToken, node2.beginToken) &&
         testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
@@ -1955,7 +1991,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitSend(Send node1, Send node2) {
+  bool visitSend(Send node1, covariant Send node2) {
     return strategy.test(node1, node2, 'isConditional', node1.isConditional,
             node2.isConditional) &&
         testNodes(node1, node2, 'receiver', node1.receiver, node2.receiver) &&
@@ -1965,7 +2001,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitSendSet(SendSet node1, SendSet node2) {
+  bool visitSendSet(SendSet node1, covariant SendSet node2) {
     return visitSend(node1, node2) &&
         testNodes(node1, node2, 'assignmentOperator', node1.assignmentOperator,
             node2.assignmentOperator);
@@ -1973,27 +2009,27 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitStringInterpolation(
-      StringInterpolation node1, StringInterpolation node2) {
+      StringInterpolation node1, covariant StringInterpolation node2) {
     return testNodes(node1, node2, 'string', node1.string, node2.string) &&
         testNodes(node1, node2, 'parts', node1.parts, node2.parts);
   }
 
   @override
   bool visitStringInterpolationPart(
-      StringInterpolationPart node1, StringInterpolationPart node2) {
+      StringInterpolationPart node1, covariant StringInterpolationPart node2) {
     return testNodes(
         node1, node2, 'expression', node1.expression, node2.expression);
   }
 
   @override
   bool visitStringJuxtaposition(
-      StringJuxtaposition node1, StringJuxtaposition node2) {
+      StringJuxtaposition node1, covariant StringJuxtaposition node2) {
     return testNodes(node1, node2, 'first', node1.first, node2.first) &&
         testNodes(node1, node2, 'second', node1.second, node2.second);
   }
 
   @override
-  bool visitSwitchCase(SwitchCase node1, SwitchCase node2) {
+  bool visitSwitchCase(SwitchCase node1, covariant SwitchCase node2) {
     return testTokens(node1, node2, 'defaultKeyword', node1.defaultKeyword,
             node2.defaultKeyword) &&
         testTokens(
@@ -2005,7 +2041,8 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitSwitchStatement(SwitchStatement node1, SwitchStatement node2) {
+  bool visitSwitchStatement(
+      SwitchStatement node1, covariant SwitchStatement node2) {
     return testTokens(node1, node2, 'switchKeyword', node1.switchKeyword,
             node2.switchKeyword) &&
         testNodes(node1, node2, 'parenthesizedExpression',
@@ -2014,12 +2051,12 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitSyncForIn(SyncForIn node1, SyncForIn node2) {
+  bool visitSyncForIn(SyncForIn node1, covariant SyncForIn node2) {
     return visitForIn(node1, node2);
   }
 
   @override
-  bool visitThrow(Throw node1, Throw node2) {
+  bool visitThrow(Throw node1, covariant Throw node2) {
     return testTokens(
             node1, node2, 'throwToken', node1.throwToken, node2.throwToken) &&
         testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
@@ -2028,7 +2065,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitTryStatement(TryStatement node1, TryStatement node2) {
+  bool visitTryStatement(TryStatement node1, covariant TryStatement node2) {
     return testTokens(
             node1, node2, 'tryKeyword', node1.tryKeyword, node2.tryKeyword) &&
         testTokens(node1, node2, 'finallyKeyword', node1.finallyKeyword,
@@ -2042,7 +2079,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitNominalTypeAnnotation(
-      NominalTypeAnnotation node1, NominalTypeAnnotation node2) {
+      NominalTypeAnnotation node1, covariant NominalTypeAnnotation node2) {
     return testNodes(
             node1, node2, 'typeName', node1.typeName, node2.typeName) &&
         testNodes(node1, node2, 'typeArguments', node1.typeArguments,
@@ -2051,7 +2088,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitFunctionTypeAnnotation(
-      FunctionTypeAnnotation node1, FunctionTypeAnnotation node2) {
+      FunctionTypeAnnotation node1, covariant FunctionTypeAnnotation node2) {
     return testNodes(
             node1, node2, 'returnType', node1.returnType, node2.returnType) &&
         testNodes(node1, node2, 'formals', node1.formals, node2.formals) &&
@@ -2060,13 +2097,13 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitTypeVariable(TypeVariable node1, TypeVariable node2) {
+  bool visitTypeVariable(TypeVariable node1, covariant TypeVariable node2) {
     return testNodes(node1, node2, 'name', node1.name, node2.name) &&
         testNodes(node1, node2, 'bound', node1.bound, node2.bound);
   }
 
   @override
-  bool visitTypedef(Typedef node1, Typedef node2) {
+  bool visitTypedef(Typedef node1, covariant Typedef node2) {
     return testTokens(node1, node2, 'typedefKeyword', node1.typedefKeyword,
             node2.typedefKeyword) &&
         testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
@@ -2080,7 +2117,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitVariableDefinitions(
-      VariableDefinitions node1, VariableDefinitions node2) {
+      VariableDefinitions node1, covariant VariableDefinitions node2) {
     return testNodes(
             node1, node2, 'metadata', node1.metadata, node2.metadata) &&
         testNodes(node1, node2, 'type', node1.type, node2.type) &&
@@ -2091,7 +2128,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitWhile(While node1, While node2) {
+  bool visitWhile(While node1, covariant While node2) {
     return testTokens(node1, node2, 'whileKeyword', node1.whileKeyword,
             node2.whileKeyword) &&
         testNodes(
@@ -2100,7 +2137,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitYield(Yield node1, Yield node2) {
+  bool visitYield(Yield node1, covariant Yield node2) {
     return testTokens(
             node1, node2, 'yieldToken', node1.yieldToken, node2.yieldToken) &&
         testTokens(
@@ -2111,27 +2148,28 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitNode(Node node1, Node node2) {
+  bool visitNode(Node node1, covariant Node node2) {
     throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
   }
 
   @override
-  bool visitExpression(Expression node1, Expression node2) {
+  bool visitExpression(Expression node1, covariant Expression node2) {
     throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
   }
 
   @override
-  bool visitStatement(Statement node1, Statement node2) {
+  bool visitStatement(Statement node1, covariant Statement node2) {
     throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
   }
 
   @override
-  bool visitStringNode(StringNode node1, StringNode node2) {
+  bool visitStringNode(StringNode node1, covariant StringNode node2) {
     throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
   }
 
   @override
-  bool visitTypeAnnotation(TypeAnnotation node1, TypeAnnotation node2) {
+  bool visitTypeAnnotation(
+      TypeAnnotation node1, covariant TypeAnnotation node2) {
     throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
   }
 }

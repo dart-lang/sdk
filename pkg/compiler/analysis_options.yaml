@@ -10,17 +10,3 @@ analyzer:
     todo: ignore
 
     deprecated_member_use: ignore
-
-    # TODO(ahe): Fix these.
-    strong_mode_could_not_infer: ignore
-    strong_mode_invalid_cast_function: ignore
-    strong_mode_invalid_cast_function_expr: ignore
-    strong_mode_invalid_cast_literal_map: ignore
-    strong_mode_invalid_cast_method: ignore
-    strong_mode_invalid_method_override: ignore
-    strong_mode_invalid_method_override_from_base: ignore
-    strong_mode_invalid_method_override_from_mixin: ignore
-    strong_mode_invalid_super_invocation: ignore
-    strong_mode_not_instantiated_bound: ignore
-    strong_mode_top_level_instance_getter: ignore
-    strong_mode_top_level_type_arguments: ignore

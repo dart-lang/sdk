@@ -829,7 +829,7 @@ void main() {
         checkReturn('testDoWhile4', commonMasks.numType);
 
         checkReturnInClass(String className, String methodName, type) {
-          var cls = findElement(compiler, className);
+          dynamic cls = findElement(compiler, className);
           var element = cls.lookupLocalMember(methodName);
           Expect.equals(
               type,
@@ -864,7 +864,7 @@ void main() {
         checkReturnInClass('C', 'returnInt6', commonMasks.positiveIntType);
 
         checkFactoryConstructor(String className, String factoryName) {
-          var cls = findElement(compiler, className);
+          dynamic cls = findElement(compiler, className);
           var element = cls.localLookup(factoryName);
           Expect.equals(new TypeMask.nonNullExact(cls, closedWorld),
               typesInferrer.getReturnTypeOfElement(element));

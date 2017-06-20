@@ -627,6 +627,46 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     inferExpression(initializer, declaredType, false);
   }
 
+  /// Performs the core type inference algorithm for property gets (this handles
+  /// both null-aware and non-null-aware property gets).
+  DartType inferPropertyGet(
+      Expression expression,
+      Expression receiver,
+      int fileOffset,
+      PropertyGet desugaredGet,
+      DartType typeContext,
+      bool typeNeeded) {
+    typeNeeded =
+        listener.propertyGetEnter(expression, typeContext) || typeNeeded;
+    // First infer the receiver so we can look up the getter that was invoked.
+    var receiverType = inferExpression(receiver, null, true);
+    Member interfaceMember =
+        findInterfaceMember(receiverType, desugaredGet.name, fileOffset);
+    if (isTopLevel &&
+        ((interfaceMember is Procedure &&
+                interfaceMember.kind == ProcedureKind.Getter) ||
+            interfaceMember is Field)) {
+      if (TypeInferenceEngineImpl.fullTopLevelInference) {
+        if (interfaceMember is KernelField) {
+          var fieldNode = KernelMember.getFieldNode(interfaceMember);
+          if (fieldNode != null) {
+            engine.inferFieldFused(fieldNode, this.fieldNode);
+          }
+        }
+      } else {
+        // References to fields and getters can't be relied upon for top level
+        // inference.
+        recordNotImmediatelyEvident(fileOffset);
+      }
+    }
+    desugaredGet.interfaceTarget = interfaceMember;
+    var inferredType =
+        getCalleeType(interfaceMember, receiverType, desugaredGet.name);
+    // TODO(paulberry): Infer tear-off type arguments if appropriate.
+    listener.propertyGetExit(expression, inferredType);
+    return typeNeeded ? inferredType : null;
+  }
+
   /// Modifies a type as appropriate when inferring a closure return type.
   DartType inferReturnType(DartType returnType, bool isExpressionFunction) {
     if (returnType == null) {

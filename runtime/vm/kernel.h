@@ -122,13 +122,7 @@
 
 #define KERNEL_VISITORS_DO(M)                                                  \
   M(ExpressionVisitor)                                                         \
-  M(StatementVisitor)                                                          \
-  M(MemberVisitor)                                                             \
-  M(ClassVisitor)                                                              \
-  M(InitializerVisitor)                                                        \
   M(DartTypeVisitor)                                                           \
-  M(TreeVisitor)                                                               \
-  M(Visitor)
 
 namespace dart {
 
@@ -410,9 +404,6 @@ class Node {
   DEFINE_ALL_IS_OPERATIONS();
   DEFINE_CASTING_OPERATIONS(Node);
 
-  virtual void AcceptVisitor(Visitor* visitor) = 0;
-  virtual void VisitChildren(Visitor* visitor) = 0;
-
  protected:
   Node() {}
 
@@ -427,22 +418,17 @@ class TreeNode : public Node {
 
   DEFINE_CASTING_OPERATIONS(TreeNode);
 
-  virtual void AcceptVisitor(Visitor* visitor);
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor) = 0;
   intptr_t kernel_offset() const {
     ASSERT(kernel_offset_ > 0);
     return kernel_offset_;
   }
-  bool can_stream() { return can_stream_; }
 
  protected:
-  TreeNode() : kernel_offset_(-1), can_stream_(true) {}
+  TreeNode() : kernel_offset_(-1) {}
 
   // Offset for this node in the kernel-binary. If this node has a tag the
   // offset includes the tag. Can be -1 to indicate "unknown" or invalid offset.
   intptr_t kernel_offset_;
-
-  bool can_stream_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TreeNode);
@@ -472,9 +458,6 @@ class Library : public LinkedNode {
   virtual ~Library();
 
   DEFINE_CASTING_OPERATIONS(Library);
-
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   StringIndex import_uri() { return import_uri_index_; }
   intptr_t source_uri_index() { return source_uri_index_; }
@@ -569,9 +552,6 @@ class Typedef : public LinkedNode {
 
   DEFINE_CASTING_OPERATIONS(Typedef);
 
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   Library* parent() { return parent_; }
   StringIndex name() { return name_index_; }
   intptr_t source_uri_index() { return source_uri_index_; }
@@ -602,9 +582,6 @@ class Class : public LinkedNode {
   virtual ~Class();
 
   DEFINE_CASTING_OPERATIONS(Class);
-
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void AcceptClassVisitor(ClassVisitor* visitor) = 0;
 
   Library* parent() { return parent_; }
   StringIndex name() { return name_index_; }
@@ -645,9 +622,6 @@ class NormalClass : public Class {
 
   DEFINE_CASTING_OPERATIONS(NormalClass);
 
-  virtual void AcceptClassVisitor(ClassVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   virtual TypeParameterList& type_parameters() { return type_parameters_; }
   InterfaceType* super_class() { return super_class_; }
   virtual List<InterfaceType>& implemented_classes() {
@@ -674,55 +648,11 @@ class NormalClass : public Class {
 };
 
 
-class MixinClass : public Class {
- public:
-  MixinClass* ReadFrom(Reader* reader);
-
-  virtual ~MixinClass();
-
-  DEFINE_CASTING_OPERATIONS(MixinClass);
-
-  virtual void AcceptClassVisitor(ClassVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
-  virtual TypeParameterList& type_parameters() { return type_parameters_; }
-  InterfaceType* first() { return first_; }
-  InterfaceType* second() { return second_; }
-  virtual List<InterfaceType>& implemented_classes() {
-    return implemented_classes_;
-  }
-  virtual List<Constructor>& constructors() { return constructors_; }
-  virtual List<Field>& fields() { return fields_; }
-  virtual List<Procedure>& procedures() { return procedures_; }
-
- private:
-  MixinClass() {}
-
-  template <typename T>
-  friend class List;
-
-  TypeParameterList type_parameters_;
-  Child<InterfaceType> first_;
-  Child<InterfaceType> second_;
-  List<InterfaceType> implemented_classes_;
-  List<Constructor> constructors_;
-
-  // Dummy instances which are empty lists.
-  List<Field> fields_;
-  List<Procedure> procedures_;
-
-  DISALLOW_COPY_AND_ASSIGN(MixinClass);
-};
-
-
 class Member : public LinkedNode {
  public:
   virtual ~Member();
 
   DEFINE_CASTING_OPERATIONS(Member);
-
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void AcceptMemberVisitor(MemberVisitor* visitor) = 0;
 
   TreeNode* parent() { return parent_; }
   Name* name() { return name_; }
@@ -763,9 +693,6 @@ class Field : public Member {
 
   DEFINE_CASTING_OPERATIONS(Field);
 
-  virtual void AcceptMemberVisitor(MemberVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   bool IsConst() { return (flags_ & kFlagConst) == kFlagConst; }
   bool IsFinal() { return (flags_ & kFlagFinal) == kFlagFinal; }
   bool IsStatic() { return (flags_ & kFlagStatic) == kFlagStatic; }
@@ -801,9 +728,6 @@ class Constructor : public Member {
   virtual ~Constructor();
 
   DEFINE_CASTING_OPERATIONS(Constructor);
-
-  virtual void AcceptMemberVisitor(MemberVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   bool IsExternal() { return (flags_ & kFlagExternal) == kFlagExternal; }
   bool IsConst() { return (flags_ & kFlagConst) == kFlagConst; }
@@ -851,9 +775,6 @@ class Procedure : public Member {
 
   DEFINE_CASTING_OPERATIONS(Procedure);
 
-  virtual void AcceptMemberVisitor(MemberVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   ProcedureKind kind() { return kind_; }
   FunctionNode* function() { return function_; }
 
@@ -886,9 +807,6 @@ class Initializer : public TreeNode {
 
   DEFINE_CASTING_OPERATIONS(Initializer);
 
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void AcceptInitializerVisitor(InitializerVisitor* visitor) = 0;
-
  protected:
   Initializer() {}
 
@@ -904,8 +822,6 @@ class InvalidInitializer : public Initializer {
   virtual ~InvalidInitializer();
 
   DEFINE_CASTING_OPERATIONS(InvalidInitializer);
-  virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
  private:
   InvalidInitializer() {}
@@ -921,9 +837,6 @@ class FieldInitializer : public Initializer {
   virtual ~FieldInitializer();
 
   DEFINE_CASTING_OPERATIONS(FieldInitializer);
-
-  virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   NameIndex field() { return field_reference_; }
   Expression* value() { return value_; }
@@ -946,9 +859,6 @@ class SuperInitializer : public Initializer {
 
   DEFINE_CASTING_OPERATIONS(SuperInitializer);
 
-  virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   NameIndex target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
@@ -970,9 +880,6 @@ class RedirectingInitializer : public Initializer {
 
   DEFINE_CASTING_OPERATIONS(RedirectingInitializer);
 
-  virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   NameIndex target() { return target_reference_; }
   Arguments* arguments() { return arguments_; }
 
@@ -993,9 +900,6 @@ class LocalInitializer : public Initializer {
   virtual ~LocalInitializer();
 
   DEFINE_CASTING_OPERATIONS(LocalInitializer);
-
-  virtual void AcceptInitializerVisitor(InitializerVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   VariableDeclaration* variable() { return variable_; }
 
@@ -1023,9 +927,6 @@ class FunctionNode : public TreeNode {
   virtual ~FunctionNode();
 
   DEFINE_CASTING_OPERATIONS(FunctionNode);
-
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   AsyncMarker async_marker() { return async_marker_; }
   AsyncMarker dart_async_marker() { return dart_async_marker_; }
@@ -1071,7 +972,6 @@ class Expression : public TreeNode {
 
   DEFINE_CASTING_OPERATIONS(Expression);
 
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor) = 0;
   TokenPosition position() { return position_; }
   void set_position(TokenPosition position) { position_ = position; }
@@ -1090,7 +990,6 @@ class InvalidExpression : public Expression {
   static InvalidExpression* ReadFrom(Reader* reader);
 
   virtual ~InvalidExpression();
-  virtual void VisitChildren(Visitor* visitor);
 
   DEFINE_CASTING_OPERATIONS(InvalidExpression);
 
@@ -1113,7 +1012,6 @@ class VariableGet : public Expression {
   DEFINE_CASTING_OPERATIONS(VariableGet);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   VariableDeclaration* variable() { return variable_; }
 
@@ -1137,7 +1035,6 @@ class VariableSet : public Expression {
   DEFINE_CASTING_OPERATIONS(VariableSet);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   VariableDeclaration* variable() { return variable_; }
   Expression* expression() { return expression_; }
@@ -1162,7 +1059,6 @@ class PropertyGet : public Expression {
   DEFINE_CASTING_OPERATIONS(PropertyGet);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* receiver() { return receiver_; }
   Name* name() { return name_; }
@@ -1187,7 +1083,6 @@ class PropertySet : public Expression {
   DEFINE_CASTING_OPERATIONS(PropertySet);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* receiver() { return receiver_; }
   Name* name() { return name_; }
@@ -1214,7 +1109,6 @@ class DirectPropertyGet : public Expression {
   DEFINE_CASTING_OPERATIONS(DirectPropertyGet);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* receiver() { return receiver_; }
   NameIndex target() { return target_reference_; }
@@ -1238,7 +1132,6 @@ class DirectPropertySet : public Expression {
   DEFINE_CASTING_OPERATIONS(DirectPropertySet);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   NameIndex target() { return target_reference_; }
   Expression* receiver() { return receiver_; }
@@ -1257,10 +1150,6 @@ class DirectPropertySet : public Expression {
 
 class StaticGet : public Expression {
  public:
-  StaticGet(NameIndex target, bool can_stream) : target_reference_(target) {
-    can_stream_ = can_stream;
-  }
-
   static StaticGet* ReadFrom(Reader* reader);
 
   virtual ~StaticGet();
@@ -1268,7 +1157,6 @@ class StaticGet : public Expression {
   DEFINE_CASTING_OPERATIONS(StaticGet);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   NameIndex target() { return target_reference_; }
 
@@ -1290,7 +1178,6 @@ class StaticSet : public Expression {
   DEFINE_CASTING_OPERATIONS(StaticSet);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   NameIndex target() { return target_reference_; }
   Expression* expression() { return expression_; }
@@ -1313,8 +1200,6 @@ class Arguments : public TreeNode {
 
   DEFINE_CASTING_OPERATIONS(Arguments);
 
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   // TODO(regis): Support type arguments of generic functions.
   List<DartType>& types() { return types_; }
@@ -1344,9 +1229,6 @@ class NamedExpression : public TreeNode {
 
   DEFINE_CASTING_OPERATIONS(NamedExpression);
 
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   StringIndex name() { return name_index_; }
   Expression* expression() { return expression_; }
 
@@ -1369,7 +1251,6 @@ class MethodInvocation : public Expression {
   DEFINE_CASTING_OPERATIONS(MethodInvocation);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* receiver() { return receiver_; }
   Name* name() { return name_; }
@@ -1396,7 +1277,6 @@ class DirectMethodInvocation : public Expression {
   DEFINE_CASTING_OPERATIONS(DirectMethodInvocation);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* receiver() { return receiver_; }
   NameIndex target() { return target_reference_; }
@@ -1421,7 +1301,6 @@ class StaticInvocation : public Expression {
   DEFINE_CASTING_OPERATIONS(StaticInvocation);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   NameIndex procedure() { return procedure_reference_; }
   Arguments* arguments() { return arguments_; }
@@ -1447,7 +1326,6 @@ class ConstructorInvocation : public Expression {
   DEFINE_CASTING_OPERATIONS(ConstructorInvocation);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   bool is_const() { return is_const_; }
   NameIndex target() { return target_reference_; }
@@ -1473,7 +1351,6 @@ class Not : public Expression {
   DEFINE_CASTING_OPERATIONS(Not);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* expression() { return expression_; }
 
@@ -1497,7 +1374,6 @@ class LogicalExpression : public Expression {
   DEFINE_CASTING_OPERATIONS(LogicalExpression);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* left() { return left_; }
   Operator op() { return operator_; }
@@ -1523,7 +1399,6 @@ class ConditionalExpression : public Expression {
   DEFINE_CASTING_OPERATIONS(ConditionalExpression);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* condition() { return condition_; }
   Expression* then() { return then_; }
@@ -1549,7 +1424,6 @@ class StringConcatenation : public Expression {
   DEFINE_CASTING_OPERATIONS(StringConcatenation);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   List<Expression>& expressions() { return expressions_; }
 
@@ -1571,7 +1445,6 @@ class IsExpression : public Expression {
   DEFINE_CASTING_OPERATIONS(IsExpression);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* operand() { return operand_; }
   DartType* type() { return type_; }
@@ -1595,7 +1468,6 @@ class AsExpression : public Expression {
   DEFINE_CASTING_OPERATIONS(AsExpression);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* operand() { return operand_; }
   DartType* type() { return type_; }
@@ -1615,8 +1487,6 @@ class BasicLiteral : public Expression {
   virtual ~BasicLiteral();
 
   DEFINE_CASTING_OPERATIONS(BasicLiteral);
-
-  virtual void VisitChildren(Visitor* visitor);
 };
 
 
@@ -1753,7 +1623,6 @@ class SymbolLiteral : public Expression {
   DEFINE_CASTING_OPERATIONS(SymbolLiteral);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   StringIndex value() { return value_index_; }
 
@@ -1775,7 +1644,6 @@ class TypeLiteral : public Expression {
   DEFINE_CASTING_OPERATIONS(TypeLiteral);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   DartType* type() { return type_; }
 
@@ -1797,7 +1665,6 @@ class ThisExpression : public Expression {
   DEFINE_CASTING_OPERATIONS(ThisExpression);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
  private:
   ThisExpression() {}
@@ -1815,7 +1682,6 @@ class Rethrow : public Expression {
   DEFINE_CASTING_OPERATIONS(Rethrow);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
  private:
   Rethrow() {}
@@ -1833,7 +1699,6 @@ class Throw : public Expression {
   DEFINE_CASTING_OPERATIONS(Throw);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* expression() { return expression_; }
 
@@ -1855,7 +1720,6 @@ class ListLiteral : public Expression {
   DEFINE_CASTING_OPERATIONS(ListLiteral);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   bool is_const() { return is_const_; }
   DartType* type() { return type_; }
@@ -1881,7 +1745,6 @@ class MapLiteral : public Expression {
   DEFINE_CASTING_OPERATIONS(MapLiteral);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   bool is_const() { return is_const_; }
   DartType* key_type() { return key_type_; }
@@ -1908,9 +1771,6 @@ class MapEntry : public TreeNode {
 
   DEFINE_CASTING_OPERATIONS(MapEntry);
 
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   Expression* key() { return key_; }
   Expression* value() { return value_; }
 
@@ -1936,7 +1796,6 @@ class AwaitExpression : public Expression {
   DEFINE_CASTING_OPERATIONS(AwaitExpression);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* operand() { return operand_; }
 
@@ -1958,7 +1817,6 @@ class FunctionExpression : public Expression {
   DEFINE_CASTING_OPERATIONS(FunctionExpression);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   FunctionNode* function() { return function_; }
 
@@ -1980,7 +1838,6 @@ class Let : public Expression {
   DEFINE_CASTING_OPERATIONS(Let);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   VariableDeclaration* variable() { return variable_; }
   Expression* body() { return body_; }
@@ -2010,7 +1867,6 @@ class VectorCreation : public Expression {
   DEFINE_CASTING_OPERATIONS(VectorCreation);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   intptr_t value() { return value_; }
 
@@ -2032,7 +1888,6 @@ class VectorGet : public Expression {
   DEFINE_CASTING_OPERATIONS(VectorGet);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* vector_expression() { return vector_expression_; }
   intptr_t index() { return index_; }
@@ -2056,7 +1911,6 @@ class VectorSet : public Expression {
   DEFINE_CASTING_OPERATIONS(VectorSet);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* vector_expression() { return vector_expression_; }
   intptr_t index() { return index_; }
@@ -2082,7 +1936,6 @@ class VectorCopy : public Expression {
   DEFINE_CASTING_OPERATIONS(VectorCopy);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* vector_expression() { return vector_expression_; }
 
@@ -2104,7 +1957,6 @@ class ClosureCreation : public Expression {
   DEFINE_CASTING_OPERATIONS(ClosureCreation);
 
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   NameIndex top_level_function() { return top_level_function_reference_; }
   Expression* context_vector() { return context_vector_; }
@@ -2129,8 +1981,6 @@ class Statement : public TreeNode {
 
   DEFINE_CASTING_OPERATIONS(Statement);
 
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor) = 0;
   TokenPosition position() { return position_; }
 
  protected:
@@ -2150,9 +2000,6 @@ class InvalidStatement : public Statement {
 
   DEFINE_CASTING_OPERATIONS(InvalidStatement);
 
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
  private:
   InvalidStatement() {}
 
@@ -2168,9 +2015,6 @@ class ExpressionStatement : public Statement {
   virtual ~ExpressionStatement();
 
   DEFINE_CASTING_OPERATIONS(ExpressionStatement);
-
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* expression() { return expression_; }
 
@@ -2190,9 +2034,6 @@ class Block : public Statement {
   virtual ~Block();
 
   DEFINE_CASTING_OPERATIONS(Block);
-
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   List<Statement>& statements() { return statements_; }
   TokenPosition end_position() { return end_position_; }
@@ -2215,9 +2056,6 @@ class EmptyStatement : public Statement {
 
   DEFINE_CASTING_OPERATIONS(EmptyStatement);
 
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
  private:
   EmptyStatement() {}
 
@@ -2232,9 +2070,6 @@ class AssertStatement : public Statement {
   virtual ~AssertStatement();
 
   DEFINE_CASTING_OPERATIONS(AssertStatement);
-
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* condition() { return condition_; }
   Expression* message() { return message_; }
@@ -2257,9 +2092,6 @@ class LabeledStatement : public Statement {
 
   DEFINE_CASTING_OPERATIONS(LabeledStatement);
 
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   Statement* body() { return body_; }
 
  private:
@@ -2279,9 +2111,6 @@ class BreakStatement : public Statement {
 
   DEFINE_CASTING_OPERATIONS(BreakStatement);
 
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   intptr_t target_index() { return target_index_; }
 
  private:
@@ -2300,9 +2129,6 @@ class WhileStatement : public Statement {
   virtual ~WhileStatement();
 
   DEFINE_CASTING_OPERATIONS(WhileStatement);
-
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* condition() { return condition_; }
   Statement* body() { return body_; }
@@ -2325,9 +2151,6 @@ class DoStatement : public Statement {
 
   DEFINE_CASTING_OPERATIONS(DoStatement);
 
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   Expression* condition() { return condition_; }
   Statement* body() { return body_; }
 
@@ -2348,9 +2171,6 @@ class ForStatement : public Statement {
   virtual ~ForStatement();
 
   DEFINE_CASTING_OPERATIONS(ForStatement);
-
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   List<VariableDeclaration>& variables() { return variables_; }
   Expression* condition() { return condition_; }
@@ -2383,9 +2203,6 @@ class ForInStatement : public Statement {
 
   DEFINE_CASTING_OPERATIONS(ForInStatement);
 
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   VariableDeclaration* variable() { return variable_; }
   Expression* iterable() { return iterable_; }
   Statement* body() { return body_; }
@@ -2417,9 +2234,6 @@ class SwitchStatement : public Statement {
 
   DEFINE_CASTING_OPERATIONS(SwitchStatement);
 
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   Expression* condition() { return condition_; }
   List<SwitchCase>& cases() { return cases_; }
 
@@ -2440,9 +2254,6 @@ class SwitchCase : public TreeNode {
   virtual ~SwitchCase();
 
   DEFINE_CASTING_OPERATIONS(SwitchCase);
-
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   List<Expression>& expressions() { return expressions_; }
   bool is_default() { return is_default_; }
@@ -2470,9 +2281,6 @@ class ContinueSwitchStatement : public Statement {
 
   DEFINE_CASTING_OPERATIONS(ContinueSwitchStatement);
 
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   intptr_t target_index() { return target_index_; }
 
  private:
@@ -2492,9 +2300,6 @@ class IfStatement : public Statement {
 
   DEFINE_CASTING_OPERATIONS(IfStatement);
 
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   Expression* condition() { return condition_; }
   Statement* then() { return then_; }
   Statement* otherwise() { return otherwise_; }
@@ -2512,19 +2317,11 @@ class IfStatement : public Statement {
 
 class ReturnStatement : public Statement {
  public:
-  ReturnStatement(Expression* expression, bool can_stream)
-      : expression_(expression) {
-    can_stream_ = can_stream;
-  }
-
   static ReturnStatement* ReadFrom(Reader* reader);
 
   virtual ~ReturnStatement();
 
   DEFINE_CASTING_OPERATIONS(ReturnStatement);
-
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Expression* expression() { return expression_; }
 
@@ -2544,9 +2341,6 @@ class TryCatch : public Statement {
   virtual ~TryCatch();
 
   DEFINE_CASTING_OPERATIONS(TryCatch);
-
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   Statement* body() { return body_; }
   List<Catch>& catches() { return catches_; }
@@ -2568,9 +2362,6 @@ class Catch : public TreeNode {
   virtual ~Catch();
 
   DEFINE_CASTING_OPERATIONS(Catch);
-
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   DartType* guard() { return guard_; }
   VariableDeclaration* exception() { return exception_; }
@@ -2606,9 +2397,6 @@ class TryFinally : public Statement {
 
   DEFINE_CASTING_OPERATIONS(TryFinally);
 
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   Statement* body() { return body_; }
   Statement* finalizer() { return finalizer_; }
 
@@ -2633,9 +2421,6 @@ class YieldStatement : public Statement {
   virtual ~YieldStatement();
 
   DEFINE_CASTING_OPERATIONS(YieldStatement);
-
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   bool is_yield_start() { return (flags_ & kFlagYieldStar) == kFlagYieldStar; }
   bool is_native() { return (flags_ & kFlagNative) == kFlagNative; }
@@ -2664,9 +2449,6 @@ class VariableDeclaration : public Statement {
   virtual ~VariableDeclaration();
 
   DEFINE_CASTING_OPERATIONS(VariableDeclaration);
-
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   bool IsConst() { return (flags_ & kFlagConst) == kFlagConst; }
   bool IsFinal() { return (flags_ & kFlagFinal) == kFlagFinal; }
@@ -2711,9 +2493,6 @@ class FunctionDeclaration : public Statement {
 
   DEFINE_CASTING_OPERATIONS(FunctionDeclaration);
 
-  virtual void AcceptStatementVisitor(StatementVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
-
   VariableDeclaration* variable() { return variable_; }
   FunctionNode* function() { return function_; }
 
@@ -2734,9 +2513,6 @@ class Name : public Node {
   virtual ~Name();
 
   DEFINE_CASTING_OPERATIONS(Name);
-
-  virtual void AcceptVisitor(Visitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   StringIndex string_index() { return string_index_; }
   NameIndex library() { return library_reference_; }
@@ -2761,7 +2537,6 @@ class DartType : public Node {
 
   DEFINE_CASTING_OPERATIONS(DartType);
 
-  virtual void AcceptVisitor(Visitor* visitor);
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor) = 0;
 
  protected:
@@ -2781,7 +2556,6 @@ class InvalidType : public DartType {
   DEFINE_CASTING_OPERATIONS(InvalidType);
 
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
  private:
   InvalidType() {}
@@ -2799,7 +2573,6 @@ class DynamicType : public DartType {
   DEFINE_CASTING_OPERATIONS(DynamicType);
 
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
  private:
   DynamicType() {}
@@ -2817,7 +2590,6 @@ class VoidType : public DartType {
   DEFINE_CASTING_OPERATIONS(VoidType);
 
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
  private:
   VoidType() {}
@@ -2835,7 +2607,6 @@ class BottomType : public DartType {
   DEFINE_CASTING_OPERATIONS(BottomType);
 
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
  private:
   BottomType() {}
@@ -2856,7 +2627,6 @@ class InterfaceType : public DartType {
   DEFINE_CASTING_OPERATIONS(InterfaceType);
 
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   NameIndex klass() { return class_reference_; }
   List<DartType>& type_arguments() { return type_arguments_; }
@@ -2882,7 +2652,6 @@ class TypedefType : public DartType {
   DEFINE_CASTING_OPERATIONS(TypedefType);
 
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   NameIndex typedef_reference() { return typedef_reference_; }
   List<DartType>& type_arguments() { return type_arguments_; }
@@ -2927,7 +2696,6 @@ class FunctionType : public DartType {
   DEFINE_CASTING_OPERATIONS(FunctionType);
 
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   TypeParameterList& type_parameters() { return type_parameters_; }
   int required_parameter_count() { return required_parameter_count_; }
@@ -2957,7 +2725,6 @@ class TypeParameterType : public DartType {
   DEFINE_CASTING_OPERATIONS(TypeParameterType);
 
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   TypeParameter* parameter() { return parameter_; }
 
@@ -2979,7 +2746,6 @@ class VectorType : public DartType {
   DEFINE_CASTING_OPERATIONS(VectorType);
 
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
  private:
   VectorType() {}
@@ -2995,9 +2761,6 @@ class TypeParameter : public TreeNode {
   virtual ~TypeParameter();
 
   DEFINE_CASTING_OPERATIONS(TypeParameter);
-
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   StringIndex name() { return name_index_; }
   DartType* bound() { return bound_; }
@@ -3023,9 +2786,6 @@ class Program : public TreeNode {
   virtual ~Program();
 
   DEFINE_CASTING_OPERATIONS(Program);
-
-  virtual void AcceptTreeVisitor(TreeVisitor* visitor);
-  virtual void VisitChildren(Visitor* visitor);
 
   SourceTable& source_table() { return source_table_; }
   List<Library>& libraries() { return libraries_; }
@@ -3177,114 +2937,6 @@ class ExpressionVisitor {
 };
 
 
-class StatementVisitor {
- public:
-  virtual ~StatementVisitor() {}
-
-  virtual void VisitDefaultStatement(Statement* node) = 0;
-  virtual void VisitInvalidStatement(InvalidStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitExpressionStatement(ExpressionStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitBlock(Block* node) { VisitDefaultStatement(node); }
-  virtual void VisitEmptyStatement(EmptyStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitAssertStatement(AssertStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitLabeledStatement(LabeledStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitBreakStatement(BreakStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitWhileStatement(WhileStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitDoStatement(DoStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitForStatement(ForStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitForInStatement(ForInStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitSwitchStatement(SwitchStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitContinueSwitchStatement(ContinueSwitchStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitIfStatement(IfStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitReturnStatement(ReturnStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitTryCatch(TryCatch* node) { VisitDefaultStatement(node); }
-  virtual void VisitTryFinally(TryFinally* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitYieldStatement(YieldStatement* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitVariableDeclaration(VariableDeclaration* node) {
-    VisitDefaultStatement(node);
-  }
-  virtual void VisitFunctionDeclaration(FunctionDeclaration* node) {
-    VisitDefaultStatement(node);
-  }
-};
-
-
-class MemberVisitor {
- public:
-  virtual ~MemberVisitor() {}
-
-  virtual void VisitDefaultMember(Member* node) = 0;
-  virtual void VisitConstructor(Constructor* node) { VisitDefaultMember(node); }
-  virtual void VisitProcedure(Procedure* node) { VisitDefaultMember(node); }
-  virtual void VisitField(Field* node) { VisitDefaultMember(node); }
-};
-
-
-class ClassVisitor {
- public:
-  virtual ~ClassVisitor() {}
-
-  virtual void VisitDefaultClass(Class* node) = 0;
-  virtual void VisitNormalClass(NormalClass* node) { VisitDefaultClass(node); }
-  virtual void VisitMixinClass(MixinClass* node) { VisitDefaultClass(node); }
-};
-
-
-class InitializerVisitor {
- public:
-  virtual ~InitializerVisitor() {}
-
-  virtual void VisitDefaultInitializer(Initializer* node) = 0;
-  virtual void VisitInvalidInitializer(InvalidInitializer* node) {
-    VisitDefaultInitializer(node);
-  }
-  virtual void VisitFieldInitializer(FieldInitializer* node) {
-    VisitDefaultInitializer(node);
-  }
-  virtual void VisitSuperInitializer(SuperInitializer* node) {
-    VisitDefaultInitializer(node);
-  }
-  virtual void VisitRedirectingInitializer(RedirectingInitializer* node) {
-    VisitDefaultInitializer(node);
-  }
-  virtual void VisitLocalInitializer(LocalInitializer* node) {
-    VisitDefaultInitializer(node);
-  }
-};
-
-
 class DartTypeVisitor {
  public:
   virtual ~DartTypeVisitor() {}
@@ -3311,74 +2963,6 @@ class DartTypeVisitor {
   virtual void VisitTypedefType(TypedefType* node) {
     VisitDefaultDartType(node);
   }
-};
-
-
-class TreeVisitor : public ExpressionVisitor,
-                    public StatementVisitor,
-                    public MemberVisitor,
-                    public ClassVisitor,
-                    public InitializerVisitor {
- public:
-  virtual ~TreeVisitor() {}
-
-  virtual void VisitDefaultTreeNode(TreeNode* node) = 0;
-  virtual void VisitDefaultStatement(Statement* node) {
-    VisitDefaultTreeNode(node);
-  }
-  virtual void VisitDefaultExpression(Expression* node) {
-    VisitDefaultTreeNode(node);
-  }
-  virtual void VisitDefaultMember(Member* node) { VisitDefaultTreeNode(node); }
-  virtual void VisitDefaultClass(Class* node) { VisitDefaultTreeNode(node); }
-  virtual void VisitDefaultInitializer(Initializer* node) {
-    VisitDefaultTreeNode(node);
-  }
-
-  virtual void VisitLibrary(Library* node) { VisitDefaultTreeNode(node); }
-  virtual void VisitTypeParameter(TypeParameter* node) {
-    VisitDefaultTreeNode(node);
-  }
-  virtual void VisitFunctionNode(FunctionNode* node) {
-    VisitDefaultTreeNode(node);
-  }
-  virtual void VisitArguments(Arguments* node) { VisitDefaultTreeNode(node); }
-  virtual void VisitNamedExpression(NamedExpression* node) {
-    VisitDefaultTreeNode(node);
-  }
-  virtual void VisitSwitchCase(SwitchCase* node) { VisitDefaultTreeNode(node); }
-  virtual void VisitCatch(Catch* node) { VisitDefaultTreeNode(node); }
-  virtual void VisitMapEntry(MapEntry* node) { VisitDefaultTreeNode(node); }
-  virtual void VisitProgram(Program* node) { VisitDefaultTreeNode(node); }
-  virtual void VisitTypedef(Typedef* node) { VisitDefaultTreeNode(node); }
-};
-
-
-class Visitor : public TreeVisitor, public DartTypeVisitor {
- public:
-  virtual ~Visitor() {}
-
-  virtual void VisitDefaultNode(Node* node) = 0;
-  virtual void VisitDefaultTreeNode(TreeNode* node) { VisitDefaultNode(node); }
-  virtual void VisitDefaultDartType(DartType* node) { VisitDefaultNode(node); }
-  virtual void VisitName(Name* node) { VisitDefaultNode(node); }
-  virtual void VisitDefaultClassReference(Class* node) {
-    VisitDefaultNode(node);
-  }
-  virtual void VisitDefaultMemberReference(Member* node) {
-    VisitDefaultNode(node);
-  }
-};
-
-
-class RecursiveVisitor : public Visitor {
- public:
-  virtual ~RecursiveVisitor() {}
-
-  virtual void VisitDefaultNode(Node* node) { node->VisitChildren(this); }
-
-  virtual void VisitDefaultClassReference(Class* node) {}
-  virtual void VisitDefaultMemberReference(Member* node) {}
 };
 
 

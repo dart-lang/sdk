@@ -195,14 +195,14 @@ abstract class NoSuchMethodResolver {
   ///
   ///     noSuchMethod(i) => super.noSuchMethod(i);
   ///
-  bool hasForwardingSyntax(FunctionEntity method);
+  bool hasForwardingSyntax(covariant FunctionEntity method);
 
   /// Computes whether [method] is of the form
   ///
   ///     noSuchMethod(i) => throw new Error();
   ///
-  bool hasThrowingSyntax(FunctionEntity method);
+  bool hasThrowingSyntax(covariant FunctionEntity method);
 
   /// Returns the `noSuchMethod` that [method] overrides.
-  FunctionEntity getSuperNoSuchMethod(FunctionEntity method);
+  FunctionEntity getSuperNoSuchMethod(covariant FunctionEntity method);
 }

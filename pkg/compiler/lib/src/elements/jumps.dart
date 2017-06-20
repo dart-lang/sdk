@@ -36,5 +36,5 @@ abstract class JumpTarget<T> extends Local {
   void set isBreakTarget(bool value);
   void set isContinueTarget(bool value);
 
-  LabelDefinition<T> addLabel(T label, String labelName);
+  LabelDefinition<T> addLabel(covariant T label, String labelName);
 }

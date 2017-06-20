@@ -139,7 +139,6 @@ class AbstractAnalysisTest {
     // Create server
     //
     AnalysisServerOptions options = new AnalysisServerOptions();
-    options.enableNewAnalysisDriver = true;
     return new AnalysisServer(
         serverChannel,
         resourceProvider,

@@ -11,12 +11,15 @@ import "../elements/elements.dart"
         Element,
         ErroneousElement,
         FunctionElement,
-        MethodElement;
+        GetterElement,
+        MethodElement,
+        SetterElement;
 import "../elements/operators.dart"
     show AssignmentOperator, BinaryOperator, IncDecOperator, UnaryOperator;
 import "../elements/resolution_types.dart"
     show ResolutionDartType, ResolutionInterfaceType;
-import "../tree/tree.dart" show Expression, NewExpression, Node, NodeList, Send;
+import "../tree/tree.dart"
+    show Expression, NewExpression, Node, NodeList, Send, SendSet;
 import "../universe/call_structure.dart" show CallStructure;
 import "../universe/selector.dart" show Selector;
 import 'accessors.dart';
@@ -184,8 +187,8 @@ abstract class UnresolvedVisitor {
         receiver, methodName, buildArguments(arguments), constructor);
   }
 
-  ir.Expression visitUnresolvedCompound(
-      Send node, Element element, AssignmentOperator operator, Node rhs, _) {
+  ir.Expression visitUnresolvedCompound(Send node, ErroneousElement element,
+      AssignmentOperator operator, Node rhs, _) {
     return buildThrowUnresolvedGetter('${node.selector}');
   }
 
@@ -202,12 +205,12 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedPostfix(
-      Send node, Element element, IncDecOperator operator, _) {
+      Send node, ErroneousElement element, IncDecOperator operator, _) {
     return buildThrowUnresolvedGetter('${node.selector}');
   }
 
   ir.Expression visitUnresolvedPrefix(
-      Send node, Element element, IncDecOperator operator, _) {
+      Send node, ErroneousElement element, IncDecOperator operator, _) {
     return buildThrowUnresolvedGetter('${node.selector}');
   }
 
@@ -223,7 +226,7 @@ abstract class UnresolvedVisitor {
         possiblyErroneousFunctionToIr(constructor), buildArguments(arguments));
   }
 
-  ir.Expression visitUnresolvedSet(Send node, Element element, Node rhs, _) {
+  ir.Expression visitUnresolvedSet(SendSet node, Element element, Node rhs, _) {
     return buildThrowUnresolvedSetter('${node.selector}', visitForValue(rhs));
   }
 
@@ -258,7 +261,7 @@ abstract class UnresolvedVisitor {
 
   ir.Expression visitUnresolvedStaticSetterCompound(
       Send node,
-      MethodElement getter,
+      GetterElement getter,
       Element element,
       AssignmentOperator operator,
       Node rhs,
@@ -268,7 +271,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedStaticSetterPostfix(Send node,
-      MethodElement getter, Element element, IncDecOperator operator, _) {
+      GetterElement getter, Element element, IncDecOperator operator, _) {
     var accessor = new ClassStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
     var result = accessor.buildPostfixIncrement(
@@ -279,7 +282,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedStaticSetterPrefix(Send node,
-      MethodElement getter, Element element, IncDecOperator operator, _) {
+      GetterElement getter, Element element, IncDecOperator operator, _) {
     var accessor = new ClassStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
     var result = accessor.buildPrefixIncrement(
@@ -290,7 +293,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedStaticSetterSetIfNull(
-      Send node, MethodElement getter, Element element, Node rhs, _) {
+      Send node, GetterElement getter, Element element, Node rhs, _) {
     var accessor = new ClassStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
     return accessor.buildNullAwareAssignment(visitForValue(rhs), null,
@@ -312,8 +315,8 @@ abstract class UnresolvedVisitor {
     return buildThrowUnresolvedSuperGetter('${node.selector}');
   }
 
-  ir.Expression visitUnresolvedSuperCompoundIndexSet(Send node, Element element,
-      Node index, AssignmentOperator operator, Node rhs, _) {
+  ir.Expression visitUnresolvedSuperCompoundIndexSet(SendSet node,
+      Element element, Node index, AssignmentOperator operator, Node rhs, _) {
     return buildUnresolvedSuperIndexAccessor(index, element)
         .buildCompoundAssignment(
             new ir.Name(operator.selectorName), visitForValue(rhs));
@@ -323,13 +326,18 @@ abstract class UnresolvedVisitor {
     return buildThrowUnresolvedSuperGetter('${node.selector}');
   }
 
-  ir.Expression visitUnresolvedSuperGetterCompound(Send node, Element element,
-      MethodElement setter, AssignmentOperator operator, Node rhs, _) {
+  ir.Expression visitUnresolvedSuperGetterCompound(
+      SendSet node,
+      Element element,
+      SetterElement setter,
+      AssignmentOperator operator,
+      Node rhs,
+      _) {
     return buildThrowUnresolvedSuperGetter('${node.selector}');
   }
 
   ir.Expression visitUnresolvedSuperGetterCompoundIndexSet(
-      Send node,
+      SendSet node,
       Element element,
       MethodElement setter,
       Node index,
@@ -340,7 +348,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedSuperGetterIndexPostfix(
-      Send node,
+      SendSet node,
       Element element,
       MethodElement setter,
       Node index,
@@ -350,7 +358,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedSuperGetterIndexPrefix(
-      Send node,
+      SendSet node,
       Element element,
       MethodElement setter,
       Node index,
@@ -359,13 +367,13 @@ abstract class UnresolvedVisitor {
     return buildThrowUnresolvedSuperGetter('${node.selector}');
   }
 
-  ir.Expression visitUnresolvedSuperGetterPostfix(Send node, Element element,
-      MethodElement setter, IncDecOperator operator, _) {
+  ir.Expression visitUnresolvedSuperGetterPostfix(SendSet node, Element element,
+      SetterElement setter, IncDecOperator operator, _) {
     return buildThrowUnresolvedSuperGetter('${node.selector}');
   }
 
-  ir.Expression visitUnresolvedSuperGetterPrefix(Send node, Element element,
-      MethodElement setter, IncDecOperator operator, _) {
+  ir.Expression visitUnresolvedSuperGetterPrefix(SendSet node, Element element,
+      SetterElement setter, IncDecOperator operator, _) {
     return buildThrowUnresolvedSuperGetter('${node.selector}');
   }
 
@@ -390,7 +398,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedSuperIndexSet(
-      Send node, Element element, Node index, Node rhs, _) {
+      SendSet node, ErroneousElement element, Node index, Node rhs, _) {
     return buildUnresolvedSuperIndexAccessor(index, element)
         .buildAssignment(visitForValue(rhs));
   }
@@ -403,12 +411,12 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedSuperPostfix(
-      Send node, Element element, IncDecOperator operator, _) {
+      SendSet node, Element element, IncDecOperator operator, _) {
     return buildThrowUnresolvedSuperGetter('${node.selector}');
   }
 
   ir.Expression visitUnresolvedSuperPrefix(
-      Send node, Element element, IncDecOperator operator, _) {
+      SendSet node, Element element, IncDecOperator operator, _) {
     return buildThrowUnresolvedSuperGetter('${node.selector}');
   }
 
@@ -419,7 +427,7 @@ abstract class UnresolvedVisitor {
 
   ir.Expression visitUnresolvedSuperSetterCompound(
       Send node,
-      MethodElement getter,
+      GetterElement getter,
       Element element,
       AssignmentOperator operator,
       Node rhs,
@@ -430,7 +438,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedSuperSetterCompoundIndexSet(
-      Send node,
+      SendSet node,
       MethodElement getter,
       Element element,
       Node index,
@@ -443,7 +451,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedSuperSetterIndexPostfix(
-      Send node,
+      SendSet node,
       MethodElement indexFunction,
       Element element,
       Node index,
@@ -454,7 +462,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedSuperSetterIndexPrefix(
-      Send node,
+      SendSet node,
       MethodElement indexFunction,
       Element element,
       Node index,
@@ -464,20 +472,20 @@ abstract class UnresolvedVisitor {
         .buildPrefixIncrement(new ir.Name(operator.selectorName));
   }
 
-  ir.Expression visitUnresolvedSuperSetterPostfix(Send node,
-      MethodElement getter, Element element, IncDecOperator operator, _) {
+  ir.Expression visitUnresolvedSuperSetterPostfix(SendSet node,
+      GetterElement getter, Element element, IncDecOperator operator, _) {
     return buildUnresolvedSuperPropertyAccessor('${node.selector}', getter)
         .buildPostfixIncrement(new ir.Name(operator.selectorName));
   }
 
-  ir.Expression visitUnresolvedSuperSetterPrefix(Send node,
-      MethodElement getter, Element element, IncDecOperator operator, _) {
+  ir.Expression visitUnresolvedSuperSetterPrefix(SendSet node,
+      GetterElement getter, Element element, IncDecOperator operator, _) {
     return buildUnresolvedSuperPropertyAccessor('${node.selector}', getter)
         .buildPrefixIncrement(new ir.Name(operator.selectorName));
   }
 
   ir.Expression visitUnresolvedSuperSetterSetIfNull(
-      Send node, MethodElement getter, Element element, Node rhs, _) {
+      Send node, GetterElement getter, Element element, Node rhs, _) {
     return buildUnresolvedSuperPropertyAccessor('${node.selector}', getter)
         .buildNullAwareAssignment(visitForValue(rhs), null);
   }
@@ -523,7 +531,7 @@ abstract class UnresolvedVisitor {
 
   ir.Expression visitUnresolvedTopLevelSetterCompound(
       Send node,
-      MethodElement getter,
+      GetterElement getter,
       Element element,
       AssignmentOperator operator,
       Node rhs,
@@ -538,7 +546,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedTopLevelSetterPostfix(Send node,
-      MethodElement getter, Element element, IncDecOperator operator, _) {
+      GetterElement getter, Element element, IncDecOperator operator, _) {
     var accessor = new TopLevelStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
     var result = accessor.buildPostfixIncrement(
@@ -549,7 +557,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedTopLevelSetterPrefix(Send node,
-      MethodElement getter, Element element, IncDecOperator operator, _) {
+      GetterElement getter, Element element, IncDecOperator operator, _) {
     var accessor = new TopLevelStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
     var result = accessor.buildPrefixIncrement(
@@ -560,20 +568,20 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression visitUnresolvedTopLevelSetterSetIfNull(
-      Send node, MethodElement getter, Element element, Node rhs, _) {
+      Send node, GetterElement getter, Element element, Node rhs, _) {
     var accessor = new TopLevelStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
     return accessor.buildNullAwareAssignment(visitForValue(rhs), null,
         voidContext: isVoidContext);
   }
 
-  ir.Expression visitUnresolvedSuperGetterIndexSetIfNull(Send node,
+  ir.Expression visitUnresolvedSuperGetterIndexSetIfNull(SendSet node,
       Element element, MethodElement setter, Node index, Node rhs, _) {
     return buildUnresolvedSuperIndexAccessor(index, element)
         .buildNullAwareAssignment(visitForValue(rhs), null);
   }
 
-  ir.Expression visitUnresolvedSuperSetterIndexSetIfNull(Send node,
+  ir.Expression visitUnresolvedSuperSetterIndexSetIfNull(SendSet node,
       MethodElement getter, Element element, Node index, Node rhs, _) {
     return buildUnresolvedSuperIndexAccessor(index, element)
         .buildNullAwareAssignment(visitForValue(rhs), null);

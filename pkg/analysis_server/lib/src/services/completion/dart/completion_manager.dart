@@ -14,7 +14,6 @@ import 'package:analysis_server/src/services/completion/dart/common_usage_sorter
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -105,7 +104,10 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   final AnalysisResult result;
 
   @override
-  final LibraryElement coreLib;
+  final ResourceProvider resourceProvider;
+
+  @override
+  final InterfaceType objectType;
 
   @override
   final Source source;
@@ -120,15 +122,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   Source librarySource;
 
   @override
-  final ResourceProvider resourceProvider;
-
-  @override
   CompletionTarget target;
-
-  /**
-   * The [DartType] for Object in dart:core
-   */
-  InterfaceType _objectType;
 
   OpType _opType;
 
@@ -139,7 +133,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   DartCompletionRequestImpl._(
       this.result,
       this.resourceProvider,
-      this.coreLib,
+      this.objectType,
       this.librarySource,
       this.source,
       this.offset,
@@ -165,14 +159,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       }
     }
     return null;
-  }
-
-  @override
-  InterfaceType get objectType {
-    if (_objectType == null) {
-      _objectType = coreLib.getType('Object').type;
-    }
-    return _objectType;
   }
 
   OpType get opType {
@@ -237,19 +223,14 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     const BUILD_REQUEST_TAG = 'build DartCompletionRequest';
     performance.logStartTime(BUILD_REQUEST_TAG);
 
-    Source libSource;
-    CompilationUnit unit;
-    unit = request.result.unit;
-    // TODO(scheglov) support for parts
-    libSource = resolutionMap.elementDeclaredByCompilationUnit(unit).source;
-
-    LibraryElement coreLib =
-        await request.result.driver.getLibraryByUri('dart:core');
+    CompilationUnit unit = request.result.unit;
+    Source libSource = unit.element.library.source;
+    InterfaceType objectType = request.result.typeProvider.objectType;
 
     DartCompletionRequestImpl dartRequest = new DartCompletionRequestImpl._(
         request.result,
         request.resourceProvider,
-        coreLib,
+        objectType,
         libSource,
         request.source,
         request.offset,

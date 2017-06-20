@@ -393,7 +393,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
     ConstantValue argument = createString(text);
     // TODO(johnniwinther): Use type arguments when all uses no longer expect
     // a [FieldElement].
-    Map<FieldEntity, ConstantValue> fields = <dynamic, ConstantValue>{
+    Map<dynamic, ConstantValue> fields = <dynamic, ConstantValue>{
       field: argument
     };
     return new ConstructedConstantValue(type, fields);

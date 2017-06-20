@@ -22,6 +22,7 @@ import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/apiimpl.dart' as apiimpl;
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/null_compiler_output.dart';
@@ -138,7 +139,7 @@ class TestDiagnosticReporter extends DiagnosticReporterWrapper {
   DiagnosticReporter reporter;
 
   @override
-  withCurrentElement(Element element, f()) {
+  withCurrentElement(Entity element, f()) {
     return super.withCurrentElement(element, () {
       compiler.test('Compiler.withCurrentElement');
       return f();

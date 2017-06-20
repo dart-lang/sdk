@@ -1319,18 +1319,31 @@ void ARM64Decoder::DecodeFPImm(Instr* instr) {
 
 
 void ARM64Decoder::DecodeFPIntCvt(Instr* instr) {
-  if ((instr->Bit(29) != 0) || (instr->Bits(22, 2) != 1)) {
+  if ((instr->Bit(29) != 0)) {
     Unknown(instr);
     return;
   }
-  if (instr->Bits(16, 5) == 2) {
-    Format(instr, "scvtfd'sf 'vd, 'rn");
-  } else if (instr->Bits(16, 5) == 6) {
-    Format(instr, "fmovrd'sf 'rd, 'vn");
-  } else if (instr->Bits(16, 5) == 7) {
-    Format(instr, "fmovdr'sf 'vd, 'rn");
-  } else if (instr->Bits(16, 5) == 24) {
-    Format(instr, "fcvtzds'sf 'rd, 'vn");
+
+  if ((instr->SFField() == 0) && (instr->Bits(22, 2) == 0)) {
+    if (instr->Bits(16, 5) == 6) {
+      Format(instr, "fmovrs'sf 'rd, 'vn");
+    } else if (instr->Bits(16, 5) == 7) {
+      Format(instr, "fmovsr'sf 'vd, 'rn");
+    } else {
+      Unknown(instr);
+    }
+  } else if (instr->Bits(22, 2) == 1) {
+    if (instr->Bits(16, 5) == 2) {
+      Format(instr, "scvtfd'sf 'vd, 'rn");
+    } else if (instr->Bits(16, 5) == 6) {
+      Format(instr, "fmovrd'sf 'rd, 'vn");
+    } else if (instr->Bits(16, 5) == 7) {
+      Format(instr, "fmovdr'sf 'vd, 'rn");
+    } else if (instr->Bits(16, 5) == 24) {
+      Format(instr, "fcvtzds'sf 'rd, 'vn");
+    } else {
+      Unknown(instr);
+    }
   } else {
     Unknown(instr);
   }

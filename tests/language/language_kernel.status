@@ -136,8 +136,6 @@ vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test u
 
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM
 
-list_literal4_test: RuntimeError # KernelVM bug: Checked mode problem: list literals aren't checked.
-
 generic_field_mixin4_test: RuntimeError # KernelVM bug: Issue 29553
 
 redirecting_factory_long_test: RuntimeError # Fasta bug: Bad compilation of type arguments for redirecting factory.

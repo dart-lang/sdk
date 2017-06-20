@@ -153,7 +153,7 @@ class MockCompiler extends Compiler {
     }).then((_) => uri);
   }
 
-  Future run(Uri uri, [String mainSource = ""]) {
+  Future<bool> run(Uri uri, [String mainSource = ""]) {
     return init(mainSource).then((Uri mainUri) {
       return super.run(uri == null ? mainUri : uri);
     }).then((result) {
@@ -290,7 +290,7 @@ class MockCompiler extends Compiler {
 }
 
 class MockResolvedUriTranslator implements ResolvedUriTranslator {
-  static final _emptySet = new Set();
+  static final dynamic _emptySet = new Set();
 
   Uri translate(LibraryElement importingLibrary, Uri resolvedUri,
           Spannable spannable) =>

@@ -50,7 +50,6 @@ void check(ProcessResult result) {
 
 void checkNotFound(ProcessResult result, String filename) {
   Expect.notEquals(0, result.exitCode);
-  File outFile = new File(outFilePath);
   Expect.isTrue(result.stdout.contains("404"));
   Expect.isTrue(result.stdout.contains(filename));
 }
@@ -164,13 +163,19 @@ Future testHttp() {
 void initializeSSL() {
   Uri pathOfPkcert = pathOfData.resolve('pkcert');
   String testPkcertDatabase = pathOfPkcert.toFilePath();
+  // Issue 29926.
+  // ignore: UNDEFINED_METHOD
   SecureSocket.initialize(database: testPkcertDatabase, password: 'dartdart');
 }
 
 Future testHttps() {
   initializeSSL();
   return HttpServer
+      // Issue 29926.
+      // ignore: NOT_ENOUGH_REQUIRED_ARGUMENTS
       .bindSecure(InternetAddress.LOOPBACK_IP_V4, 0,
+          // Issue 29926.
+          // ignore: UNDEFINED_NAMED_PARAMETER
           certificateName: 'localhost_cert')
       .then((HttpServer server) => serverRunning(server, "https"));
 }

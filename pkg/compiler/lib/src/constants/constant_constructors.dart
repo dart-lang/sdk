@@ -72,7 +72,7 @@ class ConstantConstructorComputer extends SemanticVisitor
     internalError(node, template.replaceFirst('#', '$node'));
   }
 
-  internalError(Node node, String message) {
+  internalError(Spannable node, String message) {
     throw new UnsupportedError(message);
   }
 

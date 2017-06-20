@@ -55,7 +55,7 @@ class Check {
 /// inequivalence.
 class CheckStrategy extends TestStrategy {
   const CheckStrategy(
-      {Equivalence<Entity> elementEquivalence: areElementsEquivalent,
+      {Equivalence<Entity> elementEquivalence: areEntitiesEquivalent,
       Equivalence<DartType> typeEquivalence: areTypesEquivalent,
       Equivalence<ConstantExpression> constantEquivalence:
           areConstantsEquivalent,

@@ -39,15 +39,19 @@ abstract class ConstantConstructor {
 abstract class ConstantConstructorVisitor<R, A> {
   const ConstantConstructorVisitor();
 
-  R visit(ConstantConstructor constantConstructor, A context) {
+  R visit(
+      covariant ConstantConstructor constantConstructor, covariant A context) {
     return constantConstructor.accept(this, context);
   }
 
-  R visitGenerative(GenerativeConstantConstructor constructor, A arg);
+  R visitGenerative(
+      covariant GenerativeConstantConstructor constructor, covariant A arg);
   R visitRedirectingGenerative(
-      RedirectingGenerativeConstantConstructor constructor, A arg);
+      covariant RedirectingGenerativeConstantConstructor constructor,
+      covariant A arg);
   R visitRedirectingFactory(
-      RedirectingFactoryConstantConstructor constructor, A arg);
+      covariant RedirectingFactoryConstantConstructor constructor,
+      covariant A arg);
 }
 
 /// A generative constant constructor.

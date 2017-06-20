@@ -37,14 +37,8 @@ class DiagnosticDomainHandler implements RequestHandler {
 
   /// Answer the `diagnostic.getDiagnostics` request.
   Response computeDiagnostics(Request request) {
-    List<ContextData> contexts = <ContextData>[];
-    if (server.options.enableNewAnalysisDriver) {
-      contexts = server.driverMap.values.map(extractDataFromDriver).toList();
-    } else {
-      for (AnalysisContext context in server.analysisContexts) {
-        contexts.add(extractDataFromContext(context));
-      }
-    }
+    List<ContextData> contexts =
+        server.driverMap.values.map(extractDataFromDriver).toList();
     return new DiagnosticGetDiagnosticsResult(contexts).toResponse(request.id);
   }
 

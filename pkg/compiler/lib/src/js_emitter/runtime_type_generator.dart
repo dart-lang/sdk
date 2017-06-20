@@ -178,8 +178,14 @@ class RuntimeTypeGenerator {
       }
     }
 
-    _generateIsTestsOn(classElement, generateIsTest,
-        generateFunctionTypeSignature, generateSubstitution, generateTypeCheck);
+    _generateIsTestsOn(classElement, (Element e) {
+      generateIsTest(e);
+    }, (Element e, ResolutionFunctionType t) {
+      generateFunctionTypeSignature(e, t);
+    },
+        (Element e, {bool emitNull: false}) =>
+            generateSubstitution(e, emitNull: emitNull),
+        generateTypeCheck);
 
     if (classElement == _commonElements.jsJavaScriptFunctionClass) {
       var type = _jsInteropAnalysis.buildJsFunctionType();

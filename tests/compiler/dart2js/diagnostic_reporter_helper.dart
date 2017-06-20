@@ -8,7 +8,7 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
-import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'options_helper.dart';
 
@@ -67,7 +67,7 @@ abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
   SourceSpan spanFromToken(Token token) => reporter.spanFromToken(token);
 
   @override
-  withCurrentElement(Element element, f()) {
+  withCurrentElement(Entity element, f()) {
     return reporter.withCurrentElement(element, f);
   }
 

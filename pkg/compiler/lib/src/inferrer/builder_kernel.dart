@@ -103,7 +103,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ClosureRepresentationInfo closureData = compiler.closureDataLookup
+    ClosureRepresentationInfo closureData = compiler
+        .backendStrategy.closureDataLookup
         .getClosureRepresentationInfo(resolvedAst.element);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);

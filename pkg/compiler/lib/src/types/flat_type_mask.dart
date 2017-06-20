@@ -526,7 +526,8 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  bool needsNoSuchMethodHandling(Selector selector, ClosedWorld closedWorld) {
+  bool needsNoSuchMethodHandling(
+      Selector selector, covariant ClosedWorld closedWorld) {
     // A call on an empty type mask is either dead code, or a call on
     // `null`.
     if (isEmptyOrNull) return false;

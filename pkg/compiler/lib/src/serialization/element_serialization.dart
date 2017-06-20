@@ -102,8 +102,8 @@ abstract class ElementSerializer {
 
   /// Serializes [element] into the [encoder] using the [kind] computed
   /// by [getSerializedKind].
-  void serialize(
-      Element element, ObjectEncoder encoder, SerializedElementKind kind);
+  void serialize(covariant Element element, ObjectEncoder encoder,
+      SerializedElementKind kind);
 }
 
 class SerializerUtil {

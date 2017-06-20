@@ -250,8 +250,8 @@ class ErroneousElementX extends ElementX
   get functionSignature => unsupported();
   get parameterStructure => unsupported();
   get parameters => unsupported();
-  get patch => null;
-  get origin => this;
+  Element get patch => null;
+  Element get origin => this;
   get immediateRedirectionTarget => unsupported();
   get nestedClosures => unsupported();
   get memberContext => unsupported();
@@ -381,8 +381,7 @@ class ErroneousConstructorElementX extends ErroneousElementX
   }
 
   @override
-  void setEffectiveTarget(
-      ConstructorElement target, ResolutionInterfaceType type,
+  void setEffectiveTarget(ConstructorElement target, ResolutionDartType type,
       {bool isMalformed: false}) {
     throw new UnsupportedError("setEffectiveTarget");
   }
@@ -461,6 +460,21 @@ class ErroneousConstructorElementX extends ErroneousElementX
   set _redirectionDeferredPrefix(_) {
     throw new UnsupportedError("_redirectionDeferredPrefix=");
   }
+
+  // TODO(johnniwinther): Remove this.
+  ConstructorElementX get declaration => super.declaration;
+
+  // TODO(johnniwinther): Remove this.
+  ConstructorElementX get implementation => super.implementation;
+
+  // TODO(johnniwinther): Remove this.
+  ConstructorElementX get origin => super.origin;
+
+  // TODO(johnniwinther): Remove this.
+  ConstructorElementX get patch => super.patch;
+
+  ResolutionFunctionType computeType(Resolution resolution) =>
+      super.computeType(resolution);
 }
 
 /// A message attached to a [WarnOnUseElementX].
@@ -814,7 +828,7 @@ class CompilationUnitElementX extends ElementX
 
   bool get hasMembers => !localMembers.isEmpty;
 
-  Element get analyzableElement => library;
+  AnalyzableElement get analyzableElement => library;
 
   accept(ElementVisitor visitor, arg) {
     return visitor.visitCompilationUnitElement(this, arg);
@@ -1076,7 +1090,7 @@ class LibraryElementX extends ElementX
 
   CompilationUnitElement get compilationUnit => entryCompilationUnit;
 
-  Element get analyzableElement => this;
+  AnalyzableElement get analyzableElement => this;
 
   void addCompilationUnit(CompilationUnitElement element) {
     compilationUnits = compilationUnits.prepend(element);
@@ -1264,9 +1278,17 @@ class LibraryElementX extends ElementX
     return visitor.visitLibraryElement(this, arg);
   }
 
-  // TODO(johnniwinther): Remove these when issue 18630 is fixed.
-  LibraryElementX get patch => super.patch;
+  // TODO(johnniwinther): Remove this.
+  LibraryElementX get declaration => super.declaration;
+
+  // TODO(johnniwinther): Remove this.
+  LibraryElementX get implementation => super.implementation;
+
+  // TODO(johnniwinther): Remove this.
   LibraryElementX get origin => super.origin;
+
+  // TODO(johnniwinther): Remove this.
+  LibraryElementX get patch => super.patch;
 }
 
 class PrefixElementX extends ElementX implements PrefixElement {
@@ -1312,10 +1334,7 @@ class PrefixElementX extends ElementX implements PrefixElement {
 }
 
 class TypedefElementX extends ElementX
-    with
-        AstElementMixin,
-        AnalyzableElementX,
-        TypeDeclarationElementX<ResolutionTypedefType>
+    with AstElementMixin, AnalyzableElementX, TypeDeclarationElementX
     implements TypedefElement {
   Typedef cachedNode;
 
@@ -1392,6 +1411,10 @@ class TypedefElementX extends ElementX
 
   // A typedef cannot be patched therefore defines itself.
   AstElement get definingElement => this;
+
+  ResolutionTypedefType get thisType => super.thisType;
+
+  ResolutionTypedefType get rawType => super.rawType;
 }
 
 // This class holds common information for a list of variable or field
@@ -1907,6 +1930,8 @@ class InitializingFormalElementX extends ParameterElementX
 
   @override
   bool get isLocal => true;
+
+  ConstructorElement get functionDeclaration => super.functionDeclaration;
 }
 
 class ErroneousInitializingFormalElementX extends ParameterElementX
@@ -1929,6 +1954,8 @@ class ErroneousInitializingFormalElementX extends ParameterElementX
   bool get isMalformed => true;
 
   ResolutionDynamicType get type => const ResolutionDynamicType();
+
+  ConstructorElement get functionDeclaration => super.functionDeclaration;
 }
 
 class AbstractFieldElementX extends ElementX
@@ -1983,27 +2010,26 @@ class AbstractFieldElementX extends ElementX
 
 // TODO(johnniwinther): [FunctionSignature] should be merged with
 // [FunctionType].
-// TODO(karlklose): all these lists should have element type [FormalElement].
 class FunctionSignatureX extends FunctionSignatureCommon
     implements FunctionSignature {
   final List<ResolutionDartType> typeVariables;
-  final List<Element> requiredParameters;
-  final List<Element> optionalParameters;
+  final List<FormalElement> requiredParameters;
+  final List<FormalElement> optionalParameters;
   final int requiredParameterCount;
   final int optionalParameterCount;
   final bool optionalParametersAreNamed;
-  final List<Element> orderedOptionalParameters;
+  final List<FormalElement> orderedOptionalParameters;
   final ResolutionFunctionType type;
   final bool hasOptionalParameters;
 
   FunctionSignatureX(
       {this.typeVariables: const <ResolutionDartType>[],
-      this.requiredParameters: const <Element>[],
+      this.requiredParameters: const <FormalElement>[],
       this.requiredParameterCount: 0,
-      List<Element> optionalParameters: const <Element>[],
+      List<Element> optionalParameters: const <FormalElement>[],
       this.optionalParameterCount: 0,
       this.optionalParametersAreNamed: false,
-      this.orderedOptionalParameters: const <Element>[],
+      this.orderedOptionalParameters: const <FormalElement>[],
       this.type})
       : optionalParameters = optionalParameters,
         hasOptionalParameters = !optionalParameters.isEmpty;
@@ -2104,6 +2130,18 @@ abstract class BaseFunctionElementX extends ElementX
 
   @override
   List<ResolutionDartType> get typeVariables => functionSignature.typeVariables;
+
+  // TODO(johnniwinther): Remove this.
+  FunctionElement get declaration => super.declaration;
+
+  // TODO(johnniwinther): Remove this.
+  FunctionElement get implementation => super.implementation;
+
+  // TODO(johnniwinther): Remove this.
+  FunctionElement get origin => super.origin;
+
+  // TODO(johnniwinther): Remove this.
+  FunctionElement get patch => super.patch;
 }
 
 abstract class FunctionElementX extends BaseFunctionElementX
@@ -2279,8 +2317,6 @@ abstract class ConstructorElementX extends FunctionElementX
   ConstructorElement _immediateRedirectionTarget;
   PrefixElement _redirectionDeferredPrefix;
 
-  ConstructorElementX get patch => super.patch;
-
   bool get isRedirectingGenerative {
     if (isPatched) return patch.isRedirectingGenerative;
     return isRedirectingGenerativeInternal;
@@ -2411,10 +2447,21 @@ abstract class ConstructorElementX extends FunctionElementX
   ConstructorElement get definingConstructor => null;
 
   ClassElement get enclosingClass => enclosingElement.declaration;
+
+  // TODO(johnniwinther): Remove this.
+  ConstructorElementX get declaration => super.declaration;
+
+  // TODO(johnniwinther): Remove this.
+  ConstructorElementX get implementation => super.implementation;
+
+  // TODO(johnniwinther): Remove this.
+  ConstructorElementX get origin => super.origin;
+
+  // TODO(johnniwinther): Remove this.
+  ConstructorElementX get patch => super.patch;
 }
 
-class DeferredLoaderGetterElementX extends GetterElementX
-    implements GetterElement {
+class DeferredLoaderGetterElementX extends GetterElementX {
   final PrefixElement prefix;
 
   DeferredLoaderGetterElementX(PrefixElement prefix)
@@ -2540,7 +2587,7 @@ class ConstructorBodyElementX extends BaseFunctionElementX
 
   Element get outermostEnclosingMemberOrTopLevel => constructor;
 
-  Element get analyzableElement => constructor.analyzableElement;
+  AnalyzableElement get analyzableElement => constructor.analyzableElement;
 
   accept(ElementVisitor visitor, arg) {
     return visitor.visitConstructorBodyElement(this, arg);
@@ -2596,7 +2643,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
 
   ResolvedAst get resolvedAst => _resolvedAst;
 
-  ResolutionDartType get type {
+  ResolutionFunctionType get type {
     if (isDefaultConstructor) {
       return super.type;
     } else {
@@ -2624,8 +2671,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
   }
 }
 
-abstract class TypeDeclarationElementX<T extends GenericType>
-    implements TypeDeclarationElement {
+abstract class TypeDeclarationElementX implements TypeDeclarationElement {
   /**
    * The `this type` for this type declaration.
    *
@@ -2637,7 +2683,7 @@ abstract class TypeDeclarationElementX<T extends GenericType>
    *
    * This type is computed in [computeType].
    */
-  T thisTypeCache;
+  GenericType thisTypeCache;
 
   /**
    * The raw type for this type declaration.
@@ -2657,21 +2703,21 @@ abstract class TypeDeclarationElementX<T extends GenericType>
    *
    * This type is computed together with [thisType] in [computeType].
    */
-  T rawTypeCache;
+  GenericType rawTypeCache;
 
-  T get thisType {
+  GenericType get thisType {
     assert(thisTypeCache != null,
         failedAt(this, 'This type has not been computed for $this'));
     return thisTypeCache;
   }
 
-  T get rawType {
+  GenericType get rawType {
     assert(rawTypeCache != null,
         failedAt(this, 'Raw type has not been computed for $this'));
     return rawTypeCache;
   }
 
-  T createType(List<ResolutionDartType> typeArguments);
+  GenericType createType(List<ResolutionDartType> typeArguments);
 
   void setThisAndRawTypes(List<ResolutionDartType> typeParameters) {
     assert(thisTypeCache == null,
@@ -2725,7 +2771,7 @@ abstract class BaseClassElementX extends ElementX
         AstElementMixin,
         AnalyzableElementX,
         ClassElementCommon,
-        TypeDeclarationElementX<ResolutionInterfaceType>,
+        TypeDeclarationElementX,
         PatchMixin<ClassElement>,
         ClassMemberMixin
     implements ClassElement {
@@ -2823,12 +2869,24 @@ abstract class BaseClassElementX extends ElementX
     return supertype == null ? null : supertype.element;
   }
 
-  // TODO(johnniwinther): Remove these when issue 18630 is fixed.
-  ClassElement get patch => super.patch;
-  ClassElement get origin => super.origin;
-
   // A class declaration is defined by the declaration element.
   AstElement get definingElement => declaration;
+
+  ResolutionInterfaceType get thisType => super.thisType;
+
+  ResolutionInterfaceType get rawType => super.rawType;
+
+  // TODO(johnniwinther): Remove this.
+  ClassElement get declaration => super.declaration;
+
+  // TODO(johnniwinther): Remove this.
+  ClassElement get implementation => super.implementation;
+
+  // TODO(johnniwinther): Remove this.
+  ClassElement get origin => super.origin;
+
+  // TODO(johnniwinther): Remove this.
+  ClassElement get patch => super.patch;
 }
 
 abstract class ClassElementX extends BaseClassElementX {
@@ -2935,7 +2993,7 @@ abstract class ClassElementX extends BaseClassElementX {
 class EnumClassElementX extends ClassElementX
     implements EnumClassElement, DeclarationSite {
   final Enum node;
-  List<FieldElement> _enumValues;
+  List<EnumConstantElement> _enumValues;
 
   EnumClassElementX(String name, Element enclosing, int id, this.node)
       : super(name, enclosing, id, STATE_NOT_STARTED);
@@ -2960,13 +3018,13 @@ class EnumClassElementX extends ClassElementX
   List<ResolutionDartType> computeTypeParameters(ParsingContext parsing) =>
       const <ResolutionDartType>[];
 
-  List<FieldElement> get enumValues {
+  List<EnumConstantElement> get enumValues {
     assert(_enumValues != null,
         failedAt(this, "enumValues has not been computed for $this."));
     return _enumValues;
   }
 
-  void set enumValues(List<FieldElement> values) {
+  void set enumValues(List<EnumConstantElement> values) {
     assert(_enumValues == null,
         failedAt(this, "enumValues has already been computed for $this."));
     _enumValues = values;
@@ -3187,6 +3245,8 @@ class EnumConstantElementX extends EnumFieldElementX
     return new SourceSpan(enclosingClass.sourcePosition.uri,
         position.charOffset, position.charEnd);
   }
+
+  EnumClassElement get enclosingClass => super.enclosingClass;
 }
 
 abstract class MixinApplicationElementX extends BaseClassElementX
@@ -3463,11 +3523,11 @@ class ParameterMetadataAnnotation extends MetadataAnnotationX {
 
 /// Mixin for the implementation of patched elements.
 ///
-/// See [:patch_parser.dart:] for a description of the terminology.
+/// See `patch_parser.dart` for a description of the terminology.
 abstract class PatchMixin<E extends Element> implements Element {
-  // TODO(johnniwinther): Use type variables when issue 18630 is fixed.
-  Element /*E*/ patch = null;
-  Element /*E*/ origin = null;
+  // TODO(johnniwinther): Use type variables.
+  Element /* E */ patch = null;
+  Element /* E */ origin = null;
 
   bool get isPatch => origin != null;
   bool get isPatched => patch != null;
@@ -3475,8 +3535,8 @@ abstract class PatchMixin<E extends Element> implements Element {
   bool get isImplementation => !isPatched;
   bool get isDeclaration => !isPatch;
 
-  Element /*E*/ get implementation => isPatched ? patch : this;
-  Element /*E*/ get declaration => isPatch ? origin : this;
+  Element /* E */ get implementation => isPatched ? patch : this;
+  Element /* E */ get declaration => isPatch ? origin : this;
 
   /// Applies a patch to this element. This method must be called at most once.
   void applyPatch(PatchMixin<E> patch) {

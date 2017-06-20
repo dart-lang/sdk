@@ -1561,13 +1561,13 @@ void Assembler::StoreUnaligned(Register src,
   if ((sz == kWord) || (sz == kUnsignedWord)) {
     return;
   }
-  LsrImmediate(tmp, src, 24);
-  str(tmp, Address(addr, 4), kUnsignedByte);
   LsrImmediate(tmp, src, 32);
-  str(tmp, Address(addr, 5), kUnsignedByte);
+  str(tmp, Address(addr, 4), kUnsignedByte);
   LsrImmediate(tmp, src, 40);
-  str(tmp, Address(addr, 6), kUnsignedByte);
+  str(tmp, Address(addr, 5), kUnsignedByte);
   LsrImmediate(tmp, src, 48);
+  str(tmp, Address(addr, 6), kUnsignedByte);
+  LsrImmediate(tmp, src, 56);
   str(tmp, Address(addr, 7), kUnsignedByte);
   if (sz == kDoubleWord) {
     return;

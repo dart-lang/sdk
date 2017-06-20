@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
-import "package:compiler/src/elements/elements.dart" show Element, ClassElement;
+import "package:compiler/src/elements/elements.dart" show ClassElement;
 
 void main() {
   testMixinSupertypes();
@@ -33,7 +33,6 @@ void testMixinSupertypes() {
         ClassElement S = env.getElement('S');
         ClassElement M1 = env.getElement('M1');
         ClassElement M2 = env.getElement('M2');
-        ClassElement M3 = env.getElement('M3');
         ClassElement C1 = env.getElement('C1');
         ClassElement C2 = env.getElement('C2');
 
@@ -111,11 +110,6 @@ void testNonTrivialSubstitutions() {
         ClassElement E2 = env.getElement('E2');
         ClassElement F1 = env.getElement('F1');
         ClassElement F2 = env.getElement('F2');
-
-        ClassElement C1_A_B = C1.superclass;
-        ClassElement D1_A_B = D1.superclass;
-        ClassElement E1_A_B = E1.superclass;
-        ClassElement F1_A_B = F1.superclass;
 
         void testSupertypes(ClassElement element,
             Map<ClassElement, List<ResolutionDartType>> typeArguments) {

@@ -4,16 +4,12 @@
 
 library dart2js.serialization.duplicate_libraryc_test;
 
-import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/names.dart';
-import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/filenames.dart';
 import '../memory_compiler.dart';
 import 'helper.dart';
-import 'test_data.dart';
 
 void main(List<String> args) {
   asyncTest(() async {

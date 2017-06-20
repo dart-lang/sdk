@@ -11,9 +11,9 @@ import 'compiler_helper.dart';
 import 'type_test_helper.dart';
 
 ResolutionDartType getType(compiler, String name) {
-  var clazz = findElement(compiler, "Class");
+  dynamic clazz = findElement(compiler, "Class");
   clazz.ensureResolved(compiler.resolution);
-  var element = clazz.buildScope().lookup(name);
+  dynamic element = clazz.buildScope().lookup(name);
   Expect.isNotNull(element);
   Expect.equals(element.kind, ElementKind.FUNCTION);
   element.computeType(compiler.resolution);
@@ -48,8 +48,6 @@ void testAsInstanceOf() {
       class E<T> extends A<A<T>> {}
       class F<T, U> extends B<F<T, String>> implements A<F<B<U>, int>> {}
       ''').then((env) {
-        var compiler = env.compiler;
-
         ClassElement A = env.getElement("A");
         ClassElement B = env.getElement("B");
         ClassElement C = env.getElement("C");
@@ -57,7 +55,6 @@ void testAsInstanceOf() {
         ClassElement E = env.getElement("E");
         ClassElement F = env.getElement("F");
 
-        ResolutionDartType numType = env['num'];
         ResolutionDartType intType = env['int'];
         ResolutionDartType stringType = env['String'];
 

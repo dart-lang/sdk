@@ -46,11 +46,6 @@ abstract class DartCompletionContributor {
  */
 abstract class DartCompletionRequest extends CompletionRequest {
   /**
-   * Return the dart:core library element
-   */
-  LibraryElement get coreLib;
-
-  /**
    * Return the expression to the right of the "dot" or "dot dot",
    * or `null` if this is not a "dot" completion (e.g. `foo.b`).
    */

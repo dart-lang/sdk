@@ -7449,7 +7449,7 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   bool get hasImplicitType {
     if (_unlinkedParam != null) {
-      return _unlinkedParam.type == null;
+      return _unlinkedParam.type == null && !_unlinkedParam.isFunctionTyped;
     }
     return super.hasImplicitType;
   }

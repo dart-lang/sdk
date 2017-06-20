@@ -7,13 +7,10 @@ library dart2js.analyze_test.test;
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'package:compiler/src/filenames.dart' show nativeToUriPath;
 
 import 'analyze_helper.dart';
-import 'memory_compiler.dart';
 
 /**
  * Map of white-listed warnings and errors.
@@ -22,7 +19,7 @@ import 'memory_compiler.dart';
  * the error/warning message in the list of white-listings for each file.
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
-const Map<String, List/*<String|MessageKind>*/ > WHITE_LIST = const {
+const Map<String, List /* <String|MessageKind> */ > WHITE_LIST = const {
   "/test/lib/src/util/": const [
     "Library 'package:async/async.dart' doesn't export a "
         "'ForkableStream' declaration.",

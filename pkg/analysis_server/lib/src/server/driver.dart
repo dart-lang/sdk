@@ -241,12 +241,6 @@ class Driver implements ServerStarter {
       "incremental-resolution-validation";
 
   /**
-   * The name of the option used to disable using the new analysis driver.
-   */
-  static const String DISABLE_NEW_ANALYSIS_DRIVER =
-      'disable-new-analysis-driver';
-
-  /**
    * The name of the option used to cause instrumentation to also be written to
    * a local file.
    */
@@ -382,8 +376,6 @@ class Driver implements ServerStarter {
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
-    analysisServerOptions.enableNewAnalysisDriver =
-        !results[DISABLE_NEW_ANALYSIS_DRIVER];
     analysisServerOptions.useAnalysisHighlight2 =
         results[USE_ANALYSIS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
@@ -421,12 +413,10 @@ class Driver implements ServerStarter {
           .defaultSdkDirectory(PhysicalResourceProvider.INSTANCE)
           .path;
     }
-    bool useSummaries = analysisServerOptions.fileReadMode == 'as-is' ||
-        analysisServerOptions.enableNewAnalysisDriver;
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    DartSdk defaultSdk = _createDefaultSdk(defaultSdkPath, useSummaries);
+    DartSdk defaultSdk = _createDefaultSdk(defaultSdkPath, true);
     //
     // Initialize the instrumentation service.
     //
@@ -457,7 +447,7 @@ class Driver implements ServerStarter {
     //
     socketServer = new SocketServer(
         analysisServerOptions,
-        new DartSdkManager(defaultSdkPath, useSummaries),
+        new DartSdkManager(defaultSdkPath, true),
         defaultSdk,
         instrumentationService,
         diagnosticServer,
@@ -543,10 +533,6 @@ class Driver implements ServerStarter {
         help: "set a destination for the incremental resolver's log");
     parser.addFlag(INCREMENTAL_RESOLUTION_VALIDATION,
         help: "enable validation of incremental resolution results (slow)",
-        defaultsTo: false,
-        negatable: false);
-    parser.addFlag(DISABLE_NEW_ANALYSIS_DRIVER,
-        help: "disable using new analysis driver",
         defaultsTo: false,
         negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,

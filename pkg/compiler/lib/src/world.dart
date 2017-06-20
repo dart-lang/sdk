@@ -253,7 +253,8 @@ abstract class ClosedWorld implements World {
   /// Returns whether [element] will be the one used at runtime when being
   /// invoked on an instance of [cls]. [selector] is used to ensure library
   /// privacy is taken into account.
-  bool hasElementIn(ClassEntity cls, Selector selector, Entity element);
+  bool hasElementIn(
+      covariant ClassEntity cls, Selector selector, covariant Entity element);
 
   /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
   /// of known classes.
@@ -365,7 +366,7 @@ abstract class ClosedWorldRefiner {
 
   /// Adds the closure class [cls] to the inference world. The class is
   /// considered directly instantiated.
-  void registerClosureClass(ClassElement cls);
+  void registerClosureClass(covariant ClassElement cls);
 }
 
 abstract class OpenWorld implements World {
@@ -373,7 +374,7 @@ abstract class OpenWorld implements World {
   ///
   /// This ensures that class hierarchy queries can be performed on [cls] and
   /// classes that extend or implement it.
-  void registerClass(ClassEntity cls);
+  void registerClass(covariant ClassEntity cls);
 
   void registerUsedElement(MemberEntity element);
   void registerTypedef(TypedefElement typedef);
@@ -484,23 +485,24 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     return cachedMasks.putIfAbsent(base, createMask);
   }
 
-  bool checkEntity(Entity element);
+  bool checkEntity(covariant Entity element);
 
-  bool checkClass(ClassEntity cls);
+  bool checkClass(covariant ClassEntity cls);
 
-  bool checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true});
+  bool checkInvariants(covariant ClassEntity cls,
+      {bool mustBeInstantiated: true});
 
-  OrderedTypeSet getOrderedTypeSet(ClassEntity cls);
+  OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
 
-  int getHierarchyDepth(ClassEntity cls);
+  int getHierarchyDepth(covariant ClassEntity cls);
 
-  ClassEntity getSuperClass(ClassEntity cls);
+  ClassEntity getSuperClass(covariant ClassEntity cls);
 
-  Iterable<ClassEntity> getInterfaces(ClassEntity cls);
+  Iterable<ClassEntity> getInterfaces(covariant ClassEntity cls);
 
-  ClassEntity getAppliedMixin(ClassEntity cls);
+  ClassEntity getAppliedMixin(covariant ClassEntity cls);
 
-  bool isNamedMixinApplication(ClassEntity cls);
+  bool isNamedMixinApplication(covariant ClassEntity cls);
 
   @override
   bool isInstantiated(ClassEntity cls) {
@@ -801,8 +803,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   /// Returns whether a [selector] call on an instance of [cls]
   /// will hit a method at runtime, and not go through [noSuchMethod].
-  bool hasConcreteMatch(ClassEntity cls, Selector selector,
-      {ClassEntity stopAtSuperclass});
+  bool hasConcreteMatch(covariant ClassEntity cls, Selector selector,
+      {covariant ClassEntity stopAtSuperclass});
 
   @override
   bool needsNoSuchMethod(
@@ -1075,12 +1077,12 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     return sideEffects;
   }
 
-  SideEffects getSideEffectsOfElement(Entity element) {
+  SideEffects getSideEffectsOfElement(covariant Entity element) {
     assert(checkEntity(element));
     return _sideEffects.putIfAbsent(element, _makeSideEffects);
   }
 
-  static _makeSideEffects() => new SideEffects();
+  static SideEffects _makeSideEffects() => new SideEffects();
 
   @override
   SideEffects getCurrentlyKnownSideEffects(Entity element) {

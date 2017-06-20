@@ -4826,8 +4826,8 @@ class CodeGenerator extends Object
           element: accessor,
           alwaysSymbolizeNative: true);
       if (isSuper) {
-        result =
-            _callHelper('bind(this, #, #.#)', [safeName, jsTarget, safeName]);
+        result = _callHelper('bind(this, #, #)',
+            [safeName, _emitTargetAccess(jsTarget, name, accessor)]);
       } else if (_isObjectMemberCall(target, memberName)) {
         result = _callHelper('bind(#, #, #.#)',
             [jsTarget, _propertyName(memberName), _runtimeModule, memberName]);

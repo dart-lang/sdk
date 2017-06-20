@@ -307,10 +307,9 @@ class _LookupMapAnalysis implements LookupMapAnalysis {
       key.isPrimitive || _inUse.contains(key) || _overridesEquals(key);
 
   void _addClassUse(ClassEntity cls) {
-    ConstantValue key = _typeConstants.putIfAbsent(
-        cls,
-        () => _constantSystem.createType(
-            _commonElements, _elementEnvironment.getRawType(cls)));
+    TypeConstantValue f() => _constantSystem.createType(
+        _commonElements, _elementEnvironment.getRawType(cls));
+    ConstantValue key = _typeConstants.putIfAbsent(cls, f);
     _addUse(key);
   }
 

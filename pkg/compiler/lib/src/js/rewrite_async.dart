@@ -2036,7 +2036,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     List<int> enclosingFinallyLabels = <int>[exitLabel];
     enclosingFinallyLabels.addAll(jumpTargets
         .where((js.Node node) => finallyLabels[node] != null)
-        .map((js.Block node) => finallyLabels[node]));
+        .map((js.Node node) => finallyLabels[node]));
     addStatement(js.js.statement("# = #;", [
       nextWhenCanceled,
       new js.ArrayInitializer(enclosingFinallyLabels.map(js.number).toList())

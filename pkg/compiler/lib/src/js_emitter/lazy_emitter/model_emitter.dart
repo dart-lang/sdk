@@ -149,8 +149,7 @@ class ModelEmitter {
     // We have to emit the deferred fragments first, since we need their
     // deferred hash (which depends on the output) when emitting the main
     // fragment.
-    List<js.Expression> fragmentsCode =
-        deferredFragments.map((DeferredFragment deferredUnit) {
+    List<js.Expression> fragmentsCode = deferredFragments.map((deferredUnit) {
       js.Expression types =
           program.metadataTypesForOutputUnit(deferredUnit.outputUnit);
       return emitDeferredFragment(types, deferredUnit, program.holders);
@@ -400,14 +399,13 @@ class ModelEmitter {
     List<js.Property> globals = <js.Property>[];
 
     js.ArrayInitializer fragmentUris(List<Fragment> fragments) {
-      return js.stringArray(fragments.map((DeferredFragment fragment) =>
-          "${fragment.outputFileName}.$deferredExtension"));
+      return js.stringArray(fragments
+          .map((fragment) => "${fragment.outputFileName}.$deferredExtension"));
     }
 
     js.ArrayInitializer fragmentHashes(List<Fragment> fragments) {
       // TODO(floitsch): the hash must depend on the generated code.
-      return js.numArray(
-          fragments.map((DeferredFragment fragment) => fragment.hashCode));
+      return js.numArray(fragments.map((fragment) => fragment.hashCode));
     }
 
     List<js.Property> uris = new List<js.Property>(loadMap.length);

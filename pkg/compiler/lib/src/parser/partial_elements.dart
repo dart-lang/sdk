@@ -139,6 +139,7 @@ abstract class PartialFunctionElement
   PartialFunctionElement copyWithEnclosing(Element enclosing);
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class PartialMethodElement extends MethodElementX
     with PartialElement, PartialFunctionMixin
     implements PartialFunctionElement {
@@ -161,6 +162,7 @@ class PartialMethodElement extends MethodElementX
   }
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class PartialGetterElement extends GetterElementX
     with PartialElement, PartialFunctionMixin
     implements GetterElement, PartialFunctionElement {
@@ -186,6 +188,7 @@ class PartialGetterElement extends GetterElementX
   }
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class PartialSetterElement extends SetterElementX
     with PartialElement, PartialFunctionMixin
     implements SetterElement, PartialFunctionElement {

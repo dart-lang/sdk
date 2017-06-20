@@ -192,7 +192,8 @@ class TypeResolver {
     assert(visibleTypeParameterNames != null);
 
     if (node.typeParameters != null) {
-      List<String> newTypeNames = node.typeParameters.map((TypeVariable node) {
+      List<String> newTypeNames = node.typeParameters.map((_node) {
+        TypeVariable node = _node;
         return node.name.asIdentifier().source;
       }).toList();
       visibleTypeParameterNames = visibleTypeParameterNames.toList()

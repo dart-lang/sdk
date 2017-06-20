@@ -163,6 +163,12 @@ class TypeInferenceListener
           FunctionExpression expression, DartType inferredType) =>
       debugExpressionExit("functionExpression", expression, inferredType);
 
+  bool ifNullEnter(Expression expression, DartType typeContext) =>
+      debugExpressionEnter('ifNull', expression, typeContext);
+
+  void ifNullExit(Expression expression, DartType inferredType) =>
+      debugExpressionExit('ifNull', expression, inferredType);
+
   void ifStatementEnter(IfStatement statement) =>
       debugStatementEnter('ifStatement', statement);
 
@@ -231,10 +237,10 @@ class TypeInferenceListener
   void propertyAssignExit(Expression expression, DartType inferredType) =>
       debugExpressionExit("propertyAssign", expression, inferredType);
 
-  bool propertyGetEnter(PropertyGet expression, DartType typeContext) =>
+  bool propertyGetEnter(Expression expression, DartType typeContext) =>
       debugExpressionEnter("propertyGet", expression, typeContext);
 
-  void propertyGetExit(PropertyGet expression, DartType inferredType) =>
+  void propertyGetExit(Expression expression, DartType inferredType) =>
       debugExpressionExit("propertyGet", expression, inferredType);
 
   bool propertySetEnter(PropertySet expression, DartType typeContext) =>

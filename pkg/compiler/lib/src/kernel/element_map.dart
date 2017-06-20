@@ -87,7 +87,7 @@ abstract class KernelToElementMap {
   MemberEntity getMember(ir.Member node);
 
   /// Returns the kernel IR node that defines the [member].
-  ir.Member getMemberNode(MemberEntity member);
+  ir.Node getMemberNode(covariant MemberEntity member);
 
   /// Returns the [FunctionEntity] corresponding to the procedure [node].
   FunctionEntity getMethod(ir.Procedure node);
@@ -1020,8 +1020,8 @@ abstract class KernelToTypeInferenceMap {
   TypeMask typeOfSet(ir.PropertySet write, ClosedWorld closedWorld);
 
   /// Returns the inferred type of [listLiteral].
-  TypeMask typeOfListLiteral(
-      MemberEntity owner, ir.ListLiteral listLiteral, ClosedWorld closedWorld);
+  TypeMask typeOfListLiteral(covariant MemberEntity owner,
+      ir.ListLiteral listLiteral, ClosedWorld closedWorld);
 
   /// Returns the inferred type of iterator in [forInStatement].
   TypeMask typeOfIterator(ir.ForInStatement forInStatement);
@@ -1067,10 +1067,10 @@ abstract class KernelToLocalsMap {
   // TODO(johnniwinther): Make these return the [KernelToLocalsMap] to use from
   // now on.
   /// Call to notify that [member] is currently being inlined.
-  void enterInlinedMember(MemberEntity member);
+  void enterInlinedMember(covariant MemberEntity member);
 
   /// Call to notify that [member] is no longer being inlined.
-  void leaveInlinedMember(MemberEntity member);
+  void leaveInlinedMember(covariant MemberEntity member);
 
   /// Returns the [Local] for [node].
   Local getLocal(ir.VariableDeclaration node);
