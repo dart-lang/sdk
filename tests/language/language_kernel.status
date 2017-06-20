@@ -128,8 +128,7 @@ mixin_type_parameters_mixin_extends_test: RuntimeError # KernelVM bug: Issue 295
 mixin_type_parameters_super_extends_test: RuntimeError # KernelVM bug: Issue 29537
 mixin_type_parameters_super_test: RuntimeError # KernelVM bug: Issue 29537
 
-evaluation_redirecting_constructor_test: RuntimeError # KernelVM bug: Field initializers evaluated multiple times
-redirecting_constructor_initializer_test: RuntimeError # KernelVM bug: Field initializers evaluated multiple times
+redirecting_constructor_initializer_test: RuntimeError # Super is evaluated last; same result as source-based pipeline.
 
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.

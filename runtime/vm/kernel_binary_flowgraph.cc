@@ -2787,11 +2787,31 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     intptr_t constructor_class_parent_offset) {
   Fragment instructions;
 
+  // Start by getting the position of the constructors initializer.
+  intptr_t initializers_offset = -1;
+  {
+    AlternativeReadingScope alt(reader_);
+    SkipFunctionNode();  // read constructors function node.
+    initializers_offset = ReaderOffset();
+  }
+
   // These come from:
   //   class A {
   //     var x = (expr);
   //   }
+  // We don't want to do that when this is a Redirecting Constructors though
+  // (i.e. has a single initializer being of type kRedirectingInitializer).
+  bool is_redirecting_constructor = false;
   {
+    AlternativeReadingScope alt(reader_, initializers_offset);
+    intptr_t list_length = ReadListLength();  // read initializers list length.
+    if (list_length == 1) {
+      Tag tag = ReadTag();
+      if (tag == kRedirectingInitializer) is_redirecting_constructor = true;
+    }
+  }
+
+  if (!is_redirecting_constructor) {
     AlternativeReadingScope alt(reader_, constructor_class_parent_offset);
     ClassHelper class_helper(this);
     class_helper.ReadUntilExcluding(ClassHelper::kFields);
@@ -2820,9 +2840,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
   //     A(this.x) : super(expr), y = (expr);
   //   }
   {
-    AlternativeReadingScope alt(reader_);
-    SkipFunctionNode();  // read constructors function node.
-
+    AlternativeReadingScope alt(reader_, initializers_offset);
     intptr_t list_length = ReadListLength();  // read initializers list length.
     for (intptr_t i = 0; i < list_length; ++i) {
       Tag tag = ReadTag();
@@ -2858,6 +2876,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           break;
         }
         case kRedirectingInitializer: {
+          ASSERT(list_length == 1);
           NameIndex canonical_target =
               ReadCanonicalNameReference();  // read target_reference.
 
