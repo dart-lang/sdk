@@ -240,6 +240,7 @@ inference/infer_generic_method_type_named: Crash
 inference/infer_generic_method_type_positional2: Crash
 inference/infer_generic_method_type_positional: Crash
 inference/infer_generic_method_type_required: Crash
+inference/infer_getter_cross_to_setter: Crash
 inference/infer_getter_from_later_inferred_getter: Crash
 inference/infer_list_literal_nested_in_map_literal: Crash
 inference/infer_local_function_return_type: Crash
@@ -248,6 +249,7 @@ inference/infer_parameter_type_setter_from_setter: Crash
 inference/infer_prefix_expression: Crash
 inference/infer_prefix_expression_custom: Crash
 inference/infer_return_of_statement_lambda: Crash
+inference/infer_setter_cross_to_getter: Crash
 inference/infer_setter_from_later_inferred_setter: Crash
 inference/infer_setter_function_typed: Crash
 inference/infer_statics_transitively2: Crash

@@ -86,8 +86,7 @@ class IncrementalClassHierarchy implements ClassHierarchy {
 
   @override
   void forEachOverridePair(Class node,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter),
-      {bool crossGettersSetters: false}) {
+      callback(Member declaredMember, Member interfaceMember, bool isSetter)) {
     _ClassInfo info = _getInfo(node);
     for (var supertype in node.supers) {
       var superNode = supertype.classNode;
@@ -104,11 +103,6 @@ class IncrementalClassHierarchy implements ClassHierarchy {
           isSetter: true);
       _reportOverrides(info.declaredSetters, superSetters, callback,
           isSetter: true, onlyAbstract: true);
-
-      if (crossGettersSetters) {
-        _reportOverrides(info.declaredGettersAndCalls, superSetters, callback);
-        _reportOverrides(info.declaredSetters, superGetters, callback);
-      }
     }
     if (!node.isAbstract) {
       // If a non-abstract class declares an abstract method M whose
@@ -122,6 +116,24 @@ class IncrementalClassHierarchy implements ClassHierarchy {
       _reportOverrides(info.implementedGettersAndCalls,
           info.declaredGettersAndCalls, callback);
       _reportOverrides(info.implementedSetters, info.declaredSetters, callback,
+          isSetter: true);
+    }
+  }
+
+  @override
+  void forEachCrossOverridePair(Class node,
+      callback(Member declaredMember, Member interfaceMember, bool isSetter),
+      {bool crossGettersSetters: false}) {
+    _ClassInfo info = _getInfo(node);
+    for (var supertype in node.supers) {
+      var superNode = supertype.classNode;
+      var superInfo = _getInfo(superNode);
+
+      var superGetters = superInfo.interfaceGettersAndCalls;
+      var superSetters = superInfo.interfaceSetters;
+
+      _reportOverrides(info.declaredGettersAndCalls, superSetters, callback);
+      _reportOverrides(info.declaredSetters, superGetters, callback,
           isSetter: true);
     }
   }

@@ -39,7 +39,11 @@ class FieldNode extends dependencyWalker.Node<FieldNode> {
 
   final overrides = <Member>[];
 
+  final crossOverrides = <Member>[];
+
   FieldNode(this._typeInferenceEngine, this.member);
+
+  get candidateOverrides => overrides.isNotEmpty ? overrides : crossOverrides;
 
   @override
   bool get isEvaluated => state == FieldState.Inferred;
@@ -158,10 +162,10 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
   List<FieldNode> computeFieldDependencies(FieldNode fieldNode) {
     // If the field's type is going to be determined by inheritance, then its
     // dependencies are determined by inheritance too.
-    if (fieldNode.overrides.isNotEmpty) {
+    var candidateOverrides = fieldNode.candidateOverrides;
+    if (candidateOverrides.isNotEmpty) {
       var dependencies = <FieldNode>[];
-      for (var override in fieldNode.overrides) {
-        // TODO(paulberry): support dependencies on getters/setters too.
+      for (var override in candidateOverrides) {
         var dep = KernelMember.getFieldNode(override);
         if (dep != null) dependencies.add(dep);
       }
@@ -335,7 +339,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   DartType tryInferFieldByInheritance(FieldNode fieldNode) {
     DartType inferredType;
-    for (var override in fieldNode.overrides) {
+    for (var override in fieldNode.candidateOverrides) {
       var nextInferredType = _computeOverriddenFieldType(override, fieldNode);
       if (inferredType == null) {
         inferredType = nextInferredType;

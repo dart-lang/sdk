@@ -182,6 +182,7 @@ abstract class KernelClassBuilder
 
   void checkOverrides(ClassHierarchy hierarchy) {
     hierarchy.forEachOverridePair(cls, checkOverride);
+    hierarchy.forEachCrossOverridePair(cls, handleCrossOverride);
   }
 
   void checkOverride(
@@ -205,6 +206,17 @@ abstract class KernelClassBuilder
     if (declaredMember is KernelMember &&
         identical(declaredMember.enclosingClass, cls)) {
       KernelMember.recordOverride(declaredMember, interfaceMember);
+    }
+  }
+
+  void handleCrossOverride(
+      Member declaredMember, Member interfaceMember, bool isSetter) {
+    // Record any cases where a field or getter/setter has a corresponding (but
+    // opposite) getter/setter in a superclass, since this information will be
+    // needed for type inference.
+    if (declaredMember is KernelMember &&
+        identical(declaredMember.enclosingClass, cls)) {
+      KernelMember.recordCrossOverride(declaredMember, interfaceMember);
     }
   }
 

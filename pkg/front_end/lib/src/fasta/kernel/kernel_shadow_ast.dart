@@ -1328,6 +1328,13 @@ abstract class KernelMember implements Member {
     return null;
   }
 
+  static void recordCrossOverride(
+      KernelMember member, Member overriddenMember) {
+    if (member._fieldNode != null) {
+      member._fieldNode.crossOverrides.add(overriddenMember);
+    }
+  }
+
   static void recordOverride(KernelMember member, Member overriddenMember) {
     if (member._fieldNode != null) {
       member._fieldNode.overrides.add(overriddenMember);
