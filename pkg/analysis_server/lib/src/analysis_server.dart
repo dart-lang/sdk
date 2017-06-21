@@ -36,7 +36,6 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analysis_server/src/single_context_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -405,7 +404,6 @@ class AnalysisServer {
       {this.diagnosticServer,
       ResolverProvider fileResolverProvider: null,
       ResolverProvider packageResolverProvider: null,
-      bool useSingleContextManager: false,
       this.rethrowExceptions: true})
       : notificationManager =
             new NotificationManager(channel, resourceProvider) {
@@ -448,19 +446,14 @@ class AnalysisServer {
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
     analysisDriverScheduler.start();
 
-    if (useSingleContextManager) {
-      contextManager = new SingleContextManager(resourceProvider, sdkManager,
-          packageResolverProvider, analyzedFilesGlobs, defaultContextOptions);
-    } else {
-      contextManager = new ContextManagerImpl(
-          resourceProvider,
-          sdkManager,
-          packageResolverProvider,
-          packageMapProvider,
-          analyzedFilesGlobs,
-          instrumentationService,
-          defaultContextOptions);
-    }
+    contextManager = new ContextManagerImpl(
+        resourceProvider,
+        sdkManager,
+        packageResolverProvider,
+        packageMapProvider,
+        analyzedFilesGlobs,
+        instrumentationService,
+        defaultContextOptions);
     this.fileResolverProvider = fileResolverProvider;
     this.packageResolverProvider = packageResolverProvider;
     ServerContextManagerCallbacks contextManagerCallbacks =

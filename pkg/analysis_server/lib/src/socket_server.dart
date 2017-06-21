@@ -36,7 +36,6 @@ class SocketServer {
   final ServerPlugin serverPlugin;
   final ResolverProvider fileResolverProvider;
   final ResolverProvider packageResolverProvider;
-  final bool useSingleContextManager;
 
   /**
    * The analysis server that was created when a client established a
@@ -57,8 +56,7 @@ class SocketServer {
       this.diagnosticServer,
       this.serverPlugin,
       this.fileResolverProvider,
-      this.packageResolverProvider,
-      this.useSingleContextManager);
+      this.packageResolverProvider);
 
   /**
    * Create an analysis server which will communicate with the client using the
@@ -98,7 +96,6 @@ class SocketServer {
         diagnosticServer: diagnosticServer,
         fileResolverProvider: fileResolverProvider,
         packageResolverProvider: packageResolverProvider,
-        useSingleContextManager: useSingleContextManager,
         rethrowExceptions: false);
     analysisServer.userDefinedPlugins = userDefinedPlugins;
   }

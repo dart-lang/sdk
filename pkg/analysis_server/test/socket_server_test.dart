@@ -121,8 +121,7 @@ class SocketServerTest {
         null,
         serverPlugin,
         null,
-        null,
-        false);
+        null);
   }
 }
 
